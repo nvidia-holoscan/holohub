@@ -12788,20 +12788,143 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pre-requisites" class="md-nav__link">
+  <a href="#environment-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      Pre-requisites
+      Environment Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Environment Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#holohub-docker-container-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Holohub Docker Container (recommended)
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#steps-for-holoscan-flow-benchmarking" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#bare-metal-installation" class="md-nav__link">
     <span class="md-ellipsis">
-      Steps for Holoscan Flow Benchmarking
+      Bare-metal Installation
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-by-step-guide-to-holoscan-flow-benchmarking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-step Guide to Holoscan Flow Benchmarking
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step-by-step Guide to Holoscan Flow Benchmarking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-build-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Build Applications
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Build Applications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-build-with-benchmarking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic Build with Benchmarking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-patching-only-if-need-to" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manual Patching [only if need to]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#important-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Important notes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-run-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Run Benchmarks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-analyze-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Analyze Results
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Analyze Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-basic-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Basic Analysis
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-generate-cdf-plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Generate CDF Plot
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-historical-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Historical Analysis
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -12811,6 +12934,21 @@
       Generate Application Graph with Latency Numbers
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Generate Application Graph with Latency Numbers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#monitor-application-performance-in-real-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitor application performance in real-time
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -12842,121 +12980,145 @@
 
 <h1 id="holoscan-flow-benchmarking-for-holohub"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking">Holoscan Flow Benchmarking for HoloHub</a><a class="headerlink" href="#holoscan-flow-benchmarking-for-holohub" title="Permanent link">#</a></h1>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> May 13, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 0.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 3 - Developmental<br><br></p>
-<p>This is a benchmarking tool to evaluate the performance of HoloHub and other Holoscan applications.
-Following is a high-level overview of Holoscan Flow Benchmarking. For more details on its possible
-use-cases, please follow <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/flow_benchmarking_tutorial.md">Holoscan Flow Benchmarking Tutorial</a>
-(up-to-date) or
-<a href="https://developer.download.nvidia.com/holoscan/Holoscan-Flow-Benchmarking.pdf">Holoscan Flow Benchmarking whitepaper</a>.</p>
-<p>The tool supports benchmarking of any Holoscan application. Holoscan Python applications are
-supported since Holoscan v1.0.</p>
+<p>Holoscan Flow Benchmarking is a comprehensive performance evaluation tool designed to measure and analyze the execution characteristics of HoloHub and Holoscan applications. It provides detailed insights into operator execution times, data transfer latencies, and overall application performance.</p>
+<p>For detailed information, refer to:</p>
+<ul>
+<li><a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/flow_benchmarking_tutorial.md">Holoscan Flow Benchmarking Tutorial</a> (up-to-date)</li>
+<li><a href="https://developer.download.nvidia.com/holoscan/Holoscan-Flow-Benchmarking.pdf">Holoscan Flow Benchmarking Whitepaper</a></li>
+</ul>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>Support for all Holoscan applications (Python support since v1.0)</li>
+<li>Real-time performance monitoring</li>
+<li>Detailed latency analysis</li>
+<li>Visual performance graphs</li>
+</ul>
 <h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">#</a></h2>
 <ul>
-<li><a href="#pre-requisites">Pre-requisites</a></li>
-<li><a href="#steps-for-holoscan-flow-benchmarking">Steps for Holoscan Flow Benchmarking</a></li>
+<li><a href="#environment-setup">Environment Setup</a></li>
+<li><a href="#holohub-docker-container-recommended">Holohub Docker Container (recommended)</a></li>
+<li><a href="#bare-metal-installation">Bare-metal Installation</a></li>
+<li><a href="#step-by-step-guide-to-holoscan-flow-benchmarking">Step-by-step Guide to Holoscan Flow Benchmarking</a></li>
+<li><a href="#1-build-applications">1. Build Applications</a></li>
+<li><a href="#2-run-benchmarks">2. Run Benchmarks</a></li>
+<li><a href="#3-analyze-results">3. Analyze Results</a></li>
 <li><a href="#generate-application-graph-with-latency-numbers">Generate Application Graph with Latency Numbers</a></li>
+<li><a href="#monitor-application-performance-in-real-time">Monitor Application Performance in Real-time</a></li>
 </ul>
-<h2 id="pre-requisites">Pre-requisites<a class="headerlink" href="#pre-requisites" title="Permanent link">#</a></h2>
-<p>The following Python libraries need to be installed to run the benchmarking scripts (<code>pip install -r requirements.txt</code> can be used):</p>
-<div class="highlight"><pre><span></span><code>numpy matplotlib nvitop argparse pydot xdot
+<h2 id="environment-setup">Environment Setup<a class="headerlink" href="#environment-setup" title="Permanent link">#</a></h2>
+<h3 id="holohub-docker-container-recommended">Holohub Docker Container (recommended)<a class="headerlink" href="#holohub-docker-container-recommended" title="Permanent link">#</a></h3>
+<p>All dependencies are automatically managed by the Holohub Docker container. You can simply run:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span><span class="o">[</span>&lt;application_name&gt;<span class="o">]</span>
 </code></pre></div>
-<p>The preferred way to use Flow Benchmarking is to use the provided Holohub docker image for automatic
-management of dependencies. Otherwise, bare-metal installation of the required libraries is needed.
-Extra dependencies might be needed to be installed to satisfy the requirements. For example, <code>xdot</code>
-has following <a href="https://github.com/jrfonseca/xdot.py?tab=readme-ov-file#requirements">dependencies</a>.</p>
-<h2 id="steps-for-holoscan-flow-benchmarking">Steps for Holoscan Flow Benchmarking<a class="headerlink" href="#steps-for-holoscan-flow-benchmarking" title="Permanent link">#</a></h2>
-<ol>
-<li><strong>Build the application</strong></li>
-</ol>
-<p>The following command patches and builds the application for benchmarking. The benchmarking patch is applied to sources during the build, then source directory files are reverted after the build completes.</p>
-<div class="highlight"><pre><span></span><code>$ ./run build &lt;application name&gt; &lt;other options&gt; --benchmark
+<h3 id="bare-metal-installation">Bare-metal Installation<a class="headerlink" href="#bare-metal-installation" title="Permanent link">#</a></h3>
+<p>If not using the Holohub Docker container, apart from the holoscan and application's specific dependencies, additional Python packages should be installed:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/requirements.txt
 </code></pre></div>
-<p>Please make sure to test that the application runs correctly after building it, and before going to
-next steps of performance evaluation. You may also make sure that all the necessary TensorRT engine
-files are generated by running the application at least once, for example, for the endoscopy tool
-tracking application.</p>
-<p><a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/patch_application.sh">patch_application.sh</a> and <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/restore_application.sh">restore_application.sh</a> scripts provide more details about the actual patching process.</p>
-<p><strong>Patch the application</strong></p>
-<p>To manually patch the application, you can run the following command:
-<div class="highlight"><pre><span></span><code>$ ./benchmarks/holoscan_flow_benchmarking/patch_application.sh &lt;application directory&gt;
-</code></pre></div></p>
-<p>For example, to patch the endoscopy tool tracking application, you would run:</p>
-<p><div class="highlight"><pre><span></span><code>$ ./benchmarks/holoscan_flow_benchmarking/patch_application.sh applications/endoscopy_tool_tracking
+<p>These python dependencies include:</p>
+<ul>
+<li>numpy: Data processing</li>
+<li>matplotlib: Graph generation</li>
+<li>nvitop: GPU monitoring</li>
+<li>argparse: CLI handling</li>
+<li>pydot: Graph creation</li>
+<li>xdot: Graph visualization</li>
+</ul>
+<p><strong>Note:</strong> <code>xdot</code> has additional system dependencies. See <a href="https://github.com/jrfonseca/xdot.py?tab=readme-ov-file#requirements">xdot requirements</a>.</p>
+<h2 id="step-by-step-guide-to-holoscan-flow-benchmarking">Step-by-step Guide to Holoscan Flow Benchmarking<a class="headerlink" href="#step-by-step-guide-to-holoscan-flow-benchmarking" title="Permanent link">#</a></h2>
+<h3 id="1-build-applications">1. Build Applications<a class="headerlink" href="#1-build-applications" title="Permanent link">#</a></h3>
+<h4 id="automatic-build-with-benchmarking">Automatic Build with Benchmarking<a class="headerlink" href="#automatic-build-with-benchmarking" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>&lt;application_name&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>--benchmark
 </code></pre></div>
-This script saves the original source files (<code>.cpp</code> or <code>.py</code>) in a corresponding <code>*.bak</code> file.</p>
-<p><strong>Restore the application</strong></p>
-<p>If benchmarking is not necessary anymore, an application can be restored by the following command:</p>
-<div class="highlight"><pre><span></span><code>$ ./benchmarks/holoscan_flow_benchmarking/restore_application.sh &lt;application directory&gt;
-</code></pre></div>
-<ol>
-<li><strong>Run the performance evaluation</strong></li>
-</ol>
-<div class="highlight"><pre><span></span><code>$ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a &lt;application name&gt; &lt;other options&gt;
-</code></pre></div>
-<p>The above command will run an application which is executed normally by
-<code>./run launch &lt;application name&gt; cpp</code>. If an application is executed differently, then use the
-<code>--run-command</code> argument to specify the command to run an application.</p>
-<p><strong>note</strong>: If the target application is a Python file, <code>benchmark.py</code> will patch the application source in the local Holohub source directory for benchmarking before running the application.</p>
-<p><code>python benchmarks/holoscan_flow_benchmarking/benchmark.py -h</code> shows all the possible benchmarking options.</p>
-<p>All the log filenames are printed out at the end of the evaluation. The format of the filename for the data flow tracking log files is:
-<code>logger_&lt;scheduler&gt;_&lt;run_number&gt;_&lt;instance-id&gt;.log</code>. The format of the filename for the GPU
-utilization log files is: <code>gpu_utilization_&lt;scheduler&gt;_&lt;run_number&gt;.csv</code>.</p>
-<p><strong>Example:</strong>
-When the endoscopy tool tracking application is evaluated for the greedy scheduler for 3 runs with 3
-instances each for 200 number of data frames, the following output is printed:
-<div class="highlight"><pre><span></span><code>$ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a endoscopy_tool_tracking -r 3 -i 3 -m 200 --sched greedy -d myoutputs
-Log directory is not found. Creating a new directory at /home/ubuntu/holoscan-sdk/holohub-internal/myoutputs
-Run 1 completed for greedy scheduler.
-Run 2 completed for greedy scheduler.
-Run 3 completed for greedy scheduler.
+<p>This command:</p>
+<ul>
+<li>Patches the application source</li>
+<li>Builds with benchmarking enabled</li>
+<li>Automatically restores source files after build</li>
+</ul>
+<h4 id="manual-patching-only-if-need-to">Manual Patching [only if need to]<a class="headerlink" href="#manual-patching-only-if-need-to" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Apply patches</span>
+./benchmarks/holoscan_flow_benchmarking/patch_application.sh<span class="w"> </span>&lt;app_directory&gt;
 
-Evaluation completed.
-Log file directory:  /home/ubuntu/holoscan-sdk/holohub/myoutputs
-All the data flow tracking log files are: logger_greedy_1_1.log, logger_greedy_1_2.log, logger_greedy_1_3.log, logger_greedy_2_1.log, logger_greedy_2_2.log, logger_greedy_2_3.log, logger_greedy_3_1.log, logger_greedy_3_2.log, logger_greedy_3_3.log
-</code></pre></div></p>
-<ol>
-<li><strong>Get performance results and insights</strong></li>
-</ol>
-<p><div class="highlight"><pre><span></span><code>$ python benchmarks/holoscan_flow_benchmarking/analyze.py -g &lt;group of log files&gt; &lt;options&gt;
+<span class="c1"># Example: Patch endoscopy tool tracking</span>
+./benchmarks/holoscan_flow_benchmarking/patch_application.sh<span class="w"> </span>applications/endoscopy_tool_tracking
+
+<span class="c1"># Restore original files when done</span>
+./benchmarks/holoscan_flow_benchmarking/restore_application.sh<span class="w"> </span>&lt;app_directory&gt;
 </code></pre></div>
-<code>python benchmarks/holoscan_flow_benchmarking/analyze.py -h</code> shows all the possible options.</p>
-<p><strong>Example:</strong>
-For the above example experiment with the <code>benchmark.py</code> script, we can analyze worst-case and
-average end-to-end latency by the following script:</p>
-<p><div class="highlight"><pre><span></span><code>python benchmarks/holoscan_flow_benchmarking/analyze.py -m -a -g myoutputs/logger_greedy_* MyCustomGroup
+<p><strong>Note:</strong> Source files are backed up as <code>*.bak</code> during patching.</p>
+<h3 id="important-notes">Important notes<a class="headerlink" href="#important-notes" title="Permanent link">#</a></h3>
+<ul>
+<li>Verify the application runs correctly after building and before proceeding with performance evaluation.</li>
+<li>For applications using TensorRT, run once to generate engine files (e.g., for the endoscopy tool tracking application).</li>
+<li>See <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/patch_application.sh">patch_application.sh</a> and <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/restore_application.sh">restore_application.sh</a> for more details about the patching process.</li>
+</ul>
+<h3 id="2-run-benchmarks">2. Run Benchmarks<a class="headerlink" href="#2-run-benchmarks" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/benchmark.py<span class="w"> </span>-a<span class="w"> </span>&lt;app_name&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
 </code></pre></div>
-The above command will produce an output like below:</p>
-<p><img alt="sample maximum and average latencies output" src="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/sample_output.png?raw=true" /></p>
-<p>We can also produce CDF curve of the observed latencies for a single path by the following commands:</p>
-<div class="highlight"><pre><span></span><code>$ python benchmarks/holoscan_flow_benchmarking/analyze.py --draw-cdf https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/single_path_cdf.png?raw=true -g myoutputs/logger_greedy_* MyCustomGroup --no-display-graphs
-Saved the CDF curve graph of the first path of each group in: https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/single_path_cdf.png?raw=true
+<p><strong>Key Options:</strong></p>
+<ul>
+<li><code>-a, --app</code>: Application name</li>
+<li><code>-r, --runs</code>: Number of runs</li>
+<li><code>-i, --instances</code>: Instances per run</li>
+<li><code>-m, --max-frames</code>: Number of frames to process</li>
+<li><code>--sched</code>: Scheduler type</li>
+<li><code>-d, --directory</code>: Output directory</li>
+<li><code>--run-command</code>: Custom run command (if needed)</li>
+</ul>
+<p>For a complete list of arguments, run:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/benchmark.py<span class="w"> </span>-h
 </code></pre></div>
-<p>The <code>https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/single_path_cdf.png?raw=true</code> looks like below:</p>
-<p><img alt="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/single_path_cdf.png?raw=true" src="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/single_path_cdf.png?raw=true" /></p>
-<p>A few auxiliary scripts are also provided to help plotting datewise results. For example, the
-following script plots the average end-to-end latency along with standard deviation for three
-consecutive dates:</p>
-<div class="highlight"><pre><span></span><code>python bar_plot_avg_datewise.py avg_values_2023-10-19.csv avg_values_2023-10-20.csv avg_values_2023-10-21.csv stddev_values_2023-10-19.csv stddev_values_2023-10-20.csv stddev_values_2023-10-21.csv
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run endoscopy tool tracking benchmark</span>
+python<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/benchmark.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-a<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-r<span class="w"> </span><span class="m">3</span><span class="w"> </span>-i<span class="w"> </span><span class="m">3</span><span class="w"> </span>-m<span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--sched<span class="w"> </span>greedy<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-d<span class="w"> </span>myoutputs
 </code></pre></div>
-<p><img alt="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/avg_2023-10-21.png?raw=true" src="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/avg_2023-10-21.png?raw=true" /></p>
+<p><strong>Output Files:</strong></p>
+<ul>
+<li>Data flow logs: <code>logger_&lt;scheduler&gt;_&lt;run&gt;_&lt;instance&gt;.log</code></li>
+<li>GPU utilization: <code>gpu_utilization_&lt;scheduler&gt;_&lt;run&gt;.csv</code></li>
+</ul>
+<h3 id="3-analyze-results">3. Analyze Results<a class="headerlink" href="#3-analyze-results" title="Permanent link">#</a></h3>
+<h4 id="31-basic-analysis">3.1 Basic Analysis<a class="headerlink" href="#31-basic-analysis" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/analyze.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-g<span class="w"> </span>myoutputs/logger_greedy_*<span class="w"> </span>MyCustomGroup<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-m<span class="w"> </span>-a<span class="w">  </span><span class="c1"># Show max and average latencies</span>
+</code></pre></div>
+<p><img alt="Latency Stats" src="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/sample_output.png?raw=true" /></p>
+<h4 id="32-generate-cdf-plot">3.2 Generate CDF Plot<a class="headerlink" href="#32-generate-cdf-plot" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/analyze.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--draw-cdf<span class="w"> </span>https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/single_path_cdf.png?raw<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-g<span class="w"> </span>myoutputs/logger_greedy_*<span class="w"> </span>MyCustomGroup<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--no-display-graphs
+</code></pre></div>
+<p><img alt="CDF Curve" src="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/single_path_cdf.png?raw=true" /></p>
+<h4 id="33-historical-analysis">3.3 Historical Analysis<a class="headerlink" href="#33-historical-analysis" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>bar_plot_avg_datewise.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>avg_values_2023-10-<span class="o">{</span><span class="m">19</span>,20,21<span class="o">}</span>.csv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>stddev_values_2023-10-<span class="o">{</span><span class="m">19</span>,20,21<span class="o">}</span>.csv
+</code></pre></div>
+<p><img alt="Historical Data" src="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/avg_2023-10-21.png?raw=true" /></p>
 <h2 id="generate-application-graph-with-latency-numbers">Generate Application Graph with Latency Numbers<a class="headerlink" href="#generate-application-graph-with-latency-numbers" title="Permanent link">#</a></h2>
-<p>The <code>app_perf_graph.py</code> script can be used to generate a graph of a Holoscan application with
-latency data from benchmarking embedded into the graph. The graph looks like the figure below, where
-graph nodes are operators along with their average and maximum execution times, and edges represent
-connection between operators along with the average and maximum data transfer latencies.</p>
-<p><img alt="application_perf" src="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/application_perf.png?raw=true" /></p>
-<p>It is also possible to generate such a graph and dynamically update it, while running the
-<code>benchmarking.py</code> script to benchmark an application. For example, the following three commands can
-be run in three different terminals to monitor the live performance of an endoscopy_tool_tracking
-application.</p>
-<div class="highlight"><pre><span></span><code># the following command initiates a benchmarking job and generates performance log files
-$ python3 benchmarks/holoscan_flow_benchmarking/benchmark.py -a endoscopy_tool_tracking -i 1 -d endoscopy_results --sched=greedy -r 3 -m 1000
+<p>The app_perf_graph.py script can be used to generate a graph of a Holoscan application with latency data from benchmarking embedded into the graph. The graph looks like the figure below, where graph nodes are operators along with their average and maximum execution times, and edges represent connection between operators along with the average and maximum data transfer latencies.</p>
+<p><img alt="Application Performance Graph" src="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/application_perf.png?raw=true" /></p>
+<h3 id="monitor-application-performance-in-real-time">Monitor application performance in real-time<a class="headerlink" href="#monitor-application-performance-in-real-time" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Terminal 1: Run benchmark</span>
+python3<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/benchmark.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-a<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-i<span class="w"> </span><span class="m">1</span><span class="w"> </span>-r<span class="w"> </span><span class="m">3</span><span class="w"> </span>-m<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--sched<span class="o">=</span>greedy<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-d<span class="w"> </span>endoscopy_results
 
-# the following command keeps updating an application graph with the latest performance numbers
-# -l means live mode
-$ python3 benchmarks/holoscan_flow_benchmarking/app_perf_graph.py -o live_app_graph.dot -l endoscopy_results
+<span class="c1"># Terminal 2: Generate live graph</span>
+python3<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/app_perf_graph.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-o<span class="w"> </span>live_app_graph.dot<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-l<span class="w"> </span>endoscopy_results
 
-# use another terminal to visualize the graph with xdot. the graph will be updated as app_perf_graph.py updates the graph
-$ xdot live_app_graph.dot
+<span class="c1"># Terminal 3: View live graph</span>
+xdot<span class="w"> </span>live_app_graph.dot
 </code></pre></div>
 
 
