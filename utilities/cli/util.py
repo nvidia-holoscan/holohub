@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import grp
+import os
 import re
 import shutil
 import subprocess
@@ -31,6 +32,14 @@ PROJECT_PREFIXES = {
     "package": "PKG",
     "workflow": "APP",
     "default": "APP",  # specified type but not recognized
+}
+
+BUILD_TYPES = {
+    "debug": "Debug",
+    "release": "Release",
+    "rel-debug": "RelWithDebInfo",
+    "relwithdebinfo": "RelWithDebInfo",
+    "default": "Release",
 }
 
 
@@ -221,6 +230,14 @@ def determine_project_prefix(project_type: str) -> str:
     return PROJECT_PREFIXES["default"]
 
 
+def get_buildtype_str(build_type: Optional[str]) -> str:
+    """Get CMake build type string"""
+    if not build_type:
+        return os.environ.get("CMAKE_BUILD_TYPE", BUILD_TYPES["default"])
+    build_type_str = build_type.lower().strip()
+    return BUILD_TYPES.get(build_type_str, BUILD_TYPES["default"])
+
+
 def list_metadata_json_dir(*paths: Path) -> List[Tuple[str, str]]:
     """List all metadata.json files in given paths"""
     results = []
@@ -303,7 +320,6 @@ def install_cuda_dependencies_package(
         print(f"Installing {package_name}={matching_version}")
         run_command(
             [
-                "sudo",
                 "apt",
                 "install",
                 "--no-install-recommends",

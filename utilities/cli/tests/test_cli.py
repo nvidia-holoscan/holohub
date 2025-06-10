@@ -555,6 +555,61 @@ exec {holohub_script} "$@"
         cpack_args = mock_run_command.call_args_list[2][0][0]
         self.assertIn("RPM", cpack_args)
 
+    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI._build_project_locally")
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    @patch("utilities.cli.util.run_command")
+    def test_install_command(
+        self,
+        mock_run_command,
+        mock_container_class,
+        mock_build_project_locally,
+        mock_find_project,
+    ):
+        """Test the install command in both local and container modes"""
+        # Common setup
+        mock_find_project.return_value = self.mock_project_data
+        mock_build_dir = Path("/path/to/build")
+        mock_build_project_locally.return_value = (mock_build_dir, self.mock_project_data)
+        mock_container = MagicMock()
+        mock_container_class.return_value = mock_container
+        mock_run_command.return_value = MagicMock()
+
+        # Test 1: Install in local mode
+        args = self.cli.parser.parse_args(
+            "install test_project --local --build-type release".split()
+        )
+        args.func(args)
+        mock_build_project_locally.assert_called_once()
+        call_kwargs = mock_build_project_locally.call_args[1]
+        self.assertEqual(call_kwargs["project_name"], "test_project")
+        self.assertEqual(call_kwargs["build_type"], "release")
+        mock_run_command.assert_called_with(
+            ["cmake", "--install", str(mock_build_dir)], dry_run=False
+        )
+        mock_build_project_locally.reset_mock()
+        mock_run_command.reset_mock()
+        mock_container.reset_mock()
+
+        # Test 2: Install in container mode
+        args = self.cli.parser.parse_args(
+            "install test_project --build-type debug --language cpp".split()
+        )
+        args.func(args)
+        mock_container.build.assert_called_once()
+        mock_container.run.assert_called_once()
+        kwargs = mock_container.run.call_args[1]
+        command_string = kwargs["extra_args"][1]
+        self.assertIn("./holohub install test_project --local", command_string)
+        self.assertIn("--build-type debug", command_string)
+        self.assertIn("--language cpp", command_string)
+        mock_container.reset_mock()
+        args = self.cli.parser.parse_args("install test_project --parallel 4".split())
+        args.func(args)
+        kwargs = mock_container.run.call_args[1]
+        command_string = kwargs["extra_args"][1]
+        self.assertIn("--parallel 4", command_string)
+
 
 class TestRunCommand(unittest.TestCase):
     """Test the run_command function with explicit shell parameter"""
