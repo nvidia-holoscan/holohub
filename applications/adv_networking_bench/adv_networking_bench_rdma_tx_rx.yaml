@@ -74,12 +74,12 @@ advanced_network:
           id: 0
           cpu_core: 7
           batch_size: 1
-    - name: data2
-      rdma_mode: server
-      rdma_port: 4096
-      rdma_transport_mode: RC    
-      address: 192.168.10.2       # The BUS address of the interface doing Rx
-      flow_isolation: true
+    - name: my_server
+      rdma_config:
+        mode: server
+        transport_mode: RC
+        port: 4096
+      address: 192.168.10.2       # The IP address of the interface to bind to
       rx:
         queues:
         - name: "Server_RX_Queue"
