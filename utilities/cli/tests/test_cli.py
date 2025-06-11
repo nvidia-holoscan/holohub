@@ -99,7 +99,7 @@ class TestHoloHubCLI(unittest.TestCase):
             self.assertIn(cmd, subparsers[0].choices)
 
     @patch("utilities.cli.util.check_nvidia_ctk")
-    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.holohub.HoloHubContainer")
     @patch("utilities.cli.util.run_command")
     @patch("shutil.which")
@@ -135,8 +135,16 @@ class TestHoloHubCLI(unittest.TestCase):
         run_args.func(run_args)
         mock_find_project.assert_called_with(project_name="test_project", language=None)
 
-    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
-    @patch("utilities.cli.holohub.HoloHubCLI._build_project_locally")
+        # Test run command with --no-docker-build flag
+        mock_container.reset_mock()
+        no_build_args = self.cli.parser.parse_args("run test_project --no-docker-build".split())
+        no_build_args.func(no_build_args)
+        # Verify container.build was not called when --no-docker-build is used
+        mock_container.build.assert_not_called()
+        mock_container.run.assert_called_once()
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.build_project_locally")
     @patch("utilities.cli.util.run_command")
     @patch("utilities.cli.holohub.shlex.split")
     @patch("os.chdir")
@@ -172,13 +180,15 @@ class TestHoloHubCLI(unittest.TestCase):
         self.assertIn("--param2=value2", mock_run_command.call_args[0][0])
         mock_run_command.reset_mock()
 
-    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.build_project_locally")
     @patch("utilities.cli.holohub.HoloHubContainer")
     @patch("utilities.cli.holohub.shlex.quote")
     def test_container_run_args(
         self,
         mock_shlex_quote,
         mock_container_class,
+        mock_build_project_locally,
         mock_find_project,
     ):
         """Test run_args handling in container mode"""
@@ -218,7 +228,7 @@ class TestHoloHubCLI(unittest.TestCase):
         # Test with a misspelled project name
         with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
             with self.assertRaises(SystemExit):
-                self.cli._find_project("hello_wrld")
+                self.cli.find_project("hello_wrld")
                 stderr_output = mock_stderr.getvalue()
                 self.assertIn("Project 'hello_wrld' not found.", stderr_output)
                 self.assertIn(
@@ -228,7 +238,7 @@ class TestHoloHubCLI(unittest.TestCase):
         # Test with a completely different name
         with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
             with self.assertRaises(SystemExit):
-                self.cli._find_project("nonexistent")
+                self.cli.find_project("nonexistent")
                 stderr_output = mock_stderr.getvalue()
                 self.assertIn("Project 'nonexistent' not found.", stderr_output)
                 self.assertNotIn("Did you mean", stderr_output)
@@ -362,20 +372,20 @@ class TestHoloHubCLI(unittest.TestCase):
             # Clean up
             shutil.rmtree(temp_dir)
 
-    @patch("utilities.cli.holohub.HoloHubCLI._build_project_locally")
-    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.build_project_locally")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.holohub.HoloHubContainer")
     def test_with_operators_parameter(
         self,
         mock_container_class,
         mock_find_project,
-        mock_build_project_locally,
+        mockbuild_project_locally,
     ):
         """Test the --build-with parameter for both build and run commands in local and container modes"""
         # Common setup
         operators = "operator1;operator2;operator3"
         mock_find_project.return_value = self.mock_project_data
-        mock_build_project_locally.return_value = (Path("/path/to/build"), self.mock_project_data)
+        mockbuild_project_locally.return_value = (Path("/path/to/build"), self.mock_project_data)
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
         mock_container.project_metadata = self.mock_project_data
@@ -386,11 +396,11 @@ class TestHoloHubCLI(unittest.TestCase):
         )
         args.func(args)
         # Verify local build
-        mock_build_project_locally.assert_called()
-        call_args = mock_build_project_locally.call_args[1]
+        mockbuild_project_locally.assert_called()
+        call_args = mockbuild_project_locally.call_args[1]
         self.assertEqual(call_args["project_name"], "test_project")
         self.assertEqual(call_args["with_operators"], operators)
-        mock_build_project_locally.reset_mock()
+        mockbuild_project_locally.reset_mock()
 
         # Test 2: Build with operators in container mode
         args = self.cli.parser.parse_args(f"build test_project --build-with {operators}".split())
@@ -411,23 +421,23 @@ class TestHoloHubCLI(unittest.TestCase):
         command_string = kwargs["extra_args"][1]
         self.assertIn(f'--build-with "{operators}"', command_string)
 
-    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
-    def test_build_project_locally_with_operators(
+    def testbuild_project_locally_with_operators(
         self,
         mock_mkdir,
         mock_run_command,
         mock_find_project,
     ):
-        """Test that _build_project_locally correctly adds the HOLOHUB_BUILD_OPERATORS CMake parameter"""
+        """Test that build_project_locally correctly adds the HOLOHUB_BUILD_OPERATORS CMake parameter"""
         # Set up mocks
         mock_find_project.return_value = self.mock_project_data
         mock_run_command.return_value = MagicMock()
 
-        # Call _build_project_locally with operators
+        # Call build_project_locally with operators
         operators = "operator1;operator2;operator3"
-        self.cli._build_project_locally(
+        self.cli.build_project_locally(
             project_name="test_project",
             language="cpp",
             build_type="debug",
@@ -493,7 +503,7 @@ exec {holohub_script} "$@"
                 elif "HOLOHUB_CMD_NAME" in os.environ:
                     del os.environ["HOLOHUB_CMD_NAME"]
 
-    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
     @patch("pathlib.Path.glob")
@@ -522,7 +532,7 @@ exec {holohub_script} "$@"
         mock_exists.return_value = True  # pkg directory exists
         mock_glob.return_value = [mock_cpack_config]  # cpack config file exists
 
-        self.cli._build_project_locally(
+        self.cli.build_project_locally(
             project_name="test_package",
             language="cpp",
             build_type="release",
@@ -544,7 +554,7 @@ exec {holohub_script} "$@"
 
         mock_run_command.reset_mock()
 
-        self.cli._build_project_locally(
+        self.cli.build_project_locally(
             project_name="test_package",
             language="cpp",
             build_type="release",
@@ -555,22 +565,22 @@ exec {holohub_script} "$@"
         cpack_args = mock_run_command.call_args_list[2][0][0]
         self.assertIn("RPM", cpack_args)
 
-    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
-    @patch("utilities.cli.holohub.HoloHubCLI._build_project_locally")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.build_project_locally")
     @patch("utilities.cli.holohub.HoloHubContainer")
     @patch("utilities.cli.util.run_command")
     def test_install_command(
         self,
         mock_run_command,
         mock_container_class,
-        mock_build_project_locally,
+        mockbuild_project_locally,
         mock_find_project,
     ):
         """Test the install command in both local and container modes"""
         # Common setup
         mock_find_project.return_value = self.mock_project_data
         mock_build_dir = Path("/path/to/build")
-        mock_build_project_locally.return_value = (mock_build_dir, self.mock_project_data)
+        mockbuild_project_locally.return_value = (mock_build_dir, self.mock_project_data)
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
         mock_run_command.return_value = MagicMock()
@@ -580,14 +590,14 @@ exec {holohub_script} "$@"
             "install test_project --local --build-type release".split()
         )
         args.func(args)
-        mock_build_project_locally.assert_called_once()
-        call_kwargs = mock_build_project_locally.call_args[1]
+        mockbuild_project_locally.assert_called_once()
+        call_kwargs = mockbuild_project_locally.call_args[1]
         self.assertEqual(call_kwargs["project_name"], "test_project")
         self.assertEqual(call_kwargs["build_type"], "release")
         mock_run_command.assert_called_with(
             ["cmake", "--install", str(mock_build_dir)], dry_run=False
         )
-        mock_build_project_locally.reset_mock()
+        mockbuild_project_locally.reset_mock()
         mock_run_command.reset_mock()
         mock_container.reset_mock()
 
@@ -609,6 +619,72 @@ exec {holohub_script} "$@"
         kwargs = mock_container.run.call_args[1]
         command_string = kwargs["extra_args"][1]
         self.assertIn("--parallel 4", command_string)
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.exists")
+    def test_benchmark_functionality(
+        self,
+        mock_exists,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+    ):
+        """Test benchmark functionality including patch/restore scripts and CMake flags"""
+
+        mock_app_data = {
+            "project_name": "test_app",
+            "project_type": "application",
+            "source_folder": Path(os.getcwd()) / "applications" / "test_app",
+            "metadata": {"language": "cpp"},
+        }
+
+        mock_run_command.return_value = MagicMock()
+        mock_exists.return_value = True
+        mock_find_project.return_value = mock_app_data
+
+        args = self.cli.parser.parse_args("build test_app --local --benchmark".split())
+        self.assertTrue(args.benchmark, "Benchmark flag should be parsed correctly")
+        args.func(args)
+        patch_script_call, restore_script_call, cmake_calls = None, None, []
+
+        for call in mock_run_command.call_args_list:
+            cmd = call[0][0]
+            if isinstance(cmd, list) and len(cmd) >= 1:
+                if "patch_application.sh" in str(cmd[0]):
+                    patch_script_call = cmd
+                elif "restore_application.sh" in str(cmd[0]):
+                    restore_script_call = cmd
+                elif cmd[0] == "cmake" and "-B" in cmd:
+                    cmake_calls.append(cmd)
+
+        self.assertIsNotNone(patch_script_call, "Patch script should be called")
+        self.assertIn("patch_application.sh", str(patch_script_call[0]))
+        self.assertEqual(str(patch_script_call[1]), str(mock_app_data["source_folder"]))
+        self.assertIsNotNone(restore_script_call, "Restore script should be called")
+        self.assertIn("restore_application.sh", str(restore_script_call[0]))
+        self.assertEqual(str(restore_script_call[1]), str(mock_app_data["source_folder"]))
+        self.assertTrue(len(cmake_calls) > 0, "CMake should be called")
+        cmake_args_str = " ".join(cmake_calls[0])
+        self.assertIn("-DCMAKE_CXX_FLAGS=-I", cmake_args_str)
+        self.assertIn("benchmarks/holoscan_flow_benchmarking", cmake_args_str)
+
+        # Test benchmark in container mode
+        with patch("utilities.cli.holohub.HoloHubContainer") as mock_container_class:
+            mock_container = MagicMock()
+            mock_container_class.return_value = mock_container
+            mock_find_project.return_value = mock_app_data
+
+            args = self.cli.parser.parse_args("build test_app --benchmark".split())
+            self.assertTrue(args.benchmark, "Benchmark flag for container mode correctly parsed")
+            args.func(args)
+
+            mock_container.build.assert_called_once()
+            mock_container.run.assert_called_once()
+            command_string = mock_container.run.call_args[1]["extra_args"][1]
+            self.assertIn("--benchmark", command_string)
+            self.assertIn("./holohub build test_app --local", command_string)
 
 
 class TestRunCommand(unittest.TestCase):

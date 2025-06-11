@@ -99,6 +99,38 @@ def format_cmd(command: str, is_dryrun: bool = False) -> str:
     return f"{timestamp} {Color.white('$')} {Color.green(command)}"
 
 
+def info(message: str) -> None:
+    """Print informational message with consistent formatting"""
+    print(f"{Color.yellow('INFO:')} {message}")
+
+
+def get_env_bool(
+    env_var_name: str,
+    default: bool = True,
+    false_values: Tuple[str, ...] = ("false", "no", "n", "0", "f"),
+) -> Tuple[str, bool]:
+    """Check environment variable as boolean flag"""
+    env_value = os.environ.get(env_var_name, str(default).lower())
+    is_true = env_value.lower() not in false_values
+    return env_value, is_true
+
+
+def check_skip_builds(args) -> Tuple[bool, bool]:
+    """Checking skip build flags and printing info messages"""
+    holohub_always_build, always_build = get_env_bool("HOLOHUB_ALWAYS_BUILD", default=True)
+    skip_builds = not always_build
+    skip_docker_build = skip_builds or getattr(args, "no_docker_build", False)
+    skip_local_build = skip_builds or getattr(args, "no_local_build", False)
+    if skip_builds:
+        info(f"Skipping build due to HOLOHUB_ALWAYS_BUILD={holohub_always_build}")
+    else:
+        if getattr(args, "no_local_build", False):
+            info("Skipping local build due to --no-local-build")
+        if getattr(args, "no_docker_build", False):
+            info("Skipping container build due to --no-docker-build")
+    return skip_docker_build, skip_local_build
+
+
 def fatal(message: str) -> None:
     """Print fatal error and exit with backtrace"""
     print(

@@ -62,7 +62,7 @@ These python dependencies include:
 #### Automatic Build with Benchmarking
 
 ```bash
-./run build <application_name> [options] --benchmark
+./holohub build <application_name> [options] --benchmark
 ```
 
 This command:
@@ -70,6 +70,11 @@ This command:
 - Patches the application source
 - Builds with benchmarking enabled
 - Automatically restores source files after build
+
+For example:
+```bash
+./holohub build endoscopy_tool_tracking --benchmark --language cpp
+```
 
 #### Manual Patching [only if need to]
 
@@ -89,6 +94,7 @@ This command:
 ### Important notes
 
 - Verify the application runs correctly after building and before proceeding with performance evaluation.
+  For example, run the app `./holohub run endoscopy_tool_tracking --language python`
 - For applications using TensorRT, run once to generate engine files (e.g., for the endoscopy tool tracking application).
 - See [patch_application.sh](./patch_application.sh) and [restore_application.sh](./restore_application.sh) for more details about the patching process.
 
