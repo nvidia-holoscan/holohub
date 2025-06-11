@@ -17,6 +17,9 @@ import argparse
 import datetime
 import os
 
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 keyword_dictionary = {
