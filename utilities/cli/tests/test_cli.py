@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import os
+import subprocess
 import sys
 import unittest
 from io import StringIO
@@ -24,6 +25,7 @@ from unittest.mock import MagicMock, patch
 # Add the utilities directory to the Python path
 sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
+from utilities.cli import util
 from utilities.cli.holohub import HoloHubCLI
 
 
@@ -60,11 +62,24 @@ class TestHoloHubCLI(unittest.TestCase):
         }
         # Mock project data with some similar names
         self.cli.projects = [
-            {"project_name": "hello_world", "metadata": {"language": "cpp"}},
-            {"project_name": "hello_world_python", "metadata": {"language": "python"}},
-            {"project_name": "hello_world_cpp", "source_folder": "applications/hello_world_cpp"},
+            {
+                "project_name": "hello_world",
+                "project_type": "application",
+                "metadata": {"language": "cpp"},
+            },
+            {
+                "project_name": "hello_world_python",
+                "project_type": "application",
+                "metadata": {"language": "python"},
+            },
+            {
+                "project_name": "hello_world_cpp",
+                "project_type": "application",
+                "source_folder": "applications/hello_world_cpp",
+            },
             {
                 "project_name": "hello_world_advanced",
+                "project_type": "application",
                 "metadata": {"language": "cpp"},
                 "source_folder": "applications/hello_world_advanced",
             },
@@ -188,7 +203,8 @@ class TestHoloHubCLI(unittest.TestCase):
         # Verify the container.run was called with the correctly quoted arguments
         kwargs = mock_container.run.call_args[1]
         cmd_string = kwargs["extra_args"][1]
-        self.assertIn("--run_args", cmd_string)
+        self.assertIn("./holohub run test_project", cmd_string)
+        self.assertIn("--run-args", cmd_string)
         self.assertIn(quoted_value, cmd_string)
 
     def test_list_command(self):
@@ -476,6 +492,149 @@ exec {holohub_script} "$@"
                     os.environ["HOLOHUB_CMD_NAME"] = original_env
                 elif "HOLOHUB_CMD_NAME" in os.environ:
                     del os.environ["HOLOHUB_CMD_NAME"]
+
+    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.glob")
+    @patch("pathlib.Path.exists")
+    def test_package_build_functionality(
+        self,
+        mock_exists,
+        mock_glob,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+    ):
+        """Test package build functionality including PKG prefix and cpack execution"""
+        # Mock package data
+        mock_package_data = {
+            "project_name": "test_package",
+            "project_type": "package",
+            "source_folder": Path(os.getcwd()) / "pkg" / "test_package",
+            "metadata": {"language": "cpp"},
+        }
+
+        mock_find_project.return_value = mock_package_data
+        mock_run_command.return_value = MagicMock()
+
+        mock_cpack_config = Path("/path/to/build/test_package/pkg/CPackConfig-test_package.cmake")
+        mock_exists.return_value = True  # pkg directory exists
+        mock_glob.return_value = [mock_cpack_config]  # cpack config file exists
+
+        self.cli._build_project_locally(
+            project_name="test_package",
+            language="cpp",
+            build_type="release",
+            dryrun=False,
+        )
+
+        self.assertEqual(mock_run_command.call_count, 3)  # cmake configure, cmake build, cpack
+        cmake_configure_args = mock_run_command.call_args_list[0][0][0]
+        cmake_args_str = " ".join(cmake_configure_args)
+        self.assertIn("-DPKG_test_package=ON", cmake_args_str)
+        self.assertNotIn("-DAPP_test_package=ON", cmake_args_str)
+
+        cpack_args = mock_run_command.call_args_list[2][0][0]
+        self.assertEqual(cpack_args[0], "cpack")
+        self.assertIn("--config", cpack_args)
+        self.assertIn(str(mock_cpack_config), cpack_args)
+        self.assertIn("-G", cpack_args)
+        self.assertIn("DEB", cpack_args)
+
+        mock_run_command.reset_mock()
+
+        self.cli._build_project_locally(
+            project_name="test_package",
+            language="cpp",
+            build_type="release",
+            pkg_generator="RPM",
+            dryrun=False,
+        )
+        self.assertEqual(mock_run_command.call_count, 3)
+        cpack_args = mock_run_command.call_args_list[2][0][0]
+        self.assertIn("RPM", cpack_args)
+
+    @patch("utilities.cli.holohub.HoloHubCLI._find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI._build_project_locally")
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    @patch("utilities.cli.util.run_command")
+    def test_install_command(
+        self,
+        mock_run_command,
+        mock_container_class,
+        mock_build_project_locally,
+        mock_find_project,
+    ):
+        """Test the install command in both local and container modes"""
+        # Common setup
+        mock_find_project.return_value = self.mock_project_data
+        mock_build_dir = Path("/path/to/build")
+        mock_build_project_locally.return_value = (mock_build_dir, self.mock_project_data)
+        mock_container = MagicMock()
+        mock_container_class.return_value = mock_container
+        mock_run_command.return_value = MagicMock()
+
+        # Test 1: Install in local mode
+        args = self.cli.parser.parse_args(
+            "install test_project --local --build-type release".split()
+        )
+        args.func(args)
+        mock_build_project_locally.assert_called_once()
+        call_kwargs = mock_build_project_locally.call_args[1]
+        self.assertEqual(call_kwargs["project_name"], "test_project")
+        self.assertEqual(call_kwargs["build_type"], "release")
+        mock_run_command.assert_called_with(
+            ["cmake", "--install", str(mock_build_dir)], dry_run=False
+        )
+        mock_build_project_locally.reset_mock()
+        mock_run_command.reset_mock()
+        mock_container.reset_mock()
+
+        # Test 2: Install in container mode
+        args = self.cli.parser.parse_args(
+            "install test_project --build-type debug --language cpp".split()
+        )
+        args.func(args)
+        mock_container.build.assert_called_once()
+        mock_container.run.assert_called_once()
+        kwargs = mock_container.run.call_args[1]
+        command_string = kwargs["extra_args"][1]
+        self.assertIn("./holohub install test_project --local", command_string)
+        self.assertIn("--build-type debug", command_string)
+        self.assertIn("--language cpp", command_string)
+        mock_container.reset_mock()
+        args = self.cli.parser.parse_args("install test_project --parallel 4".split())
+        args.func(args)
+        kwargs = mock_container.run.call_args[1]
+        command_string = kwargs["extra_args"][1]
+        self.assertIn("--parallel 4", command_string)
+
+
+class TestRunCommand(unittest.TestCase):
+    """Test the run_command function with explicit shell parameter"""
+
+    def setUp(self):
+        self.mock_completed_process = subprocess.CompletedProcess([], 0)
+
+    @patch("subprocess.run")
+    @patch("builtins.print")
+    def test_run_command_scenarios(self, mock_print, mock_subprocess):
+        """Test run_command with shell execution and dry run mode"""
+        mock_subprocess.return_value = self.mock_completed_process
+        result = util.run_command("echo hello | grep hello", shell=True)
+        mock_subprocess.assert_called_once_with("echo hello | grep hello", shell=True, check=True)
+        self.assertEqual(result, self.mock_completed_process)
+
+        mock_subprocess.reset_mock()
+        mock_print.reset_mock()
+
+        util.run_command(["echo", "hello"], dry_run=True)
+        mock_subprocess.assert_not_called()
+        mock_print.assert_called()
+        printed_args = mock_print.call_args[0][0]
+        self.assertIn("echo hello", printed_args)
+        self.assertIn("[dryrun]", printed_args)
 
 
 if __name__ == "__main__":

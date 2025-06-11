@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import grp
+import os
 import re
 import shutil
 import subprocess
@@ -22,7 +23,24 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
+
+PROJECT_PREFIXES = {
+    "application": "APP",
+    "benchmark": "APP",
+    "operator": "OP",
+    "package": "PKG",
+    "workflow": "APP",
+    "default": "APP",  # specified type but not recognized
+}
+
+BUILD_TYPES = {
+    "debug": "Debug",
+    "release": "Release",
+    "rel-debug": "RelWithDebInfo",
+    "relwithdebinfo": "RelWithDebInfo",
+    "default": "Release",
+}
 
 
 class Color:
@@ -72,6 +90,15 @@ def get_timestamp() -> str:
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def format_cmd(command: str, is_dryrun: bool = False) -> str:
+    """Format command output with consistent timestamp and color formatting"""
+    timestamp = Color.blue(get_timestamp())
+    if is_dryrun:
+        dryrun_tag = Color.cyan("[dryrun]")
+        return f"{timestamp} {dryrun_tag} {Color.white('$')} {Color.green(command)}"
+    return f"{timestamp} {Color.white('$')} {Color.green(command)}"
+
+
 def fatal(message: str) -> None:
     """Print fatal error and exit with backtrace"""
     print(
@@ -83,18 +110,19 @@ def fatal(message: str) -> None:
 
 
 def run_command(
-    cmd: List[str], dry_run: bool = False, check: bool = True, **kwargs
+    cmd: Union[str, List[str]], dry_run: bool = False, check: bool = True, **kwargs
 ) -> subprocess.CompletedProcess:
-    """Run a shell command and handle errors"""
-    cmd_list = [f'"{x}"' if " " in str(x) else str(x) for x in cmd]
-    cmd_str = format_long_command(cmd_list) if dry_run else " ".join(cmd_list)
+    """Run a command and handle errors"""
+    if isinstance(cmd, str):
+        cmd_str = cmd
+    else:
+        cmd_list = [f'"{x}"' if " " in str(x) else str(x) for x in cmd]
+        cmd_str = format_long_command(cmd_list) if dry_run else " ".join(cmd_list)
     if dry_run:
-        print(
-            f"{Color.blue(get_timestamp())} {Color.cyan('[dryrun]')} {Color.white('$')} {Color.green(cmd_str)}"
-        )
-        return subprocess.CompletedProcess(cmd_list, 0)
+        print(format_cmd(cmd_str, is_dryrun=True))
+        return subprocess.CompletedProcess(cmd_str, 0)
 
-    print(f"{Color.blue(get_timestamp())} {Color.white('$')} {Color.green(cmd_str)}")
+    print(format_cmd(cmd_str))
     try:
         return subprocess.run(cmd, check=check, **kwargs)
     except subprocess.CalledProcessError as e:
@@ -195,6 +223,21 @@ def normalize_language(language: str) -> Optional[str]:
     return None
 
 
+def determine_project_prefix(project_type: str) -> str:
+    type_str = project_type.lower().strip()
+    if type_str in PROJECT_PREFIXES:
+        return PROJECT_PREFIXES[type_str]
+    return PROJECT_PREFIXES["default"]
+
+
+def get_buildtype_str(build_type: Optional[str]) -> str:
+    """Get CMake build type string"""
+    if not build_type:
+        return os.environ.get("CMAKE_BUILD_TYPE", BUILD_TYPES["default"])
+    build_type_str = build_type.lower().strip()
+    return BUILD_TYPES.get(build_type_str, BUILD_TYPES["default"])
+
+
 def list_metadata_json_dir(*paths: Path) -> List[Tuple[str, str]]:
     """List all metadata.json files in given paths"""
     results = []
@@ -277,7 +320,6 @@ def install_cuda_dependencies_package(
         print(f"Installing {package_name}={matching_version}")
         run_command(
             [
-                "sudo",
                 "apt",
                 "install",
                 "--no-install-recommends",
@@ -377,3 +419,19 @@ def levenshtein_distance(s1: str, s2: str) -> int:
         previous_row = current_row
 
     return previous_row[-1]
+
+
+def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
+    """Get list of directories from CMakeLists.txt files"""
+    results = []
+    for cmakelists in script_dir.rglob("CMakeLists.txt"):
+        with open(cmakelists) as f:
+            content = f.read()
+            for line in content.splitlines():
+                if cmake_function in line:
+                    try:
+                        name = line.split("(")[1].split(")")[0].strip()
+                        results.append(name)
+                    except IndexError:
+                        continue
+    return sorted(results)
