@@ -41,6 +41,8 @@ class DDSVideoPublisherOp : public DDSOperatorBase {
  private:
   Parameter<std::string> writer_qos_;
   Parameter<uint32_t> stream_id_;
+  Parameter<uint32_t> width_;
+  Parameter<uint32_t> height_;
 
   dds::pub::DataWriter<VideoFrame> writer_ = dds::core::null;
 

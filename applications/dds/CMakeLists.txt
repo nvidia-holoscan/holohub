@@ -17,6 +17,14 @@ cmake_minimum_required(VERSION 3.20)
 project(distributed_applications LANGUAGES NONE)
 
 
+add_holohub_application(dds_h264 DEPENDS
+                        OPERATORS dds_video_publisher
+                                  dds_video_subscriber
+                                  video_encoder
+                                  tensor_to_video_buffer
+                                  append_timestamp)
+
+
 add_holohub_application(dds_video DEPENDS
                         OPERATORS dds_shapes_subscriber
                                   dds_video_publisher

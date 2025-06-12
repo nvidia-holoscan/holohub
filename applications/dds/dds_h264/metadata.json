@@ -1,0 +1,44 @@
+{
+	"application": {
+		"name": "DDS Video: Real-time Video Streaming with RTI Connext",
+		"authors": [
+			{
+				"name": "Victor Chang",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"dockerfile": "applications/dds/dds_h264/Dockerfile",
+		"holoscan_sdk": {
+			"minimum_required_version": "3.0.0",
+			"tested_versions": [
+				"3.0.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Networking and Distributed Computing", "DDS", "RTI Connext", "Video", "Visualization"],
+		"ranking": 2,
+		"dependencies": {
+			"packages": [
+				{
+					"name": "RTI Connext",
+					"author": "Real-Time Innovations",
+					"license": "Closed",
+					"version": "7.3.0",
+					"url": "https://www.rti.com/products"
+				}
+			]
+		},
+		"run": {
+			"command": "./dds_h264 --video <holohub_data_dir>/endoscopy",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}

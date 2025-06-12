@@ -18,6 +18,7 @@
 #pragma once
 
 #include <dds/sub/ddssub.hpp>
+#include <chrono>
 
 #include "dds_operator_base.hpp"
 #include "VideoFrame.hpp"
@@ -42,10 +43,20 @@ class DDSVideoSubscriberOp : public DDSOperatorBase {
   Parameter<std::shared_ptr<Allocator>> allocator_;
   Parameter<std::string> reader_qos_;
   Parameter<uint32_t> stream_id_;
+  Parameter<double> fps_report_interval_;
 
   dds::sub::DataReader<VideoFrame> reader_ = dds::core::null;
   dds::core::cond::StatusCondition status_condition_ = dds::core::null;
   dds::core::cond::WaitSet waitset_;
+
+  // FPS calculation variables
+  uint64_t frame_count_ = 0;
+  std::chrono::steady_clock::time_point start_time_;
+  std::chrono::steady_clock::time_point last_fps_report_time_;
+  bool timing_initialized_ = false;
+
+  std::vector<int64_t> transfer_times_;
+  std::vector<int64_t> frame_sizes;
 };
 
 }  // namespace holoscan::ops
