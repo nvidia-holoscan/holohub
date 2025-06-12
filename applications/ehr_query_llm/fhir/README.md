@@ -32,38 +32,28 @@ It is further expected that you have read the [HoloHub README](../../../README.m
 **_Note_**:
 The application listens on request message to start retrieving resources from the server and then publishes the results, so another application is needed to drive this workflow, e.g. the LLM application. To help with simple testing, a Python script is provided as part of this application, and its usage is described below in this [section](#test-the-running-application).
 
-### Quick Start Using HoloHub Container
+### Quick Start Using Holohub Container
 
-This is the simplest and fastest way to start the application in a HoloHub dev container and get it ready to listen to request messages.
+This is the simplest and fastest way to start the application in a Holohub dev container and get it ready to listen to request messages.
 
 **_Note_**:
 Please use your own FHIR server endpoint, as well as the OAuth2.0 authorization endpoint and client credential as needed.
 
 ```bash
-./dev_container build_and_run fhir --run_args "--fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>"
+./holohub run fhir --run_args "--fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>"
 ```
 
-### Run the Application in Dev Container
+### Run the Application in Holohub Dev Container
 
-This is a step wise way to run the application in a dev container.
+**Launch the container:**
 
 ```bash
-./dev_container build --docker_file applications/ehr_query_llm/fhir/Dockerfile --img holoscan:fhir --verbose --no-cache
+./holohub run-conatiner fhir
 ```
 
-Optionally check the newly built image
+This command build `holohub:fhir` container based on the appplication specific [Dockerfile](./Dockerfile).
 
-```bash
-$ docker images
-REPOSITORY         TAG               IMAGE ID       CREATED          SIZE
-holoscan           fhir              508140b8d446   3 minutes ago    14.1GB
-```
-
-Launch the container
-
-```bash
-./dev_container launch --img holoscan:fhir --as_root
-```
+**Build and run the application:**
 
 Now in the container, build and run the application
 
@@ -71,14 +61,13 @@ Now in the container, build and run the application
 root:~# pwd
 /workspace/holohub
 
-root:~# ./run clear_cache
-root:~# ./run build fhir
-root:~# ./run launch fhir --extra_args "--fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>"
+root:~# ./holohub clear-cache
+root:~# ./holohub run fhir --extra_args "--fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>"
 ```
 
 Once done, `exit` the container.
 
-### Run the Application in the Host Dev Environment with dev_container script
+### Run the Application in the Host Dev Environment
 
 First create and activate a Python virtual environment, followed with installing the dependencies
 
@@ -88,16 +77,16 @@ source .testenv/bin/activate
 pip install -r applications/ehr_query_llm/fhir/requirements.txt
 ```
 
-Build and install the application with `dev_container`
+Build and install the application with `./holohub`
 
 ```bash
-./dev_container build_and_install fhir
+./holohub install fhir --local
 ```
 
 Now, run the application which is _installed_ in the `install` folder, with server URLs and credential of your own
 
 ```bash
-python install/bin/fhir/python/ --fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>
+python install/bin/fhir/python/fhir_client.py --fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>
 ```
 
 ### Test the Running Application
