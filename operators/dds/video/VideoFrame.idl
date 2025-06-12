@@ -15,10 +15,17 @@
 
 const string VIDEO_FRAME_TOPIC = "VideoFrame";
 
+enum Codec
+{
+    None,
+    H264
+};
 struct VideoFrame {
   @key unsigned long stream_id;
   unsigned long frame_num;
   unsigned long width;
   unsigned long height;
   sequence <octet> data;
+  Codec codec;
+  int64 transfer_start_time;
 };
