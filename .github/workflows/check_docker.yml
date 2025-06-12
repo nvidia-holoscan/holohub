@@ -16,9 +16,10 @@ jobs:
 
       - name: Run Docker build
         run: |
+          export ubuntu_version=22.04
           ./holohub build-container --dryrun --no-cache
           ./holohub build-container --dryrun --build-args "--build-arg TEST=value"
-          ./holohub build-container --base-img ubuntu:${{ matrix.ubuntu-version }}
+          ./holohub build-container --base-img ubuntu:${ubuntu_version}
           if ! command -v nvidia-ctk >/dev/null 2>&1; then
             sed -i 's/check_nvidia_ctk()/print("no check")/g' utilities/cli/container.py
             sed -i 's/            "--runtime=nvidia",/            # "--runtime=nvidia",/' utilities/cli/container.py
@@ -26,7 +27,7 @@ jobs:
             sed -i 's/            "all",/            # "all",/' utilities/cli/container.py
             echo "Replaced check_nvidia_ctk() call and commented out NVIDIA runtime args since nvidia-ctk is not available"
           fi
-          ./holohub run-container --base-img ubuntu:${{ matrix.ubuntu-version }} --no-docker-build
+          ./holohub run-container --base-img ubuntu:${ubuntu_version} --no-docker-build
           ./holohub run-container --dryrun --docker-opts "--memory 4g"
           ./holohub run-container --dryrun --add-volume "/tmp"
           ./holohub run-container --docker-opts "--memory 4g" --no-docker-build
