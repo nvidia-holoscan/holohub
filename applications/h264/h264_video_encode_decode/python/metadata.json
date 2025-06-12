@@ -1,6 +1,6 @@
 {
   "application": {
-    "name": "H.264 Video Decode",
+    "name": "H.264 Video Encode Decode",
     "authors": [
       {
         "name": "Holoscan Team",
@@ -18,7 +18,7 @@
       "tested_versions": ["2.6.0"]
     },
     "platforms": ["x86_64", "aarch64"],
-    "tags": ["Healthcare AI", "Video", "Hardware Accelerated Decode", "Endoscopy"],
+    "tags": ["Healthcare AI", "Video", "Hardware Accelerated Encode Decode", "Endoscopy"],
     "ranking": 1,
     "dependencies": {
       "operators": [
