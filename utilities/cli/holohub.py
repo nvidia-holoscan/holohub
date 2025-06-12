@@ -452,28 +452,20 @@ class HoloHubCLI:
         project_data = self.find_project(project_name=project_name, language=language)
         return HoloHubContainer(project_metadata=project_data)
 
-    def build_container_for_project(
-        self,
-        project_name: Optional[str],
-        language: Optional[str],
-        args: argparse.Namespace,
-        skip_build: bool = False,
-    ) -> HoloHubContainer:
-        """
-        Method to build container for a project with common arguments.
-        """
-        container = self._make_project_container(project_name=project_name, language=language)
-        container.dryrun = getattr(args, "dryrun", False)
-        if skip_build:
-            return container
-        container.build(
-            docker_file=getattr(args, "docker_file", None),
-            base_img=getattr(args, "base_img", None),
-            img=getattr(args, "img", None),
-            no_cache=getattr(args, "no_cache", False),
-            build_args=getattr(args, "build_args", None),
+    def handle_build_container(self, args: argparse.Namespace) -> None:
+        """Handle build-container command"""
+        container = self._make_project_container(
+            project_name=args.project,
+            language=args.language if hasattr(args, "language") else None,
         )
-        return container
+        container.dryrun = args.dryrun
+        container.build(
+            docker_file=args.docker_file,
+            base_img=args.base_img,
+            img=args.img,
+            no_cache=args.no_cache,
+            build_args=args.build_args,
+        )
 
     def run_command_in_container(
         self,
@@ -494,25 +486,21 @@ class HoloHubCLI:
             verbose=getattr(args, "verbose", False),
         )
 
-    def handle_build_container(self, args: argparse.Namespace) -> None:
-        """Handle build-container command"""
-        self.build_container_for_project(
-            project_name=args.project,
-            language=args.language if hasattr(args, "language") else None,
-            args=args,
-        )
-
     def handle_run_container(self, args: argparse.Namespace) -> None:
         """Handle run-container command"""
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
-
-        container = self.build_container_for_project(
-            project_name=args.project,
-            language=args.language if hasattr(args, "language") else None,
-            args=args,
-            skip_build=skip_docker_build,
+        container = self._make_project_container(
+            project_name=args.project, language=args.language if hasattr(args, "language") else None
         )
-
+        container.dryrun = args.dryrun
+        if not skip_docker_build:
+            container.build(
+                docker_file=args.docker_file,
+                base_img=args.base_img,
+                img=args.img,
+                no_cache=args.no_cache,
+                build_args=args.build_args,
+            )
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
@@ -532,14 +520,9 @@ class HoloHubCLI:
     def handle_test(self, args: argparse.Namespace) -> None:
         """Handle test command"""
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
-
-        container = self.build_container_for_project(
-            project_name=args.project,
-            language=args.language if hasattr(args, "language") else None,
-            args=args,
-            skip_build=skip_docker_build,
+        container = self._make_project_container(
+            project_name=args.project, language=args.language if hasattr(args, "language") else None
         )
-
         if args.clear_cache:
             for pattern in ["build", "build-*", "install"]:
                 for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
@@ -548,6 +531,15 @@ class HoloHubCLI:
                             print(f"  {Color.yellow('Would remove:')} {path}")
                         else:
                             shutil.rmtree(path)
+
+        container.dryrun = args.dryrun
+
+        if not skip_docker_build:
+            container.build(
+                base_img=args.base_img,
+                build_args=args.build_args,
+            )
+
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
 
@@ -704,12 +696,19 @@ class HoloHubCLI:
             )
         else:
             # Build in container
-            container = self.build_container_for_project(
+            container = self._make_project_container(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
-                args=args,
-                skip_build=skip_docker_build,
             )
+            container.dryrun = args.dryrun
+            if not skip_docker_build:
+                container.build(
+                    docker_file=args.docker_file,
+                    base_img=args.base_img,
+                    img=args.img,
+                    no_cache=args.no_cache,
+                    build_args=args.build_args,
+                )
 
             # Build command with all necessary arguments
             build_cmd = f"{self.script_name} build {args.project} --local"
@@ -877,12 +876,19 @@ class HoloHubCLI:
             cmd_to_run = cmd if isinstance(cmd, list) else shlex.split(cmd)
             holohub_cli_util.run_command(cmd_to_run, env=env, dry_run=args.dryrun)
         else:
-            container = self.build_container_for_project(
+            container = self._make_project_container(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
-                args=args,
-                skip_build=skip_docker_build,
             )
+            container.dryrun = args.dryrun
+            if not skip_docker_build:
+                container.build(
+                    docker_file=args.docker_file,
+                    base_img=args.base_img,
+                    img=args.img,
+                    no_cache=args.no_cache,
+                    build_args=args.build_args,
+                )
             language = holohub_cli_util.normalize_language(
                 container.project_metadata.get("metadata", {}).get("language", None)
             )
@@ -1426,7 +1432,6 @@ class HoloHubCLI:
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
-
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
             # Build and install locally
             build_dir, project_data = self.build_project_locally(
@@ -1445,12 +1450,18 @@ class HoloHubCLI:
                 print(f"{Color.green('Successfully installed')} {args.project}")
         else:
             # Install in container
-            container = self.build_container_for_project(
-                project_name=args.project,
-                language=getattr(args, "language", None),
-                args=args,
-                skip_build=skip_docker_build,
+            container = self._make_project_container(
+                project_name=args.project, language=getattr(args, "language", None)
             )
+            container.dryrun = args.dryrun
+            if not skip_docker_build:
+                container.build(
+                    docker_file=args.docker_file,
+                    base_img=args.base_img,
+                    img=args.img,
+                    no_cache=args.no_cache,
+                    build_args=args.build_args,
+                )
 
             # Install command with all necessary arguments
             install_cmd = f"{self.script_name} install {args.project} --local"
