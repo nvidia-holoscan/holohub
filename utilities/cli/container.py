@@ -145,8 +145,8 @@ class HoloHubContainer:
         ]
 
     @staticmethod
-    def device_args() -> List[str]:
-        """Get docker run arguments for mounting devices in the container"""
+    def get_device_mounts() -> List[str]:
+        """Get docker run arguments for mounting specialized hardware devices and libraries"""
         options = []
 
         for video_dev in glob.glob("/dev/video[0-9]*"):
@@ -409,12 +409,12 @@ class HoloHubContainer:
         cmd.extend(self.get_basic_args())
         cmd.extend(self.get_security_args(as_root))
         cmd.extend(self.get_volume_args(add_volumes, enable_mps))
-        cmd.extend(self.get_device_args())
+        cmd.extend(self.get_gpu_runtime_args())
         cmd.extend(self.get_environment_args())
 
         cmd.extend(self.get_conditional_options(use_tini, persistent))
         cmd.extend(self.ucx_args())
-        cmd.extend(self.device_args())
+        cmd.extend(self.get_device_mounts())
         cmd.extend(self.group_args())
         cmd.extend(self.get_display_options(no_x11, ssh_x11))
         cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
@@ -485,8 +485,8 @@ class HoloHubContainer:
 
         return args
 
-    def get_device_args(self) -> List[str]:
-        """GPU and basic device access arguments"""
+    def get_gpu_runtime_args(self) -> List[str]:
+        """GPU runtime configuration and basic device access arguments"""
         return [
             "--runtime=nvidia",
             "--gpus",
