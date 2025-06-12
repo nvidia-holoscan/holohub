@@ -379,13 +379,13 @@ class TestHoloHubCLI(unittest.TestCase):
         self,
         mock_container_class,
         mock_find_project,
-        mockbuild_project_locally,
+        mock_build_project_locally,
     ):
         """Test the --build-with parameter for both build and run commands in local and container modes"""
         # Common setup
         operators = "operator1;operator2;operator3"
         mock_find_project.return_value = self.mock_project_data
-        mockbuild_project_locally.return_value = (Path("/path/to/build"), self.mock_project_data)
+        mock_build_project_locally.return_value = (Path("/path/to/build"), self.mock_project_data)
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
         mock_container.project_metadata = self.mock_project_data
@@ -396,11 +396,11 @@ class TestHoloHubCLI(unittest.TestCase):
         )
         args.func(args)
         # Verify local build
-        mockbuild_project_locally.assert_called()
-        call_args = mockbuild_project_locally.call_args[1]
+        mock_build_project_locally.assert_called()
+        call_args = mock_build_project_locally.call_args[1]
         self.assertEqual(call_args["project_name"], "test_project")
         self.assertEqual(call_args["with_operators"], operators)
-        mockbuild_project_locally.reset_mock()
+        mock_build_project_locally.reset_mock()
 
         # Test 2: Build with operators in container mode
         args = self.cli.parser.parse_args(f"build test_project --build-with {operators}".split())
@@ -424,7 +424,7 @@ class TestHoloHubCLI(unittest.TestCase):
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
-    def testbuild_project_locally_with_operators(
+    def test_build_project_locally_with_operators(
         self,
         mock_mkdir,
         mock_run_command,
@@ -573,14 +573,14 @@ exec {holohub_script} "$@"
         self,
         mock_run_command,
         mock_container_class,
-        mockbuild_project_locally,
+        mock_build_project_locally,
         mock_find_project,
     ):
         """Test the install command in both local and container modes"""
         # Common setup
         mock_find_project.return_value = self.mock_project_data
         mock_build_dir = Path("/path/to/build")
-        mockbuild_project_locally.return_value = (mock_build_dir, self.mock_project_data)
+        mock_build_project_locally.return_value = (mock_build_dir, self.mock_project_data)
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
         mock_run_command.return_value = MagicMock()
@@ -590,14 +590,14 @@ exec {holohub_script} "$@"
             "install test_project --local --build-type release".split()
         )
         args.func(args)
-        mockbuild_project_locally.assert_called_once()
-        call_kwargs = mockbuild_project_locally.call_args[1]
+        mock_build_project_locally.assert_called_once()
+        call_kwargs = mock_build_project_locally.call_args[1]
         self.assertEqual(call_kwargs["project_name"], "test_project")
         self.assertEqual(call_kwargs["build_type"], "release")
         mock_run_command.assert_called_with(
             ["cmake", "--install", str(mock_build_dir)], dry_run=False
         )
-        mockbuild_project_locally.reset_mock()
+        mock_build_project_locally.reset_mock()
         mock_run_command.reset_mock()
         mock_container.reset_mock()
 
