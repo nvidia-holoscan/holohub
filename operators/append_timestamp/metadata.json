@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "tensor_to_video_buffer",
+		"name": "append_timestamp",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -13,16 +13,16 @@
 		},
 		"language": ["C++", "Python"],
 		"holoscan_sdk": {
-			"minimum_required_version": "0.5.0",
+			"minimum_required_version": "2.0.0",
 			"tested_versions": [
-				"0.5.0"
+				"3.0.0"
 			]
 		},
 		"platforms": [
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Tensor", "Video"],
+		"tags": ["Healthcare AI", "Video", "Timestamp"],
 		"ranking": 1,
 		"dependencies": {}
 	}
