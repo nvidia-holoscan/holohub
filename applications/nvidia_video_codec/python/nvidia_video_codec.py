@@ -18,7 +18,7 @@ from argparse import ArgumentParser
 
 from holoscan.core import Application, Operator, Tracker
 from holoscan.operators import FormatConverterOp, HolovizOp, VideoStreamReplayerOp
-from holoscan.resources import (  # UnboundedAllocator,
+from holoscan.resources import (
     BlockMemoryPool,
     CudaStreamPool,
     MemoryStorageType,
@@ -36,7 +36,7 @@ class StatsOp(Operator):
         self.fps = []
         self.first_frame_ignored = False
         super().__init__(app, *args, **kwargs)
-        
+
     def setup(self, spec):
         spec.input("input")
 
@@ -82,6 +82,7 @@ class NVIDIAVideoCodecApp(Application):
         height = 480
         source_block_size = width * height * 3 * 4
         source_num_blocks = 2
+
         video_dir = self.sample_data_path
         if not os.path.exists(video_dir):
             raise ValueError(f"Could not find video data: {video_dir=}")
