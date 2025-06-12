@@ -10,9 +10,6 @@ permissions:
 jobs:
   check-docker-build:
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        ubuntu-version: ["22.04"]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
