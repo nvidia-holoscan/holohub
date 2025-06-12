@@ -526,6 +526,23 @@
         },
         {
             "type": "shell",
+            "label": "Build slang_simple",
+            "command": "./run",
+            "args": [
+                "build",
+                "slang_simple",
+                "--type",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
             "label": "Build volume_rendering",
             "command": "./run",
             "args": [

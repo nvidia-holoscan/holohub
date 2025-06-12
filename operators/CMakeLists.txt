@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@ add_holohub_operator(prohawk_video_processing)
 add_holohub_operator(qt_video)
 add_holohub_operator(realsense_camera)
 add_subdirectory(orsi)
+add_holohub_operator(slang_shader)
 add_holohub_operator(tensor_to_video_buffer)
 add_holohub_operator(tool_tracking_postprocessor)
 add_holohub_operator(velodyne_lidar)
