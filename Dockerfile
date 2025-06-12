@@ -33,9 +33,28 @@ ARG DEBIAN_FRONTEND=noninteractive
 #
 
 # Install python3 if not present (needed for holohub CLI)
+ARG PYTHON_VERSION=python3.12
 RUN if ! command -v python3 >/dev/null 2>&1; then \
-        apt-get update && apt-get install -y python3 python3-pip; \
-    fi
+        apt-get update \
+        && apt-get install --no-install-recommends -y \
+            software-properties-common curl \
+        && add-apt-repository ppa:deadsnakes/ppa \
+        && apt-get update \
+        && apt-get install --no-install-recommends -y \
+            ${PYTHON_VERSION} ${PYTHON_VERSION}-dev \
+        && apt purge -y \
+            python3-pip \
+            software-properties-common \
+        && apt-get autoremove --purge -y \
+        && rm -rf /var/lib/apt/lists/* \
+        && update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
+        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
+    ; fi
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
+    ; fi
+
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
