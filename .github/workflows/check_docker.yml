@@ -10,6 +10,9 @@ permissions:
 jobs:
   check-docker-build:
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        ubuntu_version: [22.04, 24.04]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -17,7 +20,7 @@ jobs:
       - name: Run Docker build
         run: |
           set -o pipefail
-          export ubuntu_version=22.04
+          export ubuntu_version=${{ matrix.ubuntu_version }}
 
           ./holohub build-container --base-img ubuntu:${ubuntu_version} 2>&1 | tee /tmp/build.log
           grep -qE "writing image.* done" /tmp/build.log || { echo "Build failed - no success pattern"; cat /tmp/build.log; exit 1; }

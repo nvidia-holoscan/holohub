@@ -112,14 +112,14 @@ def find_python_files_to_patch(project_metadata, holohub_root_path):
     # Get the run command from metadata
     run_config = project_metadata.get("metadata", {}).get("run", {})
     source_folder = project_metadata.get("source_folder", "")
-    if not run_config:
+    project_name = project_metadata.get("project_name", "")
+    if not run_config or not project_name:
         # If no run config, fall back to source directory only
         if source_folder and os.path.isdir(source_folder):
             directories_to_patch.append(source_folder)
         return directories_to_patch
 
-    project_name = project_metadata.get("project_name", "")
-    build_dir = Path(holohub_root_path) / "build" / project_name if project_name else None
+    build_dir = Path(holohub_root_path) / "build" / project_name
     path_mapping = build_holohub_path_mapping(
         holohub_root=Path(holohub_root_path), project_data=project_metadata, build_dir=build_dir
     )
@@ -128,7 +128,7 @@ def find_python_files_to_patch(project_metadata, holohub_root_path):
         directories_to_patch.append(source_folder)
         logger.info(f"Will patch source directory: {source_folder}")
     if "<holohub_app_bin>" in command:
-        if project_name and source_folder:
+        if source_folder:
             app_build_dir = path_mapping.get("holohub_app_bin", "")
             if app_build_dir and os.path.isdir(app_build_dir):
                 directories_to_patch.append(app_build_dir)

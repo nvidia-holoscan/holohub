@@ -94,7 +94,7 @@ For example:
 ### Important notes
 
 - Verify the application runs correctly after building and before proceeding with performance evaluation.
-  For example, run the app `./holohub run endoscopy_tool_tracking --language python` (append `--local` if you are using the bare-metal installation or inside a container)
+  For example, run the app `./holohub run endoscopy_tool_tracking --language python` (append `--local` if you are using the bare-metal installation)
 - For applications using TensorRT, run once to generate engine files (e.g., for the endoscopy tool tracking application).
 - See [patch_application.sh](./patch_application.sh) and [restore_application.sh](./restore_application.sh) for more details about the patching process.
 

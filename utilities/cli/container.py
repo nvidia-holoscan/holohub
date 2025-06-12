@@ -131,7 +131,12 @@ class HoloHubContainer:
             action="store_true",
             help="If CUDA MPS is enabled on the host, mount MPS host directories into the container",
         )
-        parser.add_argument("--no-x11", action="store_true", help="Disable X11 forwarding")
+        parser.add_argument(
+            "--enable-x11",
+            action="store_true",
+            default=True,
+            help="Enable X11 forwarding (default: True)",
+        )
         return parser
 
     @staticmethod
@@ -383,7 +388,7 @@ class HoloHubContainer:
         self,
         img: Optional[str] = None,
         local_sdk_root: Optional[Path] = None,
-        no_x11: bool = False,
+        enable_x11: bool = True,
         ssh_x11: bool = False,
         use_tini: bool = False,
         persistent: bool = False,
@@ -416,7 +421,7 @@ class HoloHubContainer:
         cmd.extend(self.ucx_args())
         cmd.extend(self.get_device_mounts())
         cmd.extend(self.group_args())
-        cmd.extend(self.get_display_options(no_x11, ssh_x11))
+        cmd.extend(self.get_display_options(enable_x11, ssh_x11))
         cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
         cmd.extend(self.get_pythonpath_options(local_sdk_root))
 
@@ -515,7 +520,7 @@ class HoloHubContainer:
             "HOLOHUB_BUILD_LOCAL=1",
         ]
 
-    def get_display_options(self, no_x11: bool, ssh_x11: bool) -> List[str]:
+    def get_display_options(self, enable_x11: bool, ssh_x11: bool) -> List[str]:
         """Get display-related options"""
         options = []
         if "XDG_SESSION_TYPE" in os.environ:
@@ -531,7 +536,7 @@ class HoloHubContainer:
                 )
 
         # Handle X11 forwarding
-        if not no_x11 or ssh_x11:
+        if enable_x11 or ssh_x11:
             options.extend(["-v", "/tmp/.X11-unix:/tmp/.X11-unix", "-e", "DISPLAY"])
 
         # Handle SSH X11 forwarding

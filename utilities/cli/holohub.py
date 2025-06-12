@@ -421,7 +421,7 @@ class HoloHubCLI:
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
-            no_x11=getattr(args, "no_x11", False),
+            enable_x11=getattr(args, "enable_x11", True),
             ssh_x11=getattr(args, "ssh_x11", False),
             use_tini=args.init,
             persistent=args.persistent,
@@ -649,7 +649,7 @@ class HoloHubCLI:
             container.run(
                 img=getattr(args, "img", None),
                 local_sdk_root=getattr(args, "local_sdk_root", None),
-                no_x11=getattr(args, "no_x11", False),
+                enable_x11=getattr(args, "enable_x11", True),
                 ssh_x11=getattr(args, "ssh_x11", False),
                 use_tini=getattr(args, "init", False),
                 persistent=getattr(args, "persistent", False),
@@ -842,7 +842,7 @@ class HoloHubCLI:
             container.run(
                 img=getattr(args, "img", None),
                 local_sdk_root=getattr(args, "local_sdk_root", None),
-                no_x11=getattr(args, "no_x11", False),
+                enable_x11=getattr(args, "enable_x11", True),
                 ssh_x11=getattr(args, "ssh_x11", False),
                 use_tini=getattr(args, "init", False),
                 persistent=getattr(args, "persistent", False),
@@ -1424,7 +1424,7 @@ class HoloHubCLI:
             container.run(
                 img=getattr(args, "img", None),
                 local_sdk_root=getattr(args, "local_sdk_root", None),
-                no_x11=getattr(args, "no_x11", False),
+                enable_x11=getattr(args, "enable_x11", True),
                 ssh_x11=getattr(args, "ssh_x11", False),
                 use_tini=getattr(args, "init", False),
                 persistent=getattr(args, "persistent", False),
