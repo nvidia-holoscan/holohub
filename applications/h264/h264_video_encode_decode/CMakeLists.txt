@@ -13,14 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_application(h264_endoscopy_tool_tracking DEPENDS
-                        OPERATORS video_encoder
-                                  tensor_to_video_buffer
-                                  lstm_tensor_rt_inference
-                                  tool_tracking_postprocessor)
+cmake_minimum_required(VERSION 3.20)
+project(h264_video_encode_decode_apps LANGUAGES NONE)
 
-add_holohub_application(h264_video_encode_decode DEPENDS
-                        OPERATORS video_decoder tensor_to_video_buffer video_read_bitstream append_timestamp)
-
-add_holohub_application(h264_video_decode DEPENDS
-                        OPERATORS video_decoder video_read_bitstream)
+add_subdirectory(python)
