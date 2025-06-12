@@ -706,15 +706,23 @@ class HoloHubCLI:
                     f"Project '{args.project}' does not have a run configuration"
                 )
 
-            app_source_path = project_data.get("source_folder", "")
-
-            # Process command template
-            cmd = run_config["command"]
-            cmd = cmd.replace("<holohub_data_dir>", str(HoloHubCLI.DEFAULT_DATA_DIR))
-            cmd = cmd.replace("<holohub_app_source>", str(app_source_path))
-            cmd = cmd.replace("<holohub_bin>", str(build_dir))
-            app_build_dir = build_dir / app_source_path.relative_to(HoloHubCLI.HOLOHUB_ROOT)
-            cmd = cmd.replace("<holohub_app_bin>", str(app_build_dir))
+            path_mapping = holohub_cli_util.build_holohub_path_mapping(
+                holohub_root=HoloHubCLI.HOLOHUB_ROOT,
+                project_data=project_data,
+                build_dir=build_dir,
+                data_dir=HoloHubCLI.DEFAULT_DATA_DIR,
+            )
+            if path_mapping:
+                mapping_info = ";\n".join(
+                    f"<{key}>: {value}" for key, value in path_mapping.items()
+                )
+                print(
+                    holohub_cli_util.format_cmd(
+                        f"Path mappings: \n{mapping_info}", is_dryrun=args.dryrun
+                    )
+                )
+            # Process command template using the path mapping
+            cmd = holohub_cli_util.replace_placeholders(run_config["command"], path_mapping)
 
             if hasattr(args, "run_args") and args.run_args:
                 cmd_args = shlex.split(args.run_args)
@@ -729,27 +737,17 @@ class HoloHubCLI:
                         f"Did you forget to '{self.script_name} build {args.project}'?"
                     )
 
-            # Handle workdir
-            workdir = run_config.get("workdir", "holohub_app_bin")
-            if workdir == "holohub_app_source":
-                print(
-                    holohub_cli_util.format_cmd(
-                        "cd " + str(project_data.get("source_folder", "")), is_dryrun=args.dryrun
-                    )
-                )
-                if not args.dryrun:
-                    os.chdir(project_data.get("source_folder", ""))
-            elif workdir == "holohub_bin":
-                print(holohub_cli_util.format_cmd("cd " + str(build_dir), is_dryrun=args.dryrun))
-                if not args.dryrun:
-                    os.chdir(build_dir)
-            else:  # default to app binary directory
-                target_dir = (
-                    build_dir if language == "cpp" else project_data.get("source_folder", "")
-                )
-                print(holohub_cli_util.format_cmd("cd " + str(target_dir), is_dryrun=args.dryrun))
-                if not args.dryrun:
-                    os.chdir(target_dir)
+            # Handle workdir using the path mapping
+            workdir_spec = run_config.get("workdir", "holohub_app_bin")
+            if not workdir_spec:
+                target_dir = Path(path_mapping.get("holohub_root", "."))
+            elif workdir_spec in path_mapping:
+                target_dir = Path(path_mapping[workdir_spec])
+            else:
+                target_dir = Path(workdir_spec)
+            print(holohub_cli_util.format_cmd("cd " + str(target_dir), is_dryrun=args.dryrun))
+            if not args.dryrun:
+                os.chdir(target_dir)
 
             # Set up environment
             env = os.environ.copy()

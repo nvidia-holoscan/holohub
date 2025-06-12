@@ -25,12 +25,14 @@ from pathlib import Path
 from typing import List, Optional
 
 from .util import (
+    build_holohub_path_mapping,
     check_nvidia_ctk,
     fatal,
     get_compute_capacity,
     get_group_id,
     get_host_gpu,
     normalize_language,
+    replace_placeholders,
     run_command,
 )
 
@@ -275,11 +277,15 @@ class HoloHubContainer:
             return HoloHubContainer.default_dockerfile()
 
         if self.project_metadata.get("metadata", {}).get("dockerfile"):
-            dockerfile = self.project_metadata["metadata"]["dockerfile"]
-            dockerfile = dockerfile.replace(
-                "<holohub_app_source>", str(self.project_metadata["source_folder"])
+            # Build path mapping for this project
+            path_mapping = build_holohub_path_mapping(
+                holohub_root=HoloHubContainer.HOLOHUB_ROOT,
+                project_data=self.project_metadata,
             )
-            dockerfile = dockerfile.replace("<holohub_root>", str(HoloHubContainer.HOLOHUB_ROOT))
+
+            dockerfile = replace_placeholders(
+                self.project_metadata["metadata"]["dockerfile"], path_mapping
+            )
 
             # If the Dockerfile path is not absolute, make it absolute
             if not str(dockerfile).startswith(str(HoloHubContainer.HOLOHUB_ROOT)):

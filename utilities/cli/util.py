@@ -467,3 +467,57 @@ def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
                     except IndexError:
                         continue
     return sorted(results)
+
+
+def build_holohub_path_mapping(
+    holohub_root: Path,
+    project_data: Optional[dict] = None,
+    build_dir: Optional[Path] = None,
+    data_dir: Optional[Path] = None,
+) -> dict[str, str]:
+    """Build a mapping of HoloHub placeholders to their resolved paths"""
+    if data_dir is None:
+        data_dir = holohub_root / "data"
+
+    path_mapping = {
+        "holohub_root": str(holohub_root),
+        "holohub_data_dir": str(data_dir),
+    }
+    if not project_data:
+        return path_mapping
+    # Add project-specific mappings if project_data is provided
+    app_source_path = project_data.get("source_folder", "")
+    if app_source_path:
+        path_mapping["holohub_app_source"] = str(app_source_path)
+    if build_dir:
+        path_mapping["holohub_bin"] = str(build_dir)
+        if app_source_path:
+            try:
+                app_build_dir = build_dir / Path(app_source_path).relative_to(holohub_root)
+                path_mapping["holohub_app_bin"] = str(app_build_dir)
+            except ValueError:
+                # Handle case where app_source_path is not relative to holohub_root
+                path_mapping["holohub_app_bin"] = str(build_dir)
+    elif project_data.get("project_name"):
+        # If no build_dir provided but we have project name, try to infer it
+        project_name = project_data["project_name"]
+        inferred_build_dir = holohub_root / "build" / project_name
+        path_mapping["holohub_bin"] = str(inferred_build_dir)
+        if app_source_path:
+            try:
+                app_build_dir = inferred_build_dir / Path(app_source_path).relative_to(holohub_root)
+                path_mapping["holohub_app_bin"] = str(app_build_dir)
+            except ValueError:
+                path_mapping["holohub_app_bin"] = str(inferred_build_dir)
+    return path_mapping
+
+
+def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
+    """Replace placeholders in text using the provided path mapping"""
+    if not text:
+        return text
+    result = text
+    for placeholder, replacement in path_mapping.items():
+        bracketed_placeholder = f"<{placeholder}>"
+        result = result.replace(bracketed_placeholder, replacement)
+    return result

@@ -37,6 +37,7 @@ if holohub_root not in sys.path:
     sys.path.insert(0, holohub_root)
 
 from utilities.cli.holohub import HoloHubCLI  # noqa: E402
+from utilities.cli.util import build_holohub_path_mapping  # noqa: E402
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.DEBUG)
@@ -107,26 +108,30 @@ def find_python_files_to_patch(project_metadata, holohub_root_path):
     directories_to_patch = []
     if not project_metadata:
         return directories_to_patch
+
     # Get the run command from metadata
     run_config = project_metadata.get("metadata", {}).get("run", {})
+    source_folder = project_metadata.get("source_folder", "")
     if not run_config:
         # If no run config, fall back to source directory only
-        source_folder = project_metadata.get("source_folder", "")
         if source_folder and os.path.isdir(source_folder):
             directories_to_patch.append(source_folder)
         return directories_to_patch
+
+    project_name = project_metadata.get("project_name", "")
+    build_dir = Path(holohub_root_path) / "build" / project_name if project_name else None
+    path_mapping = build_holohub_path_mapping(
+        holohub_root=Path(holohub_root_path), project_data=project_metadata, build_dir=build_dir
+    )
     command = run_config.get("command", "")
-    source_folder = project_metadata.get("source_folder", "")
     if "<holohub_app_source>" in command and source_folder and os.path.isdir(source_folder):
         directories_to_patch.append(source_folder)
         logger.info(f"Will patch source directory: {source_folder}")
     if "<holohub_app_bin>" in command:
-        project_name = project_metadata.get("project_name", "")
         if project_name and source_folder:
-            build_dir = Path(holohub_root_path) / "build" / project_name
-            app_build_dir = build_dir / source_folder.relative_to(Path(holohub_root_path))
-            if os.path.isdir(app_build_dir):
-                directories_to_patch.append(str(app_build_dir))
+            app_build_dir = path_mapping.get("holohub_app_bin", "")
+            if app_build_dir and os.path.isdir(app_build_dir):
+                directories_to_patch.append(app_build_dir)
                 logger.info(f"Will patch build directory: {app_build_dir}")
             else:
                 logger.warning(f"Build directory not found: {app_build_dir}")
@@ -136,6 +141,9 @@ def find_python_files_to_patch(project_metadata, holohub_root_path):
                     logger.info(f"Fallback to patching source directory: {source_folder}")
     # If no placeholders found but it's a Python command, patch source directory
     if not directories_to_patch and "python" in command.lower() and source_folder:
+        workdir = run_config.get("workdir", "")
+        if workdir in ["holohub_app_source", "holohub_app_bin"]:
+            source_folder = path_mapping.get(workdir, source_folder)
         if os.path.isdir(source_folder):
             directories_to_patch.append(source_folder)
             logger.info(f"Python command detected, patching source directory: {source_folder}")
