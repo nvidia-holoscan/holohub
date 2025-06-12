@@ -164,7 +164,7 @@ class HoloHubCLI:
         run_container.add_argument(
             "--add-volume",
             action="append",
-            help="Mount additional volume, example: `--add-volume /tmp`",
+            help="Mount additional volume to `/workspace/volumes`, example: `--add-volume /tmp`",
         )
         run_container.add_argument(
             "--as-root", action="store_true", help="Run the container with root permissions"
@@ -189,7 +189,8 @@ class HoloHubCLI:
         )
         run_container.add_argument(
             "--nsys-location",
-            help="Specify the location of the Nsight Systems installation on the host (e.g., /opt/nvidia/nsight-systems/2024.1.1/)",
+            help="Specify location of the Nsight Systems installation on the host "
+            "(e.g., /opt/nvidia/nsight-systems/2024.1.1/)",
         )
         run_container.add_argument(
             "--mps",
