@@ -57,26 +57,9 @@ class HoloHubCLI:
         # Store subparsers for error handling
         self.subparsers = {}
 
-        # Common container build arguments parent parser
-        container_build_argparse = argparse.ArgumentParser(add_help=False)
-        container_build_argparse.add_argument(
-            "--base-img", help="(Build container) Fully qualified base image name"
-        )
-        container_build_argparse.add_argument(
-            "--docker-file", help="(Build container) Path to Dockerfile to use"
-        )
-        container_build_argparse.add_argument(
-            "--img", help="(Build container) Specify fully qualified container name"
-        )
-        container_build_argparse.add_argument(
-            "--no-cache",
-            action="store_true",
-            help="(Build container) Do not use cache when building the image",
-        )
-        container_build_argparse.add_argument(
-            "--build-args",
-            help="(Build container) Provides extra arguments to docker build command",
-        )
+        # Common container arguments parent parsers
+        container_build_argparse = HoloHubContainer.get_build_argparse()
+        container_run_argparse = HoloHubContainer.get_run_argparse()
         # Add create command
         create = subparsers.add_parser("create", help="Create a new Holoscan application")
         self.subparsers["create"] = create
@@ -143,18 +126,10 @@ class HoloHubCLI:
         run_container = subparsers.add_parser(
             "run-container",
             help="Build and launch the development container",
-            parents=[container_build_argparse],
+            parents=[container_build_argparse, container_run_argparse],
         )
         self.subparsers["run-container"] = run_container
         run_container.add_argument("project", nargs="?", help="Project to run container for")
-        run_container.add_argument(
-            "--local-sdk-root",
-            help="Path to Holoscan SDK used for building local Holoscan SDK container",
-        )
-        run_container.add_argument("--init", action="store_true", help="Support tini entry point")
-        run_container.add_argument(
-            "--persistent", action="store_true", help="Does not delete container after it is run"
-        )
         run_container.add_argument(
             "--verbose", action="store_true", help="Print variables passed to docker run command"
         )
@@ -162,42 +137,8 @@ class HoloHubCLI:
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
         run_container.add_argument(
-            "--add-volume",
-            action="append",
-            help="Mount additional volume to `/workspace/volumes`, example: `--add-volume /tmp`",
-        )
-        run_container.add_argument(
-            "--as-root", action="store_true", help="Run the container with root permissions"
-        )
-        run_container.add_argument(
-            "--docker-opts",
-            default="",
-            help="Additional options to the Docker launch, example: `--docker-opts '--memory 4g'`",
-        )
-        run_container.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
         )
-        run_container.add_argument(
-            "--ssh-x11",
-            action="store_true",
-            help="Enable X11 forwarding of graphical HoloHub applications over SSH",
-        )
-        run_container.add_argument(
-            "--nsys-profile",
-            action="store_true",
-            help="Support Nsight Systems profiling in container",
-        )
-        run_container.add_argument(
-            "--nsys-location",
-            help="Specify location of the Nsight Systems installation on the host "
-            "(e.g., /opt/nvidia/nsight-systems/2024.1.1/)",
-        )
-        run_container.add_argument(
-            "--mps",
-            action="store_true",
-            help="If CUDA MPS is enabled on the host, mount MPS host directories into the container",
-        )
-        run_container.add_argument("--no-x11", action="store_true", help="Disable X11 forwarding")
         run_container.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
         )
@@ -205,7 +146,9 @@ class HoloHubCLI:
 
         # build command
         build = subparsers.add_parser(
-            "build", help="Build a project", parents=[container_build_argparse]
+            "build",
+            help="Build a project",
+            parents=[container_build_argparse, container_run_argparse],
         )
         self.subparsers["build"] = build
         build.add_argument("project", help="Project to build")
@@ -247,7 +190,9 @@ class HoloHubCLI:
 
         # run command
         run = subparsers.add_parser(
-            "run", help="Build and run a project", parents=[container_build_argparse]
+            "run",
+            help="Build and run a project",
+            parents=[container_build_argparse, container_run_argparse],
         )
         self.subparsers["run"] = run
         run.add_argument("project", help="Project to run")
@@ -255,9 +200,6 @@ class HoloHubCLI:
         run.add_argument("--verbose", action="store_true", help="Print extra output")
         run.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
-        )
-        run.add_argument(
-            "--nsys-profile", action="store_true", help="Enable Nsight Systems profiling"
         )
         run.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
@@ -271,11 +213,6 @@ class HoloHubCLI:
             help="Optional operators that should be built, separated by semicolons (;)",
         )
         run.add_argument(
-            "--docker-opts",
-            default="",
-            help="Additional options to pass to the underlying Docker launch (if applicable)",
-        )
-        run.add_argument(
             "--parallel", help="Number of parallel build jobs (e.g. --parallel $(($(nproc)-1)))"
         )
         run.add_argument(
@@ -285,11 +222,6 @@ class HoloHubCLI:
         )
         run.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
-        )
-        run.add_argument(
-            "--ssh-x11",
-            action="store_true",
-            help="Enable X11 forwarding of graphical HoloHub applications over SSH",
         )
         run.set_defaults(func=self.handle_run)
 
@@ -323,7 +255,9 @@ class HoloHubCLI:
 
         # Add install command
         install = subparsers.add_parser(
-            "install", help="Install a project", parents=[container_build_argparse]
+            "install",
+            help="Install a project",
+            parents=[container_build_argparse, container_run_argparse],
         )
         self.subparsers["install"] = install
         install.add_argument("project", help="Project to install")
@@ -468,25 +402,6 @@ class HoloHubCLI:
             build_args=args.build_args,
         )
 
-    def run_command_in_container(
-        self,
-        container: HoloHubContainer,
-        command: str,
-        args: argparse.Namespace,
-        additional_docker_opts: str = "--entrypoint=bash",
-    ) -> None:
-        """
-        Method to run a command in a HoloHubContainer.
-        """
-        docker_opts = additional_docker_opts
-        if hasattr(args, "docker_opts") and args.docker_opts:
-            docker_opts += " " + args.docker_opts
-        container.run(
-            docker_opts=docker_opts,
-            extra_args=["-c", command],
-            verbose=getattr(args, "verbose", False),
-        )
-
     def handle_run_container(self, args: argparse.Namespace) -> None:
         """Handle run-container command"""
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
@@ -494,6 +409,7 @@ class HoloHubCLI:
             project_name=args.project, language=args.language if hasattr(args, "language") else None
         )
         container.dryrun = args.dryrun
+        container.verbose = args.verbose
         if not skip_docker_build:
             container.build(
                 docker_file=args.docker_file,
@@ -505,7 +421,7 @@ class HoloHubCLI:
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
-            enable_x11=not getattr(args, "no_x11", False),
+            no_x11=getattr(args, "no_x11", False),
             ssh_x11=getattr(args, "ssh_x11", False),
             use_tini=args.init,
             persistent=args.persistent,
@@ -515,7 +431,6 @@ class HoloHubCLI:
             docker_opts=args.docker_opts,
             add_volumes=args.add_volume,
             enable_mps=getattr(args, "mps", False),
-            verbose=args.verbose,
         )
 
     def handle_test(self, args: argparse.Namespace) -> None:
@@ -534,13 +449,13 @@ class HoloHubCLI:
                             shutil.rmtree(path)
 
         container.dryrun = args.dryrun
+        container.verbose = args.verbose
 
         if not skip_docker_build:
             container.build(
                 base_img=args.base_img,
                 build_args=args.build_args,
             )
-
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
 
@@ -574,7 +489,6 @@ class HoloHubCLI:
             use_tini=True,
             docker_opts="--entrypoint=bash",
             extra_args=["-c", ctest_cmd],
-            verbose=args.verbose,
         )
 
     def build_project_locally(
@@ -702,6 +616,7 @@ class HoloHubCLI:
                 language=args.language if hasattr(args, "language") else None,
             )
             container.dryrun = args.dryrun
+            container.verbose = args.verbose
             if not skip_docker_build:
                 container.build(
                     docker_file=args.docker_file,
@@ -728,7 +643,24 @@ class HoloHubCLI:
             if getattr(args, "benchmark", False):
                 build_cmd += " --benchmark"
 
-            self.run_command_in_container(container, build_cmd, args)
+            docker_opts = "--entrypoint=bash"
+            if hasattr(args, "docker_opts") and args.docker_opts:
+                docker_opts += " " + args.docker_opts
+            container.run(
+                img=getattr(args, "img", None),
+                local_sdk_root=getattr(args, "local_sdk_root", None),
+                no_x11=getattr(args, "no_x11", False),
+                ssh_x11=getattr(args, "ssh_x11", False),
+                use_tini=getattr(args, "init", False),
+                persistent=getattr(args, "persistent", False),
+                nsys_profile=getattr(args, "nsys_profile", False),
+                nsys_location=getattr(args, "nsys_location", ""),
+                as_root=getattr(args, "as_root", False),
+                docker_opts=docker_opts,
+                add_volumes=getattr(args, "add_volume", None),
+                enable_mps=getattr(args, "mps", False),
+                extra_args=["-c", build_cmd],
+            )
 
     def handle_run(self, args: argparse.Namespace) -> None:
         """Handle run command"""
@@ -882,6 +814,7 @@ class HoloHubCLI:
                 language=args.language if hasattr(args, "language") else None,
             )
             container.dryrun = args.dryrun
+            container.verbose = args.verbose
             if not skip_docker_build:
                 container.build(
                     docker_file=args.docker_file,
@@ -909,10 +842,19 @@ class HoloHubCLI:
                 run_cmd += f" --parallel {args.parallel}"
 
             container.run(
-                docker_opts="--entrypoint=bash " + args.docker_opts,
-                extra_args=["-c", run_cmd],
-                verbose=args.verbose,
+                img=getattr(args, "img", None),
+                local_sdk_root=getattr(args, "local_sdk_root", None),
+                no_x11=getattr(args, "no_x11", False),
                 ssh_x11=getattr(args, "ssh_x11", False),
+                use_tini=getattr(args, "init", False),
+                persistent=getattr(args, "persistent", False),
+                nsys_profile=getattr(args, "nsys_profile", False),
+                nsys_location=getattr(args, "nsys_location", ""),
+                as_root=getattr(args, "as_root", False),
+                docker_opts="--entrypoint=bash " + args.docker_opts,
+                add_volumes=getattr(args, "add_volume", None),
+                enable_mps=getattr(args, "mps", False),
+                extra_args=["-c", run_cmd],
             )
 
     def handle_list(self, args: argparse.Namespace) -> None:
@@ -1455,6 +1397,7 @@ class HoloHubCLI:
                 project_name=args.project, language=getattr(args, "language", None)
             )
             container.dryrun = args.dryrun
+            container.verbose = args.verbose
             if not skip_docker_build:
                 container.build(
                     docker_file=args.docker_file,
@@ -1477,7 +1420,24 @@ class HoloHubCLI:
             if args.verbose:
                 install_cmd += " --verbose"
 
-            self.run_command_in_container(container, install_cmd, args)
+            docker_opts = "--entrypoint=bash"
+            if hasattr(args, "docker_opts") and args.docker_opts:
+                docker_opts += " " + args.docker_opts
+            container.run(
+                img=getattr(args, "img", None),
+                local_sdk_root=getattr(args, "local_sdk_root", None),
+                no_x11=getattr(args, "no_x11", False),
+                ssh_x11=getattr(args, "ssh_x11", False),
+                use_tini=getattr(args, "init", False),
+                persistent=getattr(args, "persistent", False),
+                nsys_profile=getattr(args, "nsys_profile", False),
+                nsys_location=getattr(args, "nsys_location", ""),
+                as_root=getattr(args, "as_root", False),
+                docker_opts=docker_opts,
+                add_volumes=getattr(args, "add_volume", None),
+                enable_mps=getattr(args, "mps", False),
+                extra_args=["-c", install_cmd],
+            )
 
     def handle_clear_cache(self, args: argparse.Namespace) -> None:
         """Handle clear-cache command"""

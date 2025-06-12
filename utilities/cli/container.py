@@ -14,8 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import glob
 import os
+import shlex
 import stat
 import subprocess
 import sys
@@ -59,6 +61,76 @@ class HoloHubContainer:
     @staticmethod
     def default_dockerfile() -> Path:
         return HoloHubContainer.HOLOHUB_ROOT / "Dockerfile"
+
+    @staticmethod
+    def get_build_argparse() -> argparse.ArgumentParser:
+        """Get argument parser for container build options"""
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument("--base-img", help="(Build container) Fully qualified base image name")
+        parser.add_argument("--docker-file", help="(Build container) Path to Dockerfile to use")
+        parser.add_argument(
+            "--img", help="(Build container) Specify fully qualified container name"
+        )
+        parser.add_argument(
+            "--no-cache",
+            action="store_true",
+            help="(Build container) Do not use cache when building the image",
+        )
+        parser.add_argument(
+            "--build-args",
+            help="(Build container) Extra arguments to docker build command. "
+            "Example: `--build-args '--network=host --build-arg \"CUSTOM=value with spaces\"'`",
+        )
+        return parser
+
+    @staticmethod
+    def get_run_argparse() -> argparse.ArgumentParser:
+        """Get argument parser for container run options"""
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument(
+            "--docker-opts",
+            default="",
+            help="Additional options to the Docker run command. "
+            "Examples: `--docker-opts '--env \"VAR=value with spaces\"'`",
+        )
+        parser.add_argument(
+            "--ssh-x11",
+            action="store_true",
+            help="Enable X11 forwarding of graphical HoloHub applications over SSH",
+        )
+        parser.add_argument(
+            "--nsys-profile",
+            action="store_true",
+            help="Support Nsight Systems profiling in container",
+        )
+        parser.add_argument(
+            "--local-sdk-root",
+            help="Path to Holoscan SDK used for building local Holoscan SDK container",
+        )
+        parser.add_argument("--init", action="store_true", help="Support tini entry point")
+        parser.add_argument(
+            "--persistent", action="store_true", help="Does not delete container after it is run"
+        )
+        parser.add_argument(
+            "--add-volume",
+            action="append",
+            help="Mount additional volume to `/workspace/volumes`, example: `--add-volume /tmp`",
+        )
+        parser.add_argument(
+            "--as-root", action="store_true", help="Run the container with root permissions"
+        )
+        parser.add_argument(
+            "--nsys-location",
+            help="Specify location of the Nsight Systems installation on the host "
+            "(e.g., /opt/nvidia/nsight-systems/2024.1.1/)",
+        )
+        parser.add_argument(
+            "--mps",
+            action="store_true",
+            help="If CUDA MPS is enabled on the host, mount MPS host directories into the container",
+        )
+        parser.add_argument("--no-x11", action="store_true", help="Disable X11 forwarding")
+        return parser
 
     @staticmethod
     def ucx_args() -> List[str]:
@@ -245,6 +317,7 @@ class HoloHubContainer:
         self.project_metadata = project_metadata
 
         self.dryrun = False
+        self.verbose = False
 
     def build(
         self,
@@ -294,7 +367,7 @@ class HoloHubContainer:
             cmd.append("--no-cache")
 
         if build_args:
-            cmd.extend(build_args.split())
+            cmd.extend(shlex.split(build_args))
 
         cmd.extend(["-f", str(docker_file_path), "-t", img, str(HoloHubContainer.HOLOHUB_ROOT)])
 
@@ -304,7 +377,7 @@ class HoloHubContainer:
         self,
         img: Optional[str] = None,
         local_sdk_root: Optional[Path] = None,
-        enable_x11: bool = True,
+        no_x11: bool = False,
         ssh_x11: bool = False,
         use_tini: bool = False,
         persistent: bool = False,
@@ -314,7 +387,6 @@ class HoloHubContainer:
         docker_opts: str = "",
         add_volumes: List[str] = None,
         enable_mps: bool = False,
-        verbose: bool = False,
         extra_args: List[str] = None,
     ) -> None:
         """Launch the container"""
@@ -338,7 +410,7 @@ class HoloHubContainer:
         cmd.extend(self.ucx_args())
         cmd.extend(self.device_args())
         cmd.extend(self.group_args())
-        cmd.extend(self.get_display_options(enable_x11, ssh_x11))
+        cmd.extend(self.get_display_options(no_x11, ssh_x11))
         cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
         cmd.extend(self.get_pythonpath_options(local_sdk_root))
 
@@ -346,12 +418,12 @@ class HoloHubContainer:
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
 
         if docker_opts:
-            cmd.extend(docker_opts.split())
+            cmd.extend(shlex.split(docker_opts))
 
         cmd.append(img)
         cmd.extend(extra_args)
 
-        if verbose:
+        if self.verbose:
             cmd_list = [f'"{arg}"' if " " in str(arg) else str(arg) for arg in cmd]
             print(f"Launch command: {' '.join(cmd_list)}")
 
@@ -437,7 +509,7 @@ class HoloHubContainer:
             "HOLOHUB_BUILD_LOCAL=1",
         ]
 
-    def get_display_options(self, enable_x11: bool, ssh_x11: bool) -> List[str]:
+    def get_display_options(self, no_x11: bool, ssh_x11: bool) -> List[str]:
         """Get display-related options"""
         options = []
         if "XDG_SESSION_TYPE" in os.environ:
@@ -453,7 +525,7 @@ class HoloHubContainer:
                 )
 
         # Handle X11 forwarding
-        if enable_x11 or ssh_x11:
+        if not no_x11 or ssh_x11:
             options.extend(["-v", "/tmp/.X11-unix:/tmp/.X11-unix", "-e", "DISPLAY"])
 
         # Handle SSH X11 forwarding
