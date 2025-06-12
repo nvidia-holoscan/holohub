@@ -711,20 +711,20 @@ class HoloHubCLI:
                 skip_build=skip_docker_build,
             )
 
+            # Build command with all necessary arguments
             build_cmd = f"{self.script_name} build {args.project} --local"
-            if hasattr(args, "build_type") and args.build_type:
+            if args.build_type:
                 build_cmd += f" --build-type {args.build_type}"
-            if hasattr(args, "with_operators") and args.with_operators:
+            if args.with_operators:
                 build_cmd += f' --build-with "{args.with_operators}"'
+            if hasattr(args, "pkg_generator"):
+                build_cmd += f" --pkg-generator {args.pkg_generator}"
             if hasattr(args, "language") and args.language:
                 build_cmd += f" --language {args.language}"
-            if hasattr(args, "parallel") and args.parallel:
+            if getattr(args, "parallel", None):
                 build_cmd += f" --parallel {args.parallel}"
-            if hasattr(args, "verbose") and args.verbose:
+            if args.verbose:
                 build_cmd += " --verbose"
-            pkg_generator = getattr(args, "pkg_generator", "DEB")
-            if pkg_generator != "DEB":
-                build_cmd += f" --pkg-generator {pkg_generator}"
             if getattr(args, "benchmark", False):
                 build_cmd += " --benchmark"
 
@@ -1454,15 +1454,15 @@ class HoloHubCLI:
 
             # Install command with all necessary arguments
             install_cmd = f"{self.script_name} install {args.project} --local"
-            if hasattr(args, "build_type") and args.build_type:
+            if args.build_type:
                 install_cmd += f" --build-type {args.build_type}"
-            if hasattr(args, "with_operators") and args.with_operators:
-                install_cmd += f' --build-with "{args.with_operators}"'
-            if hasattr(args, "language") and args.language:
+            if getattr(args, "language", None):
                 install_cmd += f" --language {args.language}"
-            if hasattr(args, "parallel") and args.parallel:
+            if getattr(args, "with_operators", None):
+                install_cmd += f' --build-with "{args.with_operators}"'
+            if getattr(args, "parallel", None):
                 install_cmd += f" --parallel {args.parallel}"
-            if hasattr(args, "verbose") and args.verbose:
+            if args.verbose:
                 install_cmd += " --verbose"
 
             self.run_command_in_container(container, install_cmd, args)
