@@ -500,7 +500,7 @@ HoloHub enforces code quality through automated linting checks that run in CI/CD
 #### Installing Lint Tools
 
 ```bash
-./holohub lint --dependencies
+./holohub lint --install-dependencies
 ```
 
 #### Running Lint Checks
