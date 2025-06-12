@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "DDS Video: Real-time Video Streaming with RTI Connext",
+		"name": "DDS Video: Real-time Video Streaming with RTI Connext & H.264",
 		"authors": [
 			{
 				"name": "Victor Chang",

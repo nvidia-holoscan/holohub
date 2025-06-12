@@ -1,4 +1,4 @@
-# DDS Video & H.264 Streaming
+# DDS Video: Real-time Video Streaming with RTI Connext & H.264
 
 This application demonstrates how to encode video frames with H.264 using the multimedia 
 extension over DDS.

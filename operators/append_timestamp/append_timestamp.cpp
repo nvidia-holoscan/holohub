@@ -19,11 +19,11 @@
 
 // If GXF has gxf/std/dlpack_utils.hpp it has DLPack support
 #if __has_include("gxf/std/dlpack_utils.hpp")
-  #define GXF_HAS_DLPACK_SUPPORT 1
-  #include "gxf/std/tensor.hpp"
+#define GXF_HAS_DLPACK_SUPPORT 1
+#include "gxf/std/tensor.hpp"
 #else
-  #define GXF_HAS_DLPACK_SUPPORT 0
-  #include "holoscan/core/gxf/gxf_tensor.hpp"
+#define GXF_HAS_DLPACK_SUPPORT 0
+#include "holoscan/core/gxf/gxf_tensor.hpp"
 #endif
 
 #include <gxf/std/tensor.hpp>
@@ -37,21 +37,20 @@
 
 namespace holoscan::ops {
 
-
 void AppendTimestampOp::setup(OperatorSpec& spec) {
   auto& input = spec.input<gxf::Entity>("in_tensor");
   auto& output = spec.output<gxf::Entity>("out_tensor");
 }
 
-
 void AppendTimestampOp::compute(InputContext& op_input, OutputContext& op_output,
-                                    ExecutionContext& context) {
+                                ExecutionContext& context) {
   // Process input message
   // The type of `in_message` is 'holoscan::gxf::Entity'.
   auto in_message = op_input.receive<gxf::Entity>("in_tensor").value();
 
   // Add timestamp to the tensor
-  auto timestamp = static_cast<nvidia::gxf::Entity&>(in_message).add<nvidia::gxf::Timestamp>("timestamp");
+  auto timestamp =
+      static_cast<nvidia::gxf::Entity&>(in_message).add<nvidia::gxf::Timestamp>("timestamp");
   if (timestamp) {
     (*timestamp)->pubtime = std::chrono::system_clock::now().time_since_epoch().count();
     (*timestamp)->acqtime = std::chrono::system_clock::now().time_since_epoch().count();
