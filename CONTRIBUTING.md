@@ -641,6 +641,7 @@ For examples, see existing test files like:
 
 > **Note**: HoloHub doesn't provide a single debugging container due to the variety of methods across applications. Open an issue if you need additional debugging tools.
 
+> **Note**: Refer to [Holoscan SDK debugging documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) and [HoloHub debugging tutorials](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/debugging)
 ### Performance
 
 Low latency is crucial for many HoloHub applications. Use these resources for performance analysis:
