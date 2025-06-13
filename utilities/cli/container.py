@@ -14,19 +14,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
+import glob
 import os
+import shlex
+import stat
 import subprocess
 import sys
 from pathlib import Path
 from typing import List, Optional
 
 from .util import (
+    build_holohub_path_mapping,
     check_nvidia_ctk,
     fatal,
     get_compute_capacity,
     get_group_id,
     get_host_gpu,
     normalize_language,
+    replace_placeholders,
     run_command,
 )
 
@@ -59,6 +65,81 @@ class HoloHubContainer:
         return HoloHubContainer.HOLOHUB_ROOT / "Dockerfile"
 
     @staticmethod
+    def get_build_argparse() -> argparse.ArgumentParser:
+        """Get argument parser for container build options"""
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument("--base-img", help="(Build container) Fully qualified base image name")
+        parser.add_argument("--docker-file", help="(Build container) Path to Dockerfile to use")
+        parser.add_argument(
+            "--img", help="(Build container) Specify fully qualified container name"
+        )
+        parser.add_argument(
+            "--no-cache",
+            action="store_true",
+            help="(Build container) Do not use cache when building the image",
+        )
+        parser.add_argument(
+            "--build-args",
+            help="(Build container) Extra arguments to docker build command. "
+            "Example: `--build-args '--network=host --build-arg \"CUSTOM=value with spaces\"'`",
+        )
+        return parser
+
+    @staticmethod
+    def get_run_argparse() -> argparse.ArgumentParser:
+        """Get argument parser for container run options"""
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument(
+            "--docker-opts",
+            default="",
+            help="Additional options to the Docker run command. "
+            "Examples: `--docker-opts '--env \"VAR=value with spaces\"'`",
+        )
+        parser.add_argument(
+            "--ssh-x11",
+            action="store_true",
+            help="Enable X11 forwarding of graphical HoloHub applications over SSH",
+        )
+        parser.add_argument(
+            "--nsys-profile",
+            action="store_true",
+            help="Support Nsight Systems profiling in container",
+        )
+        parser.add_argument(
+            "--local-sdk-root",
+            help="Path to Holoscan SDK used for building local Holoscan SDK container",
+        )
+        parser.add_argument("--init", action="store_true", help="Support tini entry point")
+        parser.add_argument(
+            "--persistent", action="store_true", help="Does not delete container after it is run"
+        )
+        parser.add_argument(
+            "--add-volume",
+            action="append",
+            help="Mount additional volume to `/workspace/volumes`, example: `--add-volume /tmp`",
+        )
+        parser.add_argument(
+            "--as-root", action="store_true", help="Run the container with root permissions"
+        )
+        parser.add_argument(
+            "--nsys-location",
+            help="Specify location of the Nsight Systems installation on the host "
+            "(e.g., /opt/nvidia/nsight-systems/2024.1.1/)",
+        )
+        parser.add_argument(
+            "--mps",
+            action="store_true",
+            help="If CUDA MPS is enabled on the host, mount MPS host directories into the container",
+        )
+        parser.add_argument(
+            "--enable-x11",
+            action="store_true",
+            default=True,
+            help="Enable X11 forwarding (default: True)",
+        )
+        return parser
+
+    @staticmethod
     def ucx_args() -> List[str]:
         """UCX-related docker run arguments"""
         return [
@@ -69,54 +150,117 @@ class HoloHubContainer:
         ]
 
     @staticmethod
-    def device_args() -> List[str]:
-        """Get docker run arguments for mounting devices in the container"""
+    def get_device_mounts() -> List[str]:
+        """Get docker run arguments for mounting specialized hardware devices and libraries"""
         options = []
 
-        # Add device mounts
-        device_paths = [
+        for video_dev in glob.glob("/dev/video[0-9]*"):
+            options.extend(["--device", video_dev])
+
+        for capture_dev in glob.glob("/dev/capture-vi-channel[0-9]*"):
+            options.extend(["--device", capture_dev])
+
+        for video_dev in glob.glob("/dev/ajantv2[0-9]*"):
+            options.extend(["--device", f"{video_dev}:{video_dev}"])
+
+        # Deltacast capture boards and Videomaster SDK
+        for i in range(4):
+            # Deltacast SDI capture board
+            delta_sdi = f"/dev/delta-x380{i}"
+            if os.path.exists(delta_sdi):
+                options.extend(["--device", f"{delta_sdi}:{delta_sdi}"])
+
+            # Deltacast HDMI capture board
+            delta_hdmi = f"/dev/delta-x350{i}"
+            if os.path.exists(delta_hdmi):
+                options.extend(["--device", f"{delta_hdmi}:{delta_hdmi}"])
+
+        # Find and mount all audio devices
+        if os.path.isdir("/dev/snd"):
+            # Only mount specific audio device patterns, exclude directories
+            audio_patterns = [
+                "/dev/snd/control*",
+                "/dev/snd/pcm*",
+                "/dev/snd/timer",
+                "/dev/snd/seq",
+                "/dev/snd/midi*",
+            ]
+            for pattern in audio_patterns:
+                for audio_dev in glob.glob(pattern):
+                    try:
+                        # Check if it's a character device using stat module
+                        if stat.S_ISCHR(os.stat(audio_dev).st_mode):
+                            options.extend(["--device", audio_dev])
+                    except OSError:
+                        continue
+
+        # Mount ALSA configuration
+        if os.path.exists("/etc/asound.conf"):
+            options.extend(
+                ["--mount", "source=/etc/asound.conf,target=/etc/asound.conf,readonly,type=bind"]
+            )
+
+        # Mount ConnectX device nodes
+        if os.path.exists("/dev/infiniband/rdma_cm"):
+            options.extend(["--device", "/dev/infiniband/rdma_cm"])
+
+        for uverbs_dev in glob.glob("/dev/infiniband/uverbs[0-9]*"):
+            options.extend(["--device", uverbs_dev])
+
+        conditional_mounts = [
+            "/usr/local/cmake/VideoMasterHDConfigVersion.cmake",
+            "/usr/local/cmake/VideoMasterHDConfig.cmake",
             "/usr/lib/libvideomasterhd.so",
-            "/opt/deltacast/videomaster/Include",
+            "/usr/lib/libvideomasterhd_audio.so",
+            "/usr/lib/libvideomasterhd_vbi.so",
+            "/usr/lib/libvideomasterhd_vbidata.so",
+            "/usr/include/videomaster",
             "/opt/yuan/qcap/include",
             "/opt/yuan/qcap/lib",
             "/usr/lib/aarch64-linux-gnu/tegra",
         ]
 
-        for path in device_paths:
+        for path in conditional_mounts:
             if os.path.exists(path):
-                if os.path.isfile(path):
-                    options.append(f"--volume={path}:{path}")
-                else:
-                    options.append(f"--volume={path}:{path}")
+                options.extend(["-v", f"{path}:{path}"])
+
+        if os.path.exists("/dev/nvgpu/igpu0/nvsched"):
+            options.extend(["--device", "/dev/nvgpu/igpu0/nvsched"])
+        if os.path.exists("/dev/nvhost-ctrl-nvdec"):
+            options.extend(["--device", "/dev/nvhost-ctrl-nvdec"])
+        if os.path.exists("/dev/nvhost-ctxsw-gpu"):
+            options.extend(["--device", "/dev/nvhost-ctxsw-gpu"])
+        if os.path.exists("/dev/nvhost-nvsched-gpu"):
+            options.extend(["--device", "/dev/nvhost-nvsched-gpu"])
+        if os.path.exists("/dev/nvhost-sched-gpu"):
+            options.extend(["--device", "/dev/nvhost-sched-gpu"])
+        if os.path.exists("/dev/nvidia0"):
+            options.extend(["--device", "/dev/nvidia0"])
+        if os.path.exists("/dev/nvidia-modeset"):
+            options.extend(["--device", "/dev/nvidia-modeset"])
+        if os.path.exists("/usr/share/nvidia/nvoptix.bin"):
+            options.extend(["-v", "/usr/share/nvidia/nvoptix.bin:/usr/share/nvidia/nvoptix.bin:ro"])
         return options
 
     @staticmethod
     def group_args() -> List[str]:
         """Get docker run arguments for adding groups to the container"""
         options = []
-        for group in ["video", "render", "docker"]:
+        for group in ["video", "render", "docker", "audio"]:
             gid = get_group_id(group)
-            if gid is not None:
-                options.append(f"--group-add={gid}")
+            if gid is None:
+                continue
+            options.extend(["--group-add", str(gid)])
         return options
-
-    @staticmethod
-    def runtime_args() -> List[str]:
-        """Get docker run arguments for the runtime"""
-        return ["--runtime=nvidia", "--gpus", "all"]
 
     def get_conditional_options(
         self, use_tini: bool = False, persistent: bool = False
     ) -> List[str]:
-        """Get conditional docker options"""
         options = []
-
-        # Handle tini and persistence
         if use_tini:
             options.append("--init")
         if not persistent:
             options.append("--rm")
-
         return options
 
     @property
@@ -138,11 +282,15 @@ class HoloHubContainer:
             return HoloHubContainer.default_dockerfile()
 
         if self.project_metadata.get("metadata", {}).get("dockerfile"):
-            dockerfile = self.project_metadata["metadata"]["dockerfile"]
-            dockerfile = dockerfile.replace(
-                "<holohub_app_source>", str(self.project_metadata["source_folder"])
+            # Build path mapping for this project
+            path_mapping = build_holohub_path_mapping(
+                holohub_root=HoloHubContainer.HOLOHUB_ROOT,
+                project_data=self.project_metadata,
             )
-            dockerfile = dockerfile.replace("<holohub_root>", str(HoloHubContainer.HOLOHUB_ROOT))
+
+            dockerfile = replace_placeholders(
+                self.project_metadata["metadata"]["dockerfile"], path_mapping
+            )
 
             # If the Dockerfile path is not absolute, make it absolute
             if not str(dockerfile).startswith(str(HoloHubContainer.HOLOHUB_ROOT)):
@@ -152,17 +300,18 @@ class HoloHubContainer:
 
         source_folder = self.project_metadata.get("source_folder", "")
         if source_folder:
-            dockerfile_path = self.project_metadata.get("source_folder", "") / "Dockerfile"
-            if (source_folder / "Dockerfile").exists():
+            dockerfile_path = source_folder / "Dockerfile"
+            if dockerfile_path.exists():
                 return dockerfile_path
 
             language = normalize_language(
                 self.project_metadata.get("metadata", {}).get("language", "")
             )
-            if (source_folder / language / "Dockerfile").exists():
-                return source_folder / language / "Dockerfile"
+            dockerfile_path = source_folder / language / "Dockerfile"
+            if dockerfile_path.exists():
+                return dockerfile_path
 
-        return HoloHubContainer.HOLOHUB_ROOT / "Dockerfile"
+        return HoloHubContainer.default_dockerfile()
 
     def __init__(self, project_metadata: Optional[dict[str, any]]):
         if not project_metadata:
@@ -173,13 +322,13 @@ class HoloHubContainer:
         # Environment defaults
         self.holoscan_py_exe = os.environ.get("HOLOSCAN_PY_EXE", "python3")
         self.holoscan_docker_exe = os.environ.get("HOLOSCAN_DOCKER_EXE", "docker")
+        self.holoscan_sdk_version = os.environ.get("HOLOSCAN_SDK_VERSION", "sdk-latest")
+        self.holohub_container_base_name = os.environ.get("HOLOHUB_CONTAINER_BASE_NAME", "holohub")
 
         self.project_metadata = project_metadata
 
-        self.holoscan_sdk_version = "sdk-latest"
-        self.holohub_container_base_name = "holohub"
-
         self.dryrun = False
+        self.verbose = False
 
     def build(
         self,
@@ -229,7 +378,7 @@ class HoloHubContainer:
             cmd.append("--no-cache")
 
         if build_args:
-            cmd.extend(build_args.split())
+            cmd.extend(shlex.split(build_args))
 
         cmd.extend(["-f", str(docker_file_path), "-t", img, str(HoloHubContainer.HOLOHUB_ROOT)])
 
@@ -240,6 +389,7 @@ class HoloHubContainer:
         img: Optional[str] = None,
         local_sdk_root: Optional[Path] = None,
         enable_x11: bool = True,
+        ssh_x11: bool = False,
         use_tini: bool = False,
         persistent: bool = False,
         nsys_profile: bool = False,
@@ -247,7 +397,7 @@ class HoloHubContainer:
         as_root: bool = False,
         docker_opts: str = "",
         add_volumes: List[str] = None,
-        verbose: bool = False,
+        enable_mps: bool = False,
         extra_args: List[str] = None,
     ) -> None:
         """Launch the container"""
@@ -259,21 +409,60 @@ class HoloHubContainer:
         add_volumes = add_volumes or []
         extra_args = extra_args or []
 
-        # Build docker command
-        cmd = [self.holoscan_docker_exe, "run", "--net", "host"]
+        cmd = [self.holoscan_docker_exe, "run"]
 
-        # Basic options
-        cmd.extend(["--interactive"])
+        cmd.extend(self.get_basic_args())
+        cmd.extend(self.get_security_args(as_root))
+        cmd.extend(self.get_volume_args(add_volumes, enable_mps))
+        cmd.extend(self.get_gpu_runtime_args())
+        cmd.extend(self.get_environment_args())
+
+        cmd.extend(self.get_conditional_options(use_tini, persistent))
+        cmd.extend(self.ucx_args())
+        cmd.extend(self.get_device_mounts())
+        cmd.extend(self.group_args())
+        cmd.extend(self.get_display_options(enable_x11, ssh_x11))
+        cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
+        cmd.extend(self.get_pythonpath_options(local_sdk_root))
+
+        if local_sdk_root:
+            cmd.extend(self.get_local_sdk_options(local_sdk_root))
+
+        if docker_opts:
+            cmd.extend(shlex.split(docker_opts))
+
+        cmd.append(img)
+        cmd.extend(extra_args)
+
+        if self.verbose:
+            cmd_list = [f'"{arg}"' if " " in str(arg) else str(arg) for arg in cmd]
+            print(f"Launch command: {' '.join(cmd_list)}")
+
+        run_command(cmd, dry_run=self.dryrun)
+
+    def get_basic_args(self) -> List[str]:
+        """Basic container runtime arguments"""
+        args = ["--net", "host", "--interactive"]
         if sys.stdout.isatty():
-            cmd.append("--tty")
+            args.append("--tty")
+        return args
 
-        # User permissions
+    def get_security_args(self, as_root: bool) -> List[str]:
+        """User and security arguments"""
+        args = []
+
         if not as_root:
-            cmd.extend(["-u", f"{os.getuid()}:{os.getgid()}"])
-        cmd.extend(["-v", "/etc/group:/etc/group:ro", "-v", "/etc/passwd:/etc/passwd:ro"])
+            args.extend(["-u", f"{os.getuid()}:{os.getgid()}"])
 
-        # Workspace mounting
-        cmd.extend(
+        args.extend(["-v", "/etc/group:/etc/group:ro", "-v", "/etc/passwd:/etc/passwd:ro"])
+
+        return args
+
+    def get_volume_args(self, add_volumes: List[str], enable_mps: bool) -> List[str]:
+        """Volume mounting arguments"""
+        args = []
+
+        args.extend(
             [
                 "-v",
                 f"{HoloHubContainer.HOLOHUB_ROOT}:/workspace/holohub",
@@ -282,75 +471,56 @@ class HoloHubContainer:
             ]
         )
 
-        # GPU and device access
-        cmd.extend(
-            [
-                "--runtime=nvidia",
-                "--gpus",
-                "all",
-                "--cap-add",
-                "CAP_SYS_PTRACE",
-                "--ipc=host",
-                "-v",
-                "/dev:/dev",
-                "--device-cgroup-rule",
-                "c 81:* rmw",
-                "--device-cgroup-rule",
-                "c 189:* rmw",
-            ]
-        )
-
-        # Environment variables
-        cmd.extend(
-            [
-                "-e",
-                "NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display",
-                "-e",
-                "HOME=/workspace/holohub",
-                "-e",
-                "HOLOHUB_BUILD_LOCAL=1",
-            ]
-        )
-
-        # Additional volumes
         for volume in add_volumes:
             base = os.path.basename(volume)
-            cmd.extend(["-v", f"{volume}:/workspace/volumes/{base}"])
+            args.extend(["-v", f"{volume}:/workspace/volumes/{base}"])
 
-        # Add conditional options
-        cmd.extend(self.get_conditional_options(use_tini, persistent))
+        if enable_mps:
+            if os.path.isdir("/tmp/nvidia-mps") and os.path.isdir("/tmp/nvidia-log"):
+                args.extend(
+                    [
+                        "-v",
+                        "/tmp/nvidia-mps:/tmp/nvidia-mps",
+                        "-v",
+                        "/tmp/nvidia-log:/tmp/nvidia-log",
+                    ]
+                )
+            else:
+                print("Warning: MPS directories not found. MPS may not be enabled on the host.")
 
-        # Add UCX options
-        cmd.extend(self.ucx_args())
+        return args
 
-        # Add display server options
-        cmd.extend(self.get_display_options(enable_x11))
+    def get_gpu_runtime_args(self) -> List[str]:
+        """GPU runtime configuration and basic device access arguments"""
+        return [
+            "--runtime=nvidia",
+            "--gpus",
+            "all",
+            "--cap-add",
+            "CAP_SYS_PTRACE",
+            "--ipc=host",
+            "-v",
+            "/dev:/dev",
+            "--device-cgroup-rule",
+            "c 81:* rmw",
+            "--device-cgroup-rule",
+            "c 189:* rmw",
+        ]
 
-        # Add nsys options
-        cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
+    def get_environment_args(self) -> List[str]:
+        """Environment variable arguments"""
+        return [
+            "-e",
+            "NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display",
+            "-e",
+            "HOME=/workspace/holohub",
+            "-e",
+            "CUPY_CACHE_DIR=/workspace/holohub/.cupy/kernel_cache",
+            "-e",
+            "HOLOHUB_BUILD_LOCAL=1",
+        ]
 
-        # Add local SDK options if provided
-        if local_sdk_root:
-            cmd.extend(self.get_local_sdk_options(local_sdk_root))
-            cmd.extend(["-e", "PYTHONPATH=/workspace/holoscan-sdk/build/python/lib"])
-
-        # Add docker options if provided
-        if docker_opts:
-            cmd.extend(docker_opts.split())
-
-        # Add the image name
-        cmd.append(img)
-
-        # Add any extra arguments
-        cmd.extend(extra_args)
-
-        if verbose:
-            cmd_list = [f'"{arg}"' if " " in str(arg) else str(arg) for arg in cmd]
-            print(f"Launch command: {' '.join(cmd_list)}")
-
-        run_command(cmd, dry_run=self.dryrun)
-
-    def get_display_options(self, enable_x11: bool) -> List[str]:
+    def get_display_options(self, enable_x11: bool, ssh_x11: bool) -> List[str]:
         """Get display-related options"""
         options = []
         if "XDG_SESSION_TYPE" in os.environ:
@@ -365,20 +535,36 @@ class HoloHubContainer:
                     ["-v", f"{os.environ['XDG_RUNTIME_DIR']}:{os.environ['XDG_RUNTIME_DIR']}"]
                 )
 
-        if enable_x11:
+        # Handle X11 forwarding
+        if enable_x11 or ssh_x11:
             options.extend(["-v", "/tmp/.X11-unix:/tmp/.X11-unix", "-e", "DISPLAY"])
+
+        # Handle SSH X11 forwarding
+        if ssh_x11:
+            xauth_file = "/tmp/.docker.xauth"
+            # xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
+            # chmod 777 $XAUTH
+            options.extend(["-v", f"{xauth_file}:{xauth_file}", "-e", f"XAUTHORITY={xauth_file}"])
+
         return options
 
     def get_nsys_options(self, nsys_profile: bool, nsys_location: str) -> List[str]:
         """Get nsys-related options"""
         options = []
         if nsys_profile:
-            options.extend(["--nvtx", "--capture-range", "0"])
-
+            options.extend(["--cap-add=SYS_ADMIN"])
         if nsys_location:
-            options.extend(["--output", nsys_location])
-
+            options.extend(["-v", f"{nsys_location}:/opt/nvidia/nsys-host"])
         return options
+
+    def get_pythonpath_options(self, local_sdk_root: Optional[Path]) -> List[str]:
+        """Get PYTHONPATH configuration"""
+        benchmarking_path = "/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
+        if local_sdk_root:
+            pythonpath = f"/workspace/holoscan-sdk/build/python/lib:{benchmarking_path}"
+        else:
+            pythonpath = f"/opt/nvidia/holoscan/python/lib:{benchmarking_path}"
+        return ["-e", f"PYTHONPATH={pythonpath}"]
 
     def get_local_sdk_options(self, local_sdk_root: Path) -> List[str]:
         """Get Holoscan SDK-related options"""

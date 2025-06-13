@@ -46,6 +46,5 @@ for file in $cpp_files; do
     echo "Patched $file. Original file is backed up in $file.bak.  Run command below to see the differences:"
     echo "  diff -u $file.bak $file"
 done
-
-# Use the common Python utility for patching instead of duplicating logic here
-python3 "$(dirname "$0")/patch_python_sources.py" "$dir"
+# Note: Python file patching is handled by benchmark.py
+# based on the application's metadata and run configuration
