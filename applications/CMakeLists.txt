@@ -82,6 +82,8 @@ add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
 
 add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)
 
+add_holohub_application(polyp_detection)
+
 add_holohub_application(stereo_vision)
 
 add_holohub_application(tao_peoplenet)
@@ -120,6 +122,7 @@ add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)
 add_holohub_application(vila_live)
+
 add_holohub_application(xr_holoviz DEPENDS OPERATORS xr)
 add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
