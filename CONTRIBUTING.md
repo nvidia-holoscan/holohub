@@ -636,7 +636,7 @@ For examples, see existing test files like:
 **Development Environment:**
 
 - VSCode Dev Container support available in Holoscan SDK
-- HoloHub `dev_container` script with debugging options:
+- `holohub` CLI tool with debugging options:
   - `--as_root`: Launch as root for expanded debugging permissions
   - `--local_sdk_root`: Mount local SDK for debug symbol access
 
@@ -649,6 +649,7 @@ For examples, see existing test files like:
 
 > **Note**: HoloHub doesn't provide a single debugging container due to the variety of methods across applications. Open an issue if you need additional debugging tools.
 
+> **Note**: Refer to [Holoscan SDK debugging documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) and [HoloHub debugging tutorials](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/debugging)
 ### Performance
 
 Low latency is crucial for many HoloHub applications. Use these resources for performance analysis:
