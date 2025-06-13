@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "ehr_query_llm",
+		"name": "EHR Query LLM",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",
@@ -8,14 +8,16 @@
 			}
 		],
 		"language": ["Python"],
-		"version": "1.0",
+		"version": "1.1",
 		"changelog": {
+			"1.1": "Restructure to adhere to Holohub guideline",
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
 			"minimum_required_version": "2.0.0",
 			"tested_versions": [
-				"2.5.0"
+				"2.5.0",
+				"3.3.0"
 			]
 		},
 		"platforms": [
@@ -23,7 +25,7 @@
 			"aarch64"
 		],
 		"tags": ["LLM", "Healthcare Interop"],
-		"ranking": 1,
+		"ranking": 2,
 		"dependencies": {
 			"python-packages": {
                 "holoscan": {
