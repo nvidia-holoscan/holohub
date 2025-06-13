@@ -127,6 +127,7 @@ class HoloHubCLI:
             "run-container",
             help="Build and launch the development container",
             parents=[container_build_argparse, container_run_argparse],
+            epilog="Any trailing arguments after ' -- ' are forwarded to 'docker run'",
         )
         self.subparsers["run-container"] = run_container
         run_container.add_argument("project", nargs="?", help="Project to run container for")
@@ -418,6 +419,8 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
             )
+        # Only forward trailing args if they were explicitly separated with --
+        trailing_args = getattr(args, "_trailing_args", [])
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
@@ -431,6 +434,7 @@ class HoloHubCLI:
             docker_opts=args.docker_opts,
             add_volumes=args.add_volume,
             enable_mps=getattr(args, "mps", False),
+            extra_args=trailing_args,
         )
 
     def handle_test(self, args: argparse.Namespace) -> None:
@@ -1569,6 +1573,16 @@ class HoloHubCLI:
 
     def run(self) -> None:
         """Main entry point for the CLI"""
+        # Handle " -- " separator for run-container command forwarding
+        cmd_args = sys.argv[1:]  # Skip script name
+        trailing_docker_args = []
+        has_separator = False
+        if (len(cmd_args) >= 2 and cmd_args[0] == "run-container" and "--" in cmd_args):
+            sep_idx = cmd_args.index("--")
+            trailing_docker_args = cmd_args[sep_idx + 1:]
+            sys.argv = [sys.argv[0]] + cmd_args[:sep_idx]
+            has_separator = True
+
         try:
             args = self.parser.parse_args()
         except SystemExit as e:
@@ -1592,6 +1606,10 @@ class HoloHubCLI:
                         print(file=sys.stderr)
                     sys.exit(1)
             raise
+
+        if has_separator and trailing_docker_args:
+            args._trailing_args = trailing_docker_args  # " -- " used for run-container command
+
         if hasattr(args, "func"):
             args.func(args)
         else:
