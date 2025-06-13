@@ -47,8 +47,7 @@ add_holohub_application(endoscopy_out_of_body_detection DEPENDS OPERATORS aja_so
 add_holohub_application(endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
-                                  aja_source
-                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer)
+                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer aja_source)
 
 add_subdirectory(h264)
 
@@ -63,8 +62,8 @@ add_holohub_application(hyperspectral_segmentation)
 
 add_subdirectory(laser_detection_latency)
 
+add_holohub_application(monai_endoscopic_tool_seg DEPENDS OPERATORS aja_source)
 add_holohub_application(multiai_endoscopy DEPENDS OPERATORS aja_source)
-
 add_holohub_application(multiai_ultrasound DEPENDS OPERATORS aja_source)
 
 add_holohub_application(simple_radar_pipeline)
@@ -82,6 +81,8 @@ add_holohub_application(prohawk_video_replayer DEPENDS OPERATORS prohawk_video_p
 add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
 
 add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)
+
+add_holohub_application(polyp_detection)
 
 add_holohub_application(stereo_vision)
 
@@ -111,18 +112,9 @@ add_holohub_application(volume_rendering DEPENDS
                                   volume_renderer)
 
 add_holohub_application(volume_rendering_xr DEPENDS
-                        OPERATORS volume_loader
-                                  volume_renderer
-                                  XrFrameOp
-                                  XrTransformOp)
+                        OPERATORS volume_loader volume_renderer)
 
 add_holohub_application(vpi_stereo)
-
-add_holohub_application(xr_hello_holoscan DEPENDS
-                        OPERATORS volume_renderer # for nlohmann_json dependency
-                                  XrFrameOp
-                                  XrTransformOp
-                                  xr_basic_render)
 
 add_holohub_application(video_deidentification)
 
@@ -131,8 +123,7 @@ add_holohub_application(webrtc_video_server)
 add_holohub_application(yolo_model_deployment)
 add_holohub_application(vila_live)
 
-add_holohub_application(polyp_detection)
-
+add_holohub_application(xr_holoviz DEPENDS OPERATORS xr)
 add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)

@@ -5,7 +5,7 @@ Based on a LSTM (long-short term memory) stateful model, these applications demo
 ### Requirements
 
 - Python 3.8+
-- The provided applications are configured to either use the AJA or Yuan capture cards for input stream, or a pre-recorded endoscopy video (replayer). 
+- The provided applications are configured to either use the AJA, DELTACAST or Yuan capture cards for input stream, or a pre-recorded endoscopy video (replayer). 
 Follow the [setup instructions from the user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
 ### Data
@@ -50,8 +50,7 @@ the working directory.
 
 * Using an AJA card
     ```bash
-    cd <HOLOHUB_BUILD_DIR>
-    python3  <HOLOHUB_SOURCE_DIR>/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py --source=aja
+    ./run launch endoscopy_tool_tracking python --extra_args "-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja"
     ```
 
 * Using a YUAN card

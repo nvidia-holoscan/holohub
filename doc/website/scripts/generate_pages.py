@@ -165,6 +165,8 @@ def create_metadata_header(metadata: dict, last_modified: str, archive_version: 
     platforms = metadata.get("platforms")
     platforms_str = ", ".join(platforms) if platforms else None
     language = metadata.get("language")
+    if isinstance(language, list):
+        language = ", ".join(language)
     version = metadata.get("version")
     hsdk_meta = metadata.get("holoscan_sdk")
     min_sdk_version = hsdk_meta.get("minimum_required_version") if hsdk_meta else None
@@ -481,6 +483,9 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
     if "{{" in str(metadata_path):
         return
 
+    metadata_rel_path = metadata_path.relative_to(git_repo_path)
+    logger.info(f"Processing: {metadata_rel_path}")
+
     # Parse the metadata
     with metadata_path.open("r") as metadata_file:
         metadata = json.load(metadata_file)
@@ -491,71 +496,71 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
     # Check valid component type
     component_type = f"{project_type}s"
     if component_type not in COMPONENT_TYPES:
-        logger.error(f"Skipping {metadata_path}: unknown type '{component_type}'")
+        logger.error(f"Skipping {metadata_rel_path}: unknown type '{component_type}'")
         return
 
     # Dirs & Paths
     metadata_dir = metadata_path.parent
     readme_dir = metadata_dir
+    md_search_dir = readme_dir
+    while md_search_dir.name not in COMPONENT_TYPES and md_search_dir != git_repo_path.parent:
+        if (md_search_dir / "README.md").exists():
+            readme_dir = md_search_dir
+            break  # Found the relevant README, stop searching
+        md_search_dir = md_search_dir.parent  # Not found, try parent
     readme_path = readme_dir / "README.md"
-    while not readme_path.exists():
-        readme_dir = readme_dir.parent
-        readme_path = readme_dir / "README.md"
+    dest_dir = readme_dir.relative_to(git_repo_path)
+    language_agnostic_dir = metadata_dir
+    nbr_language_dirs = 0
+    if metadata_dir.name in ["cpp", "python"]:
+        language_agnostic_dir = metadata_dir.parent
+        nbr_language_dirs = len(list(language_agnostic_dir.glob("*/metadata.json")))
 
-    # Valid README is not in the component type directory or the git repo root
-    if readme_dir.name in COMPONENT_TYPES or readme_dir == git_repo_path:
-        logger.error(f"Skipping {metadata_path}: no README found")
-        return
-
-    # Get path relative to the Git repository root
-    try:
-        dest_dir = readme_dir.relative_to(git_repo_path)
-    except ValueError:
-        logger.error(f"Skipping {metadata_path}: no README in git repo {git_repo_path}")
-        return
-
-    # Track components if in adequate directories
-    # Ex: don't track operators under application folders
-    if component_type == dest_dir.parts[0]:
-        components[component_type].add(dest_dir)
-    logger.info(f"Processing: {dest_dir}")
-    logger.debug(f"  for metadata_path: {metadata_path}")
+    # Track language agnostic components if in adequate directories
+    # Ex:
+    # - don't track operators under application folders
+    # - only track once for cpp and python
+    if component_type == metadata_rel_path.parts[0]:
+        components[component_type].add(language_agnostic_dir)
 
     # Prepare suffix with language info if it's a language-specific component
     suffix = ""
-    if metadata_dir.name in ["cpp", "python"] and readme_dir == metadata_dir:
-        language_agnostic_dir = metadata_dir.parent
-        nbr_language_dirs = len(list(language_agnostic_dir.glob("*/metadata.json")))
-        if nbr_language_dirs > 1:
-            suffix = "C++" if metadata_dir.name == "cpp" else f"{metadata_dir.name.capitalize()}"
-            suffix = f" ({suffix})"
+    if readme_dir == metadata_dir and nbr_language_dirs > 1:
+        suffix = "C++" if metadata_dir.name == "cpp" else f"{metadata_dir.name.capitalize()}"
+        suffix = f" ({suffix})"
     logger.debug(f"suffix: {suffix}")
     title = metadata["name"] if "name" in metadata else metadata_path.name
     title += suffix
 
     # Process the README content
-    readme_text = f"# {title}\n\nNo README available."
+    readme_text = f"# {title}\n\nNo documentation found."
     if readme_path.exists():
         with readme_path.open("r") as readme_file:
             readme_text = readme_file.read()
+    else:
+        logger.warning(f"No README available for {metadata_path}")
 
     # Generate page
     dest_path = dest_dir / "README.md"
     last_modified = get_last_modified_date(metadata_path, git_repo_path)
     create_page(metadata, readme_text, dest_path, last_modified, git_repo_path)
 
-    # Initialize nav file content to control navigation with mkdocs-awesome-nav
+    # Initialize nav file content to set title
     nav_path = dest_dir / ".nav.yml"
     nav_content = f"""
 title: "{title}"
-nav:
-  - README.md
 """
 
     # Check for archives in metadata
     archives = metadata["archives"] if "archives" in metadata else None
     if archives:
         logger.info(f"Processing versioned documentation for {str(dest_dir)}")
+
+        # List the current version first
+        nav_content += """
+nav:
+  - README.md
+"""
 
         for version in sorted(archives.keys(), reverse=True):
             git_ref = archives[version]
@@ -596,9 +601,6 @@ nav:
 
             # Add archives to nav file
             nav_content += f'  - "{version}": {version}.md\n'
-
-    # Add remaining pages to nav file
-    nav_content += "  - '*'"
 
     # Write nav file
     with mkdocs_gen_files.open(nav_path, "w") as nav_file:

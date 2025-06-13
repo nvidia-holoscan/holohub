@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "prohawk_video_replayer_py",
+		"name": "ProHawk Video Replayer",
 		"authors": [
 			{
 				"name": "Nigel Nelson",
@@ -21,10 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [
-			"Video Processing",
-			"Prohawk"
-		],
+		"tags": ["Healthcare AI", "Video", "filter presets", "Endoscopy", "Holoviz"],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [

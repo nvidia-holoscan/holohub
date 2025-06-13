@@ -18,7 +18,7 @@
       "tested_versions": ["2.6.0"]
     },
     "platforms": ["x86_64", "aarch64"],
-    "tags": ["Endoscopy", "Video Decoding", "Video Encoding"],
+    "tags": ["Healthcare AI", "Video", "Surgical AI", "Endoscopy", "Visualization"],
     "ranking": 1,
     "dependencies": {
       "operators": [

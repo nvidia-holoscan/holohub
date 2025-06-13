@@ -19,7 +19,7 @@
 				]
 			},
 			"platforms": ["x86_64", "aarch64"],
-			"tags": ["LLM", "Vector Database", "AI-Assistant"],
+			"tags": ["Natural Language and Conversational AI", "RAG", "Vector Database", "LLM"],
 			"ranking": 4,
 			"dependencies": {
 				"OSS": [

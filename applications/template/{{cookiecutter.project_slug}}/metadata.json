@@ -1,0 +1,35 @@
+{
+	"application": {
+		"name": "{{ cookiecutter.project_name }}",
+		"description": "{{ cookiecutter.description }}",
+		"authors": [
+			{
+				"name": "{{ cookiecutter.full_name }}",
+				"affiliation": "{{ cookiecutter.affiliation }}"
+			}
+		],
+		"language": "{{ cookiecutter.language }}",
+		"version": "{{ cookiecutter.version }}",
+		"changelog": {
+			"{{ cookiecutter.version }}": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "{{ cookiecutter.holoscan_version }}",
+			"tested_versions": [
+				"{{ cookiecutter.holoscan_version }}"
+			]
+		},
+		"platforms": {% if cookiecutter.platforms %}{{ cookiecutter.platforms }}{% else %}["x86_64", "aarch64"]{% endif %},
+		"tags": {% if cookiecutter.tags %}{{ cookiecutter.tags }}{% else %}["keyword1", "keyword2", "keyword3"]{% endif %},
+		"ranking": 1,
+		"dependencies": {},
+		"run": {
+			"command": {% if cookiecutter.language == "python" %}
+				"python3 <holohub_app_source>/src/{{ cookiecutter.project_slug }}.py"
+			{% else %}
+				"<holohub_app_bin>/{{ cookiecutter.project_slug }}"
+			{% endif %},
+			"workdir": "holohub_bin"
+		}
+	}
+}

@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "OpenIGTLink 3D Slicer",
+		"name": "OpenIGTLink 3D Slicer: Bidirectional Video Streaming with AI Segmentation",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -12,6 +12,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"dockerfile": "applications/openigtlink_3dslicer/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "1.0.3",
 			"tested_versions": [
@@ -22,12 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-            "Streaming",
-            "Ethernet",
-            "3DSlicer",
-			"Segmentation"
-		],
+		"tags": ["Healthcare AI", "Networking and Distributed Computing", "Video", "Visualization", "3D Slicer", "Segmentation", "Ultrasound", "Endoscopy"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

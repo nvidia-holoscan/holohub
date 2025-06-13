@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.20)
 
 find_package(holoscan 2.6.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+find_package(matx REQUIRED CONFIG)
 
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 enable_language(CUDA)
@@ -15,7 +16,7 @@ add_library(advanced_network_connectors
 target_link_libraries(advanced_network_connectors PRIVATE
   matx::matx
   holoscan::core
-  holoscan::ops::advanced_network_rx
+  holoscan::advanced_network
 )
 
 target_include_directories(advanced_network_connectors PRIVATE

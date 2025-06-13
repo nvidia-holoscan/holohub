@@ -21,9 +21,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"video"
-		],
+		"tags": ["Video"],
 		"ranking": 1,
 		"dependencies": {}
 	}

@@ -1,4 +1,5 @@
 # Real-Time Face and Text Deidentification
+
 <center> <img src="./docs/video_deid.gif" ></center>
 
 This sample application demonstrates the use of face and text detection models to do real-time video deidentification.

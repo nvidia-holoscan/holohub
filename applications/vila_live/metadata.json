@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Large Multimodal Model",
-			"Large Vision Model"
-		],
+		"tags": ["Computer Vision and Perception", "LLM", "Large Vision Model", "Multimodal Model", "Video"],
 		"ranking": 1,
 		"dependencies": {
 			"Bootstrap": {

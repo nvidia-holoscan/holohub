@@ -1,12 +1,17 @@
 /*
- * SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
+ * SPDX-FileCopyrightText: 2025 Valley Tech Systems, Inc.
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
 
 #include <matx.h>
 #include "holoscan/holoscan.hpp"
-#include "packet_sender.hpp"
+#include "packet_sender.h"
+
+// Implemented in Rust
+struct SpectralDataPacket;
+struct SpectralContextPacket;
+struct PacketSender;
 
 using namespace matx;
 
@@ -17,8 +22,6 @@ class V49PsdPacketizer : public Operator {
 
     void initialize() override;
     void setup(OperatorSpec& spec) override;
-    void start() override;
-    void stop() override;
     void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override;
 
  private:
@@ -28,8 +31,12 @@ class V49PsdPacketizer : public Operator {
     Parameter<uint32_t> manufacturer_oui;
     Parameter<uint32_t> device_code;
     Parameter<uint16_t> num_channels;
+    Parameter<int> print_every_n_packets;
 
-    int8_t *output_data;
     std::vector<std::shared_ptr<PacketSender>> packet_senders;
+    std::vector<rust::Vec<uint8_t>> output_data;
+
+    int packet_send_counter = 0;
+    std::chrono::steady_clock::time_point start;
 };
 }  // namespace holoscan::ops

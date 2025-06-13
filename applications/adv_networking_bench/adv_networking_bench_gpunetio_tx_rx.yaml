@@ -40,7 +40,7 @@ advanced_network:
       buf_size: 1064
 
     interfaces:
-    - name: "tx_port"
+    - name: "single_port"
       address: 0000:ca:00.0
       tx:
         queues:
@@ -59,7 +59,6 @@ advanced_network:
           id: 0
           cpu_core: 10
           batch_size: 10240
-          output_port: "bench_rx_out"
           memory_regions:
             - "Data_RX_GPU"
         flows:
@@ -73,17 +72,18 @@ advanced_network:
               udp_dst: 4096
 
 bench_rx:
+  interface_name: "single_port" # Name of the RX port from the advanced_network config
   batch_size: 10240
   max_packet_size: 1064
   header_size: 64
 
 bench_tx:
+  interface_name: "single_port" # Name of the TX port from the advanced_network config
   batch_size: 10240
   payload_size: 1000
   header_size: 64
   eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true
-  ip_src_addr: <1.2.3.4>  # Source IP address - required on layer 3 network
-  ip_dst_addr: <5.6.7.8>  # Destination IP address - required on layer 3 network
-  udp_src_port: 4096      # UDP source port
-  udp_dst_port: 4096      # UDP destination port
-  address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx above
+  ip_src_addr: <1.2.3.4>    # Source IP address - required on layer 3 network
+  ip_dst_addr: <5.6.7.8>    # Destination IP address - required on layer 3 network
+  udp_src_port: 4096        # UDP source port
+  udp_dst_port: 4096        # UDP destination port

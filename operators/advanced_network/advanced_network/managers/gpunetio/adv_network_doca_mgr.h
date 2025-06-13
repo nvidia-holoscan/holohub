@@ -61,7 +61,7 @@
 #define THRESHOLD_BUF_NUM 32768
 
 #define MPS_ENABLED 0
-#define RX_PERSISTENT_ENABLED 0
+#define RX_PERSISTENT_ENABLED 1
 
 struct adv_doca_rx_gpu_info {
   uint32_t num_pkts;
@@ -111,15 +111,15 @@ class DocaLogLevel {
     throw std::logic_error(
         "Unrecognized log level, available options trace/debug/info/warn/error/critical/disable");
   }
-  static doca_log_level from_ano_log_level(LogLevel::Level ano_level) {
-    auto it = ano_to_doca_log_level_map.find(ano_level);
-    if (it != ano_to_doca_log_level_map.end()) { return it->second; }
+  static doca_log_level from_adv_net_log_level(LogLevel::Level log_level) {
+    auto it = adv_net_to_doca_log_level_map.find(log_level);
+    if (it != adv_net_to_doca_log_level_map.end()) { return it->second; }
     return DOCA_LOG_LEVEL_DISABLE;
   }
 
  private:
   static const std::unordered_map<doca_log_level, std::string> level_to_string_description_map;
-  static const std::unordered_map<LogLevel::Level, doca_log_level> ano_to_doca_log_level_map;
+  static const std::unordered_map<LogLevel::Level, doca_log_level> adv_net_to_doca_log_level_map;
 };
 
 class DocaRxQueue {
@@ -218,7 +218,8 @@ class DocaMgr : public Manager {
   void free_rx_burst(BurstParams* burst) override;
   void free_tx_burst(BurstParams* burst) override;
 
-  Status get_rx_burst(BurstParams** burst) override;
+  Status get_rx_burst(BurstParams** burst, int port, int q) override;
+  using holoscan::advanced_network::Manager::get_rx_burst;  // for overloads
   Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
   void free_rx_metadata(BurstParams* burst) override;
   void free_tx_metadata(BurstParams* burst) override;
@@ -240,7 +241,7 @@ class DocaMgr : public Manager {
   int setup_pools_and_rings(int max_tx_batch);
   std::string GetQueueName(int port, int q, Direction dir);
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
-  struct rte_ring* rx_ring;
+  std::unordered_map<uint32_t, struct rte_ring*> rx_rings;
   struct rte_mempool* rx_metadata;
   struct rte_mempool* tx_metadata;
   std::unordered_map<uint32_t, DocaRxQueue*> rx_q_map_;

@@ -23,10 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Stereo"
-		],
+		"tags": ["Computer Vision and Perception", "Video", "Stereo Vision", "Camera", "Depth", "Visualization"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

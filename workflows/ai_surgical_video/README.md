@@ -1,7 +1,7 @@
 # Real-Time End-to-end AI Surgical Video Workflow
 
 ![Overall Diagram](images/RAISVP_overall_diagram.png)
-*Fig.1: The overall diagram illustrating the end-to-end pipeline for real-time AI surgical video processing. This workflow achieves an end-to-end latency of 37ms on average with a maximum of 54ms. The latency breakdown shown below the diagram indicates HSB latency (Avg=21ms, Max=28ms) and AI Application latency (Avg=16ms, Max=26ms), demonstrating the high-performance capabilities of this solution.*
+*Fig.1: The overall diagram illustrating the end-to-end pipeline for real-time AI surgical video processing. The pipeline achieves an average end-to-end latency of 37ms (maximum 54ms). Key latency components are shown: Holoscan Sensor Bridge (HSB) latency averages 21ms (max 28ms), and the AI application averages 16ms (median 17ms, 95th percentile 18ms, 99th percentile 22ms, max 26ms). These results demonstrate the solution's high-performance, low-latency capabilities for demanding surgical video applications.*
 
 ## Overview
 
@@ -94,10 +94,10 @@ git checkout hsdk-3.0
 
 This will build a docker image called `hololink-demo:2.0.0`.
 
-Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container using the following command:
+Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container and run the workflow using the following command:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link ai_surgical_video
+./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link ai_surgical_video --run_args " --source hsb"
 ```
 
 ## Advanced Usage

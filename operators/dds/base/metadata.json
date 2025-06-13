@@ -12,6 +12,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"language": ["C++"],
 		"holoscan_sdk": {
 			"minimum_required_version": "2.0.0",
 			"tested_versions": [
@@ -19,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["DDS", "RTI Connext", "Shapes"],
+		"tags": ["DDS", "RTI Connext"],
 		"ranking": 2,
 		"dependencies": {
 			"packages": [

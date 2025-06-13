@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Yolo Detection",
+		"name": "Yolo Object Detection",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Yolo Detection"
-		],
+		"tags": ["Computer Vision and Perception", "Video", "Tensor Optimization", "YOLO Detection", "Visualization", "Camera"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

@@ -20,7 +20,7 @@ The high rate PSD operator...
 
 ## Requirements
 
-- [MatX](https://github.com/NVIDIA/MatX) (dependency)
+- [MatX](https://github.com/NVIDIA/MatX) (dependency - assumed to be installed on system)
 
 ## Example Usage
 

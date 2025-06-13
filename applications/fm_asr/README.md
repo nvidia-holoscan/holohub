@@ -1,4 +1,5 @@
-# FM ASR
+# FM Radio Automatic Speech Recognition
+
 This project is proof-of-concept demo featuring the combination of real-time, low-level signal processing and deep learning inference. It currently supports the [RTL-SDR](https://www.rtl-sdr.com/). Specifically, this project demonstrates the demodulation, downsampling, and automatic transcription of live, civilian FM radio broadcasts. The pipeline architecture is shown in the figure below. 
 
 ![Pipeline Architecture](docs/images/pipeline_arch.png)
@@ -8,19 +9,19 @@ The primary pipeline segments are written in Python. Future improvements will in
 This project leverages NVIDIA's [Holoscan SDK](https://github.com/nvidia-holoscan/holoscan-sdk) for performant GPU pipelines, cuSignal package for GPU-accelerated signal processing, and the [RIVA SDK](https://docs.nvidia.com/deeplearning/riva/user-guide/docs/overview.html) for high accuracy automatic speech recognition (ASR).
 
 ## Table of Contents
-- [Install](#install)    
-    - [Local Sensor](#local-sensor---basic-configuration)
-        - [x86](#local-sensor---basic-configuration)
-        - [Jetson - TODO](#local-jetson-container)
-    - [Remote Sensor - TODO](#remote-sensor---network-in-the-loop)
-        - [x86](#remote-sensor---network-in-the-loop)
-        - [Jetson](#remote-jetson-containers)  
-    - [Bare Metal - TODO](#bare-metal-install)  
-- [Startup](#startup)
+- [FM ASR](#fm-asr)
+  - [Table of Contents](#table-of-contents)
+  - [Install](#install)
+    - [Local Sensor - Basic Configuration](#local-sensor---basic-configuration)
+      - [Local Jetson Container](#local-jetson-container)
+    - [Remote Sensor - Network in the Loop](#remote-sensor---network-in-the-loop)
+    - [Bare Metal Install](#bare-metal-install)
+  - [Startup](#startup)
     - [Scripted Launch](#scripted-launch)
     - [Manual Launch](#manual-launch)
-- [Configuration Parameters](#configuration-parameters)
-- [Known Issues](#known-issues)
+    - [Initialize and Start the Riva Service](#initialize-and-start-the-riva-service)
+  - [Configuration Parameters](#configuration-parameters)
+      - [Known Issues](#known-issues)
 
 ## Install
 To begin installation, clone this repository using the following:

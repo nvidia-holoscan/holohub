@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "NV-CLIP NIM",
+		"name": "NVIDIA NV-CLIP NIM",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -24,10 +24,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"OpenAI API",
-			"NIM"
-		],
+		"tags": ["Computer Vision and Perception", "Multimodal Model", "Auth and API", "Image Processing"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

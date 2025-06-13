@@ -17,8 +17,7 @@
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG BASE_IMAGE
-FROM ${BASE_IMAGE} as base
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu as base
 
 
 ############################################################
@@ -64,6 +63,9 @@ RUN apt update \
         mesa-common-dev \
         libvulkan-dev="1.3.204.1-*" \
     && rm -rf /var/lib/apt/lists/*
+
+# Install specific version of markupsafe for OpenXR build
+RUN pip install markupsafe==2.0.1
 
 ############################################################
 # Windrunner configuration

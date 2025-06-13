@@ -34,6 +34,42 @@ using namespace std::chrono;
 
 namespace holoscan::advanced_network {
 
+// --- Local Helper Functions for Port/Queue Key Management ---
+
+/**
+ * @brief Generates a unique 32-bit key from a port and queue ID.
+ * Assumes port ID fits in the upper 16 bits and queue ID in the lower 16 bits.
+ *
+ * @param port_id The port ID.
+ * @param queue_id The queue ID.
+ * @return uint32_t The combined key.
+ */
+static inline uint32_t generate_queue_key(int port_id, int queue_id) {
+  return (static_cast<uint32_t>(port_id) << 16) | static_cast<uint32_t>(queue_id);
+}
+
+/**
+ * @brief Extracts the port ID from a 32-bit queue key.
+ *
+ * @param key The combined key.
+ * @return int The extracted port ID.
+ */
+static inline int get_port_from_key(uint32_t key) {
+  return static_cast<int>((key >> 16) & 0xFFFF);
+}
+
+/**
+ * @brief Extracts the queue ID from a 32-bit queue key.
+ *
+ * @param key The combined key.
+ * @return int The extracted queue ID.
+ */
+static inline int get_queue_from_key(uint32_t key) {
+  return static_cast<int>(key & 0xFFFF);
+}
+
+// --- End Helper Functions ---
+
 DocaMgr doca_mgr{};
 
 std::atomic<bool> force_quit_doca = false;
@@ -56,9 +92,7 @@ struct TxDocaWorkerQueue {
 
 struct TxDocaWorkerParams {
   int core_id;
-  int port;
   int txqn;
-  uint32_t batch_size;
   int gpu_id;
   struct doca_gpu* gdev;
   struct rte_mempool* meta_pool;
@@ -72,21 +106,20 @@ struct RxDocaWorkerQueue {
   uint64_t rx_pkts = 0;
   uint32_t batch_size;
   DocaRxQueue* rxq;
+  struct rte_ring* ring;
 };
 
 struct RxDocaWorkerParams {
   int core_id;
-  int port;
   int rxqn;
   int gpu_id;
   struct doca_gpu* gdev;
-  struct rte_ring* ring;
   struct rte_mempool* meta_pool;
   struct RxDocaWorkerQueue rxqw[MAX_NUM_RX_QUEUES];
 };
 
 const std::unordered_map<LogLevel::Level, doca_log_level>
-    DocaLogLevel::ano_to_doca_log_level_map = {
+    DocaLogLevel::adv_net_to_doca_log_level_map = {
         {LogLevel::TRACE, DOCA_LOG_LEVEL_TRACE},
         {LogLevel::DEBUG, DOCA_LOG_LEVEL_DEBUG},
         {LogLevel::INFO, DOCA_LOG_LEVEL_INFO},
@@ -243,7 +276,7 @@ doca_error_t DocaMgr::init_doca_devices() {
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
   }
 
-  auto log_level = DocaLogLevel::from_ano_log_level(cfg_.log_level_);
+  auto log_level = DocaLogLevel::from_adv_net_log_level(cfg_.log_level_);
   if (log_level != DOCA_LOG_LEVEL_DISABLE) {
     struct doca_log_backend* stdout_logger = nullptr;
 
@@ -407,14 +440,6 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
   BurstParams* bursts_tx[(1U << 7) - 1U];
   int idx = 0;
 
-  HOLOSCAN_LOG_DEBUG("Setting up RX ring");
-  rx_ring =
-      rte_ring_create("RX_RING", 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
-  if (rx_ring == nullptr) {
-    HOLOSCAN_LOG_CRITICAL("Failed to allocate ring!");
-    return -1;
-  }
-
   HOLOSCAN_LOG_DEBUG("Setting up RX meta pool");
   rx_metadata = rte_mempool_create("RX_META_POOL",
                                    (1U << 6) - 1U,
@@ -440,13 +465,27 @@ int DocaMgr::setup_pools_and_rings(int max_tx_batch) {
 
   rte_mempool_put_bulk(rx_metadata, reinterpret_cast<void**>(&bursts_rx), idx);
 
+  // Create rings per queue
   for (const auto& intf : cfg_.ifs_) {
+    for (const auto& q : intf.rx_.queues_) {
+      uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
+      auto name =
+          "RX_RING_P" + std::to_string(intf.port_id_) + "_Q" + std::to_string(q.common_.id_);
+      HOLOSCAN_LOG_INFO("Setting up RX ring {}", name);
+      rx_rings[key] = rte_ring_create(
+          name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+      if (rx_rings[key] == nullptr) {
+        HOLOSCAN_LOG_CRITICAL("Failed to allocate ring {}!", name);
+        return -1;
+      }
+    }
+
     for (const auto& q : intf.tx_.queues_) {
       const auto append =
           "P" + std::to_string(intf.port_id_) + "_Q" + std::to_string(q.common_.id_);
       auto name = "TX_RING_" + append;
       HOLOSCAN_LOG_INFO("Setting up TX ring {}", name);
-      uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+      uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
       tx_rings[key] = rte_ring_create(
           name.c_str(), 2048, rte_socket_id(), RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
       if (tx_rings[key] == nullptr) {
@@ -665,7 +704,7 @@ void DocaMgr::initialize() {
         q_max_packet_size = rte_align32pow2(q_max_packet_size);
       }
 
-      key = (intf.port_id_ << 16) | q.common_.id_;
+      key = generate_queue_key(intf.port_id_, q.common_.id_);
 
       HOLOSCAN_LOG_INFO(
           "Configuring RX queue: {} ({}) on port {} memory type {} rxq_pkts {} q_max_packet_size "
@@ -688,7 +727,7 @@ void DocaMgr::initialize() {
 
     for (auto& q : intf.tx_.queues_) {
       int txq_pkts = -1;
-      key = (intf.port_id_ << 16) | q.common_.id_;
+      key = generate_queue_key(intf.port_id_, q.common_.id_);
 
       for (const auto& mr : cfg_.mrs_) {
         if (mr.first == q.common_.mrs_[0]) {
@@ -731,7 +770,7 @@ void DocaMgr::initialize() {
       for (auto& flow : intf.rx_.flows_) {
         HOLOSCAN_LOG_INFO("Create RX flow {} to queue {}", flow.name_, flow.action_.id_);
         for (auto& q : intf.rx_.queues_) {
-          key = (intf.port_id_ << 16) | q.common_.id_;
+          key = generate_queue_key(intf.port_id_, q.common_.id_);
           auto q_backend = rx_q_map_[key];
           if (q_backend->qid == flow.action_.id_) {
             q_backend->create_udp_pipe(flow, rxq_pipe_default);
@@ -748,7 +787,7 @@ void DocaMgr::initialize() {
       /* Create semaphore for GPU - CPU communication per rxq*/
       for (auto& q : cfg_.ifs_[intf.port_id_].rx_.queues_) {
         HOLOSCAN_LOG_INFO("Create RX semaphore");
-        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+        key = generate_queue_key(intf.port_id_, q.common_.id_);
         auto q_backend = rx_q_map_[key];
         q_backend->create_semaphore();
       }
@@ -848,7 +887,7 @@ doca_error_t DocaMgr::create_default_pipe(int port_id, uint32_t cnt_defq) {
   const auto& rx = cfg_.ifs_[port_id].rx_;
   for (auto& q : rx.queues_) {
     create_pipe = true;
-    uint32_t key = (cfg_.ifs_[port_id].port_id_ << 16) | q.common_.id_;
+    uint32_t key = generate_queue_key(port_id, q.common_.id_);
     auto q_backend = rx_q_map_[key];
 
     for (auto& flow : rx.flows_) {
@@ -1092,7 +1131,6 @@ void DocaMgr::run() {
     for (const auto gpu_idx : gpu_mr_devs) {
       params_rx = new RxDocaWorkerParams;
 
-      params_rx->ring = rx_ring;
       params_rx->meta_pool = rx_metadata;
       params_rx->gpu_id = gpu_idx;  // cfg_.mrs_[rx.queues_[0].common_.mrs_[0]].affinity_;
       params_rx->gdev = gdev[params_rx->gpu_id];
@@ -1105,7 +1143,17 @@ void DocaMgr::run() {
             params_rx->rxqn++;
 
             if (ridx == 0) params_rx->core_id = stoi(q.common_.cpu_core_);
-            uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+
+            uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
+            // Assign ring pointer to rxqw
+            auto ring_it = rx_rings.find(key);
+            if (ring_it == rx_rings.end()) {
+              HOLOSCAN_LOG_CRITICAL("Run: Failed to find RX ring for key {}", key);
+              params_rx->rxqw[ridx].ring = nullptr;  // Handle error
+            } else {
+              params_rx->rxqw[ridx].ring = ring_it->second;
+            }
+
             auto qinfo = rx_q_map_[key];
             params_rx->rxqw[ridx].queue = q.common_.id_;
             params_rx->rxqw[ridx].batch_size = q.common_.batch_size_;
@@ -1143,7 +1191,7 @@ void DocaMgr::run() {
               rte_eth_macaddr_get(intf.port_id_, &params_tx->mac_addr);
             }
 
-            uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+            uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
             auto qinfo = tx_q_map_[key];
             params_tx->txqw[tidx].queue = q.common_.id_;
             params_tx->txqw[tidx].batch_size = q.common_.batch_size_;
@@ -1209,14 +1257,25 @@ int DocaMgr::rx_core(void* arg) {
   }
   pthread_setname_np(self, "RX_WORKER");
 
-// WAR for Holoscan management of threads.
-// Be sure application thread finished before launching other CUDA tasks
-#if RX_PERSISTENT_ENABLED == 1
-  sleep(5);
-#endif
+  // WAR for Holoscan management of threads.
+  // Be sure application thread finished before launching other CUDA tasks
+  sleep(2);
 
-  HOLOSCAN_LOG_INFO(
-      "Starting Rx Core {}, queues {}, GPU {}", tparams->core_id, tparams->rxqn, tparams->gpu_id);
+  // Log
+  {
+    std::string queue_ids_str = "";
+    for (int idxq = 0; idxq < tparams->rxqn; ++idxq) {
+      queue_ids_str += std::to_string(tparams->rxqw[idxq].queue);
+      if (idxq < tparams->rxqn - 1) {
+        queue_ids_str += ", ";
+      }
+    }
+    if (tparams->rxqn == 0) { queue_ids_str = "none"; }
+    HOLOSCAN_LOG_INFO("Starting Rx Core {} (queue IDs: {}), GPU {}",
+                      tparams->core_id,
+                      queue_ids_str,
+                      tparams->gpu_id);
+  }
 
   cudaSetDevice(tparams->gpu_id);
   // cudaFree(0);
@@ -1235,12 +1294,12 @@ int DocaMgr::rx_core(void* arg) {
                               (void**)&eth_rxq_cpu_list);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR(
-        "Failed to allocate gpu memory eth_rxq_gpu_list before launching kernel {} Core {}, port "
-        "{}, queues {}, socket {}",
+        "Failed to allocate gpu memory eth_rxq_gpu_list before launching kernel {} "
+        "Core {} ({} queues), GPU {}, socket {}",
         doca_error_get_descr(result),
         tparams->core_id,
-        tparams->port,
         tparams->rxqn,
+        tparams->gpu_id,
         rte_socket_id());
     exit(1);
   }
@@ -1323,16 +1382,6 @@ int DocaMgr::rx_core(void* arg) {
 
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
 
-  /*
-   * Something in the Holoscan/GXF lower layer imposes a GPU device synchronization
-   * which represent an issue when running CUDA persistent kernels.
-   * Still trying to root-cause the issue.
-   *
-   * For this reason, by default the ANO DOCA Rx CUDA kernel is set as non-persistent.
-   * Depending on the application, it worths to test if persistency can be used or not.
-   * Best for performance is to have it persistent.
-   */
-#if RX_PERSISTENT_ENABLED == 1
   doca_receiver_packet_kernel(rx_stream,
                               tparams->rxqn,
                               eth_rxq_gpu_list,
@@ -1341,37 +1390,34 @@ int DocaMgr::rx_core(void* arg) {
                               batch_gpu_list,
                               gpu_exit_condition,
                               true);
-#endif
 
   HOLOSCAN_LOG_INFO("DOCA receiver kernel ready!");
 
+  uint64_t loop_count = 0;
+  uint64_t loop_log_rate = 100000000;
   while (!force_quit_doca.load()) {
-#if RX_PERSISTENT_ENABLED == 0
-    doca_receiver_packet_kernel(rx_stream,
-                                tparams->rxqn,
-                                eth_rxq_gpu_list,
-                                sem_gpu_list,
-                                sem_idx_gpu_list,
-                                batch_gpu_list,
-                                gpu_exit_condition,
-                                false);
-    cudaStreamSynchronize(rx_stream);
-#endif
+    loop_count++;
 
     for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
       result = doca_gpu_semaphore_get_status(
           tparams->rxqw[ridx].rxq->sem_cpu, sem_idx_cpu_list[ridx], &status);
       if (result != DOCA_SUCCESS) {
-        HOLOSCAN_LOG_ERROR("UDP semaphore error queue {}", ridx);
+        HOLOSCAN_LOG_ERROR("UDP semaphore error queue {}, result={}.", ridx, (int)result);
         force_quit_doca.store(true);
         break;
+      }
+
+      // Log semaphore status periodically unless it's ready
+      if (status != DOCA_GPU_SEMAPHORE_STATUS_READY && (loop_count % loop_log_rate == 0)) {
+        HOLOSCAN_LOG_INFO(
+            "rx_core Q {}, sem_idx {}, status: {}", ridx, sem_idx_cpu_list[ridx], (int)status);
       }
 
       if (status == DOCA_GPU_SEMAPHORE_STATUS_READY) {
         result = doca_gpu_semaphore_get_custom_info_addr(
             tparams->rxqw[ridx].rxq->sem_cpu, sem_idx_cpu_list[ridx], (void**)&(packets_stats));
         if (result != DOCA_SUCCESS) {
-          HOLOSCAN_LOG_ERROR("UDP semaphore get address error");
+          HOLOSCAN_LOG_ERROR("UDP semaphore get address error.");
           force_quit_doca.store(true);
           break;
         }
@@ -1379,6 +1425,7 @@ int DocaMgr::rx_core(void* arg) {
         if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
           HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
           force_quit_doca.store(true);
+          break;
         }
 
         //  Queue ID for receiver to differentiate
@@ -1393,24 +1440,36 @@ int DocaMgr::rx_core(void* arg) {
         burst->hdr.hdr.gpu_pkt0_addr = packets_stats->gpu_pkt0_addr;
         HOLOSCAN_LOG_DEBUG(
             "sem {} queue {} num_pkts {}", sem_idx_cpu_list[ridx], ridx, burst->hdr.hdr.num_pkts);
-        // Assuming each batch is accumulated by the kernel
-        rte_ring_enqueue(tparams->ring, reinterpret_cast<void*>(burst));
+        // Check if the ring pointer assigned during setup is valid
+        if (tparams->rxqw[ridx].ring == nullptr) {
+          HOLOSCAN_LOG_ERROR("RX Worker: Ring pointer for queue index {} is null. Dropping burst.",
+                             ridx);
+          rte_mempool_put(tparams->meta_pool, burst);
+        } else {
+          // Enqueue into the specific ring associated with this worker queue
+          if (rte_ring_enqueue(tparams->rxqw[ridx].ring, reinterpret_cast<void*>(burst)) != 0) {
+            HOLOSCAN_LOG_WARN("RX ring for queue index {} is full. Dropping burst.", ridx);
+            rte_mempool_put(tparams->meta_pool, burst);
+          }
+        }
 
+        // Update stats
+        total_pkts += burst->hdr.hdr.num_pkts;
+        stats_rx_tot_pkts += burst->hdr.hdr.num_pkts;
+        stats_rx_tot_bytes += burst->hdr.hdr.nbytes;
+        stats_rx_tot_batch++;
+
+        // Reset semaphore to free
         result = doca_gpu_semaphore_set_status(tparams->rxqw[ridx].rxq->sem_cpu,
                                                sem_idx_cpu_list[ridx],
                                                DOCA_GPU_SEMAPHORE_STATUS_FREE);
         if (result != DOCA_SUCCESS) {
-          HOLOSCAN_LOG_ERROR("UDP semaphore error queue {}", ridx);
+          HOLOSCAN_LOG_ERROR("UDP semaphore set status error queue {}.", ridx);
           force_quit_doca.store(true);
           break;
         }
 
         sem_idx_cpu_list[ridx] = (sem_idx_cpu_list[ridx] + 1) % MAX_DEFAULT_SEM_X_QUEUE;
-
-        total_pkts += burst->hdr.hdr.num_pkts;
-        stats_rx_tot_pkts += burst->hdr.hdr.num_pkts;
-        stats_rx_tot_bytes += burst->hdr.hdr.nbytes;
-        stats_rx_tot_batch++;
       }
     }
   }
@@ -1444,10 +1503,8 @@ int DocaMgr::rx_core(void* arg) {
 #endif
 
   HOLOSCAN_LOG_INFO(
-      "Total packets received by application (port/queue {}/{}): {}, last partial batch packets "
-      "{}\n",
-      tparams->port,
-      tparams->rxqn,
+      "Total packets received by application (GPU {}): {}, last partial batch packets {}",
+      tparams->gpu_id,
       total_pkts + last_batch,
       last_batch);
 
@@ -1482,11 +1539,21 @@ int DocaMgr::tx_core(void* arg) {
   }
   pthread_setname_np(self, "TX_WORKER");
 
-  HOLOSCAN_LOG_INFO("Starting Tx Core {}, port {}, queues {}, GPU {}",
-                    tparams->core_id,
-                    tparams->port,
-                    tparams->txqn,
-                    tparams->gpu_id);
+  // Log
+  {
+    std::string queue_ids_str = "";
+    for (int idxq = 0; idxq < tparams->txqn; ++idxq) {
+      queue_ids_str += std::to_string(tparams->txqw[idxq].queue);
+      if (idxq < tparams->txqn - 1) {
+        queue_ids_str += ", ";
+      }
+    }
+    if (tparams->txqn == 0) { queue_ids_str = "none"; }
+    HOLOSCAN_LOG_INFO("Starting Tx Core {} (queue IDs: {}), GPU {}",
+                      tparams->core_id,
+                      queue_ids_str,
+                      tparams->gpu_id);
+  }
 
   cudaSetDevice(tparams->gpu_id);
   // cudaFree(0);
@@ -1576,8 +1643,7 @@ int DocaMgr::tx_core(void* arg) {
   return 0;
 }
 
-/* ANO INTERFACE TO BE REMOVED */
-/* ANO interface implementations */
+/* advanced_network interface implementations */
 
 void* DocaMgr::get_packet_ptr(BurstParams* burst, int idx) {
   uint32_t pkt = burst->hdr.hdr.gpu_pkt0_idx + idx;
@@ -1645,7 +1711,7 @@ Status DocaMgr::get_tx_packet_burst(BurstParams* burst) {
 
     for (auto& q : intf.tx_.queues_) {
       if (q.common_.id_ == burst->hdr.hdr.q_id) {
-        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+        uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
         auto txq = tx_q_map_[key];
 
         // Should be thread safe as it's atomic inc
@@ -1696,7 +1762,7 @@ bool DocaMgr::is_tx_burst_available(BurstParams* burst) {
 
     for (auto& q : intf.tx_.queues_) {
       if (q.common_.id_ == burst->hdr.hdr.q_id) {
-        uint32_t key = (intf.port_id_ << 16) | q.common_.id_;
+        uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
         auto txq = tx_q_map_[key];
         doca_pe_progress(txq->pe);
         if (txq->tx_cmp_posted > TX_COMP_THRS) {
@@ -1726,8 +1792,20 @@ void DocaMgr::free_tx_burst(BurstParams* burst) {
   return;
 }
 
-Status DocaMgr::get_rx_burst(BurstParams** burst) {
-  if (rte_ring_dequeue(rx_ring, reinterpret_cast<void**>(burst)) < 0) { return Status::NOT_READY; }
+Status DocaMgr::get_rx_burst(BurstParams** burst, int port, int q) {
+  uint32_t key = generate_queue_key(port, q);
+  auto ring_it = rx_rings.find(key);
+
+  if (ring_it == rx_rings.end()) {
+    HOLOSCAN_LOG_ERROR("get_rx_burst: Could not find ring for port {}, queue {}. Check config.",
+                       port,
+                       q);
+    return Status::INVALID_PARAMETER;
+  }
+
+  if (rte_ring_dequeue(ring_it->second, reinterpret_cast<void**>(burst)) < 0) {
+    return Status::NULL_PTR;  // Use NULL_PTR to indicate empty queue
+  }
 
   return Status::SUCCESS;
 }
@@ -1759,7 +1837,7 @@ Status DocaMgr::get_tx_metadata_buffer(BurstParams** burst) {
 }
 
 Status DocaMgr::send_tx_burst(BurstParams* burst) {
-  uint32_t key = (burst->hdr.hdr.port_id << 16) | burst->hdr.hdr.q_id;
+  uint32_t key = generate_queue_key(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
   const auto ring = tx_rings.find(key);
 
   if (ring == tx_rings.end()) {
@@ -1782,10 +1860,12 @@ Status DocaMgr::send_tx_burst(BurstParams* burst) {
 void DocaMgr::shutdown() {
   int icore = 0;
 
-  HOLOSCAN_LOG_INFO("ANO DOCA manager shutting down");
+  HOLOSCAN_LOG_INFO("advanced_network DOCA manager shutting down");
 
   if (force_quit_doca.load() == false) {
-    HOLOSCAN_LOG_INFO("ANO DOCA manager stopping cores");
+    print_stats();
+
+    HOLOSCAN_LOG_INFO("advanced_network DOCA manager stopping cores");
     force_quit_doca.store(true);
     for (int i = 0; i < worker_th_idx; i++) {
       HOLOSCAN_LOG_INFO("Waiting on thread {}", i);
@@ -1802,7 +1882,7 @@ void DocaMgr::shutdown() {
 }
 
 void DocaMgr::print_stats() {
-  HOLOSCAN_LOG_INFO("ANO DOCA manager stats");
+  HOLOSCAN_LOG_INFO("advanced_network DOCA manager stats");
   HOLOSCAN_LOG_INFO("Total Rx packets {}", stats_rx_tot_pkts);
   HOLOSCAN_LOG_INFO("Total Rx bytes {}", stats_rx_tot_bytes);
   HOLOSCAN_LOG_INFO("Total Rx batch processed {}", stats_rx_tot_batch);

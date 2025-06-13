@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Multi AI SSD Detection MONAI Endoscopic Tool Segmentation Application",
+		"name": "Multi AI SSD Detection and MONAI Endoscopic Tool Segmentation",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -22,14 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Multiai",
-			"SSD",
-			"bounding box",
-			"Detection",
-			"MONAI",
-			"Segmentation"
-		],
+		"tags": ["Healthcare AI", "Video", "Surgical AI", "Endoscopy", "SSD", "Segmentation"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

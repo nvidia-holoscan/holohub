@@ -21,10 +21,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": [
-			"Speech-to-text",
-			"Large Language Model"
-		],
+		"tags": ["Healthcare AI", "Audio", "ASR", "LLM", "Auth and API", "Medical Imaging"],
 		"ranking": 2,
 		"dependencies": {
 			"openai-whisper": "^20230314",

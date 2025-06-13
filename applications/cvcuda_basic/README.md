@@ -1,4 +1,4 @@
-# Simple CV-CUDA application
+# Simple CV-CUDA
 
 This application demonstrates seamless interoperability between Holoscan tensors and CV-CUDA tensors. The image processing pipeline is just a simple flip of the video orientation.
 

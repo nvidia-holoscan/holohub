@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Colonoscopy segmentation",
+		"name": "Colonoscopy Polyp Segmentation",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Colonoscopy",
-			"Classification"
-		],
+		"tags": ["Healthcare AI", "Visualization", "AJA", "Endoscopy", "Segmentation", "Holoviz", "Video"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

@@ -1,4 +1,4 @@
-# Endoscopy Out of Body Detection Application
+# Endoscopy Out of Body Detection
 
 ![Endoscopy Out of Body Detection Workflow](./endoscopy_out_of_body_detection.png)
 
@@ -42,30 +42,30 @@ The application requires the input videos to be converted to GXF tensor format. 
 
 1. Download and extract the data:
 
-  ```bash
-  unzip [NGC_DOWNLOAD].zip -d <data_dir>
-  ```
+    ```bash
+    unzip [NGC_DOWNLOAD].zip -d <data_dir>
+    ```
 
 2. Convert the video to GXF tensor format using the provided script:
 
-  ```bash
-  ffmpeg -i <INPUT_VIDEO_FILE> -fs 900M -pix_fmt rgb24 -f rawvideo pipe:1 | \
-  python convert_video_to_gxf_entities.py --width 256 --height 256 --channels 3 --framerate 30
-  ```
+    ```bash
+    ffmpeg -i <INPUT_VIDEO_FILE> -fs 900M -pix_fmt rgb24 -f rawvideo pipe:1 | \
+    python convert_video_to_gxf_entities.py --width 256 --height 256 --channels 3 --framerate 30
+    ```
 
-  Note: The conversion script (`convert_video_to_gxf_entities.py`) is available in the [Holoscan SDK repository](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts).
+    Note: The conversion script (`convert_video_to_gxf_entities.py`) is available in the [Holoscan SDK repository](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts).
 
 3. Organize the data directory as follows:
 
-  ```bash
-  data/
-  └── endoscopy_out_of_body_detection/
-    ├── LICENSE.md
-    ├── out_of_body_detection.onnx
-    ├── sample_clip_out_of_body_detection.gxf_entities
-    ├── sample_clip_out_of_body_detection.gxf_index
-    └── sample_clip_out_of_body_detection.mp4
-  ```
+    ```bash
+    data/
+    └── endoscopy_out_of_body_detection/
+      ├── LICENSE.md
+      ├── out_of_body_detection.onnx
+      ├── sample_clip_out_of_body_detection.gxf_entities
+      ├── sample_clip_out_of_body_detection.gxf_index
+      └── sample_clip_out_of_body_detection.mp4
+    ```
 
 ## Configuration
 
@@ -90,8 +90,9 @@ For more information, see the Holohub [README.md](https://github.com/nvidia-holo
 
 ### Basic Usage
 
-For C++:
 From your build directory:
+
+__C++:__
 
 ```bash
 applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection \
@@ -99,7 +100,7 @@ applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection \
   --data ../data/endoscopy_out_of_body_detection
 ```
 
-For Python:
+__Python:__
 
 ```bash
 applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection.py \

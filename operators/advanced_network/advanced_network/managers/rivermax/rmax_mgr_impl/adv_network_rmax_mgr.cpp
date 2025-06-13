@@ -60,10 +60,10 @@ const std::unordered_map<RmaxLogLevel::Level, std::tuple<std::string, std::strin
 };
 
 /**
- * A map of Ano log level to Rmax log level.
+ * A map of advanced_network log level to Rmax log level.
  */
 const std::unordered_map<LogLevel::Level, RmaxLogLevel::Level>
-    RmaxLogLevel::ano_to_rmax_log_level_map = {
+    RmaxLogLevel::adv_net_to_rmax_log_level_map = {
         {LogLevel::TRACE, TRACE},
         {LogLevel::DEBUG, DEBUG},
         {LogLevel::INFO, INFO},
@@ -110,7 +110,7 @@ class RmaxMgr::RmaxMgrImpl {
   void free_rx_burst(BurstParams* burst);
   void free_tx_burst(BurstParams* burst);
   void format_eth_addr(char* dst, std::string addr);
-  Status get_rx_burst(BurstParams** burst);
+  Status get_rx_burst(BurstParams** burst, int port, int q);
   Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);
   void free_rx_metadata(BurstParams* burst);
   void free_tx_metadata(BurstParams* burst);
@@ -138,7 +138,7 @@ class RmaxMgr::RmaxMgrImpl {
   std::unordered_map<uint32_t, std::unique_ptr<RmaxChunkConsumerAno>> rmax_chunk_consumers;
   std::unordered_map<uint32_t, std::shared_ptr<RxBurstsManager>> rx_burst_managers;
   std::unordered_map<uint32_t, std::shared_ptr<RxPacketProcessor>> rx_packet_processors;
-  std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue;
+  std::unordered_map<uint32_t, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queues_map_;
   std::vector<std::thread> rx_service_threads;
   bool initialized_ = false;
   std::shared_ptr<ral::lib::RmaxAppsLibFacade> rmax_apps_lib = nullptr;
@@ -166,7 +166,7 @@ bool RmaxMgr::RmaxMgrImpl::set_config_and_initialize(const NetworkConfig& cfg) {
     t.join();
 
     if (!this->initialized_) {
-      HOLOSCAN_LOG_ERROR("Failed to initialize Rivermax ANO Manager");
+      HOLOSCAN_LOG_ERROR("Failed to initialize Rivermax advanced_network Manager");
       return false;
     }
     run();
@@ -189,14 +189,12 @@ void RmaxMgr::RmaxMgrImpl::initialize() {
     HOLOSCAN_LOG_INFO("{} ({}): assigned port ID {}", intf.name_, intf.address_, intf.port_id_);
   }
 
-  rx_bursts_out_queue = std::make_shared<AnoBurstsQueue>();
-
   rmax_apps_lib = std::make_shared<ral::lib::RmaxAppsLibFacade>();
   RmaxConfigContainer config_manager(rmax_apps_lib);
 
   bool res = config_manager.parse_configuration(cfg_);
   if (!res) {
-    HOLOSCAN_LOG_ERROR("Failed to parse configuration for Rivermax ANO Manager");
+    HOLOSCAN_LOG_ERROR("Failed to parse configuration for Rivermax advanced_network Manager");
     return;
   }
   HOLOSCAN_LOG_INFO("Setting Rivermax Log Level to: {}",
@@ -240,13 +238,17 @@ void RmaxMgr::RmaxMgrImpl::initialize_rx_service(uint32_t service_id,
     return;
   }
 
+  // Create a dedicated queue for this service_id
+  auto queue = std::make_shared<AnoBurstsQueue>();
+  rx_bursts_out_queues_map_[service_id] = queue;
+
   rx_services[service_id] = std::move(rx_service);
   rx_burst_managers[service_id] = std::make_shared<RxBurstsManager>(config.send_packet_ext_info,
                                                                     port_id,
                                                                     queue_id,
                                                                     config.max_chunk_size,
                                                                     config.app_settings->gpu_id,
-                                                                    rx_bursts_out_queue);
+                                                                    queue);
 
   rx_packet_processors[service_id] =
       std::make_shared<RxPacketProcessor>(rx_burst_managers[service_id]);
@@ -278,9 +280,10 @@ RmaxMgr::RmaxMgrImpl::~RmaxMgrImpl() {
 
   rmax_chunk_consumers.clear();
 
-  rx_bursts_out_queue->clear();
-
-  rx_bursts_out_queue.reset();
+  for (auto& [service_id, rx_bursts_out_queue] : rx_bursts_out_queues_map_) {
+    rx_bursts_out_queue->clear();
+  }
+  rx_bursts_out_queues_map_.clear();
 }
 
 class RmaxServicesSynchronizer : public IRmaxServicesSynchronizer {
@@ -613,10 +616,21 @@ void RmaxMgr::RmaxMgrImpl::free_tx_burst(BurstParams* burst) {}
  * @param burst Pointer to the burst parameters.
  * @return Status indicating the success or failure of the operation.
  */
-Status RmaxMgr::RmaxMgrImpl::get_rx_burst(BurstParams** burst) {
-  auto out_burst = rx_bursts_out_queue->dequeue_burst().get();
-  *burst = static_cast<BurstParams*>(out_burst);
-  if (*burst == nullptr) { return Status::NOT_READY; }
+Status RmaxMgr::RmaxMgrImpl::get_rx_burst(BurstParams** burst, int port, int q) {
+  uint32_t service_id = RmaxBurst::burst_tag_from_port_and_queue_id(port, q);
+  auto queue_it = rx_bursts_out_queues_map_.find(service_id);
+
+  if (queue_it == rx_bursts_out_queues_map_.end()) {
+    HOLOSCAN_LOG_ERROR("No Rx queue found for Rivermax service (port {}, queue {}). "
+                       "Check config.", port, q);
+    return Status::INVALID_PARAMETER;
+  }
+
+  auto out_burst_shared = queue_it->second->dequeue_burst();
+  if (out_burst_shared == nullptr) {
+    return Status::NULL_PTR;
+  }
+  *burst = out_burst_shared.get();
   return Status::SUCCESS;
 }
 
@@ -659,7 +673,9 @@ Status RmaxMgr::RmaxMgrImpl::send_tx_burst(BurstParams* burst) {
  */
 void RmaxMgr::RmaxMgrImpl::shutdown() {
   if (!force_quit.load()) {
-    HOLOSCAN_LOG_INFO("ANO Rivermax manager shutting down");
+    print_stats();
+
+    HOLOSCAN_LOG_INFO("advanced_network Rivermax manager shutting down");
     force_quit.store(false);
     std::raise(SIGINT);
   }
@@ -989,8 +1005,8 @@ void RmaxMgr::free_tx_burst(BurstParams* burst) {
  * @param burst Pointer to the burst parameters.
  * @return Status indicating the success or failure of the operation.
  */
-Status RmaxMgr::get_rx_burst(BurstParams** burst) {
-  return pImpl->get_rx_burst(burst);
+Status RmaxMgr::get_rx_burst(BurstParams** burst, int port, int q) {
+  return pImpl->get_rx_burst(burst, port, q);
 }
 
 /**

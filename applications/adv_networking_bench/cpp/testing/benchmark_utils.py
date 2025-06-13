@@ -156,20 +156,22 @@ class BenchmarkResults:
         # to get bps, then convert to Gbps
         return (tx_bytes * 8) / (self.exec_time / 1000) / 1e9
 
-    def validate_rx_queue_packets(self, port: int, expected_packets: Dict[int, int]) -> bool:
+    def validate_rx_queue_packets(
+        self, port: int, expected_packets: Dict[int, int], allow_greater: bool = False
+    ) -> bool:
         """
         Validate that RX queues on a specific port received the expected number of packets.
 
         Args:
             port: Port number to validate
             expected_packets: Dictionary mapping queue numbers to expected packet counts {queue: count}
+            allow_greater: If True, validate that the actual packet count is greater than the expected count
 
         Returns:
             bool: True if validation passed, False otherwise
         """
         port_str = str(port)
         success = True
-
         if port_str not in self.q_rx_pkts:
             if expected_packets:  # If we expected packets but found none
                 logger.error(f"No RX queue packets found for port {port}")
@@ -182,18 +184,18 @@ class BenchmarkResults:
         # Check each expected queue
         for queue_str, expected_count in expected_str_dict.items():
             actual_count = self.q_rx_pkts[port_str].get(queue_str, 0)
+            success = (
+                actual_count > expected_count if allow_greater else actual_count == expected_count
+            )
 
-            if actual_count != expected_count:
-                logger.error(
-                    f"Port {port} Queue {queue_str} packet count mismatch: "
-                    f"expected={expected_count}, actual={actual_count} ❌"
-                )
-                success = False
+            # Log
+            expect_symbol = ">=" if allow_greater else "="
+            queue_info = f"Port {port_str} Queue {queue_str} packet count"
+            count_info = f"expected{expect_symbol}{expected_count}, actual={actual_count}"
+            if not success:
+                logger.error(f"{queue_info} mismatch: {count_info} ❌")
             else:
-                logger.info(
-                    f"Port {port} Queue {queue_str} packet count match: "
-                    f"expected={expected_count}, actual={actual_count} ✅"
-                )
+                logger.info(f"{queue_info} match: {count_info} ✅")
 
         # Check for unexpected queues with packets
         for queue_str, actual_count in self.q_rx_pkts[port_str].items():
@@ -295,9 +297,26 @@ class BenchmarkResults:
         return success
 
 
-def parse_benchmark_results(log: str) -> BenchmarkResults:
+# Helper function to extract metrics
+def _extract_metric(pattern, text) -> int:
+    match = re.search(pattern, text)
+    if match:
+        return int(match.group(1))
+    return 0  # Return 0 if no match found
+
+
+def parse_benchmark_results(log: str, manager_type: str) -> BenchmarkResults:
+    if manager_type == "dpdk":
+        return parse_dpdk_benchmark_results(log)
+    elif manager_type == "gpunetio":
+        return parse_gpunetio_benchmark_results(log)
+    else:
+        raise ValueError(f"Unsupported manager type: {manager_type}")
+
+
+def parse_dpdk_benchmark_results(log: str) -> BenchmarkResults:
     """
-    Parse benchmark results from log output.
+    Parse benchmark results from DPDK log output.
 
     Args:
         log: The log output as a string
@@ -329,13 +348,6 @@ def parse_benchmark_results(log: str) -> BenchmarkResults:
     tx_queue_pattern = r"tx_q(\d+)_packets:\s+(\d+)"
     exec_time_pattern = r"TOTAL EXECUTION TIME OF SCHEDULER : (\d+\.\d+) ms"
 
-    # Helper function to extract metrics
-    def extract_metric(pattern, text) -> int:
-        match = re.search(pattern, text)
-        if match:
-            return int(match.group(1))
-        return 0  # Return 0 if no match found
-
     # Find all port sections in the log
     port_matches = list(re.finditer(port_pattern, log))
     logger.debug(f"Number of port_matches: {len(port_matches)}")
@@ -355,7 +367,7 @@ def parse_benchmark_results(log: str) -> BenchmarkResults:
 
         # Extract all metrics for this port
         for metric_name, (pattern, result_dict) in metric_patterns.items():
-            value = extract_metric(pattern, port_section)
+            value = _extract_metric(pattern, port_section)
             result_dict[port_id] = value
             logger.debug(f"Port {port_id} - {metric_name}: {value}")
 
@@ -387,6 +399,74 @@ def parse_benchmark_results(log: str) -> BenchmarkResults:
     logger.debug(f"TX bytes: {tx_bytes}")
     logger.debug(f"RX packets: {rx_packets}")
     logger.debug(f"RX bytes: {rx_bytes}")
+    logger.debug(f"Missed packets: {missed_packets}")
+    logger.debug(f"Errored packets: {errored_packets}")
+    logger.debug(f"RX queue packets: {rx_queue_packets}")
+    logger.debug(f"TX queue packets: {tx_queue_packets}")
+    logger.debug(f"Exec time: {exec_time}")
+
+    return BenchmarkResults(
+        tx_pkts=tx_packets,
+        tx_bytes=tx_bytes,
+        rx_pkts=rx_packets,
+        rx_bytes=rx_bytes,
+        missed_pkts=missed_packets,
+        errored_pkts=errored_packets,
+        q_rx_pkts=rx_queue_packets,
+        q_tx_pkts=tx_queue_packets,
+        exec_time=exec_time,
+    )
+
+
+def parse_gpunetio_benchmark_results(log: str) -> BenchmarkResults:
+    """
+    Parse benchmark results from GPUNetIO log output.
+
+    Args:
+        log: The log output as a string
+
+    Returns:
+        BenchmarkResults: A structured representation of the benchmark results
+    """
+    # Initialize result dictionaries - GPUNetIO logs seem to provide totals only.
+    # We'll store these totals under a default port "0".
+    tx_packets = {}
+    tx_bytes = {}
+    rx_packets = {}
+    rx_bytes = {}
+    missed_packets = {}
+    errored_packets = {}  # Not provided in logs
+    rx_queue_packets = {}  # Not provided in logs
+    tx_queue_packets = {}  # Not provided in logs
+
+    # Regex patterns for GPUNetIO
+    rx_pkts_pattern = r"Total Rx packets\s+(\d+)"
+    rx_bytes_pattern = r"Total Rx bytes\s+(\d+)"
+    tx_pkts_pattern = r"Total Tx packets\s+(\d+)"
+    tx_bytes_pattern = r"Total Tx bytes\s+(\d+)"
+    # Assuming exec time format is the same as DPDK
+    exec_time_pattern = r"TOTAL EXECUTION TIME OF SCHEDULER : (\d+\.\d+) ms"
+
+    # Extract total metrics and assign to port "0"
+    rx_packets["0"] = _extract_metric(rx_pkts_pattern, log)
+    rx_bytes["0"] = _extract_metric(rx_bytes_pattern, log)
+    tx_packets["0"] = _extract_metric(tx_pkts_pattern, log)
+    tx_bytes["0"] = _extract_metric(tx_bytes_pattern, log)
+
+    # Calculate missed packets for GPUNetIO
+    missed_packets["0"] = max(0, tx_packets.get("0", 0) - rx_packets.get("0", 0))
+
+    # Extract execution time
+    exec_time = 0.0
+    exec_time_match = re.search(exec_time_pattern, log)
+    if exec_time_match:
+        exec_time = float(exec_time_match.group(1))
+
+    # Debug output
+    logger.debug(f"Total RX packets (assigned to port 0): {rx_packets.get('0', 0)}")
+    logger.debug(f"Total RX bytes (assigned to port 0): {rx_bytes.get('0', 0)}")
+    logger.debug(f"Total TX packets (assigned to port 0): {tx_packets.get('0', 0)}")
+    logger.debug(f"Total TX bytes (assigned to port 0): {tx_bytes.get('0', 0)}")
     logger.debug(f"Missed packets: {missed_packets}")
     logger.debug(f"Errored packets: {errored_packets}")
     logger.debug(f"RX queue packets: {rx_queue_packets}")

@@ -1,34 +1,30 @@
 {
 	"operator": {
-		"name": "medical_imaging",
+		"name": "Medical Imaging",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",
 				"affiliation": "NVIDIA"
 			}
 		],
-		"version": "1.0",
+		"version": "1.1.0",
 		"changelog": {
+			"1.1.0": "Restructure to adhere to Holohub guideline",
 			"1.0": "Initial Release"
 		},
+		"language": ["Python"],
 		"holoscan_sdk": {
 			"minimum_required_version": "1.0.3",
 			"tested_versions": [
-				"2.2.0"
+				"2.2.0",
+				"3.2.0"
 			]
 		},
 		"platforms": [
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Medeical Imaging",
-			"DICOM",
-			"AI",
-			"Inference",
-			"MONAI",
-			"STL"
-		],
+		"tags": ["Medical Imaging", "Healthcare Interop", "AI", "MONAI", "STL"],
 		"ranking": 2,
 		"dependencies": {}
 	}

@@ -21,7 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [],
+		"tags": ["Computer Vision and Perception", "Visualization", "Camera", "Detection", "Image Processing", "Holoviz"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

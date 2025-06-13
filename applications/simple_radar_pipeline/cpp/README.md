@@ -1,4 +1,4 @@
-# Simple Radar Pipeline Application
+# Simple Radar Pipeline
 
 This demonstration walks the developer through building a simple radar signal processing pipeline, targeted towards detecting objects, with Holoscan. In this example, we generate random radar and waveform data, passing both through:
 1. Pulse Compression

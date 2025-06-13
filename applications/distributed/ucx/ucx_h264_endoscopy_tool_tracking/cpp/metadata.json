@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "H.264 Endoscopy Tool Tracking Distributed",
+		"name": "Distributed H.264 Endoscopy Tool Tracking",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -23,13 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Tracking",
-			"AJA",
-			"Video Decoding",
-			"Video Encoding"
-		],
+		"tags": ["Healthcare AI", "Video", "Surgical AI", "Distributed", "Holoviz", "LSTM", "TensorRT", "Endoscopy"],
 		"ranking": 0,
 		"dependencies": {
 			"operators": [

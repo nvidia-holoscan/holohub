@@ -15,7 +15,7 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "3.0.0",
 			"tested_versions": [
-				"3.0.0"
+				"3.1.0"
 			]
 		},
 		"holoscan_sensor_bridge": {
@@ -28,15 +28,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Workflow",
-			"End-to-End Application",
-			"Multiai",
-			"SSD",
-			"Detection",
-			"MONAI",
-			"Segmentation"
-		],
+		"tags": ["SSD", "Detection", "MONAI", "Segmentation"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [
@@ -64,7 +56,7 @@
 			]
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/ai_surgical_video.py --source replayer --config <holohub_app_source>/config.yaml --data <holohub_data_dir>/",
+			"command": "python3 <holohub_app_source>/ai_surgical_video.py --source replayer --config <holohub_app_source>/config.yaml --data <holohub_data_dir>",
 			"workdir": "holohub_bin"
 		}
 	}

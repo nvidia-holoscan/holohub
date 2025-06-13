@@ -17,7 +17,7 @@
 			"tested_versions": ["2.1.0"]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": [],
+		"tags": ["Computer Vision and Perception", "Visualization", "Camera", "Depth", "Holoviz"],
 		"ranking": 0,
 		"dependencies": {},
 		"run": {

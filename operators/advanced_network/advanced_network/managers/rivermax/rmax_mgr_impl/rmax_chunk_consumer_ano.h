@@ -31,14 +31,14 @@ namespace holoscan::advanced_network {
 using namespace ral::services;
 
 /**
- * @brief Consumer class for handling Rmax chunks and providing ANO bursts.
+ * @brief Consumer class for handling Rmax chunks and providing advanced_network bursts.
  *
  * The RmaxChunkConsumerAno class acts as an adapter that consumes Rmax chunks
- * and produces ANO bursts. It processes the packets contained in the chunks,
+ * and produces advanced_network bursts. It processes the packets contained in the chunks,
  * updates the consumed and unconsumed byte counts, and manages the lifecycle
  * of the bursts. This class is designed to interface with the Rmax framework
  * and provide the necessary functionality to handle and transform the data
- * into a format suitable for ANO processing.
+ * into a format suitable for advanced_network to process.
  */
 class RmaxChunkConsumerAno : public IIPOChunkConsumer {
  public:

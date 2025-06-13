@@ -22,11 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"WebRTC",
-			"Server",
-			"Holoviz"
-		],
+		"tags": ["Computer Vision and Perception", "Networking and Distributed Computing", "WebRTC", "Visualization", "Holoviz"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

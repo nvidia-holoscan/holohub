@@ -1,5 +1,6 @@
-# Network Radar Pipeline
-The Network Radar Pipeline demonstrates signal processing on data streamed via packets over a network. It showcases the use of both the Advanced Network Operator and Basic Network Operator to send or receive data, combined with the signal processing operators implemented in the Simple Radar Pipeline application.
+# Radar Signal Processing over Network
+
+The Network Radar application demonstrates signal processing on data streamed via packets over a network. It showcases the use of both the Advanced Network Operator and Basic Network Operator to send or receive data, combined with the signal processing operators implemented in the Simple Radar Pipeline application.
 
 Using the GPUDirect capabilities afforded by the Advanced Network Operator, this pipeline has been tested up to 100 Gbps (Tx/Rx) using a ConnectX-7 NIC and A30 GPU.
 
@@ -24,8 +25,6 @@ Note: must properly configure YAML files before running. To run with DPDK as ANO
 To run with DOCA GPUNetIO as ANO transport layer:
 - On Tx machine: `./build/applications/network_radar_pipeline/cpp/network_radar_pipeline source_doca.yaml`
 - On Rx machine: `./build/applications/network_radar_pipeline/cpp/network_radar_pipeline process_doca.yaml`
-
-<mark>For Holoscan internal reasons (not related to the DOCA library), build the Advanced Network Operator with `RX_PERSISTENT_ENABLED` set to 1 MAY cause problems to this application on the receive (process) side (receive hangs in process.cu file). If you experience any issue on the receive side, please read carefully in the Advanced Network Operator README about how to solve this problem.</mark>
 
 ## Network Operator Connectors
 See each operators' README before using / for more detailed information.

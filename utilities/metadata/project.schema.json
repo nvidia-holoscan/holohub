@@ -37,12 +37,36 @@
       "$id": "changelog",
       "type": "object"
     },
+    "language": {
+      "type": "string",
+      "enum": [
+        "C++",
+        "Python",
+        "GXF"
+      ]
+    },
+    "multi_language": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/language"
+          }
+        },
+        {
+          "$ref": "#/$defs/language"
+        }
+      ]
+    },
     "platforms": {
       "type": "array",
       "items": [
         {
           "type": "string",
-          "enum": [ "x86_64", "aarch64" ]
+          "enum": [
+            "x86_64",
+            "aarch64"
+          ]
         }
       ]
     },

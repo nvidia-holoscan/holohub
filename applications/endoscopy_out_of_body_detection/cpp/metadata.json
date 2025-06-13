@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Endoscopy Out of Body Detection Pipeline",
+		"name": "Endoscopy Out of Body Detection",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -23,10 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Classification"
-		],
+		"tags": ["Healthcare AI", "Video", "AJA", "Endoscopy", "Classification", "Computer Vision and Perception"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

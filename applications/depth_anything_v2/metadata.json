@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Monocular Depth Estimation"
-		],
+		"tags": ["Computer Vision and Perception", "Visualization", "Edge Accelerated Inference", "Monocular Depth Estimation", "Holoviz", "Video"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

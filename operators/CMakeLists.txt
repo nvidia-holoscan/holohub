@@ -19,6 +19,7 @@ add_holohub_operator(aja_source)
 add_holohub_operator(apriltag_detector)
 add_holohub_operator(basic_network)
 add_holohub_operator(cvcuda_holoscan_interop)
+add_subdirectory(deidentification)
 add_subdirectory(dds)
 add_holohub_operator(deltacast_videomaster DEPENDS EXTENSIONS deltacast_videomaster)
 add_holohub_operator(emergent_source DEPENDS EXTENSIONS emergent_source)
@@ -41,12 +42,9 @@ add_holohub_operator(vita49_psd_packetizer)
 add_holohub_operator(volume_loader)
 add_holohub_operator(volume_renderer)
 add_holohub_operator(vtk_renderer)
-add_holohub_operator(xr_basic_render)
-add_holohub_operator(XrFrameOp)
-add_holohub_operator(XrTransformOp)
 add_holohub_operator(yuan_qcap DEPENDS EXTENSIONS yuan_qcap)
 add_holohub_operator(ehr_query_llm)
-
+add_holohub_operator(xr)
 
 # install
 install(

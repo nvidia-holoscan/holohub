@@ -15,7 +15,7 @@
                 "affiliation": "Valley Tech Systems, Inc."
             }
         ],
-        "language": "C++",
+        "language": ["C++"],
         "version": "1.0.0",
         "changelog": {
             "1.0": "Initial Release"
@@ -28,16 +28,14 @@
                 "2.7.0",
                 "2.8.0",
                 "2.9.0",
-                "3.0.0"
+                "3.0.0",
+                "3.1.0"
             ]
         },
         "platforms": [
             "x86_64"
         ],
-        "tags": [
-            "SDR",
-            "DSP"
-        ],
+        "tags": ["Signal Processing"],
         "ranking": 3,
         "dependencies": {
             "libraries": [{

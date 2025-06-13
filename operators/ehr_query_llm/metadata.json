@@ -7,7 +7,7 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "Python",
+		"language": ["Python"],
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
@@ -22,11 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"ehr_query_llm",
-			"FHIR service client",
-			"FHIR"
-		],
+		"tags": ["LLM", "Healthcare Interop"],
 		"ranking": 1,
 		"dependencies": {
 			"python-packages": {

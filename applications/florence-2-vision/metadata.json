@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Florence-2",
+		"name": "Florence-2: Advancing a Unified Representation for a Variety of Vision Tasks",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Multimodal Model",
-			"Vision Model"
-		],
+		"tags": ["Computer Vision and Perception", "Video", "CUDA Holoviz Integration", "Qt", "Multimodal Model", "Detection", "Segmentation"],
 		"ranking": 1,
 		"dependencies": {
 			"PySide6": {

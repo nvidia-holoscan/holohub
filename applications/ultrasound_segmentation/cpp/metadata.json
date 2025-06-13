@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Ultrasound Segmentation",
+		"name": "Ultrasound Bone Scoliosis Segmentation",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -22,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Ultrasound",
-			"Segmentation"
-		],
+		"tags": ["Healthcare AI", "Video", "Ultrasound", "Segmentation", "AJA", "Visualization"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

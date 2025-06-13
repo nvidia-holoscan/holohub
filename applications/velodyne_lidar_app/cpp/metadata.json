@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Velodyne Lidar Viewer",
+		"name": "Velodyne VLP-16 Lidar Viewer",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -43,7 +43,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Lidar","Velodyne", "Point Cloud","Visualization","Sensor"],
+		"tags": ["Signal Processing", "Lidar", "Point Cloud", "UDP", "Visualization"],
 		"ranking": 4,
 		"dependencies": {},
 		"run": {

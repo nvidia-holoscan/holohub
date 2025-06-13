@@ -1,4 +1,5 @@
-# Body Pose Estimation App
+# Body Pose Estimation
+
 <div align="center">
     <img src="./docs/1.png" width="300" height="375">
     <img src="./docs/2.png" width="300" height="375">
@@ -21,11 +22,23 @@ This application downloads a pre-recorded video from [Pexels](https://www.pexels
 
 ## Input
 
-This app currently supports three different input options:
+This app supports three different input options.  If you have a v4l2 compatible device plugged into your machine such as a webcam, you can run this application with option 1.  Otherwise you can run this application using a pre-recorded video with option 2.  For more advanced use cases, option 3 shows how to publish/subscribe to a DDS video stream to for interprocess applications.
 
 1. v4l2 compatible input device (default, see V4L2 Support below)
 2. pre-recorded video (see Video Replayer Support below)
 3. DDS video stream (see DDS Support below)
+
+To see the list of v4l2 devices connected to your machine, install `v4l-utils` if it's not already installed:
+
+```
+sudo apt-get install v4l-utils
+```
+
+Then run:
+
+```
+v4l2-ctl --list-devices
+```
 
 ## Run Instructions
 

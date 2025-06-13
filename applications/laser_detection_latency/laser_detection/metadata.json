@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Laser detection",
+		"name": "Laser Detection",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -21,7 +21,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [],
+		"tags": ["Computer Vision and Perception", "Video", "CV CUDA", "Camera", "Detection"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

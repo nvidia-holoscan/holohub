@@ -3,10 +3,11 @@ SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
 
 SPDX-License-Identifier: Apache-2.0
 -->
-# PSD Pipeline
+# VITA 49 Power Spectral Density (PSD)
 
 ## Overview
-The PSD pipeline takes in a VITA49 data stream from the advanced network
+
+The VITA 49 Power Spectral Density (PSD) application takes in a VITA49 data stream from the advanced network
 operator, then performs an FFT, PSD, and averaging operation before
 generating a VITA 49.2 spectral data packet which gets sent to a
 destination UDP socket.
@@ -27,8 +28,8 @@ destination UDP socket.
 ## Requirements
 
 - ConnectX 6 or 7 NIC for GPUDirect RDMA with packet size steering
-- [MatX](https://github.com/NVIDIA/MatX) (dependency)
-- [vrtgen](https://github.com/Geontech/vrtgen) (dependency)
+- [MatX](https://github.com/NVIDIA/MatX) (dependency - assumed to be installed on system)
+- [vita49-rs](https://github.com/voyager-tech-inc/vita49-rs) (dependency)
 
 ## Configuration
 
@@ -111,7 +112,6 @@ ID 1, we see:
                 id: 1
                 cpu_core: 5
                 batch_size: 12500
-                output_port: "bench_rx_out"
                 memory_regions:
                   - "Headers_RX_CPU"
                   - "VRT_Headers_RX_CPU"
@@ -175,13 +175,17 @@ In this example, if you wanted to use the `ens3f1np1` interface, you'd pass
 `0000:51:00.1`.
 
 ## Build & Run
-1. **Build** the development container from the ANO operator's directory:
+1. **Build** the development container in two steps:
    ```bash
+   # Build the ANO dev container
    ./dev_container build --docker_file ./operators/advanced_network/Dockerfile
+
+   # Add the psd-pipeline deps
+   ./dev_container build --docker_file ./applications/psd_pipeline/Dockerfile --base_img holohub:ngc-v3.1.0-dgpu --img holohub-psd-pipeline:ngc-v3.1.0-dgpu
    ```
 2. **Launch** the development container with the command:
    ```bash
-   ./dev_container launch --as_root --img docker.io/library/holohub:ngc-v2.9.0-dgpu --docker_opts "--privileged"
+   ./dev_container launch --as_root --img holohub-psd-pipeline:ngc-v3.1.0-dgpu --docker_opts "--privileged"
    ```
 
 Once you are in the dev container:

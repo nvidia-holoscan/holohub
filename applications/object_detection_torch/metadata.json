@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Object detection using frcnn based pytorch model in C++",
+		"name": "Object Detection using PyTorch Faster R-CNN",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -22,9 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Object detection"
-		],
+		"tags": ["Computer Vision and Perception", "Video", "Detection", "Visualization", "Holoviz"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

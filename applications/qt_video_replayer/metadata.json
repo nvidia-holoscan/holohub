@@ -22,15 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Qt",
-			"QML",
-			"QtQuick",
-			"Video",
-			"UI",
-			"Userinterface",
-			"Interactive"
-		],
+		"tags": ["Computer Vision and Perception", "UI", "Qt", "Video", "Visualization"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

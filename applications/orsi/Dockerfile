@@ -50,32 +50,30 @@ ARG CMAKE_BUILD_TYPE=Release
 
 # --------------------------------------------------------------------------
 #
-# VTK 9.2.2  Build
+# VTK 9.3.1  Build
 #
 
-ARG VTK_VERSION=9.2.6
+ARG VTK_VERSION=9.3.1
 
 WORKDIR /opt/vtk
 
 RUN apt update &&  apt install  --no-install-recommends -y libglvnd-dev
-RUN  wget https://www.vtk.org/files/release/9.2/VTK-${VTK_VERSION}.tar.gz -P src && cd src && tar xzvf VTK-${VTK_VERSION}.tar.gz && \
+RUN  wget -q https://www.vtk.org/files/release/9.3/VTK-${VTK_VERSION}.tar.gz -P src && cd src && tar xzvf VTK-${VTK_VERSION}.tar.gz && \
      mkdir -p /opt/vtk/build && \
-     cd /opt/vtk/build  && \ 
+     cd /opt/vtk/build  && \
      cmake  -DBUILD_TESTING:BOOL=OFF \
             -DCMAKE_INSTALL_PREFIX=/opt/vtk/${VTK_VERSION} \
             /opt/vtk/src/VTK-${VTK_VERSION} && \
-     make -j 16 && \
-     make install && \ 
-     make clean 
+     make -j 8 && \
+     make install && \
+     make clean
 
 RUN rm -rf /opt/vtk/build &&  rm -rf /opt/vtk/src
 
 # --------------------------------------------------------------------------
 #
-# VTK 9.2 environment setup
+# VTK environment setup
 #
-
-# VTK 9.2.2
 ENV VTK_INSTALL=/opt/vtk/${VTK_VERSION}
 ENV PATH="${PATH}:${VTK_INSTALL}/bin"
 ENV CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:${VTK_INSTALL}"
