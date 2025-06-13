@@ -628,7 +628,7 @@ For examples, see existing test files like:
 **Development Environment:**
 
 - VSCode Dev Container support available in Holoscan SDK
-- HoloHub `dev_container` script with debugging options:
+- `holohub` CLI tool with debugging options:
   - `--as_root`: Launch as root for expanded debugging permissions
   - `--local_sdk_root`: Mount local SDK for debug symbol access
 
