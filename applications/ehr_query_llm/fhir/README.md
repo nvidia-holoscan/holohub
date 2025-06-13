@@ -21,7 +21,7 @@ The default set of FHIR resource types to retrieve are listed below, which can b
 
 - On a [Holohub supported platform](../../README.md#supported-platforms)
 - Python 3.10+
-- Python packages on [Pypi](https://pypi.org), including holoscan, fhir.resources, holoscan, pyzmq, requests and their dependencies
+- Python packages on [PyPI](https://pypi.org), including holoscan, fhir.resources, holoscan, pyzmq, requests and their dependencies
 
 ## Run Instructions
 
@@ -40,7 +40,7 @@ This is the simplest and fastest way to start the application in a Holohub dev c
 Please use your own FHIR server endpoint, as well as the OAuth2.0 authorization endpoint and client credential as needed.
 
 ```bash
-./holohub run fhir --run_args "--fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>"
+./holohub run fhir --run-args "--fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>"
 ```
 
 ### Run the Application in Holohub Dev Container
@@ -48,7 +48,7 @@ Please use your own FHIR server endpoint, as well as the OAuth2.0 authorization 
 **Launch the container:**
 
 ```bash
-./holohub run-conatiner fhir
+./holohub run-container fhir
 ```
 
 This command build `holohub:fhir` container based on the appplication specific [Dockerfile](./Dockerfile).
@@ -58,11 +58,11 @@ This command build `holohub:fhir` container based on the appplication specific [
 Now in the container, build and run the application
 
 ```bash
-root:~# pwd
+~$ pwd
 /workspace/holohub
 
-root:~# ./holohub clear-cache
-root:~# ./holohub run fhir --extra_args "--fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>"
+~$ ./holohub clear-cache
+~$ ./holohub run fhir --run-args "--fhir_url <f_url> --auth_url <a_url> --uid <id> --secret <token>"
 ```
 
 Once done, `exit` the container.
@@ -100,7 +100,7 @@ It is strongly recommended to run this test application in a Python virtual envi
 ```bash
 echo "Assuming venv already created with `python3 -m venv .testenv`"
 source .testenv/bin/activate
-pip install -r applications/ehr_query_llm/domain_specific/fhir/requirements.txt
+pip install -r applications/ehr_query_llm/fhir/requirements.txt
 export PYTHONPATH=${PWD}
 python applications/ehr_query_llm/fhir/test_fhir_client.py
 ```
