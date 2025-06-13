@@ -13027,7 +13027,7 @@
 <h2 id="step-by-step-guide-to-holoscan-flow-benchmarking">Step-by-step Guide to Holoscan Flow Benchmarking<a class="headerlink" href="#step-by-step-guide-to-holoscan-flow-benchmarking" title="Permanent link">#</a></h2>
 <h3 id="1-build-applications">1. Build Applications<a class="headerlink" href="#1-build-applications" title="Permanent link">#</a></h3>
 <h4 id="automatic-build-with-benchmarking">Automatic Build with Benchmarking<a class="headerlink" href="#automatic-build-with-benchmarking" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>&lt;application_name&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>--benchmark
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>&lt;application_name&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>--benchmark
 </code></pre></div>
 <p>This command:</p>
 <ul>
@@ -13035,6 +13035,9 @@
 <li>Builds with benchmarking enabled</li>
 <li>Automatically restores source files after build</li>
 </ul>
+<p>For example:
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--benchmark<span class="w"> </span>--language<span class="w"> </span>cpp
+</code></pre></div></p>
 <h4 id="manual-patching-only-if-need-to">Manual Patching [only if need to]<a class="headerlink" href="#manual-patching-only-if-need-to" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c1"># Apply patches</span>
 ./benchmarks/holoscan_flow_benchmarking/patch_application.sh<span class="w"> </span>&lt;app_directory&gt;
@@ -13048,7 +13051,8 @@
 <p><strong>Note:</strong> Source files are backed up as <code>*.bak</code> during patching.</p>
 <h3 id="important-notes">Important notes<a class="headerlink" href="#important-notes" title="Permanent link">#</a></h3>
 <ul>
-<li>Verify the application runs correctly after building and before proceeding with performance evaluation.</li>
+<li>Verify the application runs correctly after building and before proceeding with performance evaluation.
+  For example, run the app <code>./holohub run endoscopy_tool_tracking --language python</code> (append <code>--local</code> if you are using the bare-metal installation)</li>
 <li>For applications using TensorRT, run once to generate engine files (e.g., for the endoscopy tool tracking application).</li>
 <li>See <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/patch_application.sh">patch_application.sh</a> and <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking/restore_application.sh">restore_application.sh</a> for more details about the patching process.</li>
 </ul>
