@@ -1576,12 +1576,10 @@ class HoloHubCLI:
         # Handle " -- " separator for run-container command forwarding
         cmd_args = sys.argv[1:]  # Skip script name
         trailing_docker_args = []
-        has_separator = False
-        if (len(cmd_args) >= 2 and cmd_args[0] == "run-container" and "--" in cmd_args):
+        if len(cmd_args) >= 2 and cmd_args[0] == "run-container" and "--" in cmd_args:
             sep_idx = cmd_args.index("--")
-            trailing_docker_args = cmd_args[sep_idx + 1:]
+            trailing_docker_args = cmd_args[sep_idx + 1 :]
             sys.argv = [sys.argv[0]] + cmd_args[:sep_idx]
-            has_separator = True
 
         try:
             args = self.parser.parse_args()
@@ -1607,7 +1605,7 @@ class HoloHubCLI:
                     sys.exit(1)
             raise
 
-        if has_separator and trailing_docker_args:
+        if trailing_docker_args:
             args._trailing_args = trailing_docker_args  # " -- " used for run-container command
 
         if hasattr(args, "func"):
