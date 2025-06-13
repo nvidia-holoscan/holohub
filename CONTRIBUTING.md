@@ -344,6 +344,8 @@ All contributions that include code need to be integrated with HoloHub's build s
 add_holohub_operator(my_operator DEPENDS EXTENSIONS my_extension)
 ```
 
+If the operator wraps a GXF extension then the optional `DEPENDS EXTENSIONS` should be added to tell the build system to build the dependent extension(s).
+
 **For Extensions:**
 
 ```cmake
@@ -359,6 +361,9 @@ add_holohub_application(my_application DEPENDS
                         OPERATORS my_operator1 my_operator2)
 ```
 
+If the application relies on one or more operators then the optional `DEPENDS OPERATORS` should be added so that
+the build system knows to build the dependent operator(s).
+
 **For Workflows:**
 
 ```cmake
@@ -366,6 +371,9 @@ add_holohub_application(my_application DEPENDS
 add_holohub_application(my_workflow DEPENDS
                         OPERATORS my_operator1 my_operator2)
 ```
+
+If the workflow relies on one or more operators then the optional `DEPENDS OPERATORS` should be added so that
+the build system knows to build the dependent operator(s).
 
 **For Packages:**
 
@@ -532,7 +540,7 @@ Applications should include a testing section in their `CMakeLists.txt` for func
 #### Running Tests
 
 ```bash
-./holohub test --all
+./holohub test <project>
 ```
 
 ### Unit Testing Python Operators
