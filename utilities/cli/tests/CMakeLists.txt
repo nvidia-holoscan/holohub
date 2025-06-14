@@ -133,6 +133,16 @@ set_property(TEST test_holohub_run_dryrun PROPERTY
     PASS_REGULAR_EXPRESSION "run endoscopy_tool_tracking.*--local"
 )
 
+add_test(
+    NAME test_holohub_run_container_dryrun
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun -- echo hello
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_container_dryrun PROPERTY
+    PASS_REGULAR_EXPRESSION "docker run"
+    PASS_REGULAR_EXPRESSION "holohub.*echo hello"
+)
+
 # Add test for container module
 add_test(
     NAME test_container

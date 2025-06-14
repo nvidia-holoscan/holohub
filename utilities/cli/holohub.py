@@ -127,6 +127,7 @@ class HoloHubCLI:
             "run-container",
             help="Build and launch the development container",
             parents=[container_build_argparse, container_run_argparse],
+            epilog="Any trailing arguments after ' -- ' are forwarded to 'docker run'",
         )
         self.subparsers["run-container"] = run_container
         run_container.add_argument("project", nargs="?", help="Project to run container for")
@@ -431,6 +432,7 @@ class HoloHubCLI:
             docker_opts=args.docker_opts,
             add_volumes=args.add_volume,
             enable_mps=getattr(args, "mps", False),
+            extra_args=getattr(args, "_trailing_args", []),  # forward trailing args --
         )
 
     def handle_test(self, args: argparse.Namespace) -> None:
@@ -1569,11 +1571,20 @@ class HoloHubCLI:
 
     def run(self) -> None:
         """Main entry point for the CLI"""
+
+        trailing_docker_args = []  # Handle " -- " separator for run-container command forwarding
+        cmd_args = sys.argv[1:]  # Skip script name, return a copy of the args
+        if len(cmd_args) >= 2 and cmd_args[0] == "run-container" and "--" in cmd_args:
+            sep = cmd_args.index("--")
+            cmd_args, trailing_docker_args = cmd_args[:sep], cmd_args[sep + 1 :]
+
         try:
-            args = self.parser.parse_args()
+            args = self.parser.parse_args(cmd_args)
+            if trailing_docker_args:
+                args._trailing_args = trailing_docker_args  # " -- " used for run-container command
         except SystemExit as e:
-            if len(sys.argv) > 1:
-                potential_command = sys.argv[1]
+            if len(cmd_args) > 0:
+                potential_command = cmd_args[0]
                 if potential_command in self.subparsers:
                     # Show help for the specific subcommand
                     print(
