@@ -28,14 +28,7 @@ The data will be automatically downloaded and converted to the correct format wh
 
 [📦️ (NGC) Sample App Data for AI Colonoscopy Segmentation of Polyps](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_colonoscopy_sample_data)
 
-The sample data is automatically downloaded and converted to the correct format when building the application.
-
-If you would like to use data from the [REAL-Colon](https://www.nature.com/articles/s41597-024-03359-0) dataset, please refer to the sample script `prepare_real_colon_sample_data.py` included in this repository. Note that this script requires additional dependencies. You can install them with:
-
-```Bash
-pip install requests tqdm opencv-python
-```
-
+The data is automatically downloaded and converted to the correct format when building the application.
 If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
 
 ### Run the application
