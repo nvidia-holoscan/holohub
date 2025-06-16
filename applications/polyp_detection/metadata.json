@@ -39,7 +39,7 @@
 			]
 		},
 		"run": {
-			"command": "python3 polyp_detection.py --source=replayer --data <holohub_data_dir>/polyp_detection/polyp_detection_rt_detr_model_v20250304 --video_dir <holohub_data_dir>/polyp_detection",
+			"command": "python3 polyp_detection.py --source=replayer --data <holohub_data_dir>/polyp_detection --video_dir <holohub_data_dir>/colonoscopy_segmentation",
 			"workdir": "holohub_app_source"
 		}
 	}

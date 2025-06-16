@@ -24,28 +24,15 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.3.0-dgpu AS base
+FROM ${BASE_IMAGE} as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+RUN mkdir -p /tmp/scripts
+COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
-# --------------------------------------------------------------------------
-#
-# Install Application Dependencies
-#
-RUN apt-get update && apt-get install -y ffmpeg
 RUN pip install torch torchvision
-RUN apt-get update && apt-get install -y wget unzip
-RUN if ! command -v ngc > /dev/null; then \
-        echo "Installing ngc cli" && \
-        ARCH=$(uname -m) && \
-        if [ "$ARCH" = "aarch64" ]; then \
-            wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_arm64.zip -O ngccli.zip; \
-        elif [ "$ARCH" = "x86_64" ]; then \
-            wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_linux.zip -O ngccli.zip; \
-        fi && \
-        unzip ngccli.zip && \
-        chmod u+x ngc-cli/ngc && \
-        ln -s $(pwd)/ngc-cli/ngc /usr/local/bin/ && \
-        rm ngccli.zip; \
-    fi

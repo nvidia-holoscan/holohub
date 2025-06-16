@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 replayer:  # VideoStreamReplayer
-  basename: "tensor"
+  basename: "colon_exam_720x576"
   frame_rate: 0 # as specified in timestamps
   repeat: true # default: false
   realtime: true # default: true
