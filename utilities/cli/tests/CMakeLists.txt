@@ -133,6 +133,15 @@ set_property(TEST test_holohub_run_dryrun PROPERTY
     PASS_REGULAR_EXPRESSION "run endoscopy_tool_tracking.*--local"
 )
 
+add_test(
+    NAME test_holohub_run_pythonpath
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_pythonpath PROPERTY
+    PASS_REGULAR_EXPRESSION "Inspect docker image PYTHONPATH: docker inspect --format"
+)
+
 # Add test for container module
 add_test(
     NAME test_container
