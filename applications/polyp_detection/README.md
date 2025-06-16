@@ -2,6 +2,9 @@
 
 This application demonstrates how to run polyp detection models on live video in real-time.
 
+![Polyp Detection](polyp_detection.png)
+
+
 The model: [RT-DETR v2](https://github.com/lyuwenyu/RT-DETR) is trained on the [REAL-Colon](https://www.nature.com/articles/s41597-024-03359-0) dataset.
 
 Compared to the `SSD` object detection model described in the [paper](https://www.nature.com/articles/s41597-024-03359-0), `RT-DETR` demonstrates improvements. The table below shows metrics for SSD obtained from Table 3 of the paper, and metrics for RT-DETR calculated on the same test set (using all test images from the `REAL-Colon` dataset).
