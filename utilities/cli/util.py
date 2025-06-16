@@ -99,6 +99,38 @@ def format_cmd(command: str, is_dryrun: bool = False) -> str:
     return f"{timestamp} {Color.white('$')} {Color.green(command)}"
 
 
+def info(message: str) -> None:
+    """Print informational message with consistent formatting"""
+    print(f"{Color.yellow('INFO:')} {message}")
+
+
+def get_env_bool(
+    env_var_name: str,
+    default: bool = True,
+    false_values: Tuple[str, ...] = ("false", "no", "n", "0", "f"),
+) -> Tuple[str, bool]:
+    """Check environment variable as boolean flag"""
+    env_value = os.environ.get(env_var_name, str(default).lower())
+    is_true = env_value.lower() not in false_values
+    return env_value, is_true
+
+
+def check_skip_builds(args) -> Tuple[bool, bool]:
+    """Checking skip build flags and printing info messages"""
+    holohub_always_build, always_build = get_env_bool("HOLOHUB_ALWAYS_BUILD", default=True)
+    skip_builds = not always_build
+    skip_docker_build = skip_builds or getattr(args, "no_docker_build", False)
+    skip_local_build = skip_builds or getattr(args, "no_local_build", False)
+    if skip_builds:
+        info(f"Skipping build due to HOLOHUB_ALWAYS_BUILD={holohub_always_build}")
+    else:
+        if getattr(args, "no_local_build", False):
+            info("Skipping local build due to --no-local-build")
+        if getattr(args, "no_docker_build", False):
+            info("Skipping container build due to --no-docker-build")
+    return skip_docker_build, skip_local_build
+
+
 def fatal(message: str) -> None:
     """Print fatal error and exit with backtrace"""
     print(
@@ -435,3 +467,57 @@ def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
                     except IndexError:
                         continue
     return sorted(results)
+
+
+def build_holohub_path_mapping(
+    holohub_root: Path,
+    project_data: Optional[dict] = None,
+    build_dir: Optional[Path] = None,
+    data_dir: Optional[Path] = None,
+) -> dict[str, str]:
+    """Build a mapping of HoloHub placeholders to their resolved paths"""
+    if data_dir is None:
+        data_dir = holohub_root / "data"
+
+    path_mapping = {
+        "holohub_root": str(holohub_root),
+        "holohub_data_dir": str(data_dir),
+    }
+    if not project_data:
+        return path_mapping
+    # Add project-specific mappings if project_data is provided
+    app_source_path = project_data.get("source_folder", "")
+    if app_source_path:
+        path_mapping["holohub_app_source"] = str(app_source_path)
+    if build_dir:
+        path_mapping["holohub_bin"] = str(build_dir)
+        if app_source_path:
+            try:
+                app_build_dir = build_dir / Path(app_source_path).relative_to(holohub_root)
+                path_mapping["holohub_app_bin"] = str(app_build_dir)
+            except ValueError:
+                # Handle case where app_source_path is not relative to holohub_root
+                path_mapping["holohub_app_bin"] = str(build_dir)
+    elif project_data.get("project_name"):
+        # If no build_dir provided but we have project name, try to infer it
+        project_name = project_data["project_name"]
+        inferred_build_dir = holohub_root / "build" / project_name
+        path_mapping["holohub_bin"] = str(inferred_build_dir)
+        if app_source_path:
+            try:
+                app_build_dir = inferred_build_dir / Path(app_source_path).relative_to(holohub_root)
+                path_mapping["holohub_app_bin"] = str(app_build_dir)
+            except ValueError:
+                path_mapping["holohub_app_bin"] = str(inferred_build_dir)
+    return path_mapping
+
+
+def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
+    """Replace placeholders in text using the provided path mapping"""
+    if not text:
+        return text
+    result = text
+    for placeholder, replacement in path_mapping.items():
+        bracketed_placeholder = f"<{placeholder}>"
+        result = result.replace(bracketed_placeholder, replacement)
+    return result

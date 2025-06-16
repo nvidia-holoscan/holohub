@@ -76,6 +76,63 @@ set_property(TEST test_holohub_clear_cache PROPERTY
     PASS_REGULAR_EXPRESSION "Would remove:.*${CMAKE_SOURCE_DIR}/build"
 )
 
+add_test(
+    NAME test_holohub_build_container_dryrun
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build-container --dryrun --no-cache
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_build_container_dryrun PROPERTY
+    PASS_REGULAR_EXPRESSION "docker build"
+)
+
+add_test(
+    NAME test_holohub_build_container_build_args
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build-container --dryrun --build-args "--build-arg TEST=value"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_build_container_build_args PROPERTY
+    PASS_REGULAR_EXPRESSION "docker build"
+    PASS_REGULAR_EXPRESSION "--build-arg TEST=value"
+)
+
+add_test(
+    NAME test_holohub_run_container_docker_opts
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --docker-opts "--memory 4g"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_container_docker_opts PROPERTY
+    PASS_REGULAR_EXPRESSION "docker run"
+    PASS_REGULAR_EXPRESSION "--memory 4g"
+)
+
+add_test(
+    NAME test_holohub_run_container_add_volume
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --add-volume "/tmp:/tmp"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_container_add_volume PROPERTY
+    PASS_REGULAR_EXPRESSION "docker run"
+    PASS_REGULAR_EXPRESSION "-v /tmp:/tmp"
+)
+
+add_test(
+    NAME test_holohub_build_dryrun
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build endoscopy_tool_tracking --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_build_dryrun PROPERTY
+    PASS_REGULAR_EXPRESSION "build endoscopy_tool_tracking.*--local"
+)
+
+add_test(
+    NAME test_holohub_run_dryrun
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_dryrun PROPERTY
+    PASS_REGULAR_EXPRESSION "run endoscopy_tool_tracking.*--local"
+)
+
 # Add test for container module
 add_test(
     NAME test_container

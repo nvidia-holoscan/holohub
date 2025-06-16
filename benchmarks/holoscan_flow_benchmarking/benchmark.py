@@ -22,6 +22,7 @@ import sys
 import threading
 import time
 from collections import defaultdict
+from pathlib import Path
 
 from nvitop import Device
 
@@ -36,6 +37,7 @@ if holohub_root not in sys.path:
     sys.path.insert(0, holohub_root)
 
 from utilities.cli.holohub import HoloHubCLI  # noqa: E402
+from utilities.cli.util import build_holohub_path_mapping  # noqa: E402
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.DEBUG)
@@ -96,6 +98,57 @@ def run_command(app_launch_command, env):
         # The command returned an error
         logger.error(f'Command "{app_launch_command}" exited with code {result.returncode}')
         sys.exit(1)
+
+
+def find_python_files_to_patch(project_metadata, holohub_root_path):
+    """
+    find Python files that need to be patched based on the run command in metadata.
+    Returns a list of directories to patch.
+    """
+    directories_to_patch = []
+    if not project_metadata:
+        return directories_to_patch
+
+    # Get the run command from metadata
+    run_config = project_metadata.get("metadata", {}).get("run", {})
+    source_folder = project_metadata.get("source_folder", "")
+    project_name = project_metadata.get("project_name", "")
+    if not run_config or not project_name:
+        # If no run config, fall back to source directory only
+        if source_folder and os.path.isdir(source_folder):
+            directories_to_patch.append(source_folder)
+        return directories_to_patch
+
+    build_dir = Path(holohub_root_path) / "build" / project_name
+    path_mapping = build_holohub_path_mapping(
+        holohub_root=Path(holohub_root_path), project_data=project_metadata, build_dir=build_dir
+    )
+    command = run_config.get("command", "")
+    if "<holohub_app_source>" in command and source_folder and os.path.isdir(source_folder):
+        directories_to_patch.append(source_folder)
+        logger.info(f"Will patch source directory: {source_folder}")
+    if "<holohub_app_bin>" in command:
+        if source_folder:
+            app_build_dir = path_mapping.get("holohub_app_bin", "")
+            if app_build_dir and os.path.isdir(app_build_dir):
+                directories_to_patch.append(app_build_dir)
+                logger.info(f"Will patch build directory: {app_build_dir}")
+            else:
+                logger.warning(f"Build directory not found: {app_build_dir}")
+                # Still add source directory as fallback
+                if source_folder and os.path.isdir(source_folder):
+                    directories_to_patch.append(source_folder)
+                    logger.info(f"Fallback to patching source directory: {source_folder}")
+    # If no placeholders found but it's a Python command, patch source directory
+    if not directories_to_patch and "python" in command.lower() and source_folder:
+        workdir = run_config.get("workdir", "")
+        if workdir in ["holohub_app_source", "holohub_app_bin"]:
+            source_folder = path_mapping.get(workdir, source_folder)
+        if os.path.isdir(source_folder):
+            directories_to_patch.append(source_folder)
+            logger.info(f"Python command detected, patching source directory: {source_folder}")
+
+    return directories_to_patch
 
 
 def main():
@@ -203,19 +256,32 @@ assignment in Holoscan's Inference operator.",
 
     args = parser.parse_args()
 
-    # Determine accurate application source directory using HoloHub metadata
+    # Get project metadata using HoloHub CLI
     cli = HoloHubCLI()
+    project_metadata = None
     try:
-        proj = cli._find_project(args.holohub_application, language=args.language)
-        app_root = proj.get("source_folder", "")
-    except Exception:
+        project_metadata = cli.find_project(args.holohub_application, language=args.language)
+        logger.info(f"Found project metadata for {args.holohub_application}")
+    except Exception as e:
+        logger.warning(f"Could not find project metadata: {e}")
+
+    # find and patch Python files
+    backups_list = []
+    if project_metadata:
+        directories_to_patch = find_python_files_to_patch(project_metadata, holohub_root)
+        for directory in directories_to_patch:
+            if os.path.isdir(directory):
+                backups = patch_directory(directory, script_dir)
+                backups_list.extend(backups)
+                logger.info(f"Patched {len(backups)} Python files in {directory}")
+    else:
+        # Fallback to original behavior if no metadata found
         app_root = os.path.abspath(
             os.path.join(holohub_root, "applications", args.holohub_application)
         )
-
-    backups_list = []
-    if app_root and os.path.isdir(app_root):
-        backups_list = patch_directory(app_root, script_dir)
+        if os.path.isdir(app_root):
+            backups_list = patch_directory(app_root, script_dir)
+            logger.info(f"Fallback: Patched {len(backups_list)} Python files in {app_root}")
 
     atexit.register(lambda: restore_backups(backups_list))
 
@@ -264,10 +330,15 @@ assignment in Holoscan's Inference operator.",
     if args.num_messages != 100:
         env["HOLOSCAN_NUM_SOURCE_MESSAGES"] = str(args.num_messages)
 
+    # Use the new holohub CLI command format
     if args.run_command == "":
-        app_launch_command = "./run launch " + args.holohub_application + " " + args.language
+        app_launch_command = (
+            f"./holohub run {args.holohub_application} --local --language {args.language}"
+        )
+        logger.info(f"Using holohub CLI command: {app_launch_command}")
     else:
         app_launch_command = args.run_command
+        logger.info(f"Using custom run command: {app_launch_command}")
 
     log_files = []
     gpu_utilization_log_files = []
