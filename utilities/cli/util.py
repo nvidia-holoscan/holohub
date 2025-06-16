@@ -533,6 +533,31 @@ def docker_args_to_devcontainer_format(docker_args: List[str]) -> List[str]:
     return result
 
 
+def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
+    """Get PYTHONPATH from the Docker image environment"""
+    try:
+        if dry_run:
+            print(
+                Color.yellow(
+                    f"Inspect docker image PYTHONPATH: docker inspect "
+                    f"--format '{{{{range .Config.Env}}}}{{{{println .}}}}{{{{end}}}}' {img}"
+                )
+            )
+            return ""
+        result = run_command(
+            ["docker", "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
+            check=True,
+            capture_output=True,
+            dry_run=dry_run,
+        )
+        for line in result.stdout.decode().strip().split("\n"):
+            if line.startswith("PYTHONPATH="):
+                return line[len("PYTHONPATH=") :]
+    except (subprocess.CalledProcessError, AttributeError):
+        pass
+    return ""
+
+
 def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
     """Replace placeholders in text using the provided path mapping"""
     if not text:
