@@ -31,6 +31,7 @@ from .util import (
     get_compute_capacity,
     get_group_id,
     get_host_gpu,
+    get_image_pythonpath,
     normalize_language,
     replace_placeholders,
     run_command,
@@ -423,7 +424,7 @@ class HoloHubContainer:
         cmd.extend(self.group_args())
         cmd.extend(self.get_display_options(enable_x11, ssh_x11))
         cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
-        cmd.extend(self.get_pythonpath_options(local_sdk_root))
+        cmd.extend(self.get_pythonpath_options(local_sdk_root, img))
 
         if local_sdk_root:
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
@@ -557,13 +558,22 @@ class HoloHubContainer:
             options.extend(["-v", f"{nsys_location}:/opt/nvidia/nsys-host"])
         return options
 
-    def get_pythonpath_options(self, local_sdk_root: Optional[Path]) -> List[str]:
+    def get_pythonpath_options(
+        self, local_sdk_root: Optional[Path], img: Optional[str] = None
+    ) -> List[str]:
         """Get PYTHONPATH configuration"""
         benchmarking_path = "/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
         if local_sdk_root:
-            pythonpath = f"/workspace/holoscan-sdk/build/python/lib:{benchmarking_path}"
+            sdk_paths = f"/workspace/holoscan-sdk/build/python/lib:{benchmarking_path}"
         else:
-            pythonpath = f"/opt/nvidia/holoscan/python/lib:{benchmarking_path}"
+            sdk_paths = f"/opt/nvidia/holoscan/python/lib:{benchmarking_path}"
+        all_paths = []
+        if img:
+            image_pythonpath = get_image_pythonpath(img, self.dryrun)
+            if image_pythonpath:
+                all_paths.extend([p for p in image_pythonpath.split(":") if p])
+        all_paths.extend([p for p in sdk_paths.split(":") if p and p not in all_paths])
+        pythonpath = ":".join(all_paths)
         return ["-e", f"PYTHONPATH={pythonpath}"]
 
     def get_local_sdk_options(self, local_sdk_root: Path) -> List[str]:
