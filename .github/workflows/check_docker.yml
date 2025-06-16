@@ -35,3 +35,5 @@ jobs:
           ./holohub run-container --base-img ubuntu:${ubuntu_version} --no-docker-build | grep -q "docker run" || { echo "run-container failed"; exit 1; }
           ./holohub run-container --docker-opts "--memory 4g" --no-docker-build | grep -q "memory 4g" || { echo "docker-opts test failed"; exit 1; }
           ./holohub run-container --no-docker-build --add-volume "/tmp" | grep -q "/tmp" || { echo "add-volume test failed"; exit 1; }
+          ./holohub run-container --no-docker-build -- echo hello > /tmp/trailing-args.log 2>&1
+          grep -q "hello" /tmp/trailing-args.log || { echo "trailing args test failed"; cat /tmp/trailing-args.log; exit 1; }
