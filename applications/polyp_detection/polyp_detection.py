@@ -82,7 +82,7 @@ class PolypDetectionApp(Application):
         video_dir,
         data,
         source="replayer",
-        video_size=(1162, 1007),
+        video_size=(720, 576),
     ):
         """Initialize the colonoscopy detection application
 
@@ -216,7 +216,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--video_size",
-        default="(1162, 1007)",
+        default="(720, 576)",
         help=("Set the video size"),
     )
     parser.add_argument(

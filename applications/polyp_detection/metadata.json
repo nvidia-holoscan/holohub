@@ -13,9 +13,9 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "2.9.0",
+			"minimum_required_version": "3.3.0",
 			"tested_versions": [
-				"2.9.0"
+				"3.3.0"
 			]
 		},
 		"platforms": [
@@ -34,7 +34,7 @@
 				{
 					"name": "Holoscan Sample App Data for AI Polyp Detection",
 					"description": "This resource includes a polyp detection model designed for colonoscopy images, along with a sample video.",
-					"url": "https://registry.ngc.nvidia.com/orgs/nvstaging/teams/holoscan/models/polyp_detection_rt_detr_model"
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/models/polyp_detection_rt_detr_model"
 				}
 			]
 		},

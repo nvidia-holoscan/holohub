@@ -14,20 +14,6 @@ Compared to the `SSD` object detection model described in the [paper](https://ww
 
 ## Run Instructions
 
-### Build and Launch Container
-
-From the Holohub main directory run the following command to build the container:
-
-```Bash
-./dev_container build
-```
-
-Launch the container:
-
-```Bash
-./dev_container launch
-```
-
 ### Build the application
 
 [📦️ (NGC) Sample App Model for AI Polyp Detection](https://registry.ngc.nvidia.com/orgs/nvstaging/teams/holoscan/models/polyp_detection_rt_detr_model)
@@ -35,7 +21,19 @@ Launch the container:
 The data will be automatically downloaded and converted to the correct format when building the application with the following command:
 
 ```Bash
-./run build polyp_detection
+./holohub run polyp_detection
+```
+
+### Data
+
+[📦️ (NGC) Sample App Data for AI Colonoscopy Segmentation of Polyps](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_colonoscopy_sample_data)
+
+The sample data is automatically downloaded and converted to the correct format when building the application.
+
+If you would like to use data from the [REAL-Colon](https://www.nature.com/articles/s41597-024-03359-0) dataset, please refer to the sample script `prepare_real_colon_sample_data.py` included in this repository. Note that this script requires additional dependencies. You can install them with:
+
+```Bash
+pip install requests tqdm opencv-python
 ```
 
 If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
