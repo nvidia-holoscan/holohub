@@ -686,6 +686,49 @@ exec {holohub_script} "$@"
             self.assertIn("--benchmark", command_string)
             self.assertIn("./holohub build test_app --local", command_string)
 
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.exists")
+    @patch("builtins.print")
+    def test_vscode_command(
+        self,
+        mock_print,
+        mock_exists,
+        mock_mkdir,
+        mock_container_class,
+        mock_find_project,
+    ):
+        """Test the vscode command for generating devcontainer configuration"""
+        mock_find_project.return_value = self.mock_project_data
+        mock_container = MagicMock()
+        mock_container_class.return_value = mock_container
+        mock_container.get_devcontainer_args.return_value = (
+            '"--device", "/dev/video0", "--runtime", "nvidia"'
+        )
+        mock_container.image_name = "holohub:test_project"
+        mock_exists.return_value = True
+        mock_mkdir.return_value = None
+
+        args = self.cli.parser.parse_args("vscode test_project --dryrun".split())
+        self.assertEqual(args.command, "vscode")
+        self.assertEqual(args.project, "test_project")
+
+        args.func(args)
+        mock_find_project.assert_called_with(project_name="test_project", language=None)
+        mock_container_class.assert_called_with(project_metadata=self.mock_project_data)
+        mock_container.get_devcontainer_args.assert_called()
+
+        print_calls = [call[0][0] for call in mock_print.call_args_list if call[0]]
+        printed_output = " ".join(print_calls)
+        self.assertIn("devcontainer.json", printed_output.lower())
+        self.assertIn(".devcontainer", printed_output.lower())
+        self.assertIn("holohub-dev-container-test_project:dev", printed_output)
+        self.assertIn(
+            "vscode://vscode-remote/dev-container+<temp_hash>/workspace/holohub", printed_output
+        )
+        mock_mkdir.assert_not_called()
+
 
 class TestRunCommand(unittest.TestCase):
     """Test the run_command function with explicit shell parameter"""

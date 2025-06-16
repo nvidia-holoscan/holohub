@@ -512,6 +512,27 @@ def build_holohub_path_mapping(
     return path_mapping
 
 
+def docker_args_to_devcontainer_format(docker_args: List[str]) -> List[str]:
+    """Convert Docker argument format to devcontainer format (--flag value -> --flag=value)"""
+    standalone = {"--rm", "--init", "--no-cache"}
+    result, i = [], 0
+    while i < len(docker_args):
+        curr = docker_args[i]
+        if (
+            i + 1 < len(docker_args)
+            and curr.startswith("--")
+            and "=" not in curr
+            and curr not in standalone
+            and not docker_args[i + 1].startswith("-")
+        ):
+            result.append(f"{curr}={docker_args[i + 1]}")
+            i += 2
+        else:
+            result.append(curr)
+            i += 1
+    return result
+
+
 def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
     """Replace placeholders in text using the provided path mapping"""
     if not text:
