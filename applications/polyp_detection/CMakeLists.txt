@@ -15,28 +15,32 @@
 
 project(polyp_detection NONE)
 
+add_custom_target(polyp_detection_data_dir ALL
+    COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/polyp_detection"
+    COMMENT "Creating data directory for polyp detection"
+)
+
 # download model
 add_custom_target(download_polyp_detection_rt_detr_model ALL
-    COMMAND ngc registry model download-version "nvstaging/holoscan/polyp_detection_rt_detr_model:20250304" --dest "${HOLOHUB_DATA_DIR}/polyp_detection"
+    COMMAND ngc registry model download-version "nvidia/clara-holoscan/polyp_detection_rt_detr_model:20250304" --dest "${HOLOHUB_DATA_DIR}/polyp_detection"
     COMMENT "Downloading polyp detection model"
-    )
+    DEPENDS polyp_detection_data_dir
+)
 
 # download sample data
 add_custom_target(download_polyp_detection_sample_data ALL
     COMMAND ngc registry resource download-version "nvidia/clara-holoscan/holoscan_colonoscopy_sample_data:20230222" --dest "${HOLOHUB_DATA_DIR}/polyp_detection"
-    COMMENT "Downloading polyp detection model"
-    )
+    COMMENT "Downloading polyp detection sample data"
+    DEPENDS polyp_detection_data_dir
+)
 
 # Convert the video file to gxf_entities
 add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_index"
                           "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_entities"
-    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/polyp_detection/holoscan_colonoscopy_sample_data/colon_exam_720x576.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
-            python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
-            --directory "${HOLOHUB_DATA_DIR}/polyp_detection" --basename tensor --width 720 --height 576 --channels 3 --framerate 30
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_index"
-               "${HOLOHUB_DATA_DIR}/polyp_detection/tensor.gxf_entities"
+    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/polyp_detection/holoscan_colonoscopy_sample_data_v20230222/colon_exam_720x576.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
+            python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py" --directory "${HOLOHUB_DATA_DIR}/polyp_detection" --basename tensor --width 720 --height 576 --channels 3 --framerate 30
     COMMENT "Converting video file to gxf_entities"
-    DEPENDS prepare_app_example_data
+    DEPENDS download_polyp_detection_sample_data
     )
 
 add_custom_target(polyp_detection ALL
