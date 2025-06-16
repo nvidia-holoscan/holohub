@@ -134,6 +134,15 @@ set_property(TEST test_holohub_run_dryrun PROPERTY
 )
 
 add_test(
+    NAME test_holohub_run_pythonpath
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_pythonpath PROPERTY
+    PASS_REGULAR_EXPRESSION "Inspect docker image PYTHONPATH: docker inspect --format"
+)
+
+add_test(
     NAME test_holohub_run_container_dryrun
     COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun -- echo hello
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
