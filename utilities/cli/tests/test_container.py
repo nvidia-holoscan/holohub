@@ -84,7 +84,7 @@ class TestHoloHubContainer(unittest.TestCase):
         cmd = mock_run.call_args[0][0]
         self.assertTrue("docker" in cmd)
         self.assertTrue("run" in cmd)
-        self.assertTrue("--runtime=nvidia" in cmd)
+        self.assertTrue("--runtime" in cmd and "nvidia" in cmd)
         self.assertTrue(self.container.image_name in cmd)
 
     @patch("subprocess.CompletedProcess")
