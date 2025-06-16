@@ -1705,7 +1705,7 @@ class HoloHubCLI:
             if trailing_docker_args:
                 args._trailing_args = trailing_docker_args  # " -- " used for run-container command
         except SystemExit as e:
-            if len(cmd_args) > 0:
+            if len(cmd_args) > 0 and e.code != 0:  # exit code is 0 => help was successfully shown
                 potential_command = cmd_args[0]
                 if potential_command in self.subparsers:
                     # Show help for the specific subcommand
