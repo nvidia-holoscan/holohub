@@ -592,11 +592,10 @@ def open_url(url: str, dry_run: bool = False) -> bool:
     elif shutil.which("xdg-open"):
         run_command(["xdg-open", url], check=False, dry_run=dry_run)
         return True
-    else:
-        if not dry_run:
-            print("Could not automatically open URL.")
-            print(f"Please manually open: {url}")
-        return False
+    if not dry_run:
+        print("Could not automatically open URL.")
+        print(f"Please manually open: {url}")
+    return False
 
 
 def launch_vscode_devcontainer(
