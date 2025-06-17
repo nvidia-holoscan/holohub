@@ -724,9 +724,7 @@ exec {holohub_script} "$@"
         self.assertIn("devcontainer.json", printed_output.lower())
         self.assertIn(".devcontainer", printed_output.lower())
         self.assertIn("holohub-dev-container-test_project:dev", printed_output)
-        self.assertIn(
-            "vscode://vscode-remote/dev-container+<temp_hash>/workspace/holohub", printed_output
-        )
+        self.assertIn("vscode://vscode-remote/dev-container", printed_output)
         mock_mkdir.assert_not_called()
 
 
