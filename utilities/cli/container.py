@@ -27,6 +27,7 @@ from typing import List, Optional
 from .util import (
     build_holohub_path_mapping,
     check_nvidia_ctk,
+    docker_args_to_devcontainer_format,
     fatal,
     get_compute_capacity,
     get_group_id,
@@ -491,22 +492,36 @@ class HoloHubContainer:
 
         return args
 
-    def get_gpu_runtime_args(self) -> List[str]:
-        """GPU runtime configuration and basic device access arguments"""
+    def get_nvidia_runtime_args(self) -> List[str]:
         return [
-            "--runtime=nvidia",
+            "--runtime",
+            "nvidia",
             "--gpus",
             "all",
-            "--cap-add",
-            "CAP_SYS_PTRACE",
-            "--ipc=host",
-            "-v",
-            "/dev:/dev",
-            "--device-cgroup-rule",
-            "c 81:* rmw",
-            "--device-cgroup-rule",
-            "c 189:* rmw",
         ]
+
+    def get_device_cgroup_args(self) -> List[str]:
+        return [
+            "--device-cgroup-rule",
+            "c 81:* rmw",  # /dev/video*
+            "--device-cgroup-rule",
+            "c 189:* rmw",  # /dev/bus/usb/*
+        ]
+
+    def get_gpu_runtime_args(self) -> List[str]:
+        args = []
+        args.extend(self.get_nvidia_runtime_args())
+        args.extend(
+            [
+                "--cap-add",
+                "CAP_SYS_PTRACE",
+                "--ipc=host",
+                "-v",
+                "/dev:/dev",
+            ]
+        )
+        args.extend(self.get_device_cgroup_args())
+        return args
 
     def get_environment_args(self) -> List[str]:
         """Environment variable arguments"""
@@ -588,3 +603,20 @@ class HoloHubContainer:
             "-e",
             "HOLOSCAN_TESTS_DATA_PATH=/workspace/holoscan-sdk/tests/data",
         ]
+
+    def get_devcontainer_args(self, docker_opts: str = "") -> str:
+        """Get all devcontainer-formatted arguments as JSON array string"""
+        docker_args = []
+        docker_args.extend(self.get_device_mounts())
+        docker_args.extend(self.group_args())
+        docker_args.extend(self.ucx_args())
+        docker_args.extend(self.get_device_cgroup_args())
+        docker_args.extend(self.get_nvidia_runtime_args())
+        if docker_opts:
+            docker_args.extend(shlex.split(docker_opts))
+        project_name = self.project_metadata.get("project_name") if self.project_metadata else None
+        hostname = f"holohub-{project_name}" if project_name else "holohub"
+        docker_args.extend(["--hostname", hostname])
+
+        devcontainer_options = docker_args_to_devcontainer_format(docker_args)
+        return ",\n        ".join(f'"{opt}"' for opt in devcontainer_options)

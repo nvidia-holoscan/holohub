@@ -23,6 +23,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import tempfile
 from collections import defaultdict
 from pathlib import Path
 from typing import Optional
@@ -319,6 +320,29 @@ class HoloHubCLI:
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
         clear_cache.set_defaults(func=self.handle_clear_cache)
+
+        # Add vscode command
+        vscode = subparsers.add_parser(
+            "vscode",
+            help="Launch VS Code in Dev Container",
+            parents=[container_build_argparse],
+        )
+        self.subparsers["vscode"] = vscode
+        vscode.add_argument("project", nargs="?", help="Project to launch VS Code for")
+        vscode.add_argument(
+            "--language", choices=["cpp", "python"], help="Specify language implementation"
+        )
+        vscode.add_argument("--docker-opts", help="Additional options to pass to the Docker launch")
+        vscode.add_argument(
+            "--verbose", action="store_true", help="Print variables passed to docker run command"
+        )
+        vscode.add_argument(
+            "--dryrun", action="store_true", help="Print commands without executing them"
+        )
+        vscode.add_argument(
+            "--no-docker-build", action="store_true", help="Skip building the container"
+        )
+        vscode.set_defaults(func=self.handle_vscode)
 
         return parser
 
@@ -1470,6 +1494,67 @@ class HoloHubCLI:
             print(Color.red(f"Failed to add application to applications/CMakeLists.txt: {str(e)}"))
             print(Color.red("Please add the application manually to applications/CMakeLists.txt"))
 
+    def handle_vscode(self, args: argparse.Namespace) -> None:
+        """Builds a dev container and launches VS Code with proper devcontainer configuration."""
+        if not shutil.which("code") and not args.dryrun:
+            holohub_cli_util.fatal(
+                "Please install VS Code to use VS Code Dev Container. "
+                "Follow the instructions at https://code.visualstudio.com/Download"
+            )
+
+        skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
+        container = self._make_project_container(
+            project_name=args.project, language=getattr(args, "language", None)
+        )
+        container.dryrun = args.dryrun
+        container.verbose = args.verbose
+        dev_container_tag = "holohub-dev-container"
+        if args.project:
+            dev_container_tag += f"-{args.project}"
+        dev_container_tag += ":dev"
+
+        if not skip_docker_build:
+            print(f"Building base Dev Container {dev_container_tag}...")
+            container.build(
+                docker_file=args.docker_file,
+                base_img=args.base_img,
+                img=dev_container_tag,
+                no_cache=args.no_cache,
+                build_args=args.build_args,
+            )
+        else:
+            print(f"Skipping build, using existing Dev Container {dev_container_tag}...")
+        devcontainer_env_options = container.get_devcontainer_args(
+            docker_opts=getattr(args, "docker_opts", None) or ""
+        )
+        holohub_cli_util.run_command(["xhost", "+local:docker"], check=False, dry_run=args.dryrun)
+
+        devcontainer_content = holohub_cli_util.get_devcontainer_config(
+            holohub_root=self.HOLOHUB_ROOT, project_name=args.project, dry_run=args.dryrun
+        )
+        devcontainer_content = devcontainer_content.replace(
+            "${localWorkspaceFolder}", str(self.HOLOHUB_ROOT)
+        )
+        devcontainer_content = devcontainer_content.replace('//"<env>"', devcontainer_env_options)
+        os.environ["HOLOHUB_BASE_IMAGE"] = dev_container_tag
+        if args.project:
+            os.environ["HOLOHUB_APP_NAME"] = args.project
+
+        if not args.dryrun:
+            tmpdir = tempfile.mkdtemp()
+            workspace_name = self.HOLOHUB_ROOT.name
+            tmp_workspace = Path(tmpdir) / workspace_name
+            tmp_workspace.mkdir()
+            tmp_devcontainer = tmp_workspace / ".devcontainer"
+            tmp_devcontainer.mkdir()
+            devcontainer_json_dst = tmp_devcontainer / "devcontainer.json"
+            with open(devcontainer_json_dst, "w") as f:
+                f.write(devcontainer_content)
+            print(f"Created temporary workspace: {tmp_devcontainer}")
+        else:
+            tmp_workspace = "<tmp_workspace>"
+        holohub_cli_util.launch_vscode_devcontainer(str(tmp_workspace), dry_run=args.dryrun)
+
     def handle_create(self, args: argparse.Namespace) -> None:
         """Handle create command"""
         # Ensure template directory exists
@@ -1583,7 +1668,7 @@ class HoloHubCLI:
             if trailing_docker_args:
                 args._trailing_args = trailing_docker_args  # " -- " used for run-container command
         except SystemExit as e:
-            if len(cmd_args) > 0:
+            if len(cmd_args) > 0 and e.code != 0:  # exit code is 0 => help was successfully shown
                 potential_command = cmd_args[0]
                 if potential_command in self.subparsers:
                     # Show help for the specific subcommand

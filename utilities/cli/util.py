@@ -512,6 +512,27 @@ def build_holohub_path_mapping(
     return path_mapping
 
 
+def docker_args_to_devcontainer_format(docker_args: List[str]) -> List[str]:
+    """Convert Docker argument format to devcontainer format (--flag value -> --flag=value)"""
+    standalone = {"--rm", "--init", "--no-cache"}
+    result, i = [], 0
+    while i < len(docker_args):
+        curr = docker_args[i]
+        if (
+            i + 1 < len(docker_args)
+            and curr.startswith("--")
+            and "=" not in curr
+            and curr not in standalone
+            and not docker_args[i + 1].startswith("-")
+        ):
+            result.append(f"{curr}={docker_args[i + 1]}")
+            i += 2
+        else:
+            result.append(curr)
+            i += 1
+    return result
+
+
 def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
     """Get PYTHONPATH from the Docker image environment"""
     try:
@@ -546,3 +567,77 @@ def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
         bracketed_placeholder = f"<{placeholder}>"
         result = result.replace(bracketed_placeholder, replacement)
     return result
+
+
+def launch_vscode(workspace_path: str, dry_run: bool = False) -> None:
+    """Install VS Code Remote Development extension and launch VS Code with new window"""
+    print("Installing VS Code Remote Development extension...")
+    run_command(
+        [
+            "code",
+            "--force",
+            "--install-extension",
+            "ms-vscode-remote.vscode-remote-extensionpack",
+        ],
+        dry_run=dry_run,
+    )
+    run_command(["code", "--new-window", workspace_path], dry_run=dry_run)
+
+
+def open_url(url: str, dry_run: bool = False) -> bool:
+    """Open a URL using the system's default URL opener"""
+    if shutil.which("open"):
+        run_command(["open", url], check=False, dry_run=dry_run)
+        return True
+    elif shutil.which("xdg-open"):
+        run_command(["xdg-open", url], check=False, dry_run=dry_run)
+        return True
+    if not dry_run:
+        print("Could not automatically open URL.")
+        print(f"Please manually open: {url}")
+    return False
+
+
+def launch_vscode_devcontainer(
+    workspace_path: str, workspace_name: str = "holohub", dry_run: bool = False
+) -> None:
+    """Launch VS Code with dev container and open the dev container URL"""
+    hash_hex = str(workspace_path).encode().hex()
+    url = f"vscode://vscode-remote/dev-container+{hash_hex}/workspace/{workspace_name}"
+
+    if dry_run:
+        print(f"Dryrun URL: {url}")
+    else:
+        print(f"Launching VSCode Dev Container from: {workspace_path}")
+        print(f"Connecting to {url}...")
+    launch_vscode(workspace_path, dry_run=dry_run)
+    open_url(url, dry_run=dry_run)
+
+
+def get_devcontainer_config(
+    holohub_root: Path, project_name: Optional[str] = None, dry_run: bool = False
+) -> str:
+    """Get devcontainer configuration content"""
+
+    default_config_path = holohub_root / ".devcontainer"
+    if (
+        project_name
+        and (holohub_root / ".devcontainer" / project_name / "devcontainer.json").exists()
+    ):
+        dev_container_path = holohub_root / ".devcontainer" / project_name
+        print(f"Using application-specific DevContainer configuration: {dev_container_path}")
+    else:
+        dev_container_path = default_config_path
+        print(f"Using top-level DevContainer configuration: {dev_container_path}")
+
+    devcontainer_json_src = dev_container_path / "devcontainer.json"
+
+    if dry_run:
+        print(f"Would read and modify {devcontainer_json_src}")
+        print("Would substitute environment variables and launch VS Code")
+        return ""
+    else:
+        with open(devcontainer_json_src, "r") as f:
+            devcontainer_content = f.read()
+
+    return devcontainer_content
