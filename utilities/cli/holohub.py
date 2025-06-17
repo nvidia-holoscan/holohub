@@ -1550,6 +1550,7 @@ class HoloHubCLI:
             devcontainer_json_dst = tmp_devcontainer / "devcontainer.json"
             with open(devcontainer_json_dst, "w") as f:
                 f.write(devcontainer_content)
+            print(f"Created temporary workspace: {tmp_devcontainer}")
         else:
             tmp_workspace = "<tmp_workspace>"
         holohub_cli_util.launch_vscode_devcontainer(str(tmp_workspace), dry_run=args.dryrun)
