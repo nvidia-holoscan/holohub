@@ -139,7 +139,7 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_property(TEST test_holohub_run_forward_args PROPERTY
-    PASS_REGULAR_EXPRESSION "run endoscopy_tool_tracking.*--runargs=--flag"
+    PASS_REGULAR_EXPRESSION "run endoscopy_tool_tracking.*--run-args=--flag"
 )
 
 add_test(
