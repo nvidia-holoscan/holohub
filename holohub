@@ -18,9 +18,7 @@
 import os
 import sys
 
-# Add the holohub root directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-# Set the command name used by the current file name
 os.environ["HOLOHUB_CMD_NAME"] = f"./{os.path.basename(__file__)}"
 
 if __name__ == '__main__':
@@ -31,4 +29,4 @@ if __name__ == '__main__':
         print(f"Error: Failed to import holohub CLI module: {e}", file=sys.stderr)
         sys.exit(1)
     except KeyboardInterrupt:
-        sys.exit(130)  # Standard exit code for Ctrl+C
+        sys.exit(130)
