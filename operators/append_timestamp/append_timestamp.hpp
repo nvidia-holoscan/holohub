@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,38 +15,30 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef HOLOSCAN_OPERATORS_APPEND_TIMESTAMP_HPP
+#define HOLOSCAN_OPERATORS_APPEND_TIMESTAMP_HPP
 
-#include <dds/pub/ddspub.hpp>
-
-#include "dds_operator_base.hpp"
-#include "VideoFrame.hpp"
+#include "holoscan/core/operator.hpp"
 
 namespace holoscan::ops {
 
 /**
- * @brief Operator class to publish a video stream to DDS.
+ * @brief Operator class to append timestamp to a tensor.
+ *
+ * This operator takes a tensor as input and appends a timestamp to it,
+ * then outputs the tensor with the timestamp.
  */
-class DDSVideoPublisherOp : public DDSOperatorBase {
+class AppendTimestampOp : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(DDSVideoPublisherOp, DDSOperatorBase)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(AppendTimestampOp)
 
-  DDSVideoPublisherOp() = default;
+  AppendTimestampOp() = default;
 
   void setup(OperatorSpec& spec) override;
-  void initialize() override;
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override;
-
- private:
-  Parameter<std::string> writer_qos_;
-  Parameter<uint32_t> stream_id_;
-  Parameter<uint32_t> width_;
-  Parameter<uint32_t> height_;
-
-  dds::pub::DataWriter<VideoFrame> writer_ = dds::core::null;
-
-  uint32_t frame_num_ = 0;
 };
 
 }  // namespace holoscan::ops
+
+#endif  // HOLOSCAN_OPERATORS_APPEND_TIMESTAMP_HPP
