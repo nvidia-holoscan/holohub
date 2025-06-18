@@ -597,11 +597,9 @@ class HoloHubCLI:
         # use -G Ninja if available
         if shutil.which("ninja"):
             cmake_args.extend(["-G", "Ninja"])
-
         # Add optional operators if specified
         if with_operators:
             cmake_args.append(f'-DHOLOHUB_BUILD_OPERATORS="{with_operators}"')
-
         if configure_args:
             cmake_args.extend(configure_args)
 
