@@ -623,6 +623,64 @@ exec {holohub_script} "$@"
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
+    def test_configure_args_functionality(
+        self,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+    ):
+        """Test that --configure-args are properly passed to CMake (single and multiple)"""
+        mock_find_project.return_value = self.mock_project_data
+        mock_run_command.return_value = MagicMock()
+
+        # Test single configure arg
+        configure_arg = "-DCUSTOM_OPTION=ON"
+        self.cli.build_project_locally(
+            project_name="test_project",
+            language="cpp",
+            build_type="debug",
+            configure_args=[configure_arg],
+            dryrun=False,
+        )
+
+        # Verify CMake configure call includes the custom argument
+        self.assertEqual(mock_run_command.call_count, 2)  # cmake configure + cmake build
+        cmake_configure_args = mock_run_command.call_args_list[0][0][0]
+        cmake_args_str = " ".join(cmake_configure_args)
+        self.assertIn(configure_arg, cmake_args_str)
+
+        mock_run_command.reset_mock()
+
+        # Test multiple configure args
+        configure_args = ["-DCUSTOM_OPTION=ON", "-DCMAKE_VERBOSE_MAKEFILE=ON", "-DDEBUG_MODE=1"]
+        self.cli.build_project_locally(
+            project_name="test_project",
+            language="cpp",
+            build_type="debug",
+            configure_args=configure_args,
+            dryrun=False,
+        )
+
+        # Verify CMake configure call includes all custom arguments
+        self.assertEqual(mock_run_command.call_count, 2)  # cmake configure + cmake build
+        cmake_configure_args = mock_run_command.call_args_list[0][0][0]
+        cmake_args_str = " ".join(cmake_configure_args)
+
+        for configure_arg in configure_args:
+            self.assertIn(configure_arg, cmake_args_str)
+
+    def test_configure_args_parsing(self):
+        """Test that --configure-args are properly parsed in build, run, and install commands"""
+        # Test that configure_args is None when not provided for all commands
+        for command in ["build", "run", "install"]:
+            args = self.cli.parser.parse_args([command, "test_project", "--local"])
+            self.assertIsNone(
+                args.configure_args, f"configure_args should be None for {command} command"
+            )
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
     @patch("pathlib.Path.exists")
     def test_benchmark_functionality(
         self,
