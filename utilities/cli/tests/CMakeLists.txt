@@ -135,7 +135,7 @@ set_property(TEST test_holohub_run_dryrun PROPERTY
 
 add_test(
     NAME test_holohub_run_forward_args
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun --run-args="--flag"
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun --run-args=--flag
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_property(TEST test_holohub_run_forward_args PROPERTY
