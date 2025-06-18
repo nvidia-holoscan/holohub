@@ -856,7 +856,7 @@ class HoloHubCLI:
                 cmd = f"{nsys_cmd} profile --trace=cuda,vulkan,nvtx,osrt {cmd}"
 
             cmd_to_run = cmd if isinstance(cmd, list) else shlex.split(cmd)
-            holohub_cli_util.run_command(cmd_to_run, dry_run=args.dryrun)
+            holohub_cli_util.run_command(cmd_to_run, env=env, dry_run=args.dryrun)
         else:
             container = self._make_project_container(
                 project_name=args.project,
