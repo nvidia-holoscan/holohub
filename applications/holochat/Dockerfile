@@ -29,14 +29,6 @@ FROM nvcr.io/nvidia/pytorch:23.10-py3 as pytorch
 FROM ${BASE_IMAGE} as base
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Holohub setup
-RUN mkdir -p /tmp/scripts
-COPY holohub /tmp/scripts/
-RUN mkdir -p /tmp/scripts/utilities
-COPY utilities /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/holohub
-RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
-
 # Copy over app-specific requirements
 COPY applications/holochat/requirements.txt /tmp/requirements.txt
 

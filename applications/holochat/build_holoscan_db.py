@@ -35,7 +35,7 @@ def main():
     config = SimpleNamespace(**yaml_config)
     # Define the repos, docs, and file types to store
     repos = ["holoscan-sdk", "holohub"]
-    docs = [f"/{current_dir}/docs/Holoscan_SDK_User_Guide_3.2.0.pdf"]
+    docs = [f"/{current_dir}/docs/Holoscan_SDK_User_Guide_3.3.0.pdf"]
     file_types = [".md", ".py", ".cpp", ".yaml"]
 
     content_lists = {file_type: [] for file_type in file_types}
