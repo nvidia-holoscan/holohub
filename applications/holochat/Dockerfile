@@ -31,9 +31,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Holohub setup
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Copy over app-specific requirements
 COPY applications/holochat/requirements.txt /tmp/requirements.txt
@@ -50,7 +52,7 @@ COPY --from=pytorch /tmp/pip/torch*.whl /tmp/pip/
 ARG TARGETARCH
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
         echo "Building for x86 (AMD64) architecture"; \
-        python3 -m pip install torch==2.1.0; \
+        python3 -m pip install torch==2.2.0; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
         echo "Building for ARM64 architecture"; \
         python3 -m pip install /tmp/pip/torch-2.1.0a0+32f93b1-cp310-cp310-linux_aarch64.whl; \
