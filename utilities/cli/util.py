@@ -701,7 +701,7 @@ def collect_git_info(holohub_root: Path) -> None:
         print(f"  Modified: {git_status.splitlines()}")
     finally:
         try:
-            os.chdir(original_cwd)  # try torestore the original working directory
+            os.chdir(original_cwd)  # try to restore the original working directory
         except Exception:
             pass
 
