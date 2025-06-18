@@ -188,6 +188,12 @@ class HoloHubCLI:
         build.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
         )
+        build.add_argument(
+            "--configure-args",
+            action="append",
+            help="Additional configuration arguments for cmake "
+            "example: --configure-args='-DCUSTOM_OPTION=ON' --configure-args='-Dtest=ON'",
+        )
         build.set_defaults(func=self.handle_build)
 
         # run command
@@ -224,6 +230,12 @@ class HoloHubCLI:
         )
         run.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
+        )
+        run.add_argument(
+            "--configure-args",
+            action="append",
+            help="Additional configuration arguments for cmake "
+            "example: --configure-args='-DCUSTOM_OPTION=ON' --configure-args='-Dtest=ON'",
         )
         run.set_defaults(func=self.handle_run)
 
@@ -288,6 +300,12 @@ class HoloHubCLI:
         )
         install.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
+        )
+        install.add_argument(
+            "--configure-args",
+            action="append",
+            help="Additional configuration arguments for cmake "
+            "example: --configure-args='-DCUSTOM_OPTION=ON' --configure-args='-Dtest=ON'",
         )
         install.set_defaults(func=self.handle_install)
 
@@ -527,6 +545,7 @@ class HoloHubCLI:
         pkg_generator: str = "DEB",
         parallel: Optional[str] = None,
         benchmark: bool = False,
+        configure_args: Optional[list[str]] = None,
     ) -> tuple[Path, dict]:
         """Helper method to build a project locally"""
         project_data = self.find_project(project_name=project_name, language=language)
@@ -583,6 +602,9 @@ class HoloHubCLI:
         if with_operators:
             cmake_args.append(f'-DHOLOHUB_BUILD_OPERATORS="{with_operators}"')
 
+        if configure_args:
+            cmake_args.extend(configure_args)
+
         holohub_cli_util.run_command(cmake_args, dry_run=dryrun)
 
         # Build the project with optional parallel jobs
@@ -634,6 +656,7 @@ class HoloHubCLI:
                 pkg_generator=getattr(args, "pkg_generator", "DEB"),
                 parallel=getattr(args, "parallel", None),
                 benchmark=getattr(args, "benchmark", False),
+                configure_args=getattr(args, "configure_args", None),
             )
         else:
             # Build in container
@@ -668,6 +691,9 @@ class HoloHubCLI:
                 build_cmd += " --verbose"
             if getattr(args, "benchmark", False):
                 build_cmd += " --benchmark"
+            if getattr(args, "configure_args", None):
+                for configure_arg in args.configure_args:
+                    build_cmd += f' --configure-args "{configure_arg}"'
 
             docker_opts = "--entrypoint=bash"
             if hasattr(args, "docker_opts") and args.docker_opts:
@@ -720,6 +746,7 @@ class HoloHubCLI:
                     with_operators=args.with_operators,
                     dryrun=args.dryrun,
                     parallel=getattr(args, "parallel", None),
+                    configure_args=getattr(args, "configure_args", None),
                 )
 
             language = holohub_cli_util.normalize_language(
@@ -831,7 +858,7 @@ class HoloHubCLI:
                 cmd = f"{nsys_cmd} profile --trace=cuda,vulkan,nvtx,osrt {cmd}"
 
             cmd_to_run = cmd if isinstance(cmd, list) else shlex.split(cmd)
-            holohub_cli_util.run_command(cmd_to_run, env=env, dry_run=args.dryrun)
+            holohub_cli_util.run_command(cmd_to_run, dry_run=args.dryrun)
         else:
             container = self._make_project_container(
                 project_name=args.project,
@@ -864,6 +891,9 @@ class HoloHubCLI:
                 run_cmd += f" --run-args {shlex.quote(args.run_args)}"
             if getattr(args, "parallel", None):
                 run_cmd += f" --parallel {args.parallel}"
+            if getattr(args, "configure_args", None):
+                for configure_arg in args.configure_args:
+                    run_cmd += f' --configure-args "{configure_arg}"'
 
             container.run(
                 img=getattr(args, "img", None),
@@ -892,20 +922,8 @@ class HoloHubCLI:
             "tutorial",
             "workflow",
         ]
-        EXCLUDE_PATHS = ["applications/holoviz/template"]
-        # Known exceptions, such as template files that do not represent a standalone project
-
-        app_paths = (
-            HoloHubCLI.HOLOHUB_ROOT / "applications",
-            HoloHubCLI.HOLOHUB_ROOT / "benchmarks",
-            HoloHubCLI.HOLOHUB_ROOT / "gxf_extensions",
-            HoloHubCLI.HOLOHUB_ROOT / "operators",
-            HoloHubCLI.HOLOHUB_ROOT / "pkg",
-            HoloHubCLI.HOLOHUB_ROOT / "workflows",
-        )
-        metadata = metadata_util.gather_metadata(app_paths, exclude_paths=EXCLUDE_PATHS)
         grouped_metadata = defaultdict(list)
-        for project in metadata:
+        for project in self.projects:
             grouped_metadata[project.get("project_type", "")].append(project)
 
         for project_type in LIST_TYPES:
@@ -1408,6 +1426,7 @@ class HoloHubCLI:
                 with_operators=getattr(args, "with_operators", None),
                 dryrun=args.dryrun,
                 parallel=getattr(args, "parallel", None),
+                configure_args=getattr(args, "configure_args", None),
             )
             # Install the project
             holohub_cli_util.run_command(
@@ -1443,6 +1462,9 @@ class HoloHubCLI:
                 install_cmd += f" --parallel {args.parallel}"
             if args.verbose:
                 install_cmd += " --verbose"
+            if getattr(args, "configure_args", None):
+                for configure_arg in args.configure_args:
+                    install_cmd += f' --configure-args "{configure_arg}"'
 
             docker_opts = "--entrypoint=bash"
             if hasattr(args, "docker_opts") and args.docker_opts:
