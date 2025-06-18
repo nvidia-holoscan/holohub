@@ -34,6 +34,16 @@ void DDSVideoSubscriberOp::setup(OperatorSpec& spec) {
              "FPS Report Interval",
              "Interval in seconds to report FPS statistics",
              1.0);
+  spec.param(log_frame_warning_threshold_,
+             "log_frame_warning_threshold",
+             "Log Frame Warning Threshold",
+             "Log warning message when time to transfer frame is greater than this threshold in ms",
+             10u);
+  spec.param(log_missing_frames_,
+             "log_missing_frames",
+             "Log Missing Frames",
+             "Log warning message when frame is missing",
+             false);
 }
 
 void DDSVideoSubscriberOp::initialize() {
@@ -117,7 +127,8 @@ void DDSVideoSubscriberOp::compute(InputContext& op_input, OutputContext& op_out
               }
 
               // Print transfer time if it's greater than 10ms
-              if (transfer_time > 10000000) {
+              if (log_frame_warning_threshold_.get() > 0 &&
+                  transfer_time > log_frame_warning_threshold_.get() * 1000000) {
                 HOLOSCAN_LOG_WARN("Transfer time: {}ns/{}ms, Frame Number: {}",
                                   transfer_time,
                                   transfer_time / 1000000.0,
@@ -127,6 +138,13 @@ void DDSVideoSubscriberOp::compute(InputContext& op_input, OutputContext& op_out
 
             // Increment frame count
             frame_count_++;
+            if (selected_frame.frame_num() != last_frame_num_ + 1) {
+              if (log_missing_frames_.get()) {
+                HOLOSCAN_LOG_WARN("Expected frame number: {} != {}", last_frame_num_ + 1,
+                                  selected_frame.frame_num());
+              }
+              last_frame_num_ = selected_frame.frame_num();
+            }
 
             // Calculate and report FPS at specified intervals
             auto current_time = std::chrono::steady_clock::now();

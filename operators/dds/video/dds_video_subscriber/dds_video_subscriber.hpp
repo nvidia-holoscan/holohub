@@ -44,6 +44,8 @@ class DDSVideoSubscriberOp : public DDSOperatorBase {
   Parameter<std::string> reader_qos_;
   Parameter<uint32_t> stream_id_;
   Parameter<double> fps_report_interval_;
+  Parameter<uint32_t> log_frame_warning_threshold_;
+  Parameter<bool> log_missing_frames_;
 
   dds::sub::DataReader<VideoFrame> reader_ = dds::core::null;
   dds::core::cond::StatusCondition status_condition_ = dds::core::null;
@@ -54,6 +56,8 @@ class DDSVideoSubscriberOp : public DDSOperatorBase {
   std::chrono::steady_clock::time_point start_time_;
   std::chrono::steady_clock::time_point last_fps_report_time_;
   bool timing_initialized_ = false;
+
+  uint64_t last_frame_num_ = 0;
 
   std::vector<int64_t> transfer_times_;
   std::vector<int64_t> frame_sizes;

@@ -97,8 +97,7 @@ HOLOSCAN_WRAP_GXF_COMPONENT_AS_RESOURCE(VideoDecoderContext, "nvidia::gxf::Video
  */
 class StreamingServer : public holoscan::Application {
  public:
-  explicit StreamingServer(uint32_t domain_id, uint32_t stream_id, std::string video_path)
-      : domain_id_(domain_id), stream_id_(stream_id), video_path_(video_path) {}
+  explicit StreamingServer(std::string video_path) : video_path_(video_path) {}
 
   void configure_extension() {
     auto extension_manager = executor().extension_manager();
@@ -190,14 +189,11 @@ class StreamingServer : public holoscan::Application {
                                               Arg("pool") = make_resource<BlockMemoryPool>(
                                                   "pool", 1, source_block_size, source_num_blocks),
                                               Arg("videoencoder_context") = video_encoder_context);
-    auto dds = make_operator<ops::DDSVideoPublisherOp>(
-        "dds",
-        Arg("participant_qos", std::string("HoloscanDDSTransport::SHMEM+LAN")),
-        Arg("writer_qos", std::string("HoloscanDDSDataFlow::Video")),
-        Arg("domain_id", domain_id_),
-        Arg("stream_id", stream_id_),
+    auto video_publisher = make_operator<ops::DDSVideoPublisherOp>(
+        "video_publisher",
         Arg("width", width),
-        Arg("height", height));
+        Arg("height", height),
+        from_config("video_publisher"));
 
     auto holoviz = make_operator<ops::HolovizOp>("holoviz",
                                                  Arg("window_title") = "DDS Publisher",
@@ -215,7 +211,7 @@ class StreamingServer : public holoscan::Application {
     }
     add_flow(format_converter_rgb888, tensor_to_video_buffer, {{"tensor", "in_tensor"}});
     add_flow(tensor_to_video_buffer, video_encoder_request, {{"out_video_buffer", "input_frame"}});
-    add_flow(video_encoder_response, dds, {{"output_transmitter", "input"}});
+    add_flow(video_encoder_response, video_publisher, {{"output_transmitter", "input"}});
   }
 
  private:
@@ -230,8 +226,7 @@ class StreamingServer : public holoscan::Application {
  */
 class StreamingClient : public holoscan::Application {
  public:
-  explicit StreamingClient(uint32_t domain_id, uint32_t stream_id)
-      : domain_id_(domain_id), stream_id_(stream_id) {}
+  explicit StreamingClient() {}
 
   void configure_extension() {
     auto extension_manager = executor().extension_manager();
@@ -259,15 +254,10 @@ class StreamingClient : public holoscan::Application {
     std::shared_ptr<UnboundedAllocator> allocator = make_resource<UnboundedAllocator>("pool");
 
     //  DDS Video Subscriber
-    auto participant_qos = std::string("HoloscanDDSTransport::SHMEM+LAN");
     auto video_subscriber = make_operator<ops::DDSVideoSubscriberOp>(
         "video_subscriber",
         Arg("allocator", allocator),
-        Arg("domain_id", domain_id_),
-        Arg("stream_id", stream_id_),
-        Arg("participant_qos", participant_qos),
-        Arg("reader_qos", std::string("HoloscanDDSDataFlow::Video")),
-        Arg("fps_report_interval", 1.0));
+        from_config("video_subscriber"));
 
     auto append_timestamp = make_operator<ops::AppendTimestampOp>("append_timestamp");
 
@@ -300,10 +290,6 @@ class StreamingClient : public holoscan::Application {
     add_flow(append_timestamp, video_decoder_request, {{"out_tensor", "input_frame"}});
     add_flow(video_decoder_response, holoviz, {{"output_transmitter", "receivers"}});
   }
-
- private:
-  uint32_t domain_id_;
-  uint32_t stream_id_;
 };
 
 void usage() {
@@ -312,8 +298,6 @@ void usage() {
             << "Options" << std::endl
             << "  -p,    --publisher    Run as a publisher" << std::endl
             << "  -s,    --subscriber   Run as a subscriber" << std::endl
-            << "  -d ID, --domain=ID    Use the specified DDS domain ID" << std::endl
-            << "  -i ID, --id=ID        Use the specified video stream ID" << std::endl
             << "  -v VIDEO_PATH, --video=VIDEO_PATH        Use the specified video path"
             << std::endl
             << "  -c CONFIG_PATH, --config=CONFIG_PATH        Use the specified config path"
@@ -323,15 +307,11 @@ void usage() {
 int main(int argc, char** argv) {
   bool publisher = false;
   bool subscriber = false;
-  uint32_t stream_id = 0;
-  uint32_t domain_id = 0;
   std::string video_path = "";
   std::string config_path = "";
   struct option long_options[] = {{"help", no_argument, 0, 'h'},
                                   {"publisher", no_argument, 0, 'p'},
                                   {"subscriber", no_argument, 0, 's'},
-                                  {"id", required_argument, 0, 'i'},
-                                  {"domain", required_argument, 0, 'd'},
                                   {"video", required_argument, 0, 'v'},
                                   {"config", optional_argument, 0, 'c'},
                                   {0, 0, 0, 0}};
@@ -354,12 +334,6 @@ int main(int argc, char** argv) {
         break;
       case 's':
         subscriber = true;
-        break;
-      case 'i':
-        stream_id = stoi(argument);
-        break;
-      case 'd':
-        domain_id = stoi(argument);
         break;
       case 'v':
         video_path = argument;
@@ -394,17 +368,14 @@ int main(int argc, char** argv) {
     HOLOSCAN_LOG_INFO("Using config path: {}", config_path);
   }
 
-  HOLOSCAN_LOG_INFO("Starting {} for stream {} in domain {}",
-                    publisher ? "publisher" : "subscriber",
-                    stream_id,
-                    domain_id);
+  HOLOSCAN_LOG_INFO("Starting {}...", publisher ? "publisher" : "subscriber");
 
   if (publisher) {
-    auto app = holoscan::make_application<StreamingServer>(domain_id, stream_id, video_path);
+    auto app = holoscan::make_application<StreamingServer>(video_path);
     app->config(config_path);
     app->run();
   } else if (subscriber) {
-    auto app = holoscan::make_application<StreamingClient>(domain_id, stream_id);
+    auto app = holoscan::make_application<StreamingClient>();
     app->config(config_path);
     app->run();
   }

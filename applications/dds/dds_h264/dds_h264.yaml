@@ -20,7 +20,7 @@ replayer:
   basename: "surgical_video"
   frame_rate: 0   # as specified in timestamps
   repeat: true    # default: false
-  realtime: false  # default: false
+  realtime: true  # default: false
   count: 0        # default: 0 (no frame count restriction)
 
 v4l2:
@@ -73,3 +73,18 @@ holoviz:
       type: color
       opacity: 1.0
       priority: 0
+
+video_subscriber:
+  fps_report_interval: 1.0
+  log_missing_frames: true
+  reader_qos: "HoloscanDDSDataFlow::Video"
+  participant_qos: "HoloscanDDSTransport::SHMEM+LAN"
+  stream_id: 1
+  domain_id: 1
+  log_frame_warning_threshold: 0
+
+video_publisher:
+  stream_id: 1
+  domain_id: 1
+  participant_qos: "HoloscanDDSTransport::SHMEM+LAN"
+  writer_qos: "HoloscanDDSDataFlow::Video"
