@@ -208,7 +208,8 @@ class HoloHubCLI:
         )
         run.add_argument(
             "--run-args",
-            help="Additional arguments to pass to the application executable (for flags use: --run-args=--flag or --run-args='--flag')",
+            help="Additional arguments to pass to the application executable, "
+            "example: --run-args=--flag or --run-args '-c config/file'",
         )
         run.add_argument(
             "--build-with",
