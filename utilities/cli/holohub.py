@@ -255,6 +255,13 @@ class HoloHubCLI:
         )
         setup.set_defaults(func=self.handle_setup)
 
+        # Add env-info command
+        env_info = subparsers.add_parser(
+            "env-info", help="Display environment debugging information"
+        )
+        self.subparsers["env-info"] = env_info
+        env_info.set_defaults(func=self.handle_env_info)
+
         # Add install command
         install = subparsers.add_parser(
             "install",
@@ -1395,6 +1402,53 @@ class HoloHubCLI:
         )
 
         print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
+
+    def handle_env_info(self, args: argparse.Namespace) -> None:
+        """Handle env-info command to collect debugging information"""
+        print(holohub_cli_util.format_cmd("Environment Information"))
+
+        # Store original working directory to restore later
+        original_cwd = os.getcwd()
+
+        try:
+            # Collect HoloHub info (least likely to fail)
+            try:
+                holohub_cli_util.collect_holohub_info(
+                    holohub_root=self.HOLOHUB_ROOT,
+                    build_dir=self.DEFAULT_BUILD_PARENT_DIR,
+                    data_dir=self.DEFAULT_DATA_DIR,
+                    sdk_dir=self.DEFAULT_SDK_DIR,
+                )
+            except Exception as e:
+                print(f"\n{holohub_cli_util.Color.blue('HoloHub Information:')}")
+                print(f"  Error collecting HoloHub info: {e}")
+
+            # Collect Git info (may fail if not a git repo or git not installed)
+            try:
+                holohub_cli_util.collect_git_info(holohub_root=self.HOLOHUB_ROOT)
+            except Exception as e:
+                print(f"\n{holohub_cli_util.Color.blue('Git Repository Information:')}")
+                print(f"  Error collecting Git info: {e}")
+
+            # Collect general environment info (external commands may not be available)
+            try:
+                holohub_cli_util.collect_env_info()
+            except Exception as e:
+                print(f"\nError collecting environment info: {e}")
+
+        finally:
+            # Always restore the original working directory
+            try:
+                os.chdir(original_cwd)
+            except Exception:
+                # If we can't restore the directory, at least continue
+                pass
+
+        print(
+            holohub_cli_util.format_cmd(
+                "Complete (Before sharing, please review and remove sensitive information)"
+            )
+        )
 
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""
