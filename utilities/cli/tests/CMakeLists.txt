@@ -165,3 +165,14 @@ add_test(
     COMMAND ${Python3_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "test_cli.py"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
+
+add_test(
+    NAME test_cli_env_info
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub env-info
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_cli_env_info PROPERTY
+    PASS_REGULAR_EXPRESSION "HoloHub Environment Variables"
+    PASS_REGULAR_EXPRESSION "Holoscan Environment Variables"
+    PASS_REGULAR_EXPRESSION "Other Relevant Environment Variables"
+)

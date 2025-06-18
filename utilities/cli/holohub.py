@@ -267,6 +267,13 @@ class HoloHubCLI:
         )
         setup.set_defaults(func=self.handle_setup)
 
+        # Add env-info command
+        env_info = subparsers.add_parser(
+            "env-info", help="Display environment debugging information"
+        )
+        self.subparsers["env-info"] = env_info
+        env_info.set_defaults(func=self.handle_env_info)
+
         # Add install command
         install = subparsers.add_parser(
             "install",
@@ -1411,6 +1418,23 @@ class HoloHubCLI:
         )
 
         print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
+
+    def handle_env_info(self, args: argparse.Namespace) -> None:
+        """Handle env-info command to collect debugging information"""
+        print(holohub_cli_util.format_cmd("Environment Information"))
+        holohub_cli_util.collect_holohub_info(
+            holohub_root=self.HOLOHUB_ROOT,
+            build_dir=self.DEFAULT_BUILD_PARENT_DIR,
+            data_dir=self.DEFAULT_DATA_DIR,
+            sdk_dir=self.DEFAULT_SDK_DIR,
+        )
+        holohub_cli_util.collect_git_info(holohub_root=self.HOLOHUB_ROOT)
+        holohub_cli_util.collect_env_info()
+        print(
+            holohub_cli_util.format_cmd(
+                "Complete (Before sharing, please review and remove sensitive information)"
+            )
+        )
 
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""
