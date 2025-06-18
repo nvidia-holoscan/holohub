@@ -680,8 +680,8 @@ def collect_holohub_info(
 def collect_git_info(holohub_root: Path) -> None:
     """Collect and display Git repository information"""
     print(f"\n{Color.blue('Git Repository Information:')}")
-    if not holohub_root.exists() and holohub_root.is_dir():
-        print(f"  HoloHub root directory does not exist: {holohub_root}")
+    if not holohub_root.exists() or not holohub_root.is_dir():
+        print(f"  HoloHub root directory does not exist or is not a directory: {holohub_root}")
         return
     original_cwd = os.getcwd()
     try:
