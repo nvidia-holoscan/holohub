@@ -715,6 +715,9 @@ def collect_docker_info() -> None:
         print("  Docker not available")
         return
     print(f"  Version: {docker_version} Server Version: {docker_info}")
+    nvidia_ctk_version = run_info_command(["nvidia-ctk", "--version"])
+    if nvidia_ctk_version is not None:
+        print(f"  NVIDIA Container Toolkit: {nvidia_ctk_version.strip()}")
 
 
 def collect_cuda_gpu_info() -> None:
@@ -757,7 +760,6 @@ def collect_environment_variables() -> None:
         "HOLOHUB_BASE_IMAGE",
         "HOLOHUB_APP_NAME",
         "HOLOHUB_CONTAINER_BASE_NAME",
-        "HOLOHUB_IMAGE",
         "HOLOHUB_ALWAYS_BUILD",
     ]
     for var in sorted(holohub_env_vars):
