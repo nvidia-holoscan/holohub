@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20.1)
-project(Holohub CXX)
+project(Holohub NONE)
 
 # set CMAKE_MODULE_PATH
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
