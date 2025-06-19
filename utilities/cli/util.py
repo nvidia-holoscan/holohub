@@ -19,6 +19,7 @@ import json
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -547,8 +548,12 @@ def get_shell_command_args(
     img: str, command: str, docker_opts: str, dry_run: bool = False
 ) -> tuple[str, List[str]]:
     """Determine how to execute a shell command in a Docker container."""
-    if "--entrypoint" in docker_opts:  # User explicitly provided an entrypoint
-        return "", [command]
+    if "--entrypoint" in docker_opts:
+        try:
+            command_args = shlex.split(command)  # "command" splits into a list of arguments
+            return "", command_args
+        except ValueError:
+            return "", [command]
     entrypoint = get_container_entrypoint(img, dry_run=dry_run)
     if not entrypoint:  # image has no entrypoint, docker uses default "/bin/sh -c" for command
         return "", [command]
