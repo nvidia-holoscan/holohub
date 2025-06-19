@@ -700,9 +700,13 @@ class HoloHubCLI:
                 for configure_arg in args.configure_args:
                     build_cmd += f' --configure-args "{configure_arg}"'
 
-            docker_opts = "--entrypoint=bash"
-            if hasattr(args, "docker_opts") and args.docker_opts:
-                docker_opts += " " + args.docker_opts
+            img = getattr(args, "img", None) or container.image_name
+            docker_opts = getattr(args, "docker_opts", "")
+            docker_opts_extra, extra_args = holohub_cli_util.get_shell_command_args(
+                img, build_cmd, docker_opts, dry_run=args.dryrun
+            )
+            if docker_opts_extra:
+                docker_opts = f"{docker_opts} {docker_opts_extra}".strip()
             container.run(
                 img=getattr(args, "img", None),
                 local_sdk_root=getattr(args, "local_sdk_root", None),
@@ -716,7 +720,7 @@ class HoloHubCLI:
                 docker_opts=docker_opts,
                 add_volumes=getattr(args, "add_volume", None),
                 enable_mps=getattr(args, "mps", False),
-                extra_args=["-c", build_cmd],
+                extra_args=extra_args,
             )
 
     def handle_run(self, args: argparse.Namespace) -> None:
@@ -900,6 +904,13 @@ class HoloHubCLI:
                 for configure_arg in args.configure_args:
                     run_cmd += f' --configure-args "{configure_arg}"'
 
+            img = getattr(args, "img", None) or container.image_name
+            docker_opts = getattr(args, "docker_opts", "")
+            docker_opts_extra, extra_args = holohub_cli_util.get_shell_command_args(
+                img, run_cmd, docker_opts, dry_run=args.dryrun
+            )
+            if docker_opts_extra:
+                docker_opts = f"{docker_opts} {docker_opts_extra}".strip()
             container.run(
                 img=getattr(args, "img", None),
                 local_sdk_root=getattr(args, "local_sdk_root", None),
@@ -910,10 +921,10 @@ class HoloHubCLI:
                 nsys_profile=getattr(args, "nsys_profile", False),
                 nsys_location=getattr(args, "nsys_location", ""),
                 as_root=getattr(args, "as_root", False),
-                docker_opts="--entrypoint=bash " + args.docker_opts,
+                docker_opts=docker_opts,
                 add_volumes=getattr(args, "add_volume", None),
                 enable_mps=getattr(args, "mps", False),
-                extra_args=["-c", run_cmd],
+                extra_args=extra_args,
             )
 
     def handle_list(self, args: argparse.Namespace) -> None:
@@ -1488,9 +1499,13 @@ class HoloHubCLI:
                 for configure_arg in args.configure_args:
                     install_cmd += f' --configure-args "{configure_arg}"'
 
-            docker_opts = "--entrypoint=bash"
-            if hasattr(args, "docker_opts") and args.docker_opts:
-                docker_opts += " " + args.docker_opts
+            img = getattr(args, "img", None) or container.image_name
+            docker_opts = getattr(args, "docker_opts", "")
+            docker_opts_extra, extra_args = holohub_cli_util.get_shell_command_args(
+                img, install_cmd, docker_opts, dry_run=args.dryrun
+            )
+            if docker_opts_extra:
+                docker_opts = f"{docker_opts} {docker_opts_extra}".strip()
             container.run(
                 img=getattr(args, "img", None),
                 local_sdk_root=getattr(args, "local_sdk_root", None),
@@ -1504,7 +1519,7 @@ class HoloHubCLI:
                 docker_opts=docker_opts,
                 add_volumes=getattr(args, "add_volume", None),
                 enable_mps=getattr(args, "mps", False),
-                extra_args=["-c", install_cmd],
+                extra_args=extra_args,
             )
 
     def handle_clear_cache(self, args: argparse.Namespace) -> None:

@@ -97,7 +97,7 @@ set_property(TEST test_holohub_build_container_build_args PROPERTY
 
 add_test(
     NAME test_holohub_run_container_docker_opts
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --docker-opts "--memory 4g"
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --docker-opts "--memory 4g --entrypoint=bash"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_property(TEST test_holohub_run_container_docker_opts PROPERTY
