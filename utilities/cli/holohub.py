@@ -213,6 +213,11 @@ class HoloHubCLI:
             "--language", choices=["cpp", "python"], help="Specify language implementation"
         )
         run.add_argument(
+            "--build-type",
+            choices=["debug", "release", "rel-debug"],
+            help="Build type (debug, release, rel-debug)",
+        )
+        run.add_argument(
             "--run-args", help="Additional arguments to pass to the application executable"
         )
         run.add_argument(
@@ -222,6 +227,9 @@ class HoloHubCLI:
         )
         run.add_argument(
             "--parallel", help="Number of parallel build jobs (e.g. --parallel $(($(nproc)-1)))"
+        )
+        run.add_argument(
+            "--pkg-generator", default="DEB", help="Package generator for cpack (default: DEB)"
         )
         run.add_argument(
             "--no-local-build",
@@ -747,9 +755,10 @@ class HoloHubCLI:
                 build_dir, project_data = self.build_project_locally(
                     project_name=args.project,
                     language=args.language if hasattr(args, "language") else None,
-                    build_type="Release",  # Default to Release for run
+                    build_type=args.build_type or "Release",  # Default to Release for run
                     with_operators=args.with_operators,
                     dryrun=args.dryrun,
+                    pkg_generator=getattr(args, "pkg_generator", "DEB"),
                     parallel=getattr(args, "parallel", None),
                     configure_args=getattr(args, "configure_args", None),
                 )
@@ -886,6 +895,10 @@ class HoloHubCLI:
             run_cmd = f"{self.script_name} run {args.project} --language {language} --local"
             if args.verbose:
                 run_cmd += " --verbose"
+            if args.build_type:
+                run_cmd += f" --build-type {args.build_type}"
+            if getattr(args, "pkg_generator", None) and args.pkg_generator != "DEB":
+                run_cmd += f" --pkg-generator {args.pkg_generator}"
             if args.nsys_profile:
                 run_cmd += " --nsys-profile"
             if skip_local_build:
