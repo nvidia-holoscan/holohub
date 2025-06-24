@@ -23,7 +23,7 @@ Transform complex multi-command workflows into single, intuitive commands:
 ./run launch myapp cpp
 
 # NEW: Local development (single command)
-./holohub run myapp --language cpp --local
+./holohub run myapp --language=cpp --local --build-type=debug
 ```
 
 ### **Enhanced Developer Experience**
@@ -47,22 +47,26 @@ Transform complex multi-command workflows into single, intuitive commands:
 ### **Build & Run**
 ```bash
 # Build locally with optional operators and build type
-# previous ./run build myapp ...
+# previous ./run build myapp --type debug --with "op1;op2"
 ./holohub build myapp --local --build-type debug --build-with "op1;op2"
 
 # Build in container
-# previous ./dev_container build ...
-./holohub build myapp --build-type debug --verbose
+# Previous:
+# $ ./dev_container build --docker_file path/to/myapp/dockerfile --img holohub:myapp
+# $ ./dev_container launch --img holohub:myapp
+# >>> ./run build myapp --type debug
+# Updated:
+./holohub build myapp --build-type debug
 
 # Run locally
 # previous ./run build myapp && ./run launch myapp cpp
 ./holohub run myapp --local --language cpp --build-type debug
 
 # Run in container
-# previous ./dev_container build_and_run ...
+# previous ./dev_container build_and_run myapp cpp --run_args "--config=config.json"
 ./holohub run myapp --language=cpp --run-args="--config=config.json"
 
-# Install packages
+# Install built files
 # previous ./dev_container build_and_install myapp
 ./holohub install myapp
 ```
@@ -70,15 +74,15 @@ Transform complex multi-command workflows into single, intuitive commands:
 ### **Container Operations**
 ```bash
 # Container build
-# previous ./dev_container build ...
+# previous ./dev_container build --docker_file <path/to/myapp/Dockerfile> --img holohub:myapp
 ./holohub build-container <my_project> [options]
 
 # Container run
-# previous ./dev_container launch ...
+# previous ./dev_container launch --img holohub:myapp
 ./holohub run-container <my_project> --no-docker-build [options]
 
 # Development environment
-# previous ./dev_container vscode ...
+# previous ./dev_container vscode myapp
 ./holohub vscode myapp --language cpp
 ```
 
