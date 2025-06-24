@@ -52,6 +52,7 @@ docker run \
     -v $HOME/.Xauthority:/root/.Xauthority \
     -v $nvidia_icd_json:$nvidia_icd_json:ro \
     -v /opt/mellanox/rivermax/rivermax.lic:/opt/mellanox/rivermax/rivermax.lic \
+    -v /media/video:/media/video \
     -w $PWD \
     -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display \
     -e DISPLAY=$DISPLAY \
