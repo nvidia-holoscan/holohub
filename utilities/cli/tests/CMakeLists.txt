@@ -76,6 +76,91 @@ set_property(TEST test_holohub_clear_cache PROPERTY
     PASS_REGULAR_EXPRESSION "Would remove:.*${CMAKE_SOURCE_DIR}/build"
 )
 
+add_test(
+    NAME test_holohub_build_container_dryrun
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build-container --dryrun --no-cache
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_build_container_dryrun PROPERTY
+    PASS_REGULAR_EXPRESSION "docker build"
+)
+
+add_test(
+    NAME test_holohub_build_container_build_args
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build-container --dryrun --build-args "--build-arg TEST=value"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_build_container_build_args PROPERTY
+    PASS_REGULAR_EXPRESSION "docker build"
+    PASS_REGULAR_EXPRESSION "--build-arg TEST=value"
+)
+
+add_test(
+    NAME test_holohub_run_container_docker_opts
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --docker-opts "--memory 4g --entrypoint=bash"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_container_docker_opts PROPERTY
+    PASS_REGULAR_EXPRESSION "docker run"
+    PASS_REGULAR_EXPRESSION "--memory 4g"
+)
+
+add_test(
+    NAME test_holohub_run_container_add_volume
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --add-volume "/tmp:/tmp"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_container_add_volume PROPERTY
+    PASS_REGULAR_EXPRESSION "docker run"
+    PASS_REGULAR_EXPRESSION "-v /tmp:/tmp"
+)
+
+add_test(
+    NAME test_holohub_build_dryrun
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build endoscopy_tool_tracking --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_build_dryrun PROPERTY
+    PASS_REGULAR_EXPRESSION "build endoscopy_tool_tracking.*--local"
+)
+
+add_test(
+    NAME test_holohub_run_dryrun
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_dryrun PROPERTY
+    PASS_REGULAR_EXPRESSION "run endoscopy_tool_tracking.*--local"
+)
+
+add_test(
+    NAME test_holohub_run_forward_args
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun --run-args=--flag
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_forward_args PROPERTY
+    PASS_REGULAR_EXPRESSION "run endoscopy_tool_tracking.*--run-args=--flag"
+)
+
+add_test(
+    NAME test_holohub_run_pythonpath
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_pythonpath PROPERTY
+    PASS_REGULAR_EXPRESSION "Inspect docker image PYTHONPATH: docker inspect --format"
+)
+
+add_test(
+    NAME test_holohub_run_container_dryrun
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun -- echo hello
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_container_dryrun PROPERTY
+    PASS_REGULAR_EXPRESSION "docker run"
+    PASS_REGULAR_EXPRESSION "holohub.*echo hello"
+)
+
 # Add test for container module
 add_test(
     NAME test_container
@@ -88,4 +173,15 @@ add_test(
     NAME test_cli
     COMMAND ${Python3_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "test_cli.py"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+add_test(
+    NAME test_cli_env_info
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub env-info
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_cli_env_info PROPERTY
+    PASS_REGULAR_EXPRESSION "HoloHub Environment Variables"
+    PASS_REGULAR_EXPRESSION "Holoscan Environment Variables"
+    PASS_REGULAR_EXPRESSION "Other Relevant Environment Variables"
 )

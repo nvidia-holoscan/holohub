@@ -73,18 +73,22 @@ class TestHoloHubContainer(unittest.TestCase):
         )
 
     @patch("utilities.cli.container.check_nvidia_ctk")
+    @patch("utilities.cli.container.get_image_pythonpath")
     @patch("subprocess.run")
     @patch("subprocess.check_output")
-    def test_run(self, mock_check_output, mock_run, mock_check_nvidia_ctk):
+    def test_run(
+        self, mock_check_output, mock_run, mock_get_image_pythonpath, mock_check_nvidia_ctk
+    ):
         """Test container run command"""
         mock_check_nvidia_ctk.return_value = None
         mock_check_output.return_value = ""
+        mock_get_image_pythonpath.return_value = ""
         self.container.run()
         mock_run.assert_called_once()
         cmd = mock_run.call_args[0][0]
         self.assertTrue("docker" in cmd)
         self.assertTrue("run" in cmd)
-        self.assertTrue("--runtime=nvidia" in cmd)
+        self.assertTrue("--runtime" in cmd and "nvidia" in cmd)
         self.assertTrue(self.container.image_name in cmd)
 
     @patch("subprocess.CompletedProcess")
@@ -95,6 +99,26 @@ class TestHoloHubContainer(unittest.TestCase):
         cmd = mock_completed_process.call_args[0][0]
         self.assertTrue(self.container.image_name in cmd)
         self.assertIn("c 81:* rmw", cmd)
+        self.container.dryrun = False
+
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_pythonpath_options_sdk_only(self, mock_get_image_pythonpath):
+        """Test PYTHONPATH with only SDK paths"""
+        mock_get_image_pythonpath.return_value = ""
+        result = self.container.get_pythonpath_options(local_sdk_root=None, img="test_img")
+        expected_pythonpath = "/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
+        self.assertEqual(result, ["-e", f"PYTHONPATH={expected_pythonpath}"])
+        mock_get_image_pythonpath.assert_called_once_with("test_img", False)
+
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_pythonpath_options_with_image_env(self, mock_get_image_pythonpath):
+        """Test PYTHONPATH with SDK paths and Docker image environment"""
+        mock_get_image_pythonpath.return_value = "/docker/lib1:/docker/lib2"
+        result = self.container.get_pythonpath_options(local_sdk_root=None, img="test_img")
+        expected_pythonpath = "/docker/lib1:/docker/lib2:/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
+        self.assertEqual(result, ["-e", f"PYTHONPATH={expected_pythonpath}"])
         self.container.dryrun = False
 
 

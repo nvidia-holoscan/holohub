@@ -15,8 +15,11 @@
 # limitations under the License.
 
 import grp
+import json
 import os
+import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -99,6 +102,38 @@ def format_cmd(command: str, is_dryrun: bool = False) -> str:
     return f"{timestamp} {Color.white('$')} {Color.green(command)}"
 
 
+def info(message: str) -> None:
+    """Print informational message with consistent formatting"""
+    print(f"{Color.yellow('INFO:')} {message}")
+
+
+def get_env_bool(
+    env_var_name: str,
+    default: bool = True,
+    false_values: Tuple[str, ...] = ("false", "no", "n", "0", "f"),
+) -> Tuple[str, bool]:
+    """Check environment variable as boolean flag"""
+    env_value = os.environ.get(env_var_name, str(default).lower())
+    is_true = env_value.lower() not in false_values
+    return env_value, is_true
+
+
+def check_skip_builds(args) -> Tuple[bool, bool]:
+    """Checking skip build flags and printing info messages"""
+    holohub_always_build, always_build = get_env_bool("HOLOHUB_ALWAYS_BUILD", default=True)
+    skip_builds = not always_build
+    skip_docker_build = skip_builds or getattr(args, "no_docker_build", False)
+    skip_local_build = skip_builds or getattr(args, "no_local_build", False)
+    if skip_builds:
+        info(f"Skipping build due to HOLOHUB_ALWAYS_BUILD={holohub_always_build}")
+    else:
+        if getattr(args, "no_local_build", False):
+            info("Skipping local build due to --no-local-build")
+        if getattr(args, "no_docker_build", False):
+            info("Skipping container build due to --no-docker-build")
+    return skip_docker_build, skip_local_build
+
+
 def fatal(message: str) -> None:
     """Print fatal error and exit with backtrace"""
     print(
@@ -129,6 +164,14 @@ def run_command(
         print(f"Error running command: {cmd_str}")
         print(f"Exit code: {e.returncode}")
         sys.exit(e.returncode)
+
+
+def run_info_command(cmd: List[str]) -> Optional[str]:
+    """Run a command for information gathering and return stripped output or None if failed"""
+    try:
+        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
 
 
 def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.14.1") -> None:
@@ -435,3 +478,371 @@ def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
                     except IndexError:
                         continue
     return sorted(results)
+
+
+def build_holohub_path_mapping(
+    holohub_root: Path,
+    project_data: Optional[dict] = None,
+    build_dir: Optional[Path] = None,
+    data_dir: Optional[Path] = None,
+) -> dict[str, str]:
+    """Build a mapping of HoloHub placeholders to their resolved paths"""
+    if data_dir is None:
+        data_dir = holohub_root / "data"
+
+    path_mapping = {
+        "holohub_root": str(holohub_root),
+        "holohub_data_dir": str(data_dir),
+    }
+    if not project_data:
+        return path_mapping
+    # Add project-specific mappings if project_data is provided
+    app_source_path = project_data.get("source_folder", "")
+    if app_source_path:
+        path_mapping["holohub_app_source"] = str(app_source_path)
+    if build_dir:
+        path_mapping["holohub_bin"] = str(build_dir)
+        if app_source_path:
+            try:
+                app_build_dir = build_dir / Path(app_source_path).relative_to(holohub_root)
+                path_mapping["holohub_app_bin"] = str(app_build_dir)
+            except ValueError:
+                # Handle case where app_source_path is not relative to holohub_root
+                path_mapping["holohub_app_bin"] = str(build_dir)
+    elif project_data.get("project_name"):
+        # If no build_dir provided but we have project name, try to infer it
+        project_name = project_data["project_name"]
+        inferred_build_dir = holohub_root / "build" / project_name
+        path_mapping["holohub_bin"] = str(inferred_build_dir)
+        if app_source_path:
+            try:
+                app_build_dir = inferred_build_dir / Path(app_source_path).relative_to(holohub_root)
+                path_mapping["holohub_app_bin"] = str(app_build_dir)
+            except ValueError:
+                path_mapping["holohub_app_bin"] = str(inferred_build_dir)
+    return path_mapping
+
+
+def docker_args_to_devcontainer_format(docker_args: List[str]) -> List[str]:
+    """Convert Docker argument format to devcontainer format (--flag value -> --flag=value)"""
+    standalone = {"--rm", "--init", "--no-cache"}
+    result, i = [], 0
+    while i < len(docker_args):
+        curr = docker_args[i]
+        if (
+            i + 1 < len(docker_args)
+            and curr.startswith("--")
+            and "=" not in curr
+            and curr not in standalone
+            and not docker_args[i + 1].startswith("-")
+        ):
+            result.append(f"{curr}={docker_args[i + 1]}")
+            i += 2
+        else:
+            result.append(curr)
+            i += 1
+    return result
+
+
+def get_entrypoint_command_args(
+    img: str, command: str, docker_opts: str, dry_run: bool = False
+) -> tuple[str, List[str]]:
+    """Determine how to execute a shell command in a Docker container."""
+    if "--entrypoint" in docker_opts:
+        try:
+            command_args = shlex.split(command)  # "command" splits into a list of arguments
+            return "", command_args
+        except ValueError:
+            return "", [command]
+    entrypoint = get_container_entrypoint(img, dry_run=dry_run)
+    if not entrypoint:  # image has no entrypoint, docker uses default "/bin/sh -c" for command
+        return "", [command]
+    # Image has an ENTRYPOINT
+    if entrypoint in [["/bin/sh", "-c"], ["/bin/bash", "-c"], ["sh", "-c"], ["bash", "-c"]]:
+        return "", [command]  # Shell is already configured to take command string
+    if entrypoint in [["/bin/sh"], ["/bin/bash"], ["sh"], ["bash"]]:
+        return "", ["-c", command]  # Shell needs -c to execute command string
+    return "--entrypoint=bash", ["-c", command]  # bash is used to run local build/run command
+
+
+def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[str]]:
+    """Check if container image has an entrypoint defined"""
+    if dry_run:
+        print(
+            "Inspect docker image entrypoint: "
+            f"docker inspect --format={{{{json .Config.Entrypoint}}}} {img}"
+        )
+        return None
+
+    try:
+        result = run_command(
+            ["docker", "inspect", "--format={{json .Config.Entrypoint}}", img],
+            capture_output=True,
+            check=False,
+            dry_run=dry_run,
+        )
+        if result.returncode != 0:
+            return None
+        entrypoint_json = result.stdout.strip()
+        if entrypoint_json in ["<no value>", "[]", "null", "''"]:
+            return None
+        parsed = json.loads(entrypoint_json)
+        if isinstance(parsed, list) and len(parsed) > 0:
+            return parsed
+        return None
+    except Exception:
+        pass
+    return None
+
+
+def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
+    """Get PYTHONPATH from the Docker image environment"""
+    if dry_run:
+        print(
+            Color.yellow(
+                "Inspect docker image PYTHONPATH: docker inspect "
+                f"--format '{{{{range .Config.Env}}}}{{{{println .}}}}{{{{end}}}}' {img}"
+            )
+        )
+        return ""
+    try:
+        result = run_command(
+            ["docker", "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
+            check=False,
+            capture_output=True,
+            dry_run=dry_run,
+        )
+        if result.returncode != 0:
+            return ""
+        for line in result.stdout.decode().strip().split("\n"):
+            if line.startswith("PYTHONPATH="):
+                return line[len("PYTHONPATH=") :]
+    except (subprocess.CalledProcessError, AttributeError):
+        pass
+    return ""
+
+
+def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
+    """Replace placeholders in text using the provided path mapping"""
+    if not text:
+        return text
+    result = text
+    for placeholder, replacement in path_mapping.items():
+        bracketed_placeholder = f"<{placeholder}>"
+        result = result.replace(bracketed_placeholder, replacement)
+    return result
+
+
+def launch_vscode(workspace_path: str, dry_run: bool = False) -> None:
+    """Install VS Code Remote Development extension and launch VS Code with new window"""
+    print("Installing VS Code Remote Development extension...")
+    run_command(
+        [
+            "code",
+            "--force",
+            "--install-extension",
+            "ms-vscode-remote.vscode-remote-extensionpack",
+        ],
+        dry_run=dry_run,
+    )
+    run_command(["code", "--new-window", workspace_path], dry_run=dry_run)
+
+
+def open_url(url: str, dry_run: bool = False) -> bool:
+    """Open a URL using the system's default URL opener"""
+    if shutil.which("open"):
+        run_command(["open", url], check=False, dry_run=dry_run)
+        return True
+    elif shutil.which("xdg-open"):
+        run_command(["xdg-open", url], check=False, dry_run=dry_run)
+        return True
+    if not dry_run:
+        print("Could not automatically open URL.")
+        print(f"Please manually open: {url}")
+    return False
+
+
+def launch_vscode_devcontainer(
+    workspace_path: str, workspace_name: str = "holohub", dry_run: bool = False
+) -> None:
+    """Launch VS Code with dev container and open the dev container URL"""
+    hash_hex = str(workspace_path).encode().hex()
+    url = f"vscode://vscode-remote/dev-container+{hash_hex}/workspace/{workspace_name}"
+
+    if dry_run:
+        print(f"Dryrun URL: {url}")
+    else:
+        print(f"Launching VSCode Dev Container from: {workspace_path}")
+        print(f"Connecting to {url}...")
+    launch_vscode(workspace_path, dry_run=dry_run)
+    open_url(url, dry_run=dry_run)
+
+
+def get_devcontainer_config(
+    holohub_root: Path, project_name: Optional[str] = None, dry_run: bool = False
+) -> str:
+    """Get devcontainer configuration content"""
+
+    default_config_path = holohub_root / ".devcontainer"
+    if (
+        project_name
+        and (holohub_root / ".devcontainer" / project_name / "devcontainer.json").exists()
+    ):
+        dev_container_path = holohub_root / ".devcontainer" / project_name
+        print(f"Using application-specific DevContainer configuration: {dev_container_path}")
+    else:
+        dev_container_path = default_config_path
+        print(f"Using top-level DevContainer configuration: {dev_container_path}")
+
+    devcontainer_json_src = dev_container_path / "devcontainer.json"
+
+    if dry_run:
+        print(f"Would read and modify {devcontainer_json_src}")
+        print("Would substitute environment variables and launch VS Code")
+        return ""
+    else:
+        with open(devcontainer_json_src, "r") as f:
+            devcontainer_content = f.read()
+
+    return devcontainer_content
+
+
+def collect_system_info() -> None:
+    """Collect and display system information"""
+    print(f"\n{Color.blue('System Information:')}")
+    print(f"  OS: {platform.system()} {platform.release()} {platform.machine()}")
+    print(f"  Platform: {platform.platform()}")
+
+
+def collect_python_info() -> None:
+    """Collect and display Python information"""
+    print(f"\n{Color.blue('Python Information:')}")
+    print(f"  Version: {sys.version}")
+    print(f"  Executable: {sys.executable} Path: {sys.path[0] if sys.path else 'N/A'}")
+
+
+def collect_holohub_info(
+    holohub_root: Path, build_dir: Path, data_dir: Path, sdk_dir: Path
+) -> None:
+    """Collect and display HoloHub information"""
+    print(f"\n{Color.blue('HoloHub Information:')}")
+    print(f"  HOLOHUB_ROOT: {holohub_root}")
+    print(f"  HOLOHUB_BUILD_PARENT_DIR: {build_dir}")
+    print(f"  HOLOHUB_DATA_DIR: {data_dir}")
+    print(f"  HOLOHUB_SDK_DIR: {sdk_dir}")
+
+
+def collect_git_info(holohub_root: Path) -> None:
+    """Collect and display Git repository information"""
+    print(f"\n{Color.blue('Git Repository Information:')}")
+    if not holohub_root.exists() or not holohub_root.is_dir():
+        print(f"  HoloHub root directory does not exist or is not a directory: {holohub_root}")
+        return
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(holohub_root)
+    except Exception as e:
+        print(f"  Cannot access HoloHub directory: {e}")
+        return
+    try:
+        git_branch = run_info_command(["git", "branch", "--show-current"])
+        git_commit_full = run_info_command(["git", "rev-parse", "HEAD"])
+        git_status = run_info_command(["git", "status", "--porcelain"])
+        if git_branch is None or git_commit_full is None or git_status is None:
+            print("  Git information not available")
+            return
+        git_commit = git_commit_full[:8]
+        print(f"  Branch: {git_branch} Commit: {git_commit}")
+        print(f"  Modified: {git_status.splitlines()}")
+    finally:
+        try:
+            os.chdir(original_cwd)  # try to restore the original working directory
+        except Exception:
+            pass
+
+
+def collect_docker_info() -> None:
+    """Collect and display Docker information"""
+    print(f"\n{Color.blue('Docker Information:')}")
+    docker_version = run_info_command(["docker", "--version"])
+    docker_info = run_info_command(["docker", "info", "--format", "{{.ServerVersion}}"])
+    if docker_version is None or docker_info is None:
+        print("  Docker not available")
+        return
+    print(f"  Version: {docker_version} Server Version: {docker_info}")
+    nvidia_ctk_version = run_info_command(["nvidia-ctk", "--version"])
+    if nvidia_ctk_version is not None:
+        print(f"  NVIDIA Container Toolkit: {nvidia_ctk_version.strip()}")
+
+
+def collect_cuda_gpu_info() -> None:
+    """Collect and display CUDA/GPU information"""
+    print(f"\n{Color.blue('CUDA/GPU Information:')}")
+    nvidia_smi = run_info_command(
+        [
+            "nvidia-smi",
+            "--query-gpu=name,driver_version,memory.total",
+            "--format=csv,noheader,nounits",
+        ]
+    )
+    if nvidia_smi is None:
+        print("  NVIDIA GPU/CUDA not available")
+        return
+    for i, line in enumerate(nvidia_smi.split("\n")):
+        if line.strip():
+            parts = line.split(",")
+            if len(parts) >= 3:
+                print(f"  GPU {i}: {parts[0].strip()}")
+                print(f"    Driver: {parts[1].strip()}")
+                print(f"    Memory: {parts[2].strip()} MB")
+    cuda_version = run_info_command(["nvcc", "--version"])
+    if cuda_version is None:
+        print("  nvcc not available")
+        return
+    version_line = [line for line in cuda_version.split("\n") if "release" in line.lower()]
+    print(f"  NVCC: {version_line[0].strip()}")
+    nvcc_path = run_info_command(["which", "nvcc"])
+    if nvcc_path is not None:
+        print(f"  NVCC Path: {nvcc_path}")
+
+
+def collect_environment_variables() -> None:
+    """Collect and display environment variables"""
+    print(f"\n{Color.blue('HoloHub Environment Variables:')}")
+    holohub_env_vars = [
+        "HOLOHUB_CMD_NAME",
+        "HOLOHUB_BUILD_LOCAL",
+        "HOLOHUB_BASE_IMAGE",
+        "HOLOHUB_APP_NAME",
+        "HOLOHUB_CONTAINER_BASE_NAME",
+        "HOLOHUB_ALWAYS_BUILD",
+    ]
+    for var in sorted(holohub_env_vars):
+        print(f"  {var}: {os.environ.get(var) or '(not set)'}")
+
+    print(f"\n{Color.blue('Holoscan Environment Variables:')}")
+    holoscan_env_vars = ["HOLOSCAN_SDK_VERSION", "HOLOSCAN_INPUT_PATH"]
+    for var in sorted(holoscan_env_vars):
+        print(f"  {var}: {os.environ.get(var) or '(not set)'}")
+
+    print(f"\n{Color.blue('Other Relevant Environment Variables:')}")
+    other_env_vars = [
+        "PYTHONPATH",
+        "PATH",
+        "LD_LIBRARY_PATH",
+        "CMAKE_BUILD_TYPE",
+        "DOCKER_BUILDKIT",
+        "XDG_SESSION_TYPE",
+        "XDG_RUNTIME_DIR",
+    ]
+    for var in sorted(other_env_vars):
+        print(f"  {var}: {os.environ.get(var) or '(not set)'}")
+
+
+def collect_env_info() -> None:
+    """Collect and display comprehensive environment information"""
+    collect_system_info()
+    collect_python_info()
+    collect_docker_info()
+    collect_cuda_gpu_info()
+    collect_environment_variables()
