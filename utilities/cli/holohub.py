@@ -702,7 +702,7 @@ class HoloHubCLI:
 
             img = getattr(args, "img", None) or container.image_name
             docker_opts = getattr(args, "docker_opts", "")
-            docker_opts_extra, extra_args = holohub_cli_util.get_shell_command_args(
+            docker_opts_extra, extra_args = holohub_cli_util.get_entrypoint_command_args(
                 img, build_cmd, docker_opts, dry_run=args.dryrun
             )
             if docker_opts_extra:
@@ -906,7 +906,7 @@ class HoloHubCLI:
 
             img = getattr(args, "img", None) or container.image_name
             docker_opts = getattr(args, "docker_opts", "")
-            docker_opts_extra, extra_args = holohub_cli_util.get_shell_command_args(
+            docker_opts_extra, extra_args = holohub_cli_util.get_entrypoint_command_args(
                 img, run_cmd, docker_opts, dry_run=args.dryrun
             )
             if docker_opts_extra:
@@ -1501,7 +1501,7 @@ class HoloHubCLI:
 
             img = getattr(args, "img", None) or container.image_name
             docker_opts = getattr(args, "docker_opts", "")
-            docker_opts_extra, extra_args = holohub_cli_util.get_shell_command_args(
+            docker_opts_extra, extra_args = holohub_cli_util.get_entrypoint_command_args(
                 img, install_cmd, docker_opts, dry_run=args.dryrun
             )
             if docker_opts_extra:

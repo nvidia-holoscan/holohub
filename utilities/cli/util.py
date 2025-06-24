@@ -544,7 +544,7 @@ def docker_args_to_devcontainer_format(docker_args: List[str]) -> List[str]:
     return result
 
 
-def get_shell_command_args(
+def get_entrypoint_command_args(
     img: str, command: str, docker_opts: str, dry_run: bool = False
 ) -> tuple[str, List[str]]:
     """Determine how to execute a shell command in a Docker container."""
