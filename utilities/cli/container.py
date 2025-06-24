@@ -82,8 +82,8 @@ class HoloHubContainer:
         )
         parser.add_argument(
             "--build-args",
-            help="(Build container) Extra arguments to docker build command. "
-            "Example: `--build-args '--network=host --build-arg \"CUSTOM=value with spaces\"'`",
+            help="(Build container) Extra arguments to docker build command, "
+            "example: `--build-args '--network=host --build-arg \"CUSTOM=value with spaces\"'`",
         )
         return parser
 
@@ -94,8 +94,8 @@ class HoloHubContainer:
         parser.add_argument(
             "--docker-opts",
             default="",
-            help="Additional options to the Docker run command. "
-            "Examples: `--docker-opts '--env \"VAR=value with spaces\"'`",
+            help="Additional options to the Docker run command, "
+            "example: `--docker-opts='--entrypoint=bash'` or `--docker-opts '-e DISPLAY=:1'`",
         )
         parser.add_argument(
             "--ssh-x11",

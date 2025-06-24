@@ -15,9 +15,11 @@
 # limitations under the License.
 
 import grp
+import json
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -542,23 +544,76 @@ def docker_args_to_devcontainer_format(docker_args: List[str]) -> List[str]:
     return result
 
 
+def get_entrypoint_command_args(
+    img: str, command: str, docker_opts: str, dry_run: bool = False
+) -> tuple[str, List[str]]:
+    """Determine how to execute a shell command in a Docker container."""
+    if "--entrypoint" in docker_opts:
+        try:
+            command_args = shlex.split(command)  # "command" splits into a list of arguments
+            return "", command_args
+        except ValueError:
+            return "", [command]
+    entrypoint = get_container_entrypoint(img, dry_run=dry_run)
+    if not entrypoint:  # image has no entrypoint, docker uses default "/bin/sh -c" for command
+        return "", [command]
+    # Image has an ENTRYPOINT
+    if entrypoint in [["/bin/sh", "-c"], ["/bin/bash", "-c"], ["sh", "-c"], ["bash", "-c"]]:
+        return "", [command]  # Shell is already configured to take command string
+    if entrypoint in [["/bin/sh"], ["/bin/bash"], ["sh"], ["bash"]]:
+        return "", ["-c", command]  # Shell needs -c to execute command string
+    return "--entrypoint=bash", ["-c", command]  # bash is used to run local build/run command
+
+
+def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[str]]:
+    """Check if container image has an entrypoint defined"""
+    if dry_run:
+        print(
+            "Inspect docker image entrypoint: "
+            f"docker inspect --format={{{{json .Config.Entrypoint}}}} {img}"
+        )
+        return None
+
+    try:
+        result = run_command(
+            ["docker", "inspect", "--format={{json .Config.Entrypoint}}", img],
+            capture_output=True,
+            check=False,
+            dry_run=dry_run,
+        )
+        if result.returncode != 0:
+            return None
+        entrypoint_json = result.stdout.strip()
+        if entrypoint_json in ["<no value>", "[]", "null", "''"]:
+            return None
+        parsed = json.loads(entrypoint_json)
+        if isinstance(parsed, list) and len(parsed) > 0:
+            return parsed
+        return None
+    except Exception:
+        pass
+    return None
+
+
 def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
     """Get PYTHONPATH from the Docker image environment"""
-    try:
-        if dry_run:
-            print(
-                Color.yellow(
-                    f"Inspect docker image PYTHONPATH: docker inspect "
-                    f"--format '{{{{range .Config.Env}}}}{{{{println .}}}}{{{{end}}}}' {img}"
-                )
+    if dry_run:
+        print(
+            Color.yellow(
+                "Inspect docker image PYTHONPATH: docker inspect "
+                f"--format '{{{{range .Config.Env}}}}{{{{println .}}}}{{{{end}}}}' {img}"
             )
-            return ""
+        )
+        return ""
+    try:
         result = run_command(
             ["docker", "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
-            check=True,
+            check=False,
             capture_output=True,
             dry_run=dry_run,
         )
+        if result.returncode != 0:
+            return ""
         for line in result.stdout.decode().strip().split("\n"):
             if line.startswith("PYTHONPATH="):
                 return line[len("PYTHONPATH=") :]
