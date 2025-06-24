@@ -218,7 +218,9 @@ class HoloHubCLI:
             help="Build type (debug, release, rel-debug)",
         )
         run.add_argument(
-            "--run-args", help="Additional arguments to pass to the application executable"
+            "--run-args",
+            help="Additional arguments to pass to the application executable, "
+            "example: --run-args=--flag or --run-args '-c config/file'",
         )
         run.add_argument(
             "--build-with",
@@ -906,7 +908,7 @@ class HoloHubCLI:
             if hasattr(args, "with_operators") and args.with_operators:
                 run_cmd += f' --build-with "{args.with_operators}"'
             if hasattr(args, "run_args") and args.run_args:
-                run_cmd += f" --run-args {shlex.quote(args.run_args)}"
+                run_cmd += f" --run-args={shlex.quote(args.run_args)}"
             if getattr(args, "parallel", None):
                 run_cmd += f" --parallel {args.parallel}"
             if getattr(args, "configure_args", None):
