@@ -2,7 +2,7 @@
 
 ## Overview
 
-HoloHub has been refactored from bash-based CLI scripts (`./run` and `./dev_container`) to a modern, unified Python-based CLI tool (`./holohub`). This upgrade provides a cleaner, more powerful, and more intuitive development experience.
+As of June 2025, HoloHub has been refactored from bash-based CLI scripts (`./run` and `./dev_container`) to a modern, unified Python-based CLI tool (`./holohub`). This upgrade provides a cleaner, more powerful, and more intuitive development experience.
 
 ## Key Benefits of the Refactoring
 
@@ -27,7 +27,7 @@ Transform complex multi-command workflows into single, intuitive commands:
 ```
 
 ### **Enhanced Developer Experience**
-- **Unified Interface**: One tool instead of juggling `./run` and `./dev_container`
+- **Unified Interface**: One tool for both local and containerized development instead of juggling `./run` and `./dev_container`
 - **Intelligent Defaults**: Container-first development for consistency and reproducibility
 - **Better Error Messages**: Helpful suggestions when commands or project names don't match
 - **Modern Python Implementation**: More reliable, maintainable, and extensible
@@ -60,10 +60,10 @@ Transform complex multi-command workflows into single, intuitive commands:
 
 # Run in container
 # previous ./dev_container build_and_run ...
-./holohub run myapp --language=cpp --run-args="--config=config.json" # NEW
+./holohub run myapp --language=cpp --run-args="--config=config.json"
 
 # Install packages
-# previous ./run build myapp --install
+# previous ./dev_container build_and_install myapp
 ./holohub install myapp
 ```
 
@@ -71,11 +71,11 @@ Transform complex multi-command workflows into single, intuitive commands:
 ```bash
 # Container build
 # previous ./dev_container build ...
-./holohub build-container --base-img nvidia/holoscan:latest
+./holohub build-container <my_project> [options]
 
 # Container run
 # previous ./dev_container launch ...
-./holohub run-container --img myapp:dev --ssh-x11 --docker-opts="--entrypoint=bash" --no-docker-build
+./holohub run-container <my_project> --no-docker-build [options]
 
 # Development environment
 # previous ./dev_container vscode ...
@@ -83,6 +83,9 @@ Transform complex multi-command workflows into single, intuitive commands:
 ```
 
 ### **Advanced Features**
+
+Use `-h` or `--help` to view a complete list of commands or subcommand options.
+
 ```bash
 # Custom build options
 ./holohub build myapp --build-with "op1;op2" --configure-args='-DCUSTOM=ON'
@@ -101,11 +104,12 @@ Development commands remain familiar:
 
 # Enhanced linting with integrated dependency management
 ./holohub lint --install-dependencies  # Previously ./run install_lint_deps
-./holohub lint --fix                   # Same clean interface
+./holohub lint                           # Previously ./run lint
+./holohub lint --fix                   # Previously ./run lint --fix
 
 # Consistent naming conventions
 ./holohub clear-cache                  # Previously ./run clear_cache
-./holohub list                         # Unchanged
+./holohub list                         # Previously ./run list
 ```
 
 ## New Capabilities & Enhancements
@@ -124,10 +128,6 @@ The new CLI introduces development lifecycle features:
 ./holohub env-info
 ```
 
-### **Intelligent Development Experience**
-- **Smart Error Messages**: Automatic project name suggestions for typos and better validation
-- **Modern Argument Parsing**: Consistent interface across all commands with improved help text
-- **Enhanced Container Integration**: Better argument forwarding and container lifecycle management
 
 ### **Granular Build Control**
 The new architecture provides precise control over your development workflow:
