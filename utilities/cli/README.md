@@ -130,11 +130,28 @@ The new CLI introduces development lifecycle features:
 
 
 ### **Granular Build Control**
-The new architecture provides precise control over your development workflow:
+The new architecture provides precise control over your development workflow.
+
+**Default Behavior:**
+By default, `./holohub run` operates in a 'containerized mode', which means it will:
+1. Build the container image (unless skipped, e.g. using `--no-docker-build`)
+2. Build the application inside the container
+3. Run the application inside the container
+
+This container-first approach ensures consistency and reproducibility across different development environments.
+
+**Command-line Options:**
 - **`--local`**: Explicit local development mode
 - **`--no-local-build`**: Skip application rebuild for faster iteration
 - **`--no-docker-build`**: Use existing container images
 - **Dedicated Commands**: Separate `build`, `run`, `build-container`, and `run-container` commands for clear workflow control
+
+**Environment Variables:**
+- **`HOLOHUB_BUILD_LOCAL`**: When set to any value, forces local mode (equivalent to always passing `--local`)
+- **`HOLOHUB_ALWAYS_BUILD`**: Controls whether builds should be executed (defaults to `true`)
+  - Set to `false` to skip both local and container builds
+  - Useful for development iterations where you only want to run existing builds
+
 
 ## Getting Help
 
@@ -148,12 +165,12 @@ The new architecture provides precise control over your development workflow:
 
 ## Useful Commands
 
-- When adding option that looks like an argument, use `=` instead of whitespace ` `:
+- When adding option that looks like an argument, use `=` instead of whitespace ` ` (because of [Python argparse design choice](https://github.com/python/cpython/issues/53580)):
 ```bash
 --run-args="--verbose"   # instead of --run-args "--verbose"
 ```
 
 - To clear unused docker cache during development:
-```
-docker image prune -f && docker buildx prune --filter type=regular -f
-```
+  - Clear Docker images ([doc](https://docs.docker.com/reference/cli/docker/image/prune/)): `docker image prune`
+  - Clear Docker buildx cache ([doc](https://docs.docker.com/reference/cli/docker/buildx/prune/)): `docker buildx prune`
+  - Clear Docker containers, networks, images ([doc](https://docs.docker.com/reference/cli/docker/system/prune/): `docker system prune`
