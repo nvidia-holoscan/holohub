@@ -33,7 +33,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 #
 
 # Install python3 if not present (needed for holohub CLI)
-ARG PYTHON_VERSION=python3.12
+ARG PYTHON_VERSION=python3
 RUN if ! command -v python3 >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
@@ -41,14 +41,16 @@ RUN if ! command -v python3 >/dev/null 2>&1; then \
         && add-apt-repository ppa:deadsnakes/ppa \
         && apt-get update \
         && apt-get install --no-install-recommends -y \
-            ${PYTHON_VERSION} ${PYTHON_VERSION}-dev \
+            ${PYTHON_VERSION} \
         && apt purge -y \
             python3-pip \
             software-properties-common \
         && apt-get autoremove --purge -y \
         && rm -rf /var/lib/apt/lists/* \
-        && update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
         && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
+        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
+            ; fi \
     ; fi
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
@@ -86,8 +88,7 @@ RUN apt update \
     gobject-introspection \
     libgtk-3-dev \
     libcanberra-gtk-module \
-    graphviz\
-    ninja-build
+    graphviz
 
 RUN pip install meson
 
