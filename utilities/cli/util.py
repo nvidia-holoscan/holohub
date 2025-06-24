@@ -174,6 +174,11 @@ def run_info_command(cmd: List[str]) -> Optional[str]:
         return None
 
 
+def parse_semantic_version(version: str) -> Tuple[int, int, int]:
+    """Parse semantic version string MAJOR.MINOR. into tuple of integers for comparison"""
+    return tuple(map(int, version.split(".")))
+
+
 def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.14.1") -> None:
     """Check NVIDIA Container Toolkit version"""
 
@@ -187,20 +192,12 @@ def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.
         match = re.search(r"(\d+\.\d+\.\d+)", output)
         if match:
             version = match.group(1)
-
             try:
-                from packaging import version as ver
-
-                version_check = ver.parse(version) < ver.parse(min_version)
-            except ImportError:
-
-                def parse_version(v):
-                    try:
-                        return tuple(map(int, v.split(".")))
-                    except ValueError:
-                        return (10, 0, 0)
-
-                version_check = parse_version(version) < parse_version(min_version)
+                version_check = parse_semantic_version(version) < parse_semantic_version(
+                    min_version
+                )
+            except ValueError:
+                version_check = False
 
             if version_check:
                 fatal(
