@@ -175,8 +175,24 @@ ARG RMAX_TEGRA=OFF
 ENV RMAX_TEGRA=${RMAX_TEGRA}
 
 # Install additional dependencies required for Rivermax
-RUN apt install -y iproute2 libcap-dev gdb ethtool iputils-ping net-tools \
-    libfmt-dev libnl-3-dev libnl-genl-3-dev libcap-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libglew-dev
+# Update package cache and install additional dependencies required for Rivermax
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    iproute2 \
+    libcap-dev \
+    gdb \
+    ethtool \
+    iputils-ping \
+    net-tools \
+    libfmt-dev \
+    libnl-3-dev \
+    libnl-genl-3-dev \
+    libglu1-mesa-dev \
+    freeglut3-dev \
+    mesa-common-dev \
+    libglew-dev \
+    cuda-nvml-dev-12-6 \
+    cuda-nvtx-12-6 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy and extract the Rivermax SDK
 COPY ${RIVERMAX_SDK_ZIP_PATH} /tmp/rivermax_sdk.tar.gz
