@@ -811,6 +811,18 @@ class TestRunCommand(unittest.TestCase):
         self.assertIn("echo hello", printed_args)
         self.assertIn("[dryrun]", printed_args)
 
+    def test_parse_semantic_version(self):
+        """Test the parse_semantic_version function"""
+        self.assertEqual(util.parse_semantic_version("1.2.3"), (1, 2, 3))
+        self.assertEqual(util.parse_semantic_version("1.2.3+dev4"), (1, 2, 3))
+        self.assertEqual(util.parse_semantic_version("1.2.3-rc4"), (1, 2, 3))
+        self.assertEqual(util.parse_semantic_version("1.2.3.dev4"), (1, 2, 3))
+        self.assertEqual(util.parse_semantic_version("1.0.0-beta+exp.sha.5114f85"), (1, 0, 0))
+        self.assertRaises(ValueError, util.parse_semantic_version, "1.2")
+        self.assertRaises(ValueError, util.parse_semantic_version, "1.2.dev3")
+        self.assertGreater(util.parse_semantic_version("1.2.3"), (1, 1, 10))
+        self.assertLess(util.parse_semantic_version("1.2.3"), (1, 12, 3))
+
 
 if __name__ == "__main__":
     unittest.main()

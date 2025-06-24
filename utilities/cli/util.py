@@ -175,8 +175,17 @@ def run_info_command(cmd: List[str]) -> Optional[str]:
 
 
 def parse_semantic_version(version: str) -> Tuple[int, int, int]:
-    """Parse semantic version string MAJOR.MINOR. into tuple of integers for comparison"""
-    return tuple(map(int, version.split(".")))
+    """
+    Parse semantic version string MAJOR.MINOR.PATCH into tuple of integers for comparison
+
+    Note: Implementing our own version parsing to avoid dependency on PyPI 'packaging' module.
+
+    ref: https://semver.org/
+    """
+    match = re.match(r"^(\d+\.\d+\.\d+).*", version.strip())
+    if not match:
+        raise ValueError(f"Failed to parse semantic version string: {version}")
+    return tuple(map(int, match.group(1).split(".")))
 
 
 def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.14.1") -> None:
@@ -187,8 +196,6 @@ def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.
 
     try:
         output = subprocess.check_output(["nvidia-ctk", "--version"], text=True)
-        import re
-
         match = re.search(r"(\d+\.\d+\.\d+)", output)
         if match:
             version = match.group(1)
