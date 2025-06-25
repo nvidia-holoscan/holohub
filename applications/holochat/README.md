@@ -24,7 +24,7 @@ HoloChat is an AI-driven chatbot, built on top of a **locally hosted Code-Llama 
 - **Memory**: \>= 28 GB of available disk memory
   - Needed to download [fine-tuned Code Llama 34B](https://huggingface.co/TheBloke/Phind-CodeLlama-34B-v2-GGUF) and [BGE-Large](https://huggingface.co/BAAI/bge-large-en) embedding model
 
-*Tested using [NVIDIA IGX Orin](https://www.nvidia.com/en-us/edge-computing/products/igx/) w/ RTX A6000 and [Dell Precision 5820 Workstation](https://www.dell.com/en-us/shop/desktop-computers/precision-5820-tower-workstation/spd/precision-5820-workstation/xctopt5820us) w/ RTX A6000
+*Tested using [NVIDIA IGX Orin](https://www.nvidia.com/en-us/edge-computing/products/igx/) w/ RTX A6000 and Dell Precision 5820 Workstation w/ RTX A6000
 
 ## Running HoloChat: 🏃💨
 **When running HoloChat, you have two LLM options:**
