@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,6 +50,8 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
                                   OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer aja_source)
 
 add_subdirectory(h264)
+
+add_holohub_application(isaac_holoscan_bridge)
 
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
