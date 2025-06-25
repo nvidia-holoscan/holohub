@@ -34,7 +34,7 @@ COPY applications/holochat/requirements.txt /tmp/requirements.txt
 
 # Install setuptools prior to all other requirements to avoid install errors
 RUN python3 -m pip install --no-cache-dir setuptools && \
-    python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
+    python3 -m pip install --no-cache-dir --ignore-installed -r /tmp/requirements.txt
 
 # Copy the Torch wheel from the PyTorch image. This is necessary because the PyTorch wheel is not available for ARM64 on PyPI.
 WORKDIR /tmp/pip/
