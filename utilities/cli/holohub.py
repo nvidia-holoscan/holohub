@@ -329,22 +329,22 @@ class HoloHubCLI:
         install.set_defaults(func=self.handle_install)
 
         # Add test command
-        test = subparsers.add_parser("test", help="Test a project")
+        test = subparsers.add_parser(
+            "test", help="Test a project", parents=[container_build_argparse]
+        )
         self.subparsers["test"] = test
         test.add_argument("project", nargs="?", help="Project to test")
-        test.add_argument("--base_img", help="Fully qualified base image name")
-        test.add_argument("--build_args", help="Additional options to pass to the Docker build")
         test.add_argument("--verbose", action="store_true", help="Print extra output")
         test.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
-        test.add_argument("--clear_cache", action="store_true", help="Clear cache folders")
-        test.add_argument("--site_name", help="Site name")
-        test.add_argument("--cdash_url", help="CDash URL")
-        test.add_argument("--platform_name", help="Platform name")
-        test.add_argument("--cmake_options", help="CMake options")
-        test.add_argument("--no_xvfb", action="store_true", help="Do not use xvfb")
-        test.add_argument("--ctest_script", help="CTest script")
+        test.add_argument("--clear-cache", action="store_true", help="Clear cache folders")
+        test.add_argument("--site-name", help="Site name")
+        test.add_argument("--cdash-url", help="CDash URL")
+        test.add_argument("--platform-name", help="Platform name")
+        test.add_argument("--cmake-options", help="CMake options")
+        test.add_argument("--no-xvfb", action="store_true", help="Do not use xvfb")
+        test.add_argument("--ctest-script", help="CTest script")
         test.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
         )
@@ -516,7 +516,10 @@ class HoloHubCLI:
 
         if not skip_docker_build:
             container.build(
+                docker_file=args.docker_file,
                 base_img=args.base_img,
+                img=args.img,
+                no_cache=args.no_cache,
                 build_args=args.build_args,
             )
 
