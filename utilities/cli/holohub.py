@@ -31,7 +31,9 @@ from typing import Optional
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer, base_sdk_version
-from utilities.cli.util import Color
+from utilities.cli.util import Color, parse_semantic_version
+
+PYTHON_MIN_VERSION = "3.9.0"
 
 
 class HoloHubCLI:
@@ -1274,26 +1276,42 @@ class HoloHubCLI:
 
         # Install Python dev
         try:
-            python3_dev_version = subprocess.run(
-                ["dpkg", "--status", "python3-dev"],
+            python3_version = sys.version_info
+            python3_dev_output = subprocess.run(
+                ["dpkg", "--list", f"python3.{python3_version.minor}-dev"],
                 capture_output=True,
                 text=True,
                 check=False,
             ).stdout
-            version_match = re.search(r"Version: ([^-\s]+)", python3_dev_version)
+
+            # Look for the specific version first, then fall back to python3-dev
+            version_match = re.search(
+                rf"python3\.{python3_version.minor}-dev\s+(\d+\.\d+\.\d+)", python3_dev_output
+            )
+            if not version_match:
+                # Fall back to checking python3-dev
+                python3_dev_output = subprocess.run(
+                    ["dpkg", "--list", "python3-dev"],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                ).stdout
+                version_match = re.search(r"python3-dev\s+(\d+\.\d+\.\d+)", python3_dev_output)
+
             python3_dev_version = version_match.group(1) if version_match else ""
         except subprocess.CalledProcessError:
             python3_dev_version = ""
 
-        if not python3_dev_version or "3.9.0" > python3_dev_version:
+        if not python3_dev_version or parse_semantic_version(
+            python3_dev_version
+        ) < parse_semantic_version(PYTHON_MIN_VERSION):
             holohub_cli_util.run_command(
                 [
                     "apt",
                     "install",
                     "--no-install-recommends",
                     "-y",
-                    "python3",
-                    "python3-dev",
+                    f"python3.{python3_version.minor}-dev",
                 ],
                 dry_run=args.dryrun,
             )
