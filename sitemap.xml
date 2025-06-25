@@ -165,6 +165,10 @@
          <lastmod>2025-06-25</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/isaac_holoscan_bridge/</loc>
+         <lastmod>2025-06-25</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/laser_detection_latency/evt_cam_calibration/</loc>
          <lastmod>2025-06-25</lastmod>
     </url>
