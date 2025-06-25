@@ -309,13 +309,21 @@ def list_metadata_json_dir(*paths: Path) -> List[Tuple[str, str]]:
 
 
 def install_cuda_dependencies_package(
-    package_name: str, preferred_version: str, optional: bool = False, dry_run: bool = False
-) -> bool:
+    package_name: str,
+    preferred_version: Optional[str] = None,
+    optional: bool = False,
+    dry_run: bool = False,
+) -> Optional[str]:
     """Install CUDA dependencies package with version checking
+
+    Procedure:
+    1. If package is already installed, return the version
+    2. If the package is not installed and the preferred version is available, install it and return the version.
+    3. If the package is not installed and the preferred version is not available, return None.
 
     Args:
         package_name: Name of the package to install
-        preferred_version: Preferred version string to match
+        preferred_version: Regular expression for package version to get if not already installed.
         optional: Whether the package is optional (default: False)
 
     Returns:
@@ -324,38 +332,39 @@ def install_cuda_dependencies_package(
     Raises:
         SystemExit: If non-optional package cannot be installed
     """
+
     # Check if package is already installed
     try:
         output = subprocess.check_output(
             ["apt", "list", "--installed", package_name], text=True, stderr=subprocess.DEVNULL
-        )
+        ).split()
         # Extract installed version from apt list output using regex
         # Example output: "libcudnn9-cuda-12/unknown,now 9.5.1.17-1 amd64 [installed,upgradable to: 9.8.0.87-1]"
-        installed_version = re.search(rf"{package_name}/.*?now\s+([\d\.-]+)", output)
-        if installed_version:
-            installed_version = installed_version.group(1)
+        if len(output) >= 3 and re.match(r"\d+\.\d+\.\d+.*", output[2]):
+            installed_version = output[2]
             print(f"Package {package_name} found with version {installed_version}")
-            return True
+            return installed_version
     except subprocess.CalledProcessError:
+        # Package not installed, continue to attempt installation
         pass
 
     # Check available versions
     try:
+        # apt list -a sorts in descending order by default
         available_versions = subprocess.check_output(
             ["apt", "list", "-a", package_name], text=True, stderr=subprocess.DEVNULL
         )
-
-        # Find matching version
-        matching_version = None
-        for line in available_versions.splitlines():
-            if preferred_version in line and package_name in line:
-                matching_version = line.split()[1]  # Get version from second column
-                break
+        matching_version = re.findall(
+            f"^{re.escape(package_name)}/.*?({preferred_version}).*$",
+            available_versions,
+            re.MULTILINE,
+        )
+        matching_version = matching_version[0] if matching_version else None
 
         if not matching_version:
             if optional:
                 print(f"Package {package_name} {preferred_version} not found. Skipping.")
-                return False
+                return None
             else:
                 fatal(
                     f"{package_name} {preferred_version} is not installable.\n"
@@ -375,12 +384,12 @@ def install_cuda_dependencies_package(
             ],
             dry_run=dry_run,
         )
-        return True
+        return matching_version
 
     except subprocess.CalledProcessError as e:
         if optional:
             print(f"Error checking available versions for {package_name}: {e}")
-            return False
+            return None
         else:
             fatal(f"Error checking available versions for {package_name}: {e}")
 
