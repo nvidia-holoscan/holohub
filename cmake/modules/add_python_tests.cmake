@@ -37,15 +37,26 @@ function(add_python_tests)
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
   endif()
 
-  # Get the list of tests from pytest - force rootdir to be the working directory
+  # Set rootdir to the working directory to limit the search, and for relative test names
+  # Set confcutdir to the working directory to ignore top level conftest.py
+  set(PYTEST_WORKDIR_CONFIGS "--rootdir=${PYTEST_WORKING_DIRECTORY} --confcutdir=${PYTEST_WORKING_DIRECTORY}")
+
+  # Get the list of tests from pytest
+  set(pytest_collect_cmd "${Python3_EXECUTABLE} -m pytest ${PYTEST_WORKING_DIRECTORY}/${PYTEST_INPUT} --collect-only ${PYTEST_WORKDIR_CONFIGS}")
+  message(DEBUG "pytest_collect_cmd: ${pytest_collect_cmd}")
+  separate_arguments(pytest_collect_cmd UNIX_COMMAND "${pytest_collect_cmd}")
   execute_process(
-    COMMAND ${Python3_EXECUTABLE} -m pytest ${PYTEST_INPUT} --collect-only --rootdir=${PYTEST_WORKING_DIRECTORY}
+    COMMAND ${pytest_collect_cmd}
     WORKING_DIRECTORY ${PYTEST_WORKING_DIRECTORY}
     OUTPUT_VARIABLE pytest_collect_output
     OUTPUT_STRIP_TRAILING_WHITESPACE
     ERROR_VARIABLE pytest_collect_error
     RESULT_VARIABLE pytest_collect_result
   )
+  message(DEBUG "pytest_collect_output: ${pytest_collect_output}")
+  message(DEBUG "pytest_collect_error: ${pytest_collect_error}")
+  message(DEBUG "pytest_collect_result: ${pytest_collect_result}")
+
   set(PYTEST_SEARCH_DIR "${PYTEST_WORKING_DIRECTORY}/${PYTEST_INPUT}")
   if(NOT pytest_collect_result EQUAL 0)
     message(FATAL_ERROR "Error collecting pytest tests in ${PYTEST_SEARCH_DIR} (returned ${pytest_collect_result}):\n${pytest_collect_error}")
@@ -55,8 +66,6 @@ function(add_python_tests)
     message(WARNING "No pytest tests found in ${PYTEST_SEARCH_DIR}")
     return()
   endif()
-
-  message(DEBUG "pytest_collect_output: ${pytest_collect_output}")
   string(REPLACE "\n" ";" pytest_list "${pytest_collect_output}")
 
   # Process each test found
@@ -93,7 +102,7 @@ function(add_python_tests)
       set(PYTEST_COLOR_ARG "--color=\$(tty -s && echo yes || echo no)")
       string(PREPEND PYTEST_ARGS_STR "${PYTEST_COLOR_ARG} ")
       # Create the pytest command, ensuring usage of the requested python interpreter
-      set(PYTEST_CMD "${Python3_EXECUTABLE} -m pytest ${test_line} ${PYTEST_ARGS_STR}")
+      set(PYTEST_CMD "${Python3_EXECUTABLE} -m pytest ${PYTEST_WORKDIR_CONFIGS} ${test_line} ${PYTEST_ARGS_STR}")
 
       # --- Wrap the individual pytest with a ctest ---
       # The command is wrapped in bash to run the command substitution in PYTEST_COLOR_ARG
