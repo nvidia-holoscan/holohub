@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,17 +15,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Latest base image is overridden by the holohub tooling
-ARG GPU_TYPE
-ARG BASE_SDK_VERSION
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
-
 # ==============================
 # Base layer
 # ==============================
-FROM ${BASE_IMAGE} AS base
-ARG TARGETARCH
+FROM nvcr.io/nvidia/cuda:12.6.3-base-ubuntu22.04 AS base
+SHELL ["/bin/bash", "-eou", "pipefail", "-c"]
 
+# Basic system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        gnupg \
+        python3-pip \
+        git \
+        build-essential \
+    && OS_CODENAME=$(. /etc/os-release && echo "$VERSION_CODENAME") \
+    && KW_KEYRING="/usr/share/keyrings/kitware-archive-keyring.gpg" \
+    && curl -fsSL "https://apt.kitware.com/keys/kitware-archive-latest.asc" \
+        | gpg --dearmor -o "$KW_KEYRING" \
+    && echo "deb [signed-by=$KW_KEYRING] https://apt.kitware.com/ubuntu/ $OS_CODENAME main" \
+        > /etc/apt/sources.list.d/kitware.list \
+    && apt-get update \
+    && rm "$KW_KEYRING" \
+    && apt-get install --no-install-recommends -y \
+        kitware-archive-keyring \
+        cmake="3.*" \
+        cmake-data="3.*" \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG TARGETARCH
 ARG DOCA_VERSION=2.8.0
 ARG CACHEBUST=1
 ARG DEBIAN_FRONTEND=noninteractive
@@ -45,10 +63,12 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
     && DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/${DOCA_VERSION}/${DISTRO}/${DOCA_ARCH} \
     && echo "Using DOCA_REPO_LINK=${DOCA_REPO_LINK}" \
     && LOCAL_GPG_KEY_PATH="/usr/share/keyrings/mellanox-archive-keyring.gpg" \
-    && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} \
+    && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} > /dev/null \
     && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list
 
 # APT installs
+# - holoscan: main dependency
+# - cublas, cufft, cusolver, curand dev libs: for matx
 # - ninja-build: for cmake build
 # - pkgconf: to import dpdk and doca in CMake
 # - mlnx-dpdk-dev: for dpdk and gpunetio backends
@@ -59,7 +79,13 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
 # - mlnx-ofed-kernel-utils: utilities, including ibdev2netdev used by tune_system.py
 # - ibverbs-utils: utilities
 # - python3-pyelftools: used by some mlnx tools
+# - python3-dev: for building python bindings
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        holoscan \
+        libcublas-dev-12-6 \
+        libcufft-dev-12-6 \
+        libcusolver-dev-12-6 \
+        libcurand-dev-12-6 \
         ninja-build \
         pkgconf \
         mlnx-dpdk-dev \
@@ -70,6 +96,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         mlnx-ofed-kernel-utils \
         ibverbs-utils \
         python3-pyelftools \
+        python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # PIP installs
