@@ -112,6 +112,10 @@ function(add_python_tests)
         COMMAND bash -c "${PYTEST_CMD}"
         WORKING_DIRECTORY ${PYTEST_WORKING_DIRECTORY}
       )
+      set_tests_properties("${ctest_name}"
+        PROPERTIES
+          SKIP_REGULAR_EXPRESSION "SKIPPED"
+      )
       set(tests_added TRUE)
     endif()
   endforeach()
