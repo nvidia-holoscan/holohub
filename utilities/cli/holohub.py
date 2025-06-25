@@ -1415,27 +1415,35 @@ class HoloHubCLI:
             )
 
             # Check if cudnn9 is installed, if not install cudnn8
-            installed_cudnn9_version = subprocess.check_output(
-                ["apt", "list", "--installed", "libcudnn9-cuda-12"],
-                text=True,
-                stderr=subprocess.DEVNULL,
-            )
-            if not installed_cudnn9_version:
-                holohub_cli_util.install_cuda_dependencies_package(
-                    "libcudnn8", f"cuda{short_cuda_version}", dry_run=args.dryrun
+            try:
+                installed_cudnn9_version = subprocess.check_output(
+                    ["apt", "list", "--installed", "libcudnn9-cuda-12"],
+                    text=True,
+                    stderr=subprocess.DEVNULL,
                 )
-                holohub_cli_util.install_cuda_dependencies_package(
-                    "libcudnn8-dev", f"cuda{short_cuda_version}", dry_run=args.dryrun
-                )
+                if not installed_cudnn9_version:
+                    holohub_cli_util.install_cuda_dependencies_package(
+                        "libcudnn8", f"cuda{short_cuda_version}", dry_run=args.dryrun
+                    )
+                    holohub_cli_util.install_cuda_dependencies_package(
+                        "libcudnn8-dev", f"cuda{short_cuda_version}", dry_run=args.dryrun
+                    )
+            except subprocess.CalledProcessError as e:
+                print(f"Error checking cudnn9 version, skipping: {e}")
 
             # Install TensorRT dependencies
-            installed_libnvinferbin = subprocess.check_output(
-                ["dpkg", "--status", "libnvinfer-bin"], text=True, stderr=subprocess.DEVNULL
-            )
-            # Extract version string using regex
-            version_match = re.search(
-                r"Version: (\d+\.\d+\.\d+)\.\d+-\d+\+cuda\d+\.\d+", installed_libnvinferbin
-            )
+            try:
+                installed_libnvinferbin = subprocess.check_output(
+                    ["dpkg", "--status", "libnvinfer-bin"], text=True, stderr=subprocess.DEVNULL
+                )
+                # Extract version string using regex
+                version_match = re.search(
+                    r"Version: (\d+\.\d+\.\d+)\.\d+-\d+\+cuda\d+\.\d+", installed_libnvinferbin
+                )
+            except subprocess.CalledProcessError as e:
+                print(f"Error checking libnvinfer-bin version: {e}")
+                version_match = None
+
             if version_match:
                 installed_libnvinferbin_version = version_match.group(1)
             else:
