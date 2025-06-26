@@ -22,48 +22,44 @@ add_test(
     COMMAND ${CMAKE_SOURCE_DIR}/holohub list
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
-set_property(TEST test_holohub_list PROPERTY
-    PASS_REGULAR_EXPRESSION "APPLICATIONS"
-    PASS_REGULAR_EXPRESSION "BENCHMARKS"
-    PASS_REGULAR_EXPRESSION "PACKAGES"
-    PASS_REGULAR_EXPRESSION "OPERATORS"
-    PASS_REGULAR_EXPRESSION "WORKFLOWS"
+set_tests_properties(test_holohub_list PROPERTIES
+    PASS_REGULAR_EXPRESSION "APPLICATIONS.*BENCHMARKS.*PACKAGES.*OPERATORS.*WORKFLOWS"
 )
+
 
 add_test(
     NAME test_holohub_lint
     COMMAND ${CMAKE_SOURCE_DIR}/holohub lint --dryrun
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
+set_tests_properties(test_holohub_lint PROPERTIES
+    PASS_REGULAR_EXPRESSION "ruff check --ignore.*isort -c.*black --check.*cpplint.*codespell.*cmakelint"
+)
 add_test(
     NAME test_holohub_lint_fix
     COMMAND ${CMAKE_SOURCE_DIR}/holohub lint --fix --dryrun
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
-foreach(lint_test "test_holohub_lint;test_holohub_lint_fix")
-    set_property(TEST test_holohub_lint PROPERTY
-        PASS_REGULAR_EXPRESSION "ruff"
-        PASS_REGULAR_EXPRESSION "isort"
-        PASS_REGULAR_EXPRESSION "cpplint"
-        PASS_REGULAR_EXPRESSION "codespell"
-        PASS_REGULAR_EXPRESSION "cmakelint"
-    )
-endforeach()
+set_tests_properties(test_holohub_lint_fix PROPERTIES
+    PASS_REGULAR_EXPRESSION "ruff check --fix.*isort.*black.*codespell.*cpplint"  # TODO: cmakelint missing
+)
 
 add_test(
     NAME test_holohub_setup
     COMMAND ${CMAKE_SOURCE_DIR}/holohub setup --dryrun
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
-set_property(TEST test_holohub_setup PROPERTY
-    PASS_REGULAR_EXPRESSION "libcudnn"
-    PASS_REGULAR_EXPRESSION "git"
+set_tests_properties(test_holohub_setup PROPERTIES
+    PASS_REGULAR_EXPRESSION "wget.*xvfb.*ninja-build.*ffmpeg.*v4l-dev.*git.*unzip"
+    FAIL_REGULAR_EXPRESSION "returned non-zero exit status;failed;Traceback;Error"
 )
 
 find_package(CUDAToolkit QUIET)
 if(CUDAToolkit_FOUND)
-    set_property(TEST test_holohub_setup APPEND PROPERTY
-        FAIL_REGULAR_EXPRESSION "Error checking available versions"
+    get_test_property(test_holohub_setup PASS_REGULAR_EXPRESSION pass_expression)
+    set_tests_properties(test_holohub_setup PROPERTIES
+        PASS_REGULAR_EXPRESSION "${pass_expression}.*cudnn.*nvinfer.*nvonnxparsers"
+        FAIL_REGULAR_EXPRESSION "returned non-zero exit status;failed;Traceback;Error checking available versions"
     )
 endif()
 
