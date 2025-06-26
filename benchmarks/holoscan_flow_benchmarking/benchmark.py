@@ -333,7 +333,7 @@ assignment in Holoscan's Inference operator.",
     # Use the new holohub CLI command format
     if args.run_command == "":
         app_launch_command = (
-            f"./holohub run {args.holohub_application} --local --language {args.language}"
+            f"./holohub run {args.holohub_application} --local --no-local-build --language {args.language}"
         )
         logger.info(f"Using holohub CLI command: {app_launch_command}")
     else:
