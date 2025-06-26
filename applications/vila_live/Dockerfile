@@ -75,8 +75,7 @@ RUN git clone https://github.com/Efficient-Large-Model/VILA.git && \
     # Remove torch and transformers from pyproject.toml to avoid conflicts with installed versions
     sed -i '/torch/d' pyproject.toml && \
     sed -i '/transformers/d' pyproject.toml && \
-    python3 -m pip install --no-cache-dir --no-deps -e . && \
-    cd ..
+    python3 -m pip install --no-cache-dir --no-deps -e .
 
 # ----------------------------------------------------------------------------
 # Install Application-specific dependencies
