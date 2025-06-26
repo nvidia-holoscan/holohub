@@ -1416,7 +1416,7 @@ class HoloHubCLI:
 
         print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
 
-    def _setup_cuda_packages(self, cuda_major_version: int, dryrun: bool = False) -> None:
+    def _setup_cuda_packages(self, cuda_major_version: str, dryrun: bool = False) -> None:
         """Find and install CUDA packages for Holoscan SDK development"""
 
         # Attempt to install cudnn9
