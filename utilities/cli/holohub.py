@@ -31,7 +31,7 @@ from typing import Optional
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer, base_sdk_version
-from utilities.cli.util import Color, parse_semantic_version
+from utilities.cli.util import Color, PackageInstallationError, parse_semantic_version
 
 PYTHON_MIN_VERSION = "3.9.0"
 
@@ -1422,64 +1422,65 @@ class HoloHubCLI:
         # Attempt to install cudnn9
         # cuDNN version example: libcudnn9-cuda-12/unknown,now 9.10.2.21-1 amd64
         CUDNN_9_PATTERN = r"9\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+"
-        installed_cudnn9_version = holohub_cli_util.install_cuda_dependencies_package(
-            package_name="libcudnn9-cuda-12",
-            preferred_version=CUDNN_9_PATTERN,
-            optional=True,
-            dry_run=dryrun,
-        )
-        holohub_cli_util.install_cuda_dependencies_package(
-            package_name="libcudnn9-dev-cuda-12",
-            preferred_version=re.escape(installed_cudnn9_version),
-            optional=True,
-            dry_run=dryrun,
-        )
-
-        # Validate cudnn9 installation and fall back to cudnn8 if necessary
         try:
-            if not installed_cudnn9_version:
+            installed_cudnn9_version = holohub_cli_util.install_cuda_dependencies_package(
+                package_name="libcudnn9-cuda-12",
+                version_pattern=CUDNN_9_PATTERN,
+                dry_run=dryrun,
+            )
+            holohub_cli_util.install_cuda_dependencies_package(
+                package_name="libcudnn9-dev-cuda-12",
+                version_pattern=re.escape(installed_cudnn9_version),
+                dry_run=dryrun,
+            )
+        except PackageInstallationError as e:
+            holohub_cli_util.info(f"cuDNN 9.x installation failed, falling back to cuDNN 8.x: {e}")
+            try:
+                # Fall back to cudnn8
                 # cuDNN version example: libcudnn8/unknown 8.9.7.29-1+cuda12.2 amd64
                 CUDNN_8_PATTERN = (
                     rf"8\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]\+cuda{cuda_major_version}\.[0-9]+"
                 )
                 installed_cudnn8_version = holohub_cli_util.install_cuda_dependencies_package(
                     package_name="libcudnn8",
-                    preferred_version=CUDNN_8_PATTERN,
+                    version_pattern=CUDNN_8_PATTERN,
                     dry_run=dryrun,
                 )
                 holohub_cli_util.install_cuda_dependencies_package(
                     package_name="libcudnn8-dev",
-                    preferred_version=re.escape(installed_cudnn8_version),
+                    version_pattern=re.escape(installed_cudnn8_version),
                     dry_run=dryrun,
                 )
-        except subprocess.CalledProcessError as e:
-            print(f"Error checking cudnn9 version, skipping: {e}")
+            except PackageInstallationError as e:
+                holohub_cli_util.info(f"cuDNN 8.x installation failed: {e}.")
+                holohub_cli_util.info("cuDNN packages may need to be installed manually.")
 
         # Install TensorRT dependencies
         # TensorRT version example: libnvinfer-bin/unknown,now 10.12.0.36-1+cuda12.9 amd64
         NVINFER_PATTERN = rf"\d+\.[0-9]+\.[0-9]+\.[0-9]+-[0-9]\+cuda{cuda_major_version}\.[0-9]+"
-        installed_libnvinferbin_version = holohub_cli_util.install_cuda_dependencies_package(
-            package_name="libnvinfer-bin",
-            preferred_version=NVINFER_PATTERN,
-            optional=True,
-            dry_run=dryrun,
-        )
-        if not installed_libnvinferbin_version:
-            holohub_cli_util.fatal(
-                f"Failed to install libnvinfer-bin for CUDA {cuda_major_version}"
-            )
-        libnvinfer_pattern = re.escape(installed_libnvinferbin_version)
-
-        for trt_package_name in [
-            "libnvinfer-headers-dev",
-            "libnvinfer-dev",
-            "libnvinfer-plugin-dev",
-            "libnvonnxparsers-dev",
-        ]:
-            holohub_cli_util.install_cuda_dependencies_package(
-                package_name=trt_package_name,
-                preferred_version=libnvinfer_pattern,
+        try:
+            installed_libnvinferbin_version = holohub_cli_util.install_cuda_dependencies_package(
+                package_name="libnvinfer-bin",
+                version_pattern=NVINFER_PATTERN,
                 dry_run=dryrun,
+            )
+            libnvinfer_pattern = re.escape(installed_libnvinferbin_version)
+
+            for trt_package_name in [
+                "libnvinfer-headers-dev",
+                "libnvinfer-dev",
+                "libnvinfer-plugin-dev",
+                "libnvonnxparsers-dev",
+            ]:
+                holohub_cli_util.install_cuda_dependencies_package(
+                    package_name=trt_package_name,
+                    version_pattern=libnvinfer_pattern,
+                    dry_run=dryrun,
+                )
+        except PackageInstallationError as e:
+            holohub_cli_util.info(f"TensorRT installation failed: {e}")
+            holohub_cli_util.info(
+                "Continuing with setup - TensorRT packages may need to be installed manually"
             )
 
     def handle_env_info(self, args: argparse.Namespace) -> None:

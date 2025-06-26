@@ -308,29 +308,39 @@ def list_metadata_json_dir(*paths: Path) -> List[Tuple[str, str]]:
     return sorted(results)
 
 
+class PackageInstallationError(Exception):
+    """Raised when a package cannot be installed via apt"""
+
+    def __init__(self, package_name: str, version_pattern: str, message: str = None):
+        self.package_name = package_name
+        self.version_pattern = version_pattern
+        super().__init__(
+            message or f"Failed to install package {package_name} matching {version_pattern}"
+        )
+
+
 def install_cuda_dependencies_package(
     package_name: str,
-    preferred_version: Optional[str] = None,
-    optional: bool = False,
+    version_pattern: str = r"\d+\.\d+\.\d+",
     dry_run: bool = False,
-) -> Optional[str]:
+) -> str:
     """Install CUDA dependencies package with version checking
 
     Procedure:
     1. If package is already installed, return the version
     2. If the package is not installed and the preferred version is available, install it and return the version.
-    3. If the package is not installed and the preferred version is not available, return None.
+    3. If the package is not installed and the preferred version is not available, throw.
 
     Args:
         package_name: Name of the package to install
-        preferred_version: Regular expression for package version to get if not already installed.
-        optional: Whether the package is optional (default: False)
+        version_pattern: Regular expression for package version to get if not already installed.
+            The latest version matching the pattern will be installed.
 
     Returns:
-        bool: True if package was installed or already present, False if optional package was skipped
+        str: Installed package version
 
     Raises:
-        SystemExit: If non-optional package cannot be installed
+        PackageInstallationError: If package cannot be installed
     """
 
     # Check if package is already installed
@@ -342,7 +352,7 @@ def install_cuda_dependencies_package(
         # Example output: "libcudnn9-cuda-12/unknown,now 9.5.1.17-1 amd64 [installed,upgradable to: 9.8.0.87-1]"
         if len(output) >= 3 and re.match(r"\d+\.\d+\.\d+.*", output[2]):
             installed_version = output[2]
-            print(f"Package {package_name} found with version {installed_version}")
+            info(f"Package {package_name} found with version {installed_version}")
             return installed_version
     except subprocess.CalledProcessError:
         # Package not installed, continue to attempt installation
@@ -355,25 +365,23 @@ def install_cuda_dependencies_package(
             ["apt", "list", "-a", package_name], text=True, stderr=subprocess.DEVNULL
         )
         matching_version = re.findall(
-            f"^{re.escape(package_name)}/.*?({preferred_version}).*$",
+            f"^{re.escape(package_name)}/.*?({version_pattern}).*$",
             available_versions,
             re.MULTILINE,
         )
         matching_version = matching_version[0] if matching_version else None
 
         if not matching_version:
-            if optional:
-                print(f"Package {package_name} {preferred_version} not found. Skipping.")
-                return None
-            else:
-                fatal(
-                    f"{package_name} {preferred_version} is not installable.\n"
-                    f"You might want to try to install a newer version manually and rerun the setup:\n"
-                    f"  sudo apt install {package_name}"
-                )
+            raise PackageInstallationError(
+                package_name,
+                version_pattern,
+                f"{package_name} is not installable with pattern {version_pattern}.\n"
+                f"You might want to try to install a newer version manually and rerun the setup:\n"
+                f"  sudo apt install {package_name}",
+            )
 
         # Install the package
-        print(f"Installing {package_name}={matching_version}")
+        info(f"Installing {package_name}={matching_version}")
         run_command(
             [
                 "apt",
@@ -387,11 +395,11 @@ def install_cuda_dependencies_package(
         return matching_version
 
     except subprocess.CalledProcessError as e:
-        if optional:
-            print(f"Error checking available versions for {package_name}: {e}")
-            return None
-        else:
-            fatal(f"Error checking available versions for {package_name}: {e}")
+        raise PackageInstallationError(
+            package_name,
+            version_pattern,
+            f"Error checking available versions for {package_name}: {e}",
+        )
 
 
 def format_long_command(cmd: List[str], max_line_length: int = 80) -> str:
