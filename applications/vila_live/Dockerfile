@@ -63,8 +63,7 @@ RUN git clone https://github.com/mit-han-lab/llm-awq && \
     sed -i '/transformers/d' pyproject.toml && \
     python3 -m pip install --no-cache-dir -e . && \
     cd awq/kernels && \
-    TORCH_CUDA_ARCH_LIST="${COMPUTE_CAPACITY}+PTX" MAX_JOBS=$(nproc) python setup.py install && \
-    cd ../../..
+    TORCH_CUDA_ARCH_LIST="${COMPUTE_CAPACITY}+PTX" MAX_JOBS=$(nproc) python setup.py install
 
 # ----------------------------------------------------------------------------
 # Clone and install VILA repository
