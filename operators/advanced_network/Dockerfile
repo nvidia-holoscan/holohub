@@ -15,9 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ==============================
-# Base layer
-# ==============================
+# Define arguments for holoscan installation
+ARG HOLOSCAN_DEB_SRC="remote" # or "local"
+ARG HOLOSCAN_DEB_REMOTE_VERSION=3.4.0 # only used if HOLOSCAN_DEB_SRC is "remote"
+ARG HOLOSCAN_DEB_LOCAL_PATH="./holoscan.deb" # only used if HOLOSCAN_DEB_SRC is "local"
+
+# ============================================================
+# base: Base layer
+# ============================================================
 FROM nvcr.io/nvidia/cuda:12.6.3-base-ubuntu22.04 AS base
 SHELL ["/bin/bash", "-eou", "pipefail", "-c"]
 
@@ -43,6 +48,37 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         cmake-data="3.*" \
     && rm -rf /var/lib/apt/lists/*
 
+# ============================================================
+# hsdk-remote: Install holoscan from remote apt repository
+# ============================================================
+FROM base AS hsdk-remote
+
+ARG HOLOSCAN_DEB_REMOTE_VERSION
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        holoscan="${HOLOSCAN_DEB_REMOTE_VERSION}*" \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================
+# hsdk-local: Install holoscan from local deb package
+# ============================================================
+FROM base AS hsdk-local
+
+ARG HOLOSCAN_DEB_LOCAL_PATH
+RUN --mount=type=bind,source=${HOLOSCAN_DEB_LOCAL_PATH},target=/tmp/holoscan.deb \
+    apt-get update && apt-get install -y --no-install-recommends \
+        /tmp/holoscan.deb \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================
+# hsdk: join hsdk-remote and hsdk-local
+# ============================================================
+FROM hsdk-${HOLOSCAN_DEB_SRC} AS hsdk-installed
+
+# ==============================================================
+# common-deps: common dependencies for the advanced network lib
+# ==============================================================
+FROM hsdk-installed AS common-deps
+
 ARG TARGETARCH
 ARG DOCA_VERSION=2.8.0
 ARG CACHEBUST=1
@@ -67,7 +103,6 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
     && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list
 
 # APT installs
-# - holoscan: main dependency
 # - cublas, cufft, cusolver, curand dev libs: for matx
 # - ninja-build: for cmake build
 # - pkgconf: to import dpdk and doca in CMake
@@ -81,7 +116,6 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
 # - python3-pyelftools: used by some mlnx tools
 # - python3-dev: for building python bindings
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        holoscan \
         libcublas-dev-12-6 \
         libcufft-dev-12-6 \
         libcusolver-dev-12-6 \
@@ -109,24 +143,24 @@ RUN python3 -m pip install --no-cache-dir \
         scapy
 
 # ==============================
-# DOCA Target (inherits from base)
+# DOCA Target
 # This stage is only built when --target doca is specified. It contains any DOCA-specific configurations.
 # ==============================
-FROM base AS doca
+FROM common-deps AS doca
 # DOCA-specific installation or steps (if needed)
 
 # ==============================
-# DPDK Target (inherits from base)
+# DPDK Target
 # This stage is only built when --target dpdk is specified. It contains any DPDK-specific configurations.
 # ==============================
-FROM base AS dpdk
+FROM common-deps AS dpdk
 # DPDK-specific installation or steps (if needed)
 
 # ==============================
-# Rivermax Target (inherits from base)
+# Rivermax Target
 # This stage is only built when --target rivermax is specified. It installs and configures Rivermax SDK.
 # ==============================
-FROM base AS rivermax
+FROM common-deps AS rivermax
 
 # Define Rivermax-specific build arguments and environment variables
 ARG RIVERMAX_VERSION=1.60.6
@@ -187,7 +221,7 @@ RUN cd rmax_apps_lib && \
 RUN sed -i 's/\"apps\"//' rmax_apps_lib/CMakeLists.txt
 
 # ==============================
-# Default stage: Base
-# If no target is specified, the base stage will be built by default.
+# Default stage: common-deps
+# If no target is specified, the common-deps stage will be built by default.
 # ==============================
-FROM base
+FROM common-deps
