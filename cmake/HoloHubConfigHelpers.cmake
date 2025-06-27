@@ -52,7 +52,7 @@
 #   PKG_${NAME}: CMake option to enable/disable this package
 #
 # Example:
-#   add_holohub_package(my_package 
+#   add_holohub_package(my_package
 #     EXTENSIONS gxf_core gxf_serialization
 #     OPERATORS my_operator
 #     APPLICATIONS my_application
@@ -104,8 +104,8 @@ endfunction()
 #   APP_${NAME}: CMake option to enable/disable this application
 #
 # Example:
-#   add_holohub_application(my_app 
-#     DEPENDS 
+#   add_holohub_application(my_app
+#     DEPENDS
 #       EXTENSIONS gxf_core gxf_serialization
 #       OPERATORS required_op OPTIONAL optional_op1 optional_op2
 #   )
@@ -167,7 +167,7 @@ endfunction()
 #   OP_${NAME}: CMake option to enable/disable this operator
 #
 # Example:
-#   add_holohub_operator(my_op 
+#   add_holohub_operator(my_op
 #     DEPENDS EXTENSIONS gxf_core gxf_serialization
 #   )
 function(add_holohub_operator NAME)
