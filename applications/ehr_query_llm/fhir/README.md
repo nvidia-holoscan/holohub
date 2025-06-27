@@ -67,7 +67,7 @@ Now in the container, build and run the application:
 
 Once done, `exit` the container.
 
-### Run the Application in the Host Dev Environment
+### Run the Application in the Host Dev Environment (Bare Metal)
 
 First, create and activate a Python virtual environment, followed by installing the dependencies:
 
@@ -77,7 +77,15 @@ source .testenv/bin/activate
 pip install -r applications/ehr_query_llm/fhir/requirements.txt
 ```
 
-Build and install the application with `./holohub`:
+Then, Set up the Holohub environment:
+
+```bash
+sudo ./run setup
+```
+
+> Note: Although this application is implemented entirely in Python and relies on standard PyPI packages, you still may want to set up Holohub environment and use `./holohub` commandline .
+
+Next, build and install the application with `./holohub`:
 
 ```bash
 ./holohub install fhir --local
@@ -126,3 +134,9 @@ docker run -it --rm --net host holohub-fhir-x64-workstation-dgpu-linux-amd64:1.0
 --uid <id> \
 --secret <token>
 ```
+
+> **Note:** Packaging this application requires `holoscan-cli`, which can be installed using `pip`. If you are using the same Python environment for packaging as your development environment, there may be a version conflict for the `pydantic` package, as it is required by both `holoscan-cli` and `fhir.resources`. To ensure your development environment can still run the application after packaging, reinstall `fhir.resources`:
+>
+> ```bash
+> pip install fhir.resources
+> ```
