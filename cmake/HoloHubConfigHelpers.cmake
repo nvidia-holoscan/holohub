@@ -36,8 +36,9 @@
 #   add_holohub_operator(my_op DEPENDS EXTENSIONS gxf_core)
 #   add_holohub_extension(my_ext)
 
+# =====================================================
 # Helper function to build packages
-# =================================
+# =====================================================
 # Builds a package and automatically enables its dependencies.
 #
 # Parameters:
@@ -85,9 +86,9 @@ function(add_holohub_package NAME)
   endforeach()
 endfunction()
 
-
+# =====================================================
 # Helper function to build application and dependencies
-# ====================================================
+# =====================================================
 # Builds an application and automatically enables its required dependencies.
 # Supports optional operator dependencies based on HOLOHUB_BUILD_OPERATORS.
 #
@@ -151,9 +152,9 @@ function(add_holohub_application NAME)
 
 endfunction()
 
-
+# =====================================================
 # Helper function to build operators
-# ==================================
+# =====================================================
 # Builds a Holoscan operator and automatically enables its extension dependencies.
 #
 # Parameters:
@@ -193,9 +194,9 @@ function(add_holohub_operator NAME)
   endif()
 endfunction()
 
-
+# =====================================================
 # Helper function to build extensions
-# ===================================
+# =====================================================
 # Builds a GXF extension. This is the simplest helper function with no dependencies.
 #
 # Parameters:
