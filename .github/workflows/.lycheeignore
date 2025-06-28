@@ -1,3 +1,4 @@
+http://localhost.*
 http://127.0.0.1.*
 http://0.0.0.0.*
 # ignore 401 Errors in tutorials/pretrained_foundational_models/self_supervised_training/README.md
