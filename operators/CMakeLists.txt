@@ -15,6 +15,7 @@
 
 # Add operators (in alphabetical order)
 add_holohub_operator(advanced_network)
+add_subdirectory(advanced_network_media)
 add_holohub_operator(aja_source)
 add_holohub_operator(apriltag_detector)
 add_holohub_operator(basic_network)
