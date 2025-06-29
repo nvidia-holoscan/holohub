@@ -17,6 +17,9 @@
 add_holohub_application(adv_networking_bench DEPENDS
                         OPERATORS advanced_network)
 
+add_holohub_application(adv_networking_media_sender DEPENDS
+                        OPERATORS advanced_network advanced_network_media_tx)
+
 add_holohub_application(aja_video_capture DEPENDS
                         OPERATORS aja_source)
 
