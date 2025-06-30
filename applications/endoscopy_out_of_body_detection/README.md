@@ -80,8 +80,8 @@ The application uses `endoscopy_out_of_body_detection.yaml` for configuration. K
 ```bash
 ./holohub build-container endoscopy_out_of_body_detection
 ./holohub run-container endoscopy_out_of_body_detection
->>> ./holohub build endoscopy_out_of_body_detection --language=<cpp/python>
->>> ./holohub run endoscopy_out_of_body_detection --language=<cpp/python>
+./holohub build endoscopy_out_of_body_detection --language=<cpp/python>
+./holohub run endoscopy_out_of_body_detection --language=<cpp/python>
 ```
 
 For more information, see the Holohub [README.md](https://github.com/nvidia-holoscan/holohub/blob/main/README.md).
