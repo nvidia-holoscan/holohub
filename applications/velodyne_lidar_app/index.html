@@ -13326,7 +13326,7 @@ data to the application. That may be either:
 <p>First, start your lidar stream source. If you are using a VLP-16 lidar sensor, review the <a href="https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf">VLP-16
 user manual</a> for instructions on how to properly set up your network configuration.</p>
 <p>Then, build and start the Holoscan lidar viewing application:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>velodyne_lidar_app
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>velodyne_lidar_app
 </code></pre></div>
 <h2 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">#</a></h2>
 <p>We performed benchmarking on an NVIDIA IGX developer kit with an A4000 GPU. (Note that an A6000 GPU is standard for IGX.) We used the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking">holoscan_flow_benchmarking</a> project to collect and summarize performance. The performance for each component in the Holoscan SDK pipeline is shown in the image below.</p>

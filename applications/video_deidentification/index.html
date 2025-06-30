@@ -13298,17 +13298,17 @@ The model is downloaded when building the application.</p>
 <h2 id="v4l2-support">V4L2 Support<a class="headerlink" href="#v4l2-support" title="Permanent link">#</a></h2>
 <p>This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>video_deidentification
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_deidentification
 </code></pre></div></p>
 <p>By default, this application expects the input device to be mounted at <code>/dev/video0</code>.  If this is not the case, please update
 <code>applications/video_deidentification/video_deidentification.yaml</code> and set it to use the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>video_deidentification<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--video_device /dev/video0&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_deidentification<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--video_device /dev/video0&quot;</span>
 </code></pre></div></p>
 <h2 id="video-replayer-support">Video Replayer Support<a class="headerlink" href="#video-replayer-support" title="Permanent link">#</a></h2>
 <p>If you don't have a v4l2 compatible device plugged in, you may also run this application on a pre-recorded video.
 To launch the application using the Video Stream Replayer as the input source, run:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>video_deidentification<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--source replayer&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_deidentification<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source replayer&quot;</span>
 </code></pre></div>
 <h3 id="known-issues">Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">#</a></h3>
 <p>There is a known issue running this application on IGX w/ iGPU and on Jetson AGX (see <a href="https://github.com/nvidia-holoscan/holohub/issues/500">#500</a>).

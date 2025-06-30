@@ -13466,21 +13466,21 @@ usb@1:14.2        usb0       network        Ethernet interface
 <ol>
 <li><strong>Build</strong> the development container in two steps:
    <div class="highlight"><pre><span></span><code><span class="c1"># Build the ANO dev container</span>
-./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>./operators/advanced_network/Dockerfile
+./holohub<span class="w"> </span>build-container<span class="w"> </span>advanced_network<span class="w"> </span>--docker-file<span class="w"> </span>./operators/advanced_network/Dockerfile
 
 <span class="c1"># Add the psd-pipeline deps</span>
-./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>./applications/psd_pipeline/Dockerfile<span class="w"> </span>--base_img<span class="w"> </span>holohub:ngc-v3.1.0-dgpu<span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v3.1.0-dgpu
+./holohub<span class="w"> </span>build-container<span class="w"> </span>psd_pipeline<span class="w"> </span>--docker-file<span class="w"> </span>./applications/psd_pipeline/Dockerfile<span class="w"> </span>--base-img<span class="w"> </span>holohub:ngc-v3.1.0-dgpu<span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v3.1.0-dgpu
 </code></pre></div></li>
 <li><strong>Launch</strong> the development container with the command:
-   <div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--as_root<span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v3.1.0-dgpu<span class="w"> </span>--docker_opts<span class="w"> </span><span class="s2">&quot;--privileged&quot;</span>
+   <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>psd_pipeline<span class="w"> </span>--no-docker-build<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root --privileged&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v3.1.0-dgpu
 </code></pre></div></li>
 </ol>
 <p>Once you are in the dev container:
 1. <strong>Build</strong> the application using:
-    <div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>psd_pipeline
+    <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>psd_pipeline
 </code></pre></div>
 2. <strong>Run</strong> the application using:
-    <div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>psd_pipeline<span class="w"> </span>--extra_args<span class="w"> </span>config.yaml
+    <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>psd_pipeline<span class="w"> </span>--local<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;config.yaml&quot;</span>
 </code></pre></div></p>
 
 

@@ -13279,10 +13279,10 @@ Dummy<span class="w"> </span>video<span class="w"> </span>device<span class="w">
 Determine your desired video device and edit the source device in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/vila_live/vila_live.yaml">vila_live.yaml</a></p>
 <h2 id="build-and-run-instructions">🚀 Build and Run Instructions<a class="headerlink" href="#build-and-run-instructions" title="Permanent link">#</a></h2>
 <p>From the Holohub main directory run the following command:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>vila_live
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>vila_live
 </code></pre></div>
 or running with a replayer:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>vila_live<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--source replayer&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>vila_live<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source replayer&quot;</span>
 </code></pre></div>
 Note: The first build will take <strong>~1.5 hours</strong> if you're on ARM64. This is largely due to building <a href="https://github.com/Dao-AILab/flash-attention">Flash Attention 2</a> since pre-built wheels are not distributed for ARM64 platforms.</p>
 <p>Once the main LMM-based app is running, you will see a link for the app at <code>http://127.0.0.1:8050</code>.

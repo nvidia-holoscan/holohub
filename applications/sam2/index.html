@@ -13266,9 +13266,9 @@
   <img src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/sam2/holohub-sam2.gif?raw=true" alt="Holohub Sam2">
 </p>
 
-<p>The application currently uses a single query point as a foreground point that moves on the perimeter of a circle with a configured angular speed. 
-The models returns three masks, the best mask is selected based on the model scores. For visualization, two options exist. Select between "logits" or "masks". 
-- "logits": predictions of the network, mapped onto a colorscale that matches matplotlib.pyplot's "viridis" 
+<p>The application currently uses a single query point as a foreground point that moves on the perimeter of a circle with a configured angular speed.
+The models returns three masks, the best mask is selected based on the model scores. For visualization, two options exist. Select between "logits" or "masks".
+- "logits": predictions of the network, mapped onto a colorscale that matches matplotlib.pyplot's "viridis"
 - "masks": binarized predictions</p>
 <p>SAM2, recently announced by Meta, is the next iteration of the Segment Anything Model (SAM). This new version expands upon its predecessor by adding the capability to segment both videos and images.
 This sample application wraps the ImageInference class, and applies it on a live video feed.</p>
@@ -13297,22 +13297,22 @@ Determine your desired video device and edit the source device in <a href="https
 <p><strong>OBS</strong>: If you are building on a Clara AGX Dev Kit, replace the <code>Dockerfile</code> below with <code>./alternative_docker/Dockerfile_cagx</code>.</p>
 <p>This application uses a custom Dockerfile based on a pytorch container.
 Build and run the application using
-<div class="highlight"><pre><span></span><code><span class="w"> </span>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>sam2<span class="w"> </span>--docker_file<span class="w"> </span>applications/sam2/Dockerfile<span class="w"> </span>--img<span class="w"> </span>holohub:sam2.1
+<div class="highlight"><pre><span></span><code><span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>sam2
 </code></pre></div>
 Or first build the container, then launch it and run.</p>
-<p><div class="highlight"><pre><span></span><code><span class="w"> </span>./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>applications/sam2/Dockerfile<span class="w"> </span>--img<span class="w"> </span>holohub:sam2.1
+<p><div class="highlight"><pre><span></span><code><span class="w"> </span>./holohub<span class="w"> </span>build-container<span class="w"> </span>sam2
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:sam2.1
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>sam2<span class="w"> </span>--no-docker-build
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>sam2
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>sam2<span class="w"> </span>--local<span class="w"> </span>--no-local-build
 </code></pre></div></p>
 <h3 id="x86-only">x86 only<a class="headerlink" href="#x86-only" title="Permanent link">#</a></h3>
-<p>If you are only using an x86 system, you may use a Dockerfile based on the Holoscan container. Replace the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/sam2/Dockerfile">Dockerfile</a> with this <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/sam2/alternative_docker/Dockerfile">alternative Dockerfile</a>. 
+<p>If you are only using an x86 system, you may use a Dockerfile based on the Holoscan container. Replace the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/sam2/Dockerfile">Dockerfile</a> with this <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/sam2/alternative_docker/Dockerfile">alternative Dockerfile</a>.
 Then, from the Holohub main directory run the following command:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>sam2
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>sam2
 </code></pre></div></p>
-<p>Alternatively build and run: 
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>vscode<span class="w"> </span>sam2
+<p>Alternatively build and run:
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>vscode<span class="w"> </span>sam2
 </code></pre></div>
 Run the application in debug mode from vscode, or execute it by
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>applications/sam2/segment_one_thing.py

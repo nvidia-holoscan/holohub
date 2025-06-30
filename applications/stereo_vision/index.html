@@ -13327,10 +13327,10 @@ using. This can be found using <code>v4l2-ctl --list-devices</code>.</p>
 you build the devcontainer with a compatible <code>base_img</code> as shown in the <b>Build and Run Instructions</b> section.</p>
 <h2 id="build-and-run-instructions">Build and Run Instructions<a class="headerlink" href="#build-and-run-instructions" title="Permanent link">#</a></h2>
 <p>Run the following command to build and run application using the recorded video:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>stereo_vision<span class="w"> </span>--base_img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v2.4.0-dgpu
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>stereo_vision<span class="w"> </span>--base_img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v2.4.0-dgpu
 </code></pre></div></p>
 <p>To run the application using a v4l2 compatible stereo camera, run:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>stereo_vision<span class="w"> </span>--base_img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v2.4.0-dgpu<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--source v4l2&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>stereo_vision<span class="w"> </span>--base_img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v2.4.0-dgpu<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2&quot;</span>
 </code></pre></div></p>
 
 

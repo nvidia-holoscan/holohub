@@ -13177,11 +13177,26 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#building-the-application" class="md-nav__link">
+  <a href="#quick-start" class="md-nav__link">
     <span class="md-ellipsis">
-      Building the application
+      Quick Start
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-build-and-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step by step build and run
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -13256,21 +13271,25 @@
 <h2 id="data">Data<a class="headerlink" href="#data" title="Permanent link">#</a></h2>
 <p>The following dataset is used by this application:
 <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data">📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking</a>.</p>
-<h2 id="building-the-application">Building the application<a class="headerlink" href="#building-the-application" title="Permanent link">#</a></h2>
-<p>The easiest way to build this application is to use the provided Docker file.</p>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
+<p>To build this application within a container and run it, please use the following command:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>prohawk_video_replayer
+</code></pre></div>
+<p>For a separate build and run, please see the following instructions:</p>
+<h3 id="step-by-step-build-and-run">Step by step build and run<a class="headerlink" href="#step-by-step-build-and-run" title="Permanent link">#</a></h3>
 <p>From the Holohub main directory run the following command:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>applications/prohawk_video_replayer/Dockerfile<span class="w"> </span>--img<span class="w"> </span>holohub:prohawk
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build-container<span class="w"> </span>prohawk_video_replayer
 </code></pre></div>
 <p>Then launch the container to build the application:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:prohawk
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>prohawk_video_replayer<span class="w"> </span>--no-docker-build
 </code></pre></div>
 <p>Inside the container build the application:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>prohawk_video_replayer
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>prohawk_video_replayer
 </code></pre></div>
 <p>Inside the container run the application:</p>
 <ul>
 <li>C++:
-    <div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>prohawk_video_replayer<span class="w"> </span>cpp
+    <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>prohawk_video_replayer<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--no-local-build
 </code></pre></div></li>
 <li>Python:
     <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:/workspace/holohub/build/python/lib/

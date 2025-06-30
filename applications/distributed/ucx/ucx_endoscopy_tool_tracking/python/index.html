@@ -13256,7 +13256,7 @@
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <ul>
 <li>Python 3.8+</li>
-<li>The provided applications are configured to use a pre-recorded endoscopy video (replayer). </li>
+<li>The provided applications are configured to use a pre-recorded endoscopy video (replayer).</li>
 </ul>
 <h2 id="data">Data<a class="headerlink" href="#data" title="Permanent link">#</a></h2>
 <p><a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data">📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking</a></p>
@@ -13264,15 +13264,15 @@
 If you want to manually convert the video data, please refer to the instructions for using the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy">convert_video_to_gxf_entities</a> script.</p>
 <h2 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the application with all three fragments</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python
 
 <span class="c1"># Use the following commands to run the same application three processes:</span>
 <span class="c1"># Start the application with the video_in fragment</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--driver --worker --fragments video_in --address :10000&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--driver --worker --fragments video_in --address :10000&quot;</span>
 <span class="c1"># Start the application with the inference fragment</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--worker --fragments inference --address :10000&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--worker --fragments inference --address :10000&quot;</span>
 <span class="c1"># Start the application with the visualization fragment</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--worker --fragments viz --address :10000&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--worker --fragments viz --address :10000&quot;</span>
 </code></pre></div>
 
 

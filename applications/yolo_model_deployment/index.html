@@ -13289,11 +13289,11 @@
 <p>This application downloads a pre-recorded video from <a href="https://www.pexels.com/video/a-group-of-people-introduces-oneself-to-each-other-by-shaking-hands-3252919/">Pexels</a> when the application is built.  Please review the <a href="https://www.pexels.com/license/">license terms</a> from Pexels.</p>
 <h2 id="run">Run<a class="headerlink" href="#run" title="Permanent link">#</a></h2>
 <p>Build and launch container. Note that this will use a v4l2 input source as default.</p>
-<div class="highlight"><pre><span></span><code>./dev_container build_and_run yolo_model_deployment
+<div class="highlight"><pre><span></span><code>./holohub run yolo_model_deployment
 </code></pre></div>
 <h3 id="video-replayer-support">Video Replayer Support<a class="headerlink" href="#video-replayer-support" title="Permanent link">#</a></h3>
 <p>If you don't have a v4l2 compatible device plugged in, you can also run this application on a pre-recorded video. To launch the application using the Video Stream Replayer as the input source, run:</p>
-<div class="highlight"><pre><span></span><code>./dev_container build_and_run yolo_model_deployment --run_args &quot;--source replayer&quot;
+<div class="highlight"><pre><span></span><code>./holohub run yolo_model_deployment --run-args=&quot;--source replayer&quot;
 </code></pre></div>
 <h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h3>
 <p>For application configuration, please refer to the <code>yolo_detection.yaml</code>.</p>
