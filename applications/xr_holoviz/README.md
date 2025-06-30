@@ -26,7 +26,7 @@ Keep this terminal open and running.
 # Enter the same container (replace <container_id> with actual ID from 'docker ps')
 docker exec -it <container_id> bash
 
-# Build and the application
+# Build and run the application
 ./holohub run xr_holoviz
 ```
 
