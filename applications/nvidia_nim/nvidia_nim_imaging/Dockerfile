@@ -49,6 +49,7 @@ RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 ARG CMAKE_BUILD_TYPE=Release
 
 COPY applications/nvidia_nim/nvidia_nim_imaging/requirements.txt /tmp/requirements.txt
+RUN sed -i '/holoscan/d' /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt --no-cache-dir
 
 WORKDIR /workspace/holohub
