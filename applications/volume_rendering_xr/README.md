@@ -139,7 +139,7 @@ Options:
 To use a new dataset with the application, mount its volume location from the host machine when launching the container and pass all required arguments explicitly to the executable:
 ```bash
 ./holohub run-container --docker-opts="-u root" --img holohub:openxr-dev --add-volume /host/path/to/data-dir
->>> ./build/applications/volume_rendering_xr/volume_rendering_xr \
+./build/applications/volume_rendering_xr/volume_rendering_xr \
       -c /workspace/holohub/data/volume_rendering/config.json \
       -d /workspace/volumes/path/to/data-dir/dataset.nii.gz \
       -m /workspace/volumes/path/to/data-dir/dataset.seg.nii.gz
