@@ -20,8 +20,7 @@ This application performs monitor registration using a USB camera. It detects [A
 ## Running the Application
 
 ```bash
-./run build usb_cam_calibration
-LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./run launch usb_cam_calibration
+[sudo] LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./holohub run usb_cam_calibration
 ```
 
 ## Output
