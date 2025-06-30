@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glob
 import os
 import re
 from types import SimpleNamespace
@@ -31,11 +32,12 @@ CHROMA_DB_PATH = f"{current_dir}/embeddings/holoscan"
 def main():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(current_dir, "config.yaml")
-    yaml_config = yaml.safe_load(open(config_path))
+    with open(config_path) as f:
+        yaml_config = yaml.safe_load(f)
     config = SimpleNamespace(**yaml_config)
     # Define the repos, docs, and file types to store
     repos = ["holoscan-sdk", "holohub"]
-    docs = [f"/{current_dir}/docs/Holoscan_SDK_User_Guide_3.3.0.pdf"]
+    docs = glob.glob(os.path.join(current_dir, "docs", "*.pdf"))
     file_types = [".md", ".py", ".cpp", ".yaml"]
 
     content_lists = {file_type: [] for file_type in file_types}
