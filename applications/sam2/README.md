@@ -6,9 +6,9 @@ This application demonstrates how to run [SAM2](https://github.com/facebookresea
   <img src="./holohub-sam2.gif" alt="Holohub Sam2">
 </p>
 
-The application currently uses a single query point as a foreground point that moves on the perimeter of a circle with a configured angular speed. 
-The models returns three masks, the best mask is selected based on the model scores. For visualization, two options exist. Select between "logits" or "masks". 
-- "logits": predictions of the network, mapped onto a colorscale that matches matplotlib.pyplot's "viridis" 
+The application currently uses a single query point as a foreground point that moves on the perimeter of a circle with a configured angular speed.
+The models returns three masks, the best mask is selected based on the model scores. For visualization, two options exist. Select between "logits" or "masks".
+- "logits": predictions of the network, mapped onto a colorscale that matches matplotlib.pyplot's "viridis"
 - "masks": binarized predictions
 
 SAM2, recently announced by Meta, is the next iteration of the Segment Anything Model (SAM). This new version expands upon its predecessor by adding the capability to segment both videos and images.
@@ -49,30 +49,30 @@ Determine your desired video device and edit the source device in [segment_one_t
 This application uses a custom Dockerfile based on a pytorch container.
 Build and run the application using
 ```sh
- ./dev_container build_and_run sam2 --docker_file applications/sam2/Dockerfile --img holohub:sam2.1
-``` 
+ ./holohub run sam2
+```
 Or first build the container, then launch it and run.
 
 ```sh
- ./dev_container build --docker_file applications/sam2/Dockerfile --img holohub:sam2.1
+ ./holohub build-container sam2
 ```
 ```sh
-./dev_container launch --img holohub:sam2.1
+./holohub run-container sam2 --no-docker-build
 ```
 ```sh
-./run launch sam2
+./holohub run sam2 --local --no-local-build
 ```
 
 ### x86 only
-If you are only using an x86 system, you may use a Dockerfile based on the Holoscan container. Replace the [Dockerfile](./Dockerfile) with this [alternative Dockerfile](./alternative_docker/Dockerfile). 
+If you are only using an x86 system, you may use a Dockerfile based on the Holoscan container. Replace the [Dockerfile](./Dockerfile) with this [alternative Dockerfile](./alternative_docker/Dockerfile).
 Then, from the Holohub main directory run the following command:
 ```sh
-./dev_container build_and_run sam2
+./holohub run sam2
 ```
 
-Alternatively build and run: 
+Alternatively build and run:
 ```bash
-./dev_container vscode sam2
+./holohub vscode sam2
 ```
 Run the application in debug mode from vscode, or execute it by
 ```sh
