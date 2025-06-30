@@ -5,7 +5,7 @@ This application demonstrates the integration of Holoscan-XR with Holoviz for ex
 
 ## Quick Start Guide
 
-### 1. Build un the Docker Image
+### 1. Build the Docker Image
 
 Run the following command in the top-level HoloHub directory:
 ```bash
