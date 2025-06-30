@@ -22,8 +22,7 @@ This application demonstrates the latency differences between USB and EVT camera
 ## Running the Application
 
 ```bash
-./holohub build laser_detection --local
-sudo LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./holohub run laser_detection --local --no-local-build
+[sudo] LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./holohub run laser_detection
 ```
 
 ## Usage

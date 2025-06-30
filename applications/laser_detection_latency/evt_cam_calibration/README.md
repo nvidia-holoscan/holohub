@@ -20,8 +20,7 @@ This application performs monitor registration using an [Emergent Vision Technol
 ## Running the Application
 
 ```bash
-./holohub build evt_cam_calibration --local
-sudo ./holohub run evt_cam_calibration --local --no-local-build
+[sudo] ./holohub run evt_cam_calibration
 ```
 
 ## Output
