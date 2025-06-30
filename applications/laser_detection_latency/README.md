@@ -85,8 +85,7 @@ sudo cp cuAprilTags.h /opt/nvidia/cu-april-tags/include/.
 Before running the app, make sure that the USB camera can see all the corners of the monitor. The [`v4l2_camera`](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera) app can be used to verify it visually.
 
 ```bash
-./holohub build usb_cam_calibration --local
-LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./holohub run usb_cam_calibration --local --no-local-build
+LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./holohub run usb_cam_calibration --local
 ```
 This will output a file `usb-cali.npy` in the build directory.
 
@@ -94,7 +93,7 @@ This will output a file `usb-cali.npy` in the build directory.
 Before running the app, make sure that the EVT camera can see all the corners of the monitor. The [`high_speed_endoscopy`](https://github.com/nvidia-holoscan/holohub/tree/main/applications/high_speed_endoscopy) app can be used to verify it visually.
 ```bash
 ./holohub build evt_cam_calibration --local
-sudo ./holohub run evt_cam_calibration --local --no-local-build
+[sudo] ./holohub run evt_cam_calibration --local --no-local-build
 ```
 This will output a file `evt-cali.npy` in the build directory.
 
@@ -104,7 +103,7 @@ Use `sudo` when running the application with EVT camera.
 ### 3. Build and run `laser_detection`
 ```bash
 ./holohub build laser_detection --local
-sudo LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./holohub run laser_detection --local --no-local-build
+[sudo] LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./holohub run laser_detection --local --no-local-build
 ```
 Now you can use the laser pointer and point it to the monitor. If the icons are not detecting the laser or they are moving in random fashion, then redo the calibration steps.
 

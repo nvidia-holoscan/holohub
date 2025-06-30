@@ -32,7 +32,7 @@ Numerous algorithm examples leveraging the PVA can be found in the [Vision Progr
 Build the application inside docker
 
 ```
-$ ./holohub build-container pva_video_filter --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v2.1.0-dgpu --docker-file= ./Dockerfile
+$ ./holohub build-container pva_video_filter --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v2.1.0-dgpu 
 # Check which version of CUPVA is installed on your platform at /opt/nvidia
 $ ./holohub run-container pva_video_filter --no-docker-build --docker_opts "-v /opt/nvidia/cupva-<version>:/opt/nvidia/cupva-<version> --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129"
 ```
