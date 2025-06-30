@@ -13417,17 +13417,17 @@
 <h2 id="building-and-running-grpc-endoscopy-tool-tracking-application">Building and Running gRPC Endoscopy Tool Tracking Application<a class="headerlink" href="#building-and-running-grpc-endoscopy-tool-tracking-application" title="Permanent link">#</a></h2>
 <h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the gRPC Server</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--run_args<span class="w"> </span>cloud<span class="w"> </span><span class="o">[</span>--language<span class="w"> </span>cpp<span class="o">]</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;cloud&quot;</span><span class="w"> </span><span class="o">[</span>--language<span class="o">=</span>cpp<span class="o">]</span>
 
 <span class="c1"># Start the gRPC Client</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--run_args<span class="w"> </span>edge<span class="w"> </span><span class="o">[</span>--language<span class="w"> </span>cpp<span class="o">]</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;edge&quot;</span><span class="w"> </span><span class="o">[</span>--language<span class="o">=</span>cpp<span class="o">]</span>
 </code></pre></div>
 <h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the gRPC Server</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run_args<span class="w"> </span>cloud
+./holohub<span class="w"> </span>run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;cloud&quot;</span>
 
 <span class="c1"># Start the gRPC Client</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run_args<span class="w"> </span>edge
+./holohub<span class="w"> </span>run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;edge&quot;</span>
 </code></pre></div>
 <h3 id="configurations">Configurations<a class="headerlink" href="#configurations" title="Permanent link">#</a></h3>
 <p>The Edge application runs in a single-fragment mode by default. However, it can be configured to run in a multi-fragment mode, as in the picture above.</p>

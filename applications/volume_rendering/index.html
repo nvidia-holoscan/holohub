@@ -13310,18 +13310,18 @@
 <h2 id="build-and-run-instructions">Build and Run Instructions<a class="headerlink" href="#build-and-run-instructions" title="Permanent link">#</a></h2>
 <p>To build and run this application, use the <code>dev_container</code> script:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># C++</span>
-<span class="w"> </span>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>volume_rendering<span class="w"> </span>--language<span class="w"> </span>cpp
+<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering<span class="w"> </span>--language<span class="w"> </span>cpp
 
 <span class="w"> </span><span class="c1"># Python</span>
-<span class="w">  </span>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>volume_rendering<span class="w"> </span>--language<span class="w"> </span>python
+<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering<span class="w"> </span>--language<span class="w"> </span>python
 </code></pre></div>
 <p>The path of the volume configuration file, volume density file and volume mask file can be passed to the application.</p>
 <p>You can use the following command to get more information on command line parameters for this application:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>volume_rendering<span class="w"> </span>--language<span class="w"> </span><span class="o">[</span>cpp<span class="p">|</span>python<span class="o">]</span><span class="w"> </span>--run_args<span class="w"> </span>--usages
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering<span class="w"> </span>--language<span class="w"> </span><span class="o">[</span>cpp<span class="p">|</span>python<span class="o">]</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--usages&quot;</span>
 </code></pre></div>
 <h2 id="dev-container">Dev Container<a class="headerlink" href="#dev-container" title="Permanent link">#</a></h2>
 <p>To start the the Dev Container, run the following command from the root directory of Holohub:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>vscode
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>vscode<span class="w"> </span>volume_rendering
 </code></pre></div>
 <h3 id="vs-code-launch-profiles">VS Code Launch Profiles<a class="headerlink" href="#vs-code-launch-profiles" title="Permanent link">#</a></h3>
 <h4 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h4>

@@ -13316,10 +13316,10 @@ can be specified in the 'h264_endoscopy_tool_tracking.yaml' file.</p>
 <li>Building and running the application from the top level Holohub directory:</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="c1"># C++ version</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>cpp
+./holohub<span class="w"> </span>run<span class="w"> </span>h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>cpp
 
 <span class="c1"># Python version</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python
+./holohub<span class="w"> </span>run<span class="w"> </span>h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python
 </code></pre></div>
 <p>Important: on aarch64, applications also need tegra folder mounted inside the container and
 the <code>LD_LIBRARY_PATH</code> environment variable should be updated to include

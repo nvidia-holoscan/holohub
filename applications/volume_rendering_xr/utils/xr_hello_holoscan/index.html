@@ -13283,7 +13283,7 @@ HoloHub components.</p>
 <p>This utility is part of the <code>volume_rendering_xr</code> application suite. </p>
 <h3 id="running-the-test-utility">Running the Test Utility<a class="headerlink" href="#running-the-test-utility" title="Permanent link">#</a></h3>
 <p>Run the following command in the top-level HoloHub folder to build and run the host application:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;xr_hello_holoscan&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;xr_hello_holoscan&quot;</span>
 </code></pre></div>
 <p>Note that without specifying the extra arguments, it will launch the main volume rendering application by default.</p>
 <p>To pair your Magic Leap 2 device with the host, open the QR Reader application in the ML2 headset and scan the QR code printed in console output on the host machine.</p>
@@ -13292,15 +13292,13 @@ HoloHub components.</p>
 <p>Yes, a debug GUI not requiring a headset is installed inside the application container by default. Follow the steps
 below to launch the debug GUI and run the application:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Build and launch the container</span>
-./dev_container<span class="w"> </span>build<span class="w"> </span>--img<span class="w"> </span>holohub:xr_hello_holoscan<span class="w"> </span>--docker_file<span class="w"> </span>./applications/volume_rendering_xr/Dockerfile
-./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:xr_hello_holoscan
+./holohub<span class="w"> </span>run-container<span class="w"> </span>xr_hello_holoscan
 
-<span class="c1"># Build the application</span>
-./run<span class="w"> </span>build<span class="w"> </span>xr_hello_holoscan
-
-<span class="c1"># Launch the debug GUI and the application</span>
+<span class="c1"># Enable the debug GUI</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">ML_START_OPTIONS</span><span class="o">=</span><span class="s2">&quot;debug&quot;</span>
-./run<span class="w"> </span>launch<span class="w"> </span>xr_hello_holoscan
+
+<span class="c1"># Build and run the application</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>xr_hello_holoscan
 </code></pre></div>
 <p>The ImGui debug application will launch. Click and slide the position entries to adjust your view of the scene.</p>
 <p><img alt="Hello XR Debug GUI" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/volume_rendering_xr/utils/xr_hello_holoscan/doc/debug.png?raw=true" /></p>

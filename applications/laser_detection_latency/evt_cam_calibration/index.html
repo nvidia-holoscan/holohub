@@ -13273,8 +13273,8 @@
 <li>Verify camera visibility using the high_speed_endoscopy app</li>
 </ol>
 <h2 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>evt_cam_calibration
-sudo<span class="w"> </span>./run<span class="w"> </span>launch<span class="w"> </span>evt_cam_calibration
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>evt_cam_calibration<span class="w"> </span>--local
+./holohub<span class="w"> </span>run<span class="w"> </span>evt_cam_calibration<span class="w"> </span>--local<span class="w"> </span>--no-local-build
 </code></pre></div>
 <h2 id="output">Output<a class="headerlink" href="#output" title="Permanent link">#</a></h2>
 <p>The application generates a calibration file <code>evt-cali.npy</code> in the build directory, which contains the monitor's corner coordinates.</p>

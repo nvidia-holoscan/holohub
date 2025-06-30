@@ -13339,17 +13339,17 @@ The model is downloaded when building the application.</p>
 <h2 id="v4l2-support">V4L2 Support<a class="headerlink" href="#v4l2-support" title="Permanent link">#</a></h2>
 <p>This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>body_pose_estimation
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>body_pose_estimation
 </code></pre></div></p>
 <p>By default, this application expects the input device to be mounted at <code>/dev/video0</code>.  If this is not the case, please update
 <code>applications/body_pose_estimation/body_pose_estimation.yaml</code> and set it to use the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>body_pose_estimation<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--video_device /dev/video0&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>body_pose_estimation<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--video_device /dev/video0&quot;</span>
 </code></pre></div></p>
 <h2 id="video-replayer-support">Video Replayer Support<a class="headerlink" href="#video-replayer-support" title="Permanent link">#</a></h2>
 <p>If you don't have a v4l2 compatible device plugged in, you may also run this application on a pre-recorded video.
 To launch the application using the Video Stream Replayer as the input source, run:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>body_pose_estimation<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--source replayer&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>body_pose_estimation<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source replayer&quot;</span>
 </code></pre></div>
 <h2 id="dds-support">DDS Support<a class="headerlink" href="#dds-support" title="Permanent link">#</a></h2>
 <p>This application supports using a DDS video stream as the input as well as
@@ -13357,7 +13357,7 @@ publishing the output video stream back to DDS. To enable DDS, the application
 must first be built with the DDS operators enabled. Only the subscriber or
 publisher operators need to be enabled for the sake of input or output video
 streams, respectively, but to enable both use the following:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>body_pose_estimation<span class="w"> </span>--with<span class="w"> </span><span class="s2">&quot;dds_video_subscriber;dds_video_publisher&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>--local<span class="w"> </span>body_pose_estimation<span class="w"> </span>--build-with<span class="w"> </span><span class="s2">&quot;dds_video_subscriber;dds_video_publisher&quot;</span>
 </code></pre></div>
 <p>Note that building these operators requires <a href="https://content.rti.com/l/983311/2024-04-30/pz1wms">RTI Connext</a>
 be installed. See the <a href="../../operators/dds/video/">DDS Operator Documentation</a>
@@ -13365,7 +13365,7 @@ for more information on how to build the operators. If using a development
 container, see the <a href="#using-a-development-container-with-dds-support">additional instructions below</a>.</p>
 <p>To use a DDS video stream as the input to the application, use the <code>-s=dds</code>
 argument when running the application:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>body_pose_estimation<span class="w"> </span>--extra_args<span class="w"> </span>-s<span class="o">=</span>dds
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>launch<span class="w"> </span>--local<span class="w"> </span>body_pose_estimation<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-s=dds</span>
 </code></pre></div>
 <p>To publish the output result to DDS, edit the <code>body_pose_estimation.yaml</code>
 configuration file so that the <code>dds_publisher</code> <code>enable</code> option is <code>true</code>:</p>
@@ -13381,12 +13381,11 @@ application, the <a href="../dds/dds_video/">dds_video</a> application can be us
 For example, the following will use the <code>dds_video</code> application to capture
 video from the default V4L2 device and publish it to DDS so that it can be
 received as input by this application:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>dds_video
-./run<span class="w"> </span>launch<span class="w"> </span>dds_video<span class="w"> </span>--extra_args<span class="w"> </span><span class="s2">&quot;-p -i 0&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--local<span class="w"> </span>dds_video<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-p -i 0&quot;</span>
 </code></pre></div>
 <p>And the following will use the <code>dds_video</code> application to receive and render
 the output published by this application:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>dds_video<span class="w"> </span>--extra_args<span class="w"> </span><span class="s2">&quot;-s -i 1&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--local<span class="w"> </span>dds_video<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-s -i 1&quot;</span>
 </code></pre></div>
 <h3 id="using-a-development-container-with-dds-support">Using a Development Container with DDS Support<a class="headerlink" href="#using-a-development-container-with-dds-support" title="Permanent link">#</a></h3>
 <p>Installing RTI Connext into the development container is not currently
@@ -13395,7 +13394,7 @@ be installed onto the host and then mounted into the container at runtime.
 To mount RTI Connext into the container, ensure that the <code>NDDSHOME</code> and
 <code>CONNEXTDDS_ARCH</code> environment variables are set (which can be done using the RTI
 <code>setenv</code> script) then use the following:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:bpe<span class="w"> </span>--docker_opts<span class="w"> </span><span class="s2">&quot;-v </span><span class="nv">$NDDSHOME</span><span class="s2">:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=</span><span class="nv">$CONNEXTDDS_ARCH</span><span class="s2">&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>body_pose_estimation<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-v </span><span class="nv">$NDDSHOME</span><span class="s2">:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=</span><span class="nv">$CONNEXTDDS_ARCH</span><span class="s2">&quot;</span>
 </code></pre></div>
 <h3 id="known-issues">Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">#</a></h3>
 <p>There is a known issue running this application on IGX w/ iGPU and on Jetson AGX (see <a href="https://github.com/nvidia-holoscan/holohub/issues/500">#500</a>).

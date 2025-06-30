@@ -13336,10 +13336,10 @@
 </ul>
 <h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the gRPC Server</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>grpc_h264_endoscopy_tool_tracking<span class="w"> </span>--run_args<span class="w"> </span>cloud<span class="w"> </span><span class="o">[</span>--language<span class="w"> </span>cpp<span class="o">]</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>grpc_h264_endoscopy_tool_tracking<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;cloud&quot;</span><span class="w"> </span><span class="o">[</span>--language<span class="w"> </span>cpp<span class="o">]</span>
 
 <span class="c1"># Start the gRPC Client</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>grpc_h264_endoscopy_tool_tracking<span class="w"> </span>--run_args<span class="w"> </span>edge<span class="w"> </span><span class="o">[</span>--language<span class="w"> </span>cpp<span class="o">]</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>grpc_h264_endoscopy_tool_tracking<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;edge&quot;</span><span class="w"> </span><span class="o">[</span>--language<span class="w"> </span>cpp<span class="o">]</span>
 </code></pre></div>
 <p>Important: on aarch64, applications also need tegra folder mounted inside the container and
 the <code>LD_LIBRARY_PATH</code> environment variable should be updated to include
@@ -13350,7 +13350,7 @@ ENV<span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o
 </code></pre></div>
 <h2 id="dev-container">Dev Container<a class="headerlink" href="#dev-container" title="Permanent link">#</a></h2>
 <p>To start the the Dev Container, run the following command from the root directory of Holohub:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>vscode<span class="w"> </span>h264
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>vscode<span class="w"> </span>h264
 </code></pre></div>
 <h3 id="vs-code-launch-profiles">VS Code Launch Profiles<a class="headerlink" href="#vs-code-launch-profiles" title="Permanent link">#</a></h3>
 <h4 id="c_1">C++<a class="headerlink" href="#c_1" title="Permanent link">#</a></h4>

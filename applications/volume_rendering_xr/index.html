@@ -13508,7 +13508,7 @@
 - <a href="https://developer-docs.magicleap.cloud/docs/guides/developer-tools/ml-hub/ml-hub-package-manager/">Installing <code>.apk</code> packages with Magic Leap Hub</a></p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
 <p>Run the following command in the top-level HoloHub folder to build and run the host application:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>volume_rendering_xr
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering_xr
 </code></pre></div>
 <p>A QR code will be visible in the console log. Refer to Magic Leap 2 <a href="https://developer-docs.magicleap.cloud/docs/guides/remote-rendering/remote-rendering/#:~:text=Put%20on%20the%20Magic%20Leap,headset%20by%20looking%20at%20it.&amp;text=The%20QR%20code%20launches%20a,Click%20Continue.">Remote Rendering Setup documentation</a> to pair the host and device in preparation for remote viewing. Refer to the <a href="#starting-the-magic-leap-2-remote-viewer">Remote Viewer</a> section to regenerate the QR code as needed, or to use the local debugger GUI in place of a physical device.</p>
 <p>The application supports the following hand or controller interactions by default:
@@ -13520,32 +13520,31 @@
 <p>We provide a simple test application in <code>utils/xr_hello_holoscan</code> for validating basic XR functionality. This utility uses the same XR operators and configuration as the main application but with minimal rendering setup. See <a href="utils/xr_hello_holoscan/">utils/xr_hello_holoscan/README.md</a> for details on running the test utility.</p>
 <h2 id="advanced-setup">Advanced Setup<a class="headerlink" href="#advanced-setup" title="Permanent link">#</a></h2>
 <p>You can use the <code>--dryrun</code> option to see the individual commands run by the quick start option above:
-<div class="highlight"><pre><span></span><code>./dev_container build_and_run volume_rendering_xr --dryrun
+<div class="highlight"><pre><span></span><code>./holohub run volume_rendering_xr --dryrun
 </code></pre></div></p>
 <p>Alternatively, follow the steps below to set up the interactive container session.</p>
 <h3 id="build-the-container">Build the Container<a class="headerlink" href="#build-the-container" title="Permanent link">#</a></h3>
 <p>Run the following commands to build and enter the interactive container environment:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr<span class="w"> </span>--docker_file<span class="w"> </span>./applications/volume_rendering_xr/Dockerfile<span class="w"> </span><span class="c1"># Build the dev container</span>
-./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr<span class="w"> </span><span class="c1"># Launch the container</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>volume_rendering_xr<span class="w"> </span><span class="c1"># Build and launch the container</span>
 </code></pre></div></p>
 <h3 id="build-the-application">Build the Application<a class="headerlink" href="#build-the-application" title="Permanent link">#</a></h3>
 <p>Inside the container environment, build the application:
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>volume_rendering_xr<span class="w"> </span><span class="c1"># Build the application</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>volume_rendering_xr<span class="w"> </span><span class="c1"># Build the application</span>
 </code></pre></div></p>
 <h3 id="run-the-application">Run the Application<a class="headerlink" href="#run-the-application" title="Permanent link">#</a></h3>
 <p>Inside the container environment, start the application:
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ML_START_OPTIONS</span><span class="o">=</span>&lt;<span class="s2">&quot;&quot;</span>/<span class="s2">&quot;debug&quot;</span>&gt;<span class="w"> </span><span class="c1"># Defaults to &quot;debug&quot; to run XR device simulator GUI</span>
-./run<span class="w"> </span>launch<span class="w"> </span>volume_rendering_xr
+./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering_xr
 </code></pre></div></p>
 <h3 id="deploying-as-a-standalone-application">Deploying as a Standalone Application<a class="headerlink" href="#deploying-as-a-standalone-application" title="Permanent link">#</a></h3>
 <p><code>volume_rendering_xr</code> can be packaged in a self-contained release container with datasets and binaries.</p>
 <p>To build the release container:
 <div class="highlight"><pre><span></span><code><span class="c1"># Generate HoloHub `volume_rendering_xr` installation in the &quot;holohub/install&quot; folder</span>
-./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr<span class="w"> </span>-c<span class="w"> </span>./run<span class="w"> </span>build<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--configure-args<span class="w"> </span><span class="s2">&quot;-DCMAKE_INSTALL_PREFIX:PATH=/workspace/holohub/install&quot;</span>
-./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr<span class="w"> </span>-c<span class="w"> </span>cmake<span class="w"> </span>--build<span class="w"> </span>./build<span class="w"> </span>--target<span class="w"> </span>install
+./holohub<span class="w"> </span>build<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DCMAKE_INSTALL_PREFIX:PATH=/workspace/holohub/install&quot;</span>
+./holohub<span class="w"> </span>run-container<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--entrypoint=bash&quot;</span><span class="w"> </span>--<span class="w"> </span>-c<span class="w"> </span>cmake<span class="w"> </span>--build<span class="w"> </span>./build<span class="w"> </span>--target<span class="w"> </span>install
 
 <span class="c1"># Copy files into a release container</span>
-./dev_container<span class="w"> </span>build<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr_rel<span class="w"> </span>--docker_file<span class="w"> </span>./applications/volume_rendering_xr/scripts/Dockerfile.rel<span class="w"> </span>--base_img<span class="w"> </span>nvcr.io/nvidia/cuda:12.4.1-runtime-ubuntu22.04
+./holohub<span class="w"> </span>build-container<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr_rel<span class="w"> </span>--docker-file<span class="w"> </span>./applications/volume_rendering_xr/scripts/Dockerfile.rel<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/cuda:12.4.1-runtime-ubuntu22.04
 </code></pre></div></p>
 <p>To run the release container, first create the container startup script:
 <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>holohub:volume_rendering_xr_rel<span class="w"> </span>&gt;<span class="w"> </span>./render-volume-xr
@@ -13563,7 +13562,7 @@ chmod<span class="w"> </span>+x<span class="w"> </span>./render-volume-xr
 <p>This application loads static volume files from the local disk. See HoloHub <a href="../../operators/volume_loader/#supported-formats"><code>VolumeLoaderOp</code></a> documentation for supported volume formats and file conversion tools.</p>
 <h3 id="launch-options">Launch Options<a class="headerlink" href="#launch-options" title="Permanent link">#</a></h3>
 <p>Use the <code>--extra-args</code> to see all options, including how to specify a different dataset or configuration file to use.
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--extra_args<span class="w"> </span>--help
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--help&quot;</span>
 ...
 Holoscan<span class="w"> </span>OpenXR<span class="w"> </span>volume<span class="w"> </span>renderer.Usage:<span class="w"> </span>/workspace/holohub/build/applications/volume_rendering_xr/volume_rendering_xr<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
 Options:
@@ -13573,8 +13572,8 @@ Options:
 <span class="w">  </span>-m<span class="w"> </span>&lt;FILENAME&gt;,<span class="w"> </span>--mask<span class="w"> </span>&lt;FILENAME&gt;<span class="w">      </span>Name<span class="w"> </span>of<span class="w"> </span>mask<span class="w"> </span>volume<span class="w"> </span>file<span class="w"> </span>to<span class="w"> </span>load<span class="w"> </span><span class="o">(</span>default<span class="w"> </span><span class="s1">&#39;/workspace/holoscan-openxr/data/volume_rendering/smoothmasks.seg.mhd&#39;</span><span class="o">)</span>
 </code></pre></div></p>
 <p>To use a new dataset with the application, mount its volume location from the host machine when launching the container and pass all required arguments explicitly to the executable:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--as_root<span class="w"> </span>--img<span class="w"> </span>holohub:openxr-dev<span class="w"> </span>--add-volume<span class="w"> </span>/host/path/to/data-dir
-&gt;&gt;&gt;<span class="w"> </span>./build/applications/volume_rendering_xr/volume_rendering_xr<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub:openxr-dev<span class="w"> </span>--add-volume<span class="w"> </span>/host/path/to/data-dir
+./build/applications/volume_rendering_xr/volume_rendering_xr<span class="w"> </span><span class="se">\</span>
 <span class="w">      </span>-c<span class="w"> </span>/workspace/holohub/data/volume_rendering/config.json<span class="w"> </span><span class="se">\</span>
 <span class="w">      </span>-d<span class="w"> </span>/workspace/volumes/path/to/data-dir/dataset.nii.gz<span class="w"> </span><span class="se">\</span>
 <span class="w">      </span>-m<span class="w"> </span>/workspace/volumes/path/to/data-dir/dataset.seg.nii.gz
@@ -13614,25 +13613,25 @@ manipulating configuration values, along with <a href="../../operators/volume_re
 <h4 id="libraries-are-missing-when-building-the-application-vulkan-openxr-etc">Libraries are missing when building the application (Vulkan, OpenXR, etc)<a class="headerlink" href="#libraries-are-missing-when-building-the-application-vulkan-openxr-etc" title="Permanent link">#</a></h4>
 <p>This error may indicate that you are building inside the default HoloHub container instead of the expected <code>volume_rendering_xr</code> container.
 Review the <a href="#build-the-application">build steps</a> and ensure that you have launched the container with the appropriate
-<code>dev_container --img</code> option.</p>
+<code>holohub run-container --img</code> option.</p>
 <h4 id="unexpected-cmake-errors">Unexpected CMake errors<a class="headerlink" href="#unexpected-cmake-errors" title="Permanent link">#</a></h4>
 <p>You may need to clear your CMake build cache. See the HoloHub <a href="https://github.com/nvidia-holoscan/holohub/blob/main/README.md#cleanup">Cleaning</a> section for instructions.</p>
 <h4 id="seccomp-errors">"Seccomp" Errors<a class="headerlink" href="#seccomp-errors" title="Permanent link">#</a></h4>
 <p>The Magic Leap Windrunner OpenXR backend and remote rendering host application use seccomp to limit syscalls on Linux platforms.
 You can exempt individual syscalls for local development by adding them to the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/volume_rendering_xr/thirdparty/magicleap/seccomp_whitelist.cfg">application syscall whitelist</a>.</p>
 <h4 id="debug-gui-does-not-appear">Debug GUI does not appear<a class="headerlink" href="#debug-gui-does-not-appear" title="Permanent link">#</a></h4>
-<p>The <code>./run launch volume_rendering_xr</code> command initializes the Magic Leap Windrunner debug GUI by default. If you do not see
+<p>The <code>./holohub run volume_rendering_xr</code> command initializes the Magic Leap Windrunner debug GUI by default. If you do not see
 the debug GUI appear in your application, or if the application appears to stall with no further output after the pairing QR
 code appears, try any of the following:</p>
 <ol>
 <li>
-<p>Manually set the <code>ML_START_OPTIONS</code> environment variable so that <code>run launch</code> initializes with the debug view:
+<p>Manually set the <code>ML_START_OPTIONS</code> environment variable so that <code>holohub run</code> initializes with the debug view:
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ML_START_OPTIONS</span><span class="o">=</span><span class="s2">&quot;debug&quot;</span>
 </code></pre></div></p>
 </li>
 <li>
-<p>Follow <a href="#advanced-setup">Advanced Setup Instructions</a> and add the <code>--as_root</code> option to launch the container with root permissions.
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr<span class="w"> </span>--as_root
+<p>Follow <a href="#advanced-setup">Advanced Setup Instructions</a> and add the <code>-u root</code> option to launch the container with root permissions.
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr<span class="w"> </span>--docker-opts<span class="s2">&quot;-u root&quot;</span>
 </code></pre></div></p>
 </li>
 <li>

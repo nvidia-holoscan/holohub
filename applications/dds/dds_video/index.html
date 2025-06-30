@@ -13299,10 +13299,10 @@ for details.</p>
 </blockquote>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the publisher</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>dds_video<span class="w"> </span>--container_args<span class="w"> </span><span class="s2">&quot;-v </span><span class="nv">$HOME</span><span class="s2">/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/&quot;</span><span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;-p&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>dds_video<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-v </span><span class="nv">$HOME</span><span class="s2">/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/&quot;</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-p&quot;</span>
 
 <span class="c1"># Start the subscriber</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>dds_video<span class="w"> </span>--container_args<span class="w"> </span><span class="s2">&quot;-v </span><span class="nv">$HOME</span><span class="s2">/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/&quot;</span><span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;-s&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>dds_video<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-v </span><span class="nv">$HOME</span><span class="s2">/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/&quot;</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-s&quot;</span>
 </code></pre></div>
 <h2 id="building-the-application">Building the Application<a class="headerlink" href="#building-the-application" title="Permanent link">#</a></h2>
 <p>To build on an IGX devkit (using the <code>armv8</code> architecture), follow the
@@ -13312,7 +13312,7 @@ up to, and including, step 5 (Installing Java and setting JREHOME).</p>
 the installation path for RTI Connext. This can be done automatically by setting
 the <code>NDDSHOME</code> environment variable to the RTI Connext installation directory
 (such as when using the RTI <code>setenv</code> scripts), or manually at build time, e.g.:</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./run<span class="w"> </span>build<span class="w"> </span>dds_video<span class="w"> </span>--configure-args<span class="w"> </span>-DRTI_CONNEXT_DDS_DIR<span class="o">=</span>~/rti/rti_connext_dds-7.3.0
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>--local<span class="w"> </span>dds_video<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0&quot;</span>
 </code></pre></div>
 <h3 id="building-with-a-container">Building with a Container<a class="headerlink" href="#building-with-a-container" title="Permanent link">#</a></h3>
 <p>Due to the license requirements of RTI Connext it is not currently supported to
@@ -13321,12 +13321,10 @@ installed onto the host as above and then the development container can be
 launched with the RTI Connext folder mounted at runtime. To do so, ensure that
 the <code>NDDSHOME</code> and <code>CONNEXTDDS_ARCH</code> environment variables are set (which can be
 done using the RTI <code>setenv</code> script) and use the following:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># 1. Build the container</span>
-./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>applications/dds/dds_video/Dockerfile
-<span class="c1"># 2. Launch the container</span>
-./dev_container<span class="w"> </span>launch<span class="w"> </span>--docker_opts<span class="w"> </span><span class="s2">&quot;-v </span><span class="nv">$HOME</span><span class="s2">/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Build and launch the container</span>
+./holohub<span class="w"> </span>run-container<span class="w"> </span>dds_video<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-v </span><span class="nv">$HOME</span><span class="s2">/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/&quot;</span>
 <span class="c1"># 3. Build the application</span>
-./run<span class="w"> </span>build<span class="w"> </span>dds_video
+./holohub<span class="w"> </span>build<span class="w"> </span>dds_video
 <span class="c1"># Continue to the next section to run the application with the publisher. </span>
 <span class="c1"># Open a new terminal to repeat step #2 and launch a new container for the subscriber.</span>
 </code></pre></div>
@@ -13334,10 +13332,10 @@ done using the RTI <code>setenv</code> script) and use the following:</p>
 <p>Both a publisher and subscriber process must be launched to see the result of
 writing to and reading the video stream from DDS, respectively.</p>
 <p>To run the publisher process, use the <code>-p</code> option:</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./run<span class="w"> </span>launch<span class="w"> </span>dds_video<span class="w"> </span>--extra_args<span class="w"> </span><span class="s2">&quot;-p&quot;</span>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>--no-local-build<span class="w"> </span>dds_video<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-p&quot;</span>
 </code></pre></div>
 <p>To run the subscriber process, use the <code>-s</code> option:</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./run<span class="w"> </span>launch<span class="w"> </span>dds_video<span class="w"> </span>--extra_args<span class="w"> </span><span class="s2">&quot;-s&quot;</span>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>--no-local-build<span class="w"> </span>dds_video<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-s&quot;</span>
 </code></pre></div>
 <p>If running the application generates an error about <code>RTI Connext DDS No Source
 for License information</code>, ensure that the RTI Connext license has either been

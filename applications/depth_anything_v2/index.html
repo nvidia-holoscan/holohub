@@ -13326,17 +13326,17 @@ The model is downloaded when building the Docker image.</p>
 <h3 id="v4l2-support">V4L2 Support<a class="headerlink" href="#v4l2-support" title="Permanent link">#</a></h3>
 <p>This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>depth_anything_v2
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>depth_anything_v2
 </code></pre></div></p>
 <p>By default, this application expects the input device to be mounted at <code>/dev/video0</code>.  If this is not the case, update
 <code>applications/depth_anything_v2/depth_anything_v2.yaml</code> file to set the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>depth_anything_v2<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--video_device /dev/video0&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>depth_anything_v2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--video_device /dev/video0&quot;</span>
 </code></pre></div></p>
 <h3 id="video-replayer-support">Video Replayer Support<a class="headerlink" href="#video-replayer-support" title="Permanent link">#</a></h3>
 <p>If you don't have a v4l2 compatible device plugged in, you can also run this application on a pre-recorded video.
 To launch the application using the Video Stream Replayer as the input source, run:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>depth_anything_v2<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot;--source replayer&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>depth_anything_v2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source replayer&quot;</span>
 </code></pre></div>
 <h3 id="display-modes">Display Modes<a class="headerlink" href="#display-modes" title="Permanent link">#</a></h3>
 <p>This application has multiple display modes which you can toggle through using the left mouse button.</p>

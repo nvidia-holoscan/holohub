@@ -13265,26 +13265,20 @@
 <h2 id="quick-start-guide">Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Permanent link">#</a></h2>
 <h3 id="1-build-the-docker-image">1. Build the Docker Image<a class="headerlink" href="#1-build-the-docker-image" title="Permanent link">#</a></h3>
 <p>Run the following command in the top-level HoloHub directory:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>./applications/xr_holoviz/Dockerfile<span class="w"> </span>--img<span class="w"> </span>holohub:xr_holoviz
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build-container<span class="w"> </span>xr_holoviz
 </code></pre></div></p>
 <h3 id="2-run-the-application">2. Run the application<a class="headerlink" href="#2-run-the-application" title="Permanent link">#</a></h3>
 <h4 id="terminal-1-launch-container-and-start-monado-service">Terminal 1: Launch Container and Start Monado Service<a class="headerlink" href="#terminal-1-launch-container-and-start-monado-service" title="Permanent link">#</a></h4>
-<p><div class="highlight"><pre><span></span><code><span class="c1"># Launch the container</span>
-./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:xr_holoviz
-
-<span class="c1"># Inside the container, start the Monado service</span>
-monado-service
+<p><div class="highlight"><pre><span></span><code><span class="c1"># Launch the container and start the Monado service</span>
+./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>holohub:xr_holoviz<span class="w"> </span>--<span class="w"> </span>monado-service
 </code></pre></div>
 Keep this terminal open and running.</p>
 <h4 id="terminal-2-build-and-run-the-application">Terminal 2: Build and Run the Application<a class="headerlink" href="#terminal-2-build-and-run-the-application" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c1"># Enter the same container (replace &lt;container_id&gt; with actual ID from &#39;docker ps&#39;)</span>
 docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;container_id&gt;<span class="w"> </span>bash
 
-<span class="c1"># Build the application</span>
-./run<span class="w"> </span>build<span class="w"> </span>xr_holoviz
-
-<span class="c1"># Run the application</span>
-./run<span class="w"> </span>launch<span class="w"> </span>xr_holoviz
+<span class="c1"># Build and run the application</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>xr_holoviz
 </code></pre></div>
 <h4 id="set-up-width-and-height-correctly">Set up width and height correctly<a class="headerlink" href="#set-up-width-and-height-correctly" title="Permanent link">#</a></h4>
 <p>The width and height of the HolovizOp should be set to the width and height of the XR display, which can only be obtained during runtime. To set the width and height correctly, we need to:</p>
