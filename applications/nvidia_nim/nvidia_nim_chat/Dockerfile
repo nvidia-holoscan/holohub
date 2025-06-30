@@ -50,6 +50,7 @@ ARG CMAKE_BUILD_TYPE=Release
 
 
 COPY applications/nvidia_nim/nvidia_nim_chat/requirements.txt /tmp/requirements.txt
+RUN sed -i '/holoscan/d' /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt --no-cache-dir
 
 WORKDIR /workspace/holohub
