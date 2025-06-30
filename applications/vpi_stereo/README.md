@@ -34,9 +34,9 @@ AGX, or NX).
 
 Using default video source (same as stereo_vision application):
 ```sh
-./dev_container build_and_run vpi_stereo
+./holohub run vpi_stereo
 ```
 Using a v4l2 video source (live camera or loopback device):
 ```sh
-./dev_container build_and_run vpi_stereo --run_args "--source v4l2"
+./holohub run vpi_stereo --run-args="--source v4l2"
 ```

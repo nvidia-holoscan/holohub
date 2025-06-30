@@ -18,6 +18,7 @@
 				"2.1.0"
 			]
 		},
+		"dockerfile": "applications/distributed/ucx/ucx_endoscopy_tool_tracking/Dockerfile",
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Healthcare AI", "Distributed", "Surgical AI", "Endoscopy", "Video", "Computer Vision and Perception", "Segmentation"],
 		"ranking": 0,
