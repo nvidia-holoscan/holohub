@@ -9,6 +9,13 @@ Please review the [CONTRIBUTING.md file](https://github.com/nvidia-holoscan/holo
 
 ## HoloHub Workflow Organization Conventions
 
+## Starting a New Project with HoloHub CLI (Recommended)
+
+Use the HoloHub CLI tool when starting a new project to generate a project folder with files in compliance with HoloHub conventions out of the box.
+```bash
+./holohub create
+```
+
 ### Required Conventions
 
 We expect that a workflow contributed to HoloHub conforms to the following organization:
