@@ -17,7 +17,6 @@ This application is built using Holoscan SDK version {{ cookiecutter.holoscan_ve
 
 1. Clone this repository
 
-
 2. Install dependencies:
 
 3. Build the application:
