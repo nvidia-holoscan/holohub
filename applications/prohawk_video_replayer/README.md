@@ -26,9 +26,18 @@ The operator can be controlled with keyboard shortcuts:
 The following dataset is used by this application:
 [📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data).
 
-##  Building the application
 
-The easiest way to build this application is to use the provided Docker file.
+## Quick Start
+
+To build this application within a container and run it, please use the following command:
+
+```bash
+./holohub run prohawk_video_replayer
+```
+
+For a separate build and run, please see the following instructions:
+
+### Step by step build and run
 
 From the Holohub main directory run the following command:
 
@@ -45,14 +54,14 @@ Then launch the container to build the application:
 Inside the container build the application:
 
   ```bash
-  ./holohub build prohawk_video_replayer --local
+  ./holohub build prohawk_video_replayer
   ```
 
 Inside the container run the application:
 
 - C++:
     ```bash
-    ./holohub run prohawk_video_replayer --language=cpp --local --no-local-build
+    ./holohub run prohawk_video_replayer --language=cpp --no-local-build
     ```
 - Python:
     ```bash
