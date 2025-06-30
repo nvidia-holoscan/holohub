@@ -17,6 +17,13 @@
 # Error out if a command fails
 set -e
 
+# Check if this script is being used and warn about deprecation
+echo "################################################################################"
+echo "WARNING: The dev_container script is deprecated. Please use the ./holohub command instead."
+echo "For more information, see: https://github.com/nvidia-holoscan/holohub"
+echo "################################################################################"
+echo ""
+
 #===============================================================================
 # Default values for environment variables.
 #===============================================================================
