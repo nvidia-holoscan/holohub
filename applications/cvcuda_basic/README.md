@@ -32,7 +32,7 @@ The C++ version of the application can then be built by launching this container
 
 ```bash
 ./holohub run-container cvcuda_basic
->>> ./holohub build cvcuda_basic
+./holohub build cvcuda_basic
 ```
 
 ## Running the Application
