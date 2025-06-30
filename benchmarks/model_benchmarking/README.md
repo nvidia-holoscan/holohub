@@ -7,13 +7,13 @@ model for inferencing. Then, the results are visualized after postprocessing.
 
 ## Usage
 
-As this application is, by default, set to use the
+As this application is, by default, set to use the 
 [ultrasound segmentation](../../applications/ultrasound_segmentation/) example, you can build and run the ultrasound
 segmentation example first, and then try running this benchmarking application.
 
 Build and run the ultrasound segmentation application:
 ```
-./holohub build ultrasound_segmentation --local && ./holohub run ultrasound_segmentation --language=cpp --local --no-local-build
+./run build ultrasound_segmentation && ./run launch ultrasound_segmentation cpp
 ```
 
 Now, this benchmarking application can be built and run. However, before doing so, the v4l2loopback
@@ -40,29 +40,30 @@ Input #0, mov,mp4,m4a,3gp,3g2,mj2, from './data/ultrasound_segmentation/ultrasou
 
 Now, the benchmarking application can be built and run:
 ```
-./holohub build model_benchmarking --local
-./holohub run model_benchmarking --language=<cpp/python> --local --no-local-build
+./run build model_benchmarking
+./run launch model_benchmarking <cpp/python>
 ```
 
 To use a different video, the video can be played via the above `ffmpeg` command.
 
-To use a different model, you can specify the data path in the
-`./holohub run model_benchmarking --language=<cpp/python> --local --no-local-build` command with the `--run-args` option.
+To use a different model, you can specify the data path in the 
+`./run launch model_benchmarking <cpp/python>` command with the `-d` option, and the model name,
+residing in the data path directory, with the `-m` option.
 
 ```
-./holohub run model_benchmarking --language=<cpp/python> --local --no-local-build --run-args="-d <data_path> -m <model_name>"
+./run launch model_benchmarking <cpp/python> --extra_args "-d <data_path> -m <model_name>"
 ```
 
 To check the full list of options, run:
 ```
-./holohub run model_benchmarking --language=<cpp/python> --local --no-local-build --run-args="-h"
+./run launch model_benchmarking <cpp/python> --extra_args "-h"
 ```
 
 ## Capabilities
 This benchmarking application can be used to measure performance of parallel inferences for the same
 model on a single video stream. The `-l` option can be used to specify the number of parallel
 inferences to run. Then, the same model will be loaded to the GPU multiple times defined by the `-l`
-parameter.
+parameter. 
 
 The schematic diagram of this benchmarking application is in Figure 1. The visualization and
 (visualization + postprocessing) steps are marked as grey, as they can optionally be turned off

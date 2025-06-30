@@ -55,40 +55,42 @@ Data collection can be run in the HoloHub base container for both the Endoscopy 
 
 ```bash
 # Build the container
-./holohub build-container release_benchmarking \
+./dev_container build \
+    --img holohub:release_benchmarking \
+    --docker_file benchmarks/release_benchmarking/Dockerfile \
     --base_img nvcr.io/nvidia/clara-holoscan/holoscan:<holoscan-sdk-version>-$(./dev_container get_host_gpu)
 
 # Launch the dev environment
-./holohub run-container release_benchmarking --no-docker-build
+./dev_container launch --img holohub:release_benchmarking
 
 # Inside the container, build the applications in benchmarking mode
-./holohub build endoscopy_tool_tracking --benchmark --local
-./holohub build multiai_ultrasound --benchmark --local
+./run build endoscopy_tool_tracking --benchmark
+./run build multiai_ultrasound --benchmark
 
-./holohub build release_benchmarking --local
+./run build release_benchmarking
 ```
 
 Run the benchmarking script with no arguments to collect performance logs in the `./output` directory.
 ```bash
-./holohub run release_benchmarking --local --no-local-build
+./run launch release_benchmarking
 ```
 
 ## Summarizing Data
 
-After running benchmarks, inside the dev environment, use the application to process data statistics and create bar plot PNGs:
+After running benchmarks, inside the dev environment, use `run launch` to process data statistics and create bar plot PNGs: 
 ```bash
-./holohub run-container release_benchmarking --no-docker-build
-./holohub run release_benchmarking --local --no-local-build --run-args="--process benchmarks/release_benchmarking"
+./dev_container launch --img holohub:release_benchmarking
+./run launch release_benchmarking --extra_args "--process benchmarks/release_benchmarking"
 ```
 
 Alternatively, collect results across platforms. On each machine:
 1. Run benchmarks:
 ```bash
-./holohub run release_benchmarking --local --no-local-build
+./run launch release_benchmarking
 ```
 2. Add platform configuration information:
 ```bash
-./holohub run release_benchmarking --local --no-local-build --run-args="--print" > benchmarks/release_benchmarking/output/platform.txt
+./run launch release_benchmarking --extra_args "--print" > benchmarks/release_benchmarking/output/platform.txt
 ```
 3. Transfer output contents from each platform to a single machine:
 ```bash
@@ -105,7 +107,7 @@ tar xvf benchmarks-<platform-name>
 ```
 4. Use multiple `--process` flags to generate a batch of bar plots for multiple platform results:
 ```bash
-./holohub run release_benchmarking --local --no-local-build --run-args="\
+./run launch release_benchmarking --extra_args "\
     --process benchmarks/release_benchmarking/2.4/x86_64 \
     --process benchmarks/release_benchmarking/2.4/IGX_iGPU \
     --process benchmarks/release/benchmarking/2.4/IGX_dGPU"
@@ -118,10 +120,10 @@ or PDF report with benchmark data with `pandoc` and `Jinja2`.
 
 1. Copy and edit `template/release.json` with information about the benchmarking configuration, including
 the release version, platform configurations, and local paths to processed data. Run
-the application to print JSON-formatted platform details to the console about the current system:
+`./run launch` to print JSON-formatted platform details to the console about the current system:
 ```bash
-./holohub run-container release_benchmarking --no-docker-build
-./holohub run release_benchmarking --local --no-local-build --run-args="--print"
+./dev_container launch --img holohub:release_benchmarking
+./run launch release_benchmarking --extra_args "--print"
 ```
 2. Render the document with the Jinja CLI tool:
 ```bash
@@ -170,11 +172,11 @@ __Benchmark applications are failing silently without writing log files.__
 
 Silent failures may indicate an issue with the underlying applications undergoing benchmarking.
 Try running the applications directly and verify execution is as expected:
-- `./holohub run endoscopy_tool_tracking --language=cpp --local --no-local-build`
-- `./holohub run multiai_ultrasound --language=cpp --local --no-local-build`
+- `./run launch endoscopy_tool_tracking cpp`
+- `./run launch multiai_ultrasound cpp`
 
 In some cases you may need to clear your HoloHub build or data folders to address errors:
-- `./holohub clear-cache`
+- `./run clear_cache`
 - `rm -rf ./data`
 
 ## Developer References
