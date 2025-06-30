@@ -158,7 +158,7 @@ $ ./holohub run-container --img holohub:ngc-sdk-sample-app
 If you have an installation of the Holoscan SDK which is not in a standard path, you may want to provide the root directory of your Holoscan SDK installation.
 
 ```bash
-  ./holohub build --sdk <path to the Holoscan SDK installation directory>
+  ./holohub build --configure-args="-Dholoscan_DIR=/path/to/holoscan/install/lib/cmake/holoscan"
 ```
 
 ### Building a Specific Application
