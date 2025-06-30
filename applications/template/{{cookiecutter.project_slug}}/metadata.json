@@ -25,7 +25,7 @@
 		"dependencies": {},
 		"run": {
 			"command": {% if cookiecutter.language == "python" %}
-				"python3 <holohub_app_source>/src/{{ cookiecutter.project_slug }}.py"
+				"python3 <holohub_app_source>/src/main.py"
 			{% else %}
 				"<holohub_app_bin>/{{ cookiecutter.project_slug }}"
 			{% endif %},
