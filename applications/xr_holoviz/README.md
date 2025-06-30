@@ -9,18 +9,15 @@ This application demonstrates the integration of Holoscan-XR with Holoviz for ex
 
 Run the following command in the top-level HoloHub directory:
 ```bash
-./dev_container build --docker_file ./applications/xr_holoviz/Dockerfile --img holohub:xr_holoviz
+./holohub build-container xr_holoviz
 ```
 
 ### 2. Run the application
 
 #### Terminal 1: Launch Container and Start Monado Service
 ```bash
-# Launch the container
-./dev_container launch --img holohub:xr_holoviz
-
-# Inside the container, start the Monado service
-monado-service
+# Launch the container and start the Monado service
+./holohub run-container --img holohub:xr_holoviz -- monado-service
 ```
 Keep this terminal open and running.
 
@@ -29,11 +26,8 @@ Keep this terminal open and running.
 # Enter the same container (replace <container_id> with actual ID from 'docker ps')
 docker exec -it <container_id> bash
 
-# Build the application
-./run build xr_holoviz
-
-# Run the application
-./run launch xr_holoviz
+# Build and run the application
+./holohub run xr_holoviz
 ```
 
 #### Set up width and height correctly

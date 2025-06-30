@@ -23,13 +23,12 @@ FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu as base
 ############################################################
 # HoloHub run + dev dependencies setup
 ############################################################
-
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 ############################################################
 # Magic Leap base setup
