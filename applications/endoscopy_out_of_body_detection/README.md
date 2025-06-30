@@ -17,7 +17,7 @@ __Note: This application does not include visualization components.__
 Run the following command to build and launch the application on a supported Holoscan platform:
 
 ```bash
-./dev_container build_and_run endoscopy_out_of_body_detection --language <cpp/python>
+./holohub run endoscopy_out_of_body_detection --language=<cpp/python>
 ```
 
 ## Prerequisites
@@ -78,10 +78,10 @@ The application uses `endoscopy_out_of_body_detection.yaml` for configuration. K
 ## Building
 
 ```bash
-./dev_container build
-./dev_container launch
-./run build endoscopy_out_of_body_detection <cpp/python>
-./run launch endoscopy_out_of_body_detection <cpp/python>
+./holohub build-container endoscopy_out_of_body_detection
+./holohub run-container endoscopy_out_of_body_detection
+./holohub build endoscopy_out_of_body_detection --language=<cpp/python>
+./holohub run endoscopy_out_of_body_detection --language=<cpp/python>
 ```
 
 For more information, see the Holohub [README.md](https://github.com/nvidia-holoscan/holohub/blob/main/README.md).
