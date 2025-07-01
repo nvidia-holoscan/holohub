@@ -46,7 +46,7 @@ Next, run the HoloHub Docker container:
 ```sh
 ./holohub run-container \
     --add-volume ${MATLAB_ROOT}/${MATLAB_VERSION} \
-    --docker-opts "-e MATLAB_ROOT=/workspace/volumes/${MATLAB_VERSION}"
+    --docker-opts="-e MATLAB_ROOT=/workspace/volumes/${MATLAB_VERSION}"
 ```
 
 and build the endoscopy tool tracking application to download the necessary data:
