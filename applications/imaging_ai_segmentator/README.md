@@ -153,7 +153,7 @@ With Holoscan CLI, an applications built with Holoscan SDK can be packaged into 
 This example application includes all the necessary files for HAP packaging. First, you should install the application:
 
 ```bash
-./dev_container build_and_install imaging_ai_segmentator
+./holohub install imaging_ai_segmentator
 ```
 
 Then, run the following command to see and use the specific packaging commands.

@@ -20,7 +20,7 @@ Install the package dependencies for HoloHub on your host system. The easiest wa
 
 ```bash
   # if sudo is available
-  sudo ./run setup
+  sudo ./holohub setup
 ```
 
 If you prefer you can also install the dependencies manually, typically including the following:
@@ -48,7 +48,7 @@ details on dependency versions and custom installation.
 
 Run the following to view all build options available for the HoloHub container script:
 ```sh
-$ ./dev_container help build
+$ ./holohub build --help
 ```
 
 ### Custom Base Image
@@ -56,14 +56,14 @@ $ ./dev_container help build
 You may configure a custom base image for building the HoloHub container. For instance, if you want to use a local Holoscan container as the base image, use the following command:
 
 ```bash
-  ./dev_container build --base_img holoscan-sdk-build-x86_64:latest --img holohub:sdk-dev-latest
+  ./holohub build --base-img holoscan-sdk-build-x86_64:latest --img holohub:sdk-dev-latest
 ```
 
 The command above uses the following arguments:
-- `--base_img`  is used to configure the base container image;
-- `--img` defines the fully qualified name of the image output by `./dev_container`.
+- `--base-img`  is used to configure the base container image;
+- `--img` defines the fully qualified name of the image output by `./holohub`.
 
-After ```./dev_container build``` has completed ```docker images``` will list the new image:
+After ```./holohub build``` has completed ```docker images``` will list the new image:
 
 ```bash
 user@ubuntu-20-04:/media/data/github/holohub$ docker images
@@ -84,7 +84,7 @@ Base containers created during the Holoscan SDK build process use the following 
 Several HoloHub applications use a custom Dockerfile to alter or extend the default HoloHub container. Use the following command to build from a custom Dockerfile:
 
 ```bash
-$ ./dev_container build  --docker_file <path_to_dockerfile>  --img holohub-debug:local-sdk-v0.6.0
+$ ./holohub build  --docker-file <path_to_dockerfile>  --img holohub-debug:latest
 ```
 
 Where:
@@ -98,7 +98,7 @@ To print the values for base image, Dockerfile, GPU type, and output image name,
 For example, on an x86_64 system with dGPU, the default build command will print the following values when using the ```--verbose``` option.
 
 ```bash
-user@ubuntu-20-04:/media/data/github/holohub$ ./dev_container build --verbose
+user@ubuntu-20-04:/media/data/github/holohub$ ./holohub build --verbose
 Build (HOLOHUB_ROOT:/media/data/github/holohub)...
 Build (gpu_type_type:dgpu)...
 Build (base_img:nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-dgpu)...
@@ -111,10 +111,10 @@ Build (img:holohub:ngc-v0.6.0-dgpu)...
 
 ### View All Options
 
-Run the command below to view all available launch options in the `dev_container` script:
+Run the command below to view all available launch options in the `holohub` script:
 
 ```sh
-$ ./dev_container help launch
+$ ./holohub run-container --help
 ```
 
 ### Launch a Local Holoscan SDK Container
@@ -122,7 +122,7 @@ $ ./dev_container help launch
 To use a HoloHub container image built with a local Holoscan SDK container:
 
 ```bash
-$ ./dev_container launch --img holohub:local-sdk-latest --local_sdk_root <path_to_holoscan_sdk>
+$ ./holohub run --img holohub:local-sdk-latest --local-sdk-root <path_to_holoscan_sdk>
 ```
 
 ### Launch a Named HoloHub Container
@@ -130,50 +130,27 @@ $ ./dev_container launch --img holohub:local-sdk-latest --local_sdk_root <path_t
 To launch custom HoloHub container with fully qualified name, e.g. "holohub:ngc-sdk-sample-app"
 
 ```bash
-$ ./dev_container launch --img holohub:ngc-sdk-sample-app
+$ ./holohub run-container --img holohub:ngc-sdk-sample-app
 ```
 
 ### Forward X11 Graphics Over SSH
 
 ```bash
-  ./dev_container launch --ssh_x11
+  ./holohub run-container --ssh-x11
 ```
 
 ### Support Nsight Systems profiling in the HoloHub Container
 
 ```bash
-  ./dev_container launch --nsys_profile
+  ./holohub run-container --nsys-profile
 ```
-
-### Print Verbose Output
-
-```sh
-  ./dev_container launch --verbose
-```
-
-For example, on an x86_64 system with dGPU ```./dev_container launch --verbose``` will print the following values.
-
-```bash
-user@ubuntu-20-04:/media/data/github/holohub$ ./dev_container launch  --verbose
-2023-07-10 18:36:53 $ xhost +local:docker
-non-network local connections being added to access control list
-Launch (HOLOHUB_ROOT: /media/data/github/holohub)...
-Launch (mount_device_opt:  --device /dev/video0:/dev/video0 --device /dev/video1:/dev/video1)...
-Launch (conditional_opt:  -v /usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so -v /opt/deltacast/videomaster/Include:/usr/local/deltacast/Include)...
-Launch (local_sdk_opt: )...
-Launch (nvidia_icd_json: /usr/share/vulkan/icd.d/nvidia_icd.json)...
-Launch (image: holohub:ngc-v0.6.0-dgpu)...
-....
-```
-
-Please note that the values of some of the variables will vary depending on configured options, iGPU or dGPU, availability of devices for video capture, or other environment factors.
 
 ## Advanced Options for Building Applications
 
 ### View Build Options
 
 ```sh
-./run -h
+./holohub build --help
 ```
 
 ### Local SDK Path
@@ -181,7 +158,7 @@ Please note that the values of some of the variables will vary depending on conf
 If you have an installation of the Holoscan SDK which is not in a standard path, you may want to provide the root directory of your Holoscan SDK installation.
 
 ```bash
-  ./run build --sdk <path to the Holoscan SDK installation directory>
+  ./holohub build --configure-args="-Dholoscan_DIR=/path/to/holoscan/install/lib/cmake/holoscan"
 ```
 
 ### Building a Specific Application
@@ -189,13 +166,13 @@ If you have an installation of the Holoscan SDK which is not in a standard path,
 By default HoloHub builds all the sample applications that are maintained with the SDK. You can build specific applications by the name of the directory.
 
 ```bash
-  ./run build <application>
+  ./holohub build <application>
 ```
 
 For example:
 
 ```bash
-  ./run build endoscopy_tool_tracking
+  ./holohub build endoscopy_tool_tracking
 ```
 
 Note that CMake will build the application in the directory specified. If there are multiple languages, the script will attempt to build all of them.
@@ -235,13 +212,13 @@ This directory is noted `HOLOHUB_DATA_DIR/holohub_data_dir` in the documentation
 ### Pass additional arguments to the application command
 
 ```bash
-  ./run launch endoscopy_tool_tracking python --extra_args '-r visualizer'
+  ./holohub run endoscopy_tool_tracking python --run-args='-r visualizer'
 ```
 
 ### Profile using Nsight Systems
 
 ```bash
-  ./run launch endoscopy_tool_tracking python --nsys_profile
+  ./holohub run endoscopy_tool_tracking python --nsys-profile
 ```
 
 This will create a Nsight Systems report file in the application working directory. Information on the generated report file is printed on the end of the application log:

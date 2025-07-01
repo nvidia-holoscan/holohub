@@ -178,3 +178,7 @@ This container-first approach ensures consistency and reproducibility across dif
   - Clear Docker images ([doc](https://docs.docker.com/reference/cli/docker/image/prune/)): `docker image prune`
   - Clear Docker buildx cache ([doc](https://docs.docker.com/reference/cli/docker/buildx/prune/)): `docker buildx prune`
   - Clear Docker containers, networks, images ([doc](https://docs.docker.com/reference/cli/docker/system/prune/): `docker system prune`
+
+- All previous arguments containing `_` are changed to `-` consistently (e.g. `--base_img` to `--base-img`).
+
+- `sudo ./holohub` may not work due the filtering of environment variable such as `PATH`.

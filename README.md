@@ -79,18 +79,18 @@ $ cd holohub
 
 Alternatively, download sources as a ZIP archive from the GitHub homepage.
 
-### Build and run command (recommended)
+### HoloHub run command (recommended)
 
-The easiest way to build and run Holohub applications is to use the `./dev_container build_and_run` command.
+The easiest way to build and run Holohub applications is to use the `./holohub run` command.
 
 ```sh
-$ ./dev_container build_and_run <application_name>
+$ ./holohub run <application_name>
 ```
 
-If you want to use a specific based image for the application, you can use the `--base_img` option.
+If you want to use a specific based image for the application, you can use the `--base-img` option.
 
 ```sh
-$ ./dev_container build_and_run --base_img <base_image> <application_name>
+$ ./holohub run --base-img <base_image> <application_name>
 ```
 
 > **NOTE:** The build_and_run command is not supported for all applications and operators, especially applications that requires manual configurations or applications that requires additional datasets. Please refer to the README of each application or operator for more information.
@@ -101,16 +101,10 @@ If you want a more detailed command to build and run a specific application, ple
 
 Holohub provides a default development container that can be used to build and run applications. However several applications and operator requires specific dependencies that are not available in the default development container and are provided by specific docker files. Please refer to the README of each application or operator for more information.
 
-Run the following command to build the default development container. The build may take a few minutes.
+Run the following command to build the development container for a given project. The build may take a few minutes.
 
 ```sh
-$ ./dev_container build
-```
-
-Depending on the application or operator you are building, you may need to point to the specific docker file provided by the application or operator.
-
-```sh
-$ ./dev_container build --docker_file <path_to_the_application_dockerfile>
+$ ./holohub build-container [project_name]
 ```
 
 Check to verify that the image is created:
@@ -122,7 +116,7 @@ holohub         ngc-v3.3.0-dgpu   17e3aa51f129   13 days ago     13.2GB
 ...
 ```
 
-***Note:*** The development container script ```dev_container``` will by default detect if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU) and use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) **`v2.9`** for the [Container build](#container-build-recommended). See [Advanced Container Build Options](/doc/developer.md#advanced-build-options-container) if you would like to use an older version of the SDK as a custom base image.
+***Note:*** The ```holohub``` command line program will by default detect if the system is using an iGPU (integrated GPU) or a dGPU (discrete GPU) and use [NGC's Holoscan SDK container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) for the [Container build](#container-build-recommended). See [Advanced Container Build Options](/doc/developer.md#advanced-build-options-container) if you would like to use an older version of the SDK as a custom base image.
 
 See the [Developer Reference document](/doc/developer.md) for additional options.
 
@@ -131,12 +125,12 @@ See the [Developer Reference document](/doc/developer.md) for additional options
 Launch the Docker container environment:
 
 ```
-$ ./dev_container launch
+$ ./holohub run-container [my_project]
 ```
 
 You are now ready to [build Holohub operators, applications, or packages!](#building-operators-applications-and-packages)
 
-***Note***  The `launch` option will use the default development container built using Holoscan SDK's container from NGC for the local GPU. The script will also inspect for available video devices (V4L2, AJA capture boards, Deltacast capture boards) and the presence of Deltacast's Videomaster SDK and map it into the development container.
+***Note***  The `run-container` option will use the default development container built using Holoscan SDK's container from NGC for the local GPU. The script will also inspect for available video devices (V4L2, AJA capture boards, Deltacast capture boards) and the presence of Deltacast's Videomaster SDK and map it into the development container.
 
 See also: [Advanced Launch Options](/doc/developer.md#advanced-launch-options-container)
 
@@ -152,57 +146,53 @@ The development container has been tested on the following platforms:
 
 (1) On AGX Orin Dev Kit the launch script will add ```--privileged``` and ```--group-add video``` to the docker run command for the reference applications to work. Please also make sure that the current user is member of the group video.
 
-(2) When building Holoscan SDK on AGX Orin Dev Kit from source please add the option  ```--cudaarchs all``` to the ```./run build``` command to include support for AGX Orin's iGPU.
+(2) When building Holoscan SDK on AGX Orin Dev Kit from source please add the option  ```--build-args="--cudaarchs all"``` to the ```./holohub build-container``` command to include support for AGX Orin's iGPU.
 
 # Building Operators, Applications, and Packages
 
 > _Make sure you have either launched your [development container](#container-build-recommended) or [set up your local environment](./doc/developer.md#native-build) before attempting to build Holohub components._
 
-This repository provides a convenience `run` script to abstract some of the CMake build process below.
+This repository provides a convenience `holohub` script to abstract some of the CMake build process below.
 
 Run the following to list existing components available to build:
 
   ```bash
-  ./run list
+  ./holohub run list
   ```
 
-Then run the following to build the component of your choice, using either its name or its path:
+Then run the following to build the component of your choice:
 
   ```bash
   # Build using the component name
-  ./run build <package|application|operator>
-  # Ex: ./run build endoscopy_tool_tracking
-
-  # Build using the component path
-  ./run build ./<pkg|applications|operator>/<name>
-  # Ex: ./run build ./applications/endoscopy_tool_tracking/
+  ./holohub build <package|application|operator>
+  # Ex: ./holohub build endoscopy_tool_tracking
   ```
 
-The build artifacts will be created under `./build/<component_name>` by default to isolate them from other components which might have different build environment requirements. You can override this behavior and other defaults, see `./run build --help` for more details.
+The build artifacts will be created under `./build/<component_name>` by default to isolate them from other components which might have different build environment requirements. You can override this behavior and other defaults, see `./holohub build --help` for more details.
 
 # Running Applications
 
 To list all available applications you can run the following command:
 
   ```bash
-  ./run list_apps
+  ./holohub list
   ```
 
 Then you can run the application using the command:
 
   ```bash
-  ./run launch <application>
-  # Ex: ./run launch endoscopy_tool_tracking
+  ./holohub run <application>
+  # Ex: ./holohub run endoscopy_tool_tracking
   ```
 
 Several applications are implemented in both C++ and Python programming languages.
-You can request a specific implementation as a trailing argument to the `./run launch` command
+You can request a specific implementation as an argument to the `./holohub run` command
 or omit the argument to use the default language.
 For instance, the following command will run the Python implementation of the tool tracking
 endoscopy application:
 
   ```bash
-    ./run launch endoscopy_tool_tracking python
+    ./holohub run endoscopy_tool_tracking --language=python
   ```
 
 The run script reads the "run" command from the metadata.json file for a given application and runs from the "workdir" directory.
@@ -213,7 +203,7 @@ Make sure you build the application (if applicable) before running it.
 You can run the command below to reset your `build` directory:
 
   ```sh
-  ./run clear_cache
+  ./holohub clear-cache
   ```
 
 In some cases you may also want to clear out datasets downloaded by applications to the `data` folder:

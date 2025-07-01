@@ -27,5 +27,5 @@ The YUV image properties are specified using a input spec structure:
 To build and start the application:
 
 ```bash
-./dev_container build_and_run holoviz_yuv
+./holohub run holoviz_yuv
 ```

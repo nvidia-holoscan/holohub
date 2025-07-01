@@ -15,7 +15,7 @@ See the README for the Advanced Network Operator for requirements and system tun
 Note: Dockerfile should be cross-compatible, but has only been tested on x86. Needs to be edited if different versions / architectures are required.
 
 ## Build
-Please refer to the top level Holohub README.md file for information on how to build this application: `./run build network_radar_pipeline`.
+Please refer to the top level Holohub README.md file for information on how to build this application: `./holohub build network_radar_pipeline`.
 
 ## Run
 Note: must properly configure YAML files before running. To run with DPDK as ANO transport layer:

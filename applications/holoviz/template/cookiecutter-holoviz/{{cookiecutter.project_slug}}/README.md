@@ -91,5 +91,5 @@ The YUV image properties are specified using a input spec structure:
 To build and start the application:
 
 ```bash
-./dev_container build_and_run {{ cookiecutter.project_slug }}
+./holohub run {{ cookiecutter.project_slug }}
 ```
