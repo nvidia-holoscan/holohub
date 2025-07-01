@@ -13221,28 +13221,19 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#building" class="md-nav__link">
+  <a href="#building-and-running-the-application" class="md-nav__link">
     <span class="md-ellipsis">
-      Building
+      Building and running the application
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-the-application" class="md-nav__link">
-    <span class="md-ellipsis">
-      Running the Application
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Running the Application">
+    <nav class="md-nav" aria-label="Building and running the application">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#basic-usage" class="md-nav__link">
+  <a href="#running-in-development-mode" class="md-nav__link">
     <span class="md-ellipsis">
-      Basic Usage
+      Running in development mode
     </span>
   </a>
   
@@ -13340,7 +13331,7 @@
 <p><strong>Note: This application does not include visualization components.</strong></p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
 <p>Run the following command to build and launch the application on a supported Holoscan platform:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>endoscopy_out_of_body_detection<span class="w"> </span>--language<span class="w"> </span>cpp
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_out_of_body_detection<span class="w"> </span>--language<span class="w"> </span>cpp
 </code></pre></div>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
 <ul>
@@ -13390,20 +13381,34 @@ python<span class="w"> </span>convert_video_to_gxf_entities.py<span class="w"> <
 <li>Model parameters in the <code>inference</code> section</li>
 <li>Analytics settings for data export</li>
 </ul>
-<h2 id="building">Building<a class="headerlink" href="#building" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build
-./dev_container<span class="w"> </span>launch
-./run<span class="w"> </span>build<span class="w"> </span>endoscopy_out_of_body_detection<span class="w"> </span>cpp
-./run<span class="w"> </span>launch<span class="w"> </span>endoscopy_out_of_body_detection<span class="w"> </span>cpp
+<h2 id="building-and-running-the-application">Building and running the application<a class="headerlink" href="#building-and-running-the-application" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_out_of_body_detection<span class="w"> </span>--language<span class="w"> </span>cpp
 </code></pre></div>
+<p>It builds and starts a Docker container, and then builds and runs the application inside the container.</p>
 <p>For more information, see the Holohub <a href="https://github.com/nvidia-holoscan/holohub/blob/main/README.md">README.md</a>.</p>
-<h2 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>
-<h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h3>
-<p>From your build directory:</p>
+<h3 id="running-in-development-mode">Running in development mode<a class="headerlink" href="#running-in-development-mode" title="Permanent link">#</a></h3>
+<p>You can also run the application with customized arguments, you can use Holohub CLI for creating and starting the Holohub container, and then building and running the application inside the container as follows:</p>
+<ol>
+<li>
+<p>Create and start the Holohub container:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>endoscopy_out_of_body_detection
+</code></pre></div>
+</li>
+<li>
+<p>Build the application:</p>
+<p>Once in the docker container, you can build the application by running the following command:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>endoscopy_out_of_body_detection<span class="w"> </span>--language<span class="w"> </span>python
+</code></pre></div>
+</li>
+<li>
+<p>Run the application:</p>
+<p>After building the application, you can run it from your build directory with the following command for the basic usage and can modify the arguments as needed:</p>
 <div class="highlight"><pre><span></span><code>applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--config<span class="w"> </span>endoscopy_out_of_body_detection.yaml<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--data<span class="w"> </span>../data/endoscopy_out_of_body_detection
 </code></pre></div>
+</li>
+</ol>
 <h3 id="analytics-mode">Analytics Mode<a class="headerlink" href="#analytics-mode" title="Permanent link">#</a></h3>
 <p>To enable analytics and export results to CSV:</p>
 <ol>
