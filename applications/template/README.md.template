@@ -32,7 +32,7 @@ development container to build and run your application.
 In many cases a HoloHub project may be built and run with a single development container command:
 
 ```sh
-./dev_container build_and_run my_project
+./holohub run my_project
 ```
 
 ## Acknowledgements

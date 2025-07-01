@@ -34,11 +34,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 #
 
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
@@ -49,6 +49,7 @@ RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 ARG CMAKE_BUILD_TYPE=Release
 
 COPY applications/nvidia_nim/nvidia_nim_imaging/requirements.txt /tmp/requirements.txt
+RUN sed -i '/holoscan/d' /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt --no-cache-dir
 
 WORKDIR /workspace/holohub
