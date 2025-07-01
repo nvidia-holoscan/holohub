@@ -13198,11 +13198,11 @@ inferencing with a model against a single video data stream in a typical Holosca
 video stream is played via a V4L2 loopback device. Then, the stream is preprocessed and fed to the
 model for inferencing. Then, the results are visualized after postprocessing.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
-<p>As this application is, by default, set to use the 
+<p>As this application is, by default, set to use the
 <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ultrasound_segmentation">ultrasound segmentation</a> example, you can build and run the ultrasound
 segmentation example first, and then try running this benchmarking application.</p>
 <p>Build and run the ultrasound segmentation application:
-<div class="highlight"><pre><span></span><code>./run build ultrasound_segmentation &amp;&amp; ./run launch ultrasound_segmentation cpp
+<div class="highlight"><pre><span></span><code>./holohub run ultrasound_segmentation --language=cpp --local
 </code></pre></div></p>
 <p>Now, this benchmarking application can be built and run. However, before doing so, the v4l2loopback
 must be run first. Check out the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices">notes and prerequisites
@@ -13226,23 +13226,22 @@ Input #0, mov,mp4,m4a,3gp,3g2,mj2, from &#39;./data/ultrasound_segmentation/ultr
 </code></pre></div></p>
 </blockquote>
 <p>Now, the benchmarking application can be built and run:
-<div class="highlight"><pre><span></span><code>./run build model_benchmarking
-./run launch model_benchmarking &lt;cpp/python&gt;
+<div class="highlight"><pre><span></span><code>./holohub run model_benchmarking --language=&lt;cpp/python&gt; --local
 </code></pre></div></p>
 <p>To use a different video, the video can be played via the above <code>ffmpeg</code> command.</p>
-<p>To use a different model, you can specify the data path in the 
-<code>./run launch model_benchmarking &lt;cpp/python&gt;</code> command with the <code>-d</code> option, and the model name,
+<p>To use a different model, you can specify the data path in the
+<code>./holohub run model_benchmarking --language=&lt;cpp/python&gt; --local --no-local-build</code> command with the <code>-d</code> option, and the model name,
 residing in the data path directory, with the <code>-m</code> option.</p>
-<div class="highlight"><pre><span></span><code>./run launch model_benchmarking &lt;cpp/python&gt; --extra_args &quot;-d &lt;data_path&gt; -m &lt;model_name&gt;&quot;
+<div class="highlight"><pre><span></span><code>./holohub run model_benchmarking --language=&lt;cpp/python&gt; --local --no-local-build --run-args=&quot;-d &lt;data_path&gt; -m &lt;model_name&gt;&quot;
 </code></pre></div>
 <p>To check the full list of options, run:
-<div class="highlight"><pre><span></span><code>./run launch model_benchmarking &lt;cpp/python&gt; --extra_args &quot;-h&quot;
+<div class="highlight"><pre><span></span><code>./holohub run model_benchmarking --language=&lt;cpp/python&gt; --local --no-local-build --run-args=&quot;-h&quot;
 </code></pre></div></p>
 <h2 id="capabilities">Capabilities<a class="headerlink" href="#capabilities" title="Permanent link">#</a></h2>
 <p>This benchmarking application can be used to measure performance of parallel inferences for the same
 model on a single video stream. The <code>-l</code> option can be used to specify the number of parallel
 inferences to run. Then, the same model will be loaded to the GPU multiple times defined by the <code>-l</code>
-parameter. </p>
+parameter.</p>
 <p>The schematic diagram of this benchmarking application is in Figure 1. The visualization and
 (visualization + postprocessing) steps are marked as grey, as they can optionally be turned off
 with, respectively, <code>-p</code> and <code>-i</code> options. The figure shows a single video data stream is used in

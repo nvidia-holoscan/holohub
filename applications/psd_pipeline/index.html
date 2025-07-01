@@ -13469,7 +13469,7 @@ usb@1:14.2        usb0       network        Ethernet interface
 ./holohub<span class="w"> </span>build-container<span class="w"> </span>advanced_network<span class="w"> </span>--docker-file<span class="w"> </span>./operators/advanced_network/Dockerfile
 
 <span class="c1"># Add the psd-pipeline deps</span>
-./holohub<span class="w"> </span>build-container<span class="w"> </span>psd_pipeline<span class="w"> </span>--docker-file<span class="w"> </span>./applications/psd_pipeline/Dockerfile<span class="w"> </span>--base-img<span class="w"> </span>holohub:ngc-v3.1.0-dgpu<span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v3.1.0-dgpu
+./holohub<span class="w"> </span>build-container<span class="w"> </span>psd_pipeline<span class="w"> </span>--base-img<span class="w"> </span>holohub:ngc-v3.1.0-dgpu<span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v3.1.0-dgpu
 </code></pre></div></li>
 <li><strong>Launch</strong> the development container with the command:
    <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>psd_pipeline<span class="w"> </span>--no-docker-build<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root --privileged&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v3.1.0-dgpu
