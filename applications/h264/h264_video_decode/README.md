@@ -52,7 +52,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode h264
+./holohub vscode h264
 ```
 
 ### VS Code Launch Profiles
