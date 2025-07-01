@@ -39,7 +39,7 @@
 		},
 		"run": {
 			"command": "bash <holohub_app_source>/run_benchmarks.sh",
-			"workdir": "holohub_app_source"
+			"workdir": "holohub_root"
 		}
 	}
 }
