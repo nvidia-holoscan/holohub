@@ -81,17 +81,37 @@ The application uses `endoscopy_out_of_body_detection.yaml` for configuration. K
 ./holohub run endoscopy_out_of_body_detection --language cpp
 ```
 
+It builds and starts a Docker container, and then builds and runs the application inside the container.
+
 For more information, see the Holohub [README.md](https://github.com/nvidia-holoscan/holohub/blob/main/README.md).
 
-### Basic Usage
+### Running in development mode
 
-From your build directory:
+You can also run the application with customized arguments, you can use Holohub CLI for creating and starting the Holohub container, and then building and running the application inside the container as follows:
 
-```bash
-applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection \
-  --config endoscopy_out_of_body_detection.yaml \
-  --data ../data/endoscopy_out_of_body_detection
-```
+1. Create and start the Holohub container:
+
+    ```bash
+    ./holohub run-container endoscopy_out_of_body_detection
+    ```
+
+2. Build the application:
+
+    Once in the docker container, you can build the application by running the following command:
+
+    ```bash
+    ./holohub build endoscopy_out_of_body_detection --language python
+    ```
+
+3. Run the application:
+
+    After building the application, you can run it from your build directory with the following command for the basic usage and can modify the arguments as needed:
+
+    ```bash
+    applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection \
+      --config endoscopy_out_of_body_detection.yaml \
+      --data ../data/endoscopy_out_of_body_detection
+    ```
 
 ### Analytics Mode
 
