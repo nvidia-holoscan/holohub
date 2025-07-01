@@ -459,7 +459,7 @@ Before submitting your contribution, ensure you've completed:
 
 - [ ] **Code Quality**
   - [ ] Code follows Holoscan SDK coding standards
-  - [ ] All linting checks pass (`./run lint`)
+  - [ ] All linting checks pass (`./holohub lint`)
   - [ ] Code is properly documented with clear comments
   - [ ] Error handling is implemented appropriately
 
@@ -679,7 +679,7 @@ Low latency is crucial for many HoloHub applications. Use these resources for pe
    - Ensure correct build flags are used
 
 2. **Linting Errors**
-   - Run `./run lint` locally before submitting
+   - Run `./holohub lint` locally before submitting
    - Use automated fix commands when available
    - Check code formatting against standards
 
