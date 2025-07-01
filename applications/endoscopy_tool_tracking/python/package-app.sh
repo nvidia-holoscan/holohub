@@ -23,7 +23,7 @@ APP_PATH="$INSTALL_DIR/bin/endoscopy_tool_tracking/python"
 
 if [ ! -d $APP_PATH ]; then
     print_error "Please build the Endoscopy Tool Tracking application first with the following command:"
-    print_error "./dev_container build_and_install endoscopy_tool_tracking"
+    print_error "./holohub install endoscopy_tool_tracking"
     exit -1
 fi
 
