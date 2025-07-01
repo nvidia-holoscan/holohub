@@ -61,8 +61,8 @@ Data collection can be run in the HoloHub base container for both the Endoscopy 
     --base-img nvcr.io/nvidia/clara-holoscan/holoscan:<holoscan-sdk-version>-$(./dev_container get_host_gpu)
 
 # Inside the container, build the applications in benchmarking mode
-./holohub build endoscopy_tool_tracking --benchmark
-./holohub build multiai_ultrasound --benchmark
+./holohub build endoscopy_tool_tracking --benchmark --language=cpp
+./holohub build multiai_ultrasound --benchmark --language=cpp
 
 ./holohub build release_benchmarking
 ```
@@ -120,7 +120,7 @@ the release version, platform configurations, and local paths to processed data.
 `./holohub run` to print JSON-formatted platform details to the console about the current system:
 ```bash
 ./holohub run-container --img holohub:release_benchmarking --no-docker-build
-./holohub run release_benchmarking --no-local-build --run-args "--print"
+./holohub run release_benchmarking --no-local-build --run-args="--print"
 ```
 2. Render the document with the Jinja CLI tool:
 ```bash
