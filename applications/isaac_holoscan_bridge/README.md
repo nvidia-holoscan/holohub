@@ -45,7 +45,7 @@ flowchart LR
 ## Run Instructions
 
 ```bash
-./holohub run --as-root --docker-opts "-e ACCEPT_EULA=Y -e PRIVACY_CONSENT=Y \
+./holohub run --docker-opts="-u root -e ACCEPT_EULA=Y -e PRIVACY_CONSENT=Y \
 -v ${HOME}/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw \
 -v ${HOME}/docker/isaac-sim/cache/ov:/root/.cache/ov:rw \
 -v ${HOME}/docker/isaac-sim/cache/pip:/root/.cache/pip:rw \
