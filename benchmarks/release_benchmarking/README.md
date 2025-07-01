@@ -77,7 +77,7 @@ Run the benchmarking script with no arguments to collect performance logs in the
 After running benchmarks, inside the dev environment, use `./holohub run` to process data statistics and create bar plot PNGs:
 ```bash
 ./holohub run-container --img holohub:release_benchmarking --no-docker-build
-./holohub run release_benchmarking --no-local-build --extra_args "--process benchmarks/release_benchmarking"
+./holohub run release_benchmarking --no-local-build --run-args "--process benchmarks/release_benchmarking"
 ```
 
 Alternatively, collect results across platforms. On each machine:
