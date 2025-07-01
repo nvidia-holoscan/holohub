@@ -35,7 +35,8 @@ class LLM:
         load_dotenv()
         current_dir = os.path.dirname(os.path.abspath(__file__))
         config_path = os.path.join(current_dir, "config.yaml")
-        yaml_config = yaml.safe_load(open(config_path))
+        with open(config_path) as f:
+            yaml_config = yaml.safe_load(f)
         self.config = SimpleNamespace(**yaml_config)
         self._logger = logging.getLogger(__name__)
         # Load the vector db

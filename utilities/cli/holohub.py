@@ -1008,7 +1008,7 @@ class HoloHubCLI:
                     "codespell_ignore_words.txt",
                     "--exclude-file",
                     "codespell.txt",
-                    "--skip=*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data",
+                    "--skip=*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data,./applications/holochat/models",
                 ],
                 check=False,
                 dry_run=args.dryrun,
