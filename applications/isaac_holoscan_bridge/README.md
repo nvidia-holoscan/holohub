@@ -7,11 +7,12 @@ The Isaac Holoscan Bridge is a sophisticated application that demonstrates the i
 It creates a bridge where simulated data, including camera and robotic joint data, from Isaac Sim is processed through a Holoscan pipeline. The application features a virtual camera in Isaac Sim that captures video frames, which are then streamed to a Holoscan pipeline for real-time processing. The processed data is then again displayed in Isaac Sim. The application also streams joint positions from a robot to a Holoscan pipeline. The pipeline modifies these joint positions and feeds them back into the simulation moving the robotic arm.
 
 The pipeline includes several specialized operators:
-* an AsyncDataPushOp for handling data streaming from Isaac Sim to Holoscan
-* a CallbackOp which is handling data transfer from Holoscan to Isaac Sim
-* a SobelOp for image processing (edge detection)
-* a ControlOp for managing arm joint positions
-* and HolovizOp for visualization.
+
+- an AsyncDataPushOp for handling data streaming from Isaac Sim to Holoscan
+- a CallbackOp which is handling data transfer from Holoscan to Isaac Sim
+- a SobelOp for image processing (edge detection)
+- a ControlOp for managing arm joint positions
+- and HolovizOp for visualization.
 
 A unique feature of this application is its bidirectional callback system, where data flows between the simulation and Holoscan pipeline through carefully orchestrated callbacks, enabling real-time interaction between the two systems.
 
@@ -44,7 +45,7 @@ flowchart LR
 ## Run Instructions
 
 ```bash
-./dev_container build_and_run --container_launch_args "--as_root" --container_args "-e ACCEPT_EULA=Y -e PRIVACY_CONSENT=Y \
+./holohub run --docker-opts="-u root -e ACCEPT_EULA=Y -e PRIVACY_CONSENT=Y \
 -v ${HOME}/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw \
 -v ${HOME}/docker/isaac-sim/cache/ov:/root/.cache/ov:rw \
 -v ${HOME}/docker/isaac-sim/cache/pip:/root/.cache/pip:rw \
