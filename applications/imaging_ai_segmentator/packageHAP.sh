@@ -22,7 +22,7 @@ APP_PATH="$GIT_ROOT/install/imaging_ai_segmentator"
 
 if [ ! -d $APP_PATH ]; then
     print_error "Please build the Imaging AI Segmentator application first with the following command:"
-    print_error "./dev_container build_and_install imaging_ai_segmentator"
+    print_error "./holohub install imaging_ai_segmentator"
     exit -1
 fi
 
