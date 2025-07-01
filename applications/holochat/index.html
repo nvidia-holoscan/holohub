@@ -13386,15 +13386,15 @@
 - MCP: Runs as a <a href="https://modelcontextprotocol.io/">Model Context Protocol</a> server that provides Holoscan documentation and code context to upstream LLMs like Claude</p>
 <h3 id="tldr">TLDR; 🥱<a class="headerlink" href="#tldr" title="Permanent link">#</a></h3>
 <p>To run locally:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>holochat<span class="w"> </span>--run_args<span class="w"> </span>--local
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holochat<span class="w"> </span>--run-args<span class="o">=</span>--local
 </code></pre></div>
 To run using the NVIDIA NIM API:
 <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;NVIDIA_API_KEY=&lt;api_key_here&gt;&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>./applications/holochat/.env
 
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>holochat
+./holohub<span class="w"> </span>run<span class="w"> </span>holochat
 </code></pre></div>
 To run as an MCP server:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>holochat<span class="w"> </span>--run_args<span class="w"> </span>--mcp
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holochat<span class="w"> </span>--run-args<span class="o">=</span>--mcp
 </code></pre></div>
 See <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/holochat/MCP_MODE.md">MCP_MODE.md</a> for more details on using MCP mode.</p>
 <h3 id="build-notes">Build Notes: ⚙️<a class="headerlink" href="#build-notes" title="Permanent link">#</a></h3>
@@ -13413,7 +13413,7 @@ See <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/h
 </code></pre></div>
 <h3 id="running-w-local-llm">Running w/ Local LLM 💻<a class="headerlink" href="#running-w-local-llm" title="Permanent link">#</a></h3>
 <p><strong>To build and start the app:</strong>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>holochat<span class="w"> </span>--run_args<span class="w"> </span>--local
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holochat<span class="w"> </span>--run-args<span class="o">=</span>--local
 </code></pre></div>
 Once the LLM is loaded on the GPU and the Gradio app is running, HoloChat should be available at http://127.0.0.1:7860/.</p>
 <h3 id="running-w-nim-api">Running w/ NIM API ☁️<a class="headerlink" href="#running-w-nim-api" title="Permanent link">#</a></h3>
@@ -13424,7 +13424,7 @@ This is where you should place your <a href="https://build.nvidia.com/explore/di
 <div class="highlight"><pre><span></span><code><span class="nv">NVIDIA_API_KEY</span><span class="o">=</span>&lt;api_key_here&gt;
 </code></pre></div></p>
 <p><strong>To build and run the app:</strong>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>holochat
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holochat
 </code></pre></div>
 Once the Gradio app is running, HoloChat should be available at http://127.0.0.1:7860/.</p>
 <h2 id="usage-notes">Usage Notes: 🗒️<a class="headerlink" href="#usage-notes" title="Permanent link">#</a></h2>
@@ -13444,7 +13444,7 @@ Once the Gradio app is running, HoloChat should be available at http://127.0.0.1
 * <strong>Be Specific</strong>: The less open-ended a question is the less likely the model will hallucinate.
 * <strong>Specify Programming Language</strong>: If asking for code, include the desired language (Python or C++).
 * <strong>Provide Code Snippets:</strong> If debugging errors include as much relevant information as possible. Copy and paste the code snippet that produces the error, the abbreviated stack trace, and describe any changes that may have introduced the error.</p>
-<p>In order to demonstrate how to get the most out of HoloChat two example questions are posed below. These examples illustrate how a user can refine their questions and as a result, improve the responses they receive: </p>
+<p>In order to demonstrate how to get the most out of HoloChat two example questions are posed below. These examples illustrate how a user can refine their questions and as a result, improve the responses they receive:</p>
 <hr />
 <p><strong>Worst👎:</strong>
 “Create an app that predicts the labels associated with a video”</p>
