@@ -41,7 +41,7 @@
 		},
 		"run": {
 			"command": "<holohub_app_bin>/xr_holoviz",
-			"workdir": "<holohub_app_bin>"
+			"workdir": "holohub_app_bin"
 		}
 	}
 }

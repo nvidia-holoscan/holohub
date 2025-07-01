@@ -83,7 +83,7 @@
 		},
 		"run": {
 			"command": "ml_start.sh ${ML_START_OPTIONS} && ml_pair.sh && <holohub_app_bin>/xr_hello_holoscan",
-			"workdir": "<holohub_app_bin>"
+			"workdir": "holohub_app_bin"
 		}
 	}
 }
