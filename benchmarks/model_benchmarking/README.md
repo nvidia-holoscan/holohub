@@ -55,7 +55,7 @@ residing in the data path directory, with the `-m` option.
 
 To check the full list of options, run:
 ```
-./holohub run model_benchmarking --language=<cpp/python> --local --no-local-build --run-args "-h"
+./holohub run model_benchmarking --language=<cpp/python> --local --no-local-build --run-args="-h"
 ```
 
 ## Capabilities
