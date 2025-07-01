@@ -35,7 +35,7 @@ There are a couple of options to run the sample application:
 
 ### Run using Docker
 
-To run the sample application with Docker, you must first build and runa Docker image that includes the sample application and its dependencies:
+To run the sample application with Docker, you must first build and run a Docker image that includes the sample application and its dependencies:
 
 ```bash
 # Build and run the Docker images from the root directory of Holohub
