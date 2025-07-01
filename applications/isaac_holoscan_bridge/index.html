@@ -13231,12 +13231,14 @@
 <p>The Isaac Holoscan Bridge is a sophisticated application that demonstrates the integration between NVIDIA's Isaac Simulator and the Holoscan framework.</p>
 <p><img src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/isaac_holoscan_bridge/IsaacSimHoloscanBridge.png?raw=true" alt="isolated" width="800"/></p>
 <p>It creates a bridge where simulated data, including camera and robotic joint data, from Isaac Sim is processed through a Holoscan pipeline. The application features a virtual camera in Isaac Sim that captures video frames, which are then streamed to a Holoscan pipeline for real-time processing. The processed data is then again displayed in Isaac Sim. The application also streams joint positions from a robot to a Holoscan pipeline. The pipeline modifies these joint positions and feeds them back into the simulation moving the robotic arm.</p>
-<p>The pipeline includes several specialized operators:
-* an AsyncDataPushOp for handling data streaming from Isaac Sim to Holoscan
-* a CallbackOp which is handling data transfer from Holoscan to Isaac Sim
-* a SobelOp for image processing (edge detection)
-* a ControlOp for managing arm joint positions
-* and HolovizOp for visualization.</p>
+<p>The pipeline includes several specialized operators:</p>
+<ul>
+<li>an AsyncDataPushOp for handling data streaming from Isaac Sim to Holoscan</li>
+<li>a CallbackOp which is handling data transfer from Holoscan to Isaac Sim</li>
+<li>a SobelOp for image processing (edge detection)</li>
+<li>a ControlOp for managing arm joint positions</li>
+<li>and HolovizOp for visualization.</li>
+</ul>
 <p>A unique feature of this application is its bidirectional callback system, where data flows between the simulation and Holoscan pipeline through carefully orchestrated callbacks, enabling real-time interaction between the two systems.</p>
 <h2 id="flow-diagram">Flow Diagram<a class="headerlink" href="#flow-diagram" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code>flowchart LR
@@ -13262,7 +13264,7 @@
 <li>Nvidia GPU with at least 8GB memory</li>
 </ul>
 <h2 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>--container_launch_args<span class="w"> </span><span class="s2">&quot;--as_root&quot;</span><span class="w"> </span>--container_args<span class="w"> </span><span class="s2">&quot;-e ACCEPT_EULA=Y -e PRIVACY_CONSENT=Y \</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root -e ACCEPT_EULA=Y -e PRIVACY_CONSENT=Y \</span>
 <span class="s2">-v </span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw \</span>
 <span class="s2">-v </span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/docker/isaac-sim/cache/ov:/root/.cache/ov:rw \</span>
 <span class="s2">-v </span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/docker/isaac-sim/cache/pip:/root/.cache/pip:rw \</span>

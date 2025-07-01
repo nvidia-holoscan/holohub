@@ -13280,7 +13280,7 @@
 <p>Get your <a href="https://docs.nvidia.com/nim/nvclip/latest/getting-started.html#generate-an-api-key">API Key</a> and start the sample application.</p>
 <ol>
 <li>Enter your API key in <code>nvidia_nim.yaml</code></li>
-<li><code>./dev_container build_and_run nvidia_nim_nvclip</code></li>
+<li><code>./holohub run nvidia_nim_nvclip</code></li>
 </ol>
 <h2 id="advanced">Advanced<a class="headerlink" href="#advanced" title="Permanent link">#</a></h2>
 <h3 id="configuring-the-sample-application">Configuring the sample application<a class="headerlink" href="#configuring-the-sample-application" title="Permanent link">#</a></h3>
@@ -13309,15 +13309,12 @@ E.g., <code>export API_KEY=...</code></p>
 </code></pre></div>
 <h3 id="build-the-application">Build The Application<a class="headerlink" href="#build-the-application" title="Permanent link">#</a></h3>
 <p>To run the sample application, you must first build a Docker image that includes the sample application and its dependencies:</p>
-<div class="highlight"><pre><span></span><code># Build the Docker images from the root directory of Holohub
-./dev_container build --docker_file applications/nvidia_nim/nvidia_nim_nvclip/Dockerfile
-</code></pre></div>
-<p>Then, run the Docker image:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch
+<div class="highlight"><pre><span></span><code><span class="c1"># Build and run the Docker images from the root directory of Holohub</span>
+./holohub<span class="w"> </span>run-container<span class="w"> </span>nvidia_nim_nvclip
 </code></pre></div>
 <h3 id="run-the-application">Run the Application<a class="headerlink" href="#run-the-application" title="Permanent link">#</a></h3>
 <p>To use the NIMs on <a href="https://build.nvidia.com/">build.nvidia.com/</a>, configure your API key in the <code>nvidia_nim.yaml</code> configuration file and run the sample app as follows:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>nvidia_nim_nvclip
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>nvidia_nim_nvclip
 </code></pre></div>
 <h2 id="using-the-application">Using the Application<a class="headerlink" href="#using-the-application" title="Permanent link">#</a></h2>
 <p>Once the application is ready, it will prompt you to input URLs to the images you want to perform inference.</p>

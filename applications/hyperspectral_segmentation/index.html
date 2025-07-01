@@ -13240,16 +13240,13 @@
 <p>The data is a subset of the <a href="https://www.heiporspectral.org/">HeiPorSPECTRAL</a> dataset. The application loops over the 84 cubes selected. The model is the <code>2022-02-03_22-58-44_generated_default_model_comparison</code> checkpoint from <a href="https://github.com/IMSY-DKFZ/htc">this repository</a>, converted to ONNX with the script in <code>utils/convert_to_onnx.py</code>.</p>
 <p><a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/hyperspectral_segmentation">📦️ (NGC) App Data and Model for Hyperspectral Segmentation</a>.  This resource is automatically downloaded when building the application.</p>
 <h2 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h2>
-<p>This application requires some python modules to be installed.  For simplicity, a Dockerfile is available.  To generate the container run:
-<div class="highlight"><pre><span></span><code>./dev_container build --docker_file ./applications/hyperspectral_segmentation/Dockerfile
+<p>This application requires some python modules to be installed. You can simply use Holohub CLI to build and run the application.</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>hyperspectral_segmentation
 </code></pre></div>
-The application can then be built by launching this container and using the provided run script.
-<div class="highlight"><pre><span></span><code>./dev_container launch
-./run build hyperspectral_segmentation
+<p>This single command builds and runs a Docker container, then inside that container, it builds and runs the application.</p>
+<p>To build and run the container without building the application, you can use the following command:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>hyperspectral_segmentation
 </code></pre></div>
-Once the application is built it can be launched with the run script.
-<div class="highlight"><pre><span></span><code>./run launch hyperspectral_segmentation
-</code></pre></div></p>
 <h2 id="viewing-results">Viewing Results<a class="headerlink" href="#viewing-results" title="Permanent link">#</a></h2>
 <p>With the default settings, the results of this application are saved to <code>result.png</code> file in the hyperspectral segmentation app directory. Each time a new image is processed, it overwrites <code>result.png</code>.  By opening this image while the application is running, you can see the results as the updates are made (may depend on your image viewer).</p>
 

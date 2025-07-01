@@ -13277,27 +13277,38 @@
 <p>where the image data before Holoscan processing is shown in the left slice view, and the image data with segmentation overlay (after Holoscan processing) is shown in the right slice view.</p>
 <h2 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h2>
 <h3 id="machine-running-3d-slicer">Machine running 3D Slicer<a class="headerlink" href="#machine-running-3d-slicer" title="Permanent link">#</a></h3>
-<p>On the machine running 3D Slicer do:
-1. In 3D Slicer, open the Extensions Manager and install the <code>SlicerOpenIGTLink</code> extension.
-2. Next, load the scene <code>openigtlink_3dslicer/scene/openigtlink_3dslicer.mrb</code> into 3D Slicer.
-3. Go to the <code>OpenIGTLinkIF</code> module and make sure that the <code>SendToHoloscan</code> connector has the IP address of the machine running Holoscan SDK in the <em>Hostname</em> input box (under <em>Properties</em>).
-4. Then activate the two connectors <code>ReceiveFromHoloscan</code> and <code>SendToHoloscan</code> (click <em>Active</em> check box under <em>Properties</em>).</p>
+<p>On the machine running 3D Slicer:</p>
+<ol>
+<li>In 3D Slicer, open the Extensions Manager and install the <code>SlicerOpenIGTLink</code> extension.</li>
+<li>Next, load the scene <code>openigtlink_3dslicer/scene/openigtlink_3dslicer.mrb</code> into 3D Slicer.</li>
+<li>Go to the <code>OpenIGTLinkIF</code> module and make sure that the <code>SendToHoloscan</code> connector has the IP address of the machine running Holoscan SDK in the <em>Hostname</em> input box (under <em>Properties</em>).</li>
+<li>Then activate the two connectors <code>ReceiveFromHoloscan</code> and <code>SendToHoloscan</code> (click <em>Active</em> check box under <em>Properties</em>).</li>
+</ol>
 <h3 id="machine-running-holoscan-sdk">Machine running Holoscan SDK<a class="headerlink" href="#machine-running-holoscan-sdk" title="Permanent link">#</a></h3>
-<p>On the machine running Holoscan SDK do the below steps.</p>
-<p>First, ensure that the <code>host_name</code> parameters of the two <code>OpenIGTLinkRxOp</code> operators (<code>openigtlink_tx_slicer_img</code> and <code>openigtlink_tx_slicer_holoscan</code>) have the IP address of the machine running 3D Slicer.</p>
-<p>Next, the application requires <a href="http://openigtlink.org/">OpenIGTLink</a>. For simplicity a DockerFile is available. To generate the container run:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>./applications/openigtlink_3dslicer/Dockerfile<span class="w"> </span>--img<span class="w"> </span>holohub:openigtlink
-</code></pre></div></p>
-<p>The application can then be built by launching this container and using the provided <code>run</code> script:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:openigtlink
-./run<span class="w"> </span>build<span class="w"> </span>openigtlink_3dslicer
-</code></pre></div></p>
-<p>Then, to run the <code>python</code> application do:
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>openigtlink_3dslicer<span class="w"> </span>python
+<p>On the machine running Holoscan SDK:</p>
+<ol>
+<li><strong>Configure the connection</strong>: Update the <code>host_name</code> parameters in the configuration files for both <code>OpenIGTLinkRxOp</code> operators:</li>
+<li><code>openigtlink_tx_slicer_img</code></li>
+<li><code>openigtlink_tx_slicer_holoscan</code></li>
+</ol>
+<p>Set these to the IP address of the machine running 3D Slicer.</p>
+<div class="highlight"><pre><span></span><code>&gt; **Note**: This application requires [OpenIGTLink](http://openigtlink.org/) to be installed.
 </code></pre></div>
-and to run the <code>cpp</code> application do:
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>openigtlink_3dslicer<span class="w"> </span>cpp
-</code></pre></div></p>
+<ol>
+<li>
+<p><strong>Run the application</strong>: Use the Holohub CLI to launch the application.</p>
+</li>
+<li>
+<p>For the <code>python</code> application:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>openigtlink_3dslicer<span class="w"> </span>--language<span class="w"> </span>python
+</code></pre></div>
+</li>
+<li>
+<p>For the <code>cpp</code> application:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>openigtlink_3dslicer<span class="w"> </span>--language<span class="w"> </span>cpp
+</code></pre></div>
+</li>
+</ol>
 
 
 

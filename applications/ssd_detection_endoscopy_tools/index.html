@@ -13296,7 +13296,7 @@ python graph_surgeon_ssd.py --orig_model epoch24_nms_temp.onnx --new_model epoch
 <br> The main changes in Dockerfile for dGPU: the base image changed to <code>nvcr.io/nvidia/pytorch:22.03-py3</code> instead of the <code>nvcr.io/nvidia/tensorrt:22.03-py3</code> as dGPU's base image; adding the installation of NVTX for optional profiling.
 <br>Build the SDK container following the <a href="https://github.com/nvidia-holoscan/holoscan-sdk#recommended-using-the-run-script">README instructions</a>.
 <br>
- Make sure the directory containing this application and the directory containing the NGC data and models are mounted in the container. Add the <code>-v</code> mount options to the <code>docker run</code> command launched by <code>./run launch</code> in the SDK repo.</p>
+ Make sure the directory containing this application and the directory containing the NGC data and models are mounted in the container. Add the <code>-v</code> mount options to the <code>docker run</code> command launched by <code>./holohub run-container</code> in the SDK repo.</p>
 <ol>
 <li>Make sure the model and data are accessible by the application.
 <br> Make sure the yaml files <code>ssd_endo_model.yaml</code> and <code>ssd_endo_model_with_NMS.yaml</code> are pointing to the right locations for the ONNX model and data. The assumption in the yaml file is that the <code>epoch24_nms.onnx</code> and <code>epoch24.onnx</code> are located at:

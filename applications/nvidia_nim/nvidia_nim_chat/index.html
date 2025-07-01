@@ -13288,7 +13288,7 @@
 <h3 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h3>
 <ol>
 <li>Add API key in <code>nvidia_nim.yaml</code></li>
-<li><code>./dev_container build_and_run nvidia_nim_chat</code></li>
+<li><code>./holohub run nvidia_nim_chat</code></li>
 </ol>
 <h2 id="configuring-the-sample-application">Configuring the sample application<a class="headerlink" href="#configuring-the-sample-application" title="Permanent link">#</a></h2>
 <p>Use the <code>nvidia_nim.yaml</code> configuration file to configure the sample application:</p>
@@ -13305,12 +13305,9 @@
 <h2 id="run-the-sample-application">Run the sample application<a class="headerlink" href="#run-the-sample-application" title="Permanent link">#</a></h2>
 <p>There are a couple of options to run the sample application:</p>
 <h3 id="run-using-docker">Run using Docker<a class="headerlink" href="#run-using-docker" title="Permanent link">#</a></h3>
-<p>To run the sample application with Docker, you must first build a Docker image that includes the sample application and its dependencies:</p>
-<div class="highlight"><pre><span></span><code># Build the Docker images from the root directory of Holohub
-./dev_container build --docker_file applications/nvidia_nim/Dockerfile
-</code></pre></div>
-<p>Then, run the Docker image:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w">  </span>launch
+<p>To run the sample application with Docker, you must first build and run a Docker image that includes the sample application and its dependencies:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Build and run the Docker images from the root directory of Holohub</span>
+./holohub<span class="w"> </span>run-container<span class="w"> </span>nvidia_nim
 </code></pre></div>
 <p>Continue to the <a href="#start-the-application">Start the Application</a> section once inside the Docker container.</p>
 <h3 id="run-the-application-without-docker">Run the Application without Docker<a class="headerlink" href="#run-the-application-without-docker" title="Permanent link">#</a></h3>
@@ -13329,7 +13326,7 @@ E.g., <code>export API_KEY=...</code></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># To use NVIDIA hosted NIMs available on build.nvidia.com, export your API key first</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">API_KEY</span><span class="o">=[</span>enter<span class="w"> </span>your<span class="w"> </span>api<span class="w"> </span>key<span class="w"> </span>here<span class="o">]</span>
 
-./run<span class="w"> </span>launch<span class="w"> </span>nvidia_nim_chat
+./holohub<span class="w"> </span>run<span class="w"> </span>nvidia_nim_chat
 </code></pre></div>
 <p>Have fun!</p>
 <h2 id="connecting-with-locally-hosted-nims">Connecting with Locally Hosted NIMs<a class="headerlink" href="#connecting-with-locally-hosted-nims" title="Permanent link">#</a></h2>

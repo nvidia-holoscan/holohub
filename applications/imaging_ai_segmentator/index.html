@@ -13433,7 +13433,7 @@ python<span class="w"> </span>applications/imaging_ai_segmentator/app.py
 <h2 id="packaging-the-application-for-distribution">Packaging the Application for Distribution<a class="headerlink" href="#packaging-the-application-for-distribution" title="Permanent link">#</a></h2>
 <p>With Holoscan CLI, an applications built with Holoscan SDK can be packaged into a Holoscan Application Package (HAP), which is essentially a Open Container Initiative compliant container image. An HAP is well suited to be distributed for deployment on hosting platforms, be a Docker Compose, Kubernetes, or else. Please refer to Packaging Holoscan Applications in the User Guide for more information.</p>
 <p>This example application includes all the necessary files for HAP packaging. First, you should install the application:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_install<span class="w"> </span>imaging_ai_segmentator
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>install<span class="w"> </span>imaging_ai_segmentator
 </code></pre></div>
 <p>Then, run the following command to see and use the specific packaging commands.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>applications/imaging_ai_segmentator/packageHAP.sh

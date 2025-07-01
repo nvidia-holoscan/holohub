@@ -13267,7 +13267,7 @@ This sample application demonstrates using the Vista-3D NVIDIA Inference Microse
 <h3 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h3>
 <ol>
 <li>Add API key in <code>nvidia_nim.yaml</code></li>
-<li><code>./dev_container build_and_run nvidia_nim_imaging</code></li>
+<li><code>./holohub run nvidia_nim_imaging</code></li>
 </ol>
 <h2 id="configuring-the-sample-application">Configuring the sample application<a class="headerlink" href="#configuring-the-sample-application" title="Permanent link">#</a></h2>
 <p>Use the <code>nvidia_nim.yaml</code> configuration file to configure the sample application:</p>
@@ -13281,8 +13281,8 @@ This sample application demonstrates using the Vista-3D NVIDIA Inference Microse
 <li><code>api_key</code>: Your API key to access NVIDIA-hosted NIMs.</li>
 </ul>
 <h2 id="build-and-run-the-sample-application">Build and Run the sample application<a class="headerlink" href="#build-and-run-the-sample-application" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code># Build the Docker images from the root directory of Holohub
-./dev_container build_and_run nvidia_nim_imaging
+<div class="highlight"><pre><span></span><code><span class="c1"># This first builds and runs the Docker images, then builds and runs the application.</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>nvidia_nim_imaging
 </code></pre></div>
 <h2 id="display-the-results">Display the Results<a class="headerlink" href="#display-the-results" title="Permanent link">#</a></h2>
 <p>In this section, we will show how to view the sample data and segmentation results returned from Vista-3D.</p>

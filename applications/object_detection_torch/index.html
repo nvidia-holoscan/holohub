@@ -13249,7 +13249,7 @@
 <p>This application performs object detection using frcnn resnet50 model from torchvision.
 The inference is executed using <code>torch</code> backend in <code>holoinfer</code> module in Holoscan SDK.</p>
 <p><code>object_detection_torch.yaml</code> is the configuration file. Input video file is converted into GXF tensors and the name and location of the GXF tensors are updated in the <code>basename</code> and the <code>directory</code> field in <code>replayer</code>.</p>
-<p>This application need <code>Libtorch</code> for inferencing. Ensure that the Holoscan SDK is build with <code>build_libtorch</code> flag as true. If not, then rebuild the SDK with following: <code>./run build --build_libtorch true</code> before running this application.</p>
+<p>This application need <code>Libtorch</code> for inferencing. Ensure that the Holoscan SDK is build with <code>build_libtorch</code> flag as true. If not, then rebuild the SDK with following: <code>./holohub build --build_libtorch true</code> before running this application.</p>
 <h2 id="data">Data<a class="headerlink" href="#data" title="Permanent link">#</a></h2>
 <p>To run this application, you will need the following:</p>
 <ul>
@@ -13280,22 +13280,20 @@ The inference is executed using <code>torch</code> backend in <code>holoinfer</c
 <data_dir>/object_detection_torch/frcnn_resnet50_t.yaml
 <data_dir>/object_detection_torch/postprocessing.yaml</p>
 <h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
-<p>If you want to quickly run this application, you can use the <code>./dev_container build_and_run</code> command.</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>object_detection_torch
+<p>If you want to quickly run this application, you can use the <code>./holohub run</code> command.</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>object_detection_torch
 </code></pre></div>
 <p>Otherwise, you can build and run the application using the commands below.</p>
 <h2 id="building-the-application">Building the application<a class="headerlink" href="#building-the-application" title="Permanent link">#</a></h2>
 <p>The best way to run this application is inside the container, as it would provide all the required third-party packages:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Create the container image for this application</span>
-./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>applications/object_detection_torch/Dockerfile<span class="w"> </span>--img<span class="w"> </span>object_detection_torch
-<span class="c1"># Launch the container</span>
-./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>object_detection_torch
-<span class="c1"># Build the application. Note that this downloads the video data as well</span>
-./run<span class="w"> </span>build<span class="w"> </span>object_detection_torch
+<div class="highlight"><pre><span></span><code><span class="c1"># Create and launch the container image for this application</span>
+./holohub<span class="w"> </span>run-container<span class="w"> </span>object_detection_torch
+<span class="c1"># Build the application inside the container. Note that this downloads the video data as well</span>
+./holohub<span class="w"> </span>build<span class="w"> </span>object_detection_torch
 <span class="c1"># Generate the pytorch model</span>
 python3<span class="w"> </span>applications/object_detection_torch/generate_resnet_model.py<span class="w">  </span>data/object_detection_torch/frcnn_resnet50_t.pt
 <span class="c1"># Run the application</span>
-./run<span class="w"> </span>launch<span class="w"> </span>object_detection_torch
+./holohub<span class="w"> </span>run<span class="w"> </span>object_detection_torch
 </code></pre></div>
 <p>Please refer to the top level Holohub README.md file for more information on how to build this application.</p>
 <h2 id="running-the-application">Running the application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>
@@ -13309,7 +13307,7 @@ python3<span class="w"> </span>applications/object_detection_torch/generate_resn
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">LD_LIBRARY_PATH</span><span class="si">}</span><span class="s2">:/opt/hpcx/ompi/lib&quot;</span>
 </code></pre></div>
 <h2 id="containerize-the-application">Containerize the application<a class="headerlink" href="#containerize-the-application" title="Permanent link">#</a></h2>
-<p>To containerize the application using <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html">Holoscan CLI</a>, first build the application using <code>./dev_container build_and_install object_detection_torch</code>, run the <code>package-app.sh</code> script and then follow the generated output to package and run the application.</p>
+<p>To containerize the application using <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html">Holoscan CLI</a>, first build the application using <code>./holohub install object_detection_torch</code>, run the <code>package-app.sh</code> script and then follow the generated output to package and run the application.</p>
 <p>Refer to the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html">Packaging Holoscan Applications</a> section of the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/">Holoscan User Guide</a> to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.</p>
 
 

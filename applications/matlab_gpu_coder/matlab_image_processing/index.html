@@ -13303,25 +13303,22 @@
 <h3 id="arm64-jetson">arm64: Jetson<a class="headerlink" href="#arm64-jetson" title="Permanent link">#</a></h3>
 <p>On an x86 computer with MATLAB installed, <code>cd</code> to the <code>matlab</code> folder and open the <code>generate_image_processing_jetson.m</code> script. Having an <code>ssh</code> connection to the Jetson device you want to build the CUDA DLLs on, specify the parameters of that connection in the <code>hwobj</code> on line 7, also replace <code>&lt;ABSOLUTE_PATH&gt;</code> of <code>cfg.Hardware.BuildDir</code> on line 39, as the absolute path (on the Jetson device) to <code>holohub</code> folder. Run the script and a folder <code>MATLAB_ws</code> will be created in the <code>matlab_image_processing</code> folder.</p>
 <h2 id="configure-holoscan-for-matlab">Configure Holoscan for MATLAB<a class="headerlink" href="#configure-holoscan-for-matlab" title="Permanent link">#</a></h2>
-<p>If you have not already, start by building HoloHub:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build
-</code></pre></div></p>
 <h3 id="x86-ubuntu_1">x86: Ubuntu<a class="headerlink" href="#x86-ubuntu_1" title="Permanent link">#</a></h3>
-<p>Define the environment variable:
+<p>Define the environment variable:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">MATLAB_ROOT</span><span class="o">=</span><span class="s2">&quot;/usr/local/MATLAB&quot;</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">MATLAB_VERSION</span><span class="o">=</span><span class="s2">&quot;R2023b&quot;</span>
 </code></pre></div>
-where you, if need be, replace <code>MATLAB_ROOT</code> with the location of your MATLAB install and <code>MATLAB_VERSION</code> with the correct version.</p>
-<p>Next, run the HoloHub Docker container:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span><span class="se">\</span>
+<p>where you, if need be, replace <code>MATLAB_ROOT</code> with the location of your MATLAB install and <code>MATLAB_VERSION</code> with the correct version.</p>
+<p>Next, run the HoloHub Docker container:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--add-volume<span class="w"> </span><span class="si">${</span><span class="nv">MATLAB_ROOT</span><span class="si">}</span>/<span class="si">${</span><span class="nv">MATLAB_VERSION</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--docker_opts<span class="w"> </span><span class="s2">&quot;-e MATLAB_ROOT=/workspace/volumes/</span><span class="si">${</span><span class="nv">MATLAB_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="w">    </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-e MATLAB_ROOT=/workspace/volumes/</span><span class="si">${</span><span class="nv">MATLAB_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
 </code></pre></div>
-and build the endoscopy tool tracking application to download the necessary data:
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>endoscopy_tool_tracking
-</code></pre></div></p>
+<p>and build the endoscopy tool tracking application to download the necessary data:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>endoscopy_tool_tracking
+</code></pre></div>
 <h3 id="arm64-jetson_1">arm64: Jetson<a class="headerlink" href="#arm64-jetson_1" title="Permanent link">#</a></h3>
-<p>The folder <code>MATLAB_ws</code>, created by MATLAB, mirrors the folder structure of the host machine and is therefore different from one user to another; hence, we need to specify the path to the <code>codegen</code> folder in the <code>CMakeLists.txt</code>, in order for the build to find the required libraries. Set the variable <code>REL_PTH_MATLAB_CODEGEN</code> to the relative path where the <code>codegen</code> folder is located in the <code>MATLAB_ws</code> folder. For example, if GPU Coder created the following folder structure on the Jetson device:
+<p>The folder <code>MATLAB_ws</code>, created by MATLAB, mirrors the folder structure of the host machine and is therefore different from one user to another; hence, we need to specify the path to the <code>codegen</code> folder in the <code>CMakeLists.txt</code>, in order for the build to find the required libraries. Set the variable <code>REL_PTH_MATLAB_CODEGEN</code> to the relative path where the <code>codegen</code> folder is located in the <code>MATLAB_ws</code> folder. For example, if GPU Coder created the following folder structure on the Jetson device:</p>
 <div class="highlight"><pre><span></span><code>matlab_gpu_coder
 └──<span class="w"> </span>MATLAB_ws
 <span class="w">    </span>└──<span class="w"> </span>R2023b
@@ -13335,15 +13332,15 @@ and build the endoscopy tool tracking application to download the necessary data
 <span class="w">                                    </span>└──<span class="w"> </span>matlab
 <span class="w">                                        </span>└──<span class="w"> </span>codegen
 </code></pre></div>
-the variable should be set as:
+<p>the variable should be set as:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">REL_PTH_MATLAB_CODEGEN</span><span class="o">=</span>MATLAB_ws/R2023b/C/Users/Jensen/holohub/applications/matlab_gpu_coder/matlab_image_processing/matlab/codegen
 </code></pre></div>
-Next, run the HoloHub Docker container:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch
+<p>Next, run the HoloHub Docker container:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container
 </code></pre></div>
-and build the endoscopy tool tracking application to download the necessary data:
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>endoscopy_tool_tracking
-</code></pre></div></p>
+<p>and build the endoscopy tool tracking application **inside the container to download the necessary data:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>endoscopy_tool_tracking
+</code></pre></div>
 
 
 
