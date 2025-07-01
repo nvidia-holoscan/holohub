@@ -173,7 +173,7 @@ Try running the applications directly and verify execution is as expected:
 - `./holohub run multiai_ultrasound --language=cpp`
 
 In some cases you may need to clear your HoloHub build or data folders to address errors:
-- `./run clear_cache`
+- `./holohub clear-cache`
 - `rm -rf ./data`
 
 ## Developer References
