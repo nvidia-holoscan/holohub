@@ -1805,27 +1805,21 @@ class HoloHubCLI:
             if len(cmd_args) > 0 and e.code != 0:  # exit code is 0 => help was successfully shown
                 if dash_suggestion:
                     print(f"\n{dash_suggestion}\n", file=sys.stderr)
-                if (  # a valid subcommand but parsing failed, show subcommand usage
-                    potential_command
-                    and not potential_command.startswith("-")
-                    and potential_command in self.subparsers
-                ):
-                    print(f"\n💡 For help with the '{potential_command}' command:", file=sys.stderr)
-                    print(f"  {self.script_name} {potential_command} --help\n", file=sys.stderr)
-                    sys.exit(e.code if e.code is not None else 1)
-                if (  # don't have a valid subcommand
-                    potential_command
-                    and not potential_command.startswith("-")
-                    and potential_command not in self.subparsers
-                ):
-                    # Suggest similar commands using existing utility
-                    suggestions = self._suggest_command(potential_command)
-                    if suggestions:
-                        print("\n💡 Did you mean:", file=sys.stderr)
-                        for cmd in suggestions:
-                            print(f"  {self.script_name} {cmd}", file=sys.stderr)
-                        print(file=sys.stderr)
-                    sys.exit(1)
+
+                if potential_command and not potential_command.startswith("-"):
+                    if potential_command in self.subparsers:
+                        # Valid subcommand but parsing failed
+                        print(f"\n💡 For more help with '{potential_command}':", file=sys.stderr)
+                        print(f"  {self.script_name} {potential_command} --help\n", file=sys.stderr)
+                        sys.exit(e.code if e.code is not None else 1)
+                    else:  # Invalid subcommand - suggest similar ones
+                        suggestions = self._suggest_command(potential_command)
+                        if suggestions:
+                            print("\n💡 Did you mean:", file=sys.stderr)
+                            for cmd in suggestions:
+                                print(f"  {self.script_name} {cmd}", file=sys.stderr)
+                            print(file=sys.stderr)
+                        sys.exit(1)
             raise
         if hasattr(args, "func"):
             args.func(args)
