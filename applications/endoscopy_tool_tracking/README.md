@@ -35,7 +35,7 @@ The pipeline is similar to the one using the recorded video, with the exceptions
 - the [Format Converter](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) in the recording pipeline is used for `record_type: INPUT` also
 #### Building with AJA support
 ```bash
-./run build endoscopy_tool_tracking --with aja_source
+./holohub build --local endoscopy_tool_tracking --build-with="aja_source"
 ```
 #### Hardware keying
 For AJA cards that support Hardware Keying, you can use the `endoscopy_tool_tracking_aja_overlay.yaml` config file to overlay the segmentation results on the input video on the AJA card FPGA. The overlay layer is sent from [Holoviz](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) back to the [AJA Source](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) operator which handles the alpha blending and outputs it to a port of the the AJA card. The blended image is also sent back to the [Holoviz](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) operator (instead of the input video only) for rendering the same image buffer.
@@ -60,10 +60,10 @@ sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_trac
 
 # build and launch the application
 # C++
-./dev_container build_and_run endoscopy_tool_tracking --build_with vtk_renderer --docker_file operators/vtk_renderer/vtk.Dockerfile --language cpp
+./holohub run endoscopy_tool_tracking --build-with="vtk_renderer" --docker-file="operators/vtk_renderer/vtk.Dockerfile" --img holohub:endoscopy_tool_tracking_vtk --language="cpp"
 
 # Python (see below for additional steps)
-./dev_container build_and_run endoscopy_tool_tracking --build_with vtk_renderer --docker_file operators/vtk_renderer/vtk.Dockerfile --language python
+./holohub run endoscopy_tool_tracking --build-with="vtk_renderer" --docker-file="operators/vtk_renderer/vtk.Dockerfile" --img holohub:endoscopy_tool_tracking_vtk --language="python"
 ```
 
 > 💡 Note: To enable VTK renderer in the Python version of the application, open [endoscopy_tool_tracking.py](./python/endoscopy_tool_tracking.py#L41) and uncomment the following lines:
@@ -86,15 +86,15 @@ sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_trac
 
 Arguments:
 
-- `--build_with` : instructs the script to build the application with the `vtk_renderer` operator
-- `--docker_file`: instructs the script to use the `operators/vtk_renderer/vtk.Dockerfile` that includes VTK libraries
+- `--build-with` : instructs the script to build the application with the `vtk_renderer` operator
+- `--docker-file`: instructs the script to use the `operators/vtk_renderer/vtk.Dockerfile` that includes VTK libraries
 
 ## Dev Container
 
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode
+./holohub vscode
 ```
 
 ### VS Code Launch Profiles
@@ -112,6 +112,6 @@ There are a two launch profiles configured for this application:
 
 ## Containerize the application
 
-To containerize the application using [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html), first build the application using `./dev_container build_and_install endoscopy_tool_tracking`, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) or the [python](./python/package-app.sh) directory and then follow the generated output to package and run the application.
+To containerize the application using [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html), first build the application using `./holohub install endoscopy_tool_tracking`, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) or the [python](./python/package-app.sh) directory and then follow the generated output to package and run the application.
 
 Refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/) to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.

@@ -17,7 +17,7 @@ __Note: This application does not include visualization components.__
 Run the following command to build and launch the application on a supported Holoscan platform:
 
 ```bash
-./dev_container build_and_run endoscopy_out_of_body_detection --language cpp
+./holohub run endoscopy_out_of_body_detection --language cpp
 ```
 
 ## Prerequisites
@@ -75,28 +75,43 @@ The application uses `endoscopy_out_of_body_detection.yaml` for configuration. K
 - Model parameters in the `inference` section
 - Analytics settings for data export
 
-## Building
+## Building and running the application
 
 ```bash
-./dev_container build
-./dev_container launch
-./run build endoscopy_out_of_body_detection cpp
-./run launch endoscopy_out_of_body_detection cpp
+./holohub run endoscopy_out_of_body_detection --language cpp
 ```
+
+It builds and starts a Docker container, and then builds and runs the application inside the container.
 
 For more information, see the Holohub [README.md](https://github.com/nvidia-holoscan/holohub/blob/main/README.md).
 
-## Running the Application
+### Running in development mode
 
-### Basic Usage
+You can also run the application with customized arguments, you can use Holohub CLI for creating and starting the Holohub container, and then building and running the application inside the container as follows:
 
-From your build directory:
+1. Create and start the Holohub container:
 
-```bash
-applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection \
-  --config endoscopy_out_of_body_detection.yaml \
-  --data ../data/endoscopy_out_of_body_detection
-```
+    ```bash
+    ./holohub run-container endoscopy_out_of_body_detection
+    ```
+
+2. Build the application:
+
+    Once in the docker container, you can build the application by running the following command:
+
+    ```bash
+    ./holohub build endoscopy_out_of_body_detection --language python
+    ```
+
+3. Run the application:
+
+    After building the application, you can run it from your build directory with the following command for the basic usage and can modify the arguments as needed:
+
+    ```bash
+    applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection \
+      --config endoscopy_out_of_body_detection.yaml \
+      --data ../data/endoscopy_out_of_body_detection
+    ```
 
 ### Analytics Mode
 

@@ -47,7 +47,7 @@ There are two requirements
 <br> The main changes in Dockerfile for dGPU: the base image changed to `nvcr.io/nvidia/pytorch:22.03-py3` instead of the `nvcr.io/nvidia/tensorrt:22.03-py3` as dGPU's base image; adding the installation of NVTX for optional profiling.
 <br>Build the SDK container following the [README instructions](https://github.com/nvidia-holoscan/holoscan-sdk#recommended-using-the-run-script).
 <br>
- Make sure the directory containing this application and the directory containing the NGC data and models are mounted in the container. Add the `-v` mount options to the `docker run` command launched by `./run launch` in the SDK repo.
+ Make sure the directory containing this application and the directory containing the NGC data and models are mounted in the container. Add the `-v` mount options to the `docker run` command launched by `./holohub run-container` in the SDK repo.
 
 2. Make sure the model and data are accessible by the application.
 <br> Make sure the yaml files `ssd_endo_model.yaml` and `ssd_endo_model_with_NMS.yaml` are pointing to the right locations for the ONNX model and data. The assumption in the yaml file is that the `epoch24_nms.onnx` and `epoch24.onnx` are located at:

@@ -31,10 +31,10 @@ The data is automatically downloaded when building the application.
 
 ```bash
 # C++ version
-./dev_container build_and_run h264_endoscopy_tool_tracking --language cpp
+./holohub run h264_endoscopy_tool_tracking --language cpp
 
 # Python version
-./dev_container build_and_run h264_endoscopy_tool_tracking --language python
+./holohub run h264_endoscopy_tool_tracking --language python
 ```
 
 Important: on aarch64, applications also need tegra folder mounted inside the container and
@@ -62,7 +62,7 @@ to `true`.
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode h264
+./holohub vscode h264
 ```
 
 ### VS Code Launch Profiles

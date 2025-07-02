@@ -97,7 +97,7 @@ You can run the application either in your local development environment or insi
       Although this application is implemented entirely in Python and relies on standard PyPI packages, you still may want to set up Holohub environment and use `./holohub build` to help organize the Python code and automatically download the required segmentation model.
 
        ```bash
-       sudo ./run setup
+       sudo ./holohub setup
        ```
 
     - Set environment variables for the application:
@@ -153,7 +153,7 @@ With Holoscan CLI, an applications built with Holoscan SDK can be packaged into 
 This example application includes all the necessary files for HAP packaging. First, you should install the application:
 
 ```bash
-./dev_container build_and_install imaging_ai_segmentator
+./holohub install imaging_ai_segmentator
 ```
 
 Then, run the following command to see and use the specific packaging commands.
