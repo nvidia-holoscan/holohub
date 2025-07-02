@@ -1,0 +1,31 @@
+{
+	"operator": {
+		"name": "advanced_network_media_tx",
+		"authors": [
+			{
+				"name": "Rony Rado",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Network", "Networking", "DPDK", "UDP", "Ethernet", "IP", "GPUDirect", "Rivermax"],
+		"holoscan_sdk": {
+			"minimum_required_version": "2.6.0",
+			"tested_versions": [
+				"2.6.0"
+			]
+		},
+		"ranking": 3,
+		"dependencies": {
+				"operators": [{
+					"name": "advanced_network",
+					"version": "1.4"
+				}
+			   ]
+			}
+		}
+}
