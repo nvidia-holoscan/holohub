@@ -182,7 +182,7 @@ set_property(TEST test_cli_env_info PROPERTY
     PASS_REGULAR_EXPRESSION "Other Relevant Environment Variables"
 )
 
-# test ambigous dash-prefixed arguments
+# test ambiguous dash-prefixed arguments
 add_test(
     NAME test_cli_ambiguous_dash_prefixed_arguments
     COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --run-args --local
