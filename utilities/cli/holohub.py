@@ -26,7 +26,7 @@ import sys
 import tempfile
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
@@ -1767,6 +1767,22 @@ class HoloHubCLI:
         distances.sort(key=lambda x: x[1])
         return [cmd for cmd, dist in distances[:2] if dist <= 2]  # Show up to 2 matches
 
+    def _check_for_dash_prefix_issue(self, cmd_args: List[str]) -> Optional[str]:
+        """
+        Check if the parsing error is likely due to dash-prefixed arguments
+        """
+        DASH_VALUE_ARGS = ["--run-args", "--build-args", "--docker-opts", "--configure-args"]
+        for i, arg in enumerate(cmd_args):
+            if arg in DASH_VALUE_ARGS and "=" not in arg:
+                if i + 1 < len(cmd_args) and cmd_args[i + 1].startswith("-"):
+                    next_arg = cmd_args[i + 1]
+                    return (
+                        f"💡 Tip: ambiguous dash-prefixed arguments, use the equals format:\n"
+                        f"   Instead of: {arg} {next_arg}\n"
+                        f"   Use: {arg}={next_arg}"
+                    )
+        return None
+
     def run(self) -> None:
         """Main entry point for the CLI"""
 
@@ -1776,30 +1792,34 @@ class HoloHubCLI:
             sep = cmd_args.index("--")
             cmd_args, trailing_docker_args = cmd_args[:sep], cmd_args[sep + 1 :]
 
+        potential_command = cmd_args[0] if cmd_args else None
+        dash_suggestion = None
+        if potential_command and potential_command in self.subparsers:
+            dash_suggestion = self._check_for_dash_prefix_issue(cmd_args)
+
         try:
             args = self.parser.parse_args(cmd_args)
             if trailing_docker_args:
                 args._trailing_args = trailing_docker_args  # " -- " used for run-container command
         except SystemExit as e:
             if len(cmd_args) > 0 and e.code != 0:  # exit code is 0 => help was successfully shown
-                potential_command = cmd_args[0]
-                if potential_command in self.subparsers:
-                    # Show help for the specific subcommand
-                    print(
-                        f"\nError parsing arguments for '{potential_command}' command.\n",
-                        file=sys.stderr,
-                    )
-                    self.subparsers[potential_command].print_help()
-                    sys.exit(e.code if e.code is not None else 1)
-                elif not potential_command.startswith("-"):
-                    # Suggest similar commands using existing utility
-                    suggestions = self._suggest_command(potential_command)
-                    if suggestions:
-                        print("\nDid you mean:", file=sys.stderr)
-                        for cmd in suggestions:
-                            print(f"  {self.script_name} {cmd}", file=sys.stderr)
-                        print(file=sys.stderr)
-                    sys.exit(1)
+                if dash_suggestion:
+                    print(f"\n{dash_suggestion}\n", file=sys.stderr)
+
+                if potential_command and not potential_command.startswith("-"):
+                    if potential_command in self.subparsers:
+                        # Valid subcommand but parsing failed
+                        print(f"\n💡 For more help with '{potential_command}':", file=sys.stderr)
+                        print(f"  {self.script_name} {potential_command} --help\n", file=sys.stderr)
+                        sys.exit(e.code if e.code is not None else 1)
+                    else:  # Invalid subcommand - suggest similar ones
+                        suggestions = self._suggest_command(potential_command)
+                        if suggestions:
+                            print("\n💡 Did you mean:", file=sys.stderr)
+                            for cmd in suggestions:
+                                print(f"  {self.script_name} {cmd}", file=sys.stderr)
+                            print(file=sys.stderr)
+                        sys.exit(1)
             raise
         if hasattr(args, "func"):
             args.func(args)
