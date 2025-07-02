@@ -42,7 +42,7 @@ user manual](https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-m
 Then, build and start the Holoscan lidar viewing application:
 
 ```sh
-./dev_container build_and_run velodyne_lidar_app
+./holohub run velodyne_lidar_app
 ```
 
 ## Benchmarks

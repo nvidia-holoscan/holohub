@@ -45,14 +45,14 @@ v4l2-ctl --list-devices
 This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
 ```sh
-./dev_container build_and_run depth_anything_v2
+./holohub run depth_anything_v2
 ```
 
 By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, update
 `applications/depth_anything_v2/depth_anything_v2.yaml` file to set the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
 ```sh
-./dev_container build_and_run depth_anything_v2 --run_args "--video_device /dev/video0"
+./holohub run depth_anything_v2 --run-args="--video_device /dev/video0"
 ```
 
 ### Video Replayer Support
@@ -61,7 +61,7 @@ If you don't have a v4l2 compatible device plugged in, you can also run this app
 To launch the application using the Video Stream Replayer as the input source, run:
 
 ```sh
-./dev_container build_and_run depth_anything_v2 --run_args "--source replayer"
+./holohub run depth_anything_v2 --run-args="--source replayer"
 ```
 
 ### Display Modes

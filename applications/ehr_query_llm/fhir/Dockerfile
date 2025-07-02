@@ -65,4 +65,5 @@ RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
         pip install setuptools; \
     fi
 COPY applications/ehr_query_llm/fhir/requirements.txt /tmp/requirements.txt
+RUN sed -i '/holoscan/d' /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt

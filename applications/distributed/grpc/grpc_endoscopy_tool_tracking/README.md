@@ -36,20 +36,20 @@ The data is automatically downloaded when building the application.
 
 ```bash
 # Start the gRPC Server
-./dev_container build_and_run grpc_endoscopy_tool_tracking --run_args cloud [--language cpp]
+./holohub run grpc_endoscopy_tool_tracking --run-args="cloud" [--language=cpp]
 
 # Start the gRPC Client
-./dev_container build_and_run grpc_endoscopy_tool_tracking --run_args edge [--language cpp]
+./holohub run grpc_endoscopy_tool_tracking --run-args="edge" [--language=cpp]
 ```
 
 ### Python
 
 ```bash
 # Start the gRPC Server
-./dev_container build_and_run grpc_endoscopy_tool_tracking --language python --run_args cloud
+./holohub run grpc_endoscopy_tool_tracking --language python --run-args="cloud"
 
 # Start the gRPC Client
-./dev_container build_and_run grpc_endoscopy_tool_tracking --language python --run_args edge
+./holohub run grpc_endoscopy_tool_tracking --language python --run-args="edge"
 ```
 
 ### Configurations
@@ -129,7 +129,7 @@ replayer->output: 683
 To start the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode
+./holohub vscode
 ```
 
 ### VS Code Launch Profiles
@@ -189,7 +189,7 @@ To containerize the application:
 1. Install [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html)
 2. Build the application:
    ```bash
-   ./dev_container build_and_install grpc_endoscopy_tool_tracking
+   ./holohub install grpc_endoscopy_tool_tracking
    ```
 3. Run the appropriate packaging script:
    - C++: [cpp/package-app.sh](./cpp/package-app.sh)

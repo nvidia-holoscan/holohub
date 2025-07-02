@@ -18,6 +18,7 @@ import argparse
 import glob
 import os
 import shlex
+import shutil
 import stat
 import subprocess
 import sys
@@ -82,8 +83,8 @@ class HoloHubContainer:
         )
         parser.add_argument(
             "--build-args",
-            help="(Build container) Extra arguments to docker build command. "
-            "Example: `--build-args '--network=host --build-arg \"CUSTOM=value with spaces\"'`",
+            help="(Build container) Extra arguments to docker build command, "
+            "example: `--build-args '--network=host --build-arg \"CUSTOM=value with spaces\"'`",
         )
         return parser
 
@@ -94,8 +95,8 @@ class HoloHubContainer:
         parser.add_argument(
             "--docker-opts",
             default="",
-            help="Additional options to the Docker run command. "
-            "Examples: `--docker-opts '--env \"VAR=value with spaces\"'`",
+            help="Additional options to the Docker run command, "
+            "example: `--docker-opts='--entrypoint=bash'` or `--docker-opts '-e DISPLAY=:1'`",
         )
         parser.add_argument(
             "--ssh-x11",
@@ -536,6 +537,14 @@ class HoloHubContainer:
             "HOLOHUB_BUILD_LOCAL=1",
         ]
 
+    def enable_x11_access(self) -> None:
+        if (
+            "DISPLAY" in os.environ
+            and shutil.which("xhost")
+            and os.environ.get("XDG_SESSION_TYPE", "x11") in ["x11", "tty", ""]
+        ):
+            run_command(["xhost", "+local:docker"], check=False, dry_run=self.dryrun)
+
     def get_display_options(self, enable_x11: bool, ssh_x11: bool) -> List[str]:
         """Get display-related options"""
         options = []
@@ -553,6 +562,8 @@ class HoloHubContainer:
 
         # Handle X11 forwarding
         if enable_x11 or ssh_x11:
+            # Enable X11 access for Docker containers
+            self.enable_x11_access()
             options.extend(["-v", "/tmp/.X11-unix:/tmp/.X11-unix", "-e", "DISPLAY"])
 
         # Handle SSH X11 forwarding

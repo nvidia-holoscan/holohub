@@ -26,10 +26,11 @@ jobs:
           grep -qE "writing image.* done" /tmp/build.log || { echo "Build failed - no success pattern"; cat /tmp/build.log; exit 1; }
 
           if ! command -v nvidia-ctk >/dev/null 2>&1; then
-            sed -i 's/check_nvidia_ctk()/print("no check")/g' utilities/cli/container.py
-            sed -i 's/            "--runtime=nvidia",/            # "--runtime=nvidia",/' utilities/cli/container.py
-            sed -i 's/            "--gpus",/            # "--gpus",/' utilities/cli/container.py
-            sed -i 's/            "all",/            # "all",/' utilities/cli/container.py
+            sed -i 's/check_nvidia_ctk()/pass  # nvidia-ctk not available/g' utilities/cli/container.py
+            sed -i 's/"--runtime",/# "--runtime",/g' utilities/cli/container.py
+            sed -i 's/"nvidia",/# "nvidia",/g' utilities/cli/container.py
+            sed -i 's/"--gpus",/# "--gpus",/g' utilities/cli/container.py
+            sed -i 's/"all",/# "all",/g' utilities/cli/container.py
           fi
 
           ./holohub run-container --base-img ubuntu:${ubuntu_version} --no-docker-build | grep -q "docker run" || { echo "run-container failed"; exit 1; }

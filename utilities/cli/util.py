@@ -15,8 +15,11 @@
 # limitations under the License.
 
 import grp
+import json
 import os
+import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -163,6 +166,28 @@ def run_command(
         sys.exit(e.returncode)
 
 
+def run_info_command(cmd: List[str]) -> Optional[str]:
+    """Run a command for information gathering and return stripped output or None if failed"""
+    try:
+        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def parse_semantic_version(version: str) -> Tuple[int, int, int]:
+    """
+    Parse semantic version string MAJOR.MINOR.PATCH into tuple of integers for comparison
+
+    Note: Implementing our own version parsing to avoid dependency on PyPI 'packaging' module.
+
+    ref: https://semver.org/
+    """
+    match = re.match(r"^(\d+\.\d+\.\d+).*", version.strip())
+    if not match:
+        raise ValueError(f"Failed to parse semantic version string: {version}")
+    return tuple(map(int, match.group(1).split(".")))
+
+
 def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.14.1") -> None:
     """Check NVIDIA Container Toolkit version"""
 
@@ -171,25 +196,15 @@ def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.
 
     try:
         output = subprocess.check_output(["nvidia-ctk", "--version"], text=True)
-        import re
-
         match = re.search(r"(\d+\.\d+\.\d+)", output)
         if match:
             version = match.group(1)
-
             try:
-                from packaging import version as ver
-
-                version_check = ver.parse(version) < ver.parse(min_version)
-            except ImportError:
-
-                def parse_version(v):
-                    try:
-                        return tuple(map(int, v.split(".")))
-                    except ValueError:
-                        return (10, 0, 0)
-
-                version_check = parse_version(version) < parse_version(min_version)
+                version_check = parse_semantic_version(version) < parse_semantic_version(
+                    min_version
+                )
+            except ValueError:
+                version_check = False
 
             if version_check:
                 fatal(
@@ -293,63 +308,80 @@ def list_metadata_json_dir(*paths: Path) -> List[Tuple[str, str]]:
     return sorted(results)
 
 
+class PackageInstallationError(Exception):
+    """Raised when a package cannot be installed via apt"""
+
+    def __init__(self, package_name: str, version_pattern: str, message: str = None):
+        self.package_name = package_name
+        self.version_pattern = version_pattern
+        super().__init__(
+            message or f"Failed to install package {package_name} matching {version_pattern}"
+        )
+
+
 def install_cuda_dependencies_package(
-    package_name: str, preferred_version: str, optional: bool = False, dry_run: bool = False
-) -> bool:
+    package_name: str,
+    version_pattern: str = r"\d+\.\d+\.\d+",
+    dry_run: bool = False,
+) -> str:
     """Install CUDA dependencies package with version checking
+
+    Procedure:
+    1. If package is already installed, return the version
+    2. If the package is not installed and the preferred version is available, install it and return the version.
+    3. If the package is not installed and the preferred version is not available, throw.
 
     Args:
         package_name: Name of the package to install
-        preferred_version: Preferred version string to match
-        optional: Whether the package is optional (default: False)
+        version_pattern: Regular expression for package version to get if not already installed.
+            The latest version matching the pattern will be installed.
 
     Returns:
-        bool: True if package was installed or already present, False if optional package was skipped
+        str: Installed package version
 
     Raises:
-        SystemExit: If non-optional package cannot be installed
+        PackageInstallationError: If package cannot be installed
     """
+
     # Check if package is already installed
     try:
         output = subprocess.check_output(
             ["apt", "list", "--installed", package_name], text=True, stderr=subprocess.DEVNULL
-        )
+        ).split()
         # Extract installed version from apt list output using regex
         # Example output: "libcudnn9-cuda-12/unknown,now 9.5.1.17-1 amd64 [installed,upgradable to: 9.8.0.87-1]"
-        installed_version = re.search(rf"{package_name}/.*?now\s+([\d\.-]+)", output)
-        if installed_version:
-            installed_version = installed_version.group(1)
-            print(f"Package {package_name} found with version {installed_version}")
-            return True
+        if len(output) >= 3 and re.match(r"\d+\.\d+\.\d+.*", output[2]):
+            installed_version = output[2]
+            info(f"Package {package_name} found with version {installed_version}")
+            return installed_version
     except subprocess.CalledProcessError:
+        # Package not installed, continue to attempt installation
         pass
 
     # Check available versions
     try:
+        # apt list -a sorts in descending order by default
         available_versions = subprocess.check_output(
             ["apt", "list", "-a", package_name], text=True, stderr=subprocess.DEVNULL
         )
-
-        # Find matching version
-        matching_version = None
-        for line in available_versions.splitlines():
-            if preferred_version in line and package_name in line:
-                matching_version = line.split()[1]  # Get version from second column
-                break
+        matching_version = re.findall(
+            f"^{re.escape(package_name)}/.*?({version_pattern}).*$",
+            available_versions,
+            re.MULTILINE,
+        )
+        matching_version = matching_version[0] if matching_version else None
 
         if not matching_version:
-            if optional:
-                print(f"Package {package_name} {preferred_version} not found. Skipping.")
-                return False
-            else:
-                fatal(
-                    f"{package_name} {preferred_version} is not installable.\n"
-                    f"You might want to try to install a newer version manually and rerun the setup:\n"
-                    f"  sudo apt install {package_name}"
-                )
+            raise PackageInstallationError(
+                package_name,
+                version_pattern,
+                f"{package_name} is not installable with pattern {version_pattern}.\n"
+                f"You might want to try to install a newer version manually and rerun the setup:\n"
+                f"  sudo apt install {package_name}",
+            )
 
         # Install the package
-        print(f"Installing {package_name}={matching_version}")
+        info(f"Installing {package_name}={matching_version}")
         run_command(
             [
                 "apt",
@@ -360,14 +392,14 @@ def install_cuda_dependencies_package(
             ],
             dry_run=dry_run,
         )
-        return True
+        return matching_version
 
     except subprocess.CalledProcessError as e:
-        if optional:
-            print(f"Error checking available versions for {package_name}: {e}")
-            return False
-        else:
-            fatal(f"Error checking available versions for {package_name}: {e}")
+        raise PackageInstallationError(
+            package_name,
+            version_pattern,
+            f"Error checking available versions for {package_name}: {e}",
+        )
 
 
 def format_long_command(cmd: List[str], max_line_length: int = 80) -> str:
@@ -533,23 +565,76 @@ def docker_args_to_devcontainer_format(docker_args: List[str]) -> List[str]:
     return result
 
 
+def get_entrypoint_command_args(
+    img: str, command: str, docker_opts: str, dry_run: bool = False
+) -> tuple[str, List[str]]:
+    """Determine how to execute a shell command in a Docker container."""
+    if "--entrypoint" in docker_opts:
+        try:
+            command_args = shlex.split(command)  # "command" splits into a list of arguments
+            return "", command_args
+        except ValueError:
+            return "", [command]
+    entrypoint = get_container_entrypoint(img, dry_run=dry_run)
+    if not entrypoint:  # image has no entrypoint, docker uses default "/bin/sh -c" for command
+        return "", [command]
+    # Image has an ENTRYPOINT
+    if entrypoint in [["/bin/sh", "-c"], ["/bin/bash", "-c"], ["sh", "-c"], ["bash", "-c"]]:
+        return "", [command]  # Shell is already configured to take command string
+    if entrypoint in [["/bin/sh"], ["/bin/bash"], ["sh"], ["bash"]]:
+        return "", ["-c", command]  # Shell needs -c to execute command string
+    return "--entrypoint=bash", ["-c", command]  # bash is used to run local build/run command
+
+
+def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[str]]:
+    """Check if container image has an entrypoint defined"""
+    if dry_run:
+        print(
+            "Inspect docker image entrypoint: "
+            f"docker inspect --format={{{{json .Config.Entrypoint}}}} {img}"
+        )
+        return None
+
+    try:
+        result = run_command(
+            ["docker", "inspect", "--format={{json .Config.Entrypoint}}", img],
+            capture_output=True,
+            check=False,
+            dry_run=dry_run,
+        )
+        if result.returncode != 0:
+            return None
+        entrypoint_json = result.stdout.strip()
+        if entrypoint_json in ["<no value>", "[]", "null", "''"]:
+            return None
+        parsed = json.loads(entrypoint_json)
+        if isinstance(parsed, list) and len(parsed) > 0:
+            return parsed
+        return None
+    except Exception:
+        pass
+    return None
+
+
 def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
     """Get PYTHONPATH from the Docker image environment"""
-    try:
-        if dry_run:
-            print(
-                Color.yellow(
-                    f"Inspect docker image PYTHONPATH: docker inspect "
-                    f"--format '{{{{range .Config.Env}}}}{{{{println .}}}}{{{{end}}}}' {img}"
-                )
+    if dry_run:
+        print(
+            Color.yellow(
+                "Inspect docker image PYTHONPATH: docker inspect "
+                f"--format '{{{{range .Config.Env}}}}{{{{println .}}}}{{{{end}}}}' {img}"
             )
-            return ""
+        )
+        return ""
+    try:
         result = run_command(
             ["docker", "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
-            check=True,
+            check=False,
             capture_output=True,
             dry_run=dry_run,
         )
+        if result.returncode != 0:
+            return ""
         for line in result.stdout.decode().strip().split("\n"):
             if line.startswith("PYTHONPATH="):
                 return line[len("PYTHONPATH=") :]
@@ -641,3 +726,144 @@ def get_devcontainer_config(
             devcontainer_content = f.read()
 
     return devcontainer_content
+
+
+def collect_system_info() -> None:
+    """Collect and display system information"""
+    print(f"\n{Color.blue('System Information:')}")
+    print(f"  OS: {platform.system()} {platform.release()} {platform.machine()}")
+    print(f"  Platform: {platform.platform()}")
+
+
+def collect_python_info() -> None:
+    """Collect and display Python information"""
+    print(f"\n{Color.blue('Python Information:')}")
+    print(f"  Version: {sys.version}")
+    print(f"  Executable: {sys.executable} Path: {sys.path[0] if sys.path else 'N/A'}")
+
+
+def collect_holohub_info(
+    holohub_root: Path, build_dir: Path, data_dir: Path, sdk_dir: Path
+) -> None:
+    """Collect and display HoloHub information"""
+    print(f"\n{Color.blue('HoloHub Information:')}")
+    print(f"  HOLOHUB_ROOT: {holohub_root}")
+    print(f"  HOLOHUB_BUILD_PARENT_DIR: {build_dir}")
+    print(f"  HOLOHUB_DATA_DIR: {data_dir}")
+    print(f"  HOLOHUB_SDK_DIR: {sdk_dir}")
+
+
+def collect_git_info(holohub_root: Path) -> None:
+    """Collect and display Git repository information"""
+    print(f"\n{Color.blue('Git Repository Information:')}")
+    if not holohub_root.exists() or not holohub_root.is_dir():
+        print(f"  HoloHub root directory does not exist or is not a directory: {holohub_root}")
+        return
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(holohub_root)
+    except Exception as e:
+        print(f"  Cannot access HoloHub directory: {e}")
+        return
+    try:
+        git_branch = run_info_command(["git", "branch", "--show-current"])
+        git_commit_full = run_info_command(["git", "rev-parse", "HEAD"])
+        git_status = run_info_command(["git", "status", "--porcelain"])
+        if git_branch is None or git_commit_full is None or git_status is None:
+            print("  Git information not available")
+            return
+        git_commit = git_commit_full[:8]
+        print(f"  Branch: {git_branch} Commit: {git_commit}")
+        print(f"  Modified: {git_status.splitlines()}")
+    finally:
+        try:
+            os.chdir(original_cwd)  # try to restore the original working directory
+        except Exception:
+            pass
+
+
+def collect_docker_info() -> None:
+    """Collect and display Docker information"""
+    print(f"\n{Color.blue('Docker Information:')}")
+    docker_version = run_info_command(["docker", "--version"])
+    docker_info = run_info_command(["docker", "info", "--format", "{{.ServerVersion}}"])
+    if docker_version is None or docker_info is None:
+        print("  Docker not available")
+        return
+    print(f"  Version: {docker_version} Server Version: {docker_info}")
+    nvidia_ctk_version = run_info_command(["nvidia-ctk", "--version"])
+    if nvidia_ctk_version is not None:
+        print(f"  NVIDIA Container Toolkit: {nvidia_ctk_version.strip()}")
+
+
+def collect_cuda_gpu_info() -> None:
+    """Collect and display CUDA/GPU information"""
+    print(f"\n{Color.blue('CUDA/GPU Information:')}")
+    nvidia_smi = run_info_command(
+        [
+            "nvidia-smi",
+            "--query-gpu=name,driver_version,memory.total",
+            "--format=csv,noheader,nounits",
+        ]
+    )
+    if nvidia_smi is None:
+        print("  NVIDIA GPU/CUDA not available")
+        return
+    for i, line in enumerate(nvidia_smi.split("\n")):
+        if line.strip():
+            parts = line.split(",")
+            if len(parts) >= 3:
+                print(f"  GPU {i}: {parts[0].strip()}")
+                print(f"    Driver: {parts[1].strip()}")
+                print(f"    Memory: {parts[2].strip()} MB")
+    cuda_version = run_info_command(["nvcc", "--version"])
+    if cuda_version is None:
+        print("  nvcc not available")
+        return
+    version_line = [line for line in cuda_version.split("\n") if "release" in line.lower()]
+    print(f"  NVCC: {version_line[0].strip()}")
+    nvcc_path = run_info_command(["which", "nvcc"])
+    if nvcc_path is not None:
+        print(f"  NVCC Path: {nvcc_path}")
+
+
+def collect_environment_variables() -> None:
+    """Collect and display environment variables"""
+    print(f"\n{Color.blue('HoloHub Environment Variables:')}")
+    holohub_env_vars = [
+        "HOLOHUB_CMD_NAME",
+        "HOLOHUB_BUILD_LOCAL",
+        "HOLOHUB_BASE_IMAGE",
+        "HOLOHUB_APP_NAME",
+        "HOLOHUB_CONTAINER_BASE_NAME",
+        "HOLOHUB_ALWAYS_BUILD",
+    ]
+    for var in sorted(holohub_env_vars):
+        print(f"  {var}: {os.environ.get(var) or '(not set)'}")
+
+    print(f"\n{Color.blue('Holoscan Environment Variables:')}")
+    holoscan_env_vars = ["HOLOSCAN_SDK_VERSION", "HOLOSCAN_INPUT_PATH"]
+    for var in sorted(holoscan_env_vars):
+        print(f"  {var}: {os.environ.get(var) or '(not set)'}")
+
+    print(f"\n{Color.blue('Other Relevant Environment Variables:')}")
+    other_env_vars = [
+        "PYTHONPATH",
+        "PATH",
+        "LD_LIBRARY_PATH",
+        "CMAKE_BUILD_TYPE",
+        "DOCKER_BUILDKIT",
+        "XDG_SESSION_TYPE",
+        "XDG_RUNTIME_DIR",
+    ]
+    for var in sorted(other_env_vars):
+        print(f"  {var}: {os.environ.get(var) or '(not set)'}")
+
+
+def collect_env_info() -> None:
+    """Collect and display comprehensive environment information"""
+    collect_system_info()
+    collect_python_info()
+    collect_docker_info()
+    collect_cuda_gpu_info()
+    collect_environment_variables()

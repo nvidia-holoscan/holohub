@@ -24,7 +24,7 @@ HoloChat is an AI-driven chatbot, built on top of a **locally hosted Code-Llama 
 - **Memory**: \>= 28 GB of available disk memory
   - Needed to download [fine-tuned Code Llama 34B](https://huggingface.co/TheBloke/Phind-CodeLlama-34B-v2-GGUF) and [BGE-Large](https://huggingface.co/BAAI/bge-large-en) embedding model
 
-*Tested using [NVIDIA IGX Orin](https://www.nvidia.com/en-us/edge-computing/products/igx/) w/ RTX A6000 and [Dell Precision 5820 Workstation](https://www.dell.com/en-us/shop/desktop-computers/precision-5820-tower-workstation/spd/precision-5820-workstation/xctopt5820us) w/ RTX A6000
+*Tested using [NVIDIA IGX Orin](https://www.nvidia.com/en-us/edge-computing/products/igx/) w/ RTX A6000 and Dell Precision 5820 Workstation w/ RTX A6000
 
 ## Running HoloChat: 🏃💨
 **When running HoloChat, you have two LLM options:**
@@ -37,17 +37,17 @@ HoloChat is an AI-driven chatbot, built on top of a **locally hosted Code-Llama 
 ### TLDR; 🥱
 To run locally:
 ```bash
-./dev_container build_and_run holochat --run_args --local
+./holohub run holochat --run-args=--local
 ```
 To run using the NVIDIA NIM API:
 ```bash
 echo "NVIDIA_API_KEY=<api_key_here>" > ./applications/holochat/.env
 
-./dev_container build_and_run holochat
+./holohub run holochat
 ```
 To run as an MCP server:
 ```bash
-./dev_container build_and_run holochat --run_args --mcp
+./holohub run holochat --run-args=--mcp
 ```
 See [MCP_MODE.md](MCP_MODE.md) for more details on using MCP mode.
 
@@ -74,7 +74,7 @@ ssh <user_name>@<IP address> -L 7860:localhost:7860 -L 8080:localhost:8080 -L 80
 ### Running w/ Local LLM 💻
 **To build and start the app:**
 ```bash
-./dev_container build_and_run holochat --run_args --local
+./holohub run holochat --run-args=--local
 ```
 Once the LLM is loaded on the GPU and the Gradio app is running, HoloChat should be available at http://127.0.0.1:7860/.
 ### Running w/ NIM API ☁️
@@ -89,15 +89,15 @@ NVIDIA_API_KEY=<api_key_here>
 
 **To build and run the app:**
 ```bash
-./dev_container build_and_run holochat
+./holohub run holochat
 ```
 Once the Gradio app is running, HoloChat should be available at http://127.0.0.1:7860/.
 
-## Usage Notes: 🗒️ 
+## Usage Notes: 🗒️
 
 ### Intended use: 🎯
   >HoloChat is developed to accelerate and assist Holoscan developers’ learning and development. HoloChat serves as an intuitive chat interface, enabling users to pose natural language queries related to the Holoscan SDK. Whether seeking general information about the SDK or specific coding insights, users can obtain immediate responses thanks to the underlying Large Language Model (LLM) and vector database.
-  > 
+  >
   >HoloChat is given access to the Holoscan SDK repository, the HoloHub repository, and the Holoscan SDK user guide. This essentially allows users to engage in natural language conversations with these documents, gaining instant access to the information they need, thus sparing them the task of sifting through vast amounts of documentation themselves.
 
 ### Known Limitations: ⚠️🚧
@@ -113,7 +113,7 @@ While users should be aware of the above limitations, following the recommended 
 * **Specify Programming Language**: If asking for code, include the desired language (Python or C++).
 * **Provide Code Snippets:** If debugging errors include as much relevant information as possible. Copy and paste the code snippet that produces the error, the abbreviated stack trace, and describe any changes that may have introduced the error.
 
-In order to demonstrate how to get the most out of HoloChat two example questions are posed below. These examples illustrate how a user can refine their questions and as a result, improve the responses they receive: 
+In order to demonstrate how to get the most out of HoloChat two example questions are posed below. These examples illustrate how a user can refine their questions and as a result, improve the responses they receive:
 
 ---
 **Worst👎:**
@@ -139,8 +139,7 @@ In order to demonstrate how to get the most out of HoloChat two example question
 ## Appendix:
 ### Meta Terms of Use:
 By using the Code-Llama model, you are agreeing to the terms and conditions of the [license](https://ai.meta.com/llama/license/), [acceptable use policy](https://ai.meta.com/llama/use-policy/) and Meta’s [privacy policy](https://www.facebook.com/privacy/policy/).
-### Implementation Details: 
+### Implementation Details:
   >HoloChat operates by taking user input and comparing it to the text stored within the vector database, which is comprised of Holoscan SDK information. The most relevant text segments from SDK code and the user guide are then appended to the user's query. This approach allows the chosen LLM to answer questions about the Holoscan SDK, without being explicitly trained on SDK data.
   >
   >However, there is a drawback to this method - the most relevant documentation is not always found within the vector database. Since the user's question serves as the search query, queries that are too simplistic or abbreviated may fail to extract the most relevant documents from the vector database. As a consequence, the LLM will then lack the necessary context, leading to poor and potentially inaccurate responses. This occurs because LLMs strive to provide the most probable response to a question, and without adequate context, they hallucinate to fill in these knowledge gaps.
-

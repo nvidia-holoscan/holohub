@@ -14,6 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Check if this script is being used and warn about deprecation
+echo "################################################################################"
+echo "WARNING: The run script is deprecated. Please use the ./holohub command instead."
+echo "For more information, see: https://github.com/nvidia-holoscan/holohub"
+echo "################################################################################"
+echo ""
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DO_DRY_RUN="false"
 HOLOHUB_PY_EXE=${HOLOHUB_PY_EXE:-python3}

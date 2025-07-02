@@ -50,11 +50,15 @@ the working directory.
 
 * Using an AJA card
     ```bash
-    ./run launch endoscopy_tool_tracking python --extra_args "-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja"
+    ./run launch endoscopy_tool_tracking python --extra_args -s=aja
     ```
 
 * Using a YUAN card
     ```bash
     cd <HOLOHUB_BUILD_DIR>
     python3  <HOLOHUB_SOURCE_DIR>/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py --source=yuan
+    ```
+* Using an AJA card with hardware keying overlay (Only specific cards support this feature)
+    ```bash
+    ./run launch endoscopy_tool_tracking python --extra_args "-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja"
     ```

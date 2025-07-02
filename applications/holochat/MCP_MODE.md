@@ -11,7 +11,7 @@ The [Model Context Protocol](https://modelcontextprotocol.io/) is a standardized
 To start HoloChat in MCP mode:
 
 ```bash
-./dev_container build_and_run holochat --run_args --mcp
+./holohub run holochat --run-args=--mcp
 ```
 
 The server will start on port 8090 (configured in `config.yaml`).
@@ -90,4 +90,4 @@ default_num_docs: 10
 
 # Maximum number of documents to return (if requested)
 max_num_docs: 30
-``` 
+```

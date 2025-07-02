@@ -41,14 +41,14 @@ v4l2-ctl --list-devices
 This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
 ```sh
-./dev_container build_and_run tao_peoplenet
+./holohub run tao_peoplenet
 ```
 
 By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, please update
 `applications/tao_peoplenet/tao_peoplenet.yaml` and set it to use the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
 ```sh
-./dev_container build_and_run tao_peoplenet --run_args "--video_device /dev/video0"
+./holohub run tao_peoplenet --run-args="--video_device /dev/video0"
 ```
 
 ## Video Replayer Support
@@ -57,7 +57,7 @@ If you don't have a v4l2 compatible device plugged in, you may also run this app
 To launch the application using the Video Stream Replayer as the input source, run:
 
 ```sh
-./dev_container build_and_run tao_peopelnet --run_args "--source replayer"
+./holohub run tao_peoplenet --run-args="--source replayer"
 ```
 
 ### Known Issues

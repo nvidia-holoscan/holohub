@@ -24,27 +24,27 @@ If you want to manually convert the video data, please refer to the instructions
 
 ```sh
 # Build the Holohub container for the Distributed Endoscopy Tool Tracking application
-./dev_container build --docker_file applications/distributed/ucx/ucx_endoscopy_tool_tracking/Dockerfile --img holohub:ucx_endoscopy_tool_tracking
+./holohub build-container ucx_endoscopy_tool_tracking --img holohub:ucx_endoscopy_tool_tracking
 
 # Launch the container
-./dev_container launch --img holohub:ucx_endoscopy_tool_tracking
+./holohub run-container ucx_endoscopy_tool_tracking --no-docker-build --img holohub:ucx_endoscopy_tool_tracking
 
 # Build the Distributed Endoscopy Tool Tracking application
-./run build ucx_endoscopy_tool_tracking
+./holohub build ucx_endoscopy_tool_tracking --local
 
 # Generate the TRT engine file from onnx
 python3 utilities/generate_trt_engine.py --input data/endoscopy/tool_loc_convlstm.onnx --output data/endoscopy/engines/ --fp16
 
 # Start the application with all three fragments
-./run launch ucx_endoscopy_tool_tracking cpp
+./holohub run ucx_endoscopy_tool_tracking --language=cpp --local --no-local-build
 
 # Once you have completed the step to generate the TRT engine file, you may exit the container and
 #  use the following commands to run the application in distributed mode:
 
 # Start the application with the video_in fragment
-./dev_container build_and_run ucx_endoscopy_tool_tracking --language cpp --run_args "--driver --worker --fragments video_in --address :9999"
+./holohub run ucx_endoscopy_tool_tracking --language=cpp --run-args="--driver --worker --fragments video_in --address :9999"
 # Start the application with the inference fragment
-./dev_container build_and_run ucx_endoscopy_tool_tracking --language cpp --run_args "--worker --fragments inference --address :9999"
+./holohub run ucx_endoscopy_tool_tracking --language=cpp --run-args="--worker --fragments inference --address :9999"
 # Start the application with the visualization fragment
-./dev_container build_and_run ucx_endoscopy_tool_tracking --language cpp --run_args "--worker --fragments viz --address :9999"
+./holohub run ucx_endoscopy_tool_tracking --language=cpp --run-args="--worker --fragments viz --address :9999"
 ```

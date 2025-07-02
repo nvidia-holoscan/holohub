@@ -32,7 +32,7 @@ This utility is part of the `volume_rendering_xr` application suite.
 Run the following command in the top-level HoloHub folder to build and run the host application:
 
 ```bash
-./dev_container build_and_run volume_rendering_xr --run_args "xr_hello_holoscan"
+./holohub run volume_rendering_xr --run-args="xr_hello_holoscan"
 ```
 
 Note that without specifying the extra arguments, it will launch the main volume rendering application by default.
@@ -48,15 +48,13 @@ below to launch the debug GUI and run the application:
 
 ```bash
 # Build and launch the container
-./dev_container build --img holohub:xr_hello_holoscan --docker_file ./applications/volume_rendering_xr/Dockerfile
-./dev_container launch --img holohub:xr_hello_holoscan
+./holohub run-container xr_hello_holoscan
 
-# Build the application
-./run build xr_hello_holoscan
-
-# Launch the debug GUI and the application
+# Enable the debug GUI
 export ML_START_OPTIONS="debug"
-./run launch xr_hello_holoscan
+
+# Build and run the application
+./holohub run xr_hello_holoscan
 ```
 
 The ImGui debug application will launch. Click and slide the position entries to adjust your view of the scene.

@@ -47,14 +47,14 @@ v4l2-ctl --list-devices
 This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
 ```sh
-./dev_container build_and_run body_pose_estimation
+./holohub run body_pose_estimation
 ```
 
 By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, please update
 `applications/body_pose_estimation/body_pose_estimation.yaml` and set it to use the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
 ```sh
-./dev_container build_and_run body_pose_estimation --run_args "--video_device /dev/video0"
+./holohub run body_pose_estimation --run-args="--video_device /dev/video0"
 ```
 
 ## Video Replayer Support
@@ -63,7 +63,7 @@ If you don't have a v4l2 compatible device plugged in, you may also run this app
 To launch the application using the Video Stream Replayer as the input source, run:
 
 ```sh
-./dev_container build_and_run body_pose_estimation --run_args "--source replayer"
+./holohub run body_pose_estimation --run-args="--source replayer"
 ```
 
 ## DDS Support
@@ -75,7 +75,7 @@ publisher operators need to be enabled for the sake of input or output video
 streams, respectively, but to enable both use the following:
 
 ```sh
-./run build body_pose_estimation --with "dds_video_subscriber;dds_video_publisher"
+./holohub build --local body_pose_estimation --build-with "dds_video_subscriber;dds_video_publisher"
 ```
 
 Note that building these operators requires [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms)
@@ -87,7 +87,7 @@ To use a DDS video stream as the input to the application, use the `-s=dds`
 argument when running the application:
 
 ```sh
-./run launch body_pose_estimation --extra_args -s=dds
+./holohub launch --local body_pose_estimation --run-args="-s=dds
 ```
 
 To publish the output result to DDS, edit the `body_pose_estimation.yaml`
@@ -110,8 +110,7 @@ video from the default V4L2 device and publish it to DDS so that it can be
 received as input by this application:
 
 ```sh
-./run build dds_video
-./run launch dds_video --extra_args "-p -i 0"
+./holohub run --local dds_video --run-args="-p -i 0"
 ```
 
 And the following will use the `dds_video` application to receive and render
@@ -119,7 +118,7 @@ the output published by this application:
 
 
 ```sh
-./run launch dds_video --extra_args "-s -i 1"
+./holohub run --local dds_video --run-args="-s -i 1"
 ```
 
 ### Using a Development Container with DDS Support
@@ -132,7 +131,7 @@ To mount RTI Connext into the container, ensure that the `NDDSHOME` and
 `setenv` script) then use the following:
 
 ```sh
-./dev_container launch --img holohub:bpe --docker_opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=$CONNEXTDDS_ARCH"
+./holohub run-container body_pose_estimation --docker-opts="-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=$CONNEXTDDS_ARCH"
 ```
 
 ### Known Issues

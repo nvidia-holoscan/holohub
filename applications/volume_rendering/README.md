@@ -20,10 +20,10 @@ To build and run this application, use the ```dev_container``` script:
 
 ```bash
 # C++
- ./dev_container build_and_run volume_rendering --language cpp
+ ./holohub run volume_rendering --language cpp
 
  # Python
-  ./dev_container build_and_run volume_rendering --language python
+  ./holohub run volume_rendering --language python
 ```
 
 The path of the volume configuration file, volume density file and volume mask file can be passed to the application.
@@ -31,7 +31,7 @@ The path of the volume configuration file, volume density file and volume mask f
 You can use the following command to get more information on command line parameters for this application:
 
 ```bash
-./dev_container build_and_run volume_rendering --language [cpp|python] --run_args --usages
+./holohub run volume_rendering --language [cpp|python] --run-args="--usages"
 ```
 
 ## Dev Container
@@ -39,7 +39,7 @@ You can use the following command to get more information on command line parame
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode
+./holohub vscode volume_rendering
 ```
 
 ### VS Code Launch Profiles

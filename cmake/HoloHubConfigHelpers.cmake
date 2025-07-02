@@ -13,7 +13,51 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# HoloHub Configuration Helpers
+# =============================
+#
+# This file provides CMake helper functions for building HoloHub packages, applications,
+# operators, and extensions. These functions simplify the build configuration process
+# and handle dependency management automatically.
+#
+# Available Functions:
+# - add_holohub_package(): Build packages with dependencies
+# - add_holohub_application(): Build applications with operator/extension dependencies
+# - add_holohub_operator(): Build operators with extension dependencies
+# - add_holohub_extension(): Build extensions
+#
+# Global Variables:
+# - BUILD_ALL: Global flag to enable/disable all components (default: OFF)
+# - HOLOHUB_BUILD_OPERATORS: List of operators to build when optional dependencies are specified
+#
+# Usage Examples:
+#   add_holohub_package(my_package EXTENSIONS gxf_core OPERATORS my_op APPLICATIONS my_app)
+#   add_holohub_application(my_app DEPENDS EXTENSIONS gxf_core OPERATORS my_op)
+#   add_holohub_operator(my_op DEPENDS EXTENSIONS gxf_core)
+#   add_holohub_extension(my_ext)
+
+# =====================================================
 # Helper function to build packages
+# =====================================================
+# Builds a package and automatically enables its dependencies.
+#
+# Parameters:
+#   NAME: The name of the package to build
+#
+# Keyword Arguments:
+#   EXTENSIONS: List of GXF extensions that this package depends on
+#   OPERATORS: List of Holoscan operators that this package depends on
+#   APPLICATIONS: List of applications that this package depends on
+#
+# Creates:
+#   PKG_${NAME}: CMake option to enable/disable this package
+#
+# Example:
+#   add_holohub_package(my_package
+#     EXTENSIONS gxf_core gxf_serialization
+#     OPERATORS my_operator
+#     APPLICATIONS my_application
+#   )
 function(add_holohub_package NAME)
   set(pkgname "PKG_${NAME}")
   option(${pkgname} "Build the ${NAME} package" ${BUILD_ALL})
@@ -42,8 +86,30 @@ function(add_holohub_package NAME)
   endforeach()
 endfunction()
 
-
+# =====================================================
 # Helper function to build application and dependencies
+# =====================================================
+# Builds an application and automatically enables its required dependencies.
+# Supports optional operator dependencies based on HOLOHUB_BUILD_OPERATORS.
+#
+# Parameters:
+#   NAME: The name of the application to build
+#
+# Keyword Arguments:
+#   DEPENDS: Dependency specification with sub-arguments:
+#     EXTENSIONS: List of GXF extensions that this application depends on
+#     OPERATORS: List of Holoscan operators that this application depends on
+#               Use "OPTIONAL" keyword to make subsequent operators optional
+#
+# Creates:
+#   APP_${NAME}: CMake option to enable/disable this application
+#
+# Example:
+#   add_holohub_application(my_app
+#     DEPENDS
+#       EXTENSIONS gxf_core gxf_serialization
+#       OPERATORS required_op OPTIONAL optional_op1 optional_op2
+#   )
 function(add_holohub_application NAME)
 
   cmake_parse_arguments(APP "" "" "DEPENDS" ${ARGN})
@@ -86,8 +152,25 @@ function(add_holohub_application NAME)
 
 endfunction()
 
-
+# =====================================================
 # Helper function to build operators
+# =====================================================
+# Builds a Holoscan operator and automatically enables its extension dependencies.
+#
+# Parameters:
+#   NAME: The name of the operator to build
+#
+# Keyword Arguments:
+#   DEPENDS: Dependency specification with sub-arguments:
+#     EXTENSIONS: List of GXF extensions that this operator depends on
+#
+# Creates:
+#   OP_${NAME}: CMake option to enable/disable this operator
+#
+# Example:
+#   add_holohub_operator(my_op
+#     DEPENDS EXTENSIONS gxf_core gxf_serialization
+#   )
 function(add_holohub_operator NAME)
 
   cmake_parse_arguments(OP "" "" "DEPENDS" ${ARGN})
@@ -111,8 +194,19 @@ function(add_holohub_operator NAME)
   endif()
 endfunction()
 
-
+# =====================================================
 # Helper function to build extensions
+# =====================================================
+# Builds a GXF extension. This is the simplest helper function with no dependencies.
+#
+# Parameters:
+#   NAME: The name of the extension to build
+#
+# Creates:
+#   EXT_${NAME}: CMake option to enable/disable this extension
+#
+# Example:
+#   add_holohub_extension(my_extension)
 function(add_holohub_extension NAME)
   set(extname "EXT_${NAME}")
   option(${extname} "Build the ${NAME} extension" ${BUILD_ALL})

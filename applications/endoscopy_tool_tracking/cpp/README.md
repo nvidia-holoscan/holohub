@@ -49,7 +49,8 @@ In your `build` directory, run the commands of your choice:
 
 * Using an AJA card
     ```bash
-    ./run launch endoscopy_tool_tracking cpp --extra_args -capplications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_aja_overlay.yaml
+    sed -i -e 's#^source:.*#source: aja#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```
 
 * Using a Deltacast card
@@ -64,3 +65,8 @@ In your `build` directory, run the commands of your choice:
     sed -i -e 's#^source:.*#source: yuan#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```
+* Using an AJA card with hardware keying overlay (Only specific cards support this feature)
+    ```bash
+    ./run launch endoscopy_tool_tracking cpp --extra_args -capplications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_aja_overlay.yaml
+    ```
+

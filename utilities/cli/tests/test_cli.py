@@ -212,7 +212,7 @@ class TestHoloHubCLI(unittest.TestCase):
 
         # Verify the container.run was called with the correctly quoted arguments
         kwargs = mock_container.run.call_args[1]
-        cmd_string = kwargs["extra_args"][1]
+        cmd_string = kwargs["extra_args"][0]
         self.assertIn("./holohub run test_project", cmd_string)
         self.assertIn("--run-args", cmd_string)
         self.assertIn(quoted_value, cmd_string)
@@ -408,7 +408,7 @@ class TestHoloHubCLI(unittest.TestCase):
         # Verify container build
         mock_container.run.assert_called()
         kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][1]
+        command_string = kwargs["extra_args"][0]
         self.assertIn(f'--build-with "{operators}"', command_string)
         mock_container.reset_mock()
 
@@ -418,7 +418,7 @@ class TestHoloHubCLI(unittest.TestCase):
         # Verify container run
         mock_container.run.assert_called()
         kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][1]
+        command_string = kwargs["extra_args"][0]
         self.assertIn(f'--build-with "{operators}"', command_string)
 
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
@@ -609,7 +609,7 @@ exec {holohub_script} "$@"
         mock_container.build.assert_called_once()
         mock_container.run.assert_called_once()
         kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][1]
+        command_string = kwargs["extra_args"][0]
         self.assertIn("./holohub install test_project --local", command_string)
         self.assertIn("--build-type debug", command_string)
         self.assertIn("--language cpp", command_string)
@@ -617,8 +617,66 @@ exec {holohub_script} "$@"
         args = self.cli.parser.parse_args("install test_project --parallel 4".split())
         args.func(args)
         kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][1]
+        command_string = kwargs["extra_args"][0]
         self.assertIn("--parallel 4", command_string)
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    def test_configure_args_functionality(
+        self,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+    ):
+        """Test that --configure-args are properly passed to CMake (single and multiple)"""
+        mock_find_project.return_value = self.mock_project_data
+        mock_run_command.return_value = MagicMock()
+
+        # Test single configure arg
+        configure_arg = "-DCUSTOM_OPTION=ON"
+        self.cli.build_project_locally(
+            project_name="test_project",
+            language="cpp",
+            build_type="debug",
+            configure_args=[configure_arg],
+            dryrun=False,
+        )
+
+        # Verify CMake configure call includes the custom argument
+        self.assertEqual(mock_run_command.call_count, 2)  # cmake configure + cmake build
+        cmake_configure_args = mock_run_command.call_args_list[0][0][0]
+        cmake_args_str = " ".join(cmake_configure_args)
+        self.assertIn(configure_arg, cmake_args_str)
+
+        mock_run_command.reset_mock()
+
+        # Test multiple configure args
+        configure_args = ["-DCUSTOM_OPTION=ON", "-DCMAKE_VERBOSE_MAKEFILE=ON", "-DDEBUG_MODE=1"]
+        self.cli.build_project_locally(
+            project_name="test_project",
+            language="cpp",
+            build_type="debug",
+            configure_args=configure_args,
+            dryrun=False,
+        )
+
+        # Verify CMake configure call includes all custom arguments
+        self.assertEqual(mock_run_command.call_count, 2)  # cmake configure + cmake build
+        cmake_configure_args = mock_run_command.call_args_list[0][0][0]
+        cmake_args_str = " ".join(cmake_configure_args)
+
+        for configure_arg in configure_args:
+            self.assertIn(configure_arg, cmake_args_str)
+
+    def test_configure_args_parsing(self):
+        """Test that --configure-args are properly parsed in build, run, and install commands"""
+        # Test that configure_args is None when not provided for all commands
+        for command in ["build", "run", "install"]:
+            args = self.cli.parser.parse_args([command, "test_project", "--local"])
+            self.assertIsNone(
+                args.configure_args, f"configure_args should be None for {command} command"
+            )
 
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
@@ -682,7 +740,7 @@ exec {holohub_script} "$@"
 
             mock_container.build.assert_called_once()
             mock_container.run.assert_called_once()
-            command_string = mock_container.run.call_args[1]["extra_args"][1]
+            command_string = mock_container.run.call_args[1]["extra_args"][0]
             self.assertIn("--benchmark", command_string)
             self.assertIn("./holohub build test_app --local", command_string)
 
@@ -752,6 +810,18 @@ class TestRunCommand(unittest.TestCase):
         printed_args = mock_print.call_args[0][0]
         self.assertIn("echo hello", printed_args)
         self.assertIn("[dryrun]", printed_args)
+
+    def test_parse_semantic_version(self):
+        """Test the parse_semantic_version function"""
+        self.assertEqual(util.parse_semantic_version("1.2.3"), (1, 2, 3))
+        self.assertEqual(util.parse_semantic_version("1.2.3+dev4"), (1, 2, 3))
+        self.assertEqual(util.parse_semantic_version("1.2.3-rc4"), (1, 2, 3))
+        self.assertEqual(util.parse_semantic_version("1.2.3.dev4"), (1, 2, 3))
+        self.assertEqual(util.parse_semantic_version("1.0.0-beta+exp.sha.5114f85"), (1, 0, 0))
+        self.assertRaises(ValueError, util.parse_semantic_version, "1.2")
+        self.assertRaises(ValueError, util.parse_semantic_version, "1.2.dev3")
+        self.assertGreater(util.parse_semantic_version("1.2.3"), (1, 1, 10))
+        self.assertLess(util.parse_semantic_version("1.2.3"), (1, 12, 3))
 
 
 if __name__ == "__main__":

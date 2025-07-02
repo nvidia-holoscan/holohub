@@ -17,6 +17,13 @@
 # Error out if a command fails
 set -e
 
+# Check if this script is being used and warn about deprecation
+echo "################################################################################"
+echo "WARNING: The dev_container script is deprecated. Please use the ./holohub command instead."
+echo "For more information, see: https://github.com/nvidia-holoscan/holohub"
+echo "################################################################################"
+echo ""
+
 #===============================================================================
 # Default values for environment variables.
 #===============================================================================
@@ -925,6 +932,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
             If `--img` is not specified then a custom image tag will be defined.
         --img : Specify fully qualified output container name
         --container_args: Additional Docker run args.
+        --container_launch_args: Launch args to forward to "dev_container launch" script command.
         --language : Specify the app language implementation to run.
                      Some applications provide both `cpp` and `python` implementations.
         --no_build : Launch the app without attempting to build it first
@@ -1069,6 +1077,16 @@ build_and_run() {
                 shift 2
             else
                 echo "Error: --language requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --container_launch_args)
+            if [[ -n "$2" ]]; then
+                container_launch_args+="$2"
+                shift 2
+            else
+                echo "Error: --container_launch_args requires a value"
                 build_and_run_desc
                 exit 1
             fi

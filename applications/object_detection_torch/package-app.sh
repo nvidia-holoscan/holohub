@@ -22,7 +22,7 @@ APP_PATH="$GIT_ROOT/install/bin/object_detection_torch"
 
 if [ ! -d $APP_PATH ]; then
     print_error "Please build the Object Detection Torch application first with the following command:"
-    print_error "./dev_container build_and_install object_detection_torch"
+    print_error "./holohub install object_detection_torch"
     exit -1
 fi
 
