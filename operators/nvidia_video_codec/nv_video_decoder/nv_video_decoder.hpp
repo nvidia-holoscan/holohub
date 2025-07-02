@@ -20,6 +20,8 @@
 
 #include <memory>
 #include <string>
+#include <vector>
+#include <cstring>
 
 #include <cuda.h>
 #include "holoscan/core/gxf/entity.hpp"
@@ -32,26 +34,34 @@
 namespace holoscan::ops {
 class StreamDataProvider : public FFmpegDemuxer::DataProvider {
  public:
-  StreamDataProvider() {}
+  StreamDataProvider() {
+    // Pre-allocate buffer for accumulated packets
+    buffer_.reserve(16 * 1024 * 1024); // 16MB initial capacity
+  }
   ~StreamDataProvider() {}
 
   void SetData(uint8_t* data, int size) {
-    offset_ = 0;
-    data_ = data;
-    size_ = size;
+    if (data && size > 0) {
+      // Accumulate data instead of replacing it
+      size_t old_size = buffer_.size();
+      buffer_.resize(old_size + size);
+      std::memcpy(buffer_.data() + old_size, data, size);
+      
+      // Reset offset if this is the first data or if we were at EOF
+      if (old_size == 0 || offset_ >= old_size) {
+        offset_ = old_size; // Continue from where we left off
+      }
+    }
   }
+  
   // Fill in the buffer owned by the demuxer/decoder
   int GetData(uint8_t* pBuf, int nBuf) {
-    if (!data_ || size_ == 0) {
-      return AVERROR_EOF;
-    }
-
-    if (offset_ >= size_) {
+    if (buffer_.empty() || offset_ >= buffer_.size()) {
       return AVERROR_EOF;
     }
 
     // Calculate how much data we can copy
-    int remaining = size_ - offset_;
+    int remaining = buffer_.size() - offset_;
     int copy_size = std::min(nBuf, remaining);
 
     if (copy_size <= 0) {
@@ -59,23 +69,25 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
     }
 
     // Copy the data
-    memcpy(pBuf, data_ + offset_, copy_size);
+    std::memcpy(pBuf, buffer_.data() + offset_, copy_size);
     offset_ += copy_size;
-
-    // If we've consumed all the data, reset for next time
-    if (offset_ >= size_) {
-      data_ = nullptr;
-      size_ = 0;
-      offset_ = 0;
-    }
 
     return copy_size;
   }
 
+  // Clear the buffer when we want to start fresh (optional utility method)
+  void ClearBuffer() {
+    buffer_.clear();
+    offset_ = 0;
+  }
+
+  // Get current buffer size for debugging
+  size_t GetBufferSize() const { return buffer_.size(); }
+  size_t GetOffset() const { return offset_; }
+
  private:
-  uint8_t* data_ = nullptr;
-  int size_ = 0;
-  int offset_ = 0;
+  std::vector<uint8_t> buffer_;  // Accumulated packet data
+  size_t offset_ = 0;            // Current read position
 };
 
 /**
@@ -97,7 +109,6 @@ class NvVideoDecoderOp : public Operator {
   void stop() override;
 
  private:
-  void emit_empty_frame(OutputContext& op_output, ExecutionContext& context);
   Parameter<int> cuda_device_ordinal_;
   Parameter<int> width_;
   Parameter<int> height_;

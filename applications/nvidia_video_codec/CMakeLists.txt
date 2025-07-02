@@ -14,8 +14,6 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(nvidia_video_codec_apps LANGUAGES NONE)
-
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 
@@ -35,5 +33,5 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
 endif()
 
-# add_subdirectory(cpp)
-add_subdirectory(python)
+add_holohub_application(nvc_encode_decode DEPENDS OPERATORS nv_video_encoder nv_video_decoder)
+add_holohub_application(nvc_decode DEPENDS OPERATORS nv_video_encoder nv_video_decoder nv_video_reader)

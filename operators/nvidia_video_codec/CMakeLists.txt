@@ -38,3 +38,4 @@ set(NVC_SDK_PATH ${NVC_SDK_DIR} CACHE PATH "Path to NVIDIA Video Codec SDK")
 
 add_holohub_operator(nv_video_encoder)
 add_holohub_operator(nv_video_decoder)
+add_holohub_operator(nv_video_reader)

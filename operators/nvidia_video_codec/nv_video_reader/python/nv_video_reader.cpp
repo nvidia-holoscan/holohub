@@ -27,8 +27,8 @@
 #include "holoscan/core/operator.hpp"
 #include "holoscan/core/operator_spec.hpp"
 
-#include "../nv_video_decoder.hpp"
-#include "./nv_video_decoder_pydoc.hpp"
+#include "../nv_video_reader.hpp"
+#include "./nv_video_reader_pydoc.hpp"
 
 #include "../../../operator_util.hpp"
 using std::string_literals::operator""s;
@@ -51,18 +51,25 @@ namespace holoscan::ops {
  * The sequence of events in this constructor is based on Fragment::make_operator<OperatorT>
  */
 
-class PyNvVideoDecoderOp : public NvVideoDecoderOp {
+class PyNvVideoReaderOp : public NvVideoReaderOp {
  public:
   /* Inherit the constructors */
-  using NvVideoDecoderOp::NvVideoDecoderOp;
+  using NvVideoReaderOp::NvVideoReaderOp;
 
   // Define a constructor that fully initializes the object.
-  PyNvVideoDecoderOp(Fragment* fragment, const py::args& args, int cuda_device_ordinal,
-                     std::shared_ptr<::holoscan::Allocator> allocator,
-                     bool verbose,
-                     const std::string& name = "nv_video_decoder")
-      : NvVideoDecoderOp(
-            ArgList{Arg{"cuda_device_ordinal", cuda_device_ordinal}, Arg{"allocator", allocator}, Arg{"verbose", verbose}}) {
+  PyNvVideoReaderOp(Fragment* fragment, const py::args& args, 
+                    const std::string& directory,
+                    const std::string& filename,
+                    std::shared_ptr<::holoscan::Allocator> allocator,
+                    bool loop = false,
+                    bool verbose = false,
+                    const std::string& name = "nv_video_reader")
+      : NvVideoReaderOp(ArgList{Arg{"directory", directory}, 
+                                Arg{"filename", filename},
+                                Arg{"allocator", allocator},
+                                Arg{"loop", loop},
+                                Arg{"verbose", verbose},
+                                Arg{"name", name}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -73,11 +80,11 @@ class PyNvVideoDecoderOp : public NvVideoDecoderOp {
 
 /* The python module */
 
-PYBIND11_MODULE(_nv_video_decoder, m) {
+PYBIND11_MODULE(_nv_video_reader, m) {
   m.doc() = R"pbdoc(
         Holoscan SDK Python Bindings
         ---------------------------------------
-        .. currentmodule:: _nv_video_decoder
+        .. currentmodule:: _nv_video_reader
         .. autosummary::
            :toctree: _generate
     )pbdoc";
@@ -88,21 +95,25 @@ PYBIND11_MODULE(_nv_video_decoder, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_<NvVideoDecoderOp, PyNvVideoDecoderOp, Operator, std::shared_ptr<NvVideoDecoderOp>>(
-      m, "NvVideoDecoderOp", doc::NvVideoDecoderOp::doc_NvVideoDecoderOp)
+  py::class_<NvVideoReaderOp, PyNvVideoReaderOp, Operator, std::shared_ptr<NvVideoReaderOp>>(
+      m, "NvVideoReaderOp", doc::NvVideoReaderOp::doc_NvVideoReaderOp)
       .def(py::init<Fragment*,
                     const py::args&,
-                    int,
+                    const std::string&,
+                    const std::string&,
                     std::shared_ptr<::holoscan::Allocator>,
+                    bool,
                     bool,
                     const std::string&>(),
            "fragment"_a,
-           "cuda_device_ordinal"_a,
+           "directory"_a,
+           "filename"_a,
            "allocator"_a,
+           "loop"_a = false,
            "verbose"_a = false,
-           "name"_a = "nv_video_decoder"s,
-           doc::NvVideoDecoderOp::doc_NvVideoDecoderOp)
-      .def("initialize", &NvVideoDecoderOp::initialize, doc::NvVideoDecoderOp::doc_initialize)
-      .def("setup", &NvVideoDecoderOp::setup, "spec"_a, doc::NvVideoDecoderOp::doc_setup);
+           "name"_a = "nv_video_reader"s,
+           doc::NvVideoReaderOp::doc_NvVideoReaderOp)
+      .def("initialize", &NvVideoReaderOp::initialize, doc::NvVideoReaderOp::doc_initialize)
+      .def("setup", &NvVideoReaderOp::setup, "spec"_a, doc::NvVideoReaderOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops
