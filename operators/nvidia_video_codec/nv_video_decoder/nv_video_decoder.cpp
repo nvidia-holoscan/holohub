@@ -90,35 +90,79 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   auto data_size = tensor->size();
   auto data_ptr = tensor->data();
 
-  file_data_provider_->SetData(static_cast<uint8_t*>(data_ptr), data_size);
+  if (verbose_.get()) {
+    HOLOSCAN_LOG_INFO("Tensor received: {} bytes", data_size);
+  }
 
-  if (demuxer_ == nullptr) {
-    // Set the current context
-    CudaCheck(cuCtxPushCurrent(cu_context_));
+  auto meta = metadata();
+  auto source = meta->get<std::string>("source", "");
+  HOLOSCAN_LOG_INFO("Source: {}", source);
 
-    try {
-      demuxer_ = std::make_unique<FFmpegDemuxer>(file_data_provider_.get());
-      decoder_ = std::make_unique<NvDecoder>(cu_context_,
-                                             true,
-                                             FFmpeg2NvCodecId(demuxer_->GetVideoCodec()),
-                                             true,
-                                             false,
-                                             nullptr,
-                                             nullptr,
-                                             false,
-                                             0,
-                                             0,
-                                             1000,
-                                             true);
-    } catch (const std::exception& e) {
-      HOLOSCAN_LOG_ERROR("Failed to initialize decoder: {}", e.what());
-      // Reset the demuxer and decoder for potential retry
-      demuxer_.reset();
-      decoder_.reset();
-      // Pop the context to avoid context stack issues
-      CudaCheck(cuCtxPopCurrent(nullptr));
-      throw std::runtime_error(
-          "Decoder initialization failed. Please check video format and codec support.");
+  bool is_from_reader = (source == "nv_video_reader");
+
+  if (!is_from_reader) {
+    file_data_provider_->SetData(static_cast<uint8_t*>(data_ptr), data_size);
+
+    if (verbose_.get()) {
+      HOLOSCAN_LOG_INFO("StreamDataProvider buffer size: {} bytes, offset: {}",
+                        file_data_provider_->GetBufferSize(),
+                        file_data_provider_->GetOffset());
+    }
+
+    if (demuxer_ == nullptr) {
+      // Set the current context
+      CudaCheck(cuCtxPushCurrent(cu_context_));
+
+      try {
+        demuxer_ = std::make_unique<FFmpegDemuxer>(file_data_provider_.get());
+        decoder_ = std::make_unique<NvDecoder>(cu_context_,
+                                               true,
+                                               FFmpeg2NvCodecId(demuxer_->GetVideoCodec()),
+                                               true,
+                                               false,
+                                               nullptr,
+                                               nullptr,
+                                               false,
+                                               0,
+                                               0,
+                                               1000,
+                                               true);
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Failed to initialize decoder: {}", e.what());
+        // Reset the demuxer and decoder for potential retry
+        demuxer_.reset();
+        decoder_.reset();
+        // Pop the context to avoid context stack issues
+        CudaCheck(cuCtxPopCurrent(nullptr));
+        throw std::runtime_error(
+            "Decoder initialization failed. Please check video format and codec support.");
+      }
+    }
+  } else {
+    // For nv_video_reader data, initialize decoder directly if needed
+    if (decoder_ == nullptr) {
+      CudaCheck(cuCtxPushCurrent(cu_context_));
+      try {
+        cudaVideoCodec codec = FFmpeg2NvCodecId(meta->get<AVCodecID>("codec", AV_CODEC_ID_H264));
+        // Create decoder without demuxer - assume H.264 for now
+        decoder_ = std::make_unique<NvDecoder>(cu_context_,
+                                               true,
+                                               codec,  // Could be made configurable
+                                               true,
+                                               false,
+                                               nullptr,
+                                               nullptr,
+                                               false,
+                                               0,
+                                               0,
+                                               1000,
+                                               true);
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Failed to initialize decoder for nv_video_reader: {}", e.what());
+        decoder_.reset();
+        CudaCheck(cuCtxPopCurrent(nullptr));
+        throw std::runtime_error("Decoder initialization failed for nv_video_reader data.");
+      }
     }
   }
 
@@ -145,144 +189,162 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   uint8_t* pFrame;
   int nFrameReturned = 0;
 
-  do {
-    demuxer_->Demux(&pVideo, &nVideoBytes);
+  if (is_from_reader) {
+    // Direct packet from nv_video_reader - decode once
+    pVideo = static_cast<uint8_t*>(data_ptr);
+    nVideoBytes = data_size;
 
     try {
       nFrameReturned = decoder_->Decode(pVideo, nVideoBytes);
     } catch (const std::exception& e) {
-      HOLOSCAN_LOG_ERROR("Decode failed: {}", e.what());
-      // Skip this frame and continue
-      continue;
-    }
-
-    if (nFrameReturned == 0) {
-      // emit_empty_frame(op_output, context);
-      continue;
+      HOLOSCAN_LOG_ERROR("Failed to decode frame from nv_video_reader: {}", e.what());
+      return;
     }
 
     nFrame += nFrameReturned;
+  } else {
+    // Stream data - use demuxer and loop until we get frames
+    do {
+      demuxer_->Demux(&pVideo, &nVideoBytes);
 
-    // HOLOSCAN_LOG_INFO("Decoded {} frames, total {} frames", nFrameReturned, nFrame);
-    if (nFrameReturned == 0) {
-      continue;
+      try {
+        nFrameReturned = decoder_->Decode(pVideo, nVideoBytes);
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Decode failed: {}", e.what());
+        // Skip this frame and continue
+        continue;
+      }
+
+      if (nFrameReturned == 0) {
+        continue;
+      }
+
+      nFrame += nFrameReturned;
+      break;  // Exit loop after successful decode
+
+    } while (nVideoBytes);
+  }
+
+  // Common frame processing for both paths
+  if (nFrameReturned == 0) {
+    HOLOSCAN_LOG_INFO("No frames decoded");
+    return;
+  }
+
+  if (nFrameReturned > 1) {
+    HOLOSCAN_LOG_WARN("More than one frame returned from decoder: {}. Processing all frames.",
+                      nFrameReturned);
+  }
+
+  for (int i = 0; i < nFrameReturned; i++) {
+    pFrame = decoder_->GetLockedFrame();
+
+    auto width = decoder_->GetWidth();
+    auto height = decoder_->GetHeight();
+    auto color_planes = color_format.getDefaultColorPlanes(width, height, false);
+    nvidia::gxf::VideoBufferInfo video_buffer_info{
+        static_cast<uint32_t>(width),
+        static_cast<uint32_t>(height),
+        video_type.value,
+        std::move(color_planes),
+        nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
+    video_buffer_info.color_planes[0].offset = 0;
+    video_buffer_info.color_planes[1].offset = decoder_->GetLumaPlaneSize();
+
+    auto result = video_buffer->resize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_NV12>(
+        static_cast<uint32_t>(width),
+        static_cast<uint32_t>(height),
+        nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR,
+        nvidia::gxf::MemoryStorageType::kDevice,
+        allocator.value(),
+        false);
+
+    if (!result) {
+      throw std::runtime_error("Failed to resize video buffer");
     }
-    if (nFrameReturned > 1) {
-      HOLOSCAN_LOG_WARN("More than one frame returned from decoder: {}. Processing all frames.",
-                        nFrameReturned);
+    size_t src_pitch = decoder_->GetDeviceFramePitch();
+    size_t dst_pitch = video_buffer_info.color_planes[0].stride;
+
+    // Log video buffer and decoder info for debugging
+    if (verbose_.get()) {
+      HOLOSCAN_LOG_INFO("---- Video Buffer & Decoder Debug Info ----");
+      HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[0].stride (Y): {}",
+                        video_buffer_info.color_planes[0].stride);
+      HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[1].stride (UV): {}",
+                        video_buffer_info.color_planes[1].stride);
+      HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[0].offset (Y): {}",
+                        video_buffer_info.color_planes[0].offset);
+      HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[1].offset (UV): {}",
+                        video_buffer_info.color_planes[1].offset);
+      HOLOSCAN_LOG_INFO("decoder_->GetVideoInfo(): {}", decoder_->GetVideoInfo());
+      HOLOSCAN_LOG_INFO("decoder_->GetWidth(): {}, decoder_->GetHeight(): {}",
+                        decoder_->GetWidth(),
+                        decoder_->GetHeight());
+      HOLOSCAN_LOG_INFO("decoder_->GetDecodeWidth(): {}", decoder_->GetDecodeWidth());
+      HOLOSCAN_LOG_INFO("decoder_->GetFrameSize(): {}", decoder_->GetFrameSize());
+      HOLOSCAN_LOG_INFO("decoder_->GetLumaPlaneSize(): {}", decoder_->GetLumaPlaneSize());
+      HOLOSCAN_LOG_INFO("decoder_->GetChromaPlaneSize(): {}", decoder_->GetChromaPlaneSize());
+      HOLOSCAN_LOG_INFO("decoder_->GetOutputFormat(): {}",
+                        static_cast<int>(decoder_->GetOutputFormat()));
+      HOLOSCAN_LOG_INFO("decoder_->GetDeviceFramePitch(): {}",
+                        static_cast<int>(decoder_->GetDeviceFramePitch()));
+      HOLOSCAN_LOG_INFO("decoder_->GetChromaHeight(): {}",
+                        static_cast<int>(decoder_->GetChromaHeight()));
+      HOLOSCAN_LOG_INFO("decoder_->GetNumChromaPlanes(): {}",
+                        static_cast<int>(decoder_->GetNumChromaPlanes()));
+      HOLOSCAN_LOG_INFO("decoder_->GetBitDepth(): {}", static_cast<int>(decoder_->GetBitDepth()));
+      HOLOSCAN_LOG_INFO("decoder_->GetBPP(): {}", static_cast<int>(decoder_->GetBPP()));
+      HOLOSCAN_LOG_INFO("pFrame address: {}", static_cast<void*>(pFrame));
+      HOLOSCAN_LOG_INFO("video_buffer->pointer() address: {}",
+                        static_cast<void*>(video_buffer->pointer()));
+      HOLOSCAN_LOG_INFO("------------------------------------------");
     }
 
-    for (int i = 0; i < nFrameReturned; i++) {
-      pFrame = decoder_->GetLockedFrame();
+    CUDA_TRY(cudaMemcpy2D(video_buffer->pointer() + video_buffer_info.color_planes[0].offset,
+                          video_buffer_info.color_planes[0].stride,
+                          pFrame,
+                          decoder_->GetDeviceFramePitch(),
+                          width,  // width in bytes for Y plane
+                          height,
+                          cudaMemcpyDeviceToDevice));
 
-      auto width = decoder_->GetWidth();
-      auto height = decoder_->GetHeight();
-      auto color_planes = color_format.getDefaultColorPlanes(width, height, false);
-      nvidia::gxf::VideoBufferInfo video_buffer_info{
-          static_cast<uint32_t>(width),
-          static_cast<uint32_t>(height),
-          video_type.value,
-          std::move(color_planes),
-          nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
-      video_buffer_info.color_planes[0].offset = 0;
-      video_buffer_info.color_planes[1].offset = decoder_->GetLumaPlaneSize();
+    CUDA_TRY(cudaMemcpy2D(video_buffer->pointer() + video_buffer_info.color_planes[1].offset,
+                          video_buffer_info.color_planes[1].stride,
+                          pFrame + decoder_->GetLumaPlaneSize(),
+                          decoder_->GetDeviceFramePitch(),
+                          width,
+                          height / 2,
+                          cudaMemcpyDeviceToDevice));
 
-      auto result = video_buffer->resize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_NV12>(
-          static_cast<uint32_t>(width),
-          static_cast<uint32_t>(height),
-          nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR,
-          nvidia::gxf::MemoryStorageType::kDevice,
-          allocator.value(),
-          false);
-
-      if (!result) {
-        throw std::runtime_error("Failed to resize video buffer");
+    // After copying Y plane
+    size_t pad = video_buffer_info.color_planes[0].stride - width;
+    if (pad > 0) {
+      HOLOSCAN_LOG_INFO("Padding Y plane with {} bytes", pad);
+      for (int y = 0; y < height; ++y) {
+        uint8_t* row_start = video_buffer->pointer() + video_buffer_info.color_planes[0].offset +
+                             y * video_buffer_info.color_planes[0].stride;
+        CUDA_TRY(cudaMemset(row_start + width, 0, pad));
       }
-      size_t src_pitch = decoder_->GetDeviceFramePitch();
-      size_t dst_pitch = video_buffer_info.color_planes[0].stride;
-
-      // Log video buffer and decoder info for debugging
-      if (verbose_.get()) {
-        HOLOSCAN_LOG_INFO("---- Video Buffer & Decoder Debug Info ----");
-        HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[0].stride (Y): {}",
-                          video_buffer_info.color_planes[0].stride);
-        HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[1].stride (UV): {}",
-                          video_buffer_info.color_planes[1].stride);
-        HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[0].offset (Y): {}",
-                          video_buffer_info.color_planes[0].offset);
-        HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[1].offset (UV): {}",
-                          video_buffer_info.color_planes[1].offset);
-        HOLOSCAN_LOG_INFO("decoder_->GetVideoInfo(): {}", decoder_->GetVideoInfo());
-        HOLOSCAN_LOG_INFO("decoder_->GetWidth(): {}, decoder_->GetHeight(): {}",
-                          decoder_->GetWidth(),
-                          decoder_->GetHeight());
-        HOLOSCAN_LOG_INFO("decoder_->GetDecodeWidth(): {}", decoder_->GetDecodeWidth());
-        HOLOSCAN_LOG_INFO("decoder_->GetFrameSize(): {}", decoder_->GetFrameSize());
-        HOLOSCAN_LOG_INFO("decoder_->GetLumaPlaneSize(): {}", decoder_->GetLumaPlaneSize());
-        HOLOSCAN_LOG_INFO("decoder_->GetChromaPlaneSize(): {}", decoder_->GetChromaPlaneSize());
-        HOLOSCAN_LOG_INFO("decoder_->GetOutputFormat(): {}",
-                          static_cast<int>(decoder_->GetOutputFormat()));
-        HOLOSCAN_LOG_INFO("decoder_->GetDeviceFramePitch(): {}",
-                          static_cast<int>(decoder_->GetDeviceFramePitch()));
-        HOLOSCAN_LOG_INFO("decoder_->GetChromaHeight(): {}",
-                          static_cast<int>(decoder_->GetChromaHeight()));
-        HOLOSCAN_LOG_INFO("decoder_->GetNumChromaPlanes(): {}",
-                          static_cast<int>(decoder_->GetNumChromaPlanes()));
-        HOLOSCAN_LOG_INFO("decoder_->GetBitDepth(): {}", static_cast<int>(decoder_->GetBitDepth()));
-        HOLOSCAN_LOG_INFO("decoder_->GetBPP(): {}", static_cast<int>(decoder_->GetBPP()));
-        HOLOSCAN_LOG_INFO("pFrame address: {}", static_cast<void*>(pFrame));
-        HOLOSCAN_LOG_INFO("video_buffer->pointer() address: {}",
-                          static_cast<void*>(video_buffer->pointer()));
-        HOLOSCAN_LOG_INFO("------------------------------------------");
-      }
-
-      CUDA_TRY(cudaMemcpy2D(video_buffer->pointer() + video_buffer_info.color_planes[0].offset,
-                            video_buffer_info.color_planes[0].stride,
-                            pFrame,
-                            decoder_->GetDeviceFramePitch(),
-                            width,  // width in bytes for Y plane
-                            height,
-                            cudaMemcpyDeviceToDevice));
-
-      CUDA_TRY(cudaMemcpy2D(video_buffer->pointer() + video_buffer_info.color_planes[1].offset,
-                            video_buffer_info.color_planes[1].stride,
-                            pFrame + decoder_->GetLumaPlaneSize(),
-                            decoder_->GetDeviceFramePitch(),
-                            width,
-                            height / 2,
-                            cudaMemcpyDeviceToDevice));
-
-      // After copying Y plane
-      size_t pad = video_buffer_info.color_planes[0].stride - width;
-      if (pad > 0) {
-        HOLOSCAN_LOG_INFO("Padding Y plane with {} bytes", pad);
-        for (int y = 0; y < height; ++y) {
-          uint8_t* row_start = video_buffer->pointer() + video_buffer_info.color_planes[0].offset +
-                               y * video_buffer_info.color_planes[0].stride;
-          CUDA_TRY(cudaMemset(row_start + width, 0, pad));
-        }
-      }
-
-      // After copying UV plane
-      pad = video_buffer_info.color_planes[1].stride - width;
-      if (pad > 0) {
-        HOLOSCAN_LOG_INFO("Padding UV plane with {} bytes", pad);
-        for (int y = 0; y < height / 2; ++y) {
-          uint8_t* row_start = video_buffer->pointer() + video_buffer_info.color_planes[1].offset +
-                               y * video_buffer_info.color_planes[1].stride;
-          CUDA_TRY(cudaMemset(row_start + width, 0, pad));
-        }
-      }
-
-      decoder_->UnlockFrame(&pFrame);
     }
-  } while (nVideoBytes);
+
+    // After copying UV plane
+    pad = video_buffer_info.color_planes[1].stride - width;
+    if (pad > 0) {
+      HOLOSCAN_LOG_INFO("Padding UV plane with {} bytes", pad);
+      for (int y = 0; y < height / 2; ++y) {
+        uint8_t* row_start = video_buffer->pointer() + video_buffer_info.color_planes[1].offset +
+                             y * video_buffer_info.color_planes[1].stride;
+        CUDA_TRY(cudaMemset(row_start + width, 0, pad));
+      }
+    }
+
+    decoder_->UnlockFrame(&pFrame);
+  }
 
   if (nFrame > 0) {
     auto emit_timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
                               std::chrono::steady_clock::now().time_since_epoch())
                               .count();
-    auto meta = metadata();
     auto decode_latency_ms = (emit_timestamp - enter_timestamp) / 1000000.0;
     meta->set("video_decoder_decode_latency_ms"s, decode_latency_ms);
     meta->set("jitter_time"s, (emit_timestamp - last_emit_timestamp_) / 1000000.0);
@@ -293,6 +355,8 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     auto result = gxf::Entity(std::move(output.value()));
     op_output.emit(result, "output");
     last_emit_timestamp_ = emit_timestamp;
+  } else {
+    HOLOSCAN_LOG_INFO("No frames decoded");
   }
 }
 

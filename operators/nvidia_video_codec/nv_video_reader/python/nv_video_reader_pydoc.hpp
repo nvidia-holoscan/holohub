@@ -21,26 +21,38 @@
 
 #include "macros.hpp"
 
-namespace holoscan::doc::NvVideoDecoderOp {
+namespace holoscan::doc::NvVideoReaderOp {
 
-PYDOC(NvVideoDecoderOp, R"doc(
-Nv Video Decoder operator.
+PYDOC(NvVideoReaderOp, R"doc(
+Nv Video Reader operator.
+
+This operator reads H.264/H.265 video files and emits raw encoded frames one at a time.
+The frames remain in their compressed format for processing by downstream operators
+like nv_video_decoder.
 )doc")
 
-// PyNvVideoDecoderOp Constructor
-PYDOC(NvVideoDecoderOp_python, R"doc(
-Nv Video Decoder operator.
+// PyNvVideoReaderOp Constructor
+PYDOC(NvVideoReaderOp_python, R"doc(
+Nv Video Reader operator.
+
+This operator reads H.264/H.265 video files and emits raw encoded frames one at a time.
+The frames remain in their compressed format for processing by downstream operators
+like nv_video_decoder.
 
 Parameters
 ----------
-cuda_device_ordinal: int
-    CUDA device ordinal.
+directory : str
+    Directory containing the video file to read (H.264/H.265 format).
+filename : str
+    Filename of the video file to read (H.264/H.265 format).
 allocator : holoscan.core.Allocator
     Allocator for output buffers.
+loop : bool, optional
+    Loop the video file when end is reached. Default is False.
+verbose : bool, optional
+    Print detailed reader information. Default is False.
 name : str, optional
     The name of the operator.
-verbose : bool, optional
-    Print detailed decoder information. Default is False.
 )doc")
 
 PYDOC(initialize, R"doc(
@@ -59,4 +71,4 @@ spec : holoscan.core.OperatorSpec
     The operator specification.
 )doc")
 
-}  // namespace holoscan::doc::NvVideoDecoderOp
+}  // namespace holoscan::doc::NvVideoReaderOp

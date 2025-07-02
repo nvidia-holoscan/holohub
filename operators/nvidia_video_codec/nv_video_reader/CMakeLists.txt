@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.24)
-project(nv_video_encoder)
+project(nv_video_reader)
 
 find_package(holoscan 3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
@@ -28,51 +28,24 @@ else()
     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
-# find_library(NVCUVID_LIBRARY nvcuvid
-#     NAMES libnvcuvid.so.1 libnvcuvid
-#     HINTS ${CUDA_TOOLKIT_ROOT_DIR}/lib64
-#     PATHS "/usr/lib/${LIB_ARCH_DIR}/")
-
-#  if(NOT NVCUVID_LIBRARY)
-#    message(FATAL_ERROR "nvcuvid library not found. Please specify its location manually.")
-# endif()
-
-find_library(NVENC_LIBRARY nvidia-encode
-    NAMES libnvidia-encode.so.1 libnvidia-encode
-    HINTS ${CUDA_TOOLKIT_ROOT_DIR}/lib64
-    PATHS "/usr/lib/${LIB_ARCH_DIR}/")
-
-if(NOT NVENC_LIBRARY)
-    message(FATAL_ERROR "nvidia-encode library not found. Please specify its location manually.")
-endif()
-
-
-# publisher Operator
-add_library(nv_video_encoder SHARED
-  nv_video_encoder.cpp
-  ${NVC_SDK_PATH}/NvEncoder/NvEncoder.cpp
-  ${NVC_SDK_PATH}/NvEncoder/NvEncoderCuda.cpp
+# Video reader operator
+add_library(nv_video_reader SHARED
+  nv_video_reader.cpp
+  ${NVC_SDK_PATH}/FFmpegDemuxer.h
+  ${NVC_SDK_PATH}/Logger.cpp
 )
 
-add_library(holoscan::ops::nv_video_encoder ALIAS nv_video_encoder)
-target_link_libraries(nv_video_encoder PUBLIC
+add_library(holoscan::ops::nv_video_reader ALIAS nv_video_reader)
+target_link_libraries(nv_video_reader PUBLIC
   holoscan::core
-  cuda
   avcodec
   avformat
   avutil
-  ${NVCUVID_LIBRARY}
-  ${NVENC_LIBRARY}
 )
-target_include_directories(nv_video_encoder PUBLIC
+target_include_directories(nv_video_reader PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   ${NVC_SDK_PATH}/
-  ${NVC_SDK_PATH}/NvEncoder
-)
-
-# Add third_party include directory
-target_include_directories(nv_video_encoder
-    PRIVATE
+  ${NVC_SDK_PATH}/Utils
 )
 
 add_subdirectory(python)
