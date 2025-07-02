@@ -39,7 +39,7 @@ from .util import (
     run_command,
 )
 
-base_sdk_version = "3.3.0"
+base_sdk_version = "3.4.0"
 
 
 class HoloHubContainer:
