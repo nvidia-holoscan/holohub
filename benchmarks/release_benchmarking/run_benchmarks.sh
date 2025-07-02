@@ -40,6 +40,7 @@ run_command() {
 
 print_platform_details() {
     echo "Platform details:"
+    
     cpu_details=$(lscpu)
     echo "\"cpu\": \"$(echo "$cpu_details" | grep "Model name" | cut -d':' -f2 | xargs)\","
 
@@ -63,8 +64,6 @@ run_benchmark() {
     local realtime_str="offline"
     local app_config=""
     local app=""
-    local language="cpp"
-    local threads=1
 
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
@@ -73,17 +72,15 @@ run_benchmark() {
         elif [[ "$arg" == "--help" ]]; then
             echo "Usage: $0 [options]"
             echo "Options:"
-            echo " --app <str> Application to benchmark"
-            echo " --app_config <str> Application configuration file"
-            echo " --runs <int> Number of runs"
-            echo " --instances <int> Number of instances"
-            echo " --messages <int> Number of messages"
-            echo " --scheduler <str> Scheduler to use"
-            echo " --output <str> Output directory"
-            echo " --headless Run in headless mode"
-            echo " --realtime Run in real-time mode"
-            echo " --language <str> Language to use (cpp or python)"
-            echo " --threads <int> Number of threads to use"
+            echo "  --app <str>         Application to benchmark"
+            echo "  --app_config <str>  Application configuration file"
+            echo "  --runs <int>        Number of runs"
+            echo "  --instances <int>   Number of instances"
+            echo "  --messages <int>    Number of messages"
+            echo "  --scheduler <str>   Scheduler to use"
+            echo "  --output <str>      Output directory"
+            echo "  --headless          Run in headless mode"
+            echo "  --realtime          Run in real-time mode"
             exit 0
         elif [ "$arg" = "--app" ]; then
             app="${ARGS[i + 1]}"
@@ -110,12 +107,6 @@ run_benchmark() {
             headless="true"
         elif [ "$arg" = "--realtime" ]; then
             realtime="true"
-        elif [ "$arg" = "--language" ]; then
-            language="${ARGS[i + 1]}"
-            skipnext=1
-        elif [ "$arg" = "--threads" ]; then
-            threads="${ARGS[i + 1]}"
-            skipnext=1
         fi
     done
 
@@ -123,28 +114,27 @@ run_benchmark() {
         echo "No application configuration filepath specified with '--app_config'"
         exit 1
     fi
+    
     if [[ "${headless}" = "true" ]]; then
         headless_str="headless"
     fi
     if [[ "${realtime}" = "true" ]]; then
         realtime_str="realtime"
     fi
-    output=${output:-"${SCRIPT_DIR}/output/${app}_${language}_${runs}_${instances}_${messages}_${scheduler}_${headless_str}_${realtime_str}"}
-    mkdir -p "$(dirname "${output}")"
+    output=${output:-"${SCRIPT_DIR}/output/${app}_${runs}_${instances}_${messages}_${scheduler}_${headless_str}_${realtime_str}"}
+    mkdir -p $(dirname ${output})
 
-    sed -i "s/^ headless: .*/ headless: ${headless}/" "${app_config}"
-    sed -i "s/^ realtime: .*/ realtime: ${realtime}/" "${app_config}"
+    sed -i "s/^  headless: .*/  headless: ${headless}/" ${APP_CONFIG_PATH}
+    sed -i "s/^  realtime: .*/  realtime: ${realtime}/" ${APP_CONFIG_PATH}
 
     run_command python \
-        "${FLOW_BENCHMARKING_DIR}/benchmark.py" \
-        -a "${app}" \
-        -r "${runs}" \
-        -i "${instances}" \
-        -m "${messages}" \
-        --sched "${scheduler}" \
-        -d "${output}" \
-        --language "${language}" \
-        -w "${threads}"
+        ${FLOW_BENCHMARKING_DIR}/benchmark.py \
+        -a ${app} \
+        -r ${runs} \
+        -i ${instances} \
+        -m ${messages} \
+        --sched ${scheduler} \
+        -d ${output}
 }
 
 plot_benchmark() {
@@ -161,10 +151,10 @@ plot_benchmark() {
         elif [[ "$arg" == "--help" ]]; then
             echo "Usage: $0 [options]"
             echo "Options:"
-            echo " --log_dir <str> parent directory containing log \"output\" subdirectory"
-            echo " --log_pattern <str> log pattern to search for"
-            echo " --stats <str> statistics arguments for analyze.py"
-            echo " --help Display this help message"
+            echo "  --log_dir <str>     parent directory containing log \"output\" subdirectory"
+            echo "  --log_pattern <str> log pattern to search for"
+            echo "  --stats <str>       statistics arguments for analyze.py"
+            echo "  --help              Display this help message"
             exit 0
         elif [ "$arg" = "--log_pattern" ]; then
             log_pattern="${ARGS[i + 1]}"
@@ -185,10 +175,10 @@ plot_benchmark() {
     app_name=$(echo "$log_pattern" | sed -E 's/_[0-9].*//')
 
     counter=1
-    for log_directory in $(find "${log_dir}/output" -name "${log_pattern}" -type d | sort -d); do
+    for log_directory in $(find ${log_dir}/output -name ${log_pattern} -type d | sort -d); do
         log_groups+="-g "
-        for log_file in $(find "${log_directory}" -name "logger_*"); do
-            log_groups+="$(realpath "${log_file}") "
+        for log_file in $(find ${log_directory} -name "logger_*"); do
+            log_groups+="$(realpath ${log_file}) "
         done
         log_groups+="Group${counter} "
         counter=$((counter + 1))
@@ -198,21 +188,21 @@ plot_benchmark() {
         exit 1
     fi
 
-    processing_dir="$(realpath "${log_dir}")/processed/${log_pattern}"
-    mkdir -p "${processing_dir}"
+    processing_dir="$(realpath ${log_dir})/processed/${log_pattern}"
+    mkdir -p ${processing_dir}
 
-    pushd "${processing_dir}"
+    pushd ${processing_dir}
     run_command python \
-        "${FLOW_BENCHMARKING_DIR}/analyze.py" \
+        ${FLOW_BENCHMARKING_DIR}/analyze.py \
         --save-csv \
         --no-display-graphs \
         ${statistics_args} \
         ${log_groups}
 
-    for statistics_csv in $(find "${processing_dir}" -name "*.csv"); do
+    for statistics_csv in $(find ${processing_dir} -name "*.csv"); do
         run_command python \
-            "${FLOW_BENCHMARKING_DIR}/generate_bar_graph.py" \
-            "${statistics_csv}" \
+            ${FLOW_BENCHMARKING_DIR}/generate_bar_graph.py \
+            ${statistics_csv} \
             --app "${app_name}" \
             --title "${app_name}" \
             --quiet
@@ -222,21 +212,20 @@ plot_benchmark() {
 
 benchmark_endoscopy_tool_tracking() {
     APP_CONFIG_PATH=${TOP}/build/endoscopy_tool_tracking/applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
-    PYTHON_APP_CONFIG_PATH=${TOP}/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.yaml
 
     # Test fewer instances on IGX
-    if [ "$(uname -m)" = "aarch64" ]; then
-        instance_range=$(seq 1 3)
+    if [ $(uname -m) = "aarch64" ]; then
+        instance_range=$(seq 1 3);
     else
-        instance_range=$(seq 1 8)
+        instance_range=$(seq 1 8);
     fi
 
     # Real time
     for instances in ${instance_range}; do
         run_benchmark \
             --app endoscopy_tool_tracking \
-            --app_config "${APP_CONFIG_PATH}" \
-            --instances "${instances}" \
+            --app_config ${APP_CONFIG_PATH} \
+            --instances ${instances} \
             --realtime
     done
 
@@ -244,26 +233,17 @@ benchmark_endoscopy_tool_tracking() {
     for instances in ${instance_range}; do
         run_benchmark \
             --app endoscopy_tool_tracking \
-            --app_config "${APP_CONFIG_PATH}" \
-            --instances "${instances}"
+            --app_config ${APP_CONFIG_PATH} \
+            --instances ${instances}
     done
 
     # Real time disabled ("offline") + visualizations disabled ("headless")
     for instances in ${instance_range}; do
         run_benchmark \
             --app endoscopy_tool_tracking \
-            --app_config "${APP_CONFIG_PATH}" \
-            --instances "${instances}" \
+            --app_config ${APP_CONFIG_PATH} \
+            --instances ${instances} \
             --headless
-    done
-
-    # Real time disabled ("offline") + python version
-    for instances in ${instance_range}; do
-        run_benchmark \
-            --app endoscopy_tool_tracking \
-            --app_config "${PYTHON_APP_CONFIG_PATH}" \
-            --instances "${instances}" \
-            --language python
     done
 }
 
@@ -271,18 +251,18 @@ benchmark_multiai_ultrasound() {
     APP_CONFIG_PATH=${TOP}/build/multiai_ultrasound/applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
 
     # Test fewer instances on IGX
-    if [ "$(uname -m)" = "aarch64" ]; then
-        instance_range=$(seq 1 2)
+    if [ $(uname -m) = "aarch64" ]; then
+        instance_range=$(seq 1 2);
     else
-        instance_range=$(seq 1 3)
+        instance_range=$(seq 1 3);
     fi
 
     # Real time
     for instances in ${instance_range}; do
         run_benchmark \
             --app multiai_ultrasound \
-            --app_config "${APP_CONFIG_PATH}" \
-            --instances "${instances}" \
+            --app_config ${APP_CONFIG_PATH} \
+            --instances ${instances} \
             --realtime
     done
 
@@ -290,20 +270,9 @@ benchmark_multiai_ultrasound() {
     for instances in ${instance_range}; do
         run_benchmark \
             --app multiai_ultrasound \
-            --app_config "${APP_CONFIG_PATH}" \
-            --instances "${instances}" \
+            --app_config ${APP_CONFIG_PATH} \
+            --instances ${instances} \
             --headless
-    done
-
-    # Event-based scheduler with num threads = num operators
-    for instances in ${instance_range}; do
-        run_benchmark \
-            --app multiai_ultrasound \
-            --app_config "${APP_CONFIG_PATH}" \
-            --instances "${instances}" \
-            --scheduler eventbased \
-            --realtime \
-            --threads 9
     done
 }
 
@@ -315,24 +284,24 @@ main() {
     for i in "${!ARGS[@]}"; do
         arg="${ARGS[i]}"
         if [[ $skipnext == "1" ]]; then
-            skipnext=0
+            skipnext=0;
         elif [[ "$arg" == "--help" ]]; then
             echo "Usage: $0 [options]"
             echo "Options:"
-            echo " --dryrun Print commands without running them"
-            echo " --print Print platform details"
-            echo " --process <path(s)> Process prior output without running new benchmarks. Multiple --process values can be specified."
-            exit 0
+            echo "  --dryrun             Print commands without running them"
+            echo "  --print              Print platform details"
+            echo "  --process <path(s)>  Process prior output without running new benchmarks. Multiple --process values can be specified."
+            exit 0;
         elif [[ "$arg" == "--dryrun" ]]; then
-            DO_DRY_RUN="true"
+            DO_DRY_RUN="true";
         elif [[ "$arg" == "--print" ]]; then
             set +x
             print_platform_details
-            exit 0
+            exit 0;
         elif [[ "$arg" == "--process" ]]; then
             data_dirs+=("${ARGS[i + 1]}")
             process_only=true
-            skipnext=1
+            skipnext=1;
         fi
     done
 
@@ -341,37 +310,23 @@ main() {
     fi
 
     if [[ ${process_only} = "false" ]]; then
-        pushd "${TOP}"
+        pushd ${TOP}
         benchmark_endoscopy_tool_tracking
         benchmark_multiai_ultrasound
-        popd
+        popd;
     fi
     
-    for data_dir in "${data_dirs[@]}"; do
+    for data_dir in ${data_dirs[@]}; do
         for pattern_suffix in "display_realtime" "display_offline" "headless_offline"; do
-            if [ "$pattern_suffix" = "display_offline" ]; then
-                languages=("python" "cpp")
-            else
-                languages=("cpp")
-            fi
-            for language in "${languages[@]}"; do
-                plot_benchmark \
-                    --log_pattern "endoscopy_tool_tracking_${language}_3_[0-9]_1000_greedy_$pattern_suffix" \
-                    --log_dir "${data_dir}"
-            done
+            plot_benchmark \
+                --log_pattern "endoscopy_tool_tracking_3_[0-9]_1000_greedy_$pattern_suffix" \
+                --log_dir ${data_dir}
         done
 
         for pattern_suffix in "display_realtime" "headless_offline"; do
-            if [ "$pattern_suffix" = "display_realtime" ]; then
-                schedulers=("eventbased" "greedy")
-            else
-                schedulers=("greedy")
-            fi
-            for scheduler in "${schedulers[@]}"; do
-                plot_benchmark \
-                    --log_pattern "multiai_ultrasound_cpp_3_[0-9]_1000_${scheduler}_$pattern_suffix" \
-                    --log_dir "${data_dir}"
-            done
+            plot_benchmark \
+                --log_pattern "multiai_ultrasound_3_[0-9]_1000_greedy_$pattern_suffix" \
+                --log_dir ${data_dir}
         done
     done
 }
