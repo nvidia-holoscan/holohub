@@ -50,8 +50,9 @@ bool MessageLogger::log_data(
     [[maybe_unused]] int64_t acquisition_timestamp,
     [[maybe_unused]] std::shared_ptr<MetadataDictionary> metadata,
     [[maybe_unused]] IOSpec::IOType io_type) {
+  auto current_timestamp = get_timestamp();
   HOLOSCAN_LOG_INFO("[timestamp: {}] log_data called for {} port with unique id {}",
-                    acquisition_timestamp,
+                    current_timestamp,
                     io_type == IOSpec::IOType::kInput ? "input" : "output",
                     unique_id);
   return true;
@@ -63,8 +64,9 @@ bool MessageLogger::log_tensor_data(
     [[maybe_unused]] int64_t acquisition_timestamp,
     [[maybe_unused]] const std::shared_ptr<MetadataDictionary>& metadata,
     [[maybe_unused]] IOSpec::IOType io_type) {
+  auto current_timestamp = get_timestamp();
   HOLOSCAN_LOG_INFO("[timestamp: {}] log_tensor_data called for {} port with unique id {}",
-                    acquisition_timestamp,
+                    current_timestamp,
                     io_type == IOSpec::IOType::kInput ? "input" : "output",
                     unique_id);
   return true;
@@ -76,8 +78,9 @@ bool MessageLogger::log_tensormap_data(
     [[maybe_unused]] int64_t acquisition_timestamp,
     [[maybe_unused]] const std::shared_ptr<MetadataDictionary>& metadata,
     [[maybe_unused]] IOSpec::IOType io_type) {
+  auto current_timestamp = get_timestamp();
   HOLOSCAN_LOG_INFO("[timestamp: {}] log_tensormap_data called for {} port with unique id {}",
-                    acquisition_timestamp,
+                    current_timestamp,
                     io_type == IOSpec::IOType::kInput ? "input" : "output",
                     unique_id);
   return true;
