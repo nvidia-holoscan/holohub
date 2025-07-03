@@ -34,13 +34,16 @@
           "$ref": "holohub/project/v1#/$defs/ranking"
         },
         "dependencies": {
-          "$ref": "holohub/project/v1#/$defs/dependencies"
+          "$ref": "holohub/project/v1#/$defs/application_dependencies"
         },
         "dockerfile": {
           "type": "string"
         },
         "run": {
           "$ref": "holohub/project/v1#/$defs/run_command"
+        },
+        "modes": {
+          "$ref": "holohub/project/v1#/$defs/modes"
         }
       },
       "required": [

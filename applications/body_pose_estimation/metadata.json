@@ -24,24 +24,87 @@
 		],
 		"tags": ["Computer Vision and Perception", "Distributed", "Tensor Optimization", "Human Body Pose Estimation", "DDS", "RTI Connext", "Video", "Visualization"],
 		"ranking": 2,
-		"dependencies": {
-			"data": [
-				{
-					"model": "https://docs.ultralytics.com/tasks/pose/",
-					"video": "https://www.pexels.com/video/a-woman-showing-her-ballet-skill-in-turning-one-footed-5385885/"
+		"dependencies": [
+			{
+				"id": "model",
+				"type": "model",
+				"name": "Pose Estimation Model",
+				"description": "YOLOv8 pose estimation model for human body pose detection",
+				"url": "https://docs.ultralytics.com/tasks/pose/"
+			},
+			{
+				"id": "video",
+				"type": "data",
+				"name": "Sample Ballet Video",
+				"description": "Demo video showing ballet movements for pose estimation testing",
+				"url": "https://www.pexels.com/video/a-woman-showing-her-ballet-skill-in-turning-one-footed-5385885/"
+			},
+			{
+				"id": "camera",
+				"type": "hardware",
+				"name": "camera",
+				"description": "This application requires a Video4Linux (V4L2) compatible device as input."
+			},
+			{
+				"id": "dds",
+				"type": "software",
+				"name": "RTI Connext DDS",
+				"description": "RTI Connext DDS middleware for distributed video streaming"
+			}
+		],
+		"modes": {
+			"default": {
+				"description": "Real-time pose estimation using V4L2 camera (/dev/video0) for live demos, real-time processing, and webcam testing",
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
+					"workdir": "holohub_bin",
+					"requirements": ["camera", "model"]
 				}
-			],
-			"hardware": [
-				{
-					"name": "camera",
-					"description": "This application requires a Video4Linux (V4L2) compatible device as input.",
-					"required": true
+			},
+			"replayer": {
+				"description": "Offline pose estimation using pre-recorded video file for testing without camera, batch processing, and reproducible demos",
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
+					"workdir": "holohub_bin",
+					"run_args": ["--source replayer"],
+					"requirements": ["model", "video"]
 				}
-			]
-		},
-		"run": {
-			"command": "python3 <holohub_app_source>/body_pose_estimation.py",
-			"workdir": "holohub_bin"
+			},
+			"dds": {
+				"description": "Distributed pose estimation via DDS video streaming for multi-process applications, distributed systems, and ROS integration",
+				"build": {
+					"depends": ["dds_video_subscriber", "dds_video_publisher"],
+					"docker_args": ["--ssh default"],
+					"requirements": ["dds"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
+					"workdir": "holohub_bin",
+					"run_args": ["--source dds"],
+					"docker_args": [
+						"-v ${NDDSHOME}:/opt/dds",
+						"-e NDDSHOME=/opt/dds",
+						"-e CONNEXTDDS_ARCH=${CONNEXTDDS_ARCH}"
+					],
+					"requirements": ["model"]
+				}
+			},
+			"custom_camera": {
+				"description": "Pose estimation with user-specified camera device for multiple cameras, non-standard devices, and custom hardware",
+				"parameters": {
+					"video_device": {
+						"description": "Path to V4L2 video device (examples: /dev/video1, /dev/video2)",
+						"type": "string",
+						"default": "/dev/video0"
+					}
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
+					"workdir": "holohub_bin",
+					"run_args": ["--video_device ${PARAM:video_device}"],
+					"requirements": ["camera", "model"]
+				}
+			}
 		}
 	}
 }
