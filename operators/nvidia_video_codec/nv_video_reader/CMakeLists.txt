@@ -28,7 +28,7 @@ else()
     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
-# Video reader operator
+# Reader Operator
 add_library(nv_video_reader SHARED
   nv_video_reader.cpp
   ${NVC_SDK_PATH}/FFmpegDemuxer.h

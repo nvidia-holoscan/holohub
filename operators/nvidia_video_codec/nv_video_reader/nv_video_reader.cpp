@@ -40,7 +40,7 @@ void NvVideoReaderOp::setup(OperatorSpec& spec) {
              "Directory",
              "Directory containing the video files to read",
              std::string(""));
-    spec.param(filename_,
+  spec.param(filename_,
              "filename",
              "Filename",
              "Filename of the video file to read",
@@ -206,9 +206,23 @@ void NvVideoReaderOp::compute(InputContext& op_input, OutputContext& op_output,
   meta->set("frame_size_bytes", frame_size);
   meta->set("source", std::string("nv_video_reader"));
   meta->set("codec", demuxer_->GetVideoCodec());
+  meta->set("pts", pts);
+  meta->set("dts", dts);
+  meta->set("is_looping", loop_.get());
+  
+  // Signal stream reset to decoder when looping
+  if (frame_count_ == 1) {
+    meta->set("stream_reset", true);
+    if (verbose_.get()) {
+      HOLOSCAN_LOG_INFO("Signaling stream reset to decoder (first frame after loop or start)");
+    }
+  } else {
+    meta->set("stream_reset", false);
+  }
 
   if (verbose_.get()) {
-    HOLOSCAN_LOG_INFO("Read frame {}: {} bytes", frame_count_, frame_size);
+    HOLOSCAN_LOG_INFO("Frame {} - PTS: {}, DTS: {}, Size: {} bytes, Video packet: {}", 
+                      frame_count_, pts, dts, frame_size, is_video_packet);
   }
 
   // Emit the output

@@ -62,7 +62,9 @@ class PyNvVideoDecoderOp : public NvVideoDecoderOp {
                      bool verbose,
                      const std::string& name = "nv_video_decoder")
       : NvVideoDecoderOp(
-            ArgList{Arg{"cuda_device_ordinal", cuda_device_ordinal}, Arg{"allocator", allocator}, Arg{"verbose", verbose}}) {
+            ArgList{Arg{"cuda_device_ordinal", cuda_device_ordinal}, 
+                    Arg{"allocator", allocator}, 
+                    Arg{"verbose", verbose}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;

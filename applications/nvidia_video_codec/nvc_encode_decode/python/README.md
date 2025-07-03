@@ -1,10 +1,13 @@
 # NVIDIA Video Codec
 
-This application demonstrates the use of NVIDIA Video Codec SDK. The application load a video file, encode the video using either H.264 or HEVC (H.265), decode the video and display it with Holoviz.
+This application demonstrates the use of NVIDIA Video Codec SDK. The application loads a video file, encodes the video using either H.264 or HEVC (H.265), decodes the video, and displays it with Holoviz.
 
 ### Requirements
 
+- x86 and SBSA platforms with dedicated GPU
 - [NVIDIA Video Codec SDK](https://developer.nvidia.com/video-codec-sdk)
+
+> 💡 Note: NVIDIA IGX Orin with integrated GPU is not currently supported.
 
 ### Data
 
@@ -16,7 +19,7 @@ This application demonstrates the use of NVIDIA Video Codec SDK. The application
 ### Python
 
 ```bash
-./dev_container build_and_run nvidia_video_codec --language python
+./holohub run nvc_encode_decode --language python --docker-file applications/nvidia_video_codec/Dockerfile
 ```
 
 ## Configuration
@@ -26,7 +29,7 @@ The application is configured with H.264 codec by default, it may be modified in
 ```
 encoder:
   codec: "H264" # H265 or HEVC
-  preset: "P3" # P3, P4, P5, P6, P7
+  preset: "P3" # P1, P2, P3, P4, P5, P6, P7
   cuda_device_ordinal: 0
   bitrate: 10000000
   frame_rate: 60
@@ -34,9 +37,11 @@ encoder:
   multi_pass_encoding: 1 # 0: Disabled, 1: Quarter resolution, 2: Full resolution
 ```
 
+Refer to the [NVIDIA Video Codec documentation](https://docs.nvidia.com/video-technologies/video-codec-sdk/13.0/nvenc-video-encoder-api-prog-guide/) for additional details.
+
 ## Benchmarks
 
-We collected latency benchmark results using Holoscan [Data Flow Tracking](https://docs.nvidia.com/holoscan/sdk-user-guide/flow_tracking.html) tools on the NVIDIA Video Codec sample application. The benchmark is conducted on x86_64 with NVIDIA ADA6000 GPU.
+We collected latency benchmark results using Holoscan [Data Flow Tracking](https://docs.nvidia.com/holoscan/sdk-user-guide/flow_tracking.html) tools on the NVIDIA Video Codec sample application. The benchmark is conducted on x86_64 with AMD Ryzen 9 7950X, 128 GB system memory and NVIDIA ADA6000 GPU.
 
 **Encoder Configurations:**
 - **Bitrate**: 10 MB
@@ -205,6 +210,10 @@ We collected latency benchmark results using Holoscan [Data Flow Tracking](https
   </tbody>
 </table>
 
+*Note: all reported values are in milliseconds.*
+
 ## Licensing
 
-By using the NVIDIA Video Codec Demo application and its operators, you agree to the [NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement). If you disagree with the EULA, please do not run this application.
+Holohub applications and operators are licensed under Apache-2.0.
+
+NVIDIA Video Codec is governed by the terms of the [NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement), which you accept by clonging, running, or using the NVIDIA Video Codec sample applications and operators.

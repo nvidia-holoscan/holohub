@@ -28,14 +28,14 @@ else()
     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
-# find_library(NVCUVID_LIBRARY nvcuvid
-#     NAMES libnvcuvid.so.1 libnvcuvid
-#     HINTS ${CUDA_TOOLKIT_ROOT_DIR}/lib64
-#     PATHS "/usr/lib/${LIB_ARCH_DIR}/")
+find_library(NVCUVID_LIBRARY nvcuvid
+    NAMES libnvcuvid.so.1 libnvcuvid
+    HINTS ${CUDA_TOOLKIT_ROOT_DIR}/lib64
+    PATHS "/usr/lib/${LIB_ARCH_DIR}/")
 
-#  if(NOT NVCUVID_LIBRARY)
-#    message(FATAL_ERROR "nvcuvid library not found. Please specify its location manually.")
-# endif()
+ if(NOT NVCUVID_LIBRARY)
+   message(FATAL_ERROR "nvcuvid library not found. Please specify its location manually.")
+endif()
 
 find_library(NVENC_LIBRARY nvidia-encode
     NAMES libnvidia-encode.so.1 libnvidia-encode
@@ -46,8 +46,7 @@ if(NOT NVENC_LIBRARY)
     message(FATAL_ERROR "nvidia-encode library not found. Please specify its location manually.")
 endif()
 
-
-# publisher Operator
+# Encoder Operator
 add_library(nv_video_encoder SHARED
   nv_video_encoder.cpp
   ${NVC_SDK_PATH}/NvEncoder/NvEncoder.cpp
@@ -68,11 +67,6 @@ target_include_directories(nv_video_encoder PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   ${NVC_SDK_PATH}/
   ${NVC_SDK_PATH}/NvEncoder
-)
-
-# Add third_party include directory
-target_include_directories(nv_video_encoder
-    PRIVATE
 )
 
 add_subdirectory(python)
