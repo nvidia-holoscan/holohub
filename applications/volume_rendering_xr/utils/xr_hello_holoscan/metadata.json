@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Holoscan XR Demo Application",
+		"name": "XR Demo",
 		"authors": [
 			{
 				"name": "Andreas Heumann",
@@ -55,7 +55,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["extended reality", "visualization", "primitive rendering", "pose visualization overlay", "OpenXR", "HoloViz UI", "sensor", "stereo", "tracking"],
+		"tags": ["Extended Reality", "Visualization", "Holoviz", "Stereo Vision"],
 		"ranking": 2,
 		"dependencies": {
 			"hardware": [
@@ -83,7 +83,7 @@
 		},
 		"run": {
 			"command": "ml_start.sh ${ML_START_OPTIONS} && ml_pair.sh && <holohub_app_bin>/xr_hello_holoscan",
-			"workdir": "<holohub_app_bin>"
+			"workdir": "holohub_app_bin"
 		}
 	}
 }

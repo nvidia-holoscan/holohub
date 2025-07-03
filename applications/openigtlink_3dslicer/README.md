@@ -1,4 +1,4 @@
-# Holoscan SDK as an Inference Backend for 3D Slicer
+# OpenIGTLink 3D Slicer: Bidirectional Video Streaming with AI Segmentation
 
 This application demonstrates how to interface Holoscan SDK with [3D Slicer](https://www.slicer.org/), using the [OpenIGTLink protocol](http://openigtlink.org/). The application is shown in the application graph below.
 
@@ -31,7 +31,8 @@ where the image data before Holoscan processing is shown in the left slice view,
 
 ### Machine running 3D Slicer
 
-On the machine running 3D Slicer do:
+On the machine running 3D Slicer:
+
 1. In 3D Slicer, open the Extensions Manager and install the `SlicerOpenIGTLink` extension.
 2. Next, load the scene `openigtlink_3dslicer/scene/openigtlink_3dslicer.mrb` into 3D Slicer.
 3. Go to the `OpenIGTLinkIF` module and make sure that the `SendToHoloscan` connector has the IP address of the machine running Holoscan SDK in the *Hostname* input box (under *Properties*).
@@ -39,26 +40,26 @@ On the machine running 3D Slicer do:
 
 ### Machine running Holoscan SDK
 
-On the machine running Holoscan SDK do the below steps.
+On the machine running Holoscan SDK:
 
-First, ensure that the `host_name` parameters of the two `OpenIGTLinkRxOp` operators (`openigtlink_tx_slicer_img` and `openigtlink_tx_slicer_holoscan`) have the IP address of the machine running 3D Slicer.
+1. **Configure the connection**: Update the `host_name` parameters in the configuration files for both `OpenIGTLinkRxOp` operators:
+   * `openigtlink_tx_slicer_img`
+   * `openigtlink_tx_slicer_holoscan`
 
-Next, the application requires [OpenIGTLink](http://openigtlink.org/). For simplicity a DockerFile is available. To generate the container run:
-```sh
-./dev_container build --docker_file ./applications/openigtlink_3dslicer/Dockerfile --img holohub:openigtlink
-```
+   Set these to the IP address of the machine running 3D Slicer.
 
-The application can then be built by launching this container and using the provided `run` script:
-```sh
-./dev_container launch --img holohub:openigtlink
-./run build openigtlink_3dslicer
-```
+    > **Note**: This application requires [OpenIGTLink](http://openigtlink.org/) to be installed.
 
-Then, to run the `python` application do:
-```sh
-./run launch openigtlink_3dslicer python
-```
-and to run the `cpp` application do:
-```sh
-./run launch openigtlink_3dslicer cpp
-```
+2. **Run the application**: Use the Holohub CLI to launch the application.
+
+* For the `python` application:
+
+    ```sh
+    ./holohub run openigtlink_3dslicer --language python
+    ```
+
+* For the `cpp` application:
+
+    ```sh
+    ./holohub run openigtlink_3dslicer --language cpp
+    ```

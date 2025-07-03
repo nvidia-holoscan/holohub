@@ -33,6 +33,7 @@ ci/
 .vscode-server/
 ngc-cli/
 CTestConfig.cmake
+.ngc
 
 # Cache and temporary directories
 .cache/

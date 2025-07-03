@@ -1,0 +1,40 @@
+name: Check Docker
+
+on:
+  push:
+    branches: [main, holoscan-sdk-lws2]
+
+permissions:
+  contents: read
+
+jobs:
+  check-docker-build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        ubuntu_version: [22.04, 24.04]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Docker build
+        run: |
+          set -o pipefail
+          export ubuntu_version=${{ matrix.ubuntu_version }}
+
+          ./holohub build-container --base-img ubuntu:${ubuntu_version} 2>&1 | tee /tmp/build.log
+          grep -qE "writing image.* done" /tmp/build.log || { echo "Build failed - no success pattern"; cat /tmp/build.log; exit 1; }
+
+          if ! command -v nvidia-ctk >/dev/null 2>&1; then
+            sed -i 's/check_nvidia_ctk()/pass  # nvidia-ctk not available/g' utilities/cli/container.py
+            sed -i 's/"--runtime",/# "--runtime",/g' utilities/cli/container.py
+            sed -i 's/"nvidia",/# "nvidia",/g' utilities/cli/container.py
+            sed -i 's/"--gpus",/# "--gpus",/g' utilities/cli/container.py
+            sed -i 's/"all",/# "all",/g' utilities/cli/container.py
+          fi
+
+          ./holohub run-container --base-img ubuntu:${ubuntu_version} --no-docker-build | grep -q "docker run" || { echo "run-container failed"; exit 1; }
+          ./holohub run-container --docker-opts "--memory 4g" --no-docker-build | grep -q "memory 4g" || { echo "docker-opts test failed"; exit 1; }
+          ./holohub run-container --no-docker-build --add-volume "/tmp" | grep -q "/tmp" || { echo "add-volume test failed"; exit 1; }
+          ./holohub run-container --no-docker-build -- echo hello > /tmp/trailing-args.log 2>&1
+          grep -q "hello" /tmp/trailing-args.log || { echo "trailing args test failed"; cat /tmp/trailing-args.log; exit 1; }

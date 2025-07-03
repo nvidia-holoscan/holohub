@@ -1,4 +1,4 @@
-# Hybrid-Computing Sample App - CUDA Quantum Variational Quantum Eigensolver (VQE) Application
+# CUDA Quantum Variational Quantum Eigensolver (VQE)
 
 ## Variational Quantum Eigensolver (VQE)
 The Variational Quantum Eigensolver (VQE) is a quantum algorithm designed to approximate the ground state energy of quantum systems. This energy, represented by what is called the Hamiltonian of the system, is central to multiple disciplines, including drug discovery, material science, and condensed matter physics. The goal of VQE is to find the state that minimizes the expectation value of this Hamiltonian, which corresponds to the ground state energy.
@@ -62,7 +62,7 @@ flowchart LR
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode cuda_quantum
+./holohub vscode cuda_quantum
 ```
 
 ### VS Code Launch Profiles

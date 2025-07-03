@@ -40,6 +40,13 @@ gxf_result_t VideoMasterSource::registerInterface(gxf::Registrar *registrar) {
                                   "Index of the input channel to use.");
   result &= registrar->parameter(_signal, "signal", "Output", "Output signal.");
   result &= registrar->parameter(_pool, "pool", "Pool", "Pool to allocate the buffers.");
+  result &= registrar->parameter(_width, "width", "Width", "Width of the video frames to send.");
+  result &= registrar->parameter(_height, "height", "Height",
+                                "Height of the video frames to send.");
+  result &= registrar->parameter(_progressive, "progressive", "Progressive",
+                                 "Progressiveness of the video frames to send.");
+  result &= registrar->parameter(_framerate, "framerate", "Framerate",
+                                 "Framerate of the signal to generate.");
 
   return gxf::ToResultCode(result);
 }
@@ -53,27 +60,26 @@ gxf_result_t VideoMasterSource::start() {
 }
 
 gxf_result_t VideoMasterSource::tick() {
+  bool success_b = true;
+
   if (!signal_present()) {
     if (!_has_lost_signal)
       GXF_LOG_INFO("No signal detected, waiting for input...");
+
     _has_lost_signal = true;
     return GXF_SUCCESS;
-  }
-
-  if (_has_lost_signal) {
-    GXF_LOG_INFO("Input signal detected");
-    _has_lost_signal = false;
-  }
-
-  auto input_information = get_input_information();
-  if (input_information != _video_information->stream_properties_values) {
-    _video_information->stream_properties_values = input_information;
-
-    GXF_LOG_INFO("Input signal has changed, restarting stream");
-    VHD_StopStream(_stream_handle);
-
+  } else if (!(video_format != Deltacast::Helper::VideoFormat{})) {  // start stream
     gxf::Expected<void> result;
     result &= configure_stream();
+
+    auto config_video_format = Deltacast::Helper::VideoFormat{_width, _height
+                                                              , _progressive, _framerate};
+    if (video_format != config_video_format) {
+      GXF_LOG_ERROR("Input signal does not match configuration");
+      VHD_StopStream(*stream_handle());
+      return GXF_FAILURE;
+    }
+
     result &= init_buffers();
     result &= start_stream();
 
@@ -81,8 +87,20 @@ gxf_result_t VideoMasterSource::tick() {
       return gxf::ToResultCode(result);
   }
 
+  if (_has_lost_signal) {
+    GXF_LOG_INFO("Input signal detected");
+    _has_lost_signal = false;
+  }
+
+  auto detected_video_format = _video_information->get_video_format(stream_handle());
+  if (detected_video_format && *detected_video_format != video_format) {
+    GXF_LOG_INFO("Input signal has changed, exiting");
+    VHD_StopStream(*stream_handle());
+    return GXF_FAILURE;
+  }
+
   HANDLE slot_handle;
-  ULONG api_result = VHD_WaitSlotFilled(_stream_handle, &slot_handle, SLOT_TIMEOUT);
+  ULONG api_result = VHD_WaitSlotFilled(*stream_handle(), &slot_handle, SLOT_TIMEOUT);
   if (api_result != VHDERR_NOERROR && api_result != VHDERR_TIMEOUT) {
     GXF_LOG_ERROR("Failed to wait for incoming slot");
     return GXF_FAILURE;
@@ -94,9 +112,15 @@ gxf_result_t VideoMasterSource::tick() {
 
   BYTE *buffer = nullptr;
   ULONG buffer_size = 0;
-  if (!api_call_success(VHD_GetSlotBuffer(slot_handle, _video_information->get_buffer_type(),
-                                          &buffer, &buffer_size), "Failed to get slot buffer"))
+
+  success_b = gxf_log_on_error(Deltacast::Helper::ApiSuccess{
+                                VHD_GetSlotBuffer(slot_handle, _video_information->get_buffer_type()
+                                                 , &buffer, &buffer_size)
+                                }, "Failed to get slot buffer");
+
+  if (!success_b) {
     return GXF_FAILURE;
+  }
 
   auto result = transmit_buffer_data(buffer, buffer_size);
 
@@ -125,7 +149,7 @@ gxf::Expected<void> VideoMasterSource::transmit_buffer_data(void *buffer, uint32
     return gxf::Unexpected{GXF_FAILURE};
   }
 
-  auto format = _video_information->get_video_format();
+  auto format = _video_information->get_video_format(stream_handle());
   if (!format)
     return gxf::Unexpected{GXF_FAILURE};
 

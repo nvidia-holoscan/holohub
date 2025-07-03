@@ -23,10 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Distributed",
-			"Fragment"
-		],
+		"tags": ["Distributed"],
 		"ranking": 2,
 		"dependencies": {}
 	}

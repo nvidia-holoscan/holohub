@@ -11,8 +11,9 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"language": ["Python"],
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["WebRTC", "Server", "Browser", "Video"],
+		"tags": ["WebRTC", "Video"],
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [

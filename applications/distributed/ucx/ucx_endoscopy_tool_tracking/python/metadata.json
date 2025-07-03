@@ -1,7 +1,7 @@
 {
 	"application": {
-		"name": "Endoscopy Tool Tracking Distributed",
-		"authors": [
+			"name": "UCX-based Distributed Endoscopy Tool Tracking",
+			"authors": [
 			{
 				"name": "Holoscan Team",
 				"affiliation": "NVIDIA"
@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "distributed", "surgical instrument tracking", "real-time mask overlay", "endoscopy", "video processing", "computer vision", "segmentation"],
+		"tags": ["Healthcare AI", "Distributed", "Surgical AI", "Endoscopy", "Video", "Computer Vision and Perception", "Segmentation"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

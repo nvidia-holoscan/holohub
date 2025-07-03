@@ -1,4 +1,4 @@
-# PVA-Accelerated Image Sharpening Application
+# PVA-Accelerated Image Sharpening
 
 This application demonstrates the usage of [Programmable Vision Accelerator (PVA)](#about-pva) within a Holoscan
 application. It reads a video stream, applies a 2D unsharp mask filter and renders it via the
@@ -32,9 +32,9 @@ Numerous algorithm examples leveraging the PVA can be found in the [Vision Progr
 Build the application inside docker
 
 ```
-$ ./dev_container build --img holohub:pva_video_filter --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v2.1.0-dgpu --docker_file ./Dockerfile
+$ ./holohub build-container pva_video_filter --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v2.1.0-dgpu 
 # Check which version of CUPVA is installed on your platform at /opt/nvidia
-$ ./dev_container launch --img holohub:pva_video_filter --docker_opts "-v /opt/nvidia/cupva-<version>:/opt/nvidia/cupva-<version> --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129"
+$ ./holohub run-container pva_video_filter --no-docker-build --docker_opts "-v /opt/nvidia/cupva-<version>:/opt/nvidia/cupva-<version> --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129"
 ```
 
 Inside docker, add to your environment variable the following directories:
@@ -45,7 +45,7 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/:/opt
 
 Build the application inside docker:
 ```
-$ ./run build pva_video_filter
+$ ./holohub build pva_video_filter --local
 ```
 ## Running the application
 
@@ -61,12 +61,12 @@ sudo pva_allow
 Run the same docker container you used to build your application
 
 ```
-$ ./dev_container launch --img holohub:pva_video_filter --docker_opts "-v /opt/nvidia/cupva-<version>:/opt/nvidia/cupva-<version> --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129"
+$ ./holohub run-container pva_video_filter --no-docker-build --docker_opts "-v /opt/nvidia/cupva-<version>:/opt/nvidia/cupva-<version> --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129"
 
 # inside docker
 # don't forget the line below to export the environment variables
 $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/:/opt/nvidia/cupva-2.5/lib/aarch64-linux-gnu/
-$ ./run launch pva_video_filter
+$ ./holohub run pva_video_filter --local --no-local-build
 ```
 
 

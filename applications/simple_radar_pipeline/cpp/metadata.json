@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Simple Radar Pipeline in C++",
+		"name": "Simple Radar Pipeline",
 		"authors": [
 			{
 				"name": "Cliff Burdick",
@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["signal processing", "radar", "pulse compression", "CFAR analysis", "radar", "signal processing", "FFT", "detection"],
+		"tags": ["Signal Processing", "Detection"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

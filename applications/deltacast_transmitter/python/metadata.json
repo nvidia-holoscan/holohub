@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Videomaster transmitter example",
+		"name": "Deltacast Videomaster Transmitter",
 		"authors": [
 			{
 				"name": "Pierre PERICK",
@@ -23,14 +23,15 @@
 		"videomaster_sdk": {
 			"minimum_required_version": "6.26.0",
 			"tested_versions": [
-				"6.29.0"
+				"6.29.0",
+				"6.30.0"
 			]
 		},
 		"platforms": [
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "video", "device output integration", "low latency memory pools", "Deltacast", "endoscopy", "RDMA", "videomaster", "GPUDirect"],
+		"tags": ["Healthcare AI", "Video", "Deltacast", "Endoscopy", "RDMA", "GPUDirect"],
 		"ranking": 2,
 		"dependencies": {},
 		"run": {

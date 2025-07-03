@@ -1,10 +1,10 @@
 # Holoscan Playground on AWS
 ## Overview
-The Holoscan on AWS EC2 experience is an easy way for having a first try at the Holoscan SDK. The [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites) lists out the hardware prerequisites. If you have a compatible hardware at hand, please get started with the SDK on your hardware. Otherwise, you could utilize an AWS EC2 instance to have a first look at the Holoscan SDK by following this guide. 
+The Holoscan on AWS EC2 experience is an easy way for having a first try at the Holoscan SDK. The [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites) lists out the hardware prerequisites. If you have a compatible hardware at hand, please get started with the SDK on your hardware. Otherwise, you could utilize an AWS EC2 instance to have a first look at the Holoscan SDK by following this guide.
 
 We estimate the time needed to follow this guide is around 1 hour, after which you could feel free to explore more of the SDK examples and applications. Please note that for the g5.xlarge instance type utilized, [the cost](https://aws.amazon.com/ec2/pricing/on-demand/) is $1.006/hour.
 
-1. The AWS experience is intended as a trial environment of the Holoscan SDK, not as a full time development environment. Some limitations of running the SDK on an EC2 instance are: 
+1. The AWS experience is intended as a trial environment of the Holoscan SDK, not as a full time development environment. Some limitations of running the SDK on an EC2 instance are:
 
 2. An EC2 instance does not have the capability of live input sources, including video capture cards like AJA and Deltacast, or the onboard HDMI input port on devkits.
 An EC2 instance does not have ConnectX networking capabilities available on devkits.
@@ -32,7 +32,7 @@ The selected AMI should look like this in the view to create an instance:
 
 <img src="./images/Launch Instance 5.png" alt="drawing" width="600"/>
 
-For `Instance type`, select `g5.xlarge`. 
+For `Instance type`, select `g5.xlarge`.
 Note: If you see an error similar to `The selected instance type is not supported in the zone (us-west-2d). Please select a different instance type or subnet.`, go down to `Network settings`, click on `Edit`, and try changing the `Subnet` selection.
 Note: If `g5.xlarge` is not available in any region/subnet accessible to you, `p3.2xlarge` should also work.
 
@@ -42,16 +42,16 @@ For `Key pair`, create a new key pair, enter the key pair name as you like, and 
 
 <img src="./images/Launch Instance 6.png" alt="drawing" width="600"/>
 
-Configure the `Network settings`. Click on `Edit` to start. 
+Configure the `Network settings`. Click on `Edit` to start.
 * If you got an error in the `Instance type` selection about `g5.xlarge` being unavailable, try changing your `Subnet` selection in `Network settings`. Otherwise, there is no need to change the `Subnet` selection.
-* Make sure your `Auto-assign public IP` is enabled, otherwise you would have issues ssh’ing into the instance. 
-* Select a security group with a public IP address where you plan to ssh from, if one doesn’t exist yet, select `create security group`. 
-    * If you’re already on the local machine you plan to ssh from, select `My IP` under `Source Type`. 
-    * To add other machines that you plan to ssh from, select `Custom` under `Source Type` and enter your public IP address under `Source`. You can find the public IP address of the machine by going to https://www.whatsmyip.org/ from the machine. 
+* Make sure your `Auto-assign public IP` is enabled, otherwise you would have issues ssh’ing into the instance.
+* Select a security group with a public IP address where you plan to ssh from, if one doesn’t exist yet, select `create security group`.
+    * If you’re already on the local machine you plan to ssh from, select `My IP` under `Source Type`.
+    * To add other machines that you plan to ssh from, select `Custom` under `Source Type` and enter your public IP address under `Source`. You can find the public IP address of the machine by going to https://www.whatsmyip.org/ from the machine.
 
 <img src="./images/Launch Instance 8.png" alt="drawing" width="600"/>
 
-Keep the default 128 GB specification in `Configure storage`. 
+Keep the default 128 GB specification in `Configure storage`.
 
 <img src="./images/Launch Instance 9.png" alt="drawing" width="600"/>
 
@@ -80,7 +80,7 @@ Click on the instance ID, and you should see this layout for instance details. C
 
 <img src="./images/SSH into Instance 1.png" alt="drawing" width="900"/>
 
-Under the `SSH client` tab there are the SSH instructions. Note that the username `root` is guessed, and for the AMI we chose, it should be `ubuntu`. The private key file that you saved from when you were configuring the instance should be on the machine that you are ssh’ing from. 
+Under the `SSH client` tab there are the SSH instructions. Note that the username `root` is guessed, and for the AMI we chose, it should be `ubuntu`. The private key file that you saved from when you were configuring the instance should be on the machine that you are ssh’ing from.
 
 Add `-X` to the ssh command to enable display forwarding.
 
@@ -133,13 +133,13 @@ Now we have enabled display forwarding from both EC2 bare metal and containerize
 ## Run Holoscan
 ### Install Holoscan
 
-There are [several ways](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#development-software-stack) to install the Holoscan SDK. For the quickest way to get started, we will choose the Holoscan Docker container that already has all dependencies set up. 
+There are [several ways](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#development-software-stack) to install the Holoscan SDK. For the quickest way to get started, we will choose the Holoscan Docker container that already has all dependencies set up.
 We run nvidia-smi in the EC2 instance to check that there are drivers installed:
 
 <img src="./images/nvidia-smi.png" alt="drawing" width="600"/>
 
 Follow the overview of https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan. Some modifications are made to the original commands due to the EC2 environment, `--gpus all` and `-v $XAUTH:$XAUTH -e XAUTHORITY=$XAUTH`.
-```sh 
+```sh
 # install xhost util
 sudo apt install -y x11-xserver-utils
 
@@ -177,7 +177,7 @@ Let’s take a look at [the video replayer example](https://github.com/nvidia-ho
 Run the video_replayer example
 
 ```sh
-cd /opt/nvidia/holoscan 
+cd /opt/nvidia/holoscan
 ./examples/video_replayer/cpp/video_replayer
 ```
 You should see a window like below
@@ -188,13 +188,13 @@ https://github.com/jin-nvidia/holohub/assets/60405124/7ae99409-ca42-4c38-b495-84
 
 You can close the sample application by pressing ctrl +C.
 
-Now that we have run a simple video replayer, let’s explore the examples a little more. 
+Now that we have run a simple video replayer, let’s explore the examples a little more.
 
 #### Tensor Interoperability Example
 
-##### The C++ Tensor Interop example 
+##### The C++ Tensor Interop example
 
-Since we used the Debian package install, run the C++ tensor interopability example by 
+Since we used the Debian package install, run the C++ tensor interopability example by
 
 ```sh
 /opt/nvidia/holoscan/examples/tensor_interop/cpp/tensor_interop
@@ -203,11 +203,11 @@ Since we used the Debian package install, run the C++ tensor interopability exam
 Please refer to the [README](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/tensor_interop/README.md) and the [source file](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/tensor_interop/cpp/tensor_interop.cpp) to see how we can have interoperability between a native operator (`ProcessTensorOp`) and two wrapped GXF Codelets (`SendTensor` and `ReceiveTensor`). For the Holoscan documentation on tensor interop in the C++ API, please see [Interoperability between GXF and native C++ operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-gxf-and-native-c-operators).
 
 
-##### The Python Tensor Interop example 
+##### The Python Tensor Interop example
 
-The Python [Tensor Interop example](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/tensor_interop) demonstrates interoperability between a native Python operator (`ImageProcessingOp`) and two operators that wrap existing C++ based operators,  (`VideoStreamReplayerOp` and `HolovizOp`) through the Holoscan Tensor object. 
+The Python [Tensor Interop example](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/tensor_interop) demonstrates interoperability between a native Python operator (`ImageProcessingOp`) and two operators that wrap existing C++ based operators,  (`VideoStreamReplayerOp` and `HolovizOp`) through the Holoscan Tensor object.
 
-Run the Python example by 
+Run the Python example by
 
 ```sh
 python3 /opt/nvidia/holoscan/examples/tensor_interop/python/tensor_interop.py
@@ -216,15 +216,15 @@ This example applies a Gaussian filtering to each frame of an endoscopy video st
 
 https://github.com/jin-nvidia/holohub/assets/60405124/b043637b-5fd9-4ee1-abc5-0dae069e785f
 
-The native Python operator is defined at [tensor_interop.py#L37](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/tensor_interop/python/tensor_interop.py#L37). We can see in the initialization `__init__()` of the operator, `self.count` was initialize to 1. In the `setup()` method, the input message, output message and the parameter `sigma` is defined. The `compute()` method is what gets called every time. In the `compute()` method, first we receive the upstream tensor by 
+The native Python operator is defined at [tensor_interop.py#L37](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/tensor_interop/python/tensor_interop.py#L37). We can see in the initialization `__init__()` of the operator, `self.count` was initialize to 1. In the `setup()` method, the input message, output message and the parameter `sigma` is defined. The `compute()` method is what gets called every time. In the `compute()` method, first we receive the upstream tensor by
 
 ```python
 in_message = op_input.receive("input_tensor")
 ```
 
-Please note that `input_tensor` is the name defined in `setup()`. 
+Please note that `input_tensor` is the name defined in `setup()`.
 
-`cp_array` is the CuPy array that holds the output value after the Gaussian filter, and we can see that the way the CuPy array gets transmitted downstream is 
+`cp_array` is the CuPy array that holds the output value after the Gaussian filter, and we can see that the way the CuPy array gets transmitted downstream is
 ```python
 out_message = dict()
 …
@@ -234,7 +234,7 @@ out_message[key] = cp_array
 op_output.emit(out_message, "output_tensor")
 ```
 
-Please note that `output_tensor` is the name defined in `setup()`. 
+Please note that `output_tensor` is the name defined in `setup()`.
 
 Since there is only one input and one output port, when connecting the native Python operator `ImageProcessingOp` to its upstream and downstream operators, we do not need to specify the in/out name for `ImageProcessingOp`:
 ```python
@@ -244,7 +244,7 @@ self.add_flow(image_processing, visualizer, {("", "receivers")})
 
 Otherwise, with each `add_flow()`, the input and output port names need to be specified when multiple ports are present.
 
-For more information on tensor interop in Python API, please see the Holoscan documentation [Interoperability between wrapped and native Python operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators). 
+For more information on tensor interop in Python API, please see the Holoscan documentation [Interoperability between wrapped and native Python operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators).
 
 Now that we have seen an example of tensor interop for single tensors per port, let’s look at the next example where there are multiple tensors in the native operator’s output port.
 
@@ -259,9 +259,9 @@ You should get something like below on the display
 
 https://github.com/jin-nvidia/holohub/assets/60405124/6d79845a-66bd-4448-9646-284b90c5e5f3
 
-Please take your time to look through [holoviz_geometry.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/holoviz/python/holoviz_geometry.py) for how each one of the shapes and text in the native Holoscan Python operator is defined. 
+Please take your time to look through [holoviz_geometry.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/holoviz/python/holoviz_geometry.py) for how each one of the shapes and text in the native Holoscan Python operator is defined.
 
-Let’s also dive into how we can add to `out_message` and pass to Holoviz various tensors at the same time, including the frame itself, `box_coords`,  `triangle_coords`, `cross_coords`, `oval_coords`, the time varying `point_coords`, and `label_coords`. 
+Let’s also dive into how we can add to `out_message` and pass to Holoviz various tensors at the same time, including the frame itself, `box_coords`,  `triangle_coords`, `cross_coords`, `oval_coords`, the time varying `point_coords`, and `label_coords`.
 
 ```python
 # define the output message dictionary where box_coords is a numpy array and “boxes” is the tensor name
@@ -275,15 +275,15 @@ out_message = {
             "dynamic_text": dynamic_text,
 }
 
-# emit the output message 
+# emit the output message
 op_output.emit(out_message, "outputs")
 ```
 
-We can also see that each tensor name is referenced by the `tensors` parameter in the instantiation of a Holoviz operator [at line 249](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/holoviz/python/holoviz_geometry.py#L249). 
+We can also see that each tensor name is referenced by the `tensors` parameter in the instantiation of a Holoviz operator [at line 249](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/holoviz/python/holoviz_geometry.py#L249).
 
 This is a great example and reference not only for passing different shapes to Holoviz, but also creating and passing multiple tensors within one message from a native Holoscan Python operator to the downstream operators.
 
-For more information on the Holoviz module, please see the [Holoscan documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/clara_holoviz.html). 
+For more information on the Holoviz module, please see the [Holoscan documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/visualization.html#holoviz-operator).
 
 Exit from the Docker container by ctrl+D.
 
@@ -335,7 +335,7 @@ Please visit [HoloHub](https://github.com/nvidia-holoscan/holohub/tree/main/appl
 
 #### Multi AI Ultrasound Application
 
-In the last application we saw how to run AI inference on the video source. Next, let’s see how we can run inference with multiple AI models at the same time within a Holoscan application, enabled by Holoscan Inference Module.  
+In the last application we saw how to run AI inference on the video source. Next, let’s see how we can run inference with multiple AI models at the same time within a Holoscan application, enabled by Holoscan Inference Module.
 Build the application in [applications/multiai_ultrasound](https://github.com/nvidia-holoscan/holohub/tree/main/applications/multiai_ultrasound)
 ```sh
 ./run build multiai_ultrasound
@@ -349,7 +349,7 @@ You should see a window like below:
 
 https://github.com/jin-nvidia/holohub/assets/60405124/9d347b44-d635-4cc6-b013-7d26e3e4e2be
 
-You can find more information on Holoscan Inference Module [here](https://docs.nvidia.com/holoscan/sdk-user-guide/clara_holoinfer.html), including the parameters you can specify to define inference configuration, how to specify the multiple (or single) model(s) you want to run, and how the Holoscan Inference Module functions as an operator within the Holoscan SDK framework.
+You can find more information on Holoscan Inference Module [here](https://docs.nvidia.com/holoscan/archive/holoscan-0.4.0/clara_holoinfer.html), including the parameters you can specify to define inference configuration, how to specify the multiple (or single) model(s) you want to run, and how the Holoscan Inference Module functions as an operator within the Holoscan SDK framework.
 
 Please see the application graph and more on [HoloHub](https://github.com/nvidia-holoscan/holohub/tree/main/applications/multiai_ultrasound) for how the multi AI inference connects to the rest of the operators, the definition of the same application in Python vs in C++, and how the [multiai_ultrasound.yaml](https://github.com/nvidia-holoscan/holohub/blob/main/applications/multiai_ultrasound/python/multiai_ultrasound.yaml) config file defines parameters for each operator especially the [Holoscan Inference Module](https://github.com/nvidia-holoscan/holohub/blob/main/applications/multiai_ultrasound/python/multiai_ultrasound.yaml#L60-L78).
 
@@ -361,7 +361,7 @@ Now that you have run several Holoscan Examples and HoloHub Applications, please
 
 ## Troubleshooting
 
-If you receive a display forwarding error such as 
+If you receive a display forwarding error such as
 ```
 unable to open display "localhost:10.0"
 ```
@@ -381,7 +381,7 @@ Please see below to find the suggestion for your OS.
 
 ### From a Mac Local Machine
 
-* Download [Quartz](https://www.xquartz.org/), reboot, and enable the following. 
+* Download [Quartz](https://www.xquartz.org/), reboot, and enable the following.
 
   <img src="./images/mac x11.png" alt="drawing" width="300"/>
 

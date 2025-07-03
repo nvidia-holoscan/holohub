@@ -1,4 +1,4 @@
-# H.264 Endoscopy Tool Tracking Application with gRPC
+# Distributed H.264 Endoscopy Tool Tracking with gRPC Streaming
 
 This application demonstrates how to offload heavy workloads to a remote Holoscan application using gRPC.
 
@@ -44,10 +44,10 @@ The data is automatically downloaded when building the application.
 
 ```bash
 # Start the gRPC Server
-./dev_container build_and_run grpc_h264_endoscopy_tool_tracking --run_args cloud [--language cpp]
+./holohub run grpc_h264_endoscopy_tool_tracking --run-args="cloud" [--language cpp]
 
 # Start the gRPC Client
-./dev_container build_and_run grpc_h264_endoscopy_tool_tracking --run_args edge [--language cpp]
+./holohub run grpc_h264_endoscopy_tool_tracking --run-args="edge" [--language cpp]
 ```
 
 Important: on aarch64, applications also need tegra folder mounted inside the container and
@@ -67,7 +67,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode h264
+./holohub vscode h264
 ```
 
 ### VS Code Launch Profiles

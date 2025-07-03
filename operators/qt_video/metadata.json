@@ -7,7 +7,7 @@
                 "affiliation": "NVIDIA"
             }
         ],
-        "language": "C++",
+        "language": ["C++"],
         "version": "1.0.0",
         "changelog": {
 			"1.0": "Initial Release"
@@ -22,15 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": [
-            "Qt",
-			"QML",
-			"QtQuick",
-			"Video",
-			"UI",
-			"Userinterface",
-			"Interactive"
-        ],
+        "tags": ["Qt", "Video", "UI"],
         "ranking": 1,
         "dependencies": { }
     }

@@ -152,7 +152,7 @@ Now, you can interact with the simple web front end by browsing to http://127.0.
 
 ## 🖥️ Setting up a local OpenAI server
 
-Llama.cpp includes a nifty Flask app `api_like_OAI.py`. This Flask app sets up a server that emulates the OpenAI API. Its trick is that it converts the OpenAI API requests into the format expected by the Llama model, and forwards the captured requests to our local Llama-2 model. This allows you to use the popular OpenAI Python backend, and thus, countless powerful LLM libraries like [LangChain](https://python.langchain.com/docs/get_started/introduction.html), [Scikit-LLM](https://github.com/iryna-kondr/scikit-llm), [Haystack](https://haystack.deepset.ai/), and more. However, instead of your data being sent to OpenAI’s servers, it is all processed locally on your machine!
+Llama.cpp includes a nifty Flask app `api_like_OAI.py`. This Flask app sets up a server that emulates the OpenAI API. Its trick is that it converts the OpenAI API requests into the format expected by the Llama model, and forwards the captured requests to our local Llama-2 model. This allows you to use the popular OpenAI Python backend, and thus, countless powerful LLM libraries like [LangChain](https://python.langchain.com/docs/tutorials/#get-started), [Scikit-LLM](https://github.com/iryna-kondr/scikit-llm), [Haystack](https://haystack.deepset.ai/), and more. However, instead of your data being sent to OpenAI’s servers, it is all processed locally on your machine!
 
 1. In order to run the OpenAI API server and our eventual Gradio chat app, we need to open a new terminal and install a few Python dependencies:
 

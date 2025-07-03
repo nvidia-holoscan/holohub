@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["networking and distributed computing", "video", "SDP exchange", "ice candidate management", "WebRTC", "client", "camera", "visualization", "H.264"],
+		"tags": ["Networking and Distributed Computing", "Video", "SDP Exchange", "WebRTC", "Camera", "Visualization"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

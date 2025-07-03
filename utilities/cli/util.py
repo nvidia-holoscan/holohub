@@ -15,14 +15,35 @@
 # limitations under the License.
 
 import grp
+import json
+import os
+import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
+
+PROJECT_PREFIXES = {
+    "application": "APP",
+    "benchmark": "APP",
+    "operator": "OP",
+    "package": "PKG",
+    "workflow": "APP",
+    "default": "APP",  # specified type but not recognized
+}
+
+BUILD_TYPES = {
+    "debug": "Debug",
+    "release": "Release",
+    "rel-debug": "RelWithDebInfo",
+    "relwithdebinfo": "RelWithDebInfo",
+    "default": "Release",
+}
 
 
 class Color:
@@ -49,7 +70,6 @@ class Color:
         result += text + Color.RESET
         return result
 
-    @staticmethod
     def _create_color_method(color_code: str):
         """Create a color method for the given color code"""
 
@@ -73,6 +93,47 @@ def get_timestamp() -> str:
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def format_cmd(command: str, is_dryrun: bool = False) -> str:
+    """Format command output with consistent timestamp and color formatting"""
+    timestamp = Color.blue(get_timestamp())
+    if is_dryrun:
+        dryrun_tag = Color.cyan("[dryrun]")
+        return f"{timestamp} {dryrun_tag} {Color.white('$')} {Color.green(command)}"
+    return f"{timestamp} {Color.white('$')} {Color.green(command)}"
+
+
+def info(message: str) -> None:
+    """Print informational message with consistent formatting"""
+    print(f"{Color.yellow('INFO:')} {message}")
+
+
+def get_env_bool(
+    env_var_name: str,
+    default: bool = True,
+    false_values: Tuple[str, ...] = ("false", "no", "n", "0", "f"),
+) -> Tuple[str, bool]:
+    """Check environment variable as boolean flag"""
+    env_value = os.environ.get(env_var_name, str(default).lower())
+    is_true = env_value.lower() not in false_values
+    return env_value, is_true
+
+
+def check_skip_builds(args) -> Tuple[bool, bool]:
+    """Checking skip build flags and printing info messages"""
+    holohub_always_build, always_build = get_env_bool("HOLOHUB_ALWAYS_BUILD", default=True)
+    skip_builds = not always_build
+    skip_docker_build = skip_builds or getattr(args, "no_docker_build", False)
+    skip_local_build = skip_builds or getattr(args, "no_local_build", False)
+    if skip_builds:
+        info(f"Skipping build due to HOLOHUB_ALWAYS_BUILD={holohub_always_build}")
+    else:
+        if getattr(args, "no_local_build", False):
+            info("Skipping local build due to --no-local-build")
+        if getattr(args, "no_docker_build", False):
+            info("Skipping container build due to --no-docker-build")
+    return skip_docker_build, skip_local_build
+
+
 def fatal(message: str) -> None:
     """Print fatal error and exit with backtrace"""
     print(
@@ -84,17 +145,19 @@ def fatal(message: str) -> None:
 
 
 def run_command(
-    cmd: List[str], dry_run: bool = False, check: bool = True, **kwargs
+    cmd: Union[str, List[str]], dry_run: bool = False, check: bool = True, **kwargs
 ) -> subprocess.CompletedProcess:
-    """Run a shell command and handle errors"""
-    cmd_str = format_long_command(cmd) if dry_run else " ".join(str(x) for x in cmd)
+    """Run a command and handle errors"""
+    if isinstance(cmd, str):
+        cmd_str = cmd
+    else:
+        cmd_list = [f'"{x}"' if " " in str(x) else str(x) for x in cmd]
+        cmd_str = format_long_command(cmd_list) if dry_run else " ".join(cmd_list)
     if dry_run:
-        print(
-            f"{Color.blue(get_timestamp())} {Color.cyan('[dryrun]')} {Color.white('$')} {Color.green(cmd_str)}"
-        )
-        return subprocess.CompletedProcess(cmd, 0)
+        print(format_cmd(cmd_str, is_dryrun=True))
+        return subprocess.CompletedProcess(cmd_str, 0)
 
-    print(f"{Color.blue(get_timestamp())} {Color.white('$')} {Color.green(cmd_str)}")
+    print(format_cmd(cmd_str))
     try:
         return subprocess.run(cmd, check=check, **kwargs)
     except subprocess.CalledProcessError as e:
@@ -103,26 +166,50 @@ def run_command(
         sys.exit(e.returncode)
 
 
-def check_nvidia_ctk() -> None:
+def run_info_command(cmd: List[str]) -> Optional[str]:
+    """Run a command for information gathering and return stripped output or None if failed"""
+    try:
+        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def parse_semantic_version(version: str) -> Tuple[int, int, int]:
+    """
+    Parse semantic version string MAJOR.MINOR.PATCH into tuple of integers for comparison
+
+    Note: Implementing our own version parsing to avoid dependency on PyPI 'packaging' module.
+
+    ref: https://semver.org/
+    """
+    match = re.match(r"^(\d+\.\d+\.\d+).*", version.strip())
+    if not match:
+        raise ValueError(f"Failed to parse semantic version string: {version}")
+    return tuple(map(int, match.group(1).split(".")))
+
+
+def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.14.1") -> None:
     """Check NVIDIA Container Toolkit version"""
-    min_version = "1.12.0"
-    recommended_version = "1.14.1"
 
     if not shutil.which("nvidia-ctk"):
         fatal("nvidia-ctk not found. Please install the NVIDIA Container Toolkit.")
 
     try:
         output = subprocess.check_output(["nvidia-ctk", "--version"], text=True)
-        import re
-
         match = re.search(r"(\d+\.\d+\.\d+)", output)
         if match:
             version = match.group(1)
-            from packaging import version as ver
+            try:
+                version_check = parse_semantic_version(version) < parse_semantic_version(
+                    min_version
+                )
+            except ValueError:
+                version_check = False
 
-            if ver.parse(version) < ver.parse(min_version):
+            if version_check:
                 fatal(
-                    f"Found nvidia-ctk Version {version}. Version {min_version}+ is required ({recommended_version}+ recommended)."
+                    f"Found nvidia-ctk {version}. Version {min_version}+ is required "
+                    f"({recommended_version}+ recommended)."
                 )
         else:
             print(f"Failed to parse available nvidia-ctk version: {output}")
@@ -174,11 +261,28 @@ def get_group_id(group: str) -> Optional[int]:
 
 def normalize_language(language: str) -> Optional[str]:
     """Normalize language name"""
+    if not isinstance(language, str):
+        return None
     if language.lower() == "cpp" or language.lower() == "c++":
         return "cpp"
     elif language.lower() == "python" or language.lower() == "py":
         return "python"
     return None
+
+
+def determine_project_prefix(project_type: str) -> str:
+    type_str = project_type.lower().strip()
+    if type_str in PROJECT_PREFIXES:
+        return PROJECT_PREFIXES[type_str]
+    return PROJECT_PREFIXES["default"]
+
+
+def get_buildtype_str(build_type: Optional[str]) -> str:
+    """Get CMake build type string"""
+    if not build_type:
+        return os.environ.get("CMAKE_BUILD_TYPE", BUILD_TYPES["default"])
+    build_type_str = build_type.lower().strip()
+    return BUILD_TYPES.get(build_type_str, BUILD_TYPES["default"])
 
 
 def list_metadata_json_dir(*paths: Path) -> List[Tuple[str, str]]:
@@ -204,66 +308,82 @@ def list_metadata_json_dir(*paths: Path) -> List[Tuple[str, str]]:
     return sorted(results)
 
 
+class PackageInstallationError(Exception):
+    """Raised when a package cannot be installed via apt"""
+
+    def __init__(self, package_name: str, version_pattern: str, message: str = None):
+        self.package_name = package_name
+        self.version_pattern = version_pattern
+        super().__init__(
+            message or f"Failed to install package {package_name} matching {version_pattern}"
+        )
+
+
 def install_cuda_dependencies_package(
-    package_name: str, preferred_version: str, optional: bool = False, dry_run: bool = False
-) -> bool:
+    package_name: str,
+    version_pattern: str = r"\d+\.\d+\.\d+",
+    dry_run: bool = False,
+) -> str:
     """Install CUDA dependencies package with version checking
+
+    Procedure:
+    1. If package is already installed, return the version
+    2. If the package is not installed and the preferred version is available, install it and return the version.
+    3. If the package is not installed and the preferred version is not available, throw.
 
     Args:
         package_name: Name of the package to install
-        preferred_version: Preferred version string to match
-        optional: Whether the package is optional (default: False)
+        version_pattern: Regular expression for package version to get if not already installed.
+            The latest version matching the pattern will be installed.
 
     Returns:
-        bool: True if package was installed or already present, False if optional package was skipped
+        str: Installed package version
 
     Raises:
-        SystemExit: If non-optional package cannot be installed
+        PackageInstallationError: If package cannot be installed
     """
+
     # Check if package is already installed
     try:
         output = subprocess.check_output(
             ["apt", "list", "--installed", package_name], text=True, stderr=subprocess.DEVNULL
-        )
+        ).split()
         # Extract installed version from apt list output using regex
         # Example output: "libcudnn9-cuda-12/unknown,now 9.5.1.17-1 amd64 [installed,upgradable to: 9.8.0.87-1]"
-        installed_version = re.search(rf"{package_name}/.*?now\s+([\d\.-]+)", output)
-        if installed_version:
-            installed_version = installed_version.group(1)
-            print(f"Package {package_name} found with version {installed_version}")
-            return True
+        if len(output) >= 3 and re.match(r"\d+\.\d+\.\d+.*", output[2]):
+            installed_version = output[2]
+            info(f"Package {package_name} found with version {installed_version}")
+            return installed_version
     except subprocess.CalledProcessError:
+        # Package not installed, continue to attempt installation
         pass
 
     # Check available versions
     try:
+        # apt list -a sorts in descending order by default
         available_versions = subprocess.check_output(
             ["apt", "list", "-a", package_name], text=True, stderr=subprocess.DEVNULL
         )
-
-        # Find matching version
-        matching_version = None
-        for line in available_versions.splitlines():
-            if preferred_version in line and package_name in line:
-                matching_version = line.split()[1]  # Get version from second column
-                break
+        matching_version = re.findall(
+            f"^{re.escape(package_name)}/.*?({version_pattern}).*$",
+            available_versions,
+            re.MULTILINE,
+        )
+        matching_version = matching_version[0] if matching_version else None
 
         if not matching_version:
-            if optional:
-                print(f"Package {package_name} {preferred_version} not found. Skipping.")
-                return False
-            else:
-                fatal(
-                    f"{package_name} {preferred_version} is not installable.\n"
-                    f"You might want to try to install a newer version manually and rerun the setup:\n"
-                    f"  sudo apt install {package_name}"
-                )
+            raise PackageInstallationError(
+                package_name,
+                version_pattern,
+                f"{package_name} is not installable with pattern {version_pattern}.\n"
+                f"You might want to try to install a newer version manually and rerun the setup:\n"
+                f"  sudo apt install {package_name}",
+            )
 
         # Install the package
-        print(f"Installing {package_name}={matching_version}")
+        info(f"Installing {package_name}={matching_version}")
         run_command(
             [
-                "sudo",
                 "apt",
                 "install",
                 "--no-install-recommends",
@@ -272,14 +392,14 @@ def install_cuda_dependencies_package(
             ],
             dry_run=dry_run,
         )
-        return True
+        return matching_version
 
     except subprocess.CalledProcessError as e:
-        if optional:
-            print(f"Error checking available versions for {package_name}: {e}")
-            return False
-        else:
-            fatal(f"Error checking available versions for {package_name}: {e}")
+        raise PackageInstallationError(
+            package_name,
+            version_pattern,
+            f"Error checking available versions for {package_name}: {e}",
+        )
 
 
 def format_long_command(cmd: List[str], max_line_length: int = 80) -> str:
@@ -363,3 +483,387 @@ def levenshtein_distance(s1: str, s2: str) -> int:
         previous_row = current_row
 
     return previous_row[-1]
+
+
+def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
+    """Get list of directories from CMakeLists.txt files"""
+    results = []
+    for cmakelists in script_dir.rglob("CMakeLists.txt"):
+        with open(cmakelists) as f:
+            content = f.read()
+            for line in content.splitlines():
+                if cmake_function in line:
+                    try:
+                        name = line.split("(")[1].split(")")[0].strip()
+                        results.append(name)
+                    except IndexError:
+                        continue
+    return sorted(results)
+
+
+def build_holohub_path_mapping(
+    holohub_root: Path,
+    project_data: Optional[dict] = None,
+    build_dir: Optional[Path] = None,
+    data_dir: Optional[Path] = None,
+) -> dict[str, str]:
+    """Build a mapping of HoloHub placeholders to their resolved paths"""
+    if data_dir is None:
+        data_dir = holohub_root / "data"
+
+    path_mapping = {
+        "holohub_root": str(holohub_root),
+        "holohub_data_dir": str(data_dir),
+    }
+    if not project_data:
+        return path_mapping
+    # Add project-specific mappings if project_data is provided
+    app_source_path = project_data.get("source_folder", "")
+    if app_source_path:
+        path_mapping["holohub_app_source"] = str(app_source_path)
+    if build_dir:
+        path_mapping["holohub_bin"] = str(build_dir)
+        if app_source_path:
+            try:
+                app_build_dir = build_dir / Path(app_source_path).relative_to(holohub_root)
+                path_mapping["holohub_app_bin"] = str(app_build_dir)
+            except ValueError:
+                # Handle case where app_source_path is not relative to holohub_root
+                path_mapping["holohub_app_bin"] = str(build_dir)
+    elif project_data.get("project_name"):
+        # If no build_dir provided but we have project name, try to infer it
+        project_name = project_data["project_name"]
+        inferred_build_dir = holohub_root / "build" / project_name
+        path_mapping["holohub_bin"] = str(inferred_build_dir)
+        if app_source_path:
+            try:
+                app_build_dir = inferred_build_dir / Path(app_source_path).relative_to(holohub_root)
+                path_mapping["holohub_app_bin"] = str(app_build_dir)
+            except ValueError:
+                path_mapping["holohub_app_bin"] = str(inferred_build_dir)
+    return path_mapping
+
+
+def docker_args_to_devcontainer_format(docker_args: List[str]) -> List[str]:
+    """Convert Docker argument format to devcontainer format (--flag value -> --flag=value)"""
+    standalone = {"--rm", "--init", "--no-cache"}
+    result, i = [], 0
+    while i < len(docker_args):
+        curr = docker_args[i]
+        if (
+            i + 1 < len(docker_args)
+            and curr.startswith("--")
+            and "=" not in curr
+            and curr not in standalone
+            and not docker_args[i + 1].startswith("-")
+        ):
+            result.append(f"{curr}={docker_args[i + 1]}")
+            i += 2
+        else:
+            result.append(curr)
+            i += 1
+    return result
+
+
+def get_entrypoint_command_args(
+    img: str, command: str, docker_opts: str, dry_run: bool = False
+) -> tuple[str, List[str]]:
+    """Determine how to execute a shell command in a Docker container."""
+    if "--entrypoint" in docker_opts:
+        try:
+            command_args = shlex.split(command)  # "command" splits into a list of arguments
+            return "", command_args
+        except ValueError:
+            return "", [command]
+    entrypoint = get_container_entrypoint(img, dry_run=dry_run)
+    if not entrypoint:  # image has no entrypoint, docker uses default "/bin/sh -c" for command
+        return "", [command]
+    # Image has an ENTRYPOINT
+    if entrypoint in [["/bin/sh", "-c"], ["/bin/bash", "-c"], ["sh", "-c"], ["bash", "-c"]]:
+        return "", [command]  # Shell is already configured to take command string
+    if entrypoint in [["/bin/sh"], ["/bin/bash"], ["sh"], ["bash"]]:
+        return "", ["-c", command]  # Shell needs -c to execute command string
+    return "--entrypoint=bash", ["-c", command]  # bash is used to run local build/run command
+
+
+def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[str]]:
+    """Check if container image has an entrypoint defined"""
+    if dry_run:
+        print(
+            "Inspect docker image entrypoint: "
+            f"docker inspect --format={{{{json .Config.Entrypoint}}}} {img}"
+        )
+        return None
+
+    try:
+        result = run_command(
+            ["docker", "inspect", "--format={{json .Config.Entrypoint}}", img],
+            capture_output=True,
+            check=False,
+            dry_run=dry_run,
+        )
+        if result.returncode != 0:
+            return None
+        entrypoint_json = result.stdout.strip()
+        if entrypoint_json in ["<no value>", "[]", "null", "''"]:
+            return None
+        parsed = json.loads(entrypoint_json)
+        if isinstance(parsed, list) and len(parsed) > 0:
+            return parsed
+        return None
+    except Exception:
+        pass
+    return None
+
+
+def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
+    """Get PYTHONPATH from the Docker image environment"""
+    if dry_run:
+        print(
+            Color.yellow(
+                "Inspect docker image PYTHONPATH: docker inspect "
+                f"--format '{{{{range .Config.Env}}}}{{{{println .}}}}{{{{end}}}}' {img}"
+            )
+        )
+        return ""
+    try:
+        result = run_command(
+            ["docker", "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
+            check=False,
+            capture_output=True,
+            dry_run=dry_run,
+        )
+        if result.returncode != 0:
+            return ""
+        for line in result.stdout.decode().strip().split("\n"):
+            if line.startswith("PYTHONPATH="):
+                return line[len("PYTHONPATH=") :]
+    except (subprocess.CalledProcessError, AttributeError):
+        pass
+    return ""
+
+
+def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
+    """Replace placeholders in text using the provided path mapping"""
+    if not text:
+        return text
+    result = text
+    for placeholder, replacement in path_mapping.items():
+        bracketed_placeholder = f"<{placeholder}>"
+        result = result.replace(bracketed_placeholder, replacement)
+    return result
+
+
+def launch_vscode(workspace_path: str, dry_run: bool = False) -> None:
+    """Install VS Code Remote Development extension and launch VS Code with new window"""
+    print("Installing VS Code Remote Development extension...")
+    run_command(
+        [
+            "code",
+            "--force",
+            "--install-extension",
+            "ms-vscode-remote.vscode-remote-extensionpack",
+        ],
+        dry_run=dry_run,
+    )
+    run_command(["code", "--new-window", workspace_path], dry_run=dry_run)
+
+
+def open_url(url: str, dry_run: bool = False) -> bool:
+    """Open a URL using the system's default URL opener"""
+    if shutil.which("open"):
+        run_command(["open", url], check=False, dry_run=dry_run)
+        return True
+    elif shutil.which("xdg-open"):
+        run_command(["xdg-open", url], check=False, dry_run=dry_run)
+        return True
+    if not dry_run:
+        print("Could not automatically open URL.")
+        print(f"Please manually open: {url}")
+    return False
+
+
+def launch_vscode_devcontainer(
+    workspace_path: str, workspace_name: str = "holohub", dry_run: bool = False
+) -> None:
+    """Launch VS Code with dev container and open the dev container URL"""
+    hash_hex = str(workspace_path).encode().hex()
+    url = f"vscode://vscode-remote/dev-container+{hash_hex}/workspace/{workspace_name}"
+
+    if dry_run:
+        print(f"Dryrun URL: {url}")
+    else:
+        print(f"Launching VSCode Dev Container from: {workspace_path}")
+        print(f"Connecting to {url}...")
+    launch_vscode(workspace_path, dry_run=dry_run)
+    open_url(url, dry_run=dry_run)
+
+
+def get_devcontainer_config(
+    holohub_root: Path, project_name: Optional[str] = None, dry_run: bool = False
+) -> str:
+    """Get devcontainer configuration content"""
+
+    default_config_path = holohub_root / ".devcontainer"
+    if (
+        project_name
+        and (holohub_root / ".devcontainer" / project_name / "devcontainer.json").exists()
+    ):
+        dev_container_path = holohub_root / ".devcontainer" / project_name
+        print(f"Using application-specific DevContainer configuration: {dev_container_path}")
+    else:
+        dev_container_path = default_config_path
+        print(f"Using top-level DevContainer configuration: {dev_container_path}")
+
+    devcontainer_json_src = dev_container_path / "devcontainer.json"
+
+    if dry_run:
+        print(f"Would read and modify {devcontainer_json_src}")
+        print("Would substitute environment variables and launch VS Code")
+        return ""
+    else:
+        with open(devcontainer_json_src, "r") as f:
+            devcontainer_content = f.read()
+
+    return devcontainer_content
+
+
+def collect_system_info() -> None:
+    """Collect and display system information"""
+    print(f"\n{Color.blue('System Information:')}")
+    print(f"  OS: {platform.system()} {platform.release()} {platform.machine()}")
+    print(f"  Platform: {platform.platform()}")
+
+
+def collect_python_info() -> None:
+    """Collect and display Python information"""
+    print(f"\n{Color.blue('Python Information:')}")
+    print(f"  Version: {sys.version}")
+    print(f"  Executable: {sys.executable} Path: {sys.path[0] if sys.path else 'N/A'}")
+
+
+def collect_holohub_info(
+    holohub_root: Path, build_dir: Path, data_dir: Path, sdk_dir: Path
+) -> None:
+    """Collect and display HoloHub information"""
+    print(f"\n{Color.blue('HoloHub Information:')}")
+    print(f"  HOLOHUB_ROOT: {holohub_root}")
+    print(f"  HOLOHUB_BUILD_PARENT_DIR: {build_dir}")
+    print(f"  HOLOHUB_DATA_DIR: {data_dir}")
+    print(f"  HOLOHUB_SDK_DIR: {sdk_dir}")
+
+
+def collect_git_info(holohub_root: Path) -> None:
+    """Collect and display Git repository information"""
+    print(f"\n{Color.blue('Git Repository Information:')}")
+    if not holohub_root.exists() or not holohub_root.is_dir():
+        print(f"  HoloHub root directory does not exist or is not a directory: {holohub_root}")
+        return
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(holohub_root)
+    except Exception as e:
+        print(f"  Cannot access HoloHub directory: {e}")
+        return
+    try:
+        git_branch = run_info_command(["git", "branch", "--show-current"])
+        git_commit_full = run_info_command(["git", "rev-parse", "HEAD"])
+        git_status = run_info_command(["git", "status", "--porcelain"])
+        if git_branch is None or git_commit_full is None or git_status is None:
+            print("  Git information not available")
+            return
+        git_commit = git_commit_full[:8]
+        print(f"  Branch: {git_branch} Commit: {git_commit}")
+        print(f"  Modified: {git_status.splitlines()}")
+    finally:
+        try:
+            os.chdir(original_cwd)  # try to restore the original working directory
+        except Exception:
+            pass
+
+
+def collect_docker_info() -> None:
+    """Collect and display Docker information"""
+    print(f"\n{Color.blue('Docker Information:')}")
+    docker_version = run_info_command(["docker", "--version"])
+    docker_info = run_info_command(["docker", "info", "--format", "{{.ServerVersion}}"])
+    if docker_version is None or docker_info is None:
+        print("  Docker not available")
+        return
+    print(f"  Version: {docker_version} Server Version: {docker_info}")
+    nvidia_ctk_version = run_info_command(["nvidia-ctk", "--version"])
+    if nvidia_ctk_version is not None:
+        print(f"  NVIDIA Container Toolkit: {nvidia_ctk_version.strip()}")
+
+
+def collect_cuda_gpu_info() -> None:
+    """Collect and display CUDA/GPU information"""
+    print(f"\n{Color.blue('CUDA/GPU Information:')}")
+    nvidia_smi = run_info_command(
+        [
+            "nvidia-smi",
+            "--query-gpu=name,driver_version,memory.total",
+            "--format=csv,noheader,nounits",
+        ]
+    )
+    if nvidia_smi is None:
+        print("  NVIDIA GPU/CUDA not available")
+        return
+    for i, line in enumerate(nvidia_smi.split("\n")):
+        if line.strip():
+            parts = line.split(",")
+            if len(parts) >= 3:
+                print(f"  GPU {i}: {parts[0].strip()}")
+                print(f"    Driver: {parts[1].strip()}")
+                print(f"    Memory: {parts[2].strip()} MB")
+    cuda_version = run_info_command(["nvcc", "--version"])
+    if cuda_version is None:
+        print("  nvcc not available")
+        return
+    version_line = [line for line in cuda_version.split("\n") if "release" in line.lower()]
+    print(f"  NVCC: {version_line[0].strip()}")
+    nvcc_path = run_info_command(["which", "nvcc"])
+    if nvcc_path is not None:
+        print(f"  NVCC Path: {nvcc_path}")
+
+
+def collect_environment_variables() -> None:
+    """Collect and display environment variables"""
+    print(f"\n{Color.blue('HoloHub Environment Variables:')}")
+    holohub_env_vars = [
+        "HOLOHUB_CMD_NAME",
+        "HOLOHUB_BUILD_LOCAL",
+        "HOLOHUB_BASE_IMAGE",
+        "HOLOHUB_APP_NAME",
+        "HOLOHUB_CONTAINER_BASE_NAME",
+        "HOLOHUB_ALWAYS_BUILD",
+    ]
+    for var in sorted(holohub_env_vars):
+        print(f"  {var}: {os.environ.get(var) or '(not set)'}")
+
+    print(f"\n{Color.blue('Holoscan Environment Variables:')}")
+    holoscan_env_vars = ["HOLOSCAN_SDK_VERSION", "HOLOSCAN_INPUT_PATH"]
+    for var in sorted(holoscan_env_vars):
+        print(f"  {var}: {os.environ.get(var) or '(not set)'}")
+
+    print(f"\n{Color.blue('Other Relevant Environment Variables:')}")
+    other_env_vars = [
+        "PYTHONPATH",
+        "PATH",
+        "LD_LIBRARY_PATH",
+        "CMAKE_BUILD_TYPE",
+        "DOCKER_BUILDKIT",
+        "XDG_SESSION_TYPE",
+        "XDG_RUNTIME_DIR",
+    ]
+    for var in sorted(other_env_vars):
+        print(f"  {var}: {os.environ.get(var) or '(not set)'}")
+
+
+def collect_env_info() -> None:
+    """Collect and display comprehensive environment information"""
+    collect_system_info()
+    collect_python_info()
+    collect_docker_info()
+    collect_cuda_gpu_info()
+    collect_environment_variables()

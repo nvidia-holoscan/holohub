@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Endoscopy Tool Tracking Distributed",
+		"name": "UCX-based Distributed Endoscopy Tool Tracking",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -18,8 +18,9 @@
 				"2.1.0"
 			]
 		},
+		"dockerfile": "applications/distributed/ucx/ucx_endoscopy_tool_tracking/Dockerfile",
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["healthcare AI", "distributed", "surgical instrument tracking", "real-time mask overlay", "endoscopy", "video processing", "computer vision", "segmentation"],
+		"tags": ["Healthcare AI", "Distributed", "Surgical AI", "Endoscopy", "Video", "Computer Vision and Perception", "Segmentation"],
 		"ranking": 0,
 		"dependencies": {
 			"data": [

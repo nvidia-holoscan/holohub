@@ -1,4 +1,4 @@
-# AJA Capture
+# AJA Video Capture
 
 Minimal example to demonstrate the use of the aja source operator to capture device input and stream to holoviz operator.
 
@@ -7,7 +7,7 @@ Minimal example to demonstrate the use of the aja source operator to capture dev
 ## Quick Start
 
 ```bash
-dev_container build_and_run aja_video_capture --language <cpp/python>
+holohub run aja_video_capture --language <cpp/python>
 ```
 
 ## Settings

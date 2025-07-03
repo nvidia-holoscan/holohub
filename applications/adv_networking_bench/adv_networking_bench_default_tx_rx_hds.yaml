@@ -68,9 +68,8 @@ advanced_network:
           id: 0
           cpu_core: 9
           batch_size: 10240
-          output_port: "bench_rx_out"
           memory_regions:
-            - "Data_RX_GPU"
+            - "Data_RX_CPU"
             - "Data_RX_GPU"
         flows:
         - name: "flow_0"
@@ -84,21 +83,22 @@ advanced_network:
             ipv4_len: 1050
 
 bench_rx:
-  gpu_direct: true        # Set to true if using a GPU region for the Rx queues.
-  split_boundary: true    # Whether header and data is split (Header to CPU)
+  interface_name: "rx_port" # Name of the RX port from the advanced_network config
+  gpu_direct: true          # Set to true if using a GPU region for the Rx queues.
+  split_boundary: true      # Whether header and data is split (Header to CPU)
   batch_size: 10240
   max_packet_size: 1064
   header_size: 64
 
 bench_tx:
-  gpu_direct: true        # Set to true if using a GPU region for the Tx queues.
-  split_boundary: 0       # Byte boundary where header and data is split, 0 if no split
+  interface_name: "tx_port" # Name of the TX port from the advanced_network config
+  gpu_direct: true          # Set to true if using a GPU region for the Tx queues.
+  split_boundary: 0         # Byte boundary where header and data is split, 0 if no split
   batch_size: 10240
   payload_size: 1000
   header_size: 64
   eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true
-  ip_src_addr: <1.2.3.4>  # Source IP address - required on layer 3 network
-  ip_dst_addr: <5.6.7.8>  # Destination IP address - required on layer 3 network
-  udp_src_port: 4096      # UDP source port
-  udp_dst_port: 4096      # UDP destination port
-  address: <0000:00:00.0> # Source NIC Bus ID. Should match the address of the Tx interface above
+  ip_src_addr: <1.2.3.4>    # Source IP address - required on layer 3 network
+  ip_dst_addr: <5.6.7.8>    # Destination IP address - required on layer 3 network
+  udp_src_port: 4096        # UDP source port
+  udp_dst_port: 4096        # UDP destination port

@@ -25,11 +25,11 @@ IMAGE_TAG="holohub-fhir"
 
 if [ ! -d $APP_PATH ]; then
     print_error "Please build the application first with the following command:"
-    print_error "./dev_container build_and_install $APP_NAME"
+    print_error "./holohub install $APP_NAME"
     exit -1
 fi
 
-PLATFORM=x64-workstation
+PLATFORM=x86_64
 GPU=$(get_host_gpu)
 if [ $(get_host_arch) == "aarch64" ]; then
     PLATFORM=igx-orin-devkit

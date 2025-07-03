@@ -21,7 +21,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["healthcare AI", "audio", "ICD 10 coding automation", "clinical transcription workflow", "automatic speech recognition", "large language model", "OpenAI API", "radiology imaging"],
+		"tags": ["Healthcare AI", "Audio", "ASR", "LLM", "Auth and API", "Medical Imaging"],
 		"ranking": 2,
 		"dependencies": {
 			"openai-whisper": "^20230314",

@@ -90,8 +90,12 @@ class App : public holoscan::Application {
     if (source_ == "aja") {
       width = from_config("aja.width").as<uint32_t>();
       height = from_config("aja.height").as<uint32_t>();
+#ifdef AJA_SOURCE
       source = make_operator<ops::AJASourceOp>(
           "aja", from_config("aja"), from_config("external_source"));
+#else
+throw std::runtime_error("AJA is requested but not available. Please enable AJA at build time.");
+#endif
       source_block_size = width * height * 4 * 4;
       source_num_blocks = use_rdma ? 3 : 4;
     } else if (source_ == "yuan") {
@@ -111,6 +115,10 @@ class App : public holoscan::Application {
           Arg("rdma") = use_rdma,
           Arg("board") = from_config("deltacast.board").as<uint32_t>(),
           Arg("input") = from_config("deltacast.input").as<uint32_t>(),
+          Arg("width") = width,
+          Arg("height") = height,
+          Arg("progressive") = from_config("deltacast.progressive").as<bool>(),
+          Arg("framerate") = from_config("deltacast.framerate").as<uint32_t>(),
           Arg("pool") = make_resource<UnboundedAllocator>("pool"));
 #endif
       source_block_size = width * height * 4 * 4;

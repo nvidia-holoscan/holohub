@@ -11,8 +11,9 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"language": ["C++", "Python"],
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Network", "Networking", "UDP", "Ethernet", "IP", "TCP"],
+		"tags": ["Networking and Distributed Computing", "UDP", "IP", "TCP"],
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [

@@ -17,6 +17,13 @@
 # Error out if a command fails
 set -e
 
+# Check if this script is being used and warn about deprecation
+echo "################################################################################"
+echo "WARNING: The dev_container script is deprecated. Please use the ./holohub command instead."
+echo "For more information, see: https://github.com/nvidia-holoscan/holohub"
+echo "################################################################################"
+echo ""
+
 #===============================================================================
 # Default values for environment variables.
 #===============================================================================
@@ -279,10 +286,19 @@ get_conditional_options() {
     local conditional_opt=""
 
 
+    if [ -e /usr/local/cmake/VideoMasterHDConfigVersion.cmake ]; then
+        conditional_opt+="${prefix}--volume=/usr/local/cmake/VideoMasterHDConfigVersion.cmake:/usr/local/cmake/VideoMasterHDConfigVersion.cmake${postfix}"
+    fi
+    if [ -e /usr/local/cmake/VideoMasterHDConfig.cmake ]; then
+        conditional_opt+="${prefix}--volume=/usr/local/cmake/VideoMasterHDConfig.cmake:/usr/local/cmake/VideoMasterHDConfig.cmake${postfix}"
+    fi
     if [ -e /usr/lib/libvideomasterhd.so ]; then
         conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd.so:/usr/lib/libvideomasterhd.so${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd_audio.so:/usr/lib/libvideomasterhd_audio.so${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd_vbi.so:/usr/lib/libvideomasterhd_vbi.so${postfix}"
+        conditional_opt+="${prefix}--volume=/usr/lib/libvideomasterhd_vbidata.so:/usr/lib/libvideomasterhd_vbidata.so${postfix}"
     fi
-    if [ -d /usr/include/videomaster/ ]; then
+    if [ -d /usr/include/videomaster ]; then
         conditional_opt+="${prefix}--volume=/usr/include/videomaster:/usr/include/videomaster${postfix}"
     fi
     if [ -d /opt/yuan/qcap/include ]; then
@@ -465,11 +481,11 @@ get_host_gpu() {
 }
 
 get_default_base_img() {
-    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v3.1.0-"$(get_host_gpu)
+    echo -n "nvcr.io/nvidia/clara-holoscan/holoscan:v3.3.0-"$(get_host_gpu)
 }
 
 get_default_img() {
-    echo -n "holohub:ngc-v3.1.0-"$(get_host_gpu)
+    echo -n "holohub:ngc-v3.3.0-"$(get_host_gpu)
 }
 
 # This function returns the compute capacity of the system's GPU (8.6, 8.9, etc.)
@@ -916,6 +932,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
             If `--img` is not specified then a custom image tag will be defined.
         --img : Specify fully qualified output container name
         --container_args: Additional Docker run args.
+        --container_launch_args: Launch args to forward to "dev_container launch" script command.
         --language : Specify the app language implementation to run.
                      Some applications provide both `cpp` and `python` implementations.
         --no_build : Launch the app without attempting to build it first
@@ -925,6 +942,7 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --build_docker_args : additional docker arguments when building the container
         --build_with : List of optional operators that should be built separated by semicolons (;)
         --run_args : Run the app with additional args
+        --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
         --verbose : Print extra output to console
         --dryrun : View build and run commands without doing anything
         --parallel_jobs: Set the # of parallel build jobs, e.g. $(($(nproc)-1))
@@ -1049,12 +1067,26 @@ build_and_run() {
             container_launch_args+=" --verbose"
             shift
             ;;
+        --ssh_x11)
+            container_launch_args+=" --ssh_x11"
+            shift
+            ;;
         --language)
             if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
                 app_language="$2"
                 shift 2
             else
                 echo "Error: --language requires a value"
+                build_and_run_desc
+                exit 1
+            fi
+            ;;
+        --container_launch_args)
+            if [[ -n "$2" ]]; then
+                container_launch_args+="$2"
+                shift 2
+            else
+                echo "Error: --container_launch_args requires a value"
                 build_and_run_desc
                 exit 1
             fi

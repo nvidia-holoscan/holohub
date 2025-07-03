@@ -1,4 +1,4 @@
-# Distributed H.264 Endoscopy Tool Tracking Application
+# Distributed H.264 Endoscopy Tool Tracking
 
 This application is similar to the [H.264 Endoscopy Tool Tracking](../../../h264/h264_endoscopy_tool_tracking/) application, but this distributed version divides the application into three fragments:
 
@@ -25,30 +25,30 @@ The data is automatically downloaded when building the application.
 
 ```bash
 # Start the application with all three fragments
-./dev_container build_and_run ucx_h264_endoscopy_tool_tracking --language cpp
+./holohub run ucx_h264_endoscopy_tool_tracking --language=cpp
 
 # Use the following commands to run the same application three processes:
 # Start the application with the video_in fragment
-./dev_container build_and_run ucx_h264_endoscopy_tool_tracking --language cpp --run_args "--driver --worker --fragments video_in --address :10000 --worker-address :10001"
+./holohub run ucx_h264_endoscopy_tool_tracking --language=cpp --run-args="--driver --worker --fragments video_in --address :10000 --worker-address :10001"
 # Start the application with the inference fragment
-./dev_container build_and_run ucx_h264_endoscopy_tool_tracking --language cpp --run_args "--worker --fragments inference --address :10000 --worker-address :10002"
+./holohub run ucx_h264_endoscopy_tool_tracking --language=cpp --run-args="--worker --fragments inference --address :10000 --worker-address :10002"
 # Start the application with the visualization fragment
-./dev_container build_and_run ucx_h264_endoscopy_tool_tracking --language cpp --run_args "--worker --fragments viz --address :10000 --worker-address :10003"
+./holohub run ucx_h264_endoscopy_tool_tracking --language=cpp --run-args="--worker --fragments viz --address :10000 --worker-address :10003"
 ```
 
 ### Python
 
 ```bash
 # Start the application with all three fragments
-./dev_container build_and_run ucx_h264_endoscopy_tool_tracking --language python
+./holohub run ucx_h264_endoscopy_tool_tracking --language=python
 
 # Use the following commands to run the same application three processes:
 # Start the application with the video_in fragment
-./dev_container build_and_run ucx_h264_endoscopy_tool_tracking --language python --run_args "--driver --worker --fragments video_in --address :10000 --worker-address :10001"
+./holohub run ucx_h264_endoscopy_tool_tracking --language=python --run-args="--driver --worker --fragments video_in --address :10000 --worker-address :10001"
 # Start the application with the inference fragment
-./dev_container build_and_run ucx_h264_endoscopy_tool_tracking --language python --run_args "--worker --fragments inference --address :10000 --worker-address :10002"
+./holohub run ucx_h264_endoscopy_tool_tracking --language=python --run-args="--worker --fragments inference --address :10000 --worker-address :10002"
 # Start the application with the visualization fragment
-./dev_container build_and_run ucx_h264_endoscopy_tool_tracking --language python --run_args "--worker --fragments viz --address :10000 --worker-address :10003"
+./holohub run ucx_h264_endoscopy_tool_tracking --language=python --run-args="--worker --fragments viz --address :10000 --worker-address :10003"
 ```
 
 Important: on aarch64, applications also need tegra folder mounted inside the container and
@@ -68,7 +68,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 To start the VS Code Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode h264
+./holohub vscode h264
 ```
 
 ### VS Code Launch Profiles

@@ -1,10 +1,10 @@
-# Prohawk video replayer
+# ProHawk Video Replayer
 
 This application utilizes the ProHawk restoration operator along with Holoscan's Video Replayer and Holoviz operators to enhance and restore medical imagery in real-time, offering superior image quality. The user-friendly interface of the application provides a range of filter options, enabling users to dynamically select the most suitable filter for optimal results.
 
 ![](screenshot.png)
 
-## ProHawk Vision Restoration Operator 
+## ProHawk Vision Restoration Operator
 
 The ProHawk Vision Operator is a groundbreaking solution that is transforming both healthcare and manufacturing industries by revolutionizing computer vision technology with its patented restoration capabilities. It seamlessly integrates into the NVIDIA Holoscan full-stack infrastructure, fundamentally altering the way healthcare professionals diagnose and treat patients, while also optimizing manufacturing processes. In healthcare, the ProHawk Vision Operator Plugin automatically interprets medical imaging frames, identifies real-world conditions, and employs precise control over ProHawk Vision Restoration algorithms, all driven by an objective mathematical model using quantitative measurements to enhance accuracy in diagnoses and treatments by restoring degraded frames. In manufacturing, the ProHawk Vision Operator Plugin algorithms reveal manufacturing line defects ensuring product quality.
 
@@ -26,33 +26,42 @@ The operator can be controlled with keyboard shortcuts:
 The following dataset is used by this application:
 [📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data).
 
-##  Building the application
 
-The easiest way to build this application is to use the provided Docker file.
+## Quick Start
+
+To build this application within a container and run it, please use the following command:
+
+```bash
+./holohub run prohawk_video_replayer
+```
+
+For a separate build and run, please see the following instructions:
+
+### Step by step build and run
 
 From the Holohub main directory run the following command:
 
   ```bash
-  ./dev_container build --docker_file applications/prohawk_video_replayer/Dockerfile --img holohub:prohawk
+  ./holohub build-container prohawk_video_replayer
   ```
 
 Then launch the container to build the application:
 
   ```bash
-  ./dev_container launch --img holohub:prohawk
+  ./holohub run-container prohawk_video_replayer --no-docker-build
   ```
 
 Inside the container build the application:
 
   ```bash
-  ./run build prohawk_video_replayer
+  ./holohub build prohawk_video_replayer
   ```
-  
+
 Inside the container run the application:
 
 - C++:
     ```bash
-    ./run launch prohawk_video_replayer cpp
+    ./holohub run prohawk_video_replayer --language=cpp --no-local-build
     ```
 - Python:
     ```bash

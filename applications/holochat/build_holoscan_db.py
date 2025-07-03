@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glob
 import os
 import re
 from types import SimpleNamespace
@@ -31,11 +32,12 @@ CHROMA_DB_PATH = f"{current_dir}/embeddings/holoscan"
 def main():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(current_dir, "config.yaml")
-    yaml_config = yaml.safe_load(open(config_path))
+    with open(config_path) as f:
+        yaml_config = yaml.safe_load(f)
     config = SimpleNamespace(**yaml_config)
     # Define the repos, docs, and file types to store
     repos = ["holoscan-sdk", "holohub"]
-    docs = [f"/{current_dir}/docs/Holoscan_SDK_User_Guide_2.0.0.pdf"]
+    docs = glob.glob(os.path.join(current_dir, "docs", "*.pdf"))
     file_types = [".md", ".py", ".cpp", ".yaml"]
 
     content_lists = {file_type: [] for file_type in file_types}
@@ -117,11 +119,13 @@ def main():
     print(f"Number of source chunks: {len(source_chunks)}")
     print(f"Building Holoscan Embeddings Chroma DB at {chroma_db_path}...")
     print("Building Chroma DB (This may take a few minutes)...")
-    chroma_db = Chroma.from_documents(
-        source_chunks, embedding_model, persist_directory=chroma_db_path
-    )
+
+    max_batch_size = 5461  # 5461 is the max batch size for the BAAI/bge-large-en model
+    for i in range(0, len(source_chunks), max_batch_size):
+        batch = source_chunks[i : i + max_batch_size]
+        chroma_db = Chroma.from_documents(batch, embedding_model, persist_directory=chroma_db_path)
+        chroma_db.persist()
     print("Done!")
-    chroma_db.persist()
 
 
 if __name__ == "__main__":

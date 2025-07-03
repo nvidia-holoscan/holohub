@@ -16,17 +16,8 @@
 # BINDINGS
 
 include(pybind11_add_holohub_module)
-pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET advanced_network_rx
-    CLASS_NAME "AdvNetworkOpRx"
-    SOURCES adv_network_rx_pybind.cpp
-)
-
-pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET advanced_network_tx
-    CLASS_NAME "AdvNetworkOpTx"
-    SOURCES adv_network_tx_pybind.cpp
-)
+find_package(holoscan 2.6 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install") # Remove if holoscan logger dependency removed
 
 set(MODULE_NAME advanced_network_common)
 set(MODULE_CLASS_NAME "*")

@@ -1,4 +1,4 @@
-# 📷🤖 Holoscan VILA Live
+# VILA Live
 
 This application demonstrates how to run [VILA 1.5](https://github.com/Efficient-Large-Model/VILA) models on live video feed with the possibility of changing the prompt in real time.
 
@@ -41,11 +41,11 @@ Determine your desired video device and edit the source device in [vila_live.yam
 ## 🚀 Build and Run Instructions
 From the Holohub main directory run the following command:
 ```bash
-./dev_container build_and_run vila_live
+./holohub run vila_live
 ```
 or running with a replayer:
 ```bash
-./dev_container build_and_run vila_live --run_args "--source replayer"
+./holohub run vila_live --run-args="--source replayer"
 ```
 Note: The first build will take **~1.5 hours** if you're on ARM64. This is largely due to building [Flash Attention 2](https://github.com/Dao-AILab/flash-attention) since pre-built wheels are not distributed for ARM64 platforms.
 

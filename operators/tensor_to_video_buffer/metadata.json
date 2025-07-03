@@ -11,6 +11,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"language": ["C++", "Python"],
 		"holoscan_sdk": {
 			"minimum_required_version": "0.5.0",
 			"tested_versions": [
@@ -21,10 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Tensor",
-			"Video"
-		],
+		"tags": ["Tensor", "Video"],
 		"ranking": 1,
 		"dependencies": {}
 	}

@@ -31,11 +31,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Python",
-			"Sensor Processing",
-            "Bootcamp"
-		],
+		"tags": [],
 		"ranking": 1,
 		"dependencies": {}
 	}

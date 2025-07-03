@@ -1,4 +1,5 @@
 # Depth Anything V2
+
 <div align="center">
     <img src="./docs/depth.gif" width="500" height="363">
 </div>
@@ -20,10 +21,22 @@ This application downloads a pre-recorded video from [Pexels](https://www.pexels
 
 ## Input
 
-This app currently supports two input options:
+This app supports two different input options.  If you have a v4l2 compatible device plugged into your machine such as a webcam, you can run this application with option 1.  Otherwise you can run this application using a pre-recorded video with option 2.
 
-1. v4l2 compatible input device (default; see <b>V4L2 Support</b> below)
-2. Pre-recorded video (see <b>Video Replayer Support</b> below)
+1. v4l2 compatible input device (default, see V4L2 Support below)
+2. pre-recorded video (see Video Replayer Support below)
+
+To see the list of v4l2 devices connected to your machine, install `v4l-utils` if it's not already installed:
+
+```
+sudo apt-get install v4l-utils
+```
+
+Then run:
+
+```
+v4l2-ctl --list-devices
+```
 
 ## Run Instructions
 
@@ -32,14 +45,14 @@ This app currently supports two input options:
 This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
 ```sh
-./dev_container build_and_run depth_anything_v2
+./holohub run depth_anything_v2
 ```
 
 By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, update
 `applications/depth_anything_v2/depth_anything_v2.yaml` file to set the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
 ```sh
-./dev_container build_and_run depth_anything_v2 --run_args "--video_device /dev/video0"
+./holohub run depth_anything_v2 --run-args="--video_device /dev/video0"
 ```
 
 ### Video Replayer Support
@@ -48,7 +61,7 @@ If you don't have a v4l2 compatible device plugged in, you can also run this app
 To launch the application using the Video Stream Replayer as the input source, run:
 
 ```sh
-./dev_container build_and_run depth_anything_v2 --run_args "--source replayer"
+./holohub run depth_anything_v2 --run-args="--source replayer"
 ```
 
 ### Display Modes
