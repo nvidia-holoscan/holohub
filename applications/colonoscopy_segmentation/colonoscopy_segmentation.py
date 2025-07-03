@@ -28,31 +28,6 @@ from holoscan.operators import (
 )
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
 
-def lazy_import(module_name):
-    """Lazily import a module by name.
-
-    This function provides a way to import modules only when they are first accessed,
-    which can help reduce startup time and memory usage. It uses Python's importlib
-    to handle the lazy loading.
-
-    Args:
-        module_name (str): The name of the module to import
-
-    Returns:
-        module: The imported module object
-
-    Raises:
-        ImportError: If the specified module cannot be found
-    """
-    spec = importlib.util.find_spec(module_name)
-    if spec is None:
-        raise ImportError(f"Module {module_name} not found")
-    module = importlib.util.module_from_spec(spec)
-    loader = importlib.util.LazyLoader(spec.loader)
-    loader.exec_module(module)
-    sys.modules[module_name] = module
-    return module
-
 class ContourOp(Operator):
     """Operator to format input image for inference"""
 
@@ -142,8 +117,8 @@ class ColonoscopyApp(Application):
 
         is_aja = self.source.lower() == "aja"
         if is_aja:
-            aja_source = lazy_import("holohub.aja_source")
-            source = aja_source.AJASourceOp(self, name="aja", **self.kwargs("aja"))
+            from holohub.aja_source import AJASourceOp
+            source = AJASourceOp(self, name="aja", **self.kwargs("aja"))
             drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
             drop_alpha_num_blocks = 2
             drop_alpha_channel = FormatConverterOp(
