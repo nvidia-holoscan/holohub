@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@
 #include "cvcuda_to_holoscan.hpp"
 #include "holoscan/holoscan.hpp"
 #include "holoscan_to_cvcuda.hpp"
+#include "message_logger.hpp"
 
 #include <cvcuda/OpFlip.hpp>     // cvcuda::Flip
 #include <nvcv/DataType.hpp>     // nvcv::DataType
@@ -134,6 +135,10 @@ class App : public holoscan::Application {
     add_flow(holoscan_to_cvcuda, image_processing);
     add_flow(image_processing, cvcuda_to_holoscan);
     add_flow(cvcuda_to_holoscan, visualizer2, {{"output", "receivers"}});
+
+    // configure this application to use Holohub's example MessageLogger
+    auto message_logger = make_resource<data_loggers::MessageLogger>("message_logger");
+    add_data_logger(message_logger);
   }
 
  private:
