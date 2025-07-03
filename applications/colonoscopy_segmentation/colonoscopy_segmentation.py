@@ -28,6 +28,7 @@ from holoscan.operators import (
 )
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
 
+
 class ContourOp(Operator):
     """Operator to format input image for inference"""
 
@@ -118,6 +119,7 @@ class ColonoscopyApp(Application):
         is_aja = self.source.lower() == "aja"
         if is_aja:
             from holohub.aja_source import AJASourceOp
+
             source = AJASourceOp(self, name="aja", **self.kwargs("aja"))
             drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
             drop_alpha_num_blocks = 2
