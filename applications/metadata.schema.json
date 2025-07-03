@@ -41,6 +41,9 @@
         },
         "run": {
           "$ref": "holohub/project/v1#/$defs/run_command"
+        },
+        "modes": {
+          "$ref": "holohub/project/v1#/$defs/modes"
         }
       },
       "required": [
