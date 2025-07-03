@@ -54,7 +54,7 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
     }
   }
   
-  // Fill in the buffer owned by the demuxer/decoder
+  // Fill in the buffer owned by the demuxer/decoder and advance the offset
   int GetData(uint8_t* pBuf, int nBuf) {
     if (buffer_.empty() || offset_ >= buffer_.size()) {
       return AVERROR_EOF;
@@ -91,9 +91,9 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
 };
 
 /**
- * @brief Operator to encode video frames using NVIDIA Video Codec SDK
+ * @brief Operator to decode video frames using NVIDIA Video Codec SDK
  *
- * This operator takes video frames as input and encodes them to H264 format.
+ * This operator takes video frames as input and decodes them to H264 format.
  * The input and output data remain on the GPU for maximum performance.
  */
 class NvVideoDecoderOp : public Operator {
@@ -121,7 +121,6 @@ class NvVideoDecoderOp : public Operator {
   CUcontext cu_context_ = nullptr;
   CUdevice cu_device_;
 
-  // NVIDIA Video Decoder
   std::unique_ptr<NvDecoder> decoder_;
   std::unique_ptr<FFmpegDemuxer> demuxer_;
   std::unique_ptr<StreamDataProvider> file_data_provider_;

@@ -40,7 +40,9 @@ namespace holoscan::ops {
 const std::map<std::string, GUID> NvVideoEncoderOp::CODEC_GUIDS{{"H264", NV_ENC_CODEC_H264_GUID},
                                                                 {"HEVC", NV_ENC_CODEC_HEVC_GUID}};
 
-const std::map<std::string, GUID> NvVideoEncoderOp::PRESET_GUIDS{{"P3", NV_ENC_PRESET_P3_GUID},
+const std::map<std::string, GUID> NvVideoEncoderOp::PRESET_GUIDS{{"P1", NV_ENC_PRESET_P1_GUID},
+                                                                 {"P2", NV_ENC_PRESET_P2_GUID},
+                                                                 {"P3", NV_ENC_PRESET_P3_GUID},
                                                                  {"P4", NV_ENC_PRESET_P4_GUID},
                                                                  {"P5", NV_ENC_PRESET_P5_GUID},
                                                                  {"P6", NV_ENC_PRESET_P6_GUID},
@@ -121,7 +123,7 @@ void NvVideoEncoderOp::initialize() {
   encoder_->CreateDefaultEncoderParams(
       &initializeParams, guidCodec, guidPreset, NV_ENC_TUNING_INFO_LOW_LATENCY);
 
-  // Set frame rate to 60 FPS
+  // Set frame rate to the requested frame rate
   initializeParams.frameRateNum = frame_rate_.get();
   initializeParams.frameRateDen = 1;
 

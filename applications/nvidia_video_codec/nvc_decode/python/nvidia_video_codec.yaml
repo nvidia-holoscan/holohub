@@ -38,7 +38,9 @@ decoder:
   verbose: false  
 
 holoviz:
-  window_title: "NVIDIA Video Codec"
+  window_title: "NVIDIA Video Codec - Elementary File Decode"
+  width: 850
+  height: 480
   tensors:
     - name: ""
       type: color

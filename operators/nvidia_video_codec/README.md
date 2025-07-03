@@ -12,6 +12,6 @@ A sample application can be found in the [nvidia_video_codec](../../applications
 
 ## Licensing
 
-By using the NVIDIA Video Codec Demo application and these operators, you agree to the 
-[NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement). 
-If you don't agree to the EULA, please don't reference these operators.
+Holohub applications and operators are licensed under Apache-2.0.
+
+NVIDIA Video Codec is governed by the terms of the [NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement), which you accept by clonging, running, or using the NVIDIA Video Codec sample applications and operators.

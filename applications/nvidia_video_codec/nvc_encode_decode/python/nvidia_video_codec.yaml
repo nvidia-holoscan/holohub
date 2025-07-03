@@ -31,12 +31,14 @@ resources:
 replayer:
   basename: "surgical_video"
   frame_rate: 0   # as specified in timestamps
-  repeat: false    # default: false
-  realtime: false  # default: false
+  repeat: false   # default: false
+  realtime: false # default: false
   count: 0        # default: 0 (no frame count restriction)
 
 holoviz:
-  window_title: "NVIDIA Video Codec"
+  window_title: "NVIDIA Video Codec - Encode and Decode"
+  width: 850
+  height: 480
   tensors:
     - name: ""
       type: color
@@ -45,7 +47,7 @@ holoviz:
 
 encoder:
   codec: "H264" # H265 or HEVC
-  preset: "P3" # P3, P4, P5, P6, P7
+  preset: "P1" # P1, P2, P3, P4, P5, P6, P7
   cuda_device_ordinal: 0
   bitrate: 10000000
   frame_rate: 60
