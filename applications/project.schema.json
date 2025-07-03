@@ -170,10 +170,59 @@
       },
       "required": ["id", "name", "description"]
     },
+    "application_dependencies": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dependency"
+          }
+        },
+        {
+          "type": "object"
+        }
+      ]
+    },
     "dependencies": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/dependency"
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array"
+        },
+        "gxf_extensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/versioned_dependency"
+          }
+        },
+        "hardware": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hardware_descriptor"
+          }
+        },
+        "external": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                },
+                "required": ["name", "description"]
+              }
+            ]
+          }
+        }
       }
     },
     "run_command": {

@@ -34,7 +34,7 @@
           "$ref": "holohub/project/v1#/$defs/ranking"
         },
         "dependencies": {
-          "$ref": "holohub/project/v1#/$defs/dependencies"
+          "$ref": "holohub/project/v1#/$defs/application_dependencies"
         },
         "dockerfile": {
           "type": "string"
