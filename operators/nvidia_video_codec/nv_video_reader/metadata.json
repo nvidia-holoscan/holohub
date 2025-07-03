@@ -8,7 +8,9 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": ["C++"],
+		"language": [
+			"C++"
+		],
 		"version": "1.0.0",
 		"changelog": {
 			"1.0": "Initial Release"
@@ -16,7 +18,8 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "3.3.0",
 			"tested_versions": [
-				"3.3.0"
+				"3.3.0",
+				"3.4.0"
 			]
 		},
 		"platforms": [

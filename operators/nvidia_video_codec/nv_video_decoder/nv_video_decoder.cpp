@@ -96,9 +96,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   }
 
   auto meta = metadata();
-  auto source = meta->get<std::string>("source", "");
-
-  bool is_from_reader = (source == "nv_video_reader");
+  bool is_from_reader = (meta->get<std::string>("source", "") == "nv_video_reader");
   
   // Handle stream reset signal for looping videos
   bool stream_reset = meta->get<bool>("stream_reset", false);
@@ -114,70 +112,11 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     }
   }
 
-  if (!is_from_reader) {
-    file_data_provider_->SetData(static_cast<uint8_t*>(data_ptr), data_size);
-
-    if (verbose_.get()) {
-      HOLOSCAN_LOG_INFO("StreamDataProvider buffer size: {} bytes, offset: {}",
-                        file_data_provider_->GetBufferSize(),
-                        file_data_provider_->GetOffset());
-    }
-
-    if (demuxer_ == nullptr) {
-      // Set the current context
-      CudaCheck(cuCtxPushCurrent(cu_context_));
-
-      try {
-        demuxer_ = std::make_unique<FFmpegDemuxer>(file_data_provider_.get());
-        decoder_ = std::make_unique<NvDecoder>(cu_context_,
-                                               true,
-                                               FFmpeg2NvCodecId(demuxer_->GetVideoCodec()),
-                                               true,
-                                               false,
-                                               nullptr,
-                                               nullptr,
-                                               false,
-                                               0,
-                                               0,
-                                               1000,
-                                               true);
-      } catch (const std::exception& e) {
-        HOLOSCAN_LOG_ERROR("Failed to initialize decoder: {}", e.what());
-        // Reset the demuxer and decoder for potential retry
-        demuxer_.reset();
-        decoder_.reset();
-        // Pop the context to avoid context stack issues
-        CudaCheck(cuCtxPopCurrent(nullptr));
-        throw std::runtime_error(
-            "Decoder initialization failed. Please check video format and codec support.");
-      }
-    }
+  // Initialize decoder for streaming or file
+  if (is_from_reader) {
+    init_decoder_for_file(meta);
   } else {
-    // For nv_video_reader data, initialize decoder directly if needed
-    if (decoder_ == nullptr) {
-      CudaCheck(cuCtxPushCurrent(cu_context_));
-      try {
-        cudaVideoCodec codec = FFmpeg2NvCodecId(meta->get<AVCodecID>("codec", AV_CODEC_ID_H264));
-        // Create decoder without demuxer - assume H.264 for now
-        decoder_ = std::make_unique<NvDecoder>(cu_context_,
-                                               true,                    // bUseDeviceFrame
-                                               codec,                   // eCodec
-                                               false,                   // bLowLatency - disable for proper frame order
-                                               false,                   // bDeviceFramePitched
-                                               nullptr,                 // pCropRect
-                                               nullptr,                 // pResizeDim
-                                               false,                   // extract_user_SEI_Message
-                                               0,                       // maxWidth
-                                               0,                       // maxHeight
-                                               1000,                    // clkRate
-                                               false);                  // force_zero_latency - DISABLE to allow reordering
-      } catch (const std::exception& e) {
-        HOLOSCAN_LOG_ERROR("Failed to initialize decoder for nv_video_reader: {}", e.what());
-        decoder_.reset();
-        CudaCheck(cuCtxPopCurrent(nullptr));
-        throw std::runtime_error("Decoder initialization failed for nv_video_reader data.");
-      }
-    }
+    init_decoder_for_streaming(data_ptr, data_size);
   }
 
   auto allocator =
@@ -256,26 +195,21 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   // Common frame processing for both paths
   if (nFrameReturned == 0) {
     if (verbose_.get()) {
-    HOLOSCAN_LOG_INFO("No frames decoded - this is normal for initialization frames (SPS/PPS headers)");
+      HOLOSCAN_LOG_INFO("No frames decoded - this is normal for initialization frames (SPS/PPS headers)");
     }
     return;
   }
 
-  if (nFrameReturned > 1) {
-    if (verbose_.get()) {
-      HOLOSCAN_LOG_INFO("Decoder returned {} frames. Processing first frame, buffering rest for next calls.", nFrameReturned);
-    }
+  if (nFrameReturned > 1 && verbose_.get()) {
+    HOLOSCAN_LOG_INFO("Decoder returned {} frames. Processing first frame, buffering rest for next calls.", nFrameReturned);
   }
 
-  // Process only ONE frame per compute() call to prevent frame loss and repetition
-  // The decoder will buffer remaining frames for subsequent calls
   pFrame = decoder_->GetLockedFrame();
   if (!pFrame) {
     HOLOSCAN_LOG_ERROR("Failed to get decoded frame from decoder");
     return;
   }
 
-  // Get frame timestamp for debugging
   int64_t frame_timestamp = 0;
   uint8_t* frame_with_timestamp = decoder_->GetLockedFrame(&frame_timestamp);
   if (frame_with_timestamp) {
@@ -338,7 +272,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   // After copying Y plane
   size_t pad = video_buffer_info.color_planes[0].stride - width;
   if (pad > 0 && verbose_.get()) {
-    HOLOSCAN_LOG_DEBUG("Padding Y plane with {} bytes", pad);
+    HOLOSCAN_LOG_INFO("Padding Y plane with {} bytes", pad);
     for (int y = 0; y < height; ++y) {
       uint8_t* row_start = video_buffer->pointer() + video_buffer_info.color_planes[0].offset +
                            y * video_buffer_info.color_planes[0].stride;
@@ -349,7 +283,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   // After copying UV plane
   pad = video_buffer_info.color_planes[1].stride - width;
   if (pad > 0 && verbose_.get()) {
-    HOLOSCAN_LOG_DEBUG("Padding UV plane with {} bytes", pad);
+    HOLOSCAN_LOG_INFO("Padding UV plane with {} bytes", pad);
     for (int y = 0; y < height / 2; ++y) {
       uint8_t* row_start = video_buffer->pointer() + video_buffer_info.color_planes[1].offset +
                            y * video_buffer_info.color_planes[1].stride;
@@ -374,6 +308,73 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   auto output_result = gxf::Entity(std::move(output.value()));
   op_output.emit(output_result, "output");
   last_emit_timestamp_ = emit_timestamp;
+}
+
+void NvVideoDecoderOp::init_decoder_for_streaming(void* data, size_t size) {
+  file_data_provider_->SetData(static_cast<uint8_t*>(data), size);
+
+  if (verbose_.get()) {
+    HOLOSCAN_LOG_INFO("StreamDataProvider buffer size: {} bytes, offset: {}",
+                      file_data_provider_->GetBufferSize(),
+                      file_data_provider_->GetOffset());
+  }
+
+  if (demuxer_ == nullptr || decoder_ == nullptr) {
+    // Set the current context
+    CudaCheck(cuCtxPushCurrent(cu_context_));
+
+    try {
+      demuxer_ = std::make_unique<FFmpegDemuxer>(file_data_provider_.get());
+      decoder_ = std::make_unique<NvDecoder>(cu_context_,
+                                              true,
+                                              FFmpeg2NvCodecId(demuxer_->GetVideoCodec()),
+                                              true,
+                                              false,
+                                              nullptr,
+                                              nullptr,
+                                              false,
+                                              0,
+                                              0,
+                                              1000,
+                                              true);
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_ERROR("Failed to initialize decoder: {}", e.what());
+      // Reset the demuxer and decoder for potential retry
+      demuxer_.reset();
+      decoder_.reset();
+      // Pop the context to avoid context stack issues
+      CudaCheck(cuCtxPopCurrent(nullptr));
+      throw std::runtime_error(
+          "Decoder initialization failed. Please check video format and codec support.");
+    }
+  }
+}
+
+void NvVideoDecoderOp::init_decoder_for_file(std::shared_ptr<MetadataDictionary> meta) {
+    if (decoder_ == nullptr) {
+      CudaCheck(cuCtxPushCurrent(cu_context_));
+      try {
+        cudaVideoCodec codec = FFmpeg2NvCodecId(meta->get<AVCodecID>("codec", AV_CODEC_ID_H264));
+        // Create decoder without demuxer - assume H.264 for now
+        decoder_ = std::make_unique<NvDecoder>(cu_context_,
+                                               true,                    // bUseDeviceFrame
+                                               codec,                   // eCodec
+                                               false,                   // bLowLatency - disable for proper frame order
+                                               false,                   // bDeviceFramePitched
+                                               nullptr,                 // pCropRect
+                                               nullptr,                 // pResizeDim
+                                               false,                   // extract_user_SEI_Message
+                                               0,                       // maxWidth
+                                               0,                       // maxHeight
+                                               1000,                    // clkRate
+                                               false);                  // force_zero_latency - DISABLE to allow reordering
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Failed to initialize decoder for nv_video_reader: {}", e.what());
+        decoder_.reset();
+        CudaCheck(cuCtxPopCurrent(nullptr));
+        throw std::runtime_error("Decoder initialization failed for nv_video_reader data.");
+      }
+    }
 }
 
 void NvVideoDecoderOp::stop() {
