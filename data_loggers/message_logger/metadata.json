@@ -1,0 +1,29 @@
+{
+    "data_logger": {
+        "name": "message_logger",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": ["C++"],
+        "version": "1.0.0",
+        "changelog": {
+			"1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.4.0",
+            "tested_versions": [
+                "3.4.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [],
+        "ranking": 1,
+        "dependencies": { }
+    }
+}

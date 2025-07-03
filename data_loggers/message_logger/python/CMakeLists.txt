@@ -13,4 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_data_logger(message_logger)
+include(pybind11_add_holohub_module)
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET message_logger
+    CLASS_NAME "MessageLogger"
+    SOURCES message_logger.cpp
+)
