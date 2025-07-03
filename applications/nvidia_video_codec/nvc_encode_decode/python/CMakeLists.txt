@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(nvidia_video_codec LANGUAGES NONE)
+project(nvidia_video_codec LANGUAGES CXX)
 
 find_package(holoscan 3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")

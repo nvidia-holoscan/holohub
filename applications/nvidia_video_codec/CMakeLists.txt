@@ -18,7 +18,8 @@ cmake_minimum_required(VERSION 3.20)
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 
 # Download the endoscopy sample data
-if(HOLOHUB_DOWNLOAD_DATASETS)
+if(OP_nv_video_encoder OR OP_nv_video_decoder)
+  if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(endoscopy
     URL nvidia/clara-holoscan/holoscan_endoscopy_sample_data:20230222
@@ -31,6 +32,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     GXF_ENTITIES_FRAMERATE 30
     ALL
   )
+  endif()
 endif()
 
 add_holohub_application(nvc_encode_decode DEPENDS OPERATORS nv_video_encoder nv_video_decoder)

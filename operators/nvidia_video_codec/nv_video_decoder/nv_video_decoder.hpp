@@ -109,6 +109,9 @@ class NvVideoDecoderOp : public Operator {
   void stop() override;
 
  private:
+  void init_decoder_for_streaming(void* data, size_t size);
+  void init_decoder_for_file(std::shared_ptr<MetadataDictionary> meta);
+  
   Parameter<int> cuda_device_ordinal_;
   Parameter<int> width_;
   Parameter<int> height_;

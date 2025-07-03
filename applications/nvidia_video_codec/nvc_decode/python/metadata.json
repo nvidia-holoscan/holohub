@@ -12,10 +12,12 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"dockerfile": "applications/nvidia_video_codec/Dockerfile",
 		"holoscan_sdk": {
-			"minimum_required_version": "3.0.0",
+			"minimum_required_version": "3.3.0",
 			"tested_versions": [
-				"3.0.0"
+				"3.3.0",
+				"3.4.0"
 			]
 		},
 		"platforms": [
@@ -47,7 +49,7 @@
 			]
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/nvidia_video_codec.py --data <holohub_data_dir>/endoscopy",
+			"command": "python3 <holohub_app_source>/nvc_decode.py --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_bin"
 		}
 	}

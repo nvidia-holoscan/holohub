@@ -16,35 +16,11 @@
 cmake_minimum_required(VERSION 3.24)
 project(nv_video_encoder)
 
+include(nvidia_video_codec)
+
 find_package(holoscan 3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-# Detect system architecture
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
-    set(LIB_ARCH_DIR "aarch64-linux-gnu")
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
-    set(LIB_ARCH_DIR "x86_64-linux-gnu")
-else()
-    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
-endif()
-
-find_library(NVCUVID_LIBRARY nvcuvid
-    NAMES libnvcuvid.so.1 libnvcuvid
-    HINTS ${CUDA_TOOLKIT_ROOT_DIR}/lib64
-    PATHS "/usr/lib/${LIB_ARCH_DIR}/")
-
- if(NOT NVCUVID_LIBRARY)
-   message(FATAL_ERROR "nvcuvid library not found. Please specify its location manually.")
-endif()
-
-find_library(NVENC_LIBRARY nvidia-encode
-    NAMES libnvidia-encode.so.1 libnvidia-encode
-    HINTS ${CUDA_TOOLKIT_ROOT_DIR}/lib64
-    PATHS "/usr/lib/${LIB_ARCH_DIR}/")
-
-if(NOT NVENC_LIBRARY)
-    message(FATAL_ERROR "nvidia-encode library not found. Please specify its location manually.")
-endif()
 
 # Encoder Operator
 add_library(nv_video_encoder SHARED

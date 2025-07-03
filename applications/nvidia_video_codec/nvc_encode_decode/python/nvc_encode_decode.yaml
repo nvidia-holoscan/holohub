@@ -17,7 +17,7 @@
 # Required fields for packaging the application
 # See https://docs.nvidia.com/holoscan/sdk-user-guide/cli/run_config.html#
 application:
-  title: Holohub - NVIDIA Video Codec
+  title: Holohub - NVIDIA Video Codec - Encode and Decode
   version: 1.0
   inputFormats: []
   outputFormats: ["screen"]

@@ -68,8 +68,7 @@ class PyNvVideoReaderOp : public NvVideoReaderOp {
                                 Arg{"filename", filename},
                                 Arg{"allocator", allocator},
                                 Arg{"loop", loop},
-                                Arg{"verbose", verbose},
-                                Arg{"name", name}}) {
+                                Arg{"verbose", verbose}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;

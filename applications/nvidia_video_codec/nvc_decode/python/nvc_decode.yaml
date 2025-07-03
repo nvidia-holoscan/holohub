@@ -41,6 +41,7 @@ holoviz:
   window_title: "NVIDIA Video Codec - Elementary File Decode"
   width: 850
   height: 480
+  framerate: 120
   tensors:
     - name: ""
       type: color
