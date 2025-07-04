@@ -29,14 +29,14 @@ There are several ways to build and run this application and package it as a Hol
 
 It is further expected that you have read the [HoloHub README](../../../README.md), have cloned the HoloHub repository to your local system, and the current working directory is the HoloHub root, `holohub`.
 
-**_Note_**:  
+**_Note_**:
 The application listens for request messages to start retrieving resources from the server and then publishes the results, so another application is needed to drive this workflow (e.g., the LLM application). To help with simple testing, a Python script is provided as part of this application, and its usage is described below in this [section](#test-the-running-application).
 
 ### Quick Start Using Holohub Container
 
 This is the simplest and fastest way to start the application in a Holohub dev container and get it ready to listen to request messages.
 
-**_Note_**:  
+**_Note_**:
 Please use your own FHIR server endpoint, as well as the OAuth2.0 authorization endpoint and client credentials as needed.
 
 ```bash
@@ -80,7 +80,7 @@ pip install -r applications/ehr_query_llm/fhir/requirements.txt
 Then, Set up the Holohub environment:
 
 ```bash
-sudo ./holohub setup
+./holohub setup  # sudo privileges may be required
 ```
 
 > Note: Although this application is implemented entirely in Python and relies on standard PyPI packages, you still may want to set up Holohub environment and use `./holohub` commandline .
