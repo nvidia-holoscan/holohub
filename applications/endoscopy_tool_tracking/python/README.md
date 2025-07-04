@@ -50,7 +50,7 @@ the working directory.
 
 * Using an AJA card
     ```bash
-    ./holohub run endoscopy_tool_tracking python --run-args -s=aja
+    ./holohub run endoscopy_tool_tracking python --run-args=-s=aja
     ```
 
 * Using a YUAN card
@@ -60,5 +60,5 @@ the working directory.
     ```
 * Using an AJA card with hardware keying overlay (Only specific cards support this feature)
     ```bash
-    ./holohub run endoscopy_tool_tracking python --run-args "-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja"
+    ./holohub run endoscopy_tool_tracking --language python --run-args="-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja"
     ```
