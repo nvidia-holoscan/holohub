@@ -26,6 +26,15 @@ set_tests_properties(test_holohub_list PROPERTIES
     PASS_REGULAR_EXPRESSION "APPLICATIONS.*BENCHMARKS.*PACKAGES.*OPERATORS.*WORKFLOWS"
 )
 
+add_test(
+    NAME test_holohub_autocompletion_list
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub autocompletion_list
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_holohub_autocompletion_list PROPERTIES
+    PASS_REGULAR_EXPRESSION "ultrasound_segmentation.*build.*run.*list"
+)
+
 
 add_test(
     NAME test_holohub_lint

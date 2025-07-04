@@ -235,6 +235,6 @@ export ML_START_OPTIONS="debug"
 
 3. Clear the build cache and any home cache folders in the HoloHub workspace.
 ```sh
-./run clear_cache
+./holohub clear-cache
 rm -rf .cache/ .cmake/ .config/ .local/
 ```
