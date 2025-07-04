@@ -2,7 +2,7 @@
 
 This application demonstrates the use of medical imaging operators to build and package an application that parses DICOM images and performs inference using a MONAI model (TotalSegmentator).
 
-![3D Volume Rendering](resources/segments_3D.png)
+![3D Volume Rendering](resources/segments_3D.png)  
 _Fig. 1: 3D volume rendering of segmentation results in NIfTI format_
 
 ## Overview
@@ -17,7 +17,7 @@ The input is a DICOM CT series, and the segmentation results are saved as both D
 - Using the MONAI SDK to transform input/output and perform inference
 - Writing results as a DICOM Segmentation OID instance, re-using study-level metadata from the original DICOM study
 
-![DICOM Segmentation Slice](resources/segments_DICOM_slice.png)
+![DICOM Segmentation Slice](resources/segments_DICOM_slice.png)  
 _Fig. 2: A slice of the segmentation saved in a DICOM segmentation instance (without color coding the segments)_
 
 ## Requirements
@@ -86,14 +86,14 @@ You can run the application either in your local development environment or insi
 
    B. **Bare Metal (not using Holohub/Holoscan container):**
 
-    - Install Python dependencies:
+    - Install Python dependencies:  
       It is strongly recommended a Python virtual environment is used for running the application in dev environment.
 
        ```bash
        pip install -r applications/imaging_ai_segmentator/requirements.txt
        ```
 
-    - Set up the Holohub environment:
+    - Set up the Holohub environment:  
       Although this application is implemented entirely in Python and relies on standard PyPI packages, you still may want to set up Holohub environment and use `./holohub build` to help organize the Python code and automatically download the required segmentation model.
 
        ```bash
