@@ -87,6 +87,10 @@ class Color:
     white = _create_color_method(WHITE)
 
 
+_sudo_available = None  # Cache for sudo availability check
+_apt_updated = False  # Module-level variable to track apt update status
+
+
 # Utility Functions
 def get_timestamp() -> str:
     """Get current timestamp in the format used by the bash script"""
@@ -144,22 +148,90 @@ def fatal(message: str) -> None:
     sys.exit(1)
 
 
+def _get_maybe_sudo() -> str:
+    """Get sudo command if available, with caching to avoid repeated subprocess calls"""
+    global _sudo_available
+
+    if _sudo_available is not None:
+        return _sudo_available
+    try:
+        subprocess.run(["sudo", "--version"], capture_output=True, check=True, timeout=5)
+        _sudo_available = "sudo"
+        return _sudo_available
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        _sudo_available = ""
+        return _sudo_available
+
+
+def _classify_sudo_requirement(cmd: Union[str, List[str]]) -> Tuple[bool, str]:
+    """Classify command sudo requirement and return (needs_sudo, reason)"""
+    cmd_parts = cmd.split() if isinstance(cmd, str) else [str(x) for x in cmd]
+    if not cmd_parts:
+        return False, ""
+    # Already has sudo
+    if cmd_parts[0] == "sudo":
+        return True, "Command already includes sudo"
+    cmd_name = cmd_parts[0]
+    # Commands that always need sudo
+    always_sudo = {
+        "apt": "Package management requires root privileges",
+        "apt-get": "Package management requires root privileges",
+        "dpkg": "Package database access requires root privileges",
+        "chmod": "Changing file permissions requires root privileges",
+        "chown": "Changing file ownership requires root privileges",
+    }
+    if cmd_name in always_sudo:
+        return True, always_sudo[cmd_name]
+    # Commands that need sudo for system paths
+    if cmd_name in ["ln", "cp", "mv", "rm", "mkdir"]:
+        if any(
+            arg.startswith(("/etc/", "/usr/", "/var/", "/opt/", "/sys/", "/proc/"))
+            for arg in cmd_parts[1:]
+        ):
+            return True, "Writing to system directories requires root privileges"
+    # Shell commands with system redirections
+    if isinstance(cmd, str) and ("tee /" in cmd or ">/etc/" in cmd or ">/usr/" in cmd):
+        return True, "Writing to system locations requires root privileges"
+
+    return False, ""
+
+
+def _process_command_with_sudo(
+    cmd: Union[str, List[str]], maybe_sudo: str
+) -> Union[str, List[str]]:
+    """Process command and add sudo if needed and available"""
+    needs_sudo, _ = _classify_sudo_requirement(cmd)
+    if not needs_sudo or not maybe_sudo:
+        return cmd
+    # Check if already has sudo
+    if isinstance(cmd, str):
+        return cmd if cmd.strip().startswith("sudo ") else f"{maybe_sudo} {cmd}"
+    else:
+        return cmd if cmd and str(cmd[0]) == "sudo" else [maybe_sudo] + cmd
+
+
 def run_command(
     cmd: Union[str, List[str]], dry_run: bool = False, check: bool = True, **kwargs
 ) -> subprocess.CompletedProcess:
     """Run a command and handle errors"""
-    if isinstance(cmd, str):
-        cmd_str = cmd
+    # Process the command and add sudo if needed
+    processed_cmd = _process_command_with_sudo(cmd, _get_maybe_sudo())
+    if isinstance(processed_cmd, str):
+        cmd_str = processed_cmd
     else:
-        cmd_list = [f'"{x}"' if " " in str(x) else str(x) for x in cmd]
+        cmd_list = [f'"{x}"' if " " in str(x) else str(x) for x in processed_cmd]
         cmd_str = format_long_command(cmd_list) if dry_run else " ".join(cmd_list)
+
+    needs_sudo, sudo_reason = _classify_sudo_requirement(cmd)  # Add reason for sudo usage
+    if needs_sudo:
+        print(Color.yellow(f"[SUDO REQUIRED] {sudo_reason}"))
     if dry_run:
         print(format_cmd(cmd_str, is_dryrun=True))
         return subprocess.CompletedProcess(cmd_str, 0)
 
     print(format_cmd(cmd_str))
     try:
-        return subprocess.run(cmd, check=check, **kwargs)
+        return subprocess.run(processed_cmd, check=check, **kwargs)
     except subprocess.CalledProcessError as e:
         print(f"Error running command: {cmd_str}")
         print(f"Exit code: {e.returncode}")
@@ -319,6 +391,61 @@ class PackageInstallationError(Exception):
         )
 
 
+def is_package_installed(package_name: str) -> bool:
+    """Check if a package is already installed"""
+    try:
+        result = subprocess.run(
+            ["dpkg", "-l", package_name], capture_output=True, text=True, check=False
+        )
+        return result.returncode == 0 and "ii" in result.stdout
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def ensure_apt_updated(dry_run: bool = False) -> None:
+    """Ensure apt package list is updated, but only once per session"""
+    global _apt_updated
+    if not _apt_updated:
+        run_command(["apt-get", "update"], dry_run=dry_run)
+        _apt_updated = True
+
+
+def install_packages_if_missing(
+    packages: List[str], dry_run: bool = False, apt_options: List[str] = None
+) -> List[str]:
+    """Install packages only if they're not already installed
+
+    Args:
+        packages: List of package names to install (can include version specs like "pkg=1.0*")
+            Note: If package has a version spec, it will run [sudo] apt install to ensure version.
+        dry_run: Whether to perform a dry run
+        apt_options: Additional options for apt install (e.g., ["--no-install-recommends", "-y"])
+
+    Returns:
+        List of packages that were actually installed (or would be installed in dry run)
+    """
+    if apt_options is None:
+        apt_options = ["--no-install-recommends", "-y"]
+
+    missing_packages = []
+    for package in packages:
+        package_name = package.split("=")[0]
+        if "=" in package:
+            missing_packages.append(package)
+            info(f"Package {package_name} will be checked/installed with version specification")
+        elif not is_package_installed(package_name):
+            missing_packages.append(package)
+        else:
+            info(f"Package {package_name} is already installed")
+
+    if missing_packages:
+        ensure_apt_updated(dry_run=dry_run)
+        install_cmd = ["apt", "install"] + apt_options + missing_packages
+        run_command(install_cmd, dry_run=dry_run)
+
+    return missing_packages
+
+
 def install_cuda_dependencies_package(
     package_name: str,
     version_pattern: str = r"\d+\.\d+\.\d+",
@@ -355,7 +482,6 @@ def install_cuda_dependencies_package(
             info(f"Package {package_name} found with version {installed_version}")
             return installed_version
     except subprocess.CalledProcessError:
-        # Package not installed, continue to attempt installation
         pass
 
     # Check available versions
@@ -382,6 +508,7 @@ def install_cuda_dependencies_package(
 
         # Install the package
         info(f"Installing {package_name}={matching_version}")
+        ensure_apt_updated(dry_run=dry_run)
         run_command(
             [
                 "apt",

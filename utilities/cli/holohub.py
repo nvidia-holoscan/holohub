@@ -1188,10 +1188,7 @@ class HoloHubCLI:
             ],
             dry_run=dry_run,
         )
-        holohub_cli_util.run_command(
-            ["apt", "install", "--no-install-recommends", "-y", "clang-format=1:14.0*"],
-            dry_run=dry_run,
-        )
+        holohub_cli_util.install_packages_if_missing(["clang-format=1:14.0*"], dry_run=dry_run)
 
     def _install_template_deps(self, dry_run: bool = False) -> None:
         """Install template dependencies"""
@@ -1214,14 +1211,10 @@ class HoloHubCLI:
 
     def handle_setup(self, args: argparse.Namespace) -> None:
         """Handle setup command"""
-        # Install system dependencies
-        holohub_cli_util.run_command(["apt-get", "update"], dry_run=args.dryrun)
-
-        # Install wget if not present
-        holohub_cli_util.run_command(["apt-get", "install", "-y", "wget"], dry_run=args.dryrun)
-
-        # Install xvfb for running tests/examples headless
-        holohub_cli_util.run_command(["apt-get", "install", "-y", "xvfb"], dry_run=args.dryrun)
+        holohub_cli_util.install_packages_if_missing(
+            ["wget", "xvfb", "git", "unzip", "ffmpeg", "ninja-build", "libv4l-dev"],
+            dry_run=args.dryrun,
+        )
 
         # Check and install CMake if needed
         try:
@@ -1240,10 +1233,7 @@ class HoloHubCLI:
         ubuntu_codename = re.search(r"UBUNTU_CODENAME=(\w+)", ubuntu_codename).group(1)
 
         if not cmake_version or "3.24.0" > cmake_version:
-            holohub_cli_util.run_command(
-                ["apt", "install", "--no-install-recommends", "-y", "gpg"],
-                dry_run=args.dryrun,
-            )
+            holohub_cli_util.install_packages_if_missing(["gpg"], dry_run=args.dryrun)
             holohub_cli_util.run_command(
                 "wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | "
                 "gpg --dearmor - | "
@@ -1258,24 +1248,9 @@ class HoloHubCLI:
                 shell=True,
                 dry_run=args.dryrun,
             )
-            holohub_cli_util.run_command(["apt-get", "update"], dry_run=args.dryrun)
-            holohub_cli_util.run_command(
-                [
-                    "apt",
-                    "install",
-                    "--no-install-recommends",
-                    "-y",
-                    "cmake",
-                    "cmake-curses-gui",
-                ],
-                dry_run=args.dryrun,
+            holohub_cli_util.install_packages_if_missing(
+                ["cmake", "cmake-curses-gui"], dry_run=args.dryrun
             )
-
-        # Install Ninja
-        holohub_cli_util.run_command(
-            ["apt", "install", "--no-install-recommends", "-y", "ninja-build"],
-            dry_run=args.dryrun,
-        )
 
         # Install Python dev
         try:
@@ -1308,41 +1283,9 @@ class HoloHubCLI:
         if not python3_dev_version or parse_semantic_version(
             python3_dev_version
         ) < parse_semantic_version(PYTHON_MIN_VERSION):
-            holohub_cli_util.run_command(
-                [
-                    "apt",
-                    "install",
-                    "--no-install-recommends",
-                    "-y",
-                    f"python3.{python3_version.minor}-dev",
-                ],
-                dry_run=args.dryrun,
+            holohub_cli_util.install_packages_if_missing(
+                [f"python3.{python3_version.minor}-dev"], dry_run=args.dryrun
             )
-
-        # Install ffmpeg
-        holohub_cli_util.run_command(
-            ["apt", "install", "--no-install-recommends", "-y", "ffmpeg"],
-            dry_run=args.dryrun,
-        )
-
-        # Install libv4l-dev
-        holohub_cli_util.run_command(
-            ["apt-get", "install", "--no-install-recommends", "-y", "libv4l-dev"],
-            dry_run=args.dryrun,
-        )
-
-        # Install git if not present
-        holohub_cli_util.run_command(
-            ["apt-get", "install", "--no-install-recommends", "-y", "git"],
-            dry_run=args.dryrun,
-        )
-
-        # Install unzip if not present
-        holohub_cli_util.run_command(
-            ["apt-get", "install", "--no-install-recommends", "-y", "unzip"],
-            dry_run=args.dryrun,
-        )
-
         # Install ngc-cli if not present
         try:
             subprocess.check_output(["ngc", "--version"], stderr=subprocess.DEVNULL)
@@ -1414,7 +1357,8 @@ class HoloHubCLI:
             dry_run=args.dryrun,
         )
 
-        print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
+        if not args.dryrun:
+            print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
 
     def _setup_cuda_packages(self, cuda_major_version: str, dryrun: bool = False) -> None:
         """Find and install CUDA packages for Holoscan SDK development"""
