@@ -1,6 +1,6 @@
 # Contributing to HoloHub
 
-Welcome to HoloHub! We're excited that you're interested in contributing to the NVIDIA Holoscan developer community. This guide will help you understand how to make meaningful contributions to our collection of applications, operators, workflows, and tutorials.
+Welcome to HoloHub! We're excited that you're interested in contributing to the NVIDIA Holoscan developer community. This guide will help you understand how to make meaningful contributions to our collection of applications, operators, data loggers, workflows, and tutorials.
 
 ## Quick Start
 
@@ -26,7 +26,7 @@ New to HoloHub? Follow these steps:
 - [Code Quality and Standards](#code-quality-and-standards)
   - [Linting](#linting-and-code-quality)
   - [Testing](#testing)
-  - [Unit Testing Python Operators](#unit-testing-python-operators)
+  - [Unit Testing Python Operators and Data Loggers](#unit-testing-python-operators-and-data-loggers)
 - [Development Tools](#development-tools)
   - [Debugging](#debugging-and-performance)
   - [Performance](#performance)
@@ -36,7 +36,7 @@ New to HoloHub? Follow these steps:
 
 ## Introduction
 
-HoloHub is a collaborative ecosystem for the NVIDIA Holoscan SDK, featuring community-contributed applications, reusable operators, end-to-end workflows, and educational tutorials. Your contributions help expand the capabilities available to developers working on real-time AI applications across healthcare, industrial inspection, and other domains.
+HoloHub is a collaborative ecosystem for the NVIDIA Holoscan SDK, featuring community-contributed applications, reusable operators and data loggers, end-to-end workflows, and educational tutorials. Your contributions help expand the capabilities available to developers working on real-time AI applications across healthcare, industrial inspection, and other domains.
 
 Whether you're fixing a bug, adding a new feature, or sharing a complete application, this guide will help you contribute effectively to the HoloHub community.
 
@@ -133,7 +133,7 @@ We request that members follow the guidelines in this document to make sure new 
 
 A typical submission consists of:
 
-- **Code**: Application, workflow, operator, and/or tutorial code using the Holoscan SDK
+- **Code**: Application, workflow, operator, data logger, and/or tutorial code using the Holoscan SDK
 - **Metadata**: A [`metadata.json`](#metadata-description) file
 - **Documentation**: A [README](#readme-file) file describing the contribution
 
@@ -173,6 +173,7 @@ Schemas are available for different contribution types:
 - [Applications](./applications/metadata.schema.json)
 - [GXF Extensions](./gxf_extensions/metadata.schema.json)
 - [Operators](./operators/metadata.schema.json)
+- [Data Loggers](./data_loggers/metadata.schema.json)
 - [Tutorials](./tutorials/metadata.schema.json)
 
 #### Example metadata.json Structure
@@ -281,6 +282,17 @@ holohub/applications/your_app_name/
 └── CMakeLists.txt                  # For build system integration
 ```
 
+#### Data Loggers
+
+```text
+holohub/data_loggers/your_data_logger_name/
+├── metadata.json                   # Required: follows data logger schema
+├── README.md                       # Required: describes purpose and usage
+├── your_data_logger_name.py|.cpp|.hpp # Main data logger implementation
+├── test_your_data_logger_name.py      # Required for Python data loggers
+└── CMakeLists.txt                  # If needed for C++ data loggers
+```
+
 #### Workflows
 
 ```text
@@ -333,6 +345,8 @@ For an operator named "Adaptive Thresholding":
 | README Title | Title Case + "Operator" | "Adaptive Thresholding Operator" |
 | Unit Test | "test_" + directory name | `test_adaptive_thresholding.py` |
 
+Data loggers should follow the same conventions as described above for operators except that the class name should end in `Logger` rather than `Op`.
+
 ### Build System Integration
 
 All contributions that include code need to be integrated with HoloHub's build system using CMake. Edit the appropriate `CMakeLists.txt` to add your contribution:
@@ -345,6 +359,13 @@ add_holohub_operator(my_operator DEPENDS EXTENSIONS my_extension)
 ```
 
 If the operator wraps a GXF extension then the optional `DEPENDS EXTENSIONS` should be added to tell the build system to build the dependent extension(s).
+
+**For Data Loggers:**
+
+```cmake
+# In ./data_loggers/CMakeLists.txt
+add_holohub_data_logger(my_data_logger)
+```
 
 **For Extensions:**
 
@@ -364,6 +385,9 @@ add_holohub_application(my_application DEPENDS
 If the application relies on one or more operators then the optional `DEPENDS OPERATORS` should be added so that
 the build system knows to build the dependent operator(s).
 
+If the application relies on one or more data loggers then the optional `DEPENDS DATA_LOGGERS` should be added so that
+the build system knows to build the dependent data logger(s).
+
 **For Workflows:**
 
 ```cmake
@@ -374,6 +398,9 @@ add_holohub_application(my_workflow DEPENDS
 
 If the workflow relies on one or more operators then the optional `DEPENDS OPERATORS` should be added so that
 the build system knows to build the dependent operator(s).
+
+If the workflow relies on one or more data loggers then the optional `DEPENDS DATA_LOGGERS` should be added so that
+the build system knows to build the dependent data logger(s).
 
 **For Packages:**
 
@@ -468,6 +495,7 @@ Before submitting your contribution, ensure you've completed:
   - [ ] All existing tests still pass
   - [ ] New functionality includes appropriate tests
   - [ ] Python operators include unit tests (if applicable)
+  - [ ] Python data loggers include unit tests (if applicable)
 
 - [ ] **Documentation**
   - [ ] `README.md` is comprehensive and well-written
@@ -531,7 +559,7 @@ HoloHub enforces code quality through automated linting checks that run in CI/CD
 
 #### Integration tests
 
-Each operator should have at least one associated [application](./applications/) demonstrating its capabilities.
+Each operator or data_logger should have at least one associated [application](./applications/) demonstrating its capabilities.
 
 #### Writing Tests
 
@@ -543,23 +571,28 @@ Applications should include a testing section in their `CMakeLists.txt` for func
 ./holohub test <project>
 ```
 
-### Unit Testing Python Operators
+### Unit Testing Python Operators and Data Loggers
 
-HoloHub strongly encourages unit tests for Python operators.
+HoloHub strongly encourages unit tests for Python operators and data_loggers.
 
 #### Testing Framework and Structure
 
 - **Framework**: Use `pytest`
-- **File Location**: Same directory as operator: `test_<operator_name>.py`
+- **File Location**: Same directory as operator: `test_<operator_name>.py` (or data_logger: `test_<data_logger_name>.py`)
 - **Fixtures**: Reuse common fixtures from `conftest.py`
 
-#### Required Test Categories
+#### Required Test Categories (Operators)
 
 1. **Initialization Tests**: Verify operator creation and properties
 2. **Port Setup Tests**: Ensure input/output ports are configured correctly
 3. **Error Handling Tests**: Test invalid arguments using `pytest.raises`
 4. **Compute Logic Tests**: Test main functionality with various inputs
 5. **Edge Case Tests**: Cover boundary conditions and error scenarios
+
+#### Required Test Categories (Data Loggers)
+
+1. **Initialization Tests**: Verify data logger creation and properties
+2. **Error Handling Tests**: Test invalid arguments using `pytest.raises`
 
 #### Example Test Structure
 
