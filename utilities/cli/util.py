@@ -380,6 +380,64 @@ class PackageInstallationError(Exception):
         )
 
 
+def is_package_installed(package_name: str) -> bool:
+    """Check if a package is already installed"""
+    try:
+        result = subprocess.run(
+            ["dpkg", "-l", package_name], capture_output=True, text=True, check=False
+        )
+        return result.returncode == 0 and "ii" in result.stdout
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+_apt_updated = False  # Module-level variable to track apt update status
+
+
+def ensure_apt_updated(dry_run: bool = False) -> None:
+    """Ensure apt package list is updated, but only once per session"""
+    global _apt_updated
+    if not _apt_updated:
+        run_command(["apt-get", "update"], dry_run=dry_run)
+        _apt_updated = True
+
+
+def install_packages_if_missing(
+    packages: List[str], dry_run: bool = False, apt_options: List[str] = None
+) -> List[str]:
+    """Install packages only if they're not already installed
+
+    Args:
+        packages: List of package names to install (can include version specs like "pkg=1.0*")
+            Note: If package has a version spec, it will run [sudo] apt install to ensure version.
+        dry_run: Whether to perform a dry run
+        apt_options: Additional options for apt install (e.g., ["--no-install-recommends", "-y"])
+
+    Returns:
+        List of packages that were actually installed (or would be installed in dry run)
+    """
+    if apt_options is None:
+        apt_options = ["--no-install-recommends", "-y"]
+
+    missing_packages = []
+    for package in packages:
+        package_name = package.split("=")[0]
+        if "=" in package:
+            missing_packages.append(package)
+            info(f"Package {package_name} will be checked/installed with version specification")
+        elif not is_package_installed(package_name):
+            missing_packages.append(package)
+        else:
+            info(f"Package {package_name} is already installed")
+
+    if missing_packages:
+        ensure_apt_updated(dry_run=dry_run)
+        install_cmd = ["apt", "install"] + apt_options + missing_packages
+        run_command(install_cmd, dry_run=dry_run)
+
+    return missing_packages
+
+
 def install_cuda_dependencies_package(
     package_name: str,
     version_pattern: str = r"\d+\.\d+\.\d+",
@@ -416,7 +474,6 @@ def install_cuda_dependencies_package(
             info(f"Package {package_name} found with version {installed_version}")
             return installed_version
     except subprocess.CalledProcessError:
-        # Package not installed, continue to attempt installation
         pass
 
     # Check available versions
@@ -443,6 +500,7 @@ def install_cuda_dependencies_package(
 
         # Install the package
         info(f"Installing {package_name}={matching_version}")
+        ensure_apt_updated(dry_run=dry_run)
         run_command(
             [
                 "apt",
