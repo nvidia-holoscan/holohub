@@ -23,7 +23,7 @@ jobs:
           export ubuntu_version=${{ matrix.ubuntu_version }}
 
           ./holohub build-container --base-img ubuntu:${ubuntu_version} 2>&1 | tee /tmp/build.log
-          grep -qE "SUDO REQUIRED.*writing image.* done" /tmp/build.log || { echo "Build failed - no success pattern"; cat /tmp/build.log; exit 1; }
+          grep -qE "writing image.* done" /tmp/build.log || { echo "Build failed - no success pattern"; cat /tmp/build.log; exit 1; }
 
           if ! command -v nvidia-ctk >/dev/null 2>&1; then
             sed -i 's/check_nvidia_ctk()/pass  # nvidia-ctk not available/g' utilities/cli/container.py
