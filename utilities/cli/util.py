@@ -87,6 +87,10 @@ class Color:
     white = _create_color_method(WHITE)
 
 
+_sudo_available = None  # Cache for sudo availability check
+_apt_updated = False  # Module-level variable to track apt update status
+
+
 # Utility Functions
 def get_timestamp() -> str:
     """Get current timestamp in the format used by the bash script"""
@@ -145,11 +149,18 @@ def fatal(message: str) -> None:
 
 
 def _get_maybe_sudo() -> str:
+    """Get sudo command if available, with caching to avoid repeated subprocess calls"""
+    global _sudo_available
+
+    if _sudo_available is not None:
+        return _sudo_available
     try:
         subprocess.run(["sudo", "--version"], capture_output=True, check=True, timeout=5)
-        return "sudo"
+        _sudo_available = "sudo"
+        return _sudo_available
     except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
-        return ""
+        _sudo_available = ""
+        return _sudo_available
 
 
 def _classify_sudo_requirement(cmd: Union[str, List[str]]) -> Tuple[bool, str]:
@@ -389,9 +400,6 @@ def is_package_installed(package_name: str) -> bool:
         return result.returncode == 0 and "ii" in result.stdout
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
-
-
-_apt_updated = False  # Module-level variable to track apt update status
 
 
 def ensure_apt_updated(dry_run: bool = False) -> None:
