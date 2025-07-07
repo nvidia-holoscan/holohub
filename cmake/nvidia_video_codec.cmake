@@ -16,27 +16,28 @@
 # Detect system architecture if not already set
 if(NOT DEFINED LIB_ARCH_DIR)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
-        set(LIB_ARCH_DIR "aarch64-linux-gnu")
+        set(LIB_ARCH_DIR "/usr/lib/aarch64-linux-gnu/nvidia")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
-        set(LIB_ARCH_DIR "x86_64-linux-gnu")
+        set(LIB_ARCH_DIR "/usr/lib/x86_64-linux-gnu")
     else()
         message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
     endif()
 endif()
 
+message(STATUS "Searching for NVIDIA Video Codec Libraries in ${LIB_ARCH_DIR}")
 find_library(NVCUVID_LIBRARY nvcuvid
-    NAMES libnvcuvid.so.1 libnvcuvid
+    NAMES libnvcuvid.so.1 libnvcuvid.so
     HINTS ${CUDA_TOOLKIT_ROOT_DIR}/lib64
-    PATHS "/usr/lib/${LIB_ARCH_DIR}/")
+    PATHS "${LIB_ARCH_DIR}/")
 
 if(NOT NVCUVID_LIBRARY)
     message(FATAL_ERROR "nvcuvid library not found. Please specify its location manually.")
 endif()
 
 find_library(NVENC_LIBRARY nvidia-encode
-    NAMES libnvidia-encode.so.1 libnvidia-encode
+    NAMES libnvidia-encode.so.1 libnvidia-encode.so
     HINTS ${CUDA_TOOLKIT_ROOT_DIR}/lib64
-    PATHS "/usr/lib/${LIB_ARCH_DIR}/")
+    PATHS "${LIB_ARCH_DIR}/")
 
 if(NOT NVENC_LIBRARY)
     message(FATAL_ERROR "nvidia-encode library not found. Please specify its location manually.")
