@@ -277,7 +277,7 @@ set_property(TEST test_holohub_implicit_default_warn_run_args_appended PROPERTY
 # implicit default mode: docker-opts override warning when mode sets docker_run_args
 add_test(
     NAME test_holohub_implicit_default_warn_docker_opts_override
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run isaac_holoscan_bridge --dryrun --docker-opts "--memory 2g"
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run isaac_sim_holoscan_bridge --dryrun --docker-opts "--memory 2g"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_property(TEST test_holohub_implicit_default_warn_docker_opts_override PROPERTY

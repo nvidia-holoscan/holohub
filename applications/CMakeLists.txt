@@ -57,7 +57,7 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
 
 add_subdirectory(h264)
 
-add_holohub_application(isaac_holoscan_bridge)
+add_holohub_application(isaac_sim_holoscan_bridge)
 
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
