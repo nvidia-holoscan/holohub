@@ -37,13 +37,12 @@ host machine.
 ### Set up the environment
 
 ```bash
-export LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/opt/nvidia/holoscan/lib:$LD_LIBRARY_PATH
-export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so
 export LD_LIBRARY_PATH=/opt/EVT/eSDK:$LD_LIBRARY_PATH
 ```
 
 ### Compile the application
+
+#### Explicit commands on the host machine
 
 ```bash
 cd <HOLOHUB_SOURCE_DIR>
@@ -52,6 +51,13 @@ mkdir -p build/high_speed_endoscopy
 cd build/high_speed_endoscopy
 cmake ../.. -DAPP_high_speed_endoscopy=ON
 make -j
+```
+
+#### Using HoloHub CLI
+HoloHub CLI command can also be used to build the application.
+
+```bash
+./holohub build high_speed_endoscopy --local
 ```
 
 ### Run the application
@@ -70,6 +76,7 @@ sudo ./run launch high_speed_endoscopy
 2. **Problem:** The application fails to open the EVT camera.
     - Make sure that the application was run with `sudo` privileges.
     - Make sure a valid Rivermax license file is located at `/opt/mellanox/rivermax/rivermax.lic`.
+    - Make sure that a previously run `high_speed_endoscopy` application has been terminated successfully. One might need to run `sudo kill -9 <PID>` to terminate the application.
 
 3. **Problem:** The application fails to connect to the EVT camera with error message “GVCP ack error”.
     - It could be an issue with the HR12 power connection to the camera. Disconnect the HR12 power connector from the camera and try reconnecting it.
