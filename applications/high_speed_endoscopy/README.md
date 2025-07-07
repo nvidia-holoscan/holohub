@@ -29,6 +29,39 @@ recommended hardware, GSYNC and RDMA enabled on exclusive display mode is 10ms o
 Clara AGX Devkit and 8ms on NVIDIA IGX Orin DevKit ES. This is the photon-to-glass latency of
 a frame from scene acquisition to display on monitor.
 
+## Building and Running the Application
+
+This application cannot be compiled within the Holohub container. It needs to be compiled on the
+host machine.
+
+### Set up the environment
+
+```bash
+export LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/opt/nvidia/holoscan/lib:$LD_LIBRARY_PATH
+export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so
+export LD_LIBRARY_PATH=/opt/EVT/eSDK:$LD_LIBRARY_PATH
+```
+
+### Compile the application
+
+```bash
+cd <HOLOHUB_SOURCE_DIR>
+rm -rf build/high_speed_endoscopy
+mkdir -p build/high_speed_endoscopy
+cd build/high_speed_endoscopy
+cmake ../.. -DAPP_high_speed_endoscopy=ON
+make -j
+```
+
+### Run the application
+
+```bash
+cd <HOLOHUB_SOURCE_DIR>
+sudo ./run launch high_speed_endoscopy
+```
+
+
 **Troubleshooting**
 
 1. **Problem:** The application fails to find the EVT camera.
@@ -40,3 +73,7 @@ a frame from scene acquisition to display on monitor.
 
 3. **Problem:** The application fails to connect to the EVT camera with error message “GVCP ack error”.
     - It could be an issue with the HR12 power connection to the camera. Disconnect the HR12 power connector from the camera and try reconnecting it.
+
+4. **Problem:** The applications fails with a segmentation fault at runtime, in the HoloViz visualization operator.
+    - It could be an issue with the configured BAR size on the GPU. Use the [display mode selector tool](https://developer.nvidia.com/displaymodeselector) to increase the BAR size.
+    - If you are using a lower resolution monitor, then you might need to decrease the resolution of the vistualization in the `high_speed_endoscopy.yaml` file.
