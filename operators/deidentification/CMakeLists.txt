@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.18)
-project(deidentification)
+project(deidentification NONE)
 
 # This operator is Python-only, so no C++ build steps are required.
 add_holohub_operator(pixelator)
