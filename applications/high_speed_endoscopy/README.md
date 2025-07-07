@@ -64,7 +64,7 @@ HoloHub CLI command can also be used to build the application.
 
 ```bash
 cd <HOLOHUB_SOURCE_DIR>
-sudo ./run launch high_speed_endoscopy
+sudo ./holohub run high_speed_endoscopy
 ```
 
 
