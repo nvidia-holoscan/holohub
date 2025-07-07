@@ -14,7 +14,13 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20.1)
-project(Holohub NONE)
+# Check if we can find a CXX compiler before enabling it
+find_program(CXX_COMPILER_FOUND NAMES g++ clang++ c++)
+if(CXX_COMPILER_FOUND)
+  project(Holohub CXX)
+else()
+  project(Holohub NONE)
+endif()
 
 # set CMAKE_MODULE_PATH
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
