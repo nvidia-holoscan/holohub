@@ -16,7 +16,9 @@
 # limitations under the License.
 
 # Latest base image is overridden by the holohub tooling
-ARG BASE_IMAGE
+ARG GPU_TYPE
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 
 # ==============================
 # Base layer
