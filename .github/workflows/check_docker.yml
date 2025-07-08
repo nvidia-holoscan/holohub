@@ -58,7 +58,7 @@ jobs:
                   echo 'exec "$@"' >> /usr/local/bin/test-entrypoint.sh && \
                   chmod +x /usr/local/bin/test-entrypoint.sh
               ENTRYPOINT ["/usr/local/bin/test-entrypoint.sh"]
-            description: "entrypoint-jenkins"
+            description: "entrypoint-test"
           - dockerfile_config: |
               RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
                   echo 'exec "$@"' >> /docker-entrypoint.sh && \
