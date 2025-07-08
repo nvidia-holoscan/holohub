@@ -58,7 +58,7 @@ Data collection can be run in the HoloHub base container for both the Endoscopy 
 ./holohub run-container \
     --img holohub:release_benchmarking \
     --docker-file benchmarks/release_benchmarking/Dockerfile \
-    --base-img nvcr.io/nvidia/clara-holoscan/holoscan:<holoscan-sdk-version>-$(./dev_container get_host_gpu)
+    --base-img nvcr.io/nvidia/clara-holoscan/holoscan:<holoscan-sdk-version-gpu>
 
 # Inside the container, build the applications in benchmarking mode
 ./holohub build endoscopy_tool_tracking --benchmark --language=cpp
