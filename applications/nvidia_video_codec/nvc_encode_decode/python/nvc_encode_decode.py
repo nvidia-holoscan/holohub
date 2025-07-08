@@ -17,6 +17,7 @@ import logging
 import os
 from argparse import ArgumentParser
 
+from holoscan.conditions import PeriodicCondition
 from holoscan.core import Application, Operator, Tracker
 from holoscan.operators import FormatConverterOp, HolovizOp, VideoStreamReplayerOp
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType, RMMAllocator
@@ -52,18 +53,19 @@ class StatsOp(Operator):
         self.fps.append(self.metadata["fps"])
 
     def stop(self):
-        self._logger.info(
-            f"Encode Latency (ms) (min, max, avg): {min(self.encode_latency):.3f}, {max(self.encode_latency):.3f}, {sum(self.encode_latency) / len(self.encode_latency):.3f}"
-        )
-        self._logger.info(
-            f"Decode Latency (ms) (min, max, avg): {min(self.decode_latency):.3f}, {max(self.decode_latency):.3f}, {sum(self.decode_latency) / len(self.decode_latency):.3f}"
-        )
-        self._logger.info(
-            f"Jitter Time (ms) (min, max, avg): {min(self.jitter_time):.3f}, {max(self.jitter_time):.3f}, {sum(self.jitter_time) / len(self.jitter_time):.3f}"
-        )
-        self._logger.info(
-            f"FPS (min, max, avg): {min(self.fps):.3f}, {max(self.fps):.3f}, {sum(self.fps) / len(self.fps):.3f}"
-        )
+        if self.encode_latency:
+            self._logger.info(
+                f"Encode Latency (ms) (min, max, avg): {min(self.encode_latency):.3f}, {max(self.encode_latency):.3f}, {sum(self.encode_latency) / len(self.encode_latency):.3f}"
+            )
+            self._logger.info(
+                f"Decode Latency (ms) (min, max, avg): {min(self.decode_latency):.3f}, {max(self.decode_latency):.3f}, {sum(self.decode_latency) / len(self.decode_latency):.3f}"
+            )
+            self._logger.info(
+                f"Jitter Time (ms) (min, max, avg): {min(self.jitter_time):.3f}, {max(self.jitter_time):.3f}, {sum(self.jitter_time) / len(self.jitter_time):.3f}"
+            )
+            self._logger.info(
+                f"FPS (min, max, avg): {min(self.fps):.3f}, {max(self.fps):.3f}, {sum(self.fps) / len(self.fps):.3f}"
+            )
 
 
 class NVIDIAVideoCodecApp(Application):
@@ -89,6 +91,7 @@ class NVIDIAVideoCodecApp(Application):
     def compose(self):
         width = self.kwargs("holoviz")["width"]
         height = self.kwargs("holoviz")["height"]
+        fps = self.kwargs("holoviz")["framerate"]
         source_block_size = width * height * 3 * 4
         source_num_blocks = 2
 
@@ -97,14 +100,12 @@ class NVIDIAVideoCodecApp(Application):
             raise ValueError(f"Could not find video data: {video_dir=}")
         source = VideoStreamReplayerOp(
             self,
+            PeriodicCondition(self, name="periodic-condition", recess_period=1 / fps),
             name="replayer",
             directory=video_dir,
-            allocator=BlockMemoryPool(
+            allocator=RMMAllocator(
                 self,
-                name="pool",
-                storage_type=MemoryStorageType.DEVICE,
-                block_size=source_block_size,
-                num_blocks=source_num_blocks,
+                name="video_replayer_allocator",
             ),
             **self.kwargs("replayer"),
         )

@@ -19,7 +19,6 @@ from argparse import ArgumentParser
 
 from holoscan.conditions import CountCondition, PeriodicCondition
 from holoscan.core import Application, Operator, Tracker
-from holoscan.gxf import load_extensions
 from holoscan.operators import HolovizOp
 from holoscan.resources import CudaStreamPool, UnboundedAllocator
 

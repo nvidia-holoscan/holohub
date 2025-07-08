@@ -37,8 +37,9 @@ replayer:
 
 holoviz:
   window_title: "NVIDIA Video Codec - Encode and Decode"
-  width: 850
+  width: 854
   height: 480
+  framerate: 60
   tensors:
     - name: ""
       type: color
@@ -47,7 +48,7 @@ holoviz:
 
 encoder:
   codec: "H264" # H265 or HEVC
-  preset: "P1" # P1, P2, P3, P4, P5, P6, P7
+  preset: "P3" # P1, P2, P3, P4, P5, P6, P7
   cuda_device_ordinal: 0
   bitrate: 10000000
   frame_rate: 60
@@ -61,5 +62,3 @@ format_converter:
   in_dtype: "rgb888"
   out_dtype: "rgba8888"
   out_channel_order: [0,1,2,3]
-  resize_width: 854
-  resize_height: 480
