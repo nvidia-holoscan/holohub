@@ -13252,7 +13252,7 @@
 <h3 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h3>
 <ul>
 <li>Python 3.8+</li>
-<li>The provided applications are configured to either use the AJA, DELTACAST or Yuan capture cards for input stream, or a pre-recorded endoscopy video (replayer). 
+<li>The provided applications are configured to either use the AJA, DELTACAST or Yuan capture cards for input stream, or a pre-recorded endoscopy video (replayer).
 Follow the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html">setup instructions from the user guide</a> to use the AJA capture card.</li>
 </ul>
 <h3 id="data">Data<a class="headerlink" href="#data" title="Permanent link">#</a></h3>
@@ -13287,7 +13287,7 @@ python3<span class="w"> </span>&lt;HOLOHUB_SOURCE_DIR&gt;/applications/endoscopy
 </li>
 <li>
 <p>Using an AJA card
-    <div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>python<span class="w"> </span>--extra_args<span class="w"> </span>-s<span class="o">=</span>aja
+    <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>python<span class="w"> </span>--run-args<span class="o">=</span>-s<span class="o">=</span>aja
 </code></pre></div></p>
 </li>
 <li>
@@ -13297,7 +13297,7 @@ python3<span class="w">  </span>&lt;HOLOHUB_SOURCE_DIR&gt;/applications/endoscop
 </code></pre></div></p>
 </li>
 <li>Using an AJA card with hardware keying overlay (Only specific cards support this feature)
-    <div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>python<span class="w"> </span>--extra_args<span class="w"> </span><span class="s2">&quot;-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja&quot;</span>
+    <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja&quot;</span>
 </code></pre></div></li>
 </ul>
 

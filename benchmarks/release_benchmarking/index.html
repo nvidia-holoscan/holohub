@@ -13335,7 +13335,7 @@ definitions and background
 ./holohub<span class="w"> </span>run-container<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--img<span class="w"> </span>holohub:release_benchmarking<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--docker-file<span class="w"> </span>benchmarks/release_benchmarking/Dockerfile<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:&lt;holoscan-sdk-version&gt;-<span class="k">$(</span>./dev_container<span class="w"> </span>get_host_gpu<span class="k">)</span>
+<span class="w">    </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:&lt;holoscan-sdk-version-gpu&gt;
 
 <span class="c1"># Inside the container, build the applications in benchmarking mode</span>
 ./holohub<span class="w"> </span>build<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--benchmark<span class="w"> </span>--language<span class="o">=</span>cpp

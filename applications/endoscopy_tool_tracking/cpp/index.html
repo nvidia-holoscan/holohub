@@ -13269,7 +13269,7 @@
 If you want to manually convert the video data, please refer to the instructions for using the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy">convert_video_to_gxf_entities</a> script.</p>
 <h3 id="build-instructions">Build Instructions<a class="headerlink" href="#build-instructions" title="Permanent link">#</a></h3>
 <p>Please refer to the top level Holohub README.md file for information on how to build this application.
-In order to build with the Deltacast VideoMaster operator use <code>./run build --with deltacast_videomaster</code></p>
+In order to build with the Deltacast VideoMaster operator use <code>./holohub build --build-with deltacast_videomaster</code></p>
 <h3 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h3>
 <p>In your <code>build</code> directory, run the commands of your choice:</p>
 <ul>
@@ -13310,7 +13310,7 @@ sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><
 applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 </code></pre></div></li>
 <li>Using an AJA card with hardware keying overlay (Only specific cards support this feature)
-    <div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>cpp<span class="w"> </span>--extra_args<span class="w"> </span>-capplications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_aja_overlay.yaml
+    <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span>-capplications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_aja_overlay.yaml
 </code></pre></div></li>
 </ul>
 
