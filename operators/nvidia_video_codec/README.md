@@ -1,6 +1,6 @@
 # NVIDIA Video Codec Operators
 
-This directory includes the `nv_video_decoder` and `nv_video_encoder` operators, which are based on the 
+This directory includes the `nv_video_decoder`, `nv_video_encoder`, and `nv_video_reader` operators, which are based on the  
 [NVIDIA Video Codec SDK](https://developer.nvidia.com/video-codec-sdk).
 
 These encoder and decoder operators are designed for streaming applications. The encoded frames are stored on the host (CPU) 

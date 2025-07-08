@@ -13,10 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-# Default to download datasets
-option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
-
 # Download the endoscopy sample data
 if(OP_nv_video_encoder OR OP_nv_video_decoder)
   if(HOLOHUB_DOWNLOAD_DATASETS)

@@ -19,7 +19,7 @@ This application demonstrates the use of NVIDIA Video Codec SDK. The application
 ### Python
 
 ```bash
-./holohub run nvc_encode_decode --language python --docker-file applications/nvidia_video_codec/Dockerfile
+./holohub run nvc_encode_decode --language python
 ```
 
 ## Configuration
@@ -210,7 +210,7 @@ We collected latency benchmark results using Holoscan [Data Flow Tracking](https
   </tbody>
 </table>
 
-*Note: all reported values are in milliseconds.*
+*Note: all reported latency values are in milliseconds.*
 
 ## Licensing
 

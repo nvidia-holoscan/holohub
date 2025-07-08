@@ -16,10 +16,12 @@ This application demonstrates decoding H.264 elementary stream files using the N
 
 ## Architecture
 
-```
-H.264 Elementary Stream File → H264FileReaderOp → NvVideoDecoderOp → HolovizOp
-                                                          ↓
-                                                      StatsOp
+```mermaid
+graph TD;
+    H264_Elementary_Stream_File-->H264FileReaderOp;
+    H264FileReaderOp-->NvVideoDecoderOp;
+    NvVideoDecoderOp-->HolovizOp;
+    NvVideoDecoderOp-->StatsOp;
 ```
 
 ### Key Components
@@ -53,7 +55,7 @@ python3 test_h264_reader.py
 
 ### Python
 ```bash
-./dev_container build_and_run nvidia_video_codec --language python
+./holohub run nvidia_video_codec --language python
 ```
 
 ### Manual Run

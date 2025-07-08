@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.24)
-project(nv_video_decoder)
+project(nv_video_decoder LANGUAGES CXX)
 
 include(nvidia_video_codec)
 

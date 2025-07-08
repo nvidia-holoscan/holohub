@@ -170,11 +170,6 @@ if __name__ == "__main__":
     app = NVIDIAVideoCodecApp(data=args.data)
     app.config(config_file)
 
-    context = app.executor.context_uint64
-    exts = [
-        "libgxf_videodecoderio.so",
-    ]
-    load_extensions(context, exts)
     with Tracker(app) as tracker:
         app.run()
         tracker.print()
