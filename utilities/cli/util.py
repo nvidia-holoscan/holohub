@@ -584,9 +584,14 @@ def get_entrypoint_command_args(
                     break
         except ValueError:
             pass
-    entrypoint = [entrypoint] if entrypoint else get_container_entrypoint(img, dry_run=dry_run)
 
-    if not entrypoint:  # image has no entrypoint, use default "/bin/bash -c"
+    if entrypoint:  # If user provided a custom entrypoint
+        if entrypoint in ["/bin/sh", "/bin/bash", "sh", "bash"]:
+            return "", ["-c", command]  # Shell needs -c to execute command string
+        return "", shlex.split(command)  # For non-shell user entrypoints, pass command as arguments
+
+    entrypoint = get_container_entrypoint(img, dry_run=dry_run)
+    if not entrypoint:  # Image has no entrypoint, use default "/bin/bash -c"
         return "", ["/bin/bash", "-c", command]
     # Image has an ENTRYPOINT
     if entrypoint in [["/bin/sh", "-c"], ["/bin/bash", "-c"], ["sh", "-c"], ["bash", "-c"]]:
