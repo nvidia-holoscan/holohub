@@ -45,10 +45,10 @@ RUN apt update \
         libxcb-randr0-dev \
         libxrandr-dev \
         libxxf86vm-dev \
-        mesa-common-dev \ 
-        libopenxr-loader1 \ 
+        mesa-common-dev \
+        libopenxr-loader1 \
         libopenxr-dev \
-        libopenxr1-monado 
+        libopenxr1-monado
 
 # Install Python builder.
 RUN pip install --upgrade pip
@@ -58,11 +58,11 @@ RUN pip install build
 WORKDIR /app/xr_holoviz
 
 #
-# Holohub run setup
+# Holohub dev setup
 #
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*

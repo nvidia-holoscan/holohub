@@ -78,12 +78,12 @@ def generate_build_and_run_command(metadata: dict) -> str:
     """Generate the build and run command for the application or workflow"""
     language = metadata.get("metadata", {}).get("language", "").lower()
     if language == "python":
-        return f'./dev_container build_and_run {metadata["application_name"]} --language python'
+        return f'./holohub run {metadata["application_name"]} --language=python'
     elif language in ["cpp", "c++"]:
-        return f'./dev_container build_and_run {metadata["application_name"]} --language cpp'
+        return f'./holohub run {metadata["application_name"]} --language=cpp'
     else:
         # Unknown language, use default
-        return f'./dev_container build_and_run {metadata["application_name"]}'
+        return f'./holohub run {metadata["application_name"]}'
 
 
 def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> list[dict]:
