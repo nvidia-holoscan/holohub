@@ -47,8 +47,8 @@ jobs:
         include:
           - image: "alpine:latest"  # CMD ["/bin/sh"]
           - image: "busybox:latest" # CMD ["sh"]
-          - image: "python:3.12"    # ENTRYPOINT ["python3"]
-          - image: "nginx:alpine"   # ENTRYPOINT ["/docker-entrypoint.sh"] CMD ["nginx", "-g", "daemon off;"]
+          - image: "jenkins/jenkins:latest"    # ENTRYPOINT ["/usr/local/bin/jenkins.sh"]
+          - image: "nginx:latest"   # ENTRYPOINT ["/docker-entrypoint.sh"] CMD ["nginx", "-g", "daemon off;"]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
