@@ -87,8 +87,8 @@ class NVIDIAVideoCodecApp(Application):
         self.sample_data_path = data
 
     def compose(self):
-        width = 854
-        height = 480
+        width = self.kwargs("holoviz")["width"]
+        height = self.kwargs("holoviz")["height"]
         source_block_size = width * height * 3 * 4
         source_num_blocks = 2
 
@@ -99,7 +99,13 @@ class NVIDIAVideoCodecApp(Application):
             self,
             name="replayer",
             directory=video_dir,
-            allocator=RMMAllocator(self, name="video_replayer_allocator"),
+            allocator=BlockMemoryPool(
+                self,
+                name="pool",
+                storage_type=MemoryStorageType.DEVICE,
+                block_size=source_block_size,
+                num_blocks=source_num_blocks,
+            ),
             **self.kwargs("replayer"),
         )
 
