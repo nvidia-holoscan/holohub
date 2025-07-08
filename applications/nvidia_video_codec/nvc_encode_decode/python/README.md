@@ -1,4 +1,4 @@
-# NVIDIA Video Codec
+# NVIDIA Video Codec: Encode-Decode Video
 
 This application demonstrates the use of NVIDIA Video Codec SDK. The application loads a video file, encodes the video using either H.264 or HEVC (H.265), decodes the video, and displays it with Holoviz.
 
@@ -24,7 +24,7 @@ This application demonstrates the use of NVIDIA Video Codec SDK. The application
 
 ## Configuration
 
-The application is configured with H.264 codec by default, it may be modified in the [nvidia_video_codec.yaml](./nvidia_video_codec.yaml) file:
+The application is configured with H.264 codec by default, it may be modified in the [nvc_encode_decode.yaml](./nvc_encode_decode.yaml) file:
 
 ```
 encoder:

@@ -6,9 +6,10 @@ This directory includes the `nv_video_decoder`, `nv_video_encoder`, and `nv_vide
 These encoder and decoder operators are designed for streaming applications. The encoded frames are stored on the host (CPU) 
 memory, where they can be copied to another network streaming operator.
 
-## Sample Application
+## Sample Applications
 
-A sample application can be found in the [nvidia_video_codec](../../applications/nvidia_video_codec/python/README.md) directory.
+- [H.264 File Decoder](../../applications/nvidia_video_codec/nvc_decode/)
+- [Encode and Decode](../../applications/nvidia_video_codec/nvc_encode_decode/)
 
 ## Licensing
 

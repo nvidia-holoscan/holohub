@@ -33,7 +33,7 @@ namespace holoscan::ops {
 /**
  * @brief Operator to read H.264/H.265 video files and emit raw encoded frames
  *
- * This operator reads video files using FFmpeg demuxer and emits one encoded frame 
+ * This operator reads video files using FFmpeg demuxer and emits one encoded frame
  * at a time. The frames are not decoded - they remain in their compressed format
  * for processing by downstream operators like nv_video_decoder.
  */
@@ -58,10 +58,10 @@ class NvVideoReaderOp : public Operator {
 
   // FFmpeg demuxer for reading video files
   std::unique_ptr<FFmpegDemuxer> demuxer_;
-  
+
   // Store the full filepath
   std::string filepath_;
-  
+
   // Tracking variables
   uint32_t frame_count_ = 0;
   bool end_of_file_ = false;

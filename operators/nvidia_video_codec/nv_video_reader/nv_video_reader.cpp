@@ -34,31 +34,17 @@ namespace holoscan::ops {
 
 void NvVideoReaderOp::setup(OperatorSpec& spec) {
   spec.output<holoscan::gxf::Entity>("output");
-  
+
   spec.param(directory_,
              "directory",
              "Directory",
              "Directory containing the video files to read",
              std::string(""));
-  spec.param(filename_,
-             "filename",
-             "Filename",
-             "Filename of the video file to read",
-             std::string(""));
-  spec.param(allocator_, 
-             "allocator", 
-             "Allocator", 
-             "Allocator for output buffers.");
-  spec.param(loop_,
-             "loop",
-             "Loop",
-             "Loop the video file when end is reached",
-             false);
-  spec.param(verbose_,
-             "verbose",
-             "Verbose",
-             "Print detailed reader information",
-             false);
+  spec.param(
+      filename_, "filename", "Filename", "Filename of the video file to read", std::string(""));
+  spec.param(allocator_, "allocator", "Allocator", "Allocator for output buffers.");
+  spec.param(loop_, "loop", "Loop", "Loop the video file when end is reached", false);
+  spec.param(verbose_, "verbose", "Verbose", "Print detailed reader information", false);
 }
 
 void NvVideoReaderOp::initialize() {
@@ -76,7 +62,7 @@ void NvVideoReaderOp::initialize() {
   // Initialize FFmpeg demuxer
   try {
     demuxer_ = std::make_unique<FFmpegDemuxer>(filepath_.c_str());
-    
+
     if (verbose_.get()) {
       HOLOSCAN_LOG_INFO("---- Video File Info ----");
       HOLOSCAN_LOG_INFO("File: {}", filepath_);
@@ -120,8 +106,8 @@ void NvVideoReaderOp::compute(InputContext& op_input, OutputContext& op_output,
   }
 
   // Get allocator for output tensor
-  auto allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
-      context.context(), allocator_->gxf_cid());
+  auto allocator =
+      nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), allocator_->gxf_cid());
   if (!allocator) {
     throw std::runtime_error("Failed to get allocator");
   }
@@ -137,7 +123,7 @@ void NvVideoReaderOp::compute(InputContext& op_input, OutputContext& op_output,
   // Keep reading until we get a video packet or reach end of file
   do {
     success = demuxer_->Demux(&frame_data, &frame_size, &pts, &dts, &is_video_packet);
-    
+
     if (!success || frame_size == 0) {
       // End of file reached
       end_of_file_ = true;
@@ -154,10 +140,10 @@ void NvVideoReaderOp::compute(InputContext& op_input, OutputContext& op_output,
       }
       continue;
     }
-    
+
     // Found a video packet, break out of loop
     break;
-    
+
   } while (true);
 
   // Create output entity and tensor
@@ -174,9 +160,7 @@ void NvVideoReaderOp::compute(InputContext& op_input, OutputContext& op_output,
   // Allocate tensor for the encoded frame data
   auto tensor_shape = nvidia::gxf::Shape{static_cast<int32_t>(frame_size)};
   auto result = tensor.value()->reshape<uint8_t>(
-      tensor_shape,
-      nvidia::gxf::MemoryStorageType::kHost,
-      allocator.value());
+      tensor_shape, nvidia::gxf::MemoryStorageType::kHost, allocator.value());
 
   if (!result) {
     throw std::runtime_error("Failed to allocate tensor for encoded frame");
@@ -209,7 +193,7 @@ void NvVideoReaderOp::compute(InputContext& op_input, OutputContext& op_output,
   meta->set("pts", pts);
   meta->set("dts", dts);
   meta->set("is_looping", loop_.get());
-  
+
   // Signal stream reset to decoder when looping
   if (frame_count_ == 1) {
     meta->set("stream_reset", true);
@@ -221,8 +205,12 @@ void NvVideoReaderOp::compute(InputContext& op_input, OutputContext& op_output,
   }
 
   if (verbose_.get()) {
-    HOLOSCAN_LOG_INFO("Frame {} - PTS: {}, DTS: {}, Size: {} bytes, Video packet: {}", 
-                      frame_count_, pts, dts, frame_size, is_video_packet);
+    HOLOSCAN_LOG_INFO("Frame {} - PTS: {}, DTS: {}, Size: {} bytes, Video packet: {}",
+                      frame_count_,
+                      pts,
+                      dts,
+                      frame_size,
+                      is_video_packet);
   }
 
   // Emit the output
@@ -234,7 +222,7 @@ void NvVideoReaderOp::stop() {
   if (demuxer_) {
     demuxer_.reset();
   }
-  
+
   if (verbose_.get()) {
     HOLOSCAN_LOG_INFO("Video reader stopped. Total frames read: {}", frame_count_);
   }

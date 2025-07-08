@@ -66,7 +66,7 @@ python3 nvidia_video_codec.py --data /path/to/data/directory
 
 ## Configuration
 
-The application is configured via [nvidia_video_codec.yaml](./nvidia_video_codec.yaml):
+The application is configured via [nvc_decode.yaml](./nvc_decode.yaml):
 
 ```yaml
 decoder:

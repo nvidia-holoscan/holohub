@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+#include <pybind11/complex.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <pybind11/complex.h>
 
 #include <cstdint>
 #include <memory>
@@ -58,13 +58,11 @@ class PyNvVideoDecoderOp : public NvVideoDecoderOp {
 
   // Define a constructor that fully initializes the object.
   PyNvVideoDecoderOp(Fragment* fragment, const py::args& args, int cuda_device_ordinal,
-                     std::shared_ptr<::holoscan::Allocator> allocator,
-                     bool verbose,
+                     std::shared_ptr<::holoscan::Allocator> allocator, bool verbose,
                      const std::string& name = "nv_video_decoder")
-      : NvVideoDecoderOp(
-            ArgList{Arg{"cuda_device_ordinal", cuda_device_ordinal}, 
-                    Arg{"allocator", allocator}, 
-                    Arg{"verbose", verbose}}) {
+      : NvVideoDecoderOp(ArgList{Arg{"cuda_device_ordinal", cuda_device_ordinal},
+                                 Arg{"allocator", allocator},
+                                 Arg{"verbose", verbose}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;

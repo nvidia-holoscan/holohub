@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+#include <pybind11/complex.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <pybind11/complex.h>
 
 #include <cstdint>
 #include <memory>
@@ -57,14 +57,11 @@ class PyNvVideoReaderOp : public NvVideoReaderOp {
   using NvVideoReaderOp::NvVideoReaderOp;
 
   // Define a constructor that fully initializes the object.
-  PyNvVideoReaderOp(Fragment* fragment, const py::args& args, 
-                    const std::string& directory,
-                    const std::string& filename,
-                    std::shared_ptr<::holoscan::Allocator> allocator,
-                    bool loop = false,
-                    bool verbose = false,
+  PyNvVideoReaderOp(Fragment* fragment, const py::args& args, const std::string& directory,
+                    const std::string& filename, std::shared_ptr<::holoscan::Allocator> allocator,
+                    bool loop = false, bool verbose = false,
                     const std::string& name = "nv_video_reader")
-      : NvVideoReaderOp(ArgList{Arg{"directory", directory}, 
+      : NvVideoReaderOp(ArgList{Arg{"directory", directory},
                                 Arg{"filename", filename},
                                 Arg{"allocator", allocator},
                                 Arg{"loop", loop},

@@ -18,10 +18,10 @@
 #ifndef NV_VIDEO_DECODER_NV_VIDEO_DECODER_HPP
 #define NV_VIDEO_DECODER_NV_VIDEO_DECODER_HPP
 
+#include <cstring>
 #include <memory>
 #include <string>
 #include <vector>
-#include <cstring>
 
 #include <cuda.h>
 #include "holoscan/core/gxf/entity.hpp"
@@ -49,7 +49,7 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
  public:
   StreamDataProvider() {
     // Pre-allocate buffer for accumulated packets
-    buffer_.reserve(16 * 1024 * 1024); // 16MB initial capacity
+    buffer_.reserve(16 * 1024 * 1024);  // 16MB initial capacity
   }
   ~StreamDataProvider() {}
 
@@ -59,14 +59,14 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
       size_t old_size = buffer_.size();
       buffer_.resize(old_size + size);
       std::memcpy(buffer_.data() + old_size, data, size);
-      
+
       // Reset offset if this is the first data or if we were at EOF
       if (old_size == 0 || offset_ >= old_size) {
-        offset_ = old_size; // Continue from where we left off
+        offset_ = old_size;  // Continue from where we left off
       }
     }
   }
-  
+
   // Fill in the buffer owned by the demuxer/decoder and advance the offset
   int GetData(uint8_t* pBuf, int nBuf) {
     if (buffer_.empty() || offset_ >= buffer_.size()) {
@@ -124,7 +124,7 @@ class NvVideoDecoderOp : public Operator {
  private:
   void init_decoder_for_streaming(void* data, size_t size);
   void init_decoder_for_file(std::shared_ptr<MetadataDictionary> meta);
-  
+
   Parameter<int> cuda_device_ordinal_;
   Parameter<int> width_;
   Parameter<int> height_;
@@ -147,4 +147,3 @@ class NvVideoDecoderOp : public Operator {
 }  // namespace holoscan::ops
 
 #endif /* NV_VIDEO_DECODER_NV_VIDEO_DECODER_HPP */
-

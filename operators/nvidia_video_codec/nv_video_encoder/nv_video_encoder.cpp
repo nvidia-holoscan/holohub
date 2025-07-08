@@ -32,8 +32,8 @@
 #include "gxf/std/tensor.hpp"     // nvidia::gxf::Tensor etc.
 #include "gxf/std/timestamp.hpp"  // nvidia::gxf::Timestamp
 
-#include "NvEncoder/NvEncoderCuda.h"
 #include "../common/utils.h"
+#include "NvEncoder/NvEncoderCuda.h"
 
 namespace holoscan::ops {
 
