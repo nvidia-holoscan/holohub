@@ -88,7 +88,6 @@ class Color:
 
 
 _sudo_available = None  # Cache for sudo availability check
-_apt_updated = False  # Module-level variable to track apt update status
 
 
 # Utility Functions
@@ -427,14 +426,6 @@ def get_available_package_versions(package_name: str) -> List[str]:
         return []
 
 
-def ensure_apt_updated(dry_run: bool = False) -> None:
-    """Ensure apt package list is updated, but only once per session"""
-    global _apt_updated
-    if not _apt_updated:
-        run_command(["apt-get", "update"], dry_run=dry_run)
-        _apt_updated = True
-
-
 def install_packages_if_missing(
     packages: List[str], dry_run: bool = False, apt_options: List[str] = None
 ) -> List[str]:
@@ -467,7 +458,7 @@ def install_packages_if_missing(
                 packages_to_install.append(package_spec)
 
     if packages_to_install:
-        ensure_apt_updated(dry_run=dry_run)
+        run_command(["apt-get", "update"], dry_run=dry_run)
         install_cmd = ["apt", "install"] + apt_options + packages_to_install
         run_command(install_cmd, dry_run=dry_run)
 
