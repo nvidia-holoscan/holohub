@@ -44,8 +44,8 @@ target_link_libraries(nv_video_reader PUBLIC
 )
 target_include_directories(nv_video_reader PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  ${NVC_SDK_PATH}/
-  ${NVC_SDK_PATH}/Utils
+  $<BUILD_INTERFACE:${NVC_SDK_PATH}/>
+  $<BUILD_INTERFACE:${NVC_SDK_PATH}/Utils>
 )
 
 add_subdirectory(python)

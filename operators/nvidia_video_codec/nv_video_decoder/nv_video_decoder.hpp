@@ -32,6 +32,19 @@
 #include "NvDecoder/NvDecoder.h"
 
 namespace holoscan::ops {
+/**
+ * @brief Data provider for streaming input to FFmpegDemuxer.
+ *
+ * StreamDataProvider implements the FFmpegDemuxer::DataProvider interface to allow
+ * feeding arbitrary chunks of encoded video data (e.g., from a network stream or
+ * custom source) into the demuxer/decoder. It accumulates incoming data in an
+ * internal buffer and provides it to the demuxer as requested.
+ *
+ * Usage:
+ *   - Call SetData() to append new encoded data to the buffer.
+ *   - The demuxer will call GetData() to retrieve data for decoding.
+ *   - Optionally, call ClearBuffer() to reset the buffer.
+ */
 class StreamDataProvider : public FFmpegDemuxer::DataProvider {
  public:
   StreamDataProvider() {
