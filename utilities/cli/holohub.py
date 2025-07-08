@@ -1445,7 +1445,14 @@ class HoloHubCLI:
             dry_run=args.dryrun,
         )
 
-        print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
+        if not args.dryrun:
+            print(Color.blue("\nTo enable ./holohub autocomplete in your current shell session:"))
+            print("  source /etc/bash_completion.d/holohub_autocomplete")
+            print("Or add it to your shell profile:")
+            print("  echo '. /etc/bash_completion.d/holohub_autocomplete' >> ~/.bashrc")
+            print("  source ~/.bashrc")
+
+            print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
 
     def _setup_cuda_packages(self, cuda_major_version: str, dryrun: bool = False) -> None:
         """Find and install CUDA packages for Holoscan SDK development"""
