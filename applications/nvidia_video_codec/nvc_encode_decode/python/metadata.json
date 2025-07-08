@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "NVIDIA Video Codec - Encode-Decode Video",
+		"name": "NVIDIA Video Codec: Encode-Decode Video",
 		"authors": [
 			{
 				"name": "Holoscan Team",

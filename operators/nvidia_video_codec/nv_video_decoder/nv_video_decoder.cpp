@@ -174,7 +174,6 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
 
       nFrame += nFrameReturned;
       break;  // Exit loop after successful decode
-
     } while (nVideoBytes);
   }
 

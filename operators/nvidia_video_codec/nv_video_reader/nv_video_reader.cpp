@@ -143,7 +143,6 @@ void NvVideoReaderOp::compute(InputContext& op_input, OutputContext& op_output,
 
     // Found a video packet, break out of loop
     break;
-
   } while (true);
 
   // Create output entity and tensor
