@@ -24,7 +24,7 @@ import shutil
 import subprocess
 import sys
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
@@ -94,7 +94,7 @@ _apt_updated = False  # Module-level variable to track apt update status
 # Utility Functions
 def get_timestamp() -> str:
     """Get current timestamp in the format used by the bash script"""
-    return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def format_cmd(command: str, is_dryrun: bool = False) -> str:
@@ -198,11 +198,16 @@ def _process_command_with_sudo(
     needs_sudo, _ = _classify_sudo_requirement(cmd)
     if not needs_sudo or not maybe_sudo:
         return cmd
-    # Check if already has sudo
+
+    # Check if already has sudo anywhere in the command
     if isinstance(cmd, str):
-        return cmd if cmd.strip().startswith("sudo ") else f"{maybe_sudo} {cmd}"
+        if cmd.strip().startswith("sudo ") or " sudo " in cmd:
+            return cmd  # Don't add sudo if it's already present anywhere
+        return f"{maybe_sudo} {cmd}"
     else:
-        return cmd if cmd and str(cmd[0]) == "sudo" else [maybe_sudo] + cmd
+        if cmd and (str(cmd[0]) == "sudo" or "sudo" in [str(x) for x in cmd]):
+            return cmd  # Don't add sudo if it's already present anywhere
+        return [maybe_sudo] + cmd
 
 
 def run_command(
@@ -386,15 +391,40 @@ class PackageInstallationError(Exception):
         )
 
 
-def is_package_installed(package_name: str) -> bool:
-    """Check if a package is already installed"""
+def get_installed_package_version(package_name: str) -> Optional[str]:
+    """Get the installed version of a package"""
     try:
         result = subprocess.run(
-            ["dpkg", "-l", package_name], capture_output=True, text=True, check=False
+            ["dpkg-query", "-W", "-f=${Version}", package_name],
+            capture_output=True,
+            text=True,
+            check=False,
         )
-        return result.returncode == 0 and "ii" in result.stdout
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
+        return result.stdout.strip() if result.returncode == 0 else None
+    except FileNotFoundError:
+        return None
+
+
+def get_available_package_versions(package_name: str) -> List[str]:
+    """Get available versions of a package from apt"""
+    try:
+        result = subprocess.run(
+            ["apt-cache", "madison", package_name], capture_output=True, text=True, check=False
+        )
+        if result.returncode != 0:
+            return []
+
+        versions = []
+        for line in result.stdout.strip().split("\n"):
+            if line.strip():
+                parts = line.split("|")
+                if len(parts) >= 2:
+                    version = parts[1].strip()
+                    if version:
+                        versions.append(version)
+        return versions
+    except FileNotFoundError:
+        return []
 
 
 def ensure_apt_updated(dry_run: bool = False) -> None:
@@ -412,9 +442,9 @@ def install_packages_if_missing(
 
     Args:
         packages: List of package names to install (can include version specs like "pkg=1.0*")
-            Note: If package has a version spec, it will run [sudo] apt install to ensure version.
+            Note: If package has a version spec, it always runs sudo apt install to ensure version.
         dry_run: Whether to perform a dry run
-        apt_options: Additional options for apt install (e.g., ["--no-install-recommends", "-y"])
+        apt_options: Additional options for apt install
 
     Returns:
         List of packages that were actually installed (or would be installed in dry run)
@@ -422,23 +452,26 @@ def install_packages_if_missing(
     if apt_options is None:
         apt_options = ["--no-install-recommends", "-y"]
 
-    missing_packages = []
-    for package in packages:
-        package_name = package.split("=")[0]
-        if "=" in package:
-            missing_packages.append(package)
-            info(f"Package {package_name} will be checked/installed with version specification")
-        elif not is_package_installed(package_name):
-            missing_packages.append(package)
-        else:
-            info(f"Package {package_name} is already installed")
+    packages_to_install = []
 
-    if missing_packages:
+    for package_spec in packages:
+        package_name = package_spec.split("=")[0]
+
+        if "=" in package_spec:
+            packages_to_install.append(package_spec)
+            info(f"Installing {package_spec}")
+        else:
+            if get_installed_package_version(package_name) is not None:
+                info(f"Package {package_name} is already installed")
+            else:
+                packages_to_install.append(package_spec)
+
+    if packages_to_install:
         ensure_apt_updated(dry_run=dry_run)
-        install_cmd = ["apt", "install"] + apt_options + missing_packages
+        install_cmd = ["apt", "install"] + apt_options + packages_to_install
         run_command(install_cmd, dry_run=dry_run)
 
-    return missing_packages
+    return packages_to_install
 
 
 def install_cuda_dependencies_package(
@@ -448,15 +481,10 @@ def install_cuda_dependencies_package(
 ) -> str:
     """Install CUDA dependencies package with version checking
 
-    Procedure:
-    1. If package is already installed, return the version
-    2. If the package is not installed and the preferred version is available, install it and return the version.
-    3. If the package is not installed and the preferred version is not available, throw.
-
     Args:
         package_name: Name of the package to install
-        version_pattern: Regular expression for package version to get if not already installed.
-            The latest version matching the pattern will be installed.
+        version_pattern: Regular expression for package version to install
+        dry_run: Whether to perform a dry run
 
     Returns:
         str: Installed package version
@@ -464,64 +492,36 @@ def install_cuda_dependencies_package(
     Raises:
         PackageInstallationError: If package cannot be installed
     """
-
-    # Check if package is already installed
-    try:
-        output = subprocess.check_output(
-            ["apt", "list", "--installed", package_name], text=True, stderr=subprocess.DEVNULL
-        ).split()
-        # Extract installed version from apt list output using regex
-        # Example output: "libcudnn9-cuda-12/unknown,now 9.5.1.17-1 amd64 [installed,upgradable to: 9.8.0.87-1]"
-        if len(output) >= 3 and re.match(r"\d+\.\d+\.\d+.*", output[2]):
-            installed_version = output[2]
-            info(f"Package {package_name} found with version {installed_version}")
+    installed_version = get_installed_package_version(package_name)
+    if installed_version:
+        if re.search(version_pattern, installed_version):
+            info(f"Package {package_name} version {installed_version} already installed")
             return installed_version
-    except subprocess.CalledProcessError:
-        pass
+        else:
+            info(f"P{package_name} version {installed_version} not match pattern {version_pattern}")
 
-    # Check available versions
-    try:
-        # apt list -a sorts in descending order by default
-        available_versions = subprocess.check_output(
-            ["apt", "list", "-a", package_name], text=True, stderr=subprocess.DEVNULL
+    available_versions = get_available_package_versions(package_name)
+    if not available_versions:
+        raise PackageInstallationError(
+            package_name, version_pattern, f"No versions available for {package_name}"
         )
-        matching_version = re.findall(
-            f"^{re.escape(package_name)}/.*?({version_pattern}).*$",
-            available_versions,
-            re.MULTILINE,
-        )
-        matching_version = matching_version[0] if matching_version else None
 
-        if not matching_version:
-            raise PackageInstallationError(
-                package_name,
-                version_pattern,
-                f"{package_name} is not installable with pattern {version_pattern}.\n"
-                f"You might want to try to install a newer version manually and rerun the setup:\n"
-                f"  sudo apt install {package_name}",
-            )
-
-        # Install the package
-        info(f"Installing {package_name}={matching_version}")
-        ensure_apt_updated(dry_run=dry_run)
-        run_command(
-            [
-                "apt",
-                "install",
-                "--no-install-recommends",
-                "-y",
-                f"{package_name}={matching_version}",
-            ],
-            dry_run=dry_run,
-        )
-        return matching_version
-
-    except subprocess.CalledProcessError as e:
+    matching_versions = [v for v in available_versions if re.search(version_pattern, v)]
+    if not matching_versions:
         raise PackageInstallationError(
             package_name,
             version_pattern,
-            f"Error checking available versions for {package_name}: {e}",
+            f"{package_name} has no versions matching pattern {version_pattern}.\n"
+            f"Available versions: {', '.join(available_versions[:5])}\n"
+            f"You might need to install manually: sudo apt install {package_name}",
         )
+
+    target_version = matching_versions[0]
+    info(f"Installing {package_name}={target_version}")
+
+    install_packages_if_missing([f"{package_name}={target_version}"], dry_run=dry_run)
+
+    return target_version
 
 
 def format_long_command(cmd: List[str], max_line_length: int = 80) -> str:
@@ -989,3 +989,154 @@ def collect_env_info() -> None:
     collect_docker_info()
     collect_cuda_gpu_info()
     collect_environment_variables()
+
+
+def get_ubuntu_codename() -> str:
+    """Get Ubuntu codename from os-release"""
+    try:
+        with open("/etc/os-release") as f:
+            content = f.read()
+        match = re.search(r"UBUNTU_CODENAME=(\w+)", content)
+        return match.group(1) if match else "jammy"
+    except (FileNotFoundError, AttributeError):
+        return "jammy"
+
+
+def setup_cmake(min_version: str = "3.24.0", dry_run: bool = False) -> None:
+    """Setup CMake from Kitware if needed"""
+    cmake_ver = get_installed_package_version("cmake")
+    if cmake_ver and parse_semantic_version(cmake_ver) >= parse_semantic_version(min_version):
+        return
+    ubuntu_codename = get_ubuntu_codename()
+    install_packages_if_missing(["gpg"], dry_run=dry_run)
+    maybe_sudo = _get_maybe_sudo()
+    run_command(
+        "wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc | "
+        "gpg --dearmor - | "
+        f"{maybe_sudo} tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null",
+        dry_run=dry_run,
+        shell=True,
+    )
+    run_command(
+        f'echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] '
+        f'https://apt.kitware.com/ubuntu/ {ubuntu_codename} main" | '
+        f"{maybe_sudo} tee /etc/apt/sources.list.d/kitware.list >/dev/null",
+        dry_run=dry_run,
+        shell=True,
+    )
+    install_packages_if_missing(["cmake", "cmake-curses-gui"], dry_run=dry_run)
+
+
+def setup_python_dev(min_version: str = "3.9.0", dry_run: bool = False) -> None:
+    """Setup Python development packages"""
+    python_version = sys.version_info
+    python_dev_package = f"python3.{python_version.minor}-dev"
+    pydev_ver = get_installed_package_version(python_dev_package)
+    if not pydev_ver:
+        pydev_ver = get_installed_package_version("python3-dev")
+    if not pydev_ver or parse_semantic_version(pydev_ver) < parse_semantic_version(min_version):
+        install_packages_if_missing([python_dev_package], dry_run=dry_run)
+
+
+def setup_ngc_cli(dry_run: bool = False) -> None:
+    """Setup NGC CLI if not present"""
+    if shutil.which("ngc"):
+        return
+
+    arch_suffix = "arm64" if platform.machine() == "aarch64" else "linux"
+    ngc_url = (
+        "https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli"
+        f"/versions/3.64.3/files/ngccli_{arch_suffix}.zip"
+    )
+    ngc_filename = f"ngccli_{arch_suffix}.zip"
+    run_command(["wget", "--content-disposition", ngc_url, "-O", ngc_filename], dry_run=dry_run)
+    run_command(["unzip", ngc_filename], dry_run=dry_run)
+    run_command(["chmod", "u+x", "ngc-cli/ngc"], dry_run=dry_run)
+    run_command(["ln", "-s", f"{os.getcwd()}/ngc-cli/ngc", "/usr/local/bin/"], dry_run=dry_run)
+
+
+def get_cuda_runtime_version() -> Optional[str]:
+    """Get CUDA runtime version from dpkg"""
+    try:
+        result = subprocess.run(["dpkg", "-l"], capture_output=True, text=True, check=False)
+        if result.returncode != 0:
+            return None
+
+        cuda_pattern = re.search(r"cuda-cudart-[0-9]+-[0-9]+.*\n", result.stdout)
+        if cuda_pattern:
+            version_match = re.search(r"[0-9]+\.[0-9]+\.[0-9]+", cuda_pattern.group(0))
+            return version_match.group(0) if version_match else None
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+    return None
+
+
+def setup_cuda_dependencies(dry_run: bool = False) -> None:
+    """Setup CUDA dependencies if CUDA runtime is available"""
+    cuda_runtime_version = get_cuda_runtime_version()
+    if cuda_runtime_version:
+        cuda_major_version = cuda_runtime_version.split(".")[0]
+        setup_cuda_packages(cuda_major_version, dry_run)
+    else:
+        info("CUDA Runtime package not found, skipping CUDA package installation")
+
+
+def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
+    """Install CUDA packages for Holoscan SDK development"""
+
+    # Attempt to install cudnn9
+    CUDNN_9_PATTERN = r"9\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+"
+    try:
+        installed_cudnn9_version = install_cuda_dependencies_package(
+            package_name="libcudnn9-cuda-12",
+            version_pattern=CUDNN_9_PATTERN,
+            dry_run=dry_run,
+        )
+        install_cuda_dependencies_package(
+            package_name="libcudnn9-dev-cuda-12",
+            version_pattern=re.escape(installed_cudnn9_version),
+            dry_run=dry_run,
+        )
+    except PackageInstallationError as e:
+        info(f"cuDNN 9.x installation failed, falling back to cuDNN 8.x: {e}")
+        try:
+            # Fall back to cudnn8
+            CUDNN_8_PATTERN = rf"8\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]\+cuda{cuda_major_version}\.[0-9]+"
+            installed_cudnn8_version = install_cuda_dependencies_package(
+                package_name="libcudnn8",
+                version_pattern=CUDNN_8_PATTERN,
+                dry_run=dry_run,
+            )
+            install_cuda_dependencies_package(
+                package_name="libcudnn8-dev",
+                version_pattern=re.escape(installed_cudnn8_version),
+                dry_run=dry_run,
+            )
+        except PackageInstallationError as e:
+            info(f"cuDNN 8.x installation failed: {e}.")
+            info("cuDNN packages may need to be installed manually.")
+
+    # Install TensorRT dependencies
+    NVINFER_PATTERN = rf"\d+\.[0-9]+\.[0-9]+\.[0-9]+-[0-9]\+cuda{cuda_major_version}\.[0-9]+"
+    try:
+        installed_libnvinferbin_version = install_cuda_dependencies_package(
+            package_name="libnvinfer-bin",
+            version_pattern=NVINFER_PATTERN,
+            dry_run=dry_run,
+        )
+        libnvinfer_pattern = re.escape(installed_libnvinferbin_version)
+
+        for trt_package_name in [
+            "libnvinfer-headers-dev",
+            "libnvinfer-dev",
+            "libnvinfer-plugin-dev",
+            "libnvonnxparsers-dev",
+        ]:
+            install_cuda_dependencies_package(
+                package_name=trt_package_name,
+                version_pattern=libnvinfer_pattern,
+                dry_run=dry_run,
+            )
+    except PackageInstallationError as e:
+        info(f"TensorRT installation failed: {e}")
+        info("Continuing with setup - TensorRT packages may need to be installed manually")
