@@ -586,8 +586,8 @@ def get_entrypoint_command_args(
             pass
     entrypoint = [entrypoint] if entrypoint else get_container_entrypoint(img, dry_run=dry_run)
 
-    if not entrypoint:  # image has no entrypoint, use default "/bin/sh -c"
-        return "", ["/bin/sh", "-c", command]
+    if not entrypoint:  # image has no entrypoint, use default "/bin/bash -c"
+        return "", ["/bin/bash", "-c", command]
     # Image has an ENTRYPOINT
     if entrypoint in [["/bin/sh", "-c"], ["/bin/bash", "-c"], ["sh", "-c"], ["bash", "-c"]]:
         return "", [command]  # Shell is already configured to take command string
