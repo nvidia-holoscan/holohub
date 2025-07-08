@@ -184,8 +184,10 @@ class TestHoloHubCLI(unittest.TestCase):
     @patch("utilities.cli.holohub.HoloHubCLI.build_project_locally")
     @patch("utilities.cli.holohub.HoloHubContainer")
     @patch("utilities.cli.holohub.shlex.quote")
+    @patch("utilities.cli.util.get_container_entrypoint")
     def test_container_run_args(
         self,
+        mock_get_container_entrypoint,
         mock_shlex_quote,
         mock_container_class,
         mock_build_project_locally,
@@ -196,6 +198,7 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_find_project.return_value = self.mock_project_data
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
+        mock_get_container_entrypoint.return_value = ["bash"]
 
         # Set a predictable return value for shlex.quote
         run_args_value = "--flag1 value1 --flag2='quoted value'"
@@ -212,7 +215,7 @@ class TestHoloHubCLI(unittest.TestCase):
 
         # Verify the container.run was called with the correctly quoted arguments
         kwargs = mock_container.run.call_args[1]
-        cmd_string = kwargs["extra_args"][0]
+        cmd_string = kwargs["extra_args"][1]
         self.assertIn("./holohub run test_project", cmd_string)
         self.assertIn("--run-args", cmd_string)
         self.assertIn(quoted_value, cmd_string)
@@ -375,8 +378,10 @@ class TestHoloHubCLI(unittest.TestCase):
     @patch("utilities.cli.holohub.HoloHubCLI.build_project_locally")
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.holohub.HoloHubContainer")
+    @patch("utilities.cli.util.get_container_entrypoint")
     def test_with_operators_parameter(
         self,
+        mock_get_container_entrypoint,
         mock_container_class,
         mock_find_project,
         mock_build_project_locally,
@@ -389,6 +394,7 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
         mock_container.project_metadata = self.mock_project_data
+        mock_get_container_entrypoint.return_value = ["custom-bash"]
 
         # Test 1: Build with operators in local mode
         args = self.cli.parser.parse_args(
@@ -408,8 +414,9 @@ class TestHoloHubCLI(unittest.TestCase):
         # Verify container build
         mock_container.run.assert_called()
         kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][0]
+        command_string = kwargs["extra_args"][1]
         self.assertIn(f'--build-with "{operators}"', command_string)
+        self.assertIn("--entrypoint=/bin/bash", kwargs["docker_opts"])
         mock_container.reset_mock()
 
         # Test 3: Run with operators in container mode
@@ -418,7 +425,7 @@ class TestHoloHubCLI(unittest.TestCase):
         # Verify container run
         mock_container.run.assert_called()
         kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][0]
+        command_string = kwargs["extra_args"][1]
         self.assertIn(f'--build-with "{operators}"', command_string)
 
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
@@ -569,8 +576,10 @@ exec {holohub_script} "$@"
     @patch("utilities.cli.holohub.HoloHubCLI.build_project_locally")
     @patch("utilities.cli.holohub.HoloHubContainer")
     @patch("utilities.cli.util.run_command")
+    @patch("utilities.cli.util.get_container_entrypoint")
     def test_install_command(
         self,
+        mock_get_container_entrypoint,
         mock_run_command,
         mock_container_class,
         mock_build_project_locally,
@@ -584,6 +593,7 @@ exec {holohub_script} "$@"
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
         mock_run_command.return_value = MagicMock()
+        mock_get_container_entrypoint.return_value = ["python"]
 
         # Test 1: Install in local mode
         args = self.cli.parser.parse_args(
@@ -609,7 +619,7 @@ exec {holohub_script} "$@"
         mock_container.build.assert_called_once()
         mock_container.run.assert_called_once()
         kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][0]
+        command_string = kwargs["extra_args"][1]
         self.assertIn("./holohub install test_project --local", command_string)
         self.assertIn("--build-type debug", command_string)
         self.assertIn("--language cpp", command_string)
@@ -617,7 +627,7 @@ exec {holohub_script} "$@"
         args = self.cli.parser.parse_args("install test_project --parallel 4".split())
         args.func(args)
         kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][0]
+        command_string = kwargs["extra_args"][1]
         self.assertIn("--parallel 4", command_string)
 
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
@@ -682,8 +692,10 @@ exec {holohub_script} "$@"
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
     @patch("pathlib.Path.exists")
+    @patch("utilities.cli.util.get_container_entrypoint")
     def test_benchmark_functionality(
         self,
+        mock_get_container_entrypoint,
         mock_exists,
         mock_mkdir,
         mock_run_command,
@@ -701,6 +713,7 @@ exec {holohub_script} "$@"
         mock_run_command.return_value = MagicMock()
         mock_exists.return_value = True
         mock_find_project.return_value = mock_app_data
+        mock_get_container_entrypoint.return_value = ["/bin/bash"]
 
         args = self.cli.parser.parse_args("build test_app --local --benchmark".split())
         self.assertTrue(args.benchmark, "Benchmark flag should be parsed correctly")
@@ -740,7 +753,8 @@ exec {holohub_script} "$@"
 
             mock_container.build.assert_called_once()
             mock_container.run.assert_called_once()
-            command_string = mock_container.run.call_args[1]["extra_args"][0]
+            kwargs = mock_container.run.call_args[1]
+            command_string = kwargs["extra_args"][1]
             self.assertIn("--benchmark", command_string)
             self.assertIn("./holohub build test_app --local", command_string)
 

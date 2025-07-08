@@ -2,7 +2,7 @@ name: Check Docker
 
 on:
   push:
-    branches: [main, holoscan-sdk-lws2]
+    branches: [main, holoscan-sdk-lws2, fixes-entrypoint]
 
 permissions:
   contents: read
@@ -38,3 +38,38 @@ jobs:
           ./holohub run-container --no-docker-build --add-volume "/tmp" | grep -q "/tmp" || { echo "add-volume test failed"; exit 1; }
           ./holohub run-container --no-docker-build -- echo hello > /tmp/trailing-args.log 2>&1
           grep -q "hello" /tmp/trailing-args.log || { echo "trailing args test failed"; cat /tmp/trailing-args.log; exit 1; }
+
+  test-entrypoint-images:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: "alpine:latest"  # CMD ["/bin/sh"]
+          - image: "busybox:latest" # CMD ["sh"]
+          - image: "python:3.12"    # ENTRYPOINT ["python3"]
+          - image: "nginx:alpine"   # ENTRYPOINT ["/docker-entrypoint.sh"] CMD ["nginx", "-g", "daemon off;"]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Test run-container with different base images
+        run: |
+          if ! command -v nvidia-ctk >/dev/null 2>&1; then
+            sed -i 's/check_nvidia_ctk()/pass  # nvidia-ctk not available/g' utilities/cli/container.py
+            sed -i 's/"--runtime",/# "--runtime",/g' utilities/cli/container.py
+            sed -i 's/"nvidia",/# "nvidia",/g' utilities/cli/container.py
+            sed -i 's/"--gpus",/# "--gpus",/g' utilities/cli/container.py
+            sed -i 's/"all",/# "all",/g' utilities/cli/container.py
+          fi
+
+          IMG="${{ matrix.image }}"
+          docker pull "$IMG"
+
+          # Test trailing args with different entrypoint configurations
+          ./holohub run-container --img "$IMG" --no-docker-build -- echo test > /tmp/test.log 2>&1
+          grep -q "echo test" /tmp/test.log || { echo "Failed for $IMG"; cat /tmp/test.log; exit 1; }
+
+          # Test custom entrypoint override
+          ./holohub run-container --img "$IMG" --no-docker-build --docker-opts="--entrypoint=/bin/sh" -- echo override > /tmp/override.log 2>&1
+          grep -q "echo override" /tmp/override.log || { echo "Entrypoint override failed for $IMG"; cat /tmp/override.log; exit 1; }

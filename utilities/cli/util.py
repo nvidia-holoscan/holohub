@@ -19,7 +19,6 @@ import json
 import os
 import platform
 import re
-import shlex
 import shutil
 import subprocess
 import sys
@@ -569,21 +568,24 @@ def get_entrypoint_command_args(
     img: str, command: str, docker_opts: str, dry_run: bool = False
 ) -> tuple[str, List[str]]:
     """Determine how to execute a shell command in a Docker container."""
+
+    # Check if user provided a custom entrypoint
+    entrypoint = None
     if "--entrypoint" in docker_opts:
-        try:
-            command_args = shlex.split(command)  # "command" splits into a list of arguments
-            return "", command_args
-        except ValueError:
-            return "", [command]
-    entrypoint = get_container_entrypoint(img, dry_run=dry_run)
-    if not entrypoint:  # image has no entrypoint, docker uses default "/bin/sh -c" for command
-        return "", [command]
+        # Extract the custom entrypoint from docker_opts --entrypoint=value or --entrypoint value
+        entrypoint_match = re.search(r"--entrypoint(?:=|\s+)([^\s]+)", docker_opts)
+        if entrypoint_match:
+            entrypoint = entrypoint_match.group(1).strip("\"'")
+    entrypoint = [entrypoint] if entrypoint else get_container_entrypoint(img, dry_run=dry_run)
+
+    if not entrypoint:  # image has no entrypoint, use default "/bin/sh -c"
+        return "", ["/bin/sh", "-c", command]
     # Image has an ENTRYPOINT
     if entrypoint in [["/bin/sh", "-c"], ["/bin/bash", "-c"], ["sh", "-c"], ["bash", "-c"]]:
         return "", [command]  # Shell is already configured to take command string
-    if entrypoint in [["/bin/sh"], ["/bin/bash"], ["sh"], ["bash"]]:
+    if entrypoint[0] in ["/bin/sh", "/bin/bash", "sh", "bash"]:
         return "", ["-c", command]  # Shell needs -c to execute command string
-    return "--entrypoint=bash", ["-c", command]  # bash is used to run local build/run command
+    return "--entrypoint=/bin/bash", ["-c", command]  # bash is used to run local build/run command
 
 
 def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[str]]:
