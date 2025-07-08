@@ -19,6 +19,7 @@ import json
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -572,10 +573,17 @@ def get_entrypoint_command_args(
     # Check if user provided a custom entrypoint
     entrypoint = None
     if "--entrypoint" in docker_opts:
-        # Extract the custom entrypoint from docker_opts --entrypoint=value or --entrypoint value
-        entrypoint_match = re.search(r"--entrypoint(?:=|\s+)([^\s]+)", docker_opts)
-        if entrypoint_match:
-            entrypoint = entrypoint_match.group(1).strip("\"'")
+        try:
+            tokens = shlex.split(docker_opts)
+            for i, token in enumerate(tokens):
+                if token == "--entrypoint" and i + 1 < len(tokens):
+                    entrypoint = tokens[i + 1]
+                    break
+                elif token.startswith("--entrypoint="):
+                    entrypoint = token.split("=", 1)[1]
+                    break
+        except ValueError:
+            pass
     entrypoint = [entrypoint] if entrypoint else get_container_entrypoint(img, dry_run=dry_run)
 
     if not entrypoint:  # image has no entrypoint, use default "/bin/sh -c"
