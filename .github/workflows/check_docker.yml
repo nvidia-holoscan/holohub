@@ -2,7 +2,7 @@ name: Check Docker
 
 on:
   push:
-    branches: [main, holoscan-sdk-lws2, fixes-entrypoint, temp-test]
+    branches: [main, holoscan-sdk-lws2, fixes-entrypoint]
 
 permissions:
   contents: read
@@ -43,7 +43,7 @@ jobs:
           ./holohub run-container --no-docker-build -- echo hello > /tmp/trailing-args.log 2>&1
           grep -q "hello" /tmp/trailing-args.log || { echo "trailing args test failed"; cat /tmp/trailing-args.log; exit 1; }
 
-  test-entrypoint-images:
+  test-entrypoint:
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -75,7 +75,7 @@ jobs:
           cat > /tmp/test-dockerfile << 'EOF'
           FROM ubuntu:24.04
 
-          # Install basic shell utilities
+          # Install basic shell utilities required by ./holohub
           RUN apt-get update && apt-get install -y \
               bash \
               && rm -rf /var/lib/apt/lists/*
@@ -91,6 +91,9 @@ jobs:
 
           DOCKERFILE="/tmp/test-dockerfile"
           echo "Testing with ${{ matrix.description }}"
+          cat /tmp/test-dockerfile
+
+          ./holohub run-container --docker-file "$DOCKERFILE" --img test_image --dryrun -- echo test
 
           # Test trailing args with different entrypoint configurations
           ./holohub run-container --docker-file "$DOCKERFILE" --img test_image -- echo test > /tmp/test.log 2>&1
@@ -99,3 +102,6 @@ jobs:
           # Test custom entrypoint override
           ./holohub run-container --docker-file "$DOCKERFILE" --img test_image --docker-opts="--entrypoint=/bin/sh" -- echo override > /tmp/override.log 2>&1
           grep -q "echo override" /tmp/override.log || { echo "Entrypoint override failed for ${{ matrix.description }}"; cat /tmp/override.log; exit 1; }
+
+          docker inspect test_image --format='ENTRYPOINT: {{.Config.Entrypoint}} | CMD: {{.Config.Cmd}}'
+          docker rmi test_image || echo "Image cleanup completed"
