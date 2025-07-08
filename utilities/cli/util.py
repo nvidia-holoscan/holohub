@@ -154,13 +154,8 @@ def _get_maybe_sudo() -> str:
 
     if _sudo_available is not None:
         return _sudo_available
-    try:
-        subprocess.run(["sudo", "--version"], capture_output=True, check=True, timeout=5)
-        _sudo_available = "sudo"
-        return _sudo_available
-    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
-        _sudo_available = ""
-        return _sudo_available
+    _sudo_available = "sudo" if shutil.which("sudo") else ""
+    return _sudo_available
 
 
 def _classify_sudo_requirement(cmd: Union[str, List[str]]) -> Tuple[bool, str]:
