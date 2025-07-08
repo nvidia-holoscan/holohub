@@ -167,6 +167,34 @@ This container-first approach ensures consistency and reproducibility across dif
 ```
 
 
+## Bash Autocompletion
+
+The autocompletion is automatically installed during setup and provides:
+
+- **Project names**: All available applications, workflows, operators, and packages
+- **Commands**: All available CLI commands (`build`, `run`, `list`, etc.)
+- **Dynamic discovery**: Automatically finds new projects without manual configuration
+
+### **Usage**
+```bash
+./holohub <TAB><TAB>          # Show all available options
+./holohub run ultra<TAB>      # Complete to "ultrasound_segmentation"
+./holohub build vid<TAB>      # Complete to "video_deidentification"
+```
+
+### **Manual Installation**
+If autocompletion isn't working, you can manually enable it:
+```bash
+# Copy the autocomplete script
+sudo cp utilities/holohub_autocomplete /etc/bash_completion.d/
+# Add to your shell profile
+echo ". /etc/bash_completion.d/holohub_autocomplete" >> ~/.bashrc
+# Reload your shell
+source ~/.bashrc
+```
+
+The autocompletion uses `./holohub autocompletion_list` command internally.
+
 ## Useful Commands
 
 - When adding option that looks like an argument, use `=` instead of whitespace ` ` (because of [Python argparse design choice](https://github.com/python/cpython/issues/53580)):

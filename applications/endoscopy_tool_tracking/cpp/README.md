@@ -23,7 +23,7 @@ If you want to manually convert the video data, please refer to the instructions
 ### Build Instructions
 
 Please refer to the top level Holohub README.md file for information on how to build this application.
-In order to build with the Deltacast VideoMaster operator use ```./run build --with deltacast_videomaster```
+In order to build with the Deltacast VideoMaster operator use ```./holohub build --build-with deltacast_videomaster```
 
 ### Run Instructions
 
@@ -67,6 +67,5 @@ In your `build` directory, run the commands of your choice:
     ```
 * Using an AJA card with hardware keying overlay (Only specific cards support this feature)
     ```bash
-    ./run launch endoscopy_tool_tracking cpp --extra_args -capplications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_aja_overlay.yaml
+    ./holohub run endoscopy_tool_tracking --language=cpp --run-args=-capplications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_aja_overlay.yaml
     ```
-

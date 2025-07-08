@@ -256,6 +256,13 @@ class HoloHubCLI:
         self.subparsers["list"] = list_cmd
         list_cmd.set_defaults(func=self.handle_list)
 
+        # autocompletion_list command (for bash completion)
+        autocomp_cmd = subparsers.add_parser(
+            "autocompletion_list", help="List targets for autocompletion"
+        )
+        self.subparsers["autocompletion_list"] = autocomp_cmd
+        autocomp_cmd.set_defaults(func=self.handle_autocompletion_list)
+
         # lint command
         lint = subparsers.add_parser("lint", help="Run linting tools")
         self.subparsers["lint"] = lint
@@ -973,6 +980,30 @@ class HoloHubCLI:
 
         print(f"\n{Color.white('=================================', bold=True)}\n")
 
+    def handle_autocompletion_list(self, args: argparse.Namespace) -> None:
+        """Handle autocompletion_list command - output project names and commands for bash completion"""
+        project_names = set()
+        for project in self.projects:
+            project_names.add(project["project_name"])
+        for name in sorted(project_names):
+            print(name)
+        commands = [
+            "build-container",
+            "run-container",
+            "build",
+            "run",
+            "list",
+            "lint",
+            "setup",
+            "install",
+            "create",
+            "cpp",
+            "python",
+            "autocompletion_list",
+        ]
+        for cmd in commands:
+            print(cmd)
+
     def handle_lint(self, args: argparse.Namespace) -> None:
         """Handle lint command"""
         if args.install_dependencies:
@@ -1414,7 +1445,14 @@ class HoloHubCLI:
             dry_run=args.dryrun,
         )
 
-        print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
+        if not args.dryrun:
+            print(Color.blue("\nTo enable ./holohub autocomplete in your current shell session:"))
+            print("  source /etc/bash_completion.d/holohub_autocomplete")
+            print("Or add it to your shell profile:")
+            print("  echo '. /etc/bash_completion.d/holohub_autocomplete' >> ~/.bashrc")
+            print("  source ~/.bashrc")
+
+            print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
 
     def _setup_cuda_packages(self, cuda_major_version: str, dryrun: bool = False) -> None:
         """Find and install CUDA packages for Holoscan SDK development"""

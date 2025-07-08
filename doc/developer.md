@@ -16,7 +16,7 @@ and to support advanced project use cases.
 
 Refer to the [Holoscan SDK README](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/README.md) for ways to install Holoscan SDK in local environment: Debian package, Python wheels or from source.
 
-Install the package dependencies for HoloHub on your host system. The easiest way to make sure the minimal package dependencies is to use the run script from the top level directory.
+Install the package dependencies for HoloHub on your host system. The easiest way to make sure the minimal package dependencies is to use the `./holohub` script from the top level directory.
 
 ```bash
   # if sudo is available
@@ -40,7 +40,7 @@ If you prefer you can also install the dependencies manually, typically includin
 Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html) for the latest
 details on dependency versions and custom installation.
 
-*Note: the run script setup installs the minimal set of dependencies required to run the sample applications. Other applications might require more dependencies. Please refer to the README of each application for more information.*
+*Note: the `./holohub` script setup installs the minimal set of dependencies required to run the sample applications. Other applications might require more dependencies. Please refer to the README of each application for more information.*
 
 ## Advanced Build Options (Container)
 
@@ -204,7 +204,7 @@ While not all applications requires building HoloHub, the current build system a
 
 You can refer to the README of each application/operator if you prefer to build/run them manually.
 
-The run script creates a `data` subdirectory to store the downloaded HoloHub data.
+The `./holohub` script creates a `data` subdirectory to store the downloaded HoloHub data.
 This directory is noted `HOLOHUB_DATA_DIR/holohub_data_dir` in the documentation, READMEs and metadata files.
 
 ## Advanced Options for Running Applications
