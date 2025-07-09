@@ -17,7 +17,7 @@
 profile = "black"
 line_length = 100
 known_first_party = "holohub"
-skip_glob = ["build*/*", "install*/*", ".cache/*"]
+skip_glob = ["build*/*", "install*/*", ".cache/*", ".ruff_cache/*", ".local/*"]
 
 [tool.black]
 line-length = 100
