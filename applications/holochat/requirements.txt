@@ -7,7 +7,7 @@ requests==2.*
 chromadb~=1.0.8
 openai~=1.30.2
 tiktoken~=0.6.0
-mcp~=1.7.1
+mcp==1.10.*
 pydantic-core==2.27.2
 starlette>=0.36.0
 uvicorn>=0.27.0

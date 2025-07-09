@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+project(ColonoscopySegmentation NONE)
+
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 
@@ -34,9 +36,6 @@ endif()
 
 # Add testing
 if(BUILD_TESTING)
-  # To get the environment path
-  find_package(holoscan 0.6 REQUIRED CONFIG
-               PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
   set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
   set(SOURCE_VIDEO_BASENAME python_colonoscopy_segmentation_output)

@@ -29,11 +29,13 @@ FROM nvcr.io/nvidia/pytorch:24.06-py3 as pytorch
 FROM ${BASE_IMAGE} as base
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Holohub setup
+# Holohub dev setup
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \

@@ -16,7 +16,7 @@ See [`VolumeLoaderOp` documentation](/operators/volume_loader/README.md#supporte
 
 ## Build and Run Instructions
 
-To build and run this application, use the ```dev_container``` script:
+To build and run this application, use the ```holohub``` script:
 
 ```bash
 # C++

@@ -373,6 +373,8 @@ class HoloHubContainer:
             "--build-arg",
             f"GPU_TYPE={gpu_type}",
             "--build-arg",
+            f"BASE_SDK_VERSION={base_sdk_version}",
+            "--build-arg",
             f"COMPUTE_CAPACITY={compute_capacity}",
             "--network=host",
         ]

@@ -1,12 +1,12 @@
-_script()
+_holohub_complete()
 {
-  _script_commands=$(./run autocompletion_list)
+  _holohub_commands=$(./holohub autocompletion_list 2>/dev/null)
 
   local cur
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
-  COMPREPLY=( $(compgen -W "${_script_commands}" -- ${cur}) )
+  COMPREPLY=( $(compgen -W "${_holohub_commands}" -- ${cur}) )
 
   return 0
 }
-complete -o nospace -F _script ./run
+complete -o nospace -F _holohub_complete ./holohub
