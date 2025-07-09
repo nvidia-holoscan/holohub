@@ -875,6 +875,17 @@ def collect_environment_variables() -> None:
         print(f"  {var}: {os.environ.get(var) or '(not set)'}")
 
 
+def is_running_in_docker() -> bool:
+    """Check if the current process is inside a Docker container"""
+    try:
+        if os.path.exists("/.dockerenv"):
+            return True
+        with open("/proc/1/cgroup", "r") as f:
+            return "docker" in f.read()
+    except (OSError, IOError):
+        return False
+
+
 def collect_env_info() -> None:
     """Collect and display comprehensive environment information"""
     collect_system_info()

@@ -2,7 +2,7 @@ name: Check Docker
 
 on:
   push:
-    branches: [main, holoscan-sdk-lws2]
+    branches: [main, holoscan-sdk-lws2, lint-docker]
 
 permissions:
   contents: read
@@ -42,6 +42,9 @@ jobs:
           ./holohub run-container --no-docker-build --add-volume "/tmp" | grep -q "/tmp" || { echo "add-volume test failed"; exit 1; }
           ./holohub run-container --no-docker-build -- echo hello > /tmp/trailing-args.log 2>&1
           grep -q "hello" /tmp/trailing-args.log || { echo "trailing args test failed"; cat /tmp/trailing-args.log; exit 1; }
+
+          # test linting in docker
+          ./holohub run-container --base-img ubuntu:${ubuntu_version} --no-docker-build -- "./holohub lint --install-dep; ./holohub lint"
 
   test-entrypoint:
     runs-on: ubuntu-22.04
