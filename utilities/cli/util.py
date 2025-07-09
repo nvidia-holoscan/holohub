@@ -569,21 +569,36 @@ def get_entrypoint_command_args(
     img: str, command: str, docker_opts: str, dry_run: bool = False
 ) -> tuple[str, List[str]]:
     """Determine how to execute a shell command in a Docker container."""
+
+    # Check if user provided a custom entrypoint
+    entrypoint = None
     if "--entrypoint" in docker_opts:
         try:
-            command_args = shlex.split(command)  # "command" splits into a list of arguments
-            return "", command_args
+            tokens = shlex.split(docker_opts)
+            for i, token in enumerate(tokens):
+                if token == "--entrypoint" and i + 1 < len(tokens):
+                    entrypoint = tokens[i + 1]
+                    break
+                elif token.startswith("--entrypoint="):
+                    entrypoint = token.split("=", 1)[1]
+                    break
         except ValueError:
-            return "", [command]
+            pass
+
+    if entrypoint:  # If user provided a custom entrypoint
+        if entrypoint in ["/bin/sh", "/bin/bash", "sh", "bash"]:
+            return "", ["-c", command]  # Shell needs -c to execute command string
+        return "", shlex.split(command)  # For non-shell user entrypoints, pass command as arguments
+
     entrypoint = get_container_entrypoint(img, dry_run=dry_run)
-    if not entrypoint:  # image has no entrypoint, docker uses default "/bin/sh -c" for command
-        return "", [command]
+    if not entrypoint:  # Image has no entrypoint, use default "/bin/bash -c"
+        return "", ["/bin/bash", "-c", command]
     # Image has an ENTRYPOINT
     if entrypoint in [["/bin/sh", "-c"], ["/bin/bash", "-c"], ["sh", "-c"], ["bash", "-c"]]:
         return "", [command]  # Shell is already configured to take command string
-    if entrypoint in [["/bin/sh"], ["/bin/bash"], ["sh"], ["bash"]]:
+    if entrypoint[0] in ["/bin/sh", "/bin/bash", "sh", "bash"]:
         return "", ["-c", command]  # Shell needs -c to execute command string
-    return "--entrypoint=bash", ["-c", command]  # bash is used to run local build/run command
+    return "--entrypoint=/bin/bash", ["-c", command]  # bash is used to run local build/run command
 
 
 def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[str]]:
