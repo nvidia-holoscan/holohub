@@ -121,7 +121,13 @@ run_benchmark() {
     if [[ "${realtime}" = "true" ]]; then
         realtime_str="realtime"
     fi
-    output=${output:-"${SCRIPT_DIR}/output/${app}_${runs}_${instances}_${messages}_${scheduler}_${headless_str}_${realtime_str}"}
+
+    if [[ "${messages}" = "100000" ]]; then
+        output=${output:-"${SCRIPT_DIR}/output/long_running_${app}_${runs}_${instances}_${scheduler}_${headless_str}_${realtime_str}"}
+    else
+        output=${output:-"${SCRIPT_DIR}/output/${app}_${runs}_${instances}_${messages}_${scheduler}_${headless_str}_${realtime_str}"}
+    fi
+
     mkdir -p $(dirname ${output})
 
     sed -i "s/^  headless: .*/  headless: ${headless}/" ${APP_CONFIG_PATH}
@@ -245,6 +251,16 @@ benchmark_endoscopy_tool_tracking() {
             --instances ${instances} \
             --headless
     done
+
+    # Long-running + Real time 
+    for instances in $(seq 1 2); do
+        run_benchmark \
+            --app endoscopy_tool_tracking \
+            --app_config ${APP_CONFIG_PATH} \
+            --instances ${instances} \
+            --realtime \
+            --messages 100000
+    done
 }
 
 benchmark_multiai_ultrasound() {
@@ -326,6 +342,13 @@ main() {
         for pattern_suffix in "display_realtime" "headless_offline"; do
             plot_benchmark \
                 --log_pattern "multiai_ultrasound_3_[0-9]_1000_greedy_$pattern_suffix" \
+                --log_dir ${data_dir}
+        done
+
+        # Process long-running benchmarks
+        for pattern_suffix in "display_realtime"; do
+            plot_benchmark \
+                --log_pattern "long_running_endoscopy_tool_tracking_3_[0-9]_greedy_$pattern_suffix" \
                 --log_dir ${data_dir}
         done
     done
