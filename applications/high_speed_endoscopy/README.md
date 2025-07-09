@@ -42,6 +42,15 @@ export LD_LIBRARY_PATH=/opt/EVT/eSDK:$LD_LIBRARY_PATH
 
 ### Compile the application
 
+#### Using HoloHub CLI
+HoloHub CLI command can also be used to build the application.
+
+```bash
+./holohub build high_speed_endoscopy --local
+```
+
+If the above command does not work, please file an issue and try the steps below.
+
 #### Explicit commands on the host machine
 
 ```bash
@@ -53,22 +62,15 @@ cmake ../.. -DAPP_high_speed_endoscopy=ON
 make -j
 ```
 
-#### Using HoloHub CLI
-HoloHub CLI command can also be used to build the application.
-
-```bash
-./holohub build high_speed_endoscopy --local
-```
-
 ### Run the application
 
 ```bash
 cd <HOLOHUB_SOURCE_DIR>
-sudo ./holohub run high_speed_endoscopy
+sudo ./holohub run high_speed_endoscopy --local --language cpp
 ```
 
 
-**Troubleshooting**
+## Troubleshooting
 
 1. **Problem:** The application fails to find the EVT camera.
     - Make sure that the MLNX ConnectX SmartNIC is configured with the correct IP address. Follow section [Post EVT Software Installation Steps](https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html#post-evt-software-installation-steps)
@@ -84,3 +86,15 @@ sudo ./holohub run high_speed_endoscopy
 4. **Problem:** The applications fails with a segmentation fault at runtime, in the HoloViz visualization operator.
     - It could be an issue with the configured BAR size on the GPU. Use the [display mode selector tool](https://developer.nvidia.com/displaymodeselector) to increase the BAR size.
     - If you are using a lower resolution monitor, then you might need to decrease the resolution of the vistualization in the `high_speed_endoscopy.yaml` file.
+
+
+## Known Issues
+
+- When the application is closed from the 'X' button in the visualization window, the application might not terminate gracefully and throw an error.
+In this case, one might need to power-cycle the camera before running the application again.
+
+- The `python` version of the application fails with the following error:
+```
+[error] [gxf_wrapper.cpp:100] Exception occurred for operator: 'holoviz' - [/workspace/holoscan-sdk/modules/holoviz/src/vulkan/resource.cpp:98] CUDA driver error 700 (CUDA_ERROR_ILLEGAL_ADDRESS): an illegal memory access was encountered
+[error] [entity_executor.cpp:596] Failed to tick codelet holoviz in entity: holoviz code: GXF_FAILURE
+```
