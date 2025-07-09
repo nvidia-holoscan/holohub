@@ -20,9 +20,9 @@
 # Base image
 ############################################################
 
-ARG BASE_IMAGE
 ARG GPU_TYPE
-
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -83,12 +83,12 @@ RUN apt update \
 # For benchmarking
 RUN apt update \
     && apt install --no-install-recommends -y \
-    libcairo2-dev \
-    libgirepository1.0-dev \
-    gobject-introspection \
-    libgtk-3-dev \
-    libcanberra-gtk-module \
-    graphviz
+        libcairo2-dev \
+        libgirepository1.0-dev \
+        gobject-introspection \
+        libgtk-3-dev \
+        libcanberra-gtk-module \
+        graphviz
 
 RUN pip install meson
 

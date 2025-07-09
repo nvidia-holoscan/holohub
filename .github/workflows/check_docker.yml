@@ -7,6 +7,14 @@ on:
 permissions:
   contents: read
 
+env:
+  CPU_CI_COMMANDS: |
+    sed -i 's/check_nvidia_ctk()/pass  # nvidia-ctk not available/g' utilities/cli/container.py
+    sed -i 's/"--runtime",/# "--runtime",/g' utilities/cli/container.py
+    sed -i 's/"nvidia",/# "nvidia",/g' utilities/cli/container.py
+    sed -i 's/"--gpus",/# "--gpus",/g' utilities/cli/container.py
+    sed -i 's/"all",/# "all",/g' utilities/cli/container.py
+
 jobs:
   check-docker-build:
     runs-on: ubuntu-22.04
@@ -26,11 +34,7 @@ jobs:
           grep -qE "writing image.* done" /tmp/build.log || { echo "Build failed - no success pattern"; cat /tmp/build.log; exit 1; }
 
           if ! command -v nvidia-ctk >/dev/null 2>&1; then
-            sed -i 's/check_nvidia_ctk()/pass  # nvidia-ctk not available/g' utilities/cli/container.py
-            sed -i 's/"--runtime",/# "--runtime",/g' utilities/cli/container.py
-            sed -i 's/"nvidia",/# "nvidia",/g' utilities/cli/container.py
-            sed -i 's/"--gpus",/# "--gpus",/g' utilities/cli/container.py
-            sed -i 's/"all",/# "all",/g' utilities/cli/container.py
+            eval "$CPU_CI_COMMANDS"
           fi
 
           ./holohub run-container --base-img ubuntu:${ubuntu_version} --no-docker-build | grep -q "docker run" || { echo "run-container failed"; exit 1; }
@@ -38,3 +42,66 @@ jobs:
           ./holohub run-container --no-docker-build --add-volume "/tmp" | grep -q "/tmp" || { echo "add-volume test failed"; exit 1; }
           ./holohub run-container --no-docker-build -- echo hello > /tmp/trailing-args.log 2>&1
           grep -q "hello" /tmp/trailing-args.log || { echo "trailing args test failed"; cat /tmp/trailing-args.log; exit 1; }
+
+  test-entrypoint:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile_config: 'CMD ["/bin/sh"]'
+            description: "cmd-bin-sh"
+          - dockerfile_config: 'CMD ["sh"]'
+            description: "cmd-sh"
+          - dockerfile_config: |
+              RUN echo '#!/bin/sh' > /usr/local/bin/test-entrypoint.sh && \
+                  echo 'exec "$@"' >> /usr/local/bin/test-entrypoint.sh && \
+                  chmod +x /usr/local/bin/test-entrypoint.sh
+              ENTRYPOINT ["/usr/local/bin/test-entrypoint.sh"]
+            description: "entrypoint-test"
+          - dockerfile_config: |
+              RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
+                  echo 'exec "$@"' >> /docker-entrypoint.sh && \
+                  chmod +x /docker-entrypoint.sh
+              ENTRYPOINT ["/docker-entrypoint.sh"]
+              CMD ["echo", "test case"]
+            description: "entrypoint-and-cmd"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create test Dockerfile
+        run: |
+          cat > /tmp/test-dockerfile << 'EOF'
+          FROM ubuntu:24.04
+
+          # Install basic shell utilities required by ./holohub
+          RUN apt-get update && apt-get install -y \
+              bash \
+              && rm -rf /var/lib/apt/lists/*
+
+          ${{ matrix.dockerfile_config }}
+          EOF
+
+      - name: Test run-container with different dockerfile configurations
+        run: |
+          if ! command -v nvidia-ctk >/dev/null 2>&1; then
+            eval "$CPU_CI_COMMANDS"
+          fi
+
+          DOCKERFILE="/tmp/test-dockerfile"
+          echo "Testing with ${{ matrix.description }}"
+          cat /tmp/test-dockerfile
+
+          ./holohub run-container --docker-file "$DOCKERFILE" --img test_image --dryrun -- echo test
+
+          # Test trailing args with different entrypoint configurations
+          ./holohub run-container --docker-file "$DOCKERFILE" --img test_image -- echo test > /tmp/test.log 2>&1
+          grep -q "echo test" /tmp/test.log || { echo "Failed for ${{ matrix.description }}"; cat /tmp/test.log; exit 1; }
+
+          # Test custom entrypoint override
+          ./holohub run-container --docker-file "$DOCKERFILE" --img test_image --docker-opts="--entrypoint=/bin/sh" -- echo override > /tmp/override.log 2>&1
+          grep -q "echo override" /tmp/override.log || { echo "Entrypoint override failed for ${{ matrix.description }}"; cat /tmp/override.log; exit 1; }
+
+          docker inspect test_image --format='ENTRYPOINT: {{.Config.Entrypoint}} | CMD: {{.Config.Cmd}}'
+          docker rmi test_image || echo "Image cleanup completed"
