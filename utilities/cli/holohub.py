@@ -156,6 +156,7 @@ class HoloHubCLI:
         )
         self.subparsers["build"] = build
         build.add_argument("project", help="Project to build")
+        build.add_argument("mode", nargs="?", help="Mode to build (optional)")
         build.add_argument(
             "--local", action="store_true", help="Build locally instead of in container"
         )
@@ -206,6 +207,7 @@ class HoloHubCLI:
         )
         self.subparsers["run"] = run
         run.add_argument("project", help="Project to run")
+        run.add_argument("mode", nargs="?", help="Mode to run (optional)")
         run.add_argument("--local", action="store_true", help="Run locally instead of in container")
         run.add_argument("--verbose", action="store_true", help="Print extra output")
         run.add_argument(
@@ -223,6 +225,12 @@ class HoloHubCLI:
             "--run-args",
             help="Additional arguments to pass to the application executable, "
             "example: --run-args=--flag or --run-args '-c config/file'",
+        )
+        run.add_argument(
+            "--param",
+            action="append",
+            help="Mode-specific parameters in key=value format, "
+            "example: --param video_device=/dev/video1 --param fps=30.0",
         )
         run.add_argument(
             "--build-with",
@@ -255,6 +263,15 @@ class HoloHubCLI:
         list_cmd = subparsers.add_parser("list", help="List all available targets")
         self.subparsers["list"] = list_cmd
         list_cmd.set_defaults(func=self.handle_list)
+
+        # modes command
+        modes = subparsers.add_parser("modes", help="List available modes for an application")
+        self.subparsers["modes"] = modes
+        modes.add_argument("project", help="Project to list modes for")
+        modes.add_argument(
+            "--language", choices=["cpp", "python"], help="Specify language implementation"
+        )
+        modes.set_defaults(func=self.handle_modes)
 
         # autocompletion_list command (for bash completion)
         autocomp_cmd = subparsers.add_parser(
@@ -446,6 +463,101 @@ class HoloHubCLI:
                 msg += f"\n  '{name}'" + (f" ({', '.join(details)})" if details else "")
         holohub_cli_util.fatal(msg)
         return None
+
+    def resolve_mode(self, project_data: dict, requested_mode: Optional[str] = None) -> tuple:
+        """
+        Resolve mode from metadata and validate
+        Returns: (mode_name, mode_config) or (None, None) for legacy behavior
+        """
+        modes = project_data.get("metadata", {}).get("modes", {})
+        if not modes:
+            return None, None  # No modes defined - should use legacy behavior
+        if requested_mode is None:
+            # Default mode selection priority: default > first available
+            requested_mode = "default" if "default" in modes else list(modes.keys())[0]
+        if requested_mode not in modes:
+            available = ", ".join(modes.keys())
+            holohub_cli_util.fatal(
+                f"Mode '{requested_mode}' not found. Available modes: {available}"
+            )
+        return requested_mode, modes[requested_mode]
+
+    def apply_mode_to_build_config(self, mode_config: dict, build_args: dict) -> dict:
+        """Apply mode-specific build configuration"""
+        if not mode_config or "build" not in mode_config:
+            return build_args
+
+        build_config = mode_config["build"]
+        enhanced_args = build_args.copy()
+
+        # Add mode-specific build dependencies
+        if "depends" in build_config:
+            mode_deps = ";".join(build_config["depends"])
+            cmd_deps = enhanced_args.get("with_operators", "")
+            enhanced_args["with_operators"] = f"{cmd_deps};{mode_deps}" if cmd_deps else mode_deps
+
+        # Add mode-specific docker args for build
+        if "docker_args" in build_config:
+            mode_docker_args = " ".join(build_config["docker_args"])
+            cmd_docker_opts = enhanced_args.get("docker_opts", "")
+            enhanced_args["docker_opts"] = f"{cmd_docker_opts} {mode_docker_args}".strip()
+
+        # Add mode-specific configure args for cmake
+        if "configure_args" in build_config:
+            mode_configure_args = build_config["configure_args"]
+            cmd_configure_args = enhanced_args.get("configure_args", []) or []
+            enhanced_args["configure_args"] = cmd_configure_args + mode_configure_args
+
+        return enhanced_args
+
+    def apply_mode_to_run_config(
+        self, mode_config: dict, run_args: dict, user_params: List[str] = None
+    ) -> dict:
+        """Apply mode-specific run configuration"""
+        if not mode_config or "run" not in mode_config:
+            return run_args
+
+        run_config = mode_config["run"]
+        enhanced_args = run_args.copy()
+        user_params = user_params or []
+
+        # Handle command line arguments from mode
+        if "run_args" in run_config:
+            param_definitions = mode_config.get("parameters", {})
+            mode_cmd_args = []
+
+            for arg_template in run_config["run_args"]:
+                resolved_arg = holohub_cli_util.substitute_mode_parameters(
+                    arg_template, user_params, param_definitions
+                )
+                mode_cmd_args.append(resolved_arg)
+
+            mode_args_str = " ".join(mode_cmd_args)
+            cmd_run_args = enhanced_args.get("run_args", "")
+            enhanced_args["run_args"] = (
+                f"{cmd_run_args} {mode_args_str}".strip() if cmd_run_args else mode_args_str
+            )
+
+        # Handle docker arguments from mode
+        if "docker_args" in run_config:
+            param_definitions = mode_config.get("parameters", {})
+            mode_docker_args = []
+
+            for arg_template in run_config["docker_args"]:
+                resolved_arg = holohub_cli_util.substitute_mode_parameters(
+                    arg_template, user_params, param_definitions
+                )
+                mode_docker_args.append(resolved_arg)
+
+            mode_docker_str = " ".join(mode_docker_args)
+            cmd_docker_opts = enhanced_args.get("docker_opts", "")
+            enhanced_args["docker_opts"] = (
+                f"{cmd_docker_opts} {mode_docker_str}".strip()
+                if cmd_docker_opts
+                else mode_docker_str
+            )
+
+        return enhanced_args
 
     def _make_project_container(
         self, project_name: Optional[str] = None, language: Optional[str] = None
@@ -685,6 +797,26 @@ class HoloHubCLI:
         """Handle build command"""
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
 
+        # Handle mode-specific configuration
+        project_data = self.find_project(args.project, language=args.language)
+        mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
+
+        # Apply mode-specific build configuration
+        build_args = {
+            "with_operators": getattr(args, "with_operators", None),
+            "docker_opts": getattr(args, "docker_opts", ""),
+            "configure_args": getattr(args, "configure_args", None),
+        }
+
+        if mode_config:
+            print(f"Building {args.project} in '{mode_name}' mode")
+            build_args = self.apply_mode_to_build_config(mode_config, build_args)
+            # Update args with mode-enhanced values
+            args.with_operators = build_args.get("with_operators")
+            args.configure_args = build_args.get("configure_args")
+            if hasattr(args, "docker_opts"):
+                args.docker_opts = build_args.get("docker_opts", "")
+
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
             self.build_project_locally(
                 project_name=args.project,
@@ -715,7 +847,10 @@ class HoloHubCLI:
                 )
 
             # Build command with all necessary arguments
-            build_cmd = f"{self.script_name} build {args.project} --local"
+            build_cmd = f"{self.script_name} build {args.project}"
+            if mode_name:
+                build_cmd += f" {mode_name}"
+            build_cmd += " --local"
             if args.build_type:
                 build_cmd += f" --build-type {args.build_type}"
             if args.with_operators:
@@ -762,6 +897,41 @@ class HoloHubCLI:
         skip_docker_build, skip_local_build = holohub_cli_util.check_skip_builds(args)
         is_local_mode = args.local or os.environ.get("HOLOHUB_BUILD_LOCAL")
 
+        # Handle mode-specific configuration
+        project_data = self.find_project(args.project, language=args.language)
+        mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
+
+        # Apply mode-specific build configuration for build process
+        build_args = {
+            "with_operators": args.with_operators,
+            "docker_opts": getattr(args, "docker_opts", ""),
+            "configure_args": getattr(args, "configure_args", None),
+        }
+
+        # Apply mode-specific run configuration
+        run_args = {
+            "run_args": args.run_args or "",
+            "docker_opts": getattr(args, "docker_opts", ""),
+        }
+
+        if mode_config:
+            print(f"Running {args.project} in '{mode_name}' mode")
+            user_params = getattr(args, "param", [])
+            # Apply mode-specific build configuration
+            build_args = self.apply_mode_to_build_config(mode_config, build_args)
+            args.with_operators = build_args.get("with_operators")
+            args.configure_args = build_args.get("configure_args")
+            # Apply mode-specific run configuration only in local mode
+            if is_local_mode:
+                run_args = self.apply_mode_to_run_config(mode_config, run_args, user_params)
+                args.run_args = run_args.get("run_args")
+                if hasattr(args, "docker_opts"):
+                    args.docker_opts = run_args.get("docker_opts", "")
+            else:
+                # In container mode, only apply build-specific docker_opts
+                if hasattr(args, "docker_opts"):
+                    args.docker_opts = build_args.get("docker_opts", "")
+
         if is_local_mode:
             if args.docker_opts:
                 holohub_cli_util.fatal(
@@ -797,11 +967,14 @@ class HoloHubCLI:
                 project_data.get("metadata", {}).get("language", None)
             )
 
-            run_config = project_data.get("metadata", {}).get("run", {})
-            if not run_config:
-                holohub_cli_util.fatal(
-                    f"Project '{args.project}' does not have a run configuration"
-                )
+            if mode_config and "run" in mode_config:
+                run_config = mode_config["run"]  # Use mode-specific run configuration
+            else:  # Fall back to legacy run configuration
+                run_config = project_data.get("metadata", {}).get("run", {})
+                if not run_config:
+                    holohub_cli_util.fatal(
+                        f"Project '{args.project}' does not have a run configuration"
+                    )
 
             path_mapping = holohub_cli_util.build_holohub_path_mapping(
                 holohub_root=HoloHubCLI.HOLOHUB_ROOT,
@@ -922,7 +1095,10 @@ class HoloHubCLI:
                 container.project_metadata.get("metadata", {}).get("language", None)
             )
 
-            run_cmd = f"{self.script_name} run {args.project} --language {language} --local"
+            run_cmd = f"{self.script_name} run {args.project}"
+            if mode_name:
+                run_cmd += f" {mode_name}"
+            run_cmd += f" --language {language} --local"
             if args.verbose:
                 run_cmd += " --verbose"
             if args.build_type:
@@ -942,6 +1118,10 @@ class HoloHubCLI:
             if getattr(args, "configure_args", None):
                 for configure_arg in args.configure_args:
                     run_cmd += f' --configure-args "{configure_arg}"'
+            # Add mode-specific parameters
+            if hasattr(args, "param") and args.param:
+                for param in args.param:
+                    run_cmd += f" --param {param}"
 
             img = getattr(args, "img", None) or container.image_name
             docker_opts = getattr(args, "docker_opts", "")
@@ -991,6 +1171,51 @@ class HoloHubCLI:
                 print(f'{project["project_name"]} {language}')
 
         print(f"\n{Color.white('=================================', bold=True)}\n")
+
+    def handle_modes(self, args: argparse.Namespace) -> None:
+        """Handle modes command"""
+        project_data = self.find_project(args.project, language=args.language)
+        modes = project_data.get("metadata", {}).get("modes", {})
+
+        if not modes:
+            print(f"No modes defined for {args.project}")
+            return
+
+        print(f"\n{Color.white(f'Available modes for {args.project}:', bold=True)}\n")
+
+        for mode_name, mode_config in modes.items():
+            description = mode_config.get("description", "No description")
+
+            print(f"  {Color.green(mode_name, bold=True)} - {description}")
+
+            # Show parameters if any
+            parameters = mode_config.get("parameters", {})
+            if parameters:
+                print("    Parameters:")
+                for param_name, param_def in parameters.items():
+                    param_desc = param_def.get("description", "No description")
+                    param_default = param_def.get("default")
+
+                    param_info = f"      {param_name}: {param_desc}"
+                    if param_default is not None:
+                        param_info += f" (default: {param_default})"
+                    print(param_info)
+
+            # Show requirements if any
+            requirements = mode_config.get("requirements", {})
+            if requirements:
+                req_parts = []
+                if requirements.get("hardware"):
+                    req_parts.append(f"hardware: {', '.join(requirements['hardware'])}")
+                if requirements.get("data"):
+                    req_parts.append(f"data: {', '.join(requirements['data'])}")
+                if requirements.get("dependencies", {}).get("external"):
+                    external_deps = requirements["dependencies"]["external"]
+                    req_parts.append(f"external: {', '.join(external_deps)}")
+                if req_parts:
+                    print(f"    Requirements: {'; '.join(req_parts)}")
+
+            print()  # Empty line between modes
 
     def handle_autocompletion_list(self, args: argparse.Namespace) -> None:
         """Handle autocompletion_list command - output project names and commands for bash completion"""

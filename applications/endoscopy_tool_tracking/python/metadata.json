@@ -28,19 +28,94 @@
 		],
 		"tags": ["Healthcare AI", "Distributed", "LSTM", "Asynchronous Queues", "gRPC", "Video", "Computer Vision and Perception", "Visualization"],
 		"ranking": 1,
-		"dependencies": {
-			"data": [
-					{
-							"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
-							"description": "This resource contains the convolutional LSTM model for tool tracking in laparoscopic videos by Nwoye et. al [1], and a sample surgical video.",
-							"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
-							"version": "20230222"
-					}
-			]
-		},
-		"run": {
-			"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy",
-			"workdir": "holohub_bin"
+		"dependencies": [
+			{
+				"id": "model",
+				"type": "model",
+				"name": "LSTM Tool Tracking Model",
+				"description": "Convolutional LSTM model for tool tracking in laparoscopic videos"
+			},
+			{
+				"id": "video",
+				"type": "data",
+				"name": "Sample Surgical Video",
+				"description": "Sample surgical video for endoscopy tool tracking demonstration"
+			},
+			{
+				"id": "endoscopy_data",
+				"type": "data",
+				"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
+				"description": "This resource contains the convolutional LSTM model for tool tracking in laparoscopic videos by Nwoye et. al [1], and a sample surgical video.",
+				"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+				"version": "20230222"
+			},
+			{
+				"id": "aja_card",
+				"type": "hardware",
+				"name": "aja_card",
+				"description": "AJA video capture card for real-time video input"
+			},
+			{
+				"id": "aja_card_with_overlay",
+				"type": "hardware",
+				"name": "aja_card_with_overlay",
+				"description": "AJA video capture card with hardware overlay for real-time display for live surgery with overlay, real-time feedback, and OR integration"
+			},
+			{
+				"id": "vtk",
+				"type": "software",
+				"name": "VTK",
+				"description": "Visualization Toolkit for advanced 3D rendering and visualization"
+			}
+		],
+		"modes": {
+			"default": {
+				"description": "Video replay mode using recorded endoscopy video for demos, testing, and development without hardware",
+				"run": {
+					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py",
+					"workdir": "holohub_bin",
+					"run_args": ["--config endoscopy_tool_tracking.yaml", "--data <holohub_data_dir>/endoscopy"],
+					"requirements": ["model", "video"]
+				}
+			},
+			"aja": {
+				"description": "AJA card input with real-time video capture for live surgery, real-time processing, and production deployment",
+				"build": {
+					"depends": ["aja_source"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py",
+					"workdir": "holohub_bin",
+					"run_args": ["--config endoscopy_tool_tracking.yaml", "--data <holohub_data_dir>/endoscopy", "--source aja"],
+					"requirements": ["aja_card", "model"]
+				}
+			},
+			"aja_overlay": {
+				"description": "AJA card with hardware overlay for real-time display for live surgery with overlay, real-time feedback, and OR integration",
+				"build": {
+					"depends": ["aja_source"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py",
+					"workdir": "holohub_bin",
+					"run_args": ["--config endoscopy_tool_tracking_aja_overlay.yaml", "--data <holohub_data_dir>/endoscopy"],
+					"requirements": ["aja_card_with_overlay", "model"]
+				}
+			},
+			"vtk": {
+				"description": "VTK-based rendering for advanced visualization for research, advanced visualization, and custom rendering",
+				"build": {
+					"depends": ["vtk_renderer"],
+					"dockerfile": "operators/vtk_renderer/vtk.Dockerfile",
+					"requirements": ["vtk"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py",
+					"workdir": "holohub_bin",
+					"run_args": ["--config endoscopy_tool_tracking.yaml", "--data <holohub_data_dir>/endoscopy", "--visualizer vtk"],
+					"requirements": ["model", "video"]
+				}
+			}
 		}
 	}
 }

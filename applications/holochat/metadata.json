@@ -21,21 +21,65 @@
 			"platforms": ["x86_64", "aarch64"],
 			"tags": ["Natural Language and Conversational AI", "RAG", "Vector Database", "LLM"],
 			"ranking": 4,
-			"dependencies": {
-				"OSS": [
-					{
-						"name": "Llama.cpp",
-						"version": "cf9b08485c4c2d4d945c6e74fe20f273a38b6104"
-					},
-					{
-						"name": "LangChain",
-						"version": "0.1.11"
+			"dependencies": [
+				{
+					"id": "vector_database",
+					"type": "data",
+					"name": "Vector Database",
+					"description": "ChromaDB vector database for RAG document storage and retrieval"
+				},
+				{
+					"id": "llm_model",
+					"type": "model",
+					"name": "Local LLM Model",
+					"description": "Local language model files for offline inference"
+				},
+				{
+					"id": "gpu",
+					"type": "hardware",
+					"name": "gpu",
+					"description": "NVIDIA GPU required for local LLM inference"
+				},
+				{
+					"id": "openai_api",
+					"type": "software",
+					"name": "OpenAI API or similar LLM service",
+					"description": "External API service for cloud-based LLM inference"
+				},
+				{
+					"id": "NIM",
+					"type": "software",
+					"name": "NVIDIA API",
+					"description": "NVIDIA API for cloud-based LLM inference"
+				}
+			],
+			"modes": {
+				"default": {
+					"description": "Cloud-based LLM with RAG using external API for production deployment, API-based inference, and scalable usage",
+					"run": {
+						"command": "<holohub_app_source>/holochat.sh",
+						"workdir": "holohub_app_source",
+						"requirements": ["vector_database", "openai_api", "NIM"]
 					}
-			   ]
-			},
-			"run": {
-				"command": "<holohub_app_source>/holochat.sh",
-				"workdir": "holohub_app_source"
+				},
+				"local": {
+					"description": "Local LLM with embedded models and vector database for offline usage, privacy-sensitive deployments, and development",
+					"run": {
+						"command": "<holohub_app_source>/holochat.sh",
+						"workdir": "holohub_app_source",
+						"run_args": ["--local"],
+						"requirements": ["gpu", "vector_database", "llm_model"]
+					}
+				},
+				"mcp": {
+					"description": "MCP (Model Context Protocol) server mode for tool integration, Claude Desktop integration, and external tool access",
+					"run": {
+						"command": "<holohub_app_source>/holochat.sh",
+						"workdir": "holohub_app_source",
+						"run_args": ["--mcp"],
+						"requirements": ["vector_database"]
+					}
+				}
 			}
 		}
 	}

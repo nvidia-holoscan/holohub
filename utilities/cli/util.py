@@ -875,6 +875,73 @@ def collect_environment_variables() -> None:
         print(f"  {var}: {os.environ.get(var) or '(not set)'}")
 
 
+def substitute_mode_parameters(
+    template: str, user_params: List[str], param_definitions: dict
+) -> str:
+    """
+    Resolve placeholders in commands with user values, defaults, and environment variables
+
+    Supported syntax:
+    - ${VAR_NAME} - Environment variables (default behavior)
+    - ${PARAM:param_name} - Mode parameters (user-provided or defaults)
+
+    Args:
+        template: Template string containing placeholders
+        user_params: List of user parameters in key=value format
+        param_definitions: Dictionary of parameter definitions with defaults
+
+    Returns:
+        Template string with placeholders resolved
+    """
+    # Parse user parameters (key=value format)
+    user_param_dict = {}
+    if user_params:
+        for param in user_params:
+            if "=" not in param:
+                fatal(f"Invalid parameter format: {param}. Expected key=value")
+            key, value = param.split("=", 1)
+            user_param_dict[key] = value
+
+    # Build final parameter values with defaults
+    final_params = {}
+    for param_name, param_def in param_definitions.items():
+        if param_name in user_param_dict:
+            final_params[param_name] = user_param_dict[param_name]
+        elif "default" in param_def and param_def["default"] is not None:
+            final_params[param_name] = str(param_def["default"])
+        else:
+            fatal(f"Required parameter '{param_name}' not provided")
+
+    # Check for unused user parameters
+    for user_param in user_param_dict:
+        if user_param not in param_definitions:
+            available = ", ".join(param_definitions.keys()) if param_definitions else "none"
+            fatal(f"Unknown parameter '{user_param}'. Available parameters: {available}")
+
+    def replace_placeholder(match):
+        content = match.group(1)
+        # Handle PARAM:param_name syntax for mode parameters
+        if content.startswith("PARAM:"):
+            param_name = content[len("PARAM:") :]  # Remove "PARAM:" prefix
+            if param_name in final_params:
+                return final_params[param_name]
+            else:
+                available = ", ".join(final_params.keys()) if final_params else "none"
+                fatal(f"Unknown parameter '{param_name}'. Available: {available}")
+        # Default behavior: treat as environment variable
+        else:
+            env_value = os.environ.get(content)
+            if env_value is None:
+                # Check if this might be a mode parameter that needs PARAM: prefix
+                if content in final_params:
+                    fatal(f"Parameter '{content}' found but should use ${{PARAM:{content}}} syntax")
+                fatal(f"Environment variable '{content}' not found")
+            return env_value
+
+    # Substitute all placeholders using enhanced syntax
+    return re.sub(r"\$\{([^}]+)\}", replace_placeholder, template)
+
+
 def collect_env_info() -> None:
     """Collect and display comprehensive environment information"""
     collect_system_info()
