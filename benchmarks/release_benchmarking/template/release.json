@@ -1,55 +1,35 @@
 {
-  "sdk_release": "v3.3.0",
-  "holohub_revision": "3e182757",
-  "x86_ada6000": {
-      "version": {
-        "cpu": "AMD Ryzen Threadripper PRO 7975WX 32-Cores",
-        "dgpu": "NVIDIA RTX 6000 Ada Generation",
-        "driver": "570.133.20",
-        "cuda": "12.8",
-        "os": "Ubuntu 24.04.1 LTS"
-      },
-      "processed_path": "x86_ada6000/processed"
-  },
+  "sdk_release": "vX.Y.0",
+  "holohub_revision": "12345678",
   "x86": {
-    "version": {
-      "cpu": "AMD Ryzen 9 7950X 16-Core Processor",
-      "dgpu": "NVIDIA RTX A6000",
-      "driver": "535.247.01",
-      "cuda": "12.8",
-      "os": "Ubuntu 24.04.1 LTS"
-    },
-    "processed_path": "x86/processed"
+      "version": {
+        "cpu": "",
+        "dgpu": "",
+        "driver": "",
+        "cuda": "",
+        "os": ""
+      },
+      "processed_path": "x86/processed"
   },
   "igpu": {
     "version": {
-      "cpu": "Cortex-A78AE",
-      "dgpu": "Orin (nvgpu)",
-      "driver": "540.4.0",
-      "cuda": "12.8",
-      "os": "Ubuntu 24.04.1 LTS"
+      "cpu": "",
+      "dgpu": "",
+      "driver": "",
+      "cuda": "",
+      "os": ""
     },
     "processed_path": "igpu/processed"
   },
   "dgpu": {
     "version": {
-      "cpu": "Cortex-A78AE",
-      "dgpu": "NVIDIA RTX A6000",
-      "driver": "535.230.02",
-      "cuda": "12.8",
-      "os": "Ubuntu 24.04.1 LTS"
+      "cpu": "",
+      "dgpu": "",
+      "driver": "",
+      "cuda": "",
+      "os": ""
     },
     "processed_path": "dgpu/processed"
-  },
-  "dgpu_ada6000": {
-    "version": {
-      "cpu": "Cortex-A78AE",
-      "dgpu": "NVIDIA RTX 6000 Ada Generation",
-      "driver": "535.230.02",
-      "cuda": "12.8",
-      "os": "Ubuntu 24.04.1 LTS"
-    },
-    "processed_path": "dgpu_ada6000/processed"
   },
   "format": "markdown"
 }
