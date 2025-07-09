@@ -878,10 +878,11 @@ def collect_environment_variables() -> None:
 def is_running_in_docker() -> bool:
     """Check if the current process is inside a Docker container"""
     try:
-        if os.path.exists("/.dockerenv"):
+        if os.path.exists("/.dockerenv") or os.path.exists("/run/.containerenv"):
             return True
         with open("/proc/1/cgroup", "r") as f:
-            return "docker" in f.read()
+            return any(indicator in f.read() for indicator in ["docker", "containerd", "kubepods"])
+
     except (OSError, IOError):
         return False
 
