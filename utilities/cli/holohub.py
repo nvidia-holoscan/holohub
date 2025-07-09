@@ -1029,13 +1029,13 @@ class HoloHubCLI:
         local_bin_path = Path.home() / ".local" / "bin"
         if str(local_bin_path) not in env.get("PATH", ""):
             env["PATH"] = str(local_bin_path) + ":" + env.get("PATH", "")
-            print(f"Added {local_bin_path} to PATH, env: {env['PATH']}")
+            print(f"Added {local_bin_path} to PATH.")
 
         # Set cache directories to /tmp when in Docker container to avoid permission issues
         if holohub_cli_util.is_running_in_docker():
             env["RUFF_CACHE_DIR"] = "/tmp/.ruff_cache"
             env["BLACK_CACHE_DIR"] = "/tmp/.black_cache"
-            print(f"Set CACHE_DIR to {env['RUFF_CACHE_DIR']} and {env['BLACK_CACHE_DIR']}")
+            print(f"Set cache directories to {env['RUFF_CACHE_DIR']} and {env['BLACK_CACHE_DIR']}")
 
         # Change to script directory
         print(
@@ -1100,7 +1100,7 @@ class HoloHubCLI:
                     args.path,
                 ]
                 if args.dryrun:
-                    holohub_cli_util.run_command(cmd, dry_run=True, env=env)
+                    holohub_cli_util.run_command(cmd, dry_run=True)
                     cpp_files = ""
                 else:
                     cpp_files = subprocess.check_output(
