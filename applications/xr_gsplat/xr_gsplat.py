@@ -228,6 +228,9 @@ class XrGsplatOp(holoscan.core.Operator):
         self.color_swapchain.release(cuda_stream)
         self.depth_swapchain.release(cuda_stream)
 
+        # Synchronize CUDA to ensure GPU operations complete before going to the next frame, solve the jittering issue.
+        torch.cuda.synchronize()
+
         op_output.emit(
             composition_layer, "xr_composition_layer", "XrCompositionLayerProjectionStorage"
         )
