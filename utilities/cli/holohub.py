@@ -1024,6 +1024,19 @@ class HoloHubCLI:
 
         exit_code = 0
 
+        # Add ~/.local/bin to PATH for pip-installed executables
+        env = os.environ.copy()
+        local_bin_path = Path.home() / ".local" / "bin"
+        if str(local_bin_path) not in env.get("PATH", ""):
+            env["PATH"] = str(local_bin_path) + ":" + env.get("PATH", "")
+            print(f"Added {local_bin_path} to PATH.")
+
+        # Set cache directories to /tmp when in Docker container to avoid permission issues
+        if holohub_cli_util.is_running_in_docker():
+            env["RUFF_CACHE_DIR"] = "/tmp/.ruff_cache"
+            env["BLACK_CACHE_DIR"] = "/tmp/.black_cache"
+            print(f"Set cache directories to {env['RUFF_CACHE_DIR']} and {env['BLACK_CACHE_DIR']}")
+
         # Change to script directory
         print(
             holohub_cli_util.format_cmd("cd " + str(HoloHubCLI.HOLOHUB_ROOT), is_dryrun=args.dryrun)
@@ -1037,9 +1050,14 @@ class HoloHubCLI:
                 ["ruff", "check", "--fix", "--ignore", "E712", args.path],
                 check=False,
                 dry_run=args.dryrun,
+                env=env,
             )
-            holohub_cli_util.run_command(["isort", args.path], check=False, dry_run=args.dryrun)
-            holohub_cli_util.run_command(["black", args.path], check=False, dry_run=args.dryrun)
+            holohub_cli_util.run_command(
+                ["isort", args.path], check=False, dry_run=args.dryrun, env=env
+            )
+            holohub_cli_util.run_command(
+                ["black", args.path], check=False, dry_run=args.dryrun, env=env
+            )
             holohub_cli_util.run_command(
                 [
                     "codespell",
@@ -1055,6 +1073,7 @@ class HoloHubCLI:
                 ],
                 check=False,
                 dry_run=args.dryrun,
+                env=env,
             )
 
             # Fix C++ with clang-format
@@ -1073,6 +1092,10 @@ class HoloHubCLI:
                     "install-*",
                     "--exclude",
                     "applications/holoviz/template/cookiecutter*",
+                    "--exclude",
+                    ".ruff_cache",
+                    "--exclude",
+                    ".local",
                     "--recursive",
                     args.path,
                 ]
@@ -1080,7 +1103,9 @@ class HoloHubCLI:
                     holohub_cli_util.run_command(cmd, dry_run=True)
                     cpp_files = ""
                 else:
-                    cpp_files = subprocess.check_output(cmd, stderr=subprocess.PIPE, text=True)
+                    cpp_files = subprocess.check_output(
+                        cmd, stderr=subprocess.PIPE, text=True, env=env
+                    )
 
                 for file in cpp_files.splitlines():
                     if ":" in file:  # Only process files with issues
@@ -1096,6 +1121,7 @@ class HoloHubCLI:
                             ],
                             check=False,
                             dry_run=args.dryrun,
+                            env=env,
                         )
             except subprocess.CalledProcessError:
                 pass
@@ -1108,20 +1134,21 @@ class HoloHubCLI:
                     ["ruff", "check", "--ignore", "E712", args.path],
                     check=False,
                     dry_run=args.dryrun,
+                    env=env,
                 ).returncode
                 != 0
             ):
                 exit_code = 1
             if (
                 holohub_cli_util.run_command(
-                    ["isort", "-c", args.path], check=False, dry_run=args.dryrun
+                    ["isort", "-c", args.path], check=False, dry_run=args.dryrun, env=env
                 ).returncode
                 != 0
             ):
                 exit_code = 1
             if (
                 holohub_cli_util.run_command(
-                    ["black", "--check", args.path], check=False, dry_run=args.dryrun
+                    ["black", "--check", args.path], check=False, dry_run=args.dryrun, env=env
                 ).returncode
                 != 0
             ):
@@ -1147,11 +1174,16 @@ class HoloHubCLI:
                         ".vscode-server",
                         "--exclude",
                         "applications/holoviz/template/cookiecutter*",
+                        "--exclude",
+                        ".ruff_cache",
+                        "--exclude",
+                        ".local",
                         "--recursive",
                         args.path,
                     ],
                     check=False,
                     dry_run=args.dryrun,
+                    env=env,
                 ).returncode
                 != 0
             ):
@@ -1171,6 +1203,7 @@ class HoloHubCLI:
                     ],
                     check=False,
                     dry_run=args.dryrun,
+                    env=env,
                 ).returncode
                 != 0
             ):
@@ -1201,6 +1234,7 @@ class HoloHubCLI:
                             ],
                             check=False,
                             dry_run=args.dryrun,
+                            env=env,
                         ).returncode
                         != 0
                     ):
@@ -1229,10 +1263,6 @@ class HoloHubCLI:
                 "-r",
                 str(HoloHubCLI.HOLOHUB_ROOT / "utilities/requirements.lint.txt"),
             ],
-            dry_run=dry_run,
-        )
-        holohub_cli_util.run_command(
-            ["apt", "install", "--no-install-recommends", "-y", "clang-format=1:14.0*"],
             dry_run=dry_run,
         )
 
