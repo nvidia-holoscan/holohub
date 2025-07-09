@@ -44,7 +44,7 @@ jobs:
           grep -q "hello" /tmp/trailing-args.log || { echo "trailing args test failed"; cat /tmp/trailing-args.log; exit 1; }
 
           # test linting in docker
-          ./holohub run-container --base-img ubuntu:${ubuntu_version} --no-docker-build -- "./holohub lint --install-dep; ./holohub lint --fix; ./holohub lint"
+          ./holohub run-container --base-img ubuntu:${ubuntu_version} --no-docker-build -- "./holohub lint --install-dependencies; ./holohub lint --fix; ./holohub lint"
 
   test-entrypoint:
     runs-on: ubuntu-22.04
