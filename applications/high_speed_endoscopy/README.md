@@ -69,6 +69,12 @@ cd <HOLOHUB_SOURCE_DIR>
 sudo ./holohub run high_speed_endoscopy --local --language cpp
 ```
 
+For python version:
+
+```bash
+cd <HOLOHUB_SOURCE_DIR>
+sudo ./holohub run high_speed_endoscopy --local --language python
+```
 
 ## Troubleshooting
 
@@ -92,9 +98,3 @@ sudo ./holohub run high_speed_endoscopy --local --language cpp
 
 - When the application is closed from the 'X' button in the visualization window, the application might not terminate gracefully and throw an error.
 In this case, one might need to power-cycle the camera before running the application again.
-
-- The `python` version of the application fails with the following error:
-```
-[error] [gxf_wrapper.cpp:100] Exception occurred for operator: 'holoviz' - [/workspace/holoscan-sdk/modules/holoviz/src/vulkan/resource.cpp:98] CUDA driver error 700 (CUDA_ERROR_ILLEGAL_ADDRESS): an illegal memory access was encountered
-[error] [entity_executor.cpp:596] Failed to tick codelet holoviz in entity: holoviz code: GXF_FAILURE
-```
