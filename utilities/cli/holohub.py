@@ -487,6 +487,18 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
             )
+
+        trailing_args = getattr(args, "_trailing_args", [])
+        docker_opts = args.docker_opts
+        if trailing_args:  # additional commands requires a bash entrypoint
+            command = " ".join(trailing_args)
+            docker_opts_extra, extra_args = holohub_cli_util.get_entrypoint_command_args(
+                args.img or container.image_name, command, docker_opts, dry_run=args.dryrun
+            )
+            if docker_opts_extra:
+                docker_opts = f"{docker_opts} {docker_opts_extra}".strip()
+            trailing_args = extra_args
+
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
@@ -497,10 +509,10 @@ class HoloHubCLI:
             nsys_profile=getattr(args, "nsys_profile", False),
             nsys_location=getattr(args, "nsys_location", ""),
             as_root=args.as_root,
-            docker_opts=args.docker_opts,
+            docker_opts=docker_opts,
             add_volumes=args.add_volume,
             enable_mps=getattr(args, "mps", False),
-            extra_args=getattr(args, "_trailing_args", []),  # forward trailing args --
+            extra_args=trailing_args,
         )
 
     def handle_test(self, args: argparse.Namespace) -> None:
