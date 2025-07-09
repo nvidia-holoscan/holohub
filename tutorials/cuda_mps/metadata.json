@@ -22,12 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Acceleration",
-			"Benchmarking",
-			"CUDA",
-			"MPS"
-		],
+		"tags": ["Acceleration", "Benchmarking", "CUDA", "MPS"],
 		"ranking": 1,
 		"dependencies": {
 			"libraries": [

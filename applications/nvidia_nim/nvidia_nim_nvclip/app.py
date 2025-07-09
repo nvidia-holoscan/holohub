@@ -87,7 +87,7 @@ class OpenAIOperator(Operator):
             probabilities = (100.0 * text_embeddings @ image_embeddings.T).softmax(dim=-1)
 
             probabilities = {
-                f"Image {i+1}": round(float(d), 2) * 100 for i, d in enumerate(probabilities)
+                f"Image {i + 1}": round(float(d), 2) * 100 for i, d in enumerate(probabilities)
             }
 
             print(f"\nPrompt: {message[-1]}")
@@ -156,7 +156,14 @@ class ExamplesOp(Operator):
         try:
             prepared_request.prepare_url(data, None)
             print("Downloading image...")
-            return base64.b64encode(requests.get(prepared_request.url).content).decode("utf-8")
+            response = requests.get(prepared_request.url)
+            if response.headers.get("content-type", "").startswith("image/"):
+                image_type = response.headers["content-type"]
+            else:
+                image_type = "image/jpeg"
+
+            image_b64 = base64.b64encode(response.content).decode("utf-8")
+            return f"data:{image_type};base64,{image_b64}"
         except Exception as e:
             logger.error("Error downloading image: %s", str(e))
             return None

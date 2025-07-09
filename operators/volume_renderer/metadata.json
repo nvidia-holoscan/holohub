@@ -7,7 +7,7 @@
                 "affiliation": "NVIDIA"
             }
         ],
-        "language": "C++",
+        "language": ["C++"],
         "version": "2.0.0",
         "changelog": {
             "1.0": "Initial Release",
@@ -26,11 +26,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": [
-            "Volume",
-            "Render",
-            "ClaraViz"
-        ],
+        "tags": ["Volume", "Rendering"],
         "ranking": 1,
         "dependencies": {}
     }

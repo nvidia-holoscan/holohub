@@ -12,18 +12,18 @@ The data is a subset of the [HeiPorSPECTRAL](https://www.heiporspectral.org/) da
 
 ## Run Instructions
 
-This application requires some python modules to be installed.  For simplicity, a Dockerfile is available.  To generate the container run:
+This application requires some python modules to be installed. You can simply use Holohub CLI to build and run the application.
+
+```bash
+./holohub run hyperspectral_segmentation
 ```
-./dev_container build --docker_file ./applications/hyperspectral_segmentation/Dockerfile
-```
-The application can then be built by launching this container and using the provided run script.
-```
-./dev_container launch
-./run build hyperspectral_segmentation
-```
-Once the application is built it can be launched with the run script.
-```
-./run launch hyperspectral_segmentation
+
+This single command builds and runs a Docker container, then inside that container, it builds and runs the application.
+
+To build and run the container without building the application, you can use the following command:
+
+```bash
+./holohub run-container hyperspectral_segmentation
 ```
 
 ## Viewing Results

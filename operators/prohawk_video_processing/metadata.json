@@ -7,7 +7,7 @@
 				"affiliation": "Prohawk Technology Group"
 			}
 		],
-		"language": "C++",
+		"language": ["C++"],
 		"version": "1.0.0",
 		"changelog": {
 			"1.0": "Added watermark to the prohawk restoration engine"
@@ -22,10 +22,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": [
-			"Video processing",
-			"Prohawk"
-		],
+		"tags": ["Video"],
 		"ranking": 4,
 		"dependencies": {
 			"SDK": "Prohawk runtime"

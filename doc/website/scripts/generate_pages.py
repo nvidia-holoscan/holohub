@@ -165,6 +165,8 @@ def create_metadata_header(metadata: dict, last_modified: str, archive_version: 
     platforms = metadata.get("platforms")
     platforms_str = ", ".join(platforms) if platforms else None
     language = metadata.get("language")
+    if isinstance(language, list):
+        language = ", ".join(language)
     version = metadata.get("version")
     hsdk_meta = metadata.get("holoscan_sdk")
     min_sdk_version = hsdk_meta.get("minimum_required_version") if hsdk_meta else None

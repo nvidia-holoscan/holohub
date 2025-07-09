@@ -10,8 +10,8 @@ This application requires:
 
 > **Tip**
 Tested on the Holoscan DevKits (ConnectX included) with:
-- [EVT HB-9000-G-C](https://emergentvisiontec.com/products/area-scan-cameras/25-gige-area-scan-cameras-hb-series/hb-9000-g/): 25GigE camera with Gpixel GMAX2509
-- [SFP28](https://store.nvidia.com/en-us/networking/store/product/MCP2M00-A001E30N/NVIDIAMCP2M00A001E30NDACCableEthernet25GbESFP281m/) cable and [QSFP28 to SFP28](https://store.nvidia.com/en-us/networking/store/product/MAM1Q00A-QSA28/NVIDIAMAM1Q00AQSA28CableAdapter100Gbsto25GbsQSFP28toSFP28/) adaptor
+- EVT HB-9000-G-C: 25GigE camera with Gpixel GMAX2509
+- SFP28 cable and QSFP28 to SFP28 adaptor
 - [Asus ROG Swift PG279QM](https://rog.asus.com/us/monitors/27-to-31-5-inches/rog-swift-pg279qm-model/) and [Asus ROG Swift 360 Hz PG259QNR](https://rog.asus.com/us/monitors/23-to-24-5-inches/rog-swift-360hz-pg259qnr-model/) monitors with NVIDIA G-SYNC technology
 
 

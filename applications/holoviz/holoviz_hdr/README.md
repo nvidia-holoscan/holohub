@@ -19,5 +19,5 @@ The Holoviz operator parameter `display_color_space` is used to set the color sp
 To build and start the application:
 
 ```bash
-./dev_container build_and_run holoviz_hdr
+./holohub run holoviz_hdr
 ```

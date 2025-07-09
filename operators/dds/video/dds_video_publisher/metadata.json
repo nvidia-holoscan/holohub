@@ -12,6 +12,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"language": ["C++", "Python"],
 		"holoscan_sdk": {
 			"minimum_required_version": "2.0.0",
 			"tested_versions": [

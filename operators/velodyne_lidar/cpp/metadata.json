@@ -31,7 +31,7 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "C++",
+		"language": ["C++"],
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
@@ -43,7 +43,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Lidar","Velodyne","Point Cloud","Sensor"],
+		"tags": ["Lidar", "Point Cloud"],
 		"ranking": 4,
 		"dependencies": {}
 	}

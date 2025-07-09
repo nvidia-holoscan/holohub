@@ -70,7 +70,7 @@ This application requires all configuration and requirements from the [Advanced 
 Please refer to the top level Holohub README.md file for information on how to build this application.
 
 ```bash
-./dev_container build_and_run adv_networking_bench
+./holohub run adv_networking_bench
 ```
 
 ### Run Instructions

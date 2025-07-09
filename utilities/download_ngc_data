@@ -44,6 +44,10 @@ while [[ $# -gt 0 ]]; do
       shift # past argument
       shift # past value
       ;;
+    --model)
+      IS_MODEL=YES
+      shift # past argument
+      ;;
     --generate_gxf_entities)
       GENERATE_GXF_ENTITIES=YES
       shift # past argument
@@ -99,6 +103,7 @@ display_usage() {
   echo "  --download_dir            =  Path to download directory where the data will be stored"
   echo "  --download_name           =  Name of the directory where the data will be stored"
   echo "  --md5                     =  MD5 checksum for the downloaded resource. Only works for single archive"
+  echo "  --model                   =  Download a model instead of a resource"
   echo "  --generate_gxf_entities   =  Generates the GXF entities after download (this can take some time)"
   echo "  --gxf_entities_width      =  Width of the GXF entities (default = 256)"
   echo "  --gxf_entities_height     =  Height of the GXF entities (default = 256)"
@@ -377,7 +382,12 @@ if [ "${download_command}" == "ngc" ]; then
     # Newer version of ngc cli needs the following env settings to print progress bar
     export PYTHONIOENCODING=utf-8
     export LC_ALL=C.UTF-8
-    ngcoutput=$(run_command ngc registry resource download-version ${url} --dest .)
+    
+    if [ "${IS_MODEL}" == "YES" ]; then
+        ngcoutput=$(run_command ngc registry model download-version ${url} --dest .)
+    else
+        ngcoutput=$(run_command ngc registry resource download-version ${url} --dest .)
+    fi
 
     if [ $? -ne 0 ]; then
         fatal R "Unable to download " W "${url}" R ".

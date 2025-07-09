@@ -69,7 +69,7 @@ advanced_network:
           cpu_core: 9
           batch_size: 10240
           memory_regions:
-            - "Data_RX_GPU"
+            - "Data_RX_CPU"
             - "Data_RX_GPU"
         flows:
         - name: "flow_0"

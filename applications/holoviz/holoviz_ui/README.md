@@ -8,5 +8,5 @@ This application uses the layer callback provided by the Holoviz operator and le
 To build and start the application:
 
 ```bash
-./dev_container build_and_run holoviz_ui
+./holohub run holoviz_ui
 ```

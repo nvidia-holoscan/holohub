@@ -62,7 +62,7 @@ flowchart LR
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode cuda_quantum
+./holohub vscode cuda_quantum
 ```
 
 ### VS Code Launch Profiles

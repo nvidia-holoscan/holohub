@@ -18,7 +18,8 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM ${BASE_IMAGE} as base
+# Pin to Holoscan 3.2 since application requires CUDA Driver 550+ for Holoscan 3.3+
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -49,15 +50,15 @@ RUN . /etc/lsb-release \
 
 # --------------------------------------------------------------------------
 #
-# Holohub run setup
+# Holohub dev setup
 #
 
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc

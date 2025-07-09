@@ -23,14 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Learning",
-			"Medical",
-			"Self-Supervised",
-			"Surgical",
-			"Video"
-		],
+		"tags": ["Computer Vision and Perception", "Learning", "Healthcare AI", "Surgical AI", "Video"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

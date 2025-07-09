@@ -12,6 +12,7 @@
         "changelog": {
             "1.0": "Initial Release"
         },
+        "dockerfile": "applications/orsi/Dockerfile",
         "holoscan_sdk": {
             "minimum_required_version": "0.6.0",
             "tested_versions": [
@@ -22,7 +23,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["healthcare AI", "mixed reality", "occlusion handling", "robotic surgery assistance", "augmented reality", "VTK", "segmentation", "endoscopy"],
+        "tags": ["Healthcare AI", "Extended Reality", "Surgical AI", "VTK", "Segmentation", "Endoscopy"],
         "ranking": 3,
         "dependencies": {
             "data": [

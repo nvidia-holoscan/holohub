@@ -79,9 +79,9 @@ def check_name_matches_readme(metadata_path, json_data):
     if name is None:
         return False, "No name field found in metadata.json"
 
-    # Check if the name includes terms like application, holoscan, holohub and its variations
-    # also report the found terms
-    forbidden_terms = ["application", "holoscan", "holohub"]
+    # Check if the name includes terms like application, holohub and its variations.
+    # Note: holoscan is allowed only if it is part of the actual application name, like Isaac Holoscan Bridge.
+    forbidden_terms = ["application", "holohub"]
     found_terms = [term for term in forbidden_terms if re.search(term, name, re.IGNORECASE)]
     if found_terms:
         return (

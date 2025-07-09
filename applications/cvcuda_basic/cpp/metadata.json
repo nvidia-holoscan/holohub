@@ -12,6 +12,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"dockerfile": "applications/cvcuda_basic/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [
@@ -22,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "buffer reuse", "tensor interop", "CV CUDA", "video processing", "endoscopy", "visualization"],
+		"tags": ["Computer Vision and Perception", "Video", "Tensor Optimization", "CV CUDA", "Endoscopy", "Visualization"],
 		"ranking": 1,
 		"dependencies": {
 			"data": [

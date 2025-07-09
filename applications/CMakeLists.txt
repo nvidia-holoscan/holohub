@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ add_holohub_application(basic_networking_ping DEPENDS
 add_holohub_application(body_pose_estimation DEPENDS
                         OPERATORS OPTIONAL dds_video_subscriber dds_video_publisher)
 
-add_holohub_application(colonoscopy_segmentation DEPENDS OPERATORS aja_source)
+add_holohub_application(colonoscopy_segmentation DEPENDS OPERATORS OPTIONAL aja_source)
 
 add_holohub_application(cvcuda_basic DEPENDS OPERATORS cvcuda_holoscan_interop)
 
@@ -47,10 +47,11 @@ add_holohub_application(endoscopy_out_of_body_detection DEPENDS OPERATORS aja_so
 add_holohub_application(endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
-                                  aja_source
-                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer)
+                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer aja_source)
 
 add_subdirectory(h264)
+
+add_holohub_application(isaac_holoscan_bridge)
 
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
@@ -74,6 +75,8 @@ add_holohub_application(simple_pdw_pipeline DEPENDS
 add_holohub_application(object_detection_torch DEPENDS OPERATORS aja_source)
 
 add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
+
+add_holohub_application(polyp_detection)
 
 add_holohub_application(pva_video_filter)
 
@@ -121,6 +124,7 @@ add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)
 add_holohub_application(vila_live)
+add_holohub_application(holochat)
 add_holohub_application(xr_holoviz DEPENDS OPERATORS xr)
 add_holohub_application(xr_gsplat DEPENDS OPERATORS xr)
 add_subdirectory(orsi)

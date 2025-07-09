@@ -21,6 +21,9 @@
         "changelog": {
           "$ref": "holohub/project/v1#/$defs/changelog"
         },
+        "language": {
+          "$ref": "holohub/project/v1#/$defs/language"
+        },
         "platforms": {
           "$ref": "holohub/project/v1#/$defs/platforms"
         },

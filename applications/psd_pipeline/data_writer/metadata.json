@@ -35,10 +35,7 @@
         "platforms": [
             "x86_64"
         ],
-        "tags": [
-            "SDR",
-            "DSP"
-        ],
+        "tags": ["Signal Processing"],
         "ranking": 4,
         "dependencies": {
             "libraries": [{

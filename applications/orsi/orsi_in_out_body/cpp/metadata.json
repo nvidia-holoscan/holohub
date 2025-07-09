@@ -12,6 +12,7 @@
         "changelog": {
             "1.0": "Initial Release"
         },
+        "dockerfile": "applications/orsi/Dockerfile",
         "holoscan_sdk": {
             "minimum_required_version": "0.6.0",
             "tested_versions": [
@@ -22,7 +23,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["healthcare AI", "video", "anonymization boundary", "GLSL blur", "computer vision", "video processing", "detection", "MultiAI", "visualization"],
+        "tags": ["Healthcare AI", "Video", "Computer Vision and Perception", "Detection", "Visualization"],
         "ranking": 3,
         "dependencies": {
 			"data": [

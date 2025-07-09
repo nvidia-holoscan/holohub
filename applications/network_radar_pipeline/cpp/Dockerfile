@@ -48,7 +48,7 @@ RUN rm /tmp/dpdk-${DPDK_VERSION}.tar.xz
 ADD . ${HOLOHUB_DIR}
 WORKDIR ${HOLOHUB_DIR}
 RUN ls -lart ${HOLOHUB_DIR}
-RUN ./run build network_radar_pipeline
+RUN ./holohub build network_radar_pipeline
 
 WORKDIR /tmp/
 RUN wget https://github.com/nats-io/nats-server/releases/download/${NATS_VER}/${NATS_FILE} && \

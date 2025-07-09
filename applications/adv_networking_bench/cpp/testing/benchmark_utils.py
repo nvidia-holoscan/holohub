@@ -156,20 +156,22 @@ class BenchmarkResults:
         # to get bps, then convert to Gbps
         return (tx_bytes * 8) / (self.exec_time / 1000) / 1e9
 
-    def validate_rx_queue_packets(self, port: int, expected_packets: Dict[int, int]) -> bool:
+    def validate_rx_queue_packets(
+        self, port: int, expected_packets: Dict[int, int], allow_greater: bool = False
+    ) -> bool:
         """
         Validate that RX queues on a specific port received the expected number of packets.
 
         Args:
             port: Port number to validate
             expected_packets: Dictionary mapping queue numbers to expected packet counts {queue: count}
+            allow_greater: If True, validate that the actual packet count is greater than the expected count
 
         Returns:
             bool: True if validation passed, False otherwise
         """
         port_str = str(port)
         success = True
-
         if port_str not in self.q_rx_pkts:
             if expected_packets:  # If we expected packets but found none
                 logger.error(f"No RX queue packets found for port {port}")
@@ -182,18 +184,18 @@ class BenchmarkResults:
         # Check each expected queue
         for queue_str, expected_count in expected_str_dict.items():
             actual_count = self.q_rx_pkts[port_str].get(queue_str, 0)
+            success = (
+                actual_count > expected_count if allow_greater else actual_count == expected_count
+            )
 
-            if actual_count != expected_count:
-                logger.error(
-                    f"Port {port} Queue {queue_str} packet count mismatch: "
-                    f"expected={expected_count}, actual={actual_count} ❌"
-                )
-                success = False
+            # Log
+            expect_symbol = ">=" if allow_greater else "="
+            queue_info = f"Port {port_str} Queue {queue_str} packet count"
+            count_info = f"expected{expect_symbol}{expected_count}, actual={actual_count}"
+            if not success:
+                logger.error(f"{queue_info} mismatch: {count_info} ❌")
             else:
-                logger.info(
-                    f"Port {port} Queue {queue_str} packet count match: "
-                    f"expected={expected_count}, actual={actual_count} ✅"
-                )
+                logger.info(f"{queue_info} match: {count_info} ✅")
 
         # Check for unexpected queues with packets
         for queue_str, actual_count in self.q_rx_pkts[port_str].items():

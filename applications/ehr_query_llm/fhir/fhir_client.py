@@ -21,11 +21,11 @@ from urllib.parse import urlparse
 from holoscan.conditions import PeriodicCondition
 from holoscan.core import Application
 
-from operators.ehr_query_llm.fhir.fhir_client_op import FhirClientOperator
-from operators.ehr_query_llm.fhir.fhir_resource_sanitizer_op import FhirResourceSanitizerOp
 from operators.ehr_query_llm.fhir.token_provider import TokenProvider
-from operators.ehr_query_llm.zero_mq.publisher_op import ZeroMQPublisherOp
-from operators.ehr_query_llm.zero_mq.subscriber_op import ZeroMQSubscriberOp
+from operators.ehr_query_llm.fhir_client_op import FhirClientOperator
+from operators.ehr_query_llm.fhir_resource_sanitizer_op import FhirResourceSanitizerOp
+from operators.ehr_query_llm.zero_mq_publisher_op import ZeroMQPublisherOp
+from operators.ehr_query_llm.zero_mq_subscriber_op import ZeroMQSubscriberOp
 
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 

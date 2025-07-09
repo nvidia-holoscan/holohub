@@ -178,22 +178,22 @@ In this example, if you wanted to use the `ens3f1np1` interface, you'd pass
 1. **Build** the development container in two steps:
    ```bash
    # Build the ANO dev container
-   ./dev_container build --docker_file ./operators/advanced_network/Dockerfile
+   ./holohub build-container advanced_network --docker-file ./operators/advanced_network/Dockerfile
 
    # Add the psd-pipeline deps
-   ./dev_container build --docker_file ./applications/psd_pipeline/Dockerfile --base_img holohub:ngc-v3.1.0-dgpu --img holohub-psd-pipeline:ngc-v3.1.0-dgpu
+   ./holohub build-container psd_pipeline --base-img holohub:ngc-v3.1.0-dgpu --img holohub-psd-pipeline:ngc-v3.1.0-dgpu
    ```
 2. **Launch** the development container with the command:
    ```bash
-   ./dev_container launch --as_root --img holohub-psd-pipeline:ngc-v3.1.0-dgpu --docker_opts "--privileged"
+   ./holohub run-container psd_pipeline --no-docker-build --docker-opts="-u root --privileged" --img holohub-psd-pipeline:ngc-v3.1.0-dgpu
    ```
 
 Once you are in the dev container:
 1. **Build** the application using:
     ```bash
-    ./run build psd_pipeline
+    ./holohub build psd_pipeline
     ```
 2. **Run** the application using:
     ```bash
-    ./run launch psd_pipeline --extra_args config.yaml
+    ./holohub run psd_pipeline --local --no-local-build --run-args="config.yaml"
     ```

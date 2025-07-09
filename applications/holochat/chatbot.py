@@ -22,6 +22,9 @@ import os
 import gradio as gr
 from llm import LLM
 
+# Import MCP server module
+from mcp_server import start_mcp_server
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -35,7 +38,19 @@ def parse_args() -> argparse.Namespace:
         help="Will run the LLM using a local Llama.cpp server, otherwise it will use the NVIDIA NIM API",
         action="store_true",
     )
+
+    parser.add_argument(
+        "--mcp",
+        help="Run as an MCP server providing Holoscan context to upstream LLMs",
+        action="store_true",
+    )
+
     args = parser.parse_args()
+
+    # Validate arguments - can't have both --local and --mcp
+    if args.local and args.mcp:
+        parser.error("Cannot use both --local and --mcp options simultaneously")
+
     return args
 
 
@@ -74,6 +89,15 @@ def set_visible_true():
 
 
 def main():
+    # If --mcp flag is set, run as MCP server
+    if args.mcp:
+        # Initialize the LLM to get access to the database and embedding model
+        llm = LLM(is_local=False)
+        # Start the MCP server
+        start_mcp_server(llm.config, llm.db)
+        return
+
+    # Otherwise run the normal Gradio chat interface
     title = "HoloChat"
     theme = gr.themes.Soft(text_size=gr.themes.sizes.text_md).set(
         button_primary_background_fill="#76b900",

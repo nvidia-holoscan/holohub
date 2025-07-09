@@ -15,7 +15,7 @@ Note that this application requires to provide the VideoMaster_SDK_DIR if it is 
 This can be done with the following command, from the top level Holohub source directory:
 
 ```bash
-./run build deltacast_transmitter --configure-args -DVideoMaster_SDK_DIR=<Path to VideoMasterSDK>
+./holohub build --local deltacast_transmitter --configure-args="-DVideoMaster_SDK_DIR=<Path to VideoMasterSDK>"
 ```
 
 ### Run Instructions

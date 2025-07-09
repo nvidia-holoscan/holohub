@@ -44,22 +44,16 @@ Towards realtime segmentation, AR overlay and anonymization, a binary segmentati
 | Toggle tumor | 6 |
 
 
-## Build app
+## Build and Launch app
 
 ```bash
-./run build orsi_multi_ai_ar
-```
-
-## Launch app
-
-```bash
-./run launch orsi_multi_ai_ar cpp
+./holohub run orsi_multi_ai_ar --language cpp
 ```
 
 or
 
 ```bash
-./run launch orsi_multi_ai_ar python
+./holohub run orsi_multi_ai_ar --language python
 ```
 
 <center> <img src="./docs/orsi_logo.png" width="400"></center>

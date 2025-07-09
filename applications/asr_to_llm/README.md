@@ -72,16 +72,11 @@ Download the [quantized Mistral 7B LLM](https://huggingface.co/TheBloke/Mistral-
 wget -nc -P <your_model_dir> https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF/resolve/main/mistral-7b-openorca.Q8_0.gguf
 ```
 
-From the Holohub main directory run the following command:
-```bash
-./dev_container build --docker_file applications/asr_to_llm/Dockerfile --img holohub:asr_to_llm
-```
-
 ## Run instructions
 
-Launch the `holohub:asr_to_llm` container:
+Build and launch the `holohub:asr_to_llm` container:
 ```bash
-./dev_container launch --img holohub:asr_to_llm --add-volume <your_model_dir>
+./holohub run-container asr_to_llm --add-volume <your_model_dir>
 ```
 Run the application and use the `--list-devices` arg to determine which microphone to use:
 ```bash
@@ -124,7 +119,7 @@ The RivaStreamingOp is a Holoscan SDK adaptation of the [transcribe_mic.py](http
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode asr_to_llm
+./holohub vscode asr_to_llm
 ```
 
 ### VS Code Launch Profiles

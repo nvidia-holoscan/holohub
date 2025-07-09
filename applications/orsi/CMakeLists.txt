@@ -30,11 +30,10 @@ set(HOLOSCAN_OPERATORS
         orsi_segmentation_postprocessor
         orsi_segmentation_preprocessor
         orsi_visualizer
-        aja_source
 )
 
 if(ORSI_VIDEO_MASTER_SDK_FOUND)
-    list(APPEND HOLOSCAN_OPERATORS  deltacast_videomaster)
+    list(APPEND HOLOSCAN_OPERATORS deltacast_videomaster)
 endif()
 
 # Download datasets
@@ -61,10 +60,13 @@ if(APP_orsi_multi_ai_ar OR APP_orsi_in_out_body OR APP_orsi_segmentation_ar)
 endif()
 
 add_holohub_application(orsi_multi_ai_ar DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS})
+                        OPERATORS ${HOLOSCAN_OPERATORS}
+                        OPTIONAL aja_source)
 
 add_holohub_application(orsi_in_out_body DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS})
+                        OPERATORS ${HOLOSCAN_OPERATORS}
+                        OPTIONAL aja_source)
 
 add_holohub_application(orsi_segmentation_ar DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS})
+                        OPERATORS ${HOLOSCAN_OPERATORS}
+                        OPTIONAL aja_source)

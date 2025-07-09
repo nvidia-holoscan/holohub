@@ -32,7 +32,7 @@ This application downloads a pre-recorded video from [Pexels](https://www.pexels
 Build and launch container. Note that this will use a v4l2 input source as default.
 
 ```
-./dev_container build_and_run yolo_model_deployment
+./holohub run yolo_model_deployment
 ```
 
 ### Video Replayer Support
@@ -40,7 +40,7 @@ Build and launch container. Note that this will use a v4l2 input source as defau
 If you don't have a v4l2 compatible device plugged in, you can also run this application on a pre-recorded video. To launch the application using the Video Stream Replayer as the input source, run:
 
 ```
-./dev_container build_and_run yolo_model_deployment --run_args "--source replayer"
+./holohub run yolo_model_deployment --run-args="--source replayer"
 ```
 
 ### Configuration

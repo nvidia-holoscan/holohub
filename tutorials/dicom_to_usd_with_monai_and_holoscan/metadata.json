@@ -51,15 +51,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"DICOM",
-			"mesh",
-			"MONAI",
-			"MONAI Deploy",
-			"Omniverse",
-			"OpenUSD",
-			"STL"
-		],
+		"tags": ["Healthcare Interop", "MONAI", "OpenUSD", "STL"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [

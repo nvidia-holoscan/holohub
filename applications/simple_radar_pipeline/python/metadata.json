@@ -19,7 +19,7 @@
 			]
 		},
 		"platforms": ["x86_64"],
-		"tags": ["signal processing", "radar", "pulse compression", "CFAR analysis", "radar", "signal processing", "FFT", "detection"],
+		"tags": ["Signal Processing", "Detection"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

@@ -22,11 +22,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": [
-			"VM",
-			"Windows",
-            "Tutorial"
-		],
+		"tags": [],
 		"ranking": 1,
 		"dependencies": {}
 	}

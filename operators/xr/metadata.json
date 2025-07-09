@@ -15,7 +15,7 @@
 				"affiliation": "NVIDIA"
 			}
         ],
-        "language": "C++",
+        "language": ["C++"],
         "version": "1.0.0",
         "changelog": {
             "0.0": "Initial Release"
@@ -29,12 +29,7 @@
         "platforms": [
             "x86_64"
         ],
-        "tags": [
-            "XR",
-            "OpenXR",
-            "Vulkan",
-            "3D Visualization"
-        ],
+        "tags": ["Extended Reality", "Vulkan", "Visualization"],
         "ranking": 4,
         "dependencies": {
             "libraries": [

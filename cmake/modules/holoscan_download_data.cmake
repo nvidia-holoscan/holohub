@@ -21,7 +21,7 @@ function(holoscan_download_data dataname)
     return()
   endif()
 
-  cmake_parse_arguments(DATA "GENERATE_GXF_ENTITIES;ALL"
+  cmake_parse_arguments(DATA "GENERATE_GXF_ENTITIES;ALL;MODEL"
                              "URL;URL_MD5;DOWNLOAD_DIR;GXF_ENTITIES_WIDTH;GXF_ENTITIES_HEIGHT;GXF_ENTITIES_CHANNELS;GXF_ENTITIES_FRAMERATE"
                              "" ${ARGN})
 
@@ -57,6 +57,10 @@ function(holoscan_download_data dataname)
     list(APPEND extra_data_options --gxf_entities_framerate ${DATA_GXF_ENTITIES_FRAMERATE})
   endif()
 
+  if(DATA_MODEL)
+    list(APPEND extra_data_options --model)
+  endif()
+
   # Using a custom_command attached to a custom target allows to run only the custom command
   # if the stamp is not generated
   add_custom_command(OUTPUT "${DATA_DOWNLOAD_DIR}/${dataname}/${dataname}.stamp"
@@ -76,4 +80,9 @@ function(holoscan_download_data dataname)
 
   add_custom_target("${dataname}_data" ${ALL} DEPENDS "${DATA_DOWNLOAD_DIR}/${dataname}/${dataname}.stamp")
 
+endfunction()
+
+# Helper function to download models for NGC
+function(holoscan_download_model modelname)
+  holoscan_download_data(${modelname} MODEL ${ARGN})
 endfunction()

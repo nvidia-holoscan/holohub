@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "distributed", "LSTM TensorRT", "asynchronous queues", "gRPC", "video processing", "computer vision", "tracking", "visualization"],
+		"tags": ["Healthcare AI", "Distributed", "LSTM", "Asynchronous Queues", "gRPC", "Video", "Computer Vision and Perception", "Visualization"],
 		"ranking": 0,
 		"dependencies": {
 			"data": [

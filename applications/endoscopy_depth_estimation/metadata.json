@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "networking", "endoscopy", "monocular depth estimation", "CV CUDA", "video processing", "rendering"],
+		"tags": ["Healthcare AI", "Networking and Distributed Computing", "Endoscopy", "Monocular Depth Estimation", "CV CUDA", "Video", "Rendering"],
 		"ranking": 2,
 		"dependencies": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_depth_estimation_sample_data",

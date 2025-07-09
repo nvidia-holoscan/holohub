@@ -23,11 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"GUI",
-			"Python",
-			"Pyside6"
-		],
+		"tags": ["UI"],
 		"ranking": 1,
 		"dependencies": {}
 	}

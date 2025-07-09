@@ -22,59 +22,72 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "imaging", "volumetric reconstruction", "interoperable segmentation formats", "DICOM seg", "MONAI model zoo", "total segmentator", "radiology imaging"],
+		"tags": ["Healthcare AI", "Imaging", "Volumetric Reconstruction", "Healthcare Interop", "TotalSegmentator", "Medical Imaging"],
 		"ranking": 1,
 		"dependencies": {
-            "python-packages": {
-                "holoscan": {
-                    "version": "2.3.0",
-                    "license-url": "https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/LICENSE.txt"
-                },
-				"highdicom": {
+            "data": [
+                {
+                    "name": "Imaging AI Whole Body Segmentation",
+                    "description": "MONAI model for whole body CT segmentation",
+                    "url": "https://developer.download.nvidia.com/assets/Clara/monai/tutorials/model_zoo/model_wholebody_ct_segmentation.pt"
+                }
+            ],
+            "libraries": [
+                {
+                    "name": "highdicom",
                     "version": "0.18.2",
                     "license-url": "https://github.com/ImagingDataCommons/highdicom/blob/master/LICENSE"
                 },
-				"monai": {
+                {
+                    "name": "monai",
                     "version": "1.0.0",
                     "license-url": "https://github.com/Project-MONAI/MONAI/blob/dev/LICENSE"
                 },
-				"nibabel": {
+                {
+                    "name": "nibabel",
                     "version": "3.2.1",
                     "license-url": "https://nipy.org/nibabel/legal.html"
                 },
-				"numpy": {
+                {
+                    "name": "numpy",
                     "version": "1.21.6",
                     "license-url": "https://github.com/numpy/numpy/blob/main/LICENSE.txt"
                 },
-				"Pillow": {
+                {
+                    "name": "Pillow",
                     "version": "8.0.0",
                     "license-url": "https://github.com/python-pillow/Pillow/blob/main/LICENSE"
                 },
-				"pydicom": {
+                {
+                    "name": "pydicom",
                     "version": "2.3.0",
                     "license-url": "https://github.com/pydicom/pydicom/blob/main/LICENSE"
                 },
-				"SimpleITK": {
+                {
+                    "name": "SimpleITK",
                     "version": "2.0.0",
                     "license-url": "https://github.com/SimpleITK/SimpleITK/blob/master/LICENSE"
                 },
-				"scikit-image": {
+                {
+                    "name": "scikit-image",
                     "version": "0.17.2",
                     "license-url": "https://github.com/scikit-image/scikit-image/blob/main/LICENSE.txt"
                 },
-				"torch": {
+                {
+                    "name": "torch",
                     "version": "1.2.0",
                     "license-url": "https://github.com/pytorch/pytorch/blob/main/LICENSE"
                 },
-				"typeguard": {
+                {
+                    "name": "typeguard",
                     "version": "3.0.0",
                     "license-url": "https://github.com/agronholm/typeguard/blob/master/LICENSE"
                 }
-            }
+            ]
 		},
 		"run": {
 			"command": "python3 <holohub_app_source>/app.py",
-			"workdir": "holohub_bin"
+			"workdir": "holohub_app_source"
 		}
 	}
 }

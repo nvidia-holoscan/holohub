@@ -1,0 +1,360 @@
+diff --git a/source/extensions/isaacsim.sensors.camera/isaacsim/sensors/camera/camera.py b/source/extensions/isaacsim.sensors.camera/isaacsim/sensors/camera/camera.py
+index 741f0c84d..df850c907 100644
+--- a/source/extensions/isaacsim.sensors.camera/isaacsim/sensors/camera/camera.py
++++ b/source/extensions/isaacsim.sensors.camera/isaacsim/sensors/camera/camera.py
+@@ -1,4 +1,4 @@
+-# Copyright (c) 2021-2024, NVIDIA CORPORATION. All rights reserved.
++# Copyright (c) 2021-2025, NVIDIA CORPORATION. All rights reserved.
+ #
+ # NVIDIA CORPORATION and its licensors retain all intellectual property
+ # and proprietary rights in and to this software, related documentation
+@@ -11,11 +11,16 @@ import math
+ from typing import Callable, List, Optional, Sequence, Tuple
+ 
+ import carb
++import isaacsim.core.utils.numpy as np_utils
++import isaacsim.core.utils.torch as torch_utils
++import isaacsim.core.utils.warp as warp_utils
+ import numpy as np
+ import omni
+ import omni.graph.core as og
+ import omni.replicator.core as rep
+ import omni.syntheticdata._syntheticdata as _syntheticdata
++import torch
++import warp as wp
+ from isaacsim.core.api.sensors.base_sensor import BaseSensor
+ from isaacsim.core.nodes.bindings import _isaacsim_core_nodes
+ from isaacsim.core.utils.carb import get_carb_setting
+@@ -174,6 +179,7 @@ class Camera(BaseSensor):
+         orientation: Optional[np.ndarray] = None,
+         translation: Optional[np.ndarray] = None,
+         render_product_path: str = None,
++        annotator_device: str = None,
+     ) -> None:
+         frequency = frequency
+         dt = dt
+@@ -208,6 +214,7 @@ class Camera(BaseSensor):
+         self._render_product_path = render_product_path
+         self._resolution = resolution
+         self._render_product = None
++        self._annotator_device = annotator_device
+         self._rgb_annotator = None
+         self._supported_annotators = [
+             "normals",
+@@ -270,11 +277,18 @@ class Camera(BaseSensor):
+             if self.prim.GetAttribute(property_name).Get() is None:
+                 self.prim.CreateAttribute(property_name, Sdf.ValueTypeNames.Float)
+         self._current_frame = dict()
+-        self._current_frame["rgba"] = self._backend_utils.create_zeros_tensor(
+-            shape=[resolution[0], resolution[1], 4], dtype="int32", device=self._device
++        # Initialize the first frame with the correct backend (warp or numpy)
++        if self._annotator_device is None:
++            backend_utils = self._backend_utils
++        else:
++            if self._annotator_device.startswith("cuda"):
++                backend_utils = warp_utils
++            else:
++                backend_utils = np_utils
++        self._current_frame["rgba"] = backend_utils.create_zeros_tensor(
++            shape=[resolution[0], resolution[1], 4], dtype="uint8", device=self._annotator_device
+         )
+         self._pause = False
+-        self._current_frame = dict()
+         self._current_frame["rendering_time"] = 0
+         self._current_frame["rendering_frame"] = 0
+         self._core_nodes_interface = _isaacsim_core_nodes.acquire_interface()
+@@ -288,7 +302,7 @@ class Camera(BaseSensor):
+ 
+     def __del__(self):
+         """detach annotators on destroy and destroy the internal render product if it exists"""
+-        for annotator in self.supported_annotators:
++        for annotator in self._supported_annotators:
+             getattr(self, "remove_{}_from_frame".format(annotator))()
+         if self._render_product is not None:
+             self._render_product.destroy()
+@@ -383,7 +397,7 @@ class Camera(BaseSensor):
+         else:
+             self._render_product = rep.create.render_product(self.prim_path, resolution=self._resolution)
+             self._render_product_path = self._render_product.path
+-        self._rgb_annotator = rep.AnnotatorRegistry.get_annotator("rgb")
++        self._rgb_annotator = rep.AnnotatorRegistry.get_annotator("rgb", device=self._annotator_device)
+         self._fabric_time_annotator = rep.AnnotatorRegistry.get_annotator("ReferenceTime")
+         self._rgb_annotator.attach([self._render_product_path])
+         self._fabric_time_annotator.attach([self._render_product_path])
+@@ -398,8 +412,16 @@ class Camera(BaseSensor):
+             )
+         )
+         width, height = self.get_resolution()
+-        self._current_frame["rgba"] = self._backend_utils.create_zeros_tensor(
+-            shape=[width, height, 4], dtype="int32", device=self._device
++        # Initialize the first frame with the correct backend (warp or numpy)
++        if self._annotator_device is None:
++            backend_utils = self._backend_utils
++        else:
++            if self._annotator_device.startswith("cuda"):
++                backend_utils = warp_utils
++            else:
++                backend_utils = np_utils
++        self._current_frame["rgba"] = backend_utils.create_zeros_tensor(
++            shape=[width, height, 4], dtype="uint8", device=self._annotator_device
+         )
+         self._stage_open_callback = (
+             omni.usd.get_context()
+@@ -685,7 +707,9 @@ class Camera(BaseSensor):
+         See more details: https://docs.omniverse.nvidia.com/extensions/latest/ext_replicator/annotators_details.html#normals
+         """
+         if self._custom_annotators["normals"] is None:
+-            self._custom_annotators["normals"] = rep.AnnotatorRegistry.get_annotator("normals", init_params=init_params)
++            self._custom_annotators["normals"] = rep.AnnotatorRegistry.get_annotator(
++                "normals", device=self._annotator_device, init_params=init_params
++            )
+             self._custom_annotators["normals"].attach([self._render_product_path])
+         self._current_frame["normals"] = None
+         return
+@@ -710,7 +734,7 @@ class Camera(BaseSensor):
+         """
+         if self._custom_annotators["motion_vectors"] is None:
+             self._custom_annotators["motion_vectors"] = rep.AnnotatorRegistry.get_annotator(
+-                "motion_vectors", init_params=init_params
++                "motion_vectors", device=self._annotator_device, init_params=init_params
+             )
+             self._custom_annotators["motion_vectors"].attach([self._render_product_path])
+         self._current_frame["motion_vectors"] = None
+@@ -734,7 +758,7 @@ class Camera(BaseSensor):
+         """
+         if self._custom_annotators["occlusion"] is None:
+             self._custom_annotators["occlusion"] = rep.AnnotatorRegistry.get_annotator(
+-                "occlusion", init_params=init_params
++                "occlusion", device=self._annotator_device, init_params=init_params
+             )
+             self._custom_annotators["occlusion"].attach([self._render_product_path])
+         self._current_frame["occlusion"] = None
+@@ -760,7 +784,7 @@ class Camera(BaseSensor):
+         """
+         if self._custom_annotators["distance_to_image_plane"] is None:
+             self._custom_annotators["distance_to_image_plane"] = rep.AnnotatorRegistry.get_annotator(
+-                "distance_to_image_plane", init_params=init_params
++                "distance_to_image_plane", device=self._annotator_device, init_params=init_params
+             )
+             self._custom_annotators["distance_to_image_plane"].attach([self._render_product_path])
+         self._current_frame["distance_to_image_plane"] = None
+@@ -786,7 +810,7 @@ class Camera(BaseSensor):
+         """
+         if self._custom_annotators["distance_to_camera"] is None:
+             self._custom_annotators["distance_to_camera"] = rep.AnnotatorRegistry.get_annotator(
+-                "distance_to_camera", init_params=init_params
++                "distance_to_camera", device=self._annotator_device, init_params=init_params
+             )
+             self._custom_annotators["distance_to_camera"].attach([self._render_product_path])
+         self._current_frame["distance_to_camera"] = None
+@@ -905,7 +929,7 @@ class Camera(BaseSensor):
+         """
+         if self._custom_annotators["semantic_segmentation"] is None:
+             self._custom_annotators["semantic_segmentation"] = rep.AnnotatorRegistry.get_annotator(
+-                "semantic_segmentation", init_params=init_params
++                "semantic_segmentation", device=self._annotator_device, init_params=init_params
+             )
+             self._custom_annotators["semantic_segmentation"].attach([self._render_product_path])
+         self._current_frame["semantic_segmentation"] = None
+@@ -932,7 +956,7 @@ class Camera(BaseSensor):
+         """
+         if self._custom_annotators["instance_id_segmentation"] is None:
+             self._custom_annotators["instance_id_segmentation"] = rep.AnnotatorRegistry.get_annotator(
+-                "instance_id_segmentation", init_params=init_params
++                "instance_id_segmentation_fast", device=self._annotator_device, init_params=init_params
+             )
+             self._custom_annotators["instance_id_segmentation"].attach([self._render_product_path])
+         self._current_frame["instance_id_segmentation"] = None
+@@ -959,7 +983,7 @@ class Camera(BaseSensor):
+         """
+         if self._custom_annotators["instance_segmentation"] is None:
+             self._custom_annotators["instance_segmentation"] = rep.AnnotatorRegistry.get_annotator(
+-                "instance_segmentation", init_params=init_params
++                "instance_segmentation_fast", device=self._annotator_device, init_params=init_params
+             )
+             self._custom_annotators["instance_segmentation"].attach([self._render_product_path])
+         self._current_frame["instance_segmentation"] = None
+@@ -990,7 +1014,7 @@ class Camera(BaseSensor):
+             else:
+                 init_params["includeUnlabelled"] = include_unlabelled
+             self._custom_annotators["pointcloud"] = rep.AnnotatorRegistry.get_annotator(
+-                "pointcloud", init_params=init_params
++                "pointcloud", device=self._annotator_device, init_params=init_params
+             )
+             self._custom_annotators["pointcloud"].attach([self._render_product_path])
+         self._current_frame["pointcloud"] = None
+@@ -1002,21 +1026,30 @@ class Camera(BaseSensor):
+             self._custom_annotators["pointcloud"] = None
+         self._current_frame.pop("pointcloud", None)
+ 
+-    def get_rgba(self) -> np.ndarray:
++    def get_rgba(self, device: str = None) -> np.ndarray | wp.types.array:
+         """
++        Args:
++            device (str, optional): Device to hold data in. Select from `['cpu', 'cuda', 'cuda:<device_index>']`.
++                Defaults to None, which uses the device specified on annotator initialization (annotator_device)
++
+         Returns:
+             rgba (np.ndarray): (N x 4) RGBa color data for each point.
++            wp.types.array: (N x 4) RGBa color data for each point.
+         """
+-        return self._rgb_annotator.get_data()
++        return self._rgb_annotator.get_data(device=device)
+ 
+-    def get_rgb(self) -> np.ndarray:
++    def get_rgb(self, device: str = None) -> np.ndarray | wp.types.array:
+         """
++        Args:
++            device (str, optional): Device to hold data in. Select from `['cpu', 'cuda', 'cuda:<device_index>']`.
++                Defaults to None, which uses the device specified on annotator initialization (annotator_device)
++
+         Returns:
+             rgb (np.ndarray): (N x 3) RGB color data for each point.
++            wp.types.array: (N x 3) RGB color data for each point.
+         """
+ 
+-        data = self._rgb_annotator.get_data()
+-        return data[..., :3]
++        return self._rgb_annotator.get_data(device=device)[:, :, :3]
+ 
+     def get_depth(self) -> np.ndarray:
+         """
+@@ -1039,33 +1072,121 @@ class Camera(BaseSensor):
+             return None
+         return depth
+ 
+-    def get_pointcloud(self) -> np.ndarray:
+-        """
++    def get_pointcloud(self, device: str = None, world_frame: bool = True) -> np.ndarray | wp.array:
++        """Get a 3D pointcloud from the camera sensor.
++
++        Args:
++            device: str, optional, default is None. If None, uses self._annotator_device.
++                Device to place tensors on. Select from ['cpu', 'cuda', 'cuda:<device_index>']
++            world_frame (bool, optional): If True, returns points in world frame.
++                If False, returns points in camera frame.
++
+         Returns:
+-            pointcloud (np.ndarray):  (N x 3) 3d points (X, Y, Z) in camera frame. Shape is (N x 3) where N is the number of points.
++            np.ndarray | wp.array: A (N x 3) array of 3D points (X, Y, Z) in either world or camera frame,
++                   where N is the number of points.
+         Note:
+-            This currently uses the depth annotator to generate the pointcloud. In the future, this will be switched to use
+-            the pointcloud annotator.
+-        """
++            The fallback method uses the depth (distance_to_camera_plane) annotator and
++            performs a perspective projection using the camera's intrinsic parameters to generate the pointcloud.
++        """
++        # Use annotator device as fallback if device is None
++        device = self._annotator_device if device is None else device
++
++        # Try to get pointcloud from custom annotator first
++        if annot := self._custom_annotators.get("pointcloud"):
++            pointcloud_data = annot.get_data(device=device).get("data")
++            if pointcloud_data is None:
++                return None
++            if (
++                isinstance(pointcloud_data, wp.types.array)
++                and pointcloud_data.ndim == 3
++                and pointcloud_data.shape[0] == 1
++            ):
++                # Squeeze singleton dimension: shape (1, N, 3) -> (N, 3)
++                pointcloud_data = pointcloud_data.reshape((pointcloud_data.shape[1], pointcloud_data.shape[2]))
++            if world_frame:
++                return pointcloud_data
++            else:
++                # For warp arrays, we use torch_utils until warp has feature parity
++                is_warp_array = isinstance(pointcloud_data, wp.types.array)
++                backend_utils = torch_utils if is_warp_array else np_utils
++
++                # If using warp array, convert to torch tensor for processing (zero-copy operation)
++                if is_warp_array:
++                    pointcloud_data = wp.to_torch(pointcloud_data)
++                    pointcloud_data = pointcloud_data.to(device)  # Ensure tensor is on correct device
+ 
+-        depth = self.get_depth()
++                # Convert points to homogeneous coordinates by adding a column of ones
++                homogeneous_points = backend_utils.pad(pointcloud_data, ((0, 0), (0, 1)), value=1.0)
++
++                # Get the view matrix that transforms from world to camera coordinates
++                view_matrix = self.get_view_matrix_ros(device=device, backend_utils_cls=backend_utils)
++
++                # Apply the transformation, transpose points to get shape compatible with matrix multiplication
++                transposed_points = backend_utils.transpose_2d(homogeneous_points)
++
++                # Multiply by view matrix
++                transformed_points = backend_utils.matmul(view_matrix, transposed_points)
++                # Take only the first 3 rows (x,y,z) and transpose back
++                points_camera_frame = backend_utils.transpose_2d(transformed_points[:3, :])
++
++                # Convert back to warp if torch was used as alternative backend
++                if is_warp_array:
++                    points_camera_frame = wp.from_torch(points_camera_frame)
++
++                return points_camera_frame
++
++        # Pointcloud annotator not available, try depth-based fallback
++        carb.log_warn(
++            f"[get_pointcloud][{self.prim_path}] WARNING: 'pointcloud' annotator not available, falling back to depth-based calculation"
++        )
++
++        depth = self.get_depth(device=device)
+         if depth is None:
+-            carb.log_warn(f"[get_pointcloud][{self.prim_path}] WARNING: Unable to get depth. Returning None")
++            carb.log_warn(
++                f"[get_pointcloud][{self.prim_path}] WARNING: 'distance_to_image_plane' annotator not available to get depth data, Returning None"
++            )
+             return None
+ 
+-        # First, generate a grid of the mesh.
+-        im_height, im_width = depth.shape[0], depth.shape[1]
++        # Determine backend based on device and depth type
++        is_warp_array = isinstance(depth, wp.types.array)
++        backend_utils = torch_utils if is_warp_array else np_utils
+ 
+-        ww = np.linspace(0, im_width - 1, im_width)
+-        hh = np.linspace(0, im_height - 1, im_height)
+-        xmap, ymap = np.meshgrid(ww, hh)
++        # Convert warp array to torch tensor for calculation
++        if is_warp_array:
++            depth = wp.to_torch(depth)
++            depth = depth.to(device)  # Ensure tensor is on correct device
++
++        # Create pixel coordinate grid centered around the image center
++        im_height, im_width = depth.shape[0], depth.shape[1]
+ 
+-        points_2d = np.column_stack((xmap.ravel(), ymap.ravel()))
++        if backend_utils == torch_utils:
++            # Create coordinate grid using torch
++            ww = torch.linspace(0.5, im_width - 0.5, im_width, dtype=torch.float32, device=device)
++            hh = torch.linspace(0.5, im_height - 0.5, im_height, dtype=torch.float32, device=device)
++            xmap, ymap = torch.meshgrid(ww, hh, indexing="xy")
++            points_2d = torch.stack((xmap.flatten(), ymap.flatten()), dim=1)
++        else:
++            # Use numpy for non-warp arrays and CPU
++            ww = np.linspace(0.5, im_width - 0.5, im_width, dtype=np.float32)
++            hh = np.linspace(0.5, im_height - 0.5, im_height, dtype=np.float32)
++            xmap, ymap = np.meshgrid(ww, hh)
++            points_2d = np.column_stack((xmap.ravel(), ymap.ravel()))
++
++        # Project 2D pixel coordinates to 3D world points using depth values
++        if world_frame:
++            points_3d = self.get_world_points_from_image_coords(
++                points_2d, depth.flatten(), device=device, backend_utils_cls=backend_utils
++            )
++        else:
++            points_3d = self.get_camera_points_from_image_coords(
++                points_2d, depth.flatten(), device=device, backend_utils_cls=backend_utils
++            )
+ 
+-        # Directly use this function from the camera class to do this.
+-        pointcloud = self.get_world_points_from_image_coords(points_2d, depth.flatten())
++        # Convert back to warp array if input was warp array
++        if is_warp_array and not isinstance(points_3d, wp.types.array):
++            points_3d = wp.from_torch(points_3d)
+ 
+-        return pointcloud
++        return points_3d
+ 
+     def get_focal_length(self) -> float:
+         """

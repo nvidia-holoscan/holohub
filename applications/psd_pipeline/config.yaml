@@ -121,7 +121,7 @@ advanced_network:
             - name: "Context"
               id: 0
               cpu_core: 4
-              batch_size: 4  # Should be equal to num_channels
+              batch_size: 1
               memory_regions:
                 - "Headers_RX_CPU"
                 - "Context_RX_CPU"

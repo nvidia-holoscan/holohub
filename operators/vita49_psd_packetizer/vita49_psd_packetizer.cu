@@ -93,7 +93,7 @@ void V49PsdPacketizer::compute(InputContext& op_input, OutputContext& _out, Exec
     if (meta->has_key("fractional_timestamp"))
         fractional_timestamp = meta->get<uint64_t>("fractional_timestamp");
 
-    if (packet_sender->is_time_for_context() || meta->get<bool>("context_field_change", false)) {
+    if (packet_sender->is_time_for_context() || meta->get<bool>("change_indicator", false)) {
         SpectralContextPacket packet;
         packet.stream_id = stream_id;
         packet.integer_timestamp = integer_timestamp;
@@ -126,14 +126,14 @@ void V49PsdPacketizer::compute(InputContext& op_input, OutputContext& _out, Exec
             packet.f2_index = meta->get<int32_t>("f2_index");
         if (meta->has_key("window_time_delta"))
             packet.window_time_delta = meta->get<uint32_t>("window_time_delta");
-        if (meta->has_key("change_indicator"))
-            packet.change_indicator = meta->get<bool>("change_indicator");
         if (meta->has_key("rf_ref_freq_hz"))
             packet.rf_ref_freq_hz = meta->get<double>("rf_ref_freq_hz");
         if (meta->has_key("sample_rate_hz"))
             packet.sample_rate_sps = meta->get<double>("sample_rate_hz");
         if (meta->has_key("bandwidth_hz"))
             packet.bandwidth_hz = meta->get<double>("bandwidth_hz");
+
+        packet.change_indicator = meta->get<bool>("change_indicator", false);
 
         HOLOSCAN_LOG_DEBUG("Sending context packet (channel {}) to {}/udp",
                           channel_num, packet_sender->destination.c_str());

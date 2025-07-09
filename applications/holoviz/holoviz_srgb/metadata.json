@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "visualization", "synthetic test patterns", "dual color space control", "HoloViz sRGB", "eotf", "rendering"],
+		"tags": ["Computer Vision and Perception", "Visualization", "Benchmarking", "Holoviz", "Rendering"],
 		"ranking": 1,
 		"dependencies": {},
 		"run": {

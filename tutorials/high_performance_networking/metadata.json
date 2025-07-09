@@ -29,17 +29,7 @@
 			"SBSA",
 			"IGX Orin (dGPU)"
 		],
-		"tags": [
-			"DPDK",
-			"RDMA",
-			"Rivermax",
-			"GPUNetIO",
-			"GPUDirect",
-			"ConnectX",
-			"Networking",
-			"NIC",
-			"HPC"
-		],
+		"tags": ["DPDK", "RDMA", "GPUNetIO", "GPUDirect", "Networking and Distributed Computing", "HPC"],
 		"ranking": 1,
 		"dependencies": {
 			"applications": [

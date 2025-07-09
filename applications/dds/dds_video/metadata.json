@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["networking and distributed computing", "integration", "transport tuning", "geometric overlay", "DDS", "RTI connext", "video processing", "visualization", "shapes"],
+		"tags": ["Networking and Distributed Computing", "DDS", "RTI Connext", "Video", "Visualization"],
 		"ranking": 2,
 		"dependencies": {
 			"packages": [

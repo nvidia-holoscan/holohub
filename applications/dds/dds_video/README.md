@@ -37,10 +37,10 @@ be installed and configured with a valid RTI Connext license prior to use.
 
 ```bash
 # Start the publisher
-./dev_container build_and_run dds_video --container_args "-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run_args "-p"
+./holohub run dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run-args="-p"
 
 # Start the subscriber
-./dev_container build_and_run dds_video --container_args "-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run_args "-s"
+./holohub run dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run-args="-s"
 ```
 
 
@@ -56,7 +56,7 @@ the `NDDSHOME` environment variable to the RTI Connext installation directory
 (such as when using the RTI `setenv` scripts), or manually at build time, e.g.:
 
 ```sh
-$ ./run build dds_video --configure-args -DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0
+./holohub build --local dds_video --configure-args="-DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0"
 ```
 
 ### Building with a Container
@@ -69,12 +69,10 @@ the `NDDSHOME` and `CONNEXTDDS_ARCH` environment variables are set (which can be
 done using the RTI `setenv` script) and use the following:
 
 ```sh
-# 1. Build the container
-./dev_container build --docker_file applications/dds/dds_video/Dockerfile
-# 2. Launch the container
-./dev_container launch --docker_opts "-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/"
+# 1. Build and launch the container
+./holohub run-container dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/"
 # 3. Build the application
-./run build dds_video
+./holohub build dds_video
 # Continue to the next section to run the application with the publisher. 
 # Open a new terminal to repeat step #2 and launch a new container for the subscriber.
 ```
@@ -89,13 +87,13 @@ writing to and reading the video stream from DDS, respectively.
 To run the publisher process, use the `-p` option:
 
 ```sh
-$ ./run launch dds_video --extra_args "-p"
+$ ./holohub run --no-local-build dds_video --run-args="-p"
 ```
 
 To run the subscriber process, use the `-s` option:
 
 ```sh
-$ ./run launch dds_video --extra_args "-s"
+$ ./holohub run --no-local-build dds_video --run-args="-s"
 ```
 
 If running the application generates an error about `RTI Connext DDS No Source

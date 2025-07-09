@@ -12,6 +12,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"dockerfile": "applications/openigtlink_3dslicer/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "1.0.3",
 			"tested_versions": [
@@ -22,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "networking", "bidirectional video streaming", "headless rendering overlay", "3D Slicer", "segmentation", "ultrasound", "colonoscopy", "visualization"],
+		"tags": ["Healthcare AI", "Networking and Distributed Computing", "Video", "Visualization", "3D Slicer", "Segmentation", "Ultrasound", "Endoscopy"],
 		"ranking": 2,
 		"dependencies": {
 			"libraries": [{

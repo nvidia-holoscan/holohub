@@ -28,10 +28,10 @@ The data is automatically downloaded when building the application.
 
 ```bash
 # C++ version
-./dev_container build_and_run h264_video_decode --docker_file applications/h264/Dockerfile --language cpp
+./holohub run h264_video_decode --language=cpp
 
 # Python version
-./dev_container build_and_run h264_video_decode --docker_file applications/h264/Dockerfile --language python
+./holohub run h264_video_decode --language=python
 
 ```
 
@@ -52,7 +52,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode h264
+./holohub vscode h264
 ```
 
 ### VS Code Launch Profiles

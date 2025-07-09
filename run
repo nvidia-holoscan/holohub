@@ -14,6 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Check if this script is being used and warn about deprecation
+echo "################################################################################"
+echo "WARNING: The run script is deprecated. Please use the ./holohub command instead."
+echo "For more information, see: https://github.com/nvidia-holoscan/holohub"
+echo "################################################################################"
+echo ""
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DO_DRY_RUN="false"
 HOLOHUB_PY_EXE=${HOLOHUB_PY_EXE:-python3}
@@ -30,6 +37,16 @@ NOCOLOR="\e[0m"
 BOLD="\e[1;37m"
 
 # Compare versions
+# Compare two version strings and return:
+# 0 if versions are equal
+# 1 if first version is greater
+# 2 if second version is greater
+#
+# Example:
+#   compare_version "1.2.3" "1.2.4"    # returns 2 (second version is greater)
+#   compare_version "1.3.0" "1.2.9"    # returns 1 (first version is greater)
+#   compare_version "1.2.3" "1.2.3"    # returns 0 (versions are equal)
+
 compare_version () {
 
     if [[ $1 == $2 ]]
@@ -348,108 +365,93 @@ setup_desc() {
 
 setup() {
 
-  # Run apt-get update
-  apt-get update
+  apt_deps=()
 
   # Install wget
-  wget_version=$(dpkg --status wget | grep -Po '^Version: \K[^-]*')
-  if [[ $wget_version == "" ]]; then
-    apt-get install -y wget
+  if ! command -v wget > /dev/null; then
+    apt_deps+=("wget")
   fi
 
   # Install xvfb for running tests/examples headless
-  xvfb_version=$(dpkg --status xvfb | grep -Po '^Version: \K[^-]*')
-  if [[ $xvfb_version == "" ]]; then
-    apt-get install -y xvfb
+  if ! command -v xvfb-run > /dev/null; then
+    apt_deps+=("xvfb")
   fi
 
   # Check version of CMake otherwise upgrade
-  cmake_version=$(dpkg --status cmake | grep -Po '^Version: \K[^-]*')
-  ubuntu_codename=$(cat /etc/os-release | grep -Po '^UBUNTU_CODENAME=\K[^ ]*')
-
+  cmake_version=$(cmake --version | head -1 | cut -d' ' -f3)
   cmake_need_upload=$(compare_version ${cmake_version} "3.24.0")
 
   # If we should update cmake
   # Install from https://apt.kitware.com/
   if [[ $cmake_version == "" ]] || [[ $cmake_need_upload == 2 ]]; then
-    apt install --no-install-recommends -y gpg
+    ubuntu_codename=$(cat /etc/os-release | grep -Po '^UBUNTU_CODENAME=\K[^ ]*')
+    apt-get install --no-install-recommends -y gpg
     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
     echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ ${ubuntu_codename} main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null
-    apt-get update
-    apt install --no-install-recommends -y cmake cmake-curses-gui
+    apt-get install prune -y gpg
+    apt_deps+=("cmake")
+    apt_deps+=("cmake-curses-gui")
   fi
 
   # Install Ninja
-  ninja_version=$(dpkg --status ninja-build 2>/dev/null | grep -Po '^Version: \K[^-]*')
-  if [[ $ninja_version == "" ]]; then
-    echo "Installing ninja-build"
-    apt install --no-install-recommends -y ninja-build
+  if ! command -v ninja > /dev/null; then
+    apt_deps+=("ninja-build")
   fi
 
-  # Install python dev
-  python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
+  # Check if python is missing, too low, or too high
+  python3_dev_version=$(apt list --installed 2>/dev/null | grep python3.*-dev | head -1 | cut -d' ' -f2 | cut -d- -f1)
   python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
-
-  # Python 3.8 to 3.11 are supported
+  python3_max_version=$(compare_version ${python3_dev_version} "3.13.0")
   if [[ $python3_dev_version == "" ]] || [[ $python3_min_version == "2" ]]; then
-    echo "Installing python"
-    apt install --no-install-recommends -y python3 python3-dev
-    python3_dev_version=$(dpkg --status python3-dev  2>/dev/null | grep -Po '^Version: \K[^-]*')
-    python3_min_version=$(compare_version ${python3_dev_version} "3.9.0")
-  fi
-
-  # If python version is too high
-  python3_max_version=$(compare_version ${python3_dev_version} "3.12.0")
-  if [[ $python3_max_version == "0" ]] || [[ $python3_max_version == "1" ]]; then
+    apt_deps+=("python3")
+    apt_deps+=("python3-dev")
+    python3_dev_version=$(apt list --installed 2>/dev/null | grep python3.*-dev | head -1 | cut -d' ' -f2 | cut -d- -f1)
+  elif [[ $python3_max_version == "0" ]] || [[ $python3_max_version == "1" ]]; then
     print_error "Python version ${python3_dev_version} is not supported"
     exit 1
   fi
 
   # Install ffmpeg
-  ffmpeg_version=$(dpkg --status ffmpeg 2>/dev/null | grep -Po '^Version: \K[^-]*')
-  if [[ $ffmpeg_version == "" ]]; then
-    echo "Installing ffmpeg"
-    apt install --no-install-recommends -y ffmpeg
+  if ! command -v ffmpeg > /dev/null; then
+    apt_deps+=("ffmpeg")
   fi
 
   # Install libv4l-dev
-  libv4l_dev_version=$(dpkg --status libv4l-dev | grep -Po '^Version: \K[^-]*')
-  if [[ $libv4l_dev_version == "" ]]; then
-    echo "Installing libv4l-dev"
-    apt-get install --no-install-recommends -y libv4l-dev
+  if [[ ! -f "/usr/include/libv4l2.h" ]]; then
+    apt_deps+=("libv4l-dev")
   fi
 
   # git
-  git_path=$(which git)
-  if [[ $git_path == "" ]]; then
-    echo "Installing git"
-    apt-get install --no-install-recommends -y git
+  if ! command -v git > /dev/null; then
+    apt_deps+=("git")
   fi
 
   # unzip
-  unzip_path=$(which unzip)
-  if [[ $unzip_path == "" ]]; then
-    echo "Installing unzip"
-    apt-get install --no-install-recommends -y unzip
+  if ! command -v unzip > /dev/null; then
+    apt_deps+=("unzip")
   fi
 
+  # Install the dependencies
+  echo "Installing apt dependencies: ${apt_deps[@]}"
+  apt-get update
+  apt-get install -y --no-install-recommends ${apt_deps[@]}
+
   # Install ngc-cli
-  ngc_version=$(ngc --version 2>/dev/null | grep -Po '^NGC CLI \K[^-]*')
-  if [[ $ngc_version == "" ]]; then
+  if ! command -v ngc > /dev/null; then
     echo "Installing ngc cli"
 
     if [ $(uname -m) == "aarch64" ]; then
-      wget --content-disposition https://ngc.nvidia.com/downloads/ngccli_arm64.zip && unzip ngccli_arm64.zip && chmod u+x ngc-cli/ngc
+      wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_arm64.zip -O ngccli_arm64.zip && unzip ngccli_arm64.zip && chmod u+x ngc-cli/ngc
     fi
     if [ $(uname -m) == "x86_64" ]; then
-      wget --content-disposition https://ngc.nvidia.com/downloads/ngccli_linux.zip && unzip ngccli_linux.zip && chmod u+x ngc-cli/ngc
+      wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_linux.zip -O ngccli_linux.zip && unzip ngccli_linux.zip && chmod u+x ngc-cli/ngc
     fi
     ln -s $(pwd)/ngc-cli/ngc /usr/local/bin/
   fi
 
   # Install the tensorrt development libs
   # Find the newest cudart version installed
-  for version in 12-6 12-5 12-4 12-3 12-2 12-1 12-0 11-8 11-7 11-6 11-4
+  for version in 12-9 12-8 12-6 12-5 12-4 12-3 12-2 12-1 12-0
    do
       cuda_version=$(dpkg --status cuda-cudart-${version} 2>/dev/null | grep -Po '^Version: \K[^-]*')
       # Find the version based on cudart
@@ -576,6 +578,7 @@ lint() {
             --exclude build-\* \
             --exclude install-\* \
             --exclude applications/holoviz/template/cookiecutter\* \
+            --exclude applications/template\* \
             --recursive $DIR_TO_RUN 2>&1 | grep -v 'Ignoring\|Done processing\|Total error' | sed 's/:.*//' | sort | uniq`
 
       # Fix C++ lint issues by running clang-format:
@@ -608,6 +611,7 @@ lint() {
             --exclude install-\* \
             --exclude .vscode-server \
             --exclude applications/holoviz/template/cookiecutter\* \
+            --exclude applications/template\* \
             --recursive $DIR_TO_RUN \
         | { grep -v 'Ignoring\|Done processing' || true; } || exit_code=1"
 

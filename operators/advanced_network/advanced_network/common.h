@@ -41,6 +41,8 @@ enum class ErrorGlobalStats {
   SENTINEL = 3,
 };
 
+static constexpr uint32_t DEFAULT_TX_META_BUFFERS = 1UL << 8;
+static constexpr uint32_t DEFAULT_RX_META_BUFFERS = 1UL << 8;
 namespace detail {
 inline Direction DirectionStringToType(const std::string& dir) {
   if (dir == "rx") {
@@ -601,6 +603,20 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
                 holoscan::advanced_network::LogLevel::WARN)));
       } catch (const std::exception& e) {
         input_spec.log_level_ = holoscan::advanced_network::LogLevel::WARN;
+      }
+
+      try {
+        input_spec.tx_meta_buffers_ =
+          node["tx_meta_buffers"].as<uint32_t>(holoscan::advanced_network::DEFAULT_TX_META_BUFFERS);
+      } catch (const std::exception& e) { input_spec.tx_meta_buffers_ =
+        holoscan::advanced_network::DEFAULT_TX_META_BUFFERS;
+      }
+
+      try {
+        input_spec.rx_meta_buffers_ =
+          node["rx_meta_buffers"].as<uint32_t>(holoscan::advanced_network::DEFAULT_RX_META_BUFFERS);
+      } catch (const std::exception& e) {
+        input_spec.rx_meta_buffers_ = holoscan::advanced_network::DEFAULT_RX_META_BUFFERS;
       }
 
       try {

@@ -20,24 +20,49 @@
 # Base image
 ############################################################
 
-ARG BASE_IMAGE
 ARG GPU_TYPE
-
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 # --------------------------------------------------------------------------
 #
-# Holohub run setup 
+# Holohub CLI setup
 #
 
+# Install python3 if not present (needed for holohub CLI)
+ARG PYTHON_VERSION=python3
+RUN if ! command -v python3 >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y \
+            software-properties-common curl gpg-agent \
+        && add-apt-repository ppa:deadsnakes/ppa \
+        && apt-get update \
+        && apt-get install --no-install-recommends -y \
+            ${PYTHON_VERSION} \
+        && apt purge -y \
+            python3-pip \
+            software-properties-common \
+        && apt-get autoremove --purge -y \
+        && rm -rf /var/lib/apt/lists/* \
+        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
+        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
+            ; fi \
+    ; fi
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
+    ; fi
+
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
@@ -58,13 +83,12 @@ RUN apt update \
 # For benchmarking
 RUN apt update \
     && apt install --no-install-recommends -y \
-    libcairo2-dev \
-    libgirepository1.0-dev \
-    gobject-introspection \
-    libgtk-3-dev \
-    libcanberra-gtk-module \
-    graphviz\
-    ninja-build
+        libcairo2-dev \
+        libgirepository1.0-dev \
+        gobject-introspection \
+        libgtk-3-dev \
+        libcanberra-gtk-module \
+        graphviz
 
 RUN pip install meson
 
@@ -73,6 +97,7 @@ RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
     fi
 COPY benchmarks/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
 RUN pip install -r /tmp/benchmarking_requirements.txt
+ENV PYTHONPATH=/workspace/holohub/benchmarks/holoscan_flow_benchmarking
 
 # For RTI Connext DDS
 RUN apt update \

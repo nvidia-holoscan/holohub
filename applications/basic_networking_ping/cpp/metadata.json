@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["networking and distributed computing", "distributed", "ping pong messaging", "burst payload transmission", "UDP", "communications", "client", "server"],
+		"tags": ["Networking and Distributed Computing", "Distributed", "UDP", "Communications"],
 		"ranking": 1,
 		"dependencies": {
 			"gxf_extensions": [

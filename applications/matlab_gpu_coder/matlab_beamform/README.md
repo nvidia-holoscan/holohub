@@ -21,6 +21,7 @@ matlab_beamform
 ## Generate Simulated Data
 
 The required MATLAB Toolboxes are:
+
 * [Phased Array System Toolbox](https://uk.mathworks.com/products/phased-array.html)
 * [Communications Toolbox](https://uk.mathworks.com/products/communications.html)
 
@@ -38,30 +39,29 @@ On an x86 computer with MATLAB installed, `cd` to the `matlab` folder and open t
 
 ## Configure Holoscan for MATLAB
 
-If you have not already, start by building HoloHub:
-```sh
-./dev_container build
-```
-
-#### x86: Ubuntu
+### x86: Ubuntu
 
 Define the environment variable:
+
 ```sh
 export MATLAB_ROOT="/usr/local/MATLAB"
 export MATLAB_VERSION="R2023b"
 ```
+
 where you, if need be, replace `MATLAB_ROOT` with the location of your MATLAB install and `MATLAB_VERSION` with the correct version.
 
 Next, run the HoloHub Docker container:
+
 ```sh
-./dev_container launch \
+./holohub run-container \
     --add-volume ${MATLAB_ROOT}/${MATLAB_VERSION} \
-    --docker_opts "-e MATLAB_ROOT=/workspace/volumes/${MATLAB_VERSION}"
+    --docker-opts="-e MATLAB_ROOT=/workspace/volumes/${MATLAB_VERSION}"
 ```
 
-#### arm64: Jetson
+### arm64: Jetson
 
 The folder `MATLAB_ws`, created by MATLAB, mirrors the folder structure of the host machine and is therefore different from one user to another; hence, we need to specify the path to the `codegen` folder in the `CMakeLists.txt`, in order for the build to find the required libraries. Set the variable `REL_PTH_MATLAB_CODEGEN` to the relative path where the `codegen` folder is located in the `MATLAB_ws` folder. For example, if GPU Coder created the following folder structure on the Jetson device:
+
 ```sh
 matlab_beamform
 └── MATLAB_ws
@@ -76,12 +76,15 @@ matlab_beamform
                                     └── matlab
                                         └── codegen
 ```
+
 the variable should be set as:
+
 ```sh
 REL_PTH_MATLAB_CODEGEN=MATLAB_ws/R2023b/C/Users/Jensen/holohub/applications/matlab_gpu_coder/matlab_beamform/matlab/codegen
 ```
 
 Next, run the HoloHub Docker container:
+
 ```sh
-./dev_container launch
+./holohub run-container
 ```

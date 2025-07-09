@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["healthcare AI", "visualization", "organ classification mapping", "hyperspectral cube processing", "hyperspectral", "segmentation", "endoscopy", "image processing", "visualization"],
+		"tags": ["Healthcare AI", "Visualization", "Hyperspectral Imaging", "Segmentation", "Endoscopy", "Image Processing"],
 		"ranking": 2,
 		"dependencies": {
 			"blosc": "^1.11.1",

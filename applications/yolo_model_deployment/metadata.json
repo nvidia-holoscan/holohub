@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["computer vision and perception", "video", "nhwc nchw conversion", "efficientnms_trt integration", "yolo detection", "video processing", "visualization", "camera"],
+		"tags": ["Computer Vision and Perception", "Video", "Tensor Optimization", "YOLO Detection", "Visualization", "Camera"],
 		"ranking": 2,
 		"dependencies": {
 			"data": [

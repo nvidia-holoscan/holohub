@@ -21,10 +21,7 @@
         "platforms": [
             "aarch64"
         ],
-        "tags": [
-            "Benchmarking",
-            "Exclusive Display"
-        ],
+        "tags": ["Benchmarking", "Visualization"],
         "ranking": 1,
         "dependencies": {
             "holoscan_sdk": "^2.1.0"

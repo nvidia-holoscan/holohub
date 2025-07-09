@@ -24,6 +24,10 @@ ARG USERNAME=holoscan
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
+# Remove existing conflicting user
+# see https://bugs.launchpad.net/cloud-images/+bug/2005129
+RUN getent passwd $USER_UID | cut -d: -f1 | xargs -r userdel -r || true
+
 # Create the user
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \

@@ -1,0 +1,51 @@
+name: Check CLI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, holoscan-sdk-lws2]
+
+permissions:
+  contents: read
+
+jobs:
+  check-cli-py:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Run Python tests
+        run: |
+          python -m unittest utilities.cli.tests.test_cli
+          python -m unittest utilities.cli.tests.test_container
+
+  check-cli-ctest:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install CMake
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake
+
+      - name: Configure CMake with testing enabled
+        run: |
+          cmake -B build -DBUILD_TESTING=ON -DBUILD_HOLOHUB_TESTING=ON .
+
+      - name: Run CMake tests
+        run: |
+          cd build
+          ctest --verbose

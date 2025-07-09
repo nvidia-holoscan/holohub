@@ -22,11 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"VS Code",
-            "Dev Container",
-            "Tutorial"
-		],
+		"tags": ["VS Code"],
 		"ranking": 1,
 		"dependencies": {}
 	}

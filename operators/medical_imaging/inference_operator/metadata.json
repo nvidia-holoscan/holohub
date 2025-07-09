@@ -1,0 +1,25 @@
+{
+	"operator": {
+		"name": "InferenceOperator",
+		"authors": [
+			{
+				"name": "Holoscan SDK Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": ["Python"],
+		"version": "1.1.0",
+		"changelog": {
+			"1.1.0": "Restructure to adhere to Holohub guideline",
+			"1.0.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": ["2.2.0", "3.2.0"]
+		},
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Medical Imaging", "Inference", "Base"],
+		"ranking": 2,
+		"dependencies": {}
+	}
+}

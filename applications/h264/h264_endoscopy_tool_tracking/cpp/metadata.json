@@ -20,7 +20,7 @@
       "tested_versions": ["2.6.0"]
     },
     "platforms": ["x86_64", "aarch64"],
-    "tags": ["healthcare AI", "video", "H.264 elementary stream processing", "surgical instrument tracking pipeline", "endoscopy", "H.264", "visualization", "tracking", "video decoding"],
+    "tags": ["Healthcare AI", "Video", "Surgical AI", "Endoscopy", "Visualization"],
     "ranking": 1,
     "dependencies": {
       "operators": [

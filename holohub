@@ -15,4 +15,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-PYTHONPATH=${PYTHONPATH}:$(pwd) python3 ./utilities/cli/holohub.py "$@"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PYTHONPATH=${PYTHONPATH}:${SCRIPT_DIR} python3 ${SCRIPT_DIR}/utilities/cli/holohub.py "$@"

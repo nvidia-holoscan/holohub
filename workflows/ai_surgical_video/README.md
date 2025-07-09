@@ -1,7 +1,7 @@
 # Real-Time End-to-end AI Surgical Video Workflow
 
 ![Overall Diagram](images/RAISVP_overall_diagram.png)
-*Fig.1: The overall diagram illustrating the end-to-end pipeline for real-time AI surgical video processing. This workflow achieves an end-to-end latency of 37ms on average with a maximum of 54ms. The latency breakdown shown below the diagram indicates HSB latency (Avg=21ms, Max=28ms) and AI Application latency (Avg=16ms, Max=26ms), demonstrating the high-performance capabilities of this solution.*
+*Fig.1: The overall diagram illustrating the end-to-end pipeline for real-time AI surgical video processing. The pipeline achieves an average end-to-end latency of 37ms (maximum 54ms). Key latency components are shown: Holoscan Sensor Bridge (HSB) latency averages 21ms (max 28ms), and the AI application averages 16ms (median 17ms, 95th percentile 18ms, 99th percentile 22ms, max 26ms). These results demonstrate the solution's high-performance, low-latency capabilities for demanding surgical video applications.*
 
 ## Overview
 
