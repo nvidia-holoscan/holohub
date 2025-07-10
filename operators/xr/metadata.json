@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "XrEndFrameOp",
+        "name": "XR Operators",
         "authors": [
             {
 				"name": "Connor Smith",

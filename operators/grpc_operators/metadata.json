@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "GrpcClientResponseOp",
+		"name": "GRPC Operators",
 		"authors": [
 			{
 				"name": "Holoscan Team",

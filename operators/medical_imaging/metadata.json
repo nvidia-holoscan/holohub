@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "DICOMEncapsulatedPDFWriterOperator",
+		"name": "Medical Imaging",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",

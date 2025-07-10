@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "HoloscanToCvCuda",
+        "name": "Holoscan CvCuda Interops",
         "authors": [
             {
                 "name": "Holoscan Team",

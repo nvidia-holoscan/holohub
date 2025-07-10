@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "ZeroMQPublisherOp",
+		"name": "EHR Query LLM",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",

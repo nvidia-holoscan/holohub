@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "BasicNetworkOpRx",
+		"name": "BasicNetworkOp Tx/Rx",
 		"authors": [
 			{
 				"name": "Cliff Burdick",

@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "OpenIGTLinkTxOp",
+        "name": "OpenIGTLink Tx/Rx",
         "authors": [
             {
                 "name": "Holoscan Team",
