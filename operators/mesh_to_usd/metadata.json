@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "mesh_to_usd",
+		"name": "SendMeshToUSDOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",

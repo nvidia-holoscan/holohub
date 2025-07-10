@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "tool_tracking_postprocessor",
+		"name": "ToolTrackingPostprocessorOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",

@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "orsi_format_converter",
+		"name": "FormatConverterOp",
 		"authors": [
 			{
 				"name": "Jasper Hofman",

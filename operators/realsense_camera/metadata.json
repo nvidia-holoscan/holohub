@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "Intel RealSense Camera Operator",
+		"name": "RealsenseCameraOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",

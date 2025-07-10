@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "vita49_psd_packetizer",
+        "name": "V49PsdPacketizer",
         "authors": [
             {
                 "name": "John Moon <john.moon@vts-i.com>",

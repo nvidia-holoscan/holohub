@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "orsi_segmentation_preprocessor",
+		"name": "SegmentationPreprocessorOp",
 		"authors": [
 			{
 				"name": "Jasper Hofman",

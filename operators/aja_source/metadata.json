@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "aja_source",
+		"name": "AJASourceOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",

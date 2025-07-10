@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "Holoscan XR",
+        "name": "XrEndFrameOp",
         "authors": [
             {
 				"name": "Connor Smith",
