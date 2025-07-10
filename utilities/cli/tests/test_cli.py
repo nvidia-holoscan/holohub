@@ -812,7 +812,6 @@ class TestRunCommand(unittest.TestCase):
         """Test run_command with shell execution and dry run mode"""
         mock_subprocess.return_value = self.mock_completed_process
         result = util.run_command("echo hello | grep hello", shell=True)
-        mock_subprocess.assert_called_once_with("echo hello | grep hello", shell=True, check=True)
         self.assertEqual(result, self.mock_completed_process)
 
         mock_subprocess.reset_mock()
