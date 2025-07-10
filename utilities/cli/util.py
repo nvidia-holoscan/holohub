@@ -304,7 +304,7 @@ def get_host_gpu() -> str:
         )
         if not output or "Orin (nvgpu)" in output.decode():
             return "igpu"
-    except Exception:
+    except subprocess.CalledProcessError:
         return "dgpu"
 
     return "dgpu"
