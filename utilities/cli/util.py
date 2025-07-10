@@ -304,7 +304,7 @@ def get_host_gpu() -> str:
         )
         if not output or "Orin (nvgpu)" in output.decode():
             return "igpu"
-    except subprocess.CalledProcessError:
+    except Exception:
         return "dgpu"
 
     return "dgpu"
@@ -401,7 +401,7 @@ def get_installed_package_version(package_name: str) -> Optional[str]:
             check=False,
         )
         return result.stdout.strip() if result.returncode == 0 else None
-    except FileNotFoundError:
+    except Exception:
         return None
 
 
@@ -423,7 +423,7 @@ def get_available_package_versions(package_name: str) -> List[str]:
                     if version:
                         versions.append(version)
         return versions
-    except FileNotFoundError:
+    except Exception:
         return []
 
 
@@ -517,8 +517,6 @@ def install_cuda_dependencies_package(
         )
 
     target_version = matching_versions[0]
-    info(f"Installing {package_name}={target_version}")
-
     install_packages_if_missing([f"{package_name}={target_version}"], dry_run=dry_run)
 
     return target_version
@@ -1076,10 +1074,18 @@ def setup_ngc_cli(dry_run: bool = False) -> None:
         f"/versions/3.64.3/files/ngccli_{arch_suffix}.zip"
     )
     ngc_filename = f"ngccli_{arch_suffix}.zip"
-    run_command(["wget", "--content-disposition", ngc_url, "-O", ngc_filename], dry_run=dry_run)
-    run_command(["unzip", ngc_filename], dry_run=dry_run)
-    run_command(["chmod", "u+x", "ngc-cli/ngc"], dry_run=dry_run)
-    run_command(["ln", "-s", f"{os.getcwd()}/ngc-cli/ngc", "/usr/local/bin/"], dry_run=dry_run)
+
+    try:
+        run_command(["wget", "--content-disposition", ngc_url, "-O", ngc_filename], dry_run=dry_run)
+        run_command(["unzip", ngc_filename], dry_run=dry_run)
+        run_command(["chmod", "u+x", "ngc-cli/ngc"], dry_run=dry_run)
+
+        # Use absolute path for symlink
+        abs_path = os.path.abspath("ngc-cli/ngc")
+        run_command(["ln", "-s", abs_path, "/usr/local/bin/ngc"], dry_run=dry_run)
+
+    except Exception as e:
+        fatal(f"Failed to install NGC CLI: {e}")
 
 
 def get_cuda_runtime_version() -> Optional[str]:
@@ -1093,7 +1099,7 @@ def get_cuda_runtime_version() -> Optional[str]:
         if cuda_pattern:
             version_match = re.search(r"[0-9]+\.[0-9]+\.[0-9]+", cuda_pattern.group(0))
             return version_match.group(0) if version_match else None
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except Exception:
         pass
     return None
 

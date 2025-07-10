@@ -1297,12 +1297,14 @@ class HoloHubCLI:
         holohub_cli_util.setup_cuda_dependencies(dry_run=args.dryrun)
 
         source = f"{HoloHubCLI.HOLOHUB_ROOT}/utilities/holohub_autocomplete"
-        dest = "/etc/bash_completion.d/holohub_autocomplete"
-        if args.dryrun or not os.path.exists(dest) or not filecmp.cmp(source, dest, shallow=False):
-            holohub_cli_util.run_command(
-                ["cp", source, "/etc/bash_completion.d/"],
-                dry_run=args.dryrun,
-            )
+        dest_folder = "/etc/bash_completion.d"
+        dest = f"{dest_folder}/holohub_autocomplete"
+        if (
+            not os.path.exists(dest)
+            or not filecmp.cmp(source, dest, shallow=False)
+            and os.path.exists(dest_folder)
+        ):
+            holohub_cli_util.run_command(["cp", source, dest_folder], dry_run=args.dryrun)
 
         if not args.dryrun:
             print(Color.blue("\nTo enable ./holohub autocomplete in your current shell session:"))
@@ -1310,6 +1312,7 @@ class HoloHubCLI:
             print("Or add it to your shell profile:")
             print("  echo '. /etc/bash_completion.d/holohub_autocomplete' >> ~/.bashrc")
             print("  source ~/.bashrc")
+
             print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
 
     def handle_env_info(self, args: argparse.Namespace) -> None:
