@@ -498,7 +498,7 @@ def install_cuda_dependencies_package(
             info(f"Package {package_name} version {installed_version} already installed")
             return installed_version
         else:
-            info(f"P{package_name} version {installed_version} not match pattern {version_pattern}")
+            info(f"{package_name} version {installed_version} not match pattern {version_pattern}")
 
     available_versions = get_available_package_versions(package_name)
     if not available_versions:

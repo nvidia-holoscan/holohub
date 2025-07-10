@@ -1300,8 +1300,7 @@ class HoloHubCLI:
         dest_folder = "/etc/bash_completion.d"
         dest = f"{dest_folder}/holohub_autocomplete"
         if (
-            not os.path.exists(dest)
-            or not filecmp.cmp(source, dest, shallow=False)
+            (not os.path.exists(dest) or not filecmp.cmp(source, dest, shallow=False))
             and os.path.exists(dest_folder)
         ):
             holohub_cli_util.run_command(["cp", source, dest_folder], dry_run=args.dryrun)
