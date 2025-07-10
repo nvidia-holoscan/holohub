@@ -80,7 +80,7 @@ pip install -r applications/ehr_query_llm/fhir/requirements.txt
 Then, Set up the Holohub environment:
 
 ```bash
-sudo ./holohub setup
+./holohub setup  # sudo privileges may be required
 ```
 
 > Note: Although this application is implemented entirely in Python and relies on standard PyPI packages, you still may want to set up Holohub environment and use `./holohub` commandline .

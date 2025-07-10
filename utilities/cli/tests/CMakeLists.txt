@@ -59,7 +59,7 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_holohub_setup PROPERTIES
-    PASS_REGULAR_EXPRESSION "wget.*xvfb.*ninja-build.*ffmpeg.*v4l-dev.*git.*unzip"
+    PASS_REGULAR_EXPRESSION "wget.*xvfb.*git.*unzip.*ffmpeg.*ninja-build.*v4l-dev"
     FAIL_REGULAR_EXPRESSION "returned non-zero exit status;failed;Traceback;Error"
 )
 

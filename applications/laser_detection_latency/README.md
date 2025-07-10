@@ -52,7 +52,7 @@ To setup the EVT camera, refer to [Holoscan SDK user guide](https://docs.nvidia.
 Currently EVT camera based apps are only available for native environment. To build the setup natively, download the Holohub repo and run following.
 
 ```bash
-sudo ./holohub setup
+./holohub setup  # sudo privileges may be required
 ```
 
 ### 3. Install Python3 requirements

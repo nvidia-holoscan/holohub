@@ -97,7 +97,7 @@ You can run the application either in your local development environment or insi
       Although this application is implemented entirely in Python and relies on standard PyPI packages, you still may want to set up Holohub environment and use `./holohub build` to help organize the Python code and automatically download the required segmentation model.
 
        ```bash
-       sudo ./holohub setup
+       ./holohub setup  # sudo privileges may be required
        ```
 
     - Set environment variables for the application:
