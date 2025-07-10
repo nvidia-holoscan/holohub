@@ -20,8 +20,9 @@ extensions:
 emergent:
   width: 4200
   height: 2160
-  framerate: 240
-  rdma: false
+  framerate: 30
+  rdma: true
+  exposure: 10000
 
 demosaic:
   generate_alpha: false
@@ -32,7 +33,6 @@ holoviz:
   # display_name: DP-2
   width: 2560
   height: 1440
-  framerate: 240
   # use_exclusive_display: true
   fullscreen: true
 
