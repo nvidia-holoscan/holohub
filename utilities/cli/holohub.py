@@ -16,9 +16,8 @@
 
 import argparse
 import datetime
+import filecmp
 import os
-import platform
-import re
 import shlex
 import shutil
 import subprocess
@@ -31,7 +30,7 @@ from typing import List, Optional
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer, base_sdk_version
-from utilities.cli.util import Color, PackageInstallationError, parse_semantic_version
+from utilities.cli.util import Color
 
 PYTHON_MIN_VERSION = "3.9.0"
 
@@ -487,6 +486,18 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
             )
+
+        trailing_args = getattr(args, "_trailing_args", [])
+        docker_opts = args.docker_opts
+        if trailing_args:  # additional commands requires a bash entrypoint
+            command = " ".join(trailing_args)
+            docker_opts_extra, extra_args = holohub_cli_util.get_entrypoint_command_args(
+                args.img or container.image_name, command, docker_opts, dry_run=args.dryrun
+            )
+            if docker_opts_extra:
+                docker_opts = f"{docker_opts} {docker_opts_extra}".strip()
+            trailing_args = extra_args
+
         container.run(
             img=args.img,
             local_sdk_root=args.local_sdk_root,
@@ -497,10 +508,10 @@ class HoloHubCLI:
             nsys_profile=getattr(args, "nsys_profile", False),
             nsys_location=getattr(args, "nsys_location", ""),
             as_root=args.as_root,
-            docker_opts=args.docker_opts,
+            docker_opts=docker_opts,
             add_volumes=args.add_volume,
             enable_mps=getattr(args, "mps", False),
-            extra_args=getattr(args, "_trailing_args", []),  # forward trailing args --
+            extra_args=trailing_args,
         )
 
     def handle_test(self, args: argparse.Namespace) -> None:
@@ -1012,6 +1023,19 @@ class HoloHubCLI:
 
         exit_code = 0
 
+        # Add ~/.local/bin to PATH for pip-installed executables
+        env = os.environ.copy()
+        local_bin_path = Path.home() / ".local" / "bin"
+        if str(local_bin_path) not in env.get("PATH", ""):
+            env["PATH"] = str(local_bin_path) + ":" + env.get("PATH", "")
+            print(f"Added {local_bin_path} to PATH.")
+
+        # Set cache directories to /tmp when in Docker container to avoid permission issues
+        if holohub_cli_util.is_running_in_docker():
+            env["RUFF_CACHE_DIR"] = "/tmp/.ruff_cache"
+            env["BLACK_CACHE_DIR"] = "/tmp/.black_cache"
+            print(f"Set cache directories to {env['RUFF_CACHE_DIR']} and {env['BLACK_CACHE_DIR']}")
+
         # Change to script directory
         print(
             holohub_cli_util.format_cmd("cd " + str(HoloHubCLI.HOLOHUB_ROOT), is_dryrun=args.dryrun)
@@ -1025,9 +1049,14 @@ class HoloHubCLI:
                 ["ruff", "check", "--fix", "--ignore", "E712", args.path],
                 check=False,
                 dry_run=args.dryrun,
+                env=env,
             )
-            holohub_cli_util.run_command(["isort", args.path], check=False, dry_run=args.dryrun)
-            holohub_cli_util.run_command(["black", args.path], check=False, dry_run=args.dryrun)
+            holohub_cli_util.run_command(
+                ["isort", args.path], check=False, dry_run=args.dryrun, env=env
+            )
+            holohub_cli_util.run_command(
+                ["black", args.path], check=False, dry_run=args.dryrun, env=env
+            )
             holohub_cli_util.run_command(
                 [
                     "codespell",
@@ -1043,6 +1072,7 @@ class HoloHubCLI:
                 ],
                 check=False,
                 dry_run=args.dryrun,
+                env=env,
             )
 
             # Fix C++ with clang-format
@@ -1061,6 +1091,10 @@ class HoloHubCLI:
                     "install-*",
                     "--exclude",
                     "applications/holoviz/template/cookiecutter*",
+                    "--exclude",
+                    ".ruff_cache",
+                    "--exclude",
+                    ".local",
                     "--recursive",
                     args.path,
                 ]
@@ -1068,7 +1102,9 @@ class HoloHubCLI:
                     holohub_cli_util.run_command(cmd, dry_run=True)
                     cpp_files = ""
                 else:
-                    cpp_files = subprocess.check_output(cmd, stderr=subprocess.PIPE, text=True)
+                    cpp_files = subprocess.check_output(
+                        cmd, stderr=subprocess.PIPE, text=True, env=env
+                    )
 
                 for file in cpp_files.splitlines():
                     if ":" in file:  # Only process files with issues
@@ -1084,6 +1120,7 @@ class HoloHubCLI:
                             ],
                             check=False,
                             dry_run=args.dryrun,
+                            env=env,
                         )
             except subprocess.CalledProcessError:
                 pass
@@ -1096,20 +1133,21 @@ class HoloHubCLI:
                     ["ruff", "check", "--ignore", "E712", args.path],
                     check=False,
                     dry_run=args.dryrun,
+                    env=env,
                 ).returncode
                 != 0
             ):
                 exit_code = 1
             if (
                 holohub_cli_util.run_command(
-                    ["isort", "-c", args.path], check=False, dry_run=args.dryrun
+                    ["isort", "-c", args.path], check=False, dry_run=args.dryrun, env=env
                 ).returncode
                 != 0
             ):
                 exit_code = 1
             if (
                 holohub_cli_util.run_command(
-                    ["black", "--check", args.path], check=False, dry_run=args.dryrun
+                    ["black", "--check", args.path], check=False, dry_run=args.dryrun, env=env
                 ).returncode
                 != 0
             ):
@@ -1135,11 +1173,16 @@ class HoloHubCLI:
                         ".vscode-server",
                         "--exclude",
                         "applications/holoviz/template/cookiecutter*",
+                        "--exclude",
+                        ".ruff_cache",
+                        "--exclude",
+                        ".local",
                         "--recursive",
                         args.path,
                     ],
                     check=False,
                     dry_run=args.dryrun,
+                    env=env,
                 ).returncode
                 != 0
             ):
@@ -1159,6 +1202,7 @@ class HoloHubCLI:
                     ],
                     check=False,
                     dry_run=args.dryrun,
+                    env=env,
                 ).returncode
                 != 0
             ):
@@ -1189,6 +1233,7 @@ class HoloHubCLI:
                             ],
                             check=False,
                             dry_run=args.dryrun,
+                            env=env,
                         ).returncode
                         != 0
                     ):
@@ -1219,10 +1264,6 @@ class HoloHubCLI:
             ],
             dry_run=dry_run,
         )
-        holohub_cli_util.run_command(
-            ["apt", "install", "--no-install-recommends", "-y", "clang-format=1:14.0*"],
-            dry_run=dry_run,
-        )
 
     def _install_template_deps(self, dry_run: bool = False) -> None:
         """Install template dependencies"""
@@ -1245,205 +1286,23 @@ class HoloHubCLI:
 
     def handle_setup(self, args: argparse.Namespace) -> None:
         """Handle setup command"""
-        # Install system dependencies
-        holohub_cli_util.run_command(["apt-get", "update"], dry_run=args.dryrun)
-
-        # Install wget if not present
-        holohub_cli_util.run_command(["apt-get", "install", "-y", "wget"], dry_run=args.dryrun)
-
-        # Install xvfb for running tests/examples headless
-        holohub_cli_util.run_command(["apt-get", "install", "-y", "xvfb"], dry_run=args.dryrun)
-
-        # Check and install CMake if needed
-        try:
-            cmake_version = subprocess.run(
-                ["dpkg", "--status", "cmake"],
-                capture_output=True,
-                text=True,
-                check=False,
-            ).stdout
-            version_match = re.search(r"Version: ([^-\s]+)", cmake_version)
-            cmake_version = version_match.group(1) if version_match else ""
-        except subprocess.CalledProcessError:
-            cmake_version = ""
-
-        ubuntu_codename = subprocess.check_output(["cat", "/etc/os-release"], text=True)
-        ubuntu_codename = re.search(r"UBUNTU_CODENAME=(\w+)", ubuntu_codename).group(1)
-
-        if not cmake_version or "3.24.0" > cmake_version:
-            holohub_cli_util.run_command(
-                ["apt", "install", "--no-install-recommends", "-y", "gpg"],
-                dry_run=args.dryrun,
-            )
-            holohub_cli_util.run_command(
-                "wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | "
-                "gpg --dearmor - | "
-                "tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null",
-                shell=True,
-                check=False,
-                dry_run=args.dryrun,
-            )
-            holohub_cli_util.run_command(
-                f'echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ {ubuntu_codename} main" | '
-                "tee /etc/apt/sources.list.d/kitware.list >/dev/null",
-                shell=True,
-                dry_run=args.dryrun,
-            )
-            holohub_cli_util.run_command(["apt-get", "update"], dry_run=args.dryrun)
-            holohub_cli_util.run_command(
-                [
-                    "apt",
-                    "install",
-                    "--no-install-recommends",
-                    "-y",
-                    "cmake",
-                    "cmake-curses-gui",
-                ],
-                dry_run=args.dryrun,
-            )
-
-        # Install Ninja
-        holohub_cli_util.run_command(
-            ["apt", "install", "--no-install-recommends", "-y", "ninja-build"],
+        holohub_cli_util.install_packages_if_missing(
+            ["wget", "xvfb", "git", "unzip", "ffmpeg", "ninja-build", "libv4l-dev"],
             dry_run=args.dryrun,
         )
 
-        # Install Python dev
-        try:
-            python3_version = sys.version_info
-            python3_dev_output = subprocess.run(
-                ["dpkg", "--list", f"python3.{python3_version.minor}-dev"],
-                capture_output=True,
-                text=True,
-                check=False,
-            ).stdout
+        holohub_cli_util.setup_cmake(dry_run=args.dryrun)
+        holohub_cli_util.setup_python_dev(dry_run=args.dryrun)
+        holohub_cli_util.setup_ngc_cli(dry_run=args.dryrun)
+        holohub_cli_util.setup_cuda_dependencies(dry_run=args.dryrun)
 
-            # Look for the specific version first, then fall back to python3-dev
-            version_match = re.search(
-                rf"python3\.{python3_version.minor}-dev\s+(\d+\.\d+\.\d+)", python3_dev_output
-            )
-            if not version_match:
-                # Fall back to checking python3-dev
-                python3_dev_output = subprocess.run(
-                    ["dpkg", "--list", "python3-dev"],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                ).stdout
-                version_match = re.search(r"python3-dev\s+(\d+\.\d+\.\d+)", python3_dev_output)
-
-            python3_dev_version = version_match.group(1) if version_match else ""
-        except subprocess.CalledProcessError:
-            python3_dev_version = ""
-
-        if not python3_dev_version or parse_semantic_version(
-            python3_dev_version
-        ) < parse_semantic_version(PYTHON_MIN_VERSION):
-            holohub_cli_util.run_command(
-                [
-                    "apt",
-                    "install",
-                    "--no-install-recommends",
-                    "-y",
-                    f"python3.{python3_version.minor}-dev",
-                ],
-                dry_run=args.dryrun,
-            )
-
-        # Install ffmpeg
-        holohub_cli_util.run_command(
-            ["apt", "install", "--no-install-recommends", "-y", "ffmpeg"],
-            dry_run=args.dryrun,
-        )
-
-        # Install libv4l-dev
-        holohub_cli_util.run_command(
-            ["apt-get", "install", "--no-install-recommends", "-y", "libv4l-dev"],
-            dry_run=args.dryrun,
-        )
-
-        # Install git if not present
-        holohub_cli_util.run_command(
-            ["apt-get", "install", "--no-install-recommends", "-y", "git"],
-            dry_run=args.dryrun,
-        )
-
-        # Install unzip if not present
-        holohub_cli_util.run_command(
-            ["apt-get", "install", "--no-install-recommends", "-y", "unzip"],
-            dry_run=args.dryrun,
-        )
-
-        # Install ngc-cli if not present
-        try:
-            subprocess.check_output(["ngc", "--version"], stderr=subprocess.DEVNULL)
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            if platform.machine() == "aarch64":
-                holohub_cli_util.run_command(
-                    [
-                        "wget",
-                        "--content-disposition",
-                        "https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_arm64.zip",
-                        "-O",
-                        "ngccli_arm64.zip",
-                    ],
-                    dry_run=args.dryrun,
-                )
-                holohub_cli_util.run_command(["unzip", "ngccli_arm64.zip"], dry_run=args.dryrun)
-            else:
-                holohub_cli_util.run_command(
-                    [
-                        "wget",
-                        "--content-disposition",
-                        "https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_linux.zip",
-                        "-O",
-                        "ngccli_linux.zip",
-                    ],
-                    dry_run=args.dryrun,
-                )
-                holohub_cli_util.run_command(["unzip", "ngccli_linux.zip"], dry_run=args.dryrun)
-            holohub_cli_util.run_command(["chmod", "u+x", "ngc-cli/ngc"], dry_run=args.dryrun)
-            holohub_cli_util.run_command(
-                ["ln", "-s", f"{os.getcwd()}/ngc-cli/ngc", "/usr/local/bin/"],
-                dry_run=args.dryrun,
-            )
-
-        # Install CUDA dependencies
-        try:
-            # Search for dpkg table entry for CUDA Runtime package
-            # ii  cuda-cudart-12-3   12.3.101-1   amd64   CUDA Runtime native Libraries
-            dpkg_output = subprocess.check_output(
-                ["dpkg", "-l"],
-                text=True,
-                stderr=subprocess.DEVNULL,
-            )
-            cudart_entry = re.search(r"cuda-cudart-[0-9]+\-[0-9]+.*\n", dpkg_output)
-            if cudart_entry:
-                cuda_runtime_version = re.search(r"[0-9]+\.[0-9]+\.[0-9]+", cudart_entry.group(0))
-                cuda_runtime_version = (
-                    cuda_runtime_version.group(0) if cuda_runtime_version else None
-                )
-            else:
-                cuda_runtime_version = None
-        except subprocess.CalledProcessError:
-            cuda_runtime_version = None
-
-        if cuda_runtime_version:
-            self._setup_cuda_packages(cuda_runtime_version.split(".")[0], args.dryrun)
-        else:
-            holohub_cli_util.info(
-                "CUDA Runtime package not found, skipping CUDA package installation"
-            )
-
-        # Install the autocomplete
-        holohub_cli_util.run_command(
-            [
-                "cp",
-                f"{HoloHubCLI.HOLOHUB_ROOT}/utilities/holohub_autocomplete",
-                "/etc/bash_completion.d/",
-            ],
-            dry_run=args.dryrun,
-        )
+        source = f"{HoloHubCLI.HOLOHUB_ROOT}/utilities/holohub_autocomplete"
+        dest_folder = "/etc/bash_completion.d"
+        dest = f"{dest_folder}/holohub_autocomplete"
+        if (
+            not os.path.exists(dest) or not filecmp.cmp(source, dest, shallow=False)
+        ) and os.path.exists(dest_folder):
+            holohub_cli_util.run_command(["cp", source, dest_folder], dry_run=args.dryrun)
 
         if not args.dryrun:
             print(Color.blue("\nTo enable ./holohub autocomplete in your current shell session:"))
@@ -1453,73 +1312,6 @@ class HoloHubCLI:
             print("  source ~/.bashrc")
 
             print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
-
-    def _setup_cuda_packages(self, cuda_major_version: str, dryrun: bool = False) -> None:
-        """Find and install CUDA packages for Holoscan SDK development"""
-
-        # Attempt to install cudnn9
-        # cuDNN version example: libcudnn9-cuda-12/unknown,now 9.10.2.21-1 amd64
-        CUDNN_9_PATTERN = r"9\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+"
-        try:
-            installed_cudnn9_version = holohub_cli_util.install_cuda_dependencies_package(
-                package_name="libcudnn9-cuda-12",
-                version_pattern=CUDNN_9_PATTERN,
-                dry_run=dryrun,
-            )
-            holohub_cli_util.install_cuda_dependencies_package(
-                package_name="libcudnn9-dev-cuda-12",
-                version_pattern=re.escape(installed_cudnn9_version),
-                dry_run=dryrun,
-            )
-        except PackageInstallationError as e:
-            holohub_cli_util.info(f"cuDNN 9.x installation failed, falling back to cuDNN 8.x: {e}")
-            try:
-                # Fall back to cudnn8
-                # cuDNN version example: libcudnn8/unknown 8.9.7.29-1+cuda12.2 amd64
-                CUDNN_8_PATTERN = (
-                    rf"8\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]\+cuda{cuda_major_version}\.[0-9]+"
-                )
-                installed_cudnn8_version = holohub_cli_util.install_cuda_dependencies_package(
-                    package_name="libcudnn8",
-                    version_pattern=CUDNN_8_PATTERN,
-                    dry_run=dryrun,
-                )
-                holohub_cli_util.install_cuda_dependencies_package(
-                    package_name="libcudnn8-dev",
-                    version_pattern=re.escape(installed_cudnn8_version),
-                    dry_run=dryrun,
-                )
-            except PackageInstallationError as e:
-                holohub_cli_util.info(f"cuDNN 8.x installation failed: {e}.")
-                holohub_cli_util.info("cuDNN packages may need to be installed manually.")
-
-        # Install TensorRT dependencies
-        # TensorRT version example: libnvinfer-bin/unknown,now 10.12.0.36-1+cuda12.9 amd64
-        NVINFER_PATTERN = rf"\d+\.[0-9]+\.[0-9]+\.[0-9]+-[0-9]\+cuda{cuda_major_version}\.[0-9]+"
-        try:
-            installed_libnvinferbin_version = holohub_cli_util.install_cuda_dependencies_package(
-                package_name="libnvinfer-bin",
-                version_pattern=NVINFER_PATTERN,
-                dry_run=dryrun,
-            )
-            libnvinfer_pattern = re.escape(installed_libnvinferbin_version)
-
-            for trt_package_name in [
-                "libnvinfer-headers-dev",
-                "libnvinfer-dev",
-                "libnvinfer-plugin-dev",
-                "libnvonnxparsers-dev",
-            ]:
-                holohub_cli_util.install_cuda_dependencies_package(
-                    package_name=trt_package_name,
-                    version_pattern=libnvinfer_pattern,
-                    dry_run=dryrun,
-                )
-        except PackageInstallationError as e:
-            holohub_cli_util.info(f"TensorRT installation failed: {e}")
-            holohub_cli_util.info(
-                "Continuing with setup - TensorRT packages may need to be installed manually"
-            )
 
     def handle_env_info(self, args: argparse.Namespace) -> None:
         """Handle env-info command to collect debugging information"""

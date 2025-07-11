@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "unzip",
+		"name": "UnzipOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",
