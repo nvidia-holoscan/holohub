@@ -29,30 +29,8 @@ jobs:
           --exclude-config .github/workflows/scripts/copyright_excludes.txt \
           .
 
-    - name: Check for internal artifacts (PR - changed files only)
-      if: github.event_name == 'pull_request'
+    - name: Check for internal artifacts
       run: |
-        echo "Checking for internal artifacts in changed files..."
-        internal_refs=()
-        for file in $(git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -E '\.(cpp|c|h|hpp|py|cu|cuh|md|rst|txt|yml|yaml|json)$'); do
-          [ -f "$file" ] && grep -q "nvstaging" "$file" && internal_refs+=("$file")
-        done
-        if [ ${#internal_refs[@]} -gt 0 ]; then
-          echo "Files containing internal artifacts (nvstaging):" && printf '%s\n' "${internal_refs[@]}" && exit 1
-        else
-          echo "No internal artifacts found"
-        fi
-
-    - name: Check for internal artifacts (all files)
-      if: github.event_name == 'push'
-      run: |
-        echo "Checking for internal artifacts in all files..."
-        internal_refs=()
-        while IFS= read -r -d '' file; do
-          grep -l "nvstaging" "$file" >/dev/null 2>&1 && internal_refs+=("$file")
-        done < <(find . -type f \( -name "*.cpp" -o -name "*.c" -o -name "*.h" -o -name "*.hpp" -o -name "*.py" -o -name "*.cu" -o -name "*.cuh" -o -name "*.md" -o -name "*.rst" -o -name "*.txt" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" \) -print0)
-        if [ ${#internal_refs[@]} -gt 0 ]; then
-          echo "Files containing internal artifacts (nvstaging):" && printf '%s\n' "${internal_refs[@]}" && exit 1
-        else
-          echo "No internal artifacts found"
-        fi
+        .github/workflows/scripts/check_nvstaging.sh \
+          --exclude-config .github/workflows/scripts/nvstaging_excludes.txt \
+          .
