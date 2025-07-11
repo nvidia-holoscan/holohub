@@ -11,8 +11,42 @@ jobs:
       issues: write
     steps:
     - uses: actions/checkout@v4
-    - name: Link checker
-      id: lychee
+      with:
+        fetch-depth: 0
+
+    - name: Get changed files for PR
+      if: github.event_name == 'pull_request'
+      id: changed-files
+      run: |
+        # Get changed files using git diff
+        if git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -E '\.(md|html|rst)$' > changed_files.txt; then
+          if [ -s changed_files.txt ]; then
+            echo "any_changed=true" >> $GITHUB_OUTPUT
+            echo "changed_files_list=$(cat changed_files.txt | tr '\n' '\0' | xargs -0 printf '%s ')" >> $GITHUB_OUTPUT
+          else
+            echo "any_changed=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "any_changed=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Link checker (PR - changed files only)
+      if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
+      id: lychee-pr
+      uses: lycheeverse/lychee-action@v2
+      with:
+        workingDirectory: .github/workflows
+        args: >-
+          --accept=200,403,429
+          --verbose
+          --no-progress
+          ${{ steps.changed-files.outputs.changed_files_list }}
+        fail: true
+        jobSummary: true
+
+    - name: Link checker (all files)
+      if: github.event_name == 'push'
+      id: lychee-main
       uses: lycheeverse/lychee-action@v2
       with:
         workingDirectory: .github/workflows
