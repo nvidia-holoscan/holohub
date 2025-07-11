@@ -14,6 +14,10 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
+project(iio LANGUAGES CXX)
+
+set(CMAKE_CUDA_ARCHITECTURES "70;80;89;90")
+enable_language(CUDA)
 
 find_package(
   holoscan
@@ -24,22 +28,26 @@ find_package(
   "/opt/nvidia/holoscan"
   "/workspace/holoscan-sdk/install")
 
-find_library(
-  IIO_LIBRARIES
-  NAMES iio libiio
-  HINTS /usr/lib
-        /usr/lib64
-        /usr/local/lib
-        /usr/local/lib64
-        /opt/lib
-        /opt/lib64
-        REQUIRED)
+find_package(matx CONFIG REQUIRED)
 
-include(pybind11_add_holohub_module)
-pybind11_add_holohub_module(
-  CPP_CMAKE_TARGET
-  iio_controller
-  CLASS_NAME
-  "IIOAttributeRead, IIOAttributeWrite, IIOBufferInfo, IIOBufferRead, IIOBufferWrite, IIOConfigurator, IIOChannelInfo, IIODataFormat"
-  SOURCES
-  iio_controller_py.cpp)
+add_executable(iio main.cpp pluto_fft_example/pluto_fft_example.hpp
+                   pluto_fft_example/support_operators.hpp)
+
+target_link_libraries(
+  iio PRIVATE holoscan::core iio_controller holoscan::ops::fft matx::matx
+              iio_basic_example)
+
+# Copy config file
+add_custom_target(
+  iio_config_yaml
+  COMMAND
+    ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../iio_config.yaml"
+    ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../iio_config.yaml"
+  BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/iio_config.yaml")
+
+add_dependencies(iio iio_config_yaml)
+
+# Add subdirectories
+add_subdirectory(pluto_fft_example)
+add_subdirectory(basic_example)

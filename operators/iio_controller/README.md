@@ -297,4 +297,4 @@ The exact data format (sample size, endianness, etc.) depends on the specific II
 
 - [Scopy Application](https://github.com/analogdevicesinc/scopy): GUI for IIO devices
 - [PyADI-IIO](https://github.com/analogdevicesinc/pyadi-iio): Python bindings for IIO devices
-- [Holoscan IIO Examples](../../../applications/iio): Complete application examples
+- [Holoscan IIO Examples](../../applications/iio): Complete application examples

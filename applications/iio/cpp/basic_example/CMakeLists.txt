@@ -14,10 +14,21 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(iio_controller LANGUAGES NONE)
+project(iio_basic_example CXX)
 
-add_subdirectory(cpp)
+find_package(holoscan REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-if(HOLOHUB_BUILD_PYTHON)
-  add_subdirectory(python)
-endif()
+add_library(iio_basic_example STATIC
+  main.cpp
+)
+
+target_link_libraries(iio_basic_example PUBLIC
+  holoscan::core
+  holoscan::ops::iio_controller
+)
+
+target_include_directories(iio_basic_example PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
