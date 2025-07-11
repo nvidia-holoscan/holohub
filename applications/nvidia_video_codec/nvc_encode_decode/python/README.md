@@ -2,6 +2,9 @@
 
 This application demonstrates the use of NVIDIA Video Codec SDK. The application loads a video file, encodes the video using either H.264 or HEVC (H.265), decodes the video, and displays it with Holoviz.
 
+> [!IMPORTANT]  
+> By using the NVIDIA Video Codec Demo application and its operators, you agree to the [NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement). If you disagree with the EULA, please do not run this application.
+
 ### Requirements
 
 - x86 and SBSA platforms with dedicated GPU

@@ -2,6 +2,9 @@
 
 This application demonstrates decoding H.264 elementary stream files using the NVIDIA Video Codec SDK. The application reads H.264 files directly, decodes them with the NVIDIA Video Decoder, and displays the results with Holoviz.
 
+> [!IMPORTANT]  
+> By using the NVIDIA Video Codec Demo application and its operators, you agree to the [NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement). If you disagree with the EULA, please do not run this application.
+
 ## Key Features
 
 - **Direct Elementary Stream Processing**: Reads H.264 elementary stream files without container conversion
