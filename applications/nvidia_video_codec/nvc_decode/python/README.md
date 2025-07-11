@@ -17,6 +17,8 @@ This application demonstrates decoding H.264 elementary stream files using the N
 - [NVIDIA Video Codec SDK](https://developer.nvidia.com/video-codec-sdk)
 - H.264 elementary stream file (`.h264`, `.264` extension)
 
+> 💡 **Note:** NVIDIA IGX Orin with integrated GPU is not currently supported.
+
 ## Architecture
 
 ```mermaid
@@ -146,4 +148,6 @@ ffmpeg -f v4l2 -i /dev/video0 -t 10 -c:v libx264 -f h264 webcam_test.h264
 
 ## Licensing
 
-By using the NVIDIA Video Codec Demo application and its operators, you agree to the [NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement).
+Holohub applications and operators are licensed under Apache-2.0.
+
+NVIDIA Video Codec is governed by the terms of the [NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement), which you accept by cloning, running, or using the NVIDIA Video Codec sample applications and operators.
