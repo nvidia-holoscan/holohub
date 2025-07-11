@@ -48,7 +48,7 @@ definitions and background
 - [Holoscan SDK v2.3.0](./release/v2.3.0/v2.3.0.md)
 - [Holoscan SDK v2.6.0](./release/v2.6.0/v2.6.0.md)
 - [Holoscan SDK v3.0.0](./release/v3.0.0/v3.0.0.md)
-- [Holoscan SDK v3.3.0](./release/v3.3.0/v3.0.0.md)
+- [Holoscan SDK v3.3.0](./release/v3.3.0/v3.3.0.md)
 
 ## Running Benchmarks: Getting Started
 
