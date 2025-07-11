@@ -74,11 +74,11 @@ class XrGsplatOp(holoscan.core.Operator):
             # Create view matrix
             view_matrix = torch.eye(4)
             view_matrix[:3, :3] = rotation
-            view_matrix[:3, 3] = torch.tensor(
+            view_matrix[:3, 3] = view_matrix[:3, 3] = torch.tensor(
                 [
-                    view.pose.position.x,
-                    view.pose.position.y,
-                    view.pose.position.z,
+                    view.pose.position.x + 0.5,  # add offset to have better initial view
+                    view.pose.position.y + 0.5,
+                    view.pose.position.z + 0.5,
                 ]
             )
 
