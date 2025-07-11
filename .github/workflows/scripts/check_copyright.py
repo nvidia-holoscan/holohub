@@ -42,12 +42,12 @@ ExemptFiles = []
 
 # this will break starting at year 10000, which is probably OK :)
 CheckSimple = re.compile(
-    r"(?:^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright \(c\) *(\d{4}),? NVIDIA CORPORATION & AFFILIATES\.(\s*[#*/*]?\s*)"
+    r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright \(c\) *(\d{4}),? NVIDIA CORPORATION & AFFILIATES\.(\s*[#*/*]?\s*)"
     r"(?:All rights|ALL RIGHTS)(\s*[#*/*]?\s*)(?:reserved\.|RESERVED\.)",
     re.MULTILINE | re.DOTALL,
 )
 CheckDouble = re.compile(
-    r"(?:^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright \(c\) *(\d{4})-(\d{4}),? NVIDIA CORPORATION & AFFILIATES\.(\s*[#*/*]?\s*)"
+    r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright \(c\) *(\d{4})-(\d{4}),? NVIDIA CORPORATION & AFFILIATES\.(\s*[#*/*]?\s*)"
     r"(?:All rights|ALL RIGHTS)(\s*[#*/*]?\s*)(?:reserved\.|RESERVED\.)",
     re.MULTILINE | re.DOTALL,
 )
@@ -68,10 +68,10 @@ def check_this_file(f):
 def get_copyright_years(line):
     res = CheckSimple.search(line)
     if res:
-        return (int(res.group(1)), int(res.group(1)))
+        return (int(res.group(2)), int(res.group(2)))
     res = CheckDouble.search(line)
     if res:
-        return (int(res.group(1)), int(res.group(2)))
+        return (int(res.group(2)), int(res.group(3)))
     return (None, None)
 
 
@@ -88,13 +88,13 @@ def replace_current_year(line, start, end):
 
     # first turn a simple regex into double (if applicable). then update years
     res = CheckSimple.sub(
-        f"SPDX-FileCopyrightText: Copyright (c) \\1-\\1 NVIDIA CORPORATION & AFFILIATES.\\2"
-        f"{rights_text}\\3{reserved_text}",
+        f"\\1SPDX-FileCopyrightText: Copyright (c) \\2-\\2 NVIDIA CORPORATION & AFFILIATES.\\3"
+        f"{rights_text}\\4{reserved_text}",
         line,
     )
     res = CheckDouble.sub(
-        f"SPDX-FileCopyrightText: Copyright (c) {start}-{end} NVIDIA CORPORATION & AFFILIATES.\\3"
-        f"{rights_text}\\4{reserved_text}",
+        f"\\1SPDX-FileCopyrightText: Copyright (c) {start}-{end} NVIDIA CORPORATION & AFFILIATES.\\4"
+        f"{rights_text}\\5{reserved_text}",
         res,
     )
     return res
