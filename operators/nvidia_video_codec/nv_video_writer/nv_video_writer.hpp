@@ -41,6 +41,7 @@ class NvVideoWriterOp : public Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(NvVideoWriterOp)
 
   NvVideoWriterOp() = default;
+  ~NvVideoWriterOp();
 
   void setup(OperatorSpec& spec) override;
   void initialize() override;
@@ -52,13 +53,26 @@ class NvVideoWriterOp : public Operator {
   Parameter<std::string> output_file_;
   Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
   Parameter<bool> verbose_;
+  Parameter<size_t> buffer_size_;
 
   // File output stream for writing encoded video data
   std::ofstream output_stream_;
-  
+
   // Statistics
   size_t frame_count_ = 0;
   size_t total_bytes_written_ = 0;
+
+  // Performance tracking
+  std::chrono::steady_clock::time_point start_time_;
+  std::chrono::steady_clock::time_point last_log_time_;
+  size_t frames_since_last_log_ = 0;
+
+  // Constants
+  static constexpr size_t DEFAULT_BUFFER_SIZE = 1024 * 1024;  // 1MB
+  static constexpr size_t LOG_INTERVAL_FRAMES = 100;  // Log every 100 frames in verbose mode
+
+  void validateOutputFile(const std::string& filepath);
+  void logPerformanceStats();
 };
 
 }  // namespace holoscan::ops
