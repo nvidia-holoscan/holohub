@@ -101,7 +101,7 @@ def uncommitted_files():
     ret = []
     for f in files.splitlines():
         f = f.strip(" ")
-        f = re.sub("\s+", " ", f)  # noqa: W605
+        f = re.sub(r"\s+", " ", f)  # noqa: W605
         tmp = f.split(" ", 1)
         # only consider staged files or uncommitted files
         # in other words, ignore untracked files

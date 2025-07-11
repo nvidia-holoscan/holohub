@@ -17,9 +17,8 @@ jobs:
       if: github.event_name == 'pull_request'
       run: |
         echo "Checking copyright headers in changed files..."
-        python3 .github/workflows/scripts/check_copyright.py --git-modified-only \
-          --exclude-config .github/workflows/scripts/copyright_excludes.txt \
-          origin/${{ github.base_ref }}
+        python3 .github/workflows/scripts/check_copyright.py --git-modified-only origin/${{ github.base_ref }} \
+          --exclude-config .github/workflows/scripts/copyright_excludes.txt
 
     - name: Check copyright headers (all files)
       if: github.event_name == 'push'
