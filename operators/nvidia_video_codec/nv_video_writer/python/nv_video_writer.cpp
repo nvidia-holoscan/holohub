@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+#include <pybind11/complex.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <pybind11/complex.h>
 
 #include <cstdint>
 #include <memory>
@@ -57,12 +57,10 @@ class PyNvVideoWriterOp : public NvVideoWriterOp {
   using NvVideoWriterOp::NvVideoWriterOp;
 
   // Define a constructor that fully initializes the object.
-  PyNvVideoWriterOp(Fragment* fragment, const py::args& args, 
-                    const std::string& output_file,
-                    std::shared_ptr<::holoscan::Allocator> allocator,
-                    bool verbose = false,
+  PyNvVideoWriterOp(Fragment* fragment, const py::args& args, const std::string& output_file,
+                    std::shared_ptr<::holoscan::Allocator> allocator, bool verbose = false,
                     const std::string& name = "nv_video_writer")
-      : NvVideoWriterOp(ArgList{Arg{"output_file", output_file}, 
+      : NvVideoWriterOp(ArgList{Arg{"output_file", output_file},
                                 Arg{"allocator", allocator},
                                 Arg{"verbose", verbose},
                                 Arg{"name", name}}) {
