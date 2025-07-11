@@ -2,7 +2,7 @@ name: Check links
 
 on:
   push:
-    branches: [main, premerge-ci]
+    branches: [main]
   pull_request:
 jobs:
   link-check:
