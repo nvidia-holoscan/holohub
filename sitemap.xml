@@ -225,6 +225,14 @@
          <lastmod>2025-07-11</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/nvidia_video_codec/nvc_decode/python/</loc>
+         <lastmod>2025-07-11</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/nvidia_video_codec/nvc_encode_decode/python/</loc>
+         <lastmod>2025-07-11</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/object_detection_torch/</loc>
          <lastmod>2025-07-11</lastmod>
     </url>
@@ -578,6 +586,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/npp_filter/</loc>
+         <lastmod>2025-07-11</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/nvidia_video_codec/</loc>
          <lastmod>2025-07-11</lastmod>
     </url>
     <url>
