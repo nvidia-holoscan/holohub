@@ -1,0 +1,56 @@
+{
+	"operator": {
+		"name": "NVIDIA Video Codec SDK: Video File Writer",
+		"description": "This operator writes H.264/H.265 video files from raw encoded frames.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": ["C++"],
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.3.0",
+			"tested_versions": [
+				"3.3.0",
+				"3.4.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"NVIDIA Video Codec SDK",
+			"H.264",
+			"H.265",
+			"HEVC",
+			"Video Writing",
+			"File Writer",
+			"FFmpeg"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"packages": [
+				{
+					"name": "NVIDIA Video Codec SDK",
+					"author": "NVIDIA",
+					"license": "Closed",
+					"version": "13.0.0",
+					"url": "https://developer.nvidia.com/video-codec-sdk"
+				},
+				{
+					"name": "FFmpeg",
+					"author": "FFmpeg contributors",
+					"license": "LGPL/GPL",
+					"version": "4.0+",
+					"url": "https://ffmpeg.org/"
+				}
+			]
+		}
+	}
+}

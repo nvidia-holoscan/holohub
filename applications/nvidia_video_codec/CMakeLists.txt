@@ -31,5 +31,16 @@ if(OP_nv_video_encoder OR OP_nv_video_decoder)
   endif()
 endif()
 
-add_holohub_application(nvc_encode_decode DEPENDS OPERATORS nv_video_encoder nv_video_decoder)
-add_holohub_application(nvc_decode DEPENDS OPERATORS nv_video_encoder nv_video_decoder nv_video_reader)
+add_holohub_application(nvc_decode 
+                        DEPENDS OPERATORS 
+                        nv_video_encoder 
+                        nv_video_decoder 
+                        nv_video_reader)
+add_holohub_application(nvc_encode_decode 
+                        DEPENDS OPERATORS 
+                        nv_video_encoder 
+                        nv_video_decoder)
+add_holohub_application(nvc_encode_writer 
+                        DEPENDS OPERATORS 
+                        nv_video_encoder 
+                        nv_video_writer)

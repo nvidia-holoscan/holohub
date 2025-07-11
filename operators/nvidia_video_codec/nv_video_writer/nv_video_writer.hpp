@@ -1,0 +1,66 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef NV_VIDEO_WRITER_NV_VIDEO_WRITER_HPP
+#define NV_VIDEO_WRITER_NV_VIDEO_WRITER_HPP
+
+#include <filesystem>
+#include <fstream>
+#include <memory>
+#include <string>
+
+#include "holoscan/core/gxf/entity.hpp"
+#include "holoscan/core/operator.hpp"
+#include "holoscan/core/resources/gxf/allocator.hpp"
+
+namespace holoscan::ops {
+
+/**
+ * @brief Operator to write H.264/H.265 elementary video files from encoded frames
+ *
+ * This operator takes encoded video frames as input tensors and writes them to
+ * H.264/H.265 elementary stream files that can be played with standard video players.
+ * The input should come from the NvVideoEncoderOp.
+ */
+class NvVideoWriterOp : public Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(NvVideoWriterOp)
+
+  NvVideoWriterOp() = default;
+
+  void setup(OperatorSpec& spec) override;
+  void initialize() override;
+  void compute(InputContext& op_input, OutputContext& op_output,
+               ExecutionContext& context) override;
+  void stop() override;
+
+ private:
+  Parameter<std::string> output_file_;
+  Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
+  Parameter<bool> verbose_;
+
+  // File output stream for writing encoded video data
+  std::ofstream output_stream_;
+  
+  // Statistics
+  size_t frame_count_ = 0;
+  size_t total_bytes_written_ = 0;
+};
+
+}  // namespace holoscan::ops
+
+#endif /* NV_VIDEO_WRITER_NV_VIDEO_WRITER_HPP */
