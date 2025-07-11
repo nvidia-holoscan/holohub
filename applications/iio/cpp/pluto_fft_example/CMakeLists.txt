@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(iio_controller LANGUAGES NONE)
+# Copy pluto_fft_config.yaml to build directory
+add_custom_target(
+  pluto_fft_config_yaml
+  COMMAND
+    ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/pluto_fft_config.yaml"
+    ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/pluto_fft_config.yaml"
+  BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/pluto_fft_config.yaml")
 
-add_subdirectory(cpp)
-
-if(HOLOHUB_BUILD_PYTHON)
-  add_subdirectory(python)
-endif()
+# Make sure the config is copied when building the main iio target
+add_dependencies(iio pluto_fft_config_yaml)
