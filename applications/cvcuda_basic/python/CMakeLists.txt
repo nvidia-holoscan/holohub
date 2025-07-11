@@ -16,7 +16,7 @@
 # Add testing
 if(BUILD_TESTING)
   # To get the environment path
-  find_package(holoscan 0.6 REQUIRED CONFIG
+  find_package(holoscan 3.4 REQUIRED CONFIG
                PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
   # Add test
