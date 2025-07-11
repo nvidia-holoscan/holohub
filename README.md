@@ -28,7 +28,7 @@ The following directories make up the core of this repo:
   community collaborators, and provide a demonstration of the SDK capabilities.
 - **Community components**: Visit [`operators`](./operators/) and [`gxf_extensions`](./gxf_extensions) to explore
   reusable Holoscan modules.
-- **Package configurations**: Visit [`pkg`](./pkg/) for a list of debian packages to generate, to distribute operators and applications for easier development.
+- **Package configurations**: Visit [`pkg`](./pkg/) for a list of Debian packages to generate, to distribute operators and applications for easier development.
 - **Tutorials**: Visit [`tutorials`](./tutorials/) for extended walkthroughs and tips for the Holoscan platform.
 - **Benchmarks**: Visit [`benchmarks`](./benchmarks/) for performance benchmarks, tools, and examples to evaluate the performance of Holoscan applications.
 
