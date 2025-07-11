@@ -30,6 +30,11 @@ jobs:
           echo "any_changed=false" >> $GITHUB_OUTPUT
         fi
 
+    - name: Echo changed files
+      if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        echo "Files being checked: ${{ steps.changed-files.outputs.changed_files_list }}"
+
     - name: Link checker (PR - changed files only)
       if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
       id: lychee-pr
