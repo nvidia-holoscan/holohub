@@ -36,21 +36,14 @@ namespace holoscan::ops {
 
 void NvVideoWriterOp::setup(OperatorSpec& spec) {
   spec.input<holoscan::gxf::Entity>("input");
-  
+
   spec.param(output_file_,
              "output_file",
              "Output File",
              "Output file to write video frames to",
              std::string(""));
-  spec.param(allocator_, 
-             "allocator", 
-             "Allocator", 
-             "Allocator for output buffers.");
-  spec.param(verbose_,
-             "verbose",
-             "Verbose",
-             "Print detailed writer information",
-             false);
+  spec.param(allocator_, "allocator", "Allocator", "Allocator for output buffers.");
+  spec.param(verbose_, "verbose", "Verbose", "Print detailed writer information", false);
 }
 
 void NvVideoWriterOp::initialize() {
@@ -109,13 +102,15 @@ void NvVideoWriterOp::compute(InputContext& op_input, OutputContext& op_output,
   try {
     output_stream_.write(reinterpret_cast<const char*>(data), data_size);
     output_stream_.flush();  // Ensure data is written immediately
-    
+
     frame_count_++;
     total_bytes_written_ += data_size;
 
     if (verbose_.get()) {
-      HOLOSCAN_LOG_INFO("Wrote frame {} ({} bytes, total: {} bytes)", 
-                       frame_count_, data_size, total_bytes_written_);
+      HOLOSCAN_LOG_INFO("Wrote frame {} ({} bytes, total: {} bytes)",
+                        frame_count_,
+                        data_size,
+                        total_bytes_written_);
     }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to write frame data: {}", e.what());
@@ -130,8 +125,9 @@ void NvVideoWriterOp::stop() {
   }
 
   if (verbose_.get()) {
-    HOLOSCAN_LOG_INFO("Video writer stopped. Total frames: {}, Total bytes: {}", 
-                     frame_count_, total_bytes_written_);
+    HOLOSCAN_LOG_INFO("Video writer stopped. Total frames: {}, Total bytes: {}",
+                      frame_count_,
+                      total_bytes_written_);
   }
 }
 
