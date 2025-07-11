@@ -157,7 +157,7 @@ This repository provides a convenience `holohub` script to abstract some of the 
 Run the following to list existing components available to build:
 
   ```bash
-  ./holohub run list
+  ./holohub list
   ```
 
 Then run the following to build the component of your choice:
