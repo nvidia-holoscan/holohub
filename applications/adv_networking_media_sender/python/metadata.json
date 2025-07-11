@@ -1,0 +1,39 @@
+{
+	"application": {
+		"name": "Advanced Networking Media Sender",
+		"authors": [
+			{
+				"name": "Rony Rado",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Network", "Networking", "UDP", "Ethernet", "IP", "TCP", "Rivermax"],
+		"dockerfile": "operators/advanced_network/Dockerfile",
+		"holoscan_sdk": {
+			"minimum_required_version": "2.6.0",
+			"tested_versions": [
+				"2.6.0"
+			]
+		},
+		"ranking": 3,
+		"dependencies": {
+			"operators": [{
+				"name": "advanced_network_media_tx",
+				"version": "1.0"
+			}, {
+				"name": "advanced_network",
+				"version": "1.4"
+			}]
+		},
+		"run": {
+			"command": "<holohub_app_bin>/adv_networking_media_sender adv_networking_media_sender.yaml",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}
