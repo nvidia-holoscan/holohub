@@ -279,6 +279,7 @@ def check_copyright_main():
         target_branch = None
         if args.git_modified_only != "no-target":
             target_branch = args.git_modified_only
+            print(f"Checking copyright headers in modified files between {target_branch} and HEAD")
         modified_files = gitutils.modified_files(target_branch, True)
         all_files = list(set(all_files).intersection(modified_files)) if dirs else modified_files
 

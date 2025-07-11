@@ -25,3 +25,4 @@ applications/volume_rendering_xr/.devcontainer/library-scripts/common-debian.sh
 applications/template
 applications/ehr_query_llm/fhir/__main__.py
 applications/pva_video_filter/cpp/CMakeLists.txt
+build
