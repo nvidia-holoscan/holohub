@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "lstm_tensor_rt_inference",
+		"name": "LSTMTensorRTInferenceOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",
