@@ -283,6 +283,14 @@ def check_copyright_main():
         all_files = list(set(all_files).intersection(modified_files)) if dirs else modified_files
 
     files = [f for f in all_files if check_this_file(f)]
+
+    # Print progress information
+    print(f"Checking copyright headers in {len(files)} files out of {len(all_files)} total files")
+    if len(files) > 0:
+        print(f"Example files being checked: {', '.join(files[:3])}")
+        if len(files) > 3:
+            print(f"... and {len(files) - 3} more files")
+
     errors = tuple(itertools.chain(*[check_copyright(f, args.update_current_year) for f in files]))
     if errors:
         print("Copyright headers incomplete in some of the files!")
