@@ -17,12 +17,13 @@ import logging
 import os
 from argparse import ArgumentParser
 
-from holoscan.core import Application, Operator, Tracker
+from holoscan.core import Application, Tracker
 from holoscan.operators import FormatConverterOp, VideoStreamReplayerOp
 from holoscan.resources import BlockMemoryPool, MemoryStorageType, RMMAllocator
 
 from holohub.nv_video_encoder import NvVideoEncoderOp
 from holohub.nv_video_writer import NvVideoWriterOp
+
 
 class NVIDIAVideoCodecApp(Application):
     def __init__(self, data=None):
@@ -102,6 +103,7 @@ class NVIDIAVideoCodecApp(Application):
         self.add_flow(source, format_converter, {("output", "source_video")})
         self.add_flow(format_converter, encoder, {("tensor", "input")})
         self.add_flow(encoder, writer, {("output", "input")})
+
 
 if __name__ == "__main__":
     logging.basicConfig(
