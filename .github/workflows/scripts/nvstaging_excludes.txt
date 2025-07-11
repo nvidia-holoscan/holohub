@@ -4,3 +4,4 @@
 
 .github/workflows/check_compliance.yml
 applications/polyp_detection/README.md
+.github/workflows/scripts/nvstaging_excludes.txt

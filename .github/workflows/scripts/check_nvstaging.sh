@@ -34,9 +34,12 @@ done
 # Check if file should be excluded
 should_exclude() {
   [[ -f "$EXCLUDE_CONFIG" ]] || return 1
+  local file_path="$1"
+  # Remove leading ./ if present
+  file_path="${file_path#./}"
   while IFS= read -r pattern; do
     [[ -z "$pattern" || "$pattern" =~ ^[[:space:]]*# ]] && continue
-    [[ "$1" == $pattern ]] && return 0
+    [[ "$file_path" == "$pattern" ]] && return 0
   done < "$EXCLUDE_CONFIG"
   return 1
 }
