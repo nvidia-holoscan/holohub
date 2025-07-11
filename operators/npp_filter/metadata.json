@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "npp_filter",
+        "name": "NppFilterOp",
         "authors": [
             {
                 "name": "Holoscan Team",

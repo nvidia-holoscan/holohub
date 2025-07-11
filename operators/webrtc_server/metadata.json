@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "webrtc_server",
+		"name": "WebRTCServerOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",

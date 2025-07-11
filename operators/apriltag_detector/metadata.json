@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "apriltag_detector",
+		"name": "ApriltagDetectorOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",

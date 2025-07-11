@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "Velodyne VLP-16 Lidar Operator",
+		"name": "VelodyneLidarOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",
