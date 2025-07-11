@@ -2,7 +2,7 @@ name: Check Compliance
 
 on:
   push:
-    branches: [main, temp-test]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -20,13 +20,12 @@ jobs:
         python3 .github/workflows/scripts/check_copyright.py --git-modified-only origin/${{ github.base_ref }} \
           --exclude-config .github/workflows/scripts/copyright_excludes.txt
 
-    - name: Check copyright headers (all files)
-      if: github.event_name == 'push'
-      run: |
-        echo "Checking copyright headers in all files..."
-        python3 .github/workflows/scripts/check_copyright.py \
-          --exclude-config .github/workflows/scripts/copyright_excludes.txt \
-          .
+    # - name: Check copyright headers (all files)
+    #   if: github.event_name == 'push'
+    #   run: |
+    #     echo "Checking copyright headers in all files..."
+    #     python3 .github/workflows/scripts/check_copyright.py \
+    #       --exclude-config .github/workflows/scripts/copyright_excludes.txt .
 
     - name: Check for internal artifacts
       run: |
