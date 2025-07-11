@@ -14,10 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(iio_controller LANGUAGES NONE)
+project(iio LANGUAGES NONE)
 
 add_subdirectory(cpp)
-
-if(HOLOHUB_BUILD_PYTHON)
-  add_subdirectory(python)
-endif()
+add_subdirectory(python)
