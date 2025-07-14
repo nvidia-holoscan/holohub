@@ -221,6 +221,7 @@ class HoloHubContainer:
             "/opt/yuan/qcap/include",
             "/opt/yuan/qcap/lib",
             "/usr/lib/aarch64-linux-gnu/tegra",
+            "/usr/lib/aarch64-linux-gnu/nvidia",
         ]
 
         for path in conditional_mounts:
