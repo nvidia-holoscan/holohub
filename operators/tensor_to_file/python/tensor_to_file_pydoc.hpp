@@ -21,9 +21,9 @@
 
 #include "macros.hpp"
 
-namespace holoscan::doc::NvVideoWriterOp {
+namespace holoscan::doc::TensorToFileOp {
 
-PYDOC(NvVideoWriterOp, R"doc(
+PYDOC(TensorToFileOp, R"doc(
 Nv Video Writer operator.
 
 This operator writes H.264/H.265 elementary stream files from encoded video frames.
@@ -31,8 +31,8 @@ Takes encoded frame tensors as input and writes them directly to elementary stre
 that can be played with standard video players.
 )doc")
 
-// PyNvVideoWriterOp Constructor
-PYDOC(NvVideoWriterOp_python, R"doc(
+// PyTensorToFileOp Constructor
+PYDOC(TensorToFileOp_python, R"doc(
 Nv Video Writer operator.
 
 This operator writes H.264/H.265 elementary stream files from encoded video frames.
@@ -41,6 +41,8 @@ them directly to elementary stream files that can be played with standard video 
 
 Parameters
 ----------
+tensor_name : str
+    Name of the tensor to write to the file.
 output_file : str
     Output file path for the elementary stream (e.g., "output.h264" or "output.h265").
 allocator : holoscan.core.Allocator
@@ -67,4 +69,4 @@ spec : holoscan.core.OperatorSpec
     The operator specification.
 )doc")
 
-}  // namespace holoscan::doc::NvVideoWriterOp
+}  // namespace holoscan::doc::TensorToFileOp

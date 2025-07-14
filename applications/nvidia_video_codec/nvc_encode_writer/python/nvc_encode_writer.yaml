@@ -51,6 +51,7 @@ encoder:
 writer:
   output_file: "output.h264"
   verbose: false
+  tensor_name: ""
 
 format_converter:
   in_dtype: "rgb888"

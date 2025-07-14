@@ -25,6 +25,6 @@ target_link_libraries(nvidia_video_codec INTERFACE
     holoscan::core
     holoscan::ops::format_converter
     holoscan::ops::nv_video_encoder
-    holoscan::ops::nv_video_writer
+    holoscan::ops::tensor_to_file
     holoscan::ops::video_stream_replayer
 )

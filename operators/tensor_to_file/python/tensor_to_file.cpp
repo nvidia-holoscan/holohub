@@ -27,10 +27,10 @@
 #include "holoscan/core/operator.hpp"
 #include "holoscan/core/operator_spec.hpp"
 
-#include "../nv_video_writer.hpp"
-#include "./nv_video_writer_pydoc.hpp"
+#include "../tensor_to_file.hpp"
+#include "./tensor_to_file_pydoc.hpp"
 
-#include "../../../operator_util.hpp"
+#include "../../operator_util.hpp"
 using std::string_literals::operator""s;
 using pybind11::literals::operator""_a;
 
@@ -51,16 +51,18 @@ namespace holoscan::ops {
  * The sequence of events in this constructor is based on Fragment::make_operator<OperatorT>
  */
 
-class PyNvVideoWriterOp : public NvVideoWriterOp {
+class PyTensorToFileOp : public TensorToFileOp {
  public:
   /* Inherit the constructors */
-  using NvVideoWriterOp::NvVideoWriterOp;
+  using TensorToFileOp::TensorToFileOp;
 
   // Define a constructor that fully initializes the object.
-  PyNvVideoWriterOp(Fragment* fragment, const py::args& args, const std::string& output_file,
+  PyTensorToFileOp(Fragment* fragment, const py::args& args, const std::string& tensor_name,
+                    const std::string& output_file,
                     std::shared_ptr<::holoscan::Allocator> allocator, bool verbose = false,
-                    const std::string& name = "nv_video_writer")
-      : NvVideoWriterOp(ArgList{Arg{"output_file", output_file},
+                    const std::string& name = "tensor_to_file")
+      : TensorToFileOp(ArgList{Arg{"tensor_name", tensor_name},
+                                Arg{"output_file", output_file},
                                 Arg{"allocator", allocator},
                                 Arg{"verbose", verbose},
                                 Arg{"name", name}}) {
@@ -74,11 +76,11 @@ class PyNvVideoWriterOp : public NvVideoWriterOp {
 
 /* The python module */
 
-PYBIND11_MODULE(_nv_video_writer, m) {
+PYBIND11_MODULE(_tensor_to_file, m) {
   m.doc() = R"pbdoc(
         Holoscan SDK Python Bindings
         ---------------------------------------
-        .. currentmodule:: _nv_video_writer
+        .. currentmodule:: _tensor_to_file
         .. autosummary::
            :toctree: _generate
     )pbdoc";
@@ -89,21 +91,23 @@ PYBIND11_MODULE(_nv_video_writer, m) {
   m.attr("__version__") = "dev";
 #endif
 
-  py::class_<NvVideoWriterOp, PyNvVideoWriterOp, Operator, std::shared_ptr<NvVideoWriterOp>>(
-      m, "NvVideoWriterOp", doc::NvVideoWriterOp::doc_NvVideoWriterOp)
+  py::class_<TensorToFileOp, PyTensorToFileOp, Operator, std::shared_ptr<TensorToFileOp>>(
+      m, "TensorToFileOp", doc::TensorToFileOp::doc_TensorToFileOp)
       .def(py::init<Fragment*,
                     const py::args&,
+                    const std::string&,
                     const std::string&,
                     std::shared_ptr<::holoscan::Allocator>,
                     bool,
                     const std::string&>(),
            "fragment"_a,
+           "tensor_name"_a,
            "output_file"_a,
            "allocator"_a,
            "verbose"_a = false,
-           "name"_a = "nv_video_writer"s,
-           doc::NvVideoWriterOp::doc_NvVideoWriterOp)
-      .def("initialize", &NvVideoWriterOp::initialize, doc::NvVideoWriterOp::doc_initialize)
-      .def("setup", &NvVideoWriterOp::setup, "spec"_a, doc::NvVideoWriterOp::doc_setup);
+           "name"_a = "tensor_to_file"s,
+           doc::TensorToFileOp::doc_TensorToFileOp)
+      .def("initialize", &TensorToFileOp::initialize, doc::TensorToFileOp::doc_initialize)
+      .def("setup", &TensorToFileOp::setup, "spec"_a, doc::TensorToFileOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

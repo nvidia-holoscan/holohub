@@ -40,4 +40,4 @@ add_holohub_application(nvc_encode_decode DEPENDS OPERATORS
                           nv_video_decoder)
 add_holohub_application(nvc_encode_writer DEPENDS OPERATORS
                           nv_video_encoder
-                          nv_video_writer)
+                          tensor_to_file)

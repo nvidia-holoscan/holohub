@@ -22,7 +22,7 @@ from holoscan.operators import FormatConverterOp, VideoStreamReplayerOp
 from holoscan.resources import BlockMemoryPool, MemoryStorageType, RMMAllocator
 
 from holohub.nv_video_encoder import NvVideoEncoderOp
-from holohub.nv_video_writer import NvVideoWriterOp
+from holohub.tensor_to_file import TensorToFileOp
 
 
 class NVIDIAVideoCodecApp(Application):
@@ -93,7 +93,7 @@ class NVIDIAVideoCodecApp(Application):
             **self.kwargs("encoder"),
         )
 
-        writer = NvVideoWriterOp(
+        writer = TensorToFileOp(
             self,
             name="nv_writer",
             allocator=RMMAllocator(self, name="video_writer_allocator"),

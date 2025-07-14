@@ -30,18 +30,17 @@
 namespace holoscan::ops {
 
 /**
- * @brief Operator to write H.264/H.265 elementary video files from encoded frames
+ * @brief Operator to write tensor data to a file
  *
- * This operator takes encoded video frames as input tensors and writes them to
- * H.264/H.265 elementary stream files that can be played with standard video players.
+ * This operator takes a tensor as input and writes it to a file.
  * The input should come from the NvVideoEncoderOp.
  */
-class NvVideoWriterOp : public Operator {
+class TensorToFileOp : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(NvVideoWriterOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(TensorToFileOp)
 
-  NvVideoWriterOp() = default;
-  ~NvVideoWriterOp();
+  TensorToFileOp() = default;
+  ~TensorToFileOp();
 
   void setup(OperatorSpec& spec) override;
   void initialize() override;
@@ -50,6 +49,7 @@ class NvVideoWriterOp : public Operator {
   void stop() override;
 
  private:
+  Parameter<std::string> tensor_name_;
   Parameter<std::string> output_file_;
   Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
   Parameter<bool> verbose_;
@@ -57,6 +57,7 @@ class NvVideoWriterOp : public Operator {
 
   // File output stream for writing encoded video data
   std::ofstream output_stream_;
+  std::filesystem::path file_path_;
 
   // Statistics
   size_t frame_count_ = 0;

@@ -16,7 +16,7 @@
 include(pybind11_add_holohub_module)
 
 pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET nv_video_writer
-    CLASS_NAME "NvVideoWriterOp"
-    SOURCES nv_video_writer.cpp
+    CPP_CMAKE_TARGET tensor_to_file
+    CLASS_NAME "TensorToFileOp"
+    SOURCES tensor_to_file.cpp
 )

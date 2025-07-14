@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "nv_video_writer.hpp"
+#include "tensor_to_file.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -37,16 +37,21 @@
 
 namespace holoscan::ops {
 
-NvVideoWriterOp::~NvVideoWriterOp() {
+TensorToFileOp::~TensorToFileOp() {
   // Ensure file is closed properly
   if (output_stream_.is_open()) {
     output_stream_.close();
   }
 }
 
-void NvVideoWriterOp::setup(OperatorSpec& spec) {
+void TensorToFileOp::setup(OperatorSpec& spec) {
   spec.input<holoscan::gxf::Entity>("input");
 
+  spec.param(tensor_name_,
+             "tensor_name",
+             "Tensor Name",
+             "Name of the tensor",
+             std::string(""));
   spec.param(output_file_,
              "output_file",
              "Output File",
@@ -61,7 +66,7 @@ void NvVideoWriterOp::setup(OperatorSpec& spec) {
              DEFAULT_BUFFER_SIZE);
 }
 
-void NvVideoWriterOp::initialize() {
+void TensorToFileOp::initialize() {
   Operator::initialize();
 
   // Validate output file path
@@ -72,15 +77,15 @@ void NvVideoWriterOp::initialize() {
   validateOutputFile(output_file_.get());
 
   // Create directory if it doesn't exist
-  std::filesystem::path file_path(output_file_.get());
-  if (file_path.has_parent_path()) {
-    std::filesystem::create_directories(file_path.parent_path());
+  file_path_ = std::filesystem::absolute(std::filesystem::path(output_file_.get()));
+  if (file_path_.has_parent_path()) {
+    std::filesystem::create_directories(file_path_.parent_path());
   }
 
   // Open output file for binary writing with custom buffer size
-  output_stream_.open(output_file_.get(), std::ios::out | std::ios::binary);
+  output_stream_.open(file_path_.string(), std::ios::out | std::ios::binary);
   if (!output_stream_) {
-    throw std::runtime_error("Failed to open output file: " + output_file_.get());
+    throw std::runtime_error("Failed to open output file: " + file_path_.string());
   }
 
   // Set custom buffer size for better performance
@@ -97,12 +102,12 @@ void NvVideoWriterOp::initialize() {
 
   if (verbose_.get()) {
     HOLOSCAN_LOG_INFO("Video writer initialized. Output file: {}, Buffer size: {} bytes",
-                      output_file_.get(),
+                      file_path_.string(),
                       buffer_size_.get());
   }
 }
 
-void NvVideoWriterOp::compute(InputContext& op_input, OutputContext& op_output,
+void TensorToFileOp::compute(InputContext& op_input, OutputContext& op_output,
                               ExecutionContext& context) {
   // Get input entity containing encoded frame data
   auto maybe_entity = op_input.receive<holoscan::gxf::Entity>("input");
@@ -111,7 +116,7 @@ void NvVideoWriterOp::compute(InputContext& op_input, OutputContext& op_output,
   }
 
   // Get the tensor from the input message
-  auto tensor = maybe_entity.value().get<Tensor>("");
+  auto tensor = maybe_entity.value().get<Tensor>(tensor_name_.get().c_str());
   if (!tensor) {
     throw std::runtime_error("Failed to get tensor from input message");
   }
@@ -159,7 +164,7 @@ void NvVideoWriterOp::compute(InputContext& op_input, OutputContext& op_output,
   }
 }
 
-void NvVideoWriterOp::stop() {
+void TensorToFileOp::stop() {
   if (output_stream_.is_open()) {
     try {
       // Explicitly flush any remaining buffered data to ensure data integrity
@@ -170,6 +175,7 @@ void NvVideoWriterOp::stop() {
     output_stream_.close();
   }
 
+  HOLOSCAN_LOG_INFO("Video writer stopped writing to file: {}", file_path_.string());
   if (verbose_.get()) {
     auto end_time = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time_);
@@ -185,7 +191,7 @@ void NvVideoWriterOp::stop() {
   }
 }
 
-void NvVideoWriterOp::validateOutputFile(const std::string& filepath) {
+void TensorToFileOp::validateOutputFile(const std::string& filepath) {
   // Check if file path is reasonable
   if (filepath.length() > 4096) {
     throw std::runtime_error("Output file path too long");
@@ -226,7 +232,7 @@ void NvVideoWriterOp::validateOutputFile(const std::string& filepath) {
   }
 }
 
-void NvVideoWriterOp::logPerformanceStats() {
+void TensorToFileOp::logPerformanceStats() {
   auto current_time = std::chrono::steady_clock::now();
   auto duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_log_time_);

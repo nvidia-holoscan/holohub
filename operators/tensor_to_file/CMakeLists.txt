@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.24)
-project(nv_video_writer LANGUAGES CXX)
+project(tensor_to_file LANGUAGES CXX)
 
 include(nvidia_video_codec)
 
@@ -22,15 +22,15 @@ find_package(holoscan 3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Writer Operator
-add_library(nv_video_writer SHARED
-  nv_video_writer.cpp
+add_library(tensor_to_file SHARED
+  tensor_to_file.cpp
 )
 
-add_library(holoscan::ops::nv_video_writer ALIAS nv_video_writer)
-target_link_libraries(nv_video_writer PUBLIC
+add_library(holoscan::ops::tensor_to_file ALIAS tensor_to_file)
+target_link_libraries(tensor_to_file PUBLIC
   holoscan::core
 )
-target_include_directories(nv_video_writer PUBLIC
+target_include_directories(tensor_to_file PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
 
