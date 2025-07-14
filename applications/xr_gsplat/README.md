@@ -30,6 +30,8 @@ CUDA_VISIBLE_DEVICES=0 python simple_trainer.py default \
     --result_dir ./results/garden
 ```
 
+__note__: Training time is observed to take about 30 minutes on Intel i9 CPU + NVIDIA RTX A5000 dGPU
+
 #### 0.4. Set up the checkpoint paths in `config.yaml`
 
 
