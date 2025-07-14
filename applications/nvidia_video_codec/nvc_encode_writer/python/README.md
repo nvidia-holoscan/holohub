@@ -23,7 +23,7 @@ This application demonstrates the use of NVIDIA Video Codec SDK. The application
 
 ## Configuration
 
-The application is configured with H.264 codec by default. It may be modified in the [nvc_encode_writer.yaml](./nvc_encode_writer.yaml) file:
+The application is configured with H.264 codec by default for lower power consumption. It may be modified in the [nvc_encode_writer.yaml](./nvc_encode_writer.yaml) file:
 
 ```yaml
 encoder:
