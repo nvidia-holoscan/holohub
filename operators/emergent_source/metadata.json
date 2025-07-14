@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "emergent_source",
+		"name": "EmergentSourceOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",
