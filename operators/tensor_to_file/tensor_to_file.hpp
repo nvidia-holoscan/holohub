@@ -30,10 +30,11 @@
 namespace holoscan::ops {
 
 /**
- * @brief Operator to write tensor data to a file
+ * @brief Operator to stream tensor data to a file
  *
- * This operator takes a tensor as input and writes it to a file.
- * The input should come from the NvVideoEncoderOp.
+ * This operator streams input tensor data to a file.
+ * The file is opened at init. Tensor binary data are appended in the
+ * same order in which messages are received.
  */
 class TensorToFileOp : public Operator {
  public:
