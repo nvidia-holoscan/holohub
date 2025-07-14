@@ -36,12 +36,12 @@ __note__: Training time is observed to take about 30 minutes on Intel i9 CPU + N
 
 
 
-### 2. Run the application
+### 1. Run the application
 
 #### Terminal 1: Launch Container and Start Monado Service
 ```bash
 # If you're already in the container, skip this step
-./dev_container launch --img holohub:xr_gsplat
+./holohub run-container xr_gsplat
 
 # Inside the container, start the Monado service
 monado-service
