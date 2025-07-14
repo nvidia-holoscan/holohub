@@ -29,6 +29,7 @@
 			"File",
 			"Writer"
 		],
-		"ranking": 2
+		"ranking": 2,
+		"dependencies": {}
 	}
 }
