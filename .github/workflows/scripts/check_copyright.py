@@ -43,13 +43,13 @@ ExemptFiles = []
 # this will break starting at year 10000, which is probably OK :)
 CheckSimple = re.compile(
     r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright \(c\) *(\d{4}),? NVIDIA CORPORATION & AFFILIATES\.(\s*[#*/*]?\s*)"
-    r"(?:All rights|ALL RIGHTS)(\s*[#*/*]?\s*)(?:reserved\.|RESERVED\.)",
-    re.MULTILINE | re.DOTALL,
+    r"all rights(\s*[#*/*]?\s*)reserved\.",
+    re.MULTILINE | re.DOTALL | re.IGNORECASE,
 )
 CheckDouble = re.compile(
     r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright \(c\) *(\d{4})-(\d{4}),? NVIDIA CORPORATION & AFFILIATES\.(\s*[#*/*]?\s*)"
-    r"(?:All rights|ALL RIGHTS)(\s*[#*/*]?\s*)(?:reserved\.|RESERVED\.)",
-    re.MULTILINE | re.DOTALL,
+    r"all rights(\s*[#*/*]?\s*)reserved\.",
+    re.MULTILINE | re.DOTALL | re.IGNORECASE,
 )
 
 
@@ -76,15 +76,8 @@ def get_copyright_years(line):
 
 
 def replace_current_year(line, start, end):
-    # Determine the case format from the original text
-    is_all_caps = "ALL RIGHTS" in line
-
-    if is_all_caps:
-        rights_text = "ALL RIGHTS"
-        reserved_text = "RESERVED."
-    else:
-        rights_text = "All rights"
-        reserved_text = "reserved."
+    rights_text = "All rights"
+    reserved_text = "reserved."
 
     # first turn a simple regex into double (if applicable). then update years
     res = CheckSimple.sub(
@@ -113,7 +106,7 @@ def check_copyright(f, update_current_year):
         lines = fp.readlines()
         content = "".join(lines)
 
-    # Check the entire file content for copyright headers (handles both single-line and multi-line headers)
+    # Check the entire file content for copyright headers
     start, end = get_copyright_years(content)
     if start is not None:
         cr_found = True
@@ -137,12 +130,7 @@ def check_copyright(f, update_current_year):
     fp.close()
     # copyright header itself not found
     if not cr_found:
-        e = [
-            f,
-            0,
-            "Copyright header missing or formatted incorrectly (manual fix required)",
-            None,
-        ]
+        e = [f, 0, "Copyright header missing or formatted incorrectly (manual fix required)", None]
         errs.append(e)
     # even if the year matches a copyright header, make the check pass
     if year_matched:
