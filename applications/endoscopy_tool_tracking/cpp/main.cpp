@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,7 @@
 #include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <lstm_tensor_rt_inference.hpp>
+#include <slang_shader_op.hpp>
 #include <tool_tracking_postprocessor.hpp>
 #ifdef VTK_RENDERER
 #include <vtk_renderer.hpp>
@@ -94,7 +95,8 @@ class App : public holoscan::Application {
       source = make_operator<ops::AJASourceOp>(
           "aja", from_config("aja"), from_config("external_source"));
 #else
-throw std::runtime_error("AJA is requested but not available. Please enable AJA at build time.");
+      throw std::runtime_error(
+          "AJA is requested but not available. Please enable AJA at build time.");
 #endif
       source_block_size = width * height * 4 * 4;
       source_num_blocks = use_rdma ? 3 : 4;
@@ -178,21 +180,33 @@ throw std::runtime_error("AJA is requested but not available. Please enable AJA 
     const uint64_t tool_tracking_postprocessor_block_size =
         std::max(107 * 60 * 7 * 4 * sizeof(float), 7 * 3 * sizeof(float));
     const uint64_t tool_tracking_postprocessor_num_blocks = 2 * 2;
-    auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
-        "tool_tracking_postprocessor",
-        Arg("device_allocator") =
-            make_resource<BlockMemoryPool>("device_allocator",
-                                           1,
-                                           tool_tracking_postprocessor_block_size,
-                                           tool_tracking_postprocessor_num_blocks));
-
+    std::shared_ptr<Operator> tool_tracking_postprocessor;
+    if (true) {
+      tool_tracking_postprocessor = make_operator<ops::SlangShaderOp>(
+          "tool_tracking_postprocessor",
+          Arg("shader_source_file",
+              "/workspace/holohub/applications/endoscopy_tool_tracking/cpp/postprocessor.slang"),
+          Arg("allocator") =
+              make_resource<BlockMemoryPool>("pool",
+                                             1,
+                                             tool_tracking_postprocessor_block_size,
+                                             tool_tracking_postprocessor_num_blocks));
+    } else {
+      tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
+          "tool_tracking_postprocessor",
+          Arg("device_allocator") =
+              make_resource<BlockMemoryPool>("device_allocator",
+                                             1,
+                                             tool_tracking_postprocessor_block_size,
+                                             tool_tracking_postprocessor_num_blocks));
+    }
     if (this->visualizer_name == "holoviz") {
       std::shared_ptr<BlockMemoryPool> visualizer_allocator;
       if (((record_type_ == Record::VISUALIZER) && (source_ == "replayer"))
 #ifdef DELTACAST_VIDEOMASTER
           || overlay_enabled
 #endif
-    ) {
+      ) {
         visualizer_allocator =
             make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
       }
@@ -309,7 +323,8 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
       {"data", required_argument, 0, 'd'}, {"config", required_argument, 0, 'c'}, {0, 0, 0, 0}};
 
   while (int c = getopt_long(argc, argv, "d:c:", long_options, NULL)) {
-    if (c == -1 || c == '?') break;
+    if (c == -1 || c == '?')
+      break;
 
     switch (c) {
       case 'c':
@@ -332,7 +347,9 @@ int main(int argc, char** argv) {
   // Parse the arguments
   std::string config_path = "";
   std::string data_directory = "";
-  if (!parse_arguments(argc, argv, data_directory, config_path)) { return 1; }
+  if (!parse_arguments(argc, argv, data_directory, config_path)) {
+    return 1;
+  }
   if (data_directory.empty()) {
     // Get the input data environment variable
     auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");

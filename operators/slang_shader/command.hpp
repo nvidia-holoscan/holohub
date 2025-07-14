@@ -54,9 +54,20 @@ class CommandWorkspace {
   OutputContext& op_output_;   ///< Operator output context
   ExecutionContext& context_;  ///< Execution context
 
-  std::map<std::string, gxf::Entity> entities_;  ///< Mapping of entity names to GXF entities
+  std::map<std::string, gxf::Entity> entities_;  ///< Mapping of port names to GXF entities
+  std::set<std::string> emitted_entities_;       ///< Emitted port names, used to avoid emitting the
+                                                 ///< same entity multiple times
 
   std::vector<uint8_t> shader_parameters_;  ///< Buffer for shader parameter data
+
+  /// Resource information
+  struct ResourceInfo {
+    void* pointer;
+    size_t size;
+  };
+
+  std::map<std::string, ResourceInfo>
+      cuda_resource_pointers_;  ///< Mapping of resource names to CUDA resource information
 
   cudaStream_t cuda_stream_ = 0;  ///< CUDA stream for asynchronous operations
 };
@@ -91,12 +102,13 @@ class CommandInput : public Command {
   /**
    * @brief Constructs an input command
    *
-   * @param port_name Name of the input port to read from
+   * @param port_name Name of the input port to read from.
+   * @param item_name Name of the item to get from the port. If empty, the first item is read.
    * @param resource_name Name of the resource to store the input data
    * @param parameter_offset Offset in the parameter buffer for this input
    */
-  CommandInput(const std::string& port_name, const std::string& resource_name,
-               size_t parameter_offset);
+  CommandInput(const std::string& port_name, const std::string& item_name,
+               const std::string& resource_name, size_t parameter_offset);
   CommandInput() = delete;
 
   /**
@@ -111,6 +123,7 @@ class CommandInput : public Command {
 
  private:
   const std::string port_name_;      ///< Name of the input port
+  const std::string item_name_;      ///< Name of the item to read from the port
   const std::string resource_name_;  ///< Name of the resource to store data
   const size_t parameter_offset_;    ///< Offset in parameter buffer
 };
@@ -127,9 +140,11 @@ class CommandOutput : public Command {
    * @brief Constructs an output command
    *
    * @param port_name Name of the output port to write to
+   * @param item_name Name of the item to write to the port. If empty, the first item is written.
    * @param resource_name Name of the resource containing the output data
    */
-  explicit CommandOutput(const std::string& port_name, const std::string& resource_name);
+  explicit CommandOutput(const std::string& port_name, const std::string& item_name,
+                         const std::string& resource_name);
   CommandOutput() = delete;
 
   /**
@@ -141,8 +156,12 @@ class CommandOutput : public Command {
    */
   void execute(CommandWorkspace& workspace) override;
 
+  const std::string& port_name() const { return port_name_; }
+  const std::string& item_name() const { return item_name_; }
+
  private:
   const std::string port_name_;      ///< Name of the output port
+  const std::string item_name_;      ///< Name of the item to write to the port
   const std::string resource_name_;  ///< Name of the resource containing data
 };
 
@@ -157,12 +176,18 @@ class CommandAllocSizeOf : public Command {
   /**
    * @brief Constructs an allocation command with size information
    *
-   * @param name Name of the allocation
-   * @param size_of_name Name of the resource containing size information
+   * @param port_name Name of the port to allocate memory for
+   * @param item_name Name of the item to allocate memory for
+   * @param resource_name Name of the resource to allocate memory for
+   * @param reference_name Name of the port containing size information
+   * @param element_type Element type of the data to allocate memory for
+   * @param element_count Number of elements in the data to allocate memory for
    * @param allocator Reference to the allocator parameter
    * @param parameter_offset Offset in the parameter buffer
    */
-  CommandAllocSizeOf(const std::string& name, const std::string& size_of_name,
+  CommandAllocSizeOf(const std::string& port_name, const std::string& item_name,
+                     const std::string& resource_name, const std::string& reference_name,
+                     const std::string& element_type, uint32_t element_count,
                      const Parameter<std::shared_ptr<Allocator>>& allocator,
                      size_t parameter_offset);
   CommandAllocSizeOf() = delete;
@@ -171,15 +196,19 @@ class CommandAllocSizeOf : public Command {
    * @brief Executes the allocation command
    *
    * Allocates memory using the specified allocator with size determined
-   * from the size_of_name resource.
+   * from the reference_port_name resource.
    *
    * @param workspace The workspace to operate on
    */
   void execute(CommandWorkspace& workspace) override;
 
  private:
-  const std::string name_;                                  ///< Name of the allocation
-  const std::string size_of_name_;                          ///< Name of size resource
+  const std::string port_name_;       ///< Name of the port to allocate memory for
+  const std::string item_name_;       ///< Name of the item to allocate memory for
+  const std::string resource_name_;   ///< Name of the resource to allocate memory for
+  const std::string reference_name_;  ///< Name of the port containing size information
+  const std::string element_type_;    ///< Element type of the data to allocate memory for
+  const uint32_t element_count_;      ///< Number of elements in the data to allocate memory for
   const Parameter<std::shared_ptr<Allocator>>& allocator_;  ///< Allocator reference
   const size_t parameter_offset_;                           ///< Offset in parameter buffer
 };
@@ -199,18 +228,19 @@ class CommandParameter : public Command {
    * @param spec The operator specification to register the parameter with
    * @param param Pointer to the parameter object
    * @param name Name of the parameter
+   * @param default_value Default value of the parameter
    * @param parameter_offset Offset in the parameter buffer
    */
   template <typename typeT>
   explicit CommandParameter(OperatorSpec& spec, Parameter<typeT>* param, const std::string& name,
-                            size_t parameter_offset)
+                            typeT default_value, size_t parameter_offset)
       : name_(name),
         value_(reinterpret_cast<void*>(param),
                [](void* value) { delete static_cast<Parameter<typeT>*>(value); }),
         parameter_offset_(parameter_offset),
         size_(sizeof(typeT)) {
     // Create the parameter in the operator spec
-    spec.param<typeT>(*param, name_.c_str());
+    spec.param<typeT>(*param, name_.c_str(), "N/A", "N/A", default_value);
 
     get_value_ = [](void* value) -> void* {
       return reinterpret_cast<void*>(&static_cast<Parameter<typeT>*>(value)->get());
@@ -247,11 +277,12 @@ class CommandSizeOf : public Command {
   /**
    * @brief Constructs a size-of command
    *
-   * @param name Name where the size information will be stored
-   * @param size_of_name Name of the resource to get size for
+   * @param parameter_name Name of the parameter where the size information will be stored
+   * @param reference_port_name Name of the port containing size information
    * @param parameter_offset Offset in the parameter buffer
    */
-  CommandSizeOf(const std::string& name, const std::string& size_of_name, size_t parameter_offset);
+  CommandSizeOf(const std::string& parameter_name, const std::string& reference_port_name,
+                size_t parameter_offset);
   CommandSizeOf() = delete;
 
   /**
@@ -262,9 +293,10 @@ class CommandSizeOf : public Command {
   void execute(CommandWorkspace& workspace) override;
 
  private:
-  const std::string name_;          ///< Name where the size information will be stored
-  const std::string size_of_name_;  ///< Name of the resource to get size for
-  const size_t parameter_offset_;   ///< Offset in parameter buffer
+  const std::string
+      parameter_name_;  ///< Name of the parameter where the size information will be stored
+  const std::string reference_port_name_;  ///< Name of the port containing size information
+  const size_t parameter_offset_;          ///< Offset in parameter buffer
 };
 
 /**
@@ -294,7 +326,8 @@ class CommandReceiveCudaStream : public Command {
  * @brief Command for launching CUDA kernels
  *
  * This command handles the execution of CUDA kernels with specified
- * grid and block dimensionsß.
+ * invocation and block dimensions. The `block_size` parameter defines the number of threads per
+ * block. The `invocations` parameter defines the total number of invocations.
  */
 class CommandLaunch : public Command {
  public:
@@ -303,31 +336,57 @@ class CommandLaunch : public Command {
    *
    * @param name Name of the kernel
    * @param shader Pointer to the SlangShader object
-   * @param block_size CUDA block dimensions
-   * @param grid_size_of_name Name of parameter containing grid size
-   * @param grid_size CUDA grid dimensions
+   * @param block_size CUDA block dimensions (threads per block)
+   * @param invocations_size_of_name Name of parameter containing invocation size
+   * @param invocations total number of invocations
    */
   CommandLaunch(const std::string& name, SlangShader* shader, dim3 block_size,
-                const std::string& grid_size_of_name, dim3 grid_size);
+                const std::string& invocations_size_of_name, dim3 invocations);
   CommandLaunch() = delete;
 
   /**
    * @brief Executes the kernel launch command
    *
    * Compiles and launches the CUDA kernel with the specified parameters
-   * and grid/block dimensions.
+   * and invocation/block dimensions.
    *
    * @param workspace The workspace to operate on
    */
   void execute(CommandWorkspace& workspace) override;
 
  private:
-  const std::string name_;               ///< Kernel name
-  SlangShader* const shader_;            ///< Pointer to the shader object
-  const dim3 block_size_;                ///< CUDA block dimensions
-  const std::string grid_size_of_name_;  ///< Name of grid size parameter
-  const dim3 grid_size_;                 ///< CUDA grid dimensions
-  cudaKernel_t kernel_ = nullptr;        ///< Compiled CUDA kernel handle
+  const std::string name_;                      ///< Kernel name
+  SlangShader* const shader_;                   ///< Pointer to the shader object
+  const dim3 block_size_;                       ///< CUDA block dimensions (threads per block)
+  const std::string invocations_size_of_name_;  ///< Name of invocation size parameter
+  const dim3 invocations_;                      ///< Total number of invocations
+  cudaKernel_t kernel_ = nullptr;               ///< Compiled CUDA kernel handle
+};
+
+/**
+ * @brief Command for initializing resources to zero
+ *
+ * This command initializes the specified resource to zero.
+ */
+class CommandZeros : public Command {
+ public:
+  /**
+   * @brief Constructs a zeros command
+   *
+   * @param resource_name Name of the resource to initialize to zero
+   */
+  explicit CommandZeros(const std::string& resource_name);
+  CommandZeros() = delete;
+
+  /**
+   * @brief Executes the zeros command
+   *
+   * @param workspace The workspace to operate on
+   */
+  void execute(CommandWorkspace& workspace) override;
+
+ private:
+  const std::string resource_name_;  ///< Name of the resource to initialize to zero
 };
 
 }  // namespace holoscan::ops

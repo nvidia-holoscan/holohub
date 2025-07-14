@@ -54,6 +54,8 @@ class SlangShaderOp::Impl {
     sessionDesc.targets = &targetDesc;
     sessionDesc.targetCount = 1;
 
+    /// @todo Add support for preprocessor macros
+
     // Create session
     SLANG_CALL(global_session_->createSession(sessionDesc, session_.writeRef()));
 
@@ -86,6 +88,157 @@ class SlangShaderOp::Impl {
 namespace {
 
 /**
+ * @brief Converts a string to lowercase
+ *
+ * @param s The string to convert
+ * @return The lowercase string
+ */
+std::string to_lower(const std::string& s) {
+  std::string s_lower = s;
+  std::transform(s_lower.begin(), s_lower.end(), s_lower.begin(), [](unsigned char c) {
+    return std::tolower(c);
+  });
+  return s_lower;
+}
+
+/**
+ * @brief Converts a string to a specific type
+ *
+ * @tparam typeT The type to convert to
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <typename typeT>
+typeT from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to a boolean
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+bool from_string(const std::string& s) {
+  const std::string s_lower = to_lower(s);
+  if (s_lower == "true") {
+    return true;
+  } else if (s_lower == "false") {
+    return false;
+  } else {
+    throw std::runtime_error(fmt::format("Invalid boolean value: {}", s));
+  }
+}
+
+/**
+ * @brief Converts a string to an int8_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+int8_t from_string(const std::string& s) {
+  return static_cast<int8_t>(std::stoi(s));
+}
+
+/**
+ * @brief Converts a string to a uint8_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+uint8_t from_string(const std::string& s) {
+  return static_cast<uint8_t>(std::stoul(s));
+}
+
+/**
+ * @brief Converts a string to an int16_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+int16_t from_string(const std::string& s) {
+  return static_cast<int16_t>(std::stoi(s));
+}
+
+/**
+ * @brief Converts a string to a uint16_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+uint16_t from_string(const std::string& s) {
+  return static_cast<uint16_t>(std::stoul(s));
+}
+
+/**
+ * @brief Converts a string to an int32_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+int32_t from_string(const std::string& s) {
+  return static_cast<int32_t>(std::stoi(s));
+}
+
+/**
+ * @brief Converts a string to a uint32_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+uint32_t from_string(const std::string& s) {
+  return static_cast<uint32_t>(std::stoul(s));
+}
+
+/**
+ * @brief Converts a string to an int64_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+int64_t from_string(const std::string& s) {
+  return static_cast<int64_t>(std::stoll(s));
+}
+
+/**
+ * @brief Converts a string to a uint64_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+uint64_t from_string(const std::string& s) {
+  return static_cast<uint64_t>(std::stoull(s));
+}
+
+/**
+ * @brief Converts a string to a float
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+float from_string(const std::string& s) {
+  return static_cast<float>(std::stof(s));
+}
+
+/**
+ * @brief Converts a string to a double
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+double from_string(const std::string& s) {
+  return static_cast<double>(std::stod(s));
+}
+/**
  * Creates a CommandParameter object based on the parameter type from Slang reflection data.
  *
  * This function analyzes the scalar type from the Slang parameter reflection and creates
@@ -93,49 +246,99 @@ namespace {
  * scalar types including bool, int8/16/32/64, uint8/16/32/64, float32, and float64.
  *
  * @param spec The OperatorSpec to add the parameter to
- * @param param_name The name of the parameter to create
  * @param parameter The JSON reflection data containing parameter type and binding information
+ * @param param_name The name of the parameter to create
+ * @param default_value The default value of the parameter
  * @return A unique_ptr to the created CommandParameter, or nullptr if the type is unsupported
  */
 std::unique_ptr<CommandParameter> create_command_parameter(OperatorSpec& spec,
+                                                           const nlohmann::json& parameter,
                                                            const std::string& param_name,
-                                                           const nlohmann::json& parameter) {
+                                                           const std::string& default_value) {
   if (parameter["type"]["scalarType"] == "bool") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<bool>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<bool>(),
+                                              param_name,
+                                              from_string<bool>(default_value),
+                                              parameter["binding"]["offset"]);
   } else if (parameter["type"]["scalarType"] == "int32") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<int32_t>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<int32_t>(),
+                                              param_name,
+                                              from_string<int32_t>(default_value),
+                                              parameter["binding"]["offset"]);
   } else if (parameter["type"]["scalarType"] == "uint32") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<uint32_t>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<uint32_t>(),
+                                              param_name,
+                                              from_string<uint32_t>(default_value),
+                                              parameter["binding"]["offset"]);
   } else if (parameter["type"]["scalarType"] == "int64") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<int64_t>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<int64_t>(),
+                                              param_name,
+                                              from_string<int64_t>(default_value),
+                                              parameter["binding"]["offset"]);
   } else if (parameter["type"]["scalarType"] == "uint64") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<uint64_t>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<uint64_t>(),
+                                              param_name,
+                                              from_string<uint64_t>(default_value),
+                                              parameter["binding"]["offset"]);
   } else if (parameter["type"]["scalarType"] == "float32") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<float>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<float>(),
+                                              param_name,
+                                              from_string<float>(default_value),
+                                              parameter["binding"]["offset"]);
   } else if (parameter["type"]["scalarType"] == "float64") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<double>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<double>(),
+                                              param_name,
+                                              from_string<double>(default_value),
+                                              parameter["binding"]["offset"]);
   } else if (parameter["type"]["scalarType"] == "int8") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<int8_t>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<int8_t>(),
+                                              param_name,
+                                              from_string<int8_t>(default_value),
+                                              parameter["binding"]["offset"]);
   } else if (parameter["type"]["scalarType"] == "uint8") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<uint8_t>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<uint8_t>(),
+                                              param_name,
+                                              from_string<uint8_t>(default_value),
+                                              parameter["binding"]["offset"]);
   } else if (parameter["type"]["scalarType"] == "int16") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<int16_t>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<int16_t>(),
+                                              param_name,
+                                              from_string<int16_t>(default_value),
+                                              parameter["binding"]["offset"]);
   } else if (parameter["type"]["scalarType"] == "uint16") {
-    return std::make_unique<CommandParameter>(
-        spec, new Parameter<uint16_t>(), param_name, parameter["binding"]["offset"]);
+    return std::make_unique<CommandParameter>(spec,
+                                              new Parameter<uint16_t>(),
+                                              param_name,
+                                              from_string<uint16_t>(default_value),
+                                              parameter["binding"]["offset"]);
   }
 
   return nullptr;
+}
+
+/**
+ * Splits a string into a pair of strings, separated by a colon.
+ *
+ * @param s The string to split
+ * @return A pair of strings, the first is the part before the colon, the second is the part after
+ */
+std::pair<std::string, std::string> split(const std::string& s) {
+  auto colon_pos = s.find(':');
+  if (colon_pos != std::string::npos) {
+    return {s.substr(0, colon_pos), s.substr(colon_pos + 1)};
+  } else {
+    return {s, ""};
+  }
 }
 
 }  // namespace
@@ -208,6 +411,9 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
       continue;
     }
 
+    // We need to store the output command for the alloc_size_of command
+    CommandOutput* command_output = nullptr;
+
     // Check the user attributes and check for Holoscan attributes
     for (auto& user_attrib : parameter["userAttribs"]) {
       // Ignore non-Holoscan attributes
@@ -228,10 +434,15 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
               attrib_name,
               parameter["name"].get<std::string>()));
         }
+
         const std::string input_name = user_attrib["arguments"].at(0);
-        spec.input<gxf::Entity>(input_name);
+        auto [input_port_name, input_item_name] = split(input_name);
+        // If the input port is not defined, define it
+        if (spec.inputs().find(input_port_name) == spec.inputs().end()) {
+          spec.input<gxf::Entity>(input_port_name);
+        }
         impl_->pre_launch_commands_.push_back(std::make_unique<CommandInput>(
-            input_name, parameter["name"], parameter["binding"]["offset"]));
+            input_port_name, input_item_name, parameter["name"], parameter["binding"]["offset"]));
       } else if (attrib_name == "output") {
         // output
         if ((parameter["type"]["kind"] != "resource") ||
@@ -242,9 +453,17 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
               parameter["name"].get<std::string>()));
         }
         const std::string output_name = user_attrib["arguments"].at(0);
-        spec.output<gxf::Entity>(output_name);
-        impl_->post_launch_commands_.push_back(
-            std::make_unique<CommandOutput>(output_name, parameter["name"]));
+        auto [output_port_name, output_item_name] = split(output_name);
+        // If the output port is not defined, define it
+        if (spec.outputs().find(output_port_name) == spec.outputs().end()) {
+          spec.output<gxf::Entity>(output_port_name);
+        }
+
+        auto command =
+            std::make_unique<CommandOutput>(output_port_name, output_item_name, parameter["name"]);
+        // Keep the output command for the alloc_size_of command
+        command_output = command.get();
+        impl_->post_launch_commands_.push_back(std::move(command));
       } else if (attrib_name == "alloc_size_of") {
         // size_of
         if ((parameter["type"]["kind"] != "resource") ||
@@ -254,9 +473,39 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
               attrib_name,
               parameter["name"].get<std::string>()));
         }
-        const std::string size_of_name = user_attrib["arguments"].at(0);
-        impl_->pre_launch_commands_.push_back(std::make_unique<CommandAllocSizeOf>(
-            parameter["name"], size_of_name, allocator_, parameter["binding"]["offset"]));
+
+        if (!command_output) {
+          throw std::runtime_error(
+              fmt::format("Attribute '{}' requires an output attribute to be "
+                          "defined before it.",
+                          attrib_name));
+        }
+
+        const std::string reference_name = user_attrib["arguments"].at(0);
+        std::string element_type;
+        uint32_t element_count;
+        if (parameter["type"]["resultType"]["kind"] == "vector") {
+          element_type =
+              parameter["type"]["resultType"]["elementType"]["scalarType"].get<std::string>();
+          element_count = parameter["type"]["resultType"]["elementCount"];
+        } else if (parameter["type"]["resultType"]["kind"] == "scalar") {
+          element_type = parameter["type"]["resultType"]["scalarType"].get<std::string>();
+          element_count = 1;
+        } else {
+          throw std::runtime_error(
+              fmt::format("Attribute '{}' supports vectors and scalars only "
+                          "for the result type.",
+                          attrib_name));
+        }
+        impl_->pre_launch_commands_.push_back(
+            std::make_unique<CommandAllocSizeOf>(command_output->port_name(),
+                                                 command_output->item_name(),
+                                                 parameter["name"],
+                                                 reference_name,
+                                                 element_type,
+                                                 element_count,
+                                                 allocator_,
+                                                 parameter["binding"]["offset"]));
       } else if (attrib_name == "parameter") {
         // parameter
         if ((parameter["binding"]["kind"] != "uniform") ||
@@ -268,7 +517,9 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
         }
 
         const std::string param_name = user_attrib["arguments"].at(0);
-        auto command_parameter = create_command_parameter(spec, param_name, parameter);
+        const std::string default_value = user_attrib["arguments"].at(1);
+        auto command_parameter =
+            create_command_parameter(spec, parameter, param_name, default_value);
         if (!command_parameter) {
           throw std::runtime_error(
               fmt::format("Attribute '{}' unsupported scalar type '{}' for parameter '{}'.",
@@ -282,9 +533,9 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
         if ((parameter["binding"]["kind"] != "uniform") ||
             (parameter["type"]["kind"] != "vector") || (parameter["type"]["elementCount"] != 3) ||
             (parameter["type"]["elementType"]["kind"] != "scalar") ||
-            (parameter["type"]["elementType"]["scalarType"] != "int32")) {
+            (parameter["type"]["elementType"]["scalarType"] != "uint32")) {
           throw std::runtime_error(
-              fmt::format("Attribute '{}' supports a three component int32 vector (`int3`) "
+              fmt::format("Attribute '{}' supports a three component uint32 vector (`uint3`) "
                           "uniforms only and cannot be applied to '{}'.",
                           attrib_name,
                           parameter["name"].get<std::string>()));
@@ -292,6 +543,18 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
         const std::string size_of_name = user_attrib["arguments"].at(0);
         impl_->pre_launch_commands_.push_back(std::make_unique<CommandSizeOf>(
             parameter["name"], size_of_name, parameter["binding"]["offset"]));
+      } else if (attrib_name == "zeros") {
+        // zeros
+        // input
+        if ((parameter["type"]["kind"] != "resource") ||
+            (parameter["type"]["baseShape"] != "structuredBuffer")) {
+          throw std::runtime_error(fmt::format(
+              "Attribute '{}' supports structured buffers only and cannot be applied to '{}'.",
+              attrib_name,
+              parameter["name"].get<std::string>()));
+        }
+
+        impl_->pre_launch_commands_.push_back(std::make_unique<CommandZeros>(parameter["name"]));
       } else {
         throw std::runtime_error("Unknown user attribute: " + user_attrib_name);
       }
@@ -307,8 +570,8 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
       throw std::runtime_error("Only compute entry points are supported");
     }
 
-    std::string grid_size_of_name;
-    dim3 grid_size(1, 1, 1);
+    std::string invocations_size_of_name;
+    dim3 invocations(1, 1, 1);
 
     // Check the user attributes and check for Holoscan attributes
     for (auto& user_attrib : entry_point["userAttribs"]) {
@@ -320,20 +583,20 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
 
       const std::string attrib_name = user_attrib_name.substr(holoscan_prefix.size());
 
-      if (attrib_name == "grid_size_of") {
+      if (attrib_name == "invocations_size_of") {
         if (user_attrib["arguments"].empty()) {
-          throw std::runtime_error("Attribute 'grid_size_of' requires an argument");
+          throw std::runtime_error("Attribute 'invocations_size_of' requires an argument");
         }
-        grid_size_of_name = user_attrib["arguments"].at(0);
-      } else if (attrib_name == "grid_size") {
+        invocations_size_of_name = user_attrib["arguments"].at(0);
+      } else if (attrib_name == "invocations") {
         if (user_attrib["arguments"].empty()) {
-          throw std::runtime_error("Attribute 'grid_size' requires an argument");
+          throw std::runtime_error("Attribute 'invocations' requires an argument");
         }
-        grid_size.x = user_attrib["arguments"].at(0);
+        invocations.x = user_attrib["arguments"].at(0);
         if (user_attrib["arguments"].size() > 1) {
-          grid_size.y = user_attrib["arguments"].at(1);
+          invocations.y = user_attrib["arguments"].at(1);
           if (user_attrib["arguments"].size() > 2) {
-            grid_size.z = user_attrib["arguments"].at(2);
+            invocations.z = user_attrib["arguments"].at(2);
           }
         }
       } else {
@@ -349,8 +612,11 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
     }
 
     // And then launch the kernel
-    impl_->launch_commands_.push_back(std::make_unique<CommandLaunch>(
-        entry_point["name"], impl_->shader_.get(), block_size, grid_size_of_name, grid_size));
+    impl_->launch_commands_.push_back(std::make_unique<CommandLaunch>(entry_point["name"],
+                                                                      impl_->shader_.get(),
+                                                                      block_size,
+                                                                      invocations_size_of_name,
+                                                                      invocations));
   }
 }
 

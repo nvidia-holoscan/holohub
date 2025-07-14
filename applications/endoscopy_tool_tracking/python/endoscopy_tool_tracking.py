@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@ from holoscan.resources import (
 
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
+from holohub.slang_shader import SlangShaderOp
 
 
 def lazy_import(module_name):
@@ -239,17 +240,24 @@ class EndoscopyApp(Application):
             107 * 60 * 7 * 4 * bytes_per_float32, 7 * 3 * bytes_per_float32
         )
         tool_tracking_postprocessor_num_blocks = 2 * 2
-        tool_tracking_postprocessor = ToolTrackingPostprocessorOp(
-            self,
-            name="tool_tracking_postprocessor",
-            device_allocator=BlockMemoryPool(
+        if True:
+            tool_tracking_postprocessor = SlangShaderOp(
                 self,
-                name="device_allocator",
-                storage_type=MemoryStorageType.DEVICE,
-                block_size=tool_tracking_postprocessor_block_size,
-                num_blocks=tool_tracking_postprocessor_num_blocks,
-            ),
-        )
+                name="slang_shader",
+                shader_source_file=os.path.join(os.path.dirname(__file__), "postprocessor.slang"),
+            )
+        else:
+            tool_tracking_postprocessor = ToolTrackingPostprocessorOp(
+                self,
+                name="tool_tracking_postprocessor",
+                device_allocator=BlockMemoryPool(
+                    self,
+                    name="device_allocator",
+                    storage_type=MemoryStorageType.DEVICE,
+                    block_size=tool_tracking_postprocessor_block_size,
+                    num_blocks=tool_tracking_postprocessor_num_blocks,
+                ),
+            )
 
         visualizer_allocator = None
         should_use_allocator = record_type == "visualizer" and self.source == "replayer"

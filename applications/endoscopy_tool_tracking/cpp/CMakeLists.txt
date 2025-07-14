@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ target_link_libraries(endoscopy_tool_tracking
   holoscan::ops::holoviz
   lstm_tensor_rt_inference
   tool_tracking_postprocessor
+  holoscan::ops::slang_shader
 )
 
 target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::aja>)
@@ -167,5 +168,10 @@ install(
 
 install(
   FILES endoscopy_tool_tracking_aja_overlay.yaml
+  DESTINATION bin/endoscopy_tool_tracking/cpp
+)
+
+install(
+  FILES postprocessor.slang
   DESTINATION bin/endoscopy_tool_tracking/cpp
 )
