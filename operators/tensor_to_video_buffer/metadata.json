@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "tensor_to_video_buffer",
+		"name": "TensorToVideoBufferOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",

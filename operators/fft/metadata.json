@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "fft",
+        "name": "FFT",
         "authors": [
             {
                 "name": "John Moon <john.moon@vts-i.com>",

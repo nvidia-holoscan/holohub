@@ -68,6 +68,8 @@ add_holohub_application(monai_endoscopic_tool_seg DEPENDS OPERATORS aja_source)
 add_holohub_application(multiai_endoscopy DEPENDS OPERATORS aja_source)
 add_holohub_application(multiai_ultrasound DEPENDS OPERATORS aja_source)
 
+add_subdirectory(nvidia_video_codec)
+
 add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
                         OPERATORS basic_network)
