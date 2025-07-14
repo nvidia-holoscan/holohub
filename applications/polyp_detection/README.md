@@ -23,7 +23,7 @@ For simplicity a DockerFile is available. To run this application:
 ./holohub run polyp_detection
 ```
 
-The [(NGC) Sample App Model for AI Polyp Detection](https://registry.ngc.nvidia.com/orgs/nvstaging/teams/holoscan/models/polyp_detection_rt_detr_model) and the [(NGC) Sample App Data](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_colonoscopy_sample_data) are automatically downloaded and converted to the correct format when first run the application.
+The [(NGC) Sample App Model for AI Polyp Detection](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/models/polyp_detection_rt_detr_model) and the [(NGC) Sample App Data](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_colonoscopy_sample_data) are automatically downloaded and converted to the correct format when first run the application.
 
 If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
 
