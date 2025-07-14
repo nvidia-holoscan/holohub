@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "dds_video_publisher",
+		"name": "DDSVideoPublisherOp",
 		"description": "Publishes video frames as a DDS topic",
 		"authors": [
 			{

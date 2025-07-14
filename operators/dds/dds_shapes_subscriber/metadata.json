@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "dds_shapes",
+		"name": "DDSShapesSubscriberOp",
 		"description": "This operator subscribes to DDS topics published by the RTI Connext shapes demo.",
 		"authors": [
 			{
