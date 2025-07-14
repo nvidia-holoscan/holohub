@@ -35,12 +35,6 @@ __note__: Training time is observed to take about 30 minutes on Intel i9 CPU + N
 #### 0.4. Set up the checkpoint paths in `config.yaml`
 
 
-### 1. Build the Docker Image
-
-Run the following command in the top-level HoloHub directory:
-```bash
-./dev_container build --docker_file ./applications/xr_gsplat/Dockerfile --img holohub:xr_gsplat
-```
 
 ### 2. Run the application
 
