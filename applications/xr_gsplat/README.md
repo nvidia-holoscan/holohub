@@ -1,7 +1,7 @@
 # XR + Gaussian Splatting
 
 This application demonstrates rendering a 3D scene using Gaussian Splatting in XR.  
-
+We provide setup steps to run and view the scene with the default [Monado](https://monado.dev/) [OpenXR](https://www.khronos.org/openxr/) simulator below. Users with an OpenXR compatible headset may bring their own OpenXR runtime for XR viewing.
 ### 0. Training a Gaussian Splatting Model
 The below instructions are based on the [gsplat colmap example](https://docs.gsplat.studio/main/examples/colmap.html).
 
