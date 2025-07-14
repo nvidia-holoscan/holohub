@@ -25,7 +25,7 @@
 
 #include <slang-com-ptr.h>
 
-#include "slang_utils.hpp"
+#include "cuda_utils.hpp"
 
 namespace holoscan::ops {
 
@@ -92,14 +92,17 @@ class SlangShader {
   /**
    * @brief Updates global parameters for the shader
    *
+   * @param name The name of the kernel to update the global parameters for
    * @param shader_parameters Binary data containing the new parameter values
+   * @param stream CUDA stream to use for the parameter update
    *
    * This method updates the global parameters used by the shader. The parameters
    * are copied to GPU memory and will be used in subsequent kernel launches.
    * The size and layout of the parameters must match the shader's expected
    * parameter structure as defined in the shader source.
    */
-  void update_global_params(const std::vector<uint8_t>& shader_parameters);
+  void update_global_params(const std::string& name, const std::vector<uint8_t>& shader_parameters,
+                            cudaStream_t stream);
 
  private:
   /// Slang module containing the compiled shader code
@@ -108,14 +111,20 @@ class SlangShader {
   /// Linked program containing all shader entry points and resources
   Slang::ComPtr<slang::IComponentType> linked_program_;
 
-  /// CUDA library containing the compiled kernels
-  UniqueCudaLibrary cuda_library_;
-
-  /// Device memory pointer for global parameters
-  void* dev_global_params_ = nullptr;
+  /// CUDA libraries containing the compiled kernels
+  std::vector<UniqueCudaLibrary> cuda_libraries_;
 
   /// Size of the global parameters buffer in bytes
   size_t global_params_size_ = 0;
+
+  /// Kernel information
+  struct KernelInfo {
+    void* dev_global_params_ = nullptr;  ///< Pointer to the device global parameters
+    cudaKernel_t cuda_kernel_ = nullptr;  ///< CUDA kernel handle
+  };
+
+  /// Map of kernel names to kernel information
+  std::map<std::string, KernelInfo> cuda_kernels_;
 };
 
 }  // namespace holoscan::ops

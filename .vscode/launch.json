@@ -1260,6 +1260,32 @@
                 "order": 1
             }
         },
+        {
+            "name": "(gdb) slang_shader_op test",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build slang_simple",
+            "program": "${workspaceFolder}/build/slang_simple/operators/slang_shader/test/slang_shader_test",
+            "args": [
+                "--gtest_filter=*"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/slang_simple/operators/slang_shader/test/",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "slang",
+                "order": 2
+            }
+        },
         //#endregion slang
 
         //#region volume_rendering
