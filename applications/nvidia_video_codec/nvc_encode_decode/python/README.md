@@ -10,12 +10,11 @@ This application demonstrates the use of NVIDIA Video Codec SDK. The application
 - x86 and SBSA platforms with dedicated GPU
 - [NVIDIA Video Codec SDK](https://developer.nvidia.com/video-codec-sdk)
 
-> 💡 Note: NVIDIA IGX Orin with integrated GPU is not currently supported.
+> 💡 **Note:** NVIDIA IGX Orin with integrated GPU is not currently supported.
 
 ### Data
 
 [📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data)
-
 
 ## Building and Running the NVIDIA Video Codec Application
 
@@ -27,9 +26,9 @@ This application demonstrates the use of NVIDIA Video Codec SDK. The application
 
 ## Configuration
 
-The application is configured with H.264 codec by default, it may be modified in the [nvc_encode_decode.yaml](./nvc_encode_decode.yaml) file:
+The application is configured with H.264 codec by default. It may be modified in the [nvc_encode_decode.yaml](./nvc_encode_decode.yaml) file:
 
-```
+```yaml
 encoder:
   codec: "H264" # H265 or HEVC
   preset: "P3" # P1, P2, P3, P4, P5, P6, P7
@@ -219,4 +218,4 @@ We collected latency benchmark results using Holoscan [Data Flow Tracking](https
 
 Holohub applications and operators are licensed under Apache-2.0.
 
-NVIDIA Video Codec is governed by the terms of the [NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement), which you accept by clonging, running, or using the NVIDIA Video Codec sample applications and operators.
+NVIDIA Video Codec is governed by the terms of the [NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement), which you accept by cloning, running, or using the NVIDIA Video Codec sample applications and operators.

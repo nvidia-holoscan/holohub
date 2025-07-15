@@ -1,29 +1,35 @@
 {
 	"operator": {
-		"name": "LSTMTensorRTInferenceOp",
+		"name": "Tensor to File",
+		"description": "This operator writes tensor data to a file.",
 		"authors": [
 			{
 				"name": "Holoscan Team",
 				"affiliation": "NVIDIA"
 			}
 		],
-		"version": "1.0",
+		"language": ["C++", "Python"],
+		"version": "1.0.0",
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"language": ["C++", "Python"],
 		"holoscan_sdk": {
-			"minimum_required_version": "0.5.0",
+			"minimum_required_version": "3.3.0",
 			"tested_versions": [
-				"0.5.0"
+				"3.3.0",
+				"3.4.0"
 			]
 		},
 		"platforms": [
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["LSTM", "TensorRT"],
-		"ranking": 1,
+		"tags": [
+			"Tensor",
+			"File",
+			"Writer"
+		],
+		"ranking": 2,
 		"dependencies": {}
 	}
 }

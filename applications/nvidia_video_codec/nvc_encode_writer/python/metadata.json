@@ -1,0 +1,56 @@
+{
+	"application": {
+		"name": "NVIDIA Video Codec: Video Writer",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"dockerfile": "applications/nvidia_video_codec/Dockerfile",
+		"holoscan_sdk": {
+			"minimum_required_version": "3.3.0",
+			"tested_versions": [
+				"3.3.0",
+				"3.4.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"NVIDIA Video Codec",
+			"H.264",
+			"H.265",
+			"HEVC",
+			"Video"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"data": [
+				{
+					"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
+					"description": "This resource contains the convolutional LSTM model for tool tracking in laparoscopic videos by Nwoye et. al [1], and a sample surgical video.",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+					"version": "20230222"
+				},
+				{
+					"name": "NVIDIA Video Codec SDK",
+					"description": "NVIDIA Video Codec SDK",
+					"url": "https://developer.nvidia.com/video-codec-sdk",
+					"version": "13.0"
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/nvc_encode_writer.py --data <holohub_data_dir>/endoscopy",
+			"workdir": "holohub_bin"
+		}
+	}
+}
