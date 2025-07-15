@@ -13,7 +13,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""  # noqa: E501
+"""
 
 # This file is modified from the RAPIDS RAFT project which is under the
 # Apache 2.0 license.
@@ -93,7 +93,7 @@ def replace_current_year(line, start, end):
     return res
 
 
-def check_copyright(f, update_current_year):
+def check_copyright(f, update_current_year, ignore_year_mismatch=False):
     """
     Checks for copyright headers and their years
     """
@@ -118,7 +118,7 @@ def check_copyright(f, update_current_year):
                 None,
             ]
             errs.append(e)
-        if this_year < start or this_year > end:
+        if not ignore_year_mismatch and (this_year < start or this_year > end):
             e = [f, 1, "Current year not included in the copyright header", None]
             if this_year < start:
                 e[-1] = replace_current_year(content, this_year, end)
@@ -220,6 +220,13 @@ def check_copyright_main():
             "Lines starting with # are treated as comments."
         ),
     )
+    argparser.add_argument(
+        "--ignore-year-mismatch",
+        dest="ignore_year_mismatch",
+        action="store_true",
+        required=False,
+        help="If set, ignore year mismatches in copyright headers (when current year is not within the copyright year range).",
+    )
 
     (args, dirs) = argparser.parse_known_args()
 
@@ -280,7 +287,14 @@ def check_copyright_main():
         if len(files) > 3:
             print(f"... and {len(files) - 3} more files")
 
-    errors = tuple(itertools.chain(*[check_copyright(f, args.update_current_year) for f in files]))
+    errors = tuple(
+        itertools.chain(
+            *[
+                check_copyright(f, args.update_current_year, args.ignore_year_mismatch)
+                for f in files
+            ]
+        )
+    )
     if errors:
         print("Copyright headers incomplete in some of the files!")
         for file_name, line_no, err_msg, _ in errors:
