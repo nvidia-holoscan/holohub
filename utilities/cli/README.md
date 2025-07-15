@@ -214,4 +214,6 @@ The autocompletion uses `./holohub autocompletion_list` command internally.
 
 - `sudo ./holohub` may not work due the filtering of environment variable such as `PATH`.
 
-- Running Docker container as a root user `--docker-opts="-u root"` or `--docker-opts="-u root --privileged"`.
+- Running Docker container as a root user `--docker-opts="-u root"` or `--docker-opts="-u root --privileged"`:
+  Running a Docker container as a root user may be necessary in scenarios where the containerized application requires elevated privileges to access certain system resources, modify system configurations, or perform administrative tasks. For example, this might be needed for debugging, testing, or running development tools that require root access.
+  However, running containers as root poses significant security risks, as it can expose the host system to potential vulnerabilities if the container is compromised. It is recommended to avoid this practice in production environments and to use non-root users whenever possible. If root access is required, ensure that the container is run in a controlled and secure environment.
