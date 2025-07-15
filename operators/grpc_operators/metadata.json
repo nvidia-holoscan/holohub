@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "grpc_operators",
+		"name": "GRPC Operators",
 		"authors": [
 			{
 				"name": "Holoscan Team",

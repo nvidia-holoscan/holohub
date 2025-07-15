@@ -25,10 +25,10 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
    ```
 2. Open the cloned directory in the terminal.
 
-3. Launch a Dev Container with the `./dev_container` script as follows:
+3. Launch a Dev Container with the `./holohub` script as follows:
 
    ```bash
-   ./dev_container vscode
+   ./holohub vscode
    ```
 
    The above command starts a new Dev Container for Holohub using the default [Dockerfile](../Dockerfile).
@@ -99,7 +99,7 @@ With any launch profile prefixed with `gdb` or `pythoncpp`, hit F5 to start a ne
 > ⚠️ Warning: Build error may occur when switching between building inside and outside the Dev Container. When this happens, execute the following command to clear the build cache:
 >
 > ```bash
-> ./run clear_cache
+> ./holohub clear-cache
 > ```
 
 > ⚠️ Warning: Build error may occur if an application provides its own Dockerfile with additional dependencies. In this case, refer to the [Application-Specific Dockerfile](#application-specific-dockerfile) section to launch a new Dev Container session with the appropriate Docker image.
@@ -114,18 +114,18 @@ The application executable will now be patched, compiled, executed, the results 
 
 ### Application-Specific Dockerfile
 
-For Holohub applications that bundle with a Dockerfile with additional dependencies and tools, pass the application's name to the `./dev_container` script.
+For Holohub applications that bundle with a Dockerfile with additional dependencies and tools, pass the application's name to the `./holohub` script.
 
 **Usage:**
 
 ```bash
-./dev_container vscode <application_name> [--language [cpp|python]]
+./holohub vscode <application_name> [--language=[cpp|python]]
 ```
 
 Take the [endoscopy_depth_estimation](../applications/endoscopy_depth_estimation) application as an example. The command will launch a Dev Container using [applications/endoscopy_depth_estimation/Dockerfile](../applications/endoscopy_depth_estimation/Dockerfile) as the base image that builds `OpenCV`:
 
 ```bash
-./dev_container vscode endoscopy_depth_estimation
+./holohub vscode endoscopy_depth_estimation
 ```
 
 The `language` argument is optional with `cpp` as default. This argument allows you to use a language-specific Dockerfile when available.
@@ -133,25 +133,25 @@ The `language` argument is optional with `cpp` as default. This argument allows 
 
 ### Custom Base Image/Dockerfile
 
-The `./dev_container vscode` script can launch a Dev Container using a custom base image and/or Dockerfile.
+The `./holohub vscode` script can launch a Dev Container using a custom base image and/or Dockerfile.
 
 **Usage:**
 
 ```bash
-./dev_container vscode --base_img <image>
+./holohub vscode --base-img <image>
 ```
 
 For example, if an application is designed for Holoscan 1.0 on NVIDIA IGX Orin with integrated GPU, you may want to use Holsocan 1.0.3 as the base image with iGPU support:
 
 ```bash
-./devcontainer vscode --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-igpu
+./holohub vscode --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-igpu
 ```
 
-In addition, if you have a custom Dockerfile that you would like to use on top of the base image, you may pass it to the `./dev_container` script as follows:
+In addition, if you have a custom Dockerfile that you would like to use on top of the base image, you may pass it to the `./holohub` script as follows:
 
 
 ```bash
-./devcontainer vscode --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-igpu --docker_file /path/to/my/Dockerfile
+./holohub vscode --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-igpu --docker-file /path/to/my/Dockerfile
 ```
 
 Refer to the [Add a Custom Dockerfile](#add-a-custom-dev-container) section if you have your own Dockerfile.
@@ -164,28 +164,10 @@ FROM ${BASE_IMAGE} AS base
 
 ### Additional Options
 
-Use the `-h` or `--help` option to see all available options for the `./dev_container` script:
+Use the `-h` or `--help` option to see all available options for the `./holohub` script:
 
 ```bash
-$ ./dev_container vscode -h
-
-Launch VSCode in DevContainer
-
-Launch a VSCode instance in a Docker container with the development environment.
-    Usage: ./dev_container vscode <application_name> [options]
-
-Options:
-  application_name: Name of an existing Holohub application found in the applications folder.
-      If specified and exists: the application-provided DevContainer configuration is used.
-      Otherwise, the top-level DevContainer configuration.
-  --base_img: Fully qualified base image name, e.g. holoscan-sdk-dev:latest
-  --docker_file: Path to Dockerfile to use for building container.
-      Defaults to:
-      - Application-provided "Dockerfile", if it exists;
-      - Otherwise the top-level HoloHub "Dockerfile"
-  --language : Specify the app language implementation to run.
-      Some applications provide both `cpp` and `python` implementations.
-  --docker_opts : Additional options to pass to the Docker launch
+$ ./holohub vscode -h
 ```
 
 ## Contributing
@@ -194,7 +176,7 @@ Options:
 
 ### Add a Custom Dockerfile
 
-The following steps allow the `./devcontainer vscode` script to find your custom `Dockerfile`:
+The following steps allow the `./holohub vscode` script to find your custom `Dockerfile`:
 
 - Create a new `Dockerfile` in your application's root directory or a language-specific directory:
 
@@ -254,7 +236,7 @@ CMake Error: The current CMakeCache.txt directory /workspace/holohub/build/ucx_e
 
 When this error occurs, run the clear cache command in the terminal or from VS Code Command Palette:
 
-Terminal: `./run clear_cache`
+Terminal: `./holohub clear-cache`
 VS Code Command Pallette (`CTRL+SHIFT+P`): `Tasks: Run Task` -> `Clear Build Cache`.
 
 

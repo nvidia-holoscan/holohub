@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "yuan_qcap",
+		"name": "QCAPSourceOp",
 		"authors": [
 			{
 				"name": "David Su",

@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "low_rate_psd",
+        "name": "LowRatePSD",
         "authors": [
             {
                 "name": "John Moon <john.moon@vts-i.com>",

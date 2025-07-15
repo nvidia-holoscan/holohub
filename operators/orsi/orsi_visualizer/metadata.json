@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "orsi_visualizer",
+		"name": "OrsiVisualizationOp",
 		"authors": [
 			{
 				"name": "Jasper Hofman",

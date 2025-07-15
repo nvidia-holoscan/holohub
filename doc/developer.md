@@ -19,8 +19,7 @@ Refer to the [Holoscan SDK README](https://github.com/nvidia-holoscan/holoscan-s
 Install the package dependencies for HoloHub on your host system. The easiest way to make sure the minimal package dependencies is to use the `./holohub` script from the top level directory.
 
 ```bash
-  # if sudo is available
-  sudo ./holohub setup
+  ./holohub setup  # sudo privileges may be required
 ```
 
 If you prefer you can also install the dependencies manually, typically including the following:

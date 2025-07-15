@@ -103,8 +103,7 @@ Use `-h` or `--help` to view a complete list of commands or subcommand options.
 Development commands remain familiar:
 
 ```bash
-# Environment setup (unchanged)
-[sudo] ./holohub setup
+./holohub setup  # sudo privileges may be required
 
 # Enhanced linting with integrated dependency management
 ./holohub lint --install-dependencies  # Previously ./run install_lint_deps

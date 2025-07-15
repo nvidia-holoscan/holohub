@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "volume_renderer",
+        "name": "VolumeRendererOp",
         "authors": [
             {
                 "name": "Holoscan Team",

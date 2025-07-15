@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "prohawk_video_processing",
+		"name": "ProhawkOp",
 		"authors": [
 			{
 				"name": "Tim Wooldridge",

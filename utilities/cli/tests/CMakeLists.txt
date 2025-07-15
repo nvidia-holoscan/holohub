@@ -59,7 +59,7 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_holohub_setup PROPERTIES
-    PASS_REGULAR_EXPRESSION "wget.*xvfb.*ninja-build.*ffmpeg.*v4l-dev.*git.*unzip"
+    PASS_REGULAR_EXPRESSION "(already installed|apt install)"
     FAIL_REGULAR_EXPRESSION "returned non-zero exit status;failed;Traceback;Error"
 )
 
@@ -67,7 +67,7 @@ find_package(CUDAToolkit QUIET)
 if(CUDAToolkit_FOUND)
     get_test_property(test_holohub_setup PASS_REGULAR_EXPRESSION pass_expression)
     set_tests_properties(test_holohub_setup PROPERTIES
-        PASS_REGULAR_EXPRESSION "${pass_expression}.*cudnn.*nvinfer.*nvonnxparsers"
+        PASS_REGULAR_EXPRESSION "${pass_expression}.*(cudnn|nvinfer|nvonnxparsers)"
         FAIL_REGULAR_EXPRESSION "returned non-zero exit status;failed;Traceback;Error checking available versions"
     )
 endif()

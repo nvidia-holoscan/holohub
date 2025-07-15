@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "qt_video",
+        "name": "QtVideoOp",
         "authors": [
             {
                 "name": "Holoscan Team",

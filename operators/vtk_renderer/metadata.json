@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "vtk_renderer",
+		"name": "VtkRendererOp",
 		"authors": [
 			{
 				"name": "Kitware Team",

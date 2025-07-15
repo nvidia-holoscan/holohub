@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "dds_video_subscriber",
+		"name": "DDSVideoSubscriberOp",
 		"description": "This operator subscribes to a DDS topic that contains video data.",
 		"authors": [
 			{

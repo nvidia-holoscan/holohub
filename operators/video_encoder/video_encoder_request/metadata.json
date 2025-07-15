@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "video_encoder_request",
+		"name": "VideoEncoderRequestOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",

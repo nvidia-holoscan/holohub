@@ -1,0 +1,49 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+# Required fields for packaging the application
+# See https://docs.nvidia.com/holoscan/sdk-user-guide/cli/run_config.html#
+application:
+  title: Holohub - NVIDIA Video Codec
+  version: 1.0
+  inputFormats: []
+  outputFormats: ["screen"]
+
+resources:
+  cpu: 2
+  gpu: 1
+  memory: 1Gi
+  gpuMemory: 1Gi
+  
+reader:
+  filename: "surgical_video.264"
+  verbose: false
+  loop: false
+
+decoder:
+  cuda_device_ordinal: 0
+  verbose: false  
+
+holoviz:
+  window_title: "NVIDIA Video Codec - Elementary File Decode"
+  width: 850
+  height: 480
+  framerate: 120
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0
