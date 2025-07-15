@@ -19,11 +19,11 @@ jobs:
         echo "Checking copyright headers in changed files..."
         python3 .github/workflows/scripts/check_copyright.py --git-modified-only origin/${{ github.base_ref }} \
           --exclude-config .github/workflows/scripts/copyright_excludes.txt
-        # full check: python3 .github/workflows/scripts/check_copyright.py --exclude-config .github/workflows/scripts/copyright_excludes.txt .
+        # full check without other code modifications: python3 .github/workflows/scripts/check_copyright.py \
+          --exclude-config .github/workflows/scripts/copyright_excludes.txt  --ignore-year-mismatch .
 
 
     - name: Check for internal artifacts
       run: |
         .github/workflows/scripts/check_nvstaging.sh \
-          --exclude-config .github/workflows/scripts/nvstaging_excludes.txt \
-          .
+          --exclude-config .github/workflows/scripts/nvstaging_excludes.txt .
