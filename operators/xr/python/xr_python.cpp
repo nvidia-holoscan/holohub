@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -193,7 +193,8 @@ PYBIND11_MODULE(_xr, m) {
            "application_version"_a = 0u,
            "name"_a = "xr_session"s)
       .def("locate_view_space", &XrSession::locate_view_space)
-      .def("view_configuration_depth_range", &XrSession::view_configuration_depth_range);
+      .def("view_configuration_depth_range", &XrSession::view_configuration_depth_range)
+      .def("view_configurations", &XrSession::view_configurations);
 
   py::enum_<xr::HandEXT>(m, "XrHandEXT")
       .value("XR_HAND_LEFT_EXT", xr::HandEXT::Left)
@@ -302,6 +303,12 @@ PYBIND11_MODULE(_xr, m) {
       .def_readwrite("minNearZ", &xr::ViewConfigurationDepthRangeEXT::minNearZ)
       .def_readwrite("recommendedFarZ", &xr::ViewConfigurationDepthRangeEXT::recommendedFarZ)
       .def_readwrite("maxFarZ", &xr::ViewConfigurationDepthRangeEXT::maxFarZ);
+
+  py::class_<xr::ViewConfigurationView>(m, "XrViewConfigurationView")
+      .def_readwrite("recommendedImageRectWidth",
+                     &xr::ViewConfigurationView::recommendedImageRectWidth)
+      .def_readwrite("recommendedImageRectHeight",
+                     &xr::ViewConfigurationView::recommendedImageRectHeight);
 
   py::class_<xr::CompositionLayerProjectionView>(m, "XrCompositionLayerProjectionView")
       .def_readwrite("pose", &xr::CompositionLayerProjectionView::pose)

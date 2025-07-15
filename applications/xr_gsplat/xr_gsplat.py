@@ -30,10 +30,12 @@ class XrGsplatOp(holoscan.core.Operator):
     def __init__(self, fragment, xr_session, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
         self.xr_session = xr_session
-        self.width = 1920 * 2
-        self.height = 1080 * 2
 
     def start(self):
+        self.width = self.xr_session.view_configurations()[0].recommendedImageRectWidth
+        self.height = self.xr_session.view_configurations()[0].recommendedImageRectHeight
+        print(f"XrGsplatOp start with device width: {self.width * 2}, height: {self.height}")
+
         self.color_swapchain = xr.XrSwapchainCuda(
             self.xr_session, xr.XrSwapchainCudaFormat.R8G8B8A8_SRGB, self.width * 2, self.height
         )
@@ -47,6 +49,7 @@ class XrGsplatOp(holoscan.core.Operator):
         spec.output("xr_composition_layer")
 
     def compute(self, op_input, op_output, context):
+
         frame_state = op_input.receive("xr_frame_state")
         cuda_stream = op_input.receive_cuda_stream("xr_frame_state")
 
@@ -143,7 +146,6 @@ class XrGsplatOp(holoscan.core.Operator):
         # Stack the intrinsics matrices into a single tensor [2, 3, 3]
         intrinsics = np.stack(intrinsics_list)
         intrinsics = torch.from_numpy(intrinsics).float().cuda()
-        # intrinsics = intrinsics[0:1]  # Shape becomes [1, 3, 3]
 
         splats = op_input.receive("splats")
         means = torch.as_tensor(splats["means"])
@@ -187,9 +189,6 @@ class XrGsplatOp(holoscan.core.Operator):
         )
 
         # Scale rendered_depth to 0-255 range and convert to uint8
-        # Expand depth values to all RGB channels
-        # rendered_colors = (rendered_depth * 255).to(torch.uint8).repeat(1, 1, 1, 3)
-
         rendered_colors = (rendered_colors * 255).to(torch.uint8)
         rendered_alphas = (rendered_alphas * 255).to(torch.uint8)
 
