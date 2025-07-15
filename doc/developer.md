@@ -216,6 +216,24 @@ This directory is noted `HOLOHUB_DATA_DIR/holohub_data_dir` in the documentation
 
 ### Profile using Nsight Systems
 
+For example, to profile `endoscopy_tool_tracking` using Nsight Systems:
+
+First config the app's replay count to 10 frames:
+
+```diff
+--- a/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.yaml
++++ b/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.yaml
+@@ -81,7 +81,7 @@ replayer:
+   frame_rate: 0   # as specified in timestamps
+   repeat: true    # default: false
+   realtime: true  # default: true
+-  count: 0        # default: 0 (no frame count restriction)
++  count: 10
+
+```
+
+Then run the app with `--nsys-profile` option:
+
 ```bash
   ./holohub run endoscopy_tool_tracking --language=python --nsys-profile
 ```
@@ -226,11 +244,11 @@ This will create a Nsight Systems report file in the application working directo
 Generating '/tmp/nsys-report-bcd8.qdstrm'
 [1/1] [========================100%] report8.nsys-rep
 Generated:
-    /workspace/holohub/build/report8.nsys-rep
+    /workspace/holohub/build/endoscopy_tool_tracking/report8.nsys-rep
 ```
 
 This file can be loaded and visualized with the Nsight Systems UI application:
 
 ```bash
-  nsys-ui /workspace/holohub/build/report8.nsys-rep
+  nsys-ui /workspace/holohub/build/endoscopy_tool_tracking/report8.nsys-rep
 ```
