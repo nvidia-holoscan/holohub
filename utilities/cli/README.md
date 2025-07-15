@@ -212,3 +212,5 @@ The autocompletion uses `./holohub autocompletion_list` command internally.
 - All previous arguments containing `_` are changed to `-` consistently (e.g. `--base_img` to `--base-img`).
 
 - `sudo ./holohub` may not work due the filtering of environment variable such as `PATH`.
+
+- Running Docker container as a root user `--docker-opts="-u root"` or `--docker-opts="-u root --privileged"`.
