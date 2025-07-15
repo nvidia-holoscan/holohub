@@ -115,6 +115,7 @@ class XrGeometrySourceOp : public Operator {
     spec.output<gxf::Entity>("outputs");
     spec.output<std::vector<HolovizOp::InputSpec>>("output_specs");
     spec.output<gxf::Entity>("render_buffer_output");
+    spec.output<gxf::Entity>("depth_buffer_output");
     spec.output<std::shared_ptr<xr::CompositionLayerBaseHeader>>("xr_composition_layer");
   }
 
@@ -195,13 +196,13 @@ class XrGeometrySourceOp : public Operator {
   }
   // Create a render buffer with swapchain
   void create_render_buffer(ExecutionContext& context, OutputContext& op_output) {
-    auto entity = nvidia::gxf::Entity::New(context.context());
-    auto video_buffer = entity.value().add<nvidia::gxf::VideoBuffer>("render_buffer_output");
 
     holoscan::Tensor color_tensor = xr_composition_layer_manager_->acquire_color_swapchain_image();
-    // TODO: HolovizOp currently doesn't support read frame buffer for depth buffer
     holoscan::Tensor depth_tensor = xr_composition_layer_manager_->acquire_depth_swapchain_image();
 
+    // Prepare color render buffer to read in HolovizOp
+    auto render_gxf_output = nvidia::gxf::Entity::New(context.context());
+    auto video_buffer = render_gxf_output.value().add<nvidia::gxf::VideoBuffer>("render_buffer_output");
     nvidia::gxf::VideoBufferInfo video_buffer_info;
     video_buffer_info.width = color_tensor.shape()[1];
     video_buffer_info.height = color_tensor.shape()[0];
@@ -217,8 +218,29 @@ class XrGeometrySourceOp : public Operator {
                                      nvidia::gxf::MemoryStorageType::kDevice,
                                      color_tensor.data(),
                                      [](void*) mutable { return nvidia::gxf::Success; });
-    auto result = gxf::Entity(std::move(entity.value()));
-    op_output.emit(result, "render_buffer_output");
+    auto render_output = gxf::Entity(std::move(render_gxf_output.value()));
+    op_output.emit(render_output, "render_buffer_output");
+
+    // Prepare depth buffer to read in HolovizOp
+    auto depth_gxf_output = nvidia::gxf::Entity::New(context.context());
+    auto depth_video_buffer = depth_gxf_output.value().add<nvidia::gxf::VideoBuffer>("depth_buffer_output");
+    nvidia::gxf::VideoBufferInfo depth_buffer_info;
+    depth_buffer_info.width = depth_tensor.shape()[1];
+    depth_buffer_info.height = depth_tensor.shape()[0];
+    depth_buffer_info.color_format = nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_D32F;
+    depth_buffer_info.surface_layout = nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR;
+
+    nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_D32F> video_format_size_depth;
+    depth_buffer_info.color_planes = video_format_size_depth.getDefaultColorPlanes(
+        depth_buffer_info.width, depth_buffer_info.height, false);
+
+    depth_video_buffer.value()->wrapMemory(depth_buffer_info,
+                                     depth_tensor.nbytes(),
+                                     nvidia::gxf::MemoryStorageType::kDevice,
+                                     depth_tensor.data(),
+                                     [](void*) mutable { return nvidia::gxf::Success; });
+    auto depth_output = gxf::Entity(std::move(depth_gxf_output.value()));
+    op_output.emit(depth_output, "depth_buffer_output");
   }
 
   Parameter<std::shared_ptr<holoscan::UnboundedAllocator>> allocator_;
@@ -233,7 +255,8 @@ class XrCompositionLayerSubmitOp : public Operator {
   XrCompositionLayerSubmitOp() = default;
 
   void setup(OperatorSpec& spec) override {
-    spec.input<nvidia::gxf::VideoBuffer>("color_render_buffer_output");
+    spec.input<nvidia::gxf::VideoBuffer>("render_buffer_input");
+    spec.input<nvidia::gxf::VideoBuffer>("depth_buffer_input");
     spec.input<std::shared_ptr<xr::CompositionLayerBaseHeader>>("xr_composition_layer");
     spec.output<std::shared_ptr<xr::CompositionLayerBaseHeader>>("xr_composition_layer");
     spec.param(xr_composition_layer_manager_, "xr_composition_layer_manager");
@@ -242,7 +265,8 @@ class XrCompositionLayerSubmitOp : public Operator {
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override {
     // Get the render buffer output from HolovizOp, but not used. This is just for synchronization.
-    auto color_render_buffer = op_input.receive<gxf::Entity>("color_render_buffer_output").value();
+    auto render_buffer = op_input.receive<gxf::Entity>("render_buffer_input").value();
+    auto depth_buffer = op_input.receive<gxf::Entity>("depth_buffer_input").value();
     auto composition_layer =
         op_input.receive<std::shared_ptr<xr::CompositionLayerBaseHeader>>("xr_composition_layer")
             .value();
@@ -290,6 +314,8 @@ class HolovizGeometryApp : public holoscan::Application {
     auto visualizer = make_operator<ops::HolovizOp>("holoviz",
                                                     Arg("enable_render_buffer_input", true),
                                                     Arg("enable_render_buffer_output", true),
+                                                    Arg("enable_depth_buffer_input", true),
+                                                    Arg("enable_depth_buffer_output", true),
                                                     Arg("headless", true),
                                                     Arg("allocator") = allocator,
                                                     holoviz_args);
@@ -305,8 +331,10 @@ class HolovizGeometryApp : public holoscan::Application {
     add_flow(source, visualizer, {{"outputs", "receivers"}});
     add_flow(source, visualizer, {{"output_specs", "input_specs"}});
     add_flow(source, visualizer, {{"render_buffer_output", "render_buffer_input"}});
+    add_flow(source, visualizer, {{"depth_buffer_output", "depth_buffer_input"}});
 
-    add_flow(visualizer, xr_submit, {{"render_buffer_output", "color_render_buffer_output"}});
+    add_flow(visualizer, xr_submit, {{"render_buffer_output", "render_buffer_input"}});
+    add_flow(visualizer, xr_submit, {{"depth_buffer_output", "depth_buffer_input"}});
     add_flow(source, xr_submit, {{"xr_composition_layer", "xr_composition_layer"}});
     add_flow(xr_submit, xr_end_frame, {{"xr_composition_layer", "xr_composition_layers"}});
   }

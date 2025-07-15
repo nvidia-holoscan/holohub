@@ -21,12 +21,13 @@ FROM ${BASE_IMAGE} AS run
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Install Vulkan SDK and ICD.
-RUN wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | tee /etc/apt/trusted.gpg.d/lunarg.asc
-RUN wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+RUN wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list \
+    http://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list \
+    && wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | apt-key add -
 RUN apt update \
     && apt install --no-install-recommends -y \
         vulkan-icd \
-        vulkan-sdk
+        vulkan-sdk 
 
 # Install OpenXR SDK Dependencies.
 RUN apt update \
