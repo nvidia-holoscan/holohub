@@ -4,8 +4,9 @@ This application demonstrates the use of NVIDIA Video Codec SDK. The application
 
 ### Requirements
 
+- NVIDIA Driver Version >= 570
+- CUDA Version >= 12.8
 - x86 and SBSA platforms with dedicated GPU
-- [NVIDIA Video Codec SDK](https://developer.nvidia.com/video-codec-sdk)
 
 > 💡 **Note:** NVIDIA IGX Orin with integrated GPU is not currently supported.
 

@@ -14,7 +14,8 @@ This application demonstrates decoding H.264 elementary stream files using the N
 
 ## Requirements
 
-- [NVIDIA Video Codec SDK](https://developer.nvidia.com/video-codec-sdk)
+- NVIDIA Driver Version >= 570
+- CUDA Version >= 12.8
 - H.264 elementary stream file (`.h264`, `.264` extension)
 
 > 💡 **Note:** Tested on x86 + dGPU and NVIDIA IGX Orin + dGPU. NVIDIA IGX Orin with integrated GPU is not currently supported.
