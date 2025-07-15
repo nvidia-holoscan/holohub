@@ -196,13 +196,13 @@ class XrGeometrySourceOp : public Operator {
   }
   // Create a render buffer with swapchain
   void create_render_buffer(ExecutionContext& context, OutputContext& op_output) {
-
     holoscan::Tensor color_tensor = xr_composition_layer_manager_->acquire_color_swapchain_image();
     holoscan::Tensor depth_tensor = xr_composition_layer_manager_->acquire_depth_swapchain_image();
 
     // Prepare color render buffer to read in HolovizOp
     auto render_gxf_output = nvidia::gxf::Entity::New(context.context());
-    auto video_buffer = render_gxf_output.value().add<nvidia::gxf::VideoBuffer>("render_buffer_output");
+    auto video_buffer = render_gxf_output.value()
+                            .add<nvidia::gxf::VideoBuffer>("render_buffer_output");
     nvidia::gxf::VideoBufferInfo video_buffer_info;
     video_buffer_info.width = color_tensor.shape()[1];
     video_buffer_info.height = color_tensor.shape()[0];
@@ -223,14 +223,16 @@ class XrGeometrySourceOp : public Operator {
 
     // Prepare depth buffer to read in HolovizOp
     auto depth_gxf_output = nvidia::gxf::Entity::New(context.context());
-    auto depth_video_buffer = depth_gxf_output.value().add<nvidia::gxf::VideoBuffer>("depth_buffer_output");
+    auto depth_video_buffer = depth_gxf_output.value()
+                                  .add<nvidia::gxf::VideoBuffer>("depth_buffer_output");
     nvidia::gxf::VideoBufferInfo depth_buffer_info;
     depth_buffer_info.width = depth_tensor.shape()[1];
     depth_buffer_info.height = depth_tensor.shape()[0];
     depth_buffer_info.color_format = nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_D32F;
     depth_buffer_info.surface_layout = nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR;
 
-    nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_D32F> video_format_size_depth;
+    nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_D32F>
+        video_format_size_depth;
     depth_buffer_info.color_planes = video_format_size_depth.getDefaultColorPlanes(
         depth_buffer_info.width, depth_buffer_info.height, false);
 
