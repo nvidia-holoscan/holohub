@@ -94,7 +94,7 @@ Use `-h` or `--help` to view a complete list of commands or subcommand options.
 # Custom build options
 ./holohub build myapp --build-with "op1;op2" --configure-args='-DCUSTOM=ON'
 
-# Container run with path to Holoscan SDK
+# Container run with path to a local Holoscan SDK installation from the host system
 ./holohub run-container --local-sdk-root <path/to/holoscan-sdk> --img holohub:sdk-dev-latest [additional-options]
 # Example of additional options: --no-docker-build --env VAR=value
 
