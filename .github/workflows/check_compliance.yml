@@ -20,7 +20,7 @@ jobs:
         python3 .github/workflows/scripts/check_copyright.py --git-modified-only origin/${{ github.base_ref }} \
           --exclude-config .github/workflows/scripts/copyright_excludes.txt
         # full check without other code modifications: python3 .github/workflows/scripts/check_copyright.py \
-          --exclude-config .github/workflows/scripts/copyright_excludes.txt  --ignore-year-mismatch .
+        #  --exclude-config .github/workflows/scripts/copyright_excludes.txt  --ignore-year-mismatch .
 
 
     - name: Check for internal artifacts
