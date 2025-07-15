@@ -94,6 +94,9 @@ Use `-h` or `--help` to view a complete list of commands or subcommand options.
 # Custom build options
 ./holohub build myapp --build-with "op1;op2" --configure-args='-DCUSTOM=ON'
 
+# Container run with path to Holoscan SDK
+./holohub run-container --local-sdk-root <path/to/holoscan-sdk> --img holohub:sdk-dev-latest ...
+
 # Benchmarking an application (only for applications/workflows)
 ./holohub build myapp --benchmark
 ```
@@ -107,7 +110,7 @@ Development commands remain familiar:
 
 # Enhanced linting with integrated dependency management
 ./holohub lint --install-dependencies  # Previously ./run install_lint_deps
-./holohub lint                           # Previously ./run lint
+./holohub lint                         # Previously ./run lint
 ./holohub lint --fix                   # Previously ./run lint --fix
 
 # Consistent naming conventions
