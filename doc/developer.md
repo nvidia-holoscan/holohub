@@ -47,7 +47,7 @@ details on dependency versions and custom installation.
 
 Run the following to view all build options available for the HoloHub container script:
 ```sh
-$ ./holohub build --help
+$ ./holohub build-container --help
 ```
 
 ### Custom Base Image
@@ -55,14 +55,14 @@ $ ./holohub build --help
 You may configure a custom base image for building the HoloHub container. For instance, if you want to use a local Holoscan container as the base image, use the following command:
 
 ```bash
-  ./holohub build --base-img holoscan-sdk-build-x86_64:latest --img holohub:sdk-dev-latest
+  ./holohub build-container --base-img holoscan-sdk-build-x86_64:latest --img holohub:sdk-dev-latest
 ```
 
 The command above uses the following arguments:
 - `--base-img`  is used to configure the base container image;
 - `--img` defines the fully qualified name of the image output by `./holohub`.
 
-After ```./holohub build``` has completed ```docker images``` will list the new image:
+After ```./holohub build-container``` has completed ```docker images``` will list the new image:
 
 ```bash
 user@ubuntu-20-04:/media/data/github/holohub$ docker images
@@ -83,11 +83,11 @@ Base containers created during the Holoscan SDK build process use the following 
 Several HoloHub applications use a custom Dockerfile to alter or extend the default HoloHub container. Use the following command to build from a custom Dockerfile:
 
 ```bash
-$ ./holohub build  --docker-file <path_to_dockerfile>  --img holohub-debug:latest
+$ ./holohub build-container --docker-file <path_to_dockerfile>  --img holohub-debug:latest
 ```
 
 Where:
-- `--docker_file`  is the path to the container's Dockerfile;
+- `--docker-file`  is the path to the container's Dockerfile;
 - `--img` defines the fully qualified image name.
 
 ### Build with Verbose Output
@@ -97,7 +97,7 @@ To print the values for base image, Dockerfile, GPU type, and output image name,
 For example, on an x86_64 system with dGPU, the default build command will print the following values when using the ```--verbose``` option.
 
 ```bash
-user@ubuntu-20-04:/media/data/github/holohub$ ./holohub build --verbose
+user@ubuntu-20-04:/media/data/github/holohub$ ./holohub build-container --verbose
 Build (HOLOHUB_ROOT:/media/data/github/holohub)...
 Build (gpu_type_type:dgpu)...
 Build (base_img:nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-dgpu)...
@@ -116,12 +116,12 @@ Run the command below to view all available launch options in the `holohub` scri
 $ ./holohub run-container --help
 ```
 
-### Launch a Local Holoscan SDK Container
+### Build and Launch a Local Holoscan SDK Container
 
 To use a HoloHub container image built with a local Holoscan SDK container:
 
 ```bash
-$ ./holohub run --img holohub:local-sdk-latest --local-sdk-root <path_to_holoscan_sdk>
+$ ./holohub run-container --img holohub:local-sdk-latest --local-sdk-root <path_to_holoscan_sdk>
 ```
 
 ### Launch a Named HoloHub Container
@@ -129,7 +129,7 @@ $ ./holohub run --img holohub:local-sdk-latest --local-sdk-root <path_to_holosca
 To launch custom HoloHub container with fully qualified name, e.g. "holohub:ngc-sdk-sample-app"
 
 ```bash
-$ ./holohub run-container --img holohub:ngc-sdk-sample-app
+$ ./holohub run-container --img holohub:ngc-sdk-sample-app --no-docker-build
 ```
 
 ### Forward X11 Graphics Over SSH
@@ -211,13 +211,13 @@ This directory is noted `HOLOHUB_DATA_DIR/holohub_data_dir` in the documentation
 ### Pass additional arguments to the application command
 
 ```bash
-  ./holohub run endoscopy_tool_tracking python --run-args='-r visualizer'
+  ./holohub run endoscopy_tool_tracking --language=python --run-args='-r visualizer'
 ```
 
 ### Profile using Nsight Systems
 
 ```bash
-  ./holohub run endoscopy_tool_tracking python --nsys-profile
+  ./holohub run endoscopy_tool_tracking --language=python --nsys-profile
 ```
 
 This will create a Nsight Systems report file in the application working directory. Information on the generated report file is printed on the end of the application log:
