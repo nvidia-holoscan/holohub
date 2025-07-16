@@ -105,7 +105,7 @@ This will build a docker image called `hololink-demo:2.0.0`.
 Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container and run the workflow using the following command:
 
 ```sh
-./holohub run --base-img hololink-demo:2.0.0 ai_surgical_video --run-args="--source hsb"
+./holohub run --base-img hololink-demo:2.0.0 --img holohub:link ai_surgical_video --run-args="--source hsb"
 ```
 
 ## Advanced Usage
@@ -121,7 +121,7 @@ First, you need to run the Holohub container:
 > **Note:** If using Holoscan Sensor Bridge, please see the [Using Holoscan Sensor Bridge as I/O](#using-holoscan-sensor-bridge-as-io) for building the Holoscan Sensor Bridge docker container first, which is tagged as `hololink-demo:2.0.0`, and then use the following command to run the Holohub container:
 >
 > ```sh
-> ./holohub run-container --base-img hololink-demo:2.0.0 ai_surgical_video
+> ./holohub run-container --base-img hololink-demo:2.0.0 --img holohub:link
 > ```
 
 ### Building the Application
