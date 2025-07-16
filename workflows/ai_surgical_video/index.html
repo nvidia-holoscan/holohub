@@ -13954,9 +13954,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#using-aja-card-or-replayer-as-io" class="md-nav__link">
+  <a href="#using-aja-card-as-io" class="md-nav__link">
     <span class="md-ellipsis">
-      Using AJA Card or Replayer as I/O
+      Using AJA Card as I/O
     </span>
   </a>
   
@@ -13987,6 +13987,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#using-holohub-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Holohub Container
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#building-the-application" class="md-nav__link">
     <span class="md-ellipsis">
       Building the Application
@@ -14009,15 +14018,6 @@
   <a href="#use-holohub-container-from-outside-of-the-container" class="md-nav__link">
     <span class="md-ellipsis">
       Use Holohub Container from Outside of the Container
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#use-holohub-container-from-inside-the-container" class="md-nav__link">
-    <span class="md-ellipsis">
-      Use Holohub Container from Inside the Container
     </span>
   </a>
   
@@ -14139,9 +14139,9 @@
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <h3 id="software">Software<a class="headerlink" href="#software" title="Permanent link">#</a></h3>
 <ul>
-<li><strong>Holoscan SDK <code>v3.0</code></strong>:
+<li><strong>Holoscan SDK <code>&gt;= v3.0</code></strong>:
   Holohub command takes care of this dependency when using Holohub container. However, you can install the Holoscan SDK via one of the methods specified in <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#development-software-stack">the SDK user guide</a>.</li>
-<li><strong>Holoscan Sensor Bridge <code>v2.0</code></strong>: Please see the <a href="#quick-start-guide">Quick start guide</a> for building the Holoscan Sensor Bridge docker container.</li>
+<li><strong>Holoscan Sensor Bridge <code>&gt;= v2.0</code></strong>: Please see the <a href="#quick-start-guide">Quick start guide</a> for building the Holoscan Sensor Bridge docker container.</li>
 </ul>
 <h3 id="models">Models<a class="headerlink" href="#models" title="Permanent link">#</a></h3>
 <p>This workflow utilizes the following three AI models:</p>
@@ -14179,50 +14179,53 @@
 <p><strong>Note:</strong> The directory specified by <code>--data</code> at runtime is assumed to contain three subdirectories, corresponding to the NGC resources specified in <a href="#models">Models</a> and <a href="#sample-data">Sample Data</a>: <code>orsi</code>, <code>monai_tool_seg_model</code> and <code>ssd_model</code>. These resources will be automatically downloaded to the Holohub data directory when building the application.</p>
 </blockquote>
 <h2 id="quick-start-guide">Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Permanent link">#</a></h2>
-<h3 id="using-aja-card-or-replayer-as-io">Using AJA Card or Replayer as I/O<a class="headerlink" href="#using-aja-card-or-replayer-as-io" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>ai_surgical_video
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ai_surgical_video
+</code></pre></div>
+<p>This single command will create and launch Holohub container, build the workflow, and run the workflow with the default arguments set in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/workflows/ai_surgical_video/python/config.yaml">config.yaml</a> file and a replayer source.</p>
+<h3 id="using-aja-card-as-io">Using AJA Card as I/O<a class="headerlink" href="#using-aja-card-as-io" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ai_surgical_video<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;--source aja&quot;</span>
 </code></pre></div>
 <h3 id="using-holoscan-sensor-bridge-as-io">Using Holoscan Sensor Bridge as I/O<a class="headerlink" href="#using-holoscan-sensor-bridge-as-io" title="Permanent link">#</a></h3>
 <p>When using the workflow with <code>--source hsb</code>, it requires the Holoscan Sensor Bridge software to be installed. You can build a Holoscan Sensor Bridge container using the following commands:</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git
 <span class="nb">cd</span><span class="w"> </span>holoscan-sensor-bridge
 git<span class="w"> </span>checkout<span class="w"> </span>hsdk-3.0
-./docker/build.sh
+./docker/build.sh<span class="w"> </span>--dgpu<span class="w"> </span><span class="c1"># for discrete GPU</span>
+./docker/build.sh<span class="w"> </span>--igpu<span class="w"> </span><span class="c1"># for integrated GPU</span>
 </code></pre></div>
 <p>This will build a docker image called <code>hololink-demo:2.0.0</code>.</p>
 <p>Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container and run the workflow using the following command:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>--base_img<span class="w"> </span>hololink-demo:2.0.0<span class="w"> </span>--img<span class="w"> </span>holohub:link<span class="w"> </span>ai_surgical_video<span class="w"> </span>--run_args<span class="w"> </span><span class="s2">&quot; --source hsb&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--base-img<span class="w"> </span>hololink-demo:2.0.0<span class="w"> </span>--img<span class="w"> </span>holohub:link<span class="w"> </span>ai_surgical_video<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source hsb&quot;</span>
 </code></pre></div>
 <h2 id="advanced-usage">Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permanent link">#</a></h2>
-<h3 id="building-the-application">Building the Application<a class="headerlink" href="#building-the-application" title="Permanent link">#</a></h3>
+<h3 id="using-holohub-container">Using Holohub Container<a class="headerlink" href="#using-holohub-container" title="Permanent link">#</a></h3>
 <p>First, you need to run the Holohub container:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:link<span class="w"> </span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>ai_surgical_video
 </code></pre></div>
-<p>Then, you can build the workflow using the following command:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>ai_surgical_video
+<blockquote>
+<p><strong>Note:</strong> If using Holoscan Sensor Bridge, please see the <a href="#using-holoscan-sensor-bridge-as-io">Using Holoscan Sensor Bridge as I/O</a> for building the Holoscan Sensor Bridge docker container first, which is tagged as <code>hololink-demo:2.0.0</code>, and then use the following command to run the Holohub container:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--base-img<span class="w"> </span>hololink-demo:2.0.0<span class="w"> </span>--img<span class="w"> </span>holohub:link
+</code></pre></div>
+</blockquote>
+<h3 id="building-the-application">Building the Application<a class="headerlink" href="#building-the-application" title="Permanent link">#</a></h3>
+<p>Once your environment is set up, you can build the workflow using the following command:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>ai_surgical_video
 </code></pre></div>
 <h3 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h3>
 <h4 id="use-holohub-container-from-outside-of-the-container">Use Holohub Container from Outside of the Container<a class="headerlink" href="#use-holohub-container-from-outside-of-the-container" title="Permanent link">#</a></h4>
 <p>Using the Holohub container, you can run the workflow without building it again:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>--base_img<span class="w"> </span>hololink-demo:2.0.0<span class="w"> </span>--img<span class="w"> </span>holohub:link<span class="w"> </span>--no_build<span class="w"> </span>ai_surgical_video
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ai_surgical_video<span class="w"> </span>--no-build
 </code></pre></div>
-<p>However, if you want to build the workflow, you can just remove the <code>--no_build</code> flag:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>--base_img<span class="w"> </span>hololink-demo:2.0.0<span class="w"> </span>--img<span class="w"> </span>holohub:link<span class="w"> </span>ai_surgical_video
+<p>However, if you want to build the workflow, you can just remove the <code>--no-build</code> flag:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ai_surgical_video
 </code></pre></div>
-<h4 id="use-holohub-container-from-inside-the-container">Use Holohub Container from Inside the Container<a class="headerlink" href="#use-holohub-container-from-inside-the-container" title="Permanent link">#</a></h4>
-<p>First, you need to run the Holohub container:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:link<span class="w"> </span>
-</code></pre></div>
-<p>To run the Python application, you can make use of the run script:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>ai_surgical_video
-</code></pre></div>
-<p>Alternatively, you can run the application directly:</p>
+<p>Alternatively, you can run the application directly from the source directory:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>&lt;HOLOHUB_SOURCE_DIR&gt;/workflows/ai_surgical_video/python
 python3<span class="w"> </span>ai_surgical_video.py<span class="w"> </span>--source<span class="w"> </span>hsb<span class="w"> </span>--data<span class="w"> </span>&lt;DATA_DIR&gt;<span class="w"> </span>--config<span class="w"> </span>&lt;CONFIG_FILE&gt;
 </code></pre></div>
 <blockquote>
 <p><strong>TIP:</strong> You can get the exact "Run command" along with "Run environment" and "Run workdir" by executing:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>ai_surgical_video<span class="w"> </span>--dryrun
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ai_surgical_video<span class="w"> </span>--dryrun<span class="w"> </span>--local
 </code></pre></div>
 </blockquote>
 <h3 id="command-line-arguments">Command Line Arguments<a class="headerlink" href="#command-line-arguments" title="Permanent link">#</a></h3>
