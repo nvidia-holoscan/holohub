@@ -12,3 +12,7 @@ mkdocs-site-urls
 mkdocs-git-revision-date-localized-plugin
 mike
 mistune
+markdown
+nltk
+bs4
+requests
