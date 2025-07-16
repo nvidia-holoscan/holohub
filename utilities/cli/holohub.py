@@ -570,6 +570,7 @@ class HoloHubCLI:
             ctest_cmd += "-VV "
 
         container.run(
+            img=getattr(args, "img", None),
             use_tini=True,
             docker_opts="--entrypoint=bash",
             extra_args=["-c", ctest_cmd],
