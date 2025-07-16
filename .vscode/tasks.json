@@ -30,7 +30,7 @@
             "label": "Clear Build Cache",
             "command": "./holohub",
             "args": [
-                "clear_cache"
+                "clear-cache"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
