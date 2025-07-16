@@ -7,7 +7,7 @@ Minimal example to demonstrate the use of the aja source operator to capture dev
 ## Quick Start
 
 ```bash
-holohub run aja_video_capture --language <cpp/python>
+./holohub run aja_video_capture --language <cpp/python>
 ```
 
 ## Settings
