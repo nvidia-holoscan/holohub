@@ -6,6 +6,12 @@ This project is aiming to provide basic guidance to deploy Yolo-based model to H
     <img src="./docs/meeting.gif" width="500" height="363">
 </div>
 
+## Supported Platforms
+
+The demo [container environment](Dockerfile) supports x86 or arm64 platforms with a discrete GPU.
+
+Users targeting a Jetson platform (integrated GPU) may need to install [Jetson PyTorch packages](https://pypi.jetson-ai-lab.io/)
+in their demo environment.
 
 ## Model
 * Yolo v8 model: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
