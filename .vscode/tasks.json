@@ -28,7 +28,7 @@
         {
             "type": "shell",
             "label": "Clear Build Cache",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "clear_cache"
             ],
@@ -41,11 +41,11 @@
         {
             "type": "shell",
             "label": "Build basic_networking_ping",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "basic_networking_ping",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -88,11 +88,11 @@
         {
             "type": "shell",
             "label": "Build asr_to_llm",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "asr_to_llm",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -105,11 +105,11 @@
         {
             "type": "shell",
             "label": "Build sam2",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "sam2",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -122,11 +122,11 @@
         {
             "type": "shell",
             "label": "Build colonoscopy_segmentation",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "colonoscopy_segmentation",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -139,11 +139,11 @@
         {
             "type": "shell",
             "label": "Build cuda_quantum",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "cuda_quantum",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -156,11 +156,11 @@
         {
             "type": "shell",
             "label": "Build cvcuda_basic",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "cvcuda_basic",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -173,11 +173,11 @@
         {
             "type": "shell",
             "label": "Build endoscopy_depth_estimation",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "endoscopy_depth_estimation",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -190,11 +190,11 @@
         {
             "type": "shell",
             "label": "Build endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "endoscopy_tool_tracking",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -207,11 +207,11 @@
         {
             "type": "shell",
             "label": "Build ucx_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "ucx_endoscopy_tool_tracking",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -275,11 +275,11 @@
         {
             "type": "shell",
             "label": "Build grpc_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "grpc_endoscopy_tool_tracking",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -322,11 +322,11 @@
         {
             "type": "shell",
             "label": "Build h264_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "h264_endoscopy_tool_tracking",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -339,11 +339,11 @@
         {
             "type": "shell",
             "label": "Build ucx_h264_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "ucx_h264_endoscopy_tool_tracking",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -365,11 +365,11 @@
         {
             "type": "shell",
             "label": "Build h264_video_decode",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "h264_video_decode",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -382,11 +382,11 @@
         {
             "type": "shell",
             "label": "Build grpc_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "grpc_endoscopy_tool_tracking",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -429,11 +429,11 @@
         {
             "type": "shell",
             "label": "Build grpc_h264_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "grpc_h264_endoscopy_tool_tracking",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -476,11 +476,11 @@
         {
             "type": "shell",
             "label": "Build Holoviz examples",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "${input:remember_holoviz_example_name}",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -493,11 +493,11 @@
         {
             "type": "shell",
             "label": "Build multiai_ultrasound",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "multiai_ultrasound",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -510,11 +510,11 @@
         {
             "type": "shell",
             "label": "Build nvidia_nim_nvclip",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "nvidia_nim_nvclip",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -527,11 +527,11 @@
         {
             "type": "shell",
             "label": "Build slang_simple",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "slang_simple",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -544,11 +544,11 @@
         {
             "type": "shell",
             "label": "Build volume_rendering",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "volume_rendering",
-                "--type",
+                "--build-type",
                 "debug"
             ],
             "options": {
@@ -562,7 +562,7 @@
             "type": "shell",
             "hide": true,
             "label": "Build for Holoscan Flow Benchmarking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "${input:app_name}",
