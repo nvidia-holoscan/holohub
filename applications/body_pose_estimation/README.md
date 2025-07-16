@@ -87,7 +87,7 @@ To use a DDS video stream as the input to the application, use the `-s=dds`
 argument when running the application:
 
 ```sh
-./holohub launch --local body_pose_estimation --run-args="-s=dds
+./holohub run --local body_pose_estimation --run-args="-s=dds"
 ```
 
 To publish the output result to DDS, edit the `body_pose_estimation.yaml`
