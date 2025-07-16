@@ -38,7 +38,7 @@ from holohub.orsi_format_converter import OrsiFormatConverterOp
 from holohub.orsi_segmentation_preprocessor import OrsiSegmentationPreprocessorOp
 from operators.deidentification.pixelator import PixelatorOp
 
-cuda = lazy_import("cuda.cuda")
+cuda_driver = lazy_import("cuda.bindings.driver")
 hololink_module = lazy_import("hololink")
 
 
@@ -750,10 +750,10 @@ def main(args):
     # Set up the sensor bridge device
     if args.source == "hsb":
         # Get handles to GPU
-        cuda.cuInit(0)
+        cuda_driver.cuInit(0)
         cu_device_ordinal = 0
-        _, cu_device = cuda.cuDeviceGet(cu_device_ordinal)
-        _, cu_context = cuda.cuDevicePrimaryCtxRetain(cu_device)
+        _, cu_device = cuda_driver.cuDeviceGet(cu_device_ordinal)
+        _, cu_context = cuda_driver.cuDevicePrimaryCtxRetain(cu_device)
 
         # Get a handle to the data source
         channel_metadata = hololink_module.Enumerator.find_channel(channel_ip=args.hololink)
@@ -825,7 +825,7 @@ def main(args):
         # __________________________________________________________________
         # Clean up the sensor bridge device
         hololink.stop()
-        cuda.cuDevicePrimaryCtxRelease(cu_device)
+        cuda_driver.cuDevicePrimaryCtxRelease(cu_device)
 
     else:
         application = AISurgicalVideoWorkflow(
