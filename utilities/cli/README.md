@@ -94,6 +94,10 @@ Use `-h` or `--help` to view a complete list of commands or subcommand options.
 # Custom build options
 ./holohub build myapp --build-with "op1;op2" --configure-args='-DCUSTOM=ON'
 
+# Container run with path to a local Holoscan SDK installation from the host system
+./holohub run-container --local-sdk-root <path/to/holoscan-sdk> --img holohub:sdk-dev-latest [additional-options]
+# Example of additional options: --no-docker-build --env VAR=value
+
 # Benchmarking an application (only for applications/workflows)
 ./holohub build myapp --benchmark
 ```
@@ -107,7 +111,7 @@ Development commands remain familiar:
 
 # Enhanced linting with integrated dependency management
 ./holohub lint --install-dependencies  # Previously ./run install_lint_deps
-./holohub lint                           # Previously ./run lint
+./holohub lint                         # Previously ./run lint
 ./holohub lint --fix                   # Previously ./run lint --fix
 
 # Consistent naming conventions
@@ -209,3 +213,7 @@ The autocompletion uses `./holohub autocompletion_list` command internally.
 - All previous arguments containing `_` are changed to `-` consistently (e.g. `--base_img` to `--base-img`).
 
 - `sudo ./holohub` may not work due the filtering of environment variable such as `PATH`.
+
+- Running Docker container as a root user `--docker-opts="-u root"` or `--docker-opts="-u root --privileged"`:
+  Running a Docker container as a root user may be necessary in scenarios where the containerized application requires elevated privileges to access certain system resources, modify system configurations, or perform administrative tasks. For example, this might be needed for debugging, testing, or running development tools that require root access.
+  However, running containers as root poses significant security risks, as it can expose the host system to potential vulnerabilities if the container is compromised. It is recommended to avoid this practice in production environments and to use non-root users whenever possible. If root access is required, ensure that the container is run in a controlled and secure environment.
