@@ -14057,7 +14057,7 @@ for more information on how to build the operators. If using a development
 container, see the <a href="#using-a-development-container-with-dds-support">additional instructions below</a>.</p>
 <p>To use a DDS video stream as the input to the application, use the <code>-s=dds</code>
 argument when running the application:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>launch<span class="w"> </span>--local<span class="w"> </span>body_pose_estimation<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-s=dds</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--local<span class="w"> </span>body_pose_estimation<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-s=dds&quot;</span>
 </code></pre></div>
 <p>To publish the output result to DDS, edit the <code>body_pose_estimation.yaml</code>
 configuration file so that the <code>dds_publisher</code> <code>enable</code> option is <code>true</code>:</p>

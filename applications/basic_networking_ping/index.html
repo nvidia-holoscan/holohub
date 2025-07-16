@@ -13869,24 +13869,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#build-instructions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Build Instructions
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-instructions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Run Instructions
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#dev-container" class="md-nav__link">
     <span class="md-ellipsis">
       Dev Container
@@ -14000,16 +13982,6 @@ UDP port likely need to be configured. All other settings do not need to be chan
 <span class="c1"># Start the transmitter</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>basic_networking_ping<span class="w"> </span>--language<span class="w"> </span>&lt;cpp<span class="p">|</span>python&gt;<span class="w"> </span>--run-args<span class="w"> </span>basic_networking_ping_tx.yaml
 </code></pre></div>
-<h3 id="build-instructions">Build Instructions<a class="headerlink" href="#build-instructions" title="Permanent link">#</a></h3>
-<p>Please refer to the top level Holohub README.md file for information on how to build this application.</p>
-<h3 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h3>
-<p>Running the sample uses the standard HoloHub <code>run</code> script:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Start the receiver</span>
-./run<span class="w"> </span>launch<span class="w"> </span>basic_networking_ping<span class="w"> </span>&lt;language&gt;<span class="w"> </span>--extra_args<span class="w"> </span>basic_networking_ping_rx.yaml
-<span class="c1"># Start the transmitter</span>
-./run<span class="w"> </span>launch<span class="w"> </span>basic_networking_ping<span class="w"> </span>&lt;language&gt;<span class="w"> </span>--extra_args<span class="w"> </span>basic_networking_ping_tx.yaml
-</code></pre></div>
-<p>Language can be either C++ or Python.</p>
 <h2 id="dev-container">Dev Container<a class="headerlink" href="#dev-container" title="Permanent link">#</a></h2>
 <p>To start the the Dev Container, run the following command from the root directory of Holohub:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>vscode
