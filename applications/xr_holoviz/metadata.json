@@ -16,9 +16,10 @@
 			}
 		],
 		"language": "C++",
-		"version": "1.0.0",
+		"version": "1.1.0",
 		"changelog": {
-			"0.0": "Initial release"
+			"1.0": "Initial release",
+			"1.1": "Add depth buffer support"
 		},
 		"holoscan_sdk": {
 			"minimum_required_version": "3.3.0",

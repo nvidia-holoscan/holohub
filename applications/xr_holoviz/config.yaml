@@ -14,5 +14,5 @@
 # limitations under the License.
 
 holoviz:
-  width: 1792
-  height: 1008
+  width: 4800 # This is the config for Apple Vision Pro. Refer to README.md on how to get this config.
+  height: 1920
