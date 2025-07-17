@@ -1,13 +1,9 @@
 {
 	"application": {
-		"name": "XR + Holoviz",
+		"name": "XR + Gaussian Splatting",
 		"authors": [
 			{
 				"name": "Connor Smith",
-				"affiliation": "NVIDIA"
-			},
-			{
-				"name": "Rafael Wiltz",
 				"affiliation": "NVIDIA"
 			},
 			{
@@ -15,22 +11,26 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "C++",
+		"language": "Python",
 		"version": "1.0.0",
 		"changelog": {
 			"0.0": "Initial release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "3.3.0",
+			"minimum_required_version": "3.1.0",
 			"tested_versions": [
-				"3.3.0",
-				"3.4.0"
+				"3.1.0"
 			]
 		},
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["Extended Reality", "Visualization", "Rendering", "Stereo Vision"],
+		"tags": [
+			"XR",
+			"OpenXR",
+			"Gaussian Splatting",
+			"3D Reconstruction"
+		],
 		"ranking": 4,
 		"dependencies": {
 			"operators": [
@@ -41,8 +41,8 @@
 			]
 		},
 		"run": {
-			"command": "<holohub_app_bin>/xr_holoviz",
-			"workdir": "holohub_app_bin"
+			"command": "python3 <holohub_app_source>/xr_gsplat.py -c <holohub_app_source>/config.yaml",
+			"workdir": "holohub_bin"
 		}
 	}
 }
