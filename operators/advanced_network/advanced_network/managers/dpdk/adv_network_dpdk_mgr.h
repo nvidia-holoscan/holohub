@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -217,7 +217,8 @@ class DpdkMgr : public Manager {
   struct rte_flow* add_modify_flow_set(int port, int queue, const char* buf, int len,
                                        Direction direction);
 
-  static struct rte_flow_item_flex_handle *create_flex_flow_rule(int port, int offset, struct rte_flow_item *udp_item, struct rte_flow_item *end_pattern);
+  static struct rte_flow_item_flex_handle *create_flex_flow_rule(
+    int port, int offset, struct rte_flow_item *udp_item, struct rte_flow_item *end_pattern);
   struct rte_flow* add_flex_item_flow(int port, const FlexItemMatch& match, uint16_t queue_id);
 
   void apply_tx_offloads(int port);
