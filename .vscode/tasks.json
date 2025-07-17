@@ -46,7 +46,8 @@
                 "build",
                 "basic_networking_ping",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -93,7 +94,8 @@
                 "build",
                 "asr_to_llm",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -110,7 +112,8 @@
                 "build",
                 "sam2",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -127,7 +130,8 @@
                 "build",
                 "colonoscopy_segmentation",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -144,7 +148,8 @@
                 "build",
                 "cuda_quantum",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -161,7 +166,8 @@
                 "build",
                 "cvcuda_basic",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -178,7 +184,8 @@
                 "build",
                 "endoscopy_depth_estimation",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -195,7 +202,8 @@
                 "build",
                 "endoscopy_tool_tracking",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -212,7 +220,8 @@
                 "build",
                 "ucx_endoscopy_tool_tracking",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -301,7 +310,8 @@
                 "build",
                 "h264_endoscopy_tool_tracking",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -318,7 +328,8 @@
                 "build",
                 "ucx_h264_endoscopy_tool_tracking",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -344,7 +355,8 @@
                 "build",
                 "h264_video_decode",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -361,7 +373,8 @@
                 "build",
                 "grpc_endoscopy_tool_tracking",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -408,7 +421,8 @@
                 "build",
                 "grpc_h264_endoscopy_tool_tracking",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -455,7 +469,8 @@
                 "build",
                 "${input:remember_holoviz_example_name}",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -472,7 +487,8 @@
                 "build",
                 "multiai_ultrasound",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -489,7 +505,8 @@
                 "build",
                 "nvidia_nim_nvclip",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -506,7 +523,8 @@
                 "build",
                 "slang_simple",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -523,7 +541,8 @@
                 "build",
                 "volume_rendering",
                 "--build-type",
-                "debug"
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -540,7 +559,8 @@
             "args": [
                 "build",
                 "${input:app_name}",
-                "--benchmark"
+                "--benchmark",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
