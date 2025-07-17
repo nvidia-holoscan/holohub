@@ -383,7 +383,7 @@ struct CommonConfig {
 struct FlexItemConfig {
   std::string name_;
   uint16_t id_;
-  uint16_t udp_dst_port_;  
+  uint16_t udp_dst_port_;
   uint16_t offset_;
 };
 

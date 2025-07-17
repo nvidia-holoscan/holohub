@@ -394,7 +394,6 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flex_item_c
       HOLOSCAN_LOG_CRITICAL("Flex item offset (in bytes) must be a multiple of 4 and less than 28");
       return false;
     }
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing FlexItemConfig: {}", e.what());
     return false;
