@@ -217,11 +217,15 @@ class DpdkMgr : public Manager {
   struct rte_flow* add_modify_flow_set(int port, int queue, const char* buf, int len,
                                        Direction direction);
 
+  static struct rte_flow_item_flex_handle *create_flex_flow_rule(int port, int offset, struct rte_flow_item *udp_item, struct rte_flow_item *end_pattern);
+  struct rte_flow* add_flex_item_flow(int port, const FlexItemMatch& match, uint16_t queue_id);
+
   void apply_tx_offloads(int port);
 
   std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
   std::unordered_map<uint32_t, struct rte_ring*> rx_rings;
   struct rte_ether_addr conf_ports_eth_addr[RTE_MAX_ETHPORTS];
+  std::unordered_map<uint16_t, struct rte_flow_item_flex_handle*> flex_item_handles_;
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
   std::unordered_map<uint32_t, struct rte_mempool*> tx_burst_buffers;
   std::unordered_map<std::string, std::shared_ptr<struct rte_pktmbuf_extmem>> ext_pktmbufs_;
