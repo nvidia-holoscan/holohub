@@ -51,6 +51,9 @@ RUN apt update \
         libopenxr-dev \
         libopenxr1-monado
 
+# Install specific version of markupsafe for OpenXR build
+RUN pip install markupsafe==2.0.1
+
 # Install Python builder.
 RUN pip install --upgrade pip
 RUN pip install build

@@ -310,8 +310,10 @@ class HolovizGeometryApp : public holoscan::Application {
         Arg("xr_composition_layer_manager") = xr_composition_layer_manager,
         Arg("allocator") = allocator);
 
-    // TODO: width and height are hardcoded for now, can't get the width and height from headset at
-    // this point
+    // TODO: Width and height are currently hardcoded in `config.yaml` because
+    // device dimensions cannot be retrieved at this initialization point.
+    // Workaround: Run the application once to detect dimensions from runtime logs,
+    // then update the `config.yaml` file with the correct values.
     auto holoviz_args = from_config("holoviz");
     auto visualizer = make_operator<ops::HolovizOp>("holoviz",
                                                     Arg("enable_render_buffer_input", true),
