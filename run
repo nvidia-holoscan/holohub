@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -640,7 +640,7 @@ lint() {
 
 build_desc() {
   echo
-  echo -e "${BOLD}Build a Holohub operator, application, data logger, workflow, or package, in its isolated build directory.${NOCOLOR}"
+  echo -e "${BOLD}Build a Holohub operator, application, workflow, or package, in its isolated build directory.${NOCOLOR}"
   echo
   echo -e "${CYAN}USAGE:${NOCOLOR}"
   echo
@@ -653,9 +653,6 @@ build_desc() {
   echo "   --with <list of operators>           : Optional operators that should be built"
   echo "                                          If multiple operators are to be built, list must be"
   echo "                                          in quotes with operators separated by semicolons (;)"
-  echo "   --with_logger <list of data loggers> : Optional data loggers that should be built"
-  echo "                                          If multiple data loggers are to be built, list must be"
-  echo "                                          in quotes with data loggers separated by semicolons (;)"
   echo "   --type <debug | release | rel-debug> : Specify the type of build"
   echo "                                          Default: release"
   echo "                                          Associated environment variable: CMAKE_BUILD_TYPE"
@@ -749,11 +746,6 @@ build() {
          configure_args="${configure_args} -D HOLOHUB_BUILD_OPERATORS=\"${operators}\""
          echo "Building with operator(s) ${operators}"
          skipnext=1
-      elif [ "$arg" = "--with_logger" ]; then
-         data_loggers="${ARGS[i+1]}"
-         configure_args="${configure_args} -D HOLOHUB_BUILD_DATA_LOGGERS=\"${data_loggers}\""
-         echo "Building with data_loggers(s) ${data_loggers}"
-         skipnext=1
       elif [ "$arg" = "--benchmark" ]; then
           benchmark=true
           configure_args="${configure_args} -D CMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking"
@@ -786,9 +778,9 @@ build() {
       fi
   done
 
-  # Package, application, operator or data logger to build
+  # Package, application or operator to build
   if [ "$1" == "" ]; then
-    print_error "Please specify which package, application, operator or data logger to build."
+    print_error "Please specify which package, application, or operator to build."
     echo "You can run ./run list for a full list of options."
     exit 1
   fi
@@ -806,10 +798,8 @@ build() {
     is_app=true
   elif list_operators | awk '{print $1}' | grep -Fxq "$project"; then
     opt_prefix="OP"
-  elif list_data_loggers | awk '{print $1}' | grep -Fxq "$project"; then
-    opt_prefix="DATA_LOGGER"
   else
-    print_error "Unknown package, application, workflow, operator, or data logger: $1"
+    print_error "Unknown package, application, workflow, or operator: $1"
     echo "You can run ./run list for a full list of options."
     exit 1
   fi
@@ -1055,7 +1045,7 @@ list_desc() {
   echo -e "
   ${BOLD}Display the list of Holohub targets.${NOCOLOR}
 
-  Includes workflows, applications, operators, packages, data loggers.
+  Includes workflows, applications, operators, packages.
   "
 }
 
@@ -1097,10 +1087,6 @@ list_operators() {
   list_metadata_json_dir ${SCRIPT_DIR}/operators
 }
 
-list_data_loggers() {
-  list_metadata_json_dir ${SCRIPT_DIR}/data_loggers
-}
-
 list_packages() {
   list_cmake_dir_options add_holohub_package
 }
@@ -1118,10 +1104,6 @@ list() {
   echo -e "${BOLD}== OPERATORS ====================${NOCOLOR}"
   echo
   list_operators
-  echo
-  echo -e "${BOLD}== DATA LOGGERS ====================${NOCOLOR}"
-  echo
-  list_data_loggers
   echo
   echo -e "${BOLD}== PACKAGES =====================${NOCOLOR}"
   echo
@@ -1221,16 +1203,15 @@ print_usage() {
     echo -e "${BOLD}USAGE: $0 [command] [arguments]...${NOCOLOR}"
     echo
     echo -e "${CYAN}Global Arguments${NOCOLOR}"
-    echo "  --help, -h                                   : Print help messages for [command]"
-    echo "  --dryrun                                     : Print commands to screen without running"
+    echo "  --help, -h                            : Print help messages for [command]"
+    echo "  --dryrun                              : Print commands to screen without running"
     echo
     echo -e "${CYAN}Commands${NOCOLOR}"
-    echo "  setup                                        : Install HoloHub main required packages"
-    echo "  clear_cache                                  : Clear cache folders"
-    echo "  list                                         : List all the available build targets"
-    echo "  build <package|application|operator|logger>  : Build a specific package, application, operator, "
-    echo "                                                 or data_logger"
-    echo "  launch <application> <language>              : Run the application"
+    echo "  setup                                 : Install HoloHub main required packages"
+    echo "  clear_cache                           : Clear cache folders"
+    echo "  list                                  : List all the available build targets"
+    echo "  build <package|application|operator>  : Build a specific package, application, or operator"
+    echo "  launch <application> <language>       : Run the application"
     echo
 }
 

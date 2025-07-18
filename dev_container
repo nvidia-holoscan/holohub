@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -941,7 +941,6 @@ build_and_run_desc() { c_echo 'Build and run a requested application in a Docker
         --build_args : Build the app with additional CMake configuration arguments
         --build_docker_args : additional docker arguments when building the container
         --build_with : List of optional operators that should be built separated by semicolons (;)
-        --build_with_logger : List of optional data loggers that should be built separated by semicolons (;)
         --run_args : Run the app with additional args
         --ssh_x11 : Enable X11 forwarding of graphical HoloHub applications over SSH
         --verbose : Print extra output to console
@@ -961,7 +960,6 @@ build_and_run() {
     local docker_file=""
     local extra_build_args=""
     local extra_build_with=""
-    local extra_build_with_logger=""
     local extra_run_args=""
     local run_app=1
     local install=""
@@ -1021,16 +1019,6 @@ build_and_run() {
                 shift 2
             else
                 echo "Error: --build_with requires a value"
-                build_and_run_desc
-                exit 1
-            fi
-            ;;
-        --build_with_logger)
-            if [[ -n "$2" ]]; then
-                extra_build_with_logger="--with_logger '$2'"
-                shift 2
-            else
-                echo "Error: --build_with_logger requires a value"
                 build_and_run_desc
                 exit 1
             fi
@@ -1169,7 +1157,7 @@ build_and_run() {
     run_command  ${SCRIPT_DIR}/dev_container build "${container_build_args[@]}"
     if [[ $build_app == 1 ]]; then
         c_echo "Building $app_name..."
-        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run build $app_name $install $parallel_jobs $extra_build_with $extra_build_with_logger $extra_build_args"
+        run_command ${SCRIPT_DIR}/dev_container launch $container_launch_args --docker_opts "$docker_opts" -- -c "./run build $app_name $install $parallel_jobs $extra_build_with $extra_build_args"
     fi
 
     if [[ $run_app == 1 ]]; then
