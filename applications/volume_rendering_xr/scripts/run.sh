@@ -14,6 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Handle ML startup with conditional options
+if [ -v ML_START_OPTIONS ]; then
+    echo "Starting ML with options: ${ML_START_OPTIONS}"
+    ml_start.sh ${ML_START_OPTIONS}
+else
+    echo "Starting ML with default debug options"
+    ml_start.sh debug
+fi
+
+# Pair ML
+echo "Pairing ML..."
+ml_pair.sh
+
 # Parse all arguments to check if xr_hello_holoscan is specified
 USE_HELLO_HOLOSCAN=false
 for arg in "$@"; do
