@@ -141,6 +141,48 @@
         "description"
       ]
     },
+    "dependency": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["data", "model", "software", "hardware"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "required": ["id", "name", "description"]
+    },
+    "application_dependencies": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dependency"
+          }
+        },
+        {
+          "type": "object"
+        }
+      ]
+    },
     "dependencies": {
       "type": "object",
       "properties": {
@@ -158,6 +200,28 @@
           "items": {
             "$ref": "#/$defs/hardware_descriptor"
           }
+        },
+        "external": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                },
+                "required": ["name", "description"]
+              }
+            ]
+          }
         }
       }
     },
@@ -165,10 +229,121 @@
       "type": "object",
       "properties": {
         "command": {
-          "type": "string"
+          "type": "string",
+          "description": "Command to execute. Supports parameter substitution using ${param_name}, ${env:VAR_NAME}, and ${holohub:placeholder}"
         },
         "workdir": {
+          "type": "string",
+          "description": "Working directory for command execution"
+        },
+        "run_args": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Runtime arguments. Supports parameter substitution using ${param_name}, ${env:VAR_NAME}, and ${holohub:placeholder}"
+          },
+          "description": "Array of runtime arguments to pass to the command"
+        },
+        "docker_args": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Docker arguments. Supports parameter substitution using ${param_name}, ${env:VAR_NAME}, and ${holohub:placeholder}"
+          },
+          "description": "Array of Docker run arguments"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of dependency IDs required during run phase"
+        }
+      },
+      "description": "Run command configuration with parameter substitution support. Available substitution patterns: ${PARAM:param_name} for mode parameters, ${VAR_NAME} for environment variables"
+    },
+    "parameter_definition": {
+      "type": "object",
+      "properties": {
+        "description": {
           "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["string", "int", "float", "bool", "array", "object"]
+        },
+        "default": {
+          "oneOf": [
+            {"type": "string"},
+            {"type": "number"},
+            {"type": "boolean"},
+            {"type": "array"},
+            {"type": "object"},
+            {"type": "null"}
+          ]
+        }
+      },
+      "required": ["description"]
+    },
+    "build_configuration": {
+      "type": "object",
+      "properties": {
+        "depends": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "docker_args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "configure_args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional configure arguments to pass to the local build step"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of dependency IDs required during build phase"
+        }
+      }
+    },
+    "mode_definition": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z_][a-zA-Z0-9_]*$": {
+              "$ref": "#/$defs/parameter_definition"
+            }
+          }
+        },
+        "build": {
+          "$ref": "#/$defs/build_configuration"
+        },
+        "run": {
+          "$ref": "#/$defs/run_command"
+        }
+      },
+      "required": ["description", "run"]
+    },
+    "modes": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z_][a-zA-Z0-9_]*$": {
+          "$ref": "#/$defs/mode_definition"
         }
       }
     }

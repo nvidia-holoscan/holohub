@@ -29,10 +29,119 @@
 			"Robotics"
 		],
 		"ranking": 3,
-		"dependencies": {},
-		"run": {
-			"command": "python3 <holohub_app_source>/app.py",
-			"workdir": "holohub_bin"
+		"dependencies": [
+			{
+				"id": "gpu",
+				"type": "hardware",
+				"name": "gpu",
+				"description": "NVIDIA GPU with at least 8GB memory required for Isaac Sim"
+			},
+			{
+				"id": "isaac_sim",
+				"type": "software",
+				"name": "Isaac Sim",
+				"description": "NVIDIA Isaac Sim simulation platform"
+			}
+		],
+		"modes": {
+			"interactive": {
+				"description": "Full Isaac Sim environment with interactive GUI and visualization for development, interactive debugging, and visual monitoring",
+				"run": {
+					"command": "python3 <holohub_app_source>/app.py",
+					"workdir": "holohub_bin",
+					"docker_args": [
+						"-u root",
+						"-e ACCEPT_EULA=Y",
+						"-e PRIVACY_CONSENT=Y",
+						"-v ${HOME}/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/ov:/root/.cache/ov:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/pip:/root/.cache/pip:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw",
+						"-v ${HOME}/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw",
+						"-v ${HOME}/docker/isaac-sim/data:/root/.local/share/ov/data:rw",
+						"-v ${HOME}/docker/isaac-sim/documents:/root/Documents:rw"
+					],
+					"requirements": ["gpu", "isaac_sim"]
+				}
+			},
+			"headless": {
+				"description": "Headless Isaac Sim for automated workflows and CI/CD including automated testing, CI/CD pipelines, and batch processing",
+				"run": {
+					"command": "python3 <holohub_app_source>/app.py",
+					"workdir": "holohub_bin",
+					"run_args": ["--headless"],
+					"docker_args": [
+						"-u root",
+						"-e ACCEPT_EULA=Y",
+						"-e PRIVACY_CONSENT=Y",
+						"-v ${HOME}/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/ov:/root/.cache/ov:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/pip:/root/.cache/pip:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw",
+						"-v ${HOME}/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw",
+						"-v ${HOME}/docker/isaac-sim/data:/root/.local/share/ov/data:rw",
+						"-v ${HOME}/docker/isaac-sim/documents:/root/Documents:rw"
+					],
+					"requirements": ["gpu", "isaac_sim"]
+				}
+			},
+			"performance": {
+				"description": "High-performance simulation optimized for performance testing, custom scenarios, and research workflows",
+				"parameters": {
+					"image_width": {
+						"description": "Camera image width in pixels (range: 640-3840, examples: 1280, 1920, 2560)",
+						"type": "int",
+						"default": 1920
+					},
+					"image_height": {
+						"description": "Camera image height in pixels (range: 480-2160, examples: 720, 1080, 1440)",
+						"type": "int",
+						"default": 1080
+					},
+					"fps": {
+						"description": "Target frames per second (range: 1.0-120.0, examples: 30.0, 60.0, 90.0, null for unlimited)",
+						"type": "float",
+						"default": null
+					},
+					"frame_count": {
+						"description": "Total frames to process (-1 for unlimited, examples: 100, 1000, 5000)",
+						"type": "int",
+						"default": -1
+					},
+					"headless": {
+						"description": "Run in headless mode for performance",
+						"type": "bool",
+						"default": true
+					}
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/app.py",
+					"workdir": "holohub_bin",
+					"run_args": [
+						"--image-width ${PARAM:image_width}",
+						"--image-height ${PARAM:image_height}",
+						"--fps ${PARAM:fps}",
+						"--frame-count ${PARAM:frame_count}",
+						"--headless ${PARAM:headless}"
+					],
+					"docker_args": [
+						"-u root",
+						"-e ACCEPT_EULA=Y",
+						"-e PRIVACY_CONSENT=Y",
+						"-v ${HOME}/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/ov:/root/.cache/ov:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/pip:/root/.cache/pip:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw",
+						"-v ${HOME}/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw",
+						"-v ${HOME}/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw",
+						"-v ${HOME}/docker/isaac-sim/data:/root/.local/share/ov/data:rw",
+						"-v ${HOME}/docker/isaac-sim/documents:/root/Documents:rw"
+					],
+					"requirements": ["gpu", "isaac_sim"]
+				}
+			}
 		}
 	}
 }
