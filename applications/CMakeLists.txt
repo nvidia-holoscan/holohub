@@ -62,6 +62,8 @@ add_holohub_application(imaging_ai_segmentator)
 
 add_holohub_application(hyperspectral_segmentation)
 
+add_holohub_application(iio DEPENDS OPERATORS iio_controller fft)
+
 add_subdirectory(laser_detection_latency)
 
 add_holohub_application(monai_endoscopic_tool_seg DEPENDS OPERATORS aja_source)
