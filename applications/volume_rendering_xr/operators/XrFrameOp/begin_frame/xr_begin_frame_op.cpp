@@ -42,9 +42,11 @@ void XrBeginFrameOp::setup(OperatorSpec& spec) {
   spec.output<std::array<float, 2>>("trackpad").condition(ConditionType::kNone);
 
   // aim pose in local space
-  spec.output<nvidia::gxf::Pose3D>("aim_pose").condition(ConditionType::kNone);
+  spec.output<nvidia::gxf::Pose3D>("aim_pose").connector(holoscan::IOSpec::ConnectorType::kDoubleBuffer,
+    holoscan::Arg("capacity", static_cast<uint64_t>(2))).condition(ConditionType::kNone);
   // grip pose in local space
-  spec.output<nvidia::gxf::Pose3D>("grip_pose").condition(ConditionType::kNone);
+  spec.output<nvidia::gxf::Pose3D>("grip_pose").connector(holoscan::IOSpec::ConnectorType::kDoubleBuffer,
+    holoscan::Arg("capacity", static_cast<uint64_t>(2))).condition(ConditionType::kNone);
   // head pose in local space
   spec.output<nvidia::gxf::Pose3D>("head_pose").condition(ConditionType::kNone);
   // eye gaze pose in view space
@@ -375,7 +377,7 @@ void XrBeginFrameOp::compute(InputContext& input, OutputContext& output,
     if (aim_location.locationFlags != xr::SpaceLocationFlagBits::None) {
       const xr::Posef& aim_pose = aim_location.pose;
       auto aim_pose_message = poseAction(aim_pose);
-      output.emit(aim_pose_message, "aim_pose");
+            output.emit(aim_pose_message, "aim_pose");
       aim_pose_emitted = true;
     }
 
