@@ -84,7 +84,7 @@
 			]
 		},
 		"run": {
-			"command": "if [ -v ML_START_OPTIONS ]; then ml_start.sh ${ML_START_OPTIONS}; else ml_start.sh debug; fi && ml_pair.sh && <holohub_app_source>/scripts/run.sh volume_rendering_xr --config <holohub_app_source>/configs/ctnv_bb_er.json --density <holohub_data_dir>/volume_rendering_xr/highResCT.mhd --mask <holohub_data_dir>/volume_rendering_xr/smoothmasks.seg.mhd",
+			"command": "<holohub_app_source>/scripts/run.sh volume_rendering_xr --config <holohub_app_source>/configs/ctnv_bb_er.json --density <holohub_data_dir>/volume_rendering_xr/highResCT.mhd --mask <holohub_data_dir>/volume_rendering_xr/smoothmasks.seg.mhd",
 			"workdir": "holohub_app_bin"
 		}
 	}
