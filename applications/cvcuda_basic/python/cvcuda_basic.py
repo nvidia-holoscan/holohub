@@ -1,5 +1,5 @@
 """
-SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,8 @@ import cvcuda
 import nvcv
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import HolovizOp, VideoStreamReplayerOp
+
+from holohub.message_logger import MessageLogger
 
 
 # Define custom Operators for use in the demo
@@ -120,6 +122,9 @@ class MyVideoProcessingApp(Application):
 
         self.add_flow(source, image_processing)
         self.add_flow(image_processing, visualizer, {("output_tensor", "receivers")})
+
+        message_logger = MessageLogger(self, name="message_logger")
+        self.add_data_logger(message_logger)
 
 
 if __name__ == "__main__":

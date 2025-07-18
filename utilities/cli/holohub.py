@@ -170,6 +170,11 @@ class HoloHubCLI:
             help="Optional operators that should be built, separated by semicolons (;)",
         )
         build.add_argument(
+            "--build-with-loggers",
+            dest="with_data_loggers",
+            help="Optional data loggers that should be built, separated by semicolons (;)",
+        )
+        build.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
         build.add_argument(
@@ -227,6 +232,11 @@ class HoloHubCLI:
             "--build-with",
             dest="with_operators",
             help="Optional operators that should be built, separated by semicolons (;)",
+        )
+        run.add_argument(
+            "--build-with-loggers",
+            dest="with_data_loggers",
+            help="Optional data loggers that should be built, separated by semicolons (;)",
         )
         run.add_argument(
             "--parallel", help="Number of parallel build jobs (e.g. --parallel $(($(nproc)-1)))"
@@ -316,6 +326,11 @@ class HoloHubCLI:
             dest="with_operators",
             help="Optional operators that should be built, separated by semicolons (;)",
         )
+        install.add_argument(
+            "--build-with-loggers",
+            dest="with_data_loggers",
+            help="Optional data loggers that should be built, separated by semicolons (;)",
+        )
         install.add_argument("--verbose", action="store_true", help="Print extra output")
         install.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
@@ -398,6 +413,7 @@ class HoloHubCLI:
         app_paths = (
             HoloHubCLI.HOLOHUB_ROOT / "applications",
             HoloHubCLI.HOLOHUB_ROOT / "benchmarks",
+            HoloHubCLI.HOLOHUB_ROOT / "data_loggers",
             HoloHubCLI.HOLOHUB_ROOT / "gxf_extensions",
             HoloHubCLI.HOLOHUB_ROOT / "operators",
             HoloHubCLI.HOLOHUB_ROOT / "pkg",
@@ -578,10 +594,12 @@ class HoloHubCLI:
 
     def build_project_locally(
         self,
+        *,
         project_name: str,
         language: Optional[str] = None,
         build_type: Optional[str] = None,
         with_operators: Optional[str] = None,
+        with_data_loggers: Optional[str] = None,
         dryrun: bool = False,
         pkg_generator: str = "DEB",
         parallel: Optional[str] = None,
@@ -641,6 +659,9 @@ class HoloHubCLI:
         # Add optional operators if specified
         if with_operators:
             cmake_args.append(f'-DHOLOHUB_BUILD_OPERATORS="{with_operators}"')
+        # Add optional data loggers if specified
+        if with_data_loggers:
+            cmake_args.append(f'-DHOLOHUB_BUILD_DATA_LOGGERS="{with_data_loggers}"')
         if configure_args:
             cmake_args.extend(configure_args)
 
@@ -691,6 +712,7 @@ class HoloHubCLI:
                 language=args.language if hasattr(args, "language") else None,
                 build_type=args.build_type,
                 with_operators=args.with_operators,
+                with_data_loggers=args.with_data_loggers,
                 dryrun=args.dryrun,
                 pkg_generator=getattr(args, "pkg_generator", "DEB"),
                 parallel=getattr(args, "parallel", None),
@@ -720,6 +742,8 @@ class HoloHubCLI:
                 build_cmd += f" --build-type {args.build_type}"
             if args.with_operators:
                 build_cmd += f' --build-with "{args.with_operators}"'
+            if args.with_data_loggers:
+                build_cmd += f' --build-with-loggers "{args.with_data_loggers}"'
             if hasattr(args, "pkg_generator"):
                 build_cmd += f" --pkg-generator {args.pkg_generator}"
             if hasattr(args, "language") and args.language:
@@ -787,6 +811,7 @@ class HoloHubCLI:
                     language=args.language if hasattr(args, "language") else None,
                     build_type=args.build_type or "Release",  # Default to Release for run
                     with_operators=args.with_operators,
+                    with_data_loggers=args.with_data_loggers,
                     dryrun=args.dryrun,
                     pkg_generator=getattr(args, "pkg_generator", "DEB"),
                     parallel=getattr(args, "parallel", None),
@@ -935,6 +960,8 @@ class HoloHubCLI:
                 run_cmd += " --no-local-build"
             if hasattr(args, "with_operators") and args.with_operators:
                 run_cmd += f' --build-with "{args.with_operators}"'
+            if hasattr(args, "with_data_loggers") and args.with_data_loggers:
+                run_cmd += f' --build-with-loggers "{args.with_data_loggers}"'
             if hasattr(args, "run_args") and args.run_args:
                 run_cmd += f" --run-args={shlex.quote(args.run_args)}"
             if getattr(args, "parallel", None):
@@ -971,6 +998,7 @@ class HoloHubCLI:
         LIST_TYPES = [
             "application",
             "benchmark",
+            "data_logger",
             "gxf_extension",
             "package",
             "operator",
@@ -1341,6 +1369,7 @@ class HoloHubCLI:
                 language=getattr(args, "language", None),
                 build_type=args.build_type,
                 with_operators=getattr(args, "with_operators", None),
+                with_data_loggers=getattr(args, "with_data_loggers", None),
                 dryrun=args.dryrun,
                 parallel=getattr(args, "parallel", None),
                 configure_args=getattr(args, "configure_args", None),
@@ -1375,6 +1404,8 @@ class HoloHubCLI:
                 install_cmd += f" --language {args.language}"
             if getattr(args, "with_operators", None):
                 install_cmd += f' --build-with "{args.with_operators}"'
+            if getattr(args, "with_data_loggers", None):
+                install_cmd += f' --build-with-loggers "{args.with_data_loggers}"'
             if getattr(args, "parallel", None):
                 install_cmd += f" --parallel {args.parallel}"
             if args.verbose:
@@ -1577,6 +1608,7 @@ class HoloHubCLI:
             msg_next = (
                 f"Possible next steps:\n"
                 f"- Add operators to {main_file}\n"
+                f"- Add data loggers to {main_file}\n"
                 f"- Update project metadata in {metadata_path}\n"
                 f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
                 f"- Build and run the application:\n"
