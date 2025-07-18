@@ -41,12 +41,12 @@ log_tensor_data_content : bool, optional
 log_metadata : bool, optional
     Whether to log metadata associated with messages. Default is True.
 allowlist_patterns : list of str, optional
-    List of regex patterns. Only messages matching these patterns will be logged.
-    If empty, all messages are allowed.
+    List of regex patterns to apply to message unique IDs. If empty, all messages not matching a
+    denylist pattern will be logged. Otherwise, there must be a match to one of the allowlist
+    patterns.
 denylist_patterns : list of str, optional
-    List of regex patterns. Messages matching these patterns will be filtered out.
-    If any `allowlist_patterns` are specified, those take precendence and
-    `denylist_patterns` is not used.
+    List of regex patterns to apply to message unique IDs. If specified and there is a match at
+    least one of these patterns, the message is not logged.
 name : str, optional (constructor only)
     The name of the data logger. Default value is ``"message_logger"``.
 
@@ -58,12 +58,19 @@ assigned to messages by the underlying framework.
 In a non-distributed application (without a fragment name), the unique_id for a message will have
 one of the following forms:
 
-- operator_name.port_name
-- operator_name.port_name:index  (for multi-receivers with N:1 connection)
+  - operator_name.port_name
+  - operator_name.port_name:index  (for multi-receivers with N:1 connection)
 
 For distributed applications, the fragment name will also appear in the unique id:
 
-- fragment_name.operator_name.port_name
-- fragment_name.operator_name.port_name:index  (for multi-receivers with N:1 connection)
+  - fragment_name.operator_name.port_name
+  - fragment_name.operator_name.port_name:index  (for multi-receivers with N:1 connection)
+
+The pattern matching logic is as follows:
+
+  - If `denylist patterns` is specified and there is a match, do not log it.
+  - Next check if `allowlist_patterns` is empty:
+    - If yes, return true (allow everything)
+    - If no, return true only if there is a match to at least one of the specified patterns.
 )doc")
 }  // namespace holoscan::doc::MessageLogger
