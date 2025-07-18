@@ -49,17 +49,21 @@ public struct holoscan_outputAttribute
     string name;
 };
 
+
 /**
  * Marks a variable as a parameter that can be configured at runtime.
  * Used for values that can be modified without recompiling the shader.
  *
  * @param name The identifier for the parameter, used by the Holoscan runtime
  *             to set the parameter value dynamically.
+ * @param default_value The default value for the parameter. If not provided, the parameter is
+ *                      required at runtime.
  */
 [__AttributeUsage(_AttributeTargets.Var)]
 public struct holoscan_parameterAttribute
 {
     string name;
+    string default_value;
 };
 
 /**
@@ -86,29 +90,52 @@ public struct holoscan_alloc_size_ofAttribute
 };
 
 /**
- * Specifies the grid dimensions for a compute kernel.
- * Defines how many threads will be launched in each dimension.
+ * Specifies the allocation size of a resource.
  *
- * @param x Number of threads in the X dimension
- * @param y Number of threads in the Y dimension
- * @param z Number of threads in the Z dimension
+ * @param x The size of the resource in the X dimension
+ * @param y The size of the resource in the Y dimension
+ * @param z The size of the resource in the Z dimension
  */
-[__AttributeUsage(_AttributeTargets.Function)]
-public struct holoscan_grid_sizeAttribute
+[__AttributeUsage(_AttributeTargets.Var)]
+public struct holoscan_alloc_sizeAttribute
 {
-    int x;
-    int y;
-    int z;
+    uint x;
+    uint y;
+    uint z;
 };
 
 /**
- * Specifies the grid dimensions for a compute kernel based on a resource's size.
- * The grid size is automatically calculated based on the dimensions of the specified resource.
+ * Specifies the invocation size for a compute kernel.
+ * Defines how many invocations will be launched in each dimension.
  *
- * @param name The name of the resource whose dimensions should be used to calculate grid size.
+ * @param x Number of invocations in the X dimension
+ * @param y Number of invocations in the Y dimension
+ * @param z Number of invocations in the Z dimension
  */
 [__AttributeUsage(_AttributeTargets.Function)]
-public struct holoscan_grid_size_ofAttribute
+public struct holoscan_invocationsAttribute
+{
+    uint x;
+    uint y;
+    uint z;
+};
+
+/**
+ * Specifies the invocation size for a compute kernel based on a resource's size.
+ * The invocation size is automatically calculated based on the dimensions of the specified resource.
+ *
+ * @param name The name of the resource whose size should be used to calculate invocation size.
+ */
+[__AttributeUsage(_AttributeTargets.Function)]
+public struct holoscan_invocations_size_ofAttribute
 {
     string name;
+};
+
+/**
+ * Specifies that the resource should be initialized to zero.
+ */
+[__AttributeUsage(_AttributeTargets.Var)]
+public struct holoscan_zerosAttribute
+{
 };
