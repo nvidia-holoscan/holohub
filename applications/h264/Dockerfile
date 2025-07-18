@@ -21,7 +21,7 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu as base
+FROM ${BASE_IMAGE} as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
