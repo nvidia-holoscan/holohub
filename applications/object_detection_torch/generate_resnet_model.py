@@ -36,7 +36,7 @@ det_model = detection.fasterrcnn_resnet50_fpn(
 ).to(DEVICE)
 
 
-# wrapps the model to incorporate a permutation operation.
+# Wraps the model to incorporate a permutation operation.
 # Holoscan expects the input to be in the format [H, W, C] while the model expects [C, H, W]
 class RCNNWrapper(torch.nn.Module):
     def __init__(self, det_model: torch.nn.Module):
