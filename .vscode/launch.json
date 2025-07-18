@@ -1232,7 +1232,35 @@
                 "order": 2
             }
         },
-        //#endregion holoviz
+        //#endregion nvidia_nim_nvclip
+
+        //#region slang
+        {
+            "name": "(gdb) slang_simple",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build slang_simple",
+            "program": "${workspaceFolder}/build/slang_simple/applications/slang/slang_simple/cpp/slang_simple",
+            "args": [
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/slang_simple/applications/slang/slang_simple/cpp",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "slang",
+                "order": 1
+            }
+        },
+        //#endregion slang
 
         //#region volume_rendering
         {

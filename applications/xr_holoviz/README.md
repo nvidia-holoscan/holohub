@@ -2,6 +2,9 @@
 
 This application demonstrates the integration of Holoscan-XR with Holoviz for extended reality visualization.
 
+![Demo](doc/demo.gif)
+*Demo running on Apple Vision Pro*
+
 
 ## Quick Start Guide
 
@@ -41,3 +44,21 @@ XrCompositionLayerManager initialized width: XXX height: YYY
 ```
 3. Copy the width and height
 4. Set the width and height of the HolovizOp in `config.yaml`
+
+### Troubleshooting
+
+#### Buffer Size Too Small
+If you encounter the following errors:
+```
+...
+[error] [gxf_executor.cpp:2506] Graph execution error: GXF_FAILURE
+terminate called after throwing an instance of 'std::runtime_error'
+  what():  The size of the buffer is too small
+  ...
+```
+
+This error is typically caused by incorrect width and height configuration for the XR display. To resolve this issue:
+
+1. Follow the **"Set up width and height correctly"** section above to obtain the correct display dimensions
+2. Update the HolovizOp width and height values in `config.yaml` with the runtime-detected values
+3. Restart the application

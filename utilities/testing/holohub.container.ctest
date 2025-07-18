@@ -61,8 +61,12 @@ ctest_start(Nightly)
 ctest_update()
 ctest_configure(OPTIONS "${configure_options}")
 ctest_build()
-ctest_test()
+ctest_test(RETURN_VALUE test_result)
 
 if(CTEST_SUBMIT_URL)
   ctest_submit()
+endif()
+
+if (test_result)
+  message(FATAL_ERROR "Tests failed with return value: ${test_result}")
 endif()

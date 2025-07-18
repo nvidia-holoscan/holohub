@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,3 +59,7 @@ target_link_libraries(
   PRIVATE holoscan::viz Eigen3::Eigen)
 
 set_property(TARGET xr PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()

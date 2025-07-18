@@ -1,0 +1,6 @@
+# Patterns to exclude from nvstaging checks
+# One pattern per line, supports bash globbing
+# Lines starting with # are comments and are ignored
+
+.github/workflows/check_compliance.yml
+.github/workflows/scripts/nvstaging_excludes.txt

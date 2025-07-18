@@ -53,9 +53,9 @@ The HolovizOp displays the processed video with overlaid AI results, including:
 
 ### Software
 
-- **Holoscan SDK `v3.0`**:
+- **Holoscan SDK `>= v3.0`**:
   Holohub command takes care of this dependency when using Holohub container. However, you can install the Holoscan SDK via one of the methods specified in [the SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#development-software-stack).
-- **Holoscan Sensor Bridge `v2.0`**: Please see the [Quick start guide](#quick-start-guide) for building the Holoscan Sensor Bridge docker container.
+- **Holoscan Sensor Bridge `>= v2.0`**: Please see the [Quick start guide](#quick-start-guide) for building the Holoscan Sensor Bridge docker container.
 
 ### Models
 
@@ -75,10 +75,17 @@ This workflow utilizes the following three AI models:
 
 ## Quick Start Guide
 
-### Using AJA Card or Replayer as I/O
+```sh
+./holohub run ai_surgical_video
+```
+
+This single command will create and launch Holohub container, build the workflow, and run the workflow with the default arguments set in the [config.yaml](./python/config.yaml) file and a replayer source.
+
+
+### Using AJA Card as I/O
 
 ```sh
-./dev_container build_and_run ai_surgical_video
+./holohub run ai_surgical_video --run-args "--source aja"
 ```
 
 ### Using Holoscan Sensor Bridge as I/O
@@ -89,7 +96,8 @@ When using the workflow with `--source hsb`, it requires the Holoscan Sensor Bri
 git clone https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git
 cd holoscan-sensor-bridge
 git checkout hsdk-3.0
-./docker/build.sh
+./docker/build.sh --dgpu # for discrete GPU
+./docker/build.sh --igpu # for integrated GPU
 ```
 
 This will build a docker image called `hololink-demo:2.0.0`.
@@ -97,23 +105,31 @@ This will build a docker image called `hololink-demo:2.0.0`.
 Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container and run the workflow using the following command:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link ai_surgical_video --run_args " --source hsb"
+./holohub run --base-img hololink-demo:2.0.0 --img holohub:link ai_surgical_video --run-args="--source hsb"
 ```
 
 ## Advanced Usage
 
-### Building the Application
+### Using Holohub Container
 
 First, you need to run the Holohub container:
 
 ```sh
-./dev_container launch --img holohub:link 
+./holohub run-container ai_surgical_video
 ```
 
-Then, you can build the workflow using the following command:
+> **Note:** If using Holoscan Sensor Bridge, please see the [Using Holoscan Sensor Bridge as I/O](#using-holoscan-sensor-bridge-as-io) for building the Holoscan Sensor Bridge docker container first, which is tagged as `hololink-demo:2.0.0`, and then use the following command to run the Holohub container:
+>
+> ```sh
+> ./holohub run-container --base-img hololink-demo:2.0.0 --img holohub:link
+> ```
+
+### Building the Application
+
+Once your environment is set up, you can build the workflow using the following command:
 
 ```sh
-./run build ai_surgical_video
+./holohub build ai_surgical_video
 ```
 
 ### Running the Application
@@ -123,30 +139,16 @@ Then, you can build the workflow using the following command:
 Using the Holohub container, you can run the workflow without building it again:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link --no_build ai_surgical_video
+./holohub run ai_surgical_video --no-build
 ```
 
-However, if you want to build the workflow, you can just remove the `--no_build` flag:
+However, if you want to build the workflow, you can just remove the `--no-build` flag:
 
 ```sh
-./dev_container build_and_run --base_img hololink-demo:2.0.0 --img holohub:link ai_surgical_video
+./holohub run ai_surgical_video
 ```
 
-#### Use Holohub Container from Inside the Container
-
-First, you need to run the Holohub container:
-
-```sh
-./dev_container launch --img holohub:link 
-```
-
-To run the Python application, you can make use of the run script:
-
-```sh
-./run launch ai_surgical_video
-```
-
-Alternatively, you can run the application directly:
+Alternatively, you can run the application directly from the source directory:
 
 ```sh
 cd <HOLOHUB_SOURCE_DIR>/workflows/ai_surgical_video/python
@@ -156,7 +158,7 @@ python3 ai_surgical_video.py --source hsb --data <DATA_DIR> --config <CONFIG_FIL
 > **TIP:** You can get the exact "Run command" along with "Run environment" and "Run workdir" by executing:
 >
 > ```bash
-> ./run launch ai_surgical_video --dryrun
+> ./holohub run ai_surgical_video --dryrun --local
 > ```
 
 ### Command Line Arguments

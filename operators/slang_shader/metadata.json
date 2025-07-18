@@ -1,0 +1,43 @@
+{
+	"operator": {
+		"name": "Slang shading language operator",
+		"description": "Operator for executing Slang shaders.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": [
+			"C++",
+			"Python"
+		],
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.3.0",
+			"tested_versions": [
+				"3.3.0",
+				"3.4.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Slang",
+			"shading",
+			"rendering",
+			"shader",
+			"shadertoy",
+			"compute",
+			"raytracing",
+			"cuda"
+		],
+		"ranking": 1,
+		"dependencies": {}
+	}
+}
