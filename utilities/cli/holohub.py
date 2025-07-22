@@ -1158,18 +1158,10 @@ class HoloHubCLI:
             print(f"  {Color.green(mode_name, bold=True)} - {description}")
 
             # Show requirements if any
-            requirements = mode_config.get("requirements", {})
+            requirements = mode_config.get("requirements", [])
             if requirements:
-                req_parts = []
-                if requirements.get("hardware"):
-                    req_parts.append(f"hardware: {', '.join(requirements['hardware'])}")
-                if requirements.get("data"):
-                    req_parts.append(f"data: {', '.join(requirements['data'])}")
-                if requirements.get("dependencies", {}).get("external"):
-                    external_deps = requirements["dependencies"]["external"]
-                    req_parts.append(f"external: {', '.join(external_deps)}")
-                if req_parts:
-                    print(f"    Requirements: {'; '.join(req_parts)}")
+                req_list = ", ".join(requirements)
+                print(f"    Requirements: {req_list}")
 
             print()  # Empty line between modes
 

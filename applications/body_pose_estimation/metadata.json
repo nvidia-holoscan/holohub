@@ -51,27 +51,27 @@
 		"modes": {
 			"default": {
 				"description": "Real-time pose estimation using V4L2 camera (/dev/video0) for live demos, real-time processing, and webcam testing",
+				"requirements": ["camera", "model"],
 				"run": {
 					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
-					"workdir": "holohub_bin",
-					"requirements": ["camera", "model"]
+					"workdir": "holohub_bin"
 				}
 			},
 			"replayer": {
 				"description": "Offline pose estimation using pre-recorded video file for testing without camera, batch processing, and reproducible demos",
+				"requirements": ["model", "video"],
 				"run": {
 					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
 					"workdir": "holohub_bin",
-					"run_args": ["--source replayer"],
-					"requirements": ["model", "video"]
+					"run_args": ["--source replayer"]
 				}
 			},
 			"dds": {
 				"description": "Distributed pose estimation via DDS video streaming for multi-process applications, distributed systems, and ROS integration",
+				"requirements": ["dds", "model"],
 				"build": {
 					"depends": ["dds_video_subscriber", "dds_video_publisher"],
-					"docker_args": ["--ssh default"],
-					"requirements": ["dds"]
+					"docker_args": ["--ssh default"]
 				},
 				"run": {
 					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
@@ -81,17 +81,16 @@
 						"-v ${NDDSHOME}:/opt/dds",
 						"-e NDDSHOME=/opt/dds",
 						"-e CONNEXTDDS_ARCH=${CONNEXTDDS_ARCH}"
-					],
-					"requirements": ["model"]
+					]
 				}
 			},
 			"custom_camera": {
 				"description": "Pose estimation with user-specified camera device for multiple cameras, non-standard devices, and custom hardware",
+				"requirements": ["camera", "model"],
 				"run": {
 					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
 					"workdir": "holohub_bin",
-					"run_args": ["--video_device /dev/video0"],
-					"requirements": ["camera", "model"]
+					"run_args": ["--video_device /dev/video0"]
 				}
 			}
 		}

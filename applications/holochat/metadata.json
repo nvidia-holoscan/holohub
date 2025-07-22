@@ -51,28 +51,28 @@
 			"modes": {
 				"default": {
 					"description": "Cloud-based LLM with RAG using external API for production deployment, API-based inference, and scalable usage",
+					"requirements": ["vector_database", "openai_api", "NIM"],
 					"run": {
 						"command": "<holohub_app_source>/holochat.sh",
-						"workdir": "holohub_app_source",
-						"requirements": ["vector_database", "openai_api", "NIM"]
+						"workdir": "holohub_app_source"
 					}
 				},
 				"local": {
 					"description": "Local LLM with embedded models and vector database for offline usage, privacy-sensitive deployments, and development",
+					"requirements": ["gpu", "vector_database", "llm_model"],
 					"run": {
 						"command": "<holohub_app_source>/holochat.sh",
 						"workdir": "holohub_app_source",
-						"run_args": ["--local"],
-						"requirements": ["gpu", "vector_database", "llm_model"]
+						"run_args": ["--local"]
 					}
 				},
 				"mcp": {
 					"description": "MCP (Model Context Protocol) server mode for tool integration, Claude Desktop integration, and external tool access",
+					"requirements": ["vector_database"],
 					"run": {
 						"command": "<holohub_app_source>/holochat.sh",
 						"workdir": "holohub_app_source",
-						"run_args": ["--mcp"],
-						"requirements": ["vector_database"]
+						"run_args": ["--mcp"]
 					}
 				}
 			}

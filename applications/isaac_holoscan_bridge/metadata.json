@@ -44,6 +44,7 @@
 		"modes": {
 			"interactive": {
 				"description": "Full Isaac Sim environment with interactive GUI and visualization for development, interactive debugging, and visual monitoring",
+				"requirements": ["gpu", "isaac_sim"],
 				"run": {
 					"command": "python3 <holohub_app_source>/app.py",
 					"workdir": "holohub_bin",
@@ -59,12 +60,12 @@
 						"-v ${HOME}/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw",
 						"-v ${HOME}/docker/isaac-sim/data:/root/.local/share/ov/data:rw",
 						"-v ${HOME}/docker/isaac-sim/documents:/root/Documents:rw"
-					],
-					"requirements": ["gpu", "isaac_sim"]
+					]
 				}
 			},
 			"headless": {
 				"description": "Headless Isaac Sim for automated workflows and CI/CD including automated testing, CI/CD pipelines, and batch processing",
+				"requirements": ["gpu", "isaac_sim"],
 				"run": {
 					"command": "python3 <holohub_app_source>/app.py",
 					"workdir": "holohub_bin",
@@ -81,12 +82,12 @@
 						"-v ${HOME}/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw",
 						"-v ${HOME}/docker/isaac-sim/data:/root/.local/share/ov/data:rw",
 						"-v ${HOME}/docker/isaac-sim/documents:/root/Documents:rw"
-					],
-					"requirements": ["gpu", "isaac_sim"]
+					]
 				}
 			},
 			"performance": {
 				"description": "High-performance simulation optimized for performance testing, custom scenarios, and research workflows",
+				"requirements": ["gpu", "isaac_sim"],
 				"run": {
 					"command": "python3 <holohub_app_source>/app.py",
 					"workdir": "holohub_bin",
@@ -109,8 +110,7 @@
 						"-v ${HOME}/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw",
 						"-v ${HOME}/docker/isaac-sim/data:/root/.local/share/ov/data:rw",
 						"-v ${HOME}/docker/isaac-sim/documents:/root/Documents:rw"
-					],
-					"requirements": ["gpu", "isaac_sim"]
+					]
 				}
 			}
 		}

@@ -79,6 +79,24 @@
             },
             "required": ["run"]
           }
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "properties": {
+                  "run": true
+                },
+                "required": ["run"]
+              },
+              {
+                "properties": {
+                  "modes": true
+                },
+                "required": ["modes"]
+              }
+            ]
+          }
         }
       ]
     },

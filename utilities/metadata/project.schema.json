@@ -276,14 +276,7 @@
             "type": "string",
             "description": "Docker arguments"
           },
-          "description": "Array of Docker run arguments"
-        },
-        "requirements": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "List of dependency IDs required during run phase"
+                    "description": "Array of Docker run arguments"
         }
       },
       "description": "Run command configuration"
@@ -310,13 +303,6 @@
             "type": "string"
           },
           "description": "Additional configure arguments to pass to the local build step"
-        },
-        "requirements": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "List of dependency IDs required during build phase"
         }
       }
     },
@@ -325,6 +311,13 @@
       "properties": {
         "description": {
           "type": "string"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of dependency IDs required for this mode"
         },
         "build": {
           "$ref": "#/$defs/build_configuration"
