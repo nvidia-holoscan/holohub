@@ -127,6 +127,15 @@ $ ./holohub run-container --img holohub:local-sdk-latest --local-sdk-root <path_
 where `<path_to_holoscan_sdk>` is the path to the Holoscan SDK root directory containing the build directory.
 Please refer to the [Holoscan SDK Developer Guide](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/DEVELOP.md) for more details on how to build the Holoscan SDK from source.
 
+In the container, to verify the build directory is mounted correctly, run the following command:
+```bash
+$ python -c "import holoscan; print(holoscan.__file__)"
+```
+The output should be something like:
+```bash
+/workspace/holoscan-sdk/build-x86_64/python/lib/holoscan/__init__.py
+```
+
 ### Launch a Named HoloHub Container
 
 To launch custom HoloHub container with fully qualified name, e.g. "holohub:ngc-sdk-sample-app"

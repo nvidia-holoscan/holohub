@@ -315,10 +315,9 @@ def get_host_arch() -> str:
     machine = platform.machine()
     if machine in ["x86_64", "amd64"]:
         return "x86_64"
-    elif machine in ["aarch64", "arm64"]:
+    if machine in ["aarch64", "arm64"]:
         return "aarch64"
-    else:
-        return machine
+    return machine
 
 
 def get_arch_gpu_str() -> str:
@@ -327,18 +326,20 @@ def get_arch_gpu_str() -> str:
     if arch == "aarch64":
         gpu = get_host_gpu()
         return f"{arch}-{gpu}"
-    else:
-        return arch
+    return arch
 
 
-def find_build_dir(local_sdk_root: Optional[Path] = None) -> str:
+def find_build_dir(local_sdk_root: Optional[Union[str, Path]] = None) -> str:
     """
     find a suitable build directory in the SDK root
     https://github.com/nvidia-holoscan/holoscan-sdk/blob/9c5b3c3d4831f2e65ebda6b79ae9b1c5517c6a7c/run#L226-L228
     """
     search_paths = []
-    if local_sdk_root and local_sdk_root.exists():
-        search_paths.append(local_sdk_root)
+    if local_sdk_root:
+        if isinstance(local_sdk_root, str):
+            local_sdk_root = Path(local_sdk_root)
+        if local_sdk_root.exists():
+            search_paths.append(local_sdk_root)
     if os.environ.get("HOLOSCAN_SDK_ROOT"):
         env_path = Path(os.environ["HOLOSCAN_SDK_ROOT"])
         if env_path.exists():
