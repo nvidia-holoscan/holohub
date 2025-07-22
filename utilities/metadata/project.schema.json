@@ -158,28 +158,6 @@
           "items": {
             "$ref": "#/$defs/hardware_descriptor"
           }
-        },
-        "external": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  }
-                },
-                "required": ["name", "description"]
-              }
-            ]
-          }
         }
       }
     },
