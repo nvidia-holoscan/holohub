@@ -61,7 +61,9 @@
           "required": ["run"],
           "not": {
             "properties": {
-              "modes": true
+              "modes": {
+                "type": "object"
+              }
             },
             "required": ["modes"]
           }
@@ -75,7 +77,9 @@
           "required": ["modes"],
           "not": {
             "properties": {
-              "run": true
+              "run": {
+                "type": "object"
+              }
             },
             "required": ["run"]
           }
@@ -85,13 +89,17 @@
             "anyOf": [
               {
                 "properties": {
-                  "run": true
+                  "run": {
+                    "type": "object"
+                  }
                 },
                 "required": ["run"]
               },
               {
                 "properties": {
-                  "modes": true
+                  "modes": {
+                    "type": "object"
+                  }
                 },
                 "required": ["modes"]
               }

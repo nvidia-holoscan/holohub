@@ -263,12 +263,21 @@
           "description": "Working directory for command execution"
         },
         "docker_args": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "description": "Docker arguments"
-          },
-          "description": "Array of Docker run arguments"
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Docker run arguments as a single string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "Docker arguments"
+              },
+              "description": "Array of Docker run arguments"
+            }
+          ],
+          "description": "Docker run arguments - can be a single string or array of strings"
         }
       },
       "description": "Run command configuration"
@@ -284,10 +293,21 @@
           }
         },
         "docker_args": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Docker run arguments as a single string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "Docker arguments"
+              },
+              "description": "Array of Docker run arguments"
+            }
+          ],
+          "description": "Docker run arguments - can be a single string or array of strings"
         },
         "configure_args": {
           "type": "array",
