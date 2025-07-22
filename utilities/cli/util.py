@@ -310,6 +310,52 @@ def get_host_gpu() -> str:
     return "dgpu"
 
 
+def get_host_arch() -> str:
+    """Get host architecture"""
+    machine = platform.machine()
+    if machine in ["x86_64", "amd64"]:
+        return "x86_64"
+    elif machine in ["aarch64", "arm64"]:
+        return "aarch64"
+    else:
+        return machine
+
+
+def get_arch_gpu_str() -> str:
+    """Get architecture+GPU string like bash get_arch+gpu_str()"""
+    arch = get_host_arch()
+    if arch == "aarch64":
+        gpu = get_host_gpu()
+        return f"{arch}-{gpu}"
+    else:
+        return arch
+
+
+def find_build_dir(local_sdk_root: Optional[Path] = None) -> str:
+    """
+    Find the build directory name by searching existing directories on the host.
+    This runs before Docker starts, so we search the actual host filesystem.
+    The local_sdk_root will be mounted as /workspace/holoscan-sdk in the container.
+    """
+    search_paths = []
+    if local_sdk_root and local_sdk_root.exists():
+        search_paths.append(local_sdk_root)
+    if os.environ.get("HOLOSCAN_SDK_ROOT"):
+        env_path = Path(os.environ["HOLOSCAN_SDK_ROOT"])
+        if env_path.exists():
+            search_paths.append(env_path)
+    for sdk_path in search_paths:
+        expected_build = f"build-{get_arch_gpu_str()}"
+        if (sdk_path / expected_build).exists():
+            return expected_build
+        build_dirs = sorted([d.name for d in sdk_path.glob("build-*") if d.is_dir()])
+        if build_dirs:
+            return build_dirs[0]  # Use first one found
+        if (sdk_path / "build").exists():
+            return "build"
+    return f"build-{get_arch_gpu_str()}"
+
+
 def get_compute_capacity() -> str:
     """Get GPU compute capacity"""
     if not shutil.which("nvidia-smi"):
