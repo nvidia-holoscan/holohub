@@ -353,7 +353,8 @@ def find_build_dir(local_sdk_root: Optional[Union[str, Path]] = None) -> str:
             return build_dirs[0]  # Use first one found
         if (sdk_path / "build").exists():
             return "build"
-    raise RuntimeError(f"No valid build directory found in SDK root. Fallback path 'build-{get_arch_gpu_str()}' does not exist.")
+    info(f"Build directory not found in SDK root. 'build-{get_arch_gpu_str()}' doesn't exist.")
+    return f"build-{get_arch_gpu_str()}"
 
 
 def get_compute_capacity() -> str:
