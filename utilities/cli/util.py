@@ -333,9 +333,8 @@ def get_arch_gpu_str() -> str:
 
 def find_build_dir(local_sdk_root: Optional[Path] = None) -> str:
     """
-    Find the build directory name by searching existing directories on the host.
-    This runs before Docker starts, so we search the actual host filesystem.
-    The local_sdk_root will be mounted as /workspace/holoscan-sdk in the container.
+    find a suitable build directory in the SDK root
+    https://github.com/nvidia-holoscan/holoscan-sdk/blob/9c5b3c3d4831f2e65ebda6b79ae9b1c5517c6a7c/run#L226-L228
     """
     search_paths = []
     if local_sdk_root and local_sdk_root.exists():

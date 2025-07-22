@@ -124,6 +124,9 @@ To use a HoloHub container image built with a local Holoscan SDK container:
 $ ./holohub run-container --img holohub:local-sdk-latest --local-sdk-root <path_to_holoscan_sdk>
 ```
 
+where `<path_to_holoscan_sdk>` is the path to the Holoscan SDK root directory containing the build directory.
+Please refer to the [Holoscan SDK Developer Guide](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/DEVELOP.md) for more details on how to build the Holoscan SDK from source.
+
 ### Launch a Named HoloHub Container
 
 To launch custom HoloHub container with fully qualified name, e.g. "holohub:ngc-sdk-sample-app"
