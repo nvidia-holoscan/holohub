@@ -256,19 +256,11 @@
       "properties": {
         "command": {
           "type": "string",
-          "description": "Command to execute"
+          "description": "Complete command to execute including all arguments"
         },
         "workdir": {
           "type": "string",
           "description": "Working directory for command execution"
-        },
-        "run_args": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "description": "Runtime arguments"
-          },
-          "description": "Array of runtime arguments to pass to the command"
         },
         "docker_args": {
           "type": "array",
@@ -276,7 +268,7 @@
             "type": "string",
             "description": "Docker arguments"
           },
-                    "description": "Array of Docker run arguments"
+          "description": "Array of Docker run arguments"
         }
       },
       "description": "Run command configuration"

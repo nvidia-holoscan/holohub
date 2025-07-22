@@ -67,9 +67,8 @@
 				"description": "Video replay mode using recorded endoscopy video for demos, testing, and development without hardware",
 				"requirements": ["model", "video"],
 				"run": {
-					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py",
-					"workdir": "holohub_bin",
-					"run_args": ["--config endoscopy_tool_tracking.yaml", "--data <holohub_data_dir>/endoscopy"]
+					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --config endoscopy_tool_tracking.yaml --data <holohub_data_dir>/endoscopy",
+					"workdir": "holohub_bin"
 				}
 			},
 			"aja": {
@@ -79,9 +78,8 @@
 					"depends": ["aja_source"]
 				},
 				"run": {
-					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py",
-					"workdir": "holohub_bin",
-					"run_args": ["--config endoscopy_tool_tracking.yaml", "--data <holohub_data_dir>/endoscopy", "--source aja"]
+					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --config endoscopy_tool_tracking.yaml --data <holohub_data_dir>/endoscopy --source aja",
+					"workdir": "holohub_bin"
 				}
 			},
 			"aja_overlay": {
@@ -91,9 +89,8 @@
 					"depends": ["aja_source"]
 				},
 				"run": {
-					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py",
-					"workdir": "holohub_bin",
-					"run_args": ["--config endoscopy_tool_tracking_aja_overlay.yaml", "--data <holohub_data_dir>/endoscopy"]
+					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --config endoscopy_tool_tracking_aja_overlay.yaml --data <holohub_data_dir>/endoscopy",
+					"workdir": "holohub_bin"
 				}
 			},
 			"vtk": {
@@ -104,9 +101,8 @@
 					"dockerfile": "operators/vtk_renderer/vtk.Dockerfile"
 				},
 				"run": {
-					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py",
-					"workdir": "holohub_bin",
-					"run_args": ["--config endoscopy_tool_tracking.yaml", "--data <holohub_data_dir>/endoscopy", "--visualizer vtk"]
+					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --config endoscopy_tool_tracking.yaml --data <holohub_data_dir>/endoscopy --visualizer vtk",
+					"workdir": "holohub_bin"
 				}
 			}
 		}

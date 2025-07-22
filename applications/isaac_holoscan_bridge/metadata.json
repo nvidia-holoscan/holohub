@@ -67,9 +67,8 @@
 				"description": "Headless Isaac Sim for automated workflows and CI/CD including automated testing, CI/CD pipelines, and batch processing",
 				"requirements": ["gpu", "isaac_sim"],
 				"run": {
-					"command": "python3 <holohub_app_source>/app.py",
+					"command": "python3 <holohub_app_source>/app.py --headless",
 					"workdir": "holohub_bin",
-					"run_args": ["--headless"],
 					"docker_args": [
 						"-u root",
 						"-e ACCEPT_EULA=Y",
@@ -89,15 +88,8 @@
 				"description": "High-performance simulation optimized for performance testing, custom scenarios, and research workflows",
 				"requirements": ["gpu", "isaac_sim"],
 				"run": {
-					"command": "python3 <holohub_app_source>/app.py",
+					"command": "python3 <holohub_app_source>/app.py --image-width 1920 --image-height 1080 --fps null --frame-count -1 --headless true",
 					"workdir": "holohub_bin",
-					"run_args": [
-						"--image-width 1920",
-						"--image-height 1080",
-						"--fps null",
-						"--frame-count -1",
-						"--headless true"
-					],
 					"docker_args": [
 						"-u root",
 						"-e ACCEPT_EULA=Y",

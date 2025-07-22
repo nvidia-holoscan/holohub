@@ -91,7 +91,7 @@ class HoloHubCLI:
             action="append",
             help='Additional context variables for cookiecutter in format key=value. \
                 Example: --context description=\'My project desc\' \
-                    --context tags=[\\"tag1\\", \\"tag2\\"]',
+                    --context tags=["tag1", "tag2"]',
         )
         create.add_argument(
             "-i",
@@ -505,20 +505,11 @@ class HoloHubCLI:
         return enhanced_args
 
     def apply_mode_to_run_config(self, mode_config: dict, run_args: dict) -> dict:
-        """Apply mode-specific run configuration"""
-        if not mode_config or "run" not in mode_config:
+        if "run" not in mode_config:
             return run_args
 
         run_config = mode_config["run"]
         enhanced_args = run_args.copy()
-
-        # Handle command line arguments from mode
-        if "run_args" in run_config:
-            mode_args_str = " ".join(run_config["run_args"])
-            cmd_run_args = enhanced_args.get("run_args", "")
-            enhanced_args["run_args"] = (
-                f"{cmd_run_args} {mode_args_str}".strip() if cmd_run_args else mode_args_str
-            )
 
         # Handle docker arguments from mode
         if "docker_args" in run_config:
