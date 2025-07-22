@@ -1,0 +1,30 @@
+{
+	"tutorial": {
+		"name": "Setting up CloudXR Runtime for XR Applications",
+		"description": "In this tutorial, we will walk through the process of setting up CloudXR Runtime for XR Applications.",
+		"authors": [
+			{
+				"name": "Mimi Liao",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "N/A",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.3",
+			"tested_versions": [
+				"3.3",
+				"3.4"
+			]
+		},
+		"platforms": [
+			"x86_64"
+		],
+		"tags": ["XR", "CloudXR", "Apple Vision Pro"],
+		"ranking": 1,
+		"dependencies": {}
+	}
+}
