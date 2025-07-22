@@ -5,6 +5,9 @@ We provide setup steps to run and view the scene with the default [Monado](https
 ### 0. Training a Gaussian Splatting Model
 The below instructions are based on the [gsplat colmap example](https://docs.gsplat.studio/main/examples/colmap.html).
 
+![Demo](doc/gsplat-demo.gif)
+*Demo running on Apple Vision Pro*
+
 #### 0.1. Clone the gsplat repo
 ```bash
 git clone https://github.com/nerfstudio-project/gsplat.git
@@ -38,12 +41,14 @@ __note__: Training time is observed to take about 30 minutes on Intel i9 CPU + N
 
 ### 1. Run the application
 
+> **💡 Stream to XR Devices**: To stream this XR application to devices like Apple Vision Pro, refer to the [CloudXR Runtime tutorial](../../tutorials/cloudxr_runtime_for_xr_applications/) for setup instructions.
+
 #### Terminal 1: Launch Container and Start Monado Service
 ```bash
 # If you're already in the container, skip this step
 ./holohub run-container xr_gsplat
 
-# Inside the container, start the Monado service
+# Inside the container, start the Monado service (skip this step if you're using a real XR device)
 monado-service
 ```
 Keep this terminal open and running.

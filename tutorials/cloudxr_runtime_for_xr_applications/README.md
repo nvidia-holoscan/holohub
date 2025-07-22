@@ -79,7 +79,12 @@ The container should start and wait for client connections.
 This tutorial can work across XR applications in holohub, including [volume_rendering_xr](../../applications/volume_rendering_xr/), [xr_gsplat](../../applications/xr_gsplat/), and [xr_holoviz](../../applications/xr_holoviz/).
 
 ### Step 1: Build XR Application
-Build your chosen Holoscan XR application following the specific instructions in its directory.
+By default, you can build your chosen Holoscan XR application using the command:
+```shell
+# from the root directory of holohub
+./holohub run-container <app-name>
+```
+Please refer to the specific application's README (for example, [xr_gsplat](../../applications/xr_gsplat/README.md)) for detailed build and run instructions.
 
 ### Step 2: Configure Environment Variables
 Inside your application container or environment, set up the CloudXR runtime variables:
@@ -92,7 +97,10 @@ export XR_RUNTIME_JSON=$(pwd)/openxr/share/openxr/1/openxr_cloudxr.json
 These environment variables configure your application to use the CloudXR runtime instead of local OpenXR runtimes.
 
 ### Step 3: Launch Application
-Run your XR application following its standard run instructions. The application will now stream through CloudXR instead of rendering in local simulator.
+Inside your application container, launch your XR application using:
+```shell
+./holohub run <app-name>
+```
 
 ## Set up Apple Vision Pro
 
