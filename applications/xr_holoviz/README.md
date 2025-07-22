@@ -8,19 +8,17 @@ This application demonstrates the integration of Holoscan-XR with Holoviz for ex
 
 ## Quick Start Guide
 
-### 1. Build the Docker Image
+### 1. Run the application
 
-Run the following command in the top-level HoloHub directory:
-```bash
-./holohub build-container xr_holoviz
-```
-
-### 2. Run the application
+> **💡 Stream to XR Devices**: To stream this XR application to devices like Apple Vision Pro, refer to the [CloudXR Runtime tutorial](../../tutorials/cloudxr_runtime_for_xr_applications/) for setup instructions.
 
 #### Terminal 1: Launch Container and Start Monado Service
 ```bash
-# Launch the container and start the Monado service
-./holohub run-container --img holohub:xr_holoviz -- monado-service
+# If you're already in the container, skip this step
+./holohub run-container xr_holoviz
+
+# Inside the container, start the Monado service (skip this step if you're using a real XR device)
+monado-service
 ```
 Keep this terminal open and running.
 
