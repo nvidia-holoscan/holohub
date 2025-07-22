@@ -225,12 +225,7 @@ class HoloHubCLI:
             help="Additional arguments to pass to the application executable, "
             "example: --run-args=--flag or --run-args '-c config/file'",
         )
-        run.add_argument(
-            "--param",
-            action="append",
-            help="Mode-specific parameters in key=value format, "
-            "example: --param video_device=/dev/video1 --param fps=30.0",
-        )
+
         run.add_argument(
             "--build-with",
             dest="with_operators",
@@ -509,29 +504,17 @@ class HoloHubCLI:
 
         return enhanced_args
 
-    def apply_mode_to_run_config(
-        self, mode_config: dict, run_args: dict, user_params: List[str] = None
-    ) -> dict:
+    def apply_mode_to_run_config(self, mode_config: dict, run_args: dict) -> dict:
         """Apply mode-specific run configuration"""
         if not mode_config or "run" not in mode_config:
             return run_args
 
         run_config = mode_config["run"]
         enhanced_args = run_args.copy()
-        user_params = user_params or []
 
         # Handle command line arguments from mode
         if "run_args" in run_config:
-            param_definitions = mode_config.get("parameters", {})
-            mode_cmd_args = []
-
-            for arg_template in run_config["run_args"]:
-                resolved_arg = holohub_cli_util.substitute_mode_parameters(
-                    arg_template, user_params, param_definitions
-                )
-                mode_cmd_args.append(resolved_arg)
-
-            mode_args_str = " ".join(mode_cmd_args)
+            mode_args_str = " ".join(run_config["run_args"])
             cmd_run_args = enhanced_args.get("run_args", "")
             enhanced_args["run_args"] = (
                 f"{cmd_run_args} {mode_args_str}".strip() if cmd_run_args else mode_args_str
@@ -539,16 +522,7 @@ class HoloHubCLI:
 
         # Handle docker arguments from mode
         if "docker_args" in run_config:
-            param_definitions = mode_config.get("parameters", {})
-            mode_docker_args = []
-
-            for arg_template in run_config["docker_args"]:
-                resolved_arg = holohub_cli_util.substitute_mode_parameters(
-                    arg_template, user_params, param_definitions
-                )
-                mode_docker_args.append(resolved_arg)
-
-            mode_docker_str = " ".join(mode_docker_args)
+            mode_docker_str = " ".join(run_config["docker_args"])
             cmd_docker_opts = enhanced_args.get("docker_opts", "")
             enhanced_args["docker_opts"] = (
                 f"{cmd_docker_opts} {mode_docker_str}".strip()
@@ -916,14 +890,13 @@ class HoloHubCLI:
 
         if mode_config:
             print(f"Running {args.project} in '{mode_name}' mode")
-            user_params = getattr(args, "param", [])
             # Apply mode-specific build configuration
             build_args = self.apply_mode_to_build_config(mode_config, build_args)
             args.with_operators = build_args.get("with_operators")
             args.configure_args = build_args.get("configure_args")
             # Apply mode-specific run configuration only in local mode
             if is_local_mode:
-                run_args = self.apply_mode_to_run_config(mode_config, run_args, user_params)
+                run_args = self.apply_mode_to_run_config(mode_config, run_args)
                 args.run_args = run_args.get("run_args")
                 if hasattr(args, "docker_opts"):
                     args.docker_opts = run_args.get("docker_opts", "")
@@ -1118,10 +1091,6 @@ class HoloHubCLI:
             if getattr(args, "configure_args", None):
                 for configure_arg in args.configure_args:
                     run_cmd += f' --configure-args "{configure_arg}"'
-            # Add mode-specific parameters
-            if hasattr(args, "param") and args.param:
-                for param in args.param:
-                    run_cmd += f" --param {param}"
 
             img = getattr(args, "img", None) or container.image_name
             docker_opts = getattr(args, "docker_opts", "")
@@ -1187,19 +1156,6 @@ class HoloHubCLI:
             description = mode_config.get("description", "No description")
 
             print(f"  {Color.green(mode_name, bold=True)} - {description}")
-
-            # Show parameters if any
-            parameters = mode_config.get("parameters", {})
-            if parameters:
-                print("    Parameters:")
-                for param_name, param_def in parameters.items():
-                    param_desc = param_def.get("description", "No description")
-                    param_default = param_def.get("default")
-
-                    param_info = f"      {param_name}: {param_desc}"
-                    if param_default is not None:
-                        param_info += f" (default: {param_default})"
-                    print(param_info)
 
             # Show requirements if any
             requirements = mode_config.get("requirements", {})

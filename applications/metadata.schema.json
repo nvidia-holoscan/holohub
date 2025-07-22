@@ -38,12 +38,6 @@
         },
         "dockerfile": {
           "type": "string"
-        },
-        "run": {
-          "$ref": "holohub/project/v1#/$defs/run_command"
-        },
-        "modes": {
-          "$ref": "holohub/project/v1#/$defs/modes"
         }
       },
       "required": [
@@ -56,6 +50,36 @@
         "holoscan_sdk",
         "ranking",
         "dependencies"
+      ],
+      "oneOf": [
+        {
+          "properties": {
+            "run": {
+              "$ref": "holohub/project/v1#/$defs/run_command"
+            }
+          },
+          "required": ["run"],
+          "not": {
+            "properties": {
+              "modes": true
+            },
+            "required": ["modes"]
+          }
+        },
+        {
+          "properties": {
+            "modes": {
+              "$ref": "holohub/project/v1#/$defs/modes"
+            }
+          },
+          "required": ["modes"],
+          "not": {
+            "properties": {
+              "run": true
+            },
+            "required": ["run"]
+          }
+        }
       ]
     },
     "$ref": "holohub/operator/v1#/properties/operator",

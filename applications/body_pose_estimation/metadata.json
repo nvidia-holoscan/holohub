@@ -87,17 +87,10 @@
 			},
 			"custom_camera": {
 				"description": "Pose estimation with user-specified camera device for multiple cameras, non-standard devices, and custom hardware",
-				"parameters": {
-					"video_device": {
-						"description": "Path to V4L2 video device (examples: /dev/video1, /dev/video2)",
-						"type": "string",
-						"default": "/dev/video0"
-					}
-				},
 				"run": {
 					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
 					"workdir": "holohub_bin",
-					"run_args": ["--video_device ${PARAM:video_device}"],
+					"run_args": ["--video_device /dev/video0"],
 					"requirements": ["camera", "model"]
 				}
 			}
