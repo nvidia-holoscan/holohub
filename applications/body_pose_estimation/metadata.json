@@ -24,34 +24,30 @@
 		],
 		"tags": ["Computer Vision and Perception", "Distributed", "Tensor Optimization", "Human Body Pose Estimation", "DDS", "RTI Connext", "Video", "Visualization"],
 		"ranking": 2,
-		"dependencies": [
-			{
-				"id": "model",
+		"dependencies": {
+			"model": {
 				"type": "model",
 				"name": "Pose Estimation Model",
 				"description": "YOLOv8 pose estimation model for human body pose detection",
 				"url": "https://docs.ultralytics.com/tasks/pose/"
 			},
-			{
-				"id": "video",
+			"video": {
 				"type": "data",
 				"name": "Sample Ballet Video",
 				"description": "Demo video showing ballet movements for pose estimation testing",
 				"url": "https://www.pexels.com/video/a-woman-showing-her-ballet-skill-in-turning-one-footed-5385885/"
 			},
-			{
-				"id": "camera",
+			"camera": {
 				"type": "hardware",
 				"name": "camera",
 				"description": "This application requires a Video4Linux (V4L2) compatible device as input."
 			},
-			{
-				"id": "dds",
+			"dds": {
 				"type": "software",
 				"name": "RTI Connext DDS",
 				"description": "RTI Connext DDS middleware for distributed video streaming"
 			}
-		],
+		},
 		"modes": {
 			"default": {
 				"description": "Real-time pose estimation using V4L2 camera (/dev/video0) for live demos, real-time processing, and webcam testing",

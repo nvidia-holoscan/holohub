@@ -21,38 +21,33 @@
 			"platforms": ["x86_64", "aarch64"],
 			"tags": ["Natural Language and Conversational AI", "RAG", "Vector Database", "LLM"],
 			"ranking": 4,
-			"dependencies": [
-				{
-					"id": "vector_database",
+			"dependencies": {
+				"vector_database": {
 					"type": "data",
 					"name": "Vector Database",
 					"description": "ChromaDB vector database for RAG document storage and retrieval"
 				},
-				{
-					"id": "llm_model",
+				"llm_model": {
 					"type": "model",
 					"name": "Local LLM Model",
 					"description": "Local language model files for offline inference"
 				},
-				{
-					"id": "gpu",
+				"gpu": {
 					"type": "hardware",
 					"name": "gpu",
 					"description": "NVIDIA GPU required for local LLM inference"
 				},
-				{
-					"id": "openai_api",
+				"openai_api": {
 					"type": "software",
 					"name": "OpenAI API or similar LLM service",
 					"description": "External API service for cloud-based LLM inference"
 				},
-				{
-					"id": "NIM",
+				"NIM": {
 					"type": "software",
 					"name": "NVIDIA API",
 					"description": "NVIDIA API for cloud-based LLM inference"
 				}
-			],
+			},
 			"modes": {
 				"default": {
 					"description": "Cloud-based LLM with RAG using external API for production deployment, API-based inference, and scalable usage",

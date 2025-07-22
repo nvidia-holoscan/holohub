@@ -144,6 +144,32 @@
     "dependency": {
       "type": "object",
       "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["data", "model", "software", "hardware"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "required": ["name", "description"]
+    },
+    "legacy_dependency": {
+      "type": "object",
+      "properties": {
         "id": {
           "type": "string"
         },
@@ -175,11 +201,17 @@
         {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/dependency"
+            "$ref": "#/$defs/legacy_dependency"
           }
         },
         {
-          "type": "object"
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z_][a-zA-Z0-9_]*$": {
+              "$ref": "#/$defs/dependency"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },

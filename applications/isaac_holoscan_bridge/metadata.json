@@ -29,20 +29,18 @@
 			"Robotics"
 		],
 		"ranking": 3,
-		"dependencies": [
-			{
-				"id": "gpu",
+		"dependencies": {
+			"gpu": {
 				"type": "hardware",
 				"name": "gpu",
 				"description": "NVIDIA GPU with at least 8GB memory required for Isaac Sim"
 			},
-			{
-				"id": "isaac_sim",
+			"isaac_sim": {
 				"type": "software",
 				"name": "Isaac Sim",
 				"description": "NVIDIA Isaac Sim simulation platform"
 			}
-		],
+		},
 		"modes": {
 			"interactive": {
 				"description": "Full Isaac Sim environment with interactive GUI and visualization for development, interactive debugging, and visual monitoring",
