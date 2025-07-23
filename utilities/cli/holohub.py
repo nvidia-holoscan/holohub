@@ -492,7 +492,7 @@ class HoloHubCLI:
 
         # Add mode-specific docker args for build
         if "docker_args" in build_config:
-            mode_docker_args = self._normalize_docker_args(build_config["docker_args"])
+            mode_docker_args = holohub_cli_util.normalize_args_str(build_config["docker_args"])
             cmd_docker_opts = enhanced_args.get("docker_opts", "")
             enhanced_args["docker_opts"] = f"{cmd_docker_opts} {mode_docker_args}".strip()
 
@@ -504,25 +504,25 @@ class HoloHubCLI:
 
         return enhanced_args
 
-    def _normalize_docker_args(self, docker_args):
-        """Convert docker_args to string format, handling both string and array inputs"""
-        if isinstance(docker_args, str):
-            return docker_args
-        elif isinstance(docker_args, list):
-            return " ".join(docker_args)
-        else:
-            return ""
-
     def apply_mode_to_run_config(self, mode_config: dict, run_args: dict) -> dict:
+        """Apply mode-specific run configuration"""
         if "run" not in mode_config:
             return run_args
 
         run_config = mode_config["run"]
         enhanced_args = run_args.copy()
 
+        # Handle command override from mode
+        if "command" in run_config:
+            enhanced_args["command"] = run_config["command"]
+
+        # Handle workdir override from mode
+        if "workdir" in run_config:
+            enhanced_args["workdir"] = run_config["workdir"]
+
         # Handle docker arguments from mode
         if "docker_args" in run_config:
-            mode_docker_str = self._normalize_docker_args(run_config["docker_args"])
+            mode_docker_str = holohub_cli_util.normalize_args_str(run_config["docker_args"])
             cmd_docker_opts = enhanced_args.get("docker_opts", "")
             enhanced_args["docker_opts"] = (
                 f"{cmd_docker_opts} {mode_docker_str}".strip()
@@ -576,7 +576,7 @@ class HoloHubCLI:
         trailing_args = getattr(args, "_trailing_args", [])
         docker_opts = args.docker_opts
         if trailing_args:  # additional commands requires a bash entrypoint
-            command = " ".join(trailing_args)
+            command = holohub_cli_util.normalize_args_str(trailing_args)
             docker_opts_extra, extra_args = holohub_cli_util.get_entrypoint_command_args(
                 args.img or container.image_name, command, docker_opts, dry_run=args.dryrun
             )
@@ -1154,10 +1154,7 @@ class HoloHubCLI:
 
         for mode_name, mode_config in modes.items():
             description = mode_config.get("description", "No description")
-
             print(f"  {Color.green(mode_name, bold=True)} - {description}")
-
-            # Show requirements if any
             requirements = mode_config.get("requirements", [])
             if requirements:
                 req_list = ", ".join(requirements)

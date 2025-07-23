@@ -799,6 +799,68 @@ exec {holohub_script} "$@"
         self.assertIn("vscode://vscode-remote/dev-container", printed_output)
         mock_mkdir.assert_not_called()
 
+    def test_modes_functionality(self):
+        """Test mode resolution and configuration application"""
+        project_data = {
+            "metadata": {
+                "modes": {
+                    "default": {
+                        "description": "Default mode",
+                        "requirements": ["camera"],
+                        "build": {"depends": ["op1", "op2"]},
+                        "run": {"command": "python3 app.py"},
+                    }
+                }
+            }
+        }
+
+        # Test mode resolution
+        mode_name, mode_config = self.cli.resolve_mode(project_data)
+        self.assertEqual(mode_name, "default")
+        self.assertEqual(mode_config["description"], "Default mode")
+
+        # Test build config application
+        build_args = {"with_operators": "existing"}
+        enhanced = self.cli.apply_mode_to_build_config(mode_config, build_args)
+        self.assertEqual(enhanced["with_operators"], "existing;op1;op2")
+
+        # Test run config application
+        run_args = {"docker_opts": "--net host"}
+        enhanced = self.cli.apply_mode_to_run_config(mode_config, run_args)
+        self.assertEqual(enhanced["command"], "python3 app.py")
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("builtins.print")
+    def test_modes_command(self, mock_print, mock_find_project):
+        """Test modes command execution"""
+        mock_find_project.return_value = {
+            "metadata": {
+                "modes": {
+                    "default": {"description": "Default mode", "requirements": ["camera"]},
+                    "gpu": {"description": "GPU mode"},
+                }
+            }
+        }
+
+        args = self.cli.parser.parse_args("modes test_app".split())
+        args.func(args)
+
+        print_calls = [call[0][0] for call in mock_print.call_args_list if call[0]]
+        output = " ".join(print_calls)
+        self.assertIn("Available modes", output)
+        self.assertIn("default", output)
+        self.assertIn("gpu", output)
+
+    def test_mode_argument_parsing(self):
+        """Test mode argument parsing for build/run commands"""
+        # Test with mode
+        args = self.cli.parser.parse_args("build test_app custom --local".split())
+        self.assertEqual(args.mode, "custom")
+
+        # Test without mode
+        args = self.cli.parser.parse_args("build test_app --local".split())
+        self.assertIsNone(args.mode)
+
 
 class TestRunCommand(unittest.TestCase):
     """Test the run_command function with explicit shell parameter"""
