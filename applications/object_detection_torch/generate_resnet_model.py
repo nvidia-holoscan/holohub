@@ -42,16 +42,14 @@ class RCNNWrapper(torch.nn.Module):
     def __init__(self, det_model: torch.nn.Module):
         super().__init__()
         self.model = det_model
-        # Get device from the model's parameters
-        self.device = next(det_model.parameters()).device
 
     def forward(self, x: List[torch.Tensor]):
         # Move input to model device and permute to expected format
         img = x[0]
         if img.shape[0] == 3:
-            y = [x[0].to(self.device)]
+            y = x
         else:
-            y = [x[0].permute(2, 0, 1).to(self.device)]
+            y = [x[0].permute(2, 0, 1)]
         result = self.model(y)
         return result
 
