@@ -53,6 +53,15 @@ The application supports the following hand or controller interactions by defaul
 ### Testing Utility
 We provide a simple test application in `utils/xr_hello_holoscan` for validating basic XR functionality. This utility uses the same XR operators and configuration as the main application but with minimal rendering setup. See [utils/xr_hello_holoscan/README.md](utils/xr_hello_holoscan/README.md) for details on running the test utility.
 
+### Running on Apple Vision Pro
+
+By default, this application is configured to use Magic Leap devices. To run the application with Apple Vision Pro, refer to the [CloudXR Runtime tutorial](../../tutorials/cloudxr_runtime_for_xr_applications/) for setup instructions.
+
+When running the application, remember to follow below instructions to skip Magic Leap setup.
+```shell
+./holohub run volume_rendering_xr --run-args="--no-magic-leap"
+```
+
 ## Advanced Setup
 
 You can use the `--dryrun` option to see the individual commands run by the quick start option above:
