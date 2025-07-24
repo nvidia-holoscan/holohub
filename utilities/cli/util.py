@@ -1019,9 +1019,10 @@ def collect_env_info() -> None:
 def normalize_args_str(args):
     """Convert arguments to string format, handling both string and array inputs"""
     if isinstance(args, str):
-        return args
+        return os.path.expandvars(args)
     elif isinstance(args, list):
-        return " ".join(args)
+        expanded_args = [os.path.expandvars(arg) for arg in args]
+        return " ".join(expanded_args)
     return ""
 
 
