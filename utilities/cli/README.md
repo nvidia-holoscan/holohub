@@ -136,13 +136,13 @@ The new CLI introduces development lifecycle features:
 ```
 
 ### **Application Modes**
-Many HoloHub applications now support multiple **modes** - pre-configured setups for different use cases, hardware configurations, or deployment scenarios. This eliminates the need to remember complex command-line arguments for different use cases.
+HoloHub applications with a 'modes' field in their `metadata.json` now support multiple **modes** - pre-configured setups for different use cases, hardware configurations, or deployment scenarios. This eliminates the need to remember complex command-line arguments for different use cases.
 
 #### **Understanding Modes**
 Modes potentially provide typical configurations for:
 - **Different hardware**
-- **Deployment scenarios** (e.g. Development vs. production vs. cloud inference)
-- **Data sources** (e.g. Live video vs. recorded files vs. distributed streaming)
+- **Deployment scenarios** (e.g. development vs. production vs. cloud inference)
+- **Data sources** (e.g. live video vs. recorded files vs. distributed streaming)
 
 #### **Using Modes**
 
