@@ -819,15 +819,28 @@ exec {holohub_script} "$@"
         self.assertEqual(mode_name, "default")
         self.assertEqual(mode_config["description"], "Default mode")
 
-        # Test build config application
-        build_args = {"with_operators": "existing"}
-        enhanced = self.cli.apply_mode_to_build_config(mode_config, build_args)
-        self.assertEqual(enhanced["with_operators"], "existing;op1;op2")
+        # Test build config application with mock args
+        from argparse import Namespace
 
-        # Test run config application
-        run_args = {"docker_opts": "--net host"}
-        enhanced = self.cli.apply_mode_to_run_config(mode_config, run_args)
-        self.assertEqual(enhanced["command"], "python3 app.py")
+        mock_args = Namespace(with_operators="existing", docker_opts="", configure_args=None)
+        enhanced = self.cli.get_effective_build_config(mock_args, mode_config)
+        # Mode config should replace CLI args entirely
+        self.assertEqual(enhanced["with_operators"], "op1;op2")
+
+        # Test run config application with mock args
+        mock_args = Namespace(run_args="", docker_opts="--net host")
+        enhanced = self.cli.get_effective_run_config(mock_args, mode_config)
+        self.assertEqual(enhanced["run_args"], "")  # CLI run_args
+        # Note: run config doesn't have docker_args, so CLI docker_opts should be preserved
+        self.assertEqual(enhanced["docker_opts"], "--net host")
+
+        # Test run config with docker_args replacement
+        mode_config_with_docker = {
+            "run": {"command": "python3 app.py", "docker_args": ["--privileged", "--net=host"]}
+        }
+        enhanced = self.cli.get_effective_run_config(mock_args, mode_config_with_docker)
+        # Mode docker_args should replace CLI docker_opts
+        self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")
 
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("builtins.print")
