@@ -40,7 +40,7 @@
 			"camera": {
 				"type": "hardware",
 				"name": "camera",
-				"description": "This application requires a Video4Linux (V4L2) compatible device as input."
+				"description": "This application requires a Video4Linux (V4L2) compatible device as input. (Optionally verify with `v4l2-ctl --list-devices`)"
 			},
 			"dds": {
 				"type": "software",
@@ -66,27 +66,21 @@
 				}
 			},
 			"dds": {
-				"description": "Distributed pose estimation via DDS video streaming for multi-process applications, distributed systems, and ROS integration",
+				"description": "Distributed pose estimation via DDS video streaming",
 				"requirements": ["dds", "model"],
 				"build": {
-					"depends": ["dds_video_subscriber", "dds_video_publisher"],
-					"docker_args": ["--ssh default"]
+					"depends": ["dds_video_subscriber", "dds_video_publisher"]
 				},
 				"run": {
 					"command": "python3 <holohub_app_source>/body_pose_estimation.py --source dds",
-					"workdir": "holohub_bin",
-					"docker_args": [
-						"-v ${NDDSHOME}:/opt/dds",
-						"-e NDDSHOME=/opt/dds",
-						"-e CONNEXTDDS_ARCH=${CONNEXTDDS_ARCH}"
-					]
+					"workdir": "holohub_bin"
 				}
 			},
 			"custom_camera": {
 				"description": "Pose estimation with user-specified camera device for multiple cameras, non-standard devices, and custom hardware",
 				"requirements": ["camera", "model"],
 				"run": {
-					"command": "python3 <holohub_app_source>/body_pose_estimation.py --video_device /dev/video0",
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py --video_device /dev/video1",
 					"workdir": "holohub_bin"
 				}
 			}
