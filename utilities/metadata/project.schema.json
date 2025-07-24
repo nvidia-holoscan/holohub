@@ -187,7 +187,7 @@
               "description": "Array of Docker run arguments"
             }
           ],
-          "description": "Docker run arguments - can be a single string or array of strings"
+          "description": "Docker run arguments - can be a single string or array of strings, equivalent to CLI `--docker-opts`"
         }
       },
       "description": "Run command configuration"
@@ -206,7 +206,7 @@
           "oneOf": [
             {
               "type": "string",
-              "description": "Docker run arguments as a single string"
+              "description": "Docker build arguments as a single string"
             },
             {
               "type": "array",
@@ -214,17 +214,17 @@
                 "type": "string",
                 "description": "Docker arguments"
               },
-              "description": "Array of Docker run arguments"
+              "description": "Array of Docker build arguments"
             }
           ],
-          "description": "Docker run arguments - can be a single string or array of strings"
+          "description": "Docker build arguments - can be a single string or array of strings, equivalent to CLI `--build-args`"
         },
         "configure_args": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Additional configure arguments to pass to the local build step"
+          "description": "Additional configure arguments (such as cmake flags) to pass to the local build step"
         }
       }
     },

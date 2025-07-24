@@ -489,8 +489,8 @@ class HoloHubCLI:
             build_config = mode_config["build"]
             if "depends" in build_config and getattr(args, "with_operators", None):
                 conflicting_params.append("--build-with")
-            if "docker_args" in build_config and getattr(args, "docker_opts", None):
-                conflicting_params.append("--docker-opts")
+            if "docker_args" in build_config and getattr(args, "build_args", None):
+                conflicting_params.append("--build-args")
             if "configure_args" in build_config and getattr(args, "configure_args", None):
                 conflicting_params.append("--configure-args")
         # Check run-related parameters
@@ -498,8 +498,6 @@ class HoloHubCLI:
             run_config = mode_config["run"]
             if "docker_args" in run_config and getattr(args, "docker_opts", None):
                 conflicting_params.append("--docker-opts")
-            if "command" in run_config and getattr(args, "run_args", None):
-                conflicting_params.append("--run-args")
         if conflicting_params:
             params_str = ", ".join(conflicting_params)
             holohub_cli_util.fatal(
@@ -512,21 +510,30 @@ class HoloHubCLI:
         config = {
             "with_operators": getattr(args, "with_operators", None),
             "docker_opts": getattr(args, "docker_opts", ""),
+            "build_args": getattr(args, "build_args", ""),
             "configure_args": getattr(args, "configure_args", None),
         }
+        if not mode_config:
+            return config
 
-        if mode_config and "build" in mode_config:
+        # Apply build configuration
+        if "build" in mode_config:
             build_config = mode_config["build"]
-            # Replace with mode-specific values
             if "depends" in build_config:
                 mode_deps = [dep.strip() for dep in build_config["depends"] if dep.strip()]
                 config["with_operators"] = ";".join(mode_deps) if mode_deps else ""
             if "docker_args" in build_config:
-                config["docker_opts"] = holohub_cli_util.normalize_args_str(
+                config["build_args"] = holohub_cli_util.normalize_args_str(
                     build_config["docker_args"]
                 )
             if "configure_args" in build_config:
                 config["configure_args"] = build_config["configure_args"]
+
+        # Apply run.docker_args for build container (Docker run arguments)
+        if "run" in mode_config and "docker_args" in mode_config["run"]:
+            config["docker_opts"] = holohub_cli_util.normalize_args_str(
+                mode_config["run"]["docker_args"]
+            )
 
         return config
 
@@ -548,7 +555,6 @@ class HoloHubCLI:
                 config["docker_opts"] = holohub_cli_util.normalize_args_str(
                     run_config["docker_args"]
                 )
-
         return config
 
     def _make_project_container(
@@ -828,7 +834,7 @@ class HoloHubCLI:
                     base_img=args.base_img,
                     img=args.img,
                     no_cache=args.no_cache,
-                    build_args=args.build_args,
+                    build_args=build_args.get("build_args"),
                 )
 
             # Build command with all necessary arguments
@@ -1056,7 +1062,7 @@ class HoloHubCLI:
                     base_img=args.base_img,
                     img=args.img,
                     no_cache=args.no_cache,
-                    build_args=args.build_args,
+                    build_args=build_args.get("build_args"),
                 )
             language = holohub_cli_util.normalize_language(
                 container.project_metadata.get("metadata", {}).get("language", None)
@@ -1538,7 +1544,7 @@ class HoloHubCLI:
                     base_img=args.base_img,
                     img=args.img,
                     no_cache=args.no_cache,
-                    build_args=args.build_args,
+                    build_args=build_args.get("build_args"),
                 )
 
             # Install command with all necessary arguments
