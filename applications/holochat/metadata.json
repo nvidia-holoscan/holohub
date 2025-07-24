@@ -25,7 +25,7 @@
 				"vector_database": {
 					"type": "data",
 					"name": "Vector Database",
-					"description": "ChromaDB vector database for RAG document storage and retrieval"
+					"description": "ChromaDB vector database for RAG document storage and retrieval, will be created if not present"
 				},
 				"llm_model": {
 					"type": "model",
@@ -50,15 +50,15 @@
 			},
 			"modes": {
 				"default": {
-					"description": "Cloud-based LLM with RAG using external API for production deployment, API-based inference, and scalable usage",
-					"requirements": ["vector_database", "openai_api", "NIM"],
+					"description": "Remote LLM mode using NVIDIA NIM API with Llama-3-70b-Instruct for cloud-based inference and production deployment",
+					"requirements": ["vector_database", "NIM"],
 					"run": {
 						"command": "<holohub_app_source>/holochat.sh",
 						"workdir": "holohub_app_source"
 					}
 				},
 				"local": {
-					"description": "Local LLM with embedded models and vector database for offline usage, privacy-sensitive deployments, and development",
+					"description": "Local LLM mode using Phind-CodeLlama-34B-v2 with Llama.cpp for offline usage, privacy-sensitive deployments, and development",
 					"requirements": ["gpu", "vector_database", "llm_model"],
 					"run": {
 						"command": "<holohub_app_source>/holochat.sh --local",
@@ -66,7 +66,7 @@
 					}
 				},
 				"mcp": {
-					"description": "MCP (Model Context Protocol) server mode for tool integration, Claude Desktop integration, and external tool access",
+					"description": "Model Context Protocol server mode that provides Holoscan documentation and code context to upstream",
 					"requirements": ["vector_database"],
 					"run": {
 						"command": "<holohub_app_source>/holochat.sh --mcp",

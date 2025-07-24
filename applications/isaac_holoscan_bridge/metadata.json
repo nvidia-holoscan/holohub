@@ -62,48 +62,6 @@
 						"-v ${HOME}/docker/isaac-sim/documents:/root/Documents:rw"
 					]
 				}
-			},
-			"headless": {
-				"description": "Headless Isaac Sim for automated workflows and CI/CD including automated testing, CI/CD pipelines, and batch processing",
-				"requirements": ["gpu", "isaac_sim"],
-				"run": {
-					"command": "python3 <holohub_app_source>/app.py --headless",
-					"workdir": "holohub_bin",
-					"docker_args": [
-						"-u root",
-						"-e ACCEPT_EULA=Y",
-						"-e PRIVACY_CONSENT=Y",
-						"-v ${HOME}/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw",
-						"-v ${HOME}/docker/isaac-sim/cache/ov:/root/.cache/ov:rw",
-						"-v ${HOME}/docker/isaac-sim/cache/pip:/root/.cache/pip:rw",
-						"-v ${HOME}/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw",
-						"-v ${HOME}/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw",
-						"-v ${HOME}/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw",
-						"-v ${HOME}/docker/isaac-sim/data:/root/.local/share/ov/data:rw",
-						"-v ${HOME}/docker/isaac-sim/documents:/root/Documents:rw"
-					]
-				}
-			},
-			"performance": {
-				"description": "High-performance simulation optimized for performance testing, custom scenarios, and research workflows",
-				"requirements": ["gpu", "isaac_sim"],
-				"run": {
-					"command": "python3 <holohub_app_source>/app.py --image-width 1920 --image-height 1080 --fps null --frame-count -1 --headless true",
-					"workdir": "holohub_bin",
-					"docker_args": [
-						"-u root",
-						"-e ACCEPT_EULA=Y",
-						"-e PRIVACY_CONSENT=Y",
-						"-v ${HOME}/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw",
-						"-v ${HOME}/docker/isaac-sim/cache/ov:/root/.cache/ov:rw",
-						"-v ${HOME}/docker/isaac-sim/cache/pip:/root/.cache/pip:rw",
-						"-v ${HOME}/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw",
-						"-v ${HOME}/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw",
-						"-v ${HOME}/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw",
-						"-v ${HOME}/docker/isaac-sim/data:/root/.local/share/ov/data:rw",
-						"-v ${HOME}/docker/isaac-sim/documents:/root/Documents:rw"
-					]
-				}
 			}
 		}
 	}
