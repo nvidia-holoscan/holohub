@@ -91,7 +91,7 @@ class HoloHubCLI:
             action="append",
             help='Additional context variables for cookiecutter in format key=value. \
                 Example: --context description=\'My project desc\' \
-                    --context tags=["tag1", "tag2"]',
+                    --context tags=[\\"tag1\\", \\"tag2\\"]',
         )
         create.add_argument(
             "-i",
@@ -1084,11 +1084,11 @@ class HoloHubCLI:
                 run_cmd += f' --build-with "{args.with_operators}"'
             if hasattr(args, "run_args") and args.run_args:
                 run_cmd += f" --run-args={shlex.quote(args.run_args)}"
+            if getattr(args, "parallel", None):
+                run_cmd += f" --parallel {args.parallel}"
             if getattr(args, "configure_args", None):
                 for configure_arg in args.configure_args:
                     run_cmd += f' --configure-args "{configure_arg}"'
-            if getattr(args, "parallel", None):
-                run_cmd += f" --parallel {args.parallel}"
 
             img = getattr(args, "img", None) or container.image_name
             docker_opts = build_args.get("docker_opts", "")
