@@ -200,3 +200,36 @@ add_test(
 set_property(TEST test_cli_ambiguous_dash_prefixed_arguments PROPERTY
     PASS_REGULAR_EXPRESSION "ambiguous dash-prefixed arguments"
 )
+
+# test validate_mode conflict detection
+add_test(
+    NAME test_holohub_validate_mode_conflicts
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation dds --build-with "conflicting_operator" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_validate_mode_conflicts PROPERTY
+    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--build-with.*when using mode.*dds"
+    WILL_FAIL TRUE
+)
+
+# test validate_mode multiple conflicts detection
+add_test(
+    NAME test_holohub_validate_mode_multiple_conflicts
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation dds --build-with "operator1" --run-args="--verbose" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_validate_mode_multiple_conflicts PROPERTY
+    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--build-with.*--run-args.*when using mode.*dds"
+    WILL_FAIL TRUE
+)
+
+# test validate_mode docker-opts conflict detection
+add_test(
+    NAME test_holohub_validate_mode_run_conflicts
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation dds --run-args="--custom-flag" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_validate_mode_run_conflicts PROPERTY
+    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--run-args.*when using mode.*dds"
+    WILL_FAIL TRUE
+)
