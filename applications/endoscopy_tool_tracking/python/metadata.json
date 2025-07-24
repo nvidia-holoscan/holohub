@@ -55,17 +55,12 @@
 				"type": "hardware",
 				"name": "aja_card_with_overlay",
 				"description": "AJA video capture card with hardware overlay for real-time display for live surgery with overlay, real-time feedback, and OR integration"
-			},
-			"vtk": {
-				"type": "software",
-				"name": "VTK",
-				"description": "Visualization Toolkit for advanced 3D rendering and visualization"
 			}
 		},
 		"modes": {
 			"default": {
 				"description": "Video replay mode using recorded endoscopy video for demos, testing, and development without hardware",
-				"requirements": ["model", "video"],
+				"requirements": ["model", "video", "endoscopy_data"],
 				"run": {
 					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --source=replayer --data=<holohub_data_dir>/endoscopy",
 					"workdir": "holohub_bin"
