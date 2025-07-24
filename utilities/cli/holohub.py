@@ -903,32 +903,7 @@ class HoloHubCLI:
         if mode_config:
             print(f"Running {args.project} in '{mode_name}' mode")
 
-        # Handle nested container scenario: when running inside a container that already
-        # has the required docker_args applied, we should run locally instead of nesting containers
-        if (
-            mode_config
-            and "run" in mode_config
-            and "docker_args" in mode_config["run"]
-            and bool(os.environ.get("HOLOHUB_BUILD_LOCAL"))
-        ):
-            is_local_mode = True
-
         if is_local_mode:
-            # Check for conflicting docker options (unless we're in a valid nested container scenario)
-            is_nested_container = (
-                mode_config
-                and "run" in mode_config
-                and "docker_args" in mode_config["run"]
-                and bool(os.environ.get("HOLOHUB_BUILD_LOCAL"))
-            )
-            has_docker_options = bool(
-                run_args.get("docker_opts") or getattr(args, "docker_opts", "")
-            )
-            if not is_nested_container and has_docker_options:
-                holohub_cli_util.fatal(
-                    "Container arguments were provided with `--docker-opts` but a non-containerized build was requested."
-                )
-
             if skip_local_build:
                 # Skip building, but still need project metadata and build directory
                 project_data = self.find_project(

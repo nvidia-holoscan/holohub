@@ -155,7 +155,7 @@ Examples:
 # Run an application in a specific mode
 ./holohub run body_pose_estimation dds                    # DDS video streaming mode
 ./holohub run endoscopy_tool_tracking aja                 # AJA capture card mode
-./holohub run holochat local                              # Local LLM inference mode
+./holohub run holochat standalone                         # Local LLM inference mode
 
 # Build for a specific mode (if mode has special build requirements)
 ./holohub build endoscopy_tool_tracking aja_overlay
@@ -224,6 +224,7 @@ Each mode is defined as a named object under the `modes` key:
 {
   "metadata": {
     "modes": {
+
       "default": {
         "description": "Standard camera input for development and testing",
         "requirements": ["camera", "model"],
@@ -232,6 +233,7 @@ Each mode is defined as a named object under the `modes` key:
           "workdir": "holohub_bin"
         }
       },
+
       "production": {
         "description": "High-performance mode with GPU acceleration",
         "requirements": ["gpu", "model", "tensorrt"],
@@ -246,6 +248,7 @@ Each mode is defined as a named object under the `modes` key:
           "docker_args": ["--gpus=all", "--shm-size=1g"]
         }
       },
+
       "aja_hardware": {
         "description": "AJA capture card with hardware overlay",
         "requirements": ["aja_card_with_overlay", "model"],
@@ -274,6 +277,7 @@ For cases where build and run containers need different Docker configurations, y
 ```json
 {
   "modes": {
+
     "production_build": {
       "description": "Build production image with network access",
       "build": {
@@ -285,6 +289,7 @@ For cases where build and run containers need different Docker configurations, y
         "command": "echo 'Build complete'"
       }
     },
+
     "production_run": {
       "description": "Run production app with GPU access",
       "run": {

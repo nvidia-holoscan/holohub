@@ -57,7 +57,7 @@
 						"workdir": "holohub_app_source"
 					}
 				},
-				"local": {
+				"standalone": {
 					"description": "Local LLM mode using Phind-CodeLlama-34B-v2 with Llama.cpp for offline usage, privacy-sensitive deployments, and development",
 					"requirements": ["gpu", "vector_database", "llm_model"],
 					"run": {
