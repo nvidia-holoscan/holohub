@@ -732,7 +732,7 @@ class HoloHubCLI:
                 build_cmd += " --benchmark"
             if getattr(args, "configure_args", None):
                 for configure_arg in args.configure_args:
-                    build_cmd += f' --configure-args "{configure_arg}"'
+                    build_cmd += f" --configure-args={shlex.quote(configure_arg)}"
 
             img = getattr(args, "img", None) or container.image_name
             docker_opts = getattr(args, "docker_opts", "")
@@ -941,7 +941,7 @@ class HoloHubCLI:
                 run_cmd += f" --parallel {args.parallel}"
             if getattr(args, "configure_args", None):
                 for configure_arg in args.configure_args:
-                    run_cmd += f' --configure-args "{configure_arg}"'
+                    run_cmd += f" --configure-args={shlex.quote(configure_arg)}"
 
             img = getattr(args, "img", None) or container.image_name
             docker_opts = getattr(args, "docker_opts", "")
@@ -1381,7 +1381,7 @@ class HoloHubCLI:
                 install_cmd += " --verbose"
             if getattr(args, "configure_args", None):
                 for configure_arg in args.configure_args:
-                    install_cmd += f' --configure-args "{configure_arg}"'
+                    install_cmd += f" --configure-args={shlex.quote(configure_arg)}"
 
             img = getattr(args, "img", None) or container.image_name
             docker_opts = getattr(args, "docker_opts", "")
