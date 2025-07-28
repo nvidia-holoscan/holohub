@@ -19,8 +19,8 @@
 #define CUDA_UTILS_HPP
 
 #include <cuda_runtime.h>
-#include <memory>
 #include <fmt/format.h>
+#include <memory>
 
 namespace holoscan::ops {
 

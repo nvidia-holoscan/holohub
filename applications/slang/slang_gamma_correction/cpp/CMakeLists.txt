@@ -15,14 +15,26 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(slang_shader)
-
-find_package(holoscan 3.3.0 REQUIRED CONFIG
+find_package(holoscan 3.5.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-find_package(CUDAToolkit 12.8 REQUIRED)
 
-add_subdirectory(cpp)
+add_executable(slang_gamma_correction
+    slang_gamma_correction.cpp
+)
 
-if(HOLOHUB_BUILD_PYTHON)
-    add_subdirectory(python)
+target_link_libraries(slang_gamma_correction
+  PRIVATE
+    holoscan::core
+    holoscan::ops::holoviz
+    holoscan::ops::video_stream_replayer
+    holoscan::ops::gamma_correction
+)
+
+if(BUILD_TESTING)
+  add_test(NAME slang_gamma_correction_test
+           COMMAND slang_gamma_correction
+           --count=10
+           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(slang_gamma_correction_test PROPERTIES
+                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed;error")
 endif()
