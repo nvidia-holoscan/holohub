@@ -1,0 +1,29 @@
+{
+	"operator": {
+		"name": "append_timestamp",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"language": ["C++", "Python"],
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": [
+				"3.0.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Healthcare AI", "Video", "Timestamp"],
+		"ranking": 1,
+		"dependencies": {}
+	}
+}

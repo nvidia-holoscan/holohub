@@ -21,3 +21,12 @@ operator for reading H.264 elementary stream input and uses Holoviz operator
 for rendering decoded data to the native window.
 
 [Building and Running the H.264 Video Decode Application](./h264_video_decode//README.md)
+
+
+## H.264 Video Encode Decode Application
+
+Here's a simple example showing how to chain the H.264 video encode and decode operators together. 
+In a streaming setup, one app might use the encoder, while another app receives the encoded frames 
+and decodes each one.
+
+[Building and Running the H.264 Video Decode Application](./h264_video_encode_decode/README.md)
