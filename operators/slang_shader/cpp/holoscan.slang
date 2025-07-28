@@ -85,7 +85,7 @@ public struct holoscan_outputAttribute {
  *             to set the parameter value dynamically. The name can be followed by an equals sign
  *             and a default value. The default value must be a string which can be converted to
  *             the type of the parameter. If the default value is not provided, the parameter is
- *             required to be set at runtime, e.g. in the operator spec.
+ *             initialized to the default value of the parameter type.
  */
 [__AttributeUsage(_AttributeTargets.Var)]
 public struct holoscan_parameterAttribute {

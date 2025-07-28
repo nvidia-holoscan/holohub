@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef SLANG_SHADER_HPP
-#define SLANG_SHADER_HPP
+#ifndef SLANG_SHADER_COMPILER_HPP
+#define SLANG_SHADER_COMPILER_HPP
 
 #include <string>
 #include <vector>
@@ -32,7 +32,7 @@ namespace holoscan::ops {
 /**
  * @brief Manages Slang shader compilation and CUDA kernel retrieval
  *
- * The SlangShader class provides functionality to compile Slang shader source code
+ * The SlangShaderCompiler class provides functionality to compile Slang shader source code
  * into CUDA kernels that can be executed on GPU devices. It handles the complete
  * pipeline from shader compilation to kernel retrieval and parameter management.
  *
@@ -40,10 +40,10 @@ namespace holoscan::ops {
  * resources, and provides reflection information about the compiled shaders.
  * It supports global parameter updates for dynamic shader configuration.
  */
-class SlangShader {
+class SlangShaderCompiler {
  public:
   /**
-   * @brief Constructs a SlangShader with the given session and shader source
+   * @brief Constructs a SlangShaderCompiler with the given session and shader source
    *
    * @param session The Slang session used for compilation
    * @param shader_source The source code of the shader to compile
@@ -52,16 +52,16 @@ class SlangShader {
    * compiler and prepares it for CUDA kernel retrieval. The compilation process
    * includes syntax checking, optimization, and code generation for CUDA targets.
    */
-  explicit SlangShader(const Slang::ComPtr<slang::ISession>& session,
-                       const std::string& shader_source);
+  explicit SlangShaderCompiler(const Slang::ComPtr<slang::ISession>& session,
+                               const std::string& shader_source);
 
   /**
    * @brief Deleted default constructor
    *
-   * SlangShader requires a session and shader source for initialization,
+   * SlangShaderCompiler requires a session and shader source for initialization,
    * so the default constructor is explicitly deleted.
    */
-  SlangShader() = delete;
+  SlangShaderCompiler() = delete;
 
   /**
    * @brief Retrieves reflection information about the compiled shader
@@ -119,7 +119,7 @@ class SlangShader {
 
   /// Kernel information
   struct KernelInfo {
-    void* dev_global_params_ = nullptr;  ///< Pointer to the device global parameters
+    void* dev_global_params_ = nullptr;   ///< Pointer to the device global parameters
     cudaKernel_t cuda_kernel_ = nullptr;  ///< CUDA kernel handle
   };
 
@@ -129,4 +129,4 @@ class SlangShader {
 
 }  // namespace holoscan::ops
 
-#endif /* SLANG_SHADER_HPP */
+#endif /* SLANG_SHADER_COMPILER_HPP */

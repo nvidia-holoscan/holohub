@@ -88,6 +88,24 @@ The SlangShaderOp uses special attributes to define how shader parameters intera
 - `[holoscan::invocations::size_of("port_name")]`: Sets invocations based on input tensor dimensions
 - `[holoscan::invocations(x, y, z)]`: Sets fixed invocations
 
+### Core Operator Parameters
+
+The operator registers these built-in parameters:
+
+- **`shader_source`**: The Slang shader source code as a string
+- **`shader_source_file`**: Path to a Slang shader source file (alternative to shader_source)
+- **`preprocessor_macros`**: Map of preprocessor macro names to values for shader compilation
+- **`allocator`**: Allocator resource for output buffers (defaults to RMMAllocator)
+- **`cuda_stream`**: CUDA stream pool resource
+
+### Dynamic Parameter Generation
+
+Based on shader reflection analysis, the operator automatically creates:
+
+1. **Input Ports**: For each `[holoscan::input("port_name")]` attribute, creates an input port of type `gxf::Entity`
+2. **Output Ports**: For each `[holoscan::output("port_name")]` attribute, creates an output port of type `gxf::Entity`
+3. **Shader Parameters**: For each `[holoscan::parameter("param_name")]` attribute, creates a configurable parameter with the appropriate type
+
 ### Port names
 
 Port names in Holoscan attributes follow a specific format to identify and bind resources to shader variables. The name string can take several forms:
@@ -163,7 +181,7 @@ void main(uint3 tid : SV_DispatchThreadID) {
 ### C++ Usage
 
 ```cpp
-#include <slang_shader_op.hpp>
+#include <slang_shader/slang_shader.hpp>
 
 // Create the operator with shader source from a string
 std::string shader_source_string = R"

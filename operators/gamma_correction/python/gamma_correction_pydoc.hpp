@@ -15,36 +15,34 @@
  * limitations under the License.
  */
 
-#ifndef PYHOLOHUB_OPERATORS_SLANG_SHADER_PYDOC_HPP
-#define PYHOLOHUB_OPERATORS_SLANG_SHADER_PYDOC_HPP
-
-#include <string>
+#ifndef PYHOLOHUB_OPERATORS_GAMMA_CORRECTION_PYDOC_HPP
+#define PYHOLOHUB_OPERATORS_GAMMA_CORRECTION_PYDOC_HPP
 
 #include "macros.hpp"
 
 namespace holoscan::doc {
 
-namespace SlangShaderOp {
+namespace GammaCorrectionOp {
 
-PYDOC(SlangShaderOp, R"doc(
-The `slang_shader` operator runs a Slang shader.)doc")
+PYDOC(GammaCorrectionOp, R"doc(
+The `gamma_correction` operator runs a gamma correction shader.)doc")
 
 // PySlangShaderOp Constructor
-PYDOC(SlangShaderOp_python, R"doc(
-Operator class to run a Slang shader.
+PYDOC(GammaCorrectionOp_python, R"doc(
+Operator class to run a gamma correction shader.
 
 Parameters
 ----------
 fragment : Fragment
     The fragment that the operator belongs to.
-allocator: ``holoscan.resources.Allocator``
-    Allocator used to allocate the volume data
-shader_source : str, optional
-    Slang shader source code
-shader_source_file : str, optional
-    Slang shader source file
 name : str, optional
-    The name of the operator.
+    The name of the operator (default: "gamma_correction")
+data_type : str, optional
+    Data type of the input buffer (default: "uint8_t")
+component_count : int, optional
+    Number of components in the input buffer (default: 1)
+gamma : float, optional
+    Gamma correction factor (default: 2.2)
 )doc")
 
 PYDOC(initialize, R"doc(
@@ -63,9 +61,9 @@ spec : ``holoscan.core.OperatorSpec``
     The operator specification.
 )doc")
 
-}  // namespace SlangShaderOp
+}  // namespace GammaCorrectionOp
 
 
 }  // namespace holoscan::doc
 
-#endif  // PYHOLOHUB_OPERATORS_VOLUME_LOADER_PYDOC_HPP
+#endif  // PYHOLOHUB_OPERATORS_GAMMA_CORRECTION_PYDOC_HPP

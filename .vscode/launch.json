@@ -721,6 +721,34 @@
             }
         },
         //#endregion florence-2-vision
+        //#region gamma_correction
+        {
+            "name": "(gdb) gamma_correction_op test",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build slang_simple",
+            "program": "${workspaceFolder}/build/slang_simple/operators/gamma_correction/test/gamma_correction_test",
+            "args": [
+                "--gtest_filter=*"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/slang_simple/operators/gamma_correction/test/",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "gamma_correction",
+                "order": 1
+            }
+        },
+        //#endregion gamma_correction
         //#region h264_endoscopy_tool_tracking
         {
             "name": "(gdb) h264_endoscopy_tool_tracking/cpp",
@@ -1236,7 +1264,7 @@
 
         //#region slang
         {
-            "name": "(gdb) slang_simple",
+            "name": "(gdb) slang_simple/cpp",
             "type": "cppdbg",
             "request": "launch",
             "preLaunchTask": "Build slang_simple",
@@ -1255,22 +1283,35 @@
                 }
             ],
             "presentation": {
-                "hidden": false,
-                "group": "slang",
-                "order": 1
+                "group": "slang"
             }
         },
         {
-            "name": "(gdb) slang_shader_op test",
-            "type": "cppdbg",
+            "name": "(debugpy) slang_simple/python",
+            "type": "debugpy",
             "request": "launch",
             "preLaunchTask": "Build slang_simple",
-            "program": "${workspaceFolder}/build/slang_simple/operators/slang_shader/test/slang_shader_test",
+            "program": "${workspaceFolder}/applications/slang/slang_simple/python/slang_simple.py",
+            "cwd": "${workspaceFolder}/build/slang_simple/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/slang_simple/python/lib:${env:PYTHONPATH}"
+            },
             "args": [
-                "--gtest_filter=*"
+            ],
+            "presentation": {
+                "group": "slang"
+            }
+        },
+        {
+            "name": "(gdb) slang_gamma_correction/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build slang_gamma_correction",
+            "program": "${workspaceFolder}/build/slang_gamma_correction/applications/slang/slang_gamma_correction/cpp/slang_gamma_correction",
+            "args": [
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/slang_simple/operators/slang_shader/test/",
+            "cwd": "${workspaceFolder}",
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -1281,9 +1322,71 @@
                 }
             ],
             "presentation": {
-                "hidden": false,
-                "group": "slang",
-                "order": 2
+                "group": "slang"
+            }
+        },
+        {
+            "name": "(debugpy) slang_gamma_correction/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build slang_gamma_correction",
+            "program": "${workspaceFolder}/applications/slang/slang_gamma_correction/python/slang_gamma_correction.py",
+            "cwd": "${workspaceFolder}/build/slang_gamma_correction/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/slang_gamma_correction/python/lib:${env:PYTHONPATH}"
+            },
+            "args": [
+            ],
+            "presentation": {
+                "group": "slang"
+            }
+        },
+        {
+            "name": "(gdb) slang_shader_op test",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build slang_simple",
+            "program": "${workspaceFolder}/build/slang_simple/operators/slang_shader/cpp/test/slang_shader_test",
+            "args": [
+                "--gtest_filter=*"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/slang_simple/operators/slang_shader/cpp/test/",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "group": "slang"
+            }
+        },
+        {
+            "name": "(gdb) slang_gamma_correction test",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build slang_gamma_correction",
+            "program": "${workspaceFolder}/build/slang_gamma_correction/operators/gamma_correction/test/gamma_correction_test",
+            "args": [
+                "--gtest_filter=*"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/slang_gamma_correction/operators/gamma_correction/test/",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "group": "slang"
             }
         },
         //#endregion slang

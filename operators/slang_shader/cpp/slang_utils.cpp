@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 #include "slang_utils.hpp"
 
 namespace holoscan::ops {

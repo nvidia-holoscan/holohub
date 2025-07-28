@@ -15,13 +15,18 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(slang_shader)
+project(gamma_correction)
 
-find_package(holoscan 3.3.0 REQUIRED CONFIG
+find_package(holoscan 3.5.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_subdirectory(cpp)
 
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
+endif()
+
+# Add test subdirectory if testing is enabled
+if(BUILD_TESTING)
+    add_subdirectory(test)
 endif()

@@ -17,5 +17,5 @@ include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
     CPP_CMAKE_TARGET slang_shader
     CLASS_NAME "SlangShaderOp"
-    SOURCES slang_shader_op.cpp
+    SOURCES slang_shader.cpp
 )
