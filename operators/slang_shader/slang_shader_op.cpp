@@ -36,6 +36,35 @@
 
 #include "holoscan_slang.hpp"
 
+/**
+ * Custom YAML parser for PreprocessorMacros class
+ */
+template <>
+struct YAML::convert<holoscan::ops::SlangShaderOp::PreprocessorMacros> {
+  static Node encode(const holoscan::ops::SlangShaderOp::PreprocessorMacros& preprocessor_macros) {
+    Node node;
+    for (const auto& [key, value] : preprocessor_macros) { node[key] = value; }
+    return node;
+  }
+
+  static bool decode(const Node& node,
+                     holoscan::ops::SlangShaderOp::PreprocessorMacros& preprocessor_macros) {
+    if (!node.IsMap()) {
+      HOLOSCAN_LOG_ERROR("InputSpec: expected a map");
+      return false;
+    }
+    try {
+      for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
+        preprocessor_macros[it->first.as<std::string>()] = it->second.as<std::string>();
+      }
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_ERROR(e.what());
+      return false;
+    }
+    return true;
+  }
+};
+
 namespace holoscan::ops {
 
 // Implementation struct containing all Slang-related details
@@ -44,7 +73,14 @@ class SlangShaderOp::Impl {
   Impl() {
     // First we need to create slang global session to work with the Slang API.
     SLANG_CALL(slang::createGlobalSession(global_session_.writeRef()));
+  }
 
+  /**
+   * @brief Create a Slang session
+   *
+   * @param preprocessor_macros Preprocessor macros to be used in the session
+   */
+  void create_session(const std::map<std::string, std::string>& preprocessor_macros) {
     // Create Session
     slang::SessionDesc sessionDesc;
 
@@ -55,7 +91,17 @@ class SlangShaderOp::Impl {
     sessionDesc.targets = &targetDesc;
     sessionDesc.targetCount = 1;
 
-    /// @todo Add support for preprocessor macros
+    std::vector<slang::PreprocessorMacroDesc> preprocessor_macros_desc;
+
+    for (auto& [name, value] : preprocessor_macros) {
+      slang::PreprocessorMacroDesc preprocessor_macro_desc;
+      preprocessor_macro_desc.name = name.c_str();
+      preprocessor_macro_desc.value = value.c_str();
+      preprocessor_macros_desc.push_back(preprocessor_macro_desc);
+    }
+
+    sessionDesc.preprocessorMacroCount = preprocessor_macros_desc.size();
+    sessionDesc.preprocessorMacros = preprocessor_macros_desc.data();
 
     // Create session
     SLANG_CALL(global_session_->createSession(sessionDesc, session_.writeRef()));
@@ -156,10 +202,19 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
   assert(!impl_);
   impl_ = std::make_shared<Impl>();
 
+  register_converter<PreprocessorMacros>();
+
   spec.param(shader_source_, "shader_source", "Shader source string.", "Shader source string.");
 
   spec.param(
       shader_source_file_, "shader_source_file", "Shader source file.", "Shader source file.");
+
+  spec.param(preprocessor_macros_,
+             "preprocessor_macros",
+             "Preprocessor macros to be used when compiling the shader.",
+             "The map consists of string pairs, where the key is the macro name and the value is "
+             "the macro value.",
+             {});
 
   spec.param(
       allocator_,
@@ -171,14 +226,17 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
   // Add a CUDA stream pool
   add_arg(fragment()->make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 0));
 
-  // We need the shader source to build the input and output ports and the parameters, so check
-  // the argument list and get them
+  // We need the shader source and preprocessor macros to build the input and output ports and the
+  // parameters, so check the argument list and get them
   std::string shader_source, shader_source_file;
+  std::map<std::string, std::string> preprocessor_macros;
   for (auto&& arg : args()) {
     if (arg.name() == "shader_source") {
       shader_source = std::any_cast<std::string>(arg.value());
     } else if (arg.name() == "shader_source_file") {
       shader_source_file = std::any_cast<std::string>(arg.value());
+    } else if (arg.name() == "preprocessor_macros") {
+      preprocessor_macros = std::any_cast<std::map<std::string, std::string>>(arg.value());
     }
   }
 
@@ -200,6 +258,8 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
     shader_string << in_stream.rdbuf();
     shader_source = shader_string.str();
   }
+
+  impl_->create_session(preprocessor_macros);
 
   impl_->shader_ = std::make_unique<SlangShader>(impl_->session_, shader_source);
 
