@@ -14,6 +14,18 @@
 # limitations under the License.
 
 # Function to automatically discover and register pytest tests with CTest
+#
+# Arguments:
+#   INPUT - Directory or file path to search for pytest tests relative to WORKING_DIRECTORY (optional, defaults to .)
+#   WORKING_DIRECTORY - Working directory for running the tests (optional, defaults to CMAKE_CURRENT_BINARY_DIR)
+#   PREFIX - Prefix for CTest names (optional, defaults to "pytest")
+#   PYTEST_ARGS - Additional arguments to pass to pytest (optional, can specify multiple values)
+#
+# Example usage:
+#   add_python_tests(
+#     INPUT "tests"
+#     PYTEST_ARGS "-v" "-s" "--log-cli-level=DEBUG"
+#   )
 function(add_python_tests)
   # Parse arguments
   set(options "")
