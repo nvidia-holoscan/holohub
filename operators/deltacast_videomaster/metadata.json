@@ -25,14 +25,6 @@
 			"aarch64"
 		],
 		"tags": ["Camera", "Deltacast"],
-		"ranking": 2,
-		"requirements": {
-			"gxf_extensions": [
-				{
-					"name": "videomaster",
-					"version": "1.0"
-				}
-			]
-		}
+		"ranking": "2"
 	}
 }

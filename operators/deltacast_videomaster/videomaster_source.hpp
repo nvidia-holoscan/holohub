@@ -22,33 +22,46 @@
 #include <utility>
 #include <vector>
 
-#include "holoscan/core/gxf/gxf_operator.hpp"
+#include "holoscan/holoscan.hpp"
+
+using holoscan::OperatorSpec;
+using holoscan::InputContext;
+using holoscan::OutputContext;
+using holoscan::ExecutionContext;
+using holoscan::Arg;
+using holoscan::ArgList;
+
+#include "holoscan/core/operator.hpp"
+#include "holoscan/core/operator_spec.hpp"
+
+#include "videomaster_base.hpp"
 
 namespace holoscan::ops {
 
 /**
  * @brief Operator class to get the video stream from Deltacast capture card.
  *
- * This wraps a GXF Codelet(`nvidia::holoscan::videomaster::VideoMasterSource`).
  */
-class VideoMasterSourceOp : public holoscan::ops::GXFOperator {
+class VideoMasterSourceOp : public VideoMasterBase {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoMasterSourceOp, holoscan::ops::GXFOperator)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(VideoMasterSourceOp)
 
-  VideoMasterSourceOp() = default;
-
-  const char* gxf_typename() const override {
-    return "nvidia::holoscan::videomaster::VideoMasterSource";
-  }
+  VideoMasterSourceOp();
 
   void setup(OperatorSpec& spec) override;
 
+  void initialize() override;
+  void start() override;
+  void compute(InputContext& op_input, OutputContext& op_output,
+               ExecutionContext& context) override;
+
  private:
+  void transmit_buffer_data(void* buffer, uint32_t buffer_size, OutputContext& op_output, ExecutionContext& context);
+
   Parameter<holoscan::IOSpec*> _signal;
   Parameter<bool> _use_rdma;
   Parameter<uint32_t> _board_index;
   Parameter<uint32_t> _channel_index;
-  Parameter<std::shared_ptr<Allocator>> _pool;
   Parameter<uint32_t> _width;
   Parameter<uint32_t> _height;
   Parameter<bool> _progressive;
