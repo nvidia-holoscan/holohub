@@ -310,6 +310,8 @@ def parse_benchmark_results(log: str, manager_type: str) -> BenchmarkResults:
         return parse_dpdk_benchmark_results(log)
     elif manager_type == "gpunetio":
         return parse_gpunetio_benchmark_results(log)
+    elif manager_type == "rivermax":
+        return parse_rivermax_benchmark_results(log)
     else:
         raise ValueError(f"Unsupported manager type: {manager_type}")
 
@@ -472,6 +474,76 @@ def parse_gpunetio_benchmark_results(log: str) -> BenchmarkResults:
     logger.debug(f"RX queue packets: {rx_queue_packets}")
     logger.debug(f"TX queue packets: {tx_queue_packets}")
     logger.debug(f"Exec time: {exec_time}")
+
+    return BenchmarkResults(
+        tx_pkts=tx_packets,
+        tx_bytes=tx_bytes,
+        rx_pkts=rx_packets,
+        rx_bytes=rx_bytes,
+        missed_pkts=missed_packets,
+        errored_pkts=errored_packets,
+        q_rx_pkts=rx_queue_packets,
+        q_tx_pkts=tx_queue_packets,
+        exec_time=exec_time,
+    )
+
+
+def parse_rivermax_benchmark_results(log: str) -> BenchmarkResults:
+    """
+    Parse benchmark results from Rivermax log output.
+
+    Args:
+        log: The log output as a string
+
+    Returns:
+        BenchmarkResults: A structured representation of the benchmark results
+    """
+    # Initialize result dictionaries
+    tx_packets = {}  # Not provided in logs
+    tx_bytes = {}  # Not provided in logs
+    rx_packets = {}
+    rx_bytes = {}  # Not provided in logs
+    missed_packets = {}
+    errored_packets = {}
+    rx_queue_packets = {}  # Not provided in logs
+    tx_queue_packets = {}  # Not provided in logs
+
+    # Extract execution time
+    exec_time_pattern = r"TOTAL EXECUTION TIME OF SCHEDULER : (\d+\.\d+) ms"
+    exec_time = 0.0
+    exec_time_match = re.search(exec_time_pattern, log)
+    if exec_time_match:
+        exec_time = float(exec_time_match.group(1))
+
+    # Regex patterns for Rivermax benchmark summary
+    benchmark_summary_ipo_receiver = (
+        r"\[stream_index\s+(\d+)\] Got\s+(\d+) packets \|\s+(\d+\.\d+) GB \| "
+        r"dropped:\s+(\d+) \| consumed:\s+(\d+) \| unconsumed:\s+(\d+) \| "
+        r"lost:\s+(\d+) \| exceed MD:\s+(\d+) \| bad RTP hdr:\s+(\d+) \|\s+(\d+)%"
+    )
+    benchmark_summary_rtp_receiver = (
+        r"\[stream_index\s+(\d+)\] Got\s+(\d+) packets \|\s+(\d+\.\d+) GB \|\s+\|\s+"
+        r"consumed:\s+(\d+) \| unconsumed:\s+(\d+) \|\s+"
+        r"lost:\s+(\d+) \| bad RTP hdr:\s+(\d+) \|"
+    )
+
+    matches = re.findall(benchmark_summary_ipo_receiver, log)
+    if matches:
+        (stream_index, total_rx_packets, throughput, dropped, consumed,
+         unconsumed, lost, exceed_md, bad_rtp_hdr, extra_info) = matches[0]
+        missed_packets["0"] = int(dropped) + int(lost) + int(exceed_md)
+    else:
+        matches = re.findall(benchmark_summary_rtp_receiver, log)
+        if matches:
+            (stream_index, total_rx_packets, throughput, consumed,
+             unconsumed, lost, bad_rtp_hdr) = matches[0]
+            missed_packets["0"] = int(lost)  # Only lost packets, no dropped or exceed_md
+        else:
+            logger.error("No matches found for Rivermax benchmark summary")
+            raise ValueError("No matches found for Rivermax benchmark summary")
+
+    rx_packets["0"] = int(total_rx_packets)
+    errored_packets["0"] = int(bad_rtp_hdr)
 
     return BenchmarkResults(
         tx_pkts=tx_packets,
