@@ -124,6 +124,13 @@ int main(int argc, char** argv) {
   // Get the configuration
   if (argc < 2) {
     HOLOSCAN_LOG_ERROR("Usage: {} config_file", argv[0]);
+#if ANO_MGR_DPDK
+    HOLOSCAN_LOG_INFO("Built with DPDK manager");
+#elif ANO_MGR_GPUNETIO
+    HOLOSCAN_LOG_INFO("Built with GPUNETIO manager");
+#elif ANO_MGR_RIVERMAX
+    HOLOSCAN_LOG_INFO("Built with RIVERMAX manager");
+#endif
     return -1;
   }
 
