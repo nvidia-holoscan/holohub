@@ -151,7 +151,6 @@ if(BUILD_TESTING)
   include(add_python_tests)
   add_python_tests(
     INPUT "testing"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     PYTEST_ARGS "-v" "-s" "--log-cli-level=DEBUG" "--show-capture=no"
   )
 endif()
