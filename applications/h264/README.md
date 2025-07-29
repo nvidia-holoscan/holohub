@@ -21,3 +21,32 @@ operator for reading H.264 elementary stream input and uses Holoviz operator
 for rendering decoded data to the native window.
 
 [Building and Running the H.264 Video Decode Application](./h264_video_decode//README.md)
+
+## Supported Platforms
+
+- x86_64
+- arm64 + discrete GPU platforms (SBSA, IGX dGPU)
+
+## Known Issues
+
+### Unsupported Platforms
+
+Devices with integrated GPU (Jetson AGX, IGX Orin iGPU mode) are not supported.
+
+### Symbol error at load
+
+Python applications have been observed to emit the following at runtime:
+```bash
+2: [warning] [gxf_extension_manager.cpp:174] Unable to load extension from 'libgxf_videodecoder.so' \
+  (error: /opt/nvidia/holoscan/lib/libgxf_videodecoder.so: undefined symbol: _ZN6nvidia6logger15GlobalGxfLogger8instanceEv)
+2: [warning] [gxf_extension_manager.cpp:174] Unable to load extension from 'libgxf_videodecoderio.so' \
+  (error: /opt/nvidia/holoscan/lib/libgxf_videodecoderio.so: undefined symbol: _ZN6nvidia6logger15GlobalGxfLogger8instanceEv)
+2: [info] [fragment.cpp:778] Loading extensions from configs...
+2: [warning] [type_registry.cpp:57] Unknown type: nvidia::gxf::VideoReadBitStream
+```
+
+Please explicitly pre-load the GXF Core library to resolve the error.
+
+```bash
+LD_PRELOAD=/opt/nvidia/holoscan/lib/libgxf_core.so <cmd> ...
+```
