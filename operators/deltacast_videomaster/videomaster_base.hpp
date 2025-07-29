@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_BASE_HPP_
-#define NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_BASE_HPP_
+#ifndef HOLOSCAN_OPERATORS_VIDEOMASTER_BASE_HPP_
+#define HOLOSCAN_OPERATORS_VIDEOMASTER_BASE_HPP_
 
 #include <array>
 #include <string>
 #include <vector>
 #include <optional>
 
+#include "holoscan/holoscan.hpp"
+
 #include "VideoMasterHD_Core.h"
-#include "gxf/std/codelet.hpp"
 #include "gxf/std/memory_buffer.hpp"
 #include "VideoMasterAPIHelper/handle_manager.hpp"
 #include "VideoMasterAPIHelper/VideoInformation/core.hpp"
@@ -31,42 +32,40 @@
 #include <thread>
 #define sleep_ms(value) std::this_thread::sleep_for(std::chrono::milliseconds(value))
 
-namespace nvidia {
-namespace holoscan {
-namespace videomaster {
+namespace holoscan::ops {
 
-class VideoMasterBase : public gxf::Codelet {
+class VideoMasterBase : public holoscan::Operator {
  public:
   explicit VideoMasterBase(bool is_input);
 
-  gxf_result_t stop() override;
+  void stop() override;
 
  protected:
   static const uint32_t SLOT_TIMEOUT = 100;
   static const uint32_t NB_SLOTS = 4;
-  gxf::Parameter<bool> _use_rdma;
-  gxf::Parameter<uint32_t> _board_index;
-  gxf::Parameter<uint32_t> _channel_index;
-  gxf::Parameter<gxf::Handle<gxf::Allocator>> _pool;
+  Parameter<bool> _use_rdma;
+  Parameter<std::shared_ptr<Allocator>> _pool;
+  Parameter<uint32_t> _board_index;
+  Parameter<uint32_t> _channel_index;
 
   Deltacast::Helper::BoardHandle& board_handle() { return *_board_handle; }
   Deltacast::Helper::StreamHandle& stream_handle() { return *_stream_handle; }
 
   bool _is_input;
+  bool _is_igpu = false;
   VHD_CHANNELTYPE _channel_type;
   bool _has_lost_signal;
   std::unique_ptr<Deltacast::Helper::VideoInformation> _video_information;
-  std::array<std::vector<gxf::MemoryBuffer>, NB_SLOTS> _rdma_buffers;
-  std::array<std::vector<BYTE*>, NB_SLOTS> _non_rdma_buffers;
+  std::array<std::vector<BYTE*>, NB_SLOTS> _buffers;
   std::array<HANDLE, NB_SLOTS> _slot_handles;
   uint64_t _slot_count;
 
-  gxf::Expected<void> configure_board();
-  gxf::Expected<void> open_stream();
-  gxf::Expected<void> configure_stream();
-  gxf::Expected<void> init_buffers();
-  gxf::Expected<void> start_stream();
-  bool gxf_log_on_error(Deltacast::Helper::ApiSuccess result, const std::string& message);
+  bool configure_board();
+  bool open_stream();
+  bool configure_stream();
+  bool init_buffers();
+  bool start_stream();
+  bool holoscan_log_on_error(Deltacast::Helper::ApiSuccess result, const std::string& message);
 
   bool signal_present();
   bool set_loopback_state(bool state);
@@ -79,8 +78,6 @@ class VideoMasterBase : public gxf::Codelet {
   std::unique_ptr<Deltacast::Helper::StreamHandle> _stream_handle;
 };
 
-}  // namespace videomaster
-}  // namespace holoscan
-}  // namespace nvidia
+}  // namespace holoscan::ops
 
 #endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_BASE_HPP
