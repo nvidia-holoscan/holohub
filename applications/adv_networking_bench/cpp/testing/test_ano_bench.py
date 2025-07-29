@@ -20,7 +20,7 @@ from threading import Thread
 from time import sleep
 
 import pytest
-from benchmark_utils import parse_benchmark_results
+from benchmark_utils import parse_benchmark_results, generate_media_file
 from nvidia_nic_utils import get_nvidia_nics, print_nvidia_nics
 from process_utils import monitor_process, run_command, start_process
 from yaml_config_utils import update_yaml_file
@@ -275,3 +275,82 @@ def test_multi_q_hds_tx_rx(executable, work_dir, nvidia_nics):
     expected_q_pkts = {i: 1 for i in range(9)}
     rx_queue_pkts_check = results.validate_rx_queue_packets(1, expected_q_pkts, allow_greater=True)
     assert rx_queue_pkts_check, "RX queue packet distribution validation failed"
+
+
+@pytest.mark.parametrize("rivermax_receiver_type", ["ipo_receiver", "rtp_receiver"])
+def test_rivermax_tx_rx(executable, work_dir, nvidia_nics, rivermax_receiver_type):
+    """
+    Test 6: Rivermax TX/RX.
+    """
+    # Get the first two NICs for this test
+    # Rivermax TX/RX test requires two NICs with IP addresses
+    tx_interface = None
+    rx_interface = None
+    for i in range(len(nvidia_nics)):
+        if nvidia_nics[i].ip_address:
+            print(f"NVIDIA NIC {i} has IP address: {nvidia_nics[i].ip_address}")
+            if (tx_interface is None):
+                tx_interface = nvidia_nics[i]
+            else:
+                rx_interface = nvidia_nics[i]
+                break
+        else:
+            print(f"NVIDIA NIC {i} does not have IP address")
+    if (tx_interface is None or rx_interface is None):
+        pytest.skip("NVIDIA NICs do not have IP addresses")
+
+    # Generate media file
+    media_file_path = os.path.join(work_dir, "test_media_file.ycbcr")
+    generate_media_file(media_file_path)
+
+    # Prepare config
+    config_file = os.path.join(work_dir, "adv_networking_bench_rivermax_tx_rx.yaml")
+    config_file_test = os.path.join(work_dir, "adv_networking_bench_rivermax_tx_rx_test.yaml")
+
+    rx_settings_path = "advanced_network.cfg.interfaces[0].rx.queues[0].rivermax_rx_settings"
+    tx_settings_path = "advanced_network.cfg.interfaces[0].tx.queues[0].rivermax_tx_settings"
+    update_yaml_file(
+        config_file,
+        config_file_test,
+        {
+            "scheduler.max_duration_ms": 10000,
+            f"{rx_settings_path}.settings_type": rivermax_receiver_type,
+            f"{tx_settings_path}.local_ip_address": tx_interface.ip_address,
+            f"{tx_settings_path}.destination_ip_address": "224.1.1.1",
+            f"{tx_settings_path}.destination_port": 50001,
+            "bench_tx.file_path": media_file_path,
+        },
+    )
+
+    if (rivermax_receiver_type == "ipo_receiver"):
+        update_yaml_file(
+            config_file_test,
+            config_file_test,
+            {
+                f"{rx_settings_path}.local_ip_addresses": [rx_interface.ip_address],
+                f"{rx_settings_path}.source_ip_addresses": [tx_interface.ip_address],
+                f"{rx_settings_path}.destination_ip_addresses": ["224.1.1.1"],
+                f"{rx_settings_path}.destination_ports": [50001],
+            },
+        )
+    else:
+        update_yaml_file(
+            config_file_test,
+            config_file_test,
+            {
+                f"{rx_settings_path}.local_ip_address": rx_interface.ip_address,
+                f"{rx_settings_path}.source_ip_address": tx_interface.ip_address,
+                f"{rx_settings_path}.destination_ip_address": "224.1.1.1",
+                f"{rx_settings_path}.destination_port": 50001,
+            },
+        )
+
+    command = f"{executable} {config_file_test}"
+    result = run_command(command, stream_output=True)
+    results = parse_benchmark_results(result.stdout + result.stderr, "rivermax")
+
+    received_packets = results.get_rx_packets(0)
+    missed_pkts_check = results.get_missed_packets(0)
+    errored_pkts_check = results.get_errored_packets(0)
+    assert received_packets > 0 and missed_pkts_check == 0 and errored_pkts_check == 0, \
+        "Validation failed"
