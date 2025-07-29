@@ -17,6 +17,7 @@
 import logging
 import re
 import sys
+import os
 from typing import Dict
 
 # Configure the logger
@@ -310,6 +311,8 @@ def parse_benchmark_results(log: str, manager_type: str) -> BenchmarkResults:
         return parse_dpdk_benchmark_results(log)
     elif manager_type == "gpunetio":
         return parse_gpunetio_benchmark_results(log)
+    elif manager_type == "rivermax":
+        return parse_rivermax_benchmark_results(log)
     else:
         raise ValueError(f"Unsupported manager type: {manager_type}")
 
@@ -484,6 +487,130 @@ def parse_gpunetio_benchmark_results(log: str) -> BenchmarkResults:
         q_tx_pkts=tx_queue_packets,
         exec_time=exec_time,
     )
+
+
+def parse_rivermax_benchmark_results(log: str) -> BenchmarkResults:
+    """
+    Parse benchmark results from Rivermax log output.
+
+    Args:
+        log: The log output as a string
+
+    Returns:
+        BenchmarkResults: A structured representation of the benchmark results
+    """
+    # Initialize result dictionaries
+    tx_packets = {}  # Not provided in logs
+    tx_bytes = {}  # Not provided in logs
+    rx_packets = {}
+    rx_bytes = {}  # Not provided in logs
+    missed_packets = {}
+    errored_packets = {}
+    rx_queue_packets = {}  # Not provided in logs
+    tx_queue_packets = {}  # Not provided in logs
+
+    # Extract execution time
+    exec_time_pattern = r"TOTAL EXECUTION TIME OF SCHEDULER : (\d+\.\d+) ms"
+    exec_time = 0.0
+    exec_time_match = re.search(exec_time_pattern, log)
+    if exec_time_match:
+        exec_time = float(exec_time_match.group(1))
+
+    # Regex patterns for Rivermax benchmark summary
+    benchmark_summery_ipo_receiver = (
+        r"\[stream_index\s+(\d+)\] Got\s+(\d+) packets \|\s+(\d+\.\d+) GB \| "
+        r"dropped:\s+(\d+) \| consumed:\s+(\d+) \| unconsumed:\s+(\d+) \| "
+        r"lost:\s+(\d+) \| exceed MD:\s+(\d+) \| bad RTP hdr:\s+(\d+) \|\s+(\d+)%"
+    )
+    benchmark_summery_rtp_receiver = (  
+        r"\[stream_index\s+(\d+)\] Got\s+(\d+) packets \|\s+(\d+\.\d+) GB \|\s+\|\s+"
+        r"consumed:\s+(\d+) \| unconsumed:\s+(\d+) \|\s+"
+        r"lost:\s+(\d+) \| bad RTP hdr:\s+(\d+) \|"
+    )
+
+    matches = re.findall(benchmark_summery_ipo_receiver, log)
+    if matches:
+        (stream_index, total_rx_packets, throughput, dropped, consumed, 
+         unconsumed, lost, exceed_md, bad_rtp_hdr, extra_info) = matches[0]
+        missed_packets["0"] = int(dropped)+int(lost)+int(exceed_md)
+    else:
+        matches = re.findall(benchmark_summery_rtp_receiver, log)
+        if matches:
+            (stream_index, total_rx_packets, throughput, consumed, 
+             unconsumed, lost, bad_rtp_hdr) = matches[0]
+            missed_packets["0"] = int(lost)  # Only lost packets, no dropped or exceed_md
+        else:
+            logger.error("No matches found for Rivermax benchmark summary")
+            raise ValueError("No matches found for Rivermax benchmark summary")
+
+    rx_packets["0"] = int(total_rx_packets)
+    errored_packets["0"] = int(bad_rtp_hdr)
+
+    return BenchmarkResults(
+        tx_pkts=tx_packets,
+        tx_bytes=tx_bytes,
+        rx_pkts=rx_packets,
+        rx_bytes=rx_bytes,
+        missed_pkts=missed_packets,
+        errored_pkts=errored_packets,
+        q_rx_pkts=rx_queue_packets,
+        q_tx_pkts=tx_queue_packets,
+        exec_time=exec_time,
+    )
+
+
+def generate_media_file(file_path: str, width: int = 1920, height: int = 1080, bit_depth: int = 10, num_frames: int = 10):
+    """
+    Generate a zero-filled YCbCr 4:2:2 media file with specified parameters.
+    
+    Args:
+        file_path: Output file path
+        width: Video width in pixels (default: 1920 for 1080p)
+        height: Video height in pixels (default: 1080 for 1080p)  
+        bit_depth: Bit depth in bits - must be 8, 10, or 12 (default: 10)
+        num_frames: Number of frames to generate (default: 10)
+    """
+    # Validate input parameters
+    if bit_depth not in [8, 10, 12]:
+        raise ValueError(f"Unsupported bit depth: {bit_depth}. Supported values: 8, 10, 12")
+    
+    if width <= 0 or height <= 0 or num_frames <= 0:
+        raise ValueError("Width, height, and num_frames must be positive integers")
+    
+    logger.info(f"Generating YCbCr 4:2:2 media file: {file_path} ({width}x{height}, {bit_depth}-bit, {num_frames} frames)")
+    
+    # SMPTE 2110-20 specification: YCbCr 4:2:2 pgroup sizes
+    # Each pgroup covers 2 pixels and contains Y0, Cb, Y1, Cr samples
+    SMPTE_2110_PGROUP_SIZES = {
+        8:  4,  # 4 bytes per 2 pixels = 2.0 bytes/pixel
+        10: 5,  # 5 bytes per 2 pixels = 2.5 bytes/pixel  
+        12: 6,  # 6 bytes per 2 pixels = 3.0 bytes/pixel
+    }
+
+    # Calculate total file size
+    pixels_per_frame = width * height
+    pgroups_per_frame = pixels_per_frame // 2  # Each pgroup covers 2 pixels
+    bytes_per_frame = pgroups_per_frame * SMPTE_2110_PGROUP_SIZES[bit_depth]
+    total_size = int(bytes_per_frame * num_frames)
+    
+    logger.info(f"Frame size: {bytes_per_frame} bytes, Total file size: {total_size} bytes ({total_size / (1024*1024):.1f} MB)")
+    
+    # Create the directory if it doesn't exist
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    except OSError as e:
+        logger.error(f"Failed to create directory: {e}")
+        raise
+    
+    # Generate the zero-filled file
+    try:
+        with open(file_path, 'wb') as f:
+            f.write(b'\x00' * total_size)
+    except OSError as e:
+        logger.error(f"Failed to write file {file_path}: {e}")
+        raise
+    
+    logger.info(f"Successfully generated YCbCr 4:2:2 media file: {file_path}")
 
 
 if __name__ == "__main__":
