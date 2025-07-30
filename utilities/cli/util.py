@@ -337,8 +337,8 @@ def _is_valid_sdk_installation(path: Union[str, Path]) -> bool:
     if not path.exists() or not path.is_dir() or not (path / "lib").exists():
         return False
     # Check for at least one of these to confirm it's a Holoscan SDK
-    return (path / "include" / "holoscan").exists() or (
-        path / "lib" / "cmake" / "holoscan"
+    return (path / "lib" / "cmake" / "holoscan" / "holoscan-config.cmake").exists() or (
+        path / "lib" / "cmake" / "holoscan" / "HoloscanConfig.cmake"
     ).exists()
 
 
