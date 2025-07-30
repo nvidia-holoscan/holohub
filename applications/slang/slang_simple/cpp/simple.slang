@@ -20,7 +20,7 @@ import holoscan;
 
 // Create an input port named "input_buffer"
 [holoscan::input("input_buffer")]
-RWStructuredBuffer<int> input_buffer;
+StructuredBuffer<int> input_buffer;
 
 // Create an output port named "output_buffer"
 [holoscan::output("output_buffer")]
@@ -33,7 +33,7 @@ RWStructuredBuffer<int> output_buffer;
 uniform int offset;
 
 // Use the size of the input buffer to set the grid size
-[holoscan::grid::size_of("input_buffer")]
+[holoscan::invocations::size_of("input_buffer")]
 [shader("compute")]
 void add(uint3 gid : SV_DispatchThreadID)
 {

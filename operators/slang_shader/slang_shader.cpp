@@ -17,6 +17,7 @@
 
 #include "slang_shader.hpp"
 
+#include <driver_types.h>
 #include <array>
 
 #include "slang_utils.hpp"
@@ -42,14 +43,17 @@ SlangShader::SlangShader(const Slang::ComPtr<slang::ISession>& session,
     throw std::runtime_error("Warning: No entry points found in shader");
   }
 
-  // Get the first entry point
-  Slang::ComPtr<slang::IEntryPoint> entryPoint;
-  SLANG_CALL(module_->getDefinedEntryPoint(0, entryPoint.writeRef()));
-
   // Create composite component type (module + entry point)
-  std::array<slang::IComponentType*, 2> component_types = {module_, entryPoint};
-  Slang::ComPtr<slang::IComponentType> composed_program;
+  std::vector<slang::IComponentType*> component_types{module_.get()};
+  Slang::ComPtr<slang::IEntryPoint> entry_points[entry_point_count];
 
+  // Add entry points to the component types
+  for (int i = 0; i < entry_point_count; ++i) {
+    SLANG_CALL(module_->getDefinedEntryPoint(i, entry_points[i].writeRef()));
+    component_types.push_back(entry_points[i].get());
+  }
+
+  Slang::ComPtr<slang::IComponentType> composed_program;
   SLANG_CALL_WITH_DIAGNOSTICS(session->createCompositeComponentType(component_types.data(),
                                                                     component_types.size(),
                                                                     composed_program.writeRef(),
@@ -60,24 +64,56 @@ SlangShader::SlangShader(const Slang::ComPtr<slang::ISession>& session,
       composed_program->link(linked_program_.writeRef(), diagnostics_blob.writeRef()));
 
   // Generate target code
-  Slang::ComPtr<ISlangBlob> ptx_code;
-  SLANG_CALL_WITH_DIAGNOSTICS(linked_program_->getEntryPointCode(0,  // entryPointIndex
-                                                                 0,  // targetIndex
-                                                                 ptx_code.writeRef(),
-                                                                 diagnostics_blob.writeRef()));
-  // Uncomment this to print the PTX code
-  // HOLOSCAN_LOG_INFO("PTX code: {}", (const char*)ptx_code->getBufferPointer());
+  for (int i = 0; i < entry_point_count; ++i) {
+    Slang::ComPtr<ISlangBlob> ptx_code;
+    SLANG_CALL_WITH_DIAGNOSTICS(linked_program_->getEntryPointCode(i,  // entryPointIndex
+                                                                   0,  // targetIndex
+                                                                   ptx_code.writeRef(),
+                                                                   diagnostics_blob.writeRef()));
+    // Uncomment this to print the PTX code
+    // HOLOSCAN_LOG_INFO("PTX code: {}", (const char*)ptx_code->getBufferPointer());
 
-  cuda_library_.reset([&ptx_code] {
-    cudaLibrary_t library;
-    CUDA_CALL(cudaLibraryLoadData(
-        &library, ptx_code->getBufferPointer(), nullptr, nullptr, 0, nullptr, nullptr, 0));
-    return library;
-  }());
+    cuda_libraries_.emplace_back([&ptx_code] {
+      cudaLibrary_t library;
+      CUDA_CALL(cudaLibraryLoadData(
+          &library, ptx_code->getBufferPointer(), nullptr, nullptr, 0, nullptr, nullptr, 0));
+      return library;
+    }());
 
-  // Get the pointer to the global params memory
-  CUDA_CALL(cudaLibraryGetGlobal(
-      &dev_global_params_, &global_params_size_, cuda_library_.get(), "SLANG_globalParams"));
+    KernelInfo kernel_info;
+
+    // Get the pointer to the global params memory
+    size_t global_params_size;
+    cudaError result = cudaLibraryGetGlobal(&kernel_info.dev_global_params_,
+                                            &global_params_size,
+                                            cuda_libraries_.back().get(),
+                                            "SLANG_globalParams");
+    if (result == cudaSuccess) {
+      if (i == 0) {
+        global_params_size_ = global_params_size;
+      } else if (global_params_size != global_params_size_) {
+        throw std::runtime_error(fmt::format("Global params size mismatch, expected: {}, got: {}",
+                                             global_params_size_,
+                                             global_params_size));
+      }
+    } else if (result != cudaErrorSymbolNotFound) {
+      // Global params are optional, we ignore this error but report any other errors
+      CUDA_CALL(result);
+    }
+
+    unsigned int kernel_count;
+    CUDA_CALL(cudaLibraryGetKernelCount(&kernel_count, cuda_libraries_.back().get()));
+    if (kernel_count != 1) {
+      throw std::runtime_error(fmt::format("Expected 1 kernel, got {}", kernel_count));
+    }
+
+    slang::FunctionReflection* function_reflection;
+    function_reflection = entry_points[i]->getFunctionReflection();
+
+    CUDA_CALL(
+        cudaLibraryEnumerateKernels(&kernel_info.cuda_kernel_, 1, cuda_libraries_.back().get()));
+    cuda_kernels_[std::string(function_reflection->getName())] = kernel_info;
+  }
 }
 
 nlohmann::json SlangShader::get_reflection() {
@@ -91,12 +127,22 @@ nlohmann::json SlangShader::get_reflection() {
 }
 
 cudaKernel_t SlangShader::get_kernel(const std::string& name) {
-  cudaKernel_t kernel;
-  CUDA_CALL(cudaLibraryGetKernel(&kernel, cuda_library_.get(), name.c_str()));
-  return kernel;
+  auto it = cuda_kernels_.find(name);
+  if (it == cuda_kernels_.end()) {
+    throw std::runtime_error(fmt::format("Kernel '{}' not found", name));
+  }
+
+  return it->second.cuda_kernel_;
 }
 
-void SlangShader::update_global_params(const std::vector<uint8_t>& shader_parameters) {
+void SlangShader::update_global_params(const std::string& name,
+                                       const std::vector<uint8_t>& shader_parameters,
+                                       cudaStream_t stream) {
+  auto it = cuda_kernels_.find(name);
+  if (it == cuda_kernels_.end()) {
+    throw std::runtime_error(fmt::format("Kernel '{}' not found", name));
+  }
+
   if (shader_parameters.size() > global_params_size_) {
     throw std::runtime_error(fmt::format(
         "Shader parameters size mismatch, shader_parameters.size(): {}, global_params_size_: {}",
@@ -104,11 +150,13 @@ void SlangShader::update_global_params(const std::vector<uint8_t>& shader_parame
         global_params_size_));
   }
 
-  // Copy the host global params to the device
-  CUDA_CALL(cudaMemcpy(dev_global_params_,
-                       shader_parameters.data(),
-                       shader_parameters.size(),
-                       cudaMemcpyHostToDevice));
+  // Copy the shader parameters to the device (note: this is done unconditionally since the GPU
+  // addresses of the resources contained here are expected to change on every call)
+  CUDA_CALL(cudaMemcpyAsync(it->second.dev_global_params_,
+                            shader_parameters.data(),
+                            shader_parameters.size(),
+                            cudaMemcpyHostToDevice,
+                            stream));
 }
 
 }  // namespace holoscan::ops

@@ -18,10 +18,8 @@
 #ifndef SLANG_UTILS_HPP
 #define SLANG_UTILS_HPP
 
-#include <cuda_runtime.h>
 #include <slang-com-helper.h>
 #include <holoscan/logger/logger.hpp>
-#include <memory>
 
 namespace holoscan::ops {
 
@@ -112,62 +110,130 @@ const char* get_error_string(Slang::Result result);
   }
 
 /**
- * @brief Macro for safe CUDA Runtime API calls with automatic error handling
+ * Splits a string into a pair of strings, separated by a separator.
  *
- * This macro executes a CUDA Runtime statement and automatically checks for errors.
- * If the call fails, it throws a std::runtime_error with detailed information
- * including the statement, line number, file name, and CUDA error description.
- *
- * Usage:
- *   CUDA_CALL(cudaMalloc(&ptr, size));
- *
- * @param stmt The CUDA Runtime statement to execute
- * @param ... Additional parameters (unused, kept for compatibility)
- * @throws std::runtime_error if the CUDA call fails
+ * @param s The string to split
+ * @param separator The separator to use
+ * @return A pair of strings, the first is the part before the colon, the second is the part after
  */
-#define CUDA_CALL(stmt, ...)                                                               \
-  ({                                                                                       \
-    cudaError_t _holoscan_cuda_err = stmt;                                                 \
-    if (cudaSuccess != _holoscan_cuda_err) {                                               \
-      throw std::runtime_error(                                                            \
-          fmt::format("CUDA Runtime call {} in line {} of file {} failed with '{}' ({}).", \
-                      #stmt,                                                               \
-                      __LINE__,                                                            \
-                      __FILE__,                                                            \
-                      cudaGetErrorString(_holoscan_cuda_err),                              \
-                      static_cast<int>(_holoscan_cuda_err)));                              \
-    }                                                                                      \
-  })
+std::pair<std::string, std::string> split(const std::string& s, char separator);
 
 /**
- * @brief Custom deleter for CUDA objects managed by unique_ptr
+ * @brief Converts a string to lowercase
  *
- * This template provides a custom deleter for CUDA objects that need
- * to be properly cleaned up when managed by std::unique_ptr. It calls
- * the specified cleanup function when the unique_ptr goes out of scope.
- *
- * @tparam T The CUDA object type
- * @tparam func The cleanup function to call (e.g., cudaLibraryUnload)
+ * @param s The string to convert
+ * @return The lowercase string
  */
-template <typename T, cudaError_t func(T)>
-struct Deleter {
-  typedef T pointer;
-  /**
-   * @brief Operator to call the cleanup function
-   *
-   * @param value The CUDA object to clean up
-   */
-  void operator()(T value) const { func(value); }
-};
+std::string to_lower(const std::string& s);
 
 /**
- * @brief Type alias for a unique_ptr that manages CUDA library handles
+ * @brief Converts a string to a specific type
  *
- * This type provides automatic cleanup of CUDA library handles using
- * cudaLibraryUnload when the unique_ptr goes out of scope.
+ * @tparam typeT The type to convert to
+ * @param s The string to convert
+ * @return The converted value
  */
-using UniqueCudaLibrary =
-    std::unique_ptr<cudaLibrary_t, Deleter<cudaLibrary_t, &cudaLibraryUnload>>;
+template <typename typeT>
+typeT from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to a boolean
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+bool from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to an int8_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+int8_t from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to a uint8_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+uint8_t from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to an int16_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+int16_t from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to a uint16_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+uint16_t from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to an int32_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+int32_t from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to a uint32_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+uint32_t from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to an int64_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+int64_t from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to a uint64_t
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+uint64_t from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to a float
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+float from_string(const std::string& s);
+
+/**
+ * @brief Converts a string to a double
+ *
+ * @param s The string to convert
+ * @return The converted value
+ */
+template <>
+double from_string(const std::string& s);
 
 }  // namespace holoscan::ops
 

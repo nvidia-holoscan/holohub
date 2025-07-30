@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ from holoscan.resources import (
 )
 
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
+from holohub.slang_shader import SlangShaderOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
 
 
@@ -63,7 +64,9 @@ def lazy_import(module_name):
 
 
 class EndoscopyApp(Application):
-    def __init__(self, data, record_type=None, source="replayer"):
+    def __init__(
+        self, data, record_type=None, source="replayer", postprocessor="tool_tracking_postprocessor"
+    ):
         """Initialize the endoscopy tool tracking application
 
         Parameters
@@ -75,6 +78,8 @@ class EndoscopyApp(Application):
             When set to "replayer" (the default), pre-recorded sample video data is
             used as the application input. Otherwise, the video stream from an AJA or Yuan
             capture card is used.
+        postprocessor : {"slang_shader", "tool_tracking_postprocessor"}
+            The postprocessor to use for tool tracking
         """
         super().__init__()
 
@@ -87,7 +92,7 @@ class EndoscopyApp(Application):
             if record_type not in ("input", "visualizer"):
                 raise ValueError("record_type must be either ('input' or 'visualizer')")
         self.source = source
-
+        self.postprocessor = postprocessor
         if data == "none":
             data = os.environ.get("HOLOHUB_DATA_PATH", "../data")
 
@@ -239,17 +244,28 @@ class EndoscopyApp(Application):
             107 * 60 * 7 * 4 * bytes_per_float32, 7 * 3 * bytes_per_float32
         )
         tool_tracking_postprocessor_num_blocks = 2 * 2
-        tool_tracking_postprocessor = ToolTrackingPostprocessorOp(
+        postprocessor_allocator = BlockMemoryPool(
             self,
-            name="tool_tracking_postprocessor",
-            device_allocator=BlockMemoryPool(
-                self,
-                name="device_allocator",
-                storage_type=MemoryStorageType.DEVICE,
-                block_size=tool_tracking_postprocessor_block_size,
-                num_blocks=tool_tracking_postprocessor_num_blocks,
-            ),
+            name="device_allocator",
+            storage_type=MemoryStorageType.DEVICE,
+            block_size=tool_tracking_postprocessor_block_size,
+            num_blocks=tool_tracking_postprocessor_num_blocks,
         )
+        if self.postprocessor == "slang_shader":
+            tool_tracking_postprocessor = SlangShaderOp(
+                self,
+                name="slang_postprocessor",
+                shader_source_file=os.path.join(os.path.dirname(__file__), "postprocessor.slang"),
+                allocator=postprocessor_allocator,
+            )
+        elif self.postprocessor == "tool_tracking_postprocessor":
+            tool_tracking_postprocessor = ToolTrackingPostprocessorOp(
+                self,
+                name="tool_tracking_postprocessor",
+                device_allocator=postprocessor_allocator,
+            )
+        else:
+            raise ValueError(f"Invalid postprocessor: {self.postprocessor}")
 
         visualizer_allocator = None
         should_use_allocator = record_type == "visualizer" and self.source == "replayer"
@@ -413,6 +429,13 @@ if __name__ == "__main__":
         ),
     )
     parser.add_argument(
+        "-p",
+        "--postprocessor",
+        choices=["slang_shader", "tool_tracking_postprocessor"],
+        default="tool_tracking_postprocessor",
+        help=("The postprocessor to use for tool tracking (default: %(default)s)."),
+    )
+    parser.add_argument(
         "-c",
         "--config",
         default="none",
@@ -443,6 +466,11 @@ if __name__ == "__main__":
             f"Data path '{args.data}' does not exist. Use --data or set HOLOSCAN_INPUT_PATH environment variable."
         )
 
-    app = EndoscopyApp(record_type=record_type, source=args.source, data=args.data)
+    app = EndoscopyApp(
+        record_type=record_type,
+        source=args.source,
+        data=args.data,
+        postprocessor=args.postprocessor,
+    )
     app.config(config_file)
     app.run()
