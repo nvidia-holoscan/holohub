@@ -14049,9 +14049,16 @@ python3<span class="w"> </span>&lt;HOLOHUB_SOURCE_DIR&gt;/applications/endoscopy
 python3<span class="w">  </span>&lt;HOLOHUB_SOURCE_DIR&gt;/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py<span class="w"> </span>--source<span class="o">=</span>yuan
 </code></pre></div></p>
 </li>
-<li>Using an AJA card with hardware keying overlay (Only specific cards support this feature)
+<li>
+<p>Using an AJA card with hardware keying overlay (Only specific cards support this feature)
     <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja&quot;</span>
-</code></pre></div></li>
+</code></pre></div></p>
+</li>
+<li>
+<p>Using the Slang shader operator for post-processing
+    <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-p=slang_shader&quot;</span>
+</code></pre></div></p>
+</li>
 </ul>
 
 

@@ -13986,9 +13986,60 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#compute-grid-attributes" class="md-nav__link">
+  <a href="#compute-invocations" class="md-nav__link">
     <span class="md-ellipsis">
-      Compute Grid Attributes
+      Compute Invocations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#port-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      Port names
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Port names">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-simple-resource-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Simple Resource Name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-tensor-map-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Tensor Map Reference
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-resource-with-swizzle-for-allocation-or-invocations-size-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Resource with Swizzle (for allocation or invocations size attributes)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
     </span>
   </a>
   
@@ -14158,6 +14209,30 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running Tests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#contributing" class="md-nav__link">
     <span class="md-ellipsis">
       Contributing
@@ -14276,17 +14351,17 @@
 <span class="n">shader_source</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">import holoscan</span>
 
-<span class="s2">[holoscan_input(&quot;input_data&quot;)]</span>
+<span class="s2">[holoscan::input(&quot;input_data&quot;)]</span>
 <span class="s2">StructuredBuffer&lt;float&gt; input_buffer;</span>
 
-<span class="s2">[holoscan_output(&quot;output_data&quot;)]</span>
+<span class="s2">[holoscan::output(&quot;output_data&quot;)]</span>
 <span class="s2">RWStructuredBuffer&lt;float&gt; output_buffer;</span>
 
-<span class="s2">[holoscan_parameter(&quot;scale_factor&quot;)]</span>
+<span class="s2">[holoscan::parameter(&quot;scale_factor&quot;)]</span>
 <span class="s2">float scale;</span>
 
 <span class="s2">[numthreads(256, 1, 1)]</span>
-<span class="s2">[holoscan_grid_size_of(&quot;input_data&quot;)]</span>
+<span class="s2">[holoscan::invocations::size_of(&quot;input_data&quot;)]</span>
 <span class="s2">void main(uint3 tid : SV_DispatchThreadID) {</span>
 <span class="s2">    output_buffer[tid.x] = input_buffer[tid.x] * scale;</span>
 <span class="s2">}</span>
@@ -14303,20 +14378,54 @@
 <p>The SlangShaderOp uses special attributes to define how shader parameters interact with Holoscan:</p>
 <h4 id="inputoutput-attributes">Input/Output Attributes<a class="headerlink" href="#inputoutput-attributes" title="Permanent link">#</a></h4>
 <ul>
-<li><code>[holoscan_input("port_name")]</code>: Marks a structured buffer as an input port</li>
-<li><code>[holoscan_output("port_name")]</code>: Marks a structured buffer as an output port</li>
-<li><code>[holoscan_alloc_size_of("port_name")]</code>: Specifies allocation size based on input port</li>
+<li><code>[holoscan::input("port_name")]</code>: Marks a structured buffer as an input port</li>
+<li><code>[holoscan::output("port_name")]</code>: Marks a structured buffer as an output port</li>
+<li><code>[holoscan::alloc::size_of("port_name")]</code>: Specifies allocation size based on input port</li>
+<li><code>[holoscan::alloc(x, y, z)]</code>: Specifies allocation size</li>
+<li><code>[holoscan::zeros()]</code>: Initializes a buffer to zero</li>
 </ul>
 <h4 id="parameter-attributes">Parameter Attributes<a class="headerlink" href="#parameter-attributes" title="Permanent link">#</a></h4>
 <ul>
-<li><code>[holoscan_parameter("param_name")]</code>: Marks a scalar as a configurable parameter</li>
-<li><code>[holoscan_size_of("port_name")]</code>: Provides size information from input port</li>
+<li><code>[holoscan::parameter("param_name")]</code>: Marks a scalar as a configurable parameter</li>
+<li><code>[holoscan::size_of("port_name")]</code>: Provides size information from input port</li>
+<li><code>[holoscan::strides_of("port_name")]</code>: Provides stride information from input port</li>
 </ul>
-<h4 id="compute-grid-attributes">Compute Grid Attributes<a class="headerlink" href="#compute-grid-attributes" title="Permanent link">#</a></h4>
+<h4 id="compute-invocations">Compute Invocations<a class="headerlink" href="#compute-invocations" title="Permanent link">#</a></h4>
 <ul>
-<li><code>[holoscan_grid_size_of("port_name")]</code>: Sets grid size based on input tensor dimensions</li>
-<li><code>[holoscan_grid_size(x, y, z)]</code>: Sets fixed grid dimensions</li>
+<li><code>[holoscan::invocations::size_of("port_name")]</code>: Sets invocations based on input tensor dimensions</li>
+<li><code>[holoscan::invocations(x, y, z)]</code>: Sets fixed invocations</li>
 </ul>
+<h3 id="port-names">Port names<a class="headerlink" href="#port-names" title="Permanent link">#</a></h3>
+<p>Port names in Holoscan attributes follow a specific format to identify and bind resources to shader variables. The name string can take several forms:</p>
+<h4 id="1-simple-resource-name">1. Simple Resource Name<a class="headerlink" href="#1-simple-resource-name" title="Permanent link">#</a></h4>
+<ul>
+<li><strong>Format</strong>: <code>"resource_name"</code></li>
+<li><strong>Example</strong>: <code>"input_buffer"</code>, <code>"output_tensor"</code></li>
+<li><strong>Usage</strong>: Used when referencing a single resource directly</li>
+</ul>
+<h4 id="2-tensor-map-reference">2. Tensor Map Reference<a class="headerlink" href="#2-tensor-map-reference" title="Permanent link">#</a></h4>
+<ul>
+<li><strong>Format</strong>: <code>"tensor_map_name:tensor_name"</code></li>
+<li><strong>Example</strong>: <code>"model:weights"</code>, <code>"data:input_image"</code></li>
+<li><strong>Usage</strong>: Used when the resource is part of a named tensor map, where the part before the colon identifies the tensor map and the part after identifies the specific tensor within that map</li>
+</ul>
+<h4 id="3-resource-with-swizzle-for-allocation-or-invocations-size-attributes">3. Resource with Swizzle (for allocation or invocations size attributes)<a class="headerlink" href="#3-resource-with-swizzle-for-allocation-or-invocations-size-attributes" title="Permanent link">#</a></h4>
+<ul>
+<li><strong>Format</strong>: <code>"resource_name.swizzle_string"</code> or <code>"tensor_map_name:tensor_name.swizzle_string"</code></li>
+<li><strong>Example</strong>: <code>"input_tensor.cx"</code>, <code>"output_buffer.xy"</code>, <code>"data:input_image.xy"</code></li>
+<li><strong>Usage</strong>: The swizzle string selects specific dimensions of the resource for size matching</li>
+<li><strong>Allowed characters</strong>: <code>"x"</code>, <code>"y"</code>, <code>"z"</code>, <code>"c"</code>, <code>"0"</code> - <code>"9"</code></li>
+<li><code>"x"</code>, <code>"y"</code>, <code>"z"</code>: Select specific dimensions</li>
+<li><code>"c"</code>: Component count</li>
+<li><code>"0"</code> - <code>"9"</code>: Static values</li>
+</ul>
+<h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code>[holoscan::input(&quot;input_data&quot;)]           // Binds to a resource named &quot;input_data&quot;
+[holoscan::output(&quot;model:output&quot;)]        // Binds to the &quot;output&quot; tensor in the &quot;model&quot; tensor map
+[holoscan::alloc::size_of(&quot;input_tensor.cx&quot;)]  // Allocates based on the x dimension and component count of &quot;input_tensor&quot;
+[holoscan::alloc::size_of(&quot;buffer:coords.xyz&quot;)]       // Allocates based on x, y, z dimensions of &quot;buffer:coords&quot;
+[holoscan::invocations::size_of(&quot;image.cxy&quot;)]  // Sets invocations based on x, y dimensions and component count
+</code></pre></div>
 <h3 id="supported-data-types">Supported Data Types<a class="headerlink" href="#supported-data-types" title="Permanent link">#</a></h3>
 <h4 id="scalar-parameters">Scalar Parameters<a class="headerlink" href="#scalar-parameters" title="Permanent link">#</a></h4>
 <ul>
@@ -14333,20 +14442,20 @@
 <div class="highlight"><pre><span></span><code>import holoscan
 
 // Simple image processing shader
-[holoscan_input(&quot;input_image&quot;)]
+[holoscan::input(&quot;input_image&quot;)]
 StructuredBuffer&lt;float4&gt; input_image;
 
-[holoscan_output(&quot;output_image&quot;)]
+[holoscan::output(&quot;output_image&quot;)]
 RWStructuredBuffer&lt;float4&gt; output_image;
 
-[holoscan_parameter(&quot;brightness&quot;)]
+[holoscan::parameter(&quot;brightness&quot;)]
 float brightness;
 
-[holoscan_size_of(&quot;input_image&quot;)]
+[holoscan::size_of(&quot;input_image&quot;)]
 int3 image_size;
 
 [numthreads(16, 16, 1)]
-[holoscan_grid_size_of(&quot;input_image&quot;)]
+[holoscan::invocations::size_of(&quot;input_image&quot;)]
 void main(uint3 tid : SV_DispatchThreadID) {
     uint index = tid.y * image_size.x + tid.x;
     float4 pixel = input_image[index];
@@ -14400,8 +14509,10 @@ void main(uint3 tid : SV_DispatchThreadID) {
 <li><strong><code>CommandOutput</code></strong>: Handles output port data emission</li>
 <li><strong><code>CommandParameter</code></strong>: Manages scalar parameter binding</li>
 <li><strong><code>CommandSizeOf</code></strong>: Provides size information to shaders</li>
-<li><strong><code>CommandAllocSizeOf</code></strong>: Handles dynamic allocation sizing</li>
+<li><strong><code>CommandStrideOf</code></strong>: Provides stride information to shaders</li>
+<li><strong><code>CommandAlloc</code></strong>: Handles resource allocation</li>
 <li><strong><code>CommandLaunch</code></strong>: Executes CUDA kernels</li>
+<li><strong><code>CommandZeros</code></strong>: Initializes a buffer with zeros</li>
 </ul>
 <h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">#</a></h2>
 <p>The operator provides comprehensive error handling:</p>
@@ -14437,6 +14548,11 @@ void main(uint3 tid : SV_DispatchThreadID) {
 <p>Enable debug logging to see detailed execution information:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">#</a></h2>
+<p>The SlangShaderOp includes comprehensive testing to ensure reliability and correctness across different use cases and platforms.</p>
+<h3 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>slang_simple
 </code></pre></div>
 <h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">#</a></h2>
 <p>The SlangShaderOp is part of the HoloHub project. Contributions are welcome through the standard HoloHub contribution process.</p>

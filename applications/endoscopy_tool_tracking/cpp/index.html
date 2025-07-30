@@ -14057,14 +14057,24 @@ sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><
 applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 </code></pre></div></p>
 </li>
-<li>Using a Yuan card
+<li>
+<p>Using a Yuan card
     <div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;/^#.*yuan_qcap/s/^#//&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
 sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: yuan#&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
 applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
-</code></pre></div></li>
-<li>Using an AJA card with hardware keying overlay (Only specific cards support this feature)
+</code></pre></div></p>
+</li>
+<li>
+<p>Using an AJA card with hardware keying overlay (Only specific cards support this feature)
     <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span>-capplications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_aja_overlay.yaml
-</code></pre></div></li>
+</code></pre></div></p>
+</li>
+<li>
+<p>Using the Slang shader operator for post-processing
+    <div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^postprocessor:.*#postprocessor: slang_shader#&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
+</code></pre></div></p>
+</li>
 </ul>
 
 
