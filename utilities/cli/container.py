@@ -432,7 +432,7 @@ class HoloHubContainer:
         cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
         cmd.extend(self.get_pythonpath_options(local_sdk_root, img))
 
-        if local_sdk_root:
+        if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
 
         if docker_opts:
@@ -593,9 +593,10 @@ class HoloHubContainer:
     ) -> List[str]:
         """Get PYTHONPATH configuration"""
         benchmarking_path = "/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
-        if local_sdk_root:
-            build_dir = find_hsdk_build_rel_dir(local_sdk_root)
-            sdk_paths = f"/workspace/holoscan-sdk/{build_dir}/python/lib:{benchmarking_path}"
+
+        if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
+            sdk_dir = find_hsdk_build_rel_dir(local_sdk_root)
+            sdk_paths = f"/workspace/holoscan-sdk/{sdk_dir}/python/lib:{benchmarking_path}"
         else:
             sdk_paths = f"/opt/nvidia/holoscan/python/lib:{benchmarking_path}"
         all_paths = []
