@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,7 @@
 
 import os
 import sys
+from typing import List
 
 import torch
 from torchvision.models import ResNet50_Weights, detection
@@ -34,6 +35,25 @@ det_model = detection.fasterrcnn_resnet50_fpn(
     weights_backbone=ResNet50_Weights.DEFAULT,
 ).to(DEVICE)
 
+
+# Wraps the model to incorporate a permutation operation.
+# Holoscan expects the input to be in the format [H, W, C] while the model expects [C, H, W]
+class RCNNWrapper(torch.nn.Module):
+    def __init__(self, det_model: torch.nn.Module):
+        super().__init__()
+        self.model = det_model
+
+    def forward(self, x: List[torch.Tensor]):
+        # Move input to model device and permute to expected format
+        img = x[0]
+        if img.shape[0] == 3:
+            y = x
+        else:
+            y = [x[0].permute(2, 0, 1)]
+        result = self.model(y)
+        return result
+
+
 det_model.eval()
-det_model_script = torch.jit.script(det_model)
+det_model_script = torch.jit.script(RCNNWrapper(det_model))
 det_model_script.save(model_file)

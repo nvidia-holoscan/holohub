@@ -13,11 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
 inference:
   input_nodes:
-    input:
-      dim: "3 1080 1920"
+    detect_preprocessed:
+      dim: "1080 1920 3"
       dtype: kFloat32
   output_nodes:
     boxes:
@@ -26,3 +25,6 @@ inference:
       dtype: kInt64
     scores:
       dtype: kFloat32
+  input_format: [["detect_preprocessed"]]
+  output_format: [null, [{"boxes": "boxes", "labels": "labels", "scores": "scores"}]]
+
