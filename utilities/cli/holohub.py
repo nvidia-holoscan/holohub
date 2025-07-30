@@ -904,6 +904,10 @@ class HoloHubCLI:
             print(f"Running {args.project} in '{mode_name}' mode")
 
         if is_local_mode:
+            if args.docker_opts:
+                holohub_cli_util.fatal(
+                    "Container arguments were provided with `--docker-opts` but a non-containerized build was requested."
+                )
             if skip_local_build:
                 # Skip building, but still need project metadata and build directory
                 project_data = self.find_project(
