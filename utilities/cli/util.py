@@ -310,6 +310,99 @@ def get_host_gpu() -> str:
     return "dgpu"
 
 
+def get_host_arch() -> str:
+    """Get host architecture"""
+    machine = platform.machine().lower()
+    if machine in ["x86_64", "amd64"]:
+        return "x86_64"
+    if machine in ["aarch64", "arm64"]:
+        return "aarch64"
+    return machine
+
+
+def get_arch_gpu_str() -> str:
+    """Get architecture+GPU string like bash get_arch+gpu_str()"""
+    arch = get_host_arch()
+    if arch == "aarch64":
+        gpu = get_host_gpu()
+        return f"{arch}-{gpu}"
+    return arch
+
+
+def _is_valid_sdk_installation(path: Union[str, Path]) -> bool:
+    """
+    Validate if a directory contains a valid Holoscan SDK installation.
+    """
+    path = Path(path) if isinstance(path, str) else path
+    if not path.exists() or not path.is_dir() or not (path / "lib").exists():
+        return False
+    # Check for at least one of these to confirm it's a Holoscan SDK
+    return (path / "lib" / "cmake" / "holoscan" / "holoscan-config.cmake").exists() or (
+        path / "lib" / "cmake" / "holoscan" / "HoloscanConfig.cmake"
+    ).exists()
+
+
+def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -> str:
+    """
+    Find a suitable SDK installation or build directory.
+    https://github.com/nvidia-holoscan/holoscan-sdk/blob/9c5b3c3d4831f2e65ebda6b79ae9b1c5517c6a7c/run#L226-L228
+
+    Search order:
+    1. Direct SDK installation directory
+    2. Environment variable `HOLOSCAN_SDK_ROOT` SDK root directory
+    3. Assuming the direct or env var is the src code root, searching for immediate subdirectories:
+        3.1 Install directory (prefer)
+        3.2 Build directory (fallback)
+
+    Args:
+        local_sdk_root: Path to SDK root directory, or direct SDK installation/build directory
+
+    Returns:
+        Relative path to the SDK directory from the root, or absolute path if passed directly
+    """
+    search_paths = []
+
+    # Handle user-provided path
+    if local_sdk_root:
+        local_sdk_root = Path(local_sdk_root) if isinstance(local_sdk_root, str) else local_sdk_root
+        if local_sdk_root.exists():
+            # Check if this is a direct SDK installation directory
+            if _is_valid_sdk_installation(local_sdk_root):
+                return str(local_sdk_root)
+            else:
+                # Treat as SDK root directory to search
+                search_paths.append(local_sdk_root)
+
+    # Add environment variable path
+    if os.environ.get("HOLOSCAN_SDK_ROOT"):
+        env_path = Path(os.environ["HOLOSCAN_SDK_ROOT"])
+        if env_path.exists():
+            if _is_valid_sdk_installation(env_path):
+                return str(env_path)
+            else:
+                search_paths.append(env_path)
+
+    # Search within SDK root directories
+    arch_gpu = get_arch_gpu_str()
+    for sdk_path in search_paths:
+        for install_dir in [f"install-{arch_gpu}", "install"]:
+            if _is_valid_sdk_installation(sdk_path / install_dir):
+                return install_dir
+        for install_dir in sorted([d.name for d in sdk_path.glob("install-*") if d.is_dir()]):
+            if _is_valid_sdk_installation(sdk_path / install_dir):
+                return install_dir
+        for build_dir in [f"build-{arch_gpu}", "build"]:
+            if _is_valid_sdk_installation(sdk_path / build_dir):
+                return build_dir
+        for build_dir in sorted([d.name for d in sdk_path.glob("build-*") if d.is_dir()]):
+            if _is_valid_sdk_installation(sdk_path / build_dir):
+                return build_dir
+    info(
+        f"Valid SDK installation not found. Looking for 'install-{arch_gpu}' or 'build-{arch_gpu}'."
+    )
+    return f"build-{arch_gpu}"
+
+
 def get_compute_capacity() -> str:
     """Get GPU compute capacity"""
     if not shutil.which("nvidia-smi"):
