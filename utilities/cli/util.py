@@ -312,7 +312,7 @@ def get_host_gpu() -> str:
 
 def get_host_arch() -> str:
     """Get host architecture"""
-    machine = platform.machine()
+    machine = platform.machine().lower()
     if machine in ["x86_64", "amd64"]:
         return "x86_64"
     if machine in ["aarch64", "arm64"]:
