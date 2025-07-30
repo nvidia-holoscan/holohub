@@ -383,8 +383,8 @@ def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -
                 search_paths.append(env_path)
 
     # Search within SDK root directories
+    arch_gpu = get_arch_gpu_str()
     for sdk_path in search_paths:
-        arch_gpu = get_arch_gpu_str()
         for install_dir in [f"install-{arch_gpu}", "install"]:
             if _is_valid_sdk_installation(sdk_path / install_dir):
                 return install_dir
