@@ -1066,10 +1066,7 @@ class HoloHubCLI:
             run_cmd = f"{self.script_name} run {args.project}"
             if mode_name:
                 run_cmd += f" {mode_name}"
-            run_cmd += f" --language {language}"
-            # Only add --local if we're not in a nested container scenario
-            if not (mode_config and "run" in mode_config and "docker_args" in mode_config["run"]):
-                run_cmd += " --local"
+            run_cmd += f" --language {language} --local"
             if args.verbose:
                 run_cmd += " --verbose"
             if args.build_type:
