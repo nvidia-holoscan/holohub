@@ -523,22 +523,40 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
     if component_type == metadata_rel_path.parts[0]:
         components[component_type].add(language_agnostic_dir)
 
+    # Process the README content and extract title
+    readme_text = ""
+    readme_title = metadata["name"] if "name" in metadata else metadata_path.name
+
+    if readme_path.exists():
+        with readme_path.open("r") as readme_file:
+            readme_text = readme_file.read()
+
+        # Extract title from README content
+        header_info = extract_markdown_header(readme_text)
+        if header_info:
+            readme_title = header_info[1]  # header_text from the tuple
+    else:
+        logger.warning(f"No README available for {metadata_path}")
+        readme_text = f"# {readme_title}\n\nNo documentation found."
+
     # Prepare suffix with language info if it's a language-specific component
     suffix = ""
     if readme_dir == metadata_dir and nbr_language_dirs > 1:
         suffix = "C++" if metadata_dir.name == "cpp" else f"{metadata_dir.name.capitalize()}"
         suffix = f" ({suffix})"
     logger.debug(f"suffix: {suffix}")
-    title = metadata["name"] if "name" in metadata else metadata_path.name
-    title += suffix
 
-    # Process the README content
-    readme_text = f"# {title}\n\nNo documentation found."
-    if readme_path.exists():
-        with readme_path.open("r") as readme_file:
-            readme_text = readme_file.read()
-    else:
-        logger.warning(f"No README available for {metadata_path}")
+    # Create the title
+    # strip the common name from the end of the title ("Operator", "Operators", "Op", "Application", "App", "Workflow", "Benchmark")
+    title = (
+        re.sub(
+            r"(Operator|Operators|Op|Application|App|Workflow)\b",
+            "",
+            readme_title,
+            flags=re.IGNORECASE,
+        ).strip()
+        + suffix
+    )
 
     # Generate page
     dest_path = dest_dir / "README.md"
