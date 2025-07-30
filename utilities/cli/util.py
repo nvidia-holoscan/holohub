@@ -329,7 +329,7 @@ def get_arch_gpu_str() -> str:
     return arch
 
 
-def find_build_dir(local_sdk_root: Optional[Union[str, Path]] = None) -> str:
+def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -> str:
     """
     find a suitable build directory in the SDK root
     https://github.com/nvidia-holoscan/holoscan-sdk/blob/9c5b3c3d4831f2e65ebda6b79ae9b1c5517c6a7c/run#L226-L228
