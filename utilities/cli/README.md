@@ -135,7 +135,7 @@ The new CLI introduces development lifecycle features:
 ./holohub env-info
 ```
 
-### **Application Modes**
+### Application Modes
 HoloHub applications with a 'modes' field in their `metadata.json` now support multiple **modes** - pre-configured setups for different use cases, hardware configurations, or deployment scenarios. This eliminates the need to remember complex command-line arguments for different use cases.
 
 #### **Understanding Modes**
