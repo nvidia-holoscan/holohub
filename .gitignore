@@ -31,6 +31,7 @@ ci/
 # Development environment
 .venv/
 .vscode-server/
+.vscode/
 ngc-cli/
 CTestConfig.cmake
 .ngc
