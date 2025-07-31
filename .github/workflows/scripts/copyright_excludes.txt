@@ -19,10 +19,12 @@ operators/vita49_psd_packetizer/
 operators/orsi/orsi_visualizer/lib/
 operators/low_rate_psd/
 operators/prohawk_video_processing/FindProhawk.cmake
+operators/iio_controller/
 applications/psd_pipeline
 applications/deltacast_transmitter
 applications/volume_rendering_xr/.devcontainer/library-scripts/common-debian.sh
 applications/template
 applications/ehr_query_llm/fhir/__main__.py
 applications/pva_video_filter/cpp/CMakeLists.txt
+applications/iio/
 build
