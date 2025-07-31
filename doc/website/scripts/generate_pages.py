@@ -520,8 +520,10 @@ def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) ->
     # Ex:
     # - don't track operators under application folders
     # - only track once for cpp and python
+    # - don't track metadata.json in parent directories of multiple operators
     if component_type == metadata_rel_path.parts[0]:
-        components[component_type].add(language_agnostic_dir)
+        if "Operators" not in metadata["name"]:
+            components[component_type].add(language_agnostic_dir)
 
     # Process the README content and extract title
     readme_text = ""
