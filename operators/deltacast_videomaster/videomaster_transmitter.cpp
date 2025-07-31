@@ -76,7 +76,6 @@ void VideoMasterTransmitterOp::setup(OperatorSpec& spec) {
              true);
   spec.param(_framerate, "framerate", "Framerate", "Framerate of the signal to generate.", 60u);
   spec.param(_source, "source", "Source", "Source data.", &source);
-  spec.param(_pool, "pool", "Pool", "Pool to allocate the buffers.");
   spec.param(_overlay,
              "enable_overlay",
              "EnableOverlay",
