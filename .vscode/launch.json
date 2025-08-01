@@ -721,6 +721,34 @@
             }
         },
         //#endregion florence-2-vision
+        //#region gamma_correction
+        {
+            "name": "(gdb) gamma_correction_op test",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build slang_simple",
+            "program": "${workspaceFolder}/build/slang_simple/operators/gamma_correction/test/gamma_correction_test",
+            "args": [
+                "--gtest_filter=*"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/slang_simple/operators/gamma_correction/test/",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "gamma_correction",
+                "order": 1
+            }
+        },
+        //#endregion gamma_correction
         //#region h264_endoscopy_tool_tracking
         {
             "name": "(gdb) h264_endoscopy_tool_tracking/cpp",

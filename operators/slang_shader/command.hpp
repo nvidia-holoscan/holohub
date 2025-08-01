@@ -61,16 +61,31 @@ class CommandWorkspace {
     bool has_been_emitted_ = false;
   };
 
-  std::map<std::string, PortInfo> port_info_;  ///< Mapping of port names to port information
+  /**
+   * @brief Mapping of port names to port information
+   *
+   * This map is used to store information about input and output ports. This will be filled when
+   * input and alloc commands are executed.
+   */
+  std::map<std::string, std::unique_ptr<PortInfo>> port_info_;
 
   std::vector<uint8_t> shader_parameters_;  ///< Buffer for shader parameter data
 
   /// Resource information
   struct ResourceInfo {
-    void* pointer = nullptr;
-    size_t size = 0;
+    PortInfo* port_info_ = nullptr;
+    void* pointer_ = nullptr;
+    size_t size_ = 0;
   };
 
+  /**
+   * @brief Mapping of resource names to CUDA resource information
+   *
+   * This map is used to store information about CUDA resources, including the port information,
+   * pointer, and size. This will be filled when input and alloc commands are executed.
+   * It is used on output commands to get the pointer to the port info and on the zeros command to
+   * get the pointer to the CUDA resource.
+   */
   std::map<std::string, ResourceInfo>
       cuda_resource_pointers_;  ///< Mapping of resource names to CUDA resource information
 
