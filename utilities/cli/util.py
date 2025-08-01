@@ -1109,6 +1109,16 @@ def collect_env_info() -> None:
     collect_environment_variables()
 
 
+def normalize_args_str(args):
+    """Convert arguments to string format, handling both string and array inputs"""
+    if isinstance(args, str):
+        return os.path.expandvars(args)
+    elif isinstance(args, list):
+        expanded_args = [os.path.expandvars(arg) for arg in args]
+        return " ".join(expanded_args)
+    return ""
+
+
 def get_ubuntu_codename() -> str:
     """Get Ubuntu codename from os-release"""
     try:
