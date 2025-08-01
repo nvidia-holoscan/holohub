@@ -41,15 +41,15 @@ FilesToCheck = [
 ExemptFiles = []
 
 CheckSPDXWithCopyright = re.compile(
-    r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright(?: \(c\))? *(\d{4})(?:-(\d{4}))?,? (.+?)\.?",
+    r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright(?: \(c\))? *(\d{4})(?:-(\d{4}))?,? ([\w\s&.,'-]+)\.?",
     re.MULTILINE | re.DOTALL | re.IGNORECASE,
 )
 CheckSPDXREUSE = re.compile(
-    r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: *(\d{4})(?:-(\d{4}))? (.+)",
+    r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: *(\d{4})(?:-(\d{4}))? ([\w\s&.,@<>'-]+)",
     re.MULTILINE | re.DOTALL | re.IGNORECASE,
 )
 CheckNonSPDX = re.compile(
-    r"(^|\s*[#*/*]\s*)?Copyright(?: \(c\))? *(\d{4})(?:-(\d{4}))?,? (.+?)\.?",
+    r"(^|\s*[#*/*]\s*)?Copyright(?: \(c\))? *(\d{4})(?:-(\d{4}))?,? ([\w\s&.,'-]+)\.?",
     re.MULTILINE | re.DOTALL | re.IGNORECASE,
 )
 
