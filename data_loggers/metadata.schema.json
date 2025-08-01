@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "holohub/data_logger/v1",
+  "type": "object",
+  "properties": {
+    "data_logger": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "holohub/project/v1#/$defs/name"
+        },
+        "description": {
+          "$ref": "holohub/project/v1#/$defs/description"
+        },
+        "authors": {
+          "$ref": "holohub/project/v1#/$defs/authors"
+        },
+        "version": {
+          "$ref": "holohub/project/v1#/$defs/version"
+        },
+        "changelog": {
+          "$ref": "holohub/project/v1#/$defs/changelog"
+        },
+        "language": {
+          "$ref": "holohub/project/v1#/$defs/multi_language"
+        },
+        "platforms": {
+          "$ref": "holohub/project/v1#/$defs/platforms"
+        },
+        "tags": {
+          "$ref": "holohub/project/v1#/$defs/tags"
+        },
+        "holoscan_sdk": {
+          "$ref": "holohub/project/v1#/$defs/sdk_version"
+        },
+        "ranking": {
+          "$ref": "holohub/project/v1#/$defs/ranking"
+        },
+        "dependencies": {
+          "$ref": "holohub/project/v1#/$defs/dependencies"
+        }
+      },
+      "required": [
+        "name",
+        "authors",
+        "version",
+        "changelog",
+        "language",
+        "platforms",
+        "tags",
+        "holoscan_sdk",
+        "ranking",
+        "dependencies"
+      ]
+    }
+  },
+  "required": [
+    "data_logger"
+  ]
+}

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,6 +48,7 @@
 #   EXTENSIONS: List of GXF extensions that this package depends on
 #   OPERATORS: List of Holoscan operators that this package depends on
 #   APPLICATIONS: List of applications that this package depends on
+#   DATA_LOGGERS: List of Holoscan data loggers that this package depends on
 #
 # Creates:
 #   PKG_${NAME}: CMake option to enable/disable this package
@@ -71,15 +72,19 @@ function(add_holohub_package NAME)
   add_subdirectory(${NAME})
 
   # If we have dependencies make sure they are built
-  cmake_parse_arguments(DEPS "" "" "EXTENSIONS;OPERATORS;APPLICATIONS" ${ARGN})
+  cmake_parse_arguments(DEPS "" "" "EXTENSIONS;OPERATORS;APPLICATIONS;DATA_LOGGERS" ${ARGN})
   message(DEBUG "${pkgname} exts = ${DEPS_EXTENSIONS}")
   message(DEBUG "${pkgname} ops = ${DEPS_OPERATORS}")
+  message(DEBUG "${pkgname} data_loggers = ${DEPS_DATA_LOGGERS}")
   message(DEBUG "${pkgname} apps = ${DEPS_APPLICATIONS}")
   foreach(dep IN LISTS DEPS_EXTENSIONS)
     set("EXT_${dep}" ON CACHE BOOL "Build the ${dep} GXF extension" FORCE)
   endforeach()
   foreach(dep IN LISTS DEPS_OPERATORS)
     set("OP_${dep}" ON CACHE BOOL "Build the ${dep} holoscan operator" FORCE)
+  endforeach()
+  foreach(dep IN LISTS DEPS_DATA_LOGGERS)
+    set("DATA_LOGGER_${dep}" ON CACHE BOOL "Build the ${dep} holoscan data logger" FORCE)
   endforeach()
   foreach(dep IN LISTS DEPS_APPLICATIONS)
     set("APP_${dep}" ON CACHE BOOL "Build the ${dep} application" FORCE)
@@ -100,6 +105,7 @@ endfunction()
 #     EXTENSIONS: List of GXF extensions that this application depends on
 #     OPERATORS: List of Holoscan operators that this application depends on
 #               Use "OPTIONAL" keyword to make subsequent operators optional
+#     DATA_LOGGERS: List of Holoscan data loggers that this package depends on
 #
 # Creates:
 #   APP_${NAME}: CMake option to enable/disable this application
@@ -109,6 +115,7 @@ endfunction()
 #     DEPENDS
 #       EXTENSIONS gxf_core gxf_serialization
 #       OPERATORS required_op OPTIONAL optional_op1 optional_op2
+#       DATA_LOGGERS logger1
 #   )
 function(add_holohub_application NAME)
 
@@ -122,7 +129,7 @@ function(add_holohub_application NAME)
 
     # If we have dependencies make sure they are built
     if(APP_DEPENDS)
-      cmake_parse_arguments(DEPS "" "" "EXTENSIONS;OPERATORS" ${APP_DEPENDS})
+      cmake_parse_arguments(DEPS "" "" "EXTENSIONS;OPERATORS;DATA_LOGGERS" ${APP_DEPENDS})
 
       foreach(dependency IN LISTS DEPS_EXTENSIONS)
         set("EXT_${dependency}" ON CACHE BOOL "Build the ${dependency}" FORCE)
@@ -145,6 +152,10 @@ function(add_holohub_application NAME)
         else()
           set("OP_${dependency}" ON CACHE BOOL "Build the ${dependency}" FORCE)
         endif()
+      endforeach()
+
+      foreach(dependency IN LISTS DEPS_DATA_LOGGERS)
+        set("DATA_LOGGER_${dependency}" ON CACHE BOOL "Build the ${dependency}" FORCE)
       endforeach()
     endif()
 
@@ -195,6 +206,29 @@ function(add_holohub_operator NAME)
 endfunction()
 
 # =====================================================
+# Helper function to build data loggers
+# =====================================================
+# Builds a Holoscan data logger
+#
+# Parameters:
+#   NAME: The name of the data logger to build
+#
+# Creates:
+#   DATA_LOGGER_${NAME}: CMake option to enable/disable this data logger
+#
+# Example:
+#   add_holohub_data_logger(my_logger)
+function(add_holohub_data_logger NAME)
+  set(loggername "DATA_LOGGER_${NAME}")
+  option(${loggername} "Build the ${NAME} data logger" ${BUILD_ALL})
+
+  if(${loggername})
+    add_subdirectory(${NAME})
+  endif()
+endfunction()
+
+
+
 # Helper function to build extensions
 # =====================================================
 # Builds a GXF extension. This is the simplest helper function with no dependencies.
