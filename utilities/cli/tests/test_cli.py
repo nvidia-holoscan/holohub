@@ -831,15 +831,15 @@ exec {holohub_script} "$@"
         mock_args = Namespace(run_args="", docker_opts="--net host")
         enhanced = self.cli.get_effective_run_config(mock_args, mode_config)
         self.assertEqual(enhanced["run_args"], "")  # CLI run_args
-        # Note: run config doesn't have docker_args, so CLI docker_opts should be preserved
+        # Note: run config doesn't have docker_run_args, so CLI docker_opts should be preserved
         self.assertEqual(enhanced["docker_opts"], "--net host")
 
-        # Test run config with docker_args replacement
+        # Test run config with docker_run_args replacement
         mode_config_with_docker = {
-            "run": {"command": "python3 app.py", "docker_args": ["--privileged", "--net=host"]}
+            "run": {"command": "python3 app.py", "docker_run_args": ["--privileged", "--net=host"]}
         }
         enhanced = self.cli.get_effective_run_config(mock_args, mode_config_with_docker)
-        # Mode docker_args should replace CLI docker_opts
+        # Mode docker_run_args should replace CLI docker_opts
         self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")
 
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")

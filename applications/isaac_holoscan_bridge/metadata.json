@@ -48,7 +48,7 @@
 				"run": {
 					"command": "python3 <holohub_app_source>/app.py",
 					"workdir": "holohub_bin",
-					"docker_args": [
+					"docker_run_args": [
 						"-u root",
 						"-e ACCEPT_EULA=Y",
 						"-e PRIVACY_CONSENT=Y",

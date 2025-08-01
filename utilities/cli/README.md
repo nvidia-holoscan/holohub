@@ -169,9 +169,9 @@ Examples:
 This ensures mode integrity and prevents conflicting configurations.
 
 **Conflict Rules:**
-- If mode defines `run.docker_args` → Cannot use `--docker-opts`
+- If mode defines `run.docker_run_args` → Cannot use `--docker-opts`
 - If mode defines `build.depends` → Cannot use `--build-with`
-- If mode defines `build.docker_args` → Cannot use `--build-args`
+- If mode defines `build.docker_build_args` → Cannot use `--build-args`
 - If mode defines `build.configure_args` → Cannot use `--configure-args`
 
 #### **For Application Developers**
@@ -204,7 +204,7 @@ Each mode is defined as a named object under the `modes` key:
 
 ##### **Build Configuration Fields (`build` object):**
 - **`depends`** *(array of strings)*: List of operators/dependencies to build with this mode
-- **`docker_args`** *(string or array)*: Docker **build** arguments (equivalent to CLI `--build-args`)
+- **`docker_build_args`** *(string or array)*: Docker **build** arguments (equivalent to CLI `--build-args`)
   - Can be a single string: `"--build-arg CUSTOM=value"`
   - Or an array: `["--build-arg", "CUSTOM=value"]`
 - **`configure_args`** *(array of strings)*: Additional configure arguments (such as cmake flags) to pass to the local build step
@@ -212,7 +212,7 @@ Each mode is defined as a named object under the `modes` key:
 ##### **Run Command Fields (`run` object):**
 - **`command`** *(string)*: Complete command to execute including all arguments
 - **`workdir`** *(string)*: Working directory for command execution
-- **`docker_args`** *(string or array)*: Docker **run** arguments used for both build and application containers (equivalent to CLI `--docker-opts`)
+- **`docker_run_args`** *(string or array)*: Docker **run** arguments used for both build and application containers (equivalent to CLI `--docker-opts`)
   - Can be a single string: `"--privileged --net=host"`
   - Or an array: `["--privileged", "--net=host"]`
   - **Note**: These arguments apply to both the container that builds your application and the container that runs it
@@ -239,13 +239,13 @@ Each mode is defined as a named object under the `modes` key:
         "requirements": ["gpu", "model", "tensorrt"],
         "build": {
           "depends": ["tensorrt_backend", "gpu_ops"],
-          "docker_args": ["--build-arg", "TENSORRT_VERSION=8.6", "--network=host"],
+          "docker_build_args": ["--build-arg", "TENSORRT_VERSION=8.6", "--network=host"],
           "configure_args": ["-DUSE_TENSORRT=ON", "-DCUDA_ARCH=sm_86"]
         },
         "run": {
           "command": "python3 <holohub_app_source>/app.py --backend tensorrt --optimization-level 3",
           "workdir": "holohub_bin",
-          "docker_args": ["--gpus=all", "--shm-size=1g"]
+          "docker_run_args": ["--gpus=all", "--shm-size=1g"]
         }
       },
 
@@ -258,11 +258,11 @@ Each mode is defined as a named object under the `modes` key:
         "run": {
           "command": "python3 <holohub_app_source>/app.py --source=aja --config=overlay.yaml",
           "workdir": "holohub_bin",
-          "docker_args": [
-            "--privileged",
-            "--device=/dev/ajantv2",
-            "-v", "/dev:/dev"
-          ]
+          "docker_run_args": [
+          "--privileged",
+          "--device=/dev/ajantv2",
+          "-v", "/dev:/dev"
+        ]
         }
       }
     }
@@ -282,10 +282,10 @@ For cases where build and run containers need different Docker configurations, y
       "description": "Build production image with network access",
       "build": {
         "depends": ["tensorrt_backend"],
-        "docker_args": ["--build-arg", "REGISTRY_TOKEN=xyz"]
+        "docker_build_args": ["--build-arg", "REGISTRY_TOKEN=xyz"]
       },
       "run": {
-        "docker_args": ["--network=host"],
+        "docker_run_args": ["--network=host"],
         "command": "echo 'Build complete'"
       }
     },
@@ -293,7 +293,7 @@ For cases where build and run containers need different Docker configurations, y
     "production_run": {
       "description": "Run production app with GPU access",
       "run": {
-        "docker_args": ["--gpus=all", "--shm-size=1g"],
+        "docker_run_args": ["--gpus=all", "--shm-size=1g"],
         "command": "python3 <holohub_app_source>/app.py --gpu"
       }
     }
@@ -315,10 +315,10 @@ Both modes automatically share the same Docker image name (`holohub:myapp`), so 
 ##### **Key Points for Mode Development**
 - **Mode names** must match pattern `^[a-zA-Z_][a-zA-Z0-9_]*$` (alphanumeric + underscore, can't start with number)
 - **Docker arguments** can be specified in two places for different purposes:
-  - `build.docker_args`: Docker **build** arguments for container image building (equivalent to CLI `--build-args`)
-  - `run.docker_args`: Docker **run** arguments for both build and application containers (equivalent to CLI `--docker-opts`)
-  - `run.docker_args` apply to both build containers (during compilation) and application containers (during execution)
-  - if `no-docker-build` is specified, `build.docker_args` is ignored
+  - `build.docker_build_args`: Docker **build** arguments for container image building (equivalent to CLI `--build-args`)
+  - `run.docker_run_args`: Docker **run** arguments for both build and application containers (equivalent to CLI `--docker-opts`)
+  - `run.docker_run_args` apply to both build containers (during compilation) and application containers (during execution)
+  - if `no-docker-build` is specified, `build.docker_build_args` is ignored
 - **Path placeholders** like `<holohub_app_source>`, `<holohub_data_dir>` are supported in commands
 - **CLI arguments cannot override** mode-specific configurations - modes are self-contained
 - **CLI arguments are allowed** only for options not defined by the selected mode

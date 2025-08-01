@@ -489,14 +489,14 @@ class HoloHubCLI:
             build_config = mode_config["build"]
             if "depends" in build_config and getattr(args, "with_operators", None):
                 conflicting_params.append("--build-with")
-            if "docker_args" in build_config and getattr(args, "build_args", None):
+            if "docker_build_args" in build_config and getattr(args, "build_args", None):
                 conflicting_params.append("--build-args")
             if "configure_args" in build_config and getattr(args, "configure_args", None):
                 conflicting_params.append("--configure-args")
         # Check run-related parameters
         if "run" in mode_config:
             run_config = mode_config["run"]
-            if "docker_args" in run_config and getattr(args, "docker_opts", None):
+            if "docker_run_args" in run_config and getattr(args, "docker_opts", None):
                 conflicting_params.append("--docker-opts")
         if conflicting_params:
             params_str = ", ".join(conflicting_params)
@@ -522,17 +522,17 @@ class HoloHubCLI:
             if "depends" in build_config:
                 mode_deps = [dep.strip() for dep in build_config["depends"] if dep.strip()]
                 config["with_operators"] = ";".join(mode_deps) if mode_deps else ""
-            if "docker_args" in build_config:
+            if "docker_build_args" in build_config:
                 config["build_args"] = holohub_cli_util.normalize_args_str(
-                    build_config["docker_args"]
+                    build_config["docker_build_args"]
                 )
             if "configure_args" in build_config:
                 config["configure_args"] = build_config["configure_args"]
 
-        # Apply run.docker_args for build container (Docker run arguments)
-        if "run" in mode_config and "docker_args" in mode_config["run"]:
+        # Apply run.docker_run_args for build container (Docker run arguments)
+        if "run" in mode_config and "docker_run_args" in mode_config["run"]:
             config["docker_opts"] = holohub_cli_util.normalize_args_str(
-                mode_config["run"]["docker_args"]
+                mode_config["run"]["docker_run_args"]
             )
 
         return config
@@ -551,9 +551,9 @@ class HoloHubCLI:
                 config["command"] = run_config["command"]
             if "workdir" in run_config:
                 config["workdir"] = run_config["workdir"]
-            if "docker_args" in run_config:
+            if "docker_run_args" in run_config:
                 config["docker_opts"] = holohub_cli_util.normalize_args_str(
-                    run_config["docker_args"]
+                    run_config["docker_run_args"]
                 )
         return config
 

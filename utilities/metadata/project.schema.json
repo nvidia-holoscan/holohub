@@ -172,7 +172,7 @@
           "type": "string",
           "description": "Working directory for command execution"
         },
-        "docker_args": {
+        "docker_run_args": {
           "oneOf": [
             {
               "type": "string",
@@ -202,7 +202,7 @@
             "type": "string"
           }
         },
-        "docker_args": {
+        "docker_build_args": {
           "oneOf": [
             {
               "type": "string",
