@@ -113,7 +113,7 @@ Check to verify that the image is created:
 $ docker images
 REPOSITORY      TAG               IMAGE ID       CREATED         SIZE
 ...
-holohub         ngc-v3.5.0-dgpu   b264b5dba8e9   4 days ago     18GB
+holohub         ngc-v3.5.0-dgpu   c93e9f90a263   1 minutes ago   19.1GB
 ...
 ```
 
