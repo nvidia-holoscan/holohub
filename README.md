@@ -108,11 +108,12 @@ $ ./holohub build-container [project_name]
 ```
 
 Check to verify that the image is created:
+
 ```bash
 $ docker images
 REPOSITORY      TAG               IMAGE ID       CREATED         SIZE
 ...
-holohub         ngc-v3.4.0-dgpu   7c7f8e0a3684   13 days ago     18.9GB
+holohub         ngc-v3.5.0-dgpu   b264b5dba8e9   4 days ago     18GB
 ...
 ```
 
