@@ -77,6 +77,8 @@ DPDK is an open-source userspace packet processing library supported across plat
 
 It is the default manager, and can be set with the values `dpdk` or `default`.
 
+Follow the instructions from the [adv_networking_bench](/applications/adv_networking_bench/README.md) README to build the operator and sample application with DPDK (default).
+
 ##### DOCA GPUNetIO
 
 NVIDIA DOCA brings together a wide range of powerful APIs, libraries, and frameworks for programming and accelerating modern data center infrastructures​. [DOCA GPUNetIO](https://docs.nvidia.com/doca/sdk/doca+gpunetio/index.html) is one of the libraries included in the DOCA SDK. It enables the GPU to control, from a CUDA kernel, network communications directly interacting with the network card and completely removing the CPU from the critical data path.
@@ -90,21 +92,7 @@ Please refer to the [DOCA GPUNetIO](https://docs.nvidia.com/doca/sdk/doca+gpunet
 
 The GPUNetIO manager does not support the `split-boundary` option.
 
-To build and run the Dockerfile with DOCA support, please follow the steps below:
-
-```
-# To build Docker image
-./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub-doca:doca-28-ubuntu2204 --no-cache
-
-# Launch DOCA container
-./operators/advanced_network/run_doca.sh
-
-# To build operator + app from main dir
-./run build adv_networking_bench --configure-args "-DANO_MGR=gpunetio"
-
-# Run app
-./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
-```
+Follow the instructions from the [adv_networking_bench](/applications/adv_networking_bench/README.md) README to build the operator and sample application with DOCA GPUNetIO support.
 
 ##### RIVERMAX
 
@@ -126,26 +114,8 @@ To build and run the Dockerfile with `Rivermax` support, follow these steps:
 - Copy the downloaded SDK tar file (e.g., `rivermax_ubuntu2204_1.60.1.tar.gz`) into your current working directory.
   - You can adjust the path using the `RIVERMAX_SDK_ZIP_PATH` build argument if needed.
   - Modify the version using the `RIVERMAX_VERSION` build argument if you're using a different SDK version.
-- Place the obtained Rivermax developer license file (`rivermax.lic`) into the `/opt/mellanox/rivermax/` directory. You can change this path in the run_rivermax.sh script if necessary
-- Build the Docker image:
-
-```
-./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub:rivermax --build-args "--target rivermax"
-```
-
-- Launch Rivermax container
-
-```
-# Launch Rivermax container
-./operators/advanced_network/run_rivermax.sh
-
-# To build operator + app from main dir
-./run build adv_networking_bench --configure-args "-DANO_MGR=rivermax"
-
-# Run app
-./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench  adv_networking_bench_rmax_rx.yaml
-```
-
+- Place the obtained Rivermax developer license file (`rivermax.lic`) into the `/opt/mellanox/rivermax/` directory.
+- Build the operator and sample application with Rivermax support, see [adv_networking_bench](/applications/adv_networking_bench/README.md) README for instructions.
 
 #### Configuration Parameters
 

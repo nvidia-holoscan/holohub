@@ -59,13 +59,21 @@ In your `build` directory, run the commands of your choice:
     sed -i -e 's#^source:.*#source: deltacast#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```
+
 * Using a Yuan card
     ```bash
     sed -i -e '/^#.*yuan_qcap/s/^#//' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     sed -i -e 's#^source:.*#source: yuan#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```
+
 * Using an AJA card with hardware keying overlay (Only specific cards support this feature)
     ```bash
     ./holohub run endoscopy_tool_tracking --language=cpp --run-args=-capplications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_aja_overlay.yaml
+    ```
+
+* Using the Slang shader operator for post-processing
+    ```bash
+    sed -i -e 's#^postprocessor:.*#postprocessor: slang_shader#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+    applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```

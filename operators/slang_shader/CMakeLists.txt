@@ -81,3 +81,8 @@ if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
 endif()
 
+# Add test subdirectory if testing is enabled
+if(BUILD_TESTING)
+    add_subdirectory(test)
+endif()
+

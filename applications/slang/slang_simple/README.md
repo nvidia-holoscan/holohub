@@ -74,12 +74,12 @@ RWStructuredBuffer<int> input_buffer;
 [holoscan::alloc::size_of("input_buffer")]
 RWStructuredBuffer<int> output_buffer;
 
-// Create a parameter named "offset"
-[holoscan::parameter("offset")]
+// Create a parameter named "offset" with a default value of "1"
+[holoscan::parameter("offset=1")]
 uniform int offset;
 
 // Use the size of the input buffer to set the grid size
-[holoscan::grid::size_of("input_buffer")]
+[holoscan::invocations::size_of("input_buffer")]
 [shader("compute")]
 void add(uint3 gid : SV_DispatchThreadID)
 {
@@ -115,7 +115,7 @@ Received value: 20
 You can modify the `simple.slang` file to implement different computations:
 
 1. Change the computation in the `add` function
-2. Add more parameters using `[holoscan::parameter("name")]`
+2. Add more parameters using `[holoscan::parameter("name=default_value")]`
 3. Modify buffer types and sizes
 4. Add more complex GPU algorithms
 

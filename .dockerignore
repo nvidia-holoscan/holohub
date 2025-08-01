@@ -19,14 +19,6 @@ ci/
 **/__pycache__
 *.pyc
 
-# Binaries and packages
-*.so
-*.deb
-*.rpm
-*.tar.xz
-*.tar.bz2
-*.tar.7z
-
 # Development environment
 .venv/
 .vscode-server/

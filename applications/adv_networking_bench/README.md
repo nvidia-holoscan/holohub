@@ -70,25 +70,92 @@ This application requires all configuration and requirements from the [Advanced 
 Please refer to the top level Holohub README.md file for information on how to build this application.
 
 ```bash
-./holohub run adv_networking_bench
+# Regular build with DPDK and GPUNetIO support
+./holohub build adv_networking_bench
+```
+
+For **Rivermax** support, follow the prerequisites from the [operators/advanced_network/README.md](/operators/advanced_network/README.md) README, then build the application with the following command:
+
+```bash
+./holohub build adv_networking_bench --build-args="--target rivermax" --configure-args="-D ANO_MGR:STRING=rivermax"
 ```
 
 ### Run Instructions
 
-First, go in your `build` or `install` directory, then:
+First, edit the `adv_networking_bench_default_tx_rx.yaml` file to set the `eth_dst_addr` and `address` fields (fields with the `<>` placeholders) based on your system interfaces.
+
+Then:
 
 ```bash
-./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_default_tx_rx.yaml
+./holohub run adv_networking_bench --docker-opts "-u root --privileged"
 ```
 
-With DOCA:
+To run with a different configuration file than the default `adv_networking_bench_default_tx_rx`, you need to call the application explicitly:
 
 ```bash
-./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
+# Start the container interactively
+./holohub run-container adv_networking_bench \
+  --docker-opts="-u root --privileged -w /workspace/holohub/build/adv_networking_bench/applications/adv_networking_bench/cpp"
+
+# Run with GPUNetIO configuration
+./adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
+
+# Run with Rivermax configuration
+./adv_networking_bench adv_networking_bench_rmax_rx.yaml
 ```
 
-With RIVERMAX RX:
+For Rivermax, you will need extra flags:
 
 ```bash
-./build/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_rmax_rx.yaml
+# Start the container with the right target and the license file
+./holohub run-container adv_networking_bench \
+  --build-args="--target rivermax" \
+  --docker-opts="\
+    -u root --privileged \
+    -v /opt/mellanox/rivermax/rivermax.lic:/opt/mellanox/rivermax/rivermax.lic \
+    -w /workspace/holohub/build/adv_networking_bench/applications/adv_networking_bench/cpp \
+  "
+
+# Run with Rivermax configuration
+./adv_networking_bench adv_networking_bench_rmax_rx.yaml
+```
+
+### Test Instructions
+
+To run the tests, you need to build the application with testing enabled:
+
+```bash
+./holohub build adv_networking_bench --configure-args="-D BUILD_TESTING:BOOL=ON"
+```
+
+Then, you can run the tests inside the container with ctest:
+
+```bash
+# One-shot...
+./holohub run-container adv_networking_bench \
+  --docker-opts "-u 0 --privileged -w /workspace/holohub/build/adv_networking_bench/" \
+  -- ctest
+
+# ...or in interactive mode ...
+./holohub run-container adv_networking_bench \
+  --docker-opts "-u 0 --privileged -w /workspace/holohub/build/adv_networking_bench/"
+
+# ... then run the tests
+ctest
+```
+
+You can use ctest flags to filter the tests, show verbose output, etc. Example:
+
+```bash
+# List tests
+ctest --show-only
+
+# Run a specific test with verbose output
+ctest --verbose -R dpdk-1500
+
+# Run a specific test and output failure
+ctest --output-on-failure -R dpdk-1500
+
+# Re-run failed tests
+ctest --rerun-failed --output-on-failure
 ```

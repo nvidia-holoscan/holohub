@@ -17,12 +17,13 @@
 
 #include "slang_shader_op.hpp"
 
+#include <cstdint>
 #include <holoscan/core/execution_context.hpp>
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/gxf/entity.hpp>
 #include <holoscan/core/io_context.hpp>
 #include <holoscan/core/resources/gxf/cuda_stream_pool.hpp>
-#include <holoscan/core/resources/gxf/unbounded_allocator.hpp>
+#include <holoscan/core/resources/gxf/rmm_allocator.hpp>
 
 #include <iostream>
 #include <memory>
@@ -53,6 +54,8 @@ class SlangShaderOp::Impl {
 
     sessionDesc.targets = &targetDesc;
     sessionDesc.targetCount = 1;
+
+    /// @todo Add support for preprocessor macros
 
     // Create session
     SLANG_CALL(global_session_->createSession(sessionDesc, session_.writeRef()));
@@ -93,13 +96,13 @@ namespace {
  * scalar types including bool, int8/16/32/64, uint8/16/32/64, float32, and float64.
  *
  * @param spec The OperatorSpec to add the parameter to
- * @param param_name The name of the parameter to create
  * @param parameter The JSON reflection data containing parameter type and binding information
+ * @param param_name The name of the parameter to create
  * @return A unique_ptr to the created CommandParameter, or nullptr if the type is unsupported
  */
 std::unique_ptr<CommandParameter> create_command_parameter(OperatorSpec& spec,
-                                                           const std::string& param_name,
-                                                           const nlohmann::json& parameter) {
+                                                           const nlohmann::json& parameter,
+                                                           const std::string& param_name) {
   if (parameter["type"]["scalarType"] == "bool") {
     return std::make_unique<CommandParameter>(
         spec, new Parameter<bool>(), param_name, parameter["binding"]["offset"]);
@@ -158,12 +161,12 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
   spec.param(
       shader_source_file_, "shader_source_file", "Shader source file.", "Shader source file.");
 
-  spec.param(allocator_,
-             "allocator",
-             "Allocator for output buffers.",
-             "Allocator for output buffers.",
-             std::static_pointer_cast<Allocator>(
-                 fragment()->make_resource<UnboundedAllocator>("allocator")));
+  spec.param(
+      allocator_,
+      "allocator",
+      "Allocator for output buffers.",
+      "Allocator for output buffers.",
+      std::static_pointer_cast<Allocator>(fragment()->make_resource<RMMAllocator>("allocator")));
 
   // Add a CUDA stream pool
   add_arg(fragment()->make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 0));
@@ -208,6 +211,9 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
       continue;
     }
 
+    // We need to store the output command for the alloc_size_of or alloc command
+    CommandOutput* command_output = nullptr;
+
     // Check the user attributes and check for Holoscan attributes
     for (auto& user_attrib : parameter["userAttribs"]) {
       // Ignore non-Holoscan attributes
@@ -228,10 +234,15 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
               attrib_name,
               parameter["name"].get<std::string>()));
         }
+
         const std::string input_name = user_attrib["arguments"].at(0);
-        spec.input<gxf::Entity>(input_name);
+        auto [input_port_name, input_item_name] = split(input_name, ':');
+        // If the input port is not defined, define it
+        if (spec.inputs().find(input_port_name) == spec.inputs().end()) {
+          spec.input<gxf::Entity>(input_port_name);
+        }
         impl_->pre_launch_commands_.push_back(std::make_unique<CommandInput>(
-            input_name, parameter["name"], parameter["binding"]["offset"]));
+            input_port_name, input_item_name, parameter["name"], parameter["binding"]["offset"]));
       } else if (attrib_name == "output") {
         // output
         if ((parameter["type"]["kind"] != "resource") ||
@@ -242,10 +253,18 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
               parameter["name"].get<std::string>()));
         }
         const std::string output_name = user_attrib["arguments"].at(0);
-        spec.output<gxf::Entity>(output_name);
-        impl_->post_launch_commands_.push_back(
-            std::make_unique<CommandOutput>(output_name, parameter["name"]));
-      } else if (attrib_name == "alloc_size_of") {
+        auto [output_port_name, output_item_name] = split(output_name, ':');
+        // If the output port is not defined, define it
+        if (spec.outputs().find(output_port_name) == spec.outputs().end()) {
+          spec.output<gxf::Entity>(output_port_name);
+        }
+
+        auto command =
+            std::make_unique<CommandOutput>(output_port_name, output_item_name, parameter["name"]);
+        // Keep the output command for the alloc_size_of command
+        command_output = command.get();
+        impl_->post_launch_commands_.push_back(std::move(command));
+      } else if ((attrib_name == "alloc_size_of") || (attrib_name == "alloc")) {
         // size_of
         if ((parameter["type"]["kind"] != "resource") ||
             (parameter["type"]["baseShape"] != "structuredBuffer")) {
@@ -254,9 +273,54 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
               attrib_name,
               parameter["name"].get<std::string>()));
         }
-        const std::string size_of_name = user_attrib["arguments"].at(0);
-        impl_->pre_launch_commands_.push_back(std::make_unique<CommandAllocSizeOf>(
-            parameter["name"], size_of_name, allocator_, parameter["binding"]["offset"]));
+
+        if (!command_output) {
+          throw std::runtime_error(
+              fmt::format("Attribute '{}' requires an output attribute to be "
+                          "defined before it.",
+                          attrib_name));
+        }
+
+        std::string reference_name;
+        uint32_t size_x = 0;
+        uint32_t size_y = 0;
+        uint32_t size_z = 0;
+
+        if (attrib_name == "alloc_size_of") {
+          reference_name = user_attrib["arguments"].at(0);
+        } else {
+          size_x = user_attrib["arguments"].at(0);
+          size_y = user_attrib["arguments"].at(1);
+          size_z = user_attrib["arguments"].at(2);
+        }
+
+        std::string element_type;
+        uint32_t element_count;
+        if (parameter["type"]["resultType"]["kind"] == "vector") {
+          element_type =
+              parameter["type"]["resultType"]["elementType"]["scalarType"].get<std::string>();
+          element_count = parameter["type"]["resultType"]["elementCount"];
+        } else if (parameter["type"]["resultType"]["kind"] == "scalar") {
+          element_type = parameter["type"]["resultType"]["scalarType"].get<std::string>();
+          element_count = 1;
+        } else {
+          throw std::runtime_error(
+              fmt::format("Attribute '{}' supports vectors and scalars only "
+                          "for the result type.",
+                          attrib_name));
+        }
+        impl_->pre_launch_commands_.push_back(
+            std::make_unique<CommandAlloc>(command_output->port_name(),
+                                           command_output->item_name(),
+                                           parameter["name"],
+                                           reference_name,
+                                           size_x,
+                                           size_y,
+                                           size_z,
+                                           element_type,
+                                           element_count,
+                                           allocator_,
+                                           parameter["binding"]["offset"]));
       } else if (attrib_name == "parameter") {
         // parameter
         if ((parameter["binding"]["kind"] != "uniform") ||
@@ -268,7 +332,7 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
         }
 
         const std::string param_name = user_attrib["arguments"].at(0);
-        auto command_parameter = create_command_parameter(spec, param_name, parameter);
+        auto command_parameter = create_command_parameter(spec, parameter, param_name);
         if (!command_parameter) {
           throw std::runtime_error(
               fmt::format("Attribute '{}' unsupported scalar type '{}' for parameter '{}'.",
@@ -282,9 +346,9 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
         if ((parameter["binding"]["kind"] != "uniform") ||
             (parameter["type"]["kind"] != "vector") || (parameter["type"]["elementCount"] != 3) ||
             (parameter["type"]["elementType"]["kind"] != "scalar") ||
-            (parameter["type"]["elementType"]["scalarType"] != "int32")) {
+            (parameter["type"]["elementType"]["scalarType"] != "uint32")) {
           throw std::runtime_error(
-              fmt::format("Attribute '{}' supports a three component int32 vector (`int3`) "
+              fmt::format("Attribute '{}' supports a three component uint32 vector (`uint3`) "
                           "uniforms only and cannot be applied to '{}'.",
                           attrib_name,
                           parameter["name"].get<std::string>()));
@@ -292,6 +356,33 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
         const std::string size_of_name = user_attrib["arguments"].at(0);
         impl_->pre_launch_commands_.push_back(std::make_unique<CommandSizeOf>(
             parameter["name"], size_of_name, parameter["binding"]["offset"]));
+      } else if (attrib_name == "strides_of") {
+        // strides_of
+        if ((parameter["binding"]["kind"] != "uniform") ||
+            (parameter["type"]["kind"] != "vector") || (parameter["type"]["elementCount"] != 3) ||
+            (parameter["type"]["elementType"]["kind"] != "scalar") ||
+            (parameter["type"]["elementType"]["scalarType"] != "uint64")) {
+          throw std::runtime_error(
+              fmt::format("Attribute '{}' supports a three component uint64 vector (`uint64_t3`) "
+                          "uniforms only and cannot be applied to '{}'.",
+                          attrib_name,
+                          parameter["name"].get<std::string>()));
+        }
+        const std::string strides_of_name = user_attrib["arguments"].at(0);
+        impl_->pre_launch_commands_.push_back(std::make_unique<CommandStrideOf>(
+            parameter["name"], strides_of_name, parameter["binding"]["offset"]));
+      } else if (attrib_name == "zeros") {
+        // zeros
+        // input
+        if ((parameter["type"]["kind"] != "resource") ||
+            (parameter["type"]["baseShape"] != "structuredBuffer")) {
+          throw std::runtime_error(fmt::format(
+              "Attribute '{}' supports structured buffers only and cannot be applied to '{}'.",
+              attrib_name,
+              parameter["name"].get<std::string>()));
+        }
+
+        impl_->pre_launch_commands_.push_back(std::make_unique<CommandZeros>(parameter["name"]));
       } else {
         throw std::runtime_error("Unknown user attribute: " + user_attrib_name);
       }
@@ -307,50 +398,52 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
       throw std::runtime_error("Only compute entry points are supported");
     }
 
-    std::string grid_size_of_name;
-    dim3 grid_size(1, 1, 1);
+    std::string invocations_size_of_name;
+    dim3 invocations(1, 1, 1);
 
     // Check the user attributes and check for Holoscan attributes
-    for (auto& user_attrib : entry_point["userAttribs"]) {
-      const std::string user_attrib_name = user_attrib["name"];
-      const std::string holoscan_prefix = "holoscan_";
-      if (user_attrib_name.find(holoscan_prefix) != 0) {
-        continue;
-      }
-
-      const std::string attrib_name = user_attrib_name.substr(holoscan_prefix.size());
-
-      if (attrib_name == "grid_size_of") {
-        if (user_attrib["arguments"].empty()) {
-          throw std::runtime_error("Attribute 'grid_size_of' requires an argument");
+    if (entry_point.contains("userAttribs")) {
+      for (auto& user_attrib : entry_point["userAttribs"]) {
+        const std::string user_attrib_name = user_attrib["name"];
+        const std::string holoscan_prefix = "holoscan_";
+        if (user_attrib_name.find(holoscan_prefix) != 0) {
+          continue;
         }
-        grid_size_of_name = user_attrib["arguments"].at(0);
-      } else if (attrib_name == "grid_size") {
-        if (user_attrib["arguments"].empty()) {
-          throw std::runtime_error("Attribute 'grid_size' requires an argument");
-        }
-        grid_size.x = user_attrib["arguments"].at(0);
-        if (user_attrib["arguments"].size() > 1) {
-          grid_size.y = user_attrib["arguments"].at(1);
-          if (user_attrib["arguments"].size() > 2) {
-            grid_size.z = user_attrib["arguments"].at(2);
+
+        const std::string attrib_name = user_attrib_name.substr(holoscan_prefix.size());
+
+        if (attrib_name == "invocations_size_of") {
+          if (user_attrib["arguments"].empty()) {
+            throw std::runtime_error("Attribute 'invocations_size_of' requires an argument");
           }
+          invocations_size_of_name = user_attrib["arguments"].at(0);
+        } else if (attrib_name == "invocations") {
+          if (user_attrib["arguments"].empty()) {
+            throw std::runtime_error("Attribute 'invocations' requires an argument");
+          }
+          invocations.x = user_attrib["arguments"].at(0);
+          if (user_attrib["arguments"].size() > 1) {
+            invocations.y = user_attrib["arguments"].at(1);
+            if (user_attrib["arguments"].size() > 2) {
+              invocations.z = user_attrib["arguments"].at(2);
+            }
+          }
+        } else {
+          throw std::runtime_error("Unknown user attribute: " + user_attrib_name);
         }
-      } else {
-        throw std::runtime_error("Unknown user attribute: " + user_attrib_name);
       }
     }
 
-    dim3 block_size(1, 1, 1);
-    if (entry_point.contains("threadGroupSize")) {
-      block_size.x = entry_point["threadGroupSize"][0];
-      block_size.y = entry_point["threadGroupSize"][1];
-      block_size.z = entry_point["threadGroupSize"][2];
-    }
+    const dim3 thread_group_size = dim3(entry_point["threadGroupSize"][0],
+                                        entry_point["threadGroupSize"][1],
+                                        entry_point["threadGroupSize"][2]);
 
     // And then launch the kernel
-    impl_->launch_commands_.push_back(std::make_unique<CommandLaunch>(
-        entry_point["name"], impl_->shader_.get(), block_size, grid_size_of_name, grid_size));
+    impl_->launch_commands_.push_back(std::make_unique<CommandLaunch>(entry_point["name"],
+                                                                      impl_->shader_.get(),
+                                                                      thread_group_size,
+                                                                      invocations_size_of_name,
+                                                                      invocations));
   }
 }
 

@@ -61,7 +61,7 @@ class SourceOp : public Operator {
     auto gxf_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
         context.context(), allocator_.get()->gxf_cid());
     tensor->reshape<int>(
-        nvidia::gxf::Shape({1}), nvidia::gxf::MemoryStorageType::kHost, gxf_allocator.value());
+        nvidia::gxf::Shape({1, 1}), nvidia::gxf::MemoryStorageType::kHost, gxf_allocator.value());
 
     auto value = index_++;
     std::memcpy(tensor->pointer(), &value, sizeof(value));

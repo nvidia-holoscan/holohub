@@ -61,7 +61,7 @@ python3 test_h264_reader.py
 
 ### Python
 ```bash
-./holohub run nvidia_video_codec --language python
+./holohub run nvc_decode --language python
 ```
 
 ### Manual Run

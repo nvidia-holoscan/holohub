@@ -58,7 +58,13 @@ the working directory.
     cd <HOLOHUB_BUILD_DIR>
     python3  <HOLOHUB_SOURCE_DIR>/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py --source=yuan
     ```
+
 * Using an AJA card with hardware keying overlay (Only specific cards support this feature)
     ```bash
     ./holohub run endoscopy_tool_tracking --language python --run-args="-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja"
+    ```
+
+* Using the Slang shader operator for post-processing
+    ```bash
+    ./holohub run endoscopy_tool_tracking --language python --run-args="-p=slang_shader"
     ```

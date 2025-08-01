@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,8 @@
 #include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <lstm_tensor_rt_inference.hpp>
+#include <slang_shader_op.hpp>
+#include <string>
 #include <tool_tracking_postprocessor.hpp>
 #ifdef VTK_RENDERER
 #include <vtk_renderer.hpp>
@@ -48,7 +50,9 @@
 
 class App : public holoscan::Application {
  public:
+  void set_path(const std::string& path) { app_path_ = path; }
   void set_source(const std::string& source) { source_ = source; }
+  void set_postprocessor(const std::string& postprocessor) { this->postprocessor_ = postprocessor; }
   void set_visualizer_name(const std::string& visualizer_name) {
     this->visualizer_name = visualizer_name;
   }
@@ -94,7 +98,8 @@ class App : public holoscan::Application {
       source = make_operator<ops::AJASourceOp>(
           "aja", from_config("aja"), from_config("external_source"));
 #else
-throw std::runtime_error("AJA is requested but not available. Please enable AJA at build time.");
+      throw std::runtime_error(
+          "AJA is requested but not available. Please enable AJA at build time.");
 #endif
       source_block_size = width * height * 4 * 4;
       source_num_blocks = use_rdma ? 3 : 4;
@@ -178,21 +183,31 @@ throw std::runtime_error("AJA is requested but not available. Please enable AJA 
     const uint64_t tool_tracking_postprocessor_block_size =
         std::max(107 * 60 * 7 * 4 * sizeof(float), 7 * 3 * sizeof(float));
     const uint64_t tool_tracking_postprocessor_num_blocks = 2 * 2;
-    auto tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
-        "tool_tracking_postprocessor",
-        Arg("device_allocator") =
-            make_resource<BlockMemoryPool>("device_allocator",
-                                           1,
-                                           tool_tracking_postprocessor_block_size,
-                                           tool_tracking_postprocessor_num_blocks));
-
+    std::shared_ptr<Operator> tool_tracking_postprocessor;
+    std::shared_ptr<BlockMemoryPool> postprocessor_allocator =
+        make_resource<BlockMemoryPool>("device_allocator",
+                                       1,
+                                       tool_tracking_postprocessor_block_size,
+                                       tool_tracking_postprocessor_num_blocks);
+    if (postprocessor_ == "slang_shader") {
+      tool_tracking_postprocessor = make_operator<ops::SlangShaderOp>(
+          "slang_postprocessor",
+          Arg("shader_source_file", app_path_ + "/postprocessor.slang"),
+          Arg("allocator") = postprocessor_allocator);
+    } else if (postprocessor_ == "tool_tracking_postprocessor") {
+      tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
+          "tool_tracking_postprocessor",
+          Arg("device_allocator") = postprocessor_allocator);
+    } else {
+      throw std::runtime_error("Invalid postprocessor: " + postprocessor_);
+    }
     if (this->visualizer_name == "holoviz") {
       std::shared_ptr<BlockMemoryPool> visualizer_allocator;
       if (((record_type_ == Record::VISUALIZER) && (source_ == "replayer"))
 #ifdef DELTACAST_VIDEOMASTER
           || overlay_enabled
 #endif
-    ) {
+      ) {
         visualizer_allocator =
             make_resource<BlockMemoryPool>("allocator", 1, source_block_size, source_num_blocks);
       }
@@ -297,7 +312,9 @@ throw std::runtime_error("AJA is requested but not available. Please enable AJA 
   }
 
  private:
+  std::string app_path_ = "";
   std::string source_ = "replayer";
+  std::string postprocessor_ = "tool_tracking_postprocessor";
   std::string visualizer_name = "holoviz";
   Record record_type_ = Record::NONE;
   std::string datapath = "";
@@ -309,7 +326,8 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
       {"data", required_argument, 0, 'd'}, {"config", required_argument, 0, 'c'}, {0, 0, 0, 0}};
 
   while (int c = getopt_long(argc, argv, "d:c:", long_options, NULL)) {
-    if (c == -1 || c == '?') break;
+    if (c == -1 || c == '?')
+      break;
 
     switch (c) {
       case 'c':
@@ -332,7 +350,9 @@ int main(int argc, char** argv) {
   // Parse the arguments
   std::string config_path = "";
   std::string data_directory = "";
-  if (!parse_arguments(argc, argv, data_directory, config_path)) { return 1; }
+  if (!parse_arguments(argc, argv, data_directory, config_path)) {
+    return 1;
+  }
   if (data_directory.empty()) {
     // Get the input data environment variable
     auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
@@ -347,12 +367,18 @@ int main(int argc, char** argv) {
     }
   }
 
+  std::string app_path(PATH_MAX, '\0');
+  if (readlink("/proc/self/exe", app_path.data(), app_path.size() - 1) == -1) {
+    HOLOSCAN_LOG_ERROR("Failed to get the application path");
+    exit(-1);
+  }
+  app_path = std::filesystem::canonical(app_path).parent_path();
+
   if (config_path.empty()) {
     // Get the input data environment variable
     auto config_file_path = std::getenv("HOLOSCAN_CONFIG_PATH");
     if (config_file_path == nullptr || config_file_path[0] == '\0') {
-      auto config_file = std::filesystem::canonical(argv[0]).parent_path();
-      config_path = config_file / std::filesystem::path("endoscopy_tool_tracking.yaml");
+      config_path = app_path / std::filesystem::path("endoscopy_tool_tracking.yaml");
     } else {
       config_path = config_file_path;
     }
@@ -365,6 +391,11 @@ int main(int argc, char** argv) {
 
   auto source = app->from_config("source").as<std::string>();
   app->set_source(source);
+
+  app->set_path(app_path);
+
+  auto postprocessor = app->from_config("postprocessor").as<std::string>();
+  app->set_postprocessor(postprocessor);
 
   auto record_type = app->from_config("record_type").as<std::string>();
   app->set_record(record_type);
