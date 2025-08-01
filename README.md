@@ -9,7 +9,8 @@ Visit [https://nvidia-holoscan.github.io/holohub](https://nvidia-holoscan.github
 
 This is a central repository for the NVIDIA Holoscan AI sensor processing community to share reference applications, operators, tutorials and benchmarks. We invite users and developers of the Holoscan platform to reuse and contribute to this repository.
 
-# Table of Contents
+## Table of Contents
+
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Building](#container-build-recommended)
@@ -18,7 +19,7 @@ This is a central repository for the NVIDIA Holoscan AI sensor processing commun
 - [Glossary](#glossary)
 - [More Information](#more-information)
 
-# Overview
+## Overview
 
 This repository is a collection of applications and extensions created by the Holoscan AI sensor processing community.
 The following directories make up the core of this repo:
@@ -32,20 +33,20 @@ The following directories make up the core of this repo:
 - **Tutorials**: Visit [`tutorials`](./tutorials/) for extended walkthroughs and tips for the Holoscan platform.
 - **Benchmarks**: Visit [`benchmarks`](./benchmarks/) for performance benchmarks, tools, and examples to evaluate the performance of Holoscan applications.
 
-
 Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/overview.html) to learn more about the NVIDIA Holoscan AI sensor processing platform. You can also chat with the [Holoscan-GPT](https://chatgpt.com/g/g-M6hMJimGa-holochatgpt) Large Language Model to learn about using Holoscan SDK, ask questions, and get code help. Holoscan-GPT requires an OpenAI account.
 
-# Prerequisites
+## Prerequisites
 
-## Supported Platforms
+### Supported Platforms
 
 You will need a platform supported by NVIDIA Holoscan SDK. Refer to the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites) for the latest requirements. In general, Holoscan supported platforms include:
+
 - An x64 PC with an Ubuntu operating system and an NVIDIA GPU; or
 - A supported NVIDIA ARM development kit.
 
 Individual examples and operators in this repo may have additional platform requirements. For instance, some examples may support only ARM platforms.
 
-## Build Environment
+### Build Environment
 
 You may choose to build applications and operators in a containerized development environment or in your native environment.
 
@@ -57,59 +58,61 @@ Once your development environment is configured you may move on to [Building the
 
 > **NOTE:** Several applications and operators require additional dependencies beyond the basic prerequisites listed above. Please refer to the README of the specific application or operator for detailed dependency information before attempting to build or run it.
 
-## Container Build (Recommended)
+### Container Build (Recommended)
 
-### Software Prerequisites
+#### Software Prerequisites
 
 To build and run in a containerized environment you will need:
-  - the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) (v1.12.2 or later)
-  - [Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository), including the buildx plugin (`docker-buildx-plugin`)
-  - `git` version control
-  - (optional) A [Python3 3.9+](https://www.python.org/downloads/) base installation to run the `holohub` infrastructure script
+
+- the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) (v1.12.2 or later)
+- [Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository), including the buildx plugin (`docker-buildx-plugin`)
+- `git` version control
+- (optional) A [Python3 3.9+](https://www.python.org/downloads/) base installation to run the `holohub` infrastructure script
 
 You will also need to set up your NVIDIA NGC credentials at [ngc.nvidia.com](https://catalog.ngc.nvidia.com/).
 
-### Fetch
+#### Fetch
 
 Clone the repository to your local system:
+
 ```sh
-$ git clone https://www.github.com/nvidia-holoscan/holohub.git
-$ cd holohub
+git clone https://www.github.com/nvidia-holoscan/holohub.git
+cd holohub
 ```
 
 Alternatively, download sources as a ZIP archive from the GitHub homepage.
 
-### HoloHub run command (recommended)
+#### HoloHub run command (recommended)
 
 The easiest way to build and run Holohub applications is to use the `./holohub run` command.
 
 ```sh
-$ ./holohub run <application_name>
+./holohub run <application_name>
 ```
 
 If you want to use a specific based image for the application, you can use the `--base-img` option.
 
 ```sh
-$ ./holohub run --base-img <base_image> <application_name>
+./holohub run --base-img <base_image> <application_name>
 ```
 
 > **NOTE:** The build_and_run command is not supported for all applications and operators, especially applications that requires manual configurations or applications that requires additional datasets. Please refer to the README of each application or operator for more information.
 
 If you want a more detailed command to build and run a specific application, please follow the instructions below.
 
-### Build
+#### Build
 
 Holohub provides a default development container that can be used to build and run applications. However several applications and operator requires specific dependencies that are not available in the default development container and are provided by specific docker files. Please refer to the README of each application or operator for more information.
 
 Run the following command to build the development container for a given project. The build may take a few minutes.
 
 ```sh
-$ ./holohub build-container [project_name]
+./holohub build-container [project_name]
 ```
 
 Check to verify that the image is created:
 
-```bash
+```sh
 $ docker images
 REPOSITORY      TAG               IMAGE ID       CREATED         SIZE
 ...
@@ -121,12 +124,12 @@ holohub         ngc-v3.5.0-dgpu   c93e9f90a263   1 minutes ago   19.1GB
 
 See the [Developer Reference document](/doc/developer.md) for additional options.
 
-### Launch
+#### Launch
 
 Launch the Docker container environment:
 
-```
-$ ./holohub run-container [my_project]
+```sh
+./holohub run-container [my_project]
 ```
 
 You are now ready to [build Holohub operators, applications, or packages!](#building-operators-applications-and-packages)
@@ -135,9 +138,10 @@ You are now ready to [build Holohub operators, applications, or packages!](#buil
 
 See also: [Advanced Launch Options](/doc/developer.md#advanced-launch-options-container)
 
-### Platform Notes (Container)
+#### Platform Notes (Container)
 
 The development container has been tested on the following platforms:
+
 - x86_64 workstation with multiple RTX GPUs
 - Clara AGX Dev Kit (dGPU mode)
 - IGX Orin Dev Kit (dGPU and iGPU mode)
@@ -149,21 +153,21 @@ The development container has been tested on the following platforms:
 
 (2) When building Holoscan SDK on AGX Orin Dev Kit from source please add the option  ```--build-args="--cudaarchs all"``` to the ```./holohub build-container``` command to include support for AGX Orin's iGPU.
 
-# Building Operators, Applications, and Packages
+## Building Operators, Applications, and Packages
 
-> _Make sure you have either launched your [development container](#container-build-recommended) or [set up your local environment](./doc/developer.md#native-build) before attempting to build Holohub components._
+> *Make sure you have either launched your [development container](#container-build-recommended) or [set up your local environment](./doc/developer.md#native-build) before attempting to build Holohub components.*
 
 This repository provides a convenience `holohub` script to abstract some of the CMake build process below.
 
 Run the following to list existing components available to build:
 
-  ```bash
+  ```sh
   ./holohub list
   ```
 
 Then run the following to build the component of your choice:
 
-  ```bash
+  ```sh
   # Build using the component name
   ./holohub build <package|application|operator>
   # Ex: ./holohub build endoscopy_tool_tracking
@@ -171,17 +175,17 @@ Then run the following to build the component of your choice:
 
 The build artifacts will be created under `./build/<component_name>` by default to isolate them from other components which might have different build environment requirements. You can override this behavior and other defaults, see `./holohub build --help` for more details.
 
-# Running Applications
+## Running Applications
 
 To list all available applications you can run the following command:
 
-  ```bash
+  ```sh
   ./holohub list
   ```
 
 Then you can run the application using the command:
 
-  ```bash
+  ```sh
   ./holohub run <application>
   # Ex: ./holohub run endoscopy_tool_tracking
   ```
@@ -192,14 +196,14 @@ or omit the argument to use the default language.
 For instance, the following command will run the Python implementation of the tool tracking
 endoscopy application:
 
-  ```bash
+  ```sh
     ./holohub run endoscopy_tool_tracking --language=python
   ```
 
 The run script reads the "run" command from the metadata.json file for a given application and runs from the "workdir" directory.
 Make sure you build the application (if applicable) before running it.
 
-# Cleanup
+## Cleanup
 
 You can run the command below to reset your `build` directory:
 
@@ -217,12 +221,12 @@ Note that many applications supply custom container environments with build and 
 Failing to clean the build cache between different applications may result in unexpected behavior where build
 tools or libraries appear to be broken or missing. Clearing the build cache is a good first check to address those issues.
 
-# Contributing
+## Contributing
 
 The goal of this repository is to allow engineering teams to easily contribute and share new functionalities
 and to demonstrate applications. Please review the [Contributing Guidelines](./CONTRIBUTING.md) for more information.
 
-# Glossary
+## Glossary
 
 Many applications use the following keyword definitions in their README descriptions:
 
@@ -232,14 +236,16 @@ Many applications use the following keyword definitions in their README descript
 - `<DATA_DIR>` : Path to the top level directory containing the datasets for the reference applications
 - `<MODEL_DIR>` : Path to the directory containing the inference model(s)
 
-# More Information
+## More Information
 
 Refer to additional documentation:
+
 - [Contributing Guide](/CONTRIBUTING.md)
 - [Developer Guide](/doc/developer.md)
 - [Release Discussion](/doc/release.md)
 
 You can find additional information on Holoscan SDK at:
+
 - [Holoscan GitHub organization](https://github.com/nvidia-holoscan)
 - [Holoscan SDK repository](https://github.com/nvidia-holoscan/holoscan-sdk)
 - [Holoscan-GPT](https://chatgpt.com/g/g-M6hMJimGa-holochatgpt) (requires an OpenAI account)
