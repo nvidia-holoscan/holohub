@@ -7,22 +7,6 @@
 #
 # You can also combine with additional excludes:
 #   python3 .github/workflows/scripts/check_copyright.py --exclude-config .github/workflows/scripts/copyright_excludes.txt --exclude "my_temp_file.py" .
-gxf_extensions/yuan_qcap
-gxf_extensions/deltacast_videomaster
-operators/high_rate_psd
-tutorials/holoscan_response_time_analysis
 operators/medical_imaging/_version.py
-operators/ff
-operators/deltacast_videomaster
-holohub/operators/yuan_qcap/
-operators/vita49_psd_packetizer/
-operators/orsi/orsi_visualizer/lib/
-operators/low_rate_psd/
-operators/prohawk_video_processing/FindProhawk.cmake
-applications/psd_pipeline
-applications/deltacast_transmitter
-applications/volume_rendering_xr/.devcontainer/library-scripts/common-debian.sh
 applications/template
-applications/ehr_query_llm/fhir/__main__.py
-applications/pva_video_filter/cpp/CMakeLists.txt
 build
