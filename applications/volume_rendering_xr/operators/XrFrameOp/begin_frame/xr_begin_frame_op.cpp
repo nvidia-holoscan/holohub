@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,9 +42,15 @@ void XrBeginFrameOp::setup(OperatorSpec& spec) {
   spec.output<std::array<float, 2>>("trackpad").condition(ConditionType::kNone);
 
   // aim pose in local space
-  spec.output<nvidia::gxf::Pose3D>("aim_pose").condition(ConditionType::kNone);
+  spec.output<nvidia::gxf::Pose3D>("aim_pose")
+      .connector(holoscan::IOSpec::ConnectorType::kDoubleBuffer,
+                 holoscan::Arg("capacity", static_cast<uint64_t>(2)))
+      .condition(ConditionType::kNone);
   // grip pose in local space
-  spec.output<nvidia::gxf::Pose3D>("grip_pose").condition(ConditionType::kNone);
+  spec.output<nvidia::gxf::Pose3D>("grip_pose")
+      .connector(holoscan::IOSpec::ConnectorType::kDoubleBuffer,
+                 holoscan::Arg("capacity", static_cast<uint64_t>(2)))
+      .condition(ConditionType::kNone);
   // head pose in local space
   spec.output<nvidia::gxf::Pose3D>("head_pose").condition(ConditionType::kNone);
   // eye gaze pose in view space
