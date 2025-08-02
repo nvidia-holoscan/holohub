@@ -1,4 +1,4 @@
-# SlangShaderOp
+# Slang Shader Operator
 
 The `SlangShaderOp` is a Holoscan operator that enables execution of [Slang](https://github.com/shader-slang/slang) shaders within Holoscan applications. It provides a bridge between the Slang shading language and Holoscan's data processing pipeline, allowing developers to write GPU-accelerated compute shaders that can process data flowing through Holoscan applications.
 

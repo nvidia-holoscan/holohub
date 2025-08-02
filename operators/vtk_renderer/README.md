@@ -1,4 +1,4 @@
-### vtk_renderer operator
+# VTK Renderer Operator
 
 The `vtk_renderer` extension takes the output of the source video player and the
 output of the `tool_tracking_postprocessor` operator and renders the video
@@ -11,7 +11,7 @@ While this is a strong limitation for VTK we believe that VTK can still be a
 good addition and VTK is an evolving project. Perhaps in the future we could
 overcome this limitation.
 
-#### How to build this operator
+## How to build this operator
 
 Build the HoloHub container as described at the root [README.md](../../README.md)
 
@@ -35,7 +35,7 @@ Inside the container you can build the holohub application with:
 ./run build <application> --with vtk_renderer
 ```
 
-##### Parameters
+## Parameters
 
 - **`videostream`**: Input channel for the videostream, type `gxf::Tensor`
   - type: `gxf::Handle<gxf::Receiver>`

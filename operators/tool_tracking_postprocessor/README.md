@@ -1,5 +1,4 @@
-
-### Tool tracking postprocessor
+# Tool Tracking Postprocessor Operator
 
 The `tool_tracking_postprocessor` extension provides a codelet that converts inference output of `lstm_tensor_rt_inference` used in the endoscopy tool tracking pipeline to be consumed by the `holoviz` codelet.
 

@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "Medical Imaging",
+		"name": "Medical Imaging Operators",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",
