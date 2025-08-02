@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         unzip \
         cmake \
         make \
+        xvfb \
+        ninja-build \
         patch \
         ffmpeg \
         libnpp-12-9 \
