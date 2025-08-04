@@ -19,17 +19,17 @@
 #include "aja_source.hpp"
 
 class App : public holoscan::Application {
-  public:
-   void compose() override {
-     using namespace holoscan;
+ public:
+  void compose() override {
+    using namespace holoscan;
 
-     auto aja_source = make_operator<ops::AJASourceOp>("aja");
+    auto aja_source = make_operator<ops::AJASourceOp>("aja");
    }
 };
- 
+
 int main(int argc, char** argv) {
   auto app = holoscan::make_application<App>();
   app->run();
 
   return 0;
- }
+}
