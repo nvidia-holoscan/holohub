@@ -15,14 +15,14 @@
 # limitations under the License.
 
 parse_arguments() {
-    SKIP_MAGIC_LEAP=false
+    SKIP_MAGIC_LEAP=true
     USE_HELLO_HOLOSCAN=false
     COMMAND_ARGS=()
     
     for arg in "$@"; do
         case "$arg" in
-            --no-magic-leap)
-                SKIP_MAGIC_LEAP=true
+            --magic-leap)
+                SKIP_MAGIC_LEAP=false
                 ;;
             xr_hello_holoscan)
                 USE_HELLO_HOLOSCAN=true

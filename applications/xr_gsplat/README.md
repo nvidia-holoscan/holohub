@@ -48,7 +48,7 @@ __note__: Training time is observed to take about 30 minutes on Intel i9 CPU + N
 # If you're already in the container, skip this step
 ./holohub run-container xr_gsplat
 
-# Inside the container, start the Monado service (skip this step if you're using a real XR device)
+# Inside the container, start the Monado XR runtime service
 monado-service
 ```
 Keep this terminal open and running.

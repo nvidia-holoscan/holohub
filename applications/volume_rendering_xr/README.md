@@ -35,12 +35,14 @@ Refer to the Magic Leap 2 documentation for more information:
 - [Installing `.apk` packages with Magic Leap Hub](https://developer-docs.magicleap.cloud/docs/guides/developer-tools/ml-hub/ml-hub-package-manager/)
 
 ## Quick Start
-
-Run the following command in the top-level HoloHub folder to build and run the host application:
-
-```bash
-./holohub run volume_rendering_xr
+### Running with Apple Vision Pro
+To stream this XR application to devices like Apple Vision Pro, refer to the [CloudXR Runtime tutorial](../../tutorials/cloudxr_runtime_for_xr_applications/) for setup instructions. Change `<app_name>` in the instructions to `volume_rendering_xr`.
+### Running with Magic Leap or Simulator
+The default configuration runs without Magic Leap setup. To explicitly enable Magic Leap devices, use:
+```shell
+./holohub run volume_rendering_xr --run-args="--magic-leap"
 ```
+
 
 A QR code will be visible in the console log. Refer to Magic Leap 2 [Remote Rendering Setup documentation](https://developer-docs.magicleap.cloud/docs/guides/remote-rendering/remote-rendering/#:~:text=Put%20on%20the%20Magic%20Leap,headset%20by%20looking%20at%20it.&text=The%20QR%20code%20launches%20a,Click%20Continue.) to pair the host and device in preparation for remote viewing. Refer to the [Remote Viewer](#starting-the-magic-leap-2-remote-viewer) section to regenerate the QR code as needed, or to use the local debugger GUI in place of a physical device.
 
@@ -53,14 +55,6 @@ The application supports the following hand or controller interactions by defaul
 ### Testing Utility
 We provide a simple test application in `utils/xr_hello_holoscan` for validating basic XR functionality. This utility uses the same XR operators and configuration as the main application but with minimal rendering setup. See [utils/xr_hello_holoscan/README.md](utils/xr_hello_holoscan/README.md) for details on running the test utility.
 
-### Running on Apple Vision Pro
-
-By default, this application is configured to use Magic Leap devices. To run the application with Apple Vision Pro, refer to the [CloudXR Runtime tutorial](../../tutorials/cloudxr_runtime_for_xr_applications/) for setup instructions.
-
-When running the application, remember to follow below instructions to skip Magic Leap setup.
-```shell
-./holohub run volume_rendering_xr --run-args="--no-magic-leap"
-```
 
 ## Advanced Setup
 
@@ -90,7 +84,7 @@ Inside the container environment, build the application:
 Inside the container environment, start the application:
 ```bash
 export ML_START_OPTIONS=<""/"debug"> # Defaults to "debug" to run XR device simulator GUI
-./holohub run volume_rendering_xr
+./holohub run volume_rendering_xr --run-args="--magic-leap"
 ```
 
 ### Deploying as a Standalone Application

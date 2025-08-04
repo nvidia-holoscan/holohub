@@ -17,7 +17,7 @@ This application demonstrates the integration of Holoscan-XR with Holoviz for ex
 # If you're already in the container, skip this step
 ./holohub run-container xr_holoviz
 
-# Inside the container, start the Monado service (skip this step if you're using a real XR device)
+# Inside the container, start the Monado XR runtime service
 monado-service
 ```
 Keep this terminal open and running.

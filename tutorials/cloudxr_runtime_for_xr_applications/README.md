@@ -22,17 +22,11 @@ CloudXR enables you to run computationally intensive applications (medical volum
 
 ## System Requirements
 
-### Apple Vision Pro
-- visionOS 2.0 or later
-- Apple M3 Pro chip with an 11-core CPU (minimum 5 performance cores and 6 efficiency cores)
-- 16GB unified memory
-- 256GB SSD storage
+- A Linux host system (with an NVIDIA GPU) to run HoloHub XR applications and the CloudXR Runtime.
+- For Apple Vision Pro and Mac setup instructions and requirements, please refer to:  
+  https://isaac-sim.github.io/IsaacLab/main/source/how-to/cloudxr_teleoperation.html#system-requirements
 
-### Apple Silicon Mac
-Required for building the Isaac XR Teleop Sample Client App for Apple Vision Pro with Xcode:
-- macOS Sonoma 14.5 or later
-- Xcode development environment
-
+> **Note:** The Mac is only required for a one-time setup to build and install the CloudXR client app for Apple Vision Pro.
 ## Run CloudXR Runtime Container with Docker
 
 The CloudXR Runtime runs in a Docker container on the same machine as your application, serving as a bidirectional bridge that streams sensor data from the XR device to your application and display content back to the XR device.
@@ -70,37 +64,39 @@ docker run -it --rm --name cloudxr-runtime \
     -p 48005:48005/udp \
     -p 48008:48008/udp \
     -p 48012:48012/udp \
-    nvcr.io/nvidia/cloudxr-runtime:0.1.0-isaac
+    nvcr.io/nvidia/cloudxr-runtime:5.0.1
 ```
 
 The container should start and wait for client connections.
+Example log output when CloudXR Runtime starts successfully:
+``` 
+INFO [logServerInfo] Created CloudXR™ Service
+	version: 5.0.1
+	logFile: /tmp/cxr_server.2025-08-04T195921Z.log
+	tag: 5.0.1
+	uses: Monado™
 
+Further logging is now being redirected to the file: `/tmp/cxr_streamsdk.2025-08-04T195921Z.000.log`
+(Error messages will appear both on the console and in that file.)
+```
 ## Run Your XR Application
 This tutorial can work across XR applications in holohub, including [volume_rendering_xr](../../applications/volume_rendering_xr/), [xr_gsplat](../../applications/xr_gsplat/), and [xr_holoviz](../../applications/xr_holoviz/).
 
-### Step 1: Build XR Application
-By default, you can build your chosen Holoscan XR application using the command:
+All these applications use **OpenXR**, an open standard that provides a unified API for XR development across different platforms and devices. CloudXR implements the OpenXR specification as a runtime, which allows any OpenXR-compatible application to work with CloudXR by configuring environment variables to redirect from local runtimes to CloudXR for remote streaming. For more information, visit the [official OpenXR specification](https://www.khronos.org/openxr/).
+
+### Quick Start
+
+You can build and run your chosen Holoscan XR application with CloudXR integration using this single command:
+
 ```shell
-# from the root directory of holohub
-./holohub run-container <app-name>
-```
-Please refer to the specific application's README (for example, [xr_gsplat](../../applications/xr_gsplat/README.md)) for detailed build and run instructions.
-
-### Step 2: Configure Environment Variables
-Inside your application container or environment, set up the CloudXR runtime variables:
-
-```bash
-export XDG_RUNTIME_DIR=$(pwd)/openxr/run
-export XR_RUNTIME_JSON=$(pwd)/openxr/share/openxr/1/openxr_cloudxr.json
+./holohub run <app-name> --docker-opts="-e XDG_RUNTIME_DIR=/workspace/holohub/openxr/run -e XR_RUNTIME_JSON=/workspace/holohub/openxr/share/openxr/1/openxr_cloudxr.json"
 ```
 
-These environment variables configure your application to use the CloudXR runtime instead of local OpenXR runtimes.
+The `holohub run` command automatically mounts the HoloHub directory by default, which makes the OpenXR sockets from `holohub/openxr` on the host available inside the application container. This is why we can directly access the CloudXR runtime configuration files that were created when we started the CloudXR Runtime container.
 
-### Step 3: Launch Application
-Inside your application container, launch your XR application using:
-```shell
-./holohub run <app-name>
-```
+The environment variables configure your application to use the CloudXR runtime instead of local OpenXR runtimes.
+
+Please refer to the specific application's README (for example, [xr_gsplat](../../applications/xr_gsplat/README.md)) for any application-specific requirements or additional configuration options.
 
 ## Set up Apple Vision Pro
 
@@ -125,7 +121,7 @@ If you experience connection problems between CloudXR runtime and Apple Vision P
 
 **Basic Checks:**
 1. **CloudXR container is running** on the host machine
-2. After clicking `Connect` on Apple Vision Pro, the CloudXR container should log that **a client has connected**
+2. After clicking `Connect` on Apple Vision Pro, check the CloudXR container logs for any error messages.
 
 **Network Configuration:**
 - **Firewall settings**: Ensure the host firewall is properly configured (see Step 1 above)
