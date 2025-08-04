@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>External WebRTC Client Example</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .controls { margin: 20px 0; }
+        button { padding: 10px 20px; margin: 5px; }
+        video { width: 100%; max-width: 640px; border: 1px solid #ccc; }
+        .config { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        code { background: #eee; padding: 2px 4px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>External WebRTC Client Example</h1>
+
+        <div class="config">
+            <h3>Server Configuration</h3>
+            <label for="serverUrl">WebRTC Server URL:</label>
+            <input type="text" id="serverUrl" value="http://localhost:8080" style="width: 300px;">
+            <p><small>Change this to point to your WebRTC server instance</small></p>
+        </div>
+
+        <div class="controls">
+            <button id="connectBtn" onclick="connectToStream()">Connect to Stream</button>
+            <button id="disconnectBtn" onclick="disconnectFromStream()" style="display:none;">Disconnect</button>
+        </div>
+
+        <video id="videoElement" autoplay playsinline controls></video>
+
+        <div class="config">
+            <h3>How this works:</h3>
+            <p>This client connects to the server-only WebRTC streaming service using:</p>
+            <ul>
+                <li><code>GET /iceServers</code> - Get ICE server configuration</li>
+                <li><code>POST /offer</code> - Exchange WebRTC signaling (SDP offer/answer)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let pc = null;
+
+        async function getIceServers(serverUrl) {
+            try {
+                const response = await fetch(`${serverUrl}/iceServers`);
+                return await response.json();
+            } catch (error) {
+                console.error('Failed to get ICE servers:', error);
+                return [];
+            }
+        }
+
+        function createPeerConnection(iceServers) {
+            const config = {
+                sdpSemantics: 'unified-plan',
+                iceServers: iceServers,
+            };
+
+            pc = new RTCPeerConnection(config);
+
+            // Handle incoming video stream
+            pc.addEventListener('track', function (evt) {
+                if (evt.track.kind === 'video') {
+                    document.getElementById('videoElement').srcObject = evt.streams[0];
+                    console.log('Video stream received');
+                }
+            });
+
+            // Log connection state changes
+            pc.addEventListener('connectionstatechange', function() {
+                console.log('Connection state:', pc.connectionState);
+            });
+
+            return pc;
+        }
+
+        async function negotiate(serverUrl) {
+            try {
+                // Create offer
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+
+                // Send offer to server
+                const response = await fetch(`${serverUrl}/offer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sdp: offer.sdp,
+                        type: offer.type
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Set server's answer
+                const answer = await response.json();
+                await pc.setRemoteDescription(answer);
+
+                console.log('WebRTC negotiation completed');
+
+            } catch (error) {
+                console.error('Negotiation failed:', error);
+                alert('Failed to connect to stream: ' + error.message);
+            }
+        }
+
+        async function connectToStream() {
+            const serverUrl = document.getElementById('serverUrl').value.trim();
+
+            if (!serverUrl) {
+                alert('Please enter a server URL');
+                return;
+            }
+
+            try {
+                // Get ICE servers from the WebRTC server
+                console.log('Fetching ICE servers from:', serverUrl);
+                const serverIceServers = await getIceServers(serverUrl);
+
+                // Combine with default STUN server
+                const iceServers = [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    ...serverIceServers
+                ];
+
+                console.log('Using ICE servers:', iceServers);
+
+                // Create peer connection
+                pc = createPeerConnection(iceServers);
+
+                // Add video transceiver (receive only)
+                pc.addTransceiver('video', { direction: 'recvonly' });
+
+                // Start negotiation
+                await negotiate(serverUrl);
+
+                // Update UI
+                document.getElementById('connectBtn').style.display = 'none';
+                document.getElementById('disconnectBtn').style.display = 'inline-block';
+            } catch (error) {
+                console.error('Connection error:', error);
+                alert('Failed to connect: ' + error.message);
+            }
+        }
+
+        function disconnectFromStream() {
+            if (pc) {
+                // Close transceivers
+                if (pc.getTransceivers) {
+                    pc.getTransceivers().forEach(function (transceiver) {
+                        if (transceiver.stop) {
+                            transceiver.stop();
+                        }
+                    });
+                }
+
+                // Close peer connection
+                pc.close();
+                pc = null;
+            }
+
+            // Clear video
+            const video = document.getElementById('videoElement');
+            video.srcObject = null;
+
+            // Update UI
+            document.getElementById('connectBtn').style.display = 'inline-block';
+            document.getElementById('disconnectBtn').style.display = 'none';
+
+            console.log('Disconnected from stream');
+        }
+    </script>
+</body>
+</html>
+
