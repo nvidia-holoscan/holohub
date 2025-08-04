@@ -1,0 +1,101 @@
+{
+	"workflow": {
+		"name": "Surgical Agent Workflow with Video Streaming",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Healthcare AI", "VLM", "Agent", "Video Streaming", "WebRTC", "MONAI"],
+		"ranking": 1,
+		"requirements": {
+			"data": [
+				{
+					"name": "VLM-Surgical-Agent-Framework",
+					"description": "MONAI Vision Language Model Surgical Agent Framework for interactive surgical video analysis",
+					"url": "https://github.com/Project-MONAI/VLM-Surgical-Agent-Framework.git",
+					"branch": "main"
+				}
+			],
+			"libraries": [
+				{
+					"name": "docker",
+					"description": "Docker and Docker Compose for running surgical agent services"
+				},
+				{
+					"name": "git",
+					"description": "Git for cloning the surgical agent framework"
+				}
+			],
+			"system": {
+				"gpu_memory": "10GB+ VRAM recommended for AI models",
+				"ports": [
+					{
+						"port": 8080,
+						"description": "WebRTC video streaming server"
+					},
+					{
+						"port": 8000,
+						"description": "LLM Server (vLLM)"
+					},
+					{
+						"port": 43001,
+						"description": "Whisper ASR service"
+					},
+					{
+						"port": 8050,
+						"description": "Surgical agent Flask application"
+					}
+				]
+			}
+		},
+	"dependencies": {
+		"applications": [
+			"webrtc_video_server"
+		]
+	},
+		"run": {
+			"command": "bash <holohub_app_source>/surgical_agent.sh",
+			"workdir": "holohub_root",
+			"options": {
+				"all": "Build and run everything (default)",
+				"build-video": "Build video streaming server app only",
+				"run-video": "Run video streaming server app only",
+				"setup-surgical": "Clone/update surgical framework only",
+				"run-surgical": "Run surgical agents only",
+				"stop-video": "Stop video streaming server app",
+				"stop-surgical": "Stop surgical agents services",
+				"clean": "Stop all services and clean up",
+				"help": "Show help message"
+			}
+		},
+		"services": [
+			{
+				"name": "Video Streaming Server",
+				"url": "http://127.0.0.1:8080",
+				"description": "WebRTC video streaming interface"
+			},
+			{
+				"name": "Surgical Agent Workflow Interface",
+				"url": "http://127.0.0.1:8050",
+				"description": "Main surgical agent web interface for video analysis"
+			}
+		]
+	}
+}
