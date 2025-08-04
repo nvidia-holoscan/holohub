@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Download and extract NVIDIA Video Codec SDK
-set(NVC_SDK_URL "https://edge.urm.nvidia.com:443/artifactory/sw-holoscan-cli-generic/holohub/operators/holohub_nvc_13.0.19.zip")
+set(NVC_SDK_URL "https://edge.urm.nvidia.com/artifactory/sw-holoscan-thirdparty-generic-local/holohub/operators/holohub_nvc_13.0.19.zip")
 set(NVC_SDK_ZIP "${CMAKE_BINARY_DIR}/holohub_nvc_13.0.19.zip")
 set(NVC_SDK_DIR "${CMAKE_BINARY_DIR}/_deps/nvc_sdk")
 
