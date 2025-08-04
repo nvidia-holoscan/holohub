@@ -1,0 +1,30 @@
+{
+	"tutorial": {
+		"name": "Using holohub operators in external applications",
+		"description": "In this tutorial, we will walk through the process of using holohub operators in external applications.",
+		"authors": [
+			{
+				"name": "Julien Jomier",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.5.0",
+			"tested_versions": [
+				"3.5.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Interoperability"],
+		"ranking": 1,
+		"dependencies": {}
+	}
+}
