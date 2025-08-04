@@ -24,7 +24,7 @@ class App : public holoscan::Application {
     using namespace holoscan;
 
     auto aja_source = make_operator<ops::AJASourceOp>("aja");
-   }
+  }
 };
 
 int main(int argc, char** argv) {

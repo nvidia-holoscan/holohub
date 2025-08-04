@@ -38,8 +38,8 @@ add_executable(${PROJECT_NAME} main.cpp)
 
 # Link the executable against the required Holohub libraries
 # PRIVATE means these dependencies are not propagated to other targets
-target_link_libraries(${PROJECT_NAME} 
-   PRIVATE 
+target_link_libraries(${PROJECT_NAME}
+   PRIVATE
    holoscan::core    # Core Holoscan functionality (Application, Operator base classes)
    holoscan::aja     # AJA video capture operator from Holohub
    )
