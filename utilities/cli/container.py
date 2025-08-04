@@ -612,8 +612,10 @@ class HoloHubContainer:
 
     def get_basic_args(self) -> List[str]:
         """Basic container runtime arguments"""
-        args = ["--net", "host", "--interactive"]
-        if sys.stdout.isatty():
+        args = ["--net", "host"]
+        # Only add interactive mode if we have a TTY available
+        if sys.stdin.isatty() and sys.stdout.isatty():
+            args.append("--interactive")
             args.append("--tty")
         return args
 
