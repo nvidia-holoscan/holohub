@@ -35,10 +35,9 @@
 #   fetch_holohub_operator(custom_operator BRANCH "dev")
 function(fetch_holohub_operator OPERATOR_NAME)
 
-  cmake_parse_arguments(ARGS "" "PATH;REPO_URL" "" ${ARGN})
+  cmake_parse_arguments(ARGS "" "PATH;REPO_URL;BRANCH" "" ${ARGN})
 
   if(NOT ARGS_REPO_URL)
-    #set(ARGS_REPO_URL "git@github.com:nvidia-holoscan/holohub.git")
     set(ARGS_REPO_URL "https://github.com/nvidia-holoscan/holohub.git")
   endif()
 
@@ -61,9 +60,9 @@ function(fetch_holohub_operator OPERATOR_NAME)
         && git sparse-checkout init --cone
         && git sparse-checkout set operators/${ARGS_PATH}
         && git checkout ${ARGS_BRANCH}
-        && mv "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/operators/${ARGS_PATH}" "${FETCHCONTENT_BASE_DIR}/tmp"
+        && mv "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/operators/${ARGS_PATH}" "${FETCHCONTENT_BASE_DIR}/tmp_${OPERATOR_NAME}"
         && rm -rf "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src"
-        && mv "${FETCHCONTENT_BASE_DIR}/tmp" "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/"
+        && mv "${FETCHCONTENT_BASE_DIR}/tmp_${OPERATOR_NAME}" "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/"
   )
 
   FetchContent_MakeAvailable(holohub_${OPERATOR_NAME})
