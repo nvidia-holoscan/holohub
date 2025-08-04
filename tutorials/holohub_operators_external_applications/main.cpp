@@ -15,22 +15,21 @@
  * limitations under the License.
  */
 
- #include "holoscan/holoscan.hpp"
- #include "aja_source.hpp"
+#include "holoscan/holoscan.hpp"
+#include "aja_source.hpp"
 
- class App : public holoscan::Application {
+class App : public holoscan::Application {
   public:
    void compose() override {
      using namespace holoscan;
 
      auto aja_source = make_operator<ops::AJASourceOp>("aja");
    }
- };
+};
  
- int main(int argc, char** argv) {
-   auto app = holoscan::make_application<App>();
-   app->run();
+int main(int argc, char** argv) {
+  auto app = holoscan::make_application<App>();
+  app->run();
  
-   return 0;
+  return 0;
  }
- 
