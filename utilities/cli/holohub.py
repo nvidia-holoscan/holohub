@@ -1412,7 +1412,7 @@ class HoloHubCLI:
             print(Color.blue("Would clear cache folders:"))
         else:
             print(Color.blue("Clearing cache..."))
-        for pattern in ["build", "build-*", "install"]:
+        for pattern in ["build", "build-*", "data", "data-*", "install"]:
             for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
                 if path.is_dir():
                     if args.dryrun:
