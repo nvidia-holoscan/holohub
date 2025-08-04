@@ -521,13 +521,7 @@ class HoloHubCLI:
             project_name=args.project, language=args.language if hasattr(args, "language") else None
         )
         if args.clear_cache:
-            for pattern in ["build", "build-*", "install"]:
-                for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                    if path.is_dir():
-                        if args.dryrun:
-                            print(f"  {Color.yellow('Would remove:')} {path}")
-                        else:
-                            shutil.rmtree(path)
+            self.handle_clear_cache(args)
 
         container.dryrun = args.dryrun
         container.verbose = args.verbose
@@ -1412,12 +1406,13 @@ class HoloHubCLI:
             print(Color.blue("Would clear cache folders:"))
         else:
             print(Color.blue("Clearing cache..."))
-        for pattern in ["build", "build-*", "install"]:
+        for pattern in ["build", "build-*", "data", "data-*", "install"]:
             for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
                 if path.is_dir():
                     if args.dryrun:
                         print(f"  {Color.yellow('Would remove:')} {path}")
                     else:
+                        print(f"  {Color.red('Removing:')} {path}")
                         shutil.rmtree(path)
 
     def _add_to_cmakelists(self, project_name: str) -> None:
