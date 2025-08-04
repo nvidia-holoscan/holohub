@@ -1418,6 +1418,7 @@ class HoloHubCLI:
                     if args.dryrun:
                         print(f"  {Color.yellow('Would remove:')} {path}")
                     else:
+                        print(f"  {Color.red('Removing:')} {path}")
                         shutil.rmtree(path)
 
     def _add_to_cmakelists(self, project_name: str) -> None:
