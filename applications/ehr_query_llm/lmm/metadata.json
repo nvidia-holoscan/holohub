@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Audio", "ZeroMQ", "ASR", "Healthcare Interop", "RAG", "Vector Database"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
             "python-packages": {
 				"chromadb": {
                     "version": "0.4.24",

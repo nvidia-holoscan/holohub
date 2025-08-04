@@ -33,8 +33,8 @@
         "ranking": {
           "$ref": "holohub/project/v1#/$defs/ranking"
         },
-        "dependencies": {
-          "$ref": "holohub/project/v1#/$defs/dependencies"
+        "requirements": {
+          "$ref": "holohub/project/v1#/$defs/requirements"
         },
         "dockerfile": {
           "type": "string"
@@ -52,7 +52,7 @@
         "tags",
         "holoscan_sdk",
         "ranking",
-        "dependencies"
+        "requirements"
       ]
     },
     "$ref": "holohub/operator/v1#/properties/operator",

@@ -24,7 +24,7 @@
     ],
     "tags": ["Deidentification", "Image Processing", "Anonymization"],
     "ranking": 1,
-    "dependencies": {
+    "requirements": {
       "python-packages": {
         "cupy": {
           "version": ">=9.0.0"

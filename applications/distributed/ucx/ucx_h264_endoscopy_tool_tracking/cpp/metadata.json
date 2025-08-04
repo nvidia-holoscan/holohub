@@ -25,7 +25,7 @@
 		],
 		"tags": ["Healthcare AI", "Video", "Surgical AI", "Distributed", "Holoviz", "LSTM", "TensorRT", "Endoscopy"],
 		"ranking": 0,
-		"dependencies": {
+		"requirements": {
 			"operators": [
 				{
 					"name": "videodecoder",

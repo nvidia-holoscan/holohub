@@ -23,7 +23,7 @@
 		],
 		"tags": ["Healthcare AI", "Audio", "ASR", "LLM", "Auth and API", "Medical Imaging"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"openai-whisper": "^20230314",
 			"openai": "^0.27.2"
 		},

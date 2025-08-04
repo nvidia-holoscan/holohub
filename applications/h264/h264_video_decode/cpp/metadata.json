@@ -22,7 +22,7 @@
     "platforms": ["x86_64", "aarch64"],
     "tags": ["Healthcare AI", "Video", "Hardware Accelerated Decode", "Endoscopy"],
     "ranking": 1,
-    "dependencies": {
+    "requirements": {
       "operators": [
         {
           "name": "videodecoder",

@@ -27,7 +27,7 @@
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Computer Vision and Perception", "Video", "format conversion", "Streaming", "AJA"],
 		"ranking": 0,
-		"dependencies": {
+		"requirements": {
 		},
 		"run": {
 			"command": "<holohub_app_bin>/aja_capture",

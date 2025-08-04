@@ -31,7 +31,7 @@
         ],
         "tags": ["Computer Vision and Perception", "Video", "Optimization", "PVA", "Endoscopy", "Visualization"],
         "ranking": 1,
-        "dependencies": {},
+        "requirements": {},
         "run": {
             "command": "<holohub_app_bin>/pva_video_filter",
             "workdir": "holohub_bin"

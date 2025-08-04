@@ -28,7 +28,7 @@
 		],
 		"tags": ["Healthcare AI", "Distributed", "LSTM", "Asynchronous Queues", "gRPC", "Video", "Computer Vision and Perception", "Visualization"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"data": [
 					{
 							"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",

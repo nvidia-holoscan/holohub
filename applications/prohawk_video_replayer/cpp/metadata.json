@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Video", "filter presets", "Endoscopy", "Holoviz"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"operators": [
 				{
 					"name": "prohawk",

@@ -24,7 +24,7 @@
 		],
 		"tags": ["Cloud"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"services": [
 				{
 					"name": "Amazon Web Services EC2",

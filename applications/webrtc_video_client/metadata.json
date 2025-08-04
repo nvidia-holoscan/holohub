@@ -24,7 +24,7 @@
 		],
 		"tags": ["Networking and Distributed Computing", "Video", "SDP Exchange", "WebRTC", "Camera", "Visualization"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "aiortc",

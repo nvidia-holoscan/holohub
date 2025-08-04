@@ -24,7 +24,7 @@
 		],
 		"tags": ["Camera"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [
 				{
 					"name": "emergent_source",

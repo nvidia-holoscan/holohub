@@ -31,7 +31,7 @@
         ],
         "tags": ["Extended Reality", "Vulkan", "Visualization"],
         "ranking": 4,
-        "dependencies": {
+        "requirements": {
             "libraries": [
             {
                 "name": "glm",

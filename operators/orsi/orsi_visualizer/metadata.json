@@ -24,7 +24,7 @@
 		],
 		"tags": ["Visualization"],
 		"ranking": 3,
-		"dependencies": {
+		"requirements": {
 		}
 	}
 }

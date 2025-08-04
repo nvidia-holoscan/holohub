@@ -26,6 +26,6 @@
 		],
 		"tags": ["Medical Imaging", "Healthcare Interop", "AI", "MONAI", "STL"],
 		"ranking": 2,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

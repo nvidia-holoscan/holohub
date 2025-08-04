@@ -24,7 +24,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "UI", "Qt", "Video", "Visualization"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/qt_video_replayer --data <holohub_data_dir>/racerx",
 			"workdir": "holohub_bin"

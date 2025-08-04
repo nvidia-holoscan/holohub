@@ -28,7 +28,7 @@
 		],
 		"tags": ["Healthcare AI", "Visualization", "Hounsfield Scale Transfer Functions", "Volume", "Segmentation", "TotalSegmentator"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/volume_rendering --config <holohub_data_dir>/volume_rendering/config.json --density <holohub_data_dir>/volume_rendering/highResCT.mhd --mask <holohub_data_dir>/volume_rendering/smoothmasks.seg.mhd",
 			"workdir": "holohub_bin"

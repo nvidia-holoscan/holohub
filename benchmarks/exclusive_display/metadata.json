@@ -23,7 +23,7 @@
         ],
         "tags": ["Benchmarking", "Visualization"],
         "ranking": 1,
-        "dependencies": {
+        "requirements": {
             "holoscan_sdk": "^2.1.0"
         }
     }

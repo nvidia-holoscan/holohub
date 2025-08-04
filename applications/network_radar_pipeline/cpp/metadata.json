@@ -22,7 +22,7 @@
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Signal Processing", "Networking and Distributed Computing", "GPUDirect", "DPDK"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"operators": [{
 				"name": "basic_network",
 				"version": "1.0"

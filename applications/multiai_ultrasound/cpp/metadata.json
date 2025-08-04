@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Visualization", "Cardiac Keypoints Detection", "Ultrasound", "Video", "Classification"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/multiai_ultrasound --data <holohub_data_dir>/multiai_ultrasound",
 			"workdir": "holohub_app_bin"

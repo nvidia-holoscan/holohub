@@ -25,7 +25,7 @@
 		],
 		"tags": ["CV CUDA", "OpenCV", "Holoscan"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "RAPIDS cuCIM",

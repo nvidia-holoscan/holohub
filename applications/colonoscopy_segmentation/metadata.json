@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Visualization", "AJA", "Endoscopy", "Segmentation", "Holoviz", "Video"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"data": [
 				{
 					"name": "Holoscan Sample App Data for AI Colonoscopy Segmentation of Polyps",

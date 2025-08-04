@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Distributed", "Surgical AI", "Endoscopy", "Video", "Computer Vision and Perception", "Segmentation"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"data": [
 					{
 							"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",

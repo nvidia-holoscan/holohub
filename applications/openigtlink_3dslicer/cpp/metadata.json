@@ -25,7 +25,7 @@
 		],
 		"tags": ["Healthcare AI", "Networking and Distributed Computing", "Video", "Visualization", "3D Slicer", "Segmentation", "Ultrasound", "Endoscopy"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"libraries": [{
 					"name": "openigtlink",
 					"version": "3.0"
