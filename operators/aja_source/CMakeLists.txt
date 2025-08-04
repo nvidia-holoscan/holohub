@@ -48,6 +48,8 @@ add_library(aja_source SHARED
   )
 
 add_library(holoscan::aja ALIAS aja_source)
+add_library(holoscan::ops::aja ALIAS aja_source)
+
 target_include_directories(aja_source INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(aja_source INTERFACE AJA_SOURCE)
 
