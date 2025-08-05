@@ -98,6 +98,7 @@ Let's break down each section:
 cmake_minimum_required(VERSION 3.18)
 project(your_app_name)
 ```
+
 - Sets the minimum CMake version required
 - Defines your project name
 
@@ -105,6 +106,7 @@ project(your_app_name)
 ```cmake
 find_package(holoscan REQUIRED)
 ```
+
 - Locates and configures the Holoscan SDK
 - Makes Holoscan targets available for linking
 
@@ -116,6 +118,7 @@ The CMakeLists.txt provides two different approaches for including the `FetchHol
 ```cmake
 include(../../cmake/FetchHolohubOperator.cmake)
 ```
+
 - ✅ Simple and straightforward
 - ✅ Always uses the latest version from the repository
 - ✅ No additional files needed
@@ -124,22 +127,22 @@ include(../../cmake/FetchHolohubOperator.cmake)
 
 **Approach 1: Download from GitHub**
 ```cmake
-# Uncomment the following lines to use this approach:
-# set(FETCH_HOLOHUB_OPERATOR_URL "https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake")
-# set(FETCH_HOLOHUB_OPERATOR_LOCAL_PATH "${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake")
-# if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
-#      file(DOWNLOAD
-#          ${FETCH_HOLOHUB_OPERATOR_URL}
-#          ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH}
-#          SHOW_PROGRESS
-#          TLS_VERIFY ON
-#      )
-#      if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
-#          message(FATAL_ERROR "Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}")
-#      endif()
-# endif()
-# include(${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+ set(FETCH_HOLOHUB_OPERATOR_URL "https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake")
+ set(FETCH_HOLOHUB_OPERATOR_LOCAL_PATH "${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake")
+ if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+      file(DOWNLOAD
+          ${FETCH_HOLOHUB_OPERATOR_URL}
+          ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH}
+          SHOW_PROGRESS
+          TLS_VERIFY ON
+      )
+      if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+          message(FATAL_ERROR "Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}")
+      endif()
+ endif()
+ include(${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
 ```
+
 - ✅ Completely independent of repository structure
 - ✅ Works for truly external applications
 - ✅ Always gets the latest version from the main branch
@@ -148,9 +151,9 @@ include(../../cmake/FetchHolohubOperator.cmake)
 
 **Approach 2: Local Copy**
 ```cmake
-# Uncomment the following line to use this approach (requires FetchHolohubOperator.cmake in same directory):
-# include(${CMAKE_CURRENT_SOURCE_DIR}/FetchHolohubOperator.cmake)
+ include(${CMAKE_CURRENT_SOURCE_DIR}/FetchHolohubOperator.cmake)
 ```
+
 - ✅ Complete independence from repository structure
 - ✅ No internet dependency during build
 - ✅ Full version control over the utility file
@@ -161,6 +164,7 @@ include(../../cmake/FetchHolohubOperator.cmake)
 ```cmake
 fetch_holohub_operator(aja_source)
 ```
+
 - Downloads the `aja_source` operator from Holohub using sparse checkout
 
 #### Application Building
@@ -172,6 +176,7 @@ target_link_libraries(${PROJECT_NAME}
    holoscan::aja
    )
 ```
+
 - Creates your executable from `main.cpp`
 - Links against the required Holohub libraries
 
@@ -210,18 +215,21 @@ fetch_holohub_operator(custom_operator BRANCH "dev")
 When deciding which approach to use for including `FetchHolohubOperator.cmake`, consider your specific requirements:
 
 **Use Repository Include (Internal Only) when:**
+
 - Your application is part of the Holohub repository
 - You want to always use the latest version
 - You're developing within the Holohub ecosystem
 - **Note:** This approach is only available for internal Holohub repository use
 
 **Use Approach 1 (Download from GitHub) when:**
+
 - Your application is external to the Holohub repository
 - You have reliable internet connectivity during builds
 - You want automatic updates from the main branch
 - You need independence from the repository structure
 
 **Use Approach 2 (Local Copy) when:**
+
 - Your application needs to work offline
 - You require version stability and reproducibility
 - You need complete control over the utility file
@@ -325,16 +333,16 @@ fetch_holohub_operator(experimental_operator BRANCH "experimental")
 ### Common Issues
 
 1. **CMake can't find Holoscan**
-   - Ensure Holoscan SDK is properly installed
-   - Set `CMAKE_PREFIX_PATH` to point to your Holoscan installation
+- Ensure Holoscan SDK is properly installed
+- Set `CMAKE_PREFIX_PATH` to point to your Holoscan installation
 
 2. **Operator not found**
-   - Verify the operator name exists in the Holohub repository
-   - Check the correct path if the operator is in a subdirectory
+- Verify the operator name exists in the Holohub repository
+- Check the correct path if the operator is in a subdirectory
 
 3. **Linking errors**
-   - Ensure you're linking against the correct Holohub libraries
-   - Check that the operator dependencies are satisfied
+- Ensure you're linking against the correct Holohub libraries
+- Check that the operator dependencies are satisfied
 
 ### Debug Information
 
