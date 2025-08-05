@@ -72,15 +72,14 @@ const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_firmware_loopba
     {1, VHD_CORE_BP_FIRMWARE_LOOPBACK_1}
 };
 
-VideoMasterBase::VideoMasterBase(bool is_input)
-    : _is_input(is_input),
-      _has_lost_signal(false) {
+VideoMasterBase::VideoMasterBase(bool is_input, uint32_t board_index, uint32_t channel_index, bool use_rdma)
+    : _is_input(is_input), _board_index(board_index), _channel_index(channel_index), _use_rdma(use_rdma) {
         cudaDeviceProp prop;
         cudaGetDeviceProperties(&prop, 0);
         _is_igpu = prop.integrated;
 }
 
-void VideoMasterBase::stop() {
+void VideoMasterBase::stop_stream() {
   HOLOSCAN_LOG_INFO("Stopping stream and closing handles");
 
   if (_stream_handle) {
@@ -170,7 +169,7 @@ bool VideoMasterBase::open_stream() {
     return false;
   }
 
-  video_format = {};
+  _video_format = {};
 
   HOLOSCAN_LOG_INFO("%s stream successfully opened."
     , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
@@ -212,10 +211,10 @@ bool VideoMasterBase::configure_stream() {
   }
 
   const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
-  video_format = _video_information->get_video_format(stream_handle()).value();
+  _video_format = _video_information->get_video_format(stream_handle()).value();
   HOLOSCAN_LOG_INFO("%s configured in %ux%u@%u"
     , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index))
-    , video_format.width, video_format.height, video_format.framerate);
+    , _video_format.width, _video_format.height, _video_format.framerate);
 
   return true;
 }

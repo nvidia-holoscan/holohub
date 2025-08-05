@@ -22,6 +22,9 @@
 #include <utility>
 #include <vector>
 
+#include "holoscan/core/operator.hpp"
+#include "holoscan/core/operator_spec.hpp"
+
 #include "videomaster_base.hpp"
 
 namespace holoscan::ops {
@@ -29,7 +32,7 @@ namespace holoscan::ops {
 /**
  * @brief Operator class to get the video stream from Deltacast capture card.
  */
-class VideoMasterTransmitterOp : public VideoMasterBase {
+class VideoMasterTransmitterOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(VideoMasterTransmitterOp)
 
@@ -39,9 +42,10 @@ class VideoMasterTransmitterOp : public VideoMasterBase {
   void initialize() override;
   void start() override;
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) override;
+  void stop() override;
 
  private:
-  bool configure_board_for_overlay();
+  bool configure_board_for_overlay(); 
   bool configure_stream_for_overlay();
 
   Parameter<holoscan::IOSpec*> _source;
@@ -53,6 +57,10 @@ class VideoMasterTransmitterOp : public VideoMasterBase {
   Parameter<bool> _progressive;
   Parameter<uint32_t> _framerate;
   Parameter<bool> _overlay;
+
+  bool _has_lost_signal;
+
+  VideoMasterBase _video_master_base;
 };
 
 }  // namespace holoscan::ops
