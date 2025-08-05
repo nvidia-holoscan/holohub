@@ -36,8 +36,8 @@
         "ranking": {
           "$ref": "holohub/project/v1#/$defs/ranking"
         },
-        "dependencies": {
-          "$ref": "holohub/project/v1#/$defs/dependencies"
+        "requirements": {
+          "$ref": "holohub/project/v1#/$defs/requirements"
         }
       },
       "required": [
@@ -50,7 +50,7 @@
         "tags",
         "holoscan_sdk",
         "ranking",
-        "dependencies"
+        "requirements"
       ]
     }
   },

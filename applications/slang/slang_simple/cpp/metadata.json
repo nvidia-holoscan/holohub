@@ -34,7 +34,7 @@
 			"cuda"
 		],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/slang_simple",
 			"workdir": "holohub_app_bin"

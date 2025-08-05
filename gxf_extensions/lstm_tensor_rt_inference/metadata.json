@@ -26,6 +26,6 @@
 			"TensorRT"
 		],
 		"ranking": 1,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

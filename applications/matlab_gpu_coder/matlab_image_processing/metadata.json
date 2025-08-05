@@ -28,7 +28,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "Visualization", "Optimization", "Image Processing", "Video", "Holoviz"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"operators": [
 				{
 					"name": "MATLAB",

@@ -27,6 +27,6 @@
         ],
         "tags": ["Volume"],
         "ranking": 1,
-        "dependencies": { }
+        "requirements": { }
     }
 }

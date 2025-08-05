@@ -35,7 +35,7 @@
         "platforms": ["x86_64"],
         "tags": ["Signal Processing", "Networking and Distributed Computing", "PSD", "GPUDirect", "UDP"],
         "ranking": 3,
-        "dependencies": {
+        "requirements": {
             "operators": [
                 "fft",
                 "high_rate_psd",

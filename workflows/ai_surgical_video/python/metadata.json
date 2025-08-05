@@ -30,7 +30,7 @@
 		],
 		"tags": ["SSD", "Detection", "MONAI", "Segmentation"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"data": [
 				{
 					"name": "Orsi Academy Sample Applications",

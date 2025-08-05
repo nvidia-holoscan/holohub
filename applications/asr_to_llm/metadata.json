@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Audio", "ASR", "Quantized Model Inference", "LLM", "Medical Imaging"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
             "python-packages": {
                 "requests": {
                     "version": "2.31.0",

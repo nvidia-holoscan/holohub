@@ -28,7 +28,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "Video", "Deidentification", "Detection", "Image Processing"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet",
 			"libraries": [{
 				"name": "easyocr",

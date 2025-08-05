@@ -32,7 +32,7 @@
 			"3D Reconstruction"
 		],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"operators": [
 				{
 					"name": "xr",

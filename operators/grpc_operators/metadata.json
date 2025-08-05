@@ -24,6 +24,6 @@
 		],
 		"tags": ["gRPC", "Visualization"],
 		"ranking": 1,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

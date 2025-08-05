@@ -17,7 +17,7 @@
 		"platforms": ["x86_64"],
 		"tags": ["Signal Processing", "Distributed", "PSD"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"libraries": [{
 				"name": "numpy",
 				"version": "1.24.2"

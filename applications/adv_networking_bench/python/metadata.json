@@ -22,7 +22,7 @@
 			]
 		},
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"operators": [{
 				"name": "adv_network_rx",
 				"version": "1.0"

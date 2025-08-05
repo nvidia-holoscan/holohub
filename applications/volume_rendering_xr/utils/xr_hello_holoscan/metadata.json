@@ -57,7 +57,7 @@
 		],
 		"tags": ["Extended Reality", "Visualization", "Holoviz", "Stereo Vision"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"hardware": [
 				{
 					"name": "Magic Leap 2",

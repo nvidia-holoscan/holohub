@@ -24,7 +24,7 @@
 		],
 		"tags": ["Camera"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [
 				{
 					"name": "yuan_qcap",

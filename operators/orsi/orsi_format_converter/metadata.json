@@ -24,7 +24,7 @@
 		],
 		"tags": ["converter"],
 		"ranking": 3,
-		"dependencies": {
+		"requirements": {
 		}
 	}
 }

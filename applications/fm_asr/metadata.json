@@ -24,7 +24,7 @@
 		],
 		"tags": ["Signal Processing", "Audio", "FM demodulation", "Polyphase Resampling", "ASR", "gRPC"],
 		"ranking": 3,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "cusignal",

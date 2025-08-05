@@ -24,7 +24,7 @@
 		],
 		"tags": ["Video"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"SDK": "Prohawk runtime"
 		}
 	}

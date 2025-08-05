@@ -20,6 +20,6 @@
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Medical Imaging", "STL", "Conversion"],
 		"ranking": 2,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

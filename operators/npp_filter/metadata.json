@@ -24,6 +24,6 @@
         ],
         "tags": ["NPP"],
         "ranking": 1,
-        "dependencies": { }
+        "requirements": { }
     }
 }

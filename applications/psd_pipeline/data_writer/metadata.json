@@ -37,7 +37,7 @@
         ],
         "tags": ["Signal Processing"],
         "ranking": 4,
-        "dependencies": {
+        "requirements": {
             "libraries": [{
               "name": "MatX",
               "version": "0.9.0",

@@ -59,7 +59,7 @@
 		],
 		"tags": ["Extended Reality", "Visualization", "Depth Conversion", "Detection", "Holoviz", "Volume"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"hardware": [
 				{
 					"name": "Magic Leap 2",
