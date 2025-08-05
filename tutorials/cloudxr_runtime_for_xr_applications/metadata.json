@@ -25,6 +25,10 @@
 		],
 		"tags": ["XR", "CloudXR", "Apple Vision Pro"],
 		"ranking": 1,
-		"dependencies": {}
+		"requirements": {
+			"nvidia_cloudxr_runtime": {
+				"version": "5.0.1"
+			}
+		}
 	}
 }

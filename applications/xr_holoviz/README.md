@@ -6,11 +6,15 @@ This application demonstrates the integration of Holoscan-XR with Holoviz for ex
 *Demo running on Apple Vision Pro*
 
 
-## Quick Start Guide
+## Quick Start
 
-### 1. Run the application
+### Option 1: Stream to Apple Vision Pro through CloudXR Runtime
 
-> **💡 Stream to XR Devices**: To stream this XR application to devices like Apple Vision Pro, refer to the [CloudXR Runtime tutorial](../../tutorials/cloudxr_runtime_for_xr_applications/) for setup instructions.
+To stream this XR application to devices like Apple Vision Pro, refer to the [CloudXR Runtime tutorial](../../tutorials/cloudxr_runtime_for_xr_applications/) for setup instructions.
+
+### Option 2: Using Monado OpenXR Runtime (Local Development)
+
+Monado is an open-source OpenXR runtime that supports various XR devices and includes a simulator for local development without physical XR hardware.
 
 #### Terminal 1: Launch Container and Start Monado Service
 ```bash
@@ -42,21 +46,20 @@ XrCompositionLayerManager initialized width: XXX height: YYY
 ```
 3. Copy the width and height
 4. Set the width and height of the HolovizOp in `config.yaml`
+5. Re-run the application
 
-### Troubleshooting
+##### Troubleshooting
 
-#### Buffer Size Too Small
+###### Buffer Size Too Small
 If you encounter the following errors:
 ```
-...
 [error] [gxf_executor.cpp:2506] Graph execution error: GXF_FAILURE
 terminate called after throwing an instance of 'std::runtime_error'
   what():  The size of the buffer is too small
-  ...
 ```
 
 This error is typically caused by incorrect width and height configuration for the XR display. To resolve this issue:
 
 1. Follow the **"Set up width and height correctly"** section above to obtain the correct display dimensions
 2. Update the HolovizOp width and height values in `config.yaml` with the runtime-detected values
-3. Restart the application
+3. Restart the application 
