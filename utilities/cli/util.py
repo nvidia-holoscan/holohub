@@ -554,7 +554,7 @@ def install_packages_if_missing(
             packages_to_install.append(package_spec)
             info(f"Installing {package_spec}")
         else:
-            if get_installed_package_version(package_name) is not None:
+            if get_installed_package_version(package_name):
                 info(f"Package {package_name} is already installed")
             else:
                 packages_to_install.append(package_spec)
