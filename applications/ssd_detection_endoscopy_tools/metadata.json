@@ -22,7 +22,7 @@
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Healthcare AI", "Video", "SSD", "Detection", "Visualization"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"libraries": [{
 				"name": "numpy",
 				"version": "1.22.3"

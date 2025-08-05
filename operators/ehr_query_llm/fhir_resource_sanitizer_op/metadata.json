@@ -31,7 +31,7 @@
 			"Healthcare Interop"
 		],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"python-packages": {
 				"holoscan": {
 					"version": "2.5.0",

@@ -24,7 +24,7 @@
 		],
 		"tags": ["Natural Language and Conversational AI", "CUDA", "Huggingface", "LLM"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"data": [
 				{
 					"name": "Llama-2",

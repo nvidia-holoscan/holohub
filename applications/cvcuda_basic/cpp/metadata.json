@@ -25,7 +25,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "Video", "Tensor Optimization", "CV CUDA", "Endoscopy", "Visualization"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"data": [
 				{
 						"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",

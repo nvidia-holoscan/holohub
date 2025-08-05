@@ -23,7 +23,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "Visualization", "Image Processing", "Camera", "Detection"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [
 				{
 					"name": "emergent_source",

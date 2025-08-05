@@ -53,7 +53,7 @@
 		],
 		"tags": ["Healthcare Interop", "MONAI", "OpenUSD", "STL"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "MONAI Deploy",

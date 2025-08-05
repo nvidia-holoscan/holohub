@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Video", "Surgical AI", "Endoscopy", "Segmentation"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"libraries": []
 		},
 		"run": {

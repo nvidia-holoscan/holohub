@@ -20,6 +20,6 @@
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Medical Imaging", "DICOM", "Segmentation", "Writer"],
 		"ranking": 2,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

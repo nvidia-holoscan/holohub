@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Video", "Ultrasound", "Segmentation", "AJA", "Visualization"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/ultrasound_segmentation.py  --data <holohub_data_dir>/ultrasound_segmentation",
 			"workdir": "holohub_bin"

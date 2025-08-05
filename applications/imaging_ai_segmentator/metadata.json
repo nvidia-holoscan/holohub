@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Imaging", "Volumetric Reconstruction", "Healthcare Interop", "TotalSegmentator", "Medical Imaging"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
             "data": [
                 {
                     "name": "Imaging AI Whole Body Segmentation",

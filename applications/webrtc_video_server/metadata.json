@@ -24,7 +24,7 @@
 		],
 		"tags": ["Networking and Distributed Computing", "Video", "WebRTC", "Communications"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "aiortc",

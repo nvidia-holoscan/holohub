@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Distributed", "ZeroMQ", "Auth and API", "Healthcare Interop", "LLM"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
             "python-packages": {
                 "holoscan": {
                     "version": "2.7.0",

@@ -21,7 +21,7 @@
 			]
 		},
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 				"gxf_extensions": [{
 					"name": "basic_network",
 					"version": "1.0"

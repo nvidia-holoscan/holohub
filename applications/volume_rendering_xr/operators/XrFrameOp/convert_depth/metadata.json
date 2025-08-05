@@ -25,6 +25,6 @@
 		],
 		"tags": ["Convert", "Depth"],
 		"ranking": 2,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

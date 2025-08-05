@@ -24,7 +24,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "Video", "Segmentation", "Visualization", "Camera"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"SAM2": {
 				"source": "https://github.com/facebookresearch/segment-anything-2",
 				"version": "1.0",

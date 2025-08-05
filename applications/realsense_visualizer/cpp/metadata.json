@@ -19,7 +19,7 @@
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Computer Vision and Perception", "Visualization", "Camera", "Depth", "Holoviz"],
 		"ranking": 0,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/realsense_visualizer",
 			"workdir": "holohub_bin"

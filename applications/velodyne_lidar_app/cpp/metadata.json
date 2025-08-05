@@ -45,7 +45,7 @@
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Signal Processing", "Lidar", "Point Cloud", "UDP", "Visualization"],
 		"ranking": 4,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/velodyne_lidar_app <holohub_app_source>/lidar.yaml",
 			"workdir": "holohub_bin"

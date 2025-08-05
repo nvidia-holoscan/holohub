@@ -25,7 +25,7 @@
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Signal Processing", "UDP"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [{
 				"name": "basic_network",
 				"version": "1.0"

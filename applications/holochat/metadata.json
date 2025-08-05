@@ -21,7 +21,7 @@
 			"platforms": ["x86_64", "aarch64"],
 			"tags": ["Natural Language and Conversational AI", "RAG", "Vector Database", "LLM"],
 			"ranking": 4,
-			"dependencies": {
+			"requirements": {
 				"OSS": [
 					{
 						"name": "Llama.cpp",

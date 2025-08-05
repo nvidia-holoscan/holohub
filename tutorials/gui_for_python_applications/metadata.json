@@ -25,6 +25,6 @@
 		],
 		"tags": ["UI"],
 		"ranking": 1,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

@@ -32,7 +32,7 @@
 			"Video Encoding"
 		],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"packages": [
 				{
 					"name": "NVIDIA Video Codec SDK",

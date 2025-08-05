@@ -24,7 +24,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "Video", "Detection", "Visualization", "Holoviz"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "./object_detection_torch --data <holohub_data_dir>/object_detection_torch",
 			"workdir": "holohub_app_bin"

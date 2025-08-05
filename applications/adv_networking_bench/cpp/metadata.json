@@ -24,7 +24,7 @@
 			]
 		},
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [{
 				"name": "advanced_networking_benchmark",
 				"version": "1.2"

@@ -24,7 +24,7 @@
         ],
         "tags": ["Tools And Other Specialized Applications", "Quantum Computing"],
         "ranking": 4,
-        "dependencies": {
+        "requirements": {
             "cuda_quantum": "^0.4.0"
         },
         "run": {

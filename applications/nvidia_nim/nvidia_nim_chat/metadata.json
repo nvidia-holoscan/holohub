@@ -25,7 +25,7 @@
 		],
 		"tags": ["Natural Language and Conversational AI", "Auth and API", "LLM"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/app.py",
 			"workdir": "holohub_app_source"

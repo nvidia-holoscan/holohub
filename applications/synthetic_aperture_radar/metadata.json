@@ -28,7 +28,7 @@
         ],
         "tags": ["Signal Processing", "Imaging", "Backprojection", "Synthetic Aperture Beamforming", "Holoviz"],
         "ranking": 4,
-        "dependencies": {
+        "requirements": {
             "operators": [
                 {
                     "name": "holoviz",

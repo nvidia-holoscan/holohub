@@ -24,7 +24,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "Distributed", "Tensor Optimization", "Human Body Pose Estimation", "DDS", "RTI Connext", "Video", "Visualization"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"data": [
 				{
 					"model": "https://docs.ultralytics.com/tasks/pose/",
