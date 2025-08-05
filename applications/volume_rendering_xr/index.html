@@ -12509,6 +12509,8 @@
       
         
       
+        
+      
     
     
     
@@ -13544,12 +13546,12 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../tutorials/gpu_direct_storage_on_holoscan/" class="md-nav__link ">
+            <a href="../../tutorials/cloudxr_runtime_for_xr_applications/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
-    Taking advantage of GPU Direct Storage on the latest NVIDIA Edge platform
+    Setting up CloudXR Runtime with Holoscan XR Applications
     
   </span>
   
@@ -13561,7 +13563,7 @@
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_15_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5_15">
             <span class="md-nav__icon md-icon"></span>
-            Taking advantage of GPU Direct Storage on the latest NVIDIA Edge platform
+            Setting up CloudXR Runtime with Holoscan XR Applications
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -13603,6 +13605,65 @@
         
           
           <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/gpu_direct_storage_on_holoscan/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Taking advantage of GPU Direct Storage on the latest NVIDIA Edge platform
+    
+  </span>
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_16_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_16">
+            <span class="md-nav__icon md-icon"></span>
+            Taking advantage of GPU Direct Storage on the latest NVIDIA Edge platform
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_17" >
+        
+          
+          <div class="md-nav__link md-nav__container">
             <a href="../../tutorials/holohub_operators_external_applications/" class="md-nav__link ">
               
   
@@ -13617,8 +13678,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_16_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5_16">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_17_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_17">
             <span class="md-nav__icon md-icon"></span>
             Using Holohub  in External Applications
           </label>
@@ -14035,6 +14096,24 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#running-with-apple-vision-pro" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running with Apple Vision Pro
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-with-magic-leap-or-simulator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running with Magic Leap or Simulator
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#testing-utility" class="md-nav__link">
     <span class="md-ellipsis">
       Testing Utility
@@ -14334,9 +14413,12 @@
 - <a href="https://www.magicleap.care/hc/en-us/articles/5341445649805-Updating-Your-Device">Updating your device with Magic Leap Hub</a>;
 - <a href="https://developer-docs.magicleap.cloud/docs/guides/developer-tools/ml-hub/ml-hub-package-manager/">Installing <code>.apk</code> packages with Magic Leap Hub</a></p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
-<p>Run the following command in the top-level HoloHub folder to build and run the host application:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering_xr
-</code></pre></div>
+<h3 id="running-with-apple-vision-pro">Running with Apple Vision Pro<a class="headerlink" href="#running-with-apple-vision-pro" title="Permanent link">#</a></h3>
+<p>To stream this XR application to devices like Apple Vision Pro, refer to the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cloudxr_runtime_for_xr_applications">CloudXR Runtime tutorial</a> for setup instructions. Change <code>&lt;app_name&gt;</code> in the instructions to <code>volume_rendering_xr</code>.</p>
+<h3 id="running-with-magic-leap-or-simulator">Running with Magic Leap or Simulator<a class="headerlink" href="#running-with-magic-leap-or-simulator" title="Permanent link">#</a></h3>
+<p>The default configuration runs without Magic Leap setup. To explicitly enable Magic Leap devices, use:
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--magic-leap&quot;</span>
+</code></pre></div></p>
 <p>A QR code will be visible in the console log. Refer to Magic Leap 2 <a href="https://developer-docs.magicleap.cloud/docs/guides/remote-rendering/remote-rendering/#:~:text=Put%20on%20the%20Magic%20Leap,headset%20by%20looking%20at%20it.&amp;text=The%20QR%20code%20launches%20a,Click%20Continue.">Remote Rendering Setup documentation</a> to pair the host and device in preparation for remote viewing. Refer to the <a href="#starting-the-magic-leap-2-remote-viewer">Remote Viewer</a> section to regenerate the QR code as needed, or to use the local debugger GUI in place of a physical device.</p>
 <p>The application supports the following hand or controller interactions by default:
 - <strong>Translate</strong>: Reach and grab inside the volume with your hand or with the controller trigger to move the volume.
@@ -14361,7 +14443,7 @@
 <h3 id="run-the-application">Run the Application<a class="headerlink" href="#run-the-application" title="Permanent link">#</a></h3>
 <p>Inside the container environment, start the application:
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ML_START_OPTIONS</span><span class="o">=</span>&lt;<span class="s2">&quot;&quot;</span>/<span class="s2">&quot;debug&quot;</span>&gt;<span class="w"> </span><span class="c1"># Defaults to &quot;debug&quot; to run XR device simulator GUI</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering_xr
+./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--magic-leap&quot;</span>
 </code></pre></div></p>
 <h3 id="deploying-as-a-standalone-application">Deploying as a Standalone Application<a class="headerlink" href="#deploying-as-a-standalone-application" title="Permanent link">#</a></h3>
 <p><code>volume_rendering_xr</code> can be packaged in a self-contained release container with datasets and binaries.</p>

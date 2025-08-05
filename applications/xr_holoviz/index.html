@@ -12509,6 +12509,8 @@
       
         
       
+        
+      
     
     
     
@@ -13544,12 +13546,12 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../tutorials/gpu_direct_storage_on_holoscan/" class="md-nav__link ">
+            <a href="../../tutorials/cloudxr_runtime_for_xr_applications/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
-    Taking advantage of GPU Direct Storage on the latest NVIDIA Edge platform
+    Setting up CloudXR Runtime with Holoscan XR Applications
     
   </span>
   
@@ -13561,7 +13563,7 @@
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_15_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5_15">
             <span class="md-nav__icon md-icon"></span>
-            Taking advantage of GPU Direct Storage on the latest NVIDIA Edge platform
+            Setting up CloudXR Runtime with Holoscan XR Applications
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -13603,6 +13605,65 @@
         
           
           <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/gpu_direct_storage_on_holoscan/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Taking advantage of GPU Direct Storage on the latest NVIDIA Edge platform
+    
+  </span>
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_16_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_16">
+            <span class="md-nav__icon md-icon"></span>
+            Taking advantage of GPU Direct Storage on the latest NVIDIA Edge platform
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_17" >
+        
+          
+          <div class="md-nav__link md-nav__container">
             <a href="../../tutorials/holohub_operators_external_applications/" class="md-nav__link ">
               
   
@@ -13617,8 +13678,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_16_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5_16">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_17_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_17">
             <span class="md-nav__icon md-icon"></span>
             Using Holohub  in External Applications
           </label>
@@ -13977,32 +14038,32 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#quick-start-guide" class="md-nav__link">
+  <a href="#quick-start" class="md-nav__link">
     <span class="md-ellipsis">
-      Quick Start Guide
+      Quick Start
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Quick Start Guide">
+    <nav class="md-nav" aria-label="Quick Start">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-build-the-docker-image" class="md-nav__link">
+  <a href="#option-1-stream-to-apple-vision-pro-through-cloudxr-runtime" class="md-nav__link">
     <span class="md-ellipsis">
-      1. Build the Docker Image
+      Option 1: Stream to Apple Vision Pro through CloudXR Runtime
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-run-the-application" class="md-nav__link">
+  <a href="#option-2-using-monado-openxr-runtime-local-development" class="md-nav__link">
     <span class="md-ellipsis">
-      2. Run the application
+      Option 2: Using Monado OpenXR Runtime (Local Development)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. Run the application">
+    <nav class="md-nav" aria-label="Option 2: Using Monado OpenXR Runtime (Local Development)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -14027,30 +14088,6 @@
   <a href="#set-up-width-and-height-correctly" class="md-nav__link">
     <span class="md-ellipsis">
       Set up width and height correctly
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#buffer-size-too-small" class="md-nav__link">
-    <span class="md-ellipsis">
-      Buffer Size Too Small
     </span>
   </a>
   
@@ -14115,15 +14152,17 @@
 <p>This application demonstrates the integration of Holoscan-XR with Holoviz for extended reality visualization.</p>
 <p><img alt="Demo" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/xr_holoviz/doc/demo.gif?raw=true" />
 <em>Demo running on Apple Vision Pro</em></p>
-<h2 id="quick-start-guide">Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Permanent link">#</a></h2>
-<h3 id="1-build-the-docker-image">1. Build the Docker Image<a class="headerlink" href="#1-build-the-docker-image" title="Permanent link">#</a></h3>
-<p>Run the following command in the top-level HoloHub directory:
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build-container<span class="w"> </span>xr_holoviz
-</code></pre></div></p>
-<h3 id="2-run-the-application">2. Run the application<a class="headerlink" href="#2-run-the-application" title="Permanent link">#</a></h3>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
+<h3 id="option-1-stream-to-apple-vision-pro-through-cloudxr-runtime">Option 1: Stream to Apple Vision Pro through CloudXR Runtime<a class="headerlink" href="#option-1-stream-to-apple-vision-pro-through-cloudxr-runtime" title="Permanent link">#</a></h3>
+<p>To stream this XR application to devices like Apple Vision Pro, refer to the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cloudxr_runtime_for_xr_applications">CloudXR Runtime tutorial</a> for setup instructions.</p>
+<h3 id="option-2-using-monado-openxr-runtime-local-development">Option 2: Using Monado OpenXR Runtime (Local Development)<a class="headerlink" href="#option-2-using-monado-openxr-runtime-local-development" title="Permanent link">#</a></h3>
+<p>Monado is an open-source OpenXR runtime that supports various XR devices and includes a simulator for local development without physical XR hardware.</p>
 <h4 id="terminal-1-launch-container-and-start-monado-service">Terminal 1: Launch Container and Start Monado Service<a class="headerlink" href="#terminal-1-launch-container-and-start-monado-service" title="Permanent link">#</a></h4>
-<p><div class="highlight"><pre><span></span><code><span class="c1"># Launch the container and start the Monado service</span>
-./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>holohub:xr_holoviz<span class="w"> </span>--<span class="w"> </span>monado-service
+<p><div class="highlight"><pre><span></span><code><span class="c1"># If you&#39;re already in the container, skip this step</span>
+./holohub<span class="w"> </span>run-container<span class="w"> </span>xr_holoviz
+
+<span class="c1"># Inside the container, start the Monado XR runtime service</span>
+monado-service
 </code></pre></div>
 Keep this terminal open and running.</p>
 <h4 id="terminal-2-build-and-run-the-application">Terminal 2: Build and Run the Application<a class="headerlink" href="#terminal-2-build-and-run-the-application" title="Permanent link">#</a></h4>
@@ -14142,21 +14181,20 @@ docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </spa
 </code></pre></div></li>
 <li>Copy the width and height</li>
 <li>Set the width and height of the HolovizOp in <code>config.yaml</code></li>
+<li>Re-run the application</li>
 </ol>
-<h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h3>
-<h4 id="buffer-size-too-small">Buffer Size Too Small<a class="headerlink" href="#buffer-size-too-small" title="Permanent link">#</a></h4>
+<h5 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h5>
+<h6 id="buffer-size-too-small">Buffer Size Too Small<a class="headerlink" href="#buffer-size-too-small" title="Permanent link">#</a></h6>
 <p>If you encounter the following errors:
-<div class="highlight"><pre><span></span><code>...
-[error] [gxf_executor.cpp:2506] Graph execution error: GXF_FAILURE
+<div class="highlight"><pre><span></span><code>[error] [gxf_executor.cpp:2506] Graph execution error: GXF_FAILURE
 terminate called after throwing an instance of &#39;std::runtime_error&#39;
   what():  The size of the buffer is too small
-  ...
 </code></pre></div></p>
 <p>This error is typically caused by incorrect width and height configuration for the XR display. To resolve this issue:</p>
 <ol>
 <li>Follow the <strong>"Set up width and height correctly"</strong> section above to obtain the correct display dimensions</li>
 <li>Update the HolovizOp width and height values in <code>config.yaml</code> with the runtime-detected values</li>
-<li>Restart the application</li>
+<li>Restart the application </li>
 </ol>
 
 
