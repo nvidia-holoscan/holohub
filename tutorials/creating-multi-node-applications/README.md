@@ -482,8 +482,8 @@ Before we start to launch the application, let's first run the original applicat
 > Build and run instructions may change in the future, please refer to the original application.
 ```sh
 # on the node that runs fragment 1, or a node that runs the entire app
-./run build multiai_endoscopy
-./run launch multiai_endoscopy python
+./holohub build multiai_endoscopy
+./holohub run multiai_endoscopy --language python
 ```
 Now we're ready to launch the distributed application in scenario 1.
 ```sh
@@ -515,11 +515,11 @@ Let's first run the original applications. In the dev container, make sure to bu
 > Build and run instructions may change in the future, please refer to the original applications.
 ```sh
 # On the node that runs fragment 1 or a node that runs the entire app
-./run build endoscopy_tool_tracking
-./run launch endoscopy_tool_tracking python
+./holohub build endoscopy_tool_tracking
+./holohub run endoscopy_tool_tracking --language python
 
 # On the node that runs fragment 2 or a node that runs the entire app
-./run build endoscopy_out_of_body_detection
+./holohub build endoscopy_out_of_body_detection
 cd build && applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection --data ../data/endoscopy_out_of_body_detection
 ```
 Now we're ready to launch the distributed application in scenario 2. 

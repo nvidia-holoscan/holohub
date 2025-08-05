@@ -408,7 +408,7 @@ frame on the screen using the RTX A4000 GPU with the help of OpenGL.
 In Linux host, run the Holoscan DDS app in `publisher` mode:
 
 ```bash
-./run launch dds_video --extra_args "-p"
+./holohub run --local dds_video --run-args="-p"
 ```
 
 In Windows VM, running the renderer application shows the camera input from Linux host:

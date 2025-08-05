@@ -26,13 +26,13 @@ Then, you can build the tool tracking application with the provided
 `Dockerfile`:
 
 ```bash
-./dev_container launch --img vtk:latest
+./holohub run-container --img vtk:latest
 ```
 
 Inside the container you can build the holohub application with:
 
 ```bash
-./run build <application> --with vtk_renderer
+./holohub build <application> --build-with vtk_renderer
 ```
 
 ## Parameters
