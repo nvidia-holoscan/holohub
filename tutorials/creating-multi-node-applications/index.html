@@ -14571,8 +14571,8 @@ python3<span class="w"> </span>/workspace/holohub/applications/distributed_app/p
 <blockquote>
 <p>Build and run instructions may change in the future, please refer to the original application.
 <div class="highlight"><pre><span></span><code><span class="c1"># on the node that runs fragment 1, or a node that runs the entire app</span>
-./run<span class="w"> </span>build<span class="w"> </span>multiai_endoscopy
-./run<span class="w"> </span>launch<span class="w"> </span>multiai_endoscopy<span class="w"> </span>python
+./holohub<span class="w"> </span>build<span class="w"> </span>multiai_endoscopy
+./holohub<span class="w"> </span>run<span class="w"> </span>multiai_endoscopy<span class="w"> </span>--language<span class="w"> </span>python
 </code></pre></div>
 Now we're ready to launch the distributed application in scenario 1.
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>scenario1/
@@ -14598,11 +14598,11 @@ python3<span class="w"> </span>multi_ai.py<span class="w"> </span>--source<span 
 <blockquote>
 <p>Build and run instructions may change in the future, please refer to the original applications.
 <div class="highlight"><pre><span></span><code><span class="c1"># On the node that runs fragment 1 or a node that runs the entire app</span>
-./run<span class="w"> </span>build<span class="w"> </span>endoscopy_tool_tracking
-./run<span class="w"> </span>launch<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>python
+./holohub<span class="w"> </span>build<span class="w"> </span>endoscopy_tool_tracking
+./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python
 
 <span class="c1"># On the node that runs fragment 2 or a node that runs the entire app</span>
-./run<span class="w"> </span>build<span class="w"> </span>endoscopy_out_of_body_detection
+./holohub<span class="w"> </span>build<span class="w"> </span>endoscopy_out_of_body_detection
 <span class="nb">cd</span><span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection<span class="w"> </span>--data<span class="w"> </span>../data/endoscopy_out_of_body_detection
 </code></pre></div>
 Now we're ready to launch the distributed application in scenario 2. 

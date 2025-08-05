@@ -14465,7 +14465,7 @@ app is used in <code>publisher</code> mode where it reads frames from a USB came
 DDS. The Windows application (available upon request) receives the frames via DDS and renders the
 frame on the screen using the RTX A4000 GPU with the help of OpenGL.</p>
 <p>In Linux host, run the Holoscan DDS app in <code>publisher</code> mode:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>dds_video<span class="w"> </span>--extra_args<span class="w"> </span><span class="s2">&quot;-p&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--local<span class="w"> </span>dds_video<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-p&quot;</span>
 </code></pre></div>
 <p>In Windows VM, running the renderer application shows the camera input from Linux host:</p>
 <p><img alt="windows_vm_dds_renderer" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/windows_vm/windows_vm_dds_renderer.png?raw=true" /></p>
