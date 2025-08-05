@@ -42,7 +42,7 @@ namespace holoscan::ops {
  * @brief Operator class to get the video stream from Deltacast capture card.
  *
  */
-class VideoMasterSourceOp : public VideoMasterBase {
+class VideoMasterSourceOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(VideoMasterSourceOp)
 
@@ -54,6 +54,7 @@ class VideoMasterSourceOp : public VideoMasterBase {
   void start() override;
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override;
+  void stop() override;
 
  private:
   void transmit_buffer_data(void* buffer, uint32_t buffer_size, OutputContext& op_output, ExecutionContext& context);
@@ -66,6 +67,11 @@ class VideoMasterSourceOp : public VideoMasterBase {
   Parameter<uint32_t> _height;
   Parameter<bool> _progressive;
   Parameter<uint32_t> _framerate;
+
+  bool _has_lost_signal;
+  
+  VideoMasterBase _video_master_base;
+  
 };
 
 }  // namespace holoscan::ops
