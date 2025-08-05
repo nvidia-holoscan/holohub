@@ -38,7 +38,7 @@ git checkout ${holoscan_sdk_tag}
 # https://github.com/nvidia-holoscan/holoscan-sdk/issues/30
 git reset --hard HEAD
 git apply ${SCRIPT_DIR}/holoscan_sdk_20240723_1.diff
-./run build --type $build_type
+./holohub build --local --type $build_type
 INSTALL_DIR=$(realpath $(find . -type d -name "install-*"))
 popd
 
