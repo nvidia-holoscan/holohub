@@ -14364,71 +14364,83 @@
 <h3 id="2-understanding-the-cmakeliststxt">2. Understanding the CMakeLists.txt<a class="headerlink" href="#2-understanding-the-cmakeliststxt" title="Permanent link">#</a></h3>
 <p>Let's break down each section:</p>
 <h4 id="project-setup">Project Setup<a class="headerlink" href="#project-setup" title="Permanent link">#</a></h4>
-<p><div class="highlight"><pre><span></span><code><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.18</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.18</span><span class="p">)</span>
 <span class="nb">project</span><span class="p">(</span><span class="s">your_app_name</span><span class="p">)</span>
 </code></pre></div>
-- Sets the minimum CMake version required
-- Defines your project name</p>
+<ul>
+<li>Sets the minimum CMake version required</li>
+<li>Defines your project name</li>
+</ul>
 <h4 id="holoscan-integration">Holoscan Integration<a class="headerlink" href="#holoscan-integration" title="Permanent link">#</a></h4>
-<p><div class="highlight"><pre><span></span><code><span class="nb">find_package</span><span class="p">(</span><span class="s">holoscan</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nb">find_package</span><span class="p">(</span><span class="s">holoscan</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
 </code></pre></div>
-- Locates and configures the Holoscan SDK
-- Makes Holoscan targets available for linking</p>
+<ul>
+<li>Locates and configures the Holoscan SDK</li>
+<li>Makes Holoscan targets available for linking</li>
+</ul>
 <h4 id="operator-fetching-two-approaches-available">Operator Fetching - Two Approaches Available<a class="headerlink" href="#operator-fetching-two-approaches-available" title="Permanent link">#</a></h4>
 <p>The CMakeLists.txt provides two different approaches for including the <code>FetchHolohubOperator.cmake</code> utility:</p>
 <p><strong>Internal Only: Repository Include</strong>
 <div class="highlight"><pre><span></span><code><span class="nb">include</span><span class="p">(</span><span class="s">../../cmake/FetchHolohubOperator.cmake</span><span class="p">)</span>
-</code></pre></div>
-- ✅ Simple and straightforward
-- ✅ Always uses the latest version from the repository
-- ✅ No additional files needed
-- ❌ <strong>INTERNAL USE ONLY</strong> - Requires the application to be within the Holohub repository structure
-- ❌ Not suitable for external applications</p>
+</code></pre></div></p>
+<ul>
+<li>✅ Simple and straightforward</li>
+<li>✅ Always uses the latest version from the repository</li>
+<li>✅ No additional files needed</li>
+<li>❌ <strong>INTERNAL USE ONLY</strong> - Requires the application to be within the Holohub repository structure</li>
+<li>❌ Not suitable for external applications</li>
+</ul>
 <p><strong>Approach 1: Download from GitHub</strong>
-<div class="highlight"><pre><span></span><code><span class="c"># Uncomment the following lines to use this approach:</span>
-<span class="c"># set(FETCH_HOLOHUB_OPERATOR_URL &quot;https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake&quot;)</span>
-<span class="c"># set(FETCH_HOLOHUB_OPERATOR_LOCAL_PATH &quot;${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake&quot;)</span>
-<span class="c"># if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})</span>
-<span class="c">#      file(DOWNLOAD</span>
-<span class="c">#          ${FETCH_HOLOHUB_OPERATOR_URL}</span>
-<span class="c">#          ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH}</span>
-<span class="c">#          SHOW_PROGRESS</span>
-<span class="c">#          TLS_VERIFY ON</span>
-<span class="c">#      )</span>
-<span class="c">#      if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})</span>
-<span class="c">#          message(FATAL_ERROR &quot;Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}&quot;)</span>
-<span class="c">#      endif()</span>
-<span class="c"># endif()</span>
-<span class="c"># include(${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})</span>
-</code></pre></div>
-- ✅ Completely independent of repository structure
-- ✅ Works for truly external applications
-- ✅ Always gets the latest version from the main branch
-- ❌ Requires internet connection during build
-- ❌ Depends on GitHub availability</p>
+<div class="highlight"><pre><span></span><code><span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="s">FETCH_HOLOHUB_OPERATOR_URL</span><span class="w"> </span><span class="s2">&quot;https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake&quot;</span><span class="p">)</span>
+<span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="s">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="w"> </span><span class="s2">&quot;${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake&quot;</span><span class="p">)</span>
+<span class="w"> </span><span class="nb">if</span><span class="p">(</span><span class="s">NOT</span><span class="w"> </span><span class="s">EXISTS</span><span class="w"> </span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="o">}</span><span class="p">)</span>
+<span class="w">      </span><span class="nb">file</span><span class="p">(</span><span class="s">DOWNLOAD</span>
+<span class="w">          </span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_URL</span><span class="o">}</span>
+<span class="w">          </span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="o">}</span>
+<span class="w">          </span><span class="s">SHOW_PROGRESS</span>
+<span class="w">          </span><span class="s">TLS_VERIFY</span><span class="w"> </span><span class="s">ON</span>
+<span class="w">      </span><span class="p">)</span>
+<span class="w">      </span><span class="nb">if</span><span class="p">(</span><span class="s">NOT</span><span class="w"> </span><span class="s">EXISTS</span><span class="w"> </span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="o">}</span><span class="p">)</span>
+<span class="w">          </span><span class="nb">message</span><span class="p">(</span><span class="s">FATAL_ERROR</span><span class="w"> </span><span class="s2">&quot;Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}&quot;</span><span class="p">)</span>
+<span class="w">      </span><span class="nb">endif</span><span class="p">()</span>
+<span class="w"> </span><span class="nb">endif</span><span class="p">()</span>
+<span class="w"> </span><span class="nb">include</span><span class="p">(</span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="o">}</span><span class="p">)</span>
+</code></pre></div></p>
+<ul>
+<li>✅ Completely independent of repository structure</li>
+<li>✅ Works for truly external applications</li>
+<li>✅ Always gets the latest version from the main branch</li>
+<li>❌ Requires internet connection during build</li>
+<li>❌ Depends on GitHub availability</li>
+</ul>
 <p><strong>Approach 2: Local Copy</strong>
-<div class="highlight"><pre><span></span><code><span class="c"># Uncomment the following line to use this approach (requires FetchHolohubOperator.cmake in same directory):</span>
-<span class="c"># include(${CMAKE_CURRENT_SOURCE_DIR}/FetchHolohubOperator.cmake)</span>
-</code></pre></div>
-- ✅ Complete independence from repository structure
-- ✅ No internet dependency during build
-- ✅ Full version control over the utility file
-- ❌ Requires manual file copying
-- ❌ Need to manually update when new versions are released</p>
+<div class="highlight"><pre><span></span><code><span class="w"> </span><span class="nb">include</span><span class="p">(</span><span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span><span class="s">/FetchHolohubOperator.cmake</span><span class="p">)</span>
+</code></pre></div></p>
+<ul>
+<li>✅ Complete independence from repository structure</li>
+<li>✅ No internet dependency during build</li>
+<li>✅ Full version control over the utility file</li>
+<li>❌ Requires manual file copying</li>
+<li>❌ Need to manually update when new versions are released</li>
+</ul>
 <p><strong>Usage:</strong>
 <div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span><span class="p">)</span>
-</code></pre></div>
-- Downloads the <code>aja_source</code> operator from Holohub using sparse checkout</p>
+</code></pre></div></p>
+<ul>
+<li>Downloads the <code>aja_source</code> operator from Holohub using sparse checkout</li>
+</ul>
 <h4 id="application-building">Application Building<a class="headerlink" href="#application-building" title="Permanent link">#</a></h4>
-<p><div class="highlight"><pre><span></span><code><span class="nb">add_executable</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">main.cpp</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nb">add_executable</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">main.cpp</span><span class="p">)</span>
 <span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span>
 <span class="w">   </span><span class="s">PRIVATE</span><span class="w"> </span>
 <span class="w">   </span><span class="s">holoscan::core</span>
 <span class="w">   </span><span class="s">holoscan::aja</span>
 <span class="w">   </span><span class="p">)</span>
 </code></pre></div>
-- Creates your executable from <code>main.cpp</code>
-- Links against the required Holohub libraries</p>
+<ul>
+<li>Creates your executable from <code>main.cpp</code></li>
+<li>Links against the required Holohub libraries</li>
+</ul>
 <h3 id="3-the-fetchholohuboperatorcmake-utility">3. The FetchHolohubOperator.cmake Utility<a class="headerlink" href="#3-the-fetchholohuboperatorcmake-utility" title="Permanent link">#</a></h3>
 <p>The <code>FetchHolohubOperator.cmake</code> file provides a convenient way to fetch specific operators from the Holohub repository. It uses Git sparse checkout to download only the required operator, making the process efficient.</p>
 <h4 id="function-signature">Function Signature<a class="headerlink" href="#function-signature" title="Permanent link">#</a></h4>
@@ -14456,21 +14468,27 @@
 </code></pre></div>
 <h3 id="4-choosing-the-right-approach">4. Choosing the Right Approach<a class="headerlink" href="#4-choosing-the-right-approach" title="Permanent link">#</a></h3>
 <p>When deciding which approach to use for including <code>FetchHolohubOperator.cmake</code>, consider your specific requirements:</p>
-<p><strong>Use Repository Include (Internal Only) when:</strong>
-- Your application is part of the Holohub repository
-- You want to always use the latest version
-- You're developing within the Holohub ecosystem
-- <strong>Note:</strong> This approach is only available for internal Holohub repository use</p>
-<p><strong>Use Approach 1 (Download from GitHub) when:</strong>
-- Your application is external to the Holohub repository
-- You have reliable internet connectivity during builds
-- You want automatic updates from the main branch
-- You need independence from the repository structure</p>
-<p><strong>Use Approach 2 (Local Copy) when:</strong>
-- Your application needs to work offline
-- You require version stability and reproducibility
-- You need complete control over the utility file
-- You're building for production environments</p>
+<p><strong>Use Repository Include (Internal Only) when:</strong></p>
+<ul>
+<li>Your application is part of the Holohub repository</li>
+<li>You want to always use the latest version</li>
+<li>You're developing within the Holohub ecosystem</li>
+<li><strong>Note:</strong> This approach is only available for internal Holohub repository use</li>
+</ul>
+<p><strong>Use Approach 1 (Download from GitHub) when:</strong></p>
+<ul>
+<li>Your application is external to the Holohub repository</li>
+<li>You have reliable internet connectivity during builds</li>
+<li>You want automatic updates from the main branch</li>
+<li>You need independence from the repository structure</li>
+</ul>
+<p><strong>Use Approach 2 (Local Copy) when:</strong></p>
+<ul>
+<li>Your application needs to work offline</li>
+<li>You require version stability and reproducibility</li>
+<li>You need complete control over the utility file</li>
+<li>You're building for production environments</li>
+</ul>
 <h3 id="5-create-your-application-code">5. Create Your Application Code<a class="headerlink" href="#5-create-your-application-code" title="Permanent link">#</a></h3>
 <p>Create a <code>main.cpp</code> file that uses the fetched operator:</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;holoscan/holoscan.hpp&quot;</span>
