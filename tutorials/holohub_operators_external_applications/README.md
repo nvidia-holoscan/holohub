@@ -31,7 +31,7 @@ your_external_app/
 
 ### 1. Create Your CMakeLists.txt
 
-Create a `CMakeLists.txt` file in your project root with the following content:
+Create a `CMakeLists.txt` file in your project root. The file includes two different approaches for including the `FetchHolohubOperator.cmake` utility (plus an internal-only option):
 
 ```cmake
 cmake_minimum_required(VERSION 3.18)
@@ -40,8 +40,40 @@ project(your_app_name)
 # Find the Holoscan package
 find_package(holoscan REQUIRED)
 
-# Include the Holohub operator fetching utility
+# =============================================================================
+# FETCH HOLOHUB OPERATOR UTILITY - TWO APPROACHES AVAILABLE
+# =============================================================================
+# Choose one of the following two approaches by uncommenting the desired option:
+
+# INTERNAL ONLY: Repository Include (for Holohub repository internal use only)
+# This approach is only available when the application is within the Holohub repository structure
+# For external applications, use one of the two approaches below
 include(../../cmake/FetchHolohubOperator.cmake)
+
+# APPROACH 1: Download from GitHub (for external applications with internet access)
+# Pros: Independent of repository structure, automatic updates, no manual copying
+# Cons: Requires internet connection, depends on GitHub availability
+# Uncomment the following lines to use this approach (and comment out the internal include above):
+# set(FETCH_HOLOHUB_OPERATOR_URL "https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake")
+# set(FETCH_HOLOHUB_OPERATOR_LOCAL_PATH "${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake")
+# if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+#      file(DOWNLOAD
+#          ${FETCH_HOLOHUB_OPERATOR_URL}
+#          ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH}
+#          SHOW_PROGRESS
+#          TLS_VERIFY ON
+#      )
+#      if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+#          message(FATAL_ERROR "Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}")
+#      endif()
+# endif()
+# include(${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+
+# APPROACH 2: Local Copy (for offline environments or version control)
+# Pros: Complete independence, no internet dependency, full version control
+# Cons: Requires manual file copying, need to manually update
+# Uncomment the following line to use this approach (requires FetchHolohubOperator.cmake in same directory):
+# include(${CMAKE_CURRENT_SOURCE_DIR}/FetchHolohubOperator.cmake)
 
 # Fetch the specific operator you need
 fetch_holohub_operator(aja_source)
@@ -76,12 +108,59 @@ find_package(holoscan REQUIRED)
 - Locates and configures the Holoscan SDK
 - Makes Holoscan targets available for linking
 
-#### Operator Fetching
+#### Operator Fetching - Two Approaches Available
+
+The CMakeLists.txt provides two different approaches for including the `FetchHolohubOperator.cmake` utility:
+
+**Internal Only: Repository Include**
 ```cmake
 include(../../cmake/FetchHolohubOperator.cmake)
+```
+- ✅ Simple and straightforward
+- ✅ Always uses the latest version from the repository
+- ✅ No additional files needed
+- ❌ **INTERNAL USE ONLY** - Requires the application to be within the Holohub repository structure
+- ❌ Not suitable for external applications
+
+**Approach 1: Download from GitHub**
+```cmake
+# Uncomment the following lines to use this approach:
+# set(FETCH_HOLOHUB_OPERATOR_URL "https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake")
+# set(FETCH_HOLOHUB_OPERATOR_LOCAL_PATH "${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake")
+# if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+#      file(DOWNLOAD
+#          ${FETCH_HOLOHUB_OPERATOR_URL}
+#          ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH}
+#          SHOW_PROGRESS
+#          TLS_VERIFY ON
+#      )
+#      if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+#          message(FATAL_ERROR "Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}")
+#      endif()
+# endif()
+# include(${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+```
+- ✅ Completely independent of repository structure
+- ✅ Works for truly external applications
+- ✅ Always gets the latest version from the main branch
+- ❌ Requires internet connection during build
+- ❌ Depends on GitHub availability
+
+**Approach 2: Local Copy**
+```cmake
+# Uncomment the following line to use this approach (requires FetchHolohubOperator.cmake in same directory):
+# include(${CMAKE_CURRENT_SOURCE_DIR}/FetchHolohubOperator.cmake)
+```
+- ✅ Complete independence from repository structure
+- ✅ No internet dependency during build
+- ✅ Full version control over the utility file
+- ❌ Requires manual file copying
+- ❌ Need to manually update when new versions are released
+
+**Usage:**
+```cmake
 fetch_holohub_operator(aja_source)
 ```
-- Includes the utility function for fetching operators
 - Downloads the `aja_source` operator from Holohub using sparse checkout
 
 #### Application Building
@@ -126,7 +205,29 @@ fetch_holohub_operator(custom_operator REPO_URL "https://github.com/custom/holoh
 fetch_holohub_operator(custom_operator BRANCH "dev")
 ```
 
-### 4. Create Your Application Code
+### 4. Choosing the Right Approach
+
+When deciding which approach to use for including `FetchHolohubOperator.cmake`, consider your specific requirements:
+
+**Use Repository Include (Internal Only) when:**
+- Your application is part of the Holohub repository
+- You want to always use the latest version
+- You're developing within the Holohub ecosystem
+- **Note:** This approach is only available for internal Holohub repository use
+
+**Use Approach 1 (Download from GitHub) when:**
+- Your application is external to the Holohub repository
+- You have reliable internet connectivity during builds
+- You want automatic updates from the main branch
+- You need independence from the repository structure
+
+**Use Approach 2 (Local Copy) when:**
+- Your application needs to work offline
+- You require version stability and reproducibility
+- You need complete control over the utility file
+- You're building for production environments
+
+### 5. Create Your Application Code
 
 Create a `main.cpp` file that uses the fetched operator:
 
@@ -155,7 +256,7 @@ int main(int argc, char** argv) {
 }
 ```
 
-### 5. Building Your Application
+### 6. Building Your Application
 
 ```bash
 # Create a build directory
