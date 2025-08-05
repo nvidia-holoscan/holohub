@@ -14264,7 +14264,7 @@ various end-to-end latency performance metrics.</p>
 <div class="highlight"><pre><span></span><code>./benchmarks/holoscan_flow_benchmarking/patch_application.sh<span class="w"> </span>model_benchmarking
 </code></pre></div>
 <p><strong>2. Build Application for Benchmarking:</strong></p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>model_benchmarking<span class="w"> </span>python<span class="w"> </span>--configure-args<span class="w"> </span>-DCMAKE_CXX_FLAGS<span class="o">=</span>-I<span class="nv">$PWD</span>/benchmarks/holoscan_flow_benchmarking<span class="sb">`</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>--local<span class="w"> </span>model_benchmarking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DCMAKE_CXX_FLAGS=-I</span><span class="nv">$PWD</span><span class="s2">/benchmarks/holoscan_flow_benchmarking&quot;</span>
 </code></pre></div>
 <p><strong>3. Set Up V4l2Loopback Devices:</strong></p>
 <p>i. Install <code>v4l2loopback</code> and <code>v4l2loopback</code>:</p>
@@ -14348,10 +14348,10 @@ It reduces the number of context switches and related inferences, resulting in i
 /usr/local/cuda-12.6/compat/lib:/usr/local/cuda-12.6/compat:/usr/local/cuda-12.6/lib64:
 </code></pre></div>
 <p><strong>2. Be sure to pass <code>-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v
-/usr/local/cuda-12.6:/usr/local/cuda-12.6</code> to <code>./dev_container launch</code> command to ensure that the container is
+/usr/local/cuda-12.6:/usr/local/cuda-12.6</code> to <code>./holohub run</code> command to ensure that the container is
 connected to the MPS control and server</strong></p>
 <p>Example:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:v2.1<span class="w"> </span>--docker_opts<span class="w"> </span><span class="s2">&quot;-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--img<span class="w"> </span>holohub:v2.1<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6&quot;</span>
 </code></pre></div></p>
 <p><strong>3. Inside the container, be sure to set the following environment variables:</strong>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>

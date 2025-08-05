@@ -14359,7 +14359,7 @@ Holoscan SDK with debugging symbols in order to step through Holoscan SDK code d
 <p>Review the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/README.md#prerequisites">HoloHub Prerequisites</a> along with the Endoscopy Tool Tracking requirements <a href="../../../applications/endoscopy_tool_tracking/cpp/#requirements">C++</a>,
 <a href="../../../applications/endoscopy_tool_tracking/python/#requirements">Python</a> to get started before continuing.</p>
 <p>If you have previously built the Endoscopy Tool Tracking application, you should clear your build directory before proceeding.
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>clear-cache
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>clear-cache
 </code></pre></div></p>
 <h2 id="debugging-a-c-application-with-gdb">Debugging a C++ Application with <code>gdb</code><a class="headerlink" href="#debugging-a-c-application-with-gdb" title="Permanent link">#</a></h2>
 <h3 id="background_1">Background<a class="headerlink" href="#background_1" title="Permanent link">#</a></h3>
@@ -14378,7 +14378,7 @@ is a self-contained example that will build the C++ application and launch into 
   Note that this does <em>not</em> regenerate build symbols for Holoscan SDK, which are already packaged in
   Holoscan SDK binaries in <code>rel-debug</code> mode.
 3. Launches the Endoscopy Tool Tracking application with <code>gdb</code>. This step prefixes the launch command
-  given by <code>./run launch endoscopy_tool_tracking</code> to run with <code>gdb</code>. The command sets a few actions for <code>gdb</code> to take on startup:
+  given by <code>./holohub run endoscopy_tool_tracking</code> to run with <code>gdb</code>. The command sets a few actions for <code>gdb</code> to take on startup:
     - Sets a breakpoint in the <code>main</code> function of Endoscopy Tool Tracking;
     - Runs the program with custom arguments until the breakpoint is hit;
     - Sets a breakpoint in Holoscan SDK's <code>add_flow</code> function.</p>
@@ -14437,10 +14437,10 @@ Use <code>backtrace</code> to view stack frames at the point where the applicati
 <ol>
 <li>
 <p>Launch the container with root permissions and start the process in the background:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:debugging<span class="w"> </span>--as_root
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>holohub:debugging<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root&quot;</span>
 
 <span class="c1"># Run inside the container</span>
-&gt;&gt;&gt;<span class="w"> </span>./run<span class="w"> </span>launch<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span><span class="p">&amp;</span>
+&gt;&gt;&gt;<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span><span class="p">&amp;</span>
 </code></pre></div></p>
 </li>
 <li>
@@ -14537,7 +14537,7 @@ applications.</p>
 <h3 id="frequently-asked-questions-and-troubleshooting_1">Frequently Asked Questions and Troubleshooting<a class="headerlink" href="#frequently-asked-questions-and-troubleshooting_1" title="Permanent link">#</a></h3>
 <h4 id="how-can-i-use-a-custom-container-path-for-my-holoscan-sdk-debugging-build-other-than-optnvidiaholoscan">How can I use a custom container path for my Holoscan SDK debugging build other than <code>/opt/nvidia/holoscan</code>?<a class="headerlink" href="#how-can-i-use-a-custom-container-path-for-my-holoscan-sdk-debugging-build-other-than-optnvidiaholoscan" title="Permanent link">#</a></h4>
 <p>You can choose to mount your custom Holoscan SDK debugging build at another path in the container with
-the Docker <code>-v</code> option or the HoloHub <code>dev_container</code> script <code>--local_sdk_root</code> or <code>--mount-volume</code> options. If you
+the Docker <code>-v</code> option or the <code>holohub</code> script <code>--local-sdk-root</code> or <code>--mount-volume</code> options. If you
 are mounting your build at a custom path in the Holoscan SDK container for general development, consider the following
 details when building and debugging:
 - <code>LD_LIBRARY_PATH</code> is an environment variable with a list of locations to look up for dynamic loading. By default
@@ -14556,7 +14556,7 @@ details when building and debugging:
 <span class="nv">INSTALL_DIR</span><span class="o">=</span><span class="k">$(</span>realpath<span class="w"> </span><span class="k">$(</span>find<span class="w"> </span>./tutorials/cli_debugging/tmp<span class="w"> </span>-type<span class="w"> </span>d<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;install-*&quot;</span><span class="k">))</span>
 
 <span class="c1"># Launch the debugging container</span>
-./dev_container<span class="w"> </span>launch<span class="w"> </span>--docker_opts<span class="w"> </span><span class="s2">&quot;-v </span><span class="nv">$INSTALL_DIR</span><span class="s2">:/opt/nvidia/holoscan --security-opt seccomp=unconfined&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub:debugging
+./holohub<span class="w"> </span>run<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-v </span><span class="nv">$INSTALL_DIR</span><span class="s2">:/opt/nvidia/holoscan --security-opt seccomp=unconfined&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub:debugging
 
 <span class="c1"># Inside the container</span>
 &gt;&gt;&gt;<span class="w"> </span>gdb<span class="w"> </span>-q<span class="w"> </span><span class="se">\</span>
@@ -14577,7 +14577,7 @@ function to set the global level of detail to log in the application. You can ad
 <code>HOLOSCAN_LOG_INFO</code> AND <code>HOLOSCAN_LOG_TRACE</code> in your application code to print out log messages at runtime
 according to the current logging level of detail.</p>
 <div class="highlight"><pre><span></span><code>export HOLOSCAN_LOG_LEVEL=&quot;Debug&quot;
-./run launch endoscopy_tool_tracking
+./holohub run --local endoscopy_tool_tracking
 </code></pre></div>
 <h3 id="logging-from-a-python-application">Logging from a Python application<a class="headerlink" href="#logging-from-a-python-application" title="Permanent link">#</a></h3>
 <p>Python applications based on Holoscan should use the <a href="https://docs.python.org/3/library/logging.html">Python <code>logging</code> module</a>.

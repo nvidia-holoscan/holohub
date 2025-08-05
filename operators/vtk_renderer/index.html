@@ -14017,10 +14017,10 @@ overcome this limitation.</p>
 </code></pre></div>
 <p>Then, you can build the tool tracking application with the provided
 <code>Dockerfile</code>:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>vtk:latest
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>vtk:latest
 </code></pre></div>
 <p>Inside the container you can build the holohub application with:</p>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>&lt;application&gt;<span class="w"> </span>--with<span class="w"> </span>vtk_renderer
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>&lt;application&gt;<span class="w"> </span>--build-with<span class="w"> </span>vtk_renderer
 </code></pre></div>
 <h5 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h5>
 <ul>

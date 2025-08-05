@@ -14411,7 +14411,7 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nvidi
 <span class="nb">cd</span><span class="w"> </span>holohub
 </code></pre></div>
 To set up and build HoloHub, we will go with the option <code>Building dev container</code>: Run the following command from the holohub directory to build the development container:
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build-container
 </code></pre></div></p>
 <p>Check the tag for the container we had just build:</p>
 <p><div class="highlight"><pre><span></span><code>docker<span class="w"> </span>images
@@ -14420,14 +14420,14 @@ There should be an image with repository:tag similar to <code>holohub:ngc-vx.y.z
 <div class="highlight"><pre><span></span><code><span class="c1"># make sure to replace 0.6.0 with the actual SDK version</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">HOLOHUB_IMAGE</span><span class="o">=</span>holohub:ngc-v0.6.0-dgpu
 </code></pre></div>
-Next, launch the dev container for HoloHub. On a regular machine we can do so by <code>./dev_container launch</code>, however we need to make a few adjustments to the command again since we’re running on an EC2 instance:
+Next, launch the dev container for HoloHub. On a regular machine we can do so by <code>./holohub run-container</code>, however we need to make a few adjustments to the command again since we’re running on an EC2 instance:
 <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>--net<span class="w"> </span>host<span class="w">  </span>-v<span class="w"> </span>/etc/group:/etc/group:ro<span class="w"> </span>-v<span class="w"> </span>/etc/passwd:/etc/passwd:ro<span class="w"> </span>-v<span class="w"> </span><span class="nv">$PWD</span>:/workspace/holohub<span class="w"> </span>-w<span class="w"> </span>/workspace/holohub<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>-e<span class="w"> </span><span class="nv">NVIDIA_DRIVER_CAPABILITIES</span><span class="o">=</span>graphics,video,compute,utility,display<span class="w"> </span>-v<span class="w"> </span>/tmp/.X11-unix:/tmp/.X11-unix<span class="w"> </span>-e<span class="w"> </span>DISPLAY<span class="w"> </span>--group-add<span class="w"> </span>video<span class="w"> </span>-v<span class="w"> </span>/etc/vulkan/icd.d/nvidia_icd.json:/etc/vulkan/icd.d/nvidia_icd.json:ro<span class="w">  </span>-v<span class="w"> </span><span class="nv">$XAUTH</span>:<span class="nv">$XAUTH</span><span class="w"> </span>-e<span class="w"> </span><span class="nv">XAUTHORITY</span><span class="o">=</span><span class="nv">$XAUTH</span><span class="w"> </span><span class="nv">$HOLOHUB_IMAGE</span>
 </code></pre></div>
 Please refer to <a href="https://github.com/nvidia-holoscan/holohub#building-holohub">HoloHub</a> for instructions on building each application.</p>
 <h4 id="endoscopy-tool-tracking-application">Endoscopy Tool Tracking Application<a class="headerlink" href="#endoscopy-tool-tracking-application" title="Permanent link">#</a></h4>
 <p>Build the sample app and run:
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>endoscopy_tool_tracking
-./run<span class="w"> </span>launch<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>cpp
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>endoscopy_tool_tracking
+./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>cpp
 </code></pre></div>
 You should see a window like:</p>
 <p>https://github.com/jin-nvidia/holohub/assets/60405124/8eb93c50-d893-4b2c-897b-57de94b91371</p>
@@ -14438,10 +14438,10 @@ You should see a window like:</p>
 <h4 id="multi-ai-ultrasound-application">Multi AI Ultrasound Application<a class="headerlink" href="#multi-ai-ultrasound-application" title="Permanent link">#</a></h4>
 <p>In the last application we saw how to run AI inference on the video source. Next, let’s see how we can run inference with multiple AI models at the same time within a Holoscan application, enabled by Holoscan Inference Module.
 Build the application in <a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/multiai_ultrasound">applications/multiai_ultrasound</a>
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>build<span class="w"> </span>multiai_ultrasound
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>multiai_ultrasound
 </code></pre></div></p>
 <p>Launch the Python application:
-<div class="highlight"><pre><span></span><code>./run<span class="w"> </span>launch<span class="w"> </span>multiai_ultrasound<span class="w"> </span>python
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>multiai_ultrasound<span class="w"> </span>--language<span class="w"> </span>python
 </code></pre></div>
 You should see a window like below:</p>
 <p>https://github.com/jin-nvidia/holohub/assets/60405124/9d347b44-d635-4cc6-b013-7d26e3e4e2be</p>

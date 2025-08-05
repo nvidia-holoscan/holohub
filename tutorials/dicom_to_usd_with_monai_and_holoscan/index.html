@@ -14137,11 +14137,11 @@
 <h2 id="building-the-tutorial-container">Building the tutorial container<a class="headerlink" href="#building-the-tutorial-container" title="Permanent link">#</a></h2>
 <p>Run the command below from the top-level HoloHub directory to build the tutorial container on the host workstation:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">NGC_CONTAINER_IMAGE_PATH</span><span class="o">=</span><span class="s2">&quot;nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu&quot;</span>
-./dev_container<span class="w"> </span>build<span class="w"> </span>--docker_file<span class="w"> </span>tutorials/dicom_to_usd_with_monai_and_holoscan/Dockerfile<span class="w"> </span>--base_img<span class="w"> </span><span class="si">${</span><span class="nv">NGC_CONTAINER_IMAGE_PATH</span><span class="si">}</span><span class="w"> </span>--img<span class="w"> </span>holohub:dicom-to-usd
+./holohub<span class="w"> </span>build-container<span class="w"> </span>--docker-file<span class="w"> </span>tutorials/dicom_to_usd_with_monai_and_holoscan/Dockerfile<span class="w"> </span>--base-img<span class="w"> </span><span class="si">${</span><span class="nv">NGC_CONTAINER_IMAGE_PATH</span><span class="si">}</span><span class="w"> </span>--img<span class="w"> </span>holohub:dicom-to-usd
 </code></pre></div>
 <h2 id="running-the-application">Running the application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>
 <p>Run the commands below on the host workstation to launch the container and run the tutorial. The application will run the MONAI Deploy + Holoscan pipeline for AI segmentation and write results to the <code>.usd</code> output file. The mesh will also be available as a <code>mesh.stl</code> file on disk.</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:dicom-to-usd<span class="w"> </span><span class="c1"># start the container</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>holohub:dicom-to-usd<span class="w"> </span><span class="c1"># start the container</span>
 <span class="nb">cd</span><span class="w"> </span>./tutorials/dicom_to_usd_with_monai_and_holoscan
 python<span class="w"> </span>tutorial.py<span class="w"> </span>--output<span class="w"> </span>./output/spleen-segmentation.usd<span class="w"> </span><span class="c1"># run the tutorial</span>
 </code></pre></div>

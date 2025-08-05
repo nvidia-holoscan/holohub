@@ -14409,10 +14409,10 @@ sudo<span class="w"> </span>apt<span class="w"> </span>update
 <p>You can build the Holoscan Networking libraries and sample applications from source on HoloHub:</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:nvidia-holoscan/holohub.git
 <span class="nb">cd</span><span class="w"> </span>holohub
-./dev_container<span class="w"> </span>build_and_install<span class="w"> </span>holoscan-networking<span class="w">   </span><span class="c1"># Installed in ./install</span>
+./holohub<span class="w"> </span>install<span class="w"> </span>holoscan-networking<span class="w">   </span><span class="c1"># Installed in ./install</span>
 </code></pre></div>
 <p>If you'd like to generate the debian package from source and install it to ensure all dependencies are then present on your system, you can run:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_package<span class="w"> </span>holoscan-networking
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>install<span class="w"> </span>holoscan-networking
 sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>./holoscan-networking_*.deb<span class="w">        </span><span class="c1"># Installed in /opt/nvidia/holoscan</span>
 </code></pre></div>
 <p>Refer to the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/README.md">HoloHub README</a> for more information.</p>
@@ -15769,9 +15769,9 @@ lspci<span class="w"> </span>-n<span class="w"> </span><span class="p">|</span><
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--img<span class="w"> </span>holohub:adv_networking_bench<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker_opts<span class="w"> </span><span class="s2">&quot;-u 0 --privileged&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--docker-opts<span class="w"> </span><span class="s2">&quot;-u 0 --privileged&quot;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml&quot;</span>
 </code></pre></div>
 </div>
@@ -16374,15 +16374,15 @@ cmake<span class="w"> </span>--build<span class="w"> </span><span class="s2">&qu
 </li>
 <li>
 <p>Build your application like so:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>my_app<span class="w"> </span>--no_run
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>my_app
 </code></pre></div>
 </li>
 <li>
 <p>Run your application like so:</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>launch<span class="w"> </span>--img<span class="w"> </span>holohub:my_app<span class="w"> </span>--docker_opts<span class="w"> </span><span class="s2">&quot;-u 0 --privileged&quot;</span><span class="w"> </span>--bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;./build/my_app/applications/my_app my_app_config.yaml&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--img<span class="w"> </span>holohub:my_app<span class="w"> </span>--docker-opts<span class="w"> </span><span class="s2">&quot;-u 0 --privileged&quot;</span><span class="w"> </span>--bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;./build/my_app/applications/my_app my_app_config.yaml&quot;</span>
 </code></pre></div>
 <p>or, if you have set up a shortcut to run your application with its config file through its <code>metadata.json</code> (see other apps for examples):</p>
-<div class="highlight"><pre><span></span><code>./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>--no_build<span class="w"> </span>--container_args<span class="w"> </span><span class="s2">&quot; -u 0 --privileged&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--no-local-build<span class="w"> </span>--container_args<span class="w"> </span><span class="s2">&quot; -u 0 --privileged&quot;</span>
 </code></pre></div>
 </li>
 </ol>
