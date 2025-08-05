@@ -23,10 +23,40 @@ project(import_holohub_operators)
 # The REQUIRED keyword will cause CMake to fail if Holoscan is not found
 find_package(holoscan REQUIRED)
 
-# Include the utility function for fetching Holohub operators
-# This provides the fetch_holohub_operator() function that uses Git sparse checkout
-# to efficiently download only the required operator from the Holohub repository
+# =============================================================================
+# FETCH HOLOHUB OPERATOR UTILITY - TWO APPROACHES AVAILABLE
+# =============================================================================
+# Choose one of the following two approaches by uncommenting the desired option:
+
+# INTERNAL ONLY: Repository Include (for Holohub repository internal use only)
+# This approach is only available when the application is within the Holohub repository structure
+# For external applications, use one of the two approaches below
 include(../../cmake/FetchHolohubOperator.cmake)
+
+# APPROACH 1: Download from GitHub (for external applications with internet access)
+# Pros: Independent of repository structure, automatic updates, no manual copying
+# Cons: Requires internet connection, depends on GitHub availability
+# Uncomment the following lines to use this approach (and comment out the internal include above):
+# set(FETCH_HOLOHUB_OPERATOR_URL "https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake")
+# set(FETCH_HOLOHUB_OPERATOR_LOCAL_PATH "${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake")
+# if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+#      file(DOWNLOAD
+#          ${FETCH_HOLOHUB_OPERATOR_URL}
+#          ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH}
+#          SHOW_PROGRESS
+#          TLS_VERIFY ON
+#      )
+#      if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+#          message(FATAL_ERROR "Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}")
+#      endif()
+# endif()
+# include(${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})
+
+# APPROACH 2: Local Copy (for offline environments or version control)
+# Pros: Complete independence, no internet dependency, full version control
+# Cons: Requires manual file copying, need to manually update
+# Uncomment the following line to use this approach (requires FetchHolohubOperator.cmake in same directory):
+# include(${CMAKE_CURRENT_SOURCE_DIR}/FetchHolohubOperator.cmake)
 
 # Fetch the AJA source operator from Holohub
 # This will download the aja_source operator using Git sparse checkout
