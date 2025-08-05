@@ -3,7 +3,7 @@
 #   https://github.com/microsoft/vscode-dev-containers/blob/v0.241.1/containers/ubuntu/.devcontainer/library-scripts/common-debian.sh
 
 #-------------------------------------------------------------------------------------------------------------
-# Copyright (c) 2022-2025 Microsoft Corporation. All rights reserved.
+# Copyright (c) 2022 Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
 #-------------------------------------------------------------------------------------------------------------
 #
