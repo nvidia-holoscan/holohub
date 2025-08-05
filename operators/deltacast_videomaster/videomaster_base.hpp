@@ -34,31 +34,13 @@
 
 namespace holoscan::ops {
 
-class VideoMasterBase : public holoscan::Operator {
+class VideoMasterBase {
  public:
-  explicit VideoMasterBase(bool is_input);
 
-  void stop() override;
+  VideoMasterBase(bool is_input, uint32_t board_index, uint32_t channel_index, bool use_rdma = false);
 
- protected:
-  static const uint32_t SLOT_TIMEOUT = 100;
-  static const uint32_t NB_SLOTS = 4;
-  Parameter<bool> _use_rdma;
-  Parameter<std::shared_ptr<Allocator>> _pool;
-  Parameter<uint32_t> _board_index;
-  Parameter<uint32_t> _channel_index;
-
-  Deltacast::Helper::BoardHandle& board_handle() { return *_board_handle; }
-  Deltacast::Helper::StreamHandle& stream_handle() { return *_stream_handle; }
-
-  bool _is_input;
-  bool _is_igpu = false;
-  VHD_CHANNELTYPE _channel_type;
-  bool _has_lost_signal;
-  std::unique_ptr<Deltacast::Helper::VideoInformation> _video_information;
-  std::array<std::vector<BYTE*>, NB_SLOTS> _buffers;
-  std::array<HANDLE, NB_SLOTS> _slot_handles;
-  uint64_t _slot_count;
+  static constexpr uint32_t SLOT_TIMEOUT = 100;
+  static constexpr uint32_t NB_SLOTS = 4;
 
   bool configure_board();
   bool open_stream();
@@ -66,13 +48,40 @@ class VideoMasterBase : public holoscan::Operator {
   bool init_buffers();
   bool start_stream();
   bool holoscan_log_on_error(Deltacast::Helper::ApiSuccess result, const std::string& message);
-
+  void stop_stream();
   bool signal_present();
   bool set_loopback_state(bool state);
 
-  Deltacast::Helper::VideoFormat video_format;
+  Deltacast::Helper::BoardHandle& board_handle() { return *_board_handle; }
+  Deltacast::Helper::StreamHandle& stream_handle() { return *_stream_handle; }
+  
+  // Getters for private members
+  std::unique_ptr<Deltacast::Helper::VideoInformation>& video_information() { return _video_information; }
+  const std::unique_ptr<Deltacast::Helper::VideoInformation>& video_information() const { return _video_information; }
+  std::array<std::vector<BYTE*>, NB_SLOTS>& buffers() { return _buffers; }
+  const std::array<std::vector<BYTE*>, NB_SLOTS>& buffers() const { return _buffers; }
+  std::array<HANDLE, NB_SLOTS>& slot_handles() { return _slot_handles; }
+  const std::array<HANDLE, NB_SLOTS>& slot_handles() const { return _slot_handles; }
+  uint64_t& slot_count() { return _slot_count; }
+  const uint64_t& slot_count() const { return _slot_count; }
+  Deltacast::Helper::VideoFormat& video_format() { return _video_format; }
+  const Deltacast::Helper::VideoFormat& video_format() const { return _video_format; }
 
  private:
+
+  bool _is_input;
+  bool _is_igpu = false;
+  VHD_CHANNELTYPE _channel_type;
+  std::unique_ptr<Deltacast::Helper::VideoInformation> _video_information;
+  std::array<std::vector<BYTE*>, NB_SLOTS> _buffers;
+  std::array<HANDLE, NB_SLOTS> _slot_handles;
+  uint64_t _slot_count;
+  uint32_t _board_index;
+  uint32_t _channel_index;
+  bool _use_rdma;
+
+  Deltacast::Helper::VideoFormat _video_format;
+
   void free_buffers();
   std::unique_ptr<Deltacast::Helper::BoardHandle> _board_handle;
   std::unique_ptr<Deltacast::Helper::StreamHandle> _stream_handle;
