@@ -127,7 +127,7 @@ We use the following steps:
 **2. Build Application for Benchmarking:**
 
 ```bash
-./run build model_benchmarking python --configure-args -DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking`
+./holohub build --local model_benchmarking --language=python --configure-args="-DCMAKE_CXX_FLAGS=-I$PWD/benchmarks/holoscan_flow_benchmarking"
 ```
 
 **3. Set Up V4l2Loopback Devices:**
@@ -233,12 +233,12 @@ echo $LD_LIBRARY_PATH
 ```
 
 **2. Be sure to pass `-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v
-/usr/local/cuda-12.6:/usr/local/cuda-12.6 ` to `./dev_container launch` command to ensure that the container is
+/usr/local/cuda-12.6:/usr/local/cuda-12.6 ` to `./holohub run` command to ensure that the container is
 connected to the MPS control and server**
 
 Example:
 ```bash
-./dev_container launch --img holohub:v2.1 --docker_opts "-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6"
+./holohub run --img holohub:v2.1 --docker-opts="-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6"
 ```
 
 **3. Inside the container, be sure to set the following environment variables:**

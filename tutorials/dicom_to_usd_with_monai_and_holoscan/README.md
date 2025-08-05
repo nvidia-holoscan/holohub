@@ -56,7 +56,7 @@ Run the command below from the top-level HoloHub directory to build the tutorial
 
 ```sh
 export NGC_CONTAINER_IMAGE_PATH="nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu"
-./dev_container build --docker_file tutorials/dicom_to_usd_with_monai_and_holoscan/Dockerfile --base_img ${NGC_CONTAINER_IMAGE_PATH} --img holohub:dicom-to-usd
+./holohub build-container --docker-file tutorials/dicom_to_usd_with_monai_and_holoscan/Dockerfile --base-img ${NGC_CONTAINER_IMAGE_PATH} --img holohub:dicom-to-usd
 ```
 
 ## Running the application
@@ -64,7 +64,7 @@ export NGC_CONTAINER_IMAGE_PATH="nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-d
 Run the commands below on the host workstation to launch the container and run the tutorial. The application will run the MONAI Deploy + Holoscan pipeline for AI segmentation and write results to the `.usd` output file. The mesh will also be available as a `mesh.stl` file on disk.
 
 ```sh
-./dev_container launch --img holohub:dicom-to-usd # start the container
+./holohub run-container --img holohub:dicom-to-usd # start the container
 cd ./tutorials/dicom_to_usd_with_monai_and_holoscan
 python tutorial.py --output ./output/spleen-segmentation.usd # run the tutorial
 ```

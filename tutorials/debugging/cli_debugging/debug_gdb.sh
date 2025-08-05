@@ -27,21 +27,21 @@ tmp_dir=$(pwd)/tmp/cli_debugging
 mkdir -p ${tmp_dir}
 
 # Build the tutorial container with GDB
-${HOLOHUB_ROOT}/dev_container build \
+${HOLOHUB_ROOT}/holohub build-container \
     --img holohub:debugging \
-    --docker_file ${SCRIPT_DIR}/Dockerfile \
-    --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v2.3.0-dgpu
+    --docker-file ${SCRIPT_DIR}/Dockerfile \
+    --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v2.3.0-dgpu
 
 # Build the Endoscopy Tool Tracking application with debugging symbols
-${HOLOHUB_ROOT}/dev_container launch \
+${HOLOHUB_ROOT}/holohub run \
     --img holohub:debugging \
-    -- ./run build endoscopy_tool_tracking ${language} --type ${build_type}
+    -- ./holohub build endoscopy_tool_tracking --language ${language} --type ${build_type}
 
 # Launch GDB with the Endoscopy Tool Tracking application
 if [[ "${language}" == "cpp" ]]; then
-    ${HOLOHUB_ROOT}/dev_container launch \
+    ${HOLOHUB_ROOT}/holohub run \
         --img holohub:debugging \
-        --docker_opts "--security-opt seccomp=unconfined" \
+        --docker-opts="--security-opt seccomp=unconfined" \
         --  bash -c '\
                 export PYTHONPATH=/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking:/usr/share/gdb/python && \
                 cd /workspace/holohub/build/endoscopy_tool_tracking && \
@@ -52,9 +52,9 @@ if [[ "${language}" == "cpp" ]]; then
                     /workspace/holohub/build/endoscopy_tool_tracking/applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking';
 
 else
-    ${HOLOHUB_ROOT}/dev_container launch \
+    ${HOLOHUB_ROOT}/holohub run \
         --img holohub:debugging \
-        --docker_opts "--security-opt seccomp=unconfined" \
+        --docker-opts="--security-opt seccomp=unconfined" \
         --  bash -c '\
                 export PYTHONPATH=${PYTHONPATH}:/opt/nvidia/holoscan/lib/cmake/holoscan/../../../python/lib:/workspace/holohub/build/endoscopy_tool_tracking/python/lib:/workspace/holohub:/usr/share/gdb/python && \
                 cd /workspace/holohub/build/endoscopy_tool_tracking && \
