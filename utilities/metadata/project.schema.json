@@ -141,7 +141,7 @@
         "description"
       ]
     },
-    "dependencies": {
+    "requirements": {
       "type": "object",
       "properties": {
         "data": {

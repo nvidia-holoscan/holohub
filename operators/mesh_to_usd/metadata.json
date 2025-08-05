@@ -24,6 +24,6 @@
 		],
 		"tags": ["OpenUSD", "STL"],
 		"ranking": 2,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

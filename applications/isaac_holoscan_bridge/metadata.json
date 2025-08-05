@@ -29,7 +29,7 @@
 			"Robotics"
 		],
 		"ranking": 3,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/app.py",
 			"workdir": "holohub_bin"

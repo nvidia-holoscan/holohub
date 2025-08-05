@@ -24,7 +24,7 @@
 		],
 		"tags": ["Healthcare AI", "Visualization", "Hyperspectral Imaging", "Segmentation", "Endoscopy", "Image Processing"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"blosc": "^1.11.1",
 			"torch": "^2.1.0",
 			"onnx": "^1.15.0",

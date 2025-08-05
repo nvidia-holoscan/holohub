@@ -27,7 +27,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "Video", "Detection", "Holoviz"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet"
 		},
 		"run": {

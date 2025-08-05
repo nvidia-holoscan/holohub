@@ -29,7 +29,7 @@
 			"bounding box"
 		],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"data": [
 				{
 					"name": "Holoscan Sample App Data for AI Polyp Detection",

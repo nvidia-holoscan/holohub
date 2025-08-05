@@ -32,7 +32,7 @@
 			"Video"
 		],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"data": [
 				{
 					"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",

@@ -24,7 +24,7 @@
 		],
 		"tags": ["Video", "Encoder"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [
 				{
 					"name": "videoencoder",

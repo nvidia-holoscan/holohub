@@ -33,7 +33,7 @@
 		],
 		"tags": ["Extended Reality", "Visualization", "Rendering", "Stereo Vision"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"operators": [
 				{
 					"name": "xr",

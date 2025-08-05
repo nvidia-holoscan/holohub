@@ -24,7 +24,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "LLM", "Large Vision Model", "Multimodal Model", "Video"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"Bootstrap": {
 				"source": "https://getbootstrap.com/docs/4.0/getting-started/contents/",
 				"version": "5.3.1"

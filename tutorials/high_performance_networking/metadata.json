@@ -31,7 +31,7 @@
 		],
 		"tags": ["DPDK", "RDMA", "GPUNetIO", "GPUDirect", "Networking and Distributed Computing", "HPC"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"applications": [
 				"adv_networking_bench"
 			],

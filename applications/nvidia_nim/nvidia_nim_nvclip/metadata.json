@@ -26,7 +26,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "Multimodal Model", "Auth and API", "Image Processing"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/app.py",
 			"workdir": "holohub_app_source"

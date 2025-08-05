@@ -24,7 +24,7 @@
 		],
 		"tags": ["Computer Vision and Perception", "Video", "Stereo Vision", "Depth", "Camera", "Visualization", "Image Processing"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/stereo_depth",
 			"workdir": "holohub_bin"

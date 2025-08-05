@@ -22,7 +22,7 @@
 		"platforms": {% if cookiecutter.platforms %}{{ cookiecutter.platforms }}{% else %}["x86_64", "aarch64"]{% endif %},
 		"tags": {% if cookiecutter.tags %}{{ cookiecutter.tags }}{% else %}["keyword1", "keyword2", "keyword3"]{% endif %},
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": {% if cookiecutter.language == "python" %}
 				"python3 <holohub_app_source>/src/main.py"

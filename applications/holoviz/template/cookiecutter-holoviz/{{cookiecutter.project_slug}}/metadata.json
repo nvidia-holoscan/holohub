@@ -26,7 +26,7 @@
 			"{{ cookiecutter.project_name }}"{{ cookiecutter.tags }}
 		],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/{{ cookiecutter.project_slug }}",
 			"workdir": "holohub_bin"

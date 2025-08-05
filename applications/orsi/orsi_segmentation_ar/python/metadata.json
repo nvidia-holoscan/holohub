@@ -25,7 +25,7 @@
         ],
         "tags": ["Healthcare AI", "Extended Reality", "Surgical AI", "VTK", "Segmentation", "Endoscopy"],
         "ranking": 3,
-        "dependencies": {
+        "requirements": {
             "data": [
                 {
                     "name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",

@@ -21,7 +21,7 @@
 			]
 		},
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "aiortc",

@@ -24,7 +24,7 @@
         ],
         "tags": ["Streaming", "3D Slicer"],
         "ranking": 2,
-        "dependencies": {
+        "requirements": {
             "SDK": "OpenIGTLink"
          }
     }

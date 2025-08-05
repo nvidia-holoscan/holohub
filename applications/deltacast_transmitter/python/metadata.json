@@ -33,7 +33,7 @@
 		],
 		"tags": ["Healthcare AI", "Video", "Deltacast", "Endoscopy", "RDMA", "GPUDirect"],
 		"ranking": 2,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/deltacast_transmitter.py --data <holohub_data_dir>/endoscopy",
 			"workdir": "holohub_bin"

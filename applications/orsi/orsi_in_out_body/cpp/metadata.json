@@ -25,7 +25,7 @@
         ],
         "tags": ["Healthcare AI", "Video", "Computer Vision and Perception", "Detection", "Visualization"],
         "ranking": 3,
-        "dependencies": {
+        "requirements": {
 			"data": [
 				{
 						"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",

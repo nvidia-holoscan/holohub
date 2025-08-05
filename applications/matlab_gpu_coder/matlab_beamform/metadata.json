@@ -28,7 +28,7 @@
 		],
 		"tags": ["Healthcare AI", "Visualization", "Synthetic Aperture Beamforming", "Signal Processing", "Beamforming", "Ultrasound"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"operators": [
 				{
 					"name": "MATLAB",

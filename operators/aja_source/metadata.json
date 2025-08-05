@@ -24,7 +24,7 @@
 		],
 		"tags": ["Camera", "AJA"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 		}
 	}
 }

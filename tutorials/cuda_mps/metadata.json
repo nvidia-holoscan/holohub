@@ -24,7 +24,7 @@
 		],
 		"tags": ["Acceleration", "Benchmarking", "CUDA", "MPS"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "CUDA Multi-Process Service (MPS)",

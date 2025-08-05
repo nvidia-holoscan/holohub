@@ -24,7 +24,7 @@
 		],
 		"tags": ["Benchmarking", "Performance"],
 		"ranking": 3,
-		"dependencies": {
+		"requirements": {
 			"applications": [
 				{
 					"name": "Endoscopy Tool Tracking"

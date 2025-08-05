@@ -28,6 +28,6 @@
         ],
         "tags": ["Volume", "Rendering"],
         "ranking": 1,
-        "dependencies": {}
+        "requirements": {}
     }
 }

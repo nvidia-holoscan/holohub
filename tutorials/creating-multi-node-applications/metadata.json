@@ -25,6 +25,6 @@
 		],
 		"tags": ["Distributed"],
 		"ranking": 2,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

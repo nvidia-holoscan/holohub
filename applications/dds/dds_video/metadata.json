@@ -25,7 +25,7 @@
 		],
 		"tags": ["Networking and Distributed Computing", "DDS", "RTI Connext", "Video", "Visualization"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"packages": [
 				{
 					"name": "RTI Connext",

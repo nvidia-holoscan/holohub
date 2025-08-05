@@ -26,7 +26,7 @@
 		],
 		"tags": ["Container"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"applications": [
 				{
 					"name": "endoscopy_tool_tracking",

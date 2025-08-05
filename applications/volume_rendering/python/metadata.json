@@ -27,7 +27,7 @@
 		],
 		"tags": ["Healthcare AI", "Visualization", "Hounsfield Scale Transfer Functions", "Volume", "Segmentation", "TotalSegmentator"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 volume_rendering.py",
 			"workdir": "holohub_app_source"

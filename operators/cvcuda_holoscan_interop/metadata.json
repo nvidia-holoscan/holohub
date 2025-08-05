@@ -24,7 +24,7 @@
         ],
         "tags": ["CV CUDA", "Computer Vision and Perception"],
         "ranking": 1,
-        "dependencies": {
+        "requirements": {
             "data": [
                 {
                     "name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",

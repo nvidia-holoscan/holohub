@@ -23,7 +23,7 @@
 			]
 		},
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"operators": [{
 				"name": "basic_network",
 				"version": "1.0"

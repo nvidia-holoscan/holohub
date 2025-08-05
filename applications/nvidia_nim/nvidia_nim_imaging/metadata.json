@@ -25,7 +25,7 @@
 		],
 		"tags": ["Healthcare AI", "Imaging", "Segmentation", "NRRD processing", "3D Slicer", "Medical Imaging"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/app.py",
 			"workdir": "holohub_app_bin"

@@ -25,6 +25,6 @@
         ],
         "tags": ["Extended Reality"],
         "ranking": 2,
-        "dependencies": {}
+        "requirements": {}
     }
 }
