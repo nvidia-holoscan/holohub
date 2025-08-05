@@ -14,19 +14,59 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Parse all arguments to check if xr_hello_holoscan is specified
-USE_HELLO_HOLOSCAN=false
-for arg in "$@"; do
-    if [[ "$arg" == "xr_hello_holoscan" ]]; then
-        USE_HELLO_HOLOSCAN=true
-        break
-    fi
-done
+parse_arguments() {
+    SKIP_MAGIC_LEAP=true
+    USE_HELLO_HOLOSCAN=false
+    COMMAND_ARGS=()
+    
+    for arg in "$@"; do
+        case "$arg" in
+            --magic-leap)
+                SKIP_MAGIC_LEAP=false
+                ;;
+            xr_hello_holoscan)
+                USE_HELLO_HOLOSCAN=true
+                COMMAND_ARGS+=("$arg")
+                ;;
+            *)
+                COMMAND_ARGS+=("$arg")
+                ;;
+        esac
+    done
+}
 
-if [ $USE_HELLO_HOLOSCAN = true ]; then
-    # Run hello holoscan
-    ./utils/xr_hello_holoscan/xr_hello_holoscan "$@"
-else
-    # Default: Run volume rendering
-    ./volume_rendering_xr "$@"
-fi
+# Start Magic Leap if not skipped
+start_magic_leap() {
+    if [ -v ML_START_OPTIONS ]; then
+        echo "Starting ML with options: ${ML_START_OPTIONS}"
+        ml_start.sh ${ML_START_OPTIONS}
+    else
+        echo "Starting ML with default debug options"
+        ml_start.sh debug
+    fi
+    
+    echo "Pairing ML..."
+    ml_pair.sh
+}
+
+run_application() {
+    if [ "$USE_HELLO_HOLOSCAN" = true ]; then
+        echo "Running XR Hello Holoscan..."
+        ./utils/xr_hello_holoscan/xr_hello_holoscan "${COMMAND_ARGS[@]}"
+    else
+        echo "Running Volume Rendering XR..."
+        ./volume_rendering_xr "${COMMAND_ARGS[@]}"
+    fi
+}
+
+main() {
+    parse_arguments "$@"
+    
+    if [ "$SKIP_MAGIC_LEAP" = false ]; then
+        start_magic_leap
+    fi
+    
+    run_application
+}
+
+main "$@"
