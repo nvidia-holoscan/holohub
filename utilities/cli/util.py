@@ -1214,12 +1214,12 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
     CUDNN_9_PATTERN = r"9\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+"
     try:
         installed_cudnn9_version = install_cuda_dependencies_package(
-            package_name="libcudnn9-cuda-12",
+            package_name=f"libcudnn9-cuda-{cuda_major_version}",
             version_pattern=CUDNN_9_PATTERN,
             dry_run=dry_run,
         )
         install_cuda_dependencies_package(
-            package_name="libcudnn9-dev-cuda-12",
+            package_name=f"libcudnn9-dev-cuda-{cuda_major_version}",
             version_pattern=re.escape(installed_cudnn9_version),
             dry_run=dry_run,
         )
