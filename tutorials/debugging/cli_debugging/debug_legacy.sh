@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,20 +43,20 @@ INSTALL_DIR=$(realpath $(find . -type d -name "install-*"))
 popd
 
 # Build the tutorial container with GDB
-${HOLOHUB_ROOT}/dev_container build \
+${HOLOHUB_ROOT}/holohub build-container \
     --img holohub:debugging \
-    --docker_file ${SCRIPT_DIR}/Dockerfile \
-    --base_img ${holoscan_image}
-
+    --docker-file ${SCRIPT_DIR}/Dockerfile \
+    --base-img ${holoscan_image}
+    
 # Build the Endoscopy Tool Tracking application with debugging symbols
-${HOLOHUB_ROOT}/dev_container launch \
-    --docker_opts "-v ${INSTALL_DIR}:/opt/nvidia/holoscan" \
+${HOLOHUB_ROOT}/holohub run \
+    --docker-opts="-v ${INSTALL_DIR}:/opt/nvidia/holoscan" \
     --img holohub:debugging \
-    -- bash -c "./run build endoscopy_tool_tracking --type ${build_type}"
+    -- bash -c "./holohub build endoscopy_tool_tracking --type ${build_type}"
 
 # Launch GDB with the Endoscopy Tool Tracking application
-${HOLOHUB_ROOT}/dev_container launch \
-    --docker_opts "-v ${INSTALL_DIR}:/opt/nvidia/holoscan --security-opt seccomp=unconfined" \
+${HOLOHUB_ROOT}/holohub run \
+    --docker-opts="-v ${INSTALL_DIR}:/opt/nvidia/holoscan --security-opt seccomp=unconfined" \
     --img holohub:debugging \
     --  bash -c \
             'cd /workspace/holohub/build/endoscopy_tool_tracking && \

@@ -121,13 +121,13 @@ You can then install `holoscan-networking`:
     ```bash
     git clone git@github.com:nvidia-holoscan/holohub.git
     cd holohub
-    ./dev_container build_and_install holoscan-networking   # Installed in ./install
+    ./holohub install holoscan-networking   # Installed in ./install
     ```
 
     If you'd like to generate the debian package from source and install it to ensure all dependencies are then present on your system, you can run:
 
     ```bash
-    ./dev_container build_and_package holoscan-networking
+    ./holohub install holoscan-networking
     sudo apt-get install ./holoscan-networking_*.deb        # Installed in /opt/nvidia/holoscan
     ```
 
@@ -1664,9 +1664,9 @@ After having modified the configuration file, ensure you have connected an SFP c
     === "Containerized"
 
         ```bash
-        ./dev_container launch \
+        ./holohub run-container \
           --img holohub:adv_networking_bench \
-          --docker_opts "-u 0 --privileged" \
+          --docker-opts "-u 0 --privileged" \
           -- bash -c "./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml"
         ```
 
@@ -2297,17 +2297,17 @@ bench_tx: # (31)!
     4. Build your application like so:
 
         ```bash
-        ./dev_container build_and_run my_app --no_run
+        ./holohub build my_app
         ```
 
     5. Run your application like so:
 
         ```bash
-        ./dev_container launch --img holohub:my_app --docker_opts "-u 0 --privileged" --bash -c "./build/my_app/applications/my_app my_app_config.yaml"
+        ./holohub run --img holohub:my_app --docker-opts "-u 0 --privileged" --bash -c "./build/my_app/applications/my_app my_app_config.yaml"
         ```
 
         or, if you have set up a shortcut to run your application with its config file through its `metadata.json` (see other apps for examples):
 
         ```bash
-        ./dev_container build_and_run --no_build --container_args " -u 0 --privileged"
+        ./holohub run --no-local-build --container_args " -u 0 --privileged"
         ```
