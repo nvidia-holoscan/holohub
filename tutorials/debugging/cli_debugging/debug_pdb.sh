@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,18 +26,18 @@ tmp_dir=$(pwd)/tmp/cli_debugging
 mkdir -p ${tmp_dir}
 
 # Build the tutorial container with GDB
-${HOLOHUB_ROOT}/dev_container build \
+${HOLOHUB_ROOT}/holohub build-container \
     --img holohub:debugging \
-    --docker_file ${SCRIPT_DIR}/Dockerfile \
-    --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v2.3.0-dgpu
+    --docker-file ${SCRIPT_DIR}/Dockerfile \
+    --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v2.3.0-dgpu
 
 # Build the Endoscopy Tool Tracking application with debugging symbols
-${HOLOHUB_ROOT}/dev_container launch \
+${HOLOHUB_ROOT}/holohub run \
     --img holohub:debugging \
-    -- ./run build endoscopy_tool_tracking python --type ${build_type}
+    -- ./holohub build endoscopy_tool_tracking --language python --type ${build_type}
 
 # # Launch PDB with the Endoscopy Tool Tracking application
-${HOLOHUB_ROOT}/dev_container launch \
+${HOLOHUB_ROOT}/holohub run \
     --img holohub:debugging \
     --  bash -c '\
             export PYTHONPATH=${PYTHONPATH}:/opt/nvidia/holoscan/lib/cmake/holoscan/../../../python/lib:/workspace/holohub/build/endoscopy_tool_tracking/python/lib:/workspace/holohub && \

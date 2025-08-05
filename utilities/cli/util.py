@@ -1120,7 +1120,7 @@ def get_ubuntu_codename() -> str:
         return "jammy"
 
 
-def setup_cmake(min_version: str = "3.24.0", dry_run: bool = False) -> None:
+def setup_cmake(min_version: str = "3.26.4", dry_run: bool = False) -> None:
     """Setup CMake from Kitware if needed"""
     cmake_ver = get_installed_package_version("cmake")
     if cmake_ver and parse_semantic_version(cmake_ver) >= parse_semantic_version(min_version):

@@ -40,15 +40,16 @@ FilesToCheck = [
 ]
 ExemptFiles = []
 
-# this will break starting at year 10000, which is probably OK :)
-CheckSimple = re.compile(
-    r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright \(c\) *(\d{4}),? NVIDIA CORPORATION & AFFILIATES\.(\s*[#*/*]?\s*)"
-    r"all rights(\s*[#*/*]?\s*)reserved\.",
+CheckSPDXWithCopyright = re.compile(
+    r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright(?: \(c\))? *(\d{4})(?:-(\d{4}))?,? ([\w\s&.,'-]+)\.?",
     re.MULTILINE | re.DOTALL | re.IGNORECASE,
 )
-CheckDouble = re.compile(
-    r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: Copyright \(c\) *(\d{4})-(\d{4}),? NVIDIA CORPORATION & AFFILIATES\.(\s*[#*/*]?\s*)"
-    r"all rights(\s*[#*/*]?\s*)reserved\.",
+CheckSPDXREUSE = re.compile(
+    r"(^|\s*[#*/*]\s*)?SPDX-FileCopyrightText: *(\d{4})(?:-(\d{4}))? ([\w\s&.,@<>'-]+)",
+    re.MULTILINE | re.DOTALL | re.IGNORECASE,
+)
+CheckNonSPDX = re.compile(
+    r"(^|\s*[#*/*]\s*)?Copyright(?: \(c\))? *(\d{4})(?:-(\d{4}))?,? ([\w\s&.,'-]+)\.?",
     re.MULTILINE | re.DOTALL | re.IGNORECASE,
 )
 
@@ -66,30 +67,38 @@ def check_this_file(f):
 
 
 def get_copyright_years(line):
-    res = CheckSimple.search(line)
-    if res:
-        return (int(res.group(2)), int(res.group(2)))
-    res = CheckDouble.search(line)
-    if res:
-        return (int(res.group(2)), int(res.group(3)))
+    # Check all three patterns
+    for pattern in [CheckSPDXWithCopyright, CheckSPDXREUSE, CheckNonSPDX]:
+        res = pattern.search(line)
+        if res:
+            start_year = int(res.group(2))
+            end_year = int(res.group(3)) if res.group(3) else start_year
+            return (start_year, end_year)
+
     return (None, None)
 
 
 def replace_current_year(line, start, end):
-    rights_text = "All rights"
-    reserved_text = "reserved."
+    def replace_spdx_with_copyright(match):
+        comment_prefix = match.group(1) or ""
+        affiliation = match.group(4)
+        return f"{comment_prefix}SPDX-FileCopyrightText: Copyright (c) {start}-{end} {affiliation}."
 
-    # first turn a simple regex into double (if applicable). then update years
-    res = CheckSimple.sub(
-        f"\\1SPDX-FileCopyrightText: Copyright (c) \\2-\\2 NVIDIA CORPORATION & AFFILIATES.\\3"
-        f"{rights_text}\\4{reserved_text}",
-        line,
-    )
-    res = CheckDouble.sub(
-        f"\\1SPDX-FileCopyrightText: Copyright (c) {start}-{end} NVIDIA CORPORATION & AFFILIATES.\\4"
-        f"{rights_text}\\5{reserved_text}",
-        res,
-    )
+    def replace_spdx_reuse(match):
+        comment_prefix = match.group(1) or ""
+        affiliation = match.group(4)
+        return f"{comment_prefix}SPDX-FileCopyrightText: {start}-{end} {affiliation}"
+
+    def replace_non_spdx(match):
+        comment_prefix = match.group(1) or ""
+        affiliation = match.group(4)
+        return f"{comment_prefix}Copyright (c) {start}-{end}, {affiliation}."
+
+    # Apply each pattern's replacement
+    res = CheckSPDXWithCopyright.sub(replace_spdx_with_copyright, line)
+    res = CheckSPDXREUSE.sub(replace_spdx_reuse, res)
+    res = CheckNonSPDX.sub(replace_non_spdx, res)
+
     return res
 
 

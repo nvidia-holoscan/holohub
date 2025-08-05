@@ -299,7 +299,7 @@ cd holohub
 ```
 To set up and build HoloHub, we will go with the option `Building dev container`: Run the following command from the holohub directory to build the development container:
 ```sh
-./dev_container build
+./holohub build-container
 ```
 
 Check the tag for the container we had just build:
@@ -312,7 +312,7 @@ There should be an image with repository:tag similar to `holohub:ngc-vx.y.z-dgpu
 # make sure to replace 0.6.0 with the actual SDK version
 export HOLOHUB_IMAGE=holohub:ngc-v0.6.0-dgpu
 ```
-Next, launch the dev container for HoloHub. On a regular machine we can do so by `./dev_container launch`, however we need to make a few adjustments to the command again since we’re running on an EC2 instance:
+Next, launch the dev container for HoloHub. On a regular machine we can do so by `./holohub run-container`, however we need to make a few adjustments to the command again since we’re running on an EC2 instance:
 ```sh
 docker run -it --rm --net host  -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v $PWD:/workspace/holohub -w /workspace/holohub --gpus all -e NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY --group-add video -v /etc/vulkan/icd.d/nvidia_icd.json:/etc/vulkan/icd.d/nvidia_icd.json:ro  -v $XAUTH:$XAUTH -e XAUTHORITY=$XAUTH $HOLOHUB_IMAGE
 ```
@@ -322,8 +322,8 @@ Please refer to [HoloHub](https://github.com/nvidia-holoscan/holohub#building-ho
 
 Build the sample app and run:
 ```sh
-./run build endoscopy_tool_tracking
-./run launch endoscopy_tool_tracking cpp
+./holohub build endoscopy_tool_tracking
+./holohub run endoscopy_tool_tracking --language cpp
 ```
 You should see a window like:
 
@@ -338,12 +338,12 @@ Please visit [HoloHub](https://github.com/nvidia-holoscan/holohub/tree/main/appl
 In the last application we saw how to run AI inference on the video source. Next, let’s see how we can run inference with multiple AI models at the same time within a Holoscan application, enabled by Holoscan Inference Module.
 Build the application in [applications/multiai_ultrasound](https://github.com/nvidia-holoscan/holohub/tree/main/applications/multiai_ultrasound)
 ```sh
-./run build multiai_ultrasound
+./holohub build multiai_ultrasound
 ```
 
 Launch the Python application:
 ```sh
-./run launch multiai_ultrasound python
+./holohub run multiai_ultrasound --language python
 ```
 You should see a window like below:
 
