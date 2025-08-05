@@ -23,8 +23,8 @@ Holoviz output.
 
 ## Prerequisites
 
-- This application requires [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms)
-be installed and configured with a valid RTI Connext license prior to use. 
+- This application requires an installation of [RTI Connext Express](https://content.rti.com/l/983311/2025-07-08/q5x1n8) to provide access to the DDS domain.
+To obtain a license/activation key, please [click here](https://content.rti.com/l/983311/2025-07-25/q6729c). Please see the [usage rules](https://www.rti.com/products/connext-express) for Connext Express.
 - V4L2 capable device
 
 > [!NOTE]  
