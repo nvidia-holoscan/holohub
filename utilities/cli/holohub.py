@@ -14,6 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
+# Python version check - must be before other imports that use Python 3.10+ features
+PYTHON_MIN_VERSION = (3, 10, 0)
+if sys.version_info < PYTHON_MIN_VERSION:
+    sys_major, sys_minor, sys_micro = sys.version_info[:3]
+    print(
+        f"Error: Python {PYTHON_MIN_VERSION} or higher required, "
+        f"found {sys_major}.{sys_minor}.{sys_micro}",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+# ruff: noqa: E402  # Imports after python version check
 import argparse
 import datetime
 import filecmp
@@ -21,7 +35,6 @@ import os
 import shlex
 import shutil
 import subprocess
-import sys
 import tempfile
 from collections import defaultdict
 from pathlib import Path
@@ -31,8 +44,6 @@ import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer, base_sdk_version
 from utilities.cli.util import Color
-
-PYTHON_MIN_VERSION = "3.9.0"
 
 
 class HoloHubCLI:

@@ -1145,7 +1145,7 @@ def setup_cmake(min_version: str = "3.26.4", dry_run: bool = False) -> None:
     install_packages_if_missing(["cmake", "cmake-curses-gui"], dry_run=dry_run)
 
 
-def setup_python_dev(min_version: str = "3.9.0", dry_run: bool = False) -> None:
+def setup_python_dev(min_version: str = "3.10.0", dry_run: bool = False) -> None:
     """Setup Python development packages"""
     python_version = sys.version_info
     python_dev_package = f"python3.{python_version.minor}-dev"
