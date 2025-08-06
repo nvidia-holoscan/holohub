@@ -32,6 +32,7 @@ extend-exclude = '''
   | ^install*/*  # exclude install folders
   | cmake/pybind11/*  # exclude the files under cmake/pybind11/
   | .local/*  # exclude the files under .local/
+  | .ipynb  # mute warning 'Skipping .ipynb files as Jupyter dependencies are not installed.'
 )
 '''
 
