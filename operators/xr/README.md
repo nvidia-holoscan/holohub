@@ -8,19 +8,22 @@ The XR operators provide a complete framework for building Holoscan applications
 
 ## Core Components
 
+Below is a diagram showing how to use these operators in a typical XR workflow:
+
+![Typical XR Operator Workflow](doc/xr-diagram.png)
+
 ### Frame Management Operators
 
 #### XrBeginFrameOp
 
 - Synchronizes application with XR device timing
-- Calls OpenXR `xrWaitFrame` and `xrBeginFrame` methods
+- Calls OpenXR `xrWaitFrame` (blocks until the next frame is ready and returns a predicted display time)
+- Calls OpenXR `xrBeginFrame` (signals the start of rendering for the new frame)
 - Outputs frame state for downstream operators
 
 #### XrEndFrameOp
 
-- Submits composition layers to XR device
-- Calls OpenXR `xrEndFrame` with rendered content
-- Handles multiple composition layers
+- Calls OpenXR `xrEndFrame` to submit composition layers to XR device
 
 ### XrSession
 
@@ -28,7 +31,7 @@ The central resource that manages the OpenXR session lifecycle:
 
 - **Initialization**: Creates OpenXR instance, system, session, and Vulkan graphics context
 - **Plugin System**: Supports extensible plugins for additional XR functionality
-- **Space Management**: Provides reference and view spaces for pose tracking
+- **View Space Management**: Provides reference and view spaces for pose tracking
 - **Graphics Integration**: Manages Vulkan instance, device, and queue creation
 
 ### Rendering Infrastructure
@@ -63,25 +66,13 @@ The central resource that manages the OpenXR session lifecycle:
 
 ## Features
 
-### Graphics Pipeline
 
-- **Vulkan Integration**: Native Vulkan graphics with OpenXR
-- **CUDA Interop**: Direct CUDA memory access for compute operations
-- **Multi-format Support**: Color (RGBA8) and depth (D16/D32) formats
-- **Stereo Rendering**: Side-by-side layout for VR headsets
-
-### Input Systems
-
-- **Hand Tracking**: Full hand joint tracking with OpenXR EXT_hand_tracking
-- **Pose Tracking**: 6DOF head and controller tracking
-- **Space Management**: Reference and view space coordinate systems
-
-### Performance Optimizations
-
-- **GPU Synchronization**: Efficient CUDA-Vulkan synchronization
-- **Memory Sharing**: Zero-copy memory between CUDA and Vulkan
-- **Command Buffering**: Pre-recorded Vulkan command buffers
-- **External Semaphores**: Cross-API synchronization primitives
+- **Session Management**: Create and manage XR sessions, including initialization, lifecycle, and management of reference/view spaces.
+- **Frame Operations**: Handle XR frame begin and end operations to synchronize rendering and presentation with the XR device.
+- **CUDA Swapchain**: Enable direct GPU processing of OpenXR swapchain images using CUDA, supporting efficient zero-copy memory sharing between CUDA and Vulkan.
+- **Layer Composition and Stereo Rendering**: Collect and manage all layers (color, depth, etc.) to be displayed, with built-in support for stereo rendering using side-by-side layouts.
+- **Input Systems**: Provide 6DOF pose tracking and hand tracking (OpenXR EXT_hand_tracking).
+- **Performance and Efficiency**: Leverage efficient CUDA-Vulkan interoperability, GPU synchronization, and external memory/semaphore primitives for high-performance XR rendering.
 
 ## Dependencies
 
@@ -95,117 +86,14 @@ The central resource that manages the OpenXR session lifecycle:
 
 ### Holoscan Requirements
 
-- **Minimum SDK Version**: 3.1.0
-- **Tested Versions**: 3.1.0
+- **Minimum SDK Version**: 3.3.0
+- **Tested Versions**: 3.3.0
 - **Platforms**: x86_64
 
 ## Usage Example
 
-```python
-import holoscan as hs
-from holoscan.operators.xr import (
-    XrSession, XrBeginFrameOp, XrEndFrameOp,
-    XrCompositionLayerManager, XrSwapchainCuda
-)
 
-class XRApp(hs.Application):
-    def compose(self):
-        # Create XR session
-        xr_session = XrSession(
-            self,
-            application_name="My XR App",
-            application_version=1
-        )
-        
-        # Create composition layer manager
-        composition_manager = XrCompositionLayerManager(
-            self, xr_session=xr_session
-        )
-        
-        # Frame management operators
-        begin_frame = XrBeginFrameOp(
-            self, xr_session=xr_session
-        )
-        
-        end_frame = XrEndFrameOp(
-            self, xr_session=xr_session
-        )
-        
-        # Define workflow
-        self.add_flow(begin_frame, end_frame)
-```
+For practical usage examples, see the following applications that utilize these XR operators:
 
-## Python API
-
-### Core Classes
-
-**XrSession**
-
-```python
-# Create XR session
-session = XrSession(
-    fragment,
-    application_name="My App",
-    application_version=1
-)
-
-# Access session properties
-view_configs = session.view_configurations()
-depth_range = session.view_configuration_depth_range()
-```
-
-**XrSwapchainCuda**
-
-```python
-# Create swapchain
-swapchain = XrSwapchainCuda(
-    session,
-    format=XrSwapchainCudaFormat.R8G8B8A8_SRGB,
-    width=1920, height=1080
-)
-
-# Acquire image for rendering
-tensor = swapchain.acquire()
-# ... render to tensor ...
-swapchain.release(cuda_stream)
-```
-
-**XrHandTracker**
-
-```python
-# Create hand tracker
-hand_tracker = XrHandTracker(
-    fragment,
-    xr_session=session,
-    hand=XrHandEXT.XR_HAND_LEFT_EXT
-)
-
-# Get hand joint locations
-joints = hand_tracker.locate_hand_joints()
-```
-
-### Data Types
-
-**Pose and Transform**
-
-```python
-# 3D position
-position = XrVector3f(x=0.0, y=0.0, z=0.0)
-
-# Quaternion rotation
-orientation = XrQuaternionf(x=0.0, y=0.0, z=0.0, w=1.0)
-
-# Complete pose
-pose = XrPosef(position=position, orientation=orientation)
-```
-
-**Frame State**
-
-```python
-# Frame timing information
-frame_state = XrFrameState(
-    predictedDisplayTime=1234567890,
-    predictedDisplayPeriod=16666667,
-    shouldRender=True
-)
-```
+- [xr_holoviz](../../applications/xr_holoviz/README.md): Simple XR visualization using Holoviz.
+- [xr_gsplat](../../applications/xr_gsplat/README.md): XR rendering of 3D scenes using Gaussian Splatting.
