@@ -38,9 +38,6 @@
 
 namespace holoscan::ops {
 
-VideoMasterSourceOp::VideoMasterSourceOp() : holoscan::Operator(), _has_lost_signal(false), _video_master_base(true, _board_index, _channel_index, _use_rdma) {
-}
-
 void VideoMasterSourceOp::setup(OperatorSpec& spec) {
   auto& signal = spec.output<gxf::Entity>("signal");
 
@@ -58,12 +55,15 @@ void VideoMasterSourceOp::setup(OperatorSpec& spec) {
   spec.param(_framerate, "framerate", "Framerate", "Framerate of the signal to generate.", 60u);
 }
 
-void VideoMasterSourceOp::initialize() {}
+void VideoMasterSourceOp::initialize() {
+  _has_lost_signal = false;
+  _video_master_base = std::make_unique<VideoMasterBase>(false, _board_index, _channel_index, _use_rdma);
+}
 
 void VideoMasterSourceOp::start() {
-  if(!_video_master_base.configure_board())
+  if(!_video_master_base->configure_board())
     throw std::runtime_error("Failed to configure board");
-  if(!_video_master_base.open_stream())
+  if(!_video_master_base->open_stream())
     throw std::runtime_error("Failed to open stream");
 }
 
@@ -71,26 +71,26 @@ void VideoMasterSourceOp::compute(InputContext& op_input, OutputContext& op_outp
 
 bool success_b = true;
 
-  if (!_video_master_base.signal_present()) {
+  if (!_video_master_base->signal_present()) {
     if (!_has_lost_signal)
       HOLOSCAN_LOG_INFO("No signal detected, waiting for input...");
 
     _has_lost_signal = true;
     return;
-  } else if (!(_video_master_base.video_format() != Deltacast::Helper::VideoFormat{})) {  // start stream
-    if(!_video_master_base.configure_stream())
+  } else if (!(_video_master_base->video_format() != Deltacast::Helper::VideoFormat{})) {  // start stream
+    if(!_video_master_base->configure_stream())
       throw std::runtime_error("Failed to configure stream");
 
     auto config_video_format = Deltacast::Helper::VideoFormat{_width, _height
                                                               , _progressive, _framerate};
-    if (_video_master_base.video_format() != config_video_format) {
-      VHD_StopStream(*_video_master_base.stream_handle());
+    if (_video_master_base->video_format() != config_video_format) {
+      VHD_StopStream(*_video_master_base->stream_handle());
       throw std::runtime_error("Input signal does not match configuration");
     }
 
-    if(!_video_master_base.init_buffers())
+    if(!_video_master_base->init_buffers())
       throw std::runtime_error("Failed to initialize buffers");
-    if(!_video_master_base.start_stream())
+    if(!_video_master_base->start_stream())
       throw std::runtime_error("Failed to start stream");
   }
 
@@ -99,15 +99,15 @@ bool success_b = true;
     _has_lost_signal = false;
   }
 
-  auto detected_video_format = _video_master_base.video_information()->get_video_format(_video_master_base.stream_handle());
-  if (detected_video_format && *detected_video_format != _video_master_base.video_format()) {
+  auto detected_video_format = _video_master_base->video_information()->get_video_format(_video_master_base->stream_handle());
+  if (detected_video_format && *detected_video_format != _video_master_base->video_format()) {
     HOLOSCAN_LOG_INFO("Input signal has changed, exiting");
-    VHD_StopStream(*_video_master_base.stream_handle());
+    VHD_StopStream(*_video_master_base->stream_handle());
     throw std::runtime_error("Input signal has changed");
   }
 
   HANDLE slot_handle;
-  ULONG api_result = VHD_WaitSlotFilled(*_video_master_base.stream_handle(), &slot_handle, VideoMasterBase::SLOT_TIMEOUT);
+  ULONG api_result = VHD_WaitSlotFilled(*_video_master_base->stream_handle(), &slot_handle, VideoMasterBase::SLOT_TIMEOUT);
   if (api_result != VHDERR_NOERROR && api_result != VHDERR_TIMEOUT) {
     throw std::runtime_error("Failed to wait for incoming slot");
   }
@@ -119,8 +119,8 @@ bool success_b = true;
   BYTE *buffer = nullptr;
   ULONG buffer_size = 0;
 
-  if(!_video_master_base.holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                VHD_GetSlotBuffer(slot_handle, _video_master_base.video_information()->get_buffer_type()
+  if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
+                                VHD_GetSlotBuffer(slot_handle, _video_master_base->video_information()->get_buffer_type()
                                                  , &buffer, &buffer_size)
                                 }, "Failed to get slot buffer")) {
     throw std::runtime_error("Failed to get slot buffer");
@@ -129,19 +129,19 @@ bool success_b = true;
   transmit_buffer_data(buffer, buffer_size, op_output, context);
 
   VHD_QueueInSlot(slot_handle);
-  _video_master_base.slot_count()++;
+  _video_master_base->slot_count()++;
 
 }
 
 void VideoMasterSourceOp::stop() {
-  _video_master_base.stop_stream();
+  _video_master_base->stop_stream();
 }
 
 void VideoMasterSourceOp::transmit_buffer_data(void* buffer, uint32_t buffer_size, OutputContext& op_output, ExecutionContext& context) {
   if (!_use_rdma) {
-    cudaMemcpy(_video_master_base.buffers()[_video_master_base.slot_count() % VideoMasterBase::NB_SLOTS][_video_master_base.video_information()->get_buffer_type()], buffer,
+    cudaMemcpy(_video_master_base->buffers()[_video_master_base->slot_count() % VideoMasterBase::NB_SLOTS][_video_master_base->video_information()->get_buffer_type()], buffer,
                buffer_size, cudaMemcpyHostToDevice);
-    buffer = _video_master_base.buffers()[_video_master_base.slot_count() % VideoMasterBase::NB_SLOTS][_video_master_base.video_information()->get_buffer_type()];
+    buffer = _video_master_base->buffers()[_video_master_base->slot_count() % VideoMasterBase::NB_SLOTS][_video_master_base->video_information()->get_buffer_type()];
   }
   auto video_output = nvidia::gxf::Entity::New(context.context());
   if (!video_output) {
@@ -153,7 +153,7 @@ void VideoMasterSourceOp::transmit_buffer_data(void* buffer, uint32_t buffer_siz
     throw std::runtime_error("Failed to allocate video buffer; terminating.");
   }
 
-  auto format = _video_master_base.video_information()->get_video_format(_video_master_base.stream_handle());
+  auto format = _video_master_base->video_information()->get_video_format(_video_master_base->stream_handle());
   if (!format)
     throw std::runtime_error("Failed to get video format");
 
