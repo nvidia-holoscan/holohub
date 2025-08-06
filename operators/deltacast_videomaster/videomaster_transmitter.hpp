@@ -36,7 +36,7 @@ class VideoMasterTransmitterOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(VideoMasterTransmitterOp)
 
-  VideoMasterTransmitterOp();
+  VideoMasterTransmitterOp() = default;
 
   void setup(OperatorSpec& spec) override;
   void initialize() override;
@@ -60,7 +60,7 @@ class VideoMasterTransmitterOp : public holoscan::Operator {
 
   bool _has_lost_signal;
 
-  VideoMasterBase _video_master_base;
+  std::unique_ptr<VideoMasterBase> _video_master_base;
 };
 
 }  // namespace holoscan::ops

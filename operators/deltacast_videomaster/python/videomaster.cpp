@@ -28,7 +28,6 @@
 #include "../../operator_util.hpp"
 
 #include <holoscan/core/fragment.hpp>
-#include "holoscan/core/gxf/gxf_operator.hpp"
 
 using std::string_literals::operator""s;
 using pybind11::literals::operator""_a;
@@ -115,7 +114,7 @@ PYBIND11_MODULE(_videomaster, m) {
 
   py::class_<VideoMasterSourceOp,
              PyVideoMasterSourceOp,
-             GXFOperator,
+             Operator,
              std::shared_ptr<VideoMasterSourceOp>>(
       m, "VideoMasterSourceOp", doc::VideoMasterSourceOp::doc_VideoMasterSourceOp)
       .def(py::init<Fragment*,
@@ -140,15 +139,12 @@ PYBIND11_MODULE(_videomaster, m) {
            "pool"_a,
            "name"_a = "videomaster_source"s,
            doc::VideoMasterSourceOp::doc_VideoMasterSourceOp_python)
-      .def_property_readonly("gxf_typename",
-                             &VideoMasterSourceOp::gxf_typename,
-                             doc::VideoMasterSourceOp::doc_gxf_typename)
       .def("initialize", &VideoMasterSourceOp::initialize, doc::VideoMasterSourceOp::doc_initialize)
       .def("setup", &VideoMasterSourceOp::setup, "spec"_a, doc::VideoMasterSourceOp::doc_setup);
 
   py::class_<VideoMasterTransmitterOp,
              PyVideoMasterTransmitterOp,
-             GXFOperator,
+             Operator,
              std::shared_ptr<VideoMasterTransmitterOp>>(
       m, "VideoMasterTransmitterOp", doc::VideoMasterTransmitterOp::doc_VideoMasterTransmitterOp)
       .def(py::init<Fragment*,
@@ -175,9 +171,6 @@ PYBIND11_MODULE(_videomaster, m) {
            "enable_overlay"_a = false,
            "name"_a = "videomaster_transmitter"s,
            doc::VideoMasterTransmitterOp::doc_VideoMasterTransmitterOp)
-      .def_property_readonly("gxf_typename",
-                             &VideoMasterTransmitterOp::gxf_typename,
-                             doc::VideoMasterTransmitterOp::doc_gxf_typename)
       .def("initialize",
            &VideoMasterTransmitterOp::initialize,
            doc::VideoMasterTransmitterOp::doc_initialize)
