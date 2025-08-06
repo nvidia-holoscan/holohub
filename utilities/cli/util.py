@@ -554,7 +554,7 @@ def install_packages_if_missing(
             packages_to_install.append(package_spec)
             info(f"Installing {package_spec}")
         else:
-            if get_installed_package_version(package_name) is not None:
+            if get_installed_package_version(package_name):
                 info(f"Package {package_name} is already installed")
             else:
                 packages_to_install.append(package_spec)
@@ -1145,7 +1145,7 @@ def setup_cmake(min_version: str = "3.26.4", dry_run: bool = False) -> None:
     install_packages_if_missing(["cmake", "cmake-curses-gui"], dry_run=dry_run)
 
 
-def setup_python_dev(min_version: str = "3.9.0", dry_run: bool = False) -> None:
+def setup_python_dev(min_version: str = "3.10.0", dry_run: bool = False) -> None:
     """Setup Python development packages"""
     python_version = sys.version_info
     python_dev_package = f"python3.{python_version.minor}-dev"
@@ -1214,12 +1214,12 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
     CUDNN_9_PATTERN = r"9\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+"
     try:
         installed_cudnn9_version = install_cuda_dependencies_package(
-            package_name="libcudnn9-cuda-12",
+            package_name=f"libcudnn9-cuda-{cuda_major_version}",
             version_pattern=CUDNN_9_PATTERN,
             dry_run=dry_run,
         )
         install_cuda_dependencies_package(
-            package_name="libcudnn9-dev-cuda-12",
+            package_name=f"libcudnn9-dev-cuda-{cuda_major_version}",
             version_pattern=re.escape(installed_cudnn9_version),
             dry_run=dry_run,
         )

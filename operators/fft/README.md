@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
 
 SPDX-License-Identifier: Apache-2.0
 -->
-# FFT Operator
+# Fast Fourier Transform (FFT) Operator
 
 ## Overview
 

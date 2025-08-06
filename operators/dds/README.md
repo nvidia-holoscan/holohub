@@ -1,4 +1,4 @@
-### DDS Operators
+# Data-Distribution Service (DDS) Operators
 
 This folder contains operators that allow applications to publish or subscribe
 to data topics in a DDS domain using [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms).
@@ -7,7 +7,7 @@ and interoperate with applications outside of Holoscan, taking advantage of the
 data-centric and distributed nature of DDS to quickly enable communication with
 a wide array of external applications and platforms.
 
-#### Requirements
+## Requirements
 
 [RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms) must be
 installed on the system and a valid RTI Connext license must be installed to run
@@ -25,7 +25,7 @@ the `NDDSHOME` environment variable to the RTI Connext installation directory
 $ ./holohub build dds_video --configure-args="-DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0"
 ```
 
-##### Using a Development Container
+## Using a Development Container
 
 Due to the license requirements of RTI Connext it is not currently supported to
 install RTI Connext into a development container. Instead, if a development

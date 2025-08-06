@@ -1,7 +1,10 @@
 # XR + Gaussian Splatting
 
 This application demonstrates rendering a 3D scene using Gaussian Splatting in XR.  
-We provide setup steps to run and view the scene with the default [Monado](https://monado.dev/) [OpenXR](https://www.khronos.org/openxr/) simulator below. Users with an OpenXR compatible headset may bring their own OpenXR runtime for XR viewing.
+
+![Demo](doc/gsplat-demo.gif)
+*Demo running on Apple Vision Pro*
+
 ### 0. Training a Gaussian Splatting Model
 The below instructions are based on the [gsplat colmap example](https://docs.gsplat.studio/main/examples/colmap.html).
 
@@ -36,14 +39,22 @@ __note__: Training time is observed to take about 30 minutes on Intel i9 CPU + N
 
 
 
-### 1. Run the application
+## Quick Start
+
+### Option 1: Stream to Apple Vision Pro (CloudXR)
+
+To stream this XR application to devices like Apple Vision Pro, refer to the [CloudXR Runtime tutorial](../../tutorials/cloudxr_runtime_for_xr_applications/) for setup instructions.
+
+### Option 2: Using Monado OpenXR Runtime (Local Development)
+
+Monado is an open-source OpenXR runtime that supports various XR devices and includes a simulator for local development without physical XR hardware.
 
 #### Terminal 1: Launch Container and Start Monado Service
 ```bash
 # If you're already in the container, skip this step
 ./holohub run-container xr_gsplat
 
-# Inside the container, start the Monado service
+# Inside the container, start the Monado XR runtime service
 monado-service
 ```
 Keep this terminal open and running.
