@@ -209,11 +209,3 @@ frame_state = XrFrameState(
     shouldRender=True
 )
 ```
-
-## Building
-
-### CMake Configuration
-
-```bash
-./holohub build xr
-```
