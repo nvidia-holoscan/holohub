@@ -19,7 +19,7 @@ The XR operators provide a complete framework for building Holoscan applications
 #### XrEndFrameOp
 
 - Submits composition layers to XR device
-- Calls `xrEndFrame` with rendered content
+- Calls OpenXR `xrEndFrame` with rendered content
 - Handles multiple composition layers
 
 ### XrSession
