@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 # Add testing
 if(BUILD_TESTING)
   # To get the environment path
-  find_package(holoscan 0.6 REQUIRED CONFIG
+  find_package(holoscan 3.4 REQUIRED CONFIG
                PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
   # Add test
