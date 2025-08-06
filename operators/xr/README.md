@@ -1,6 +1,6 @@
 # OpenXR Operators
 
-A collection of Holoscan operators for OpenXR (Extended Reality) integration, enabling real-time XR applications with Vulkan graphics and CUDA compute capabilities.
+A collection of Holoscan operators for XR (Extended Reality) integration, enabling real-time XR applications with Vulkan graphics and CUDA compute capabilities.
 
 ## Overview
 
