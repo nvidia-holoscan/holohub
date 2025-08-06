@@ -35,7 +35,7 @@ from .util import (
     get_group_id,
     get_host_gpu,
     get_image_pythonpath,
-    normalize_language,
+    list_normalized_languages,
     replace_placeholders,
     run_command,
 )
@@ -309,16 +309,13 @@ class HoloHubContainer:
             if dockerfile_path.exists():
                 return dockerfile_path
 
-            language = normalize_language(
-                self.project_metadata.get("metadata", {}).get("language", "")
-            )
-            dockerfile_path = source_folder / language / "Dockerfile"
+            dockerfile_path = source_folder / self.language / "Dockerfile"
             if dockerfile_path.exists():
                 return dockerfile_path
 
         return HoloHubContainer.default_dockerfile()
 
-    def __init__(self, project_metadata: Optional[dict[str, any]]):
+    def __init__(self, project_metadata: Optional[dict[str, any]], language: Optional[str] = None):
         if not project_metadata:
             print("No project provided, proceeding with default container")
         elif not isinstance(project_metadata, dict):
@@ -331,6 +328,10 @@ class HoloHubContainer:
         self.holohub_container_base_name = os.environ.get("HOLOHUB_CONTAINER_BASE_NAME", "holohub")
 
         self.project_metadata = project_metadata
+        # Get first language from project metadata if not provided.
+        if language is None:
+            language = self.project_metadata.get("metadata", {}).get("language", "")
+        self.language = list_normalized_languages(language)[0]
 
         self.dryrun = False
         self.verbose = False
