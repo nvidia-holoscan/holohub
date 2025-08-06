@@ -87,9 +87,9 @@ The central resource that manages the OpenXR session lifecycle:
 
 ### External Libraries
 
-- **OpenXR SDK**: 1.0.26 - Cross-platform XR API
-- **OpenXR-Hpp**: 1.0.26 - C++ headers for OpenXR
-- **GLM**: 1.0.1 - Mathematics library for graphics
+- **OpenXR SDK**: Cross-platform XR API
+- **OpenXR-Hpp**: C++ headers for OpenXR
+- **GLM**: Mathematics library for graphics
 - **Vulkan**: Graphics API for XR rendering
 - **CUDA**: Compute API for GPU operations
 
