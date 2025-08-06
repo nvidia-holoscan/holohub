@@ -13,7 +13,7 @@ The XR operators provide a complete framework for building Holoscan applications
 #### XrBeginFrameOp
 
 - Synchronizes application with XR device timing
-- Calls `xrWaitFrame` and `xrBeginFrame`
+- Calls OpenXR `xrWaitFrame` and `xrBeginFrame` methods
 - Outputs frame state for downstream operators
 
 #### XrEndFrameOp
