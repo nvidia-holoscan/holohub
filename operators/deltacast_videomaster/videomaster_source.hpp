@@ -70,7 +70,7 @@ class VideoMasterSourceOp : public holoscan::Operator {
 
   bool _has_lost_signal;
   
-  VideoMasterBase _video_master_base;
+  std::unique_ptr<VideoMasterBase> _video_master_base;
   
 };
 
