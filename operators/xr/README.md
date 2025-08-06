@@ -212,13 +212,6 @@ frame_state = XrFrameState(
 
 ## Building
 
-### Prerequisites
-
-- Holoscan SDK 3.1.0+
-- CUDA Toolkit
-- Vulkan SDK
-- CMake 3.20+
-
 ### CMake Configuration
 
 ```bash
