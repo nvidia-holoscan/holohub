@@ -21,7 +21,7 @@ PYTHON_MIN_VERSION = (3, 10, 0)
 if sys.version_info < PYTHON_MIN_VERSION:
     sys_major, sys_minor, sys_micro = sys.version_info[:3]
     print(
-        f"Error: Python {PYTHON_MIN_VERSION} or higher required, "
+        f"Error: Python {'.'.join(map(str, PYTHON_MIN_VERSION))} or higher required, "
         f"found {sys_major}.{sys_minor}.{sys_micro}",
         file=sys.stderr,
     )
