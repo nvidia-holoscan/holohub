@@ -4,7 +4,7 @@ A collection of Holoscan operators for OpenXR (Extended Reality) integration, en
 
 ## Overview
 
-The XR operators provide a complete framework for building Holoscan applications that can render to XR headsets. The implementation leverages OpenXR for cross-platform XR support, Vulkan for graphics, and CUDA for compute operations, enabling high-performance real-time XR applications.
+The XR operators provide a complete framework for building Holoscan applications that can render to XR headsets. The implementation leverages the [OpenXR standard](https://www.khronos.org/openxr/) for cross-platform XR support, Vulkan for graphics, and CUDA for compute operations, enabling high-performance real-time XR applications.
 
 ## Core Components
 
