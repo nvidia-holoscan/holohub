@@ -65,6 +65,7 @@ target_link_libraries(slang_shader
     holoscan::core
   PRIVATE
     CUDA::cudart
+    CUDA::cuda_driver
     slang::slang
     nlohmann_json::nlohmann_json
 )
