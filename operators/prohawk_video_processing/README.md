@@ -27,10 +27,9 @@ The Prohawk Video Processing Operator is a Holoscan SDK operator that integrates
 
 ### Software Dependencies
 
-- **Holoscan SDK**: Version 0.5.1 or higher (tested with 0.5.1 and 0.6.0)
-- **Prohawk Runtime**: Prohawk SDK must be installed
-- **OpenCV**: Required for image processing operations
-- **CMake**: Version 3.20 or higher
+- **Holoscan SDK**
+- **Prohawk Runtime**
+- **OpenCV**
 
 ### Prohawk SDK Installation
 
