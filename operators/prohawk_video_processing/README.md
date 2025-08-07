@@ -1,6 +1,6 @@
 # Prohawk Video Processing Operator
 
-## Description
+## Overview
 
 The Prohawk Video Processing Operator is a Holoscan SDK operator that integrates Prohawk Technology Group's video restoration and enhancement capabilities. This operator provides real-time video processing with multiple filter options for various applications including medical imaging, surveillance, and broadcast video enhancement.
 
@@ -17,21 +17,9 @@ The Prohawk Video Processing Operator is a Holoscan SDK operator that integrates
 - **OpenCV Integration**: Seamless integration with OpenCV for image processing
 - **CUDA Support**: GPU-accelerated processing for improved performance
 
-## Prerequisites
-
-### System Requirements
-
-- **Platform**: ARM64 (aarch64) architecture
-- **Operating System**: Linux
-- **GPU**: NVIDIA GPU with CUDA support (recommended)
-
-### Software Dependencies
-
-- **Holoscan SDK**
-- **Prohawk Runtime**
-- **OpenCV**
-
 ## Usage
+
+Please refer to [Prohawk Video Processing](../../applications/prohawk_video_replayer/README.md) for requirements and usage examples.
 
 ### Basic Usage
 
@@ -147,106 +135,3 @@ class ProhawkOp(Operator):
             The name of the operator
         """
 ```
-
-## Configuration
-
-### CMake Configuration Options
-
-- `HOLOSCAN_SDK_PATH`: Path to Holoscan SDK installation
-- `HOLOHUB_BUILD_PYTHON`: Enable Python bindings (default: ON)
-- `OpenCV_DIR`: Path to OpenCV installation (if not in system path)
-
-### Environment Variables
-
-- `CUDA_VISIBLE_DEVICES`: Specify which GPU to use for processing
-- `PROHAWK_SDK_PATH`: Override default Prohawk SDK path
-
-## Examples
-
-### Basic Video Processing Pipeline
-
-```python
-import holoscan as holo
-from holoscan.operators import VideoStreamReplayerOp, ProhawkOp, HolovizOp
-
-# Create fragment
-fragment = holo.Fragment()
-
-# Add operators
-replayer = VideoStreamReplayerOp(fragment, name="replayer")
-prohawk = ProhawkOp(fragment, name="prohawk")
-holoviz = HolovizOp(fragment, name="holoviz")
-
-# Connect operators
-fragment.add_flow(replayer, prohawk)
-fragment.add_flow(prohawk, holoviz)
-
-# Run the application
-app = holo.Application(fragment=fragment)
-app.run()
-```
-
-### Custom Filter Configuration
-
-The operator supports real-time filter switching through interactive controls. The filter parameters are automatically configured based on the selected preset, but you can modify the source code to customize these parameters for your specific use case.
-
-## Integration
-
-### With Holoscan Applications
-
-The Prohawk operator integrates seamlessly with other Holoscan operators:
-
-- **Input Sources**: VideoStreamReplayerOp, VideoCaptureOp, etc.
-- **Output Sinks**: HolovizOp, VideoWriterOp, etc.
-- **Processing**: Can be chained with other video processing operators
-
-### With Existing Video Pipelines
-
-The operator can be easily integrated into existing video processing pipelines by:
-
-1. Adding the operator to your Holoscan fragment
-2. Connecting it to your video source
-3. Connecting the output to your desired sink
-4. Configuring the appropriate filter for your use case
-
-## Development
-
-### Building for Development
-
-```bash
-# Debug build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-make -j$(nproc)
-
-# Release build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
-```
-
-### Testing
-
-The operator includes interactive testing capabilities through the built-in display window. You can test different filters and configurations in real-time.
-
-### Extending the Operator
-
-To add new filters or modify existing ones:
-
-1. Edit `prohawkop.cpp` to add new filter cases
-2. Update the interactive controls in the compute method
-3. Rebuild the operator
-4. Test with your video stream
-
-## Dependencies
-
-### Required Libraries
-
-- **Holoscan Core**: Core Holoscan SDK functionality
-- **Prohawk PTGDE**: Prohawk video processing library
-- **OpenCV**: Computer vision library for image processing
-- **CUDA**: GPU acceleration (optional but recommended)
-
-### Build Dependencies
-
-- **CMake**: Build system
-- **pybind11**: Python bindings (if building Python support)
-- **C++ Compiler**: GCC or Clang with C++17 support
