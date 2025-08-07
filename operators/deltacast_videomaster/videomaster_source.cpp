@@ -56,15 +56,18 @@ void VideoMasterSourceOp::setup(OperatorSpec& spec) {
 }
 
 void VideoMasterSourceOp::initialize() {
+  Operator::initialize();
   _has_lost_signal = false;
   _video_master_base = std::make_unique<VideoMasterBase>(false, _board_index, _channel_index, _use_rdma);
 }
 
 void VideoMasterSourceOp::start() {
+  HOLOSCAN_LOG_INFO("Starting VideoMaster Source on board {} channel {}", _board_index, _channel_index);
   if(!_video_master_base->configure_board())
     throw std::runtime_error("Failed to configure board");
   if(!_video_master_base->open_stream())
     throw std::runtime_error("Failed to open stream");
+  HOLOSCAN_LOG_INFO("VideoMaster Source started successfully");
 }
 
 void VideoMasterSourceOp::compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
@@ -95,7 +98,7 @@ bool success_b = true;
   }
 
   if (_has_lost_signal) {
-    HOLOSCAN_LOG_INFO("Input signal detected");
+    HOLOSCAN_LOG_INFO("Input signal detected, resuming operation");
     _has_lost_signal = false;
   }
 
@@ -134,6 +137,7 @@ bool success_b = true;
 }
 
 void VideoMasterSourceOp::stop() {
+  HOLOSCAN_LOG_INFO("Stopping VideoMaster Source");
   _video_master_base->stop_stream();
 }
 

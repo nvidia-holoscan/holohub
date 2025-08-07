@@ -61,7 +61,7 @@ const std::unordered_map<uint32_t, VHD_KEYER_BOARDPROPERTY> id_to_keyer_anc_outp
 
 
 void VideoMasterTransmitterOp::setup(OperatorSpec& spec) {
-  auto& source = spec.input<holoscan::Tensor>("source");
+  auto& source = spec.input<gxf::Entity>("source");
 
   spec.param(_use_rdma, "rdma", "Use RDMA", "Specifies whether RDMA should be used.", false);
   spec.param(_board_index, "board", "Board", "Index of the Deltacast.TV board to use.", 0u);
@@ -83,15 +83,18 @@ void VideoMasterTransmitterOp::setup(OperatorSpec& spec) {
 }
 
 void VideoMasterTransmitterOp::initialize() {
+  Operator::initialize();
   _has_lost_signal = false;
   _video_master_base = std::make_unique<VideoMasterBase>(false, _board_index, _channel_index, _use_rdma);
 }
 
 void VideoMasterTransmitterOp::start() {
+  HOLOSCAN_LOG_INFO("Starting VideoMaster Transmitter on board {} channel {}", _board_index, _channel_index);
   if(!_video_master_base->configure_board())
     throw std::runtime_error("Failed to configure board");
   if(!_video_master_base->open_stream())
     throw std::runtime_error("Failed to open stream");
+  HOLOSCAN_LOG_INFO("VideoMaster Transmitter started successfully");
 }
 
 void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
@@ -103,7 +106,7 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
 
   auto video = source.value();
 
-  auto video_buffer = holoscan::gxf::get_videobuffer(video);
+  nvidia::gxf::Handle<nvidia::gxf::VideoBuffer> video_buffer = holoscan::gxf::get_videobuffer(video);
 
   if (_overlay) {
     if (!_video_master_base->signal_present()) {
@@ -113,6 +116,7 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
       _has_lost_signal = true;
       return;
     } else if (!(_video_master_base->video_format() != Deltacast::Helper::VideoFormat{})) {  // stream not started yet
+      HOLOSCAN_LOG_INFO("Configuring overlay mode: {}x{} {}p @{}Hz", _width, _height, _progressive ? "progressive" : "interlaced", _framerate);
 
       _video_master_base->video_format() = Deltacast::Helper::VideoFormat{_width, _height, _progressive, _framerate};
       _video_master_base->video_information()->set_video_format(_video_master_base->stream_handle(), _video_master_base->video_format());
@@ -131,6 +135,7 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
       sleep_ms(200);
       _video_master_base->set_loopback_state(false);
       sleep_ms(200);
+      HOLOSCAN_LOG_INFO("Overlay mode configured and started successfully");
     }
   }
 
@@ -171,10 +176,12 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
 }
 
 void VideoMasterTransmitterOp::stop() {
+  HOLOSCAN_LOG_INFO("Stopping VideoMaster Transmitter");
   _video_master_base->stop_stream();
 }
 
 bool VideoMasterTransmitterOp::configure_board_for_overlay() {
+  HOLOSCAN_LOG_INFO("Configuring board for overlay with keyer on channel {}", _channel_index);
   bool success_b = true;
 
   success_b = _video_master_base->video_information()->configure_sync(_video_master_base->board_handle(), _channel_index);
