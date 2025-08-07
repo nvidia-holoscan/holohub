@@ -431,18 +431,19 @@ class HoloHubCLI:
 
     def find_project(self, project_name: str, language: Optional[str] = None) -> dict:
         """Find a project by name"""
-        normalized_language = holohub_cli_util.normalize_language(language) if language else None
+        normalized_language = holohub_cli_util.normalize_language(language)
 
         # First try exact match
         for project in self.projects:
             if project["project_name"] == project_name:
-                if (
-                    normalized_language
-                    and holohub_cli_util.normalize_language(project["metadata"]["language"])
-                    != normalized_language
+                if normalized_language == "":
+                    return project
+                if normalized_language in holohub_cli_util.list_normalized_languages(
+                    project["metadata"]["language"]
                 ):
-                    continue
-                return project
+                    return project
+                print(f"Project '{project_name}' (language: {normalized_language}) not found.")
+                continue
         # If project not found, suggest similar names
         distances = [
             (
@@ -596,7 +597,7 @@ class HoloHubCLI:
         if not project_name:
             return HoloHubContainer(project_metadata=None)
         project_data = self.find_project(project_name=project_name, language=language)
-        return HoloHubContainer(project_metadata=project_data)
+        return HoloHubContainer(project_metadata=project_data, language=language)
 
     def handle_build_container(self, args: argparse.Namespace) -> None:
         """Handle build-container command"""

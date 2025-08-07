@@ -424,15 +424,31 @@ def get_group_id(group: str) -> Optional[int]:
         return None
 
 
-def normalize_language(language: str) -> Optional[str]:
+def normalize_language(language: str | None) -> str:
     """Normalize language name"""
+    # Handle empty language
+    if not language:
+        return ""
+
+    # Handle invalid language type
     if not isinstance(language, str):
-        return None
-    if language.lower() == "cpp" or language.lower() == "c++":
+        print(f"WARNING: Language must be a string, got {type(language)}: {language}")
+        return ""
+
+    # Normalize language name
+    language = language.lower()
+    if language in ["cpp", "c++"]:
         return "cpp"
-    elif language.lower() == "python" or language.lower() == "py":
+    if language in ["python", "py"]:
         return "python"
-    return None
+    raise ValueError(f"Invalid language: {language}")
+
+
+def list_normalized_languages(language: str | list[str] | None) -> list[str]:
+    """Make list of normalized languages from a single language or list of languages"""
+    if isinstance(language, list):
+        return [normalize_language(lang) for lang in language]
+    return [normalize_language(language)]
 
 
 def determine_project_prefix(project_type: str) -> str:
