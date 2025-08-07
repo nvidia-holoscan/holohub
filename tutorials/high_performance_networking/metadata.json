@@ -26,8 +26,7 @@
 		},
 		"platforms": [
 			"x86_64",
-			"SBSA",
-			"IGX Orin (dGPU)"
+			"aarch64"
 		],
 		"tags": ["DPDK", "RDMA", "GPUNetIO", "GPUDirect", "Networking and Distributed Computing", "HPC"],
 		"ranking": 1,

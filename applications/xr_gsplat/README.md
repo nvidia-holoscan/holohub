@@ -4,6 +4,11 @@ This application demonstrates rendering a 3D scene using Gaussian Splatting in X
 
 ![Demo](doc/gsplat-demo.gif)
 *Demo running on Apple Vision Pro*
+## Flow Diagram
+
+
+![fig](doc/fig.png)
+*Diagram illustrating the architecture and data flow of this application*
 
 ### 0. Training a Gaussian Splatting Model
 The below instructions are based on the [gsplat colmap example](https://docs.gsplat.studio/main/examples/colmap.html).
