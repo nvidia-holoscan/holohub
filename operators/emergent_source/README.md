@@ -71,4 +71,4 @@ emergent_source = EmergentSourceOp(
 )
 ```
 
-Please refer to [High Speed Endoscopy](../../applications/high_speed_endoscopy) and [Laser Detection](../../applications/laser_detection) for requirements and usage examples.
+Please refer to [High Speed Endoscopy](../../applications/high_speed_endoscopy/README.md) and [Laser Detection](../../applications/laser_detection_latency/laser_detection/README.md) for requirements and usage examples.
