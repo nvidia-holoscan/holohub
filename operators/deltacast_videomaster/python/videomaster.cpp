@@ -55,7 +55,7 @@ class PyVideoMasterSourceOp : public VideoMasterSourceOp {
   PyVideoMasterSourceOp(Fragment* fragment, const py::args& args, bool rdma = false,
                         uint32_t board = 0, uint32_t input = 0, uint32_t width = 1920,
                         uint32_t height = 1080, bool progressive = true,
-                        uint32_t framerate = 60, std::shared_ptr<Allocator> pool = nullptr,
+                        uint32_t framerate = 60,
                         const std::string& name = "videomaster_source")
       : VideoMasterSourceOp(ArgList{
             Arg{"rdma", rdma},
@@ -64,8 +64,7 @@ class PyVideoMasterSourceOp : public VideoMasterSourceOp {
             Arg{"width", width},
             Arg{"height", height},
             Arg{"progressive", progressive},
-            Arg{"framerate", framerate},
-            Arg{"pool", pool}}) {
+            Arg{"framerate", framerate}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -83,7 +82,7 @@ class PyVideoMasterTransmitterOp : public VideoMasterTransmitterOp {
   PyVideoMasterTransmitterOp(Fragment* fragment, const py::args& args, bool rdma = false,
                              uint32_t board = 0, uint32_t output = 0, uint32_t width = 1920,
                              uint32_t height = 1080, bool progressive = true,
-                             uint32_t framerate = 60, std::shared_ptr<Allocator> pool = nullptr,
+                             uint32_t framerate = 60,
                              bool enable_overlay = false,
                              const std::string& name = "videomaster_transmitter")
       : VideoMasterTransmitterOp(ArgList{Arg{"rdma", rdma},
@@ -93,7 +92,6 @@ class PyVideoMasterTransmitterOp : public VideoMasterTransmitterOp {
                                          Arg{"height", height},
                                          Arg{"progressive", progressive},
                                          Arg{"framerate", framerate},
-                                         Arg{"pool", pool},
                                          Arg{"enable_overlay", enable_overlay}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
@@ -126,7 +124,6 @@ PYBIND11_MODULE(_videomaster, m) {
                     uint32_t,
                     bool,
                     uint32_t,
-                    std::shared_ptr<Allocator>,
                     const std::string&>(),
            "fragment"_a,
            "rdma"_a = false,
@@ -136,7 +133,6 @@ PYBIND11_MODULE(_videomaster, m) {
            "height"_a = "0"s,
            "progressive"_a = true,
            "framerate"_a = "60"s,
-           "pool"_a,
            "name"_a = "videomaster_source"s,
            doc::VideoMasterSourceOp::doc_VideoMasterSourceOp_python)
       .def("initialize", &VideoMasterSourceOp::initialize, doc::VideoMasterSourceOp::doc_initialize)
@@ -156,7 +152,6 @@ PYBIND11_MODULE(_videomaster, m) {
                     uint32_t,
                     bool,
                     uint32_t,
-                    std::shared_ptr<Allocator>,
                     bool,
                     const std::string&>(),
            "fragment"_a,
@@ -167,7 +162,6 @@ PYBIND11_MODULE(_videomaster, m) {
            "height"_a = "0"s,
            "progressive"_a = true,
            "framerate"_a = "60"s,
-           "pool"_a,
            "enable_overlay"_a = false,
            "name"_a = "videomaster_transmitter"s,
            doc::VideoMasterTransmitterOp::doc_VideoMasterTransmitterOp)

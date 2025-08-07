@@ -68,7 +68,6 @@ class DeltacastTransmitterApp(Application):
         visualizer = VideoMasterTransmitterOp(
             self,
             name="videomaster",
-            pool=UnboundedAllocator(self, name="pool"),
             rdma=videomaster_kwargs.get("rdma", False),
             board=videomaster_kwargs.get("board", 0),
             width=width,
