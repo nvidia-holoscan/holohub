@@ -42,6 +42,8 @@ mesh_op = SendMeshToUSDOp(
 # The input name is "stl_bytes"
 ```
 
+Please refer to the [Processing DICOM to USD with MONAI Deploy and Holoscan Tutorial](../../tutorials/dicom_to_usd_with_monai_and_holoscan/tutorial.py) for an example usage.
+
 ## Parameters
 
 - **`stl_file_path`** (optional): Path to STL file to convert
@@ -50,11 +52,13 @@ mesh_op = SendMeshToUSDOp(
 ## Input/Output
 
 ### Input
+
 - **`stl_bytes`** (optional): Byte stream containing STL mesh data
   - Required when `stl_file_path` is not provided
   - Condition: `ConditionType.NONE` (optional input)
 
 ### Output
+
 - **USD Mesh**: Creates a USD mesh primitive in the specified stage
   - Mesh name: "mesh" (automatically made valid identifier)
   - Location: Under the stage's default prim path
@@ -81,7 +85,8 @@ The operator performs the following conversions:
 ## Integration
 
 The operator is designed to work within Holoscan pipelines and can be connected to:
+
 - STL file readers or generators
 - USD stage management operators
 - Visualization and rendering systems
-- 3D processing workflows 
+- 3D processing workflows
