@@ -53,6 +53,11 @@ auto qcap_op = std::make_shared<holoscan::ops::QCAPSourceOp>(
 );
 ```
 
+Please refer to the following Holoscan reference applications for usage of this operator:
+
+- [Endoscopy Tool Tracking](../../applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py)
+- [H.264 Endoscopy Tool Tracking](../../applications/h264/h264_endoscopy_tool_tracking/python/h264_endoscopy_tool_tracking.py)
+
 ## Parameters
 
 ### Device Configuration
