@@ -5,6 +5,12 @@ This application demonstrates the integration of Holoscan-XR with Holoviz for ex
 ![Demo](doc/demo.gif)
 *Demo running on Apple Vision Pro*
 
+## Flow Diagram
+
+
+![fig](doc/fig.png)
+*Diagram illustrating the architecture and data flow of the XR + Holoviz application*
+
 
 ## Quick Start
 
