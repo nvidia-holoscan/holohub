@@ -15,7 +15,7 @@
 				"affiliation": "NVIDIA"
 			}
         ],
-        "language": ["C++"],
+        "language": ["C++", "Python"],
         "version": "1.0.0",
         "changelog": {
             "0.0": "Initial Release"
