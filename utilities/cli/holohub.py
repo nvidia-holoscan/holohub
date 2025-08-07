@@ -425,7 +425,9 @@ class HoloHubCLI:
             if project["project_name"] == project_name:
                 if normalized_language == "":
                     return project
-                if normalized_language in holohub_cli_util.list_normalized_languages(project["metadata"]["language"]):
+                if normalized_language in holohub_cli_util.list_normalized_languages(
+                    project["metadata"]["language"]
+                ):
                     return project
                 print(f"Project '{project_name}' (language: {normalized_language}) not found.")
                 continue

@@ -788,7 +788,9 @@ exec {holohub_script} "$@"
 
         args.func(args)
         mock_find_project.assert_called_with(project_name="test_project", language=None)
-        mock_container_class.assert_called_with(project_metadata=self.mock_project_data, language=None)
+        mock_container_class.assert_called_with(
+            project_metadata=self.mock_project_data, language=None
+        )
         mock_container.get_devcontainer_args.assert_called()
 
         print_calls = [call[0][0] for call in mock_print.call_args_list if call[0]]
