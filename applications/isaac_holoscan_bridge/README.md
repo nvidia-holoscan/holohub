@@ -45,15 +45,7 @@ flowchart LR
 ## Run Instructions
 
 ```bash
-./holohub run --docker-opts="-u root -e ACCEPT_EULA=Y -e PRIVACY_CONSENT=Y \
--v ${HOME}/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw \
--v ${HOME}/docker/isaac-sim/cache/ov:/root/.cache/ov:rw \
--v ${HOME}/docker/isaac-sim/cache/pip:/root/.cache/pip:rw \
--v ${HOME}/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw \
--v ${HOME}/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw \
--v ${HOME}/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw \
--v ${HOME}/docker/isaac-sim/data:/root/.local/share/ov/data:rw \
--v ${HOME}/docker/isaac-sim/documents:/root/Documents:rw" isaac_holoscan_bridge
+./holohub run isaac_holoscan_bridge
 ```
 
 To keep Isaac Sim configuration and data persistent when running in a container, various directories are mounted into the container.
