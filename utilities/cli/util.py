@@ -1255,16 +1255,30 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
     # Install TensorRT dependencies
     NVINFER_PATTERN = rf"\d+\.[0-9]+\.[0-9]+\.[0-9]+-[0-9]\+cuda{cuda_major_version}\.[0-9]+"
     try:
-        installed_libnvinferbin_version = install_cuda_dependencies_package(
-            package_name="libnvinfer-bin",
+
+        installed_libnvinferversion = install_cuda_dependencies_package(
+            package_name="libnvinfer10",
             version_pattern=NVINFER_PATTERN,
             dry_run=dry_run,
         )
-        libnvinfer_pattern = re.escape(installed_libnvinferbin_version)
+        libnvinfer_pattern = re.escape(installed_libnvinferversion)
+
+        install_packages_if_missing(
+            [
+                f"libnvinfer-bin={installed_libnvinferversion}",
+                f"libnvinfer-lean10={installed_libnvinferversion}",
+                f"libnvinfer-plugin10={installed_libnvinferversion}",
+                f"libnvinfer-vc-plugin10={installed_libnvinferversion}",
+                f"libnvinfer-dispatch10={installed_libnvinferversion}",
+                f"libnvonnxparsers10={installed_libnvinferversion}",
+            ],
+            dry_run=dry_run,
+        )
 
         for trt_package_name in [
             "libnvinfer-headers-dev",
             "libnvinfer-dev",
+            "libnvinfer-headers-plugin-dev",
             "libnvinfer-plugin-dev",
             "libnvonnxparsers-dev",
         ]:
