@@ -56,15 +56,18 @@ auto qcap_op = std::make_shared<holoscan::ops::QCAPSourceOp>(
 ## Parameters
 
 ### Device Configuration
+
 - **`device`** (string, default: "SC0710 PCI"): Device specifier for the capture card
 - **`channel`** (uint32_t, default: 0): Channel number to use for capture
 
 ### Video Settings
+
 - **`width`** (uint32_t, default: 3840): Width of the video stream in pixels
 - **`height`** (uint32_t, default: 2160): Height of the video stream in pixels
 - **`framerate`** (uint32_t, default: 60): Frame rate of the video stream in fps
 
 ### Performance Options
+
 - **`rdma`** (bool, default: false): Enable RDMA for improved memory transfer performance
 - **`pixel_format`** (string, default: "bgr24"): Pixel format of the video stream
 - **`input_type`** (string, default: "auto"): Input type configuration
@@ -74,6 +77,7 @@ auto qcap_op = std::make_shared<holoscan::ops::QCAPSourceOp>(
 ## Input/Output
 
 ### Output
+
 - **`video_buffer_output`**: Video buffer containing the captured frame data
   - Format: Video buffer with specified resolution and pixel format
   - Rate: Matches the configured frame rate
@@ -82,6 +86,7 @@ auto qcap_op = std::make_shared<holoscan::ops::QCAPSourceOp>(
 ## Supported Configurations
 
 ### Video Resolutions
+
 - 4K: 3840x2160 (default)
 - 2K: 2048x1080
 - 1080p: 1920x1080
@@ -89,12 +94,14 @@ auto qcap_op = std::make_shared<holoscan::ops::QCAPSourceOp>(
 - Custom resolutions supported
 
 ### Pixel Formats
+
 - `bgr24`: 24-bit BGR format (default)
 - `rgb24`: 24-bit RGB format
 - `rgba32`: 32-bit RGBA format
 - Additional formats based on hardware support
 
 ### Frame Rates
+
 - 60 fps (default)
 - 30 fps
 - 25 fps
@@ -111,8 +118,9 @@ auto qcap_op = std::make_shared<holoscan::ops::QCAPSourceOp>(
 ## Integration
 
 The operator is designed to work within Holoscan pipelines and can be connected to:
+
 - Video processing operators
 - Encoding/compression operators
 - Display/visualization operators
 - Recording/storage operators
-- AI inference pipelines 
+- AI inference pipelines
