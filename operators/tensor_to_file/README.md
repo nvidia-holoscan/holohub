@@ -132,7 +132,6 @@ The operator includes comprehensive error handling for:
 ## Dependencies
 
 - **Holoscan Core**: Core framework functionality
-- **GXF**: Graph execution framework
 - **Standard C++ Library**: File I/O and system operations
 - **Filesystem Library**: Path and directory operations
 
