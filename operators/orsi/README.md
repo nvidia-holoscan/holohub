@@ -13,6 +13,7 @@ The Orsi Academy operators provide a complete pipeline for medical imaging appli
 Converts between different image and tensor formats with support for resizing, normalization, and channel reordering.
 
 **Key Features:**
+
 - Multiple format conversions (RGB888, RGBA8888, Float32, YUV420, NV12)
 - Image resizing with different interpolation modes
 - Channel reordering and normalization
@@ -20,6 +21,7 @@ Converts between different image and tensor formats with support for resizing, n
 - Support for ROI (Region of Interest) cropping
 
 **Usage:**
+
 ```python
 from holoscan.operators import OrsiFormatConverterOp
 
@@ -35,11 +37,18 @@ converter = OrsiFormatConverterOp(
 )
 ```
 
+Please refer to the following Holkoscan reference applications for usage of this operator:
+
+- [In-Out Body Detection and Surgical Video Anonymization](../../applications/orsi/orsi_in_out_body/python/orsi_in_out_body.py)
+- [Multi AI and AR Visualization](../../applications/orsi/orsi_multi_ai_ar/python/orsi_multi_ai_ar.py)
+- [Surgical Tool Segmentation and AR Overlay](../../applications/orsi/orsi_segmentation_ar/python/orsi_segmentation_ar.py)
+
 ### 2. Segmentation Preprocessor (`orsi_segmentation_preprocessor`)
 
 Prepares input data for segmentation neural networks with normalization and preprocessing.
 
 **Key Features:**
+
 - Data format conversion (HWC/CHW)
 - Mean/std normalization
 - CUDA-accelerated preprocessing
@@ -47,6 +56,7 @@ Prepares input data for segmentation neural networks with normalization and prep
 - Flexible tensor handling
 
 **Usage:**
+
 ```python
 from holoscan.operators import OrsiSegmentationPreprocessorOp
 
@@ -59,11 +69,18 @@ preprocessor = OrsiSegmentationPreprocessorOp(
 )
 ```
 
+Please refer to the following Holkoscan reference applications for usage of this operator:
+
+- [In-Out Body Detection and Surgical Video Anonymization](../../applications/orsi/orsi_in_out_body/python/orsi_in_out_body.py)
+- [Multi AI and AR Visualization](../../applications/orsi/orsi_multi_ai_ar/python/orsi_multi_ai_ar.py)
+- [Surgical Tool Segmentation and AR Overlay](../../applications/orsi/orsi_segmentation_ar/python/orsi_segmentation_ar.py)
+
 ### 3. Segmentation Postprocessor (`orsi_segmentation_postprocessor`)
 
 Processes neural network outputs to generate segmentation masks and visualizations.
 
 **Key Features:**
+
 - Network output processing (softmax, sigmoid)
 - Segmentation mask generation
 - Image resizing and ROI handling
@@ -71,6 +88,7 @@ Processes neural network outputs to generate segmentation masks and visualizatio
 - Support for different output formats
 
 **Usage:**
+
 ```python
 from holoscan.operators import OrsiSegmentationPostprocessorOp
 
@@ -83,11 +101,17 @@ postprocessor = OrsiSegmentationPostprocessorOp(
 )
 ```
 
+Please refer to the following Holkoscan reference applications for usage of this operator:
+
+- [Multi AI and AR Visualization](../../applications/orsi/orsi_multi_ai_ar/python/orsi_multi_ai_ar.py)
+- [Surgical Tool Segmentation and AR Overlay](../../applications/orsi/orsi_segmentation_ar/python/orsi_segmentation_ar.py)
+
 ### 4. Visualizer (`orsi_visualizer`)
 
 Advanced 3D visualization system for surgical guidance with OpenGL rendering and VTK integration.
 
 **Key Features:**
+
 - Real-time video frame rendering
 - 3D STL model visualization with VTK
 - Surgical tool overlay effects
@@ -97,6 +121,7 @@ Advanced 3D visualization system for surgical guidance with OpenGL rendering and
 - Multi-window support
 
 **Usage:**
+
 ```python
 from holoscan.operators import OrsiVisualizationOp
 
@@ -109,16 +134,26 @@ visualizer = OrsiVisualizationOp(
 )
 ```
 
+Please refer to the following Holkoscan reference applications for usage of this operator:
+
+- [In-Out Body Detection and Surgical Video Anonymization](../../applications/orsi/orsi_in_out_body/python/orsi_in_out_body.py)
+- [Multi AI and AR Visualization](../../applications/orsi/orsi_multi_ai_ar/python/orsi_multi_ai_ar.py)
+- [Surgical Tool Segmentation and AR Overlay](../../applications/orsi/orsi_segmentation_ar/python/orsi_segmentation_ar.py)
+
 ## Common Parameters
 
 ### Allocator
+
 All operators require a shared allocator for memory management:
+
 ```python
 allocator = holoscan.resources.UnboundedAllocator(fragment)
 ```
 
 ### CUDA Stream Pool
+
 For GPU-accelerated operations:
+
 ```python
 cuda_stream_pool = holoscan.resources.CudaStreamPool(fragment)
 ```
@@ -134,12 +169,14 @@ Video Source → Format Converter → Segmentation Preprocessor → AI Model →
 ## Supported Formats
 
 ### Input Formats
+
 - RGB888, RGBA8888
 - Float32 tensors
 - YUV420, NV12 video formats
 - Various tensor layouts (HWC, CHW)
 
 ### Output Formats
+
 - Processed video frames
 - Segmentation masks
 - 3D visualizations
@@ -153,10 +190,3 @@ These operators are designed to work together in medical imaging pipelines:
 - **AI Processing**: Segmentation model inference
 - **Postprocessing**: Mask generation and refinement
 - **Visualization**: Real-time surgical guidance display
-
-## Hardware Requirements
-
-- NVIDIA GPU with CUDA support
-- Sufficient GPU memory for video processing
-- OpenGL-compatible graphics driver
-- VTK library for 3D visualization 
