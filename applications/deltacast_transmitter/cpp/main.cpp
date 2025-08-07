@@ -49,8 +49,7 @@ class App : public holoscan::Application {
 
     auto visualizer = make_operator<ops::VideoMasterTransmitterOp>(
         "deltacast",
-        from_config("deltacast"),
-        Arg("pool") = make_resource<UnboundedAllocator>("pool"));
+        from_config("deltacast"));
 
     add_flow(source, format_converter);
     add_flow(format_converter, visualizer);

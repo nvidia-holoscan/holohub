@@ -95,6 +95,7 @@ void VideoMasterBase::stop_stream() {
   }
 
   free_buffers();
+  HOLOSCAN_LOG_INFO("VideoMaster stream stopped and cleaned up");
 }
 
 bool VideoMasterBase::configure_board() {
@@ -111,7 +112,7 @@ bool VideoMasterBase::configure_board() {
     return false;
   }
 
-  HOLOSCAN_LOG_INFO("VideoMaster API version: %s - %u boards detected", api_version.c_str(), nb_boards);
+  HOLOSCAN_LOG_INFO("VideoMaster API version: {} - {} boards detected", api_version, nb_boards);
 
   _board_handle = std::move(Deltacast::Helper::get_board_handle(_board_index));
 
@@ -119,6 +120,7 @@ bool VideoMasterBase::configure_board() {
 }
 
 bool VideoMasterBase::open_stream() {
+  HOLOSCAN_LOG_INFO("Opening {} stream on channel {}", _is_input ? "input" : "output", _channel_index);
   Deltacast::Helper::ApiSuccess success;
 
   const auto &id_to_channel_type_prop =
@@ -126,7 +128,7 @@ bool VideoMasterBase::open_stream() {
   const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
   if (id_to_channel_type_prop.find(_channel_index) == id_to_channel_type_prop.end() ||
       id_to_stream_type.find(_channel_index) == id_to_stream_type.end()) {
-    HOLOSCAN_LOG_ERROR("Invalid stream id (%u)", (unsigned int)_channel_index);
+    HOLOSCAN_LOG_ERROR("Invalid stream id ({})", _channel_index);
     return false;
   }
 
@@ -171,7 +173,7 @@ bool VideoMasterBase::open_stream() {
 
   _video_format = {};
 
-  HOLOSCAN_LOG_INFO("%s stream successfully opened."
+  HOLOSCAN_LOG_INFO("{} stream successfully opened."
     , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
 
   return true;
@@ -212,7 +214,7 @@ bool VideoMasterBase::configure_stream() {
 
   const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
   _video_format = _video_information->get_video_format(stream_handle()).value();
-  HOLOSCAN_LOG_INFO("%s configured in %ux%u@%u"
+  HOLOSCAN_LOG_INFO("{} configured in {}x{}@{}"
     , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index))
     , _video_format.width, _video_format.height, _video_format.framerate);
 
@@ -220,6 +222,7 @@ bool VideoMasterBase::configure_stream() {
 }
 
 bool VideoMasterBase::init_buffers() {
+  HOLOSCAN_LOG_INFO("Initializing {} buffers", _is_input ? "input" : "output");
   std::vector<ULONG> buffer_sizes;
   free_buffers();
 
@@ -291,6 +294,7 @@ bool VideoMasterBase::init_buffers() {
     }
   }
 
+  HOLOSCAN_LOG_INFO("Buffers initialized successfully ({} slots)", NB_SLOTS);
   return true;
 }
 
@@ -309,12 +313,12 @@ bool VideoMasterBase::start_stream() {
 
   Deltacast::Helper::ApiSuccess success;
   if (!(success = VHD_StartStream(*stream_handle()))) {
-    HOLOSCAN_LOG_ERROR("Could not start stream %s"
+    HOLOSCAN_LOG_ERROR("Could not start stream {}"
                   , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
     return false;
   }
 
-  HOLOSCAN_LOG_INFO("%s stream successfully started."
+  HOLOSCAN_LOG_INFO("{} stream successfully started."
               , VHD_STREAMTYPE_ToString(id_to_stream_type.at(_channel_index)));
 
   return true;
