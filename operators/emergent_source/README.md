@@ -1,10 +1,10 @@
 # Emergent Source Operator
 
-The `emergent_source` operator provides support for Emergent Vision Technologies cameras as video sources. This operator enables high-performance video streaming through Mellanox ConnectX SmartNIC using the Rivermax SDK.
+This operator provides support for Emergent Vision Technologies cameras as video sources. This operator enables high-performance video streaming through Mellanox ConnectX SmartNIC using the Rivermax SDK.
 
 ## Overview
 
-The EmergentSourceOp is designed to capture video streams from Emergent Vision Technologies cameras with high frame rates and resolution support. It leverages RDMA (Remote Direct Memory Access) capabilities for efficient data transfer and supports various camera parameters for optimal performance.
+The `EmergentSourceOp` is designed to capture video streams from Emergent Vision Technologies cameras with high frame rates and resolution support. It leverages RDMA (Remote Direct Memory Access) capabilities for efficient data transfer and supports various camera parameters for optimal performance. Please refer to [Holoscan EVT Setup](https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html) for more information.
 
 ## Features
 
@@ -71,23 +71,4 @@ emergent_source = EmergentSourceOp(
 )
 ```
 
-## Building
-
-The operator can be built as part of the Holohub build system:
-
-```bash
-# Build C++ version
-cmake -B build -S .
-cmake --build build
-
-# Build Python bindings (if HOLOHUB_BUILD_PYTHON is enabled)
-cmake -B build -S . -DHOLOHUB_BUILD_PYTHON=ON
-cmake --build build
-```
-
-## Dependencies
-
-- Holoscan Core SDK
-- GXF Extensions (emergent_source extension)
-- Rivermax SDK (for camera communication)
-- Mellanox ConnectX SmartNIC drivers
+Please refer to [High Speed Endoscopy](../../applications/high_speed_endoscopy) and [Laser Detection](../../applications/laser_detection) for requirements and usage examples.
