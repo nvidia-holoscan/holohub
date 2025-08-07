@@ -66,15 +66,18 @@ tensor_to_file = TensorToFileOp(
 ## Input/Output
 
 ### Input
+
 - **Entity**: Contains tensor data to be written to file
 - **Tensor**: Binary data (typically uint8) representing the content to be saved
 
 ### Output
+
 - **File**: Binary file containing the tensor data in the order received
 
 ## File Format Support
 
 The operator supports various file extensions for video data:
+
 - `.h264`, `.264` - H.264 elementary stream
 - `.h265`, `.265`, `.hevc` - H.265/HEVC elementary stream  
 - `.mp4` - MP4 container format
@@ -82,6 +85,7 @@ The operator supports various file extensions for video data:
 ## Configuration Examples
 
 ### Basic Usage
+
 ```python
 # Simple tensor to file writing
 tensor_to_file = TensorToFileOp(
@@ -91,6 +95,7 @@ tensor_to_file = TensorToFileOp(
 ```
 
 ### Verbose Mode with Custom Buffer
+
 ```python
 # With detailed logging and custom buffer size
 tensor_to_file = TensorToFileOp(
@@ -102,6 +107,7 @@ tensor_to_file = TensorToFileOp(
 ```
 
 ### Integration in Pipeline
+
 ```python
 # As part of a video processing pipeline
 pipeline = holoscan.Pipeline()
@@ -123,6 +129,7 @@ pipeline.add_flow(encoder, tensor_to_file)
 ## Error Handling
 
 The operator includes comprehensive error handling for:
+
 - Invalid file paths
 - File system permission issues
 - Insufficient disk space
@@ -145,4 +152,4 @@ The operator includes comprehensive error handling for:
 
 - **VideoEncoderOp**: Produces encoded video frames that can be written by this operator
 - **TensorToFileOp**: This operator for writing tensor data to files
-- **FileToTensorOp**: Complementary operator for reading tensor data from files 
+- **FileToTensorOp**: Complementary operator for reading tensor data from files
