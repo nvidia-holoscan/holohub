@@ -432,7 +432,8 @@ def normalize_language(language: str | None) -> str:
 
     # Handle invalid language type
     if not isinstance(language, str):
-        raise ValueError(f"Language must be a string, got {type(language)}: {language}")
+        print(f"WARNING: Language must be a string, got {type(language)}: {language}")
+        return ""
 
     # Normalize language name
     language = language.lower()
