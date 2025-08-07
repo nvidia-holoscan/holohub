@@ -135,6 +135,204 @@ The new CLI introduces development lifecycle features:
 ./holohub env-info
 ```
 
+### Application Modes
+HoloHub applications with a 'modes' field in their `metadata.json` now support multiple **modes** - pre-configured setups for different use cases, hardware configurations, or deployment scenarios. This eliminates the need to remember complex command-line arguments for different use cases.
+
+#### **Understanding Modes**
+Modes potentially provide typical configurations for:
+- **Different hardware**
+- **Deployment scenarios** (e.g. development vs. production vs. cloud inference)
+- **Data sources** (e.g. live video vs. recorded files vs. distributed streaming)
+
+#### **Using Modes**
+
+Examples:
+
+```bash
+# Discover available modes for an application
+./holohub modes body_pose_estimation
+
+# Run an application in a specific mode
+./holohub run body_pose_estimation dds                    # DDS video streaming mode
+./holohub run endoscopy_tool_tracking aja                 # AJA capture card mode
+./holohub run holochat standalone                         # Local LLM inference mode
+
+# Build for a specific mode (if mode has special build requirements)
+./holohub build endoscopy_tool_tracking aja_overlay
+
+# Default behavior (no mode specified uses default_mode)
+./holohub run body_pose_estimation                        # Uses 'default_mode' if specified
+```
+
+#### **Mode vs. CLI Arguments**
+**Important**: When a mode defines specific options, you cannot override them with CLI arguments.
+This ensures mode integrity and prevents conflicting configurations.
+
+**Conflict Rules:**
+- If mode defines `run.docker_run_args` → Cannot use `--docker-opts`
+- If mode defines `build.depends` → Cannot use `--build-with`
+- If mode defines `build.docker_build_args` → Cannot use `--build-args`
+- If mode defines `build.cmake_options` → Cannot use `--configure-args`
+
+#### **For Application Developers**
+Applications can define modes in their `metadata.json`. Here's the complete field reference:
+
+##### **Mode Structure**
+Each mode is defined as a named object under the `modes` key:
+
+```json
+{
+  "metadata": {
+    "default_mode": "mode_name",
+    "modes": {
+      "mode_name": {
+        // Mode configuration fields
+      }
+    }
+  }
+}
+```
+
+##### **Application-Level Fields**
+**Optional Fields:**
+- **`default_mode`** *(string)*: Specifies which mode to use when no mode is explicitly provided. Only needed when there are multiple modes (2 or more).
+
+##### **Supported Fields for Each Mode**
+
+**Required Fields:**
+- **`description`** *(string)*: Human-readable description of what this mode does
+- **`run`** *(object)*: Run configuration (see run command fields below)
+
+**Optional Fields:**
+- **`requirements`** *(array of strings)*: List of dependency IDs required for this mode
+- **`build`** *(object)*: Build configuration (see build configuration fields below)
+
+##### **Build Configuration Fields (`build` object):**
+- **`depends`** *(array of strings)*: List of operators/dependencies to build with this mode
+- **`docker_build_args`** *(string or array)*: Docker **build** arguments (equivalent to CLI `--build-args`)
+  - Can be a single string: `"--build-arg CUSTOM=value"`
+  - Or an array: `["--build-arg", "CUSTOM=value"]`
+- **`cmake_options`** *(array of strings)*: Additional CMake configure arguments to pass to the local build step
+
+##### **Run Command Fields (`run` object):**
+- **`command`** *(string)*: Complete command to execute including all arguments
+- **`workdir`** *(string)*: Working directory for command execution
+- **`docker_run_args`** *(string or array)*: Docker **run** arguments used for both build and application containers (equivalent to CLI `--docker-opts`)
+  - Can be a single string: `"--privileged --net=host"`
+  - Or an array: `["--privileged", "--net=host"]`
+  - **Note**: These arguments apply to both the container that builds your application and the container that runs it
+  - **Common use cases**: GPU access (`--gpus=all`), device access (`--device=/dev/video0`), privileged operations (`--privileged`)
+
+##### **Complete Example**
+
+```json
+{
+  "metadata": {
+    "default_mode": "standard",
+    "modes": {
+
+      "standard": {
+        "description": "Standard camera input for development and testing",
+        "requirements": ["camera", "model"],
+        "run": {
+          "command": "python3 <holohub_app_source>/app.py --source camera",
+          "workdir": "holohub_bin"
+        }
+      },
+
+      "production": {
+        "description": "High-performance mode with GPU acceleration",
+        "requirements": ["gpu", "model", "tensorrt"],
+        "build": {
+          "depends": ["tensorrt_backend", "gpu_ops"],
+          "docker_build_args": ["--build-arg", "TENSORRT_VERSION=8.6", "--network=host"],
+          "cmake_options": ["-DUSE_TENSORRT=ON", "-DCUDA_ARCH=sm_86"]
+        },
+        "run": {
+          "command": "python3 <holohub_app_source>/app.py --backend tensorrt --optimization-level 3",
+          "workdir": "holohub_bin",
+          "docker_run_args": ["--gpus=all", "--shm-size=1g"]
+        }
+      },
+
+      "aja_hardware": {
+        "description": "AJA capture card with hardware overlay",
+        "requirements": ["aja_card_with_overlay", "model"],
+        "build": {
+          "depends": ["aja_source"]
+        },
+        "run": {
+          "command": "python3 <holohub_app_source>/app.py --source=aja --config=overlay.yaml",
+          "workdir": "holohub_bin",
+          "docker_run_args": [
+          "--privileged",
+          "--device=/dev/ajantv2",
+          "-v", "/dev:/dev"
+        ]
+        }
+      }
+    }
+  }
+}
+```
+
+##### **Advanced Pattern: Separate Build and Run Modes**
+
+For cases where build and run containers need different Docker configurations, you can create separate modes that share the same Docker image:
+
+```json
+{
+  "modes": {
+    "default_mode": "production_build",
+
+    "production_build": {
+      "description": "Build production image with network access",
+      "build": {
+        "depends": ["tensorrt_backend"],
+        "docker_build_args": ["--build-arg", "REGISTRY_TOKEN=xyz"]
+      },
+      "run": {
+        "docker_run_args": ["--network=host"],
+        "command": "echo 'Build complete'"
+      }
+    },
+
+    "production_run": {
+      "description": "Run production app with GPU access",
+      "run": {
+        "docker_run_args": ["--gpus=all", "--shm-size=1g"],
+        "command": "python3 <holohub_app_source>/app.py --gpu"
+      }
+    }
+  }
+}
+```
+
+**Usage:**
+```bash
+# Phase 1: Build with network access
+./holohub build myapp production_build
+
+# Phase 2: Run with GPU access (reuses image from phase 1)
+./holohub run myapp production_run --no-docker-build
+```
+
+Both modes automatically share the same Docker image name (`holohub:myapp`), so the run mode can use the image built by the build mode.
+
+##### **Key Points for Mode Development**
+- **`default_mode`** is only needed when you have multiple modes (2 or more). With a single mode, it will be used automatically.
+- **Mode names** must match pattern `^[a-zA-Z_][a-zA-Z0-9_]*$` (alphanumeric + underscore, can't start with number)
+- **Docker arguments** can be specified in two places for different purposes:
+  - `build.docker_build_args`: Docker **build** arguments for container image building (equivalent to CLI `--build-args`)
+  - `run.docker_run_args`: Docker **run** arguments for both build and application containers (equivalent to CLI `--docker-opts`)
+  - `run.docker_run_args` apply to both build containers (during compilation) and application containers (during execution)
+  - if `no-docker-build` is specified, `build.docker_build_args` is ignored
+- **Path placeholders** like `<holohub_app_source>`, `<holohub_data_dir>` are supported in commands
+- **CLI arguments cannot override** mode-specific configurations - modes are self-contained
+- **CLI arguments are allowed** only for options not defined by the selected mode
+- **Requirements** reference dependency IDs defined elsewhere in the metadata
+- **Modes provide complete control** over both build and runtime behavior for different deployment scenarios
+
 
 ### **Granular Build Control**
 The new architecture provides precise control over your development workflow.

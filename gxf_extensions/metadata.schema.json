@@ -13,7 +13,7 @@
           "$ref": "holohub/project/v1#/$defs/description"
         },
         "authors": {
-          "$refs": "holohub/project/v1#/$defs/authors"
+          "$ref": "holohub/project/v1#/$defs/authors"
         },
         "version": {
           "$ref": "holohub/project/v1#/$defs/version"

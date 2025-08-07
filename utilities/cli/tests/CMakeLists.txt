@@ -200,3 +200,25 @@ add_test(
 set_property(TEST test_cli_ambiguous_dash_prefixed_arguments PROPERTY
     PASS_REGULAR_EXPRESSION "ambiguous dash-prefixed arguments"
 )
+
+# test validate_mode conflict detection
+add_test(
+    NAME test_holohub_validate_mode_build_with_conflicts
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat mcp --run-args "conflicting_operator" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_validate_mode_build_with_conflicts PROPERTY
+    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--run-args.*when using mode.*mcp"
+    WILL_FAIL TRUE
+)
+
+# test validate_mode multiple conflicts detection
+add_test(
+    NAME test_holohub_validate_mode_build_with_and_run_args_conflicts
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat mcp --build-with "operator1" --run-args="--verbose" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_validate_mode_build_with_and_run_args_conflicts PROPERTY
+    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--run-args.*when using mode.*mcp"
+    WILL_FAIL TRUE
+)

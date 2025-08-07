@@ -37,7 +37,7 @@ HoloChat is an AI-driven chatbot, built on top of a **locally hosted Code-Llama 
 ### TLDR; 🥱
 To run locally:
 ```bash
-./holohub run holochat --run-args=--local
+./holohub run holochat standalone
 ```
 To run using the NVIDIA NIM API:
 ```bash
@@ -47,7 +47,7 @@ echo "NVIDIA_API_KEY=<api_key_here>" > ./applications/holochat/.env
 ```
 To run as an MCP server:
 ```bash
-./holohub run holochat --run-args=--mcp
+./holohub run holochat mcp
 ```
 See [MCP_MODE.md](MCP_MODE.md) for more details on using MCP mode.
 
@@ -74,7 +74,7 @@ ssh <user_name>@<IP address> -L 7860:localhost:7860 -L 8080:localhost:8080 -L 80
 ### Running w/ Local LLM 💻
 **To build and start the app:**
 ```bash
-./holohub run holochat --run-args=--local
+./holohub run holochat standalone
 ```
 Once the LLM is loaded on the GPU and the Gradio app is running, HoloChat should be available at http://127.0.0.1:7860/.
 ### Running w/ NIM API ☁️
