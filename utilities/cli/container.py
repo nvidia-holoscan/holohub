@@ -329,7 +329,7 @@ class HoloHubContainer:
 
         self.project_metadata = project_metadata
         # Get first language from project metadata if not provided.
-        if language is None:
+        if language is None and self.project_metadata:
             language = self.project_metadata.get("metadata", {}).get("language", "")
         self.language = list_normalized_languages(language)[0]
 
