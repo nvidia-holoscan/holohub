@@ -788,7 +788,9 @@ exec {holohub_script} "$@"
 
         args.func(args)
         mock_find_project.assert_called_with(project_name="test_project", language=None)
-        mock_container_class.assert_called_with(project_metadata=self.mock_project_data)
+        mock_container_class.assert_called_with(
+            project_metadata=self.mock_project_data, language=None
+        )
         mock_container.get_devcontainer_args.assert_called()
 
         print_calls = [call[0][0] for call in mock_print.call_args_list if call[0]]
@@ -798,6 +800,81 @@ exec {holohub_script} "$@"
         self.assertIn("holohub-dev-container-test_project:dev", printed_output)
         self.assertIn("vscode://vscode-remote/dev-container", printed_output)
         mock_mkdir.assert_not_called()
+
+    def test_modes_functionality(self):
+        """Test mode resolution and configuration application"""
+        project_data = {
+            "metadata": {
+                "modes": {
+                    "default": {
+                        "description": "Default mode",
+                        "requirements": ["camera"],
+                        "build": {"depends": ["op1", "op2"]},
+                        "run": {"command": "python3 app.py"},
+                    }
+                }
+            }
+        }
+
+        # Test mode resolution
+        mode_name, mode_config = self.cli.resolve_mode(project_data)
+        self.assertEqual(mode_name, "default")
+        self.assertEqual(mode_config["description"], "Default mode")
+
+        # Test build config application with mock args
+        from argparse import Namespace
+
+        mock_args = Namespace(with_operators="existing", docker_opts="", configure_args=None)
+        enhanced = self.cli.get_effective_build_config(mock_args, mode_config)
+        # Mode config should replace CLI args entirely
+        self.assertEqual(enhanced["with_operators"], "op1;op2")
+
+        # Test run config application with mock args
+        mock_args = Namespace(run_args="", docker_opts="--net host")
+        enhanced = self.cli.get_effective_run_config(mock_args, mode_config)
+        self.assertEqual(enhanced["run_args"], "")  # CLI run_args
+        # Note: run config doesn't have docker_run_args, so CLI docker_opts should be preserved
+        self.assertEqual(enhanced["docker_opts"], "--net host")
+
+        # Test run config with docker_run_args replacement
+        mode_config_with_docker = {
+            "run": {"command": "python3 app.py", "docker_run_args": ["--privileged", "--net=host"]}
+        }
+        enhanced = self.cli.get_effective_run_config(mock_args, mode_config_with_docker)
+        # Mode docker_run_args should replace CLI docker_opts
+        self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("builtins.print")
+    def test_modes_command(self, mock_print, mock_find_project):
+        """Test modes command execution"""
+        mock_find_project.return_value = {
+            "metadata": {
+                "modes": {
+                    "default": {"description": "Default mode", "requirements": ["camera"]},
+                    "gpu": {"description": "GPU mode"},
+                }
+            }
+        }
+
+        args = self.cli.parser.parse_args("modes test_app".split())
+        args.func(args)
+
+        print_calls = [call[0][0] for call in mock_print.call_args_list if call[0]]
+        output = " ".join(print_calls)
+        self.assertIn("Available modes", output)
+        self.assertIn("default", output)
+        self.assertIn("gpu", output)
+
+    def test_mode_argument_parsing(self):
+        """Test mode argument parsing for build/run commands"""
+        # Test with mode
+        args = self.cli.parser.parse_args("build test_app custom --local".split())
+        self.assertEqual(args.mode, "custom")
+
+        # Test without mode
+        args = self.cli.parser.parse_args("build test_app --local".split())
+        self.assertIsNone(args.mode)
 
 
 class TestRunCommand(unittest.TestCase):

@@ -133,7 +133,7 @@
         },
         "required": {
           "type": "boolean",
-          "default": "true"
+          "default": true
         }
       },
       "required": [
@@ -165,10 +165,96 @@
       "type": "object",
       "properties": {
         "command": {
-          "type": "string"
+          "type": "string",
+          "description": "Complete command to execute including all arguments"
         },
         "workdir": {
+          "type": "string",
+          "description": "Working directory for command execution"
+        },
+        "docker_run_args": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Docker run arguments as a single string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "Docker arguments"
+              },
+              "description": "Array of Docker run arguments"
+            }
+          ],
+          "description": "Docker run arguments - can be a single string or array of strings, equivalent to CLI `--docker-opts`"
+        }
+      },
+      "description": "Run command configuration"
+    },
+
+    "build_configuration": {
+      "type": "object",
+      "properties": {
+        "depends": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "docker_build_args": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Docker build arguments as a single string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "Docker arguments"
+              },
+              "description": "Array of Docker build arguments"
+            }
+          ],
+          "description": "Docker build arguments - can be a single string or array of strings, equivalent to CLI `--build-args`"
+        },
+        "cmake_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional cmake options to pass to the local build step"
+        }
+      }
+    },
+    "mode_definition": {
+      "type": "object",
+      "properties": {
+        "description": {
           "type": "string"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of dependency IDs required for this mode"
+        },
+        "build": {
+          "$ref": "#/$defs/build_configuration"
+        },
+        "run": {
+          "$ref": "#/$defs/run_command"
+        }
+      },
+      "required": ["description", "run"]
+    },
+    "modes": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z_][a-zA-Z0-9_]*$": {
+          "$ref": "#/$defs/mode_definition"
         }
       }
     }

@@ -424,15 +424,31 @@ def get_group_id(group: str) -> Optional[int]:
         return None
 
 
-def normalize_language(language: str) -> Optional[str]:
+def normalize_language(language: str | None) -> str:
     """Normalize language name"""
+    # Handle empty language
+    if not language:
+        return ""
+
+    # Handle invalid language type
     if not isinstance(language, str):
-        return None
-    if language.lower() == "cpp" or language.lower() == "c++":
+        print(f"WARNING: Language must be a string, got {type(language)}: {language}")
+        return ""
+
+    # Normalize language name
+    language = language.lower()
+    if language in ["cpp", "c++"]:
         return "cpp"
-    elif language.lower() == "python" or language.lower() == "py":
+    if language in ["python", "py"]:
         return "python"
-    return None
+    raise ValueError(f"Invalid language: {language}")
+
+
+def list_normalized_languages(language: str | list[str] | None) -> list[str]:
+    """Make list of normalized languages from a single language or list of languages"""
+    if isinstance(language, list):
+        return [normalize_language(lang) for lang in language]
+    return [normalize_language(language)]
 
 
 def determine_project_prefix(project_type: str) -> str:
@@ -1109,6 +1125,16 @@ def collect_env_info() -> None:
     collect_environment_variables()
 
 
+def normalize_args_str(args):
+    """Convert arguments to string format, handling both string and array inputs"""
+    if isinstance(args, str):
+        return os.path.expandvars(args)
+    elif isinstance(args, list):
+        expanded_args = [os.path.expandvars(arg) for arg in args]
+        return " ".join(expanded_args)
+    return ""
+
+
 def get_ubuntu_codename() -> str:
     """Get Ubuntu codename from os-release"""
     try:
@@ -1245,16 +1271,30 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
     # Install TensorRT dependencies
     NVINFER_PATTERN = rf"\d+\.[0-9]+\.[0-9]+\.[0-9]+-[0-9]\+cuda{cuda_major_version}\.[0-9]+"
     try:
-        installed_libnvinferbin_version = install_cuda_dependencies_package(
-            package_name="libnvinfer-bin",
+
+        installed_libnvinferversion = install_cuda_dependencies_package(
+            package_name="libnvinfer10",
             version_pattern=NVINFER_PATTERN,
             dry_run=dry_run,
         )
-        libnvinfer_pattern = re.escape(installed_libnvinferbin_version)
+        libnvinfer_pattern = re.escape(installed_libnvinferversion)
+
+        install_packages_if_missing(
+            [
+                f"libnvinfer-bin={installed_libnvinferversion}",
+                f"libnvinfer-lean10={installed_libnvinferversion}",
+                f"libnvinfer-plugin10={installed_libnvinferversion}",
+                f"libnvinfer-vc-plugin10={installed_libnvinferversion}",
+                f"libnvinfer-dispatch10={installed_libnvinferversion}",
+                f"libnvonnxparsers10={installed_libnvinferversion}",
+            ],
+            dry_run=dry_run,
+        )
 
         for trt_package_name in [
             "libnvinfer-headers-dev",
             "libnvinfer-dev",
+            "libnvinfer-headers-plugin-dev",
             "libnvinfer-plugin-dev",
             "libnvonnxparsers-dev",
         ]:
