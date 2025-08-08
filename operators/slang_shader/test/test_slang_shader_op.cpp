@@ -817,3 +817,47 @@ TEST(SlangShaderAppTest, InvocationsSizeOfVideoBuffer) {
   // 757869354 is the value of the first pixel in the input video buffer (42, 43, 44, 45)
   application->check_output("2 3 1\n757869354\n");
 }
+
+// Test that the output buffer is the same as the input buffer
+TEST(SlangShaderAppTest, Inplace) {
+  const std::string shader_source = R"r(
+    import holoscan;
+
+    [holoscan::input("input_buffer")]
+    [holoscan::output("output_buffer")]
+    RWStructuredBuffer<uint8_t4> buffer;
+
+    [shader("compute")]
+    [holoscan::invocations::size_of("input_buffer")]
+    void compute(uint3 gid : SV_DispatchThreadID) {
+      buffer[gid.x] *= 2;
+    }
+  )r";
+
+  auto application = holoscan::make_application<SlangShaderApp>(shader_source);
+  application->add_source_op();
+  application->add_sink_op();
+
+  application->check_output("84\n");
+}
+
+TEST(SlangShaderAppTest, Zeros) {
+  const std::string shader_source = R"r(
+    import holoscan;
+
+    [holoscan::input("input_buffer")]
+    [holoscan::zeros()]
+    RWStructuredBuffer<int> buffer;
+
+    [shader("compute")]
+    [holoscan::invocations::size_of("input_buffer")]
+    void compute(uint3 gid : SV_DispatchThreadID) {
+      printf("%d\n", buffer[gid.x]);
+    }
+  )r";
+
+  auto application = holoscan::make_application<SlangShaderApp>(shader_source);
+  application->add_source_op();
+
+  application->check_output("0\n");
+}

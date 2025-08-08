@@ -15,35 +15,32 @@
 
 cmake_minimum_required(VERSION 3.20)
 
+project(gamma_correction)
+
 find_package(holoscan 3.3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# Add gamma_correction operator
+add_library(gamma_correction INTERFACE)
 
-add_executable(slang_simple
-    slang_simple.cpp
-)
+add_library(holoscan::ops::gamma_correction ALIAS gamma_correction)
 
-target_link_libraries(slang_simple
-  PRIVATE
-    holoscan::core
+target_link_libraries(gamma_correction
+  INTERFACE
     holoscan::ops::slang_shader
-    holoscan::ops::gamma_correction
 )
 
-# Copy shader file
-add_custom_target(slang_simple_shader_file
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/simple.slang" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/simple.slang"
+target_include_directories(gamma_correction INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+install(TARGETS gamma_correction
+  COMPONENT holoscan-ops
 )
-add_dependencies(slang_simple slang_simple_shader_file)
 
+#if(HOLOHUB_BUILD_PYTHON)
+#    add_subdirectory(python)
+#endif()
 
+# Add test subdirectory if testing is enabled
 if(BUILD_TESTING)
-  add_test(NAME slang_simple_test
-           COMMAND slang_simple
-           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set_tests_properties(slang_simple_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "Received value: 20"
-                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed;error")
+    add_subdirectory(test)
 endif()
-

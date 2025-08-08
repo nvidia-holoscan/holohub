@@ -155,7 +155,7 @@ endfunction()
 # =====================================================
 # Helper function to build operators
 # =====================================================
-# Builds a Holoscan operator and automatically enables its extension dependencies.
+# Builds a Holoscan operator and automatically enables its extension and operator dependencies.
 #
 # Parameters:
 #   NAME: The name of the operator to build
@@ -163,6 +163,7 @@ endfunction()
 # Keyword Arguments:
 #   DEPENDS: Dependency specification with sub-arguments:
 #     EXTENSIONS: List of GXF extensions that this operator depends on
+#     OPERATORS: List of Holoscan operators that this operator depends on
 #
 # Creates:
 #   OP_${NAME}: CMake option to enable/disable this operator
@@ -183,10 +184,14 @@ function(add_holohub_operator NAME)
 
     # If we have dependencies make sure they are built
     if(OP_DEPENDS)
-      cmake_parse_arguments(DEPS "" "" "EXTENSIONS" ${OP_DEPENDS})
+      cmake_parse_arguments(DEPS "" "" "EXTENSIONS;OPERATORS" ${OP_DEPENDS})
 
       foreach(dependency IN LISTS DEPS_EXTENSIONS)
         set("EXT_${dependency}" ON CACHE BOOL "Build the ${dependency}" FORCE)
+      endforeach()
+
+      foreach(dependency IN LISTS DEPS_OPERATORS)
+        set("OP_${dependency}" ON CACHE BOOL "Build the ${dependency} operator" FORCE)
       endforeach()
 
     endif()
