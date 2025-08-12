@@ -57,6 +57,8 @@ class HoloHubCLI:
     def __init__(self):
         self.script_name = os.environ.get("HOLOHUB_CMD_NAME", "./holohub")
         self.parser = self._create_parser()
+        # Cache for resolved projects to avoid duplicate lookups
+        self._project_data: dict[tuple[str, str], dict] = {}
         self._collect_metadata()
 
     def _create_parser(self) -> argparse.ArgumentParser:
@@ -433,17 +435,45 @@ class HoloHubCLI:
         """Find a project by name"""
         normalized_language = holohub_cli_util.normalize_language(language)
 
-        # First try exact match
-        for project in self.projects:
-            if project["project_name"] == project_name:
-                if normalized_language == "":
-                    return project
-                if normalized_language in holohub_cli_util.list_normalized_languages(
-                    project["metadata"]["language"]
+        cache_key = (project_name, normalized_language)
+        if cache_key in self._project_data:
+            return self._project_data[cache_key]
+
+        # Find all projects with the given name
+        candidates = [p for p in self.projects if p.get("project_name") == project_name]
+        if candidates:
+            available_lang = []
+            for p in candidates:
+                for lang in holohub_cli_util.list_normalized_languages(
+                    p.get("metadata", {}).get("language", None)
                 ):
-                    return project
-                print(f"Project '{project_name}' (language: {normalized_language}) not found.")
-                continue
+                    available_lang.append(lang)
+            available_lang = sorted(list(set(available_lang)))
+
+            # Determine target language (if unspecified, prefer cpp then first available)
+            target_lang = normalized_language or (available_lang[0] if available_lang else "")
+            # Warn if ambiguous and no language specified
+            if not normalized_language and len(available_lang) > 1:
+                print(
+                    Color.green(
+                        f"'{project_name}' has multiple implementations: {', '.join(available_lang)}.\n"
+                        f"Defaulting to '{target_lang}'. Use --language to select explicitly.\n\n"
+                    )
+                )
+            for p in candidates:
+                if target_lang in holohub_cli_util.list_normalized_languages(
+                    p.get("metadata", {}).get("language", None)
+                ):
+                    self._project_data[cache_key] = p  # Return candidate matching target_lang
+                    return p
+            if normalized_language:  # If target_lang specified but not found
+                holohub_cli_util.fatal(
+                    f"Project '{project_name}' (language: {normalized_language}) not found. "
+                    f"Available: {', '.join(available_lang) if available_lang else 'unknown'}"
+                )
+            # No language info or no match found; return first candidate
+            self._project_data[cache_key] = candidates[0]
+            return self._project_data[cache_key]
         # If project not found, suggest similar names
         distances = [
             (
@@ -936,11 +966,7 @@ class HoloHubCLI:
                     "Container arguments were provided with `--docker-opts` but a non-containerized build was requested."
                 )
             if skip_local_build:
-                # Skip building, but still need project metadata and build directory
-                project_data = self.find_project(
-                    project_name=args.project,
-                    language=args.language if hasattr(args, "language") else None,
-                )
+                # Skip building; reuse previously resolved project_data and build directory
                 build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / args.project
                 if not build_dir.is_dir() and not args.dryrun:
                     holohub_cli_util.fatal(
@@ -1560,7 +1586,8 @@ class HoloHubCLI:
         else:
             # Install in container
             container = self._make_project_container(
-                project_name=args.project, language=getattr(args, "language", None)
+                project_name=args.project,
+                language=getattr(args, "language", None),
             )
             container.dryrun = args.dryrun
             container.verbose = args.verbose
