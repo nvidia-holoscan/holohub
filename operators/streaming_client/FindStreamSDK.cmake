@@ -1,5 +1,6 @@
-# FindStreamSDK.cmake
-# Find StreamSDK libraries and create imported targets
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# FindStreaming.cmake
+# Find Streaming libraries and create imported targets
 #
 # This module finds the StreamSDK libraries and creates imported targets
 # for use in applications and other CMake projects.
