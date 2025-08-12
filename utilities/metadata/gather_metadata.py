@@ -35,7 +35,7 @@ def find_metadata_files(repo_paths):
             if "metadata.json" in files:
                 metadata_files.append(os.path.join(root, "metadata.json"))
 
-    return metadata_files
+    return sorted(metadata_files)
 
 
 def extract_readme(file_path):
