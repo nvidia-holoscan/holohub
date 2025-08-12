@@ -451,7 +451,12 @@ class HoloHubCLI:
             available_lang = sorted(list(set(available_lang)))
 
             # Determine target language (if unspecified, prefer cpp then first available)
-            target_lang = normalized_language or (available_lang[0] if available_lang else "")
+            if normalized_language:
+                target_lang = normalized_language
+            elif "cpp" in available_lang:
+                target_lang = "cpp"
+            else:
+                target_lang = available_lang[0] if available_lang else ""
             # Warn if ambiguous and no language specified
             if not normalized_language and len(available_lang) > 1:
                 print(
