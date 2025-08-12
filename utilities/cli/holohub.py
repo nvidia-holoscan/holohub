@@ -477,7 +477,16 @@ class HoloHubCLI:
                     f"Available: {', '.join(available_lang) if available_lang else 'unknown'}"
                 )
             # No language info or no match found; return first candidate
-            self._project_data[cache_key] = candidates[0]
+            fallback_candidate = candidates[0]
+            fallback_lang = fallback_candidate.get("metadata", {}).get("language", None)
+            if not fallback_lang:
+                print(
+                    Color.yellow(
+                        f"Warning: Returning '{project_name}' implementation with missing or unknown language metadata.\n"
+                        "Consider specifying --language for more consistent results.\n"
+                    )
+                )
+            self._project_data[cache_key] = fallback_candidate
             return self._project_data[cache_key]
         # If project not found, suggest similar names
         distances = [
