@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.20)
 project(streaming_client_demo)
 
 # Add C++ and Python subdirectories
-message(STATUS "=== PROCESSING PARENT streaming_client_demo/CMakeLists.txt ===")
+message(DEBUG "=== PROCESSING PARENT streaming_client_demo/CMakeLists.txt ===")
 
 # Add C++ subdirectory
 add_subdirectory(cpp)
@@ -38,4 +38,4 @@ file(CHMOD ${CMAKE_BINARY_DIR}/run_python.sh
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
 
-message(STATUS "=== COMPLETED PARENT streaming_client_demo/CMakeLists.txt ===")
+message(DEBUG "=== COMPLETED PARENT streaming_client_demo/CMakeLists.txt ===")
