@@ -219,7 +219,6 @@ class StreamingClientTestApp : public holoscan::Application {
   int32_t columns_ = 64;
   int32_t channels_ = 0;
   std::string data_type_{"uint8_t"};
-
 };
 
 void print_usage() {
