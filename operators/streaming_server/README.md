@@ -87,8 +87,13 @@ graph.connect(streaming_server, "output_frames", sink, "input");
 
 In order to build the server operator, you must first download the server binaries form NGC and add to the `lib` directory in the `streaming_server` operator folder
 
+Download the Holoscan Server Cloud Streaming library from NGC:
+https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_server_cloud_streaming
+
 ```bash
-[add ngc link here]
+# Download and extract the library
+ngc registry resource download-version nvidia/holoscan_server_cloud_streaming:0.1
+# Move the extracted files to the lib directory
 mv holoscan_server_cloud_streaming lib
 ```
 
