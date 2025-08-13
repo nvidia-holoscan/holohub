@@ -49,6 +49,19 @@ graph TD
 - CUDA 12.1 or higher
 - Holoscan SDK 2.5.0 or higher
 
+## Setup Instructions
+
+**⚠️ Important**: Before building this application, you must first download the required streaming client binaries from NGC.
+
+**📖 For detailed setup instructions, see**: [Streaming Client Operator Setup](../../operators/streaming_client/README.md#dependencies)
+
+Quick summary:
+```bash
+# Download the Holoscan Client Cloud Streaming library from NGC
+ngc registry resource download-version nvidia/holoscan_client_cloud_streaming:0.1
+# Move to the operator's lib directory
+mv holoscan_client_cloud_streaming operators/streaming_client/lib
+```
 
 ## Building the Application
 
@@ -76,6 +89,11 @@ To run the application:
 
 The application can be configured using a YAML file. By default, it looks for `streaming_client_demo.yaml` in the current directory.
 
-## Related Applications
+## Related Documentation
 
-- [Streaming Server Demo Application](../streaming_server_demo/README.md) 
+### Applications
+- [Streaming Server Demo Application](../streaming_server_demo/README.md)
+
+### Operators  
+- [Streaming Client Operator](../../operators/streaming_client/README.md) - Detailed setup, dependencies, and troubleshooting instructions
+- [Streaming Server Operator](../../operators/streaming_server/README.md) - Server-side streaming operator documentation 

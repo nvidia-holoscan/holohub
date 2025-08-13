@@ -8,6 +8,19 @@ This application demonstrates how to use the Holoscan SDK to create a streaming 
 - CUDA 12.1 or higher
 - Holoscan SDK 2.5.0 or higher
 
+## Setup Instructions
+
+**⚠️ Important**: Before building this application, you must first download the required streaming server binaries from NGC.
+
+**📖 For detailed setup instructions, see**: [Streaming Server Operator Setup](../../operators/streaming_server/README.md#building-the-operator)
+
+Quick summary:
+```bash
+# Download the Holoscan Server Cloud Streaming library from NGC
+ngc registry resource download-version nvidia/holoscan_server_cloud_streaming:0.1
+# Move to the operator's lib directory
+mv holoscan_server_cloud_streaming operators/streaming_server/lib
+```
 
 ## Building the Application
 
@@ -54,6 +67,11 @@ For streaming clients to connect successfully, the following network requirement
 - Client → Server UDP Ports: Required (for streaming data)
 - Server → Client: Not required (handled as response traffic)
 
-## Related Applications
+## Related Documentation
 
-- [Streaming Client Demo Application](../streaming_client_demo/README.md) 
+### Applications
+- [Streaming Client Demo Application](../streaming_client_demo/README.md)
+
+### Operators
+- [Streaming Server Operator](../../operators/streaming_server/README.md) - Detailed setup, configuration, and deployment instructions
+- [Streaming Client Operator](../../operators/streaming_client/README.md) - Client-side streaming operator documentation 
