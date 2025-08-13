@@ -28,11 +28,7 @@
             "Demo"
         ],
         "ranking": 1,
-        "dependencies": {
-            "gxf_extensions": [
-                "holoscan::streaming_client_operator"
-            ]
-        },
+        "dependencies": {},
         "run": {
             "command": "python3 streaming_client_demo.py",
             "workdir": "holohub_bin"
