@@ -16,7 +16,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 # Print status message
-message(STATUS "=== PROCESSING streaming_client_demo/cpp/CMakeLists.txt ===")
+message(DEBUG "=== PROCESSING streaming_client_demo/cpp/CMakeLists.txt ===")
 
 # Set source file
 set(SOURCE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.cpp")
@@ -83,7 +83,7 @@ message(STATUS "Target type: ${TARGET_TYPE}")
 get_target_property(TARGET_SOURCES streaming_client_demo SOURCES)
 message(STATUS "Target sources: ${TARGET_SOURCES}")
 
-message(STATUS "=== COMPLETED streaming_client_demo/cpp/CMakeLists.txt ===")
+message(DEBUG "=== COMPLETED streaming_client_demo/cpp/CMakeLists.txt ===")
 
 # Set target properties
 set_target_properties(streaming_client_demo PROPERTIES
