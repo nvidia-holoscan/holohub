@@ -16,7 +16,7 @@
 """
 ZeroMQ Subscriber Operator Package
 
-This package provides a Holoscan operator for subscribing to messages from ZeroMQ message queues 
+This package provides a Holoscan operator for subscribing to messages from ZeroMQ message queues
 using the PUB/SUB pattern.
 """
 

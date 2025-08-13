@@ -19,7 +19,7 @@ project(streaming_server)
 # Find Holoscan package
 find_package(holoscan 3.2 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-                       
+
 # Define path variables for StreamingServer dependencies
 set(STREAMING_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(STREAMING_LIB_SO_DIR ${STREAMING_LIB_DIR})
@@ -65,7 +65,7 @@ target_include_directories(streaming_server
 # Add link directory explicitly
 link_directories(${STREAMING_LIB_SO_DIR})
 
-# Explicitly list all libraries to link against 
+# Explicitly list all libraries to link against
 target_link_libraries(streaming_server
   PUBLIC
     holoscan::core
@@ -124,7 +124,7 @@ add_custom_command(TARGET streaming_server PRE_LINK
 # Copy all .so files
 foreach(SO_FILE ${STREAMING_SO_FILES})
   add_custom_command(TARGET streaming_server PRE_LINK
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "${SO_FILE}"
       "${CMAKE_CURRENT_BINARY_DIR}/lib/"
   )
@@ -134,7 +134,7 @@ endforeach()
 foreach(EXEC_FILE ${STREAMING_EXECUTABLES})
   if(EXISTS "${EXEC_FILE}")
     add_custom_command(TARGET streaming_server PRE_LINK
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${EXEC_FILE}"
         "${CMAKE_CURRENT_BINARY_DIR}/lib/"
     )
@@ -143,7 +143,7 @@ endforeach()
 
 # Copy the operator library to the application directory
 add_custom_command(TARGET streaming_server POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E make_directory 
+  COMMAND ${CMAKE_COMMAND} -E make_directory
     ${CMAKE_BINARY_DIR}/operators/streaming_server
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     $<TARGET_FILE:streaming_server>
@@ -152,13 +152,13 @@ add_custom_command(TARGET streaming_server POST_BUILD
 
 # Also copy all .so files to the operator build directory
 add_custom_command(TARGET streaming_server POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E make_directory 
+  COMMAND ${CMAKE_COMMAND} -E make_directory
     ${CMAKE_BINARY_DIR}/operators/streaming_server/lib
 )
 
 foreach(SO_FILE ${STREAMING_SO_FILES})
   add_custom_command(TARGET streaming_server POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "${SO_FILE}"
       "${CMAKE_BINARY_DIR}/operators/streaming_server/lib/"
   )
@@ -167,7 +167,7 @@ endforeach()
 foreach(EXEC_FILE ${STREAMING_EXECUTABLES})
   if(EXISTS "${EXEC_FILE}")
     add_custom_command(TARGET streaming_server POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${EXEC_FILE}"
         "${CMAKE_BINARY_DIR}/operators/streaming_server/lib/"
     )

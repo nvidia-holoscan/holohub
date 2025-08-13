@@ -84,7 +84,7 @@ copy_streamsdk_libraries(streaming_client_operator "${CMAKE_CURRENT_BINARY_DIR}/
 
 # Copy the operator library to the application directory
 add_custom_command(TARGET streaming_client_operator POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E make_directory 
+  COMMAND ${CMAKE_COMMAND} -E make_directory
   ${CMAKE_BINARY_DIR}/operators/streaming_client
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
   $<TARGET_FILE:streaming_client_operator>

@@ -49,4 +49,4 @@ PYBIND11_MODULE(streaming_client, m) {
       .def(py::init<const py::kwargs&>());
 }
 
-}  // namespace holoscan::ops 
+}  // namespace holoscan::ops

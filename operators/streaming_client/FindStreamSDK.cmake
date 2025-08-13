@@ -61,7 +61,7 @@ set(StreamSDK_FOUND_LIBRARIES)
 
 foreach(LIB_NAME IN LISTS StreamSDK_LIBRARY_NAMES)
     set(LIB_PATH "${StreamSDK_LIB_DIR}/lib${LIB_NAME}.so")
-    
+
     if(EXISTS "${LIB_PATH}")
         # Create imported target for this library
         add_library(StreamSDK::${LIB_NAME} SHARED IMPORTED)
@@ -69,10 +69,10 @@ foreach(LIB_NAME IN LISTS StreamSDK_LIBRARY_NAMES)
             IMPORTED_LOCATION "${LIB_PATH}"
             IMPORTED_NO_SONAME ON
         )
-        
+
         list(APPEND StreamSDK_LIBRARIES "${LIB_PATH}")
         list(APPEND StreamSDK_FOUND_LIBRARIES "StreamSDK::${LIB_NAME}")
-        
+
         message(STATUS "Found StreamSDK library: ${LIB_NAME}")
     else()
         message(STATUS "StreamSDK library not found (optional): ${LIB_NAME}")
@@ -117,11 +117,11 @@ set(StreamSDK_FOUND TRUE)
 if(TARGET StreamSDK::messagebus)
     set(MESSAGEBUS_LINK "${StreamSDK_LIB_DIR}/libnvmessagebus.so")
     set(MESSAGEBUS_TARGET "${StreamSDK_LIB_DIR}/libmessagebus.so")
-    
+
     if(NOT EXISTS "${MESSAGEBUS_LINK}")
         execute_process(
-            COMMAND ${CMAKE_COMMAND} -E create_symlink 
-                "${MESSAGEBUS_TARGET}" 
+            COMMAND ${CMAKE_COMMAND} -E create_symlink
+                "${MESSAGEBUS_TARGET}"
                 "${MESSAGEBUS_LINK}"
             RESULT_VARIABLE SYMLINK_RESULT
         )
@@ -143,7 +143,7 @@ function(copy_streamsdk_libraries TARGET_NAME DESTINATION_DIR)
     add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "${DESTINATION_DIR}"
     )
-    
+
     # Copy each library
     foreach(LIB_PATH IN LISTS StreamSDK_LIBRARIES)
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
@@ -152,7 +152,7 @@ function(copy_streamsdk_libraries TARGET_NAME DESTINATION_DIR)
                 "${DESTINATION_DIR}/"
         )
     endforeach()
-    
+
     # Copy symbolic link if it exists
     if(EXISTS "${StreamSDK_LIB_DIR}/libnvmessagebus.so")
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
@@ -161,4 +161,4 @@ function(copy_streamsdk_libraries TARGET_NAME DESTINATION_DIR)
                 "${DESTINATION_DIR}/"
         )
     endif()
-endfunction() 
+endfunction()

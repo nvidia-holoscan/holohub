@@ -20,7 +20,7 @@
 #pragma once
 
 #include <cstdint>
-#include <cstring>  
+#include <cstring>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -33,7 +33,7 @@ enum class PixelFormat {
     NV12,
     BGRA,
     BGR  // Add BGR format for 3-channel images
-   
+
 };
 
 class VideoFrame {
@@ -44,46 +44,46 @@ public:
         m_dataBuffer.resize(3, 0);
         m_data = m_dataBuffer.data();
     }
-    
+
     // Full constructor
     VideoFrame(uint32_t width, uint32_t height, const uint8_t* data, size_t size, uint64_t timestamp)
-        : m_width(width > 0 ? width : 1), 
-          m_height(height > 0 ? height : 1), 
+        : m_width(width > 0 ? width : 1),
+          m_height(height > 0 ? height : 1),
           m_timestamp(timestamp),
           m_format(PixelFormat::BGR) {
         setData(data, size);
     }
-    
+
     // Copy constructor
     VideoFrame(const VideoFrame& other)
-        : m_width(other.m_width), 
-          m_height(other.m_height), 
+        : m_width(other.m_width),
+          m_height(other.m_height),
           m_timestamp(other.m_timestamp),
           m_format(other.m_format),
           m_dataBuffer(other.m_dataBuffer) {
         m_data = m_dataBuffer.empty() ? nullptr : m_dataBuffer.data();
     }
-    
+
     // Constructor for pre-allocated frames
-    VideoFrame(uint32_t width, uint32_t height) 
-        : m_width(width > 0 ? width : 1), 
-          m_height(height > 0 ? height : 1), 
+    VideoFrame(uint32_t width, uint32_t height)
+        : m_width(width > 0 ? width : 1),
+          m_height(height > 0 ? height : 1),
           m_timestamp(0),
           m_format(PixelFormat::BGR) {
         // Allocate data buffer of appropriate size for BGR: 3 bytes per pixel
         m_dataBuffer.resize(m_width * m_height * 3); // BGR: 3 bytes per pixel
         m_data = m_dataBuffer.data();
     }
-    
+
     // Setter methods
-    void setWidth(uint32_t width) { 
+    void setWidth(uint32_t width) {
         m_width = width > 0 ? width : 1; // Never allow zero width
     }
-    
-    void setHeight(uint32_t height) { 
+
+    void setHeight(uint32_t height) {
         m_height = height > 0 ? height : 1; // Never allow zero height
     }
-    
+
     void setData(const uint8_t* data, size_t size) {
         if (data && size > 0) {
             m_dataBuffer.resize(size);
@@ -91,25 +91,25 @@ public:
             m_data = m_dataBuffer.data();
         } else {
             // Create a minimal valid buffer (1 pixel)
-            m_dataBuffer.resize(4, 0); 
+            m_dataBuffer.resize(4, 0);
             m_data = m_dataBuffer.data();
         }
     }
-    
+
     void setTimestamp(uint64_t timestamp) { m_timestamp = timestamp; }
-    
+
     // Getter methods
     uint32_t getWidth() const { return m_width; }
     uint32_t getHeight() const { return m_height; }
     const uint8_t* getData() const { return m_data; }
     size_t getDataSize() const { return m_dataBuffer.size(); }
     uint64_t getTimestamp() const { return m_timestamp; }
-    
+
     // Check if frame contains valid data
-    bool isValid() const { 
-        return m_width > 0 && m_height > 0 && !m_dataBuffer.empty(); 
+    bool isValid() const {
+        return m_width > 0 && m_height > 0 && !m_dataBuffer.empty();
     }
-    
+
     // Get writable data buffer - ensure it's properly sized first
     uint8_t* getWritableData() {
         size_t required_size = m_width * m_height * getBytesPerPixel();
@@ -119,7 +119,7 @@ public:
         }
         return m_dataBuffer.data();
     }
-    
+
     // Format handling
     PixelFormat getFormat() const {
         return m_format;
@@ -128,7 +128,7 @@ public:
     void setFormat(PixelFormat format) {
         m_format = format;
     }
-    
+
     // Get bytes per pixel for the current format
     size_t getBytesPerPixel() const {
         switch (m_format) {
@@ -156,4 +156,4 @@ private:
 };
 
 // Define the frame generator function type globally
-using FrameGeneratorFunc = std::function<VideoFrame()>; 
+using FrameGeneratorFunc = std::function<VideoFrame()>;
