@@ -1,4 +1,4 @@
-# Streaming Client Demo Application
+# Streaming Client Demo
 
 This application demonstrates how to use the Holoscan SDK to create a streaming client application that can receive video streams from a streaming server.
 
