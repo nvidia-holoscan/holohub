@@ -17,6 +17,9 @@
 
 cmake_minimum_required(VERSION 3.20)
 
+# Include FindPackageHandleStandardArgs for standard CMake behavior
+include(FindPackageHandleStandardArgs)
+
 # Set the search path for StreamSDK libraries
 # This should be relative to the operator directory
 set(StreamSDK_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}")
@@ -79,63 +82,77 @@ foreach(LIB_NAME IN LISTS StreamSDK_LIBRARY_NAMES)
     endif()
 endforeach()
 
-# Check if we found the core library
-if(NOT TARGET StreamSDK::StreamingClient)
-    set(StreamSDK_FOUND FALSE)
-    if(StreamSDK_FIND_REQUIRED)
-        message(FATAL_ERROR "Core StreamSDK library libStreamingClient.so not found in ${StreamSDK_LIB_DIR}")
-    endif()
-    return()
-endif()
-
-# Create a combined target that includes all found libraries
-add_library(StreamSDK::All INTERFACE IMPORTED)
-set_target_properties(StreamSDK::All PROPERTIES
-    INTERFACE_LINK_LIBRARIES "${StreamSDK_FOUND_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${StreamSDK_INCLUDE_DIR}"
-    INTERFACE_COMPILE_DEFINITIONS "_GLIBCXX_USE_CXX11_ABI=1"
+# Find the core StreamingClient library
+find_library(StreamSDK_STREAMING_CLIENT_LIBRARY
+    NAMES StreamingClient
+    PATHS "${StreamSDK_LIB_DIR}"
+    NO_DEFAULT_PATH
 )
 
-# Create main StreamingClient target with proper dependencies
-set_target_properties(StreamSDK::StreamingClient PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${StreamSDK_INCLUDE_DIR}"
-    INTERFACE_COMPILE_DEFINITIONS "_GLIBCXX_USE_CXX11_ABI=1"
-)
-
-# Set up additional dependencies for the main target
-if(TARGET StreamSDK::StreamClientShared)
-    set_target_properties(StreamSDK::StreamingClient PROPERTIES
-        INTERFACE_LINK_LIBRARIES "StreamSDK::StreamClientShared"
+# Check if we found the core library and set up variables
+if(StreamSDK_STREAMING_CLIENT_LIBRARY AND TARGET StreamSDK::StreamingClient)
+    set(StreamSDK_CORE_FOUND TRUE)
+    
+    # Create a combined target that includes all found libraries
+    add_library(StreamSDK::All INTERFACE IMPORTED)
+    set_target_properties(StreamSDK::All PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${StreamSDK_FOUND_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${StreamSDK_INCLUDE_DIR}"
+        INTERFACE_COMPILE_DEFINITIONS "_GLIBCXX_USE_CXX11_ABI=1"
     )
+
+    # Create main StreamingClient target with proper dependencies
+    set_target_properties(StreamSDK::StreamingClient PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${StreamSDK_INCLUDE_DIR}"
+        INTERFACE_COMPILE_DEFINITIONS "_GLIBCXX_USE_CXX11_ABI=1"
+    )
+
+    # Set up additional dependencies for the main target
+    if(TARGET StreamSDK::StreamClientShared)
+        set_target_properties(StreamSDK::StreamingClient PROPERTIES
+            INTERFACE_LINK_LIBRARIES "StreamSDK::StreamClientShared"
+        )
+    endif()
+else()
+    set(StreamSDK_CORE_FOUND FALSE)
 endif()
 
 # Set variables for compatibility
 set(StreamSDK_INCLUDE_DIRS "${StreamSDK_INCLUDE_DIR}")
-set(StreamSDK_FOUND TRUE)
 
-# Create symbolic link for libnvmessagebus.so -> libmessagebus.so if messagebus exists
-if(TARGET StreamSDK::messagebus)
-    set(MESSAGEBUS_LINK "${StreamSDK_LIB_DIR}/libnvmessagebus.so")
-    set(MESSAGEBUS_TARGET "${StreamSDK_LIB_DIR}/libmessagebus.so")
+# Use FindPackageHandleStandardArgs to handle the standard CMake find behavior
+find_package_handle_standard_args(StreamSDK
+    FOUND_VAR StreamSDK_FOUND
+    REQUIRED_VARS StreamSDK_STREAMING_CLIENT_LIBRARY StreamSDK_INCLUDE_DIR StreamSDK_LIB_DIR
+    VERSION_VAR "1.0"
+)
 
-    if(NOT EXISTS "${MESSAGEBUS_LINK}")
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E create_symlink
-                "${MESSAGEBUS_TARGET}"
-                "${MESSAGEBUS_LINK}"
-            RESULT_VARIABLE SYMLINK_RESULT
-        )
-        if(SYMLINK_RESULT EQUAL 0)
-            message(STATUS "Created symbolic link: libnvmessagebus.so -> libmessagebus.so")
+# Only proceed if the package was found
+if(StreamSDK_FOUND)
+    # Create symbolic link for libnvmessagebus.so -> libmessagebus.so if messagebus exists
+    if(TARGET StreamSDK::messagebus)
+        set(MESSAGEBUS_LINK "${StreamSDK_LIB_DIR}/libnvmessagebus.so")
+        set(MESSAGEBUS_TARGET "${StreamSDK_LIB_DIR}/libmessagebus.so")
+
+        if(NOT EXISTS "${MESSAGEBUS_LINK}")
+            execute_process(
+                COMMAND ${CMAKE_COMMAND} -E create_symlink
+                    "${MESSAGEBUS_TARGET}"
+                    "${MESSAGEBUS_LINK}"
+                RESULT_VARIABLE SYMLINK_RESULT
+            )
+            if(SYMLINK_RESULT EQUAL 0)
+                message(STATUS "Created symbolic link: libnvmessagebus.so -> libmessagebus.so")
+            endif()
         endif()
     endif()
-endif()
 
-# Print summary
-message(STATUS "StreamSDK found: ${StreamSDK_FOUND}")
-message(STATUS "StreamSDK include directory: ${StreamSDK_INCLUDE_DIRS}")
-message(STATUS "StreamSDK library directory: ${StreamSDK_LIB_DIR}")
-message(STATUS "StreamSDK libraries found: ${StreamSDK_FOUND_LIBRARIES}")
+    # Print summary
+    message(STATUS "StreamSDK found: ${StreamSDK_FOUND}")
+    message(STATUS "StreamSDK include directory: ${StreamSDK_INCLUDE_DIRS}")
+    message(STATUS "StreamSDK library directory: ${StreamSDK_LIB_DIR}")
+    message(STATUS "StreamSDK libraries found: ${StreamSDK_FOUND_LIBRARIES}")
+endif()
 
 # Define helper function to copy StreamSDK libraries to target directory
 function(copy_streamsdk_libraries TARGET_NAME DESTINATION_DIR)
