@@ -33,7 +33,7 @@ Operator class to convert Tensor to VideoBuffer.
 **==Named Inputs==**
 
     in_tensor : gxf::Entity
-
+    
 **==Named Outputs==**
 
     out_video_buffer : gxf::Entity

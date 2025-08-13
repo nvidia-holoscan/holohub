@@ -92,7 +92,7 @@ PYDOC(VideoMasterTransmitterOp, R"doc(
 
 PYDOC(VideoMasterTransmitterOp_python, R"doc(
  Operator to stream video from a Deltacast capture card.
-
+ 
  Parameters
      ----------
     fragment : Fragment

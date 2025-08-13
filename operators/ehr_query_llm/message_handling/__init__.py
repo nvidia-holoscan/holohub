@@ -16,7 +16,7 @@
 """
 EHR Query LLM Operator Package
 
-This package provides operators and utilities for querying and processing Electronic Health Records (EHR)
+This package provides operators and utilities for querying and processing Electronic Health Records (EHR) 
 using the FHIR (Fast Healthcare Interoperability Resources) standard with LLM integration.
 """
 
