@@ -16,7 +16,7 @@
 """
 FHIR Resource Sanitizer Operator Package
 
-This package provides a Holoscan operator for sanitizing and standardizing FHIR medical records
+This package provides a Holoscan operator for sanitizing and standardizing FHIR medical records 
 into an AI-friendly format.
 """
 

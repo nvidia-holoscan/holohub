@@ -36,7 +36,7 @@ PYDOC(TensorToFileOp_python, R"doc(
 Nv Video Writer operator.
 
 This operator writes H.264/H.265 elementary stream files from encoded video frames.
-Takes encoded frame tensors as input (typically from NvVideoEncoderOp) and writes
+Takes encoded frame tensors as input (typically from NvVideoEncoderOp) and writes 
 them directly to elementary stream files that can be played with standard video players.
 
 Parameters

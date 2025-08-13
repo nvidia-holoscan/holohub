@@ -16,7 +16,7 @@
 """
 ZeroMQ Publisher Operator Package
 
-This package provides a Holoscan operator for publishing messages to ZeroMQ message queues
+This package provides a Holoscan operator for publishing messages to ZeroMQ message queues 
 using the PUB/SUB pattern.
 """
 

@@ -16,7 +16,7 @@
 """
 FHIR Utilities Package
 
-This package provides utilities for working with FHIR (Fast Healthcare Interoperability Resources)
+This package provides utilities for working with FHIR (Fast Healthcare Interoperability Resources) 
 data including query construction, response handling, resource sanitization, and token management.
 """
 
