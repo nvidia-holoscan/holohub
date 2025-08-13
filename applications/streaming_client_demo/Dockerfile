@@ -108,17 +108,16 @@ RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 && \
     && rm -rf /var/lib/apt/lists/*
 
 # Create symbolic links to match StreamingClient expectations
-# The system OpenCV will be installed, we just need to create the 4.5d links
 RUN cd /usr/lib/x86_64-linux-gnu && \
-    # Find the actual OpenCV version installed and create 4.5d symbolic links
+    # Find the actual OpenCV version installed and create standard symbolic links
     OPENCV_VERSION=$(ls libopencv_core.so.* | head -1 | sed 's/libopencv_core.so.//') && \
     echo "Found OpenCV version: $OPENCV_VERSION" && \
-    ln -sf libopencv_core.so.$OPENCV_VERSION libopencv_core.so.4.5d && \
-    ln -sf libopencv_imgproc.so.$OPENCV_VERSION libopencv_imgproc.so.4.5d && \
-    ln -sf libopencv_highgui.so.$OPENCV_VERSION libopencv_highgui.so.4.5d && \
-    ln -sf libopencv_videoio.so.$OPENCV_VERSION libopencv_videoio.so.4.5d && \
-    ln -sf libopencv_imgcodecs.so.$OPENCV_VERSION libopencv_imgcodecs.so.4.5d && \
-    ln -sf libopencv_dnn.so.$OPENCV_VERSION libopencv_dnn.so.4.5d || \
+    ln -sf libopencv_core.so.$OPENCV_VERSION libopencv_core.so.4.5 && \
+    ln -sf libopencv_imgproc.so.$OPENCV_VERSION libopencv_imgproc.so.4.5 && \
+    ln -sf libopencv_highgui.so.$OPENCV_VERSION libopencv_highgui.so.4.5 && \
+    ln -sf libopencv_videoio.so.$OPENCV_VERSION libopencv_videoio.so.4.5 && \
+    ln -sf libopencv_imgcodecs.so.$OPENCV_VERSION libopencv_imgcodecs.so.4.5 && \
+    ln -sf libopencv_dnn.so.$OPENCV_VERSION libopencv_dnn.so.4.5 || \
     echo "Some OpenCV libraries may not exist, continuing..."
 
 # Then install Python packages
