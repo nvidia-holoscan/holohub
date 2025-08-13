@@ -52,11 +52,6 @@ RUN wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ng
 # Add NGC to PATH
 ENV PATH="/usr/local/ngc/ngc-cli:${PATH}"
 
-# Setup holohub run environment
-ENV PYTHONPATH=/opt/nvidia/holoscan/python/lib:${PYTHONPATH}
-
-WORKDIR /workspace/holohub
-
 # Enable autocomplete
 RUN echo "source /etc/bash_completion" >> ~/.bashrc
 
@@ -82,7 +77,6 @@ WORKDIR /workspace/holohub
 
 # Set environment variables
 ENV HOLOSCAN_INPUT_PATH=/workspace/data/endoscopy
-ENV PYTHONPATH=/workspace/holohub/applications/streaming_client_demo/python:${PYTHONPATH}
 
 # Default command
 CMD ["/bin/bash"]
@@ -132,7 +126,6 @@ RUN python3 -m pip install --no-cache-dir setuptools && \
     python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Setup holohub run environment - updated to ensure Holoscan Python paths are properly set
-ENV PYTHONPATH=/opt/nvidia/holoscan/python/lib:/opt/nvidia/holoscan/lib:${PYTHONPATH}
 ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/opt/nvidia/holoscan/lib:${LD_LIBRARY_PATH}
 
 # Create workspace directories
@@ -149,7 +142,6 @@ WORKDIR /workspace/holohub
 
 # Set environment variables
 ENV HOLOSCAN_INPUT_PATH=/workspace/data/endoscopy
-ENV PYTHONPATH=/workspace/holohub/applications/streaming_client_demo/python:${PYTHONPATH}
 
 # Set CMake build type
 ENV CMAKE_BUILD_TYPE=RelWithDebInfo
