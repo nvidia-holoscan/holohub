@@ -1,0 +1,36 @@
+{
+	"operator": {
+		"name": "streaming_client",
+		"description": "Holoscan operator for streaming video data to remote servers using NVIDIA Streaming SDK. Provides real-time video streaming capabilities with support for various video formats and configurable streaming parameters.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"language": ["C++", "Python"],
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Streaming",
+			"Video",
+			"Client",
+			"Real-time",
+			"Network"
+		],
+		"holoscan_sdk": {
+			"minimum_required_version": "3.2.0",
+			"tested_versions": [
+				"3.2.0"
+			]
+		},
+		"ranking": 1,
+		"dependencies": {}
+	}
+} 
