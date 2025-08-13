@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y \
     gobject-introspection \
     python3-gi \
     libopencv-dev \
+    libopencv-contrib-dev \
     ffmpeg \
     wget \
     unzip \
@@ -55,58 +56,6 @@ ENV PATH="/usr/local/ngc/ngc-cli:${PATH}"
 # Enable autocomplete
 RUN echo "source /etc/bash_completion" >> ~/.bashrc
 
-# Set CMake build type
-ENV CMAKE_BUILD_TYPE=RelWithDebInfo
-
-# - This variable is consumed by all dependencies below as an environment variable (CMake 3.22+)
-# - We use ARG to only set it at docker build time, so it does not affect cmake builds
-#   performed at docker run time in case users want to use a different BUILD_TYPE
-ARG CMAKE_BUILD_TYPE=Release
-
-# Create workspace directories
-RUN mkdir -p /workspace/holohub/applications/streaming_client_demo
-
-# Copy the rest of the application files
-COPY . /workspace/holohub/
-
-# Create data directory
-RUN mkdir -p /workspace/data/endoscopy
-
-# Set working directory
-WORKDIR /workspace/holohub
-
-# Set environment variables
-ENV HOLOSCAN_INPUT_PATH=/workspace/data/endoscopy
-
-# Default command
-CMD ["/bin/bash"]
-
-# Enable autocomplete
-RUN echo "source /etc/bash_completion" >> ~/.bashrc
-
-# Set CMake build type
-ENV CMAKE_BUILD_TYPE=RelWithDebInfo
-
-# - This variable is consumed by all dependencies below as an environment variable (CMake 3.22+)
-# - We use ARG to only set it at docker build time, so it does not affect cmake builds
-#   performed at docker run time in case users want to use a different BUILD_TYPE
-ARG CMAKE_BUILD_TYPE=Release
-
-# Install system dependencies FIRST
-RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 && \
-    for i in {1..3}; do apt-get update && break || sleep 1; done && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    pkg-config \
-    libcairo2-dev \
-    libgirepository1.0-dev \
-    gir1.2-girepository-2.0 \
-    gobject-introspection \
-    python3-gi \
-    libopencv-dev \
-    libopencv-contrib-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 # Create symbolic links to match StreamingClient expectations
 RUN cd /usr/lib/x86_64-linux-gnu && \
     # Find the actual OpenCV version installed and create standard symbolic links
@@ -120,17 +69,15 @@ RUN cd /usr/lib/x86_64-linux-gnu && \
     ln -sf libopencv_dnn.so.$OPENCV_VERSION libopencv_dnn.so.4.5 || \
     echo "Some OpenCV libraries may not exist, continuing..."
 
-# Then install Python packages
+# Install Python packages
 RUN python3 -m pip install --no-cache-dir setuptools && \
     python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Setup holohub run environment - updated to ensure Holoscan Python paths are properly set
-ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/opt/nvidia/holoscan/lib:${LD_LIBRARY_PATH}
+# Set CMake build type for docker build time only
+ARG CMAKE_BUILD_TYPE=Release
 
-# Create workspace directories
+# Create workspace directories and copy application files
 RUN mkdir -p /workspace/holohub/applications/streaming_client_demo
-
-# Copy the rest of the application files
 COPY . /workspace/holohub/
 
 # Create data directory
@@ -142,14 +89,9 @@ WORKDIR /workspace/holohub
 # Set environment variables
 ENV HOLOSCAN_INPUT_PATH=/workspace/data/endoscopy
 
-# Set CMake build type
-ENV CMAKE_BUILD_TYPE=RelWithDebInfo
-ARG CMAKE_BUILD_TYPE=Release
-
 # Enable autocomplete
 RUN echo "source /etc/bash_completion" >> ~/.bashrc
 
 # Default command
-ENTRYPOINT ["/bin/bash"]
 CMD ["/bin/bash"]
 
