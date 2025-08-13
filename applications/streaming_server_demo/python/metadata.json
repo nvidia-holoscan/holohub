@@ -28,7 +28,7 @@
             "Demo"
         ],
         "ranking": 1,
-        "dependencies": {},
+        "requirements": {},
         "run": {
             "command": "python3 streaming_server_demo.py",
             "workdir": "holohub_bin"

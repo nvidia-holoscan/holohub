@@ -27,7 +27,7 @@
             "Demo"
         ],
         "ranking": 1,
-        "dependencies": {},
+        "requirements": {},
         "run": {
             "command": "<holohub_app_bin>/streaming_server_demo",
             "workdir": "holohub_bin"
