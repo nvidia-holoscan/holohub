@@ -33,11 +33,10 @@ enum class PixelFormat {
     NV12,
     BGRA,
     BGR  // Add BGR format for 3-channel images
-
 };
 
 class VideoFrame {
-public:
+ public:
     // Default constructor with safe defaults
     VideoFrame() : m_width(1), m_height(1), m_timestamp(0), m_format(PixelFormat::BGR) {
         // Initialize with at least 3 bytes (one BGR pixel)
@@ -46,7 +45,8 @@ public:
     }
 
     // Full constructor
-    VideoFrame(uint32_t width, uint32_t height, const uint8_t* data, size_t size, uint64_t timestamp)
+    VideoFrame(uint32_t width, uint32_t height, const uint8_t* data, size_t size,
+               uint64_t timestamp)
         : m_width(width > 0 ? width : 1),
           m_height(height > 0 ? height : 1),
           m_timestamp(timestamp),
@@ -71,17 +71,17 @@ public:
           m_timestamp(0),
           m_format(PixelFormat::BGR) {
         // Allocate data buffer of appropriate size for BGR: 3 bytes per pixel
-        m_dataBuffer.resize(m_width * m_height * 3); // BGR: 3 bytes per pixel
+        m_dataBuffer.resize(m_width * m_height * 3);  // BGR: 3 bytes per pixel
         m_data = m_dataBuffer.data();
     }
 
     // Setter methods
     void setWidth(uint32_t width) {
-        m_width = width > 0 ? width : 1; // Never allow zero width
+        m_width = width > 0 ? width : 1;  // Never allow zero width
     }
 
     void setHeight(uint32_t height) {
-        m_height = height > 0 ? height : 1; // Never allow zero height
+        m_height = height > 0 ? height : 1;  // Never allow zero height
     }
 
     void setData(const uint8_t* data, size_t size) {
@@ -132,27 +132,22 @@ public:
     // Get bytes per pixel for the current format
     size_t getBytesPerPixel() const {
         switch (m_format) {
-            case PixelFormat::BGR:
-                return 3;
-            case PixelFormat::RGBA:
-            case PixelFormat::BGRA:
-                return 4;
             case PixelFormat::YUV420:
-                return 1; // Y component only
+                return 1;  // Y component only
             case PixelFormat::NV12:
-                return 1; // Y component only
+                return 1;  // Y component only
             default:
-                return 3; // Default to BGR
+                return 3;  // Default to BGR
         }
     }
 
-private:
+ private:
     uint32_t m_width;
     uint32_t m_height;
     std::vector<uint8_t> m_dataBuffer;  // Owns the data
-    const uint8_t* m_data;              // Points to our data buffer
+    const uint8_t* m_data;  // Points to our data buffer
     uint64_t m_timestamp;
-    PixelFormat m_format = PixelFormat::BGR; // Default format
+    PixelFormat m_format = PixelFormat::BGR;  // Default format
 };
 
 // Define the frame generator function type globally

@@ -279,7 +279,8 @@ int main(int argc, char** argv) {
     uint32_t width = get_config_value(app.get(), "streaming_server.width", 854u);
     uint32_t height = get_config_value(app.get(), "streaming_server.height", 480u);
     uint32_t fps = get_config_value(app.get(), "streaming_server.fps", 30u);
-    std::string server_ip = get_config_value(app.get(), "streaming_server.server_ip", std::string("127.0.0.1"));
+    std::string server_ip = get_config_value(app.get(), "streaming_server.server_ip",
+                                           std::string("127.0.0.1"));
     uint16_t port = get_config_value(app.get(), "streaming_server.port", 48010);
     bool receive_frames = get_config_value(app.get(), "streaming_server.receive_frames", true);
     bool send_frames = get_config_value(app.get(), "streaming_server.send_frames", true);
@@ -336,7 +337,6 @@ int main(int argc, char** argv) {
     }
 
     std::cout << "Server stopped successfully" << std::endl;
-
   } catch (const std::exception& e) {
     std::cerr << "Application error: " << e.what() << std::endl;
     return 1;

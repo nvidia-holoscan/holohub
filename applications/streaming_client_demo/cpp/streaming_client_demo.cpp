@@ -143,7 +143,9 @@ class StreamingClientTestApp : public holoscan::Application {
         data_path = "data";
         HOLOSCAN_LOG_INFO("Using local data path: {}", data_path);
       } else {
-        HOLOSCAN_LOG_ERROR("No valid data directory found! Please set HOLOSCAN_INPUT_PATH or provide a valid data directory.");
+        HOLOSCAN_LOG_ERROR(
+            "No valid data directory found! Please set HOLOSCAN_INPUT_PATH or provide a "
+            "valid data directory.");
         return;
       }
     }
@@ -153,15 +155,14 @@ class StreamingClientTestApp : public holoscan::Application {
     HOLOSCAN_LOG_INFO("Attempting to load video from: {}", full_video_path);
 
     // Fixed memory pool sizing for uint8 BGR data
-    uint64_t source_block_size = width_ * height_ * 3; // 3 channels for BGR
-    uint64_t source_num_blocks = 4; // Keep multiple blocks for pipeline stability
+    uint64_t source_block_size = width_ * height_ * 3;  // 3 channels for BGR
+    uint64_t source_num_blocks = 4;  // Keep multiple blocks for pipeline stability
 
     auto source = make_operator<ops::VideoStreamReplayerOp>(
         "replayer",
         from_config("replayer"),
         Arg("directory", data_path),  // Use the resolved data_path
-        Arg("count", static_cast<int64_t>(0))
-    );
+        Arg("count", static_cast<int64_t>(0)));
 
     const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
         make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
@@ -171,8 +172,7 @@ class StreamingClientTestApp : public holoscan::Application {
         from_config("format_converter"),
         Arg("pool", make_resource<BlockMemoryPool>(
             "pool", 1, source_block_size, source_num_blocks)),
-        Arg("cuda_stream_pool", cuda_stream_pool)
-    );
+        Arg("cuda_stream_pool", cuda_stream_pool));
 
     auto streaming_client = make_operator<ops::StreamingClientOp>(
         "streaming_client",
@@ -182,8 +182,7 @@ class StreamingClientTestApp : public holoscan::Application {
         Arg("server_ip", server_ip_),
         Arg("signaling_port", signaling_port_),
         Arg("receive_frames", receive_frames_),
-        Arg("send_frames", send_frames_)
-    );
+        Arg("send_frames", send_frames_));
 
     add_flow(source, format_converter, {{"output", "source_video"}});
     add_flow(format_converter, streaming_client);
@@ -195,10 +194,9 @@ class StreamingClientTestApp : public holoscan::Application {
             Arg("width", width_),
             Arg("height", height_),
             Arg("allocator", allocator),
-            Arg("cuda_stream_pool", cuda_stream_pool)
-        );
+            Arg("cuda_stream_pool", cuda_stream_pool));
 
-        add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
+        add_flow(streaming_client, holoviz, {{"output", "render"}});
     }
   }
 
@@ -227,14 +225,17 @@ class StreamingClientTestApp : public holoscan::Application {
 void print_usage() {
   std::cout << "Usage: streaming_client_demo [options]\n"
             << "  -h, --help                Show this help message\n"
-            << "  -c, --config <file>        Configuration file path (default: streaming_client_demo.yaml)\n"
-            << "  -d, --data <directory>     Data directory (default: environment variable HOLOSCAN_INPUT_PATH or current directory)\n"
+            << "  -c, --config <file>        Configuration file path "
+            << "(default: streaming_client_demo.yaml)\n"
+            << "  -d, --data <directory>     Data directory (default: environment "
+            << "variable HOLOSCAN_INPUT_PATH or current directory)\n"
             << std::endl;
 }
 
 // Helper function to safely get config values with defaults
 template<typename T>
-T get_config_value(holoscan::Application* app, const std::string& key, const T& default_value) {
+T get_config_value(holoscan::Application* app, const std::string& key,
+                   const T& default_value) {
   try {
     return app->from_config(key).as<T>();
   } catch (const std::exception& e) {
@@ -246,11 +247,14 @@ T get_config_value(holoscan::Application* app, const std::string& key, const T& 
 
 // Specialization for std::string to avoid printing issues
 template<>
-std::string get_config_value<std::string>(holoscan::Application* app, const std::string& key, const std::string& default_value) {
+std::string get_config_value<std::string>(holoscan::Application* app,
+                                           const std::string& key,
+                                           const std::string& default_value) {
   try {
     return app->from_config(key).as<std::string>();
   } catch (const std::exception& e) {
-    std::cerr << "Warning: Failed to read config value '" << key << "': " << e.what() << std::endl;
+    std::cerr << "Warning: Failed to read config value '" << key << "': " << e.what()
+              << std::endl;
     std::cerr << "Using default value: " << default_value << std::endl;
     return default_value;
   }
@@ -312,17 +316,21 @@ int main(int argc, char** argv) {
         std::string video_path = path + "/surgical_video.gxf_index";
         if (std::filesystem::exists(video_path)) {
           data_directory = path;
-          std::cout << "Found valid data directory with video file: " << data_directory << std::endl;
+          std::cout << "Found valid data directory with video file: " << data_directory
+                    << std::endl;
           break;
         } else {
-          std::cout << "Directory exists but no video file found at: " << video_path << std::endl;
+          std::cout << "Directory exists but no video file found at: " << video_path
+                    << std::endl;
         }
       }
     }
 
     if (data_directory.empty()) {
-      std::cerr << "ERROR: Could not find surgical_video.gxf_index in any of the standard locations." << std::endl;
-      std::cerr << "Please ensure the video file is present in one of these locations:" << std::endl;
+      std::cerr << "ERROR: Could not find surgical_video.gxf_index in any of the "
+                << "standard locations." << std::endl;
+      std::cerr << "Please ensure the video file is present in one of these locations:"
+                << std::endl;
       for (const auto& path : possible_paths) {
         if (!path.empty()) {
           std::cerr << "  - " << path << std::endl;
@@ -334,7 +342,8 @@ int main(int argc, char** argv) {
 
   // Verify both the directory and video file exist
   if (!std::filesystem::exists(data_directory)) {
-    std::cerr << "ERROR: Specified data directory '" << data_directory << "' does not exist!" << std::endl;
+    std::cerr << "ERROR: Specified data directory '" << data_directory
+              << "' does not exist!" << std::endl;
     return 1;
   }
 
@@ -378,9 +387,12 @@ int main(int argc, char** argv) {
   uint32_t width = get_config_value(app.get(), "streaming_client.width", 854U);
   uint32_t height = get_config_value(app.get(), "streaming_client.height", 480U);
   uint32_t fps = get_config_value(app.get(), "streaming_client.fps", 30U);
-  std::string server_ip = get_config_value(app.get(), "streaming_client.server_ip", std::string("127.0.0.1"));
-  uint16_t signaling_port = get_config_value(app.get(), "streaming_client.signaling_port", 48010);
-  bool receive_frames = get_config_value(app.get(), "streaming_client.receive_frames", true);
+  std::string server_ip = get_config_value(app.get(), "streaming_client.server_ip",
+                                           std::string("127.0.0.1"));
+  uint16_t signaling_port = get_config_value(app.get(),
+                                             "streaming_client.signaling_port", 48010);
+  bool receive_frames = get_config_value(app.get(), "streaming_client.receive_frames",
+                                         true);
   bool send_frames = get_config_value(app.get(), "streaming_client.send_frames", true);
   bool visualize_frames = get_config_value(app.get(), "visualize_frames", true);
 

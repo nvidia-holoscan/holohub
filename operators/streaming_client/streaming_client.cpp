@@ -68,8 +68,10 @@ void StreamingClientOp::setup(holoscan::OperatorSpec& spec) {
              "Whether to send frames to server", true);
 
   // Print the parameters for debugging with correct values
-  HOLOSCAN_LOG_INFO("StreamingClientOp setup with defaults: width={}, height={}, fps={}, server_ip={}, port={}, send_frames={}",
-                    854u, 480u, 30u, "127.0.0.1", 48010, true);
+  HOLOSCAN_LOG_INFO(
+      "StreamingClientOp setup with defaults: width={}, height={}, fps={}, server_ip={}, "
+      "port={}, send_frames={}",
+      854u, 480u, 30u, "127.0.0.1", 48010, true);
 }
 
 void StreamingClientOp::initialize() {
@@ -110,7 +112,7 @@ void StreamingClientOp::initialize() {
                    width_.get(), height_.get(), fps_.get(), signaling_port_.get());
 
   // Initialize timing control
-  frame_interval_ = std::chrono::microseconds(1000000 / fps_.get()); // Convert fps to microseconds
+  frame_interval_ = std::chrono::microseconds(1000000 / fps_.get());  // Convert fps to microseconds
   last_frame_time_ = std::chrono::steady_clock::now();
 
   // Initialize client with the validated parameters
@@ -146,7 +148,8 @@ void StreamingClientOp::start() {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // Start streaming with the configured parameters
-    HOLOSCAN_LOG_INFO("Starting streaming with server: {}:{}", server_ip_.get(), signaling_port_.get());
+    HOLOSCAN_LOG_INFO("Starting streaming with server: {}:{}", server_ip_.get(),
+                      signaling_port_.get());
 
     // Add connection timeout and retry logic with shorter delays
     int max_retries = 5;
@@ -165,7 +168,8 @@ void StreamingClientOp::start() {
 
       } catch (const std::exception& e) {
         retry_count++;
-        HOLOSCAN_LOG_WARN("Connection attempt {} failed: {}. Retrying in 500ms...", retry_count, e.what());
+        HOLOSCAN_LOG_WARN("Connection attempt {} failed: {}. Retrying in 500ms...",
+                          retry_count, e.what());
         if (retry_count >= max_retries) {
           HOLOSCAN_LOG_ERROR("All connection attempts failed. Final error: {}", e.what());
           throw;
@@ -250,7 +254,8 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     // Check if we have any input messages
     auto input_message = op_input.receive<holoscan::gxf::Entity>("input_frames");
     if (!input_message) {
-        HOLOSCAN_LOG_ERROR("!!!!NO INPUT MESSAGE RECEIVED - video replayer might not be sending data");
+        HOLOSCAN_LOG_ERROR(
+            "!!!!NO INPUT MESSAGE RECEIVED - video replayer might not be sending data");
         return;
     }
 
@@ -278,9 +283,10 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 
     if (time_since_last_frame < frame_interval_) {
       // Skip this frame to maintain target frame rate
-      HOLOSCAN_LOG_DEBUG("Skipping frame to maintain frame rate ({}ms since last, interval={}ms)",
-                         std::chrono::duration_cast<std::chrono::milliseconds>(time_since_last_frame).count(),
-                         std::chrono::duration_cast<std::chrono::milliseconds>(frame_interval_).count());
+      HOLOSCAN_LOG_DEBUG(
+          "Skipping frame to maintain frame rate ({}ms since last, interval={}ms)",
+          std::chrono::duration_cast<std::chrono::milliseconds>(time_since_last_frame).count(),
+          std::chrono::duration_cast<std::chrono::milliseconds>(frame_interval_).count());
       return;
     }
 
@@ -292,8 +298,9 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 
     // Validate tensor - accept both 1D (encoded) and 3D (raw image) tensors
     if ((tensor->ndim() != 1 && tensor->ndim() != 3) || tensor->size() == 0) {
-        HOLOSCAN_LOG_ERROR("Invalid tensor: ndim={}, size={}. Expected 1D (encoded) or 3D (HWC image) tensor.",
-                           tensor->ndim(), tensor->size());
+        HOLOSCAN_LOG_ERROR(
+            "Invalid tensor: ndim={}, size={}. Expected 1D (encoded) or 3D (HWC image) tensor.",
+            tensor->ndim(), tensor->size());
         return;
     }
 
@@ -330,12 +337,14 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
         bool is_float32 = (dtype.code == kDLFloat);
 
         if (is_float32) {
-          HOLOSCAN_LOG_INFO("Processing float32 tensor: {}x{}x{} channels", height, width, channels);
+          HOLOSCAN_LOG_INFO("Processing float32 tensor: {}x{}x{} channels", height, width,
+                            channels);
           // For float32, values are in range 0-255, we need to convert to uint8
-          expected_size = height * width * 3; // BGR: 3 channels, uint8 output
+          expected_size = height * width * 3;  // BGR: 3 channels, uint8 output
         } else {
-          HOLOSCAN_LOG_INFO("Processing uint8 tensor: {}x{}x{} channels", height, width, channels);
-          expected_size = height * width * 3; // BGR: 3 channels
+          HOLOSCAN_LOG_INFO("Processing uint8 tensor: {}x{}x{} channels", height, width,
+                            channels);
+          expected_size = height * width * 3;  // BGR: 3 channels
         }
 
         detected_format = PixelFormat::BGR;
@@ -366,7 +375,8 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       uint8_t* frame_data = frame.getWritableData();
       size_t frame_buffer_size = frame.getDataSize();
 
-      HOLOSCAN_LOG_INFO("Frame buffer size: {}, tensor size: {}", frame_buffer_size, actual_size);
+      HOLOSCAN_LOG_INFO("Frame buffer size: {}, tensor size: {}", frame_buffer_size,
+                        actual_size);
 
       if (frame_data && frame_buffer_size >= actual_size) {
         // Check if tensor is on GPU or CPU
@@ -375,7 +385,8 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
         if (tensor_device.device_type == kDLCUDA) {
           // GPU memory - simple direct copy
           HOLOSCAN_LOG_INFO("Copying from GPU tensor to frame buffer");
-          cudaError_t err = cudaMemcpy(frame_data, tensor->data(), actual_size, cudaMemcpyDeviceToHost);
+          cudaError_t err = cudaMemcpy(frame_data, tensor->data(), actual_size,
+                                       cudaMemcpyDeviceToHost);
           if (err != cudaSuccess) {
               HOLOSCAN_LOG_ERROR("CUDA memcpy failed: {}", cudaGetErrorString(err));
               return;
@@ -458,7 +469,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       }
 
       // Check if frame size makes sense for the dimensions
-      size_t expected_size = frame.getWidth() * frame.getHeight() * 3; // BGR = 3 channels
+      size_t expected_size = frame.getWidth() * frame.getHeight() * 3;  // BGR = 3 channels
       if (data_size < expected_size) {
         HOLOSCAN_LOG_ERROR("!!!!CLIENT FRAME SIZE VALIDATION FAILED:");
         HOLOSCAN_LOG_ERROR("  - Frame data size: {} bytes", data_size);
@@ -469,19 +480,24 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 
       HOLOSCAN_LOG_INFO("!!!!CLIENT FRAME VALIDATION PASSED - sending to server");
 
-      HOLOSCAN_LOG_INFO("Attempting to send frame to server: {}x{}, format=BGR, frame_size: {} bytes (original tensor: {} bytes)",
-                        frame.getWidth(), frame.getHeight(),
-                        actual_frame_size, tensor->nbytes());
+      HOLOSCAN_LOG_INFO(
+          "Attempting to send frame to server: {}x{}, format=BGR, frame_size: {} bytes "
+          "(original tensor: {} bytes)",
+          frame.getWidth(), frame.getHeight(),
+          actual_frame_size, tensor->nbytes());
 
       // Send the frame
       client_->sendFrame(frame);
 
-      HOLOSCAN_LOG_INFO("✅ Successfully sent BGR frame to server, frame_size: {} bytes", actual_frame_size);
+      HOLOSCAN_LOG_INFO("✅ Successfully sent BGR frame to server, frame_size: {} bytes",
+                        actual_frame_size);
     } else {
       HOLOSCAN_LOG_ERROR("StreamingClient is null - cannot send frame!");
     }
   } else {
-    HOLOSCAN_LOG_WARN("🚨 CRITICAL: Frame sending is DISABLED (send_frames=false) - This is why server receives no frames!");
+    HOLOSCAN_LOG_WARN(
+        "🚨 CRITICAL: Frame sending is DISABLED (send_frames=false) - This is why server "
+        "receives no frames!");
   }
 
   // Output received frames if we have any

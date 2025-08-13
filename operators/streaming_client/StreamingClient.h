@@ -36,7 +36,7 @@ class StreamingClientImpl;
  * managing both sending video to and receiving video from a remote server.
  */
 class StreamingClient {
-public:
+ public:
     // Define types for callbacks and frame generation
     using FrameCallback = std::function<void(const VideoFrame&)>;
 
@@ -48,7 +48,8 @@ public:
      * @param fps Frames per second (default: 30)
      * @param signalingPort Port used for signaling (default: 48010)
      */
-    StreamingClient(uint32_t width = 854, uint32_t height = 480, uint32_t fps = 30, uint16_t signalingPort = 48010);
+    explicit StreamingClient(uint32_t width = 854, uint32_t height = 480,
+                             uint32_t fps = 30, uint16_t signalingPort = 48010);
 
     /**
      * @brief Destroy the client and clean up resources
@@ -85,12 +86,13 @@ public:
     bool waitForStreamingEnded(std::chrono::milliseconds timeout = std::chrono::milliseconds(5000));
 
     /**
-     * @brief Wait for first video frame to be received
+     * @brief Wait for the first frame to be received
      *
      * @param timeout Maximum time to wait
      * @return true if first frame was received, false if timeout occurred
      */
-    bool waitForFirstFrameReceived(std::chrono::milliseconds timeout = std::chrono::milliseconds(5000));
+    bool waitForFirstFrameReceived(
+        std::chrono::milliseconds timeout = std::chrono::milliseconds(5000));
 
     /**
      * @brief Set a callback function for received frames
@@ -136,7 +138,7 @@ public:
      */
     bool sendFrame(const VideoFrame& frame);
 
-private:
+ private:
     // Private implementation pointer
     std::unique_ptr<StreamingClientImpl> pImpl;
 };
