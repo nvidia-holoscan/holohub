@@ -24,8 +24,13 @@ Streaming Protocol Implementation:
 
 In order to build the client operator, you must first download the client binaries from NGC and add to the `lib` directory for the `streaming_client` operator folder
 
-```
-[add ngc link here]
+Download the Holoscan Client Cloud Streaming library from NGC:
+https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_client_cloud_streaming
+
+```bash
+# Download and extract the library
+ngc registry resource download-version nvidia/holoscan_client_cloud_streaming:0.1
+# Move the extracted files to the lib directory
 mv holoscan_client_cloud_streaming lib
 ```
 
