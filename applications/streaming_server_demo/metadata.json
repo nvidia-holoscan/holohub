@@ -19,7 +19,7 @@
             ]
         },
         "platforms": [
-            "amd64"
+            "x86_64"
         ],
         "tags": [
             "Streaming",
