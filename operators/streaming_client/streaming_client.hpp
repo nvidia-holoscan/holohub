@@ -30,14 +30,14 @@
 #include <holoscan/core/resources/gxf/allocator.hpp>
 #include <holoscan/core/execution_context.hpp>
 
-#include "StreamingClient.h"  
+#include "StreamingClient.h"
 
 
 namespace holoscan::ops {
 
 /**
  * @brief Operator that wraps the StreamingClient for video streaming in Holoscan
- * 
+ *
  * This operator provides integration with the StreamingClient library,
  * allowing Holoscan applications to send and receive video streams.
  */
@@ -67,19 +67,19 @@ class StreamingClientOp : public holoscan::Operator {
 
   // Streaming client
   std::unique_ptr<StreamingClient> client_;
-  
+
   // For handling received frames
   std::mutex frame_mutex_;
   VideoFrame current_frame_;
   bool has_new_frame_ = false;
-  
+
   // Timing control for frame rate management
   std::chrono::steady_clock::time_point last_frame_time_;
   std::chrono::microseconds frame_interval_;
-  
+
   // Frame callback handler
   void onFrameReceived(const VideoFrame& frame);
-  
+
   // Frame generation method
   VideoFrame generateFrame();
 };

@@ -31,7 +31,7 @@ class StreamingClientImpl;
 
 /**
  * @brief A unified client that handles both upstream and downstream video streams
- * 
+ *
  * This class provides a clean abstraction over the underlying streaming  components,
  * managing both sending video to and receiving video from a remote server.
  */
@@ -39,103 +39,103 @@ class StreamingClient {
 public:
     // Define types for callbacks and frame generation
     using FrameCallback = std::function<void(const VideoFrame&)>;
-    
+
     /**
      * @brief Construct a new streaming client
-     * 
+     *
      * @param width Width of video frames (default: 854)
      * @param height Height of video frames (default: 480)
      * @param fps Frames per second (default: 30)
      * @param signalingPort Port used for signaling (default: 48010)
      */
     StreamingClient(uint32_t width = 854, uint32_t height = 480, uint32_t fps = 30, uint16_t signalingPort = 48010);
-    
+
     /**
      * @brief Destroy the client and clean up resources
      */
     ~StreamingClient();
-    
+
     // Move operations
     StreamingClient(StreamingClient&&) noexcept;
     StreamingClient& operator=(StreamingClient&&) noexcept;
-    
+
     // Delete copy operations
     StreamingClient(const StreamingClient&) = delete;
     StreamingClient& operator=(const StreamingClient&) = delete;
-    
+
     /**
      * @brief Start streaming to/from the server
-     * 
+     *
      * @param serverIp IP address of the server
      * @param signalingPort Port used for signaling
      */
     void startStreaming(const std::string& serverIp, uint16_t signalingPort);
-    
+
     /**
      * @brief Stop all streaming
      */
     void stopStreaming();
-    
+
     /**
      * @brief Wait for streaming to end
-     * 
+     *
      * @param timeout Maximum time to wait
      * @return true if streaming ended, false if timeout occurred
      */
     bool waitForStreamingEnded(std::chrono::milliseconds timeout = std::chrono::milliseconds(5000));
-    
+
     /**
      * @brief Wait for first video frame to be received
-     * 
+     *
      * @param timeout Maximum time to wait
      * @return true if first frame was received, false if timeout occurred
      */
     bool waitForFirstFrameReceived(std::chrono::milliseconds timeout = std::chrono::milliseconds(5000));
-    
+
     /**
      * @brief Set a callback function for received frames
-     * 
+     *
      * @param callback Function to be called when a new frame is received
      */
     void setFrameCallback(FrameCallback callback);
-    
+
     /**
      * @brief Set a callback function for received frames (alias for setFrameCallback)
      */
     void setFrameReceivedCallback(FrameCallback callback);
-    
+
     /**
      * @brief Set a custom frame source for upstream video
-     * 
+     *
      * @param frameSource Function that generates video frames
      */
     void setFrameSource(FrameGeneratorFunc frameSource);
-    
+
     /**
      * @brief Check if the client is currently streaming
-     * 
+     *
      * @return true if streaming, false otherwise
      */
     bool isStreaming() const;
-    
+
     /**
      * @brief Explicitly clean up resources before destruction
-     * 
+     *
      * Call this before the application exits to ensure clean shutdown.
      */
     void cleanup();
-    
+
     /**
      * @brief Send a single frame to the server
-     * 
+     *
      * This method directly sends the provided frame to the server without requiring a frame source.
      * It encapsulates the logic from ClientUpstreamVideo::onConnected for manual frame sending.
-     * 
+     *
      * @param frame The video frame to send
      * @return bool true if the frame was sent successfully, false otherwise
      */
     bool sendFrame(const VideoFrame& frame);
-    
+
 private:
     // Private implementation pointer
     std::unique_ptr<StreamingClientImpl> pImpl;

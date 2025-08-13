@@ -95,7 +95,7 @@ mv holoscan_server_cloud_streaming lib
 ### Deployment on NVCF
 
 The Holoscan cloud steaming stack provides plugins with endpoints required to deploy the server docker container as a streaming function.
-You can push the container and create/update/delpoy the streaming function from the [web portal](https://nvcf.ngc.nvidia.com/functions).
+You can push the container and create/update/deploy the streaming function from the [web portal](https://nvcf.ngc.nvidia.com/functions).
 
 #### Push Container
 

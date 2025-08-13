@@ -55,4 +55,4 @@ install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/__init__.py
     DESTINATION ${HOLOHUB_PYTHON_MODULE_DIR}/holoscan/operators
     COMPONENT python
-) 
+)
