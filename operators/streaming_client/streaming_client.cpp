@@ -165,7 +165,6 @@ void StreamingClientOp::start() {
 
         // Give the connection time to stabilize
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
       } catch (const std::exception& e) {
         retry_count++;
         HOLOSCAN_LOG_WARN("Connection attempt {} failed: {}. Retrying in 500ms...",
@@ -189,7 +188,7 @@ void StreamingClientOp::start() {
     }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to start streaming client: {}", e.what());
-    throw; // Re-throw to indicate failure
+    throw;  // Re-throw to indicate failure
   } catch (...) {
     HOLOSCAN_LOG_ERROR("Unknown exception during client start");
     throw;
@@ -397,9 +396,11 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
           std::memcpy(frame_data, tensor->data(), actual_size);
         }
 
-        HOLOSCAN_LOG_INFO("✅ Simplified tensor processing completed: {} bytes copied", actual_size);
+        HOLOSCAN_LOG_INFO("✅ Simplified tensor processing completed: {} bytes copied",
+                          actual_size);
       } else {
-        HOLOSCAN_LOG_ERROR("Frame buffer too small: buffer={}, needed={}", frame_buffer_size, actual_size);
+        HOLOSCAN_LOG_ERROR("Frame buffer too small: buffer={}, needed={}",
+                          frame_buffer_size, actual_size);
         return;
       }
     }
@@ -438,7 +439,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       // Check if frame data is all zeros
       bool all_zeros = true;
       size_t non_zero_count = 0;
-      size_t check_limit = std::min(data_size, static_cast<size_t>(100)); // Check first 100 bytes
+      size_t check_limit = std::min(data_size, static_cast<size_t>(100));  // Check first 100 bytes
 
       for (size_t i = 0; i < check_limit; ++i) {
         if (frame_data[i] != 0) {
@@ -505,7 +506,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     std::lock_guard<std::mutex> lock(frame_mutex_);
     if (has_new_frame_) {
       try {
-        auto& frame_ref = current_frame_; // Reference to avoid copying
+        auto& frame_ref = current_frame_;  // Reference to avoid copying
 
         // Get frame data
         const uint8_t* frame_data = frame_ref.getData();
@@ -595,7 +596,7 @@ VideoFrame StreamingClientOp::generateFrame() {
   return VideoFrame(width_.get(), height_.get(), nullptr, 0, 0);
 }
 
-} // namespace holoscan::ops
+}  // namespace holoscan::ops
 
 
 
