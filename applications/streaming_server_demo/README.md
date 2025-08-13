@@ -35,6 +35,25 @@ To run the application:
 
 The application can be configured using a YAML file. By default, it looks for `streaming_server_demo.yaml` in the current directory.
 
+## Network Configuration
+
+### HAProxy Requirements
+
+For streaming clients to connect successfully, the following network requirements must be met:
+
+- **HAProxy Accessibility**: HAProxy must be accessible by the client. The client does not need to be on the same network as HAProxy, but it must have a clear network path to reach HAProxy (i.e., the client must be able to "see" HAProxy, but HAProxy does not necessarily need to see the client).
+
+- **Cross-Network Considerations**: If the client and server are on different networks, the streaming path needs to be handled accordingly:
+  - The client must be able to reach the server's UDP ports
+  - The opposite direction is not required since return traffic will be treated as responding traffic
+  - Ensure proper firewall rules and NAT configurations allow this asymmetric communication
+
+### Network Path Requirements
+
+- Client → HAProxy: Required (client must be able to initiate connection)
+- Client → Server UDP Ports: Required (for streaming data)
+- Server → Client: Not required (handled as response traffic)
+
 ## Related Applications
 
 - [Streaming Client Demo Application](../streaming_client_demo/README.md) 
