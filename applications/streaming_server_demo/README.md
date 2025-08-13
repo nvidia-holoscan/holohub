@@ -1,4 +1,4 @@
-# Streaming Server Demo Application
+# Streaming Server Demo
 
 This application demonstrates how to use the Holoscan SDK to create a streaming server application that can send video streams to streaming clients.
 
