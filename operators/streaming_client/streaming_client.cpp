@@ -61,7 +61,7 @@ void StreamingClientOp::setup(holoscan::OperatorSpec& spec) {
   spec.param(server_ip_, "server_ip", "Server IP", "IP address of the streaming server",
              std::string("127.0.0.1"));
   spec.param(signaling_port_, "signaling_port", "Signaling Port",
-             "Port used for signaling", uint16_t{48010});  // Match StreamSDK hardcoded port
+             "Port used for signaling", uint16_t{48010});  // Match Streaming hardcoded port
   spec.param(receive_frames_, "receive_frames", "Receive Frames",
              "Whether to receive frames from server", true);
   spec.param(send_frames_, "send_frames", "Send Frames",
