@@ -68,6 +68,7 @@ target_include_directories(streaming_client_demo PUBLIC $<BUILD_INTERFACE:${Open
 target_link_libraries(streaming_client_demo
     PUBLIC
     holoscan::core
+    holoscan::ops::streaming_client
     ${OpenCV_LIBS}
     CUDA::cudart
     CUDA::cuda_driver
