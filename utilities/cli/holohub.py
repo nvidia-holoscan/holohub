@@ -453,8 +453,8 @@ class HoloHubCLI:
             # Determine target language (if unspecified, prefer cpp then first available)
             if normalized_language:
                 target_lang = normalized_language
-            elif "cpp" in available_lang:
-                target_lang = "cpp"
+            elif "python" in available_lang:
+                target_lang = "python"
             else:
                 target_lang = available_lang[0] if available_lang else ""
             # Warn if ambiguous and no language specified
