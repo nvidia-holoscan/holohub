@@ -34,7 +34,7 @@ target_link_libraries(nvc_encode_decode_cpp
 
 # Copy config file to build tree
 add_custom_target(nvc_encode_decode_cpp_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/nvc_encode_decode.yaml" 
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/nvc_encode_decode.yaml"
                                    "${CMAKE_CURRENT_BINARY_DIR}/nvc_encode_decode.yaml"
   DEPENDS "nvc_encode_decode.yaml"
   BYPRODUCTS "nvc_encode_decode.yaml"

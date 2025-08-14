@@ -238,7 +238,6 @@ int main(int argc, char** argv) {
     auto& tracker = app->track();
     app->run();
     tracker.print();
-
   } catch (const std::exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;
     return 1;
