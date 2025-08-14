@@ -222,3 +222,13 @@ set_property(TEST test_holohub_validate_mode_build_with_and_run_args_conflicts P
     PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--run-args.*when using mode.*mcp"
     WILL_FAIL TRUE
 )
+
+# test multi language project
+add_test(
+    NAME test_holohub_run_multi_language_project
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_multi_language_project PROPERTY
+    PASS_REGULAR_EXPRESSION "has multiple languages.*language"
+)
