@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include <macros.hpp>
+#include "macros.hpp"
 
 namespace holoscan::doc::OrsiSegmentationPreprocessorOp {
 
