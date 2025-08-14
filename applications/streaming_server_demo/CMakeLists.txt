@@ -30,7 +30,3 @@ configure_file(
     ${CMAKE_BINARY_DIR}/streaming_server_demo.py
     COPYONLY
 )
-
-# Create run_python.sh script
-file(WRITE ${CMAKE_BINARY_DIR}/run_python.sh "#!/bin/bash\n\npython3 streaming_server_demo.py \"$@\"\n")
-file(CHMOD ${CMAKE_BINARY_DIR}/run_python.sh PERMISSIONS OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE)
