@@ -31,10 +31,9 @@ message(STATUS "Using Streaming .so library directory: ${STREAMING_LIB_SO_DIR}")
 # Set ABI flag consistently to match StreamingServer library
 add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=1)
 
-# Add additional compiler flags for stability and ABI consistency
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-strong")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-z,relro,-z,now")
+# Add additional compiler and linker flags for stability and security
+list(APPEND CMAKE_CXX_FLAGS "-fstack-protector-strong")
+list(APPEND CMAKE_SHARED_LINKER_FLAGS "-Wl,-z,relro,-z,now")
 
 # Define the operator as a library
 add_library(streaming_server
