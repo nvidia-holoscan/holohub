@@ -92,27 +92,27 @@ target_link_libraries(streaming_server
     atomic
 )
 
-# Explicitly list all .so files instead of using glob
-set(STREAMING_SO_FILES
-    "${STREAMING_LIB_SO_DIR}/libNvStreamBase.so"
-    "${STREAMING_LIB_SO_DIR}/libNvStreamServer.so"
-    "${STREAMING_LIB_SO_DIR}/libNvStreamingSession.so"
-    "${STREAMING_LIB_SO_DIR}/libStreamClientShared.so"
-    "${STREAMING_LIB_SO_DIR}/libSCI.so"
-    "${STREAMING_LIB_SO_DIR}/libprotobuf.so.9"
-    "${STREAMING_LIB_SO_DIR}/libPoco.so"
-    "${STREAMING_LIB_SO_DIR}/libNvSignalingServer.so"
-    "${STREAMING_LIB_SO_DIR}/libNvSessionNegotiator.so"
-    "${STREAMING_LIB_SO_DIR}/libNvcfBlasUpload.so"
-    "${STREAMING_LIB_SO_DIR}/libNicllsHandlerServer.so"
-    "${STREAMING_LIB_SO_DIR}/libmessagebus.so"
-    "${STREAMING_LIB_SO_DIR}/libInputStreamShared.so"
-    "${STREAMING_LIB_SO_DIR}/libcudart.so.12"
-    "${STREAMING_LIB_SO_DIR}/libcudart.so.12.0.107"
-    "${STREAMING_LIB_SO_DIR}/libssl.so.3"
-    "${STREAMING_LIB_SO_DIR}/libcrypto.so.3"
-    "${STREAMING_LIB_SO_DIR}/libAudioStreamShared.so"
-    "${STREAMING_LIB_SO_DIR}/libserverlib.so"
+# List library filenames (paths constructed in foreach loop)
+set(STREAMING_SO_FILENAMES
+    "libNvStreamBase.so"
+    "libNvStreamServer.so"
+    "libNvStreamingSession.so"
+    "libStreamClientShared.so"
+    "libSCI.so"
+    "libprotobuf.so.9"
+    "libPoco.so"
+    "libNvSignalingServer.so"
+    "libNvSessionNegotiator.so"
+    "libNvcfBlasUpload.so"
+    "libNicllsHandlerServer.so"
+    "libmessagebus.so"
+    "libInputStreamShared.so"
+    "libcudart.so.12"
+    "libcudart.so.12.0.107"
+    "libssl.so.3"
+    "libcrypto.so.3"
+    "libAudioStreamShared.so"
+    "libserverlib.so"
 )
 
 # Make sure all StreamingServer libraries are copied to the build directory first
@@ -120,11 +120,11 @@ add_custom_command(TARGET streaming_server PRE_LINK
   COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/lib"
 )
 
-# Copy all .so files
-foreach(SO_FILE ${STREAMING_SO_FILES})
+# Copy all .so files (construct full paths from filenames)
+foreach(SO_FILENAME ${STREAMING_SO_FILENAMES})
   add_custom_command(TARGET streaming_server PRE_LINK
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      "${SO_FILE}"
+      "${STREAMING_LIB_SO_DIR}/${SO_FILENAME}"
       "${CMAKE_CURRENT_BINARY_DIR}/lib/"
   )
 endforeach()
