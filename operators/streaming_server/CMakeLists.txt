@@ -20,13 +20,11 @@ project(streaming_server)
 find_package(holoscan 3.2 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-# Define path variables for StreamingServer dependencies
-set(STREAMING_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
-set(STREAMING_LIB_SO_DIR ${STREAMING_LIB_DIR})
+# Define path for StreamingServer dependencies (downloaded to build tree)
+set(STREAMING_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/streaming_libs")
 
-# Print library directories
+# Print library directory
 message(STATUS "Using Streaming library directory: ${STREAMING_LIB_DIR}")
-message(STATUS "Using Streaming .so library directory: ${STREAMING_LIB_SO_DIR}")
 
 # Set ABI flag consistently to match StreamingServer library
 add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=1)
@@ -49,7 +47,7 @@ set_target_properties(streaming_server PROPERTIES
   CXX_STANDARD_REQUIRED ON
   POSITION_INDEPENDENT_CODE ON
   BUILD_WITH_INSTALL_RPATH TRUE
-  INSTALL_RPATH "${STREAMING_LIB_SO_DIR}:$ORIGIN/lib:${CMAKE_INSTALL_PREFIX}/lib:/opt/nvidia/holoscan/lib"
+  INSTALL_RPATH "${STREAMING_LIB_DIR}:$ORIGIN/lib:${CMAKE_INSTALL_PREFIX}/lib:/opt/nvidia/holoscan/lib"
   INSTALL_RPATH_USE_LINK_PATH TRUE
   SKIP_BUILD_RPATH FALSE
 )
@@ -62,7 +60,7 @@ target_include_directories(streaming_server
 )
 
 # Add link directory explicitly
-link_directories(${STREAMING_LIB_SO_DIR})
+link_directories(${STREAMING_LIB_DIR})
 
 # Link against libraries (paths resolved via link_directories)
 target_link_libraries(streaming_server
@@ -71,14 +69,14 @@ target_link_libraries(streaming_server
     NvStreamBase
     NvStreamServer
     NvStreamingSession
-    "${STREAMING_LIB_SO_DIR}/libNvStreamingMedia.a"  # Static lib needs full path
+    "${STREAMING_LIB_DIR}/libNvStreamingMedia.a"  # Static lib needs full path
     StreamClientShared
     SCI
     "protobuf.so.9"  # Versioned lib needs explicit name
     Poco
     NvSignalingServer
     NvSessionNegotiator
-    "${STREAMING_LIB_SO_DIR}/libNVCodec.a"  # Static lib needs full path
+    "${STREAMING_LIB_DIR}/libNVCodec.a"  # Static lib needs full path
     NvcfBlasUpload
     NicllsHandlerServer
     messagebus
@@ -124,7 +122,7 @@ add_custom_command(TARGET streaming_server PRE_LINK
 foreach(SO_FILENAME ${STREAMING_SO_FILENAMES})
   add_custom_command(TARGET streaming_server PRE_LINK
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      "${STREAMING_LIB_SO_DIR}/${SO_FILENAME}"
+      "${STREAMING_LIB_DIR}/${SO_FILENAME}"
       "${CMAKE_CURRENT_BINARY_DIR}/lib/"
   )
 endforeach()
@@ -155,10 +153,10 @@ add_custom_command(TARGET streaming_server POST_BUILD
     ${CMAKE_BINARY_DIR}/operators/streaming_server/lib
 )
 
-foreach(SO_FILE ${STREAMING_SO_FILES})
+foreach(SO_FILENAME ${STREAMING_SO_FILENAMES})
   add_custom_command(TARGET streaming_server POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      "${SO_FILE}"
+      "${STREAMING_LIB_DIR}/${SO_FILENAME}"
       "${CMAKE_BINARY_DIR}/operators/streaming_server/lib/"
   )
 endforeach()
@@ -266,7 +264,7 @@ export(EXPORT streaming_server-targets
 message(STATUS "StreamingServer operator configuration complete.")
 
 foreach(lib libserverlib.so libNvStreamBase.so libNvStreamServer.so)
-  if(NOT EXISTS "${STREAMING_LIB_SO_DIR}/${lib}")
-    message(FATAL_ERROR "Required library ${lib} not found in ${STREAMING_LIB_SO_DIR}")
+  if(NOT EXISTS "${STREAMING_LIB_DIR}/${lib}")
+    message(FATAL_ERROR "Required library ${lib} not found in ${STREAMING_LIB_DIR}")
   endif()
 endforeach()
