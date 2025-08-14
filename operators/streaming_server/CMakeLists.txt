@@ -262,9 +262,3 @@ export(EXPORT streaming_server-targets
 
 # Print status message
 message(STATUS "StreamingServer operator configuration complete.")
-
-foreach(lib libserverlib.so libNvStreamBase.so libNvStreamServer.so)
-  if(NOT EXISTS "${STREAMING_LIB_DIR}/${lib}")
-    message(FATAL_ERROR "Required library ${lib} not found in ${STREAMING_LIB_DIR}")
-  endif()
-endforeach()
