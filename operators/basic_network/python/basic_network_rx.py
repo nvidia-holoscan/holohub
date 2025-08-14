@@ -16,6 +16,7 @@
 import copy
 import logging
 import socket
+import time
 
 from holoscan.core import Operator, OperatorSpec
 
@@ -29,8 +30,10 @@ class BasicNetworkOpRx(Operator):
     dst_port: int = None
     batch_size: int = None
     max_payload_size: int = None
+    max_burst_interval: int = None
     connected: bool = False
     send_burst: NetworkOpBurstParams = NetworkOpBurstParams()
+    burst_start_time: float = None
 
     def _initialize(self):
         try:
@@ -63,6 +66,7 @@ class BasicNetworkOpRx(Operator):
         spec.param("l4_proto")
         spec.param("batch_size")
         spec.param("max_payload_size")
+        spec.param("max_burst_interval", None)
         spec.output("burst_out")
 
     def compute(self, op_input, op_output, context):
@@ -80,7 +84,20 @@ class BasicNetworkOpRx(Operator):
             finally:
                 self.sock_fd.settimeout(None)
 
-        while True:
+        # Initialize burst start time if this is the first packet in a new burst
+        if len(self.send_burst.data) == 0:
+            self.burst_start_time = time.time()
+
+        while len(self.send_burst.data) < self.batch_size:
+            # Check if max_burst_interval has been reached
+            if self.max_burst_interval and self.max_burst_interval > 0 and self.burst_start_time:
+                current_time = time.time()
+                elapsed_ms = (current_time - self.burst_start_time) * 1000
+
+                if elapsed_ms >= self.max_burst_interval:
+                    self.logger.info(f"Timeout, emitting {len(self.send_burst.data)} bytes (elapsed time: {elapsed_ms:.1f} ms)")
+                    break
+
             try:
                 if self.l4_proto == L4Proto.UDP:
                     tmp = self.sock_fd.recvfrom(self.max_payload_size, socket.MSG_DONTWAIT)
@@ -98,8 +115,8 @@ class BasicNetworkOpRx(Operator):
             else:
                 return
 
-            if len(self.send_burst.data) >= self.batch_size:
-                tmp = copy.deepcopy(self.send_burst)
-                op_output.emit(tmp, "burst_out")
-                self.send_burst.reset()
-                return
+        # Emit data when batch is full, timeout occurred, or no more data available
+        if len(self.send_burst.data) > 0:
+            tmp = copy.deepcopy(self.send_burst)
+            op_output.emit(tmp, "burst_out")
+            self.send_burst.reset()
