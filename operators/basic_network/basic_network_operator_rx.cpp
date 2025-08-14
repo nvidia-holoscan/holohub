@@ -31,8 +31,10 @@ void BasicNetworkOpRx::setup(OperatorSpec& spec) {
   spec.param<uint32_t>(batch_size_, "batch_size", "Batch size", "Number of packets in batch");
   spec.param<uint16_t>(
       max_payload_size_, "max_payload_size", "Max payload size", "Largest payload size");
-  spec.param<uint64_t>(
-      max_burst_interval_, "max_burst_interval", "Max burst interval", "Maximum time interval between bursts (ms)");
+  spec.param<uint64_t>(max_burst_interval_,
+                       "max_burst_interval",
+                       "Max burst interval",
+                       "Maximum time interval between bursts (ms)");
 }
 
 BasicNetworkOpRx::~BasicNetworkOpRx() {
