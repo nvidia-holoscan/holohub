@@ -42,6 +42,7 @@ class BasicNetworkOpTx : public Operator {
   Parameter<std::string> l4_proto_p_;
   Parameter<uint16_t> max_payload_size_;
   Parameter<uint32_t> ipg_;
+  Parameter<bool> delete_payload_;
 
   int sockfd_;
   L4Proto l4_proto_;
