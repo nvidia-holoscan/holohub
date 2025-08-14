@@ -545,13 +545,35 @@ class HoloHubCLI:
             )
         return requested_mode, modes[requested_mode]
 
+    def _is_implicit_default(self, project_data: dict, user_requested_mode: Optional[str]) -> bool:
+        """
+        Check if we're using a default mode without explicitly requesting it.
+        This enables the implicit default mode behavior where CLI args are allowed.
+        """
+        if user_requested_mode is not None:
+            return False  # Mode was explicitly requested by user
+        return bool(project_data.get("metadata", {}).get("modes", {}))  # has default mode
+
     def validate_mode(
-        self, args: argparse.Namespace, mode_name: Optional[str], mode_config: dict
+        self,
+        args: argparse.Namespace,
+        mode_name: Optional[str],
+        mode_config: dict,
+        project_data: dict,
+        requested_mode: Optional[str],
     ) -> None:
         """Validate that when mode is specified, no conflicting CLI parameters are provided"""
         if not mode_name or not mode_config:
             return  # No mode specified, allow CLI parameters
+
+        # Check if this is an implicit default mode selection - if so, allow all CLI parameter overrides
+        if self._is_implicit_default(project_data, requested_mode):
+            # For implicit default modes, allow all CLI parameter overrides
+            # This enables the use case: ./holohub run app --run-args="..." --build-with="..." etc.
+            return
+
         conflicting_params = []
+
         # Check build-related parameters
         if "build" in mode_config:
             build_config = mode_config["build"]
@@ -561,6 +583,7 @@ class HoloHubCLI:
                 conflicting_params.append("--build-args")
             if "cmake_options" in build_config and getattr(args, "configure_args", None):
                 conflicting_params.append("--configure-args")
+
         # Check run-related parameters
         if "run" in mode_config:
             run_config = mode_config["run"]
@@ -568,15 +591,22 @@ class HoloHubCLI:
                 conflicting_params.append("--docker-opts")
             if "command" in run_config and getattr(args, "run_args", None):
                 conflicting_params.append("--run-args")
+
         if conflicting_params:
             params_str = ", ".join(conflicting_params)
             holohub_cli_util.fatal(
-                f"Cannot specify CLI parameters {params_str} when using mode '{mode_name}'. "
+                f"Cannot specify CLI parameters {params_str} when using explicit mode '{mode_name}'. "
                 f"All configuration must be provided through the mode definition.\n"
                 f"See https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/README.md"
             )
 
-    def get_effective_build_config(self, args: argparse.Namespace, mode_config: dict) -> dict:
+    def get_effective_build_config(
+        self,
+        args: argparse.Namespace,
+        mode_config: dict,
+        project_data: dict = None,
+        requested_mode: Optional[str] = None,
+    ) -> dict:
         """Get effective build configuration combining CLI args and mode config without mutation"""
         config = {
             "with_operators": getattr(args, "with_operators", None),
@@ -587,28 +617,83 @@ class HoloHubCLI:
         if not mode_config:
             return config
 
-        # Apply build configuration
+        # Check if this is an implicit default mode - if so, CLI args take precedence
+        is_implicit_default = project_data and self._is_implicit_default(
+            project_data, requested_mode
+        )
+
+        # Apply build configuration (mode values override CLI values unless it's an implicit default)
         if "build" in mode_config:
             build_config = mode_config["build"]
+
+            # For depends/with_operators: use CLI if provided and implicit default, otherwise use mode
             if "depends" in build_config:
-                mode_deps = [dep.strip() for dep in build_config["depends"] if dep.strip()]
-                config["with_operators"] = ";".join(mode_deps) if mode_deps else ""
+                if is_implicit_default and config["with_operators"]:
+                    mode_deps = [dep.strip() for dep in build_config["depends"] if dep.strip()]
+                    msg = f"CLI args --build-with='{config['with_operators']}' "
+                    msg += f"overrides mode {', '.join(mode_deps)}"
+                    print(Color.yellow(msg))
+                else:
+                    mode_deps = [dep.strip() for dep in build_config["depends"] if dep.strip()]
+                    config["with_operators"] = ";".join(mode_deps) if mode_deps else ""
+
+            # For docker_build_args: use CLI if provided and implicit default, otherwise use mode
             if "docker_build_args" in build_config:
-                config["build_args"] = holohub_cli_util.normalize_args_str(
-                    build_config["docker_build_args"]
-                )
+                if is_implicit_default and config["build_args"]:
+                    mode_args = holohub_cli_util.normalize_args_str(
+                        build_config["docker_build_args"]
+                    )
+                    msg = f"CLI args --build-args='{config['build_args']}' "
+                    msg += f"overrides mode --build-args: {mode_args}"
+                    print(Color.yellow(msg))
+                else:
+                    config["build_args"] = holohub_cli_util.normalize_args_str(
+                        build_config["docker_build_args"]
+                    )
+
+            # For cmake_options: use CLI if provided and implicit default, otherwise use mode
             if "cmake_options" in build_config:
-                config["configure_args"] = build_config["cmake_options"]
+                if is_implicit_default and config["configure_args"]:
+                    mode_opts = (
+                        " ".join(build_config["cmake_options"])
+                        if isinstance(build_config["cmake_options"], list)
+                        else build_config["cmake_options"]
+                    )
+                    cli_opts = (
+                        " ".join(config["configure_args"])
+                        if isinstance(config["configure_args"], list)
+                        else config["configure_args"]
+                    )
+                    msg = f"CLI args --configure-args='{cli_opts}' "
+                    msg += f"overrides mode --configure-args: {mode_opts}"
+                    print(Color.yellow(msg))
+                else:
+                    config["configure_args"] = build_config["cmake_options"]
 
         # Apply run.docker_run_args for build container (Docker run arguments)
         if "run" in mode_config and "docker_run_args" in mode_config["run"]:
-            config["docker_opts"] = holohub_cli_util.normalize_args_str(
-                mode_config["run"]["docker_run_args"]
-            )
+            # For docker_opts: use CLI if provided and implicit default, otherwise use mode
+            if is_implicit_default and getattr(args, "docker_opts", ""):
+                mode_opts = holohub_cli_util.normalize_args_str(
+                    mode_config["run"]["docker_run_args"]
+                )
+                msg = f"CLI args --docker-opts='{getattr(args, 'docker_opts', '')}' "
+                msg += f"overrides mode --docker-opts: {mode_opts}"
+                print(Color.yellow(msg))
+            else:
+                config["docker_opts"] = holohub_cli_util.normalize_args_str(
+                    mode_config["run"]["docker_run_args"]
+                )
 
         return config
 
-    def get_effective_run_config(self, args: argparse.Namespace, mode_config: dict) -> dict:
+    def get_effective_run_config(
+        self,
+        args: argparse.Namespace,
+        mode_config: dict,
+        project_data: dict = None,
+        requested_mode: Optional[str] = None,
+    ) -> dict:
         """Get effective run configuration combining CLI args and mode config without mutation"""
         config = {
             "run_args": getattr(args, "run_args", "") or "",
@@ -617,15 +702,38 @@ class HoloHubCLI:
 
         if mode_config and "run" in mode_config:
             run_config = mode_config["run"]
-            # Replace with mode-specific values
+
+            # Check if this is an implicit default mode - if so, CLI args take precedence for docker_opts
+            is_implicit_default = project_data and self._is_implicit_default(
+                project_data, requested_mode
+            )
+
             if "command" in run_config:
                 config["command"] = run_config["command"]
             if "workdir" in run_config:
                 config["workdir"] = run_config["workdir"]
-            if "docker_run_args" in run_config:
-                config["docker_opts"] = holohub_cli_util.normalize_args_str(
-                    run_config["docker_run_args"]
+
+            # For run_args: show warning if CLI overrides mode command in implicit default mode
+            if "command" in run_config and is_implicit_default and getattr(args, "run_args", ""):
+                msg = (
+                    f"CLI args --run-args='{getattr(args, 'run_args', '')}' "
+                    f"will be appended to mode command"
                 )
+                print(Color.yellow(msg))
+
+            # For docker_run_args: use CLI if provided and implicit default, otherwise use mode
+            if "docker_run_args" in run_config:
+                if is_implicit_default and getattr(args, "docker_opts", ""):
+                    mode_opts = holohub_cli_util.normalize_args_str(run_config["docker_run_args"])
+                    msg = (
+                        f"CLI args --docker-opts='{getattr(args, 'docker_opts', '')}' "
+                        f"overrides mode --docker-opts: {mode_opts}"
+                    )
+                    print(Color.yellow(msg))
+                else:
+                    config["docker_opts"] = holohub_cli_util.normalize_args_str(
+                        run_config["docker_run_args"]
+                    )
         return config
 
     def _make_project_container(
@@ -865,10 +973,12 @@ class HoloHubCLI:
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
 
-        self.validate_mode(args, mode_name, mode_config)
+        self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
 
         # Apply mode-specific build configuration
-        build_args = self.get_effective_build_config(args, mode_config)
+        build_args = self.get_effective_build_config(
+            args, mode_config, project_data, getattr(args, "mode", None)
+        )
 
         if mode_config:
             print(f"Building {args.project} in '{mode_name}' mode")
@@ -904,7 +1014,8 @@ class HoloHubCLI:
 
             # Build command with all necessary arguments
             build_cmd = f"{self.script_name} build {args.project}"
-            if mode_name:
+            # Only add mode name if it was explicitly requested by user (not implicitly resolved)
+            if mode_name and getattr(args, "mode", None) is not None:
                 build_cmd += f" {mode_name}"
             build_cmd += " --local"
             if args.build_type:
@@ -957,13 +1068,17 @@ class HoloHubCLI:
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
 
-        self.validate_mode(args, mode_name, mode_config)
+        self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
 
         # Apply mode-specific build configuration for build process
-        build_args = self.get_effective_build_config(args, mode_config)
+        build_args = self.get_effective_build_config(
+            args, mode_config, project_data, getattr(args, "mode", None)
+        )
 
         # Apply mode-specific run configuration
-        run_args = self.get_effective_run_config(args, mode_config)
+        run_args = self.get_effective_run_config(
+            args, mode_config, project_data, getattr(args, "mode", None)
+        )
 
         if mode_config:
             print(f"Running {args.project} in '{mode_name}' mode")
@@ -1129,7 +1244,8 @@ class HoloHubCLI:
             )
 
             run_cmd = f"{self.script_name} run {args.project}"
-            if mode_name:
+            # Only add mode name if it was explicitly requested by user (not implicitly resolved)
+            if mode_name and getattr(args, "mode", None) is not None:
                 run_cmd += f" {mode_name}"
             run_cmd += f" --language {language} --local"
             if args.verbose:
@@ -1568,8 +1684,10 @@ class HoloHubCLI:
         # Handle mode-specific configuration (if project has modes)
         project_data = self.find_project(args.project, language=getattr(args, "language", None))
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
-        self.validate_mode(args, mode_name, mode_config)
-        build_args = self.get_effective_build_config(args, mode_config)
+        self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
+        build_args = self.get_effective_build_config(
+            args, mode_config, project_data, getattr(args, "mode", None)
+        )
 
         if mode_config:
             print(f"Installing {args.project} in '{mode_name}' mode")
