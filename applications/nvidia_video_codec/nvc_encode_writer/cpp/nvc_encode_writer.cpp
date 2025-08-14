@@ -57,7 +57,7 @@ class NVIDIAVideoCodecApp : public holoscan::Application {
     auto format_converter = make_operator<ops::FormatConverterOp>(
         "format_converter",
         Arg("pool") = make_resource<BlockMemoryPool>(
-                        "pool", 
+                        "pool",
                         static_cast<int32_t>(MemoryStorageType::kDevice),
                         source_block_size,
                         source_num_blocks),
@@ -177,7 +177,6 @@ int main(int argc, char** argv) {
     auto& tracker = app->track();
     app->run();
     tracker.print();
-
   } catch (const std::exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;
     return 1;
