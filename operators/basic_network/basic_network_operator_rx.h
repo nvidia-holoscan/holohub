@@ -33,6 +33,7 @@ class BasicNetworkOpRx : public Operator {
   BasicNetworkOpRx() = default;
   ~BasicNetworkOpRx();
   void initialize() override;
+  void stop() override;
   void setup(OperatorSpec& spec) override;
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 

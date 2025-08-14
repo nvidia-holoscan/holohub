@@ -39,6 +39,14 @@ BasicNetworkOpRx::~BasicNetworkOpRx() {
   HOLOSCAN_LOG_INFO("{} packets left in buffer for RX operator", pkts_in_batch_);
 }
 
+void BasicNetworkOpRx::stop() {
+  // Clean up allocated packet buffer
+  if (pkt_buf != nullptr) {
+    delete[] pkt_buf;
+    pkt_buf = nullptr;
+  }
+}
+
 void BasicNetworkOpRx::initialize() {
   HOLOSCAN_LOG_INFO("BasicNetworkOpRx::initialize()");
   holoscan::Operator::initialize();
@@ -112,7 +120,9 @@ void BasicNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op
 
   if (byte_cnt_ == 0) {
     // Reserve memory and initialize burst time on first packet allocation
-    pkt_buf = new uint8_t[max_payload_size_.get() * batch_size_.get()];
+    if (pkt_buf == nullptr) {
+      pkt_buf = new uint8_t[max_payload_size_.get() * batch_size_.get()];
+    }
     burst_start_time_ = std::chrono::steady_clock::now();
   }
 
@@ -159,6 +169,7 @@ void BasicNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op
     auto msg = std::make_shared<NetworkOpBurstParams>(pkt_buf, byte_cnt_, pkts_in_batch_);
     byte_cnt_ = 0;
     pkts_in_batch_ = 0;
+    pkt_buf = nullptr;
 
     op_output.emit(msg, "burst_out");
   }
