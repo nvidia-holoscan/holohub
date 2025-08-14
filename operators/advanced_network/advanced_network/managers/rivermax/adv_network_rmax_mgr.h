@@ -37,8 +37,8 @@ class RmaxMgr : public Manager {
 
   void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx) override;
   void* get_packet_ptr(BurstParams* burst, int idx) override;
-  uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) override;
-  uint16_t get_packet_length(BurstParams* burst, int idx) override;
+  uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx) override;
+  uint32_t get_packet_length(BurstParams* burst, int idx) override;
   uint16_t get_packet_flow_id(BurstParams* burst, int idx) override;
   void* get_packet_extra_info(BurstParams* burst, int idx) override;
   Status get_tx_packet_burst(BurstParams* burst) override;
