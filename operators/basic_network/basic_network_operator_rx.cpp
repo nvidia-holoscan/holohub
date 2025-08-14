@@ -31,6 +31,8 @@ void BasicNetworkOpRx::setup(OperatorSpec& spec) {
   spec.param<uint32_t>(batch_size_, "batch_size", "Batch size", "Number of packets in batch");
   spec.param<uint16_t>(
       max_payload_size_, "max_payload_size", "Max payload size", "Largest payload size");
+  spec.param<uint64_t>(
+      max_burst_interval_, "max_burst_interval", "Max burst interval", "Maximum time interval between bursts (ms)");
 }
 
 BasicNetworkOpRx::~BasicNetworkOpRx() {
@@ -108,11 +110,28 @@ void BasicNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op
     connected_ = true;
   }
 
-  if (byte_cnt_ == 0) { pkt_buf = new uint8_t[max_payload_size_.get() * batch_size_.get()]; }
+  if (byte_cnt_ == 0) {
+    // Reserve memory and initialize burst time on first packet allocation
+    pkt_buf = new uint8_t[max_payload_size_.get() * batch_size_.get()];
+    burst_start_time_ = std::chrono::steady_clock::now();
+  }
 
   while (pkts_in_batch_ < batch_size_.get()) {
-    int n;
+    // If enabled, check if max burst interval is reached
+    if (max_burst_interval_.get() > 0) {
+      auto current_time = std::chrono::steady_clock::now();
+      auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+          current_time - burst_start_time_).count();
 
+      if (elapsed_ms >= static_cast<int64_t>(max_burst_interval_.get())) {
+        HOLOSCAN_LOG_INFO("Timeout, emitting {} packets (elapsed time: {} ms)",
+                          pkts_in_batch_, elapsed_ms);
+        break;
+      }
+    }
+
+    // Receive packets
+    int n;
     if (l4_proto_ == L4Proto::UDP) {
       n = recvfrom(sockfd_,
                   &pkt_buf[byte_cnt_],
@@ -135,11 +154,14 @@ void BasicNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op
     }
   }
 
-  auto msg = std::make_shared<NetworkOpBurstParams>(pkt_buf, byte_cnt_, pkts_in_batch_);
-  byte_cnt_ = 0;
-  pkts_in_batch_ = 0;
+  // Only emit if we have packets to send
+  if (pkts_in_batch_ > 0) {
+    auto msg = std::make_shared<NetworkOpBurstParams>(pkt_buf, byte_cnt_, pkts_in_batch_);
+    byte_cnt_ = 0;
+    pkts_in_batch_ = 0;
 
-  op_output.emit(msg, "burst_out");
+    op_output.emit(msg, "burst_out");
+  }
   HOLOSCAN_LOG_DEBUG("BasicNetworkOpRx::compute");
 }
 
