@@ -64,31 +64,31 @@ target_include_directories(streaming_server
 # Add link directory explicitly
 link_directories(${STREAMING_LIB_SO_DIR})
 
-# Explicitly list all libraries to link against
+# Link against libraries (paths resolved via link_directories)
 target_link_libraries(streaming_server
   PUBLIC
     holoscan::core
-    "${STREAMING_LIB_SO_DIR}/libNvStreamBase.so"
-    "${STREAMING_LIB_SO_DIR}/libNvStreamServer.so"
-    "${STREAMING_LIB_SO_DIR}/libNvStreamingSession.so"
-    "${STREAMING_LIB_SO_DIR}/libNvStreamingMedia.a"
-    "${STREAMING_LIB_SO_DIR}/libStreamClientShared.so"
-    "${STREAMING_LIB_SO_DIR}/libSCI.so"
-    "${STREAMING_LIB_SO_DIR}/libprotobuf.so.9"
-    "${STREAMING_LIB_SO_DIR}/libPoco.so"
-    "${STREAMING_LIB_SO_DIR}/libNvSignalingServer.so"
-    "${STREAMING_LIB_SO_DIR}/libNvSessionNegotiator.so"
-    "${STREAMING_LIB_SO_DIR}/libNVCodec.a"
-    "${STREAMING_LIB_SO_DIR}/libNvcfBlasUpload.so"
-    "${STREAMING_LIB_SO_DIR}/libNicllsHandlerServer.so"
-    "${STREAMING_LIB_SO_DIR}/libmessagebus.so"
-    "${STREAMING_LIB_SO_DIR}/libInputStreamShared.so"
-    "${STREAMING_LIB_SO_DIR}/libcudart.so.12"
-    "${STREAMING_LIB_SO_DIR}/libcudart.so.12.0.107"
-    "${STREAMING_LIB_SO_DIR}/libssl.so.3"
-    "${STREAMING_LIB_SO_DIR}/libcrypto.so.3"
-    "${STREAMING_LIB_SO_DIR}/libAudioStreamShared.so"
-    "${STREAMING_LIB_SO_DIR}/libserverlib.so"
+    NvStreamBase
+    NvStreamServer
+    NvStreamingSession
+    "${STREAMING_LIB_SO_DIR}/libNvStreamingMedia.a"  # Static lib needs full path
+    StreamClientShared
+    SCI
+    "protobuf.so.9"  # Versioned lib needs explicit name
+    Poco
+    NvSignalingServer
+    NvSessionNegotiator
+    "${STREAMING_LIB_SO_DIR}/libNVCodec.a"  # Static lib needs full path
+    NvcfBlasUpload
+    NicllsHandlerServer
+    messagebus
+    InputStreamShared
+    "cudart.so.12"  # Versioned lib needs explicit name
+    "cudart.so.12.0.107"  # Specific version needs explicit name
+    "ssl.so.3"  # Versioned lib needs explicit name
+    "crypto.so.3"  # Versioned lib needs explicit name
+    AudioStreamShared
+    serverlib
     atomic
 )
 
