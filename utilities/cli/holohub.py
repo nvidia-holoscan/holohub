@@ -479,7 +479,7 @@ class HoloHubCLI:
             if not fallback_lang:
                 msg = f"Returning '{project_name}' with missing or unknown language metadata.\n"
                 msg += "Consider specifying --language for more consistent results.\n"
-                print(Color.yellow(msg))
+                holohub_cli_util.warn(msg)
             self._project_data[cache_key] = fallback_candidate
             return self._project_data[cache_key]
         # If project not found, suggest similar names
@@ -631,8 +631,8 @@ class HoloHubCLI:
                 if is_implicit_default and config["with_operators"]:
                     mode_deps = [dep.strip() for dep in build_config["depends"] if dep.strip()]
                     msg = f"CLI args --build-with='{config['with_operators']}' "
-                    msg += f"overrides mode {', '.join(mode_deps)}"
-                    print(Color.yellow(msg))
+                    msg += f"overrides mode depends: {', '.join(mode_deps)}"
+                    holohub_cli_util.warn(msg)
                 else:
                     mode_deps = [dep.strip() for dep in build_config["depends"] if dep.strip()]
                     config["with_operators"] = ";".join(mode_deps) if mode_deps else ""
@@ -645,7 +645,7 @@ class HoloHubCLI:
                     )
                     msg = f"CLI args --build-args='{config['build_args']}' "
                     msg += f"overrides mode --build-args: {mode_args}"
-                    print(Color.yellow(msg))
+                    holohub_cli_util.warn(msg)
                 else:
                     config["build_args"] = holohub_cli_util.normalize_args_str(
                         build_config["docker_build_args"]
@@ -666,7 +666,7 @@ class HoloHubCLI:
                     )
                     msg = f"CLI args --configure-args='{cli_opts}' "
                     msg += f"overrides mode --configure-args: {mode_opts}"
-                    print(Color.yellow(msg))
+                    holohub_cli_util.warn(msg)
                 else:
                     config["configure_args"] = build_config["cmake_options"]
 
@@ -679,7 +679,7 @@ class HoloHubCLI:
                 )
                 msg = f"CLI args --docker-opts='{getattr(args, 'docker_opts', '')}' "
                 msg += f"overrides mode --docker-opts: {mode_opts}"
-                print(Color.yellow(msg))
+                holohub_cli_util.warn(msg)
             else:
                 config["docker_opts"] = holohub_cli_util.normalize_args_str(
                     mode_config["run"]["docker_run_args"]
@@ -719,7 +719,7 @@ class HoloHubCLI:
                     f"CLI args --run-args='{getattr(args, 'run_args', '')}' "
                     f"will be appended to mode command"
                 )
-                print(Color.yellow(msg))
+                holohub_cli_util.warn(msg)
 
             # For docker_run_args: use CLI if provided and implicit default, otherwise use mode
             if "docker_run_args" in run_config:
@@ -729,7 +729,7 @@ class HoloHubCLI:
                         f"CLI args --docker-opts='{getattr(args, 'docker_opts', '')}' "
                         f"overrides mode --docker-opts: {mode_opts}"
                     )
-                    print(Color.yellow(msg))
+                    holohub_cli_util.warn(msg)
                 else:
                     config["docker_opts"] = holohub_cli_util.normalize_args_str(
                         run_config["docker_run_args"]

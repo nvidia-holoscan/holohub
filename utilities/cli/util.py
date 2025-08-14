@@ -148,6 +148,10 @@ def fatal(message: str) -> None:
     sys.exit(1)
 
 
+def warn(message: str) -> None:
+    print(f"{Color.yellow('WARNING:')} {message}")
+
+
 def _get_maybe_sudo() -> str:
     """Get sudo command if available, with caching to avoid repeated subprocess calls"""
     global _sudo_available
@@ -834,8 +838,10 @@ def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[s
     """Check if container image has an entrypoint defined"""
     if dry_run:
         print(
-            "Inspect docker image entrypoint: "
-            f"docker inspect --format={{{{json .Config.Entrypoint}}}} {img}"
+            Color.yellow(
+                "Inspect docker image entrypoint: "
+                f"docker inspect --format={{{{json .Config.Entrypoint}}}} {img}"
+            )
         )
         return None
 
