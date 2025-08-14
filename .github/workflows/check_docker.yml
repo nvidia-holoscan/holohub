@@ -2,7 +2,7 @@ name: Check Docker
 
 on:
   push:
-    branches: [main, holoscan-sdk-lws2, fixes-find-project]
+    branches: [main, holoscan-sdk-lws2]
 
 permissions:
   contents: read
