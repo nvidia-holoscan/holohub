@@ -230,5 +230,5 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_property(TEST test_holohub_run_multi_language_project PROPERTY
-    PASS_REGULAR_EXPRESSION "has multiple implementations.*language"
+    PASS_REGULAR_EXPRESSION "has multiple languages.*language"
 )

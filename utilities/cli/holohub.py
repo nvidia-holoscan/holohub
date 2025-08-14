@@ -459,12 +459,9 @@ class HoloHubCLI:
                 target_lang = available_lang[0] if available_lang else ""
             # Warn if ambiguous and no language specified
             if not normalized_language and len(available_lang) > 1:
-                print(
-                    Color.green(
-                        f"'{project_name}' has multiple implementations: {', '.join(available_lang)}.\n"
-                        f"Defaulting to '{target_lang}'. Use --language to select explicitly.\n\n"
-                    )
-                )
+                msg = f"'{project_name}' has multiple languages: {', '.join(available_lang)}.\n"
+                msg += f"Defaulting to '{target_lang}'. Use --language to select explicitly.\n\n"
+                print(Color.green(msg))
             for p in candidates:
                 if target_lang in holohub_cli_util.list_normalized_languages(
                     p.get("metadata", {}).get("language", None)
@@ -480,12 +477,9 @@ class HoloHubCLI:
             fallback_candidate = candidates[0]
             fallback_lang = fallback_candidate.get("metadata", {}).get("language", None)
             if not fallback_lang:
-                print(
-                    Color.yellow(
-                        f"Warning: Returning '{project_name}' implementation with missing or unknown language metadata.\n"
-                        "Consider specifying --language for more consistent results.\n"
-                    )
-                )
+                msg = f"Returning '{project_name}' with missing or unknown language metadata.\n"
+                msg += "Consider specifying --language for more consistent results.\n"
+                print(Color.yellow(msg))
             self._project_data[cache_key] = fallback_candidate
             return self._project_data[cache_key]
         # If project not found, suggest similar names
