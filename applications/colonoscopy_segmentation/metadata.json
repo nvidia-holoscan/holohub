@@ -33,9 +33,22 @@
 				}
 			]
 		},
-		"run": {
-			"command": "python3 colonoscopy_segmentation.py --data <holohub_data_dir>/colonoscopy_segmentation --no-contours",
-			"workdir": "holohub_app_source"
-		}
+		"modes": {
+			"replayer": {
+				"description": "Use a pre-recorded video as input",
+				"run": {
+					"command": "python3 colonoscopy_segmentation.py --data <holohub_data_dir>/colonoscopy_segmentation --no-contours",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"aja": {
+				"description": "Use an AJA device for video input",
+				"run": {
+					"command": "python3 colonoscopy_segmentation.py --source=aja --no-contours",
+					"workdir": "holohub_app_source"
+				}
+			}
+		},
+		"default_mode": "replayer"
 	}
 }
