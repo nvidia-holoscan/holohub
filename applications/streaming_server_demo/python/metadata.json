@@ -19,8 +19,7 @@
             ]
         },
         "platforms": [
-            "x86_64",
-            "aarch64"
+            "x86_64"
         ],
         "tags": [
             "Streaming",
@@ -28,10 +27,17 @@
             "Demo"
         ],
         "ranking": 1,
-        "requirements": {},
+        "requirements": {
+            "operators": [
+                {
+                    "name": "streaming_server",
+                    "version": "1.0"
+                }
+            ]
+        },
         "run": {
-            "command": "python3 streaming_server_demo.py",
-            "workdir": "holohub_bin"
+            "command": "python3 <holohub_app_source>/streaming_server_demo.py",
+            "workdir": "holohub_app_bin"
         }
     }
-} 
+}
