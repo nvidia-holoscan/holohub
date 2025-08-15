@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved. * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved. ..* SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ class BasicNetworkOpTx : public Operator {
   Parameter<std::string> l4_proto_p_;
   Parameter<uint16_t> max_payload_size_;
   Parameter<uint32_t> ipg_;
+  Parameter<bool> delete_payload_;
 
   int sockfd_;
   L4Proto l4_proto_;

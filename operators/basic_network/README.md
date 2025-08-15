@@ -3,7 +3,7 @@
 
 The `basic_network_operator` operator provides a way to send and receive data over Linux sockets. The
 destination can be on the same machine or over a network. The basic network operator contains separate
-operators for transmit and receive. Users may choose one or the other, or use both in applications 
+operators for transmit and receive. Users may choose one or the other, or use both in applications
 requiring bidirectional traffic.
 
 For TCP sockets the basic network operator only supports a single stream currently. Future versions
@@ -26,7 +26,9 @@ Basic networking operator
 - **`l4_proto`**: Layer 4 protocol
   - type: `string` (`udp`/`tcp`)
 - **`ip_addr`**: Destination IP address
-  - type: `string`    
+  - type: `string`
+- **`max_burst_interval` (Optional)**: Maximum time interval between bursts (ms)
+  - type: `integer`
 
 ##### Transmitter Configuration Parameters
 
@@ -37,10 +39,11 @@ Basic networking operator
 - **`l4_proto`**: Layer 4 protocol
   - type: `string` (`udp`/`tcp`)
 - **`ip_addr`**: Destination IP address
-  - type: `string`    
+  - type: `string`
 - **`min_ipg_ns`**: Minimum inter-packet gap in nanoseconds
-  - type: `integer`  
-
+  - type: `integer`
+- **`delete_payload` (Optional)**: Delete payload memory after sending (only applicable for C++ implementation)
+  - type: `boolean`
 
 ##### Transmitter and Receiver Operator Parameters
 

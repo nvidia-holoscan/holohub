@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved. * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved. ..* SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <string>
+#include <chrono>
 #include "basic_network_operator_common.h"
 #include "holoscan/holoscan.hpp"
 
@@ -32,6 +33,7 @@ class BasicNetworkOpRx : public Operator {
   BasicNetworkOpRx() = default;
   ~BasicNetworkOpRx();
   void initialize() override;
+  void stop() override;
   void setup(OperatorSpec& spec) override;
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override;
 
@@ -41,6 +43,7 @@ class BasicNetworkOpRx : public Operator {
   Parameter<std::string> l4_proto_p_;
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> max_payload_size_;
+  Parameter<uint64_t> max_burst_interval_;
 
   int sockfd_;
   int tcp_sock_;
@@ -50,6 +53,7 @@ class BasicNetworkOpRx : public Operator {
   uint8_t* pkt_buf = nullptr;
   uint32_t pkts_in_batch_ = 0;
   bool connected_ = false;
+  std::chrono::steady_clock::time_point burst_start_time_;
 };
 
 };  // namespace holoscan::ops
