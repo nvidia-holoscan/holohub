@@ -19,11 +19,8 @@ project(streaming_server_demo)
 # Add C++ subdirectory
 add_subdirectory(cpp)
 
-# Add Python subdirectory
+# Copy Python files to build directory
 if(HOLOHUB_BUILD_PYTHON)
-  add_subdirectory(python)
-
-  # Copy Python files to build directory
   configure_file(
       ${CMAKE_CURRENT_SOURCE_DIR}/python/streaming_server_demo.py
       ${CMAKE_BINARY_DIR}/streaming_server_demo.py
