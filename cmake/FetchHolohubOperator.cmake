@@ -27,15 +27,17 @@
 #   PATH - The path to the operator within the Holohub repository (defaults to OPERATOR_NAME)
 #   REPO_URL - The URL of the Holohub repository (defaults to git@github.com:nvidia-holoscan/holohub.git)
 #   BRANCH - The branch to checkout (defaults to "main")
+#   DISABLE_PYTHON - Whether to build Python bindings
 #
 # Example:
 #   fetch_holohub_operator(realsense_camera)
 #   fetch_holohub_operator(dds_operator_base PATH dds/base)
 #   fetch_holohub_operator(custom_operator REPO_URL "https://github.com/custom/holohub.git")
 #   fetch_holohub_operator(custom_operator BRANCH "dev")
+#   fetch_holohub_operator(custom_operator DISABLE_PYTHON)
 function(fetch_holohub_operator OPERATOR_NAME)
 
-  cmake_parse_arguments(ARGS "" "PATH;REPO_URL;BRANCH" "" ${ARGN})
+  cmake_parse_arguments(ARGS "DISABLE_PYTHON" "PATH;REPO_URL;BRANCH" "" ${ARGN})
 
   if(NOT ARGS_REPO_URL)
     set(ARGS_REPO_URL "https://github.com/nvidia-holoscan/holohub.git")
@@ -49,6 +51,10 @@ function(fetch_holohub_operator OPERATOR_NAME)
     set(ARGS_BRANCH "main")
   endif()
 
+  if(NOT ARGS_DISABLE_PYTHON)
+    set(HOLOHUB_BUILD_PYTHON ON)
+  endif()
+
   # Fetch Holohub repository
   include(FetchContent)
   FetchContent_Declare(
@@ -57,12 +63,25 @@ function(fetch_holohub_operator OPERATOR_NAME)
       DOWNLOAD_COMMAND
         git clone --depth 1 --no-checkout ${ARGS_REPO_URL} "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src"
         && cd "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src"
-        && git sparse-checkout init --cone
-        && git sparse-checkout set operators/${ARGS_PATH}
+        && git sparse-checkout set --no-cone
+            operators/${ARGS_PATH}
+            cmake/pybind11_add_holohub_module.cmake
+            cmake/pybind11/
+            cmake/pydoc/
+            operators/operator_util.hpp
         && git checkout ${ARGS_BRANCH}
-        && mv "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/operators/${ARGS_PATH}" "${FETCHCONTENT_BASE_DIR}/tmp_${OPERATOR_NAME}"
-        && rm -rf "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src"
-        && mv "${FETCHCONTENT_BASE_DIR}/tmp_${OPERATOR_NAME}" "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/"
+        # Write a CMakeLists.txt in the operators directory to set CMAKE_MODULE_PATH and add the operator subdirectory
+        && echo "list(APPEND CMAKE_MODULE_PATH \\$\\{CMAKE_CURRENT_LIST_DIR\\}/cmake)" > "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        # Add code to create python module output directory if building python
+        && echo "if(HOLOHUB_BUILD_PYTHON)" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "  if(NOT CMAKE_INSTALL_LIBDIR)" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "    set(CMAKE_INSTALL_LIBDIR lib)" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "  endif()" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "  set(HOLOHUB_PYTHON_MODULE_OUT_DIR \\$\\{CMAKE_BINARY_DIR\\}/python/\\$\\{CMAKE_INSTALL_LIBDIR\\}/holohub)" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "  file(MAKE_DIRECTORY \\$\\{HOLOHUB_PYTHON_MODULE_OUT_DIR\\})" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "endif()" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "add_subdirectory(operators/${ARGS_PATH})" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+
   )
 
   FetchContent_MakeAvailable(holohub_${OPERATOR_NAME})

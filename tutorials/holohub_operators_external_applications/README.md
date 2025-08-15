@@ -24,7 +24,11 @@ Holohub provides a collection of pre-built operators that you can easily integra
 your_external_app/
 ├── CMakeLists.txt
 ├── main.cpp
+├── main.py (optional - for Python applications)
 └── build/
+    └── python/
+        └── lib/
+            └── holohub/ (Python modules)
 ```
 
 ## Step-by-Step Guide
@@ -186,7 +190,7 @@ The `FetchHolohubOperator.cmake` file provides a convenient way to fetch specifi
 
 #### Function Signature
 ```cmake
-fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch])
+fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch] [DISABLE_PYTHON])
 ```
 
 #### Parameters
@@ -194,6 +198,7 @@ fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch])
 - `PATH` (optional): The path to the operator within the Holohub repository (defaults to OPERATOR_NAME)
 - `REPO_URL` (optional): The URL of the Holohub repository (defaults to the official Holohub repo)
 - `BRANCH` (optional): The branch to checkout (defaults to "main")
+- `DISABLE_PYTHON` (optional): Flag to disable Python bindings build (Python bindings are enabled by default)
 
 #### Examples
 ```cmake
@@ -208,6 +213,9 @@ fetch_holohub_operator(custom_operator REPO_URL "https://github.com/custom/holoh
 
 # Fetch from a specific branch
 fetch_holohub_operator(custom_operator BRANCH "dev")
+
+# Fetch an operator without Python bindings
+fetch_holohub_operator(aja_source DISABLE_PYTHON)
 ```
 
 ### 4. Choosing the Right Approach
@@ -276,6 +284,74 @@ cmake ..
 # Build the project
 make -j$(nproc)
 ```
+
+### 7. Using Python Bindings
+
+Many Holohub operators provide Python bindings, allowing you to use them in Python applications. Here's how to work with Python bindings:
+
+#### Building with Python Bindings
+
+By default, Python bindings are automatically built when you fetch an operator. If you want to disable Python bindings, you can use the `DISABLE_PYTHON` flag:
+
+```cmake
+# Disable Python bindings for this operator
+fetch_holohub_operator(aja_source DISABLE_PYTHON)
+```
+
+#### Running Python Applications
+
+After building your project, Python modules are typically installed in the `python/lib` directory within your build directory. To run Python applications that use the Holohub operators:
+
+```bash
+# Navigate to your build directory
+cd build
+
+# Set the PYTHONPATH to include the built Python modules
+export PYTHONPATH=$PYTHONPATH:./python/lib
+
+# Run your Python application
+python3 ../main.py
+```
+
+#### Python Example
+
+Create a `main.py` file that uses the fetched operator:
+
+```python
+import holoscan as hs
+from holoscan.operators import AJASourceOp
+
+class App(hs.Application):
+    def compose(self):
+        # Create an instance of the AJA source operator
+        aja_source = AJASourceOp(self, name="aja")
+        
+        # Add the operator to your application
+        self.add_operator(aja_source)
+
+if __name__ == "__main__":
+    app = App()
+    app.run()
+```
+
+#### Python Bindings Location
+
+The Python modules are built and installed in the following structure:
+```
+build/
+├── python/
+│   └── lib/
+│       └── holohub/
+│           ├── __init__.py
+│           ├── aja_source.py
+│           └── ... (other operator modules)
+```
+
+#### Troubleshooting Python Bindings
+
+1. **Module not found errors**: Ensure `PYTHONPATH` is set correctly
+2. **Import errors**: Verify that Python bindings were built (check the `python/lib` directory)
+3. **Version compatibility**: Make sure your Python version is compatible with the Holoscan SDK
 
 ## Available Operators
 
@@ -361,7 +437,7 @@ cmake -DCMAKE_VERBOSE_MAKEFILE=ON ..
 
 ## Example Complete Project
 
-See the `main.cpp` and `CMakeLists.txt` files in this directory for a complete working example that demonstrates how to use the AJA source operator from Holohub.
+See the `main.cpp`, `main.py`, and `CMakeLists.txt` files in this directory for complete working examples that demonstrate how to use the AJA source operator from Holohub in both C++ and Python applications.
 
 ## Additional Resources
 
