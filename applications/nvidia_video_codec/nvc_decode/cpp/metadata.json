@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "NVIDIA Video Codec: H.264 File Decoder (C++)",
+		"name": "NVIDIA Video Codec: H.264 File Decoder",
 		"authors": [
 			{
 				"name": "Holoscan Team",
