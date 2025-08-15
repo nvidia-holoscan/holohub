@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,23 +29,23 @@
 
 #include <gxf/multimedia/video.hpp>
 #include <gxf/std/tensor.hpp>
-#include <holoscan/core/gxf/entity.hpp>
 #include <holoscan/core/domain/tensor.hpp>
 #include <holoscan/core/execution_context.hpp>
+#include <holoscan/core/gxf/entity.hpp>
 #include <holoscan/core/io_context.hpp>
 #include <holoscan/core/io_spec.hpp>
-#include <holoscan/holoscan.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
+#include <holoscan/holoscan.hpp>
 
 // Define the CUDA_TRY macro
-#define CUDA_TRY(stmt) do {                                       \
-  cudaError_t err = stmt;                                         \
-  if (err != cudaSuccess) {                                       \
-    HOLOSCAN_LOG_ERROR("CUDA failed with %s: %s", #stmt,          \
-                       cudaGetErrorString(err));                  \
-    throw std::runtime_error("CUDA error");                       \
-  }                                                               \
-} while (0)
+#define CUDA_TRY(stmt)                                                               \
+  do {                                                                               \
+    cudaError_t err = stmt;                                                          \
+    if (err != cudaSuccess) {                                                        \
+      HOLOSCAN_LOG_ERROR("CUDA failed with %s: %s", #stmt, cudaGetErrorString(err)); \
+      throw std::runtime_error("CUDA error");                                        \
+    }                                                                                \
+  } while (0)
 
 namespace holoscan::ops {
 
@@ -88,18 +88,27 @@ void StreamingServerOp::setup(OperatorSpec& spec) {
   spec.param(height_, "height", "Frame Height", "Height of the video frames in pixels", 480u);
   spec.param(fps_, "fps", "Frames Per Second", "Frame rate of the video", 30u);
   spec.param(port_, "port", "Server Port", "Port used for streaming server", uint16_t{48010});
-  spec.param(multi_instance_, "multi_instance", "Multi Instance",
-             "Allow multiple server instances", false);
-  spec.param(server_name_, "server_name", "Server Name",
-             "Name identifier for the server", std::string("StreamingServer"));
-  spec.param(receive_frames_, "receive_frames", "Receive Frames",
-             "Whether to receive frames from clients", true);
-  spec.param(send_frames_, "send_frames", "Send Frames",
-             "Whether to send frames to clients", true);
-  spec.param(allocator_, "allocator", "Memory Allocator",
-             "Memory allocator for frame data");
+  spec.param(multi_instance_,
+             "multi_instance",
+             "Multi Instance",
+             "Allow multiple server instances",
+             false);
+  spec.param(server_name_,
+             "server_name",
+             "Server Name",
+             "Name identifier for the server",
+             std::string("StreamingServer"));
+  spec.param(receive_frames_,
+             "receive_frames",
+             "Receive Frames",
+             "Whether to receive frames from clients",
+             true);
+  spec.param(send_frames_, "send_frames", "Send Frames", "Whether to send frames to clients", true);
+  spec.param(allocator_, "allocator", "Memory Allocator", "Memory allocator for frame data");
 
-  HOLOSCAN_LOG_INFO("StreamingServerOp setup completed - standalone mode (no pipeline connections)");
+  HOLOSCAN_LOG_INFO(
+      "StreamingServerOp setup completed - standalone mode "
+      "(no pipeline connections)");
   HOLOSCAN_LOG_INFO("  - Receives frames from clients and processes them internally");
   HOLOSCAN_LOG_INFO("  - Sends processed frames back to clients");
 }
@@ -126,11 +135,15 @@ void StreamingServerOp::initialize() {
   // Log the actual parameter values received
   HOLOSCAN_LOG_INFO("StreamingServerOp initializing with parameters:");
   HOLOSCAN_LOG_INFO("  width: {}", width_.has_value() ? std::to_string(width_.get()) : "NOT SET");
-  HOLOSCAN_LOG_INFO("  height: {}", height_.has_value() ? std::to_string(height_.get()) : "NOT SET");
+  HOLOSCAN_LOG_INFO("  height: {}",
+                    height_.has_value() ? std::to_string(height_.get()) : "NOT SET");
   HOLOSCAN_LOG_INFO("  fps: {}", fps_.has_value() ? std::to_string(fps_.get()) : "NOT SET");
   HOLOSCAN_LOG_INFO("  port: {}", port_.has_value() ? std::to_string(port_.get()) : "NOT SET");
-  HOLOSCAN_LOG_INFO("  receive_frames: {}", receive_frames_.has_value() ? (receive_frames_.get() ? "true" : "false") : "NOT SET");
-  HOLOSCAN_LOG_INFO("  send_frames: {}", send_frames_.has_value() ? (send_frames_.get() ? "true" : "false") : "NOT SET");
+  HOLOSCAN_LOG_INFO(
+      "  receive_frames: {}",
+      receive_frames_.has_value() ? (receive_frames_.get() ? "true" : "false") : "NOT SET");
+  HOLOSCAN_LOG_INFO("  send_frames: {}",
+                    send_frames_.has_value() ? (send_frames_.get() ? "true" : "false") : "NOT SET");
 
   // Validate parameters before using them
   if (!width_.has_value() || width_.get() == 0) {
@@ -162,17 +175,20 @@ void StreamingServerOp::initialize() {
   config.isMultiInstance = multi_instance_.has_value() ? multi_instance_.get() : false;
   config.serverName = server_name_.has_value() ? server_name_.get() : "StreamingServer";
 
-  HOLOSCAN_LOG_INFO("Creating StreamingServer with validated config: width={}, height={}, fps={}, port={}",
-                   config.width, config.height, config.fps, config.port);
+  HOLOSCAN_LOG_INFO(
+      "Creating StreamingServer with validated config: "
+      "width={}, height={}, fps={}, port={}",
+      config.width,
+      config.height,
+      config.fps,
+      config.port);
 
   // Initialize server with the validated parameters
   try {
     server_ = std::make_unique<StreamingServer>(config);
 
     // Set up event callback
-    server_->setEventCallback([this](const StreamingServer::Event& event) {
-      onEvent(event);
-    });
+    server_->setEventCallback([this](const StreamingServer::Event& event) { onEvent(event); });
 
     HOLOSCAN_LOG_INFO("StreamingServerOp initialized successfully");
   } catch (const std::exception& e) {
@@ -201,8 +217,11 @@ void StreamingServerOp::start() {
     HOLOSCAN_LOG_INFO("  - Height: {}", height_.get());
     HOLOSCAN_LOG_INFO("  - FPS: {}", fps_.get());
     HOLOSCAN_LOG_INFO("  - Port: {}", port_.get());
-    HOLOSCAN_LOG_INFO("  - Multi-instance: {}", multi_instance_.has_value() ? (multi_instance_.get() ? "true" : "false") : "default");
-    HOLOSCAN_LOG_INFO("  - Server name: {}", server_name_.has_value() ? server_name_.get() : "default");
+    HOLOSCAN_LOG_INFO(
+        "  - Multi-instance: {}",
+        multi_instance_.has_value() ? (multi_instance_.get() ? "true" : "false") : "default");
+    HOLOSCAN_LOG_INFO("  - Server name: {}",
+                      server_name_.has_value() ? server_name_.get() : "default");
 
     // Add a small delay to ensure all initialization is complete
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -239,7 +258,6 @@ void StreamingServerOp::start() {
         // Try to get more details about the error
         std::string error_type = typeid(e).name();
         HOLOSCAN_LOG_ERROR("Exception type: {}", error_type);
-
       } catch (...) {
         error_message = "Unknown exception";
         HOLOSCAN_LOG_ERROR("Unknown exception in server start thread");
@@ -259,28 +277,27 @@ void StreamingServerOp::start() {
         // Log additional server status
         HOLOSCAN_LOG_INFO("Server status after start:");
         HOLOSCAN_LOG_INFO("  - Is running: {}", server_->isRunning() ? "YES" : "NO");
-        HOLOSCAN_LOG_INFO("  - Has connected clients: {}", server_->hasConnectedClients() ? "YES" : "NO");
+        HOLOSCAN_LOG_INFO("  - Has connected clients: {}",
+                          server_->hasConnectedClients() ? "YES" : "NO");
 
       } else {
         HOLOSCAN_LOG_ERROR("❌ StreamingServer failed to start - not running after start() call");
       }
     } else {
       HOLOSCAN_LOG_ERROR("❌ StreamingServer start failed: {}",
-                        error_message.empty() ? "Unknown error" : error_message);
+                         error_message.empty() ? "Unknown error" : error_message);
 
       // Additional diagnostic information
       HOLOSCAN_LOG_ERROR("Diagnostic information:");
       HOLOSCAN_LOG_ERROR("  - Start completed: {}", start_completed ? "YES" : "NO");
       HOLOSCAN_LOG_ERROR("  - Start success: {}", start_success ? "YES" : "NO");
-      HOLOSCAN_LOG_ERROR("  - Server running after failure: {}", server_->isRunning() ? "YES" : "NO");
+      HOLOSCAN_LOG_ERROR("  - Server running after failure: {}",
+                         server_->isRunning() ? "YES" : "NO");
     }
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Exception during server start setup: {}", e.what());
     HOLOSCAN_LOG_ERROR("Exception type: {}", typeid(e).name());
-  } catch (...) {
-    HOLOSCAN_LOG_ERROR("Unknown exception during server start setup");
-  }
+  } catch (...) { HOLOSCAN_LOG_ERROR("Unknown exception during server start setup"); }
 }
 
 void StreamingServerOp::stop() {
@@ -300,12 +317,9 @@ void StreamingServerOp::stop() {
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
       HOLOSCAN_LOG_INFO("StreamingServer stopped");
-
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_ERROR("Exception during StreamingServer shutdown: {}", e.what());
-    } catch (...) {
-      HOLOSCAN_LOG_ERROR("Unknown exception during StreamingServer shutdown");
-    }
+    } catch (...) { HOLOSCAN_LOG_ERROR("Unknown exception during StreamingServer shutdown"); }
   }
 
   HOLOSCAN_LOG_INFO("StreamingServerOp::stop() completed");
@@ -313,9 +327,7 @@ void StreamingServerOp::stop() {
 
 void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output,
                                 ExecutionContext& context) {
-
   HOLOSCAN_LOG_DEBUG("!!!!compute() called");
-
   // Check if we're shutting down
   if (is_shutting_down_.load()) {
     HOLOSCAN_LOG_DEBUG("!!!!Shutdown in progress, skipping compute");
@@ -339,14 +351,15 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     return;
   }
-
-  HOLOSCAN_LOG_DEBUG("!!!!receive_frames_: {}", receive_frames_.has_value() ? (receive_frames_.get() ? "true" : "false") : "NOT SET");
+  HOLOSCAN_LOG_DEBUG(
+      "!!!!receive_frames_: {}",
+      receive_frames_.has_value() ? (receive_frames_.get() ? "true" : "false") : "NOT SET");
   // Check if we should receive frames
   if (!receive_frames_.has_value() || !receive_frames_.get()) {
     HOLOSCAN_LOG_DEBUG("!!!!Not configured to receive frames, returning");
     // Add a small delay to prevent busy waiting
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    return; // Not configured to receive frames
+    return;  // Not configured to receive frames
   }
 
   HOLOSCAN_LOG_DEBUG("!!!!tryReceiveFrame() called");
@@ -362,7 +375,8 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
   // Add detailed logging about the frame reception attempt
   HOLOSCAN_LOG_DEBUG("!!!!About to call server_->tryReceiveFrame()...");
   HOLOSCAN_LOG_DEBUG("!!!!Server status: running={}, hasConnectedClients={}",
-                     server_->isRunning(), server_->hasConnectedClients());
+                     server_->isRunning(),
+                     server_->hasConnectedClients());
 
   bool frame_received = false;
   int retry_count = 0;
@@ -375,7 +389,8 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
 
       if (!frame_received) {
         retry_count++;
-        HOLOSCAN_LOG_DEBUG("!!!!tryReceiveFrame() attempt {} returned false, retrying...", retry_count);
+        HOLOSCAN_LOG_DEBUG("!!!!tryReceiveFrame() attempt {} returned false, retrying...",
+                           retry_count);
 
         // Small delay to give StreamSDK time to process
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -393,7 +408,8 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
 
   // If tryReceiveFrame failed, try the blocking receiveFrame with timeout
   if (!frame_received && !is_shutting_down_.load()) {
-    HOLOSCAN_LOG_DEBUG("!!!!tryReceiveFrame() failed, attempting blocking receiveFrame() with timeout...");
+    HOLOSCAN_LOG_DEBUG(
+        "!!!!tryReceiveFrame() failed, attempting blocking receiveFrame() with timeout...");
 
     // Use a separate thread for blocking call with timeout
     std::atomic<bool> receive_completed{false};
@@ -436,10 +452,12 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
     }
   }
 
-  HOLOSCAN_LOG_DEBUG("!!!!Final result: frame_received={}, retry_count={}", frame_received, retry_count);
+  HOLOSCAN_LOG_DEBUG(
+      "!!!!Final result: frame_received={}, retry_count={}", frame_received, retry_count);
 
   if (!frame_received) {
-    HOLOSCAN_LOG_DEBUG("!!!!No frame received after {} attempts, checking server state...", retry_count);
+    HOLOSCAN_LOG_DEBUG("!!!!No frame received after {} attempts, checking server state...",
+                       retry_count);
     HOLOSCAN_LOG_DEBUG("!!!!Server running: {}", server_->isRunning());
     HOLOSCAN_LOG_DEBUG("!!!!Server has clients: {}", server_->hasConnectedClients());
 
@@ -448,11 +466,14 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
     no_frame_count++;
 
     if (no_frame_count % 100 == 0) {  // Log every 100 failed attempts
-      HOLOSCAN_LOG_WARN("!!!!No frames received in {} compute cycles - possible StreamSDK buffering issue", no_frame_count);
+      HOLOSCAN_LOG_WARN(
+          "!!!!No frames received in {} compute cycles - possible StreamSDK buffering issue",
+          no_frame_count);
       HOLOSCAN_LOG_WARN("!!!!Server diagnostics:");
       HOLOSCAN_LOG_WARN("  - Server pointer valid: {}", server_ ? "YES" : "NO");
       HOLOSCAN_LOG_WARN("  - Server running: {}", server_->isRunning() ? "YES" : "NO");
-      HOLOSCAN_LOG_WARN("  - Has connected clients: {}", server_->hasConnectedClients() ? "YES" : "NO");
+      HOLOSCAN_LOG_WARN("  - Has connected clients: {}",
+                        server_->hasConnectedClients() ? "YES" : "NO");
       HOLOSCAN_LOG_WARN("  - Receive frames enabled: {}", receive_frames_.get() ? "YES" : "NO");
     }
 
@@ -465,9 +486,10 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
     // Heartbeat mechanism: send a dummy frame periodically to keep connection alive
     static auto last_heartbeat = std::chrono::steady_clock::now();
     auto now = std::chrono::steady_clock::now();
-    auto time_since_heartbeat = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_heartbeat);
+    auto time_since_heartbeat =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - last_heartbeat);
 
-    if (time_since_heartbeat.count() > 1000) { // Send heartbeat every 1 second
+    if (time_since_heartbeat.count() > 1000) {  // Send heartbeat every 1 second
       HOLOSCAN_LOG_DEBUG("!!!!Sending heartbeat frame to keep connection alive");
 
       // Create a simple heartbeat frame
@@ -476,18 +498,19 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
       heartbeat_frame.height = height_.get();
       heartbeat_frame.format = Frame::Format::BGR;
       heartbeat_frame.timestampMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::system_clock::now().time_since_epoch()).count();
+                                        std::chrono::system_clock::now().time_since_epoch())
+                                        .count();
 
       // Create a small test pattern (solid color)
       size_t frame_size = static_cast<size_t>(heartbeat_frame.width) *
-                         static_cast<size_t>(heartbeat_frame.height) * 3; // BGR = 3 channels
+                          static_cast<size_t>(heartbeat_frame.height) * 3;  // BGR = 3 channels
       heartbeat_frame.data.resize(frame_size);
 
       // Fill with a simple pattern (blue color)
       for (size_t i = 0; i < frame_size; i += 3) {
-        heartbeat_frame.data[i] = 255;     // Blue
-        heartbeat_frame.data[i + 1] = 0;   // Green
-        heartbeat_frame.data[i + 2] = 0;   // Red
+        heartbeat_frame.data[i] = 255;    // Blue
+        heartbeat_frame.data[i + 1] = 0;  // Green
+        heartbeat_frame.data[i + 2] = 0;  // Red
       }
 
       // Send heartbeat frame if send_frames is enabled
@@ -508,11 +531,13 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
 
     // Add a small delay to prevent busy waiting when no frames are available
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    return; // No frame received
+    return;  // No frame received
   }
 
   HOLOSCAN_LOG_INFO("!!!!FRAME RECEIVED! Size: {} bytes, dimensions: {}x{}",
-                   received_frame.data.size(), received_frame.width, received_frame.height);
+                    received_frame.data.size(),
+                    received_frame.width,
+                    received_frame.height);
 
   // Add comprehensive frame debugging
   HOLOSCAN_LOG_INFO("!!!!FRAME DEBUG INFO:");
@@ -527,7 +552,8 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
   if (!received_frame.data.empty()) {
     bool all_zeros = true;
     size_t non_zero_count = 0;
-    size_t check_limit = std::min(received_frame.data.size(), static_cast<size_t>(100)); // Check first 100 bytes
+    size_t check_limit =
+        std::min(received_frame.data.size(), static_cast<size_t>(100));  // Check first 100 bytes
 
     for (size_t i = 0; i < check_limit; ++i) {
       if (received_frame.data[i] != 0) {
@@ -537,7 +563,9 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
     }
 
     HOLOSCAN_LOG_INFO("  - First {} bytes analysis: all_zeros={}, non_zero_count={}",
-                     check_limit, all_zeros ? "YES" : "NO", non_zero_count);
+                      check_limit,
+                      all_zeros ? "YES" : "NO",
+                      non_zero_count);
 
     // Log first few bytes as hex
     if (received_frame.data.size() >= 16) {
@@ -576,7 +604,8 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
 
   if (received_frame.width == 0 || received_frame.height == 0) {
     HOLOSCAN_LOG_ERROR("!!!!FRAME VALIDATION FAILED: Invalid dimensions {}x{}",
-                      received_frame.width, received_frame.height);
+                       received_frame.width,
+                       received_frame.height);
     HOLOSCAN_LOG_ERROR("  - This suggests the client is not setting frame dimensions correctly");
     HOLOSCAN_LOG_ERROR("  - Expected dimensions: {}x{}", width_.get(), height_.get());
     return;
@@ -591,7 +620,7 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
   }
 
   // Check if frame size makes sense for the dimensions
-  size_t expected_min_size = received_frame.width * received_frame.height * 3; // Minimum for BGR
+  size_t expected_min_size = received_frame.width * received_frame.height * 3;  // Minimum for BGR
   if (received_frame.data.size() < expected_min_size) {
     HOLOSCAN_LOG_ERROR("!!!!FRAME SIZE VALIDATION FAILED:");
     HOLOSCAN_LOG_ERROR("  - Received size: {} bytes", received_frame.data.size());
@@ -604,17 +633,16 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
 
   try {
     // STEP 1: Convert Frame to Holoscan Tensor
-    int channels = 3; // Default to BGR
-    if (received_frame.format == Frame::Format::BGRA || received_frame.format == Frame::Format::RGBA) {
+    int channels = 3;  // Default to BGR
+    if (received_frame.format == Frame::Format::BGRA ||
+        received_frame.format == Frame::Format::RGBA) {
       channels = 4;
     }
 
     // Create tensor shape (HWC format)
-    std::vector<int64_t> shape = {
-      static_cast<int64_t>(received_frame.height),
-      static_cast<int64_t>(received_frame.width),
-      static_cast<int64_t>(channels)
-    };
+    std::vector<int64_t> shape = {static_cast<int64_t>(received_frame.height),
+                                  static_cast<int64_t>(received_frame.width),
+                                  static_cast<int64_t>(channels)};
 
     // Add safety check for frame data
     if (received_frame.data.empty() || received_frame.data.data() == nullptr) {
@@ -631,11 +659,9 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
       return;
     }
 
-    nvidia::gxf::Shape gxf_shape = nvidia::gxf::Shape{
-      static_cast<int32_t>(received_frame.height),
-      static_cast<int32_t>(received_frame.width),
-      static_cast<int32_t>(channels)
-    };
+    nvidia::gxf::Shape gxf_shape = nvidia::gxf::Shape{static_cast<int32_t>(received_frame.height),
+                                                      static_cast<int32_t>(received_frame.width),
+                                                      static_cast<int32_t>(channels)};
 
     // Copy frame data to host memory with safety checks
     size_t data_size = received_frame.data.size();
@@ -654,17 +680,17 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
 
     // Wrap memory in GXF tensor with safety checks
     try {
-      gxf_tensor->wrapMemory(
-          gxf_shape,
-          primitive_type,
-          nvidia::gxf::PrimitiveTypeSize(primitive_type),
-          nvidia::gxf::ComputeTrivialStrides(gxf_shape, nvidia::gxf::PrimitiveTypeSize(primitive_type)),
-          nvidia::gxf::MemoryStorageType::kSystem,
-          host_data.get(),
-          [host_data](void*) mutable {
-            host_data.reset();
-            return nvidia::gxf::Success;
-          });
+      gxf_tensor->wrapMemory(gxf_shape,
+                             primitive_type,
+                             nvidia::gxf::PrimitiveTypeSize(primitive_type),
+                             nvidia::gxf::ComputeTrivialStrides(
+                                 gxf_shape, nvidia::gxf::PrimitiveTypeSize(primitive_type)),
+                             nvidia::gxf::MemoryStorageType::kSystem,
+                             host_data.get(),
+                             [host_data](void*) mutable {
+                               host_data.reset();
+                               return nvidia::gxf::Success;
+                             });
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_ERROR("Failed to wrap memory in GXF tensor: {}", e.what());
       return;
@@ -685,7 +711,6 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
 
     HOLOSCAN_LOG_DEBUG("!!!!Tensor created successfully");
 
-
     // STEP 2: Convert Holoscan Tensor back to Frame
     Frame response_frame;
     response_frame.width = received_frame.width;
@@ -694,8 +719,7 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
 
     // Calculate frame size
     size_t frame_size = static_cast<size_t>(response_frame.width) *
-                       static_cast<size_t>(response_frame.height) *
-                       static_cast<size_t>(channels);
+                        static_cast<size_t>(response_frame.height) * static_cast<size_t>(channels);
     response_frame.data.resize(frame_size);
 
     // Copy tensor data back to frame with safety checks
@@ -705,12 +729,15 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
       try {
         if (tensor_device.device_type == kDLCUDA) {
           // GPU memory - copy to host first
-          CUDA_TRY(cudaMemcpy(response_frame.data.data(), tensor->data(),
-                             std::min(static_cast<size_t>(tensor->nbytes()), frame_size), cudaMemcpyDeviceToHost));
+          CUDA_TRY(cudaMemcpy(response_frame.data.data(),
+                              tensor->data(),
+                              std::min(static_cast<size_t>(tensor->nbytes()), frame_size),
+                              cudaMemcpyDeviceToHost));
         } else {
           // CPU memory - direct copy
-          std::memcpy(response_frame.data.data(), tensor->data(),
-                     std::min(static_cast<size_t>(tensor->nbytes()), frame_size));
+          std::memcpy(response_frame.data.data(),
+                      tensor->data(),
+                      std::min(static_cast<size_t>(tensor->nbytes()), frame_size));
         }
       } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("Failed to copy tensor data to frame: {}", e.what());
@@ -737,16 +764,13 @@ void StreamingServerOp::compute(InputContext& op_input, OutputContext& op_output
         HOLOSCAN_LOG_DEBUG("!!!!Skipping frame send - server shutting down");
       }
     } else {
-      HOLOSCAN_LOG_DEBUG("!!!!Frame processing completed, but not sent back to client (send_frames=false)");
+      HOLOSCAN_LOG_DEBUG(
+          "!!!!Frame processing completed, but not sent back to client (send_frames=false)");
     }
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error in frame-tensor conversion: {}", e.what());
-  } catch (...) {
-    HOLOSCAN_LOG_ERROR("Unknown exception in frame-tensor conversion");
-  }
+  } catch (...) { HOLOSCAN_LOG_ERROR("Unknown exception in frame-tensor conversion"); }
 }
-
 void StreamingServerOp::onEvent(const StreamingServer::Event& event) {
   // Add safety check to prevent segmentation fault
   if (is_shutting_down_.load()) {
@@ -755,7 +779,8 @@ void StreamingServerOp::onEvent(const StreamingServer::Event& event) {
 
   // Log timestamp for all events
   auto now = std::chrono::steady_clock::now();
-  auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+  auto timestamp =
+      std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 
   try {
     switch (event.type) {
@@ -766,7 +791,8 @@ void StreamingServerOp::onEvent(const StreamingServer::Event& event) {
         HOLOSCAN_LOG_INFO("✅ [{}] Client connected successfully: {}", timestamp, event.message);
         // Log current connection state with safety check
         if (server_ && !is_shutting_down_.load()) {
-          HOLOSCAN_LOG_INFO("📊 Server now has connected clients: {}", server_->hasConnectedClients() ? "YES" : "NO");
+          HOLOSCAN_LOG_INFO("📊 Server now has connected clients: {}",
+                            server_->hasConnectedClients() ? "YES" : "NO");
         }
         break;
       case StreamingServer::EventType::ClientDisconnected:
@@ -775,20 +801,24 @@ void StreamingServerOp::onEvent(const StreamingServer::Event& event) {
         if (server_ && !is_shutting_down_.load()) {
           HOLOSCAN_LOG_WARN("📊 Server connection state after disconnect:");
           HOLOSCAN_LOG_WARN("  - Server running: {}", server_->isRunning() ? "YES" : "NO");
-          HOLOSCAN_LOG_WARN("  - Still has connected clients: {}", server_->hasConnectedClients() ? "YES" : "NO");
+          HOLOSCAN_LOG_WARN("  - Still has connected clients: {}",
+                            server_->hasConnectedClients() ? "YES" : "NO");
         }
         break;
       case StreamingServer::EventType::UpstreamConnected:
-        HOLOSCAN_LOG_INFO("⬆️ [{}] Upstream connection established: {}", timestamp, event.message);
+        HOLOSCAN_LOG_INFO(
+            "⬆️ [{}] Upstream connection established: {}", timestamp, event.message);
         break;
       case StreamingServer::EventType::UpstreamDisconnected:
         HOLOSCAN_LOG_WARN("⬆️❌ [{}] Upstream connection lost: {}", timestamp, event.message);
         break;
       case StreamingServer::EventType::DownstreamConnected:
-        HOLOSCAN_LOG_INFO("⬇️ [{}] Downstream connection established: {}", timestamp, event.message);
+        HOLOSCAN_LOG_INFO(
+            "⬇️ [{}] Downstream connection established: {}", timestamp, event.message);
         break;
       case StreamingServer::EventType::DownstreamDisconnected:
-        HOLOSCAN_LOG_WARN("⬇️❌ [{}] Downstream connection lost: {}", timestamp, event.message);
+        HOLOSCAN_LOG_WARN(
+            "⬇️❌ [{}] Downstream connection lost: {}", timestamp, event.message);
         break;
       case StreamingServer::EventType::FrameReceived:
         HOLOSCAN_LOG_INFO("📥 [{}] Frame received: {}", timestamp, event.message);
@@ -797,14 +827,15 @@ void StreamingServerOp::onEvent(const StreamingServer::Event& event) {
         HOLOSCAN_LOG_INFO("📤 [{}] Frame sent: {}", timestamp, event.message);
         break;
       default:
-        HOLOSCAN_LOG_WARN("🔔 [{}] Unknown event [{}]: {}", timestamp, static_cast<int>(event.type), event.message);
+        HOLOSCAN_LOG_WARN("🔔 [{}] Unknown event [{}]: {}",
+                          timestamp,
+                          static_cast<int>(event.type),
+                          event.message);
         break;
     }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Exception in event handler: {}", e.what());
-  } catch (...) {
-    HOLOSCAN_LOG_ERROR("Unknown exception in event handler");
-  }
+  } catch (...) { HOLOSCAN_LOG_ERROR("Unknown exception in event handler"); }
 }
 
 std::atomic<bool> has_new_frame_{false};
