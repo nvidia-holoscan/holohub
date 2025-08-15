@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,19 @@
  * limitations under the License.
  */
 
-
 #pragma once
-
 
 #include <memory>
 #include <mutex>
 #include <string>
 
-#include <holoscan/holoscan.hpp>
 #include <holoscan/core/execution_context.hpp>
 #include <holoscan/core/gxf/entity.hpp>
 #include <holoscan/core/io_context.hpp>
 #include <holoscan/core/io_spec.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
+#include <holoscan/holoscan.hpp>
 
 #include "StreamingServer.h"
 
@@ -52,19 +50,20 @@ class StreamingServerOp : public holoscan::Operator {
   void initialize() override;
   void start() override;
   void stop() override;
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) override;
+  void compute(InputContext& op_input, OutputContext& op_output,
+               ExecutionContext& context) override;
 
  private:
   // Configuration parameters
-  Parameter<uint32_t> width_;           // Frame width
-  Parameter<uint32_t> height_;          // Frame height
-  Parameter<uint32_t> fps_;             // Frames per second
-  Parameter<uint16_t> port_;            // Server port
-  Parameter<bool> multi_instance_;       // Allow multiple server instances
-  Parameter<std::string> server_name_;   // Server name identifier
-  Parameter<bool> receive_frames_;       // Whether to receive frames
-  Parameter<bool> send_frames_;          // Whether to send frames
-  Parameter<std::shared_ptr<Allocator>> allocator_; // Memory allocator
+  Parameter<uint32_t> width_;                        // Frame width
+  Parameter<uint32_t> height_;                       // Frame height
+  Parameter<uint32_t> fps_;                          // Frames per second
+  Parameter<uint16_t> port_;                         // Server port
+  Parameter<bool> multi_instance_;                   // Allow multiple server instances
+  Parameter<std::string> server_name_;               // Server name identifier
+  Parameter<bool> receive_frames_;                   // Whether to receive frames
+  Parameter<bool> send_frames_;                      // Whether to send frames
+  Parameter<std::shared_ptr<Allocator>> allocator_;  // Memory allocator
 
   // Streaming server instance
   std::unique_ptr<StreamingServer> server_;
