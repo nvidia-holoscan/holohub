@@ -37,7 +37,7 @@ namespace holoscan::ops {
 
 /**
  * @brief Operator that wraps the StreamingServer for video streaming in Holoscan
- * 
+ *
  * This operator provides integration with the StreamingServer library,
  * allowing Holoscan applications to receive and send video streams.
  */
@@ -68,17 +68,17 @@ class StreamingServerOp : public holoscan::Operator {
 
   // Streaming server instance
   std::unique_ptr<StreamingServer> server_;
-  
+
   // For handling received frames
   std::mutex frame_mutex_;
   Frame current_frame_;
   std::atomic<bool> has_new_frame_{false};
-  
+
   // Shutdown flag for safer cleanup
   std::atomic<bool> is_shutting_down_{false};
-  
+
   // Event callback handler
   void onEvent(const StreamingServer::Event& event);
 };
 
-}  // namespace holoscan::ops 
+}  // namespace holoscan::ops
