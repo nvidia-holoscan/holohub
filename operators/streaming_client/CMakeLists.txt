@@ -20,13 +20,13 @@ project(streaming_client_operator)
 find_package(holoscan 3.2 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-# Add the current directory to CMAKE_MODULE_PATH so we can find FindStreaming.cmake
+# Add the current directory to CMAKE_MODULE_PATH so we can find FindHoloscanStreaming.cmake
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Find Streaming using our custom module
-find_package(Streaming REQUIRED)
+# Find HoloscanStreaming using our custom module
+find_package(HoloscanStreaming REQUIRED)
 
-message(STATUS "StreamingClient operator using Streaming imported targets")
+message(STATUS "StreamingClient operator using HoloscanStreaming imported targets")
 
 # Define the operator as a library
 add_library(streaming_client_operator
@@ -52,10 +52,10 @@ target_include_directories(streaming_client_operator
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# Link against Streaming and Holoscan using imported targets
+# Link against HoloscanStreaming and Holoscan using imported targets
 target_link_libraries(streaming_client_operator
   PUBLIC
-  Streaming::All
+  HoloscanStreaming::All
   holoscan::core
   PRIVATE
   dl
@@ -79,8 +79,8 @@ set_target_properties(streaming_client_operator PROPERTIES
   INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
-# Copy Streaming libraries to the build directory using helper function
-copy_streaming_libraries(streaming_client_operator "${CMAKE_CURRENT_BINARY_DIR}/lib")
+# Copy HoloscanStreaming libraries to the build directory using helper function
+copy_holoscan_streaming_libraries(streaming_client_operator "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
 # Copy the operator library to the application directory
 add_custom_command(TARGET streaming_client_operator POST_BUILD
@@ -110,9 +110,9 @@ install(
     include
 )
 
-# Install all Streaming libraries
+# Install all HoloscanStreaming libraries
 install(
-  DIRECTORY ${Streaming_LIB_DIR}/
+  DIRECTORY ${HoloscanStreaming_LIB_DIR}/
   DESTINATION lib
   FILES_MATCHING PATTERN "*.so*"
 )
