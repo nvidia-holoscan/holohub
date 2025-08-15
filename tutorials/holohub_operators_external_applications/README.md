@@ -318,14 +318,14 @@ python3 ../main.py
 Create a `main.py` file that uses the fetched operator:
 
 ```python
-import holoscan as hs
-from holoscan.operators import AJASourceOp
+from holoscan.core import Application
+from holohub.aja_source import AJASourceOp
 
-class App(hs.Application):
+class App(Application):
     def compose(self):
         # Create an instance of the AJA source operator
         aja_source = AJASourceOp(self, name="aja")
-        
+
         # Add the operator to your application
         self.add_operator(aja_source)
 

@@ -15,8 +15,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """  # noqa: E501
 
-from holoscan.conditions import CountCondition
 from holoscan.core import Application
-from holoscan.operators import HolovizOp
-
 from holohub.aja_source import AJASourceOp
+
+
+class App(Application):
+    def compose(self):
+        # Create an instance of the AJA source operator
+        aja_source = AJASourceOp(self, name="aja")
+
+        # Add the operator to your application
+        self.add_operator(aja_source)
+
+
+if __name__ == "__main__":
+    app = App()
+    app.run()
