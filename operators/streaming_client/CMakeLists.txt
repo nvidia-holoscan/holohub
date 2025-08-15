@@ -79,7 +79,17 @@ set_target_properties(streaming_client_operator PROPERTIES
   INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
-# Note: Libraries found via RPATH - no copying needed
+# Copy Streaming libraries to the build directory using helper function
+copy_streaming_libraries(streaming_client_operator "${CMAKE_CURRENT_BINARY_DIR}/lib")
+
+# Copy the operator library to the application directory
+add_custom_command(TARGET streaming_client_operator POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+  ${CMAKE_BINARY_DIR}/operators/streaming_client
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+  $<TARGET_FILE:streaming_client_operator>
+  ${CMAKE_BINARY_DIR}/operators/streaming_client/libstreaming_client_operator.so
+)
 
 # Install the operator shared library
 install(TARGETS streaming_client_operator
