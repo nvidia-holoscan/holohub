@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "NVIDIA Video Codec - Video Writer",
+		"name": "NVIDIA Video Codec: Video Writer",
 		"authors": [
 			{
 				"name": "Holoscan Team",
