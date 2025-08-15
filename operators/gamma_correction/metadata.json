@@ -1,7 +1,7 @@
 {
 	"operator": {
-		"name": "SlangShaderOp",
-		"description": "Operator for executing Slang shaders.",
+		"name": "GammaCorrectionOp",
+		"description": "Operator for applying gamma correction to an image.",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -17,10 +17,9 @@
 			"0.1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "3.3.0",
+			"minimum_required_version": "3.5.0",
 			"tested_versions": [
-				"3.3.0",
-				"3.4.0"
+				"3.5.0"
 			]
 		},
 		"platforms": [
@@ -28,14 +27,11 @@
 			"aarch64"
 		],
 		"tags": [
-			"Slang",
-			"shading",
-			"rendering",
-			"shader",
-			"shadertoy",
-			"compute",
-			"raytracing",
-			"cuda"
+			"gamma",
+			"correction",
+			"image",
+			"processing",
+			"gamma"
 		],
 		"ranking": 1,
 		"requirements": {}

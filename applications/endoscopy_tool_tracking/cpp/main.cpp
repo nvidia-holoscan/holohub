@@ -23,7 +23,7 @@
 #include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <lstm_tensor_rt_inference.hpp>
-#include <slang_shader_op.hpp>
+#include <slang_shader/slang_shader.hpp>
 #include <string>
 #include <tool_tracking_postprocessor.hpp>
 #ifdef VTK_RENDERER

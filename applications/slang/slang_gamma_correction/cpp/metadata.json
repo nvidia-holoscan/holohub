@@ -1,26 +1,22 @@
 {
-	"operator": {
-		"name": "SlangShaderOp",
-		"description": "Operator for executing Slang shaders.",
+	"application": {
+		"name": "Slang Gamma Correction Example",
+		"description": "Example for using the Slang shading language operator for gamma correction",
 		"authors": [
 			{
 				"name": "Holoscan Team",
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": [
-			"C++",
-			"Python"
-		],
+		"language": "C++",
 		"version": "0.1.0",
 		"changelog": {
 			"0.1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "3.3.0",
+			"minimum_required_version": "3.5.0",
 			"tested_versions": [
-				"3.3.0",
-				"3.4.0"
+				"3.5.0"
 			]
 		},
 		"platforms": [
@@ -32,12 +28,14 @@
 			"shading",
 			"rendering",
 			"shader",
-			"shadertoy",
 			"compute",
-			"raytracing",
 			"cuda"
 		],
 		"ranking": 1,
-		"requirements": {}
+		"requirements": {},
+		"run": {
+			"command": "<holohub_app_bin>/slang_gamma_correction",
+			"workdir": "holohub_app_bin"
+		}
 	}
 }

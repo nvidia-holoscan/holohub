@@ -13,15 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-
-project(slang_shader)
-
-find_package(holoscan 3.3.0 REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-
 add_subdirectory(cpp)
-
-if(HOLOHUB_BUILD_PYTHON)
-    add_subdirectory(python)
-endif()
+add_subdirectory(python)

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "slang_shader.hpp"
+#include "slang_shader_compiler.hpp"
 
 #include <driver_types.h>
 #include <array>
@@ -24,8 +24,8 @@
 
 namespace holoscan::ops {
 
-SlangShader::SlangShader(const Slang::ComPtr<slang::ISession>& session,
-                         const std::string& shader_source) {
+SlangShaderCompiler::SlangShaderCompiler(const Slang::ComPtr<slang::ISession>& session,
+                                         const std::string& shader_source) {
   // Load module from source string
   Slang::ComPtr<ISlangBlob> diagnostics_blob;
 
@@ -116,7 +116,7 @@ SlangShader::SlangShader(const Slang::ComPtr<slang::ISession>& session,
   }
 }
 
-nlohmann::json SlangShader::get_reflection() {
+nlohmann::json SlangShaderCompiler::get_reflection() {
   // Get reflection from the linked program and convert to JSON
   Slang::ComPtr<ISlangBlob> reflection_blob;
   SLANG_CALL(linked_program_->getLayout(0)->toJson(reflection_blob.writeRef()));
@@ -126,7 +126,7 @@ nlohmann::json SlangShader::get_reflection() {
   return nlohmann::json::parse((const char*)reflection_blob->getBufferPointer());
 }
 
-cudaKernel_t SlangShader::get_kernel(const std::string& name) {
+cudaKernel_t SlangShaderCompiler::get_kernel(const std::string& name) {
   auto it = cuda_kernels_.find(name);
   if (it == cuda_kernels_.end()) {
     throw std::runtime_error(fmt::format("Kernel '{}' not found", name));
@@ -135,9 +135,9 @@ cudaKernel_t SlangShader::get_kernel(const std::string& name) {
   return it->second.cuda_kernel_;
 }
 
-void SlangShader::update_global_params(const std::string& name,
-                                       const std::vector<uint8_t>& shader_parameters,
-                                       cudaStream_t stream) {
+void SlangShaderCompiler::update_global_params(const std::string& name,
+                                               const std::vector<uint8_t>& shader_parameters,
+                                               cudaStream_t stream) {
   auto it = cuda_kernels_.find(name);
   if (it == cuda_kernels_.end()) {
     throw std::runtime_error(fmt::format("Kernel '{}' not found", name));

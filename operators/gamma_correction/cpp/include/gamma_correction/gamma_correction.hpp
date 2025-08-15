@@ -15,41 +15,23 @@
  * limitations under the License.
  */
 
-#ifndef SLANG_SHADER_OP_HPP
-#define SLANG_SHADER_OP_HPP
+#ifndef GAMMA_CORRECTION_OP_HPP
+#define GAMMA_CORRECTION_OP_HPP
 
-#include <memory>
-#include <string>
-#include <utility>
-
-#include <holoscan/core/operator.hpp>
+#include <slang_shader/slang_shader.hpp>
 
 namespace holoscan::ops {
 
 /**
- * @brief Slang shader operator.
+ * @brief Gamma correction operator.
  */
-class SlangShaderOp : public Operator {
+class GammaCorrectionOp : public SlangShaderOp {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(SlangShaderOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(GammaCorrectionOp, SlangShaderOp)
 
   void setup(OperatorSpec& spec) override;
-
-  void initialize() override;
-
-  void compute(InputContext& op_input, [[maybe_unused]] OutputContext& op_output,
-               [[maybe_unused]] ExecutionContext& context) override;
-
- private:
-  Parameter<std::string> shader_source_;
-  Parameter<std::string> shader_source_file_;
-  Parameter<std::shared_ptr<Allocator>> allocator_;
-
-  // Forward declaration of implementation
-  class Impl;
-  std::shared_ptr<Impl> impl_;
 };
 
 }  // namespace holoscan::ops
 
-#endif /* SLANG_SHADER_OP_HPP */
+#endif /* GAMMA_CORRECTION_OP_HPP */

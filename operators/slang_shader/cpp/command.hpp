@@ -27,11 +27,12 @@
 
 #include <holoscan/core/execution_context.hpp>
 #include <holoscan/core/io_context.hpp>
+
 #include "slang_utils.hpp"
 
 namespace holoscan::ops {
 
-class SlangShader;
+class SlangShaderCompiler;
 
 /**
  * @brief Workspace for command execution containing input/output contexts and shared resources
@@ -61,16 +62,31 @@ class CommandWorkspace {
     bool has_been_emitted_ = false;
   };
 
-  std::map<std::string, PortInfo> port_info_;  ///< Mapping of port names to port information
+  /**
+   * @brief Mapping of port names to port information
+   *
+   * This map is used to store information about input and output ports. This will be filled when
+   * input and alloc commands are executed.
+   */
+  std::map<std::string, std::unique_ptr<PortInfo>> port_info_;
 
   std::vector<uint8_t> shader_parameters_;  ///< Buffer for shader parameter data
 
   /// Resource information
   struct ResourceInfo {
-    void* pointer = nullptr;
-    size_t size = 0;
+    PortInfo* port_info_ = nullptr;
+    void* pointer_ = nullptr;
+    size_t size_ = 0;
   };
 
+  /**
+   * @brief Mapping of resource names to CUDA resource information
+   *
+   * This map is used to store information about CUDA resources, including the port information,
+   * pointer, and size. This will be filled when input and alloc commands are executed.
+   * It is used on output commands to get the pointer to the port info and on the zeros command to
+   * get the pointer to the CUDA resource.
+   */
   std::map<std::string, ResourceInfo>
       cuda_resource_pointers_;  ///< Mapping of resource names to CUDA resource information
 
@@ -391,13 +407,14 @@ class CommandLaunch : public Command {
    * @brief Constructs a kernel launch command
    *
    * @param name Name of the kernel
-   * @param shader Pointer to the SlangShader object
+   * @param shader_compiler Pointer to the SlangShaderCompiler object
    * @param thread_group_size CUDA thread group dimensions (threads per thread group).
    * @param invocations_size_of_name Name of parameter containing invocation size
    * @param invocations total number of invocations
    */
-  CommandLaunch(const std::string& name, SlangShader* shader, dim3 thread_group_size,
-                const std::string& invocations_size_of_name, dim3 invocations);
+  CommandLaunch(const std::string& name, SlangShaderCompiler* shader_compiler,
+                dim3 thread_group_size, const std::string& invocations_size_of_name,
+                dim3 invocations);
   CommandLaunch() = delete;
 
   /**
@@ -411,9 +428,9 @@ class CommandLaunch : public Command {
   void execute(CommandWorkspace& workspace) override;
 
  private:
-  const std::string name_;     ///< Kernel name
-  SlangShader* const shader_;  ///< Pointer to the shader object
-  dim3 thread_group_size_;     ///< CUDA thread group dimensions (threads per thread group).
+  const std::string name_;                      ///< Kernel name
+  SlangShaderCompiler* const shader_compiler_;  ///< Pointer to the shader compiler object
+  dim3 thread_group_size_;  ///< CUDA thread group dimensions (threads per thread group).
   const std::string invocations_size_of_name_;  ///< Name of invocation size parameter
   const dim3 invocations_;                      ///< Total number of invocations
   cudaKernel_t kernel_ = nullptr;               ///< Compiled CUDA kernel handle

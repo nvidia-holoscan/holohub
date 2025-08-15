@@ -535,6 +535,24 @@
         },
         {
             "type": "shell",
+            "label": "Build slang_gamma_correction",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "slang_gamma_correction",
+                "--build-type",
+                "debug",
+                "--local"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
             "label": "Build volume_rendering",
             "command": "./holohub",
             "args": [
