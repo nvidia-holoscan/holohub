@@ -28,8 +28,6 @@ add_executable(streaming_client_demo
     streaming_client_demo.cpp
 )
 
-
-
 # Set compile definitions
 target_compile_definitions(streaming_client_demo
     PRIVATE
