@@ -16,8 +16,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(streaming_server_demo)
 
-# Add C++ and Python subdirectories
-
 # Add C++ subdirectory
 add_subdirectory(cpp)
 
