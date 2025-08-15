@@ -123,8 +123,3 @@ install(
     "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml"
     DESTINATION bin
 )
-
-# Copy to build directory
-add_custom_command(TARGET streaming_client_demo POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/streaming_client_demo"
-)
