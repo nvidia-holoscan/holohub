@@ -10,10 +10,12 @@ target_sources(${PROJECT_NAME}
     PRIVATE
         ano_ipo_receiver.cpp
         ano_rtp_receiver.cpp
+        ano_media_sender.cpp
     PUBLIC
         utils.h
         ano_ipo_receiver.h
-        ano_ipo_receiver.h
+        ano_rtp_receiver.h
+        ano_media_sender.h
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)

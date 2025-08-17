@@ -360,6 +360,7 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 
   - **`memory_regions`**: List of memory regions where buffers are stored (configured in Memory Regions section)
     - **Type**: `list`
+
 ##### Extended Transmit Configuration for Rivermax manager
 The Rivermax TX configuration enables hardware-assisted SMPTE 2110-20 compliant video streaming with:
 - Precision timestamping via PCIe PTP clock synchronization

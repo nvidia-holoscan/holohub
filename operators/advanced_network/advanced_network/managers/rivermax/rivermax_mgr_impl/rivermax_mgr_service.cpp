@@ -442,10 +442,12 @@ bool MediaSenderService::post_init_setup() {
   tx_media_frame_provider_ =
       std::make_shared<BufferedMediaFrameProvider>(MEDIA_FRAME_PROVIDER_SIZE);
   // Set the media frame provider to the TX service
-  status = tx_service_->set_frame_provider(0, tx_media_frame_provider_);
-  if (status != ReturnStatus::success) {
-    HOLOSCAN_LOG_ERROR("Failed to set frame provider to TX service");
-    return false;
+  for (uint16_t i = 0; i < settings->num_of_total_streams; i++) {
+    status = tx_service_->set_frame_provider(i, tx_media_frame_provider_);
+    if (status != ReturnStatus::success) {
+      HOLOSCAN_LOG_ERROR("Failed to set frame provider to TX service for stream {}", i);
+      return false;
+    }
   }
   return true;
 }

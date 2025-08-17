@@ -101,9 +101,6 @@ RivermaxCommonTxQueueConfig::RivermaxCommonTxQueueConfig(const RivermaxCommonTxQ
       lock_gpu_clocks(other.lock_gpu_clocks),
       split_boundary(other.split_boundary),
       local_ip(other.local_ip),
-      destination_ip(other.destination_ip),
-      destination_port(other.destination_port),
-      num_of_threads(other.num_of_threads),
       print_parameters(other.print_parameters),
       sleep_between_operations(other.sleep_between_operations),
       allocator_type(other.allocator_type),
@@ -114,7 +111,8 @@ RivermaxCommonTxQueueConfig::RivermaxCommonTxQueueConfig(const RivermaxCommonTxQ
       stats_report_interval_ms(other.stats_report_interval_ms),
       cpu_cores(other.cpu_cores),
       master_core(other.master_core),
-      dummy_sender(other.dummy_sender) {}
+      dummy_sender(other.dummy_sender),
+      thread_settings(other.thread_settings) {}
 
 RivermaxCommonTxQueueConfig& RivermaxCommonTxQueueConfig::operator=(
     const RivermaxCommonTxQueueConfig& other) {
@@ -124,9 +122,6 @@ RivermaxCommonTxQueueConfig& RivermaxCommonTxQueueConfig::operator=(
   lock_gpu_clocks = other.lock_gpu_clocks;
   split_boundary = other.split_boundary;
   local_ip = other.local_ip;
-  destination_ip = other.destination_ip;
-  destination_port = other.destination_port;
-  num_of_threads = other.num_of_threads;
   print_parameters = other.print_parameters;
   sleep_between_operations = other.sleep_between_operations;
   allocator_type = other.allocator_type;
@@ -138,6 +133,7 @@ RivermaxCommonTxQueueConfig& RivermaxCommonTxQueueConfig::operator=(
   cpu_cores = other.cpu_cores;
   master_core = other.master_core;
   dummy_sender = other.dummy_sender;
+  thread_settings = other.thread_settings;
   return *this;
 }
 
@@ -239,9 +235,15 @@ void RivermaxMediaSenderQueueConfig::dump_parameters() const {
   if (this->print_parameters) {
     HOLOSCAN_LOG_INFO("Rivermax TX Queue Config:");
     HOLOSCAN_LOG_INFO("\tNetwork settings:");
-    HOLOSCAN_LOG_INFO("\t\tlocal_ip: {}", local_ip);
-    HOLOSCAN_LOG_INFO("\t\tdestination_ip: {}", destination_ip);
-    HOLOSCAN_LOG_INFO("\t\tdestination_port: {}", destination_port);
+    for (const auto& thread : thread_settings) {
+      HOLOSCAN_LOG_INFO("\t\tthread_id: {}", thread.thread_id);
+      for (const auto& stream : thread.stream_network_settings) {
+        HOLOSCAN_LOG_INFO("\t\t\tstream_id: {}", stream.stream_id);
+        HOLOSCAN_LOG_INFO("\t\t\t\tlocal_ips: {}", stream.local_ips);
+        HOLOSCAN_LOG_INFO("\t\t\t\tdestination_ips: {}", stream.destination_ips);
+        HOLOSCAN_LOG_INFO("\t\t\t\tdestination_ports: {}", stream.destination_ports);
+      }
+    }
     HOLOSCAN_LOG_INFO("\tGPU settings:");
     HOLOSCAN_LOG_INFO("\t\tGPU ID: {}", gpu_device_id);
     HOLOSCAN_LOG_INFO("\t\tGPU Direct: {}", gpu_direct);
@@ -259,7 +261,6 @@ void RivermaxMediaSenderQueueConfig::dump_parameters() const {
     HOLOSCAN_LOG_INFO("\t\tnum_of_packets_in_chunk: {}", num_of_packets_in_chunk);
     HOLOSCAN_LOG_INFO("\tSender settings:");
     HOLOSCAN_LOG_INFO("\t\tdummy_sender: {}", dummy_sender);
-    HOLOSCAN_LOG_INFO("\t\tnum_of_threads: {}", num_of_threads);
     HOLOSCAN_LOG_INFO("\t\tsend_packet_ext_info: {}", send_packet_ext_info);
     HOLOSCAN_LOG_INFO("\t\tsleep_between_operations: {}", sleep_between_operations);
     HOLOSCAN_LOG_INFO("\t\tstats_report_interval_ms: {}", stats_report_interval_ms);
@@ -399,14 +400,32 @@ ReturnStatus RivermaxCommonTxQueueValidator::validate(
     const std::shared_ptr<RivermaxCommonTxQueueConfig>& settings) const {
   ReturnStatus rc = ValidatorUtils::validate_core(settings->master_core);
   if (rc != ReturnStatus::success) { return rc; }
-  bool res = ConfigManagerUtilities::validate_cores(settings->cpu_cores);
-  if (!res) { return ReturnStatus::failure; }
-  rc = ValidatorUtils::validate_ip4_address(settings->local_ip);
-  if (rc != ReturnStatus::success) { return rc; }
-  rc = ValidatorUtils::validate_ip4_address(settings->destination_ip);
-  if (rc != ReturnStatus::success) { return rc; }
-  rc = ValidatorUtils::validate_ip4_port(settings->destination_port);
-  if (rc != ReturnStatus::success) { return rc; }
+  int thread_id = 0;
+  int stream_id = 0;
+  for (const auto& thread : settings->thread_settings) {
+    if (thread.thread_id != thread_id) {
+      HOLOSCAN_LOG_ERROR("Thread ID must be sequential starting from 0");
+      return ReturnStatus::failure;
+    }
+    thread_id++;
+    if (thread.stream_network_settings.empty()) {
+      HOLOSCAN_LOG_ERROR("No stream network settings provided for thread ID {}", thread.thread_id);
+      return ReturnStatus::failure;
+    }
+    for (const auto& stream : thread.stream_network_settings) {
+      // if (stream.stream_id != stream_id) {
+      //   HOLOSCAN_LOG_ERROR("Stream ID must be sequential starting from 0");
+      //   return ReturnStatus::failure;
+      // }
+      // stream_id++;
+      rc = ValidatorUtils::validate_ip4_address(stream.destination_ip);
+      if (rc != ReturnStatus::success) { return rc; }
+      rc = ValidatorUtils::validate_ip4_address(stream.local_ip);
+      if (rc != ReturnStatus::success) { return rc; }
+      rc = ValidatorUtils::validate_ip4_port(stream.destination_port);
+      if (rc != ReturnStatus::success) { return rc; }
+    }
+  }
   if (!settings->memory_allocation && settings->memory_registration) {
     HOLOSCAN_LOG_ERROR(
         "Register memory option is supported only with application memory allocation");
@@ -532,10 +551,12 @@ ReturnStatus RivermaxQueueToRTPReceiverSettingsBuilder::convert_settings(
 
 ReturnStatus RivermaxQueueToMediaSenderSettingsBuilder::convert_settings(
     const std::shared_ptr<RivermaxMediaSenderQueueConfig>& source_settings,
-    std::shared_ptr<MediaSenderSettings>& target_settings) {
-  target_settings->local_ip = source_settings->local_ip;
-  target_settings->destination_ip = source_settings->destination_ip;
-  target_settings->destination_port = source_settings->destination_port;
+    std::shared_ptr<ANOMediaSenderSettings>& target_settings) {
+  target_settings->thread_settings = source_settings->thread_settings;
+  target_settings->num_of_threads = target_settings->thread_settings.size();
+  // Same local IP for all streams of the first thread
+  // Next - This will be taken from the adv_network settings `address`
+  target_settings->local_ip = source_settings->thread_settings[0].stream_network_settings[0].local_ip;
 
   if (source_settings->gpu_direct) {
     target_settings->gpu_id = source_settings->gpu_device_id;
@@ -557,7 +578,6 @@ ReturnStatus RivermaxQueueToMediaSenderSettingsBuilder::convert_settings(
     return ReturnStatus::failure;
   }
 
-  target_settings->num_of_threads = source_settings->num_of_threads;
   target_settings->print_parameters = source_settings->print_parameters;
   target_settings->sleep_between_operations = source_settings->sleep_between_operations;
   target_settings->packet_app_header_size = source_settings->split_boundary;
