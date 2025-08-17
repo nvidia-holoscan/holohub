@@ -33,7 +33,6 @@
 
 #include "rt_threads.h"
 #include "rdk/rivermax_dev_kit.h"
-#include "rdk/apps/rmax_xstream_media_sender/rmax_xstream_media_sender.h"
 
 #include "adv_network_rivermax_mgr.h"
 #include "rivermax_mgr_impl/rivermax_config_manager.h"
@@ -45,9 +44,6 @@
 using namespace std::chrono;
 
 namespace holoscan::advanced_network {
-
-using namespace rivermax::dev_kit::apps;
-using namespace rivermax::dev_kit::apps::rmax_xstream_media_sender;
 
 /**
  * A map of log level to a tuple of the description and command strings.
