@@ -24,7 +24,6 @@
 #include <holoscan/logger/logger.hpp>
 
 #include "rdk/rivermax_dev_kit.h"
-#include "rdk/apps/rmax_xstream_media_sender/rmax_xstream_media_sender.h"
 
 #include "adv_network_rivermax_mgr.h"
 #include "rivermax_mgr_impl/rivermax_config_manager.h"
@@ -32,9 +31,6 @@
 #include "rivermax_mgr_impl/packet_processor.h"
 
 namespace holoscan::advanced_network {
-
-using namespace rivermax::dev_kit::apps;
-using namespace rivermax::dev_kit::apps::rmax_xstream_media_sender;
 
 /**
  * @brief Base class for all Rivermax manager services.
@@ -316,7 +312,7 @@ class RivermaxManagerTxService : public RivermaxManagerService {
    *
    * @return Unique pointer to the created service.
    */
-  virtual std::unique_ptr<MediaSenderApp> create_service() = 0;
+  virtual std::unique_ptr<ANOMediaSenderApp> create_service() = 0;
 
   /**
    * @brief Configures the service with service-specific settings.
@@ -346,7 +342,7 @@ class RivermaxManagerTxService : public RivermaxManagerService {
   BurstParams* prepare_burst_params(BurstParams* burst);
 
  protected:
-  std::unique_ptr<MediaSenderApp> tx_service_;  ///< The transmitter service instance
+  std::unique_ptr<ANOMediaSenderApp> tx_service_;  ///< The transmitter service instance
 };
 
 /**
@@ -372,8 +368,8 @@ class MediaSenderBaseService : public RivermaxManagerTxService {
   virtual ~MediaSenderBaseService() = default;
 
  protected:
-  std::unique_ptr<MediaSenderApp> create_service() override {
-    return std::make_unique<MediaSenderApp>(media_sender_builder_);
+  std::unique_ptr<ANOMediaSenderApp> create_service() override {
+    return std::make_unique<ANOMediaSenderApp>(media_sender_builder_);
   }
 
   bool configure_service() override;
