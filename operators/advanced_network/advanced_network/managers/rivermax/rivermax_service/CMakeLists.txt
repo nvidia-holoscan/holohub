@@ -76,6 +76,10 @@ if(NOT CONTENTS MATCHES "virtual ReturnStatus find_internal_stream_index\\(")
     string(REPLACE "ReturnStatus find_internal_stream_index(" "virtual ReturnStatus find_internal_stream_index(" NEW_CONTENTS "${CONTENTS}")
     file(WRITE "${rivermax-dev-kit_SOURCE_DIR}/source/apps/include/rdk/apps/rmax_base_app.h" "${NEW_CONTENTS}")
 endif()
+if (NOT CONTENTS MATCHES "virtual ReturnStatus get_app_settings\\(")
+    string(REPLACE "ReturnStatus get_app_settings(" "virtual ReturnStatus get_app_settings(" NEW_CONTENTS2 "${NEW_CONTENTS}")
+    file(WRITE "${rivermax-dev-kit_SOURCE_DIR}/source/apps/include/rdk/apps/rmax_base_app.h" "${NEW_CONTENTS2}")
+endif()
 
 # Link external RDK libraries through INTERFACE
 target_link_libraries(${PROJECT_NAME} INTERFACE

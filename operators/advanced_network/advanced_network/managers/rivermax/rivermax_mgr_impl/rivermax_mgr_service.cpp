@@ -422,6 +422,13 @@ MediaSenderService::MediaSenderService(
 bool MediaSenderService::post_init_setup() {
   const AppSettings* settings = nullptr;
   auto status = tx_service_->get_app_settings(settings);
+  const ANOMediaSenderSettings* media_settings =
+      dynamic_cast<const ANOMediaSenderSettings*>(settings);
+  if (!media_settings) {
+    HOLOSCAN_LOG_ERROR("Failed to cast AppSettings to ANOMediaSenderSettings");
+    return false;
+  }
+
 
   if (status != ReturnStatus::success) {
     HOLOSCAN_LOG_ERROR("Failed to get settings from TX service");
@@ -442,10 +449,14 @@ bool MediaSenderService::post_init_setup() {
   tx_media_frame_provider_ =
       std::make_shared<BufferedMediaFrameProvider>(MEDIA_FRAME_PROVIDER_SIZE);
   // Set the media frame provider to the TX service
-  status = tx_service_->set_frame_provider(0, tx_media_frame_provider_);
-  if (status != ReturnStatus::success) {
-    HOLOSCAN_LOG_ERROR("Failed to set frame provider to TX service");
-    return false;
+  for (auto& thread : media_settings->thread_settings) {
+    for (auto& stream : thread.stream_network_settings) {
+      status = tx_service_->set_frame_provider(stream.stream_id, tx_media_frame_provider_);
+      if (status != ReturnStatus::success) {
+        HOLOSCAN_LOG_ERROR("Failed to set frame provider to TX service for stream {}", stream.stream_id);
+        return false;
+      }
+    }
   }
   return true;
 }
