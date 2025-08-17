@@ -411,6 +411,12 @@ class MediaFileFrameProvider {
   size_t sleep_duration_microseconds_;
 };
 
+void shutdown(std::string message) {
+  advanced_network::shutdown();
+  HOLOSCAN_LOG_ERROR("{}", message);
+  exit(1);
+}
+
 class AdvNetworkingBenchRivermaxTxOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvNetworkingBenchRivermaxTxOp)
@@ -443,7 +449,7 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
 
     auto status = frame_provider_->initialize();
     if (status != Status::SUCCESS) {
-      throw std::runtime_error("Failed to initialize media file provider");
+      shutdown("Failed to initialize media file provider");
     }
 
     // Start the provider thread
@@ -534,8 +540,8 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
                        err);
   }
 
-  enum class VideoSampling { RGB, YCbCr_4_2_2, YCbCr_4_2_0, YCbCr_4_4_4 };
-  enum class ColorBitDepth { _8, _10, _12 };
+  enum class VideoSampling { RGB, YCbCr_4_2_2, YCbCr_4_2_0, YCbCr_4_4_4, Unknown};
+  enum class ColorBitDepth { _8, _10, _12, Unknown};
   using BytesPerPixelRatio = std::pair<uint32_t, uint32_t>;
   using ColorDepthPixelRatioMap =
       std::unordered_map<VideoSampling, std::unordered_map<ColorBitDepth, BytesPerPixelRatio>>;
@@ -557,14 +563,14 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
    *
    * @return the corresponding VideoSampling enum value
    *
-   * @throws std::invalid_argument if the video sampling format is not supported
+   * @note exits the application if the video sampling format is not supported
    */
   VideoSampling get_video_sampling_format(const std::string& format) {
     if (format == "RGB888") return VideoSampling::RGB;
     if (format == "YUV422") return VideoSampling::YCbCr_4_2_2;
     if (format == "YUV420") return VideoSampling::YCbCr_4_2_0;
     if (format == "YUV442") return VideoSampling::YCbCr_4_4_4;
-    throw std::invalid_argument("Unsupported video sampling format: " + format);
+    return VideoSampling::Unknown;
   }
 
   /**
@@ -574,7 +580,7 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
    *
    * @return the corresponding ColorBitDepth enum value
    *
-   * @throws std::invalid_argument if the bit depth is not supported
+   * @note exits the application if the bit depth is not supported
    */
   ColorBitDepth get_color_bit_depth(int bit_depth) {
     switch (bit_depth) {
@@ -585,7 +591,7 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
       case 12:
         return ColorBitDepth::_12;
       default:
-        throw std::invalid_argument("Unsupported bit depth: " + std::to_string(bit_depth));
+        return ColorBitDepth::Unknown;
     }
   }
 
@@ -599,7 +605,7 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
    *
    * @return The size of the frame in bytes.
    *
-   * @throws std::invalid_argument If the sampling format or bit depth is unsupported.
+   * @note exits the application if the format or bit depth is unsupported.
    */
   size_t calculate_frame_size(uint32_t width, uint32_t height, const std::string& format_str,
                               uint32_t bit_depth_int) {
@@ -608,12 +614,12 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
 
     auto format_it = COLOR_DEPTH_TO_PIXEL_RATIO.find(sampling_format);
     if (format_it == COLOR_DEPTH_TO_PIXEL_RATIO.end()) {
-      throw std::invalid_argument("Unsupported sampling format");
+      shutdown("Unsupported sampling format");
     }
 
     auto depth_it = format_it->second.find(bit_depth);
     if (depth_it == format_it->second.end()) {
-      throw std::invalid_argument("Unsupported bit depth");
+      shutdown("Unsupported bit depth");
     }
 
     float bytes_per_pixel = static_cast<float>(depth_it->second.first) / depth_it->second.second;

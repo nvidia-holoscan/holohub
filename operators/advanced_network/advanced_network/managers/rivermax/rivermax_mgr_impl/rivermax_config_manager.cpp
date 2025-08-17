@@ -23,8 +23,6 @@
 
 namespace holoscan::advanced_network {
 
-using namespace rivermax::dev_kit::apps::rmax_xstream_media_sender;
-
 static constexpr int USECS_IN_SECOND = 1000000;
 
 /**
@@ -288,7 +286,10 @@ int RivermaxConfigContainer::parse_tx_queues(uint16_t port_id,
   tx_config_manager->set_configuration(cfg_);
 
   for (const auto& q : queues) {
-    if (!tx_config_manager->append_candidate_for_tx_queue(port_id, q)) { continue; }
+    if (!tx_config_manager->append_candidate_for_tx_queue(port_id, q)) { 
+        HOLOSCAN_LOG_WARN("Failed to append TX queue configuration for queue - Exiting");
+        return 0;
+    }
     rivermax_tx_config_found++;
   }
 
@@ -384,8 +385,12 @@ bool TxConfigManager::append_media_sender_candidate_for_tx_queue(
     HOLOSCAN_LOG_ERROR("Failed to validate source settings");
     return false;
   }
+  if (!rivermax_tx_config.split_boundary && rivermax_tx_config.memory_pool_location == MemoryKind::DEVICE) {
+    HOLOSCAN_LOG_ERROR("GPU memory pool is supported only in header-data split mode");
+    return false;
+  }
 
-  auto rivermax_media_sender_settings_validator = std::make_shared<MediaSenderSettingsValidator>();
+  auto rivermax_media_sender_settings_validator = std::make_shared<ANOMediaSenderSettingsValidator>();
   auto settings_builder = std::make_shared<RivermaxQueueToMediaSenderSettingsBuilder>(
       std::move(rivermax_tx_config_ptr), std::move(rivermax_media_sender_settings_validator));
 
@@ -646,9 +651,19 @@ Status RivermaxConfigParser::parse_tx_queue_rivermax_config(const YAML::Node& q_
 bool RivermaxConfigParser::parse_common_tx_settings(
     const YAML::Node& tx_settings, const YAML::Node& q_item,
     RivermaxCommonTxQueueConfig& rivermax_tx_config) {
-  rivermax_tx_config.local_ip = tx_settings["local_ip_address"].as<std::string>("");
-  rivermax_tx_config.destination_ip = tx_settings["destination_ip_address"].as<std::string>("");
-  rivermax_tx_config.destination_port = tx_settings["destination_port"].as<uint16_t>(0);
+  for (const auto& q_item_thread : tx_settings["tx_threads"]) {
+    ThreadSettings thread_settings;
+    for (const auto& q_item_stream : q_item_thread["network_settings"]) {
+      StreamNetworkSettings stream_settings;
+      stream_settings.local_ip = q_item_stream["local_ip_address"].as<std::string>("");
+      stream_settings.destination_ip = q_item_stream["destination_ip_address"].as<std::string>("");
+      stream_settings.destination_port = q_item_stream["destination_port"].as<uint16_t>(0);
+      stream_settings.stream_id = q_item_stream["stream_id"].as<uint32_t>(0);
+      thread_settings.stream_network_settings.push_back(stream_settings);
+    }
+    thread_settings.thread_id = q_item_thread["thread_id"].as<int>(0);
+    rivermax_tx_config.thread_settings.push_back(thread_settings);
+  }
 
   rivermax_tx_config.allocator_type = tx_settings["allocator_type"].as<std::string>("auto");
   rivermax_tx_config.memory_registration = tx_settings["memory_registration"].as<bool>(true);
@@ -656,11 +671,10 @@ bool RivermaxConfigParser::parse_common_tx_settings(
   rivermax_tx_config.lock_gpu_clocks = tx_settings["lock_gpu_clocks"].as<bool>(true);
 
   rivermax_tx_config.print_parameters = tx_settings["verbose"].as<bool>(false);
-  rivermax_tx_config.num_of_threads = tx_settings["num_of_threads"].as<size_t>(1);
   rivermax_tx_config.send_packet_ext_info = tx_settings["send_packet_ext_info"].as<bool>(true);
   rivermax_tx_config.num_of_packets_in_chunk =
     tx_settings["num_of_packets_in_chunk"].as<size_t>(
-      MediaSenderSettings::DEFAULT_NUM_OF_PACKETS_IN_CHUNK_FHD);
+      ANOMediaSenderSettings::DEFAULT_NUM_OF_PACKETS_IN_CHUNK_FHD);
   rivermax_tx_config.sleep_between_operations =
       tx_settings["sleep_between_operations"].as<bool>(true);
   rivermax_tx_config.stats_report_interval_ms =

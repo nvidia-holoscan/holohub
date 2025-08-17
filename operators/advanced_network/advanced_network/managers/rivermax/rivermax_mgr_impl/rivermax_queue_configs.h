@@ -24,16 +24,14 @@
 #include <vector>
 
 #include "rdk/rivermax_dev_kit.h"
-#include "rdk/apps/rmax_xstream_media_sender/rmax_xstream_media_sender.h"
 
 #include "advanced_network/manager.h"
 #include "rivermax_ano_data_types.h"
 #include "ano_ipo_receiver.h"
 #include "ano_rtp_receiver.h"
+#include "ano_media_sender.h"
 
 namespace holoscan::advanced_network {
-
-using namespace rivermax::dev_kit::apps::rmax_xstream_media_sender;
 
 enum class QueueConfigType { IPOReceiver, RTPReceiver, MediaFrameSender, GenericPacketSender };
 
@@ -165,9 +163,6 @@ struct RivermaxCommonTxQueueConfig : public BaseQueueConfig {
   bool lock_gpu_clocks;
   uint16_t split_boundary;
   std::string local_ip;
-  std::string destination_ip;
-  uint16_t destination_port;
-  size_t num_of_threads;
   bool print_parameters;
   bool sleep_between_operations;
   std::string allocator_type;
@@ -179,6 +174,7 @@ struct RivermaxCommonTxQueueConfig : public BaseQueueConfig {
   std::string cpu_cores;
   int master_core;
   bool dummy_sender;
+  std::vector<ThreadSettings> thread_settings;
 };
 
 struct RivermaxMediaSenderQueueConfig : public RivermaxCommonTxQueueConfig {
@@ -279,24 +275,24 @@ class RivermaxQueueToRTPReceiverSettingsBuilder
 };
 
 class RivermaxQueueToMediaSenderSettingsBuilder
-    : public ConversionSettingsBuilder<RivermaxMediaSenderQueueConfig, MediaSenderSettings> {
+    : public ConversionSettingsBuilder<RivermaxMediaSenderQueueConfig, ANOMediaSenderSettings> {
  public:
   RivermaxQueueToMediaSenderSettingsBuilder(
       std::shared_ptr<RivermaxMediaSenderQueueConfig> source_settings,
-      std::shared_ptr<ISettingsValidator<MediaSenderSettings>> validator)
-      : ConversionSettingsBuilder<RivermaxMediaSenderQueueConfig, MediaSenderSettings>(
+      std::shared_ptr<ISettingsValidator<ANOMediaSenderSettings>> validator)
+      : ConversionSettingsBuilder<RivermaxMediaSenderQueueConfig, ANOMediaSenderSettings>(
             source_settings, validator) {}
 
  protected:
   ReturnStatus convert_settings(
       const std::shared_ptr<RivermaxMediaSenderQueueConfig>& source_settings,
-      std::shared_ptr<MediaSenderSettings>& target_settings) override;
+      std::shared_ptr<ANOMediaSenderSettings>& target_settings) override;
 
  public:
   bool dummy_sender_ = false;
   bool use_internal_memory_pool_ = false;
   MemoryKind memory_pool_location_ = MemoryKind::DEVICE;
-  MediaSenderSettings built_settings_;
+  ANOMediaSenderSettings built_settings_;
   bool settings_built_ = false;
 };
 

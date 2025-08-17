@@ -33,7 +33,6 @@
 
 #include "rt_threads.h"
 #include "rdk/rivermax_dev_kit.h"
-#include "rdk/apps/rmax_xstream_media_sender/rmax_xstream_media_sender.h"
 
 #include "adv_network_rivermax_mgr.h"
 #include "rivermax_mgr_impl/rivermax_config_manager.h"
@@ -45,9 +44,6 @@
 using namespace std::chrono;
 
 namespace holoscan::advanced_network {
-
-using namespace rivermax::dev_kit::apps;
-using namespace rivermax::dev_kit::apps::rmax_xstream_media_sender;
 
 /**
  * A map of log level to a tuple of the description and command strings.
@@ -378,6 +374,7 @@ bool RivermaxMgr::RivermaxMgrImpl::initialize_tx_service(
 
     auto dummy_sender = media_sender_builder->dummy_sender_;
     if (dummy_sender) {
+      media_sender_builder->use_internal_memory_pool_ = true;
       HOLOSCAN_LOG_INFO("Initializing Media Mock Sender :{}", service_id);
       tx_service = std::make_shared<MediaSenderMockService>(service_id, media_sender_builder);
     } else {
