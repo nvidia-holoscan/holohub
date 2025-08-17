@@ -80,9 +80,6 @@ advanced_network:
             #allocator_type: "huge_page_2mb"
             verbose: true
             sleep_between_operations: false
-            local_ip_address: 2.1.0.12
-            destination_ip_address: 224.1.1.2
-            destination_port: 50001
             stats_report_interval_ms: 1000
             send_packet_ext_info: true
             num_of_packets_in_chunk: 144
@@ -92,6 +89,13 @@ advanced_network:
             frame_height: 1080
             frame_rate: 60
             dummy_sender: false
+            tx_threads:
+            - thread_id: 0
+              network_settings:
+              - stream_id: 0
+                local_ip_address: 2.1.0.12
+                destination_ip_address: 224.1.1.2
+                destination_port: 50001
 
 advanced_network_media_tx:
   interface_name: cc:00.1
