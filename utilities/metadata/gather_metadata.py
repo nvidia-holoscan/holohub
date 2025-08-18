@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ def find_metadata_files(repo_paths):
             if "metadata.json" in files:
                 metadata_files.append(os.path.join(root, "metadata.json"))
 
-    return metadata_files
+    return sorted(metadata_files)
 
 
 def extract_readme(file_path):
@@ -78,12 +78,12 @@ def generate_build_and_run_command(metadata: dict) -> str:
     """Generate the build and run command for the application or workflow"""
     language = metadata.get("metadata", {}).get("language", "").lower()
     if language == "python":
-        return f'./dev_container build_and_run {metadata["application_name"]} --language python'
+        return f'./holohub run {metadata["application_name"]} --language=python'
     elif language in ["cpp", "c++"]:
-        return f'./dev_container build_and_run {metadata["application_name"]} --language cpp'
+        return f'./holohub run {metadata["application_name"]} --language=cpp'
     else:
         # Unknown language, use default
-        return f'./dev_container build_and_run {metadata["application_name"]}'
+        return f'./holohub run {metadata["application_name"]}'
 
 
 def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> list[dict]:
