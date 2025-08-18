@@ -24,7 +24,7 @@ find_package(holoscan 3.3.0 REQUIRED CONFIG
 include(FetchContent)
 FetchContent_Declare(
   Slang
-  URL https://github.com/shader-slang/slang/releases/download/v2025.10.2/slang-2025.10.2-linux-${CMAKE_SYSTEM_PROCESSOR}.tar.gz
+  URL https://github.com/shader-slang/slang/releases/download/v2025.14.3/slang-2025.14.3-linux-${CMAKE_SYSTEM_PROCESSOR}.tar.gz
   DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(Slang)

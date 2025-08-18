@@ -25,23 +25,53 @@
 		"tags": ["Computer Vision and Perception", "Distributed", "Tensor Optimization", "Human Body Pose Estimation", "DDS", "RTI Connext", "Video", "Visualization"],
 		"ranking": 2,
 		"requirements": {
-			"data": [
-				{
-					"model": "https://docs.ultralytics.com/tasks/pose/",
-					"video": "https://www.pexels.com/video/a-woman-showing-her-ballet-skill-in-turning-one-footed-5385885/"
-				}
-			],
-			"hardware": [
-				{
-					"name": "camera",
-					"description": "This application requires a Video4Linux (V4L2) compatible device as input.",
-					"required": true
-				}
-			]
+			"pose_model": {
+				"type": "model",
+				"name": "Pose Estimation Model",
+				"description": "YOLO pose estimation model from Ultralytics",
+				"url": "https://docs.ultralytics.com/tasks/pose/"
+			},
+			"sample_video": {
+				"type": "data",
+				"name": "Sample Video",
+				"description": "Sample ballet video for testing pose estimation",
+				"url": "https://www.pexels.com/video/a-woman-showing-her-ballet-skill-in-turning-one-footed-5385885/"
+			},
+			"camera": {
+				"type": "hardware",
+				"name": "V4L2 Camera",
+				"description": "This application requires a Video4Linux (V4L2) compatible device as input."
+			}
 		},
-		"run": {
-			"command": "python3 <holohub_app_source>/body_pose_estimation.py",
-			"workdir": "holohub_bin"
+		"default_mode": "v4l2",
+		"modes": {
+			"v4l2": {
+				"description": "Use a V4L2-compatible camera device as input (default)",
+				"requirements": ["pose_model", "camera"],
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py",
+					"workdir": "holohub_bin"
+				}
+			},
+			"replayer": {
+				"description": "Use a pre-recorded video via Video Stream Replayer as input",
+				"requirements": ["pose_model", "sample_video"],
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py --source replayer",
+					"workdir": "holohub_bin"
+				}
+			},
+			"dds": {
+				"description": "Use a DDS video stream as input; optionally publish output to DDS",
+				"requirements": ["pose_model"],
+				"build": {
+					"depends": ["dds_video_subscriber", "dds_video_publisher"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/body_pose_estimation.py -s=dds",
+					"workdir": "holohub_bin"
+				}
+			}
 		}
 	}
 }

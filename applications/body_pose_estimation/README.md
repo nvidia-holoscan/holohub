@@ -66,6 +66,12 @@ To launch the application using the Video Stream Replayer as the input source, r
 ./holohub run body_pose_estimation --run-args="--source replayer"
 ```
 
+or using the mode `replayer` defined in the `metadata.json` file:
+
+```sh
+./holohub run body_pose_estimation replayer
+```
+
 ## DDS Support
 
 This application supports using a DDS video stream as the input as well as
@@ -88,6 +94,12 @@ argument when running the application:
 
 ```sh
 ./holohub run --local body_pose_estimation --run-args="-s=dds"
+```
+
+or using the mode `dds` defined in the `metadata.json` file:
+
+```sh
+./holohub run body_pose_estimation dds --local
 ```
 
 To publish the output result to DDS, edit the `body_pose_estimation.yaml`
