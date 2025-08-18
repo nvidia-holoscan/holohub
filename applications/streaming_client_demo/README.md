@@ -47,7 +47,7 @@ graph TD
 
 - NVIDIA GPU
 - CUDA 12.1 or higher
-- Holoscan SDK 2.5.0 or higher
+- Holoscan SDK 3.2.0 or higher
 
 ## Setup Instructions
 
