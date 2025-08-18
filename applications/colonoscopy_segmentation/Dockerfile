@@ -32,9 +32,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ffmpeg \
         libnpp-12-9 \
         cuda-nvrtc-12-9 \
-        libnvinfer10 \
-        libnvinfer-plugin10 \
-        libnvonnxparsers10 \
+        libnvinfer10=*+cuda12.9 \
+        libnvinfer-lean10=*+cuda12.9 \
+        libnvinfer-plugin10=*+cuda12.9 \
+        libnvinfer-vc-plugin10=*+cuda12.9 \
+        libnvinfer-dispatch10=*+cuda12.9 \
+        libnvonnxparsers10=*+cuda12.9 \
         && rm -rf /var/lib/apt/lists/*
 
 RUN if [ $(uname -m) = "aarch64" ]; then ARCH=arm64; else ARCH=linux; fi \

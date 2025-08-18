@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ COPY --from=pytorch /tmp/pip/torch*.whl /tmp/pip/
 ARG TARGETARCH
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
         echo "Building for x86 (AMD64) architecture"; \
-        python3 -m pip install torch==2.2.0; \
+        python3 -m pip install torch==2.4.*; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
         echo "Building for ARM64 architecture"; \
         python3 -m pip install /tmp/pip/torch-2.1.0a0+32f93b1-cp310-cp310-linux_aarch64.whl; \
