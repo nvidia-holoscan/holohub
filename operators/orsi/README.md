@@ -69,7 +69,7 @@ preprocessor = OrsiSegmentationPreprocessorOp(
 )
 ```
 
-Please refer to the following Holkoscan reference applications for usage of this operator:
+Please refer to the following Holoscan reference applications for usage of this operator:
 
 - [In-Out Body Detection and Surgical Video Anonymization](../../applications/orsi/orsi_in_out_body/python/orsi_in_out_body.py)
 - [Multi AI and AR Visualization](../../applications/orsi/orsi_multi_ai_ar/python/orsi_multi_ai_ar.py)
