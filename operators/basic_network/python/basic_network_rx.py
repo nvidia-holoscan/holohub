@@ -95,7 +95,9 @@ class BasicNetworkOpRx(Operator):
                 elapsed_ms = (current_time - self.burst_start_time) * 1000
 
                 if elapsed_ms >= self.max_burst_interval:
-                    self.logger.info(f"Timeout, emitting {len(self.send_burst.data)} bytes (elapsed time: {elapsed_ms:.1f} ms)")
+                    self.logger.info(
+                        f"Timeout, emitting {len(self.send_burst.data)} bytes (elapsed time: {elapsed_ms:.1f} ms)"
+                    )
                     break
 
             try:
