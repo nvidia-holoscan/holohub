@@ -63,4 +63,5 @@ jobs:
           '${{ github.workspace }}/**/*.html'
           '${{ github.workspace }}/**/*.rst'
         fail: true
+        failIfEmpty: false
         jobSummary: true
