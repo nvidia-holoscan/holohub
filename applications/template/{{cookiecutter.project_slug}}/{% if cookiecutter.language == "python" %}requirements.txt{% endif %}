@@ -1,0 +1,24 @@
+# {{ cookiecutter.project_name }} Python Dependencies
+#
+# This file lists the Python packages required for {{ cookiecutter.project_name }}.
+# Install with: pip install -r requirements.txt
+
+# Core Holoscan Python dependencies
+# NOTE: The base Holoscan container already includes the holoscan package
+# holoscan>=3.5.0
+
+# Common dependencies for Holoscan applications
+numpy>=1.21.0
+# opencv-python>=4.5.0
+# pillow>=8.0.0
+
+# TODO: Add your application-specific dependencies here
+# Example:
+# scipy>=1.7.0
+# matplotlib>=3.5.0
+# requests>=2.25.0
+
+# Development dependencies (optional)
+# pytest>=6.0.0
+# black>=21.0.0
+# flake8>=3.8.0
