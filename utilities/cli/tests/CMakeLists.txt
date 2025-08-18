@@ -208,7 +208,7 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_property(TEST test_holohub_validate_mode_build_with_conflicts PROPERTY
-    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--run-args.*when using mode.*mcp"
+    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--run-args.*when using explicit mode.*mcp"
     WILL_FAIL TRUE
 )
 
@@ -219,6 +219,128 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_property(TEST test_holohub_validate_mode_build_with_and_run_args_conflicts PROPERTY
-    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--run-args.*when using mode.*mcp"
+    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--run-args.*when using explicit mode.*mcp"
     WILL_FAIL TRUE
+)
+
+# test implicit default mode allows CLI parameter overrides
+add_test(
+    NAME test_holohub_implicit_default_mode_run_args_allowed
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat --run-args="--debug" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_implicit_default_mode_run_args_allowed PROPERTY
+    PASS_REGULAR_EXPRESSION "Running holochat in.*mode.*--run-args=.*--debug"
+)
+
+# test implicit default mode with multiple CLI parameter overrides
+add_test(
+    NAME test_holohub_implicit_default_mode_multiple_overrides
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat --run-args="--verbose" --build-with="custom_ops" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_implicit_default_mode_multiple_overrides PROPERTY
+    PASS_REGULAR_EXPRESSION "Running holochat in.*mode.*--build-with.*custom_ops.*--run-args=.*--verbose"
+)
+
+# test explicit mode still blocks CLI parameter overrides
+add_test(
+    NAME test_holohub_explicit_mode_blocks_overrides
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat cloud --run-args="--debug" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_explicit_mode_blocks_overrides PROPERTY
+    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--run-args.*when using explicit mode.*cloud"
+    WILL_FAIL TRUE
+)
+
+# test build command with implicit default mode overrides
+add_test(
+    NAME test_holohub_build_implicit_default_overrides
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build holochat --build-with="debug_ops" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_build_implicit_default_overrides PROPERTY
+    PASS_REGULAR_EXPRESSION "Building holochat in.*mode.*--build-with.*debug_ops"
+)
+
+# implicit default mode: run-args append warning is printed
+add_test(
+    NAME test_holohub_implicit_default_warn_run_args_appended
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat --run-args="--debug" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_implicit_default_warn_run_args_appended PROPERTY
+    PASS_REGULAR_EXPRESSION "CLI args --run-args=.*--debug.* will be appended to mode command"
+)
+
+# implicit default mode: docker-opts override warning when mode sets docker_run_args
+add_test(
+    NAME test_holohub_implicit_default_warn_docker_opts_override
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run isaac_holoscan_bridge --dryrun --docker-opts "--memory 2g"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_implicit_default_warn_docker_opts_override PROPERTY
+    PASS_REGULAR_EXPRESSION "CLI args --docker-opts='--memory 2g' overrides mode --docker-opts"
+)
+
+# body_pose_estimation: implicit default mode run (v4l2)
+add_test(
+    NAME test_holohub_bpe_run_implicit_default
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_bpe_run_implicit_default PROPERTY
+    PASS_REGULAR_EXPRESSION "Running body_pose_estimation in 'v4l2' mode"
+)
+
+# body_pose_estimation: explicit mode run replayer
+add_test(
+    NAME test_holohub_bpe_run_replayer
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation replayer --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_bpe_run_replayer PROPERTY
+    PASS_REGULAR_EXPRESSION "Running body_pose_estimation in 'replayer' mode"
+)
+
+# body_pose_estimation: implicit default allows run-args append warning
+add_test(
+    NAME test_holohub_bpe_run_implicit_warn_run_args
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation --run-args="--source replayer" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_bpe_run_implicit_warn_run_args PROPERTY
+    PASS_REGULAR_EXPRESSION "CLI args --run-args=.*--source replayer.* will be appended to mode command"
+)
+
+# body_pose_estimation: implicit default build (v4l2)
+add_test(
+    NAME test_holohub_bpe_build_implicit_default
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build body_pose_estimation --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_bpe_build_implicit_default PROPERTY
+    PASS_REGULAR_EXPRESSION "Building body_pose_estimation in 'v4l2' mode"
+)
+
+# body_pose_estimation: explicit mode blocks conflicting CLI parameters (dds has build.depends)
+add_test(
+    NAME test_holohub_bpe_explicit_dds_blocks_build_with
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation dds --build-with="extra_ops" --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_bpe_explicit_dds_blocks_build_with PROPERTY
+    PASS_REGULAR_EXPRESSION "Cannot specify CLI parameters.*--build-with.*when using explicit mode.*dds"
+    WILL_FAIL TRUE
+)
+
+# test multi language project
+add_test(
+    NAME test_holohub_run_multi_language_project
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_multi_language_project PROPERTY
+    PASS_REGULAR_EXPRESSION "has multiple languages.*language"
 )
