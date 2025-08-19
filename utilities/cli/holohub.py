@@ -380,6 +380,10 @@ class HoloHubCLI:
         test.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
         )
+        test.add_argument(
+            "--build-name-suffix",
+            help="Suffix to use for ctest build name (defaulting to the image tag)",
+        )
         test.set_defaults(func=self.handle_test)
 
         # Add clear-cache command
@@ -827,11 +831,16 @@ class HoloHubCLI:
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
 
-        base_img = args.base_img or container.default_base_image()
-
-        img_tag = base_img.split(":")[-1]
-
-        ctest_cmd = f"{xvfb} ctest " f"-DAPP={args.project} " f"-DTAG={img_tag} "
+        # TAG is used in utilities/testing/holohub.container.ctest by default
+        if getattr(args, "build_name_suffix", None):
+            tag = args.build_name_suffix
+        else:
+            if skip_docker_build:
+                image_name = getattr(args, "img", None) or container.image_name
+            else:
+                image_name = args.base_img or container.default_base_image()
+            tag = image_name.split(":")[-1]
+        ctest_cmd = f"{xvfb} ctest " f"-DAPP={args.project} " f"-DTAG={tag} "
 
         if args.cmake_options:
             ctest_cmd += f'-DCONFIGURE_OPTIONS="{args.cmake_options}" '
