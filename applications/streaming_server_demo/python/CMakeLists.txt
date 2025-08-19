@@ -13,12 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(streaming_server_demo)
+# Copy streaming_server_demo application file
+add_custom_target(python_streaming_server_demo ALL
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.py" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "streaming_server_demo.py"
+  BYPRODUCTS "streaming_server_demo.py"
+)
 
-# Add C++ subdirectory
-add_subdirectory(cpp)
-
-if(HOLOHUB_BUILD_PYTHON)
-  add_subdirectory(python)
-endif()
+# Install application into the install/ directory for packaging
+install(
+  FILES streaming_server_demo.py
+  DESTINATION bin/streaming_server_demo/python
+)

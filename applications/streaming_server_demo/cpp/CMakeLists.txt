@@ -29,7 +29,7 @@ message(STATUS "Build streaming_server_demo directory: ${CMAKE_BINARY_DIR}/strea
 
 # Find required packages
 find_package(CUDAToolkit REQUIRED)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV QUIET)
 find_package(holoscan REQUIRED)
 
 # Set compile definitions
@@ -54,10 +54,17 @@ target_compile_options(streaming_server_demo
 target_link_libraries(streaming_server_demo
     PUBLIC
     holoscan::core
-    ${OpenCV_LIBS}
     CUDA::cudart
     CUDA::cuda_driver
 )
+
+# Link OpenCV if found
+if(OpenCV_FOUND)
+    target_link_libraries(streaming_server_demo PUBLIC ${OpenCV_LIBS})
+    message(STATUS "✓ OpenCV found and linked")
+else()
+    message(STATUS "✓ OpenCV not found - continuing without it")
+endif()
 
 # Print success message
 message(STATUS "✓ Libraries linked to streaming_server_demo")
