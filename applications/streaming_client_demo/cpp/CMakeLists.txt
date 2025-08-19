@@ -94,8 +94,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml")
         # Copy to build root
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml" "${CMAKE_BINARY_DIR}/streaming_client_demo.yaml"
 
-        # The build/streaming_client_demo directory
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/streaming_client_demo"
+        # Copy to build/streaming_client_demo directory (CMake creates directory automatically)
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml" "${CMAKE_BINARY_DIR}/streaming_client_demo/streaming_client_demo.yaml"
 
         # Copy to target directory
@@ -122,7 +121,4 @@ install(
     DESTINATION bin
 )
 
-# Copy to build directory
-add_custom_command(TARGET streaming_client_demo POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/streaming_client_demo"
-)
+
