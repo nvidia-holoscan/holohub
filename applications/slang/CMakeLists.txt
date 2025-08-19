@@ -13,5 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+add_holohub_application(slang_gamma_correction DEPENDS OPERATORS gamma_correction)
 add_holohub_application(slang_simple DEPENDS OPERATORS slang_shader)
 

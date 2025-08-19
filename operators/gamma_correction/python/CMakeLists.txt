@@ -13,16 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-
-project(slang_shader)
-
-find_package(holoscan 3.3.0 REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-find_package(CUDAToolkit 12.8 REQUIRED)
-
-add_subdirectory(cpp)
-
-if(HOLOHUB_BUILD_PYTHON)
-    add_subdirectory(python)
-endif()
+include(pybind11_add_holohub_module)
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET gamma_correction
+    CLASS_NAME "GammaCorrectionOp"
+    SOURCES gamma_correction.cpp
+)
