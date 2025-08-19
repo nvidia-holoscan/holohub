@@ -19,6 +19,7 @@ project(slang_shader)
 
 find_package(holoscan 3.3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+find_package(CUDAToolkit 12.8 REQUIRED)
 
 # Fetch Slang
 include(FetchContent)
