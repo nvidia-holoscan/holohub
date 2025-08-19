@@ -309,6 +309,10 @@
          <lastmod>2025-08-19</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/slang/slang_gamma_correction/</loc>
+         <lastmod>2025-08-19</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/slang/slang_simple/</loc>
          <lastmod>2025-08-19</lastmod>
     </url>
@@ -518,6 +522,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/fft/</loc>
+         <lastmod>2025-08-19</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/gamma_correction/</loc>
          <lastmod>2025-08-19</lastmod>
     </url>
     <url>
