@@ -75,12 +75,8 @@ auto streaming_server = make_operator<ops::StreamingServerOp>(
     Arg("allocator") = make_resource<UnboundedAllocator>("pool")
 );
 
-// Add it to your graph
-graph.add(streaming_server);
-
-// Connect it to other operators
-graph.connect(source, "output", streaming_server, "input_frames");
-graph.connect(streaming_server, "output_frames", sink, "input");
+//add the streaming_server to the app
+add_operator(streaming_server);
 ``` 
 
 ## Building the operator
