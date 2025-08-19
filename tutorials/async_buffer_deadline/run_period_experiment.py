@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import shutil
 import argparse
-from pathlib import Path
 
 # Configuration
 NUM_MESSAGES = 1500
