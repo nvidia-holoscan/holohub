@@ -17,8 +17,8 @@
 
 #include "../../operator_util.hpp"
 
-#include "../slang_shader_op.hpp"
-#include "./slang_shader_op_pydoc.hpp"
+#include <gamma_correction/gamma_correction.hpp>
+#include "gamma_correction_pydoc.hpp"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>  // for unordered_map -> dict, etc.
@@ -48,20 +48,17 @@ namespace holoscan::ops {
  *
  * The sequence of events in this constructor is based on Fragment::make_operator<OperatorT>
  */
-class PySlangShaderOp : public SlangShaderOp {
+class PyGammaCorrectionOp : public GammaCorrectionOp {
  public:
   /* Inherit the constructors */
-  using SlangShaderOp::SlangShaderOp;
+  using GammaCorrectionOp::GammaCorrectionOp;
 
   // Define a constructor that fully initializes the object.
-  PySlangShaderOp(Fragment* fragment, const py::args& args, const std::string& shader_source,
-                  const std::string& shader_source_file, const std::string& name = "slang_shader",
-                  std::optional<std::shared_ptr<Allocator>> allocator = std::nullopt)
-      : SlangShaderOp(ArgList{Arg{"shader_source", shader_source},
-                              Arg{"shader_source_file", shader_source_file}}) {
-    if (allocator.has_value()) {
-      this->add_arg(Arg{"allocator", allocator.value()});
-    }
+  PyGammaCorrectionOp(Fragment* fragment, const py::args& args, const std::string& name,
+                      const std::string& data_type, int32_t component_count, float gamma)
+      : GammaCorrectionOp(ArgList{Arg{"data_type", data_type},
+                                  Arg{"component_count", component_count},
+                                  Arg{"gamma", gamma}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -70,28 +67,28 @@ class PySlangShaderOp : public SlangShaderOp {
   }
 };
 
-PYBIND11_MODULE(_slang_shader, m) {
+PYBIND11_MODULE(_gamma_correction, m) {
   m.doc() = R"pbdoc(
-        Holoscan SDK SlangShaderOpPython Bindings
+        Holoscan SDK GammaCorrectionOpPython Bindings
         ---------------------------------------
-        .. currentmodule:: _slang_shader
+        .. currentmodule:: _gamma_correction
     )pbdoc";
 
-  py::class_<SlangShaderOp, PySlangShaderOp, Operator, std::shared_ptr<SlangShaderOp>>(
-      m, "SlangShaderOp", doc::SlangShaderOp::doc_SlangShaderOp)
+  py::class_<GammaCorrectionOp, PyGammaCorrectionOp, Operator, std::shared_ptr<GammaCorrectionOp>>(
+      m, "GammaCorrectionOp", doc::GammaCorrectionOp::doc_GammaCorrectionOp)
       .def(py::init<Fragment*,
                     const py::args&,
                     const std::string&,
                     const std::string&,
-                    const std::string&,
-                    std::optional<std::shared_ptr<Allocator>>>(),
+                    int32_t,
+                    float>(),
            "fragment"_a,
-           "shader_source"_a = "",
-           "shader_source_file"_a = "",
-           "name"_a = "slang_shader"s,
-           "allocator"_a = py::none(),
-           doc::SlangShaderOp::doc_SlangShaderOp_python)
-      .def("setup", &SlangShaderOp::setup, "spec"_a, doc::SlangShaderOp::doc_setup);
+           "name"_a = "gamma_correction"s,
+           "data_type"_a = "uint8_t"s,
+           "component_count"_a = 1,
+           "gamma"_a = 2.2f,
+           doc::GammaCorrectionOp::doc_GammaCorrectionOp_python)
+      .def("setup", &GammaCorrectionOp::setup, "spec"_a, doc::GammaCorrectionOp::doc_setup);
 }  // PYBIND11_MODULE
 
 }  // namespace holoscan::ops
