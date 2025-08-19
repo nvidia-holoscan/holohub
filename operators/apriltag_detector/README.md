@@ -11,7 +11,6 @@ April tags are 2D barcode-like patterns that can be used for camera calibration,
 - **CUDA-accelerated processing**: Leverages GPU computing for high-performance tag detection
 - **Multiple tag family support**: Compatible with various AprilTag families
 - **Real-time performance**: Optimized for low-latency applications
-- **Configurable detection parameters**: Adjustable detection sensitivity and output limits
 
 ## Usage
 
@@ -25,10 +24,6 @@ apriltag_op = ApriltagDetectorOp(
     number_of_tags=10
 )
 ```
-
-## API Reference
-
- `ApriltagDetectorOp`: The AprilTag detection operator class that processes input video streams and outputs detected tag information.
 
 ### Parameters
 
