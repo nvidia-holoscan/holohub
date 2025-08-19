@@ -94,7 +94,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tensor-to-file" class="md-skip">
+        <a href="#tensor-to-file-operator" class="md-skip">
           Skip to content
         </a>
       
@@ -14031,6 +14031,167 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      C++ Interface
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inputoutput" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input/Output
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Input/Output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#input" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-format-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Format Support
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Usage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verbose-mode-with-custom-buffer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verbose Mode with Custom Buffer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#integration-in-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration in Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -14067,9 +14228,156 @@
 
 
 
-<h1 id="tensor-to-file"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/tensor_to_file">Tensor to File</a><a class="headerlink" href="#tensor-to-file" title="Permanent link">#</a></h1>
+<h1 id="tensor-to-file-operator"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/tensor_to_file">Tensor to File Operator</a><a class="headerlink" href="#tensor-to-file-operator" title="Permanent link">#</a></h1>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++, Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> August 5, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.3.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.3.0, 3.4.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br><br></p>
-<p>No documentation found.</p>
+<p>A Holoscan operator that writes tensor data to a file. This operator is designed to stream input tensor data to a file, with the file opened at initialization and tensor binary data appended in the same order in which messages are received.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p>The Tensor to File operator is a data persistence component that takes tensor data as input and writes it directly to a file. It's particularly useful for:</p>
+<ul>
+<li>Saving encoded video frames to elementary stream files (H.264/H.265)</li>
+<li>Persisting tensor data for later analysis or processing</li>
+<li>Creating data dumps for debugging purposes</li>
+<li>Building data pipelines that require file output</li>
+</ul>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Binary Data Writing</strong>: Writes tensor data as binary to maintain data integrity</li>
+<li><strong>Performance Optimized</strong>: Configurable buffer size for optimal I/O performance</li>
+<li><strong>File Validation</strong>: Validates output file paths and creates directories as needed</li>
+<li><strong>Progress Tracking</strong>: Optional verbose mode with performance statistics</li>
+<li><strong>Cross-Platform</strong>: Supports both x86_64 and aarch64 architectures</li>
+<li><strong>Multi-Language</strong>: Available in both C++ and Python interfaces</li>
+</ul>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
+<h3 id="c-interface">C++ Interface<a class="headerlink" href="#c-interface" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;holoscan/operators/tensor_to_file/tensor_to_file.hpp&quot;</span>
+
+<span class="c1">// Create operator instance</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">tensor_to_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">TensorToFileOp</span><span class="o">&gt;</span><span class="p">();</span>
+
+<span class="c1">// Configure parameters</span>
+<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;tensor_name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;input_tensor&quot;</span><span class="p">);</span>
+<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;output_file&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;/path/to/output.h264&quot;</span><span class="p">);</span>
+<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;verbose&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
+<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;buffer_size&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">);</span><span class="w"> </span><span class="c1">// 1MB buffer</span>
+</code></pre></div>
+<h3 id="python-interface">Python Interface<a class="headerlink" href="#python-interface" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">holoscan</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorToFileOp</span>
+
+<span class="c1"># Create operator</span>
+<span class="n">tensor_to_file</span> <span class="o">=</span> <span class="n">TensorToFileOp</span><span class="p">(</span>
+    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;input_tensor&quot;</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;/path/to/output.h264&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">buffer_size</span><span class="o">=</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">,</span>  <span class="c1"># 1MB buffer</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;tensor_writer&quot;</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tensor_name</code></td>
+<td>string</td>
+<td>""</td>
+<td>Name of the tensor to write to the file</td>
+</tr>
+<tr>
+<td><code>output_file</code></td>
+<td>string</td>
+<td>""</td>
+<td>Output file path for the data</td>
+</tr>
+<tr>
+<td><code>allocator</code></td>
+<td>Allocator</td>
+<td>-</td>
+<td>Allocator for output buffers</td>
+</tr>
+<tr>
+<td><code>verbose</code></td>
+<td>bool</td>
+<td>false</td>
+<td>Print detailed writer information including frame count and bytes written</td>
+</tr>
+<tr>
+<td><code>buffer_size</code></td>
+<td>size_t</td>
+<td>1MB</td>
+<td>Buffer size for file I/O operations in bytes</td>
+</tr>
+</tbody>
+</table>
+<h2 id="inputoutput">Input/Output<a class="headerlink" href="#inputoutput" title="Permanent link">#</a></h2>
+<h3 id="input">Input<a class="headerlink" href="#input" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Entity</strong>: Contains tensor data to be written to file</li>
+<li><strong>Tensor</strong>: Binary data (typically uint8) representing the content to be saved</li>
+</ul>
+<h3 id="output">Output<a class="headerlink" href="#output" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>File</strong>: Binary file containing the tensor data in the order received</li>
+</ul>
+<h2 id="file-format-support">File Format Support<a class="headerlink" href="#file-format-support" title="Permanent link">#</a></h2>
+<p>Any binary streaming file format is allowed. The operator does not check for validity of the specified output extension.</p>
+<p>Historically the operator has been used for writing video data with various file extensions:</p>
+<ul>
+<li><code>.h264</code>, <code>.264</code> - H.264 elementary stream</li>
+<li><code>.h265</code>, <code>.265</code>, <code>.hevc</code> - H.265/HEVC elementary stream  </li>
+<li><code>.mp4</code> - MP4 container format</li>
+</ul>
+<h2 id="configuration-examples">Configuration Examples<a class="headerlink" href="#configuration-examples" title="Permanent link">#</a></h2>
+<h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Simple tensor to file writing</span>
+<span class="n">tensor_to_file</span> <span class="o">=</span> <span class="n">TensorToFileOp</span><span class="p">(</span>
+    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;encoded_frame&quot;</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;output.h264&quot;</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="verbose-mode-with-custom-buffer">Verbose Mode with Custom Buffer<a class="headerlink" href="#verbose-mode-with-custom-buffer" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># With detailed logging and custom buffer size</span>
+<span class="n">tensor_to_file</span> <span class="o">=</span> <span class="n">TensorToFileOp</span><span class="p">(</span>
+    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;encoded_frame&quot;</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;output.h265&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">buffer_size</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c1"># 2MB buffer</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="integration-in-pipeline">Integration in Pipeline<a class="headerlink" href="#integration-in-pipeline" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># As part of a video processing pipeline</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">holoscan</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">()</span>
+
+<span class="c1"># Add operators to pipeline</span>
+<span class="n">encoder</span> <span class="o">=</span> <span class="n">VideoEncoderOp</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">tensor_to_file</span> <span class="o">=</span> <span class="n">TensorToFileOp</span><span class="p">(</span>
+    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;encoded_frame&quot;</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;processed_video.h264&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># Connect operators</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">add_operator</span><span class="p">(</span><span class="n">encoder</span><span class="p">)</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">add_operator</span><span class="p">(</span><span class="n">tensor_to_file</span><span class="p">)</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">encoder</span><span class="p">,</span> <span class="n">tensor_to_file</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">#</a></h2>
+<p>The operator includes comprehensive error handling for:</p>
+<ul>
+<li>Invalid file paths</li>
+<li>File system permission issues</li>
+<li>Insufficient disk space</li>
+<li>Corrupted tensor data</li>
+<li>I/O operation failures</li>
+</ul>
 
 
 
