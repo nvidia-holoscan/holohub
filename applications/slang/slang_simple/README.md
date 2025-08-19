@@ -30,7 +30,7 @@ flowchart LR
 
 - Holoscan SDK 3.3.0 or later
 - CUDA-capable GPU (for GPU acceleration)
-- Python 3.8+ (for Python implementation)
+- Python 3.10+ (for Python implementation)
 - C++ compiler with CUDA support (for C++ implementation)
 
 ## Supported Platforms
@@ -40,9 +40,8 @@ flowchart LR
 
 ## Installation
 
-1. Ensure you have the Holoscan SDK installed
-2. Clone the HoloHub repository
-3. Navigate to the slang_simple directory
+1. Clone the HoloHub repository
+2. Navigate to the slang_simple directory
 
 ## Usage
 

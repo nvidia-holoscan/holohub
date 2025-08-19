@@ -47,6 +47,7 @@ jobs:
           --no-progress
           ${{ steps.changed-files.outputs.changed_files_list }}
         fail: true
+        failIfEmpty: false
         jobSummary: true
 
     - name: Link checker (all files)
