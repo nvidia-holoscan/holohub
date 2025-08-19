@@ -162,6 +162,44 @@ Update an existing streaming function by running the provided script after setti
 
 Deploy the streaming function from the web portal: https://nvcf.ngc.nvidia.com/functions
 
+#### Pre-deployment Port Check
+
+**Before starting HAProxy or deploying cloud functions**, verify that the required ports are available:
+
+```bash
+# Navigate to the holohub root directory
+cd /path/to/holohub
+
+# Check streaming server port (from STREAMING_SERVER_PORT variable, default: 49100)
+./check_port.sh ${STREAMING_SERVER_PORT:-49100}
+
+# Check HTTP server port (from HTTP_SERVER_PORT variable, default: 8011)  
+./check_port.sh ${HTTP_SERVER_PORT:-8011}
+
+# Check NVCF server port (typically 443 for grpc.nvcf.nvidia.com)
+./check_port.sh 443
+
+# Check any custom ports your application uses
+./check_port.sh [YOUR_CUSTOM_PORT]
+```
+
+**Key ports to verify:**
+- **Streaming Server Port** (`49100` by default): Main streaming communication port
+- **HTTP Server Port** (`8011` by default): HTTP endpoint for function management  
+- **HAProxy Ports**: Any custom HAProxy configuration ports
+- **NVCF gRPC Port** (`443`): Communication with NVIDIA Cloud Functions
+
+The port checking script will help identify:
+- 🚫 **Port conflicts**: If ports are already in use by other processes
+- ✅ **Available ports**: Confirmation that ports can be bound successfully  
+- 🔧 **Process identification**: What applications are using specific ports
+- 📋 **Port recommendations**: Guidance on port selection
+
+**If ports are in use**, either:
+1. **Stop conflicting processes**: `kill [PID]` (use caution)
+2. **Use different ports**: Update environment variables
+3. **Configure around conflicts**: Modify YAML configurations
+
 #### Test Function
 
 Start the test intermediate haproxy by running the provided script after setting all the required variables:

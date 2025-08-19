@@ -50,6 +50,33 @@ The application can be configured using a YAML file. By default, it looks for `s
 
 ## Network Configuration
 
+### Port Availability Check
+
+Before setting up HAProxy or cloud functions, it's recommended to check if the required ports are available and not already in use. Use the provided port checking script:
+
+```bash
+# Check if the default streaming port (49010) is available
+./check_port.sh 49010
+
+# Check HAProxy port (if using custom port)
+./check_port.sh 8080
+
+# Check any specific port
+./check_port.sh [PORT_NUMBER]
+```
+
+The script will show:
+- ✅ **Port status**: Whether the port is listening or available
+- 🔧 **Process information**: What processes are using the port (if any)
+- 📋 **Port details**: Port type classification and availability for binding
+- 🛠️ **Troubleshooting**: Helps identify port conflicts before deployment
+
+**Common streaming ports to check:**
+- `49010` - Default streaming server port
+- `48010` - Alternative streaming port  
+- `47999` - RTSP alternative port
+- `8080` - Default HAProxy port
+
 ### HAProxy Requirements
 
 For streaming clients to connect successfully, the following network requirements must be met:
