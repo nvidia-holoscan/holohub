@@ -27,7 +27,6 @@ RUN apt-get update && apt-get install -y \
     gir1.2-girepository-2.0 \
     gobject-introspection \
     python3-gi \
-    libopencv-dev \
     ffmpeg \
     wget \
     unzip \

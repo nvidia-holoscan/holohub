@@ -33,36 +33,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install OpenCV 4.5 specifically
-RUN apt-get update && \
-    # Check available OpenCV versions and install 4.5 if available
-    apt-cache policy libopencv-dev && \
-    # Try to install specific version 4.5, fallback to building from source if needed
-    (apt-get install -y libopencv-dev=4.5* libopencv-contrib-dev=4.5* || \
-     # If version 4.5 not available in repos, install build dependencies and build from source
-     (apt-get install -y build-essential cmake git pkg-config && \
-      apt-get install -y libjpeg-dev libtiff5-dev libpng-dev && \
-      apt-get install -y libavcodec-dev libavformat-dev libswscale-dev libv4l-dev && \
-      apt-get install -y libxvidcore-dev libx264-dev && \
-      apt-get install -y libgtk-3-dev && \
-      apt-get install -y libatlas-base-dev gfortran && \
-      cd /tmp && \
-      git clone --branch 4.5.5 --depth 1 https://github.com/opencv/opencv.git && \
-      git clone --branch 4.5.5 --depth 1 https://github.com/opencv/opencv_contrib.git && \
-      cd opencv && mkdir build && cd build && \
-      cmake -D CMAKE_BUILD_TYPE=RELEASE \
-            -D CMAKE_INSTALL_PREFIX=/usr/local \
-            -D OPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib/modules \
-            -D BUILD_EXAMPLES=OFF \
-            -D BUILD_TESTS=OFF \
-            -D BUILD_PERF_TESTS=OFF \
-            .. && \
-      make -j$(nproc) && \
-      make install && \
-      ldconfig && \
-      cd / && rm -rf /tmp/opencv /tmp/opencv_contrib)) && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# OpenCV removed - now optional in CMake configuration
 
 # Install NGC CLI following official instructions
 WORKDIR /tmp/ngc-install

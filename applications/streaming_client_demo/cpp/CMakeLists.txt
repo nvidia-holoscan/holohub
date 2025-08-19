@@ -20,7 +20,6 @@ set(SOURCE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.cpp")
 
 # Find required packages
 find_package(CUDAToolkit REQUIRED)
-find_package(OpenCV QUIET)
 find_package(holoscan REQUIRED)
 
 # Add executable
@@ -54,10 +53,6 @@ target_compile_options(streaming_client_demo
     $<$<COMPILE_LANGUAGE:CXX>:-Wno-sign-compare>
 )
 
-# Add include directories conditionally
-if(OpenCV_FOUND)
-    target_include_directories(streaming_client_demo PUBLIC $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>)
-endif()
 
 # Link libraries
 target_link_libraries(streaming_client_demo
@@ -67,14 +62,6 @@ target_link_libraries(streaming_client_demo
     CUDA::cudart
     CUDA::cuda_driver
 )
-
-# Link OpenCV if found
-if(OpenCV_FOUND)
-    target_link_libraries(streaming_client_demo PUBLIC ${OpenCV_LIBS})
-    message(STATUS "✓ OpenCV found and linked to streaming_client_demo")
-else()
-    message(STATUS "✓ OpenCV not found - continuing without it for streaming_client_demo")
-endif()
 
 # Set target properties
 set_target_properties(streaming_client_demo PROPERTIES
