@@ -20,7 +20,7 @@ add_custom_target(python_streaming_server_demo ALL
   BYPRODUCTS "streaming_server_demo.py"
 )
 
-# Install application into the install/ directory for packaging
+# Install application and dependencies into the install/ directory for packaging
 install(
   FILES streaming_server_demo.py
   DESTINATION bin/streaming_server_demo/python
