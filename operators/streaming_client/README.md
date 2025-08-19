@@ -28,10 +28,50 @@ Download the Holoscan Client Cloud Streaming library from NGC:
 https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_client_cloud_streaming
 
 ```bash
-# Download and extract the library
+# Method 1: Download using NGC CLI (recommended)
+cd <your_holohub_path>/operators/streaming_client
 ngc registry resource download-version nvidia/holoscan_client_cloud_streaming:0.1
-# Move the extracted files to the lib directory
-mv holoscan_client_cloud_streaming lib
+unzip -o holoscan_client_cloud_streaming_v0.1/holoscan_client_cloud_streaming.zip
+
+# Copy the appropriate architecture libraries to lib/ directory
+# For x86_64 systems:
+cp lib/x86_64/* lib/
+# For aarch64 systems:
+# cp lib/aarch64/* lib/
+
+# Clean up architecture-specific directories and NGC downlaod directory
+rm -rf lib/x86_64 lib/aarch64
+rm -rf holoscan_client_cloud_streaming_v0.1
+```
+
+After successful extraction and setup, your `operators/streaming_client` directory structure should look like this:
+
+```
+streaming_client/
+├── CMakeLists.txt
+├── FindHoloscanStreaming.cmake
+├── include/
+│   ├── StreamingClient.h
+│   └── VideoFrame.h
+├── lib/
+│   ├── libcrypto.so.3
+│   ├── libcudart.so.12
+│   ├── libcudart.so.12.0.107
+│   ├── libNvStreamBase.so
+│   ├── libNvStreamingSession.so
+│   ├── libNvStreamServer.so
+│   ├── libPoco.so
+│   ├── libssl.so.3
+│   ├── libStreamClientShared.so
+│   └── libStreamingClient.so
+├── metadata.json
+├── NOTICE.txt
+├── python/
+├── README.md
+├── streaming_client.cpp
+├── StreamingClient.h
+├── streaming_client.hpp
+└── VideoFrame.h
 ```
 
 All dependencies need to be properly installed in the operator directory structure.
@@ -46,3 +86,4 @@ If you encounter build errors:
 ## Supported Platforms
 
 - Linux x86_64
+- Linux aarch64
