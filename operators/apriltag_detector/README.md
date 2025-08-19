@@ -28,11 +28,9 @@ apriltag_op = ApriltagDetectorOp(
 
 ## API Reference
 
-### `nvidia::holoscan::ApriltagDetectorOp`
+ `ApriltagDetectorOp`: The AprilTag detection operator class that processes input video streams and outputs detected tag information.
 
-The main AprilTag detection codelet that processes input video streams and outputs detected tag information.
-
-#### Parameters
+### Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -40,20 +38,7 @@ The main AprilTag detection codelet that processes input video streams and outpu
 | **`height`** | `int` | `None` | Height of the input video stream in pixels. Must match the actual input resolution. |
 | **`number_of_tags`** | `int` | `None` | Maximum number of April tags to detect and output. Higher values may impact performance. |
 
-#### Input Ports
+### Input/Output Ports
 
-- **`input`**: Video stream input (typically RGBA or RGB format)
-
-#### Output Ports
-
-- **`output`**: Detected AprilTag information including:
-  - Tag ID
-  - Corner coordinates
-  - Center position
-  - Detection confidence
-
-## Performance Considerations
-
-- **Resolution impact**: Higher input resolutions require more GPU memory and processing time
-- **Tag count**: Increasing `number_of_tags` may affect detection speed
-- **GPU memory**: Ensure sufficient GPU memory for your input resolution
+- **`input`**: Video stream input
+- **`output`**: Detected AprilTag ID and corner coordinates
