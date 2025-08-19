@@ -48,8 +48,8 @@ global
         ca-base /etc/ssl/certs
         crt-base /etc/ssl/private
 
-        ## TODO: REMOVE THIS. Skipping SSL verification for second leg
-        ssl-server-verify none
+        # SSL server verification enabled for security
+        ssl-server-verify required
 
         # See: https://ssl-config.mozilla.org/#server=haproxy&server-version=2.0.3&config=intermediate
         ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
@@ -81,7 +81,7 @@ backend webrtc_backend
         http-request set-header Host $NVCF_SERVER
         http-request set-header Authorization "Bearer $NGC_PERSONAL_API_KEY"
         http-request set-header Function-ID $STREAMING_FUNCTION_ID
-        server s1 $NVCF_SERVER:443 ssl verify none
+        server s1 $NVCF_SERVER:443 ssl verify required
 EOF
 docker run --rm --net=host --name test-intermediate-haproxy -v $CONF_DIR:/usr/local/etc/haproxy:ro haproxy:2.4
 
