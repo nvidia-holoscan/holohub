@@ -613,19 +613,7 @@
          <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/orsi/orsi_format_converter/</loc>
-         <lastmod>2025-08-19</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/orsi/orsi_segmentation_postprocessor/</loc>
-         <lastmod>2025-08-19</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/orsi/orsi_segmentation_preprocessor/</loc>
-         <lastmod>2025-08-19</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/orsi/orsi_visualizer/</loc>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/orsi/</loc>
          <lastmod>2025-08-19</lastmod>
     </url>
     <url>
