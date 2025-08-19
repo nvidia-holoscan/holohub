@@ -17,7 +17,7 @@
 
 #include "command.hpp"
 
-#include "slang_shader.hpp"
+#include "slang_shader_compiler.hpp"
 
 namespace {
 
@@ -32,7 +32,8 @@ namespace {
  */
 uint3 shape_to_uint3(const nvidia::gxf::Shape& shape, bool skip_element_count) {
   uint3 result = make_uint3(1, 1, 1);
-  uint32_t offset = skip_element_count ? 1 : 0;
+  // Only skip the element count if this is not an one-dimensional tensor
+  uint32_t offset = (skip_element_count && (shape.rank() > 1)) ? 1 : 0;
   if (shape.rank() > 0 + offset) {
     result.x = shape.dimension(shape.rank() - 1 - offset);
     if (shape.rank() > 1 + offset) {
@@ -146,7 +147,7 @@ get_reference_specs(CommandWorkspace& workspace, const std::string& reference_na
         fmt::format("Attribute '{}': input '{}' not found.", attribute_name, reference_name));
   }
   auto maybe_reference_tensor =
-      static_cast<nvidia::gxf::Entity&>(reference_port_info_it->second.entity_)
+      static_cast<nvidia::gxf::Entity&>(reference_port_info_it->second->entity_)
           .get<nvidia::gxf::Tensor>(reference_item_name.empty() ? nullptr
                                                                 : reference_item_name.c_str());
   if (maybe_reference_tensor) {
@@ -158,7 +159,7 @@ get_reference_specs(CommandWorkspace& workspace, const std::string& reference_na
     storage_type = maybe_reference_tensor.value()->storage_type();
   } else {
     auto maybe_reference_video_buffer =
-        static_cast<nvidia::gxf::Entity&>(reference_port_info_it->second.entity_)
+        static_cast<nvidia::gxf::Entity&>(reference_port_info_it->second->entity_)
             .get<nvidia::gxf::VideoBuffer>(
                 reference_item_name.empty() ? nullptr : reference_item_name.c_str());
     if (maybe_reference_video_buffer) {
@@ -236,7 +237,11 @@ void CommandInput::execute(CommandWorkspace& workspace) {
     // Receive the CUDA stream from the input port (this always should return the same internal
     // stream so we can just assign it to the workspace)
     workspace.cuda_stream_ = workspace.op_input_.receive_cuda_stream(port_name_.c_str());
-    port_info_it = workspace.port_info_.insert({port_name_, {maybe_entity.value()}}).first;
+    port_info_it = workspace.port_info_
+                       .insert({port_name_,
+                                std::make_unique<CommandWorkspace::PortInfo>(
+                                    CommandWorkspace::PortInfo{maybe_entity.value()})})
+                       .first;
   }
 
   // Get the pointer and size of the data
@@ -244,7 +249,7 @@ void CommandInput::execute(CommandWorkspace& workspace) {
   size_t size;
 
   auto maybe_tensor =
-      static_cast<nvidia::gxf::Entity&>(port_info_it->second.entity_)
+      static_cast<nvidia::gxf::Entity&>(port_info_it->second->entity_)
           .get<nvidia::gxf::Tensor>(item_name_.empty() ? nullptr : item_name_.c_str());
   if (maybe_tensor) {
     // The entity is a tensor
@@ -253,7 +258,7 @@ void CommandInput::execute(CommandWorkspace& workspace) {
     size = tensor->size();
   } else {
     auto maybe_video_buffer =
-        static_cast<nvidia::gxf::Entity&>(port_info_it->second.entity_)
+        static_cast<nvidia::gxf::Entity&>(port_info_it->second->entity_)
             .get<nvidia::gxf::VideoBuffer>(item_name_.empty() ? nullptr : item_name_.c_str());
     if (!maybe_video_buffer) {
       throw std::runtime_error(fmt::format("Attribute 'input': input '{}{}' not found.",
@@ -267,7 +272,7 @@ void CommandInput::execute(CommandWorkspace& workspace) {
   }
 
   // Add the pointer to the CUDA resource pointers
-  workspace.cuda_resource_pointers_[resource_name_] = {pointer, size};
+  workspace.cuda_resource_pointers_[resource_name_] = {port_info_it->second.get(), pointer, size};
 
   // Copy the tensor pointer to the shader parameters array
   workspace.shader_parameters_.resize(parameter_offset_ + sizeof(void*));
@@ -283,17 +288,21 @@ void CommandOutput::execute(CommandWorkspace& workspace) {
                      port_name_,
                      item_name_.empty() ? "" : ":" + item_name_,
                      resource_name_);
-  auto port_info_it = workspace.port_info_.find(port_name_);
-  if (port_info_it == workspace.port_info_.end()) {
+
+  auto cuda_resource_pointers_it = workspace.cuda_resource_pointers_.find(resource_name_);
+  if (cuda_resource_pointers_it == workspace.cuda_resource_pointers_.end()) {
     throw std::runtime_error(
         fmt::format("Attribute 'output': output '{}' not found, "
                     "did you forget to allocate memory for it?",
                     port_name_));
   }
+
+  auto& port_info = cuda_resource_pointers_it->second.port_info_;
+
   // Make sure to emit the entity only once (we might have several items in the entity)
-  if (!port_info_it->second.has_been_emitted_) {
-    workspace.op_output_.emit(port_info_it->second.entity_, port_name_.c_str());
-    port_info_it->second.has_been_emitted_ = true;
+  if (!port_info->has_been_emitted_) {
+    workspace.op_output_.emit(port_info->entity_, port_name_.c_str());
+    port_info->has_been_emitted_ = true;
   }
 }
 
@@ -366,11 +375,15 @@ void CommandAlloc::execute(CommandWorkspace& workspace) {
       throw std::runtime_error(
           fmt::format("Failed to create entity for output port {}.", port_name_));
     }
-    port_info_it = workspace.port_info_.insert({port_name_, {maybe_entity.value()}}).first;
+    port_info_it = workspace.port_info_
+                       .insert({port_name_,
+                                std::make_unique<CommandWorkspace::PortInfo>(
+                                    CommandWorkspace::PortInfo{maybe_entity.value()})})
+                       .first;
   }
 
   // Add a tensor to the entity
-  auto tensor = static_cast<nvidia::gxf::Entity&>(port_info_it->second.entity_)
+  auto tensor = static_cast<nvidia::gxf::Entity&>(port_info_it->second->entity_)
                     .add<nvidia::gxf::Tensor>(item_name_.empty() ? nullptr : item_name_.c_str())
                     .value();
 
@@ -427,7 +440,8 @@ void CommandAlloc::execute(CommandWorkspace& workspace) {
   void* const pointer = tensor->pointer();
 
   // Add the pointer to the CUDA resource pointers
-  workspace.cuda_resource_pointers_[resource_name_] = {pointer, tensor->size()};
+  workspace.cuda_resource_pointers_[resource_name_] = {
+      port_info_it->second.get(), pointer, tensor->size()};
 
   // Copy the tensor pointer to the shader parameters array
   workspace.shader_parameters_.resize(parameter_offset_ + sizeof(void*));
@@ -451,13 +465,17 @@ void CommandSizeOf::execute(CommandWorkspace& workspace) {
   HOLOSCAN_LOG_DEBUG("CommandSizeOf: {} {}", parameter_name_, reference_port_name_);
 
   // Get the shape of the reference resource and copy it to the shader parameters array
+  auto [reference_remainder, swizzle] = split(reference_port_name_, '.');
   auto [shape, strides, storage_type] =
-      get_reference_specs(workspace, reference_port_name_, "size_of");
+      get_reference_specs(workspace, reference_remainder, "size_of");
+  const auto swizzled_shape = swizzle_shape(shape, swizzle);
 
   workspace.shader_parameters_.resize(parameter_offset_ + sizeof(uint3));
   uint3* param_data =
       reinterpret_cast<uint3*>(workspace.shader_parameters_.data() + parameter_offset_);
-  *param_data = shape_to_uint3(shape, true);
+  // If we don't swizzle, we need to skip the element count, else the user is responsible for
+  // setting the swizzle correctly
+  *param_data = shape_to_uint3(swizzled_shape, swizzle.empty());
 }
 
 CommandStrideOf::CommandStrideOf(const std::string& parameter_name,
@@ -509,15 +527,16 @@ void CommandReceiveCudaStream::execute(CommandWorkspace& workspace) {
   }
 }
 
-CommandLaunch::CommandLaunch(const std::string& name, SlangShader* shader, dim3 thread_group_size,
-                             const std::string& invocations_size_of_name, dim3 invocations)
+CommandLaunch::CommandLaunch(const std::string& name, SlangShaderCompiler* shader_compiler,
+                             dim3 thread_group_size, const std::string& invocations_size_of_name,
+                             dim3 invocations)
     : name_(name),
-      shader_(shader),
+      shader_compiler_(shader_compiler),
       thread_group_size_(thread_group_size),
       invocations_size_of_name_(invocations_size_of_name),
       invocations_(invocations) {
   // Get the kernel for the entry point
-  kernel_ = shader_->get_kernel(name_);
+  kernel_ = shader_compiler_->get_kernel(name_);
 
   if ((thread_group_size_.x == 1) && (thread_group_size_.y == 1) && (thread_group_size_.z == 1)) {
     int min_threads_per_block, min_blocks_per_grid;
@@ -571,7 +590,8 @@ void CommandLaunch::execute(CommandWorkspace& workspace) {
 
   // Set the global params
   if (!workspace.shader_parameters_.empty()) {
-    shader_->update_global_params(name_, workspace.shader_parameters_, workspace.cuda_stream_);
+    shader_compiler_->update_global_params(
+        name_, workspace.shader_parameters_, workspace.cuda_stream_);
   }
 
   // Launch the kernel
@@ -585,10 +605,19 @@ void CommandZeros::execute(CommandWorkspace& workspace) {
   HOLOSCAN_LOG_DEBUG("CommandZeros: {}", resource_name_);
 
   // Get the pointer and size of the data
-  auto resource_info = workspace.cuda_resource_pointers_[resource_name_];
+  auto cuda_resource_pointers_it = workspace.cuda_resource_pointers_.find(resource_name_);
+  if (cuda_resource_pointers_it == workspace.cuda_resource_pointers_.end()) {
+    throw std::runtime_error(
+        fmt::format("Attribute 'zeros': resource '{}' not found, "
+                    "did you forget to allocate memory for it?",
+                    resource_name_));
+  }
 
   // Initialize the data to zero
-  CUDA_CALL(cudaMemsetAsync(resource_info.pointer, 0, resource_info.size, workspace.cuda_stream_));
+  CUDA_CALL(cudaMemsetAsync(cuda_resource_pointers_it->second.pointer_,
+                            0,
+                            cuda_resource_pointers_it->second.size_,
+                            workspace.cuda_stream_));
 }
 
 }  // namespace holoscan::ops

@@ -17,7 +17,7 @@
 
 #include <holoscan/holoscan.hpp>
 
-#include "slang_shader_op.hpp"
+#include <slang_shader/slang_shader.hpp>
 
 namespace holoscan::ops {
 
@@ -60,8 +60,9 @@ class SourceOp : public Operator {
     // Get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
     auto gxf_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
         context.context(), allocator_.get()->gxf_cid());
-    tensor->reshape<int>(
-        nvidia::gxf::Shape({1, 1}), nvidia::gxf::MemoryStorageType::kHost, gxf_allocator.value());
+    tensor->reshape<int>(nvidia::gxf::Shape({5, 4, 3}),
+                         nvidia::gxf::MemoryStorageType::kHost,
+                         gxf_allocator.value());
 
     auto value = index_++;
     std::memcpy(tensor->pointer(), &value, sizeof(value));
@@ -125,10 +126,9 @@ class SlangSimpleApp : public holoscan::Application {
                                                    Arg("shader_source_file", "simple.slang"),
                                                    Arg("offset", 10),
                                                    make_condition<CountCondition>(10));
-
     // Define the workflow
-    add_flow(source, slang, {{"output", "input_buffer"}});
-    add_flow(slang, sink, {{"output_buffer", "input"}});
+    add_flow(source, slang);
+    add_flow(slang, sink);
   }
 };
 
