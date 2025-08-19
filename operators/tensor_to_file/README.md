@@ -76,7 +76,9 @@ tensor_to_file = TensorToFileOp(
 
 ## File Format Support
 
-The operator supports various file extensions for video data:
+Any binary streaming file format is allowed. The operator does not check for validity of the specified output extension.
+
+Historically the operator has been used for writing video data with various file extensions:
 
 - `.h264`, `.264` - H.264 elementary stream
 - `.h265`, `.265`, `.hevc` - H.265/HEVC elementary stream  
