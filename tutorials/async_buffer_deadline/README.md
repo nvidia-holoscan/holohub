@@ -8,7 +8,7 @@ SDK application and compares it with the default buffer.
 
 ## Application Configuration
 
-The application source code is provided in the [application directory](./../applications/async_buffer_deadline).
+The application source code is provided in the [application directory](../../applications/async_buffer_deadline).
 
 The application consists of two `PingTxOp` operators (`tx1` and `tx2`) and one `PingRxOp` operator (`rx`). Both `tx1` and `tx2` generate messages and send them to `rx`.
 
@@ -34,7 +34,7 @@ buffer (`DoubleBuffer`) or an async lock-free buffer.
 ### Experiment Run Instructions
 
 Application-specific run instructions are provided in the [application
-directory](./../applications/async_buffer_deadline).
+directory](../../applications/async_buffer_deadline).
 
 The following is an example application run instruction:
 

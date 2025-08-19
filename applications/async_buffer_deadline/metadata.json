@@ -1,6 +1,6 @@
 {
   "application": {
-    "name": "Ping Async Buffer with SCHED_DEADLINE Scheduling",
+    "name": "An Example of Async Lock-free Buffer with SCHED_DEADLINE",
     "description": "A simple application demonstrating the impact of async lock-freebuffer communication between operators with earliest deadline first (SCHED_DEADLINE) scheduling policy of Linux",
     "authors": [
       {
