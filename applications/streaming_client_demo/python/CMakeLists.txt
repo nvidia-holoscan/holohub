@@ -56,8 +56,8 @@ if(BUILD_TESTING)
   # Add test
   add_test(NAME streaming_client_demo_python_test
            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.py
-                   --config ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml
-                   --data ${HOLOHUB_DATA_DIR}/endoscopy
+                   --bypass-server
+                   --data-path ${HOLOHUB_DATA_DIR}/endoscopy
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
   set_property(TEST streaming_client_demo_python_test PROPERTY ENVIRONMENT
