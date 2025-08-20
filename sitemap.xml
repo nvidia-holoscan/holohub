@@ -25,6 +25,10 @@
          <lastmod>2025-08-20</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/async_buffer_deadline/</loc>
+         <lastmod>2025-08-20</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/basic_networking_ping/</loc>
          <lastmod>2025-08-20</lastmod>
     </url>
@@ -698,6 +702,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/tutorials/</loc>
+         <lastmod>2025-08-20</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/tutorials/async_buffer_deadline/</loc>
          <lastmod>2025-08-20</lastmod>
     </url>
     <url>
