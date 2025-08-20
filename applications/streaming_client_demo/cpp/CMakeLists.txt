@@ -146,7 +146,12 @@ if(BUILD_TESTING)
 
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml" ${CONFIG_FILE})
 
-  # Add test for application execution (without data path - streaming client doesn't need video files)
+  # Create dummy video files for testing (VideoStreamReplayer requirement)
+  file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/data)
+  file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_index)
+  file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_entities)
+
+  # Add test for application execution
   add_test(NAME streaming_client_demo_cpp_test
            COMMAND streaming_client_demo
                    --config ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml
