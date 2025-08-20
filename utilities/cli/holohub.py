@@ -377,13 +377,13 @@ class HoloHubCLI:
         test.add_argument(
             "--cmake-options",
             action="append",
-            help="CMake options"
+            help="CMake options, "
             "example: --cmake-options='-DCUSTOM_OPTION=ON' --cmake-options='-DDEBUG_MODE=1'",
         )
         test.add_argument(
             "--ctest-options",
             action="append",
-            help="CTest options"
+            help="CTest options, "
             "example: --ctest-options='-DGPU_TYPE=rtx4090' --ctest-options='-DDEBUG_MODE=ON'",
         )
         test.add_argument("--no-xvfb", action="store_true", help="Do not use xvfb")
