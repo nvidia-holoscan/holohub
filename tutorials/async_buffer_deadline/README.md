@@ -124,10 +124,34 @@ The message interval for `tx2` (at the `in2` port of `rx`) remains stable with t
 
 ### Conclusion and Guidance
 
-The asynchronous lock-free buffer connection between the operators enables
-connected operators to run independently. When they are configured with 
-`SCHED_DEADLINE` Linux scheduling policy, they can run independently with 
-their respective runtime and periods. When the default buffer is used,
-operators may depend on other operator's runtime and periods, even when
-`SCHED_DEADLINE` policy is associated with them. Therefore, developers must
-take precaution when using `SCHED_DEADLINE` policy with the default buffer.
+The asynchronous lock-free buffer connection between operators enables true
+independent execution when using `SCHED_DEADLINE` Linux scheduling policy. 
+This buffer type allows each operator to maintain its specified runtime and 
+period without interference from other operators in the pipeline.
+
+**Key Insights:**
+- **With async lock-free buffer**: Operators run independently with their 
+  configured `SCHED_DEADLINE` runtime and periods, achieving predictable real-time performance
+- **With default buffer (DoubleBuffer)**: Operators become coupled, where one 
+  operator's performance can be impacted by another operator's 
+  behavior, even when `SCHED_DEADLINE` policy is applied
+
+**Developer Recommendations:**
+1. **Use async lock-free buffers** when implementing soft real-time applications 
+   with `SCHED_DEADLINE` scheduling to ensure predictable operator performance
+2. **Avoid default buffers** in `SCHED_DEADLINE` scenarios where operator 
+   independence is critical for meeting real-time constraints
+3. **Using default buffer with `SCHED_DEADLINE` policy** means satisfying both
+   the constraints of the double buffer and periodic execution of
+   `SCHED_DEADLINE`. Depending on the application, this may not be desirable.
+4. **Using `SCHED_DEADLINE` for a chosen few operators** (for example, source
+   operators in a DAG) along with default
+   buffer may provide a good balance because this provides predictable execution
+   for chosen few `SCHED_DEADLINE` operators while allowing applications to run
+   normally otherwise.
+3. **Test both buffer types** during development to understand the performance 
+   implications in your specific use case, especially when using `SCHED_DEADLINE`
+   policy
+4. **Monitor message latency and intervals** to verify that operators maintain 
+   their intended timing characteristics
+

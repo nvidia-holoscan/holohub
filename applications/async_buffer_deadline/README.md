@@ -41,14 +41,17 @@ To build and run the application:
 
 ```bash
 # Basic run with default settings (100 messages, no async buffer)
-./holohub run async_buffer_deadline
+./holohub run async_buffer_deadline --as-root --docker-opts='--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'
 
 # Run with async buffer enabled
-./holohub run async_buffer_deadline -- --async-buffer
+./holohub run async_buffer_deadline -- --async-buffer --as-root --docker-opts='--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'
 
 # Run with custom message count and periods
-./holohub run async_buffer_deadline -- --messages 50 --tx1-period 15 --tx2-period 25 --async-buffer
+./holohub run async_buffer_deadline -- --messages 50 --tx1-period 15 --tx2-period 25 --async-buffer --as-root --docker-opts='--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'
 ```
+
+`--as-root --docker-opts='--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'` is
+required to run `SCHED_DEADLINE` application in a container.
 
 ### Command Line Options
 
