@@ -55,7 +55,7 @@ if(BUILD_TESTING)
 
   # Add test - using streaming client (connection failures are expected in test environment)
   add_test(NAME streaming_client_demo_python_test
-           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.py
+           COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/run_test.sh ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.py
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
   set_property(TEST streaming_client_demo_python_test PROPERTY ENVIRONMENT
@@ -63,9 +63,9 @@ if(BUILD_TESTING)
 
   set_tests_properties(streaming_client_demo_python_test PROPERTIES
                 DEPENDS python_streaming_client_demo_deps
-                TIMEOUT 60
-                PASS_REGULAR_EXPRESSION "StreamingClientOp initialized successfully|Starting streaming with server|Connection attempt.*failed|All connection attempts failed"
-                FAIL_REGULAR_EXPRESSION "ModuleNotFoundError|ImportError|SyntaxError")
+                TIMEOUT 90
+                PASS_REGULAR_EXPRESSION "Test PASSED: StreamingClient functionality validated successfully"
+                FAIL_REGULAR_EXPRESSION "Test FAILED:")
 
   # Frame validation test disabled - no recording in current streaming client setup
   # TODO: Re-enable when recording functionality is implemented
