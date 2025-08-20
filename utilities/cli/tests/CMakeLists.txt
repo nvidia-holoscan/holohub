@@ -344,3 +344,12 @@ add_test(
 set_property(TEST test_holohub_run_multi_language_project PROPERTY
     PASS_REGULAR_EXPRESSION "has multiple languages.*language"
 )
+
+add_test(
+    NAME test_holohub_test_build_name_suffix
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub test --dryrun --build-name-suffix=test-branch
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_test_build_name_suffix PROPERTY
+    PASS_REGULAR_EXPRESSION "DTAG=test-branch"
+)
