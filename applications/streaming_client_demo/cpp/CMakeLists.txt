@@ -146,11 +146,10 @@ if(BUILD_TESTING)
 
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml" ${CONFIG_FILE})
 
-  # Add test for application execution
+  # Add test for application execution (without data path - streaming client doesn't need video files)
   add_test(NAME streaming_client_demo_cpp_test
            COMMAND streaming_client_demo
                    --config ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml
-                   --data "${HOLOHUB_DATA_DIR}/endoscopy"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   
   # Set test properties including library path and pass/fail criteria
