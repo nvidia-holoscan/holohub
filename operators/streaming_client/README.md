@@ -71,7 +71,6 @@ After successful extraction and setup, your `operators/streaming_client` directo
 ├── README.md
 ├── streaming_client.cpp
 ├── streaming_client.hpp
-└── streaming_client_operator-config.cmake.in
 ```
 
 All dependencies need to be properly installed in the operator directory structure.
