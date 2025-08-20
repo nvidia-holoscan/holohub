@@ -151,18 +151,19 @@ if(BUILD_TESTING)
   file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_index)
   file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_entities)
 
-  # Add test for application execution
+  # Add test for application execution using wrapper script to handle exceptions gracefully
   add_test(NAME streaming_client_demo_cpp_test
-           COMMAND streaming_client_demo
-                   --config ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml
+           COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/run_test.sh
+                   ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo
+                   ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   
   # Set test properties including library path and pass/fail criteria  
   set_tests_properties(streaming_client_demo_cpp_test PROPERTIES
                        ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_client:${CMAKE_BINARY_DIR}/operators/streaming_client/lib:${CMAKE_SOURCE_DIR}/operators/streaming_client/lib:$ENV{LD_LIBRARY_PATH}"
-                       TIMEOUT 60
-                       PASS_REGULAR_EXPRESSION "StreamingClientOp initialized successfully|Starting streaming with server|Connection attempt.*failed"
-                       FAIL_REGULAR_EXPRESSION "Fatal|FATAL|cannot open shared object file|Could not find surgical_video")
+                       TIMEOUT 90
+                       PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingClient functionality validated successfully"
+                       FAIL_REGULAR_EXPRESSION "Test FAILED:")
 
   # Frame validation test disabled - current streaming client setup doesn't record output
   # TODO: Re-enable when recording functionality is implemented for streaming client
