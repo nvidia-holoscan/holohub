@@ -47,7 +47,7 @@ set_target_properties(streaming_server PROPERTIES
   CXX_STANDARD_REQUIRED ON
   POSITION_INDEPENDENT_CODE ON
   BUILD_WITH_INSTALL_RPATH TRUE
-  INSTALL_RPATH "${STREAMING_LIB_DIR}:$ORIGIN/lib:${CMAKE_INSTALL_PREFIX}/lib:/opt/nvidia/holoscan/lib"
+  INSTALL_RPATH "$ORIGIN/lib:${CMAKE_INSTALL_PREFIX}/lib:/opt/nvidia/holoscan/lib"
   INSTALL_RPATH_USE_LINK_PATH TRUE
   SKIP_BUILD_RPATH FALSE
 )
@@ -60,9 +60,8 @@ target_include_directories(streaming_server
     $<INSTALL_INTERFACE:include>
 )
 
-# Add link directory explicitly (both source lib and build lib directories)
-link_directories(${STREAMING_LIB_DIR})
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
+# Note: Removed global link_directories to avoid RPATH conflicts
+# Libraries are linked using full paths instead
 
 # Link against libraries (use full paths for reliability)
 target_link_libraries(streaming_server
@@ -193,7 +192,7 @@ install(TARGETS streaming_server
 install(
   FILES
     streaming_server_op.hpp
-    StreamingServer.h
+    include/StreamingServer.h
   DESTINATION
     include
 )
