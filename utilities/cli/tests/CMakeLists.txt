@@ -353,3 +353,12 @@ add_test(
 set_property(TEST test_holohub_test_build_name_suffix PROPERTY
     PASS_REGULAR_EXPRESSION "DTAG=test-branch"
 )
+
+add_test(
+    NAME test_holohub_test_ctest_options
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub test --dryrun --cmake-options=-DMAKE=1 --ctest-options=-DTEST=2
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_test_ctest_options PROPERTY
+    PASS_REGULAR_EXPRESSION "-DCONFIGURE_OPTIONS=\"-DMAKE=1\" -DTEST=2"
+)
