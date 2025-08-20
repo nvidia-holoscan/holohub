@@ -155,7 +155,7 @@ if(BUILD_TESTING)
   
   # Set test properties including library path and pass/fail criteria
   set_tests_properties(streaming_client_demo_cpp_test PROPERTIES
-                       ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_client:$ENV{LD_LIBRARY_PATH}"
+                       ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_client/lib:${CMAKE_SOURCE_DIR}/operators/streaming_client/lib:$ENV{LD_LIBRARY_PATH}"
                        TIMEOUT 60
                        PASS_REGULAR_EXPRESSION "StreamingClient|connection|timeout|Application has finished running.|Reach end of file"
                        FAIL_REGULAR_EXPRESSION "Fatal|FATAL|cannot open shared object file")
