@@ -51,7 +51,7 @@ class PingTxOp : public Operator {
                         std::chrono::high_resolution_clock::now().time_since_epoch())
                         .count();
 
-    // Busy-loop for 5ms before emitting
+    // Busy-loop for requested processing time before emitting
     auto start_time = std::chrono::high_resolution_clock::now();
     while (std::chrono::high_resolution_clock::now() - start_time <
            std::chrono::milliseconds(processing_time_ms_)) {
@@ -169,7 +169,7 @@ class PingRxOp : public Operator {
       }
     }
 
-    // Busy-loop for 10ms after receiving
+    // Busy-loop for 1 ms after receiving the messages
     auto start_time = std::chrono::high_resolution_clock::now();
     while (std::chrono::high_resolution_clock::now() - start_time < std::chrono::milliseconds(1)) {
       // Busy wait
