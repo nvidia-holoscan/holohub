@@ -17,6 +17,8 @@
 
 FROM nvcr.io/nvidia/cuda:12.9.0-base-ubuntu24.04
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install the dependencies
 # wget, unzip and ffmpeg are needed to download NGC-CLI and generate input data
 # python packages are required for the application
@@ -31,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         patch \
         ffmpeg \
         libnpp-12-9 \
+        cuda-cudart-dev-12-9 \
         cuda-nvrtc-12-9 \
         libnvinfer10=*+cuda12.9 \
         libnvinfer-lean10=*+cuda12.9 \
