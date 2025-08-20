@@ -50,9 +50,8 @@ set(configure_options
   -D HOLOHUB_DATA_DIR=/workspace/holohub/data-${APP}-${TAG}
   -D CMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
   -D CMAKE_BUILD_TYPE=RelWithDebInfo
+  -D APP_${APP}=ON
 )
-
-list(APPEND configure_options -DAPP_${APP}=ON)
 
 # Default nightly start time
 set(CTEST_NIGHTLY_START_TIME "06:00:00 UTC")
