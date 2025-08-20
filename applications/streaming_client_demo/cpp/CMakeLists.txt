@@ -152,12 +152,12 @@ if(BUILD_TESTING)
                    --config ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   
-  # Set test properties including library path and pass/fail criteria
+  # Set test properties including library path and pass/fail criteria  
   set_tests_properties(streaming_client_demo_cpp_test PROPERTIES
                        ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_client:${CMAKE_BINARY_DIR}/operators/streaming_client/lib:${CMAKE_SOURCE_DIR}/operators/streaming_client/lib:$ENV{LD_LIBRARY_PATH}"
                        TIMEOUT 60
-                       PASS_REGULAR_EXPRESSION "StreamingClient|connection|timeout|Application has finished running.|Reach end of file"
-                       FAIL_REGULAR_EXPRESSION "Fatal|FATAL|cannot open shared object file")
+                       PASS_REGULAR_EXPRESSION "StreamingClientOp initialized successfully|Starting streaming with server|Connection attempt.*failed"
+                       FAIL_REGULAR_EXPRESSION "Fatal|FATAL|cannot open shared object file|Could not find surgical_video")
 
   # Frame validation test disabled - current streaming client setup doesn't record output
   # TODO: Re-enable when recording functionality is implemented for streaming client
