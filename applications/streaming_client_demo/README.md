@@ -56,19 +56,52 @@ graph TD
 **📖 For detailed setup instructions, see**: [Streaming Client Operator Setup](../../operators/streaming_client/README.md#dependencies)
 
 Quick summary:
+
 ```bash
-# Download the Holoscan Client Cloud Streaming library from NGC
+# Download using NGC CLI
+cd <your_holohub_path>/operators/streaming_client
 ngc registry resource download-version nvidia/holoscan_client_cloud_streaming:0.1
-# Move to the operator's lib directory
-mv holoscan_client_cloud_streaming operators/streaming_client/lib
+unzip -o holoscan_client_cloud_streaming_v0.1/holoscan_client_cloud_streaming.zip
+
+# Copy the appropriate architecture libraries to lib/ directory
+# For x86_64 systems:
+cp lib/x86_64/* lib/
+# For aarch64 systems:
+# cp lib/aarch64/* lib/
+
+# Clean up architecture-specific directories and NGC downlaod directory
+rm -rf lib/x86_64 lib/aarch64
+rm -rf holoscan_client_cloud_streaming_v0.1
 ```
 
-## Building the Application
+After successful extraction and setup, your `operators/streaming_client` directory structure should look like this:
 
-To build the application, run:
-
-```bash
-./holohub build streaming_client_demo
+```
+├── CMakeLists.txt
+├── FindHoloscanStreaming.cmake
+├── include
+│   ├── StreamingClient.h
+│   └── VideoFrame.h
+├── lib
+│   ├── libcrypto.so.3
+│   ├── libcudart.so.12
+│   ├── libcudart.so.12.0.107
+│   ├── libNvStreamBase.so
+│   ├── libNvStreamingSession.so
+│   ├── libNvStreamServer.so
+│   ├── libPoco.so
+│   ├── libssl.so.3
+│   ├── libStreamClientShared.so
+│   └── libStreamingClient.so
+├── metadata.json
+├── NOTICE.txt
+├── python
+│   ├── CMakeLists.txt
+│   └── streaming_client.cpp
+├── README.md
+├── streaming_client.cpp
+├── streaming_client.hpp
+└── streaming_client_operator-config.cmake.in
 ```
 
 ## Running the Application
@@ -92,6 +125,9 @@ The application can be configured using a YAML file. By default, it looks for `s
 ## Related Documentation
 
 ### Applications
+
+Please note that , in order for the `streming_client` to be able to establish a bidirectional connection with the `streaming_server`, the streaming_server_demo app must be build and run first and then the stremaing_client_demo app.
+
 - [Streaming Server Demo Application](../streaming_server_demo/README.md)
 
 ### Operators  
