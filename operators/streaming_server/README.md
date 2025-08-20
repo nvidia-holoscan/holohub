@@ -48,16 +48,6 @@ This operator class implements a streaming server that can:
 - **`allocator`**: Memory allocator for frame data
   - type: `std::shared_ptr<Allocator>`
 
-### Input Ports
-
-- **`input_frames`**: Input port for frames to be sent to clients
-  - type: `holoscan::gxf::Entity`
-
-### Output Ports
-
-- **`output_frames`**: Output port for frames received from clients
-  - type: `holoscan::gxf::Entity`
-
 ### Example Usage
 
 ```cpp
@@ -87,10 +77,20 @@ Download the Holoscan Server Cloud Streaming library from NGC:
 https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_server_cloud_streaming
 
 ```bash
-# Download and extract the library
-ngc registry resource download-version nvidia/holoscan_server_cloud_streaming:0.1
-# Move the extracted files to the lib directory
-mv holoscan_server_cloud_streaming lib
+cd <your_holohub_path>/operators/streaming_server 
+ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.1"
+unzip -o holoscan_server_cloud_streaming_v0.1/holoscan_server_cloud_streaming.zip
+
+# Copy the appropriate architecture libraries to lib/ directory
+# For x86_64 systems:
+cp lib/x86_64/*.so* lib/
+cp -r lib/x86_64/plugins lib/
+# For aarch64 systems:
+# cp lib/aarch64/* lib/
+
+# Clean up architecture-specific directories and NGC downlaod directory
+rm -rf lib/x86_64 lib/aarch64
+rm -rf holoscan_server_cloud_streaming_v0.1
 ```
 
 ### Deployment on NVCF

@@ -15,20 +15,24 @@ This application demonstrates how to use the Holoscan SDK to create a streaming 
 **📖 For detailed setup instructions, see**: [Streaming Server Operator Setup](../../operators/streaming_server/README.md#building-the-operator)
 
 Quick summary:
-```bash
-# Download the Holoscan Server Cloud Streaming library from NGC
-ngc registry resource download-version nvidia/holoscan_server_cloud_streaming:0.1
-# Move to the operator's lib directory
-mv holoscan_server_cloud_streaming operators/streaming_server/lib
-```
-
-## Building the Application
-
-To build the application, run:
 
 ```bash
-./holohub build streaming_server_demo
+cd <your_holohub_path>/operators/streaming_server 
+ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.1"
+unzip -o holoscan_server_cloud_streaming_v0.1/holoscan_server_cloud_streaming.zip
+
+# Copy the appropriate architecture libraries to lib/ directory
+# For x86_64 systems:
+cp lib/x86_64/*.so* lib/
+cp -r lib/x86_64/plugins lib/
+# For aarch64 systems:
+# cp lib/aarch64/* lib/
+
+# Clean up architecture-specific directories and NGC downlaod directory
+rm -rf lib/x86_64 lib/aarch64
+rm -rf holoscan_server_cloud_streaming_v0.1
 ```
+
 
 ## Running the Application
 

@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Copy streaming_server_demo application file
+# Copy streaming_server_demo application file to both locations
 add_custom_target(python_streaming_server_demo ALL
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.py" ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.py" ${CMAKE_BINARY_DIR}
   DEPENDS "streaming_server_demo.py"
   BYPRODUCTS "streaming_server_demo.py"
 )

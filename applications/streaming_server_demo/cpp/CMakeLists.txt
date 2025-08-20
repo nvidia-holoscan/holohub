@@ -49,10 +49,14 @@ target_compile_options(streaming_server_demo
     $<$<COMPILE_LANGUAGE:CXX>:-Wno-sign-compare>
 )
 
+# Add dependency on streaming_server operator
+add_dependencies(streaming_server_demo streaming_server)
+
 # Link libraries
 target_link_libraries(streaming_server_demo
     PUBLIC
     holoscan::core
+    holoscan::streaming_server
     CUDA::cudart
     CUDA::cuda_driver
 )
@@ -71,6 +75,7 @@ set_target_properties(streaming_server_demo PROPERTIES
 target_include_directories(streaming_server_demo
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/operators/streaming_server
 )
 
 # Copy YAML file if it exists

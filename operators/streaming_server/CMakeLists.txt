@@ -20,8 +20,8 @@ project(streaming_server)
 find_package(holoscan 3.2 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-# Define path for StreamingServer dependencies (downloaded to build tree)
-set(STREAMING_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/streaming_libs")
+# Define path for StreamingServer dependencies (using lib directory)
+set(STREAMING_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 # Print library directory
 message(STATUS "Using Streaming library directory: ${STREAMING_LIB_DIR}")
@@ -56,61 +56,46 @@ set_target_properties(streaming_server PROPERTIES
 target_include_directories(streaming_server
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
-# Add link directory explicitly
+# Add link directory explicitly (both source lib and build lib directories)
 link_directories(${STREAMING_LIB_DIR})
+link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
-# Link against libraries (paths resolved via link_directories)
+# Link against libraries (use full paths for reliability)
 target_link_libraries(streaming_server
   PUBLIC
     holoscan::core
-    NvStreamBase
-    NvStreamServer
-    NvStreamingSession
-    "${STREAMING_LIB_DIR}/libNvStreamingMedia.a"  # Static lib needs full path
-    StreamClientShared
-    SCI
-    "protobuf.so.9"  # Versioned lib needs explicit name
-    Poco
-    NvSignalingServer
-    NvSessionNegotiator
-    "${STREAMING_LIB_DIR}/libNVCodec.a"  # Static lib needs full path
-    NvcfBlasUpload
-    NicllsHandlerServer
-    messagebus
-    InputStreamShared
-    "cudart.so.12"  # Versioned lib needs explicit name
-    "cudart.so.12.0.107"  # Specific version needs explicit name
-    "ssl.so.3"  # Versioned lib needs explicit name
-    "crypto.so.3"  # Versioned lib needs explicit name
-    AudioStreamShared
-    serverlib
+    "${STREAMING_LIB_DIR}/libNvStreamBase.so"
+    "${STREAMING_LIB_DIR}/libNvStreamServer.so"
+    "${STREAMING_LIB_DIR}/libNvStreamingSession.so"
+    "${STREAMING_LIB_DIR}/libPoco.so"
+    "${STREAMING_LIB_DIR}/libcudart.so.12"
+    "${STREAMING_LIB_DIR}/libssl.so.3"
+    "${STREAMING_LIB_DIR}/libcrypto.so.3"
+    "${STREAMING_LIB_DIR}/libStreamingServer.so"
     atomic
 )
 
-# List library filenames (paths constructed in foreach loop)
+# List library filenames (only files that actually exist in NGC package)
 set(STREAMING_SO_FILENAMES
     "libNvStreamBase.so"
     "libNvStreamServer.so"
     "libNvStreamingSession.so"
-    "libStreamClientShared.so"
-    "libSCI.so"
-    "libprotobuf.so.9"
     "libPoco.so"
-    "libNvSignalingServer.so"
-    "libNvSessionNegotiator.so"
-    "libNvcfBlasUpload.so"
-    "libNicllsHandlerServer.so"
-    "libmessagebus.so"
-    "libInputStreamShared.so"
     "libcudart.so.12"
     "libcudart.so.12.0.107"
     "libssl.so.3"
     "libcrypto.so.3"
-    "libAudioStreamShared.so"
-    "libserverlib.so"
+    "libStreamingServer.so"
+)
+
+# List plugin filenames (from plugins directory)
+set(STREAMING_PLUGIN_FILENAMES
+    "libNicllsHandlerServer.so"
+    "libNvcfBlasUpload.so"
 )
 
 # Make sure all StreamingServer libraries are copied to the build directory first
@@ -124,6 +109,18 @@ foreach(SO_FILENAME ${STREAMING_SO_FILENAMES})
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "${STREAMING_LIB_DIR}/${SO_FILENAME}"
       "${CMAKE_CURRENT_BINARY_DIR}/lib/"
+  )
+endforeach()
+
+# Copy plugin files
+add_custom_command(TARGET streaming_server PRE_LINK
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/lib/plugins"
+)
+foreach(PLUGIN_FILENAME ${STREAMING_PLUGIN_FILENAMES})
+  add_custom_command(TARGET streaming_server PRE_LINK
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${STREAMING_LIB_DIR}/plugins/${PLUGIN_FILENAME}"
+      "${CMAKE_CURRENT_BINARY_DIR}/lib/plugins/"
   )
 endforeach()
 
@@ -158,6 +155,19 @@ foreach(SO_FILENAME ${STREAMING_SO_FILENAMES})
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "${STREAMING_LIB_DIR}/${SO_FILENAME}"
       "${CMAKE_BINARY_DIR}/operators/streaming_server/lib/"
+  )
+endforeach()
+
+# Copy plugin files to build directory
+add_custom_command(TARGET streaming_server POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+    ${CMAKE_BINARY_DIR}/operators/streaming_server/lib/plugins
+)
+foreach(PLUGIN_FILENAME ${STREAMING_PLUGIN_FILENAMES})
+  add_custom_command(TARGET streaming_server POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${STREAMING_LIB_DIR}/plugins/${PLUGIN_FILENAME}"
+      "${CMAKE_BINARY_DIR}/operators/streaming_server/lib/plugins/"
   )
 endforeach()
 
@@ -259,6 +269,11 @@ export(EXPORT streaming_server-targets
   FILE ${CMAKE_CURRENT_BINARY_DIR}/cmake/streaming_server-targets.cmake
   NAMESPACE holoscan::
 )
+
+# Python module
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
 
 # Print status message
 message(STATUS "StreamingServer operator configuration complete.")

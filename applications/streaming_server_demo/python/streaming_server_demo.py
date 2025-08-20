@@ -15,26 +15,25 @@
 # limitations under the License.
 
 """
-Simple application to test the StreamingClientOp operator.
+Simple application to test the StreamingServerOp operator.
 """
 
 from argparse import ArgumentParser
 
 from holoscan.core import Application
-from holoscan.operators import StreamingClientOp
+from holohub.streaming_server import StreamingServerOp
 from holoscan.resources import UnboundedAllocator
 
 
-class StreamingClientTestApp(Application):
-    """Example application to test the StreamingClientOp operator."""
+class StreamingServerTestApp(Application):
+    """Example application to test the StreamingServerOp operator."""
 
-    def __init__(self, server_ip, signaling_port=48010, width=1920, height=1080, fps=30):
+    def __init__(self, port=8080, width=1920, height=1080, fps=30):
         """Initialize the application."""
         super().__init__()
 
-        # Get the directory where this file is located
-        self.server_ip = server_ip
-        self.signaling_port = signaling_port
+        # Server configuration
+        self.port = port
         self.width = width
         self.height = height
         self.fps = fps
@@ -44,40 +43,28 @@ class StreamingClientTestApp(Application):
         # Define resources and operators
         unbounded_allocator = UnboundedAllocator(self, name="allocator")
 
-        # Create the streaming client operator
-        streaming_client = StreamingClientOp(
+        # Create the streaming server operator
+        streaming_server = StreamingServerOp(
             self,
-            name="streaming_client",
-            allocator=unbounded_allocator,
-            width=self.width,
-            height=self.height,
-            fps=self.fps,
-            server_ip=self.server_ip,
-            signaling_port=self.signaling_port,
-            receive_frames=True,
-            send_frames=False,
+            name="streaming_server",
         )
 
         # Add the operators to the application
-        self.add_operator(streaming_client)
+        self.add_operator(streaming_server)
 
 
 def main():
     """Main function to parse CLI arguments and run the application."""
-    parser = ArgumentParser(description="Streaming Client Test Application")
-    parser.add_argument(
-        "--server_ip", type=str, default="127.0.0.1", help="IP address of the streaming server"
-    )
-    parser.add_argument("--signaling_port", type=int, default=48010, help="Port for signaling")
+    parser = ArgumentParser(description="Streaming Server Demo Application")
+    parser.add_argument("--port", type=int, default=8080, help="Port for streaming server")
     parser.add_argument("--width", type=int, default=1920, help="Frame width")
     parser.add_argument("--height", type=int, default=1080, help="Frame height")
     parser.add_argument("--fps", type=int, default=30, help="Frames per second")
     args = parser.parse_args()
 
     # Create and run the application
-    app = StreamingClientTestApp(
-        server_ip=args.server_ip,
-        signaling_port=args.signaling_port,
+    app = StreamingServerTestApp(
+        port=args.port,
         width=args.width,
         height=args.height,
         fps=args.fps,
