@@ -53,19 +53,38 @@ if(BUILD_TESTING)
 
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml" ${CONFIG_FILE})
 
-  # Add test - using streaming client (connection failures are expected in test environment)
+  # Add infrastructure test - using streaming client (connection failures are expected in test environment)
   add_test(NAME streaming_client_demo_python_test
            COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/run_test.sh ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.py
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
+  # Add functional test - using real video data to test video frame processing
+  add_test(NAME streaming_client_demo_python_functional_test
+           COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/run_functional_test.sh 
+                   ${CMAKE_CURRENT_BINARY_DIR} 
+                   ${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_functional.py
+                   ${HOLOHUB_DATA_DIR}/endoscopy
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+  # Set environment for both tests
   set_property(TEST streaming_client_demo_python_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib:${CMAKE_CURRENT_BINARY_DIR}/python/lib")
+  set_property(TEST streaming_client_demo_python_functional_test PROPERTY ENVIRONMENT
+               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib:${CMAKE_CURRENT_BINARY_DIR}/python/lib")
 
+  # Infrastructure test properties
   set_tests_properties(streaming_client_demo_python_test PROPERTIES
                 DEPENDS python_streaming_client_demo_deps
                 TIMEOUT 90
                 PASS_REGULAR_EXPRESSION "Test PASSED: StreamingClient functionality validated successfully"
                 FAIL_REGULAR_EXPRESSION "Test FAILED:")
+
+  # Functional test properties  
+  set_tests_properties(streaming_client_demo_python_functional_test PROPERTIES
+                DEPENDS python_streaming_client_demo_deps
+                TIMEOUT 120
+                PASS_REGULAR_EXPRESSION "FUNCTIONAL test.*successful"
+                FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
 
   # Frame validation test disabled - no recording in current streaming client setup
   # TODO: Re-enable when recording functionality is implemented

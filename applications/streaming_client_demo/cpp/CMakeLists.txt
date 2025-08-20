@@ -146,16 +146,16 @@ if(BUILD_TESTING)
 
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml" ${CONFIG_FILE})
 
-  # Create dummy video files for testing (VideoStreamReplayer requirement)
-  file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/data)
-  file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_index)
-  file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_entities)
+  # Use real endoscopy video data for functional testing
+  # The test system automatically provides real video data at ${HOLOHUB_DATA_DIR}/endoscopy
+  # which contains surgical_video.gxf_index and surgical_video.gxf_entities with real frame data
 
   # Add test for application execution using wrapper script to handle exceptions gracefully
   add_test(NAME streaming_client_demo_cpp_test
            COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/run_test.sh
                    ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo
                    ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_testing.yaml
+                   ${HOLOHUB_DATA_DIR}/endoscopy
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   
   # Set test properties including library path and pass/fail criteria  
