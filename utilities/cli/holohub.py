@@ -374,7 +374,11 @@ class HoloHubCLI:
         test.add_argument("--site-name", help="Site name")
         test.add_argument("--cdash-url", help="CDash URL")
         test.add_argument("--platform-name", help="Platform name")
-        test.add_argument("--cmake-options", help="CMake options")
+        test.add_argument(
+            "--cmake-options",
+            help="CMake options (semicolon-separated for multiple). "
+            "Example: --cmake-options='-DCUSTOM_OPTION=ON;-DDEBUG_MODE=1'",
+        )
         test.add_argument("--no-xvfb", action="store_true", help="Do not use xvfb")
         test.add_argument("--ctest-script", help="CTest script")
         test.add_argument(
