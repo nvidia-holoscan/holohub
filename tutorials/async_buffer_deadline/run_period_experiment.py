@@ -15,13 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import os
+import shutil
 import subprocess
-import pandas as pd
+
 import matplotlib.pyplot as plt
 import numpy as np
-import shutil
-import argparse
+import pandas as pd
 
 # Configuration
 NUM_MESSAGES = 1500
