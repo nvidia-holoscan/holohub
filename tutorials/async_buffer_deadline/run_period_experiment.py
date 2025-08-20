@@ -515,7 +515,9 @@ def main():
         # Check if results directory exists
         if not os.path.exists(RESULTS_DIR):
             print(f"Error: {RESULTS_DIR} directory not found!")
-            print("Please run the experiment first or ensure CSV files are in the correct location.")
+            print(
+                "Please run the experiment first or ensure CSV files are in the correct location."
+            )
             return
 
         # Collect data from existing CSV files
