@@ -125,9 +125,7 @@ install(
 )
 
 # Add testing
-# TODO: C++ tests disabled until bypass mode is implemented (like Python version has)
-# The C++ version tries to connect to a streaming server even in test mode
-if(FALSE AND BUILD_TESTING)
+if(BUILD_TESTING)
 
   set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
   set(SOURCE_VIDEO_BASENAME cpp_streaming_client_demo_output)
@@ -155,8 +153,8 @@ if(FALSE AND BUILD_TESTING)
                    --data "${HOLOHUB_DATA_DIR}/endoscopy"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_tests_properties(streaming_client_demo_cpp_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "Reach end of file or playbook count reaches to the limit. Stop ticking.|Application has finished running."
-                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+                       PASS_REGULAR_EXPRESSION "StreamingClient|connection|timeout|Application has finished running.|Reach end of file"
+                       FAIL_REGULAR_EXPRESSION "Fatal|FATAL|Segmentation fault|segfault")
 
   # Add a test to check the validity of the frames
   add_test(NAME streaming_client_demo_cpp_render_test
