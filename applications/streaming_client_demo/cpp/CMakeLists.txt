@@ -168,7 +168,7 @@ if(BUILD_TESTING)
   set_tests_properties(streaming_client_demo_cpp_test PROPERTIES
                        ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_client:${CMAKE_BINARY_DIR}/operators/streaming_client/lib:${CMAKE_SOURCE_DIR}/operators/streaming_client/lib:$ENV{LD_LIBRARY_PATH}"
                        TIMEOUT 90
-                       PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingClient functionality validated successfully"
+                       PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingClient.*test successful"
                        FAIL_REGULAR_EXPRESSION "Test FAILED:")
 
   # Frame validation test disabled - current streaming client setup doesn't record output
