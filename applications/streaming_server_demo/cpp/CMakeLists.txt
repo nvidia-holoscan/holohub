@@ -75,7 +75,6 @@ set_target_properties(streaming_server_demo PROPERTIES
 target_include_directories(streaming_server_demo
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/operators/streaming_server
 )
 
 # Copy YAML file if it exists
