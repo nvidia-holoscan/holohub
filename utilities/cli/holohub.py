@@ -382,7 +382,7 @@ class HoloHubCLI:
         test.add_argument(
             "--ctest-options",
             help="CTest options (semicolon-separated for multiple). "
-            "Example: --ctest-options='GPU_TYPE=rtx4090;DEBUG_MODE=ON'",
+            "Example: --ctest-options='-DGPU_TYPE=rtx4090;-DDEBUG_MODE=ON'",
         )
         test.add_argument("--no-xvfb", action="store_true", help="Do not use xvfb")
         test.add_argument("--ctest-script", help="CTest script")
