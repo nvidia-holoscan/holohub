@@ -23,5 +23,5 @@ add_custom_target(python_streaming_client_demo ALL
 # Install application and dependencies into the install/ directory for packaging
 install(
   FILES streaming_client_demo.py
-  DESTINATION bin/streaming_client_demo/python
+  DESTINATION bin
 )

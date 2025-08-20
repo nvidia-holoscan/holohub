@@ -104,8 +104,8 @@ install(TARGETS streaming_client_operator
 install(
   FILES
     streaming_client.hpp
-    StreamingClient.h
-    VideoFrame.h
+    include/StreamingClient.h
+    include/VideoFrame.h
   DESTINATION
     include
 )
