@@ -333,6 +333,14 @@
          <lastmod>2025-08-20</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/streaming_client_demo/</loc>
+         <lastmod>2025-08-20</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/streaming_server_demo/</loc>
+         <lastmod>2025-08-20</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/synthetic_aperture_radar/</loc>
          <lastmod>2025-08-20</lastmod>
     </url>
@@ -642,6 +650,14 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/slang_shader/</loc>
+         <lastmod>2025-08-20</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/streaming_client/</loc>
+         <lastmod>2025-08-20</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/streaming_server/</loc>
          <lastmod>2025-08-20</lastmod>
     </url>
     <url>
