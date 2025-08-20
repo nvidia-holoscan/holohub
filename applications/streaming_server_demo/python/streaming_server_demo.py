@@ -21,8 +21,8 @@ Simple application to test the StreamingServerOp operator.
 from argparse import ArgumentParser
 
 from holoscan.core import Application
+
 from holohub.streaming_server import StreamingServerOp
-from holoscan.resources import UnboundedAllocator
 
 
 class StreamingServerTestApp(Application):
@@ -40,9 +40,6 @@ class StreamingServerTestApp(Application):
 
     def compose(self):
         """Define the operators in the application and connect them."""
-        # Define resources and operators
-        unbounded_allocator = UnboundedAllocator(self, name="allocator")
-
         # Create the streaming server operator
         streaming_server = StreamingServerOp(
             self,
