@@ -76,14 +76,7 @@ class StreamingClientFunctionalTestApp(Application):
             print("🔄 Falling back to infrastructure test mode (StreamingClient without video)")
             streaming_client = StreamingClientOp(
                 self,
-                name="streaming_client",
-                width=854,
-                height=480,
-                fps=30,
-                server_ip="127.0.0.1",
-                signaling_port=48010,
-                receive_frames=False,
-                send_frames=True
+                name="streaming_client"
             )
             self.add_operator(streaming_client)
             print("✅ Functional test configured in infrastructure mode")
