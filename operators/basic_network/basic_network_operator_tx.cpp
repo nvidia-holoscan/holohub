@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved. * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved. ..* SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ void BasicNetworkOpTx::setup(OperatorSpec& spec) {
                        "Re-connect() interval",
                        "Interval to retry connecting to server in seconds",
                        1);
+  spec.param<bool>(
+      delete_payload_, "delete_payload", "Delete payload", "Delete payload after sending", true);
 }
 void BasicNetworkOpTx::initialize() {
   HOLOSCAN_LOG_INFO("BasicNetworkOpTx::initialize()");
@@ -139,7 +141,9 @@ void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCo
 
   byte_cnt_ = 0;
 
-  delete[] msg->data;
+  if (delete_payload_.get()) {
+    delete[] msg->data;
+  }
 
   HOLOSCAN_LOG_DEBUG("BasicNetworkOpTx::compute done");
 }
