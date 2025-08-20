@@ -13,46 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_package(pybind11 REQUIRED)
-
-# Python module
-pybind11_add_module(streaming_client_python streaming_client.cpp)
-
-# Link to the C++ library
-target_link_libraries(streaming_client_python PRIVATE
-    streaming_client_operator
-    holoscan::core
-)
-
-# Add include directories
-target_include_directories(streaming_client_python PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-)
-
-# Set the output name to match the module name
-set_target_properties(streaming_client_python PROPERTIES
-    OUTPUT_NAME streaming_client
-    BUILD_WITH_INSTALL_RPATH TRUE
-    INSTALL_RPATH "$ORIGIN/lib"
-    INSTALL_RPATH_USE_LINK_PATH TRUE
-)
-
-# Install the Python module in the Holoscan Python package
-install(TARGETS streaming_client_python
-    DESTINATION ${HOLOHUB_PYTHON_MODULE_DIR}/holoscan/operators
-    COMPONENT python
-)
-
-# Create an __init__.py file in the operators directory
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in
-    ${CMAKE_CURRENT_BINARY_DIR}/__init__.py
-    @ONLY
-)
-
-# Install the __init__.py file
-install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/__init__.py
-    DESTINATION ${HOLOHUB_PYTHON_MODULE_DIR}/holoscan/operators
-    COMPONENT python
+include(pybind11_add_holohub_module)
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET streaming_client_operator
+    CLASS_NAME "StreamingClientOp"
+    SOURCES streaming_client.cpp
 )

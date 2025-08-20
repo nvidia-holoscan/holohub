@@ -20,8 +20,9 @@ Simple application to test the StreamingClientOp operator.
 from argparse import ArgumentParser
 
 from holoscan.core import Application
-from holoscan.operators import StreamingClientOp
 from holoscan.resources import UnboundedAllocator
+
+from holohub.streaming_client_operator import StreamingClientOp
 
 
 class StreamingClientTestApp(Application):
@@ -49,14 +50,6 @@ class StreamingClientTestApp(Application):
         streaming_client = StreamingClientOp(
             self,
             name="streaming_client",
-            allocator=unbounded_allocator,
-            width=self.width,
-            height=self.height,
-            fps=self.fps,
-            server_ip=self.server_ip,
-            signaling_port=self.signaling_port,
-            receive_frames=True,
-            send_frames=True,
         )
 
         # Add the operators to the application

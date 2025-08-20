@@ -58,7 +58,10 @@ target_compile_options(streaming_client_demo
 target_link_libraries(streaming_client_demo
     PUBLIC
     holoscan::core
-    holoscan::ops::streaming_client
+    holoscan::ops::streaming_client_operator
+    holoscan::ops::video_stream_replayer
+    holoscan::ops::holoviz
+    holoscan::ops::format_converter
     CUDA::cudart
     CUDA::cuda_driver
 )

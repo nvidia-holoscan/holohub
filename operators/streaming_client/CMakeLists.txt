@@ -132,6 +132,18 @@ write_basic_package_version_file(
   COMPATIBILITY AnyNewerVersion
 )
 
+# Create the config file template if it doesn't exist
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_operator-config.cmake.in)
+  file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_operator-config.cmake.in
+"@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(holoscan 3.2 REQUIRED)
+
+include(\${CMAKE_CURRENT_LIST_DIR}/streaming_client_operator-targets.cmake)
+")
+endif()
+
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_operator-config.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_operator-config.cmake"
@@ -143,6 +155,11 @@ install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_operator-config-version.cmake"
   DESTINATION lib/cmake/streaming_client_operator
 )
+
+# Python module
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
 
 # Print status message
 message(STATUS "StreamingClient operator configuration complete with imported targets.")

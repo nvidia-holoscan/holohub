@@ -15,15 +15,23 @@
  * limitations under the License.
  */
 
-#include <pybind11/pybind11.h>
-
 #include "../streaming_client.hpp"
+
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <cstdint>
+#include <memory>
+#include <string>
+
+#include "../../operator_util.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
-#include <pybind11/stl.h>
 
 using std::string_literals::operator""s;
+using pybind11::literals::operator""_a;
+
 namespace py = pybind11;
 
 namespace holoscan::ops {
@@ -34,20 +42,25 @@ class PyStreamingClientOp : public StreamingClientOp {
   /* Inherit the constructors */
   using StreamingClientOp::StreamingClientOp;
 
-  /* For handling kwargs in Python */
-  explicit PyStreamingClientOp(const py::kwargs& kwargs) : StreamingClientOp() {
-    // Set the name from Python if provided
-    if (kwargs.contains("name"s)) {
-      name_ = kwargs["name"s].cast<std::string>();
-    }
+  /* Constructor that takes Fragment and args like other operators */
+  explicit PyStreamingClientOp(Fragment* fragment, const py::args& args,
+                              const std::string& name = "streaming_client")
+      : StreamingClientOp() {
+    add_positional_condition_and_resource_args(this, args);
+    name_ = name;
+    fragment_ = fragment;
+    spec_ = std::make_shared<OperatorSpec>(fragment);
+    setup(*spec_.get());
   }
 };
 
-PYBIND11_MODULE(streaming_client, m) {
+PYBIND11_MODULE(_streaming_client_operator, m) {
   py::class_<StreamingClientOp, PyStreamingClientOp, Operator, std::shared_ptr<StreamingClientOp>>(
       m, "StreamingClientOp")
-      .def(py::init<>())
-      .def(py::init<const py::kwargs&>());
+      .def(py::init<Fragment*, const py::args&, const std::string&>(),
+           "fragment"_a, "name"_a = "streaming_client"s)
+      .def("initialize", &StreamingClientOp::initialize)
+      .def("setup", &StreamingClientOp::setup, "spec"_a);
 }
 
 }  // namespace holoscan::ops
