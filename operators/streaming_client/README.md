@@ -39,7 +39,7 @@ cp lib/x86_64/* lib/
 # For aarch64 systems:
 # cp lib/aarch64/* lib/
 
-# Clean up architecture-specific directories and NGC downlaod directory
+# Clean up architecture-specific directories and NGC download directory
 rm -rf lib/x86_64 lib/aarch64
 rm -rf holoscan_client_cloud_streaming_v0.1
 ```
