@@ -228,18 +228,7 @@ configure_file(
   @ONLY
 )
 
-# Create the config file template if it doesn't exist
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/streaming_server-config.cmake.in)
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-  file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/streaming_server-config.cmake.in
-"@PACKAGE_INIT@
 
-include(CMakeFindDependencyMacro)
-find_dependency(holoscan 3.2 REQUIRED)
-
-include(\${CMAKE_CURRENT_LIST_DIR}/streaming_server-targets.cmake)
-")
-endif()
 
 # Install the config file
 install(
