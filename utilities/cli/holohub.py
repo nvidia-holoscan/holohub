@@ -376,13 +376,15 @@ class HoloHubCLI:
         test.add_argument("--platform-name", help="Platform name")
         test.add_argument(
             "--cmake-options",
-            help="CMake options (semicolon-separated for multiple). "
-            "Example: --cmake-options='-DCUSTOM_OPTION=ON;-DDEBUG_MODE=1'",
+            action="append",
+            help="CMake options"
+            "example: --cmake-options='-DCUSTOM_OPTION=ON' --cmake-options='-DDEBUG_MODE=1'",
         )
         test.add_argument(
             "--ctest-options",
-            help="CTest options (semicolon-separated for multiple). "
-            "Example: --ctest-options='-DGPU_TYPE=rtx4090;-DDEBUG_MODE=ON'",
+            action="append",
+            help="CTest options"
+            "example: --ctest-options='-DGPU_TYPE=rtx4090' --ctest-options='-DDEBUG_MODE=ON'",
         )
         test.add_argument("--no-xvfb", action="store_true", help="Do not use xvfb")
         test.add_argument("--ctest-script", help="CTest script")
@@ -852,17 +854,11 @@ class HoloHubCLI:
         ctest_cmd = f"{xvfb} ctest -DAPP={args.project} -DTAG={tag} "
 
         if args.cmake_options:
-            ctest_cmd += f'-DCONFIGURE_OPTIONS="{args.cmake_options}" '
+            cmake_opts = ";".join(args.cmake_options)
+            ctest_cmd += f'-DCONFIGURE_OPTIONS="{cmake_opts}" '
 
         if getattr(args, "ctest_options", None):
-            # Parse semicolon-separated ctest options and add each as a -D flag to ctest
-            ctest_opts = args.ctest_options.split(";")
-            for opt in ctest_opts:
-                opt = opt.strip()
-                if opt:  # Skip empty options
-                    if opt.startswith("-D"):
-                        opt = opt[2:]
-                    ctest_cmd += f"-D{opt} "
+            ctest_cmd += " ".join(args.ctest_options) + " "
 
         if args.cdash_url:
             ctest_cmd += f"-DCTEST_SUBMIT_URL={args.cdash_url} "
