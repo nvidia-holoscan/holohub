@@ -18,8 +18,10 @@
 #ifndef CUDA_UTILS_HPP
 #define CUDA_UTILS_HPP
 
+#include <cuda.h>
 #include <cuda_runtime.h>
 #include <fmt/format.h>
+#include <holoscan/logger/logger.hpp>
 #include <memory>
 
 namespace holoscan::ops {
@@ -32,13 +34,13 @@ namespace holoscan::ops {
  * including the statement, line number, file name, and CUDA error description.
  *
  * Usage:
- *   CUDA_CALL(cudaMalloc(&ptr, size));
+ *   CUDA_RT_CALL(cudaMalloc(&ptr, size));
  *
  * @param stmt The CUDA Runtime statement to execute
  * @param ... Additional parameters (unused, kept for compatibility)
  * @throws std::runtime_error if the CUDA call fails
  */
-#define CUDA_CALL(stmt, ...)                                                               \
+#define CUDA_RT_CALL(stmt, ...)                                                            \
   ({                                                                                       \
     cudaError_t _holoscan_cuda_err = stmt;                                                 \
     if (cudaSuccess != _holoscan_cuda_err) {                                               \
@@ -53,6 +55,36 @@ namespace holoscan::ops {
   })
 
 /**
+ * @brief Macro for safe CUDA driver API calls with automatic error handling
+ *
+ * This macro executes a CUDA driver statement and automatically checks for errors.
+ * If the call fails, it throws a std::runtime_error with detailed information
+ * including the statement, line number, file name, and CUDA error description.
+ *
+ * Usage:
+ *   CUDA_CALL(cuMemAlloc(&ptr, size));
+ *
+ * @param stmt The CUDA driver statement to execute
+ * @param ... Additional parameters (unused, kept for compatibility)
+ * @throws std::runtime_error if the CUDA call fails
+ */
+#define CUDA_CALL(stmt, ...)                                                              \
+  ({                                                                                      \
+    CUresult _holoscan_cuda_err = stmt;                                                   \
+    if (CUDA_SUCCESS != _holoscan_cuda_err) {                                             \
+      const char* error_string = "";                                                      \
+      cuGetErrorString(_holoscan_cuda_err, &error_string);                                \
+      throw std::runtime_error(                                                           \
+          fmt::format("CUDA driver call {} in line {} of file {} failed with '{}' ({}).", \
+                      #stmt,                                                              \
+                      __LINE__,                                                           \
+                      __FILE__,                                                           \
+                      error_string,                                                       \
+                      static_cast<int>(_holoscan_cuda_err)));                             \
+    }                                                                                     \
+  })
+
+/**
  * @brief Custom deleter for CUDA objects managed by unique_ptr
  *
  * This template provides a custom deleter for CUDA objects that need
@@ -62,7 +94,7 @@ namespace holoscan::ops {
  * @tparam T The CUDA object type
  * @tparam func The cleanup function to call (e.g., cudaLibraryUnload)
  */
-template <typename T, cudaError_t func(T)>
+template <typename T, CUresult func(T)>
 struct Deleter {
   typedef T pointer;
   /**
@@ -74,21 +106,86 @@ struct Deleter {
 };
 
 /**
+ * Helper class for using handles with std::unique_ptr which requires that a custom
+ * handle type satisfies NullablePointer
+ * https://en.cppreference.com/w/cpp/named_req/NullablePointer.
+ *
+ * @tparam T type to hold
+ */
+template <typename T>
+class Nullable {
+ public:
+  Nullable(T value = 0) : value_(value) {}
+  Nullable(std::nullptr_t) : value_(0) {}
+  operator T() const { return value_; }
+  explicit operator bool() { return value_ != 0; }
+
+  friend bool operator==(Nullable l, Nullable r) { return l.value_ == r.value_; }
+  friend bool operator!=(Nullable l, Nullable r) { return !(l == r); }
+
+  /**
+   * Deleter, call the function when the object is deleted.
+   *
+   * @tparam F function to call
+   */
+  template <typename RESULT, RESULT func(T)>
+  struct Deleter {
+    typedef Nullable<T> pointer;
+    void operator()(T value) const { func(value); }
+  };
+
+ private:
+  T value_;
+};
+
+/**
  * @brief Type alias for a unique_ptr that manages CUDA library handles
  *
  * This type provides automatic cleanup of CUDA library handles using
  * cudaLibraryUnload when the unique_ptr goes out of scope.
  */
-using UniqueCudaLibrary =
-    std::unique_ptr<cudaLibrary_t, Deleter<cudaLibrary_t, &cudaLibraryUnload>>;
+using UniqueCuLibrary = std::unique_ptr<CUlibrary, Deleter<CUlibrary, &cuLibraryUnload>>;
 
 /**
- * @brief Type alias for a unique_ptr that manages CUDA host memory
+ * @brief Type alias for a unique_ptr that manages CUDA device primary context
  *
- * This type provides automatic cleanup of CUDA host memory using cudaFreeHost
- * when the unique_ptr goes out of scope.
+ * This type provides automatic cleanup of CUDA device primary context using
+ * cuDevicePrimaryCtxRelease when the unique_ptr goes out of scope.
  */
-using UniqueCudaHostMemory = std::unique_ptr<void, Deleter<void*, &cudaFreeHost>>;
+using UniqueDevicePrimaryContext =
+    std::unique_ptr<Nullable<CUdevice>,
+                    Nullable<CUdevice>::Deleter<CUresult, &cuDevicePrimaryCtxRelease>>;
+
+class ScopedPushCuContext {
+ public:
+  /**
+   * @brief Construct a new scoped cuda context object
+   *
+   * @param cuda_context context to push
+   */
+  explicit ScopedPushCuContext(CUcontext cuda_context) : cuda_context_(cuda_context) {
+    // might be called from a different thread than the thread
+    // which constructed CudaPrimaryContext, therefore call cuInit()
+    CUDA_CALL(cuInit(0));
+    CUDA_CALL(cuCtxPushCurrent(cuda_context_));
+  }
+  ScopedPushCuContext() = delete;
+
+  ~ScopedPushCuContext() {
+    try {
+      CUcontext popped_context;
+      CUDA_CALL(cuCtxPopCurrent(&popped_context));
+      if (popped_context != cuda_context_) {
+        HOLOSCAN_LOG_ERROR("Cuda: Unexpected context popped");
+      }
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_ERROR("ScopedPushCuContext destructor failed with {}", e.what());
+    }
+  }
+
+ private:
+  const CUcontext cuda_context_;
+};
 
 }  // namespace holoscan::ops
 

@@ -87,7 +87,7 @@ class SlangShaderCompiler {
    * a CUDA kernel handle. The kernel can then be launched using CUDA runtime
    * functions with appropriate grid and block dimensions.
    */
-  cudaKernel_t get_kernel(const std::string& name);
+  CUkernel get_kernel(const std::string& name);
 
   /**
    * @brief Updates global parameters for the shader
@@ -112,15 +112,15 @@ class SlangShaderCompiler {
   Slang::ComPtr<slang::IComponentType> linked_program_;
 
   /// CUDA libraries containing the compiled kernels
-  std::vector<UniqueCudaLibrary> cuda_libraries_;
+  std::vector<UniqueCuLibrary> cuda_libraries_;
 
   /// Size of the global parameters buffer in bytes
   size_t global_params_size_ = 0;
 
   /// Kernel information
   struct KernelInfo {
-    void* dev_global_params_ = nullptr;   ///< Pointer to the device global parameters
-    cudaKernel_t cuda_kernel_ = nullptr;  ///< CUDA kernel handle
+    CUdeviceptr dev_global_params_ = 0;  ///< Pointer to the device global parameters
+    CUkernel cuda_kernel_ = nullptr;     ///< CUDA kernel handle
   };
 
   /// Map of kernel names to kernel information

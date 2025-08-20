@@ -272,7 +272,8 @@ void CommandInput::execute(CommandWorkspace& workspace) {
   }
 
   // Add the pointer to the CUDA resource pointers
-  workspace.cuda_resource_pointers_[resource_name_] = {port_info_it->second.get(), pointer, size};
+  workspace.cuda_resource_pointers_[resource_name_] = {
+      port_info_it->second.get(), reinterpret_cast<CUdeviceptr>(pointer), size};
 
   // Copy the tensor pointer to the shader parameters array
   workspace.shader_parameters_.resize(parameter_offset_ + sizeof(void*));
@@ -441,7 +442,7 @@ void CommandAlloc::execute(CommandWorkspace& workspace) {
 
   // Add the pointer to the CUDA resource pointers
   workspace.cuda_resource_pointers_[resource_name_] = {
-      port_info_it->second.get(), pointer, tensor->size()};
+      port_info_it->second.get(), reinterpret_cast<CUdeviceptr>(pointer), tensor->size()};
 
   // Copy the tensor pointer to the shader parameters array
   workspace.shader_parameters_.resize(parameter_offset_ + sizeof(void*));
@@ -537,11 +538,12 @@ CommandLaunch::CommandLaunch(const std::string& name, SlangShaderCompiler* shade
       invocations_(invocations) {
   // Get the kernel for the entry point
   kernel_ = shader_compiler_->get_kernel(name_);
+  CUDA_CALL(cuKernelGetFunction(&function_, kernel_));
 
   if ((thread_group_size_.x == 1) && (thread_group_size_.y == 1) && (thread_group_size_.z == 1)) {
     int min_threads_per_block, min_blocks_per_grid;
-    CUDA_CALL(
-        cudaOccupancyMaxPotentialBlockSize(&min_blocks_per_grid, &min_threads_per_block, kernel_));
+    CUDA_CALL(cuOccupancyMaxPotentialBlockSize(
+        &min_blocks_per_grid, &min_threads_per_block, function_, 0, 0, INT_MAX));
     /// @todo this assumes a 2D kernel, add a way for the user to specify dimensionality
     thread_group_size_ = dim3(1, 1, 1);
     while (static_cast<int>(thread_group_size_.x * thread_group_size_.y * 2) <=
@@ -595,8 +597,17 @@ void CommandLaunch::execute(CommandWorkspace& workspace) {
   }
 
   // Launch the kernel
-  CUDA_CALL(cudaLaunchKernel(
-      kernel_, grid_size, actual_thread_group_size, nullptr, 0, workspace.cuda_stream_));
+  CUDA_CALL(cuLaunchKernel(function_,
+                           grid_size.x,
+                           grid_size.y,
+                           grid_size.z,
+                           actual_thread_group_size.x,
+                           actual_thread_group_size.y,
+                           actual_thread_group_size.z,
+                           0,
+                           workspace.cuda_stream_,
+                           nullptr,
+                           nullptr));
 }
 
 CommandZeros::CommandZeros(const std::string& resource_name) : resource_name_(resource_name) {}
@@ -614,7 +625,7 @@ void CommandZeros::execute(CommandWorkspace& workspace) {
   }
 
   // Initialize the data to zero
-  CUDA_CALL(cudaMemsetAsync(cuda_resource_pointers_it->second.pointer_,
+  CUDA_CALL(cuMemsetD8Async(cuda_resource_pointers_it->second.pointer_,
                             0,
                             cuda_resource_pointers_it->second.size_,
                             workspace.cuda_stream_));

@@ -220,7 +220,7 @@ class SinkOp : public Operator {
 
     if (print_output_.get()) {
       std::vector<int> values(tensor->size());
-      CUDA_CALL(cudaMemcpy(
+      CUDA_RT_CALL(cudaMemcpy(
           values.data(), tensor->data(), tensor->size() * sizeof(int), cudaMemcpyDefault));
 
       std::cout << fmt::format("{}", fmt::join(values, ", ")) << std::endl;
@@ -319,7 +319,7 @@ class SlangShaderApp : public holoscan::Application {
     EXPECT_NO_THROW(run());
 
     // Synchronize to ensure that the output is captured
-    CUDA_CALL(cudaDeviceSynchronize());
+    CUDA_RT_CALL(cudaDeviceSynchronize());
 
     std::string stdout_output = testing::internal::GetCapturedStdout();
     EXPECT_THAT(stdout_output, testing::Eq(expected_output));
