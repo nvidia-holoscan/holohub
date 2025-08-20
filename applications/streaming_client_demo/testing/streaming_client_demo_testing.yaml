@@ -34,16 +34,16 @@ video_replayer:
   frame_rate: 30
   repeat: true
   realtime: true
-  count: 0
+  count: 10
 
-
+# Legacy replayer configuration (kept for compatibility)
 replayer:
   directory: "/workspace/holohub/data/endoscopy"
   basename: "surgical_video"
   frame_rate: 30
   repeat: true
   realtime: true
-  count: 0
+  count: 10
 
 # Format converter configuration for uint8 output (HoloViz compatible)
 format_converter:
@@ -78,7 +78,7 @@ holoviz:
   # Window size and title
   width: 854  
   height: 480
-  window_title: "Streaming Client Test - Direrct Video Playback"
+  window_title: "Streaming Client Test - With Streaming Client (Simplified)"
   
   # Rendering parameters for streaming client output
   headless: false
@@ -113,7 +113,7 @@ greedy_scheduler:
 video_recorder:
   directory: "./recording_output"
   basename: "streaming_client_demo_output"
-  record_type: "none"
+  record_type: "visualizer"
 
 # Enable data flow tracking for debugging/profiling
 tracking: false 

@@ -36,7 +36,7 @@ video_replayer:
   realtime: true
   count: 0
 
-
+# Legacy replayer configuration (kept for compatibility)
 replayer:
   directory: "/workspace/holohub/data/endoscopy"
   basename: "surgical_video"
@@ -78,7 +78,7 @@ holoviz:
   # Window size and title
   width: 854  
   height: 480
-  window_title: "Streaming Client Test - Direrct Video Playback"
+  window_title: "Streaming Client Test - Python Version"
   
   # Rendering parameters for streaming client output
   headless: false
@@ -116,4 +116,4 @@ video_recorder:
   record_type: "none"
 
 # Enable data flow tracking for debugging/profiling
-tracking: false 
+tracking: false
