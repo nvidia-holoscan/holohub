@@ -132,20 +132,8 @@ write_basic_package_version_file(
   COMPATIBILITY AnyNewerVersion
 )
 
-# Create the config file template if it doesn't exist
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_operator-config.cmake.in)
-  file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_operator-config.cmake.in
-"@PACKAGE_INIT@
-
-include(CMakeFindDependencyMacro)
-find_dependency(holoscan 3.2 REQUIRED)
-
-include(\${CMAKE_CURRENT_LIST_DIR}/streaming_client_operator-targets.cmake)
-")
-endif()
-
 configure_package_config_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_operator-config.cmake.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/streaming_client_operator-config.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_operator-config.cmake"
   INSTALL_DESTINATION lib/cmake/streaming_client_operator
 )
