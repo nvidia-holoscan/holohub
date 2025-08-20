@@ -46,6 +46,7 @@ class SlangShaderOp : public Operator {
   Parameter<std::string> shader_source_;
   Parameter<std::string> shader_source_file_;
   Parameter<PreprocessorMacros> preprocessor_macros_;
+  Parameter<int> cuda_device_ordinal_;
   Parameter<std::shared_ptr<Allocator>> allocator_;
 
   // Forward declaration of implementation

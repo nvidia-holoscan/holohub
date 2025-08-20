@@ -119,6 +119,9 @@ class SlangShaderOp::Impl {
 
   Slang::ComPtr<slang::ISession> session_;
 
+  CUcontext cuda_context_ = nullptr;
+  UniqueDevicePrimaryContext device_primary_context_;
+
   std::unique_ptr<SlangShaderCompiler> shader_compiler_;
 
   std::list<std::unique_ptr<Command>> pre_launch_commands_;
@@ -215,6 +218,12 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
              "the macro value.",
              {});
 
+  spec.param(cuda_device_ordinal_,
+             "cuda_device_ordinal",
+             "CudaDeviceOrdinal",
+             "Device to use for CUDA operations",
+             ParameterFlag::kOptional);
+
   spec.param(
       allocator_,
       "allocator",
@@ -257,6 +266,18 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
     shader_string << in_stream.rdbuf();
     shader_source = shader_string.str();
   }
+
+  // Get the CUDA primary context and make it current
+  CUdevice cu_device;
+  CUDA_CALL(cuInit(0));
+  if (cuda_device_ordinal_.try_get()) {
+    CUDA_CALL(cuDeviceGet(&cu_device, cuda_device_ordinal_.get()));
+  } else {
+    CUDA_CALL(cuDeviceGet(&cu_device, 0));
+  }
+  CUDA_CALL(cuDevicePrimaryCtxRetain(&impl_->cuda_context_, cu_device));
+  impl_->device_primary_context_ = UniqueDevicePrimaryContext(cu_device);
+  ScopedPushCuContext cuda_context(impl_->cuda_context_);
 
   impl_->create_session(preprocessor_macros);
 
@@ -509,6 +530,9 @@ void SlangShaderOp::setup(OperatorSpec& spec) {
 void SlangShaderOp::compute(InputContext& op_input, OutputContext& op_output,
                             ExecutionContext& context) {
   CommandWorkspace workspace(op_input, op_output, context);
+
+  // Make the CUDA context current
+  ScopedPushCuContext cuda_context(impl_->cuda_context_);
 
   // Execute the pre-launch commands
   for (auto& command : impl_->pre_launch_commands_) { command->execute(workspace); }
