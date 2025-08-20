@@ -374,7 +374,18 @@ class HoloHubCLI:
         test.add_argument("--site-name", help="Site name")
         test.add_argument("--cdash-url", help="CDash URL")
         test.add_argument("--platform-name", help="Platform name")
-        test.add_argument("--cmake-options", help="CMake options")
+        test.add_argument(
+            "--cmake-options",
+            action="append",
+            help="CMake options, "
+            "example: --cmake-options='-DCUSTOM_OPTION=ON' --cmake-options='-DDEBUG_MODE=1'",
+        )
+        test.add_argument(
+            "--ctest-options",
+            action="append",
+            help="CTest options, "
+            "example: --ctest-options='-DGPU_TYPE=rtx4090' --ctest-options='-DDEBUG_MODE=ON'",
+        )
         test.add_argument("--no-xvfb", action="store_true", help="Do not use xvfb")
         test.add_argument("--ctest-script", help="CTest script")
         test.add_argument(
@@ -843,7 +854,11 @@ class HoloHubCLI:
         ctest_cmd = f"{xvfb} ctest -DAPP={args.project} -DTAG={tag} "
 
         if args.cmake_options:
-            ctest_cmd += f'-DCONFIGURE_OPTIONS="{args.cmake_options}" '
+            cmake_opts = ";".join(args.cmake_options)
+            ctest_cmd += f'-DCONFIGURE_OPTIONS="{cmake_opts}" '
+
+        if getattr(args, "ctest_options", None):
+            ctest_cmd += " ".join(args.ctest_options) + " "
 
         if args.cdash_url:
             ctest_cmd += f"-DCTEST_SUBMIT_URL={args.cdash_url} "
