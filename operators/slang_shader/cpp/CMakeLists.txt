@@ -73,6 +73,7 @@ target_link_libraries(slang_shader
 target_include_directories(slang_shader INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_definitions(slang_shader PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR})
 target_compile_definitions(slang_shader PRIVATE HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR})
+target_compile_definitions(slang_shader PUBLIC HOLOSCAN_OP_SLANG_SHADER)
 
 install(TARGETS slang_shader
   COMPONENT holoscan-ops
