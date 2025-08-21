@@ -18,7 +18,6 @@
 #include "slang_shader_compiler.hpp"
 
 #include <driver_types.h>
-#include <array>
 
 #include "slang_utils.hpp"
 
@@ -75,7 +74,7 @@ SlangShaderCompiler::SlangShaderCompiler(const Slang::ComPtr<slang::ISession>& s
 
     cuda_libraries_.emplace_back([&ptx_code] {
       cudaLibrary_t library;
-      CUDA_CALL(cudaLibraryLoadData(
+      CUDA_CALL(cuLibraryLoadData(
           &library, ptx_code->getBufferPointer(), nullptr, nullptr, 0, nullptr, nullptr, 0));
       return library;
     }());
@@ -84,11 +83,11 @@ SlangShaderCompiler::SlangShaderCompiler(const Slang::ComPtr<slang::ISession>& s
 
     // Get the pointer to the global params memory
     size_t global_params_size;
-    cudaError result = cudaLibraryGetGlobal(&kernel_info.dev_global_params_,
-                                            &global_params_size,
-                                            cuda_libraries_.back().get(),
-                                            "SLANG_globalParams");
-    if (result == cudaSuccess) {
+    CUresult result = cuLibraryGetGlobal(&kernel_info.dev_global_params_,
+                                         &global_params_size,
+                                         cuda_libraries_.back().get(),
+                                         "SLANG_globalParams");
+    if (result == CUDA_SUCCESS) {
       if (i == 0) {
         global_params_size_ = global_params_size;
       } else if (global_params_size != global_params_size_) {
@@ -96,13 +95,13 @@ SlangShaderCompiler::SlangShaderCompiler(const Slang::ComPtr<slang::ISession>& s
                                              global_params_size_,
                                              global_params_size));
       }
-    } else if (result != cudaErrorSymbolNotFound) {
+    } else if (result != CUDA_ERROR_NOT_FOUND) {
       // Global params are optional, we ignore this error but report any other errors
       CUDA_CALL(result);
     }
 
     unsigned int kernel_count;
-    CUDA_CALL(cudaLibraryGetKernelCount(&kernel_count, cuda_libraries_.back().get()));
+    CUDA_CALL(cuLibraryGetKernelCount(&kernel_count, cuda_libraries_.back().get()));
     if (kernel_count != 1) {
       throw std::runtime_error(fmt::format("Expected 1 kernel, got {}", kernel_count));
     }
@@ -111,7 +110,7 @@ SlangShaderCompiler::SlangShaderCompiler(const Slang::ComPtr<slang::ISession>& s
     function_reflection = entry_points[i]->getFunctionReflection();
 
     CUDA_CALL(
-        cudaLibraryEnumerateKernels(&kernel_info.cuda_kernel_, 1, cuda_libraries_.back().get()));
+        cuLibraryEnumerateKernels(&kernel_info.cuda_kernel_, 1, cuda_libraries_.back().get()));
     cuda_kernels_[std::string(function_reflection->getName())] = kernel_info;
   }
 }
@@ -126,7 +125,7 @@ nlohmann::json SlangShaderCompiler::get_reflection() {
   return nlohmann::json::parse((const char*)reflection_blob->getBufferPointer());
 }
 
-cudaKernel_t SlangShaderCompiler::get_kernel(const std::string& name) {
+CUkernel SlangShaderCompiler::get_kernel(const std::string& name) {
   auto it = cuda_kernels_.find(name);
   if (it == cuda_kernels_.end()) {
     throw std::runtime_error(fmt::format("Kernel '{}' not found", name));
@@ -152,11 +151,10 @@ void SlangShaderCompiler::update_global_params(const std::string& name,
 
   // Copy the shader parameters to the device (note: this is done unconditionally since the GPU
   // addresses of the resources contained here are expected to change on every call)
-  CUDA_CALL(cudaMemcpyAsync(it->second.dev_global_params_,
-                            shader_parameters.data(),
-                            shader_parameters.size(),
-                            cudaMemcpyHostToDevice,
-                            stream));
+  CUDA_CALL(cuMemcpyHtoDAsync(it->second.dev_global_params_,
+                               shader_parameters.data(),
+                               shader_parameters.size(),
+                               stream));
 }
 
 }  // namespace holoscan::ops

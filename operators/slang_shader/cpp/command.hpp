@@ -25,6 +25,8 @@
 #include <string>
 #include <vector>
 
+#include <cuda.h>
+
 #include <holoscan/core/execution_context.hpp>
 #include <holoscan/core/io_context.hpp>
 
@@ -75,7 +77,7 @@ class CommandWorkspace {
   /// Resource information
   struct ResourceInfo {
     PortInfo* port_info_ = nullptr;
-    void* pointer_ = nullptr;
+    CUdeviceptr pointer_ = 0;
     size_t size_ = 0;
   };
 
@@ -433,7 +435,8 @@ class CommandLaunch : public Command {
   dim3 thread_group_size_;  ///< CUDA thread group dimensions (threads per thread group).
   const std::string invocations_size_of_name_;  ///< Name of invocation size parameter
   const dim3 invocations_;                      ///< Total number of invocations
-  cudaKernel_t kernel_ = nullptr;               ///< Compiled CUDA kernel handle
+  CUkernel kernel_ = nullptr;                   ///< Compiled CUDA kernel handle
+  CUfunction function_ = nullptr;               ///< CUDA function handle
 };
 
 /**

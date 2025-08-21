@@ -15,12 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nvcr.io/nvidia/cuda:12.9.0-base-ubuntu24.04
+FROM nvcr.io/nvidia/cuda:12.9.0-base-ubuntu24.04 as base
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install the dependencies
 # wget, unzip and ffmpeg are needed to download NGC-CLI and generate input data
 # python packages are required for the application
-# libnpp, cuda-nvrtc and libnvinfer are required for Holoscan inference
+# libnpp, cuda-nvrtc, cuda-cudart-dev, and libnvinfer are required for Holoscan inference
 RUN apt-get update && apt-get install -y --no-install-recommends \
         wget \
         unzip \
@@ -31,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         patch \
         ffmpeg \
         libnpp-12-9 \
+        cuda-cudart-dev-12-9 \
         cuda-nvrtc-12-9 \
         libnvinfer10=*+cuda12.9 \
         libnvinfer-lean10=*+cuda12.9 \
@@ -75,3 +78,17 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 RUN pip3 install holoscan cupy-cuda12x \
     && chmod -R a+w /usr/local/lib/python3.12/dist-packages/holoscan-*.dist-info/ \
     && chmod -R a+rw /usr/local/lib/python3.12/dist-packages/holoscan
+
+########################################################
+# Build with AJA C++ requirements
+########################################################
+FROM base as aja_build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential gcc g++ git \
+        holoscan \
+        && rm -rf /var/lib/apt/lists/*
+
+RUN apt update && apt install -y --no-install-recommends \
+        python3-dev \
+        && rm -rf /var/lib/apt/lists/*
