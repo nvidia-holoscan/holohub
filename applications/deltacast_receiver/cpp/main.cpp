@@ -64,8 +64,6 @@ class App : public holoscan::Application {
     auto visualizer = make_operator<ops::HolovizOp>(
         "holoviz",
         from_config("holoviz"),
-        Arg("width") = width,
-        Arg("height") = height,
         Arg("allocator") = make_resource<UnboundedAllocator>("holoviz_allocator"));
 
     // Connect the pipeline: source -> format_converter -> holoviz

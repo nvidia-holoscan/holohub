@@ -18,8 +18,8 @@ extensions:
  - lib/gxf_extensions/libgxf_videomaster.so
 
 deltacast:
-  width: 1920
-  height: 1080
+  width: 3840
+  height: 2160
   progressive: true
   framerate: 60
   board: 0
@@ -35,6 +35,8 @@ format_converter:
 drop_alpha_channel_converter:
   in_dtype: "rgba8888"
   out_dtype: "rgb888"
+  resize_height: 270
+  resize_width: 480
 
 holoviz:
   tensors:
@@ -42,3 +44,5 @@ holoviz:
       type: color
       opacity: 1.0
       priority: 0
+  width: 480
+  height: 270
