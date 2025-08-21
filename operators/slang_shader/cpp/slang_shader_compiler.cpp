@@ -17,7 +17,7 @@
 
 #include "slang_shader_compiler.hpp"
 
-#include <driver_types.h>
+#include <cuda.h>
 
 #include "slang_utils.hpp"
 
@@ -72,12 +72,11 @@ SlangShaderCompiler::SlangShaderCompiler(const Slang::ComPtr<slang::ISession>& s
     // Uncomment this to print the PTX code
     // HOLOSCAN_LOG_INFO("PTX code: {}", (const char*)ptx_code->getBufferPointer());
 
-    cuda_libraries_.emplace_back([&ptx_code] {
-      cudaLibrary_t library;
-      CUDA_CALL(cuLibraryLoadData(
-          &library, ptx_code->getBufferPointer(), nullptr, nullptr, 0, nullptr, nullptr, 0));
-      return library;
-    }());
+    CUlibrary library;
+    CUDA_CALL(cuLibraryLoadData(
+        &library, ptx_code->getBufferPointer(), nullptr, nullptr, 0, nullptr, nullptr, 0));
+
+    cuda_libraries_.emplace_back(library);
 
     KernelInfo kernel_info;
 
@@ -136,7 +135,7 @@ CUkernel SlangShaderCompiler::get_kernel(const std::string& name) {
 
 void SlangShaderCompiler::update_global_params(const std::string& name,
                                                const std::vector<uint8_t>& shader_parameters,
-                                               cudaStream_t stream) {
+                                               CUstream stream) {
   auto it = cuda_kernels_.find(name);
   if (it == cuda_kernels_.end()) {
     throw std::runtime_error(fmt::format("Kernel '{}' not found", name));

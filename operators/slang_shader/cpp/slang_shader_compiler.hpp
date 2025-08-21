@@ -102,7 +102,7 @@ class SlangShaderCompiler {
    * parameter structure as defined in the shader source.
    */
   void update_global_params(const std::string& name, const std::vector<uint8_t>& shader_parameters,
-                            cudaStream_t stream);
+                            CUstream stream);
 
  private:
   /// Slang module containing the compiled shader code
