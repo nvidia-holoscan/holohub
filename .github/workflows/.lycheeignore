@@ -8,8 +8,7 @@ https://drive.google.com/file/d/1HLyccYY0AtZy8Sr1ty-gid-Fee4DVjWM/.*
 https://drive.google.com/file/d/1fK87Nxit5bokYuMCbMG1cEHmEZUGBDlA/.*
 
 # Errors in tutorials/debugging/holoscan_container_vscode/README.md
-../holoscan-sdk/.*
-.vscode/launch.json
+ file://.*/holoscan-sdk/.*
 
 # certificate issue with url checks
 https://synthea.mitre.org/
