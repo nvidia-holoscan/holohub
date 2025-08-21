@@ -15,6 +15,12 @@
 
 cmake_minimum_required(VERSION 3.20)
 
+
+# Check minimum required GCC version for Slang release package
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND (CMAKE_C_COMPILER_VERSION VERSION_LESS "13.0.0" OR CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13.0.0"))
+    message(FATAL_ERROR "GCC version ${CMAKE_CXX_COMPILER_VERSION} is too old. Need GCC 13.0.0 or newer to compile with libslang.so.")
+endif()
+
 # Fetch Slang
 include(FetchContent)
 FetchContent_Declare(
