@@ -60,9 +60,24 @@ jobs:
           --accept=200,403,429
           --verbose
           --no-progress
-          '${{ github.workspace }}/**/*.md'
           '${{ github.workspace }}/**/*.html'
           '${{ github.workspace }}/**/*.rst'
+        fail: true
+        failIfEmpty: false
+        jobSummary: true
+
+    - name: Link checker in Markdown files
+      if: github.event_name == 'push'
+      id: lychee-md
+      uses: lycheeverse/lychee-action@v2
+      with:
+        workingDirectory: .github/workflows
+        args: >-
+          --accept=200,403,429
+          --verbose
+          --no-progress
+          --root-dir=${{ github.workspace }}
+          '${{ github.workspace }}/**/*.md'
         fail: true
         failIfEmpty: false
         jobSummary: true
