@@ -20,3 +20,8 @@ https://www.makeuseof.com/create-windows-virtual-machine-in-linux-with-kvm/
 https://www.orsi-online.com/news/worlds-first-lung-cancer-surgery-orsi-innotechs-augmented-reality-technology
 https://www.orsi-online.com/news/orsi-academy-brings-real-time-artificial-intelligence-or-first-its-kind-augmented-reality-surgery
 
+# Links in HTML template files that are expected to fail
+file://.*/static/bootstrap.css
+file://.*/static/chat.css
+file://.*/static/favicon.ico
+file://.*/static/nvidia-logo.png
