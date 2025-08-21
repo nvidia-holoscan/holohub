@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+%YAML 1.2
+---
+# Application configuration for streaming server testing
+application:
+  title: Streaming Server Test App
+  version: 1.0
+  log_level: INFO
+
+# Streaming server settings - optimized for testing
+streaming_server:
+  # Video/stream parameters
+  width: 854
+  height: 480
+  fps: 30
+  
+  # Server connection settings
+  port: 48010
+  multi_instance: false
+  server_name: "StreamingServerTest"
+  
+  # Operation mode - Bidirectional streaming (receive from client, send back)
+  receive_frames: true
+  send_frames: true
+  allocator: !ref "allocator"
+
+# Memory allocator configuration
+allocator:
+  type: "holoscan::UnboundedAllocator"
+
+# Use greedy scheduler for testing reliability
+scheduler: "greedy"
+
+# Greedy scheduler configuration for tests
+greedy_scheduler:
+  max_duration_ms: 30000  # 30 second timeout for tests
+  check_recession_period_ms: 100
+
+# Enable data flow tracking for debugging
+tracking: false
+
+# Logging configuration
+log_level: "INFO"
+
+# Video replayer configuration for functional tests
+replayer:
+  basename: "surgical_video"
+  frame_rate: 30
+  repeat: false
+  realtime: false
+  count: 50  # Process 50 frames for testing
