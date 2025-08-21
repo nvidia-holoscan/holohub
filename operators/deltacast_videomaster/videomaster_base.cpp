@@ -307,7 +307,6 @@ void VideoMasterBase::free_buffers() {
 }
 
 bool VideoMasterBase::start_stream() {
-  _slot_count = 0;
 
   const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
 

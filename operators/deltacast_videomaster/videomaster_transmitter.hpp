@@ -59,6 +59,7 @@ class VideoMasterTransmitterOp : public holoscan::Operator {
   Parameter<bool> _overlay;
 
   bool _has_lost_signal;
+  uint64_t _slot_count;
 
   std::unique_ptr<VideoMasterBase> _video_master_base;
 };
