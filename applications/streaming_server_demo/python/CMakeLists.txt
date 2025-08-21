@@ -96,7 +96,7 @@ log_level: \"INFO\"
   
   # Set test properties for Python infrastructure test
   set_tests_properties(streaming_server_demo_python_test PROPERTIES
-                       ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+                       ENVIRONMENT "PYTHONPATH=/opt/nvidia/holoscan/lib/../python/lib:${CMAKE_BINARY_DIR}/python/lib:${CMAKE_CURRENT_BINARY_DIR}/python/lib"
                        TIMEOUT 90
                        PASS_REGULAR_EXPRESSION "Test PASSED: StreamingServer functionality validated successfully"
                        FAIL_REGULAR_EXPRESSION "Test FAILED:")
@@ -111,8 +111,8 @@ log_level: \"INFO\"
   
   # Set test properties for Python functional test
   set_tests_properties(streaming_server_demo_python_functional_test PROPERTIES
-                       ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
-                       TIMEOUT 120
+                       ENVIRONMENT "PYTHONPATH=/opt/nvidia/holoscan/lib/../python/lib:${CMAKE_BINARY_DIR}/python/lib:${CMAKE_CURRENT_BINARY_DIR}/python/lib"
+                       TIMEOUT 60
                        PASS_REGULAR_EXPRESSION "FUNCTIONAL test PASSED: StreamingServer.*successful"
                        FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
 

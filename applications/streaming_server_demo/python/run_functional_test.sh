@@ -23,9 +23,15 @@ else
     echo "  Video files not found"
 fi
 
-# Run the functional test and capture output
+# Run the functional test and capture output  
 OUTPUT_FILE="/tmp/streaming_server_python_functional_test_output.log"
-timeout 120 python3 "$PYTHON_SCRIPT" --data "$DATA_DIR" 2>&1 | tee "$OUTPUT_FILE" || true
+if [ -n "$DATA_DIR" ] && [ -d "$DATA_DIR" ] && [ -f "$DATA_DIR/surgical_video.gxf_index" ]; then
+    # Real functional test with video data - longer timeout
+    timeout 120 python3 "$PYTHON_SCRIPT" --data "$DATA_DIR" 2>&1 | tee "$OUTPUT_FILE" || true
+else
+    # Infrastructure mode - shorter timeout since server runs indefinitely without clients
+    timeout 30 python3 "$PYTHON_SCRIPT" --data "$DATA_DIR" 2>&1 | tee "$OUTPUT_FILE" || true
+fi
 
 # Determine test mode based on output
 TEST_MODE="INFRASTRUCTURE"
@@ -43,6 +49,9 @@ fi
 STREAMING_FUNCTIONALITY=""
 if grep -q "StreamingServerOp.*initialized" "$OUTPUT_FILE" && \
    grep -q "Server.*listening" "$OUTPUT_FILE"; then
+    STREAMING_FUNCTIONALITY="✅ StreamingServer functionality working"
+elif grep -q "StreamingServerOp.*initialized" "$OUTPUT_FILE" && \
+     grep -q "StreamingServer started successfully" "$OUTPUT_FILE"; then
     STREAMING_FUNCTIONALITY="✅ StreamingServer functionality working"
 elif grep -q "StreamingServerOp.*initialized" "$OUTPUT_FILE"; then
     STREAMING_FUNCTIONALITY="✅ StreamingServer functionality working"
