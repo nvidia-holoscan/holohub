@@ -1,11 +1,11 @@
-name: Check links
+name: Check URLs
 
 on:
   push:
     branches: [main]
   pull_request:
 jobs:
-  link-check:
+  check-urls:
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -14,7 +14,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Get changed files for PR
+    - name: Get changed files in the PR
       if: github.event_name == 'pull_request'
       id: changed-files
       run: |
@@ -30,12 +30,12 @@ jobs:
           echo "any_changed=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Echo changed files
+    - name: Echo changed files in the PR
       if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
       run: |
         echo "Files being checked: ${{ steps.changed-files.outputs.changed_files_list }}"
 
-    - name: Link checker (PR - changed files only)
+    - name: URL checker (PR - changed files only)
       if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
       id: lychee-pr
       uses: lycheeverse/lychee-action@v2
@@ -51,7 +51,7 @@ jobs:
         failIfEmpty: false
         jobSummary: true
 
-    - name: Link checker (all files)
+    - name: URL checker (all files)
       if: github.event_name == 'push'
       id: lychee-main
       uses: lycheeverse/lychee-action@v2
