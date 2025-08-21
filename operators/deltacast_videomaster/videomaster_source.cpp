@@ -95,6 +95,7 @@ bool success_b = true;
       throw std::runtime_error("Failed to initialize buffers");
     if(!_video_master_base->start_stream())
       throw std::runtime_error("Failed to start stream");
+    _slot_count = 0;
   }
 
   if (_has_lost_signal) {
@@ -132,7 +133,7 @@ bool success_b = true;
   transmit_buffer_data(buffer, buffer_size, op_output, context);
 
   VHD_QueueInSlot(slot_handle);
-  _video_master_base->slot_count()++;
+  _slot_count++;
 
 }
 
@@ -143,9 +144,9 @@ void VideoMasterSourceOp::stop() {
 
 void VideoMasterSourceOp::transmit_buffer_data(void* buffer, uint32_t buffer_size, OutputContext& op_output, ExecutionContext& context) {
   if (!_use_rdma) {
-    cudaMemcpy(_video_master_base->buffers()[_video_master_base->slot_count() % VideoMasterBase::NB_SLOTS][_video_master_base->video_information()->get_buffer_type()], buffer,
+    cudaMemcpy(_video_master_base->buffers()[_slot_count % VideoMasterBase::NB_SLOTS][_video_master_base->video_information()->get_buffer_type()], buffer,
                buffer_size, cudaMemcpyHostToDevice);
-    buffer = _video_master_base->buffers()[_video_master_base->slot_count() % VideoMasterBase::NB_SLOTS][_video_master_base->video_information()->get_buffer_type()];
+    buffer = _video_master_base->buffers()[_slot_count % VideoMasterBase::NB_SLOTS][_video_master_base->video_information()->get_buffer_type()];
   }
   auto video_output = nvidia::gxf::Entity::New(context.context());
   if (!video_output) {

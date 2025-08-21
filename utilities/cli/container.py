@@ -235,6 +235,10 @@ class HoloHubContainer:
             delta_sdi = f"/dev/delta-x380{i}"
             if os.path.exists(delta_sdi):
                 options.extend(["--device", f"{delta_sdi}:{delta_sdi}"])
+                
+            delta_sdi = f"/dev/delta-x370{i}"
+            if os.path.exists(delta_sdi):
+                options.extend(["--device", f"{delta_sdi}:{delta_sdi}"])
 
             delta_sdi = f"/dev/delta-x370{i}"
             if os.path.exists(delta_sdi):

@@ -69,6 +69,7 @@ class VideoMasterSourceOp : public holoscan::Operator {
   Parameter<uint32_t> _framerate;
 
   bool _has_lost_signal;
+  uint64_t _slot_count;
   
   std::unique_ptr<VideoMasterBase> _video_master_base;
   

@@ -62,8 +62,6 @@ class VideoMasterBase {
   const std::array<std::vector<BYTE*>, NB_SLOTS>& buffers() const { return _buffers; }
   std::array<HANDLE, NB_SLOTS>& slot_handles() { return _slot_handles; }
   const std::array<HANDLE, NB_SLOTS>& slot_handles() const { return _slot_handles; }
-  uint64_t& slot_count() { return _slot_count; }
-  const uint64_t& slot_count() const { return _slot_count; }
   Deltacast::Helper::VideoFormat& video_format() { return _video_format; }
   const Deltacast::Helper::VideoFormat& video_format() const { return _video_format; }
 
@@ -75,7 +73,6 @@ class VideoMasterBase {
   std::unique_ptr<Deltacast::Helper::VideoInformation> _video_information;
   std::array<std::vector<BYTE*>, NB_SLOTS> _buffers;
   std::array<HANDLE, NB_SLOTS> _slot_handles;
-  uint64_t _slot_count;
   uint32_t _board_index;
   uint32_t _channel_index;
   bool _use_rdma;
