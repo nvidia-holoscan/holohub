@@ -100,13 +100,14 @@ void VideoMasterTransmitterOp::start() {
 void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
 
   auto source = op_input.receive<gxf::Entity>("source");
-  if (!source || source.value().is_null()) {
+  if (!source) {
     throw std::runtime_error("Failed to receive source");
   }
 
-  auto video = source.value();
-
-  nvidia::gxf::Handle<nvidia::gxf::VideoBuffer> video_buffer = holoscan::gxf::get_videobuffer(video);
+  auto tensor = source.value().get<Tensor>();
+  if (!tensor) {
+    throw std::runtime_error("Failed to get tensor from source");
+  }
 
   if (_overlay) {
     if (!_video_master_base->signal_present()) {
@@ -131,6 +132,7 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
         throw std::runtime_error("Failed to initialize buffers");
       if(!_video_master_base->start_stream())
         throw std::runtime_error("Failed to start stream");
+      _slot_count = 0;
 
       sleep_ms(200);
       _video_master_base->set_loopback_state(false);
@@ -140,14 +142,14 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
   }
 
   HANDLE slot_handle;
-  if (_video_master_base->slot_count() >= _video_master_base->slot_handles().size()) {
+  if (_slot_count >= _video_master_base->slot_handles().size()) {
     if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
                                       VHD_WaitSlotSent(*_video_master_base->stream_handle(), &slot_handle, VideoMasterBase::SLOT_TIMEOUT)
                                       }, "Failed to wait for slot to be sent")){
       return;
                                       }
   } else {
-    slot_handle = _video_master_base->slot_handles()[_video_master_base->slot_count() % VideoMasterBase::NB_SLOTS];
+    slot_handle = _video_master_base->slot_handles()[_slot_count % VideoMasterBase::NB_SLOTS];
   }
 
   BYTE *buffer = nullptr;
@@ -160,7 +162,7 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
                                       return;
                                     }
 
-  cudaMemcpy(buffer, video_buffer->pointer(), buffer_size,
+  cudaMemcpy(buffer, tensor->data(), buffer_size,
             (_use_rdma ? cudaMemcpyDeviceToDevice : cudaMemcpyDeviceToHost));
 
   if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
@@ -169,7 +171,7 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
                                       return;
                                     }
 
-  _video_master_base->slot_count()++;
+  _slot_count++;
 
   return;
 
