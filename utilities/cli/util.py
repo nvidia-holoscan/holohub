@@ -1201,7 +1201,10 @@ def setup_ngc_cli(dry_run: bool = False) -> None:
     ngc_filename = f"ngccli_{arch_suffix}.zip"
 
     try:
-        run_command(["wget", "--quiet", "--content-disposition", ngc_url, "-O", ngc_filename], dry_run=dry_run)
+        run_command(
+            ["wget", "--quiet", "--content-disposition", ngc_url, "-O", ngc_filename],
+            dry_run=dry_run,
+        )
         run_command(["unzip", "-q", ngc_filename], dry_run=dry_run)
         run_command(["chmod", "u+x", "ngc-cli/ngc"], dry_run=dry_run)
 
