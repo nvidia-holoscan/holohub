@@ -28,6 +28,14 @@
 #include "nv_video_encoder.hpp"
 #include "tensor_to_file.hpp"
 
+/**
+ * @brief NVIDIA Video Codec Application
+ *
+ * This application demonstrates GPU-accelerated H.264/H.265 video encoding using the NVIDIA
+ * Video Codec SDK and Holoscan operators. It reads video frames from a configured file using the
+ * VideoStreamReplayerOp, converts the format as needed, encodes the frames on the GPU, and
+ * writes the encoded bitstream to a file.
+ */
 class NVIDIAVideoCodecApp : public holoscan::Application {
  public:
   void set_data_path(const std::string& path) { data_path_ = path; }

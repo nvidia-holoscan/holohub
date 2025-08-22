@@ -16,9 +16,11 @@
  */
 
 #include <getopt.h>
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -51,24 +53,62 @@ class StatsOp : public holoscan::Operator {
       return;
     }
 
-    // For now, just track frame count and processing time
-    frame_count_++;
+    auto meta = metadata();
 
-    // Note: Metadata access from Entity is complex in this SDK version
-    // For demonstration purposes, we'll just track basic frame statistics
-    // The core video codec functionality is the main focus
+    encode_latency_.push_back(meta->get<double>("video_encoder_encode_latency_ms", 0.0));
+    decode_latency_.push_back(meta->get<double>("video_decoder_decode_latency_ms", 0.0));
+    jitter_time_.push_back(meta->get<double>("jitter_time", 0.0));
+    fps_.push_back(static_cast<double>(meta->get<uint64_t>("fps", 0)));
   }
 
   void stop() override {
-    HOLOSCAN_LOG_INFO("Processed {} frames during video decode pipeline", frame_count_);
-    HOLOSCAN_LOG_INFO("Video decode pipeline completed successfully");
+    if (!encode_latency_.empty()) {
+      HOLOSCAN_LOG_INFO("Encode Latency (ms) (min, max, avg): {:.3f}, {:.3f}, {:.3f}",
+                        *std::min_element(encode_latency_.begin(), encode_latency_.end()),
+                        *std::max_element(encode_latency_.begin(), encode_latency_.end()),
+                        std::accumulate(encode_latency_.begin(), encode_latency_.end(), 0.0) /
+                            encode_latency_.size());
+    }
+    if (!decode_latency_.empty()) {
+      HOLOSCAN_LOG_INFO("Decode Latency (ms) (min, max, avg): {:.3f}, {:.3f}, {:.3f}",
+                        *std::min_element(decode_latency_.begin(), decode_latency_.end()),
+                        *std::max_element(decode_latency_.begin(), decode_latency_.end()),
+                        std::accumulate(decode_latency_.begin(), decode_latency_.end(), 0.0) /
+                            decode_latency_.size());
+    }
+    if (!jitter_time_.empty()) {
+      HOLOSCAN_LOG_INFO(
+          "Jitter Time (ms) (min, max, avg): {:.3f}, {:.3f}, {:.3f}",
+          *std::min_element(jitter_time_.begin(), jitter_time_.end()),
+          *std::max_element(jitter_time_.begin(), jitter_time_.end()),
+          std::accumulate(jitter_time_.begin(), jitter_time_.end(), 0.0) / jitter_time_.size());
+    }
+    if (!fps_.empty()) {
+      HOLOSCAN_LOG_INFO("FPS (min, max, avg): {:.3f}, {:.3f}, {:.3f}",
+                        *std::min_element(fps_.begin(), fps_.end()),
+                        *std::max_element(fps_.begin(), fps_.end()),
+                        std::accumulate(fps_.begin(), fps_.end(), 0.0) / fps_.size());
+    }
   }
 
  private:
   bool first_frame_ignored_ = false;
   uint32_t frame_count_ = 0;
+
+  std::vector<double> encode_latency_;
+  std::vector<double> decode_latency_;
+  std::vector<double> jitter_time_;
+  std::vector<double> fps_;
 };
 
+/**
+ * @brief NVIDIA Video Codec Application
+ *
+ * This application demonstrates GPU-accelerated H.264/H.265 video decoding using the NVIDIA 
+ * Video Codec SDK and Holoscan operators. It reads an H.264 elementary stream file, decodes it on 
+ * the GPU, visualizes the decoded frames in real time, and collects streaming statistics such as 
+ * decode latency and FPS.
+ */
 class NVIDIAVideoCodecApp : public holoscan::Application {
  public:
   void set_data_path(const std::string& path) { data_path_ = path; }
@@ -90,7 +130,7 @@ class NVIDIAVideoCodecApp : public holoscan::Application {
         "h264_file_reader",
         Arg("directory", data_path_),
         Arg("allocator", make_resource<UnboundedAllocator>("video_reader_pool")),
-        make_condition<CountCondition>("count_condition", 683),
+        make_condition<CountCondition>("count_condition", 683), // number of frames to read
         make_condition<PeriodicCondition>("periodic_condition",
                                           Arg("recess_period") = recess_period),
         from_config("reader"));

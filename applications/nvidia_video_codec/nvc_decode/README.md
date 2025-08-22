@@ -52,7 +52,14 @@ ffmpeg -i surgical_video.mp4 -c:v copy -f h264 surgical_video.264
 ```
 
 ### Verification
-You can verify your H.264 file format by running the application with a small test file first.
+You can verify your H.264 file format in several ways:
+
+- **Run the application** with a small test file to ensure it decodes and displays correctly.
+- **Play the file in VLC Media Player**: VLC can open raw H.264 streams. Go to `Media` > `Open File...` and select your `.h264` or `.264` file. If the video plays, the file is likely valid.
+- **Use FFmpeg to probe the file**: Run `ffmpeg -i output.h264` to check if FFmpeg recognizes the stream and displays stream information.
+- **Use other video players** that support raw H.264 streams, such as MPV or PotPlayer.
+
+If the file fails to play or is not recognized by these tools, double-check your FFmpeg command and source file.
 
 ## Building and Running
 
