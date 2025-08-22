@@ -60,8 +60,14 @@ The `My Workspace` section contains all the files that you've copied. The `Holos
 
 This section will walk you through the steps to debug the [Hello World](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/hello_world/README.md) application using VS Code.
 
-Open the [hello_world.cpp](/../holoscan-sdk/examples/hello_world/cpp/hello_world.cpp#L55) file in VS Code. (If the link doesn't work, click on **Explorer** from the sidebar and expand the **holoscan-sdk** folder. Find and open `hello_world.cpp` under the `examples/hello_world/cpp` directory.
-Let's put a breakpoint on this line: `auto app = holoscan::make_application<HelloWorldApp>();` (Feel free to put more breakpoints wherever you want).
+Open the [hello_world.cpp](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/holoscan-sdk/examples/hello_world/cpp/hello_world.cpp#L55) file. (In VSCode, click on **Explorer** from the sidebar and expand the **holoscan-sdk** folder. Then, find and open `hello_world.cpp` under the `examples/hello_world/cpp` directory.)
+Let's put a breakpoint on this line:
+
+```cpp
+auto app = holoscan::make_application<HelloWorldApp>();
+```
+
+Feel free to put more breakpoints wherever you want.
 
 Now, let's switch to the **Run and Debug** panel on the sidebar, and then click on the dropdown box to the right of the **Start** button.
 
@@ -77,9 +83,9 @@ Hit **F5** on the keyboard or click the green arrow to start debugging. VS Code 
 
 There are a few options when debugging a Python application. In the [.vscode/launch.json](/.vscode/launch.json) file, you may find the following options to debug the Hello World application:
 
-* **Python: Debug Current File**: with this option selected, open [hello_world.py](/../holoscan-sdk/examples/hello_world/python/hello_world.py) file and hit F5. It shall stop at any breakpoints selected.
+* **Python: Debug Current File**: with this option selected, open [hello_world.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/holoscan-sdk/examples/hello_world/python/hello_world.py) file and hit F5. It shall stop at any breakpoints selected.
 * **Python C++ Debug**: similar to the previous option, this launch profile allows you to debug both the Python and C++ code.
-  Open [holoscan-sdk/src/core/application.cpp](/../holoscan-sdk/src/core/application.cpp#L209) and find the `Application::run()` function. Let's put a breakpoint inside this function. Navigate back to the [hello_world.py](/../holoscan-sdk/examples/hello_world/python/hello_world.py) file and hit F5. When the debug session starts, it stops at the top of the main application file and brings up a prompt in the terminal asking for superuser access.
+  Open [holoscan-sdk/src/core/application.cpp](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/holoscan-sdk/src/core/application.cpp#L209) and find the `Application::run()` function. Let's put a breakpoint inside this function. Navigate back to the [hello_world.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/holoscan-sdk/examples/hello_world/python/hello_world.py) file and hit F5. When the debug session starts, it stops at the top of the main application file and brings up a prompt in the terminal asking for superuser access.
 
   ```bash
   Superuser access is required to attach to a process. Attaching as superuser can potentially harm your computer. Do you want to continue? [y/N]
@@ -87,7 +93,7 @@ There are a few options when debugging a Python application. In the [.vscode/lau
 
   You may answer `Y` or `y` to continue the debug session. The debugger shall now stop at the breakpoint you've set in the `application.cpp` file.
 
-* **(gdb) examples/hello_world/python**: this third launch profile option allows you to debug the C++ code only.  Put a breakpoint in the `Application::run()` function inside the [holoscan-sdk/src/core/application.cpp](/../holoscan-sdk/src/core/application.cpp#L209) file.
+* **(gdb) examples/hello_world/python**: this third launch profile option allows you to debug the C++ code only.  Put a breakpoint in the `Application::run()` function inside the [holoscan-sdk/src/core/application.cpp](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/holoscan-sdk/src/core/application.cpp#L209) file.
 
 > 💡 *Tip*: you must open a Python file and make sure the file tab is active to debug when using the first two launch profiles.*
 
