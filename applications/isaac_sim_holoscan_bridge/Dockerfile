@@ -57,7 +57,7 @@ RUN update-alternatives --install /usr/bin/python python /isaac-sim/python.sh 10
 RUN sed -i 's/SCRIPT_DIR="\$( cd "\$( dirname "\${BASH_SOURCE\[0\]}" )" && pwd )"/SCRIPT_DIR=$( dirname -- "\$( readlink -f -- "\$0"; )"; )/' /isaac-sim/python.sh
 
 # patch the camera device to return data in CUDA memory
-COPY applications/isaac_holoscan_bridge/isaac_sim_camera_device.patch /isaac_sim_camera_device.patch
+COPY applications/isaac_sim_holoscan_bridge/isaac_sim_camera_device.patch /isaac_sim_camera_device.patch
 RUN patch -p1 /isaac-sim/exts/isaacsim.sensors.camera/isaacsim/sensors/camera/camera.py </isaac_sim_camera_device.patch && \
     rm /isaac_sim_camera_device.patch
 

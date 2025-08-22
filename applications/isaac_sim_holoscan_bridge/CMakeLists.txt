@@ -15,20 +15,20 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(isaac_holoscan_bridge LANGUAGES NONE)
+project(isaac_sim_holoscan_bridge LANGUAGES NONE)
 
 # Add testing
 if(BUILD_TESTING)
-  add_custom_target(isaac_holoscan_bridge_test ALL
+  add_custom_target(isaac_sim_holoscan_bridge_test ALL
     DEPENDS "app.py"
   )
 
   # Add test
-  add_test(NAME isaac_holoscan_bridge_python_test
+  add_test(NAME isaac_sim_holoscan_bridge_python_test
     COMMAND ${CMAKE_COMMAND} -E env python3 ${CMAKE_CURRENT_SOURCE_DIR}/app.py --headless --frame-count 10
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-  set_tests_properties(isaac_holoscan_bridge_python_test
+  set_tests_properties(isaac_sim_holoscan_bridge_python_test
     PROPERTIES PASS_REGULAR_EXPRESSION "Starting simulator;Starting Holoscan pipeline;Simulation App Startup Complete;Simulator finished;Transformer application finished"
     # Omniverse Kit prints the error:
     #   1: 2025-06-12 08:15:39 [9,453ms] [Error] [carb.graphics-vulkan.plugin] Could not get NGX parameters block because NGX isn't enabled.
