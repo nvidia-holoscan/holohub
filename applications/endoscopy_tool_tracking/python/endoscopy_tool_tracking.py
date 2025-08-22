@@ -33,7 +33,6 @@ from holoscan.resources import (
 )
 
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
-from holohub.slang_shader import SlangShaderOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
 
 
@@ -252,7 +251,8 @@ class EndoscopyApp(Application):
             num_blocks=tool_tracking_postprocessor_num_blocks,
         )
         if self.postprocessor == "slang_shader":
-            tool_tracking_postprocessor = SlangShaderOp(
+            slang_shader = lazy_import("holohub.slang_shader")
+            tool_tracking_postprocessor = slang_shader.SlangShaderOp(
                 self,
                 name="slang_postprocessor",
                 shader_source_file=os.path.join(os.path.dirname(__file__), "postprocessor.slang"),
