@@ -17,6 +17,7 @@
 
 #include "slang_shader_compiler.hpp"
 
+#include <cuda.h>
 #include <driver_types.h>
 
 #include "slang_utils.hpp"
@@ -73,7 +74,7 @@ SlangShaderCompiler::SlangShaderCompiler(const Slang::ComPtr<slang::ISession>& s
     // HOLOSCAN_LOG_INFO("PTX code: {}", (const char*)ptx_code->getBufferPointer());
 
     cuda_libraries_.emplace_back([&ptx_code] {
-      cudaLibrary_t library;
+      CUlibrary library;
       CUDA_CALL(cuLibraryLoadData(
           &library, ptx_code->getBufferPointer(), nullptr, nullptr, 0, nullptr, nullptr, 0));
       return library;
