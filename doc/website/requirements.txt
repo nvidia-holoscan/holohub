@@ -10,5 +10,6 @@ mkdocs-include-dir-to-nav
 mkdocs-literate-nav
 mkdocs-site-urls
 mkdocs-git-revision-date-localized-plugin
+mkdocs-mermaid2-plugin
 mike
 mistune
