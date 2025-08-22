@@ -130,7 +130,7 @@ class NVIDIAVideoCodecApp : public holoscan::Application {
         "h264_file_reader",
         Arg("directory", data_path_),
         Arg("allocator", make_resource<UnboundedAllocator>("video_reader_pool")),
-        make_condition<CountCondition>("count_condition", 683), // number of frames to read
+        make_condition<CountCondition>("count_condition", 683),  // number of frames to read
         make_condition<PeriodicCondition>("periodic_condition",
                                           Arg("recess_period") = recess_period),
         from_config("reader"));
