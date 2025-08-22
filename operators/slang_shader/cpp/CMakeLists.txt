@@ -15,6 +15,12 @@
 
 cmake_minimum_required(VERSION 3.20)
 
+
+# Check minimum required GCC version for Slang release package
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND (CMAKE_C_COMPILER_VERSION VERSION_LESS "13.0.0" OR CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13.0.0"))
+    message(FATAL_ERROR "GCC version ${CMAKE_CXX_COMPILER_VERSION} is too old. Need GCC 13.0.0 or newer to compile with libslang.so.")
+endif()
+
 # Fetch Slang
 include(FetchContent)
 FetchContent_Declare(
@@ -67,6 +73,7 @@ target_link_libraries(slang_shader
 target_include_directories(slang_shader INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_definitions(slang_shader PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR})
 target_compile_definitions(slang_shader PRIVATE HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR})
+target_compile_definitions(slang_shader PUBLIC HOLOSCAN_OP_SLANG_SHADER)
 
 install(TARGETS slang_shader
   COMPONENT holoscan-ops
