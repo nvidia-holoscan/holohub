@@ -6,10 +6,6 @@ http://0.0.0.0.*
 # Google Drive files (fail with 401 errors
 https://drive.google.com/file/d/.*
 
-
-# Local reference to holoscan-sdk (tutorials/debugging/holoscan_container_vscode/README.md)
-file://.*/holoscan-sdk/.*
-
 # Certificate issues
 https://synthea.mitre.org/
 https://www.openhackathons.org/s/siteevent/a0CUP00000haVXi2AM/se000351
