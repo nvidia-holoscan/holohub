@@ -70,15 +70,15 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(rivermax-dev-kit)
 
+# Will be removed once RDK makes the change
+file(READ "${rivermax-dev-kit_SOURCE_DIR}/source/apps/include/rdk/apps/rmax_base_app.h" CONTENTS)
+if(NOT CONTENTS MATCHES "virtual ReturnStatus find_internal_stream_index\\(")
+    string(REPLACE "ReturnStatus find_internal_stream_index(" "virtual ReturnStatus find_internal_stream_index(" NEW_CONTENTS "${CONTENTS}")
+    file(WRITE "${rivermax-dev-kit_SOURCE_DIR}/source/apps/include/rdk/apps/rmax_base_app.h" "${NEW_CONTENTS}")
+endif()
+
 # Link external RDK libraries through INTERFACE
 target_link_libraries(${PROJECT_NAME} INTERFACE
     rivermax-dev-kit-app-base
     rivermax-dev-kit
-)
-
-# Add object libraries to get the actual implementations
-target_sources(${PROJECT_NAME} INTERFACE
-    $<TARGET_OBJECTS:rmax_rtp_receiver_obj>
-    $<TARGET_OBJECTS:rmax_ipo_receiver_obj>
-    $<TARGET_OBJECTS:rmax_xstream_media_sender_obj>
 )

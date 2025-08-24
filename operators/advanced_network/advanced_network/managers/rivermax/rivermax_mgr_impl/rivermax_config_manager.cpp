@@ -23,8 +23,6 @@
 
 namespace holoscan::advanced_network {
 
-using namespace rivermax::dev_kit::apps::rmax_ipo_receiver;
-using namespace rivermax::dev_kit::apps::rmax_rtp_receiver;
 using namespace rivermax::dev_kit::apps::rmax_xstream_media_sender;
 
 static constexpr int USECS_IN_SECOND = 1000000;
@@ -82,7 +80,12 @@ bool RivermaxConfigContainer::parse_configuration(const NetworkConfig& cfg) {
                       intf.rx_.queues_.size() > 0 ? "ENABLED" : "DISABLED",
                       intf.tx_.queues_.size() > 0 ? "ENABLED" : "DISABLED");
 
-    rivermax_rx_config_found += parse_rx_queues(intf.port_id_, intf.rx_.queues_);
+    auto parsed_rx_queues = parse_rx_queues(intf.port_id_, intf.rx_.queues_);
+    if (parsed_rx_queues < 0) {
+      HOLOSCAN_LOG_ERROR("Failed to parse RX queues for port {}", intf.port_id_);
+      return false;
+    }
+    rivermax_rx_config_found += parsed_rx_queues;
     rivermax_tx_config_found += parse_tx_queues(intf.port_id_, intf.tx_.queues_);
   }
 
@@ -117,7 +120,10 @@ int RivermaxConfigContainer::parse_rx_queues(uint16_t port_id,
   rx_config_manager->set_configuration(cfg_);
 
   for (const auto& q : queues) {
-    if (!rx_config_manager->append_candidate_for_rx_queue(port_id, q)) { continue; }
+    if (!rx_config_manager->append_candidate_for_rx_queue(port_id, q)) {
+        HOLOSCAN_LOG_WARN("Failed to append RX queue configuration for queue - skipping");
+        return -1;
+      }
     rivermax_rx_config_found++;
   }
 
@@ -170,6 +176,13 @@ bool RxConfigManager::append_candidate_for_rx_queue(uint16_t port_id, const RxQu
     RivermaxIPOReceiverQueueConfig rivermax_rx_config(*rivermax_rx_config_ptr);
 
     res = append_ipo_receiver_candidate_for_rx_queue(key, q, rivermax_rx_config);
+    if (!res) {
+      HOLOSCAN_LOG_ERROR("Failed to append IPO receiver candidate for RX queue: {} ({}) on port {}",
+                         q.common_.name_,
+                         queue_id,
+                         port_id);
+      return false;
+    }
   } else if (config_type == QueueConfigType::RTPReceiver) {
     auto* rivermax_rx_config_ptr =
         dynamic_cast<RivermaxRTPReceiverQueueConfig*>(q.common_.extra_queue_config_);
@@ -222,7 +235,7 @@ bool RxConfigManager::append_ipo_receiver_candidate_for_rx_queue(
     HOLOSCAN_LOG_ERROR("Failed to validate source settings");
     return false;
   }
-  auto rivermax_ipo_receiver_settings_validator = std::make_shared<IPOReceiverSettingsValidator>();
+  auto rivermax_ipo_receiver_settings_validator = std::make_shared<ANOIPOReceiverSettingsValidator>();
   auto settings_builder = std::make_shared<RivermaxQueueToIPOReceiverSettingsBuilder>(
       std::move(rivermax_rx_config_ptr), std::move(rivermax_ipo_receiver_settings_validator));
 
@@ -253,7 +266,7 @@ bool RxConfigManager::append_rtp_receiver_candidate_for_rx_queue(
     HOLOSCAN_LOG_ERROR("Failed to validate source settings");
     return false;
   }
-  auto rivermax_rtp_receiver_settings_validator = std::make_shared<RTPReceiverSettingsValidator>();
+  auto rivermax_rtp_receiver_settings_validator = std::make_shared<ANORTPReceiverSettingsValidator>();
   auto settings_builder = std::make_shared<RivermaxQueueToRTPReceiverSettingsBuilder>(
       std::move(rivermax_rx_config_ptr), std::move(rivermax_rtp_receiver_settings_validator));
 
@@ -536,49 +549,63 @@ bool RivermaxConfigParser::parse_common_rx_settings(
     RivermaxCommonRxQueueConfig& rivermax_rx_config) {
   rivermax_rx_config.ext_seq_num = rx_settings["ext_seq_num"].as<bool>(true);
   rivermax_rx_config.allocator_type = rx_settings["allocator_type"].as<std::string>("auto");
-  rivermax_rx_config.memory_registration = rx_settings["memory_registration"].as<bool>(false);
+  rivermax_rx_config.memory_registration = rx_settings["memory_registration"].as<bool>(true);
+  rivermax_rx_config.lock_gpu_clocks = rx_settings["lock_gpu_clocks"].as<bool>(true);
   rivermax_rx_config.sleep_between_operations_us =
       rx_settings["sleep_between_operations_us"].as<int>(0);
   rivermax_rx_config.print_parameters = rx_settings["verbose"].as<bool>(false);
-  rivermax_rx_config.num_of_threads = rx_settings["num_of_threads"].as<size_t>(1);
   rivermax_rx_config.send_packet_ext_info = rx_settings["send_packet_ext_info"].as<bool>(true);
   rivermax_rx_config.max_chunk_size = q_item["batch_size"].as<size_t>(1024);
   rivermax_rx_config.stats_report_interval_ms =
-      rx_settings["stats_report_interval_ms"].as<uint32_t>(0);
+      rx_settings["stats_report_interval_ms"].as<uint32_t>(1000);
 
   return true;
 }
 
 bool RivermaxConfigParser::parse_ipo_receiver_settings(
     const YAML::Node& rx_settings, RivermaxIPOReceiverQueueConfig& rivermax_rx_config) {
-  for (const auto& q_item_ip : rx_settings["local_ip_addresses"]) {
-    rivermax_rx_config.local_ips.emplace_back(q_item_ip.as<std::string>());
+  for (const auto& q_item_thread : rx_settings["rx_threads"]) {
+    ThreadSettings thread_settings;
+    for (const auto& q_item_stream : q_item_thread["network_settings"]) {
+      StreamNetworkSettings stream_settings;
+      for (const auto& q_item_ip : q_item_stream["local_ip_addresses"]) { 
+        stream_settings.local_ips.emplace_back(q_item_ip.as<std::string>());
+      }
+      for (const auto& q_item_ip : q_item_stream["source_ip_addresses"]) {
+        stream_settings.source_ips.emplace_back(q_item_ip.as<std::string>());
+      }
+      for (const auto& q_item_ip : q_item_stream["destination_ip_addresses"]) {
+        stream_settings.destination_ips.emplace_back(q_item_ip.as<std::string>());
+      }
+      for (const auto& q_item_ip : q_item_stream["destination_ports"]) {
+        stream_settings.destination_ports.emplace_back(q_item_ip.as<uint16_t>());
+      }
+      stream_settings.stream_id = q_item_stream["stream_id"].as<uint32_t>(0);
+      thread_settings.stream_network_settings.emplace_back(stream_settings);
+    }
+    thread_settings.thread_id = q_item_thread["thread_id"].as<int>(0);
+    rivermax_rx_config.thread_settings.push_back(thread_settings);
   }
-
-  for (const auto& q_item_ip : rx_settings["source_ip_addresses"]) {
-    rivermax_rx_config.source_ips.emplace_back(q_item_ip.as<std::string>());
-  }
-
-  for (const auto& q_item_ip : rx_settings["destination_ip_addresses"]) {
-    rivermax_rx_config.destination_ips.emplace_back(q_item_ip.as<std::string>());
-  }
-
-  for (const auto& q_item_ip : rx_settings["destination_ports"]) {
-    rivermax_rx_config.destination_ports.emplace_back(q_item_ip.as<uint16_t>());
-  }
-
-  rivermax_rx_config.max_path_differential_us = rx_settings["max_path_diff_us"].as<uint32_t>(0);
-
+  rivermax_rx_config.max_path_differential_us = rx_settings["max_path_diff_us"].as<uint32_t>(10000);
   return true;
 }
 
 bool RivermaxConfigParser::parse_rtp_receiver_settings(
     const YAML::Node& rx_settings, RivermaxRTPReceiverQueueConfig& rivermax_rx_config) {
-  rivermax_rx_config.local_ip = rx_settings["local_ip_address"].as<std::string>("");
-  rivermax_rx_config.source_ip = rx_settings["source_ip_address"].as<std::string>("");
-  rivermax_rx_config.destination_ip = rx_settings["destination_ip_address"].as<std::string>("");
-  rivermax_rx_config.destination_port = rx_settings["destination_port"].as<uint16_t>(0);
-
+  for (const auto& q_item_thread : rx_settings["rx_threads"]) {
+    ThreadSettings thread_settings;
+    for (const auto& q_item_stream : q_item_thread["network_settings"]) {
+      StreamNetworkSettings stream_settings;
+      stream_settings.local_ip = q_item_stream["local_ip_address"].as<std::string>("");
+      stream_settings.source_ip = q_item_stream["source_ip_address"].as<std::string>("");
+      stream_settings.destination_ip = q_item_stream["destination_ip_address"].as<std::string>("");
+      stream_settings.destination_port = q_item_stream["destination_port"].as<uint16_t>(0);
+      stream_settings.stream_id = q_item_stream["stream_id"].as<uint32_t>(0);
+      thread_settings.stream_network_settings.emplace_back(stream_settings);
+    }
+    thread_settings.thread_id = q_item_thread["thread_id"].as<int>(0);
+    rivermax_rx_config.thread_settings.push_back(thread_settings);
+  }
   return true;
 }
 
@@ -735,26 +762,28 @@ bool ConfigManagerUtilities::parse_and_set_cores(std::vector<int>& app_threads_c
   return true;
 }
 
-bool ConfigManagerUtilities::validate_cores(const std::string& cores) {
+int ConfigManagerUtilities::validate_cores(const std::string& cores) {
   std::istringstream iss(cores);
   std::string coreStr;
   bool to_reset_cores_vector = true;
+  int num_cores = 0;
   while (std::getline(iss, coreStr, ',')) {
     try {
       int core = std::stoi(coreStr);
       if (core < 0 || core >= std::thread::hardware_concurrency()) {
         HOLOSCAN_LOG_ERROR("Invalid core number: {}", coreStr);
-        return false;
+        return -1;
       }
     } catch (const std::invalid_argument& e) {
       HOLOSCAN_LOG_ERROR("Invalid core number: {}", coreStr);
-      return false;
+      return -1;
     } catch (const std::out_of_range& e) {
       HOLOSCAN_LOG_ERROR("Core number out of range: {}", coreStr);
-      return false;
+      return -1;
     }
+    num_cores++;
   }
-  return true;
+  return num_cores;
 }
 
 void ConfigManagerUtilities::set_allocator_type(AppSettings& app_settings_config,

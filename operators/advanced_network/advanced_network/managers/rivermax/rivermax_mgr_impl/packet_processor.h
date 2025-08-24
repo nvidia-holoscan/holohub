@@ -72,7 +72,7 @@ class IPacketProcessor {
    * @param processed_packets Sets the number of processed packets.
    * @return Status indicating the success or failure of the operation.
    */
-  virtual Status process_packets(const PacketsChunkParams& params, size_t& processed_packets) = 0;
+  virtual Status process_packets(const PacketsChunkParams& params, size_t& processed_packets, int stream_id) = 0;
 };
 
 /**
@@ -97,7 +97,7 @@ class RxPacketProcessor : public IPacketProcessor {
     }
   }
 
-  Status process_packets(const PacketsChunkParams& params, size_t& processed_packets) override {
+  Status process_packets(const PacketsChunkParams& params, size_t& processed_packets, int stream_id) override {
     processed_packets = 0;
     Status status = Status::SUCCESS;
 
@@ -122,7 +122,7 @@ class RxPacketProcessor : public IPacketProcessor {
           {params.packet_info_array[processed_packets].get_packet_flow_tag(),
            params.packet_info_array[processed_packets].get_packet_timestamp()}};
 
-      status = rx_burst_manager_->submit_next_packet(rx_packet_data);
+      status = rx_burst_manager_->submit_next_packet(stream_id, rx_packet_data);
 
       if (status != Status::SUCCESS) { return status; }
 

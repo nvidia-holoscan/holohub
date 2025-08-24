@@ -316,4 +316,8 @@ Status Manager::get_rx_burst(BurstParams** burst) {
   return Status::NULL_PTR;
 }
 
+Status Manager::get_rx_burst(BurstParams** burst, int port, int q, int stream_id) {
+  return Status::NOT_SUPPORTED;
+}
+
 };  // namespace holoscan::advanced_network

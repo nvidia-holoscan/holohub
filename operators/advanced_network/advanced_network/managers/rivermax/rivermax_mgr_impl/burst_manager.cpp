@@ -382,7 +382,7 @@ void RxBurstsManager::rx_burst_done(RivermaxBurst* burst) {
 
 RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int queue_id,
                                  uint16_t burst_out_size, int gpu_id,
-                                 std::shared_ptr<IAnoBurstsCollection> rx_bursts_out_queue)
+                                 std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue)
     : send_packet_ext_info_(send_packet_ext_info),
       port_id_(port_id),
       queue_id_(queue_id),
@@ -397,11 +397,6 @@ RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int que
   rx_bursts_mempool_ =
       std::make_unique<AnoBurstsMemoryPool>(DEFAULT_NUM_RX_BURSTS, *burst_handler_, burst_tag);
 
-  if (!rx_bursts_out_queue_) {
-    rx_bursts_out_queue_ = std::make_shared<AnoBurstsQueue>();
-    using_shared_out_queue_ = false;
-  }
-
   if (burst_out_size_ > RivermaxBurst::MAX_PKT_IN_BURST || burst_out_size_ == 0)
   burst_out_size_ = RivermaxBurst::MAX_PKT_IN_BURST;
 }
@@ -411,10 +406,12 @@ RxBurstsManager::~RxBurstsManager() {
 
   std::shared_ptr<RivermaxBurst> burst;
   // Get all bursts from the queue and return them to the memory pool
-  while (rx_bursts_out_queue_->available_bursts() > 0) {
-    burst = rx_bursts_out_queue_->dequeue_burst();
-    if (burst == nullptr) break;
-    rx_bursts_mempool_->enqueue_burst(burst);
+  for (auto& [stream_id, rx_bursts_out_queue] : rx_bursts_out_queue_) {
+    while (rx_bursts_out_queue->available_bursts() > 0) {
+      burst = rx_bursts_out_queue->dequeue_burst();
+      if (burst == nullptr) break;
+      rx_bursts_mempool_->enqueue_burst(burst);
+    }
   }
 }
 

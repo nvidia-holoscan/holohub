@@ -53,9 +53,10 @@ class RivermaxChunkConsumerAno : public IReceiveDataConsumer {
    * @param packet_processor Shared pointer to the packet processor.
    */
   explicit RivermaxChunkConsumerAno(std::shared_ptr<RxPacketProcessor> packet_processor,
-    size_t max_burst_size)
+    size_t max_burst_size, int stream_id)
       : packet_processor_(std::move(packet_processor)),
-        max_burst_size_(max_burst_size) {
+        max_burst_size_(max_burst_size),
+        stream_id_(stream_id) {
     if (max_burst_size_ >= RivermaxBurst::MAX_PKT_IN_BURST) {
       max_burst_size_ = RivermaxBurst::MAX_PKT_IN_BURST;
     }
@@ -76,6 +77,7 @@ class RivermaxChunkConsumerAno : public IReceiveDataConsumer {
   std::shared_ptr<RxPacketProcessor> packet_processor_;
   std::unique_ptr<ReceivePacketInfo[]> packet_info_array_;
   size_t max_burst_size_ = 0;
+  int stream_id_ = 0;
 };
 
 inline ReturnStatus RivermaxChunkConsumerAno::consume_chunk(const ReceiveChunk& chunk,
@@ -112,7 +114,7 @@ inline ReturnStatus RivermaxChunkConsumerAno::consume_chunk(const ReceiveChunk& 
       stream.get_payload_stride_size(),
   };
 
-  auto process_status = packet_processor_->process_packets(params, consumed_packets);
+  auto process_status = packet_processor_->process_packets(params, consumed_packets, stream_id_);
   if (process_status != Status::SUCCESS) {
     HOLOSCAN_LOG_ERROR("Packet processing failed");
     return ReturnStatus::failure;

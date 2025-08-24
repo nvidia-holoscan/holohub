@@ -277,6 +277,11 @@ Status send_tx_burst(BurstParams* burst) {
   return g_ano_mgr->send_tx_burst(burst);
 }
 
+Status get_rx_burst(BurstParams** burst, int port, int q, int stream_id) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_rx_burst(burst, port, q, stream_id);
+}
+
 Status get_rx_burst(BurstParams** burst, int port, int q) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_rx_burst(burst, port, q);
