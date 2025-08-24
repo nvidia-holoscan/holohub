@@ -59,7 +59,7 @@ class RivermaxMgr : public Manager {
   void free_packet(BurstParams* burst, int pkt) override;
   void free_rx_burst(BurstParams* burst) override;
   void free_tx_burst(BurstParams* burst) override;
-
+  Status get_rx_burst(BurstParams** burst, int port, int q, int stream) override;
   Status get_rx_burst(BurstParams** burst, int port, int q) override;
   using holoscan::advanced_network::Manager::get_rx_burst;  // for overloads
   Status set_packet_tx_time(BurstParams* burst, int idx, uint64_t timestamp);

@@ -25,7 +25,7 @@
 namespace holoscan::advanced_network {
 
 RivermaxManagerRxService::RivermaxManagerRxService(
-    uint32_t service_id, std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue)
+    uint32_t service_id, std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue)
     : RivermaxManagerService(service_id), rx_bursts_out_queue_(std::move(rx_bursts_out_queue)) {
   port_id_ = RivermaxBurst::burst_port_id_from_burst_tag(service_id);
   queue_id_ = RivermaxBurst::burst_queue_id_from_burst_tag(service_id);
@@ -58,13 +58,15 @@ bool RivermaxManagerRxService::initialize() {
 
   rx_packet_processor_ = std::make_shared<RxPacketProcessor>(rx_burst_manager_);
 
-  auto rivermax_chunk_consumer = std::make_unique<RivermaxChunkConsumerAno>(rx_packet_processor_,
-    max_chunk_size_);
+  for (const auto& [stream_id, rx_bursts_out_queue] : rx_bursts_out_queue_) {
+    auto rivermax_chunk_consumer = std::make_unique<RivermaxChunkConsumerAno>(rx_packet_processor_,
+      max_chunk_size_, stream_id);
 
-  auto status = rx_service_->set_receive_data_consumer(0, std::move(rivermax_chunk_consumer));
-  if (status != ReturnStatus::success) {
-    HOLOSCAN_LOG_ERROR("Failed to set receive data consumer, status: {}", (int)status);
-    return false;
+    auto status = rx_service_->set_receive_data_consumer(stream_id, std::move(rivermax_chunk_consumer));
+    if (status != ReturnStatus::success) {
+      HOLOSCAN_LOG_ERROR("Failed to set receive data consumer, status: {}", (int)status);
+      return false;
+    }
   }
 
   initialized_ = true;
@@ -99,12 +101,12 @@ void RivermaxManagerRxService::shutdown() {
   initialized_ = false;
 }
 
-Status RivermaxManagerRxService::get_rx_burst(BurstParams** burst) {
-  if (!rx_bursts_out_queue_) {
-    HOLOSCAN_LOG_ERROR("RX bursts out queue not initialized");
+Status RivermaxManagerRxService::get_rx_burst(BurstParams** burst, int stream_id) {
+  if (rx_bursts_out_queue_.count(stream_id) == 0) {
+    HOLOSCAN_LOG_ERROR("RX bursts out queue not initialized for stream_id: {}", stream_id);
     return Status::NOT_READY;
   }
-  auto out_burst = rx_bursts_out_queue_->dequeue_burst().get();
+  auto out_burst = rx_bursts_out_queue_[stream_id]->dequeue_burst().get();
   *burst = static_cast<BurstParams*>(out_burst);
   if (*burst == nullptr) { return Status::NOT_READY; }
   return Status::SUCCESS;
@@ -113,7 +115,7 @@ Status RivermaxManagerRxService::get_rx_burst(BurstParams** burst) {
 IPOReceiverService::IPOReceiverService(
     uint32_t service_id,
     std::shared_ptr<RivermaxQueueToIPOReceiverSettingsBuilder> ipo_receiver_builder,
-    std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue)
+    std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue)
     : RivermaxManagerRxService(service_id, rx_bursts_out_queue),
       ipo_receiver_builder_(ipo_receiver_builder) {}
 
@@ -134,7 +136,7 @@ void IPOReceiverService::print_stats(std::stringstream& ss) const {
     return;
   }
 
-  IPOReceiverApp& ipo_service = static_cast<IPOReceiverApp&>(*rx_service_);
+  ANOIPOReceiverApp& ipo_service = static_cast<ANOIPOReceiverApp&>(*rx_service_);
   auto stream_stats = ipo_service.get_streams_total_statistics();
 
   ss << "IPO Receiver Service ID: " << service_id_ << std::endl;
@@ -182,7 +184,7 @@ void IPOReceiverService::print_stats(std::stringstream& ss) const {
 RTPReceiverService::RTPReceiverService(
     uint32_t service_id,
     std::shared_ptr<RivermaxQueueToRTPReceiverSettingsBuilder> rtp_receiver_builder,
-    std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue)
+    std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue)
     : RivermaxManagerRxService(service_id, rx_bursts_out_queue),
       rtp_receiver_builder_(rtp_receiver_builder) {}
 
@@ -203,7 +205,7 @@ void RTPReceiverService::print_stats(std::stringstream& ss) const {
     return;
   }
 
-  RTPReceiverApp& rtp_service = static_cast<RTPReceiverApp&>(*rx_service_);
+  ANORTPReceiverApp& rtp_service = static_cast<ANORTPReceiverApp&>(*rx_service_);
   auto stream_stats = rtp_service.get_streams_total_statistics();
 
   ss << "RTP Receiver Service ID: " << service_id_ << std::endl;

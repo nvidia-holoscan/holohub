@@ -25,8 +25,6 @@
 
 #include "rdk/rivermax_dev_kit.h"
 #include "rdk/apps/rmax_xstream_media_sender/rmax_xstream_media_sender.h"
-#include "rdk/apps/rmax_ipo_receiver/rmax_ipo_receiver.h"
-#include "rdk/apps/rmax_rtp_receiver/rmax_rtp_receiver.h"
 
 #include "adv_network_rivermax_mgr.h"
 #include "rivermax_mgr_impl/rivermax_config_manager.h"
@@ -37,8 +35,6 @@ namespace holoscan::advanced_network {
 
 using namespace rivermax::dev_kit::apps;
 using namespace rivermax::dev_kit::apps::rmax_xstream_media_sender;
-using namespace rivermax::dev_kit::apps::rmax_ipo_receiver;
-using namespace rivermax::dev_kit::apps::rmax_rtp_receiver;
 
 /**
  * @brief Base class for all Rivermax manager services.
@@ -112,7 +108,7 @@ class RivermaxManagerRxService : public RivermaxManagerService {
    * @param rx_bursts_out_queue Shared queue for outgoing received bursts.
    */
   RivermaxManagerRxService(uint32_t service_id,
-                           std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue);
+                           std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue);
 
   /**
    * @brief Virtual destructor for the RivermaxManagerRxService class.
@@ -132,7 +128,7 @@ class RivermaxManagerRxService : public RivermaxManagerService {
    * @param burst Pointer to a pointer where the burst will be stored.
    * @return Status indicating the success or failure of the operation.
    */
-  virtual Status get_rx_burst(BurstParams** burst);
+  virtual Status get_rx_burst(BurstParams** burst, int stream_id);
 
   /**
    * @brief Prints service statistics.
@@ -170,7 +166,7 @@ class RivermaxManagerRxService : public RivermaxManagerService {
   std::unique_ptr<RmaxReceiverBaseApp> rx_service_;         ///< The receiver service instance
   std::shared_ptr<RxBurstsManager> rx_burst_manager_;       ///< Manager for received bursts
   std::shared_ptr<RxPacketProcessor> rx_packet_processor_;  ///< Processor for received packets
-  std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue_;     ///< Output queue for received bursts
+  std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue_;  ///< Output queue for received bursts
   bool send_packet_ext_info_ = false;                       ///< Flag for extended packet info
   int gpu_id_ = INVALID_GPU_ID;                             ///< GPU device ID
   size_t max_chunk_size_ = 0;  ///< Maximum chunk size for received data
@@ -193,7 +189,7 @@ class IPOReceiverService : public RivermaxManagerRxService {
   IPOReceiverService(
       uint32_t service_id,
       std::shared_ptr<RivermaxQueueToIPOReceiverSettingsBuilder> ipo_receiver_builder,
-      std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue);
+      std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue);
 
   /**
    * @brief Virtual destructor for the IPOReceiverService class.
@@ -204,7 +200,7 @@ class IPOReceiverService : public RivermaxManagerRxService {
 
  protected:
   std::unique_ptr<RmaxReceiverBaseApp> create_service() override {
-    return std::make_unique<IPOReceiverApp>(ipo_receiver_builder_);
+    return std::make_unique<ANOIPOReceiverApp>(ipo_receiver_builder_);
   }
   bool configure_service() override;
 
@@ -230,7 +226,7 @@ class RTPReceiverService : public RivermaxManagerRxService {
   RTPReceiverService(
       uint32_t service_id,
       std::shared_ptr<RivermaxQueueToRTPReceiverSettingsBuilder> rtp_receiver_builder,
-      std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue);
+      std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue);
 
   /**
    * @brief Virtual destructor for the RTPReceiverService class.
@@ -241,7 +237,7 @@ class RTPReceiverService : public RivermaxManagerRxService {
 
  protected:
   std::unique_ptr<RmaxReceiverBaseApp> create_service() override {
-    return std::make_unique<RTPReceiverApp>(rtp_receiver_builder_);
+    return std::make_unique<ANORTPReceiverApp>(rtp_receiver_builder_);
   }
   bool configure_service() override;
 
