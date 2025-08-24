@@ -723,7 +723,7 @@ class ConfigManagerUtilities {
 
   static bool parse_and_set_cores(std::vector<int>& app_threads_cores, const std::string& cores);
 
-  static bool validate_cores(const std::string& cores);
+  static int validate_cores(const std::string& cores);
 
   static void set_allocator_type(AppSettings& app_settings_config,
                                  const std::string& allocator_type);

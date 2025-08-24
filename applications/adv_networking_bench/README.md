@@ -101,7 +101,7 @@ To run with a different configuration file than the default `adv_networking_benc
 ./adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
 
 # Run with Rivermax configuration
-./adv_networking_bench adv_networking_bench_rmax_rx.yaml
+./adv_networking_bench adv_networking_bench_rivermax_rx.yaml
 ```
 
 For Rivermax, you will need extra flags:
@@ -117,7 +117,7 @@ For Rivermax, you will need extra flags:
   "
 
 # Run with Rivermax configuration
-./adv_networking_bench adv_networking_bench_rmax_rx.yaml
+./adv_networking_bench adv_networking_bench_rivermax_rx.yaml
 ```
 
 ### Test Instructions
