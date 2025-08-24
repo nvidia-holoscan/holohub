@@ -347,7 +347,7 @@ class RxBurstsManager {
    */
   RxBurstsManager(bool send_packet_ext_info, int port_id, int queue_id, uint16_t burst_out_size = 0,
                   int gpu_id = INVALID_GPU_ID,
-                  std::shared_ptr<IAnoBurstsCollection> rx_bursts_out_queue = nullptr);
+                  std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue = {});
 
   /**
    * @brief Destructor for the RxBurstsManager class.
@@ -377,17 +377,17 @@ class RxBurstsManager {
    * @param packet_data Extended information about the packet.
    * @return Status indicating the success or failure of the operation.
    */
-  inline Status submit_next_packet(const RivermaxPacketData& packet_data) {
-    get_or_allocate_current_burst();
-    if (cur_out_burst_ == nullptr) {
+  inline Status submit_next_packet(int stream_id, const RivermaxPacketData& packet_data) {
+    get_or_allocate_current_burst(stream_id);
+    if (cur_out_burst_[stream_id] == nullptr) {
       HOLOSCAN_LOG_ERROR("Failed to allocate burst, running out of resources");
       return Status::NO_FREE_BURST_BUFFERS;
     }
 
-    cur_out_burst_->append_packet(packet_data);
+    cur_out_burst_[stream_id]->append_packet(packet_data);
 
-    if (cur_out_burst_->get_num_packets() >= burst_out_size_) {
-      return enqueue_and_reset_current_burst();
+    if (cur_out_burst_[stream_id]->get_num_packets() >= burst_out_size_) {
+      return enqueue_and_reset_current_burst(stream_id);
     }
 
     return Status::SUCCESS;
@@ -400,12 +400,12 @@ class RxBurstsManager {
    * @throws logic_error If shared output queue is used.
    * @return Status indicating the success or failure of the operation.
    */
-  inline Status get_rx_burst(BurstParams** burst) {
+  inline Status get_rx_burst(BurstParams** burst, int stream_id) {
     if (using_shared_out_queue_) {
       throw std::logic_error("Cannot get RX burst when using shared output queue");
     }
 
-    auto out_burst = rx_bursts_out_queue_->dequeue_burst().get();
+    auto out_burst = rx_bursts_out_queue_[stream_id]->dequeue_burst().get();
     *burst = static_cast<BurstParams*>(out_burst);
     if (*burst == nullptr) {
       return Status::NULL_PTR;
@@ -528,25 +528,25 @@ class RxBurstsManager {
    * a new one if necessary.
    * @return Shared pointer to the current burst parameters.
    */
-  inline std::shared_ptr<RivermaxBurst> get_or_allocate_current_burst() {
-    if (cur_out_burst_ == nullptr) {
-      cur_out_burst_ = allocate_burst();
-      if (cur_out_burst_ == nullptr) {
+  inline std::shared_ptr<RivermaxBurst> get_or_allocate_current_burst(int stream_id) {
+    if (cur_out_burst_[stream_id] == nullptr) {
+      cur_out_burst_[stream_id] = allocate_burst();
+      if (cur_out_burst_[stream_id] == nullptr) {
         HOLOSCAN_LOG_ERROR("Failed to allocate burst, running out of resources");
         return nullptr;
       }
-      cur_out_burst_->reset_burst_with_updated_params(
+      cur_out_burst_[stream_id]->reset_burst_with_updated_params(
           hds_on_, header_stride_size_, payload_stride_size_, gpu_direct_);
     }
-    return cur_out_burst_;
+    return cur_out_burst_[stream_id];
   }
   /**
    * @brief Enqueues the current burst and resets it.
    *
    * @return Status indicating the success or failure of the operation.
    */
-  inline Status enqueue_and_reset_current_burst() {
-    if (cur_out_burst_ == nullptr) {
+  inline Status enqueue_and_reset_current_burst(int stream_id) {
+    if (cur_out_burst_[stream_id] == nullptr) {
       HOLOSCAN_LOG_ERROR("Trying to enqueue an empty burst");
       return Status::NULL_PTR;
     }
@@ -555,17 +555,18 @@ class RxBurstsManager {
     if (should_drop_burst_due_to_capacity()) {
       // Drop the completed burst by returning it to memory pool instead of enqueuing to output
       // queue (counter is already incremented inside should_drop_burst_due_to_capacity)
-      rx_bursts_mempool_->enqueue_burst(cur_out_burst_);
-      reset_current_burst();
+      rx_bursts_mempool_->enqueue_burst(cur_out_burst_[stream_id]);
+      reset_current_burst(stream_id);
+      // total_bursts_dropped_++;
       return Status::SUCCESS;
     }
 
-    bool res = rx_bursts_out_queue_->enqueue_burst(cur_out_burst_);
-    reset_current_burst();
+    bool res = rx_bursts_out_queue_[stream_id]->enqueue_burst(cur_out_burst_[stream_id]);
     if (!res) {
       HOLOSCAN_LOG_ERROR("Failed to enqueue burst");
       return Status::NO_SPACE_AVAILABLE;
     }
+    reset_current_burst(stream_id);
 
     return Status::SUCCESS;
   }
@@ -573,7 +574,7 @@ class RxBurstsManager {
   /**
    * @brief Resets the current burst.
    */
-  inline void reset_current_burst() { cur_out_burst_ = nullptr; }
+  inline void reset_current_burst(int stream_id) { cur_out_burst_[stream_id] = nullptr; }
 
   /**
    * @brief Checks pool capacity and decides whether to drop bursts.
@@ -609,8 +610,8 @@ class RxBurstsManager {
   size_t payload_stride_size_ = 0;
   bool using_shared_out_queue_ = true;
   std::unique_ptr<IAnoBurstsCollection> rx_bursts_mempool_ = nullptr;
-  std::shared_ptr<IAnoBurstsCollection> rx_bursts_out_queue_ = nullptr;
-  std::shared_ptr<RivermaxBurst> cur_out_burst_ = nullptr;
+  std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue_;
+  std::unordered_map<int, std::shared_ptr<RivermaxBurst>> cur_out_burst_;
   AnoBurstExtendedInfo burst_info_;
   std::unique_ptr<RivermaxBurst::BurstHandler> burst_handler_;
 

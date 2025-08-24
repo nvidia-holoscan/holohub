@@ -24,17 +24,15 @@
 #include <vector>
 
 #include "rdk/rivermax_dev_kit.h"
-#include "rdk/apps/rmax_ipo_receiver/rmax_ipo_receiver.h"
-#include "rdk/apps/rmax_rtp_receiver/rmax_rtp_receiver.h"
 #include "rdk/apps/rmax_xstream_media_sender/rmax_xstream_media_sender.h"
 
 #include "advanced_network/manager.h"
 #include "rivermax_ano_data_types.h"
+#include "ano_ipo_receiver.h"
+#include "ano_rtp_receiver.h"
 
 namespace holoscan::advanced_network {
 
-using namespace rivermax::dev_kit::apps::rmax_ipo_receiver;
-using namespace rivermax::dev_kit::apps::rmax_rtp_receiver;
 using namespace rivermax::dev_kit::apps::rmax_xstream_media_sender;
 
 enum class QueueConfigType { IPOReceiver, RTPReceiver, MediaFrameSender, GenericPacketSender };
@@ -96,7 +94,6 @@ struct RivermaxCommonRxQueueConfig : public BaseQueueConfig {
   int gpu_device_id;
   bool lock_gpu_clocks;
   uint16_t split_boundary;
-  size_t num_of_threads;
   bool print_parameters;
   int sleep_between_operations_us;
   std::string allocator_type;
@@ -112,6 +109,8 @@ struct RivermaxCommonRxQueueConfig : public BaseQueueConfig {
   uint32_t burst_pool_low_threshold_percent = 25;
   uint32_t burst_pool_critical_threshold_percent = 10;
   uint32_t burst_pool_recovery_threshold_percent = 50;
+
+  std::vector<ThreadSettings> thread_settings;
 };
 
 /**
@@ -132,10 +131,6 @@ struct RivermaxIPOReceiverQueueConfig : public RivermaxCommonRxQueueConfig {
   void dump_parameters() const override;
 
  public:
-  std::vector<std::string> local_ips;
-  std::vector<std::string> source_ips;
-  std::vector<std::string> destination_ips;
-  std::vector<uint16_t> destination_ports;
   uint32_t max_path_differential_us;
 };
 
@@ -155,12 +150,6 @@ struct RivermaxRTPReceiverQueueConfig : public RivermaxCommonRxQueueConfig {
 
   QueueConfigType get_type() const override { return QueueConfigType::RTPReceiver; }
   void dump_parameters() const override;
-
- public:
-  std::string local_ip;
-  std::string source_ip;
-  std::string destination_ip;
-  uint16_t destination_port;
 };
 
 /**
@@ -254,18 +243,18 @@ class RivermaxMediaSenderQueueValidator
 };
 
 class RivermaxQueueToIPOReceiverSettingsBuilder
-    : public ConversionSettingsBuilder<RivermaxIPOReceiverQueueConfig, IPOReceiverSettings> {
+    : public ConversionSettingsBuilder<RivermaxIPOReceiverQueueConfig, ANOIPOReceiverSettings> {
  public:
   RivermaxQueueToIPOReceiverSettingsBuilder(
       std::shared_ptr<RivermaxIPOReceiverQueueConfig> source_settings,
-      std::shared_ptr<ISettingsValidator<IPOReceiverSettings>> validator)
-      : ConversionSettingsBuilder<RivermaxIPOReceiverQueueConfig, IPOReceiverSettings>(
+      std::shared_ptr<ISettingsValidator<ANOIPOReceiverSettings>> validator)
+      : ConversionSettingsBuilder<RivermaxIPOReceiverQueueConfig, ANOIPOReceiverSettings>(
             source_settings, validator) {}
 
  protected:
   ReturnStatus convert_settings(
       const std::shared_ptr<RivermaxIPOReceiverQueueConfig>& source_settings,
-      std::shared_ptr<IPOReceiverSettings>& target_settings) override;
+      std::shared_ptr<ANOIPOReceiverSettings>& target_settings) override;
 
  public:
   static constexpr int USECS_IN_SECOND = 1000000;
@@ -277,23 +266,23 @@ class RivermaxQueueToIPOReceiverSettingsBuilder
   uint32_t burst_pool_critical_threshold_percent_ = 10;
   uint32_t burst_pool_recovery_threshold_percent_ = 50;
 
-  IPOReceiverSettings built_settings_;
+  ANOIPOReceiverSettings built_settings_;
   bool settings_built_ = false;
 };
 
 class RivermaxQueueToRTPReceiverSettingsBuilder
-    : public ConversionSettingsBuilder<RivermaxRTPReceiverQueueConfig, RTPReceiverSettings> {
+    : public ConversionSettingsBuilder<RivermaxRTPReceiverQueueConfig, ANORTPReceiverSettings> {
  public:
   RivermaxQueueToRTPReceiverSettingsBuilder(
       std::shared_ptr<RivermaxRTPReceiverQueueConfig> source_settings,
-      std::shared_ptr<ISettingsValidator<RTPReceiverSettings>> validator)
-      : ConversionSettingsBuilder<RivermaxRTPReceiverQueueConfig, RTPReceiverSettings>(
+      std::shared_ptr<ISettingsValidator<ANORTPReceiverSettings>> validator)
+      : ConversionSettingsBuilder<RivermaxRTPReceiverQueueConfig, ANORTPReceiverSettings>(
             source_settings, validator) {}
 
  protected:
   ReturnStatus convert_settings(
       const std::shared_ptr<RivermaxRTPReceiverQueueConfig>& source_settings,
-      std::shared_ptr<RTPReceiverSettings>& target_settings) override;
+      std::shared_ptr<ANORTPReceiverSettings>& target_settings) override;
 
  public:
   static constexpr int USECS_IN_SECOND = 1000000;
@@ -306,7 +295,7 @@ class RivermaxQueueToRTPReceiverSettingsBuilder
   uint32_t burst_pool_critical_threshold_percent_ = 10;
   uint32_t burst_pool_recovery_threshold_percent_ = 50;
 
-  RTPReceiverSettings built_settings_;
+  ANORTPReceiverSettings built_settings_;
   bool settings_built_ = false;
 };
 
