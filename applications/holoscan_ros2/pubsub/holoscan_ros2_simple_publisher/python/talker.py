@@ -14,14 +14,12 @@
 # limitations under the License.
 
 import rclpy
+from holoscan.conditions import PeriodicCondition
+from holoscan.core import Application
+from holoscan_ros2.bridge import Bridge
+from holoscan_ros2.operators.publisher import PublisherOp
 from rclpy.node import Node
 from std_msgs.msg import String
-
-from holoscan.core import Application
-from holoscan.conditions import PeriodicCondition
-
-from holoscan_ros2.operators.publisher import PublisherOp
-from holoscan_ros2.bridge import Bridge
 
 
 class SimplePublisherOp(PublisherOp):

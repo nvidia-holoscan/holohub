@@ -21,14 +21,13 @@ publishers, subscribers.
 """
 
 import threading
-from queue import Queue
 from concurrent.futures import Future
+from queue import Queue
 
+import holoscan.core
 import rclpy
 import rclpy.executors
 from rclpy.node import Node
-
-import holoscan.core
 
 
 class Bridge(holoscan.core.Resource):
@@ -142,9 +141,7 @@ class Bridge(holoscan.core.Resource):
 
             # Create the publisher immediately
             assert node is not None, "ROS2 node must be provided for Publisher"
-            assert message_type is not None, (
-                "message_type must be provided for Publisher"
-            )
+            assert message_type is not None, "message_type must be provided for Publisher"
             assert topic_name is not None, "topic_name must be provided for Publisher"
             assert qos is not None, "qos must be provided for Publisher"
 
@@ -200,9 +197,7 @@ class Bridge(holoscan.core.Resource):
 
             # Create the subscriber immediately
             assert node is not None, "ROS2 node must be provided for Subscriber"
-            assert message_type is not None, (
-                "message_type must be provided for Subscriber"
-            )
+            assert message_type is not None, "message_type must be provided for Subscriber"
             assert topic_name is not None, "topic_name must be provided for Subscriber"
             assert qos is not None, "qos must be provided for Subscriber"
 
@@ -242,9 +237,7 @@ class Bridge(holoscan.core.Resource):
                     self.promise_queue.put(future)
                     return future
 
-    def create_subscription(
-        self, message_type, topic_name, qos, message_queue_max_size=0
-    ):
+    def create_subscription(self, message_type, topic_name, qos, message_queue_max_size=0):
         """Create a new subscriber.
 
         Args:
@@ -256,6 +249,4 @@ class Bridge(holoscan.core.Resource):
         Returns:
             A new Subscriber instance
         """
-        return self.Subscriber(
-            self.node, topic_name, qos, message_type, message_queue_max_size
-        )
+        return self.Subscriber(self.node, topic_name, qos, message_type, message_queue_max_size)
