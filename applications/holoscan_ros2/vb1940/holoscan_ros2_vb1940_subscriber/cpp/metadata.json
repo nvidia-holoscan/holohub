@@ -25,6 +25,7 @@
 		],
 		"tags": ["ROS2", "VB1940", "Subscriber"],
 		"ranking": 1,
+		"requirements": {},
 		"dependencies": {
 			"external": {
 			}
