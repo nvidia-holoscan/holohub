@@ -307,7 +307,7 @@ After building your project, Python modules are typically installed in the `pyth
 cd build
 
 # Set the PYTHONPATH to include the built Python modules
-export PYTHONPATH=$PYTHONPATH:./python/lib
+export PYTHONPATH=$PYTHONPATH:$(pwd)/python/lib
 
 # Run your Python application
 python3 ../main.py
