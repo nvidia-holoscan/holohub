@@ -148,6 +148,10 @@ def fatal(message: str) -> None:
     sys.exit(1)
 
 
+def warn(message: str) -> None:
+    print(f"{Color.yellow('WARNING:')} {message}")
+
+
 def _get_maybe_sudo() -> str:
     """Get sudo command if available, with caching to avoid repeated subprocess calls"""
     global _sudo_available
@@ -834,8 +838,10 @@ def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[s
     """Check if container image has an entrypoint defined"""
     if dry_run:
         print(
-            "Inspect docker image entrypoint: "
-            f"docker inspect --format={{{{json .Config.Entrypoint}}}} {img}"
+            Color.yellow(
+                "Inspect docker image entrypoint: "
+                f"docker inspect --format={{{{json .Config.Entrypoint}}}} {img}"
+            )
         )
         return None
 
@@ -1195,8 +1201,11 @@ def setup_ngc_cli(dry_run: bool = False) -> None:
     ngc_filename = f"ngccli_{arch_suffix}.zip"
 
     try:
-        run_command(["wget", "--content-disposition", ngc_url, "-O", ngc_filename], dry_run=dry_run)
-        run_command(["unzip", ngc_filename], dry_run=dry_run)
+        run_command(
+            ["wget", "--quiet", "--content-disposition", ngc_url, "-O", ngc_filename],
+            dry_run=dry_run,
+        )
+        run_command(["unzip", "-q", ngc_filename], dry_run=dry_run)
         run_command(["chmod", "u+x", "ngc-cli/ngc"], dry_run=dry_run)
 
         # Use absolute path for symlink

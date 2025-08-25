@@ -19,7 +19,7 @@ jobs:
       id: changed-files
       run: |
         # Get changed files using git diff
-        if git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -E '\.(md|html|rst)$' > changed_files.txt; then
+        if git diff --name-only --diff-filter=d origin/${{ github.base_ref }}..HEAD | grep -E '\.(md|html|rst)$' > changed_files.txt; then
           if [ -s changed_files.txt ]; then
             echo "any_changed=true" >> $GITHUB_OUTPUT
             echo "changed_files_list=$(cat changed_files.txt | sed 's|^|'"'"'${{ github.workspace }}/|; s|$|'"'"'|' | tr '\n' ' ')" >> $GITHUB_OUTPUT
@@ -47,6 +47,7 @@ jobs:
           --no-progress
           ${{ steps.changed-files.outputs.changed_files_list }}
         fail: true
+        failIfEmpty: false
         jobSummary: true
 
     - name: Link checker (all files)
