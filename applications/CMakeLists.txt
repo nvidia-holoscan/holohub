@@ -62,6 +62,8 @@ add_holohub_application(isaac_sim_holoscan_bridge)
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
 
+add_subdirectory(holoscan_ros2)
+
 add_subdirectory(holoviz)
 
 add_holohub_application(imaging_ai_segmentator)
