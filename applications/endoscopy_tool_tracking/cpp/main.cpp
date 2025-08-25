@@ -23,9 +23,13 @@
 #include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <lstm_tensor_rt_inference.hpp>
-#include <slang_shader/slang_shader.hpp>
 #include <string>
 #include <tool_tracking_postprocessor.hpp>
+
+#ifdef HOLOSCAN_OP_SLANG_SHADER
+#include <slang_shader/slang_shader.hpp>
+#endif
+
 #ifdef VTK_RENDERER
 #include <vtk_renderer.hpp>
 #endif
@@ -190,10 +194,16 @@ class App : public holoscan::Application {
                                        tool_tracking_postprocessor_block_size,
                                        tool_tracking_postprocessor_num_blocks);
     if (postprocessor_ == "slang_shader") {
+#ifdef HOLOSCAN_OP_SLANG_SHADER
       tool_tracking_postprocessor = make_operator<ops::SlangShaderOp>(
           "slang_postprocessor",
           Arg("shader_source_file", app_path_ + "/postprocessor.slang"),
           Arg("allocator") = postprocessor_allocator);
+#else
+      throw std::runtime_error(
+          "Slang shader postprocessor is requested but not available."
+          " Please enable slang_shader at build time.");
+#endif
     } else if (postprocessor_ == "tool_tracking_postprocessor") {
       tool_tracking_postprocessor = make_operator<ops::ToolTrackingPostprocessorOp>(
           "tool_tracking_postprocessor",

@@ -23,7 +23,7 @@ from isaacsim import SimulationApp
 
 
 class Simulator:
-    """A simulator environment for IsaacSim that manages a 3D scene with dynamic objects and camera.
+    """A simulator environment for Isaac Sim that manages a 3D scene with dynamic objects and camera.
 
     This class sets up a simulator environment with:
     - A camera for capturing images

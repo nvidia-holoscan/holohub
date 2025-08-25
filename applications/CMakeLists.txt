@@ -49,12 +49,15 @@ add_holohub_application(endoscopy_out_of_body_detection DEPENDS OPERATORS aja_so
 add_holohub_application(endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
+                        OPTIONAL  aja_source
+                                  deltacast_videomaster
                                   slang_shader
-                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer aja_source)
+                                  yuan_qcap
+                                  vtk_renderer)
 
 add_subdirectory(h264)
 
-add_holohub_application(isaac_holoscan_bridge)
+add_holohub_application(isaac_sim_holoscan_bridge)
 
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
