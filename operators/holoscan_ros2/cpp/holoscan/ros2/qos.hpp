@@ -33,6 +33,6 @@ class QoS : public rclcpp::QoS {
 
 }  // namespace holoscan::ros2
 
-ROS2_DECLARE_YAML_CONVERTER_UNSUPPORTED(holoscan::ros2::QoS)
+ROS2_DECLARE_YAML_CONVERTER_UNSUPPORTED(holoscan::ros2::QoS)  // NOLINT
 
 #endif /* HOLOSCAN_ROS2_QOS_HPP */

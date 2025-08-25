@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .operator import Operator
-from .bridge import Bridge
 from . import operators
+from .bridge import Bridge
+from .operator import Operator
 
 __all__ = ["Bridge", "Operator", "operators"]
