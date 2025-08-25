@@ -25,6 +25,7 @@
 		],
 		"tags": ["ROS2", "Simple Publisher", "Python"],
 		"ranking": 1,
+		"requirements": {},
 		"run": {
 			"command": "bash -c 'source /opt/ros/jazzy/setup.bash && PYTHONPATH=<holohub_bin>/python/lib:$PYTHONPATH python3 <holohub_app_source>/talker.py'",
 			"workdir": "/workspace/holohub/build/holoscan_ros2_simple_publisher"
