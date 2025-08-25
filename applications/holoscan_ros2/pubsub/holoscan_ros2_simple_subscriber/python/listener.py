@@ -13,21 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import rclpy
-from rclpy.node import Node
-from std_msgs.msg import String
 import concurrent.futures
 
+import rclpy
 from holoscan.core import Application
-from holoscan_ros2.operators.subscriber import SubscriberOp
 from holoscan_ros2.bridge import Bridge
+from holoscan_ros2.operators.subscriber import SubscriberOp
+from rclpy.node import Node
+from std_msgs.msg import String
 
 
 class MySubscriberOp(SubscriberOp):
     def __init__(self, fragment, *args, **kwargs):
-        super().__init__(
-            fragment, *args, message_type=String, topic_name="topic", qos=10, **kwargs
-        )
+        super().__init__(fragment, *args, message_type=String, topic_name="topic", qos=10, **kwargs)
 
     def compute(self, op_input, op_output, context):
         while True:

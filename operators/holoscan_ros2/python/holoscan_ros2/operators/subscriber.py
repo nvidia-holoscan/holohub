@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from holoscan_ros2.operator import Operator
 from holoscan.core import OperatorSpec
+from holoscan_ros2.operator import Operator
 
 
 class SubscriberOp(Operator):

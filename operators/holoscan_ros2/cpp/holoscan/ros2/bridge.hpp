@@ -157,6 +157,6 @@ using BridgePtr = Bridge::SharedPtr;
 
 }  // namespace holoscan::ros2
 
-ROS2_DECLARE_YAML_CONVERTER_UNSUPPORTED(holoscan::ros2::Bridge)
+ROS2_DECLARE_YAML_CONVERTER_UNSUPPORTED(holoscan::ros2::Bridge)  // NOLINT
 
 #endif /* HOLOSCAN_ROS2_BRIDGE_HPP */

@@ -17,9 +17,7 @@ from holoscan_ros2.operator import Operator
 
 
 class PublisherOp(Operator):
-    def __init__(
-        self, fragment, *args, topic_name=None, qos=None, message_type=None, **kwargs
-    ):
+    def __init__(self, fragment, *args, topic_name=None, qos=None, message_type=None, **kwargs):
         self.topic_name_ = topic_name
         self.qos_ = qos
         self.message_type_ = message_type

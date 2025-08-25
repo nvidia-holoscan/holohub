@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from holoscan.core import Operator as HoloOperator
+
 from .bridge import Bridge
 
 
