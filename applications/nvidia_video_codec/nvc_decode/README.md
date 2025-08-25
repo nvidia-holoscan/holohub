@@ -52,10 +52,14 @@ ffmpeg -i surgical_video.mp4 -c:v copy -f h264 surgical_video.264
 ```
 
 ### Verification
-Use the provided test script to verify your H.264 file:
-```bash
-python3 test_h264_reader.py
-```
+You can verify your H.264 file format in several ways:
+
+- **Run the application** with a small test file to ensure it decodes and displays correctly.
+- **Play the file in VLC Media Player**: VLC can open raw H.264 streams. Go to `Media` > `Open File...` and select your `.h264` or `.264` file. If the video plays, the file is likely valid.
+- **Use FFmpeg to probe the file**: Run `ffmpeg -i output.h264` to check if FFmpeg recognizes the stream and displays stream information.
+- **Use other video players** that support raw H.264 streams, such as MPV or PotPlayer.
+
+If the file fails to play or is not recognized by these tools, double-check your FFmpeg command and source file.
 
 ## Building and Running
 
@@ -64,15 +68,17 @@ python3 test_h264_reader.py
 ./holohub run nvc_decode --language python
 ```
 
-### Manual Run
+### C++
 ```bash
-cd holohub/applications/nvidia_video_codec/nvc_decode/python
-python3 nvidia_video_codec.py --data /path/to/data/directory
+./holohub run nvc_decode --language cpp
 ```
 
 ## Configuration
 
-The application is configured via [nvc_decode.yaml](./nvc_decode.yaml):
+The application is configured via configuration files:
+
+- **Python**: [python/nvc_decode.yaml](./python/nvc_decode.yaml)
+- **C++**: [cpp/nvc_decode.yaml](./cpp/nvc_decode.yaml)
 
 ```yaml
 decoder:
@@ -126,7 +132,7 @@ Jitter Time (min, max, avg): 0.123, 0.456, 0.234
 ### Common Issues
 
 1. **File Not Found**: Ensure your H.264 file exists and the path is correct
-2. **Invalid Format**: Use `test_h264_reader.py` to verify your file contains valid H.264 elementary stream
+2. **Invalid Format**: Run the application with your file to verify it contains valid H.264 elementary stream
 3. **GPU Not Supported**: Ensure your GPU supports NVIDIA Video Codec SDK
 
 ### File Format Requirements

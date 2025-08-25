@@ -93,7 +93,7 @@ class NVIDIAVideoCodecApp(Application):
         fps = self.kwargs("holoviz")["framerate"]
         h264_file_reader = NvVideoReaderOp(
             self,
-            CountCondition(self, 683),
+            CountCondition(self, 683),  # number of frames to read
             PeriodicCondition(self, name="periodic_condition", recess_period=1 / fps),
             name="h264_file_reader",
             directory=self.sample_data_path,
