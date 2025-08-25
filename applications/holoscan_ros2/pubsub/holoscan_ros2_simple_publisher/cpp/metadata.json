@@ -1,0 +1,37 @@
+{
+	"application": {
+		"name": "Holoscan ROS2 Simple Publisher",
+		"authors": [
+			{
+				"name": "Holoscan SDK Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.0",
+			"tested_versions": [
+				"3.0"
+			]
+		},
+		"dockerfile": "applications/holoscan_ros2/Dockerfile",
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["ROS2", "Simple Publisher"],
+		"ranking": 1,
+		"dependencies": {
+			"external": {
+			}
+		},
+		"run": {
+			"command": "<holohub_app_bin>/holoscan_ros2_simple_publisher",
+			"workdir": "holohub_bin"
+		}
+	}
+}
