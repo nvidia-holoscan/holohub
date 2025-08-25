@@ -14455,6 +14455,66 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#7-using-python-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Using Python Bindings
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Using Python Bindings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-with-python-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building with Python Bindings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-python-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running Python Applications
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python-bindings-location" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Bindings Location
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting-python-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting Python Bindings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -14628,7 +14688,11 @@
 <div class="highlight"><pre><span></span><code>your_external_app/
 ├── CMakeLists.txt
 ├── main.cpp
+├── main.py (optional - for Python applications)
 └── build/
+    └── python/
+        └── lib/
+            └── holohub/ (Python modules)
 </code></pre></div>
 <h2 id="step-by-step-guide">Step-by-Step Guide<a class="headerlink" href="#step-by-step-guide" title="Permanent link">#</a></h2>
 <h3 id="1-create-your-cmakeliststxt">1. Create Your CMakeLists.txt<a class="headerlink" href="#1-create-your-cmakeliststxt" title="Permanent link">#</a></h3>
@@ -14770,7 +14834,7 @@
 <h3 id="3-the-fetchholohuboperatorcmake-utility">3. The FetchHolohubOperator.cmake Utility<a class="headerlink" href="#3-the-fetchholohuboperatorcmake-utility" title="Permanent link">#</a></h3>
 <p>The <code>FetchHolohubOperator.cmake</code> file provides a convenient way to fetch specific operators from the Holohub repository. It uses Git sparse checkout to download only the required operator, making the process efficient.</p>
 <h4 id="function-signature">Function Signature<a class="headerlink" href="#function-signature" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">OPERATOR_NAME</span><span class="w"> </span><span class="s">[PATH</span><span class="w"> </span><span class="s">path]</span><span class="w"> </span><span class="s">[REPO_URL</span><span class="w"> </span><span class="s">url]</span><span class="w"> </span><span class="s">[BRANCH</span><span class="w"> </span><span class="s">branch]</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">OPERATOR_NAME</span><span class="w"> </span><span class="s">[PATH</span><span class="w"> </span><span class="s">path]</span><span class="w"> </span><span class="s">[REPO_URL</span><span class="w"> </span><span class="s">url]</span><span class="w"> </span><span class="s">[BRANCH</span><span class="w"> </span><span class="s">branch]</span><span class="w"> </span><span class="s">[DISABLE_PYTHON]</span><span class="p">)</span>
 </code></pre></div>
 <h4 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h4>
 <ul>
@@ -14778,6 +14842,7 @@
 <li><code>PATH</code> (optional): The path to the operator within the Holohub repository (defaults to OPERATOR_NAME)</li>
 <li><code>REPO_URL</code> (optional): The URL of the Holohub repository (defaults to the official Holohub repo)</li>
 <li><code>BRANCH</code> (optional): The branch to checkout (defaults to "main")</li>
+<li><code>DISABLE_PYTHON</code> (optional): Flag to disable Python bindings build (Python bindings are enabled by default)</li>
 </ul>
 <h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c"># Fetch the aja_source operator</span>
@@ -14791,6 +14856,9 @@
 
 <span class="c"># Fetch from a specific branch</span>
 <span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">custom_operator</span><span class="w"> </span><span class="s">BRANCH</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">)</span>
+
+<span class="c"># Fetch an operator without Python bindings</span>
+<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span><span class="w"> </span><span class="s">DISABLE_PYTHON</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="4-choosing-the-right-approach">4. Choosing the Right Approach<a class="headerlink" href="#4-choosing-the-right-approach" title="Permanent link">#</a></h3>
 <p>When deciding which approach to use for including <code>FetchHolohubOperator.cmake</code>, consider your specific requirements:</p>
@@ -14850,6 +14918,57 @@ cmake<span class="w"> </span>..
 <span class="c1"># Build the project</span>
 make<span class="w"> </span>-j<span class="k">$(</span>nproc<span class="k">)</span>
 </code></pre></div>
+<h3 id="7-using-python-bindings">7. Using Python Bindings<a class="headerlink" href="#7-using-python-bindings" title="Permanent link">#</a></h3>
+<p>Many Holohub operators provide Python bindings, allowing you to use them in Python applications. Here's how to work with Python bindings:</p>
+<h4 id="building-with-python-bindings">Building with Python Bindings<a class="headerlink" href="#building-with-python-bindings" title="Permanent link">#</a></h4>
+<p>By default, Python bindings are automatically built when you fetch an operator. If you want to disable Python bindings, you can use the <code>DISABLE_PYTHON</code> flag:</p>
+<div class="highlight"><pre><span></span><code><span class="c"># Disable Python bindings for this operator</span>
+<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span><span class="w"> </span><span class="s">DISABLE_PYTHON</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="running-python-applications">Running Python Applications<a class="headerlink" href="#running-python-applications" title="Permanent link">#</a></h4>
+<p>After building your project, Python modules are typically installed in the <code>python/lib</code> directory within your build directory. To run Python applications that use the Holohub operators:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Navigate to your build directory</span>
+<span class="nb">cd</span><span class="w"> </span>build
+
+<span class="c1"># Set the PYTHONPATH to include the built Python modules</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:<span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/python/lib
+
+<span class="c1"># Run your Python application</span>
+python3<span class="w"> </span>../main.py
+</code></pre></div>
+<h4 id="python-example">Python Example<a class="headerlink" href="#python-example" title="Permanent link">#</a></h4>
+<p>Create a <code>main.py</code> file that uses the fetched operator:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Application</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">holohub.aja_source</span><span class="w"> </span><span class="kn">import</span> <span class="n">AJASourceOp</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">App</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Create an instance of the AJA source operator</span>
+        <span class="n">aja_source</span> <span class="o">=</span> <span class="n">AJASourceOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;aja&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Add the operator to your application</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_operator</span><span class="p">(</span><span class="n">aja_source</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="python-bindings-location">Python Bindings Location<a class="headerlink" href="#python-bindings-location" title="Permanent link">#</a></h4>
+<p>The Python modules are built and installed in the following structure:
+<div class="highlight"><pre><span></span><code>build/
+├── python/
+│   └── lib/
+│       └── holohub/
+│           ├── __init__.py
+│           ├── aja_source.py
+│           └── ... (other operator modules)
+</code></pre></div></p>
+<h4 id="troubleshooting-python-bindings">Troubleshooting Python Bindings<a class="headerlink" href="#troubleshooting-python-bindings" title="Permanent link">#</a></h4>
+<ol>
+<li><strong>Module not found errors</strong>: Ensure <code>PYTHONPATH</code> is set correctly</li>
+<li><strong>Import errors</strong>: Verify that Python bindings were built (check the <code>python/lib</code> directory)</li>
+<li><strong>Version compatibility</strong>: Make sure your Python version is compatible with the Holoscan SDK</li>
+</ol>
 <h2 id="available-operators">Available Operators<a class="headerlink" href="#available-operators" title="Permanent link">#</a></h2>
 <p>Holohub provides many operators that you can fetch and use. Some popular ones include:</p>
 <ul>
@@ -14919,7 +15038,7 @@ make<span class="w"> </span>-j<span class="k">$(</span>nproc<span class="k">)</s
 <li><strong>Documentation</strong>: Document which operators your application depends on</li>
 </ol>
 <h2 id="example-complete-project">Example Complete Project<a class="headerlink" href="#example-complete-project" title="Permanent link">#</a></h2>
-<p>See the <code>main.cpp</code> and <code>CMakeLists.txt</code> files in this directory for a complete working example that demonstrates how to use the AJA source operator from Holohub.</p>
+<p>See the <code>main.cpp</code>, <code>main.py</code>, and <code>CMakeLists.txt</code> files in this directory for complete working examples that demonstrate how to use the AJA source operator from Holohub in both C++ and Python applications.</p>
 <h2 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="https://github.com/nvidia-holoscan/holohub">Holohub Repository</a></li>
