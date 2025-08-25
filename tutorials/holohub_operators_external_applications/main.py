@@ -16,6 +16,7 @@ limitations under the License.
 """  # noqa: E501
 
 from holoscan.core import Application
+
 from holohub.aja_source import AJASourceOp
 
 
