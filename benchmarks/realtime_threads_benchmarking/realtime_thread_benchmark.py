@@ -21,15 +21,14 @@ import threading
 import time
 
 import matplotlib
-
-matplotlib.use("Agg")  # Non-interactive backend for containers
 import matplotlib.pyplot as plt
 import numpy as np
-
 from holoscan.conditions import PeriodicCondition
 from holoscan.core import Application, IOSpec, Operator, OperatorSpec
 from holoscan.resources import SchedulingPolicy
 from holoscan.schedulers import EventBasedScheduler
+
+matplotlib.use("Agg")  # Non-interactive backend for containers
 
 
 class TargetOperator(Operator):
