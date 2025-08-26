@@ -1,0 +1,40 @@
+{
+	"application": {
+		"name": "Industrial I/O (IIO) - ADALM-Pluto SDR Integration",
+		"authors": [
+			{
+				"name": "Andrei-Fabian Pop",
+				"affiliation": "Analog Devices Inc."
+			}
+		],
+		"language": "C++",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["iio", "libiio"],
+		"ranking": 3,
+		"requirements": {
+			"operators": [
+				"iio_controller",
+				"fft"
+			],
+			"libraries": [{
+				"name": "libiio",
+				"version": "0.26",
+				"url": "https://github.com/analogdevicesinc/libiio.git"
+			}]
+		},
+		"run": {
+			"command": "<holohub_app_bin>/iio",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}
