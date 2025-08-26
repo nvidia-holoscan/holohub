@@ -38,5 +38,12 @@ COPY utilities /tmp/scripts/utilities/
 RUN chmod +x /tmp/scripts/holohub
 RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
+FROM base as torch
+
 # Install libraries
 RUN pip install torch torchvision
+
+# Set up Holoscan SDK container libtorch to be found with ldconfig for app C++ build and runtime
+RUN echo $(python3 -c "import torch; print(torch.__path__[0])")/lib > /etc/ld.so.conf.d/libtorch.conf \
+    && ldconfig \
+    && ldconfig -p | grep -q "libtorch.so"

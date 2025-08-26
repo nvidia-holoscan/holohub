@@ -19,6 +19,36 @@ project(object_detection_torch CXX)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+if(holoscan_VERSION GREATER 3.5)
+  # Torchvision is required for loading FRCNN ResNet 50 and similar models
+  # with the Holoinfer Libtorch backend.
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+
+  execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c "import torch; print(torch.__path__[0])"
+    OUTPUT_VARIABLE TORCH_ROOT_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  find_package(Torch PATHS ${TORCH_ROOT_DIR} REQUIRED)
+
+  execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c "import torchvision; print(';'.join(torchvision.__path__))"
+    OUTPUT_VARIABLE TORCHVISION_SEARCH_DIRS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  find_library(TORCHVISION_LIBRARY
+    NAMES libtorchvision.so _C.so
+    PATHS ${TORCHVISION_SEARCH_DIRS}
+    PATH_SUFFIXES lib lib64
+    REQUIRED
+  )
+  add_library(torchvision SHARED IMPORTED)
+  set_target_properties(torchvision PROPERTIES
+      IMPORTED_LOCATION "${TORCHVISION_LIBRARY}"
+  )
+  add_library(torchvision::torchvision ALIAS torchvision)
+endif()
+
 add_executable(object_detection_torch
     main.cpp
 )
@@ -34,6 +64,14 @@ target_link_libraries(object_detection_torch
     holoscan::ops::holoviz
     $<$<TARGET_EXISTS:holoscan::aja>:holoscan::aja>
 )
+if(holoscan_VERSION GREATER 3.5)
+  # Forcibly link torchvision and its required Python symbols to prevent ResNet runtime import failure
+  target_link_libraries(object_detection_torch
+    PRIVATE
+    ${TORCH_LIBRARIES}
+    "-Wl,--no-as-needed $<TARGET_PROPERTY:Python3::Python,IMPORTED_LOCATION> $<TARGET_PROPERTY:torchvision::torchvision,IMPORTED_LOCATION> -Wl,--as-needed"
+  )
+endif()
 
 # Download the cars sample data
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
