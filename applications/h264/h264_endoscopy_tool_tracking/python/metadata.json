@@ -48,9 +48,19 @@
         }
       ]
     },
-    "run": {
-      "command": "python3 <holohub_app_source>/h264_endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy",
-      "workdir": "holohub_bin"
-    }
-  }
+		"modes": {
+			"replayer": {
+				"description": "Use a pre-recorded Endoscopy video as input",
+				"build": {
+					"docker_build_args": ["--target", "base"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/h264_endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy",
+					"workdir": "holohub_bin",
+					"docker_build_args": ["--target", "run"]
+				}
+			}
+		},
+		"default_mode": "replayer"
+	}
 }

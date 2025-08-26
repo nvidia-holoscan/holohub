@@ -66,6 +66,8 @@ WORKDIR /
 
 RUN /install_dependencies.sh
 
+FROM base as run
+
 # Workaround for reported issue when running Python H264 applications:
 # 2: [warning] [gxf_extension_manager.cpp:174] Unable to load extension from 'libgxf_videodecoder.so' \
 #   (error: /opt/nvidia/holoscan/lib/libgxf_videodecoder.so: undefined symbol: _ZN6nvidia6logger15GlobalGxfLogger8instanceEv)
