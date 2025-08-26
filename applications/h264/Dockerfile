@@ -65,16 +65,3 @@ WORKDIR /
 #ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 
 RUN /install_dependencies.sh
-
-FROM base as run
-
-# Workaround for reported issue when running Python H264 applications:
-# 2: [warning] [gxf_extension_manager.cpp:174] Unable to load extension from 'libgxf_videodecoder.so' \
-#   (error: /opt/nvidia/holoscan/lib/libgxf_videodecoder.so: undefined symbol: _ZN6nvidia6logger15GlobalGxfLogger8instanceEv)
-# 2: [warning] [gxf_extension_manager.cpp:174] Unable to load extension from 'libgxf_videodecoderio.so' \
-#   (error: /opt/nvidia/holoscan/lib/libgxf_videodecoderio.so: undefined symbol: _ZN6nvidia6logger15GlobalGxfLogger8instanceEv)
-# 2: [info] [fragment.cpp:778] Loading extensions from configs...
-# 2: [warning] [type_registry.cpp:57] Unknown type: nvidia::gxf::VideoReadBitStream
-#
-# This is a workaround to load the libgxf_core.so library before running the application.
-ENV LD_PRELOAD=/opt/nvidia/holoscan/lib/libgxf_core.so

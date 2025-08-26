@@ -22,17 +22,26 @@ input file can be specified in the 'h264_video_decode.yaml' file.
 
 The data is automatically downloaded when building the application.
 
-## Building and Running H.264 Endoscopy Tool Tracking Application
+## Build and Run the H.264 Endoscopy Tool Tracking Application
 
-* Building and running the application from the top level Holohub directory:
+### C++
+
+```bash
+./holohub run h264_video_decode --language cpp
+```
+
+### Python
+
+Separate build and run commands are required to address the known [symbol loading issue](../README.md#symbol-error-at-load).
 
 ```bash
 # C++ version
-./holohub run h264_video_decode --language=cpp
+./holohub build h264_video_decode --language python
 
 # Python version
-./holohub run h264_video_decode --language=python
-
+# Note: LD_PRELOAD required to address symbol issue
+./holohub run h264_video_decode --language python \
+    --docker-opts="-e LD_PRELOAD=/opt/nvidia/holoscan/lib/libgxf_core.so"
 ```
 
 Important: on aarch64, applications also need tegra folder mounted inside the container and
