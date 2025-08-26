@@ -1,5 +1,5 @@
 """
- SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  SPDX-License-Identifier: Apache-2.0
 
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -111,7 +111,9 @@ def main():
         args.source_video_dir, args.source_video_basename, args.output_dir, "source"
     )
 
-    valid_output = check_frames(args.output_dir + "/source", args.validation_frames_dir, args.threshold)
+    valid_output = check_frames(
+        args.output_dir + "/source", args.validation_frames_dir, args.threshold
+    )
 
     if valid_output:
         print("Valid video output!")
