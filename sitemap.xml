@@ -165,6 +165,10 @@
          <lastmod>2025-08-26</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/iio/</loc>
+         <lastmod>2025-08-26</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/imaging_ai_segmentator/</loc>
          <lastmod>2025-08-26</lastmod>
     </url>
@@ -546,6 +550,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/high_rate_psd/</loc>
+         <lastmod>2025-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/iio_controller/</loc>
          <lastmod>2025-08-26</lastmod>
     </url>
     <url>
