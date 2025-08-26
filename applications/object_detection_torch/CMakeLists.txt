@@ -32,7 +32,7 @@ target_link_libraries(object_detection_torch
     holoscan::ops::inference
     holoscan::ops::inference_processor
     holoscan::ops::holoviz
-    holoscan::aja
+    $<$<TARGET_EXISTS:holoscan::aja>:holoscan::aja>
 )
 
 # Download the cars sample data
