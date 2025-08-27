@@ -19,7 +19,8 @@
             ]
         },
         "platforms": [
-            "x86_64"
+            "x86_64",
+            "aarch64"
         ],
         "tags": ["Benchmarking", "Real-time", "Threading", "Performance"],
         "ranking": 1,
