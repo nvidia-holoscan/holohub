@@ -14745,18 +14745,78 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#additional-resources" class="md-nav__link">
+  <a href="#using-holohub-cli-in-external-projects" class="md-nav__link">
     <span class="md-ellipsis">
-      Additional Resources
+      Using Holohub CLI in External Projects
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using Holohub CLI in External Projects">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-holohubcli_wrapper-to-your-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding holohubCLI_wrapper to Your Project
     </span>
   </a>
   
 </li>
+        
+          <li class="md-nav__item">
+  <a href="#project-structure-with-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project Structure with CLI
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using the CLI
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      CLI Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits-for-external-projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits for External Projects
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
+  <a href="#additional-resources" class="md-nav__link">
     <span class="md-ellipsis">
-      License
+      Additional Resources
     </span>
   </a>
   
@@ -15161,14 +15221,72 @@ python3<span class="w"> </span>../main.py
 </ol>
 <h2 id="example-complete-project">Example Complete Project<a class="headerlink" href="#example-complete-project" title="Permanent link">#</a></h2>
 <p>See the <code>main.cpp</code>, <code>main.py</code>, and <code>CMakeLists.txt</code> files in this directory for complete working examples that demonstrate how to use the AJA source operator from Holohub in both C++ and Python applications.</p>
+<h2 id="using-holohub-cli-in-external-projects">Using Holohub CLI in External Projects<a class="headerlink" href="#using-holohub-cli-in-external-projects" title="Permanent link">#</a></h2>
+<p>The Holohub CLI provides convenient command-line tools for managing Holohub applications, including building, running, and testing operators and applications. You can easily integrate the CLI into your external projects to leverage these functionalities.</p>
+<h3 id="adding-holohubcli_wrapper-to-your-project">Adding holohubCLI_wrapper to Your Project<a class="headerlink" href="#adding-holohubcli_wrapper-to-your-project" title="Permanent link">#</a></h3>
+<p>To use the Holohub CLI in your external project, simply copy the <code>holohubCLI_wrapper</code> script from this tutorial to the root of your project.:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Download the CLI script to your project root</span>
+wget<span class="w"> </span>-O<span class="w"> </span>/path/to/your/project/proj_cli<span class="w"> </span>https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/holohub_operators_external_applications/holohubCLI_wrapper
+
+<span class="c1"># Make it executable</span>
+chmod<span class="w"> </span>+x<span class="w"> </span>/path/to/your/project/proj_cli
+</code></pre></div>
+<p>Add the following to your <code>.gitignore</code> file to exclude the downloaded Holohub CLI utilities:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Holohub CLI</span>
+utilities
+cmake
+.local
+</code></pre></div>
+<h3 id="project-structure-with-cli">Project Structure with CLI<a class="headerlink" href="#project-structure-with-cli" title="Permanent link">#</a></h3>
+<p>Your project structure will look like this:</p>
+<div class="highlight"><pre><span></span><code>your_external_app/
+├── myprojectCLI           # Holohub CLI script
+├── CMakeLists.txt
+├── main.cpp
+├── main.py (optional)
+└── build/
+</code></pre></div>
+<h3 id="using-the-cli">Using the CLI<a class="headerlink" href="#using-the-cli" title="Permanent link">#</a></h3>
+<p>Once you have the <code>proj_cli</code> script in your project, you can use it to access various Holohub CLI commands:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run your application</span>
+./proj_cli<span class="w"> </span>run<span class="w"> </span>&lt;application&gt;
+
+<span class="c1"># List available commands</span>
+./proj_cli<span class="w"> </span>--help
+</code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> The first time you run the script, it will automatically download the Holohub CLI scripts locally from the Holohub repository. Therefore, an internet connection is required for the initial run.</p>
+</blockquote>
+<p>Please refer to the Holohub CLI help command for more information.</p>
+<h3 id="cli-features">CLI Features<a class="headerlink" href="#cli-features" title="Permanent link">#</a></h3>
+<p>The Holohub CLI provides several useful features for external projects:</p>
+<ul>
+<li><strong>Build Management</strong>: Automated building of C++ and Python applications</li>
+<li><strong>Docker Integration</strong>: Run applications in Docker containers with proper environment setup</li>
+<li><strong>Testing</strong>: Run tests and validation for your operators</li>
+<li><strong>Development Tools</strong>: Various utilities for Holohub development</li>
+</ul>
+<h3 id="environment-setup">Environment Setup<a class="headerlink" href="#environment-setup" title="Permanent link">#</a></h3>
+<p>The CLI script automatically handles:
+- Setting up the correct Python path
+- Managing Docker options (if using Docker)
+- Configuring environment variables
+- Fetching necessary utilities from the Holohub repository</p>
+<h3 id="benefits-for-external-projects">Benefits for External Projects<a class="headerlink" href="#benefits-for-external-projects" title="Permanent link">#</a></h3>
+<p>Using the Holohub CLI in your external project provides:</p>
+<ol>
+<li><strong>Consistency</strong>: Same build and run processes as Holohub applications</li>
+<li><strong>Automation</strong>: Automated setup and configuration</li>
+<li><strong>Docker Support</strong>: Easy containerization of your applications</li>
+<li><strong>Testing</strong>: Built-in testing capabilities</li>
+<li><strong>Documentation</strong>: Access to Holohub's documentation and examples</li>
+</ol>
 <h2 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="https://github.com/nvidia-holoscan/holohub">Holohub Repository</a></li>
 <li><a href="https://docs.nvidia.com/holoscan/">Holoscan Documentation</a></li>
 <li><a href="https://github.com/nvidia-holoscan/holohub/tree/main/operators">Holohub Operators Documentation</a></li>
 </ul>
-<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">#</a></h2>
-<p>This tutorial is part of Holohub and is licensed under the Apache 2.0 License. </p>
 
 
 
