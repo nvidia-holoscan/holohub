@@ -1,6 +1,10 @@
 name: Check metadata validity
 
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore: [holoscan-sdk-lws2]
+  pull_request:
+    branches-ignore: [holoscan-sdk-lws2]
 
 jobs:
   check-metadata:
