@@ -439,12 +439,87 @@ cmake -DCMAKE_VERBOSE_MAKEFILE=ON ..
 
 See the `main.cpp`, `main.py`, and `CMakeLists.txt` files in this directory for complete working examples that demonstrate how to use the AJA source operator from Holohub in both C++ and Python applications.
 
+## Using Holohub CLI in External Projects
+
+The Holohub CLI provides convenient command-line tools for managing Holohub applications, including building, running, and testing operators and applications. You can easily integrate the CLI into your external projects to leverage these functionalities.
+
+### Adding holohubCLI_wrapper to Your Project
+
+To use the Holohub CLI in your external project, simply copy the `holohubCLI_wrapper` script from this tutorial to the root of your project.:
+
+```bash
+# Copy the CLI script to your project root
+cp tutorials/holohub_operators_external_applications/holohubCLI_wrapper /path/to/your/project/myprojectCLI
+
+# Make it executable
+chmod +x /path/to/your/project/myprojectCLI
+```
+
+Edit the line in `myprojectCLI` to match the name of the script:
+
+```bash
+export HOLOHUB_CMD_NAME='./holohubCLI_wrapper'
+```
+
+### Project Structure with CLI
+
+Your project structure will look like this:
+
+```
+your_external_app/
+├── myprojectCLI           # Holohub CLI script
+├── CMakeLists.txt
+├── main.cpp
+├── main.py (optional)
+└── build/
+```
+
+### Using the CLI
+
+Once you have the `myprojectCLI` script in your project, you can use it to access various Holohub CLI commands:
+
+```bash
+# Run your application
+./myprojectCLI run <application>
+
+# List available commands
+./myprojectCLI --help
+```
+
+> **Note:** The first time you run the script, it will automatically download the Holohub CLI scripts locally from the Holohub repository. Therefore, an internet connection is required for the initial run.
+
+
+Please refer to the inline Holohub CLI help for more information.
+
+### CLI Features
+
+The Holohub CLI provides several useful features for external projects:
+
+- **Build Management**: Automated building of C++ and Python applications
+- **Docker Integration**: Run applications in Docker containers with proper environment setup
+- **Testing**: Run tests and validation for your operators
+- **Development Tools**: Various utilities for Holohub development
+
+### Environment Setup
+
+The CLI script automatically handles:
+- Setting up the correct Python path
+- Managing Docker options (if using Docker)
+- Configuring environment variables
+- Fetching necessary utilities from the Holohub repository
+
+### Benefits for External Projects
+
+Using the Holohub CLI in your external project provides:
+
+1. **Consistency**: Same build and run processes as Holohub applications
+2. **Automation**: Automated setup and configuration
+3. **Docker Support**: Easy containerization of your applications
+4. **Testing**: Built-in testing capabilities
+5. **Documentation**: Access to Holohub's documentation and examples
+
 ## Additional Resources
 
 - [Holohub Repository](https://github.com/nvidia-holoscan/holohub)
 - [Holoscan Documentation](https://docs.nvidia.com/holoscan/)
 - [Holohub Operators Documentation](https://github.com/nvidia-holoscan/holohub/tree/main/operators)
-
-## License
-
-This tutorial is part of Holohub and is licensed under the Apache 2.0 License. 
