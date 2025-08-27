@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,11 @@ class App : public holoscan::Application {
  public:
   void set_source(const std::string &source) {
     if (source == "aja") {
+#ifdef AJA_SOURCE
       is_aja_source_ = true;
+#else
+    throw std::runtime_error("AJA source not enabled, please rebuild with AJA support");
+#endif
     }
   }
 
@@ -61,7 +65,11 @@ class App : public holoscan::Application {
 
     std::shared_ptr<Resource> pool_resource = make_resource<UnboundedAllocator>("pool");
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
+#else
+      throw std::runtime_error("AJA source not enabled, please rebuild with AJA support");
+#endif
     } else {
       source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
                                                          Arg("directory", datapath));
@@ -204,9 +212,13 @@ class App : public holoscan::Application {
 
     // Flow definition
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       const std::set<std::pair<std::string, std::string>> aja_ports =
                                           {{"video_buffer_output", ""}};
       add_flow(source, detect_preprocessor, aja_ports);
+#else
+      throw std::runtime_error("AJA source not enabled, please rebuild with AJA support");
+#endif
     } else {
       add_flow(source, detect_preprocessor);
       add_flow(source, holoviz, {{"", "receivers"}});

@@ -82,7 +82,7 @@ add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
                         OPERATORS basic_network)
 
-add_holohub_application(object_detection_torch DEPENDS OPERATORS aja_source)
+add_holohub_application(object_detection_torch DEPENDS OPERATORS OPTIONAL aja_source)
 
 add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
 
