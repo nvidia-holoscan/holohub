@@ -448,17 +448,20 @@ The Holohub CLI provides convenient command-line tools for managing Holohub appl
 To use the Holohub CLI in your external project, simply copy the `holohubCLI_wrapper` script from this tutorial to the root of your project.:
 
 ```bash
-# Copy the CLI script to your project root
-cp tutorials/holohub_operators_external_applications/holohubCLI_wrapper /path/to/your/project/myprojectCLI
+# Download the CLI script to your project root
+wget -O /path/to/your/project/proj_cli https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/holohub_operators_external_applications/holohubCLI_wrapper
 
 # Make it executable
-chmod +x /path/to/your/project/myprojectCLI
+chmod +x /path/to/your/project/proj_cli
 ```
 
-Edit the line in `myprojectCLI` to match the name of the script:
+Add the following to your `.gitignore` file to exclude the downloaded Holohub CLI utilities:
 
 ```bash
-export HOLOHUB_CMD_NAME='./holohubCLI_wrapper'
+# Holohub CLI
+utilities
+cmake
+.local
 ```
 
 ### Project Structure with CLI
@@ -476,20 +479,19 @@ your_external_app/
 
 ### Using the CLI
 
-Once you have the `myprojectCLI` script in your project, you can use it to access various Holohub CLI commands:
+Once you have the `proj_cli` script in your project, you can use it to access various Holohub CLI commands:
 
 ```bash
 # Run your application
-./myprojectCLI run <application>
+./proj_cli run <application>
 
 # List available commands
-./myprojectCLI --help
+./proj_cli --help
 ```
 
 > **Note:** The first time you run the script, it will automatically download the Holohub CLI scripts locally from the Holohub repository. Therefore, an internet connection is required for the initial run.
 
-
-Please refer to the inline Holohub CLI help for more information.
+Please refer to the Holohub CLI help command for more information.
 
 ### CLI Features
 

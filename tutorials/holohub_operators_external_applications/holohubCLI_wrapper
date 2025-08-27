@@ -18,6 +18,9 @@
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Pulls the holohub CLI from the holohub repo
+# The script checks if utilities/cli exists in the current directory, 
+# if not it pulls the holohub CLI from the holohub repo
+# To update the holohub CLI, remove the utilities/cli directory and run the script again
 if [ ! -d "${SCRIPT_PATH}/utilities/cli" ]; then
     git clone --depth 1 --no-checkout https://github.com/nvidia-holoscan/holohub.git ${SCRIPT_PATH}/.tmp-holohub/holohub \
         && cd ${SCRIPT_PATH}/.tmp-holohub/holohub \
@@ -30,19 +33,6 @@ if [ ! -d "${SCRIPT_PATH}/utilities/cli" ]; then
         && cd ${SCRIPT_PATH}
 fi
 
-# Check if RTI_LICENSE_FILE is set
-if [ -n "$RTI_LICENSE_FILE" ]; then
-    if [ "$1" == "run" ] && [[ ! " $@ " =~ " --local " ]]; then
-      DOCKER_OPTS="--docker-opts=-v ${RTI_LICENSE_FILE}:/workspace/rti_license.dat"
-    fi
-fi
+export HOLOHUB_CMD_NAME=${BASH_SOURCE[0]}
 
-# TODO: Set the command name to the script name
-export HOLOHUB_CMD_NAME='./holohubCLI_wrapper'
-
-# Only pass DOCKER_OPTS if it's set and not empty
-if [ -n "$DOCKER_OPTS" ]; then
-    PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/holohub.py "$@" "$DOCKER_OPTS"
-else
-    PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/holohub.py "$@"
-fi
+PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/holohub.py "$@"
