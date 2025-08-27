@@ -12,3 +12,7 @@ CTestConfig.cmake
 aggregate_metadata.json
 /dist/
 /install/
+
+.local/
+.ngc/
+.cache/
