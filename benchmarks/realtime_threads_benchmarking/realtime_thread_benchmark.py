@@ -238,14 +238,12 @@ class RealtimeThreadBenchmark(Application):
         load_op1 = LoadOperator(
             self,
             self.load_duration_ms,
-            PeriodicCondition(self, int(1e9 / self.target_fps)),  # Same frequency as target
             name="load_op1",
         )
 
         load_op2 = LoadOperator(
             self,
             self.load_duration_ms,
-            PeriodicCondition(self, int(1e9 / self.target_fps)),  # Same frequency as target
             name="load_op2",
         )
 
@@ -257,7 +255,7 @@ class RealtimeThreadBenchmark(Application):
         # Create thread pools with limited worker threads to create contention
         if self.use_realtime:
             # Realtime pool for target operator
-            realtime_pool = self.make_thread_pool("realtime_pool", 1)  # 1 worker thread
+            realtime_pool = self.make_thread_pool("realtime_pool", 1)
 
             if self.scheduling_policy == SchedulingPolicy.SCHED_DEADLINE:
                 period_ns = int(1e9 / self.target_fps)
@@ -283,12 +281,12 @@ class RealtimeThreadBenchmark(Application):
                 )
 
             # Regular pool for load operators (competing for resources)
-            load_pool = self.make_thread_pool("load_pool", 1)  # 1 worker thread
-            load_pool.add(load_op1, pin_operator=True, pin_cores=[1])
-            load_pool.add(load_op2, pin_operator=True, pin_cores=[1])
+            load_pool = self.make_thread_pool("load_pool", 1)
+            load_pool.add(load_op1, pin_cores=[1])
+            load_pool.add(load_op2, pin_cores=[1])
         else:
             # All operators share the same pool (no realtime scheduling)
-            shared_pool = self.make_thread_pool("shared_pool", 2)  # 2 worker threads
+            shared_pool = self.make_thread_pool("shared_pool", 2)
             shared_pool.add(target_op, pin_cores=[0, 1])
             shared_pool.add(load_op1, pin_cores=[0, 1])
             shared_pool.add(load_op2, pin_cores=[0, 1])
@@ -376,20 +374,20 @@ def print_results(results: dict):
     if results.get("frame_period_stats"):
         fps = results["frame_period_stats"]
         target_period_ms = 1000.0 / results["target_fps"]
-        print(f"  ★ Frame Jitter (Std): {fps['std_ms']:.3f}ms  ← KEY METRIC")
+        print(f"  ★ Frame Period Std Dev: {fps['std_ms']:.3f}ms  ← KEY METRIC")
         print(f"  Frame Period Mean: {fps['mean_ms']:.3f}ms (Target: {target_period_ms:.1f}ms)")
 
     # SECONDARY METRICS - Execution consistency
     if results.get("execution_time_stats"):
         ets = results["execution_time_stats"]
-        print(f"  Execution Jitter (Std): {ets['std_ms']:.3f}ms")
+        print(f"  Execution Time Std Dev: {ets['std_ms']:.3f}ms")
         print(f"  Execution Time Mean: {ets['mean_ms']:.3f}ms")
 
     # DETAILED RANGES - Less critical but informative
     if results.get("frame_period_stats") and results.get("execution_time_stats"):
         fps = results["frame_period_stats"]
         ets = results["execution_time_stats"]
-        print(f"  Frame Period Range: {fps['min_ms']:.1f}ms - {fps['max_ms']:.1f}ms")
+        print(f"  Frame Period Min/Max: {fps['min_ms']:.1f}ms / {fps['max_ms']:.1f}ms")
         print(f"  Execution Range: {ets['min_ms']:.3f}ms - {ets['max_ms']:.3f}ms")
 
     # TEST VALIDATION INFO - Basic metadata last
@@ -678,18 +676,18 @@ def main():
     if normal_results.get("frame_period_stats") and realtime_results.get("frame_period_stats"):
         normal_period_std = normal_results["frame_period_stats"]["std_ms"]
         realtime_period_std = realtime_results["frame_period_stats"]["std_ms"]
-        period_jitter_improvement = (realtime_period_std / normal_period_std - 1) * 100
+        period_std_improvement = (realtime_period_std / normal_period_std - 1) * 100
         print(
-            f"★ Frame Jitter (Std):   {normal_period_std:7.3f}    "
-            f"{realtime_period_std:9.3f}    {period_jitter_improvement:+7.1f}% ★"
+            f"★ Frame Period Std Dev: {normal_period_std:7.3f}    "
+            f"{realtime_period_std:9.3f}    {period_std_improvement:+7.1f}% ★"
         )
 
         # Add visual feedback based on improvement
-        if period_jitter_improvement <= -50:  # >50% improvement
+        if period_std_improvement <= -50:  # >50% improvement
             print("🚀 EXCELLENT real-time improvement!")
-        elif period_jitter_improvement <= -20:  # >20% improvement
+        elif period_std_improvement <= -20:  # >20% improvement
             print("✅ Good real-time improvement")
-        elif period_jitter_improvement <= -5:  # >5% improvement
+        elif period_std_improvement <= -5:  # >5% improvement
             print("👍 Modest real-time improvement")
         else:
             print("⚠️  Limited or no improvement from real-time scheduling")
@@ -698,10 +696,10 @@ def main():
     if normal_results.get("execution_time_stats") and realtime_results.get("execution_time_stats"):
         normal_exec_std = normal_results["execution_time_stats"]["std_ms"]
         realtime_exec_std = realtime_results["execution_time_stats"]["std_ms"]
-        exec_jitter_improvement = (realtime_exec_std / normal_exec_std - 1) * 100
+        exec_std_improvement = (realtime_exec_std / normal_exec_std - 1) * 100
         print(
-            f"  Exec Jitter (Std):    {normal_exec_std:7.3f}    "
-            f"{realtime_exec_std:9.3f}    {exec_jitter_improvement:+7.1f}%"
+            f"  Exec Time Std Dev:     {normal_exec_std:7.3f}    "
+            f"{realtime_exec_std:9.3f}    {exec_std_improvement:+7.1f}%"
         )
 
 

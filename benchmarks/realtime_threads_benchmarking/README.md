@@ -5,10 +5,10 @@ This benchmark application demonstrates and evaluates the effectiveness of real-
 ## Overview
 
 The benchmark creates a controlled environment to test real-time scheduling by:
-- Running a target operator at a specific FPS (30 or 60 FPS)
+- Running a target Holoscan operator at a specific FPS (30 or 60 FPS)
 - Creating competing CPU load through load operators
-- Measuring timing precision and consistency
-- Comparing normal scheduling vs real-time scheduling policies
+- Measuring timing precision and consistency for the Holoscan operator
+- Comparing normal scheduling vs real-time scheduling policies for Holoscan operator performance
 
 ## Usage
 
@@ -63,11 +63,28 @@ sudo ./holohub run realtime_threads_benchmarking \
 The benchmark application consists of:
 
 1. **TargetOperator**: Main operator that aims to run at the specified FPS and measures timing performance
+   - Intentionally does NOT emit frame data to avoid framework overhead
+   - Large frame data transmission adds significant latency that would interfere with accurate timing measurements
+   - Focuses purely on operator scheduling and execution timing
 2. **LoadOperator**: Creates CPU contention by performing computational work
 3. **DataSinkOperator**: Receives data from other operators
 4. **Thread Pools**:
-   - Real-time pool for the target operator (with RT scheduling)
+   - Real-time pool for the target operator (with Linux RT scheduling)
    - Load pool for competing workloads (normal scheduling)
+
+### Scheduling Mode Comparison
+
+The benchmark demonstrates the difference between normal and real-time scheduling:
+
+#### Normal Scheduling Mode
+![Normal Mode](normal_mode.png)
+
+In normal scheduling, all operators compete equally for CPU resources, leading to timing variability and potential frame drops.
+
+#### Real-time Scheduling Mode
+![Real-time Mode](realtime_mode.png)
+
+With real-time scheduling, the target operator gets priority access to CPU resources, resulting in more consistent timing and better frame rate stability.
 
 ## Metrics
 
@@ -79,7 +96,7 @@ The benchmark measures and compares:
 
 ### Timing Analysis
 - **Frame Period Consistency**: How consistently the target FPS is maintained
-- **Jitter Reduction**: Improvement in timing variability with real-time scheduling
+- **Standard Deviation Reduction**: Improvement in timing variability with real-time scheduling
 - **Resource Contention Impact**: How competing workloads affect timing
 
 ## Requirements
@@ -100,13 +117,33 @@ Without `--privileged`, you'll encounter "Operation not permitted" errors when t
 
 ## Understanding Results
 
+### Example Output
+
+The benchmark generates comprehensive visualization plots to help analyze real-time scheduling performance:
+
+#### Timing Distribution Analysis
+![Simple Histograms](simple_histograms.png)
+
+This plot shows the distribution of frame periods and execution times, comparing normal scheduling vs real-time scheduling. The histograms reveal:
+- **Frame Period Consistency**: How tightly clustered the frame periods are around the target (16.67ms for 60 FPS)
+- **Execution Time Stability**: The variability in operator execution times
+- **Scheduling Impact**: Clear differences between normal and real-time scheduling policies
+
+#### Timing Over Time Analysis
+![Timing Over Time](timing_over_time.png)
+
+This time-series plot demonstrates timing behavior throughout the benchmark duration, showing:
+- **Frame Period Trends**: How frame periods vary over time
+- **Execution Time Patterns**: Temporal patterns in operator execution
+- **Real-time Benefits**: Reduced standard deviation and more consistent timing with RT scheduling
+
 ### Good Real-time Performance Indicators
-- **Frame Jitter Reduction** (★ key metric): Lower standard deviation in frame periods indicates more consistent timing
+- **Frame Period Standard Deviation Reduction** (★ key metric): Lower standard deviation in frame periods indicates more consistent timing
 - Better handling of CPU contention under load
 - Visual feedback indicates improvement level:
-  - 🚀 EXCELLENT: >50% improvement in frame jitter
-  - ✅ Good: >20% improvement in frame jitter
-  - 👍 Modest: >5% improvement in frame jitter
+  - 🚀 EXCELLENT: >50% reduction in frame period standard deviation
+  - ✅ Good: >20% reduction in frame period standard deviation
+  - 👍 Modest: >5% reduction in frame period standard deviation
   - ⚠️ Limited: <5% improvement
 
 ### Example Output
@@ -119,11 +156,11 @@ Generated plots:
 Benchmark Results:
   Configuration: Normal (Normal)
   Target FPS: 60.0
-  ★ Frame Jitter (Std): 0.297ms  ← KEY METRIC
+  ★ Frame Period Std Dev: 0.297ms  ← KEY METRIC
   Frame Period Mean: 16.667ms (Target: 16.7ms)
-  Execution Jitter (Std): 0.035ms
+  Execution Time Std Dev: 0.035ms
   Execution Time Mean: 0.114ms
-  Frame Period Range: 7.9ms - 25.5ms
+  Frame Period Min/Max: 7.9ms / 25.5ms
   Execution Range: 0.083ms - 0.348ms
   Frame Count: 1956
   Total Duration: 32.58s
@@ -132,11 +169,11 @@ Benchmark Results:
 Benchmark Results:
   Configuration: SCHED_DEADLINE (RT)
   Target FPS: 60.0
-  ★ Frame Jitter (Std): 0.049ms  ← KEY METRIC
+  ★ Frame Period Std Dev: 0.049ms  ← KEY METRIC
   Frame Period Mean: 16.666ms (Target: 16.7ms)
-  Execution Jitter (Std): 0.039ms
+  Execution Time Std Dev: 0.039ms
   Execution Time Mean: 0.122ms
-  Frame Period Range: 15.2ms - 16.9ms
+  Frame Period Min/Max: 15.2ms / 16.9ms
   Execution Range: 0.082ms - 0.276ms
   Frame Count: 1956
   Total Duration: 32.58s
@@ -147,9 +184,9 @@ COMPARISON SUMMARY
 =================================================================
                         Normal    Real-time    Improvement
 -----------------------------------------------------------------
-★ Frame Jitter (Std):     0.297        0.049      -83.6% ★
+★ Frame Period Std Dev: 0.297        0.049      -83.6% ★
 🚀 EXCELLENT real-time improvement!
-  Exec Jitter (Std):      0.035        0.039      +11.0%
+  Exec Time Std Dev:     0.035        0.039      +11.0%
 ```
 
 ## Troubleshooting
