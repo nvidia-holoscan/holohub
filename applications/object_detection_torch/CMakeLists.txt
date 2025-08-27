@@ -46,6 +46,10 @@ if(holoscan_VERSION GREATER 3.5)
   set_target_properties(torchvision PROPERTIES
       IMPORTED_LOCATION "${TORCHVISION_LIBRARY}"
   )
+  target_link_libraries(torchvision INTERFACE
+    torch
+    Python3::Python
+  )
   add_library(torchvision::torchvision ALIAS torchvision)
 endif()
 
@@ -68,7 +72,7 @@ if(holoscan_VERSION GREATER 3.5)
   # Forcibly link torchvision and its required Python symbols to prevent ResNet runtime import failure
   target_link_libraries(object_detection_torch
     PRIVATE
-    ${TORCH_LIBRARIES}
+    torchvision::torchvision
     "-Wl,--no-as-needed $<TARGET_PROPERTY:Python3::Python,IMPORTED_LOCATION> $<TARGET_PROPERTY:torchvision::torchvision,IMPORTED_LOCATION> -Wl,--as-needed"
   )
 endif()
