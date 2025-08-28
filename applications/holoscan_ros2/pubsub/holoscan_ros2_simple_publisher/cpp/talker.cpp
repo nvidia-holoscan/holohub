@@ -24,6 +24,16 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 
+/**
+ * @brief A simple Holoscan operator that publishes string messages to ROS2.
+ * 
+ * This operator demonstrates basic integration between Holoscan and ROS2 by periodically
+ * publishing incrementing "Hello, world!" messages to a ROS2 topic. It inherits from
+ * PublisherOp to leverage the built-in ROS2 publishing capabilities.
+ * 
+ * The operator runs on a periodic schedule and maintains an internal counter to create
+ * unique messages on each execution cycle.
+ */
 class SimplePublisherOp : public holoscan::ros2::ops::PublisherOp<std_msgs::msg::String> {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(SimplePublisherOp,

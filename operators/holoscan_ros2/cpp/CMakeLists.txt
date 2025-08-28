@@ -14,6 +14,20 @@
 # limitations under the License.
 
 add_library(holoscan_ros2 INTERFACE)
-target_include_directories(holoscan_ros2 INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Use generator expressions to handle both build and install contexts
+target_include_directories(holoscan_ros2 INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
 
 add_library(holoscan::ops::holoscan_ros2 ALIAS holoscan_ros2)
+
+# Simple installation following holohub patterns
+install(TARGETS holoscan_ros2)
+
+# Install the header files
+install(DIRECTORY holoscan/
+    DESTINATION include/holoscan
+    FILES_MATCHING PATTERN "*.hpp"
+)
