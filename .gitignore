@@ -54,3 +54,8 @@ tmp/
 
 # Licenses
 rti_license.dat
+# Data directories - large files that shouldn't be committed
+data-*/
+data/
+*.gxf_entities
+*.engine

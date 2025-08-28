@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+%YAML 1.2
+---
+# Comprehensive test configuration for StreamingServerOp testing
+# This configuration is optimized for automated testing with real video data
+
+# Application metadata
+application:
+  title: "StreamingServer Comprehensive Test"
+  version: "1.0"
+  description: "Automated testing configuration for streaming server functionality"
+
+# Video data source configuration
+video_replayer:
+  width: 854
+  height: 480
+  fps: 30
+  # Use real endoscopy data for testing
+  directory: "/workspace/holohub/data/endoscopy"  # Will be overridden by test framework
+  basename: "surgical_video"
+  frame_rate: 30
+  repeat: false
+  realtime: false  # Process as fast as possible for testing
+  count: 10        # Process 10 frames for testing (overridden from count: 0)
+
+# Format converter for streaming optimization
+format_converter:
+  out_dtype: "uint8"
+  out_channel_order: [2, 1, 0]  # BGR for NVIDIA streaming
+  resize_width: 854
+  resize_height: 480
+
+# StreamingServer configuration for comprehensive testing
+streaming_server:
+  # Video parameters
+  width: 854
+  height: 480
+  fps: 30
+  
+  # Server configuration
+  port: 48010
+  server_name: "StreamingServerTest"
+  
+  # Bidirectional streaming for comprehensive testing
+  receive_frames: true
+  send_frames: true
+  
+  # Multi-instance testing disabled for stability
+  multi_instance: false
+  
+  # Memory allocator
+  allocator: !ref "allocator"
+
+# HoloViz configuration for visualization and validation
+holoviz:
+  width: 854
+  height: 480
+  headless: true  # For testing environments
+  enable_render_buffer_output: true
+  cuda_stream_pool: !ref "cuda_stream_pool"
+
+# Video recorder configuration for output validation  
+video_recorder:
+  record_type: "visualizer"
+  directory: "./recording_output"
+  basename: "streaming_server_demo_reference"  # Will be validated against golden frames
+  allocator: !ref "allocator"
+
+# Resource configuration
+allocator:
+  type: "holoscan::UnboundedAllocator"
+
+cuda_stream_pool:
+  type: "holoscan::CudaStreamPool"
+  dev_id: 0
+  stream_flags: 0
+  stream_priority: 0
+  reserved_size: 1
+  max_size: 5
+
+pool:
+  type: "holoscan::BlockMemoryPool"
+  storage_type: 1  # kDevice
+  block_size: 2764800  # 854*480*3*4 for RGBA
+  num_blocks: 4
+
+# Scheduler configuration optimized for testing
+scheduler: "greedy"
+
+greedy_scheduler:
+  max_duration_ms: 30000  # 30 second timeout for tests
+  check_recession_period_ms: 100
+
+# Enable detailed logging for debugging
+log_level: "INFO"
+
+# Disable data flow tracking for performance in testing
+tracking: false

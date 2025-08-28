@@ -14,7 +14,26 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(streaming_client_demo LANGUAGES NONE)
+project(streaming_client_demo_apps LANGUAGES NONE)
+
+# Default to download datasets
+option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
+
+# Download the endoscopy sample data
+if(HOLOHUB_DOWNLOAD_DATASETS)
+  include(holoscan_download_data)
+  holoscan_download_data(endoscopy
+    URL nvidia/clara-holoscan/holoscan_endoscopy_sample_data:20230222
+    DOWNLOAD_NAME holoscan_endoscopy_sample_data_20230222.zip
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    GENERATE_GXF_ENTITIES
+    GXF_ENTITIES_HEIGHT 480
+    GXF_ENTITIES_WIDTH 854
+    GXF_ENTITIES_CHANNELS 3
+    GXF_ENTITIES_FRAMERATE 30
+    ALL
+  )
+endif()
 
 # Add C++ subdirectory
 add_subdirectory(cpp)

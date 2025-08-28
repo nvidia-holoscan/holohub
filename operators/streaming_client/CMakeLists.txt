@@ -29,22 +29,22 @@ find_package(HoloscanStreaming REQUIRED)
 message(STATUS "StreamingClient operator using HoloscanStreaming imported targets")
 
 # Define the operator as a library
-add_library(streaming_client_operator
+add_library(${PROJECT_NAME}
   SHARED
   streaming_client.cpp
 )
 
-add_library(holoscan::ops::streaming_client_operator ALIAS streaming_client_operator)
+add_library(holoscan::ops::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 # Set C++ standard
-set_target_properties(streaming_client_operator PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
   POSITION_INDEPENDENT_CODE ON
 )
 
 # Set up include directories
-target_include_directories(streaming_client_operator
+target_include_directories(${PROJECT_NAME}
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -53,7 +53,7 @@ target_include_directories(streaming_client_operator
 )
 
 # Link against HoloscanStreaming and Holoscan using imported targets
-target_link_libraries(streaming_client_operator
+target_link_libraries(${PROJECT_NAME}
   PUBLIC
   HoloscanStreaming::All
   holoscan::core
@@ -64,7 +64,7 @@ target_link_libraries(streaming_client_operator
 )
 
 # Add linking options to ensure all symbols are resolved
-target_link_options(streaming_client_operator PRIVATE
+target_link_options(${PROJECT_NAME} PRIVATE
   "-Wl,--no-as-needed"
   "-Wl,--allow-shlib-undefined"
   "-Wl,--copy-dt-needed-entries"
@@ -72,7 +72,7 @@ target_link_options(streaming_client_operator PRIVATE
 )
 
 # Set RPATH settings - simplified to avoid circular dependencies
-set_target_properties(streaming_client_operator PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
   SKIP_BUILD_RPATH FALSE
   BUILD_WITH_INSTALL_RPATH TRUE
   INSTALL_RPATH "$ORIGIN:$ORIGIN/lib:/usr/lib/x86_64-linux-gnu:${CMAKE_INSTALL_PREFIX}/lib:/opt/nvidia/holoscan/lib"
@@ -80,20 +80,20 @@ set_target_properties(streaming_client_operator PROPERTIES
 )
 
 # Copy HoloscanStreaming libraries to the build directory using helper function
-copy_holoscan_streaming_libraries(streaming_client_operator "${CMAKE_CURRENT_BINARY_DIR}/lib")
+copy_holoscan_streaming_libraries(${PROJECT_NAME} "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
 # Copy the operator library to the application directory
-add_custom_command(TARGET streaming_client_operator POST_BUILD
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E make_directory
   ${CMAKE_BINARY_DIR}/operators/streaming_client
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-  $<TARGET_FILE:streaming_client_operator>
-  ${CMAKE_BINARY_DIR}/operators/streaming_client/libstreaming_client_operator.so
+  $<TARGET_FILE:${PROJECT_NAME}>
+  ${CMAKE_BINARY_DIR}/operators/streaming_client/lib${PROJECT_NAME}.so
 )
 
 # Install the operator shared library
-install(TARGETS streaming_client_operator
-  EXPORT streaming_client_operator-targets
+install(TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}-targets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
@@ -118,35 +118,40 @@ install(
 )
 
 # Export the targets for use by other projects
-install(EXPORT streaming_client_operator-targets
-  FILE streaming_client_operator-targets.cmake
+install(EXPORT ${PROJECT_NAME}-targets
+  FILE ${PROJECT_NAME}-targets.cmake
   NAMESPACE holoscan::ops::
-  DESTINATION lib/cmake/streaming_client_operator
+  DESTINATION lib/cmake/${PROJECT_NAME}
 )
 
 # Create a config file for the package
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_operator-config-version.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
   VERSION 1.0.0
   COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/streaming_client_operator-config.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_operator-config.cmake"
-  INSTALL_DESTINATION lib/cmake/streaming_client_operator
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+  INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
 )
 
 install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_operator-config.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_operator-config-version.cmake"
-  DESTINATION lib/cmake/streaming_client_operator
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+  DESTINATION lib/cmake/${PROJECT_NAME}
 )
 
 # Python module
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
+endif()
+
+# Add tests subdirectory
+if(BUILD_TESTING)
+  add_subdirectory(test)
 endif()
 
 # Print status message

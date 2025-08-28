@@ -263,5 +263,10 @@ if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
 endif()
 
+# Add tests subdirectory
+if(BUILD_TESTING)
+  add_subdirectory(test)
+endif()
+
 # Print status message
 message(STATUS "StreamingServer operator configuration complete.")
