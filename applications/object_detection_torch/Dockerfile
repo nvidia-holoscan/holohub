@@ -41,7 +41,16 @@ RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 FROM base as torch
 
 # Install libraries
-RUN pip install torch torchvision
+ARG GPU_TYPE
+RUN if [ "${GPU_TYPE}" = "igpu" ]; then \
+        python3 -m pip install --force-reinstall torch torchvision torchaudio --index-url "https://pypi.jetson-ai-lab.io/jp6/cu129"; \
+    else \
+        pip install torch torchvision; \
+    fi; \
+    if ! find /usr/local/lib/python3.12/dist-packages/torch -name libtorch_cuda.so | grep -q .; then \
+        echo "libtorch_cuda.so not found, torch installation failed"; \
+        exit 1; \
+    fi
 
 # Set up Holoscan SDK container libtorch to be found with ldconfig for app C++ build and runtime
 RUN echo $(python3 -c "import torch; print(torch.__path__[0])")/lib > /etc/ld.so.conf.d/libtorch.conf \
