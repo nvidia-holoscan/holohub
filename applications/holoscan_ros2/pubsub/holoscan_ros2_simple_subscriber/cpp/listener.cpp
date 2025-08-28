@@ -22,6 +22,16 @@
 
 #include <holoscan/ros2/operators/subscriber.hpp>
 
+/**
+ * @brief A simple Holoscan operator that subscribes to string messages from ROS2.
+ * 
+ * This operator demonstrates basic integration between Holoscan and ROS2 by receiving
+ * string messages from a ROS2 topic and logging them to the console. It inherits from
+ * SubscriberOp to leverage the built-in ROS2 subscription capabilities.
+ * 
+ * The operator processes incoming messages as they arrive and displays the received
+ * message content using Holoscan's logging system.
+ */
 class SimpleSubscriberOp : public holoscan::ros2::ops::SubscriberOp<std_msgs::msg::String> {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(SimpleSubscriberOp,

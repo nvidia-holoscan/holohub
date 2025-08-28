@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "HoloScan ROS2 Bridge",
+		"name": "Holoscan ROS2 Bridge",
 		"authors": [
 			{
 				"name": "NVIDIA",

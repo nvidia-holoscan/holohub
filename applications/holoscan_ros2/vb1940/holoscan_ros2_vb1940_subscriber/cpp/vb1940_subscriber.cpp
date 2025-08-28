@@ -37,6 +37,24 @@
 
 #include <hololink/common/holoargs.hpp>
 
+/**
+ * @brief Advanced Holoscan operator that subscribes to VB1940 Eagle camera images from ROS2.
+ * 
+ * This operator demonstrates production-ready integration between ROS2 and Holoscan for
+ * high-performance camera visualization and processing. It subscribes to ROS2 sensor_msgs::Image
+ * messages (typically from VB1940 camera data), converts them back to Holoscan tensor format,
+ * and outputs them for visualization or further processing in the Holoscan pipeline.
+ * 
+ * Key features:
+ * - Efficient ROS2 message to Holoscan tensor conversion
+ * - GPU memory management with device allocation
+ * - Host-to-device memory transfers for zero-copy processing
+ * - Integration with Holoviz for real-time visualization
+ * 
+ * The operator is designed to complement VB1940PublisherOp, enabling distributed camera
+ * processing workflows where image capture, processing, and visualization can occur
+ * across different nodes in a robotics system.
+ */
 class Vb1940SubscriberOp : public holoscan::ros2::ops::SubscriberOp<sensor_msgs::msg::Image> {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(Vb1940SubscriberOp,
