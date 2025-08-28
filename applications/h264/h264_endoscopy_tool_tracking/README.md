@@ -39,7 +39,7 @@ Separate build and run commands are required to address the known [symbol loadin
 
 ```bash
 # C++ version
-./holohub build h264_endoscopy_tool_tracking --language cpp
+./holohub build h264_endoscopy_tool_tracking --language python
 
 # Python version
 # Note: LD_PRELOAD required to address symbol issue
