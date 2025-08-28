@@ -237,7 +237,7 @@ def run_command(
     try:
         return subprocess.run(processed_cmd, check=check, **kwargs)
     except subprocess.CalledProcessError as e:
-        print(f"Error running command: {cmd_str}")
+        print(f"Non-zero exit code running command: {cmd_str}")
         print(f"Exit code: {e.returncode}")
         sys.exit(e.returncode)
 
