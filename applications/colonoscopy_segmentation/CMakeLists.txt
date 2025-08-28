@@ -61,9 +61,6 @@ if(BUILD_TESTING)
     DEPENDS "colonoscopy_segmentation_test.py"
   )
 
-  # Get GXF_LIB_DIR for Python tests
-  find_package(holoscan)
-
   # Add test
   add_test(NAME colonoscopy_segmentation_python_test
            COMMAND python3 ${CMAKE_CURRENT_BINARY_DIR}/colonoscopy_segmentation_test.py
