@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,5 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_application(model_benchmarking)
-add_holohub_application(realtime_threads_benchmarking)
+file(RELATIVE_PATH app_relative_dest_path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_custom_target(python_realtime_threads_benchmark ALL
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/realtime_thread_benchmark.py" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "realtime_thread_benchmark.py"
+  BYPRODUCTS "realtime_thread_benchmark.py"
+)
