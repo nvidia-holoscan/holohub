@@ -48,7 +48,6 @@ ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
 set(configure_options
   ${CONFIGURE_OPTIONS}
   -D HOLOHUB_DATA_DIR=/workspace/holohub/data-${APP}-${TAG}
-  -D CMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
   -D CMAKE_BUILD_TYPE=RelWithDebInfo
   -D APP_${APP}=ON
 )
