@@ -163,7 +163,7 @@ FROM common-deps AS dpdk
 FROM common-deps AS rivermax
 
 # Define Rivermax-specific build arguments and environment variables
-ARG RIVERMAX_VERSION=1.60.6
+ARG RIVERMAX_VERSION=1.70.32
 ARG RIVERMAX_SDK_ZIP_PATH=./rivermax_ubuntu2204_${RIVERMAX_VERSION}.tar.gz
 ARG MAXPROC=8
 
@@ -175,8 +175,24 @@ ARG RMAX_TEGRA=OFF
 ENV RMAX_TEGRA=${RMAX_TEGRA}
 
 # Install additional dependencies required for Rivermax
-RUN apt install -y iproute2 libcap-dev gdb ethtool iputils-ping net-tools \
-    libfmt-dev libnl-3-dev libnl-genl-3-dev libcap-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libglew-dev
+# Update package cache and install additional dependencies required for Rivermax
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    iproute2 \
+    libcap-dev \
+    gdb \
+    ethtool \
+    iputils-ping \
+    net-tools \
+    libfmt-dev \
+    libnl-3-dev \
+    libnl-genl-3-dev \
+    libglu1-mesa-dev \
+    freeglut3-dev \
+    mesa-common-dev \
+    libglew-dev \
+    cuda-nvml-dev-12-6 \
+    cuda-nvtx-12-6 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy and extract the Rivermax SDK
 COPY ${RIVERMAX_SDK_ZIP_PATH} /tmp/rivermax_sdk.tar.gz
@@ -205,20 +221,10 @@ RUN cd apps && \
     cmake -B build -DRMAX_CUDA=ON -DRMAX_TEGRA=${RMAX_TEGRA} -DRMAX_BUILD_VIEWER=ON && \
     cmake --build build -j $(nproc)
 
-# Temporarily add missing definitions for rmax_apps_lib build until added to the SDK
-RUN echo '\
-    target_compile_definitions(rmax-apps-util-reduced PUBLIC \
-            \$<\$<BOOL:\${RMAX_CUDA}>:CUDA_ENABLED> \
-            \$<\$<BOOL:\${RMAX_TEGRA}>:TEGRA_ENABLED> \
-    )' >> rmax_apps_lib/util/CMakeLists.txt
-
 # Build rmax_apps_lib sample applications
-RUN cd rmax_apps_lib && \
+RUN cd rivermax-dev-kit && \
     cmake -B build -DRMAX_CUDA=ON -DRMAX_TEGRA=${RMAX_TEGRA} -DRMAX_BUILD_VIEWER=ON && \
     cmake --build build -j $(nproc)
-
-# Temporarily exclude apps from rmax_apps_lib build until added to the SDK
-RUN sed -i 's/\"apps\"//' rmax_apps_lib/CMakeLists.txt
 
 # ==============================
 # Default stage: common-deps
