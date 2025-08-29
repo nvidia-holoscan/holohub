@@ -38,7 +38,6 @@ The data is automatically downloaded when building the application.
 Separate build and run commands are required to address the known [symbol loading issue](../README.md#symbol-error-at-load).
 
 ```bash
-# C++ version
 ./holohub build h264_endoscopy_tool_tracking --language python
 
 # Python version
