@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import concurrent.futures
+import logging
 
 import rclpy
 from holoscan.core import Application
@@ -33,12 +34,12 @@ class MySubscriberOp(SubscriberOp):
             try:
                 # Wait 1 second for a message
                 message = future.result(timeout=1.0)
-                print(f"I heard: '{message.data}'")
+                logging.info(f"I heard: '{message.data}'")
                 return  # Exit after processing one message
             except concurrent.futures.TimeoutError:
                 # Check if we should terminate
                 if not rclpy.ok():
-                    print("ROS2 shutdown detected, exiting...")
+                    logging.info("ROS2 shutdown detected, exiting...")
                     return
                 # Otherwise, continue waiting for the next message
                 continue
@@ -67,6 +68,8 @@ class HoloscanSubscriberApp(Application):
 
 
 def main():
+    # Configure logging to show INFO messages
+    logging.basicConfig(level=logging.INFO)
     rclpy.init()
     app = HoloscanSubscriberApp()
     app.run()

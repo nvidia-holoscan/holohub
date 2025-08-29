@@ -46,7 +46,7 @@ ENV PATH=/opt/ros/jazzy/bin:$PATH
 ENV PKG_CONFIG_PATH=/opt/ros/jazzy/lib/pkgconfig
 
 
-# Set PYTHONPATH to include ROS2 packages - this will be appended to by isaac-hub script
+# Set PYTHONPATH to include ROS2 packages - this will be appended to by holohub script
 ENV PYTHONPATH=/opt/ros/jazzy/lib/python3.12/site-packages:/opt/nvidia/holoscan/python/lib
 
 RUN echo -e '#!/bin/bash \n \

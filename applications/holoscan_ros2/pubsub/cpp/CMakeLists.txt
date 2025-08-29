@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.5)
-project(holoscan_ros2_simple_subscriber)
+project(holoscan_ros2_pubsub)
 
 find_package(rclcpp REQUIRED HINTS /opt/ros/jazzy)
 find_package(std_msgs REQUIRED)
@@ -22,6 +22,20 @@ find_package(std_msgs REQUIRED)
 find_package(holoscan 3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# Publisher executable
+add_executable(holoscan_ros2_simple_publisher talker.cpp)
+target_link_libraries(holoscan_ros2_simple_publisher
+    holoscan::core
+    holoscan::ops::holoscan_ros2
+    ${rclcpp_LIBRARIES}
+    ${std_msgs_LIBRARIES}
+)
+target_include_directories(holoscan_ros2_simple_publisher PRIVATE
+    ${rclcpp_INCLUDE_DIRS}
+    ${std_msgs_INCLUDE_DIRS}
+)
+
+# Subscriber executable
 add_executable(holoscan_ros2_simple_subscriber listener.cpp)
 target_link_libraries(holoscan_ros2_simple_subscriber
     holoscan::core

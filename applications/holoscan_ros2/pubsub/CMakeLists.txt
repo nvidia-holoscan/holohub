@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.5)
-project(cpp_pubsub)
+# pubsub: ROS2 publisher and subscriber application with modes
+cmake_minimum_required(VERSION 3.20)
+project(pubsub LANGUAGES NONE)
 
-# holoscan_ros2_simple_publisher: publish a simple message to ROS2 topic
-add_holohub_application(holoscan_ros2_simple_publisher DEPENDS OPERATORS holoscan_ros2)
+# Add the cpp subdirectory
+add_subdirectory(cpp)
 
-# holoscan_ros2_simple_subscriber: subscribe to a simple message from ROS2 topic
-add_holohub_application(holoscan_ros2_simple_subscriber DEPENDS OPERATORS holoscan_ros2)
+# Conditionally add Python subdirectory if Python builds are enabled
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

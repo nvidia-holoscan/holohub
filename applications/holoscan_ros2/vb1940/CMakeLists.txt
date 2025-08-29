@@ -13,11 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.5)
-project(vb1940)
+# vb1940: ROS2 publisher and subscriber for VB1940 camera with modes
+cmake_minimum_required(VERSION 3.20)
+project(vb1940 LANGUAGES NONE)
 
-# Add holoscan_ros2_vb1940_publisher application
-add_holohub_application(holoscan_ros2_vb1940_publisher DEPENDS OPERATORS holoscan_ros2)
-
-# Add holoscan_ros2_vb1940_subscriber application
-add_holohub_application(holoscan_ros2_vb1940_subscriber DEPENDS OPERATORS holoscan_ros2)
+# Add the cpp subdirectory
+add_subdirectory(cpp)
