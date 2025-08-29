@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 import rclpy
 from holoscan.conditions import PeriodicCondition
 from holoscan.core import Application
@@ -30,7 +32,7 @@ class SimplePublisherOp(PublisherOp):
     def compute(self, op_input, op_output, context):
         msg = String()
         msg.data = f"Hello, world! {self.count}"
-        print(f"Publishing: '{msg.data}'")
+        logging.info(f"Publishing: '{msg.data}'")
         self.publish(msg)
         self.count += 1
 
@@ -61,6 +63,8 @@ class HoloscanSimplePublisherApp(Application):
 
 
 def main():
+    # Configure logging to show INFO messages
+    logging.basicConfig(level=logging.INFO)
     # Initialize ROS2
     rclpy.init()
     app = HoloscanSimplePublisherApp()
