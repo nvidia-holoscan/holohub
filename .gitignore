@@ -43,6 +43,7 @@ CTestConfig.cmake
 .docker/
 .config/
 .local/
+.ros/
 tmp/
 
 # History and user files
