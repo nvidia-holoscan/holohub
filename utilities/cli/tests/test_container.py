@@ -84,12 +84,18 @@ class TestHoloHubContainer(unittest.TestCase):
         mock_check_output.return_value = ""
         mock_get_image_pythonpath.return_value = ""
         self.container.run()
-        mock_run.assert_called_once()
-        cmd = mock_run.call_args[0][0]
-        self.assertTrue("docker" in cmd)
-        self.assertTrue("run" in cmd)
-        self.assertTrue("--runtime" in cmd and "nvidia" in cmd)
-        self.assertTrue(self.container.image_name in cmd)
+        self.assertGreater(mock_run.call_count, 0)  # xhost maybe called when env DISPLAY is set
+        docker_run_call = None
+        for call in mock_run.call_args_list:
+            cmd = call[0][0]
+            if isinstance(cmd, list) and len(cmd) > 0 and cmd[0] == "docker" and "run" in cmd:
+                docker_run_call = cmd
+                break
+        self.assertIsNotNone(docker_run_call, "Docker run command not found in mock calls")
+        self.assertTrue("docker" in docker_run_call)
+        self.assertTrue("run" in docker_run_call)
+        self.assertTrue("--runtime" in docker_run_call and "nvidia" in docker_run_call)
+        self.assertTrue(self.container.image_name in docker_run_call)
 
     @patch("subprocess.CompletedProcess")
     def test_dry_run(self, mock_completed_process):
