@@ -76,6 +76,24 @@ RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
 COPY benchmarks/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
 RUN pip install -r /tmp/benchmarking_requirements.txt
 
+
+# Install connext 7.5.0 from .deb package
+# Download the public key for the RTI APT repository
+RUN curl -sSL -o /usr/share/keyrings/rti-official-archive.gpg \
+https://packages.rti.com/deb/official/repo.key
+
+# Add the RTI APT repository to the sources list
+RUN printf -- "deb [arch=%s signed-by=%s] %s %s main\n" \
+    $(dpkg --print-architecture) \
+    /usr/share/keyrings/rti-official-archive.gpg \
+    https://packages.rti.com/deb/official \
+    $(. /etc/os-release && echo ${VERSION_CODENAME}) \
+    | tee /etc/apt/sources.list.d/rti.list >/dev/null
+
+# Set environment variable to accept the RTI License Agreement
+RUN export RTI_LICENSE_AGREEMENT_ACCEPTED=accepted && apt update \
+    && apt install -y rti-connext-dds-7.5.0
+
 # For RTI Connext DDS
 RUN apt update \
     && apt install --no-install-recommends -y \
@@ -85,7 +103,10 @@ RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/ja
 # Set default Holohub data directory
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 
-ENV NDDSHOME=/opt/rti.com/rti_connext_dds-7.3.0
+ENV NDDSHOME=/opt/rti.com/rti_connext_dds-7.5.0
 ENV RTI_CONNEXT_DDS_DIR=$NDDSHOME
 
-CMD ["/bin/bash", "-c", "source $NDDSHOME/resource/scripts/rtisetenv_x64Linux4gcc7.3.0.bash && exec /bin/bash"]
+COPY ./applications/dds/dds_video/bootstrap.sh /bootstrap.sh
+RUN chmod +x /bootstrap.sh
+
+CMD ["/bootstrap.sh"]

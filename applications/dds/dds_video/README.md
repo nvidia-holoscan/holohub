@@ -23,28 +23,37 @@ Holoviz output.
 
 ## Prerequisites
 
-- This application requires an installation of [RTI Connext Express](https://content.rti.com/l/983311/2025-07-08/q5x1n8) to provide access to the DDS domain.
-To obtain a license/activation key, please [click here](https://content.rti.com/l/983311/2025-07-25/q6729c). Please see the [usage rules](https://www.rti.com/products/connext-express) for Connext Express.
-- V4L2 capable device
+- **RTI Connext 7.5.0 Express**  
+  - Provides access to the DDS domain.  
+  - Already included if using the container build.  
+  - Otherwise, install via [RTI APT instructions](https://community.rti.com/static/documentation/developers/get-started/apt-install.html).  
 
-> [!NOTE]  
-> Instructions below are based on the `.run' installer from RTI Connext. Refer to the
-> [Linux installation](https://community.rti.com/static/documentation/developers/get-started/full-install.html)
-> for details.
+- **RTI Activation Key**  
+  - [Request a license/activation key](https://content.rti.com/l/983311/2025-07-25/q6729c).  
+  - See the [usage rules](https://www.rti.com/products/connext-express).  
+  - For Holoscan usage, download the key, copy it into the `holohub` repository, and rename it to `rti_license.dat`.  
 
+- **V4L2-capable video device**  
+  - Required for video capture when running as a publisher.  
+ 
+## Quick Start (Docker)
 
-## Quick Start
+This guide shows how to run the DDS Video application using the Docker build environment.
+
+1. Obtain an **RTI Activation Key** (see [Prerequisites](#prerequisites)).  
+2. Place the license in the `holohub` directory as `rti_license.dat`.  
+3. Open **two terminal windows** and run:  
 
 ```bash
 # Start the publisher
-./holohub run dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run-args="-p"
+./holohub run dds_video --docker-opts="-v ./rti_license.dat:/opt/rti.com/rti_connext_dds-7.5.0/rti_license.dat" --run-args="-p"
 
 # Start the subscriber
-./holohub run dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run-args="-s"
+./holohub run dds_video --docker-opts="-v ./rti_license.dat:/opt/rti.com/rti_connext_dds-7.5.0/rti_license.dat" --run-args="-s"
 ```
 
 
-## Building the Application
+## Building locally the Application
 
 To build on an IGX devkit (using the `armv8` architecture), follow the
 [instructions to build Connext DDS applications for embedded Arm targets](https://community.rti.com/kb/how-do-i-create-connext-dds-application-rti-code-generator-and-build-it-my-embedded-target-arm)
@@ -56,27 +65,20 @@ the `NDDSHOME` environment variable to the RTI Connext installation directory
 (such as when using the RTI `setenv` scripts), or manually at build time, e.g.:
 
 ```sh
-./holohub build --local dds_video --configure-args="-DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0"
+./holohub build --local dds_video --configure-args="-DRTI_CONNEXT_DDS_DIR=~/opt/rti.com/rti_connext_dds-7.5.0"
 ```
 
-### Building with a Container
+### Building with the Container
 
-Due to the license requirements of RTI Connext it is not currently supported to
-install RTI Connext into a development container. Instead, Connext should be
-installed onto the host as above and then the development container can be
-launched with the RTI Connext folder mounted at runtime. To do so, ensure that
-the `NDDSHOME` and `CONNEXTDDS_ARCH` environment variables are set (which can be
-done using the RTI `setenv` script) and use the following:
 
 ```sh
 # 1. Build and launch the container
-./holohub run-container dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/"
+./holohub run-container dds_video --docker-opts="-v ./rti_license.dat:/opt/rti.com/rti_connext_dds-7.5.0/rti_license.dat" 
 # 3. Build the application
 ./holohub build dds_video
 # Continue to the next section to run the application with the publisher. 
 # Open a new terminal to repeat step #2 and launch a new container for the subscriber.
 ```
-
 
 
 ## Running the Application
@@ -98,8 +100,8 @@ $ ./holohub run --no-local-build dds_video --run-args="-s"
 
 If running the application generates an error about `RTI Connext DDS No Source
 for License information`, ensure that the RTI Connext license has either been
-installed system-wide or the `NDDSHOME` environment variable has been set to
-point to your user's RTI Connext installation path.
+installed system-wide or the `RTI_LICENSE_FILE` environment variable has been set to
+point to the license file path.
 
 Note that these processes can be run on the same or different systems, so long as they
 are both discoverable by the other via RTI Connext. If the processes are run on

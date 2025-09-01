@@ -52,5 +52,8 @@ tmp/
 .viminfo
 .lesshst
 
+# RTI Workspace
+rti_workspace/
+
 # Licenses
 rti_license.dat
