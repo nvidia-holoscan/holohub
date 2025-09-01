@@ -2,6 +2,9 @@
 
 The Advanced Networking Media Player is a high-performance application for receiving and displaying media streams over advanced network infrastructure using NVIDIA's Rivermax SDK. This application demonstrates real-time media streaming capabilities with ultra-low latency and high throughput.
 
+This application serves as a reference implementation demonstrating how to integrate multiple media streams into a unified HoloHub processing pipeline. It showcases the advanced networking framework's ability to handle complex multi-stream scenarios that are common in professional media production, broadcasting, and real-time analytics applications.
+
+
 ## Overview
 
 This application showcases professional-grade media streaming over IP networks, utilizing NVIDIA's advanced networking technologies. It receives media streams using the SMPTE 2110 standard and can either display them in real-time or save them to disk for further processing.
@@ -14,6 +17,7 @@ This application showcases professional-grade media streaming over IP networks, 
 - **GPU Acceleration**: Leverage GPUDirect for zero-copy operations
 - **Multiple Format Support**: RGB888, YUV420, NV12, and other common video formats
 - **Header-Data Split**: Optimized memory handling for improved performance
+- **Multi-Stream Support**: Handle multiple concurrent streams with independent processing
 
 ### Application Architecture
 
@@ -147,6 +151,15 @@ The application implements a 4-layer architecture for high-performance media str
 - **Zero-Copy Operations**: GPU memory management minimizes data movement
 - **Error Recovery**: Robust handling across all layers
 - **Scalable Design**: Clean interfaces enable easy extension and testing
+
+#### Multi-Stream Processing Flow
+```
+                      ---- stream ID 0 --- AdvNetworkMediaRxOp --- FramesWriterOp
+                     |
+Receiving 2 streams -|
+                     |
+                      ---- stream ID 1 --- AdvNetworkMediaRxOp --- FramesWriterOp
+```
 
 ## Requirements
 
@@ -331,21 +344,20 @@ advanced_network:
           - "Data_RX_GPU"
           rivermax_rx_settings:
             settings_type: "ipo_receiver"
-            memory_registration: true
             verbose: true
-            max_path_diff_us: 10000
-            ext_seq_num: true
-            sleep_between_operations_us: 0
-            local_ip_addresses:
-              - 2.1.0.12
-            source_ip_addresses:
-              - 2.1.0.12
-            destination_ip_addresses:
-              - 224.1.1.2
-            destination_ports:
-              - 50001
-            stats_report_interval_ms: 3000
-            send_packet_ext_info: true
+            rx_threads:
+            - thread_id: 0
+              network_settings:
+              - stream_id: 0                    # Stream 1 network config
+                local_ip_addresses: 2.1.0.12
+                source_ip_addresses: 2.1.0.11
+                destination_ip_addresses: 224.1.1.1
+                destination_ports: 50000
+              - stream_id: 1                    # [OPTIONAL] Stream 2 network config
+                local_ip_addresses: 2.1.0.12
+                source_ip_addresses: 2.1.0.11
+                destination_ip_addresses: 224.1.1.2
+                destination_ports: 50000
 ```
 
 **Key Rivermax RX Settings**:
@@ -368,17 +380,35 @@ advanced_network:
 
 Configures video format, frame dimensions, HDS, and output settings. See [Advanced Network Media RX Operator documentation](../../operators/advanced_network_media/README.md) for detailed parameter descriptions.
 
+#### Per-Stream Media RX Configuration
+
+Each stream requires its own media RX operator configuration:
+
 ```yaml
 advanced_network_media_rx:
-  interface_name: cc:00.1      # Must match Advanced Network interface address
-  queue_id: 0                  # Must match Advanced Network queue ID
-  video_format: RGB888         # Video pixel format (RGB888, YUV420, NV12)
-  frame_width: 1920            # Frame width in pixels (must match sender)
-  frame_height: 1080           # Frame height in pixels (must match sender)
-  bit_depth: 8                 # Color bit depth (8, 10, 12, 16)
-  hds: true                    # Enable Header-Data Split for optimal GPU performance
-  output_format: tensor        # Output as tensor (alternative: video_buffer)
-  memory_location: device      # Process in GPU memory (alternative: host)
+  - name: "stream_1"                    # First stream
+    interface_name: cc:00.1
+    queue_id: 0
+    stream_id: 0                        # Maps to network_settings stream_id
+    video_format: RGB888
+    frame_width: 1920
+    frame_height: 1080
+    bit_depth: 8
+    hds: true
+    output_format: tensor
+    memory_location: device
+
+  - name: "stream_2"                    # [OPTIONAL] Second stream  
+    interface_name: cc:00.1
+    queue_id: 0
+    stream_id: 1
+    video_format: RGB888                # Can be different per stream
+    frame_width: 1920                   # Can be different per stream
+    frame_height: 1080
+    bit_depth: 8
+    hds: true
+    output_format: tensor
+    memory_location: device
 ```
 
 **Key Media RX Operator Settings**:
@@ -397,16 +427,37 @@ Configures output options for the media player application:
 
 ```yaml
 media_player_config:
-  write_to_file: false    # Enable file output (saves frames to disk)
-  visualize: true         # Enable real-time display via HolovizOp
-  input_format: "rgb888"  # Must be compatible with advanced_network_media_rx.video_format
+  write_to_file: false    # Set to true for file output
+  visualize: true         # Set to true for real-time display
 ```
 
 **Key Application Settings**:
 
 - `write_to_file` - When true, saves received frames to disk (configure path in `frames_writer` section)
 - `visualize` - When true, displays frames in real-time using HolovizOp (requires X11/display)
-- `input_format` - Must be compatible with Media RX Operator `video_format` (e.g., RGB888 → rgb888)
+
+#### Per-Stream File Output Configuration
+
+Configure independent frame writers for each stream:
+
+```yaml
+frames_writer:
+  - name: "stream_1"                    # Must match media RX name
+    num_of_frames_to_record: 1000
+    file_path: "/tmp/output_stream_1.bin"
+
+  - name: "stream_2"                    # [OPTIONAL]
+    num_of_frames_to_record: 1000
+    file_path: "/tmp/output_stream_2.bin"
+```
+
+#### Single Stream Display
+
+```yaml
+holoviz:
+  width: 1920
+  height: 1080
+```
 
 ## Output Options
 
@@ -450,7 +501,7 @@ Enable debug logging by setting `log_level: "debug"` in the advanced_network con
 If you encounter Git-related issues during build:
 
 ```bash
-git config --global --add safe.directory '*'
+git config --global --add safe.directory /workspace/holohub
 ```
 
 ## Performance Optimization

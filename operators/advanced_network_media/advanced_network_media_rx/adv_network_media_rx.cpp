@@ -33,6 +33,8 @@
 #include "../common/frame_buffer.h"
 #include "../common/video_parameters.h"
 #include "advanced_network/managers/rivermax/rivermax_ano_data_types.h"
+#include "advanced_network/manager.h"
+#include "advanced_network/managers/rivermax/adv_network_rivermax_mgr.h"
 
 namespace holoscan::ops {
 
@@ -273,22 +275,38 @@ class AdvNetworkMediaRxOpImpl : public IFrameProvider {
    * @param op_input The operator input context.
    * @param op_output The operator output context.
    * @param context The execution context.
+   *
+   * @return Status indicating success or failure of the operation.
    */
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
+  Status compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
     compute_calls_++;
 
     BurstParams* burst;
-    auto status = ano::get_rx_burst(&burst, port_id_, parent_.queue_id_.get());
-    if (status != Status::SUCCESS)
-      return;
+    auto mgr = &(ano::ManagerFactory::get_active_manager());
+    // cast to rivermax manager if this is the type
+    Status status;
+    if (ano::get_manager_type() == ano::ManagerType::RIVERMAX && parent_.stream_id_.get() > 0) {
+      auto* rivermax_mgr = static_cast<ano::RivermaxMgr*>(mgr);
+      status = rivermax_mgr->get_rx_burst(
+          &burst, port_id_, parent_.queue_id_.get(), parent_.stream_id_.get());
+    } else {
+      status = mgr->get_rx_burst(&burst, port_id_, parent_.queue_id_.get());
+
+    }
+    if (status != Status::SUCCESS) { return status; }
 
     const auto& packets_received = burst->hdr.hdr.num_pkts;
     total_packets_received_ += packets_received;
     total_bursts_processed_++;
-
     if (packets_received == 0) {
       ano::free_all_packets_and_burst_rx(burst);
-      return;
+      return status;
+    }
+    if (total_packets_received_ > PACKETS_DISPLAY_INTERVAL) {
+      HOLOSCAN_LOG_INFO("Got burst with {} pkts | total packets received {}",
+                        packets_received,
+                        total_packets_received_);
+      total_packets_received_ = 0;
     }
 
     // Report periodic comprehensive statistics
@@ -302,8 +320,7 @@ class AdvNetworkMediaRxOpImpl : public IFrameProvider {
 
     append_to_frame(burst);
 
-    if (ready_frames_.empty())
-      return;
+    if (ready_frames_.empty()) { return status; }
 
     size_t total_frames = ready_frames_.size();
 
@@ -342,6 +359,7 @@ class AdvNetworkMediaRxOpImpl : public IFrameProvider {
       auto result = create_frame_entity(last_frame, context);
       op_output.emit(result);
     }
+    return status;
   }
 
   /**
@@ -719,6 +737,7 @@ void AdvNetworkMediaRxOp::setup(OperatorSpec& spec) {
                           "Name of NIC from advanced_network config",
                           "Name of NIC from advanced_network config");
   spec.param<uint16_t>(queue_id_, "queue_id", "Queue ID", "Queue ID", default_queue_id);
+  spec.param<uint32_t>(stream_id_, "stream_id", "Stream ID", "Stream ID for the media stream", 0);
   spec.param<uint32_t>(frame_width_, "frame_width", "Frame width", "Width of the frame", 1920);
   spec.param<uint32_t>(frame_height_, "frame_height", "Frame height", "Height of the frame", 1080);
   spec.param<uint32_t>(bit_depth_, "bit_depth", "Bit depth", "Number of bits per pixel", 8);
@@ -777,7 +796,10 @@ void AdvNetworkMediaRxOp::compute(InputContext& op_input, OutputContext& op_outp
 #endif
 
   try {
-    pimpl_->compute(op_input, op_output, context);
+    auto result = pimpl_->compute(op_input, op_output, context);
+    if (result == Status::INVALID_PARAMETER) {
+      stop_execution();
+    }
 
 #if ENABLE_PERFORMANCE_LOGGING
     auto end_time = std::chrono::high_resolution_clock::now();

@@ -199,6 +199,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libdoca-sdk-eth-dev \
         libdoca-sdk-flow-dev \
         mlnx-ofed-kernel-utils \
+        ibverbs-utils \
+        python3-pyelftools \
+        python3-dev \
+        libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/NVIDIA/gdrcopy.git /opt/mellanox/gdrcopy \

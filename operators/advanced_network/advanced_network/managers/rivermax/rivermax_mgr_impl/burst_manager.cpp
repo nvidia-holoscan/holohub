@@ -429,20 +429,12 @@ RxBurstsManager::~RxBurstsManager() {
 
   std::shared_ptr<RivermaxBurst> burst;
   // Get all bursts from the queue and return them to the memory pool
-<<<<<<< HEAD
-  while (rx_bursts_out_queue_->available_bursts() > 0) {
-    burst = rx_bursts_out_queue_->dequeue_burst();
-    if (burst == nullptr)
-      break;
-    rx_bursts_mempool_->enqueue_burst(burst);
-=======
   for (auto& [stream_id, rx_bursts_out_queue] : rx_bursts_out_queue_) {
     while (rx_bursts_out_queue->available_bursts() > 0) {
       burst = rx_bursts_out_queue->dequeue_burst();
       if (burst == nullptr) break;
       rx_bursts_mempool_->enqueue_burst(burst);
     }
->>>>>>> 6bf7a063 (Enhance Rivermax RX manager to support multiple streams per thread)
   }
 }
 

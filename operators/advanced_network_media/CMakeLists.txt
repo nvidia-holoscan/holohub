@@ -19,6 +19,13 @@ cmake_minimum_required(VERSION 3.20)
 find_package(holoscan 2.6 QUIET CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# Build only when Rivermax manager is enabled
+if(NOT DEFINED ANO_MGR)
+    return()
+elseif(NOT ANO_MGR STREQUAL "rivermax")
+    return()
+endif()
+
 # Only build if holoscan is found
 if(holoscan_FOUND)
   # Build common code first
