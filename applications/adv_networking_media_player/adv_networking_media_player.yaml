@@ -56,39 +56,43 @@ advanced_network:
           memory_regions: 
           - "Data_RX_CPU"
           - "Data_RX_GPU"
-          rx_threads:
-          - thread_id: 0
-            network_settings:
-            - stream_id: 0
-              local_ip_addresses:
-                - 2.1.0.11
-              source_ip_addresses:
-                - 2.1.0.12
-              destination_ip_addresses:
-                - 224.1.1.1
-              destination_ports:
-                - 50000
+          rivermax_rx_settings:
+            settings_type: "ipo_receiver"
+            verbose: true
+            rx_threads:
+            - thread_id: 0
+              network_settings:
+              - stream_id: 0
+                local_ip_addresses:
+                  - 2.1.0.11
+                source_ip_addresses:
+                  - 2.1.0.12
+                destination_ip_addresses:
+                  - 224.1.1.1
+                destination_ports:
+                  - 50000
 
 advanced_network_media_rx:
-  interface_name: cc:00.1
-  queue_id: 0
-  stream_id: 0
-  video_format: RGB888
-  frame_width: 1920
-  frame_height: 1080
-  bit_depth: 8
-  hds: true
-  output_format: tensor
-  memory_location: device
+  - name: "stream_1"
+    interface_name: cc:00.1
+    queue_id: 0 # from advanced_network
+    stream_id: 0 # from advanced_network
+    video_format: RGB888
+    frame_width: 1920
+    frame_height: 1080
+    bit_depth: 8
+    hds: true
+    output_format: tensor
+    memory_location: device
 
 media_player_config:
-  write_to_file: false
-  visualize: true
-  input_format: "rgb888"
+  write_to_file: true
+  visualize: false
 
 frames_writer: # applied only to cpp
-  num_of_frames_to_record: 1000
-  file_path: "/tmp/output.bin"
+  - name: "stream_1" # from advanced_network_media_rx
+    num_of_frames_to_record: 1000
+    file_path: "/tmp/output.bin"
 
 holoviz:
   width: 1920

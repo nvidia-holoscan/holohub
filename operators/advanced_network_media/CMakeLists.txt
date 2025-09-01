@@ -15,6 +15,13 @@
 
 cmake_minimum_required(VERSION 3.20)
 
+# Build only when Rivermax manager is enabled
+if(NOT DEFINED ANO_MGR)
+    return()
+elseif(NOT ANO_MGR STREQUAL "rivermax")
+    return()
+endif()
+
 # Build common code first
 add_subdirectory(common)
 

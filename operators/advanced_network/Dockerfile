@@ -131,6 +131,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ibverbs-utils \
         python3-pyelftools \
         python3-dev \
+        libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
 
 # PIP installs
