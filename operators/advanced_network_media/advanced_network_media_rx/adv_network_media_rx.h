@@ -57,6 +57,7 @@ class AdvNetworkMediaRxOp : public Operator {
   // Operator parameters
   Parameter<std::string> interface_name_;
   Parameter<uint16_t> queue_id_;
+  Parameter<uint32_t> stream_id_;
   Parameter<uint32_t> frame_width_;
   Parameter<uint32_t> frame_height_;
   Parameter<uint32_t> bit_depth_;

@@ -2,6 +2,9 @@
 
 The Advanced Networking Media Player is a high-performance application for receiving and displaying media streams over advanced network infrastructure using NVIDIA's Rivermax SDK. This application demonstrates real-time media streaming capabilities with ultra-low latency and high throughput.
 
+This application serves as a reference implementation demonstrating how to integrate multiple media streams into a unified HoloHub processing pipeline. It showcases the advanced networking framework's ability to handle complex multi-stream scenarios that are common in professional media production, broadcasting, and real-time analytics applications.
+
+
 ## Overview
 
 This application showcases professional-grade media streaming over IP networks, utilizing NVIDIA's advanced networking technologies. It receives media streams using the SMPTE 2110 standard and can either display them in real-time or save them to disk for further processing.
@@ -14,6 +17,7 @@ This application showcases professional-grade media streaming over IP networks, 
 - **GPU Acceleration**: Leverage GPUDirect for zero-copy operations
 - **Multiple Format Support**: RGB888, YUV420, NV12, and other common video formats
 - **Header-Data Split**: Optimized memory handling for improved performance
+- **Multi-Stream Support**: Handle multiple concurrent streams with independent processing
 
 ### Application Architecture
 
@@ -99,6 +103,15 @@ graph TD
 Network → RDK Services → AdvNetworkMediaRxOp → Application → Display/File
 ```
 
+#### Multi-Stream Processing Flow
+```
+                      ---- stream ID 0 --- AdvNetworkMediaRxOp --- FramesWriterOp
+                     |
+Receiving 2 streams -|
+                     |
+                      ---- stream ID 1 --- AdvNetworkMediaRxOp --- FramesWriterOp
+```
+
 ## Requirements
 
 ### Hardware Requirements
@@ -121,7 +134,7 @@ Network → RDK Services → AdvNetworkMediaRxOp → Application → Display/Fil
 Build the Docker image with Rivermax support:
 
 ```bash
-./dev_container build --docker_file operators/advanced_network/Dockerfile --img holohub:rivermax --build-args "--target rivermax"
+./holohub build adv_networking_media_player --build-args="--target rivermax" --configure-args="-D ANO_MGR:STRING=rivermax"
 ```
 
 ### Launch Container
@@ -129,16 +142,16 @@ Build the Docker image with Rivermax support:
 Launch the Rivermax-enabled container:
 
 ```bash
-./operators/advanced_network/run_rivermax.sh
+./holohub run-container adv_networking_media_player --build-args="--target rivermax" --docker-opts="-u root --privileged -v /opt/mellanox/rivermax/rivermax.lic:/opt/mellanox/rivermax/rivermax.lic -w /workspace/holohub/build/adv_networking_media_player/applications/adv_networking_media_player/cpp"
 ```
 
-### Build Application
+### Run Application
 
-Inside the container, build the application:
+Inside the container, run the application:
 
 ```bash
 # For C++ version
-./run build adv_networking_media_player --configure-args "-DANO_MGR=rivermax"
+./adv_networking_media_player adv_networking_media_player.yaml
 ```
 
 ## Configuration
@@ -208,35 +221,51 @@ advanced_network:
           - "Data_RX_GPU"
           rivermax_rx_settings:
             settings_type: "ipo_receiver"
-            memory_registration: true
-            #allocator_type: "huge_page_2mb"
             verbose: true
-            max_path_diff_us: 10000
-            ext_seq_num: true
-            sleep_between_operations_us: 0
-            local_ip_addresses:
-              - 2.1.0.12
-            source_ip_addresses:
-              - 2.1.0.12
-            destination_ip_addresses:
-              - 224.1.1.2
-            destination_ports:
-              - 50001
-            stats_report_interval_ms: 3000
-            send_packet_ext_info: true
+            rx_threads:
+            - thread_id: 0
+              network_settings:
+              - stream_id: 0                    # Stream 1 network config
+                local_ip_addresses: 2.1.0.12
+                source_ip_addresses: 2.1.0.11
+                destination_ip_addresses: 224.1.1.1
+                destination_ports: 50000
+              - stream_id: 1                    # [OPTIONAL] Stream 2 network config
+                local_ip_addresses: 2.1.0.12
+                source_ip_addresses: 2.1.0.11
+                destination_ip_addresses: 224.1.1.2
+                destination_ports: 50000
 ```
 
-#### Video Format Configuration
+#### Per-Stream Media RX Configuration
+
+Each stream requires its own media RX operator configuration:
+
 ```yaml
 advanced_network_media_rx:
-  interface_name: cc:00.1
-  video_format: RGB888
-  frame_width: 1920
-  frame_height: 1080
-  bit_depth: 8
-  hds: true
-  output_format: tensor #can be video_buffer
-  memory_location: device
+  - name: "stream_1"                    # First stream
+    interface_name: cc:00.1
+    queue_id: 0
+    stream_id: 0                        # Maps to network_settings stream_id
+    video_format: RGB888
+    frame_width: 1920
+    frame_height: 1080
+    bit_depth: 8
+    hds: true
+    output_format: tensor
+    memory_location: device
+
+  - name: "stream_2"                    # [OPTIONAL] Second stream  
+    interface_name: cc:00.1
+    queue_id: 0
+    stream_id: 1
+    video_format: RGB888                # Can be different per stream
+    frame_width: 1920                   # Can be different per stream
+    frame_height: 1080
+    bit_depth: 8
+    hds: true
+    output_format: tensor
+    mem
 ```
 
 #### Output Configuration
@@ -244,33 +273,29 @@ advanced_network_media_rx:
 media_player_config:
   write_to_file: false    # Set to true for file output
   visualize: true         # Set to true for real-time display
-  input_format: "rgb888"
 ```
 
-## Running the Application
+#### Per-Stream File Output Configuration
 
-### Prerequisites
+Configure independent frame writers for each stream:
 
-Before running, ensure your environment is properly configured:
+```yaml
+frames_writer:
+  - name: "stream_1"                    # Must match media RX name
+    num_of_frames_to_record: 1000
+    file_path: "/tmp/output_stream_1.bin"
 
-```bash
-# Update PYTHONPATH for Python applications
-export PYTHONPATH=${PYTHONPATH}:/opt/nvidia/holoscan/python/lib:$PWD/build/adv_networking_media_player/python/lib:$PWD
-
-# Ensure proper system configuration (run as root if needed)
-# See High Performance Networking tutorial for system tuning
+  - name: "stream_2"                    # [OPTIONAL]
+    num_of_frames_to_record: 1000
+    file_path: "/tmp/output_stream_2.bin"
 ```
 
-### C++ Application
+#### Single Stream Display
 
-```bash
-./build/adv_networking_media_player/applications/adv_networking_media_player/cpp/adv_networking_media_player adv_networking_media_player.yaml
-```
-
-### Python Application
-
-```bash
-python applications/adv_networking_media_player/python/adv_networking_media_player.py ../adv_networking_media_player.yaml
+```yaml
+holoviz:
+  width: 1920
+  height: 1080
 ```
 
 ## Output Options
