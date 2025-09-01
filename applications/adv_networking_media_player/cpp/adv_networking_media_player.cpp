@@ -284,14 +284,38 @@ class App : public holoscan::Application {
       exit(1);
     }
 
-    auto adv_net_media_rx =
-        make_operator<ops::AdvNetworkMediaRxOp>("advanced_network_media_rx",
-                                                from_config("advanced_network_media_rx"),
-                                                make_condition<BooleanCondition>("is_alive", true));
+    auto multi_streams_adv_net_media_rx_yaml = config().yaml_nodes()[0]["advanced_network_media_rx"];
+    std::unordered_map<std::string, std::shared_ptr<ops::AdvNetworkMediaRxOp>> adv_net_media_rx_map;
+    for (const auto& stream : multi_streams_adv_net_media_rx_yaml) {
+      std::string stream_name = stream["name"].as<std::string>();
+      auto adv_net_media_rx = make_operator<ops::AdvNetworkMediaRxOp>(
+          "adv_net_media_rx_" + stream_name,
+          Arg("interface_name", stream["interface_name"].as<std::string>("")),
+          Arg("queue_id", stream["queue_id"].as<uint16_t>(0)),
+          Arg("stream_id", stream["stream_id"].as<uint32_t>(0)),
+          Arg("frame_width", stream["frame_width"].as<uint32_t>(1920)),
+          Arg("frame_height", stream["frame_height"].as<uint32_t>(1080)),
+          Arg("bit_depth", stream["bit_depth"].as<uint32_t>(8)),
+          Arg("video_format", stream["video_format"].as<std::string>("RGB888")),
+          Arg("hds", stream["hds"].as<bool>(true)),
+          Arg("output_format", stream["output_format"].as<std::string>("video_buffer")),
+          Arg("memory_location", stream["memory_location"].as<std::string>("device")),
+          make_condition<BooleanCondition>("is_alive", true)
+      );
+      adv_net_media_rx_map[stream_name] = adv_net_media_rx;
+    }
+    if (adv_net_media_rx_map.empty()) {
+      HOLOSCAN_LOG_ERROR("No advanced_network_media_rx entries found in the config");
+      exit(1);
+    }
 
     const auto allocator = make_resource<holoscan::UnboundedAllocator>("allocator");
 
     if (from_config("media_player_config.visualize").as<bool>()) {
+      if (multi_streams_adv_net_media_rx_yaml.size() > 1) {
+        HOLOSCAN_LOG_ERROR("Visualization with multiple streams is not supported yet.");
+        exit(1);
+      }
       const auto cuda_stream_pool =
           make_resource<holoscan::CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
 
@@ -299,11 +323,29 @@ class App : public holoscan::Application {
                                                       from_config("holoviz"),
                                                       Arg("cuda_stream_pool", cuda_stream_pool),
                                                       Arg("allocator") = allocator);
-      add_flow(adv_net_media_rx, visualizer, {{"out_video_buffer", "receivers"}});
+      add_flow(adv_net_media_rx_map[0], visualizer, {{"out_video_buffer", "receivers"}});
     } else if (from_config("media_player_config.write_to_file").as<bool>()) {
-      auto frames_writer =
-          make_operator<ops::FramesWriterOp>("frames_writer", from_config("frames_writer"));
-      add_flow(adv_net_media_rx, frames_writer);
+      auto frames_writer_yaml = config().yaml_nodes()[0]["frames_writer"];
+      if (frames_writer_yaml.size() == adv_net_media_rx_map.size()) {
+        for (const auto& stream : frames_writer_yaml) {
+          std::string stream_name = stream["name"].as<std::string>();
+          auto frames_writer = make_operator<ops::FramesWriterOp>(
+            "frames_writer_" + stream_name,
+            Arg("file_path", stream["file_path"].as<std::string>("")),
+            Arg("num_of_frames_to_record", stream["num_of_frames_to_record"].as<uint32_t>(1000))
+          );
+          // Connect the corresponding network rx operator to this frames writer
+          if (adv_net_media_rx_map.find(stream_name) != adv_net_media_rx_map.end()) {
+            add_flow(adv_net_media_rx_map[stream_name], frames_writer);
+          } else {
+            HOLOSCAN_LOG_ERROR("Stream {} not found in adv_net_media_rx_map", stream_name);
+            exit(1);
+          }
+        }
+      } else {
+        HOLOSCAN_LOG_ERROR("Number of frames_writer entries must match number of advanced_network_media_rx entries");
+        exit(1);
+      }
     } else {
       HOLOSCAN_LOG_ERROR("At least one output type (write_to_file/visualize) must be defined");
       exit(1);
