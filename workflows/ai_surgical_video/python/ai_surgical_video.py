@@ -380,19 +380,22 @@ class AISurgicalVideoWorkflow(Application):
         # ------------------------------------------------------------------------------------------
         # Configure AJA capture card
         # ------------------------------------------------------------------------------------------
+        source_dtype = "rgb888"
         if self.source == "aja":
-            in_dtype = "rgb888"
             aja = AJASourceOp(self, name="aja_source", **self.kwargs("aja"))
             # Convert VideoBuffer from AJA to Tensor (drop alpha channel for downstream compatibility)
             drop_alpha_channel = FormatConverterOp(
-                self, name="drop_alpha_channel", pool=pool, **self.kwargs("drop_alpha_channel")
+                self,
+                name="drop_alpha_channel",
+                pool=pool,
+                out_dtype=source_dtype,
+                **self.kwargs("drop_alpha_channel"),
             )
         # ------------------------------------------------------------------------------------------
         # Setup video replayer
         # ------------------------------------------------------------------------------------------
         elif self.source.startswith("replayer"):
             replayer_kwargs = self.kwargs("replayer")
-            in_dtype = "rgb888"
             # Prifix the video directory with the data directory and validate
             video_dir = os.path.join(self.data_dir, replayer_kwargs["directory"])
             if not os.path.exists(video_dir):
@@ -407,8 +410,6 @@ class AISurgicalVideoWorkflow(Application):
         # Setup Holoscan Sensor Bridge
         # ------------------------------------------------------------------------------------------
         elif self.source == "hsb":
-            in_dtype = "rgb888"
-
             if self._frame_limit:
                 self._count = CountCondition(self, name="count", count=self._frame_limit)
                 condition = self._count
@@ -538,14 +539,14 @@ class AISurgicalVideoWorkflow(Application):
             self,
             name="detection_preprocessor",
             pool=pool,
-            in_dtype=in_dtype,
+            in_dtype=source_dtype,
             **self.kwargs("detection_preprocessor"),
         )
         segmentation_preprocessor = FormatConverterOp(
             self,
             name="segmentation_preprocessor",
             pool=pool,
-            in_dtype=in_dtype,
+            in_dtype=source_dtype,
             **self.kwargs("segmentation_preprocessor"),
         )
         # Inference: Multi-AI Detection and Segmentation
