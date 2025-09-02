@@ -28,6 +28,11 @@ aja: # AJASourceOp
   rdma: true
   enable_overlay: false
 
+drop_alpha_channel: # FormatConverter to convert VideoBuffer to Tensor
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+  out_tensor_name: ""
+
 out_of_body_format_converter:
   out_tensor_name: source_video
   out_dtype: "float32"

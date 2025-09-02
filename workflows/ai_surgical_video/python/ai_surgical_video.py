@@ -381,8 +381,12 @@ class AISurgicalVideoWorkflow(Application):
         # Configure AJA capture card
         # ------------------------------------------------------------------------------------------
         if self.source == "aja":
-            in_dtype = "rgba8888"
+            in_dtype = "rgb888"
             aja = AJASourceOp(self, name="aja_source", **self.kwargs("aja"))
+            # Convert VideoBuffer from AJA to Tensor (drop alpha channel for downstream compatibility)
+            drop_alpha_channel = FormatConverterOp(
+                self, name="drop_alpha_channel", pool=pool, **self.kwargs("drop_alpha_channel")
+            )
         # ------------------------------------------------------------------------------------------
         # Setup video replayer
         # ------------------------------------------------------------------------------------------
@@ -692,7 +696,8 @@ class AISurgicalVideoWorkflow(Application):
             self.add_flow(hsb_demosaic, hsb_image_shift, {("transmitter", "input")})
             self.add_flow(hsb_image_shift, source, {("output", "in")})
         elif self.source == "aja":
-            self.add_flow(aja, source, {("video_buffer_output", "in")})
+            self.add_flow(aja, drop_alpha_channel, {("video_buffer_output", "source_video")})
+            self.add_flow(drop_alpha_channel, source)
         else:
             self.add_flow(replayer, source)
         # __________________________________________________________________
