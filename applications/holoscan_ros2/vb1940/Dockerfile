@@ -29,10 +29,9 @@ RUN apt update && apt install -y \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
-# Install git and openssh-client so we can clone the hololink repository
+# Install git to clone the public holoscan-sensor-bridge repository
 RUN apt update && apt install -y \
     git \
-    openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Add ROS2 Jazzy repository
@@ -83,21 +82,17 @@ ENTRYPOINT ["/usr/bin/entrypoint.sh"]
 # Set up deps directory and clone holoscan-sensor-bridge
 RUN mkdir -p /deps
 
-# Add SSH key and known hosts during build
-RUN mkdir -p /root/.ssh && \
-    ssh-keyscan -p 12051 gitlab-master.nvidia.com >> /root/.ssh/known_hosts
-
-# Clone the Hololink repository
+# Clone the public Holoscan Sensor Bridge repository
 WORKDIR /deps
-RUN --mount=type=ssh git clone --branch internal ssh://git@gitlab-master.nvidia.com:12051/holoscan/hololink.git holoscan-sensor-bridge
+RUN git clone https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git
 
-# Build the hololink C++ libraries
+# Build the holoscan-sensor-bridge C++ libraries
 WORKDIR /deps/holoscan-sensor-bridge
 RUN mkdir -p build
 WORKDIR /deps/holoscan-sensor-bridge/build
 RUN cmake .. && make -j$(nproc)
 
-# Install the hololink Python package
+# Install the holoscan-sensor-bridge Python package
 WORKDIR /deps/holoscan-sensor-bridge/python
 RUN pip3 install -e .
 

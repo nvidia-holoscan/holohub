@@ -59,8 +59,8 @@ target_link_libraries(holoscan_ros2_vb1940_publisher PRIVATE
     ${rclcpp_LIBRARIES}
     ${sensor_msgs_LIBRARIES}
     # CUDA libraries
-    cuda
-    cudart
+    CUDA::cudart
+    CUDA::cuda_driver
     # Hololink libraries
     hololink_core
     hololink
@@ -73,7 +73,6 @@ target_link_libraries(holoscan_ros2_vb1940_publisher PRIVATE
     image_processor
     # System libraries needed by hololink
     ibverbs
-    CUDA::nvToolsExt
     nvrtc
     fmt
 )
