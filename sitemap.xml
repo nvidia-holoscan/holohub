@@ -141,6 +141,14 @@
          <lastmod>2025-09-02</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/holoscan_ros2/pubsub/</loc>
+         <lastmod>2025-09-02</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/holoscan_ros2/vb1940/</loc>
+         <lastmod>2025-09-02</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/holoviz/holoviz_hdr/</loc>
          <lastmod>2025-09-02</lastmod>
     </url>
@@ -554,6 +562,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/high_rate_psd/</loc>
+         <lastmod>2025-09-02</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/holoscan_ros2/</loc>
          <lastmod>2025-09-02</lastmod>
     </url>
     <url>
