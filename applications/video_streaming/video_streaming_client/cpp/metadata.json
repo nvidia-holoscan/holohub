@@ -30,7 +30,7 @@
         "ranking": 1,
         "requirements": {},
         "run": {
-            "command": "<holohub_app_bin>/streaming_client_demo",
+            "command": "<holohub_app_bin>/video_streaming_client",
             "workdir": "holohub_bin"
         }
     }

@@ -1,4 +1,4 @@
-# Streaming Server Demo
+# Video Streaming Server
 
 This application demonstrates how to use the Holoscan SDK to create a streaming server application that can send video streams to streaming clients.
 
@@ -39,7 +39,7 @@ rm -rf holoscan_server_cloud_streaming_v0.1
 To run the application:
 
 ```bash
-./holohub run streaming_server_demo
+./holohub run video_streaming_server
 ```
 
 ### Command Line Options

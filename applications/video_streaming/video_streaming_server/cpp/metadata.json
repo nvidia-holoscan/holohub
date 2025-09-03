@@ -29,7 +29,7 @@
         "ranking": 1,
         "requirements": {},
         "run": {
-            "command": "<holohub_app_bin>/streaming_server_demo",
+            "command": "<holohub_app_bin>/video_streaming_server",
             "workdir": "holohub_bin"
         }
     }

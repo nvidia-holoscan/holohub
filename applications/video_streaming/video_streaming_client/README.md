@@ -1,4 +1,4 @@
-# Streaming Client Demo
+# Video Streaming Client
 
 This application demonstrates how to use the Holoscan SDK to create a streaming client application that can receive video streams from a streaming server.
 
@@ -109,7 +109,7 @@ After successful extraction and setup, your `operators/streaming_client` directo
 To run the application:
 
 ```bash
-./holohub run streaming_client_demo
+./holohub run video_streaming_client
 ```
 
 ### Command Line Options
@@ -126,9 +126,9 @@ The application can be configured using a YAML file. By default, it looks for `s
 
 ### Applications
 
-Please note that , in order for the `streming_client` to be able to establish a bidirectional connection with the `streaming_server`, the streaming_server_demo app must be build and run first and then the stremaing_client_demo app.
+Please note that , in order for the `streming_client` to be able to establish a bidirectional connection with the `streaming_server`, the video_streaming_server app must be build and run first and then the stremaing_client_demo app.
 
-- [Streaming Server Demo Application](../streaming_server_demo/README.md)
+- [Streaming Server Demo Application](../video_streaming_server/README.md)
 
 ### Operators  
 - [Streaming Client Operator](../../operators/streaming_client/README.md) - Detailed setup, dependencies, and troubleshooting instructions
