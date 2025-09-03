@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -626,7 +626,14 @@ gxf::Expected<std::vector<char>> TensorRtInference::convertModelToEngine() {
     builderConfig->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK);
     builderConfig->setDLACore(dla_core.value());
   }
-  if (enable_fp16_.get()) { builderConfig->setFlag(nvinfer1::BuilderFlag::kFP16); }
+  if (enable_fp16_.get()) {
+#if NV_TENSORRT_MAJOR >= 10 && NV_TENSORRT_MINOR >= 13
+  GXF_LOG_WARNING("FP16 mode is deprecated in TensorRT version %d.%d, ignoring.",
+                NV_TENSORRT_MAJOR, NV_TENSORRT_MINOR);
+#else
+  builderConfig->setFlag(nvinfer1::BuilderFlag::kFP16);
+#endif
+  }
 
   // Parses ONNX with explicit batch size for support of dynamic shapes/batch
   #if NV_TENSORRT_MAJOR < 10
