@@ -26,7 +26,7 @@ Holoviz output.
 - **RTI Connext 7.5.0 Express**  
   - Provides access to the DDS domain.  
   - Already included if using the container build.  
-  - Otherwise, install via [RTI APT instructions](https://community.rti.com/static/documentation/developers/get-started/apt-install.html).  
+  - Otherwise, install via [RTI APT instructions](https://content.rti.com/l/983311/2025-07-08/q5x1n8).  
 
 - **RTI Activation Key**  
   - [Request a license/activation key](https://content.rti.com/l/983311/2025-07-25/q6729c).  

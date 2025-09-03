@@ -9,32 +9,30 @@ a wide array of external applications and platforms.
 
 ## Requirements
 
-[RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms) must be
-installed on the system and a valid RTI Connext license must be installed to run
-any application using one of these operators. To build on an IGX devkit (using
+- **RTI Connext 7.5.0 Express**  
+  - Provides access to the DDS domain.  
+  - Already included if using the [container build](../../applications/dds/dds_video/Dockerfile) you can find in the dds_video application directory  
+  - Otherwise, install via [RTI APT instructions](https://content.rti.com/l/983311/2025-07-08/q5x1n8).  
+
+- **RTI Activation Key**  
+  - [Download the RTI license/activation key](https://content.rti.com/l/983311/2025-07-25/q6729c).  
+  - See the [usage rules](https://www.rti.com/products/connext-express).  
+  - For Holoscan usage, download the key, copy it into the `holohub` root directory, and rename it to `rti_license.dat`.  
+
+To build on an IGX devkit (using
 the `armv8` architecture), follow the
 [instructions to build Connext DDS applications for embedded Arm targets](https://community.rti.com/kb/how-do-i-create-connext-dds-application-rti-code-generator-and-build-it-my-embedded-target-arm)
 up to step 5 (Installing Java and setting JREHOME).
 
-To build the operators, the `RTI_CONNEXT_DDS_DIR` CMake variable must point to
+To build the operators out of the dockerfile, the `RTI_CONNEXT_DDS_DIR` CMake variable must point to
 the installation path for RTI Connext. This can be done automatically by setting
 the `NDDSHOME` environment variable to the RTI Connext installation directory
 (such as when using the RTI `setenv` scripts), or manually at build time, e.g.:
 
 ```sh
-$ ./holohub build dds_video --configure-args="-DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0"
+$ ./holohub build dds_video"
 ```
 
-## Using a Development Container
+## Example Application
 
-Due to the license requirements of RTI Connext it is not currently supported to
-install RTI Connext into a development container. Instead, if a development
-container is to be used, Connext should be installed onto the host as above and
-then the container can be launched with the RTI Connext folder mounted at
-runtime. To do so, ensure that the `NDDSHOME` and `CONNEXTDDS_ARCH` environment
-variables are set (which can be done using the RTI `setenv` script) and use the
-following:
-
-```sh
-./holohub run --docker-opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=$CONNEXTDDS_ARCH"
-```
+See the [DDS Video Application documentation](../../applications/dds/dds_video/README.md) for an example of how to use these operators in a Holoscan application.
