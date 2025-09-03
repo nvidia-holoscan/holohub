@@ -15052,6 +15052,9 @@
 <h3 id="using-aja-card-as-io">Using AJA Card as I/O<a class="headerlink" href="#using-aja-card-as-io" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ai_surgical_video<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;--source aja&quot;</span>
 </code></pre></div>
+<blockquote>
+<p>Note: the AJA video buffer dtype is set to <code>rgba8888</code> by default. If your camera is not providing alpha channel, you can change it to <code>rgb888</code> by modifying <code>in_dtype</code> in the <code>aja_format_converter</code> section of the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/workflows/ai_surgical_video/python/config.yaml">config.yaml</a> file.</p>
+</blockquote>
 <h3 id="using-holoscan-sensor-bridge-as-io">Using Holoscan Sensor Bridge as I/O<a class="headerlink" href="#using-holoscan-sensor-bridge-as-io" title="Permanent link">#</a></h3>
 <p>When using the workflow with <code>--source hsb</code>, it requires the Holoscan Sensor Bridge software to be installed. You can build a Holoscan Sensor Bridge container using the following commands:</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git
