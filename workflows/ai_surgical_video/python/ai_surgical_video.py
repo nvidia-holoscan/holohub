@@ -384,12 +384,12 @@ class AISurgicalVideoWorkflow(Application):
         if self.source == "aja":
             aja = AJASourceOp(self, name="aja_source", **self.kwargs("aja"))
             # Convert VideoBuffer from AJA to Tensor (drop alpha channel for downstream compatibility)
-            drop_alpha_channel = FormatConverterOp(
+            aja_format_converter = FormatConverterOp(
                 self,
-                name="drop_alpha_channel",
+                name="aja_format_converter",
                 pool=pool,
                 out_dtype=source_dtype,
-                **self.kwargs("drop_alpha_channel"),
+                **self.kwargs("aja_format_converter"),
             )
         # ------------------------------------------------------------------------------------------
         # Setup video replayer
@@ -697,8 +697,8 @@ class AISurgicalVideoWorkflow(Application):
             self.add_flow(hsb_demosaic, hsb_image_shift, {("transmitter", "input")})
             self.add_flow(hsb_image_shift, source, {("output", "in")})
         elif self.source == "aja":
-            self.add_flow(aja, drop_alpha_channel, {("video_buffer_output", "source_video")})
-            self.add_flow(drop_alpha_channel, source)
+            self.add_flow(aja, aja_format_converter, {("video_buffer_output", "source_video")})
+            self.add_flow(aja_format_converter, source)
         else:
             self.add_flow(replayer, source)
         # __________________________________________________________________
