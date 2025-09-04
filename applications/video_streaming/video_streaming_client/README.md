@@ -126,7 +126,7 @@ The application can be configured using a YAML file. By default, it looks for `s
 
 ### Applications
 
-Please note that , in order for the `streming_client` to be able to establish a bidirectional connection with the `streaming_server`, the video_streaming_server app must be build and run first and then the video_stremaing_client app.
+Please note that , in order for the `streming_client` to be able to establish a bidirectional connection with the `streaming_server`, the video_streaming_server app must be build and run first and then the video_streaming_client app.
 
 - [Video Streaming Server Application](../video_streaming_server/README.md)
 
