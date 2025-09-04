@@ -33,7 +33,6 @@ rm -rf lib/x86_64 lib/aarch64
 rm -rf holoscan_server_cloud_streaming_v0.1
 ```
 
-
 ## Running the Application
 
 To run the application:
@@ -70,12 +69,14 @@ Before setting up HAProxy or cloud functions, it's recommended to check if the r
 ```
 
 The script will show:
+
 - ✅ **Port status**: Whether the port is listening or available
 - 🔧 **Process information**: What processes are using the port (if any)
 - 📋 **Port details**: Port type classification and availability for binding
 - 🛠️ **Troubleshooting**: Helps identify port conflicts before deployment
 
 **Common streaming ports to check:**
+
 - `49010` - Default streaming server port
 - `48010` - Alternative streaming port  
 - `47999` - RTSP alternative port
@@ -101,8 +102,10 @@ For streaming clients to connect successfully, the following network requirement
 ## Related Documentation
 
 ### Applications
-- [Streaming Client Demo Application](../streaming_client_demo/README.md)
+
+- [Video Streaming Client Application](../video_streaming_client/README.md)
 
 ### Operators
+
 - [Streaming Server Operator](../../operators/streaming_server/README.md) - Detailed setup, configuration, and deployment instructions
-- [Streaming Client Operator](../../operators/streaming_client/README.md) - Client-side streaming operator documentation 
+- [Streaming Client Operator](../../operators/streaming_client/README.md) - Client-side streaming operator documentation
