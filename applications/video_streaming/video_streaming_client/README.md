@@ -53,7 +53,7 @@ graph TD
 
 **⚠️ Important**: Before building this application, you must first download the required streaming client binaries from NGC.
 
-**📖 For detailed setup instructions, see**: [Streaming Client Operator Setup](../../operators/streaming_client/README.md#dependencies)
+**📖 For detailed setup instructions, see**: [Streaming Client Operator Setup](/operators/streaming_client/README.md#dependencies)
 
 Quick summary:
 
@@ -132,5 +132,5 @@ Please note that , in order for the `streming_client` to be able to establish a 
 
 ### Operators  
 
-- [Streaming Client Operator](../../operators/streaming_client/README.md) - Detailed setup, dependencies, and troubleshooting instructions
-- [Streaming Server Operator](../../operators/streaming_server/README.md) - Server-side streaming operator documentation
+- [Streaming Client Operator](/operators/streaming_client/README.md) - Detailed setup, dependencies, and troubleshooting instructions
+- [Streaming Server Operator](/operators/streaming_server/README.md) - Server-side streaming operator documentation

@@ -12,7 +12,7 @@ This application demonstrates how to use the Holoscan SDK to create a streaming 
 
 **⚠️ Important**: Before building this application, you must first download the required streaming server binaries from NGC.
 
-**📖 For detailed setup instructions, see**: [Streaming Server Operator Setup](../../operators/streaming_server/README.md#building-the-operator)
+**📖 For detailed setup instructions, see**: [Streaming Server Operator Setup](/operators/streaming_server/README.md#building-the-operator)
 
 Quick summary:
 
@@ -107,5 +107,5 @@ For streaming clients to connect successfully, the following network requirement
 
 ### Operators
 
-- [Streaming Server Operator](../../operators/streaming_server/README.md) - Detailed setup, configuration, and deployment instructions
-- [Streaming Client Operator](../../operators/streaming_client/README.md) - Client-side streaming operator documentation
+- [Streaming Server Operator](/operators/streaming_server/README.md) - Detailed setup, configuration, and deployment instructions
+- [Streaming Client Operator](/operators/streaming_client/README.md) - Client-side streaming operator documentation
