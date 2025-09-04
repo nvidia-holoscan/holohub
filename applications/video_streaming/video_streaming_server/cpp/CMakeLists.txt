@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(streaming_server_demo CXX)
+project(video_streaming_server CXX)
 
 # Add executable
 add_executable(streaming_server_demo

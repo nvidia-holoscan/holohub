@@ -115,9 +115,7 @@ add_holohub_application(psd_pipeline DEPENDS
                                   data_writer)
 
 add_holohub_application(ultrasound_segmentation DEPENDS OPERATORS aja_source)
-add_holohub_application(streaming_client_demo DEPENDS OPERATORS streaming_client)
 
-add_holohub_application(streaming_server_demo DEPENDS OPERATORS streaming_server)
 add_holohub_application(velodyne_lidar_app DEPENDS
                         OPERATORS velodyne_lidar
                                   basic_network
@@ -145,3 +143,4 @@ add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)
 add_subdirectory(slang)
+add_subdirectory(video_streaming)

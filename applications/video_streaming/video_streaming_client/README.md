@@ -1,4 +1,4 @@
-# Streaming Client Demo
+# Video Streaming Client
 
 This application demonstrates how to use the Holoscan SDK to create a streaming client application that can receive video streams from a streaming server.
 
@@ -6,8 +6,8 @@ This application demonstrates how to use the Holoscan SDK to create a streaming 
 
 ```mermaid
 graph TD
-    A[Streaming Server] -->|H.264 Video Stream| B[Network]
-    B -->|TCP/UDP Connection| C[Streaming Client Demo]
+    A[Video Streaming Server] -->|H.264 Video Stream| B[Network]
+    B -->|TCP/UDP Connection| C[Video Streaming Client]
     
     subgraph "Holoscan Application"
         C --> D[StreamingClient Operator]
@@ -53,7 +53,7 @@ graph TD
 
 **⚠️ Important**: Before building this application, you must first download the required streaming client binaries from NGC.
 
-**📖 For detailed setup instructions, see**: [Streaming Client Operator Setup](../../operators/streaming_client/README.md#dependencies)
+**📖 For detailed setup instructions, see**: [Streaming Client Operator Setup](/operators/streaming_client/README.md#dependencies)
 
 Quick summary:
 
@@ -109,7 +109,7 @@ After successful extraction and setup, your `operators/streaming_client` directo
 To run the application:
 
 ```bash
-./holohub run streaming_client_demo
+./holohub run video_streaming_client
 ```
 
 ### Command Line Options
@@ -126,10 +126,11 @@ The application can be configured using a YAML file. By default, it looks for `s
 
 ### Applications
 
-Please note that , in order for the `streming_client` to be able to establish a bidirectional connection with the `streaming_server`, the streaming_server_demo app must be build and run first and then the stremaing_client_demo app.
+Please note that , in order for the `streming_client` to be able to establish a bidirectional connection with the `streaming_server`, the video_streaming_server app must be build and run first and then the video_streaming_client app.
 
-- [Streaming Server Demo Application](../streaming_server_demo/README.md)
+- [Video Streaming Server Application](../video_streaming_server/README.md)
 
 ### Operators  
-- [Streaming Client Operator](../../operators/streaming_client/README.md) - Detailed setup, dependencies, and troubleshooting instructions
-- [Streaming Server Operator](../../operators/streaming_server/README.md) - Server-side streaming operator documentation 
+
+- [Streaming Client Operator](/operators/streaming_client/README.md) - Detailed setup, dependencies, and troubleshooting instructions
+- [Streaming Server Operator](/operators/streaming_server/README.md) - Server-side streaming operator documentation
