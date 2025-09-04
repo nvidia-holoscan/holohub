@@ -64,7 +64,7 @@ RUN python3 -m pip install --no-cache-dir setuptools && \
 ARG CMAKE_BUILD_TYPE=Release
 
 # Create workspace directories and copy application files
-RUN mkdir -p /workspace/holohub/applications/streaming_client_demo
+RUN mkdir -p /workspace/holohub/applications/video_streaming/video_streaming_client
 COPY . /workspace/holohub/
 
 # Create data directory

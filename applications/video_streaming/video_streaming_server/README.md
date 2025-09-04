@@ -1,4 +1,4 @@
-# Streaming Server Demo
+# Video Streaming Server
 
 This application demonstrates how to use the Holoscan SDK to create a streaming server application that can send video streams to streaming clients.
 
@@ -12,7 +12,7 @@ This application demonstrates how to use the Holoscan SDK to create a streaming 
 
 **⚠️ Important**: Before building this application, you must first download the required streaming server binaries from NGC.
 
-**📖 For detailed setup instructions, see**: [Streaming Server Operator Setup](../../operators/streaming_server/README.md#building-the-operator)
+**📖 For detailed setup instructions, see**: [Streaming Server Operator Setup](/operators/streaming_server/README.md#building-the-operator)
 
 Quick summary:
 
@@ -33,13 +33,12 @@ rm -rf lib/x86_64 lib/aarch64
 rm -rf holoscan_server_cloud_streaming_v0.1
 ```
 
-
 ## Running the Application
 
 To run the application:
 
 ```bash
-./holohub run streaming_server_demo
+./holohub run video_streaming_server
 ```
 
 ### Command Line Options
@@ -70,12 +69,14 @@ Before setting up HAProxy or cloud functions, it's recommended to check if the r
 ```
 
 The script will show:
+
 - ✅ **Port status**: Whether the port is listening or available
 - 🔧 **Process information**: What processes are using the port (if any)
 - 📋 **Port details**: Port type classification and availability for binding
 - 🛠️ **Troubleshooting**: Helps identify port conflicts before deployment
 
 **Common streaming ports to check:**
+
 - `49010` - Default streaming server port
 - `48010` - Alternative streaming port  
 - `47999` - RTSP alternative port
@@ -101,8 +102,10 @@ For streaming clients to connect successfully, the following network requirement
 ## Related Documentation
 
 ### Applications
-- [Streaming Client Demo Application](../streaming_client_demo/README.md)
+
+- [Video Streaming Client Application](../video_streaming_client/README.md)
 
 ### Operators
-- [Streaming Server Operator](../../operators/streaming_server/README.md) - Detailed setup, configuration, and deployment instructions
-- [Streaming Client Operator](../../operators/streaming_client/README.md) - Client-side streaming operator documentation 
+
+- [Streaming Server Operator](/operators/streaming_server/README.md) - Detailed setup, configuration, and deployment instructions
+- [Streaming Client Operator](/operators/streaming_client/README.md) - Client-side streaming operator documentation

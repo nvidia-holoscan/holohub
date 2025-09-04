@@ -1,13 +1,13 @@
 {
     "application": {
-        "name": "Streaming Client Demo",
+        "name": "Video Streaming Client",
         "authors": [
             {
                 "name": "Holoscan Team",
                 "affiliation": "NVIDIA"
             }
         ],
-        "language": "Python",
+        "language": "C++",
         "version": "1.0",
         "changelog": {
             "1.0": "Initial Release"
@@ -28,17 +28,10 @@
             "Demo"
         ],
         "ranking": 1,
-        "requirements": {
-            "operators": [
-                {
-                    "name": "streaming_client",
-                    "version": "1.0"
-                }
-            ]
-        },
+        "requirements": {},
         "run": {
-            "command": "python3 <holohub_app_source>/streaming_client_demo.py",
-            "workdir": "holohub_app_bin"
+            "command": "<holohub_app_bin>/video_streaming_client",
+            "workdir": "holohub_bin"
         }
     }
-}
+} 
