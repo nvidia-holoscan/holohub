@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,6 @@ add_library(${PROJECT_NAME}
   segmentation_preprocessor.cpp
   segmentation_preprocessor.cu
 )
-
-set_target_properties(${PROJECT_NAME}  PROPERTIES CUDA_ARCHITECTURES "70;80")
 
 add_library(holoscan::orsi::segmentation_preprocessor ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
