@@ -152,10 +152,10 @@ void FormatConverterOp::initialize() {
 #if CUDART_VERSION >= 13000
   // Workaround pending proper NPP support to get stream context in CUDA 13.0+
   int device = 0;
-  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDevice(&device));
+  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDevice(&device), "Failed to get CUDA device");
 
   cudaDeviceProp prop{};
-  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDeviceProperties(&prop, device));
+  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDeviceProperties(&prop, device), "Failed to get CUDA device properties");
 
   npp_stream_ctx_.nCudaDeviceId = device;
   npp_stream_ctx_.nMultiProcessorCount = prop.multiProcessorCount;
