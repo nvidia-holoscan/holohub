@@ -28,7 +28,7 @@ add_library(${PROJECT_NAME}
   segmentation_postprocessor.cu
 )
 
-set_target_properties(${PROJECT_NAME}  PROPERTIES CUDA_ARCHITECTURES "70;80")
+set_target_properties(${PROJECT_NAME}  PROPERTIES CUDA_ARCHITECTURES "80")
 
 add_library(holoscan::orsi::segmentation_postprocessor ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
