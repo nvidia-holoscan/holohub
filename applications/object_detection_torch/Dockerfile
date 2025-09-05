@@ -42,11 +42,28 @@ FROM base as torch
 
 # Install libraries
 ARG GPU_TYPE
-RUN if [ "${GPU_TYPE}" = "igpu" ]; then \
-        python3 -m pip install --force-reinstall torch torchvision torchaudio --index-url "https://pypi.jetson-ai-lab.io/jp6/cu129"; \
+RUN TORCHVISION_WHEEL_VERSION="0.23.0"; \
+    if [ "${GPU_TYPE}" = "igpu" ]; then \
+        PYTORCH_WHEEL_VERSION="2.8.0"; \
+        INDEX_URL="https://pypi.jetson-ai-lab.io/jp6/cu129"; \
     else \
-        pip install torch torchvision; \
+        CUDA_MAJOR=$(nvcc --version | grep -o "release [0-9]*" | awk '{print $2}'); \
+        if [ "$CUDA_MAJOR" = "13" ]; then \
+            # Reflect observed Torchvision nightly wheel dependencies for CUDA 13
+            if [ $(uname -m) = "aarch64" ]; then \
+                PYTORCH_WHEEL_VERSION="2.9.0.dev20250828+cu130"; \
+            else \
+                PYTORCH_WHEEL_VERSION="2.9.0.dev20250829+cu130"; \
+            fi; \
+            TORCHVISION_WHEEL_VERSION="0.24.0.dev20250829"; \
+            INDEX_URL="https://download.pytorch.org/whl/nightly/cu130"; \
+        else \
+            PYTORCH_WHEEL_VERSION="2.8.0+cu129"; \
+            INDEX_URL="https://download.pytorch.org/whl/"; \
+        fi; \
     fi; \
+    echo "Installing torch==${PYTORCH_WHEEL_VERSION} from $INDEX_URL"; \
+    python3 -m pip install --force-reinstall torch==${PYTORCH_WHEEL_VERSION} torchvision==${TORCHVISION_WHEEL_VERSION} torchaudio --index-url $INDEX_URL; \
     if ! find /usr/local/lib/python3.12/dist-packages/torch -name libtorch_cuda.so | grep -q .; then \
         echo "libtorch_cuda.so not found, torch installation failed"; \
         exit 1; \
