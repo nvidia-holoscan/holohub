@@ -28,8 +28,6 @@ add_library(${PROJECT_NAME}
   segmentation_preprocessor.cu
 )
 
-set_target_properties(${PROJECT_NAME}  PROPERTIES CUDA_ARCHITECTURES "80")
-
 add_library(holoscan::orsi::segmentation_preprocessor ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
