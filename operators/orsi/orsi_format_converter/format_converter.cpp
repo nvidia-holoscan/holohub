@@ -155,7 +155,8 @@ void FormatConverterOp::initialize() {
   HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDevice(&device), "Failed to get CUDA device");
 
   cudaDeviceProp prop{};
-  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDeviceProperties(&prop, device), "Failed to get CUDA device properties");
+  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDeviceProperties(&prop, device),
+                                 "Failed to get CUDA device properties");
 
   npp_stream_ctx_.nCudaDeviceId = device;
   npp_stream_ctx_.nMultiProcessorCount = prop.multiProcessorCount;
