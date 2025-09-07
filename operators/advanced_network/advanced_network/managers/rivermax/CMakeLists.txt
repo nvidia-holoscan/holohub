@@ -43,10 +43,5 @@ target_compile_options(${PROJECT_NAME} PUBLIC -std=c++17)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         rivermax_service
-        rivermax-dev-kit-services
-        rivermax-dev-kit-core
-        rivermax-dev-kit-io-node
-        rivermax-dev-kit
-        rivermax-dev-kit-apps
         holoscan::core
 )
