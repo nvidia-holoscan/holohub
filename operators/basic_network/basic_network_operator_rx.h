@@ -52,6 +52,7 @@ class BasicNetworkOpRx : public Operator {
   uint32_t byte_cnt_ = 0;
   uint8_t* pkt_buf = nullptr;
   uint32_t pkts_in_batch_ = 0;
+  std::vector<uint32_t> pkt_sizes_;
   bool connected_ = false;
   std::chrono::steady_clock::time_point burst_start_time_;
 };
