@@ -14692,39 +14692,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ssh-access-for-hololink-repository" class="md-nav__link">
-    <span class="md-ellipsis">
-      SSH Access for Hololink Repository
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#common-error-messages-and-solutions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Common Error Messages and Solutions
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#additional-resources" class="md-nav__link">
     <span class="md-ellipsis">
       Additional Resources
@@ -14902,58 +14869,6 @@
 <p><strong>Subscriber Options:</strong>
 - <code>--headless</code>: Run in headless mode
 - <code>--fullscreen</code>: Run in fullscreen mode</p>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
-<h3 id="ssh-access-for-hololink-repository">SSH Access for Hololink Repository<a class="headerlink" href="#ssh-access-for-hololink-repository" title="Permanent link">#</a></h3>
-<p>The VB1940 examples require access to the internal hololink repository during Docker build. You need to ensure proper SSH setup:</p>
-<ol>
-<li>
-<p><strong>Start SSH Agent and Add Key:</strong>
-   <div class="highlight"><pre><span></span><code><span class="c1"># Start SSH agent if not running</span>
-<span class="nb">eval</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>ssh-agent<span class="w"> </span>-s<span class="k">)</span><span class="s2">&quot;</span>
-
-<span class="c1"># Add your SSH key (replace with your actual key path)</span>
-ssh-add<span class="w"> </span>~/.ssh/id_rsa
-
-<span class="c1"># Verify the key is added</span>
-ssh-add<span class="w"> </span>-l
-
-<span class="c1"># Check your SSH_AUTH_SOCK value</span>
-<span class="nb">echo</span><span class="w"> </span><span class="nv">$SSH_AUTH_SOCK</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Build with SSH Agent Forwarding:</strong>
-   <div class="highlight"><pre><span></span><code><span class="c1"># Build with SSH forwarding (SSH_AUTH_SOCK is already set by ssh-agent)</span>
-./holohub<span class="w"> </span>build<span class="w"> </span>vb1940<span class="w"> </span>--build-args<span class="o">=</span><span class="s2">&quot;--ssh default&quot;</span><span class="w"> </span>--verbose
-</code></pre></div></p>
-</li>
-</ol>
-<p><strong>Note:</strong> The <code>SSH_AUTH_SOCK</code> environment variable is automatically set when you start the SSH agent. You can verify it's set by running <code>echo $SSH_AUTH_SOCK</code> - it will show a path like <code>/tmp/ssh-XXXXXXhQl38c/agent.1662230</code>.</p>
-<ol>
-<li><strong>Verify SSH Access:</strong>
-   <div class="highlight"><pre><span></span><code><span class="c1"># Test SSH connection to the repository server</span>
-ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">12051</span><span class="w"> </span>git@gitlab-master.nvidia.com
-</code></pre></div></li>
-</ol>
-<p>If you encounter SSH-related build failures, ensure:
-- Your SSH key has access to the hololink repository
-- The SSH agent is running and your key is loaded
-- The <code>SSH_AUTH_SOCK</code> environment variable is correctly set
-- You're using the <code>--ssh default</code> build argument</p>
-<h3 id="common-error-messages-and-solutions">Common Error Messages and Solutions<a class="headerlink" href="#common-error-messages-and-solutions" title="Permanent link">#</a></h3>
-<p><strong>Error: "Permission denied (publickey)"</strong>
-<div class="highlight"><pre><span></span><code><span class="c1"># Solution: Ensure your SSH key is added and has repository access</span>
-ssh-add<span class="w"> </span>-l<span class="w">  </span><span class="c1"># Verify key is loaded</span>
-ssh<span class="w"> </span>-T<span class="w"> </span>-p<span class="w"> </span><span class="m">12051</span><span class="w"> </span>git@gitlab-master.nvidia.com<span class="w">  </span><span class="c1"># Test access</span>
-</code></pre></div></p>
-<p><strong>Error: "Could not resolve hostname"</strong>
-<div class="highlight"><pre><span></span><code><span class="c1"># Solution: Check network connectivity and DNS resolution</span>
-ping<span class="w"> </span>gitlab-master.nvidia.com
-</code></pre></div></p>
-<p><strong>Error: "No such file or directory" during Docker build</strong>
-<div class="highlight"><pre><span></span><code><span class="c1"># Solution: Ensure you&#39;re using the --ssh flag</span>
-./holohub<span class="w"> </span>build<span class="w"> </span>vb1940<span class="w"> </span>--build-args<span class="o">=</span><span class="s2">&quot;--ssh default&quot;</span>
-</code></pre></div></p>
 <h2 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">#</a></h2>
 <h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">#</a></h3>
 <ul>
