@@ -159,6 +159,7 @@ void BasicNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op
     }
 
     if (n > 0) {
+      pkt_sizes_.push_back(n);
       byte_cnt_ += n;
       pkts_in_batch_++;
     } else {
@@ -168,10 +169,12 @@ void BasicNetworkOpRx::compute([[maybe_unused]] InputContext&, OutputContext& op
 
   // Only emit if we have packets to send
   if (pkts_in_batch_ > 0) {
-    auto msg = std::make_shared<NetworkOpBurstParams>(pkt_buf, byte_cnt_, pkts_in_batch_);
+    auto msg = std::make_shared<NetworkOpBurstParams>(
+        pkt_buf, byte_cnt_, pkts_in_batch_, pkt_sizes_);
     byte_cnt_ = 0;
     pkts_in_batch_ = 0;
     pkt_buf = nullptr;
+    pkt_sizes_.clear();
 
     op_output.emit(msg, "burst_out");
   }
