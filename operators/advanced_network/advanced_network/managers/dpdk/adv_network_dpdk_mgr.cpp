@@ -460,7 +460,9 @@ void DpdkMgr::initialize() {
 
   // Set up the port IDs to map to DPDK port IDs
   for (auto& intf : cfg_.ifs_) {
-    if (rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_) < 0) {
+    if (loopback_ == LoopbackType::LOOPBACK_TYPE_SW) {
+      intf.port_id_ = 0;
+    } else if (rte_eth_dev_get_port_by_name(intf.address_.c_str(), &intf.port_id_) < 0) {
       HOLOSCAN_LOG_CRITICAL("Failed to get port number for {} ({})", intf.name_, intf.address_);
       return;
     }
@@ -502,9 +504,7 @@ void DpdkMgr::initialize() {
   for (auto& intf : cfg_.ifs_) {
     [[maybe_unused]] struct rte_eth_dev_info dev_info;
 
-    if (loopback_ == LoopbackType::LOOPBACK_TYPE_SW) {
-      intf.port_id_ = 0;
-    } else {
+    if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {
       int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
       if (ret != 0) {
         HOLOSCAN_LOG_CRITICAL("Failed to get device info for port {}", intf.port_id_);
