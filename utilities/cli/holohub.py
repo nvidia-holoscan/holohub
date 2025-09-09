@@ -374,11 +374,26 @@ class HoloHubCLI:
         test.add_argument("--site-name", help="Site name")
         test.add_argument("--cdash-url", help="CDash URL")
         test.add_argument("--platform-name", help="Platform name")
-        test.add_argument("--cmake-options", help="CMake options")
+        test.add_argument(
+            "--cmake-options",
+            action="append",
+            help="CMake options, "
+            "example: --cmake-options='-DCUSTOM_OPTION=ON' --cmake-options='-DDEBUG_MODE=1'",
+        )
+        test.add_argument(
+            "--ctest-options",
+            action="append",
+            help="CTest options, "
+            "example: --ctest-options='-DGPU_TYPE=rtx4090' --ctest-options='-DDEBUG_MODE=ON'",
+        )
         test.add_argument("--no-xvfb", action="store_true", help="Do not use xvfb")
         test.add_argument("--ctest-script", help="CTest script")
         test.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
+        )
+        test.add_argument(
+            "--build-name-suffix",
+            help="Suffix to use for ctest build name (defaulting to the image tag)",
         )
         test.set_defaults(func=self.handle_test)
 
@@ -827,14 +842,23 @@ class HoloHubCLI:
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
 
-        base_img = args.base_img or container.default_base_image()
-
-        img_tag = base_img.split(":")[-1]
-
-        ctest_cmd = f"{xvfb} ctest " f"-DAPP={args.project} " f"-DTAG={img_tag} "
+        # TAG is used in utilities/testing/holohub.container.ctest by default
+        if getattr(args, "build_name_suffix", None):
+            tag = args.build_name_suffix
+        else:
+            if skip_docker_build:
+                image_name = getattr(args, "img", None) or container.image_name
+            else:
+                image_name = args.base_img or container.default_base_image()
+            tag = image_name.split(":")[-1]
+        ctest_cmd = f"{xvfb} ctest -DAPP={args.project} -DTAG={tag} "
 
         if args.cmake_options:
-            ctest_cmd += f'-DCONFIGURE_OPTIONS="{args.cmake_options}" '
+            cmake_opts = ";".join(args.cmake_options)
+            ctest_cmd += f'-DCONFIGURE_OPTIONS="{cmake_opts}" '
+
+        if getattr(args, "ctest_options", None):
+            ctest_cmd += " ".join(args.ctest_options) + " "
 
         if args.cdash_url:
             ctest_cmd += f"-DCTEST_SUBMIT_URL={args.cdash_url} "

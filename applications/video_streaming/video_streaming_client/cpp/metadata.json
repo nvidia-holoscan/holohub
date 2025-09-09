@@ -1,0 +1,37 @@
+{
+    "application": {
+        "name": "Video Streaming Client",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "C++",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.2.0",
+            "tested_versions": [
+                "3.2.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [
+            "Streaming",
+            "Client",
+            "Demo"
+        ],
+        "ranking": 1,
+        "requirements": {},
+        "run": {
+            "command": "<holohub_app_bin>/video_streaming_client",
+            "workdir": "holohub_bin"
+        }
+    }
+} 

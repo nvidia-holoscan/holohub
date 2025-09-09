@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "Slang shading language operator",
+		"name": "SlangShaderOp",
 		"description": "Operator for executing Slang shaders.",
 		"authors": [
 			{

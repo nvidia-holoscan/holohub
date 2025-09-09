@@ -20,6 +20,8 @@ add_holohub_application(adv_networking_bench DEPENDS
 add_holohub_application(aja_video_capture DEPENDS
                         OPERATORS aja_source)
 
+add_holohub_application(async_buffer_deadline)
+
 add_holohub_application(basic_networking_ping DEPENDS
                         OPERATORS basic_network)
 
@@ -47,21 +49,28 @@ add_holohub_application(endoscopy_out_of_body_detection DEPENDS OPERATORS aja_so
 add_holohub_application(endoscopy_tool_tracking DEPENDS
                         OPERATORS lstm_tensor_rt_inference
                                   tool_tracking_postprocessor
+                        OPTIONAL  aja_source
+                                  deltacast_videomaster
                                   slang_shader
-                                  OPTIONAL deltacast_videomaster yuan_qcap vtk_renderer aja_source)
+                                  yuan_qcap
+                                  vtk_renderer)
 
 add_subdirectory(h264)
 
-add_holohub_application(isaac_holoscan_bridge)
+add_holohub_application(isaac_sim_holoscan_bridge)
 
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
+
+add_subdirectory(holoscan_ros2)
 
 add_subdirectory(holoviz)
 
 add_holohub_application(imaging_ai_segmentator)
 
 add_holohub_application(hyperspectral_segmentation)
+
+add_holohub_application(iio DEPENDS OPERATORS iio_controller fft)
 
 add_subdirectory(laser_detection_latency)
 
@@ -75,7 +84,7 @@ add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
                         OPERATORS basic_network)
 
-add_holohub_application(object_detection_torch DEPENDS OPERATORS aja_source)
+add_holohub_application(object_detection_torch DEPENDS OPERATORS OPTIONAL aja_source)
 
 add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
 
@@ -134,3 +143,4 @@ add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)
 add_subdirectory(slang)
+add_subdirectory(video_streaming)

@@ -277,7 +277,7 @@ set_property(TEST test_holohub_implicit_default_warn_run_args_appended PROPERTY
 # implicit default mode: docker-opts override warning when mode sets docker_run_args
 add_test(
     NAME test_holohub_implicit_default_warn_docker_opts_override
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run isaac_holoscan_bridge --dryrun --docker-opts "--memory 2g"
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run isaac_sim_holoscan_bridge --dryrun --docker-opts "--memory 2g"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_property(TEST test_holohub_implicit_default_warn_docker_opts_override PROPERTY
@@ -343,4 +343,31 @@ add_test(
 )
 set_property(TEST test_holohub_run_multi_language_project PROPERTY
     PASS_REGULAR_EXPRESSION "has multiple languages.*language"
+)
+
+add_test(
+    NAME test_holohub_test_build_name_suffix
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub test --dryrun --build-name-suffix=test-branch
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_test_build_name_suffix PROPERTY
+    PASS_REGULAR_EXPRESSION "DTAG=test-branch"
+)
+
+add_test(
+    NAME test_holohub_test_cmake_options
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub test --dryrun --cmake-options="-DMAKE=1" --cmake-options="-DMAKE2=2" --ctest-options="-DTEST=2"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_test_cmake_options PROPERTY
+    PASS_REGULAR_EXPRESSION "DCONFIGURE_OPTIONS.*DMAKE=1.*DMAKE2=2.*DTEST=2"
+)
+
+add_test(
+    NAME test_holohub_test_ctest_options
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub test --dryrun --ctest-options="-DMAKE2=2" --ctest-options="-DTEST=2"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_test_ctest_options PROPERTY
+    PASS_REGULAR_EXPRESSION "DMAKE2=2.*DTEST=2"
 )
