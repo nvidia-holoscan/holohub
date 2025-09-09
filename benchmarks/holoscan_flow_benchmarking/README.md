@@ -113,6 +113,7 @@ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a <app_name> [options
 - `--sched`: Scheduler type
 - `-d, --directory`: Output directory
 - `--run-command`: Custom run command (if needed)
+- `-u, --monitor_gpu`: Monitor GPU utilization (discrete GPU only)
 
 For a complete list of arguments, run:
 
