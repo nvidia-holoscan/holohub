@@ -1346,8 +1346,8 @@ void DpdkMgr::run() {
       params->rx_burst_pool = rx_burst_buffer;
       params->tx_burst_pool = tx_burst_buffers[0];
       params->flowid_pool = rx_flow_id_buffer;
-      params->rx_meta_pool = rx_meta;
-      params->tx_meta_pool = tx_meta;
+      params->rx_meta_pool = rx_metadata;
+      params->tx_meta_pool = tx_metadata;
       params->batch_size = q->common_.batch_size_;
       params->timeout_us = q->timeout_us_;
       params->rx_meta_pool_size = cfg_.rx_meta_buffers_;
@@ -1746,7 +1746,7 @@ int DpdkMgr::rx_lb_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
-    AdvNetBurstParams* meta_burst;
+    BurstParams* meta_burst;
     if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&meta_burst)) < 0) {
       HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
       exit(1);
@@ -1765,7 +1765,7 @@ int DpdkMgr::rx_lb_worker(void* arg) {
       }
     }
 
-    AdvNetBurstParams* tx_burst;
+    BurstParams* tx_burst;
     while (!force_quit.load()) {
       if (rte_ring_dequeue(tparams->lb_ring, reinterpret_cast<void**>(&tx_burst)) == 0) {
         meta_burst->hdr = tx_burst->hdr;
@@ -1867,7 +1867,7 @@ int DpdkMgr::tx_lb_worker(void* arg) {
   TxWorkerParams* tparams = (TxWorkerParams*)arg;
   uint64_t seq;
   uint64_t ttl_pkts_tx = 0;
-  AdvNetBurstParams* msg;
+  BurstParams* msg;
   int64_t bursts = 0;
 
   HOLOSCAN_LOG_INFO(
