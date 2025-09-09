@@ -593,6 +593,17 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
         input_spec.common_.manager_type = holoscan::advanced_network::ManagerType::DEFAULT;
       }
 
+      input_spec.common_.loopback_ = holoscan::ops::LoopbackType::DISABLED;
+      try {
+        const auto lbstr = node["loopback"].as<std::string>();
+        if (lbstr == "sw") {
+          input_spec.common_.loopback_ = holoscan::ops::LoopbackType::LOOPBACK_TYPE_SW;
+        } else if (!lbstr.empty()) {
+          HOLOSCAN_LOG_ERROR("Invalid loopback type: {}. Use 'sw' or empty string ''", lbstr);
+          return false;
+        }
+      } catch (const std::exception& e) {}
+
       try {
         input_spec.debug_ = node["debug"].as<bool>(false);
       } catch (const std::exception& e) { input_spec.debug_ = false; }

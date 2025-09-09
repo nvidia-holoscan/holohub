@@ -28,6 +28,7 @@ advanced_network:
     master_core: 3
     debug: false
     log_level: "info"
+    loopback: ""
 
     memory_regions:
     - name: "Data_RX_GPU1"

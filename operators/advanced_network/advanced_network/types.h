@@ -171,6 +171,14 @@ enum class Direction : uint8_t {
 };
 
 /**
+ * @brief Loopback type
+ */
+enum class LoopbackType : uint8_t {
+  DISABLED = 0,
+  LOOPBACK_TYPE_SW = 1,
+};
+
+/**
  * @brief Manager Type
  *
  */
@@ -365,6 +373,7 @@ struct CommonConfig {
   int master_core_;
   Direction dir;
   ManagerType manager_type;
+  LoopbackType loopback_;
 };
 
 struct RxConfig {
