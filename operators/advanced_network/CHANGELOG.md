@@ -14,6 +14,18 @@
 
 ### Non-Breaking
 
+Rivermax Manager:
+-   **Framework Migration**
+    -   Migrated from legacy rmax-ral-lib to modern rivermax-dev-kit framework (1.70.32).
+-   **SMPTE 2110-20 Support**
+    -   Implemented hardware-accelerated video streaming with support for multiple memory modes (GPU, host pinned, huge pages) and video formats (YCbCr 4:2:2/4:4:4/4:2:0, RGB 8/10/12-bit).
+-   **Zero-Copy Performance**
+    -   Added MediaSenderZeroCopyService that forwards received frames without owning memory pools for improved performance.
+-   **Enhanced Configuration**
+    -   Added configurable packet chunking (`num_of_packets_in_chunk`) and burst flags for better flow control.
+-   **Code Quality**
+    -   Standardized naming convention from 'rmax' to 'rivermax' project-wide and removed redundant documentation.
+
 Common:
 - Added `get_port_id` to get the port ID for a given PCIe address or config name.
 - Added `get_num_rx_queues` to get the number of RX queues for a given port.
