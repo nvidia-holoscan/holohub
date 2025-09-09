@@ -43,42 +43,31 @@ advanced_network:
       buf_size: 1064
 
     interfaces:
-    - name: "tx_port"
-      address: <0000:00:00.0>       # The BUS address of the interface doing Tx
+    - name: "loopback_ports"
+      address: "loopback"
       tx:
         queues:
         - name: "tx_q_0"
           id: 0
           batch_size: 10240
           cpu_core: 11
+          timeout_us: 1000
           memory_regions:
             - "Data_TX_GPU"
           offloads:
             - "tx_eth_src"
-    - name: "rx_port"
-      address: <0000:00:00.0>       # The BUS address of the interface doing Rx
       rx:
-        flow_isolation: true
         queues:
         - name: "rq_q_0"
           id: 0
           cpu_core: 9
+          timeout_us: 1000
           batch_size: 10240
           memory_regions:
             - "Data_RX_GPU"
-        flows:
-        - name: "flow_0"
-          id: 0
-          action:
-            type: queue
-            id: 0
-          match:
-            udp_src: 4096
-            udp_dst: 4096
-            # ipv4_len: 1050
 
 bench_rx:
-  interface_name: "rx_port" # Name of the RX port from the advanced_network config
+  interface_name: "loopback_ports" # Name of the RX port from the advanced_network config
   gpu_direct: true          # Set to true if using a GPU region for the Rx queues.
   split_boundary: false     # Whether header and data is split (Header to CPU)
   batch_size: 10240
@@ -86,14 +75,14 @@ bench_rx:
   header_size: 64
 
 bench_tx:
-  interface_name: "tx_port" # Name of the TX port from the advanced_network config
+  interface_name: "loopback_ports" # Name of the TX port from the advanced_network config
   gpu_direct: true          # Set to true if using a GPU region for the Tx queues.
   split_boundary: 0         # Byte boundary where header and data is split, 0 if no split
   batch_size: 10240
   payload_size: 1000
   header_size: 64
-  eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true
-  ip_src_addr: <1.2.3.4>    # Source IP address - required on layer 3 network
-  ip_dst_addr: <5.6.7.8>    # Destination IP address - required on layer 3 network
+  eth_dst_addr: 00:00:00:00:00:00 # Destination MAC address - required when Rx flow_isolation=true
+  ip_src_addr: 000.000.000.0    # Source IP address - required on layer 3 network
+  ip_dst_addr: 000.000.000.0    # Destination IP address - required on layer 3 network
   udp_src_port: 4096        # UDP source port
   udp_dst_port: 4096        # UDP destination port
