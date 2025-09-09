@@ -1675,7 +1675,7 @@ uint64_t DocaMgr::get_burst_tot_byte(BurstParams* burst) {
   return burst->hdr.hdr.nbytes;
 }
 
-uint16_t DocaMgr::get_packet_length(BurstParams* burst, int idx) {
+uint32_t DocaMgr::get_packet_length(BurstParams* burst, int idx) {
   return 0;
 }
 
@@ -1683,7 +1683,7 @@ uint16_t DocaMgr::get_packet_flow_id(BurstParams* burst, int idx) {
   return 0;
 }
 
-uint16_t DocaMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+uint32_t DocaMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   return 0;
 }
 
