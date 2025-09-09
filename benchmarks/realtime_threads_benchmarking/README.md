@@ -10,6 +10,22 @@ The benchmark creates a controlled environment to test real-time scheduling by:
 - Measuring timing precision and consistency for the Holoscan operator
 - Comparing normal scheduling vs real-time scheduling policies for Holoscan operator performance
 
+## Implementations
+
+This benchmark is available in two implementations:
+
+### Python Version (`python/`)
+- Full-featured benchmark with integrated plotting
+- Easier to modify and extend
+- Higher-level abstractions
+
+### C++ Version (`cpp/`)
+- Lower overhead and better performance
+- Separate plotting script (`plot.py`) for post-processing
+- More suitable for production benchmarking
+
+Both versions provide identical functionality and can be used interchangeably.
+
 ## Usage
 
 ### Basic Usage
@@ -41,6 +57,26 @@ Available options:
 - `--scheduling-policy`: Real-time scheduling policy to test (SCHED_DEADLINE, SCHED_FIFO, SCHED_RR, default: SCHED_DEADLINE)
 - `--load-duration-ms`: CPU work duration per load operator call in milliseconds (default: 20.0)
 - `--plot-dir`: Directory to save benchmark plots (default: /tmp/benchmark_plots)
+
+### C++ Version Usage
+
+The C++ version can be run directly (without Docker) if you have the Holoscan SDK installed:
+
+```bash
+# Build the benchmark
+cd cpp
+mkdir build && cd build
+cmake ..
+make
+
+# Run the benchmark
+./realtime_thread_benchmark --target-fps 60 --duration 30 --scheduling-policy SCHED_DEADLINE
+
+# Generate plots from results
+python3 ../plot.py --input benchmark_results.json --output-dir ./plots
+```
+
+The C++ version outputs JSON data that can be processed by the `plot.py` script for visualization.
 
 ### Timing Analysis Plots
 

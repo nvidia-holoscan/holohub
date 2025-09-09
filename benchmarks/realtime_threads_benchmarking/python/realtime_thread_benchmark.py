@@ -682,16 +682,6 @@ def main():
             f"{realtime_period_std:9.3f}    {period_std_improvement:+7.1f}% ★"
         )
 
-        # Add visual feedback based on improvement
-        if period_std_improvement <= -50:  # >50% improvement
-            print("🚀 EXCELLENT real-time improvement!")
-        elif period_std_improvement <= -20:  # >20% improvement
-            print("✅ Good real-time improvement")
-        elif period_std_improvement <= -5:  # >5% improvement
-            print("👍 Modest real-time improvement")
-        else:
-            print("⚠️  Limited or no improvement from real-time scheduling")
-
     # Secondary metrics
     if normal_results.get("execution_time_stats") and realtime_results.get("execution_time_stats"):
         normal_exec_std = normal_results["execution_time_stats"]["std_ms"]

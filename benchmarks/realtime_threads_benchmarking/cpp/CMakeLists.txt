@@ -13,5 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(python)
-add_subdirectory(cpp)
+cmake_minimum_required(VERSION 3.20)
+project(realtime_thread_benchmarking CXX)
+
+find_package(holoscan 3.5 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Create the benchmark executable
+add_executable(realtime_thread_benchmark
+  realtime_thread_benchmark.cpp
+)
+
+# Link against Holoscan
+target_link_libraries(realtime_thread_benchmark
+  holoscan::core
+)
+
+# Set C++ standard
+target_compile_features(realtime_thread_benchmark PRIVATE cxx_std_17)
+
+# Install the executable
+install(TARGETS realtime_thread_benchmark
+  RUNTIME DESTINATION bin
+)
