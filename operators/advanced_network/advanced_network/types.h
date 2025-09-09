@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -347,10 +347,23 @@ struct FlowAction {
   uint16_t id_;
 };
 
+struct FlexItemMatch {
+  uint16_t flex_item_id_;
+  uint32_t val_;
+  uint32_t mask_;
+};
+
+enum class FlowMatchType {
+  NORMAL,
+  FLEX_ITEM,
+};
+
 struct FlowMatch {
+  FlowMatchType type_;
   uint16_t udp_src_;
   uint16_t udp_dst_;
   uint16_t ipv4_len_;
+  FlexItemMatch flex_item_match_;
 };
 struct FlowConfig {
   std::string name_;
@@ -367,10 +380,18 @@ struct CommonConfig {
   ManagerType manager_type;
 };
 
+struct FlexItemConfig {
+  std::string name_;
+  uint16_t id_;
+  uint16_t udp_dst_port_;
+  uint16_t offset_;
+};
+
 struct RxConfig {
   bool flow_isolation_;
   std::vector<RxQueueConfig> queues_;
   std::vector<FlowConfig> flows_;
+  std::vector<FlexItemConfig> flex_items_;
 };
 
 struct TxConfig {
