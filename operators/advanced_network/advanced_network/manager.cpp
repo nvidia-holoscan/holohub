@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@
 #include "advanced_network/managers/gpunetio/adv_network_doca_mgr.h"
 #endif
 #if ANO_MGR_RIVERMAX
-#include "advanced_network/managers/rivermax/adv_network_rmax_mgr.h"
+#include "advanced_network/managers/rivermax/adv_network_rivermax_mgr.h"
 #endif
 
 #if ANO_MGR_DPDK || ANO_MGR_GPUNETIO
@@ -71,7 +71,7 @@ std::unique_ptr<Manager> ManagerFactory::create_instance(ManagerType type) {
 #endif
 #if ANO_MGR_RIVERMAX
     case ManagerType::RIVERMAX:
-      _manager = std::make_unique<RmaxMgr>();
+      _manager = std::make_unique<RivermaxMgr>();
       break;
 #endif
     case ManagerType::DEFAULT:
