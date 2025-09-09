@@ -748,7 +748,9 @@ void DpdkMgr::initialize() {
       }
 
       ret =
-          rte_eth_dev_adjust_nb_rx_tx_desc(intf.port_id_, &default_num_rx_desc, &default_num_tx_desc);
+          rte_eth_dev_adjust_nb_rx_tx_desc(intf.port_id_,
+                                           &default_num_rx_desc,
+                                           &default_num_tx_desc);
       if (ret < 0) {
         HOLOSCAN_LOG_CRITICAL(
             "Cannot adjust number of descriptors: err={}, port={}", ret, intf.port_id_);
