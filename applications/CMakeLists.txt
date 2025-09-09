@@ -62,6 +62,8 @@ add_holohub_application(isaac_sim_holoscan_bridge)
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
 
+add_subdirectory(holoscan_ros2)
+
 add_subdirectory(holoviz)
 
 add_holohub_application(imaging_ai_segmentator)
@@ -82,7 +84,7 @@ add_holohub_application(simple_radar_pipeline)
 add_holohub_application(simple_pdw_pipeline DEPENDS
                         OPERATORS basic_network)
 
-add_holohub_application(object_detection_torch DEPENDS OPERATORS aja_source)
+add_holohub_application(object_detection_torch DEPENDS OPERATORS OPTIONAL aja_source)
 
 add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
 
@@ -113,9 +115,7 @@ add_holohub_application(psd_pipeline DEPENDS
                                   data_writer)
 
 add_holohub_application(ultrasound_segmentation DEPENDS OPERATORS aja_source)
-add_holohub_application(streaming_client_demo DEPENDS OPERATORS streaming_client)
 
-add_holohub_application(streaming_server_demo DEPENDS OPERATORS streaming_server)
 add_holohub_application(velodyne_lidar_app DEPENDS
                         OPERATORS velodyne_lidar
                                   basic_network
@@ -143,3 +143,4 @@ add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)
 add_subdirectory(slang)
+add_subdirectory(video_streaming)

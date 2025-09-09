@@ -71,7 +71,7 @@ First, add the [DOCA apt repository](https://developer.nvidia.com/doca-downloads
 === "IGX OS 1.1"
 
     ```bash
-    export DOCA_URL="https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/arm64-sbsa/"
+    export DOCA_URL="https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/arm64-sbsa/"
     wget -qO- https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub > /dev/null
     echo "deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] $DOCA_URL ./"  | sudo tee /etc/apt/sources.list.d/doca.list > /dev/null
 
@@ -81,7 +81,7 @@ First, add the [DOCA apt repository](https://developer.nvidia.com/doca-downloads
 === "SBSA (Ubuntu 22.04)"
 
     ```bash
-    export DOCA_URL="https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/arm64-sbsa/"
+    export DOCA_URL="https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/arm64-sbsa/"
     wget -qO- https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub > /dev/null
     echo "deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] $DOCA_URL ./"  | sudo tee /etc/apt/sources.list.d/doca.list > /dev/null
 
@@ -95,7 +95,7 @@ First, add the [DOCA apt repository](https://developer.nvidia.com/doca-downloads
 === "x86_64 (Ubuntu 22.04)"
 
     ```bash
-    export DOCA_URL="https://linux.mellanox.com/public/repo/doca/2.10.0/ubuntu22.04/x86_64/"
+    export DOCA_URL="https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/x86_64/"
     wget -qO- https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub > /dev/null
     echo "deb [signed-by=/etc/apt/trusted.gpg.d/GPG-KEY-Mellanox.pub] $DOCA_URL ./"  | sudo tee /etc/apt/sources.list.d/doca.list > /dev/null
 

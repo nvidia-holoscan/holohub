@@ -87,7 +87,7 @@ First, edit the `adv_networking_bench_default_tx_rx.yaml` file to set the `eth_d
 Then:
 
 ```bash
-./holohub run adv_networking_bench --docker-opts "-u root --privileged"
+./holohub run adv_networking_bench --docker-opts "-u root --privileged" --language cpp
 ```
 
 To run with a different configuration file than the default `adv_networking_bench_default_tx_rx`, you need to call the application explicitly:

@@ -148,7 +148,7 @@ class NVIDIAVideoCodecApp(Application):
         visualizer = HolovizOp(
             self,
             name="visualizer",
-            allocator=CudaStreamPool(
+            cuda_stream_pool=CudaStreamPool(
                 self,
                 name="cuda_stream",
                 dev_id=0,

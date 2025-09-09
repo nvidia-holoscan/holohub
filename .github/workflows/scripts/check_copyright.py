@@ -82,7 +82,7 @@ def replace_current_year(line, start, end):
     def replace_spdx_with_copyright(match):
         comment_prefix = match.group(1) or ""
         affiliation = match.group(4)
-        return f"{comment_prefix}SPDX-FileCopyrightText: Copyright (c) {start}-{end} {affiliation}."
+        return f"{comment_prefix}SPDX-FileCopyrightText: Copyright (c) {start}-{end} {affiliation}"
 
     def replace_spdx_reuse(match):
         comment_prefix = match.group(1) or ""
@@ -92,7 +92,7 @@ def replace_current_year(line, start, end):
     def replace_non_spdx(match):
         comment_prefix = match.group(1) or ""
         affiliation = match.group(4)
-        return f"{comment_prefix}Copyright (c) {start}-{end}, {affiliation}."
+        return f"{comment_prefix}Copyright (c) {start}-{end}, {affiliation}"
 
     # Apply each pattern's replacement
     res = CheckSPDXWithCopyright.sub(replace_spdx_with_copyright, line)

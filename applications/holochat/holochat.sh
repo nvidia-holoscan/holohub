@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,7 @@ cleanup() {
 function build_db {
     mkdir -p "$BASE_DIR/embeddings"
     mkdir -p "$BASE_DIR/models"
-    wget -nc -P "$BASE_DIR/docs/" https://developer.download.nvidia.com/assets/Clara/Holoscan_SDK_User_Guide_3.4.0.pdf
+    wget -nc -P "$BASE_DIR/docs/" https://developer.download.nvidia.com/assets/Clara/Holoscan_SDK_User_Guide_3.6.0.pdf
     if [ ! -f "$BASE_DIR/embeddings/holoscan/chroma.sqlite3" ]; then
         python3 build_holoscan_db.py
     fi
