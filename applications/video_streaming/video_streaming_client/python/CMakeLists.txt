@@ -25,3 +25,9 @@ install(
   FILES streaming_client_demo.py
   DESTINATION bin
 )
+
+
+install(
+  FILES streaming_client_demo.py
+  DESTINATION bin/video_streaming_client/python
+)
