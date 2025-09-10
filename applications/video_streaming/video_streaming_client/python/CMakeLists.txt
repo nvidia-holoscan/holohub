@@ -20,13 +20,6 @@ add_custom_target(python_streaming_client_demo ALL
   BYPRODUCTS "streaming_client_demo.py"
 )
 
-# Install application and dependencies into the install/ directory for packaging
-install(
-  FILES streaming_client_demo.py
-  DESTINATION bin
-)
-
-
 install(
   FILES streaming_client_demo.py
   DESTINATION bin/video_streaming_client/python
