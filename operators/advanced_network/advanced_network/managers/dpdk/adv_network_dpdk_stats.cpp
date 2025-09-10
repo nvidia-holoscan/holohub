@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,11 @@ namespace holoscan::advanced_network {
 void DpdkStats::Init(const NetworkConfig &cfg) {
   cfg_ = cfg;
   init_ = true;
+
+  if (cfg_.common_.loopback_ == LoopbackType::LOOPBACK_TYPE_SW) {
+    HOLOSCAN_LOG_INFO("Skipping DPDK stats initialization for software loopback mode");
+    return;
+  }
 
   HOLOSCAN_LOG_INFO("Initializing DPDK stats");
 
@@ -176,6 +181,11 @@ void DpdkStats::Shutdown() {
  */
 void DpdkStats::Run() {
   cpu_set_t cpuset;
+
+  if (cfg_.common_.loopback_ == LoopbackType::LOOPBACK_TYPE_SW) {
+    HOLOSCAN_LOG_INFO("Skipping DPDK stats thread for software loopback mode");
+    return;
+  }
 
   auto thread = pthread_self();
   CPU_ZERO(&cpuset);

@@ -67,6 +67,12 @@ add_custom_target(adv_networking_bench_default_rx_multi_q_yaml
 )
 add_dependencies(adv_networking_bench adv_networking_bench_default_rx_multi_q_yaml)
 
+add_custom_target(adv_networking_bench_default_sw_loopback_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_sw_loopback.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_sw_loopback.yaml"
+)
+add_dependencies(adv_networking_bench adv_networking_bench_default_sw_loopback_yaml)
+
 add_custom_target(adv_networking_bench_default_tx_rx_multi_q_hds_yaml
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_multi_q_hds.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_multi_q_hds.yaml"
@@ -101,6 +107,7 @@ install(
     ../adv_networking_bench_default_tx_rx_hds.yaml
     ../adv_networking_bench_default_tx_rx.yaml
     ../adv_networking_bench_default_rx_multi_q.yaml
+    ../adv_networking_bench_default_sw_loopback.yaml
     ../adv_networking_bench_gpunetio_tx_rx.yaml
     ../adv_networking_bench_rmax_rx.yaml
   DESTINATION examples/adv_networking_bench
