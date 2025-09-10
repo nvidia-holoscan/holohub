@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ advanced_network:
     master_core: 5              # Master CPU core
     debug: 1
     log_level: "warn"
+    loopback: ""
 
     memory_regions:
     - name: "Data_RX_CPU"
