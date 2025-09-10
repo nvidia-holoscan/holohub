@@ -32,7 +32,6 @@ if(BUILD_TESTING)
                      "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client/testing/video_streaming_client_testing.yaml"
                      "${HOLOHUB_DATA_DIR}/endoscopy"
              WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-    
     set_tests_properties(video_streaming_client_cpp_test PROPERTIES
                          TIMEOUT 90
                          PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingClient.*test successful"

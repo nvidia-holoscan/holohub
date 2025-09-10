@@ -141,7 +141,6 @@ if(BUILD_TESTING)
   file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/data)
   file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_index)
   file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_entities)
-  
   # Use real endoscopy video data for functional testing when available
   # The test system automatically provides real video data at ${HOLOHUB_DATA_DIR}/endoscopy
   # which contains surgical_video.gxf_index and surgical_video.gxf_entities with real frame data
@@ -156,7 +155,7 @@ if(BUILD_TESTING)
                    "${HOLOHUB_DATA_DIR}/endoscopy"
           )
 
-  # Set test properties including library path and pass/fail criteria  
+  # Set test properties including library path and pass/fail criteria
   set_tests_properties(video_streaming_client_cpp_test PROPERTIES
                        ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_client:${CMAKE_BINARY_DIR}/operators/streaming_client/lib:${CMAKE_SOURCE_DIR}/operators/streaming_client/lib:${CMAKE_BINARY_DIR}/lib:$ENV{LD_LIBRARY_PATH}"
                        TIMEOUT 90
