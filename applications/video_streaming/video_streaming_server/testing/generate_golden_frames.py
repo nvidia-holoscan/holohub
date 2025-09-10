@@ -26,25 +26,25 @@ process the same endoscopy video data and should produce similar
 visual output for validation purposes.
 """
 
-import os
-import sys
 import argparse
 from pathlib import Path
 
 
 def main():
     """Generate golden reference frames for streaming server testing."""
-    parser = argparse.ArgumentParser(description="Generate golden frames for StreamingServer testing")
+    parser = argparse.ArgumentParser(
+        description="Generate golden frames for StreamingServer testing"
+    )
     parser.add_argument("--output-dir", default=".", help="Output directory for golden frames")
     parser.add_argument("--count", type=int, default=10, help="Number of frames to generate")
     args = parser.parse_args()
-    
+
     print("🎬 StreamingServer Golden Frame Generator")
     print("=" * 50)
-    
+
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True)
-    
+
     # Check if golden frames already exist
     existing_frames = list(output_dir.glob("*.png"))
     if existing_frames:
@@ -55,7 +55,7 @@ def main():
         print("   These frames were copied from endoscopy_tool_tracking")
         print("   and provide consistent reference data for validation.")
         return
-    
+
     print("⚠️  No golden frames found.")
     print("🔄 For comprehensive testing, golden frames should be copied")
     print("   from a working application that processes the same data.")
@@ -64,7 +64,7 @@ def main():
     print("   2. Extract frames from the recorded output")
     print("   3. Select representative frames for validation")
     print("   4. Copy frames to this testing directory")
-    
+
     # Create placeholder information
     info_file = output_dir / "golden_frames_info.txt"
     with open(info_file, "w") as f:
@@ -78,7 +78,7 @@ def main():
         f.write("Frame format: PNG\n")
         f.write("Resolution: 854x480\n")
         f.write("Naming pattern: NNNN.png (e.g., 0001.png)\n")
-    
+
     print(f"📝 Created {info_file} with golden frame specifications")
     print("\n✅ Golden frame generation setup complete.")
 
