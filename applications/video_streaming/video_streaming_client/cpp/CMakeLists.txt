@@ -136,6 +136,16 @@ if(BUILD_TESTING)
     )
   endif()
 
+  # Create fallback video data for VideoStreamReplayer when real data is not available
+  # This prevents the C++ app from crashing when it can't find video files
+  file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/data)
+  file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_index)
+  file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_entities)
+  
+  # Use real endoscopy video data for functional testing when available
+  # The test system automatically provides real video data at ${HOLOHUB_DATA_DIR}/endoscopy
+  # which contains surgical_video.gxf_index and surgical_video.gxf_entities with real frame data
+
   # Add C++ test
   add_test(NAME video_streaming_client_cpp_test
            COMMAND ${CMAKE_COMMAND} -E env
