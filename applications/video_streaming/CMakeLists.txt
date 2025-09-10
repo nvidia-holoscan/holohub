@@ -16,5 +16,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(video_streaming LANGUAGES NONE)
 
+# Enable testing for video streaming applications
+include(CTest)
+
 add_holohub_application(video_streaming_client DEPENDS OPERATORS streaming_client)
 add_holohub_application(video_streaming_server DEPENDS OPERATORS streaming_server)
