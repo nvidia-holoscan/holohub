@@ -51,6 +51,25 @@ if(BUILD_TESTING)
                          FAIL_REGULAR_EXPRESSION "Test FAILED:")
   endif()
 
+  # Video Streaming Client Functional Tests (only if client target exists)
+  if(TARGET streaming_client_demo)
+    # Add Python functional test if functional test file exists
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client/python/video_streaming_client_functional.py")
+      add_test(NAME video_streaming_client_python_functional_test
+               COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client/python/run_functional_test.sh"
+                       "${CMAKE_BINARY_DIR}/applications/video_streaming/video_streaming_client/python"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client/python/video_streaming_client_functional.py"
+                       "${HOLOHUB_DATA_DIR}/endoscopy"
+               WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+      set_tests_properties(video_streaming_client_python_functional_test PROPERTIES
+                           ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+                           TIMEOUT 120
+                           PASS_REGULAR_EXPRESSION "FUNCTIONAL test.*successful"
+                           FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
+    endif()
+  endif()
+
   # Video Streaming Server Tests (only if server target exists)
   if(TARGET streaming_server_demo)
     add_test(NAME video_streaming_server_cpp_test
@@ -64,6 +83,35 @@ if(BUILD_TESTING)
                          TIMEOUT 120
                          PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingServer.*test successful"
                          FAIL_REGULAR_EXPRESSION "Test FAILED:")
+
+    # Add Python infrastructure test
+    add_test(NAME video_streaming_server_python_test
+             COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/python/run_test.sh"
+                     "${CMAKE_BINARY_DIR}/applications/video_streaming/video_streaming_server/python"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/python/streaming_server_demo.py"
+             WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+    set_tests_properties(video_streaming_server_python_test PROPERTIES
+                         ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+                         TIMEOUT 120
+                         PASS_REGULAR_EXPRESSION "Test PASSED: StreamingServer functionality validated"
+                         FAIL_REGULAR_EXPRESSION "Test FAILED:")
+
+    # Add Python functional test if functional test file exists
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/python/video_streaming_server_functional.py")
+      add_test(NAME video_streaming_server_python_functional_test
+               COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/python/run_functional_test.sh"
+                       "${CMAKE_BINARY_DIR}/applications/video_streaming/video_streaming_server/python"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/python/video_streaming_server_functional.py"
+                       "${HOLOHUB_DATA_DIR}/endoscopy"
+               WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+      set_tests_properties(video_streaming_server_python_functional_test PROPERTIES
+                           ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+                           TIMEOUT 120
+                           PASS_REGULAR_EXPRESSION "FUNCTIONAL test.*successful"
+                           FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
+    endif()
   endif()
 
 endif()
