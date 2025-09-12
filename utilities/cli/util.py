@@ -630,7 +630,11 @@ def install_cuda_dependencies_package(
         )
 
     target_version = matching_versions[0]
-    install_packages_if_missing([f"{package_name}={target_version}"], dry_run=dry_run)
+    install_packages_if_missing(
+        [f"{package_name}={target_version}"],
+        apt_options=["--no-install-recommends", "-y", "--allow-downgrades"],
+        dry_run=dry_run,
+    )
 
     return target_version
 
