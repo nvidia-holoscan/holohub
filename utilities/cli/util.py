@@ -152,7 +152,7 @@ def warn(message: str) -> None:
     print(f"{Color.yellow('WARNING:')} {message}")
 
 
-def get_holohub_root() -> Path:
+def _get_holohub_root() -> Path:
     """Get the HoloHub repository root path."""
     env_root = os.environ.get("HOLOHUB_ROOT")
     if env_root:
@@ -166,7 +166,7 @@ def get_holohub_root() -> Path:
     return default_path
 
 
-HOLOHUB_ROOT = get_holohub_root()
+HOLOHUB_ROOT = _get_holohub_root()
 
 
 def get_holohub_root() -> Path:
