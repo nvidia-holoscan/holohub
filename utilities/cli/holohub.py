@@ -49,7 +49,7 @@ from utilities.cli.util import Color
 class HoloHubCLI:
     """Command-line interface for HoloHub"""
 
-    HOLOHUB_ROOT = Path(__file__).parent.parent.parent
+    HOLOHUB_ROOT = holohub_cli_util.get_holohub_root()
     DEFAULT_BUILD_PARENT_DIR = HOLOHUB_ROOT / "build"
     DEFAULT_DATA_DIR = HOLOHUB_ROOT / "data"
     DEFAULT_SDK_DIR = "/opt/nvidia/holoscan/lib"
