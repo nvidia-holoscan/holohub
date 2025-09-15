@@ -33,6 +33,7 @@ from .util import (
     find_hsdk_build_rel_dir,
     get_compute_capacity,
     get_group_id,
+    get_holohub_root,
     get_host_gpu,
     get_image_pythonpath,
     list_normalized_languages,
@@ -54,7 +55,7 @@ class HoloHubContainer:
     """
 
     CONTAINER_PREFIX = "holohub"
-    HOLOHUB_ROOT = Path(__file__).parent.parent.parent
+    HOLOHUB_ROOT = get_holohub_root()
 
     @classmethod
     def default_base_image(cls) -> str:
