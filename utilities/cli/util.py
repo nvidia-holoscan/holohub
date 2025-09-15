@@ -152,6 +152,27 @@ def warn(message: str) -> None:
     print(f"{Color.yellow('WARNING:')} {message}")
 
 
+def get_holohub_root() -> Path:
+    """Get the HoloHub repository root path."""
+    env_root = os.environ.get("HOLOHUB_ROOT")
+    if env_root:
+        env_path = Path(env_root).expanduser()
+        if env_path.exists() and env_path.is_dir():
+            return env_path
+        warn(f"Environment variable HOLOHUB_ROOT='{env_root}' is invalid.")
+    default_path = Path(__file__).parent.parent.parent
+    if env_root:
+        warn(f"Falling back to default path: {default_path}")
+    return default_path
+
+
+HOLOHUB_ROOT = get_holohub_root()
+
+
+def get_holohub_root() -> Path:
+    return HOLOHUB_ROOT
+
+
 def _get_maybe_sudo() -> str:
     """Get sudo command if available, with caching to avoid repeated subprocess calls"""
     global _sudo_available
