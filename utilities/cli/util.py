@@ -159,11 +159,11 @@ def _get_holohub_root() -> Path:
         env_path = Path(env_root).expanduser()
         if env_path.exists() and env_path.is_dir():
             return env_path
-        warn(f"Environment variable HOLOHUB_ROOT='{env_root}' is invalid.")
-    default_path = Path(__file__).parent.parent.parent
-    if env_root:
-        warn(f"Falling back to default path: {default_path}")
-    return default_path
+        warn(
+            f"Environment variable HOLOHUB_ROOT='{env_root}' is invalid. "
+            f"Falling back to default path: {Path(__file__).parent.parent.parent}"
+        )
+    return Path(__file__).parent.parent.parent
 
 
 HOLOHUB_ROOT = _get_holohub_root()
