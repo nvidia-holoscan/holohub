@@ -8,8 +8,7 @@
 
 set -e
 
-TEST_DIR="$1"
-PYTHON_SCRIPT="$2"
+PYTHON_SCRIPT="$1"
 
 echo "Running streaming client demo test..."
 

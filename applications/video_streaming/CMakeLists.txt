@@ -39,7 +39,6 @@ if(BUILD_TESTING)
 
     add_test(NAME video_streaming_client_python_test
              COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client/python/run_test.sh"
-                     "${CMAKE_BINARY_DIR}/applications/video_streaming/video_streaming_client/python"
                      "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client/python/streaming_client_demo.py"
              WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
