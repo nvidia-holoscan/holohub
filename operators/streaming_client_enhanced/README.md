@@ -26,15 +26,15 @@ In order to build the client operator, you must first download the client binari
 
 ```bash
 # Download using NGC CLI
-cd <your_holohub_path>/operators/streaming_client_04_80
+cd <your_holohub_path>/operators/streaming_client_enhanced
 ngc registry resource download-version "nvstaging/holoscan/holoscan_client_cloud_streaming:1.0"
 unzip -o holoscan_client_cloud_streaming_v1.0/holoscan_client_cloud_streaming.zip
 
 # Move the extracted contents to the expected location
-mv streaming_client_04_80/holoscan_client_cloud_streaming ./
+mv streaming_client_enhanced/holoscan_client_cloud_streaming ./
 
 # Clean up extraction directory and NGC download directory
-rm -rf streaming_client_04_80 holoscan_client_cloud_streaming_v1.0
+rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v1.0
 ```
 
 All dependencies need to be properly installed in the operator directory structure.
