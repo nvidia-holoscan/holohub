@@ -1,0 +1,36 @@
+{
+    "application": {
+        "name": "streaming_server_demo_04_80_tensor_streaming",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "C++",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.4.0",
+            "tested_versions": [
+                "3.4.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [
+            "Streaming",
+            "Server",
+            "Demo"
+        ],
+        "ranking": 1,
+        "run": {
+            "command": "<holohub_app_bin>/cpp/streaming_server_demo_04_80_tensor_streaming",
+            "workdir": "holohub_bin"
+        }
+    }
+} 
