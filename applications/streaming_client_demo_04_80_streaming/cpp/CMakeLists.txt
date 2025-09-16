@@ -74,7 +74,7 @@ target_link_libraries(streaming_client_demo_04_80_streaming
     holoscan::ops::video_stream_replayer
     holoscan::ops::v4l2
     holoscan::ops::format_converter
-    holoscan::ops::streaming_client_04_80
+    holoscan::ops::streaming_client_enhanced
     holoscan::data_loggers::basic_console_logger
     ${OpenCV_LIBS}
     CUDA::cudart

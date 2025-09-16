@@ -71,7 +71,7 @@ add_library(streaming_client
   streaming_client.cpp
 )
 
-add_library(holoscan::ops::streaming_client_04_80 ALIAS streaming_client)
+add_library(holoscan::ops::streaming_client_enhanced ALIAS streaming_client)
 
 # Set C++ standard
 set_target_properties(streaming_client PROPERTIES
