@@ -34,7 +34,7 @@ struct KernelLaunchData {
 
 // Global state for CUPTI measurements
 class CuptiSchedulingProfiler {
-    private:
+ private:
     static CuptiSchedulingProfiler* instance_;
     static std::mutex mutex_;
 
@@ -45,7 +45,7 @@ class CuptiSchedulingProfiler {
     bool initialized_;
     int successful_measurements_ = 0;  // Count successful measurements
 
-    public:
+ public:
     static CuptiSchedulingProfiler* getInstance() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (instance_ == nullptr) {
@@ -140,7 +140,8 @@ class CuptiSchedulingProfiler {
     if (scheduling_latencies_.empty()) {
         if (!launch_map_.empty()) {
         std::cout << "[CUPTI] WARNING: " << launch_map_.size()
-                    << " kernel launches detected but no GPU activity records matched!" << std::endl;
+                  << " kernel launches detected but no GPU activity records matched!"
+                  << std::endl;
         }
         return -1.0;
     }
@@ -162,7 +163,7 @@ class CuptiSchedulingProfiler {
     return latest_latency;
     }
 
-    private:
+ private:
     // CUPTI API callback for kernel launches
     static void CUPTIAPI apiCallback(void* userdata, CUpti_CallbackDomain domain,
                                     CUpti_CallbackId callbackId, const CUpti_CallbackData* cbdata) {

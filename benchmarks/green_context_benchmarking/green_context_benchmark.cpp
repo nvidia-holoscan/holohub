@@ -179,7 +179,8 @@ class DummyLoadOp : public Operator {
             d_load_data_, host_data.data(), workload_size * sizeof(float), cudaMemcpyHostToDevice),
         "cudaMemcpy failed");
 
-    HOLOSCAN_LOG_INFO("[DummyLoadOp] GPU load initialized: {} elements, intensity {}", workload_size, load_intensity);
+    HOLOSCAN_LOG_INFO("[DummyLoadOp] GPU load initialized: {} elements, intensity {}",
+      workload_size, load_intensity);
   }
 
   void compute(InputContext& op_input, OutputContext& op_output,
@@ -193,7 +194,8 @@ class DummyLoadOp : public Operator {
         throw std::runtime_error("Failed to allocate non-default CUDA stream");
       }
       cached_stream_ = maybe_stream.value();
-      HOLOSCAN_LOG_INFO("[DummyLoadOp] Using allocated non-default CUDA stream: {}", reinterpret_cast<long long>(cached_stream_));
+      HOLOSCAN_LOG_INFO("[DummyLoadOp] Using allocated non-default CUDA stream: {}",
+        reinterpret_cast<long long>(cached_stream_));
     }
 
     run_background_load_kernel(context);
@@ -237,7 +239,8 @@ class DummyLoadOp : public Operator {
     int blocks = (workload_size + threads_per_block - 1) / threads_per_block;
 
     // Launch background load to create GPU contention
-    async_run_background_load_kernel(d_load_data_, workload_size, load_intensity, threads_per_block, cached_stream_);
+    async_run_background_load_kernel(d_load_data_, workload_size, load_intensity,
+      threads_per_block, cached_stream_);
     cudaStreamSynchronize(cached_stream_);
   }
 };
@@ -285,7 +288,8 @@ class TimingBenchmarkOp : public Operator {
                ExecutionContext& context) override {
     execution_count_++;
 
-    // Allocate non-default CUDA stream for this operator when the first time the operator is executed
+    // Allocate non-default CUDA stream for this operator when the first time the
+    // operator is executed
     if (cached_stream_ == nullptr) {
       auto maybe_stream = context.allocate_cuda_stream("timing_stream");
       if (!maybe_stream) {
@@ -293,17 +297,20 @@ class TimingBenchmarkOp : public Operator {
         throw std::runtime_error("Failed to allocate non-default CUDA stream");
       }
       cached_stream_ = maybe_stream.value();
-      HOLOSCAN_LOG_INFO("[TimingBenchmarkOp] Using allocated non-default CUDA stream: {}", reinterpret_cast<long long>(cached_stream_));
+      HOLOSCAN_LOG_INFO("[TimingBenchmarkOp] Using allocated non-default CUDA stream: {}",
+        reinterpret_cast<long long>(cached_stream_));
     }
 
     // Print out log every 1/10 of total samples to not spam the console
     int log_output_interval = std::max(1, total_samples_.get() / 10);
     if (execution_count_ % log_output_interval == 0 || execution_count_ == 1) {
-      HOLOSCAN_LOG_INFO("[TimingBenchmarkOp] Collecting {}/{} samples", execution_count_, total_samples_.get());
+      HOLOSCAN_LOG_INFO("[TimingBenchmarkOp] Collecting {}/{} samples",
+                        execution_count_, total_samples_.get());
     }
 
     // Launch kernel - CUPTI will capture launch and execution start timestamps
-    async_run_simple_benchmark_kernel(d_benchmark_data_, workload_size_.get(), threads_per_block_, cached_stream_);
+    async_run_simple_benchmark_kernel(d_benchmark_data_, workload_size_.get(),
+                                       threads_per_block_, cached_stream_);
     cudaStreamSynchronize(cached_stream_);
 
     // Get CUPTI-based CUDA kernel launch-start time if available
@@ -353,7 +360,9 @@ class TimingBenchmarkOp : public Operator {
 
       // More detailed timeout warning
       if (poll_count >= max_poll_attempts) {
-        HOLOSCAN_LOG_WARN("[CUPTI] Data polling timed out after {} attempts (~{}ms). Possible buffer overflow or severe contention.", poll_count, (poll_count * 2));
+        HOLOSCAN_LOG_WARN("[CUPTI] Data polling timed out after {} attempts (~{}ms). "
+                          "Possible buffer overflow or severe contention.", poll_count,
+                          (poll_count * 2));
       }
     } else {
       cuda_kernel_launch_start_time = -1.0;  // CUPTI not available
@@ -423,7 +432,8 @@ class GreenContextBenchmarkApp : public holoscan::Application {
         // Check GPU properties first
         cudaDeviceProp prop;
         cudaGetDeviceProperties(&prop, 0);
-        HOLOSCAN_LOG_INFO("GPU: {}, SMs: {}, Compute: {}", prop.name, prop.multiProcessorCount, prop.major, prop.minor);
+        HOLOSCAN_LOG_INFO("GPU: {}, SMs: {}, Compute: {}", prop.name, prop.multiProcessorCount,
+          prop.major, prop.minor);
 
         // Create separate Green Context partitions for proper isolation testing
         // Green Context requires partition size to be multiple of min_sm_count*2 = 4
@@ -438,7 +448,9 @@ class GreenContextBenchmarkApp : public holoscan::Application {
         std::vector<uint32_t> partitions = {static_cast<uint32_t>(sms_per_partition),
                                             static_cast<uint32_t>(sms_per_partition)};
 
-        HOLOSCAN_LOG_INFO("Configuring green context with {} partitions, {} SMs each (total: {} SMs)", partitions.size(), sms_per_partition, sms_per_partition * 2, total_sms);
+        HOLOSCAN_LOG_INFO("Configuring green context with {} partitions, {} SMs each "
+                          "(total: {} SMs)", partitions.size(), sms_per_partition,
+                          sms_per_partition * 2, total_sms);
 
         auto cuda_green_context_pool = make_resource<CudaGreenContextPool>(
             "cuda_green_context_pool",
@@ -523,7 +535,8 @@ void print_benchmark_results(const BenchmarkStats& stats, const std::string& con
   std::cout << "CUDA Kernel Launch-Start Time:" << std::endl;
   if (stats.sample_count == 0) {
     std::cout << "  Not available" << std::endl;
-    std::cout << "  (CUPTI initialization may have failed or no measurements captured)" << std::endl;
+    std::cout << "  (CUPTI initialization may have failed or no measurements captured)"
+    << std::endl;
     return;
   }
 
@@ -543,13 +556,14 @@ void print_title(const std::string& title) {
   std::cout << std::string(80, '=') << std::endl;
 }
 
-void print_benchmark_config(const std::string& mode, int total_samples, int background_load_intensity,
-  int background_load_size_mb, int background_load_size, int threads_per_block) {
+void print_benchmark_config(const std::string& mode, int total_samples,
+                            int background_load_intensity, int background_load_size_mb,
+                            int background_load_size, int threads_per_block) {
   std::cout << "  Benchmark Mode: " << mode << std::endl;
   std::cout << "  Measurement Samples: " << total_samples << std::endl;
   std::cout << "  Background Load Intensity: " << background_load_intensity << std::endl;
-  std::cout << "  Background Load Size: " << background_load_size_mb << " MB (" << background_load_size << " elements)"
-  << std::endl;
+  std::cout << "  Background Load Size: " << background_load_size_mb << " MB ("
+            << background_load_size << " elements)" << std::endl;
   std::cout << "  CUDA Threads Per Block: " << threads_per_block << std::endl;
 }
 
@@ -561,9 +575,12 @@ void print_usage(const char* program_name) {
   std::cout << "Options:\n";
   std::cout << "  --samples N        Number of timing samples to measure (default: 1000)\n";
   std::cout << "  --load-intensity N    GPU load intensity multiplier (default: 20)\n";
-  std::cout << "  --workload-size N     GPU memory size in MB for DummyLoadOp (default: 8)\n";
-  std::cout << "  --threads-per-block N CUDA threads per block for GPU kernels (default: 512)\n";
-  std::cout << "  --mode MODE          Run mode: 'baseline', 'green-context', or 'all' (default: all)\n";
+  std::cout << "  --workload-size N     GPU memory size in MB for DummyLoadOp "
+               "(default: 8)\n";
+  std::cout << "  --threads-per-block N CUDA threads per block for GPU kernels "
+               "(default: 512)\n";
+  std::cout << "  --mode MODE          Run mode: 'baseline', 'green-context', "
+               "or 'all' (default: all)\n";
   std::cout << "                        baseline: Run only without green context\n";
   std::cout << "                        green-context: Run only with green context\n";
   std::cout << "                        all: Run both and show comparison\n";
@@ -646,12 +663,14 @@ int main(int argc, char* argv[]) {
               << std::endl;
   }
 
-  BenchmarkStats cuda_kernel_launch_start_time_stats_without_gc, cuda_kernel_launch_start_time_stats_with_gc;
+  BenchmarkStats cuda_kernel_launch_start_time_stats_without_gc,
+                 cuda_kernel_launch_start_time_stats_with_gc;
   BenchmarkStats dummy_load_stats_without_gc, dummy_load_stats_with_gc;
 
   // Run benchmark without green context (baseline: both kernels on separate non-default streams)
   if (mode == "baseline" || mode == "all") {
-    print_title("Running benchmark for baseline\n(non-default CUDA streams, without green context)");
+    print_title("Running benchmark for baseline\n"
+                "(non-default CUDA streams, without green context)");
 
     try {
       auto app_no_gc = std::make_unique<GreenContextBenchmarkApp>(
@@ -659,8 +678,10 @@ int main(int argc, char* argv[]) {
       app_no_gc->scheduler(app_no_gc->make_scheduler<holoscan::EventBasedScheduler>(
           "event-based", holoscan::Arg("worker_thread_number", static_cast<int64_t>(4))));
       app_no_gc->run();
-      cuda_kernel_launch_start_time_stats_without_gc = app_no_gc->get_cuda_kernel_launch_start_time_benchmark_stats();
-      dummy_load_stats_without_gc = app_no_gc->get_dummy_load_execution_time_benchmark_stats();
+      cuda_kernel_launch_start_time_stats_without_gc =
+          app_no_gc->get_cuda_kernel_launch_start_time_benchmark_stats();
+      dummy_load_stats_without_gc =
+          app_no_gc->get_dummy_load_execution_time_benchmark_stats();
       std::cout << "Baseline benchmark completed" << std::endl;
     } catch (const std::exception& e) {
       std::cerr << "Baseline benchmark failed: " << e.what() << std::endl;
@@ -670,7 +691,8 @@ int main(int argc, char* argv[]) {
 
   // Run benchmark with green context enabled (separate partitions for each kernel)
   if (mode == "green-context" || mode == "all") {
-    print_title("Running main benchmark\n(with green context, separate partitions for each kernel)");
+    print_title("Running main benchmark\n"
+                "(with green context, separate partitions for each kernel)");
 
     try {
       auto app_with_gc = std::make_unique<GreenContextBenchmarkApp>(
@@ -678,8 +700,10 @@ int main(int argc, char* argv[]) {
       app_with_gc->scheduler(app_with_gc->make_scheduler<holoscan::EventBasedScheduler>(
           "event-based", holoscan::Arg("worker_thread_number", static_cast<int64_t>(6))));
       app_with_gc->run();
-      cuda_kernel_launch_start_time_stats_with_gc = app_with_gc->get_cuda_kernel_launch_start_time_benchmark_stats();
-      dummy_load_stats_with_gc = app_with_gc->get_dummy_load_execution_time_benchmark_stats();
+      cuda_kernel_launch_start_time_stats_with_gc =
+          app_with_gc->get_cuda_kernel_launch_start_time_benchmark_stats();
+      dummy_load_stats_with_gc =
+          app_with_gc->get_dummy_load_execution_time_benchmark_stats();
       std::cout << "Main benchmark completed" << std::endl;
     } catch (const std::exception& e) {
       std::cerr << "Main benchmark failed: " << e.what() << std::endl;
@@ -697,7 +721,8 @@ int main(int argc, char* argv[]) {
   print_title("Benchmark Results");
 
   if (mode == "baseline" || mode == "all") {
-    print_benchmark_results(cuda_kernel_launch_start_time_stats_without_gc, "Without Green Context (Baseline)");
+    print_benchmark_results(cuda_kernel_launch_start_time_stats_without_gc,
+                             "Without Green Context (Baseline)");
     std::cout << std::endl;
   }
 
@@ -707,25 +732,38 @@ int main(int argc, char* argv[]) {
   }
 
   // Performance Comparison - only show when mode is "all"
-  if (mode == "all" && cuda_kernel_launch_start_time_stats_without_gc.sample_count > 0 && cuda_kernel_launch_start_time_stats_with_gc.sample_count > 0) {
+  if (mode == "all" && cuda_kernel_launch_start_time_stats_without_gc.sample_count > 0 &&
+      cuda_kernel_launch_start_time_stats_with_gc.sample_count > 0) {
     print_title("Baseline and Green Context Benchmark Comparison");
 
     // Calculate improvements in launch-start latency
-    double avg_improvement = ((cuda_kernel_launch_start_time_stats_without_gc.avg - cuda_kernel_launch_start_time_stats_with_gc.avg) / cuda_kernel_launch_start_time_stats_without_gc.avg) * 100.0;
-    double p95_improvement = ((cuda_kernel_launch_start_time_stats_without_gc.p95 - cuda_kernel_launch_start_time_stats_with_gc.p95) / cuda_kernel_launch_start_time_stats_without_gc.p95) * 100.0;
-    double p99_improvement = ((cuda_kernel_launch_start_time_stats_without_gc.p99 - cuda_kernel_launch_start_time_stats_with_gc.p99) / cuda_kernel_launch_start_time_stats_without_gc.p99) * 100.0;
+    double avg_improvement = ((cuda_kernel_launch_start_time_stats_without_gc.avg -
+                               cuda_kernel_launch_start_time_stats_with_gc.avg) /
+                              cuda_kernel_launch_start_time_stats_without_gc.avg) * 100.0;
+    double p95_improvement = ((cuda_kernel_launch_start_time_stats_without_gc.p95 -
+                               cuda_kernel_launch_start_time_stats_with_gc.p95) /
+                              cuda_kernel_launch_start_time_stats_without_gc.p95) * 100.0;
+    double p99_improvement = ((cuda_kernel_launch_start_time_stats_without_gc.p99 -
+                               cuda_kernel_launch_start_time_stats_with_gc.p99) /
+                              cuda_kernel_launch_start_time_stats_without_gc.p99) * 100.0;
 
     std::cout << std::fixed << std::setprecision(2) << std::dec;
 
     std::cout << "Launch-Start Latency:" << std::endl;
-    std::cout << "  Average Latency:  " << std::setw(8) << cuda_kernel_launch_start_time_stats_without_gc.avg << " μs → "
-              << std::setw(8) << cuda_kernel_launch_start_time_stats_with_gc.avg << " μs  (" << std::showpos << avg_improvement << "%)"
+    std::cout << "  Average Latency:  " << std::setw(8)
+              << cuda_kernel_launch_start_time_stats_without_gc.avg << " μs → "
+              << std::setw(8) << cuda_kernel_launch_start_time_stats_with_gc.avg
+              << " μs  (" << std::showpos << avg_improvement << "%)"
               << std::endl;
-    std::cout << "  95th Percentile:  " << std::setw(8) << cuda_kernel_launch_start_time_stats_without_gc.p95 << " μs → "
-              << std::setw(8) << cuda_kernel_launch_start_time_stats_with_gc.p95 << " μs  (" << std::showpos << p95_improvement << "%)"
+    std::cout << "  95th Percentile:  " << std::setw(8)
+              << cuda_kernel_launch_start_time_stats_without_gc.p95 << " μs → "
+              << std::setw(8) << cuda_kernel_launch_start_time_stats_with_gc.p95
+              << " μs  (" << std::showpos << p95_improvement << "%)"
               << std::endl;
-    std::cout << "  99th Percentile:  " << std::setw(8) << cuda_kernel_launch_start_time_stats_without_gc.p99 << " μs → "
-              << std::setw(8) << cuda_kernel_launch_start_time_stats_with_gc.p99 << " μs  (" << std::showpos << p99_improvement << "%)"
+    std::cout << "  99th Percentile:  " << std::setw(8)
+              << cuda_kernel_launch_start_time_stats_without_gc.p99 << " μs → "
+              << std::setw(8) << cuda_kernel_launch_start_time_stats_with_gc.p99
+              << " μs  (" << std::showpos << p99_improvement << "%)"
               << std::endl << std::endl;
     std::cout << std::noshowpos;
   }
@@ -739,7 +777,8 @@ int main(int argc, char* argv[]) {
       std::cout << std::fixed << std::setprecision(2);
       std::cout << "  Average: " << dummy_load_stats_without_gc.avg << " μs" << std::endl;
       std::cout << "  Std Dev: " << dummy_load_stats_without_gc.std_dev << " μs" << std::endl;
-      std::cout << "  Samples: " << dummy_load_stats_without_gc.sample_count << std::endl << std::endl;
+      std::cout << "  Samples: " << dummy_load_stats_without_gc.sample_count << std::endl
+                << std::endl;
     }
   }
 

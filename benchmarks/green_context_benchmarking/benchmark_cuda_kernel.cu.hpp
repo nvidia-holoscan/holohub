@@ -26,4 +26,5 @@ void async_run_simple_benchmark_kernel(
     float* data, int workload_size, int threads_per_block, cudaStream_t cuda_stream);
 
 void async_run_background_load_kernel(
-    float* data, int workload_size, int load_intensity, int threads_per_block, cudaStream_t cuda_stream);
+    float* data, int workload_size, int load_intensity, int threads_per_block,
+    cudaStream_t cuda_stream);
