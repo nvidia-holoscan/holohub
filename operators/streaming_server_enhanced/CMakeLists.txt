@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.20)
-project(streaming_server_04_80_tensor CXX)
+project(streaming_server_enhanced CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -60,7 +60,7 @@ find_library(Poco_LIBRARY
 )
 
 # Create the main streaming server library with all components
-add_library(streaming_server_04_80_tensor
+add_library(streaming_server_enhanced
     SHARED
     # Split operators for tensor-based processing
     streaming_server_upstream_op.cpp
@@ -74,21 +74,21 @@ add_library(streaming_server_04_80_tensor
 )
 
 # Set C++ standard and properties
-set_target_properties(streaming_server_04_80_tensor PROPERTIES
+set_target_properties(streaming_server_enhanced PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
     POSITION_INDEPENDENT_CODE ON
 )
 
 # Set target properties
-target_include_directories(streaming_server_04_80_tensor
+target_include_directories(streaming_server_enhanced
     PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${STREAMINGSERVER_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(streaming_server_04_80_tensor
+target_link_libraries(streaming_server_enhanced
     PUBLIC
     holoscan::core
     holoscan::ops::format_converter
@@ -101,15 +101,15 @@ target_link_libraries(streaming_server_04_80_tensor
 )
 
 # Create the main alias that applications will use
-add_library(holoscan::ops::streaming_server_04_80_tensor ALIAS streaming_server_04_80_tensor)
+add_library(holoscan::ops::streaming_server_enhanced ALIAS streaming_server_enhanced)
 
 # Note: DecodedFrameData library removed since we now work with holoscan::Tensor directly
 
 
 
 # Install targets
-install(TARGETS streaming_server_04_80_tensor
-    EXPORT streaming_server_04_80_tensor_targets
+install(TARGETS streaming_server_enhanced
+    EXPORT streaming_server_enhanced_targets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
@@ -122,7 +122,7 @@ install(FILES
     streaming_server_downstream_op.hpp
     streaming_server_resource.hpp
     frame_debug_utils.hpp
-    DESTINATION include/operators/streaming_server_04_80_tensor
+    DESTINATION include/operators/streaming_server_enhanced
 )
 
 # Explicitly install each required StreamingServer library - CMake will fail if any are missing
@@ -202,8 +202,8 @@ if(HOLOHUB_BUILD_PYTHON)
 endif()
 
 # Export targets
-install(EXPORT streaming_server_04_80_tensor_targets
-    FILE streaming_server_04_80_tensor_targets.cmake
+install(EXPORT streaming_server_enhanced_targets
+    FILE streaming_server_enhanced_targets.cmake
     NAMESPACE holoscan::ops::
     DESTINATION lib/cmake/holoscan
 )
