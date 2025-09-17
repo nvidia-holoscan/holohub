@@ -13,15 +13,34 @@ DATA_DIR="$3"
 
 echo "Running Python streaming client demo FUNCTIONAL test with real video data..."
 echo "Data directory: $DATA_DIR"
+
+# Check if data directory exists and use fallback logic (same as C++ test)
+FALLBACK_DATA_DIR="/workspace/holohub/data"
+EFFECTIVE_DATA_DIR="$DATA_DIR"
+
+if [ -n "$DATA_DIR" ] && [ -d "$DATA_DIR" ] && [ -f "$DATA_DIR/surgical_video.gxf_index" ]; then
+    echo "🎬 FUNCTIONAL test: Using real video data from $DATA_DIR"
+    TEST_MODE="FUNCTIONAL"
+elif [ -d "$FALLBACK_DATA_DIR" ] && [ -f "$FALLBACK_DATA_DIR/surgical_video.gxf_index" ]; then
+    echo "🔧 INFRASTRUCTURE test: No video data found, testing StreamingClient functionality only"
+    echo "Found valid data directory with video file: $FALLBACK_DATA_DIR"
+    echo "Using data directory: $FALLBACK_DATA_DIR"
+    echo "Video file path: $FALLBACK_DATA_DIR/surgical_video.gxf_index"
+    TEST_MODE="INFRASTRUCTURE"
+    EFFECTIVE_DATA_DIR="$FALLBACK_DATA_DIR"
+else
+    echo "🔧 INFRASTRUCTURE test: No video data found, testing StreamingClient functionality only"
+    TEST_MODE="INFRASTRUCTURE"
+fi
+
 echo "Video data size:"
-ls -lh "$DATA_DIR"/surgical_video.* 2>/dev/null || echo "  Video files not found"
+ls -lh "$EFFECTIVE_DATA_DIR"/surgical_video.* 2>/dev/null || echo "  Video files not found"
 
 # Run the functional test and capture output
 OUTPUT_FILE="/tmp/streaming_client_python_functional_test_output.log"
-timeout 120 python3 "$PYTHON_SCRIPT" --data "$DATA_DIR" 2>&1 | tee "$OUTPUT_FILE" || true
+timeout 120 python3 "$PYTHON_SCRIPT" --data "$EFFECTIVE_DATA_DIR" 2>&1 | tee "$OUTPUT_FILE" || true
 
-# Determine test mode based on output
-TEST_MODE="INFRASTRUCTURE"
+# Update test mode based on actual output (for consistency with existing logic)
 if grep -q "Using real video data from" "$OUTPUT_FILE"; then
     TEST_MODE="FUNCTIONAL"
 fi
