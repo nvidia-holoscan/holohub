@@ -7,7 +7,7 @@ set -e  # Exit on any error
 
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OPERATOR_DIR="${SCRIPT_DIR}/../../operators/streaming_server_04_80_tensor"
+OPERATOR_DIR="${SCRIPT_DIR}/../../operators/streaming_server_enhanced"
 NGC_RESOURCE="nvstaging/holoscan/holoscan_server_cloud_streaming:1.0"
 DOWNLOAD_DIR="holoscan_server_cloud_streaming_v1.0"
 EXTRACT_DIR="holoscan_server_cloud_streaming"
@@ -139,8 +139,8 @@ extract_and_setup() {
     fi
     
     # Check if extraction created the expected directory structure
-    if [[ ! -d "streaming_server_04_80_tensor/$EXTRACT_DIR" ]]; then
-        print_error "Expected directory not found after extraction: streaming_server_04_80_tensor/$EXTRACT_DIR"
+    if [[ ! -d "streaming_server_enhanced/$EXTRACT_DIR" ]]; then
+        print_error "Expected directory not found after extraction: streaming_server_enhanced/$EXTRACT_DIR"
         print_info "Listing current directory contents:"
         ls -la
         exit 1
@@ -156,10 +156,10 @@ extract_and_setup() {
     fi
     
     # Move the extracted directory to the correct location
-    mv "streaming_server_04_80_tensor/$EXTRACT_DIR" .
+    mv "streaming_server_enhanced/$EXTRACT_DIR" .
     
     # Clean up the temporary extraction directory
-    rm -rf "streaming_server_04_80_tensor"
+    rm -rf "streaming_server_enhanced"
     
     print_success "Directory structure setup completed"
 }
