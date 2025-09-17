@@ -77,6 +77,8 @@ set_target_properties(streaming_server_demo PROPERTIES
     BUILD_WITH_INSTALL_RPATH TRUE
     INSTALL_RPATH_USE_LINK_PATH TRUE
     SKIP_BUILD_RPATH FALSE
+    BUILD_RPATH "${CMAKE_BINARY_DIR}/operators/streaming_server:${CMAKE_BINARY_DIR}/operators/streaming_server/lib:/opt/nvidia/holoscan/lib"
+    INSTALL_RPATH "$ORIGIN:$ORIGIN/../../../operators/streaming_server:$ORIGIN/../../operators/streaming_server:/opt/nvidia/holoscan/lib"
 )
 
 # Add include directories
