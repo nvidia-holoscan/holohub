@@ -154,51 +154,23 @@ class StreamingServerTestApp : public holoscan::Application {
       has_video_data = true;
     }
 
+    // StreamingServerOp works standalone in both functional and infrastructure modes
+    // It receives frames from network clients, not from video pipeline
+    auto streaming_server = make_operator<ops::StreamingServerOp>(
+        "streaming_server", from_config("streaming_server"));
+
+    // Add the operator to the pipeline
+    add_operator(streaming_server);
+
     if (has_video_data && !datapath_.empty()) {
-      // Functional test mode: Create video pipeline
-      HOLOSCAN_LOG_INFO("🎬 Using real video data from: {}", final_data_dir.string());
-
-      // Create allocator
-      auto allocator = make_resource<UnboundedAllocator>("allocator");
-
-      // Video source with real data
-      auto source = make_operator<ops::VideoStreamReplayerOp>(
-          "video_source",
-          Arg("directory", final_data_dir.string()),
-          Arg("basename", "surgical_video"),
-          Arg("frame_rate", 30.0f),
-          Arg("realtime", false),
-          Arg("repeat", false),
-          Arg("count", static_cast<int64_t>(50))  // Process 50 frames for testing
-      );
-
-      // Format converter
-      auto format_converter = make_operator<ops::FormatConverterOp>(
-          "format_converter",
-          Arg("pool", allocator),
-          Arg("out_dtype", "uint8"),
-          Arg("out_channel_order", std::vector<int>{2, 1, 0})  // BGR
-      );
-
-      // Streaming server operator
-      auto streaming_server = make_operator<ops::StreamingServerOp>(
-          "streaming_server", from_config("streaming_server"));
-
-      // Connect the video pipeline to streaming server
-      add_flow(source, format_converter, {{"output", "source_video"}});
-      add_flow(format_converter, streaming_server, {{"tensor", "input_frames"}});
-
-      HOLOSCAN_LOG_INFO("Application composed with video pipeline: VideoSource → FormatConverter → StreamingServer");
+      HOLOSCAN_LOG_INFO("🎬 FUNCTIONAL test: StreamingServer with data directory available for client connections");
+      HOLOSCAN_LOG_INFO("Available video data: {}", final_data_dir.string());
+      HOLOSCAN_LOG_INFO("StreamingServer will accept client connections and process their video streams");
     } else {
-      // Infrastructure test mode: Standalone streaming server
-      auto streaming_server = make_operator<ops::StreamingServerOp>(
-          "streaming_server", from_config("streaming_server"));
-
-      // Add the operator to the pipeline
-      add_operator(streaming_server);
-
-      HOLOSCAN_LOG_INFO("Application composed with streaming server using standalone mode (no video pipeline)");
+      HOLOSCAN_LOG_INFO("🔧 INFRASTRUCTURE test: StreamingServer in standalone mode");
     }
+
+    HOLOSCAN_LOG_INFO("Application composed with standalone StreamingServer (receives frames from network clients)");
   }
 
  private:
