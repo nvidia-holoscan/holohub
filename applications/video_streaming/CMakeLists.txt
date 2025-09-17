@@ -71,7 +71,9 @@ if(BUILD_TESTING)
   # Video Streaming Server Tests (only if server target exists)
   if(TARGET streaming_server_demo)
     add_test(NAME video_streaming_server_cpp_test
-             COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/cpp/run_test.sh"
+             COMMAND ${CMAKE_COMMAND} -E env
+                     "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_server:${CMAKE_BINARY_DIR}/operators/streaming_server/lib:${CMAKE_SOURCE_DIR}/operators/streaming_server/lib:${CMAKE_BINARY_DIR}/lib:$ENV{LD_LIBRARY_PATH}"
+                     bash "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/cpp/run_test.sh"
                      "$<TARGET_FILE:streaming_server_demo>"
                      "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/testing/video_streaming_server_testing.yaml"
                      "${HOLOHUB_DATA_DIR}/endoscopy"
@@ -114,7 +116,9 @@ if(BUILD_TESTING)
     # Add C++ functional test if functional test script exists
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/cpp/run_functional_test.sh")
       add_test(NAME video_streaming_server_cpp_functional_test
-               COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/cpp/run_functional_test.sh"
+               COMMAND ${CMAKE_COMMAND} -E env
+                       "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_server:${CMAKE_BINARY_DIR}/operators/streaming_server/lib:${CMAKE_SOURCE_DIR}/operators/streaming_server/lib:${CMAKE_BINARY_DIR}/lib:$ENV{LD_LIBRARY_PATH}"
+                       bash "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/cpp/run_functional_test.sh"
                        "$<TARGET_FILE:streaming_server_demo>"
                        "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/testing/video_streaming_server_testing.yaml"
                        "${HOLOHUB_DATA_DIR}/endoscopy"
