@@ -110,6 +110,21 @@ if(BUILD_TESTING)
                            PASS_REGULAR_EXPRESSION "FUNCTIONAL test.*successful"
                            FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
     endif()
+
+    # Add C++ functional test if functional test script exists
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/cpp/run_functional_test.sh")
+      add_test(NAME video_streaming_server_cpp_functional_test
+               COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/cpp/run_functional_test.sh"
+                       "$<TARGET_FILE:streaming_server_demo>"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server/testing/video_streaming_server_testing.yaml"
+                       "${HOLOHUB_DATA_DIR}/endoscopy"
+               WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+      set_tests_properties(video_streaming_server_cpp_functional_test PROPERTIES
+                           TIMEOUT 120
+                           PASS_REGULAR_EXPRESSION "FUNCTIONAL test.*successful"
+                           FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
+    endif()
   endif()
 
 endif()

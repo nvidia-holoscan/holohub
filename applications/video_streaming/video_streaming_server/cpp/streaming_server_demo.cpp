@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -30,6 +31,8 @@
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 
 #include "streaming_server_op.hpp"
+
+namespace fs = std::filesystem;
 
 
 namespace holoscan::ops {
@@ -131,16 +134,71 @@ class StreamingServerTestApp : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    // Create the streaming server operator with continuous execution
-    // Remove periodic condition - let it run continuously to process frames
-    auto streaming_server = make_operator<ops::StreamingServerOp>(
-        "streaming_server", from_config("streaming_server"));
+    // Check if we have video data available for functional testing
+    fs::path data_dir(datapath_);
+    fs::path fallback_dir("/workspace/holohub/data");
+    bool has_video_data = false;
+    fs::path final_data_dir;
 
-    // Add the operator to the pipeline
-    add_operator(streaming_server);
+    // Check if original data directory exists and has video files
+    if (fs::exists(data_dir) && fs::exists(data_dir / "surgical_video.gxf_index")) {
+      HOLOSCAN_LOG_INFO("🎬 FUNCTIONAL test: Using real video data from {}", data_dir.string());
+      final_data_dir = data_dir;
+      has_video_data = true;
+    } else if (fs::exists(fallback_dir) && fs::exists(fallback_dir / "surgical_video.gxf_index")) {
+      HOLOSCAN_LOG_INFO("🔧 INFRASTRUCTURE test: No video data found, testing StreamingServer functionality only");
+      HOLOSCAN_LOG_INFO("Found valid data directory with video file: {}", fallback_dir.string());
+      HOLOSCAN_LOG_INFO("Using data directory: {}", fallback_dir.string());
+      HOLOSCAN_LOG_INFO("Video file path: {}/surgical_video.gxf_index", fallback_dir.string());
+      final_data_dir = fallback_dir;
+      has_video_data = true;
+    }
 
-    HOLOSCAN_LOG_INFO(
-        "Application composed with streaming server using continuous execution");
+    if (has_video_data && !datapath_.empty()) {
+      // Functional test mode: Create video pipeline
+      HOLOSCAN_LOG_INFO("🎬 Using real video data from: {}", final_data_dir.string());
+
+      // Create allocator
+      auto allocator = make_resource<UnboundedAllocator>("allocator");
+
+      // Video source with real data
+      auto source = make_operator<ops::VideoStreamReplayerOp>(
+          "video_source",
+          Arg("directory", final_data_dir.string()),
+          Arg("basename", "surgical_video"),
+          Arg("frame_rate", 30u),
+          Arg("realtime", false),
+          Arg("repeat", false),
+          Arg("count", 50u)  // Process 50 frames for testing
+      );
+
+      // Format converter
+      auto format_converter = make_operator<ops::FormatConverterOp>(
+          "format_converter",
+          Arg("pool", allocator),
+          Arg("out_dtype", "uint8"),
+          Arg("out_channel_order", std::vector<int>{2, 1, 0})  // BGR
+      );
+
+      // Streaming server operator
+      auto streaming_server = make_operator<ops::StreamingServerOp>(
+          "streaming_server", from_config("streaming_server"));
+
+      // Connect the video pipeline to streaming server
+      add_flow(source, format_converter, {{"output", "source_video"}});
+      add_flow(format_converter, streaming_server, {{"output", "input_frames"}});
+
+      HOLOSCAN_LOG_INFO("Application composed with video pipeline: VideoSource → FormatConverter → StreamingServer");
+    } else {
+      // Infrastructure test mode: Standalone streaming server
+      auto streaming_server = make_operator<ops::StreamingServerOp>(
+          "streaming_server", from_config("streaming_server"));
+
+      // Add the operator to the pipeline
+      add_operator(streaming_server);
+
+      HOLOSCAN_LOG_INFO("Application composed with streaming server using standalone mode (no video pipeline)");
+    }
   }
 
  private:
@@ -295,7 +353,9 @@ int main(int argc, char** argv) {
     app->set_receive_frames(receive_frames);
     app->set_send_frames(send_frames);
     app->set_visualize_frames(visualize_frames);
+    app->set_datapath(data_directory);
 
+    std::cout << "Using data from: " << (data_directory.empty() ? "none (standalone mode)" : data_directory) << std::endl;
     std::cout << "Configuration:\n"
               << "- Resolution: " << width << "x" << height << "\n"
               << "- FPS: " << fps << "\n"

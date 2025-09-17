@@ -39,6 +39,7 @@ target_compile_definitions(streaming_server_demo
     HOLOSCAN_PATCH_VERSION=${holoscan_VERSION_PATCH}
 )
 
+
 # Set compile options
 target_compile_options(streaming_server_demo
     PRIVATE
