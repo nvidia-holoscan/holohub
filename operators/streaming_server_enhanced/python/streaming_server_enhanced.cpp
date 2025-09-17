@@ -32,11 +32,11 @@ namespace py = pybind11;
 
 namespace holoscan::ops {
 
-PYBIND11_MODULE(_streaming_server_04_80_tensor, m) {
+PYBIND11_MODULE(_streaming_server_enhanced, m) {
   m.doc() = R"pbdoc(
       Holoscan SDK Streaming Server 04_80 Tensor Python Bindings
       -------------------------------------------------------
-      .. currentmodule:: _streaming_server_04_80_tensor
+      .. currentmodule:: _streaming_server_enhanced
   )pbdoc";
 
   // StreamingServerResource

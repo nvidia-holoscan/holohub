@@ -15,7 +15,7 @@
 
 include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET streaming_server_04_80_tensor
+    CPP_CMAKE_TARGET streaming_server_enhanced
     CLASS_NAME "StreamingServerResource;StreamingServerUpstreamOp;StreamingServerDownstreamOp"
-    SOURCES streaming_server_04_80_tensor.cpp
+    SOURCES streaming_server_enhanced.cpp
 )

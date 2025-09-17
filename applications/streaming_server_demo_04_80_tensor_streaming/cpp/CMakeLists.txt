@@ -23,7 +23,7 @@ find_package(holoscan REQUIRED CONFIG
 find_package(CUDAToolkit REQUIRED)
 find_package(OpenCV REQUIRED)
 
-# Bundle NEWER SSL libraries from streaming_server_04_80_tensor operator (supports OpenSSL 3.0-3.5)
+# Bundle NEWER SSL libraries from streaming_server_enhanced operator (supports OpenSSL 3.0-3.5)
 # Detect system architecture
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
   set(ARCH_DIR "x86_64")
@@ -32,7 +32,7 @@ elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQ
 else()
   message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
-set(OPERATOR_SSL_DIR "${CMAKE_SOURCE_DIR}/operators/streaming_server_04_80_tensor/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
+set(OPERATOR_SSL_DIR "${CMAKE_SOURCE_DIR}/operators/streaming_server_enhanced/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
 
 # Add executable
 add_executable(streaming_server_demo_04_80_tensor_streaming
@@ -43,7 +43,7 @@ add_executable(streaming_server_demo_04_80_tensor_streaming
 target_link_libraries(streaming_server_demo_04_80_tensor_streaming
     PRIVATE
     holoscan::core
-    holoscan::ops::streaming_server_04_80_tensor
+    holoscan::ops::streaming_server_enhanced
     ${OpenCV_LIBS}
     CUDA::cudart
     "${OPERATOR_SSL_DIR}/libssl.so.3"
@@ -99,7 +99,7 @@ add_custom_command(TARGET streaming_server_demo_04_80_tensor_streaming POST_BUIL
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libcudart.so.12"
         "$<TARGET_FILE_DIR:streaming_server_demo_04_80_tensor_streaming>/lib/libcudart.so.12"
-    COMMENT "Bundling ALL required libraries from streaming_server_04_80_tensor operator"
+    COMMENT "Bundling ALL required libraries from streaming_server_enhanced operator"
 )
 
 # Configure linking to use the bundled newer SSL libraries

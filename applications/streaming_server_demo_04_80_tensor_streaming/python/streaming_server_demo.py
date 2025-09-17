@@ -26,7 +26,7 @@ from argparse import ArgumentParser
 
 from holoscan.core import Application
 from holoscan.resources import UnboundedAllocator
-from holohub.streaming_server_04_80_tensor._streaming_server_04_80_tensor import (
+from holohub.streaming_server_enhanced._streaming_server_enhanced import (
     StreamingServerResource,
     StreamingServerUpstreamOp, 
     StreamingServerDownstreamOp

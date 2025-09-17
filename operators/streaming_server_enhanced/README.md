@@ -1,6 +1,6 @@
 # Streaming Server Operators
 
-The `streaming_server_04_80_tensor` operator provides a modular streaming server implementation with separate upstream, downstream, and resource components. This split architecture allows for better separation of concerns and more flexible streaming pipeline configurations.
+The `streaming_server_enhanced` operator provides a modular streaming server implementation with separate upstream, downstream, and resource components. This split architecture allows for better separation of concerns and more flexible streaming pipeline configurations.
 
 ## Architecture Components
 
@@ -210,15 +210,15 @@ In order to build the server operator, you must first download the server binari
 
 ```bash
 # Download using NGC CLI
-cd <your_holohub_path>/operators/streaming_server_04_80_tensor
+cd <your_holohub_path>/operators/streaming_server_enhanced
 ngc registry resource download-version "nvstaging/holoscan/holoscan_server_cloud_streaming:1.0"
 unzip -o holoscan_server_cloud_streaming_v1.0/holoscan_server_cloud_streaming.zip
 
 # Move the extracted contents to the expected location
-mv streaming_server_04_80_tensor/holoscan_server_cloud_streaming ./
+mv streaming_server_enhanced/holoscan_server_cloud_streaming ./
 
 # Clean up extraction directory and NGC download directory
-rm -rf streaming_server_04_80_tensor holoscan_server_cloud_streaming_v1.0
+rm -rf streaming_server_enhanced holoscan_server_cloud_streaming_v1.0
 ```
 
 ### Deployment on NVCF
