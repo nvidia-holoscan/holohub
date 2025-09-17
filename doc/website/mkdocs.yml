@@ -1,4 +1,4 @@
-site_name: Holoscan Reference Applications
+site_name: NVIDIA Holoscan Reference Applications
 site_url: https://nvidia-holoscan.github.io/holohub
 repo_url: https://github.com/nvidia-holoscan/holohub
 repo_name: nvidia-holoscan/holohub
@@ -53,6 +53,7 @@ plugins:
 #      fallback_to_build_date: true
   - gen-files:
       scripts:
+        - scripts/generate_featured_apps.py
         - scripts/generate_pages.py
   - macros
   - tags
@@ -87,7 +88,8 @@ watch:
   - ../../tutorials
   - ../../benchmarks
   - ../../workflows
-  - overrides
+  - overrides/assets
+  - overrides/pages
   - scripts
 
 markdown_extensions:

@@ -41,7 +41,6 @@ RANKING_LEVELS = {
     5: "Level 5 - Obsolete",
 }
 
-
 def get_git_root() -> Path:
     """Get the absolute path to the Git repository root."""
     result = subprocess.run(
@@ -677,8 +676,8 @@ sort:
     logger.debug(f"Components: {components}")
 
     # Write the home page
-    homefile_path = website_src_dir / "docs" / "index.md"
-    with homefile_path.open("r") as home_file:
+    homefile_path = website_src_dir / "overrides" / "_pages" / "featured-apps.html"
+    with homefile_path.open("r+") as home_file:
         home_text = home_file.read()
 
         # Replace the number of components in the home page
@@ -686,8 +685,14 @@ sort:
             nbr_components = len(components[component_type])
             home_text = home_text.replace(f"#{component_type}", str(nbr_components))
 
-    with mkdocs_gen_files.open("index.md", "w") as index_file:
-        index_file.write(home_text)
+        # Write the home page
+        home_file.seek(0)  # Go to beginning
+        home_file.truncate()  # Clear all content
+        home_file.write(home_text)
+
+    #with homefile_path.open("r") as home_file:
+    #with mkdocs_gen_files.open("index.md", "w") as index_file:
+    #    index_file.write(home_text)
 
     # Write explicit navigation order for the root
     nav_content = """
