@@ -12,7 +12,26 @@ CONFIG_FILE="$2"
 DATA_DIR="$3"
 
 echo "Running C++ streaming server demo FUNCTIONAL test with real video data..."
+echo "Executable: $EXECUTABLE"
+echo "Config file: $CONFIG_FILE"
 echo "Data directory: $DATA_DIR"
+
+# Debug: Check if executable exists
+if [ ! -f "$EXECUTABLE" ]; then
+    echo "❌ ERROR: Executable not found at: $EXECUTABLE"
+    echo "Available files in directory:"
+    ls -la "$(dirname "$EXECUTABLE")" 2>/dev/null || echo "Directory does not exist"
+    echo "❌ FUNCTIONAL test FAILED: Executable not found"
+    exit 1
+fi
+
+# Debug: Check if executable is executable
+if [ ! -x "$EXECUTABLE" ]; then
+    echo "❌ ERROR: File exists but is not executable: $EXECUTABLE"
+    ls -la "$EXECUTABLE"
+    echo "❌ FUNCTIONAL test FAILED: Executable permissions issue"
+    exit 1
+fi
 
 # Check if data directory exists and use fallback logic (same as client test)
 FALLBACK_DATA_DIR="/workspace/holohub/data"
@@ -82,6 +101,12 @@ elif [ -n "$STREAMING_FUNCTIONALITY" ]; then
     exit 0
 else
     echo "❌ FUNCTIONAL test FAILED: StreamingServer functional testing failed"
-    echo "See output above for details"
+    echo "Debug information:"
+    echo "  - Executable: $EXECUTABLE"
+    echo "  - Test mode: $TEST_MODE"
+    echo "  - Video frames processed: $VIDEO_FRAMES_PROCESSED"
+    echo "  - Streaming functionality: $STREAMING_FUNCTIONALITY"
+    echo "Output file contents:"
+    cat "$OUTPUT_FILE" 2>/dev/null || echo "No output file found"
     exit 1
 fi
