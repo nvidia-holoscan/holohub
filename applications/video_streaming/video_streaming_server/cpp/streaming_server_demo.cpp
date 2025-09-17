@@ -166,10 +166,10 @@ class StreamingServerTestApp : public holoscan::Application {
           "video_source",
           Arg("directory", final_data_dir.string()),
           Arg("basename", "surgical_video"),
-          Arg("frame_rate", 30u),
+          Arg("frame_rate", 30.0f),
           Arg("realtime", false),
           Arg("repeat", false),
-          Arg("count", 50u)  // Process 50 frames for testing
+          Arg("count", static_cast<int64_t>(50))  // Process 50 frames for testing
       );
 
       // Format converter
@@ -186,7 +186,7 @@ class StreamingServerTestApp : public holoscan::Application {
 
       // Connect the video pipeline to streaming server
       add_flow(source, format_converter, {{"output", "source_video"}});
-      add_flow(format_converter, streaming_server, {{"output", "input_frames"}});
+      add_flow(format_converter, streaming_server, {{"tensor", "input_frames"}});
 
       HOLOSCAN_LOG_INFO("Application composed with video pipeline: VideoSource → FormatConverter → StreamingServer");
     } else {
