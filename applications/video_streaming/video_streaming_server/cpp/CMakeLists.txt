@@ -39,6 +39,11 @@ target_compile_definitions(streaming_server_demo
     HOLOSCAN_PATCH_VERSION=${holoscan_VERSION_PATCH}
 )
 
+# Set compile features
+target_compile_features(streaming_server_demo
+    PUBLIC
+    cxx_std_17
+)
 
 # Set compile options
 target_compile_options(streaming_server_demo
@@ -57,6 +62,8 @@ add_dependencies(streaming_server_demo streaming_server)
 target_link_libraries(streaming_server_demo
     PUBLIC
     holoscan::core
+    holoscan::ops::video_stream_replayer
+    holoscan::ops::format_converter
     holoscan::streaming_server
     CUDA::cudart
     CUDA::cuda_driver
