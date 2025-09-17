@@ -25,7 +25,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from holoscan.core import Application
-from holoscan.operators import FormatConverterOp, VideoStreamReplayerOp
+
 
 from holohub.streaming_server import StreamingServerOp
 
@@ -75,7 +75,7 @@ class StreamingServerFunctionalTestApp(Application):
             print(f"🎬 FUNCTIONAL test: Using real video data from {data_dir}")
             final_data_dir = data_dir
         elif fallback_dir.exists() and (fallback_dir / "surgical_video.gxf_index").exists():
-            print(f"🔧 INFRASTRUCTURE test: No video data found, testing StreamingServer functionality only")
+            print("🔧 INFRASTRUCTURE test: No video data found, testing StreamingServer functionality only")
             print(f"Found valid data directory with video file: {fallback_dir}")
             print(f"Using data directory: {fallback_dir}")
             print(f"Video file path: {fallback_dir}/surgical_video.gxf_index")
@@ -112,9 +112,9 @@ class StreamingServerFunctionalTestApp(Application):
         # Add the operator to the application
         self.add_operator(streaming_server)
 
-        print(f"🎬 FUNCTIONAL test: StreamingServer with data directory available for client connections")
+        print("🎬 FUNCTIONAL test: StreamingServer with data directory available for client connections")
         print(f"Available video data: {final_data_dir}")
-        print(f"StreamingServer will accept client connections and process their video streams")
+        print("StreamingServer will accept client connections and process their video streams")
         print("✅ Functional test configured with standalone StreamingServer (receives frames from network clients)")
 
 
