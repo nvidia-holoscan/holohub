@@ -26,7 +26,6 @@ from pathlib import Path
 
 from holoscan.core import Application
 
-
 from holohub.streaming_server import StreamingServerOp
 
 
@@ -69,13 +68,15 @@ class StreamingServerFunctionalTestApp(Application):
         # Validate data path with fallback logic (same as C++ test)
         data_dir = Path(self.data_path)
         fallback_dir = Path("/workspace/holohub/data")
-        
+
         # Check if original data directory exists and has video files
         if data_dir.exists() and (data_dir / "surgical_video.gxf_index").exists():
             print(f"🎬 FUNCTIONAL test: Using real video data from {data_dir}")
             final_data_dir = data_dir
         elif fallback_dir.exists() and (fallback_dir / "surgical_video.gxf_index").exists():
-            print("🔧 INFRASTRUCTURE test: No video data found, testing StreamingServer functionality only")
+            print(
+                "🔧 INFRASTRUCTURE test: No video data found, testing StreamingServer functionality only"
+            )
             print(f"Found valid data directory with video file: {fallback_dir}")
             print(f"Using data directory: {fallback_dir}")
             print(f"Video file path: {fallback_dir}/surgical_video.gxf_index")
@@ -112,10 +113,14 @@ class StreamingServerFunctionalTestApp(Application):
         # Add the operator to the application
         self.add_operator(streaming_server)
 
-        print("🎬 FUNCTIONAL test: StreamingServer with data directory available for client connections")
+        print(
+            "🎬 FUNCTIONAL test: StreamingServer with data directory available for client connections"
+        )
         print(f"Available video data: {final_data_dir}")
         print("StreamingServer will accept client connections and process their video streams")
-        print("✅ Functional test configured with standalone StreamingServer (receives frames from network clients)")
+        print(
+            "✅ Functional test configured with standalone StreamingServer (receives frames from network clients)"
+        )
 
 
 def main():

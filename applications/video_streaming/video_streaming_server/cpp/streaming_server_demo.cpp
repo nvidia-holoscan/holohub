@@ -145,9 +145,11 @@ class StreamingServerTestApp : public holoscan::Application {
       HOLOSCAN_LOG_INFO("🎬 FUNCTIONAL test: Using real video data from {}", data_dir.string());
       final_data_dir = data_dir;
       has_video_data = true;
-    } else if (fs::exists(fallback_dir) && fs::exists(fallback_dir / "surgical_video.gxf_index")) {
+    } else if (fs::exists(fallback_dir) &&
+               fs::exists(fallback_dir / "surgical_video.gxf_index")) {
       HOLOSCAN_LOG_INFO(
-          "🔧 INFRASTRUCTURE test: No video data found, testing StreamingServer functionality only");
+          "🔧 INFRASTRUCTURE test: No video data found, testing StreamingServer "
+          "functionality only");
       HOLOSCAN_LOG_INFO("Found valid data directory with video file: {}", fallback_dir.string());
       HOLOSCAN_LOG_INFO("Using data directory: {}", fallback_dir.string());
       HOLOSCAN_LOG_INFO("Video file path: {}/surgical_video.gxf_index", fallback_dir.string());
@@ -165,7 +167,8 @@ class StreamingServerTestApp : public holoscan::Application {
 
     if (has_video_data && !datapath_.empty()) {
       HOLOSCAN_LOG_INFO(
-          "🎬 FUNCTIONAL test: StreamingServer with data directory available for client connections");
+          "🎬 FUNCTIONAL test: StreamingServer with data directory available for "
+          "client connections");
       HOLOSCAN_LOG_INFO("Available video data: {}", final_data_dir.string());
       HOLOSCAN_LOG_INFO(
           "StreamingServer will accept client connections and process their video streams");
@@ -174,7 +177,8 @@ class StreamingServerTestApp : public holoscan::Application {
     }
 
     HOLOSCAN_LOG_INFO(
-        "Application composed with standalone StreamingServer (receives frames from network clients)");
+        "Application composed with standalone StreamingServer (receives frames from "
+        "network clients)");
   }
 
  private:
@@ -331,8 +335,8 @@ int main(int argc, char** argv) {
     app->set_visualize_frames(visualize_frames);
     app->set_datapath(data_directory);
 
-    std::cout << "Using data from: " 
-              << (data_directory.empty() ? "none (standalone mode)" : data_directory) 
+    std::cout << "Using data from: "
+              << (data_directory.empty() ? "none (standalone mode)" : data_directory)
               << std::endl;
     std::cout << "Configuration:\n"
               << "- Resolution: " << width << "x" << height << "\n"
