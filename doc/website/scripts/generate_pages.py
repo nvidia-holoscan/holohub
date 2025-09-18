@@ -675,24 +675,33 @@ sort:
 
     logger.debug(f"Components: {components}")
 
-    # Write the home page
-    homefile_path = website_src_dir / "overrides" / "_pages" / "featured-apps.html"
-    with homefile_path.open("r+") as home_file:
-        home_text = home_file.read()
+    # Update all featured component pages with component counts
+    featured_pages = [
+        "featured-operators.html",
+        "featured-applications.html", 
+        "featured-benchmarks.html",
+        "featured-tutorials.html"
+    ]
+    
+    for featured_page in featured_pages:
+        homefile_path = website_src_dir / "overrides" / "_pages" / featured_page
+        if homefile_path.exists():
+            with homefile_path.open("r+") as home_file:
+                home_text = home_file.read()
 
-        # Replace the number of components in the home page
-        for component_type in COMPONENT_TYPES:
-            nbr_components = len(components[component_type])
-            home_text = home_text.replace(f"#{component_type}", str(nbr_components))
+                # Replace the number of components in the featured page
+                for component_type in COMPONENT_TYPES:
+                    nbr_components = len(components[component_type])
+                    home_text = home_text.replace(f"#{component_type}", str(nbr_components))
 
-        # Write the home page
-        home_file.seek(0)  # Go to beginning
-        home_file.truncate()  # Clear all content
-        home_file.write(home_text)
+                # Write the updated content back to the file
+                home_file.seek(0)  # Go to beginning
+                home_file.truncate()  # Clear all content
+                home_file.write(home_text)
+                logger.info(f"Updated component counts in {featured_page}")
+        else:
+            logger.warning(f"Featured page not found: {featured_page}")
 
-    #with homefile_path.open("r") as home_file:
-    #with mkdocs_gen_files.open("index.md", "w") as index_file:
-    #    index_file.write(home_text)
 
     # Write explicit navigation order for the root
     nav_content = """
