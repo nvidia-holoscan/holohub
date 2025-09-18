@@ -54,3 +54,8 @@ tmp/
 
 # Licenses
 rti_license.dat
+
+# Streaming server binaries and libraries
+**/holoscan_server_cloud_streaming/
+**/holoscan_server_cloud_streaming_logs/
+**/holoscan_client_cloud_streaming/

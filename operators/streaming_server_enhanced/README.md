@@ -173,36 +173,9 @@ auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>(
     Arg("streaming_server_resource") = streaming_server_resource
 );
 
-// Create your processing operators
-auto processor = make_operator<MyProcessingOp>("processor");
 
-// Add operators to the graph
-graph.add(upstream_op);
-graph.add(processor);
-graph.add(downstream_op);
-
-// Connect the pipeline: Client -> Upstream -> Processor -> Downstream -> Client
-graph.connect(upstream_op, "output_frames", processor, "input");
-graph.connect(processor, "output", downstream_op, "input_frames");
 ```
-
-### Bidirectional Streaming Example
-
-```cpp
-// For bidirectional streaming, you can connect both directions:
-
-// Client frames -> Processing -> Back to client
-graph.connect(upstream_op, "output_frames", processor, "input");
-graph.connect(processor, "output", downstream_op, "input_frames");
-
-// You can also split the stream for multiple processing paths:
-auto processor1 = make_operator<ProcessingOp1>("processor1");
-auto processor2 = make_operator<ProcessingOp2>("processor2");
-
-graph.connect(upstream_op, "output_frames", processor1, "input");
-graph.connect(upstream_op, "output_frames", processor2, "input");
-graph.connect(processor1, "output", downstream_op, "input_frames");
-``` 
+                                                 
 
 ## Building the operator
 
