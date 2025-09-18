@@ -27,14 +27,14 @@ In order to build the client operator, you must first download the client binari
 ```bash
 # Download using NGC CLI
 cd <your_holohub_path>/operators/streaming_client_enhanced
-ngc registry resource download-version "nvidia/holoscan/holoscan_client_cloud_streaming:1.0"
-unzip -o holoscan_client_cloud_streaming_v1.0/holoscan_client_cloud_streaming.zip
+ngc registry resource download-version "nvstaging/holoscan/holoscan_server_cloud_streaming:1.2"
+unzip -o holoscan_client_cloud_streaming_v1.2/holoscan_client_cloud_streaming.zip
 
 # Move the extracted contents to the expected location
-mv streaming_client_enhanced/holoscan_client_cloud_streaming ./
+mv streaming_client_enhanced/holoscan_client_cloud_streaming_v1.2 ./
 
 # Clean up extraction directory and NGC download directory
-rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v1.0
+rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v1.2
 ```
 
 All dependencies need to be properly installed in the operator directory structure.
@@ -70,8 +70,8 @@ v4l2-ctl --device=/dev/video0 --set-fmt-video=width=1280,height=720,pixelformat=
 
 The streaming client applications use YAML configuration files to set camera parameters. Edit the appropriate config file:
 
-#### For streaming_client_demo_04_80_streaming:
-Edit `applications/streaming_client_demo_04_80_streaming/cpp/streaming_client_demo.yaml`:
+#### For streaming_client_demo_enhanced:
+Edit `applications/streaming_client_demo_enhanced/cpp/streaming_client_demo.yaml`:
 
 ```yaml
 # V4L2 camera configuration
@@ -122,3 +122,4 @@ v4l2-ctl --device=/dev/video0 --list-formats-ext | grep -E "Size:|Interval:"
 ## Supported Platforms
 
 - Linux x86_64
+- Linux aarch64
