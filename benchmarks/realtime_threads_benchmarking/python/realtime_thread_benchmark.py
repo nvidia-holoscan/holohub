@@ -310,16 +310,6 @@ def run_benchmark(
 ):
     """Run a single benchmark configuration."""
 
-    print(f"\n{'=' * 60}")
-    print("Running benchmark:")
-    print(f"  Target FPS: {target_fps}")
-    print(f"  Duration: {duration_seconds}s")
-    print(f"  Realtime: {use_realtime}")
-    print(f"  Policy: {scheduling_policy.name if use_realtime else 'Normal'}")
-    print(f"  Load Duration: {load_duration_ms}ms per operator call")
-    print("  EBS Worker Threads: 3")
-    print(f"{'=' * 60}")
-
     app = RealtimeThreadBenchmark(
         target_fps=target_fps,
         duration_seconds=duration_seconds,
@@ -363,37 +353,31 @@ def run_benchmark(
     return results
 
 
+def print_benchmark_config(target_fps, duration_seconds, load_duration_ms):
+    """Print benchmark configuration."""
+    print("=" * 80)
+    print("Benchmark Configurations")
+    print("=" * 80)
+    print(f"  Target FPS: {target_fps}")
+    print(f"  Duration: {duration_seconds}s")
+    print(f"  Realtime: false")
+    print(f"  Background Workload Intensity: {load_duration_ms}")
+    print(f"  Background Workload Size: 100")
+    print(f"  Worker Thread Number: 3")
+    print(f"  Dummy Load Number: 2")
+    print()
+
+
 def print_results(results: dict):
     """Print benchmark results in a formatted way."""
-    print("\nBenchmark Results:")
-    rt_status = "RT" if results["use_realtime"] else "Normal"
-    print(f"  Configuration: {results['scheduling_policy']} ({rt_status})")
-    print(f"  Target FPS: {results['target_fps']:.1f}")
+    rt_status = "RT results" if results["use_realtime"] else "Normal results"
+    print(f"=== {rt_status} ===")
 
-    # KEY METRICS FIRST - Frame timing consistency
     if results.get("frame_period_stats"):
         fps = results["frame_period_stats"]
-        target_period_ms = 1000.0 / results["target_fps"]
-        print(f"  ★ Frame Period Std Dev: {fps['std_ms']:.3f}ms  ← KEY METRIC")
-        print(f"  Frame Period Mean: {fps['mean_ms']:.3f}ms (Target: {target_period_ms:.1f}ms)")
-
-    # SECONDARY METRICS - Execution consistency
-    if results.get("execution_time_stats"):
-        ets = results["execution_time_stats"]
-        print(f"  Execution Time Std Dev: {ets['std_ms']:.3f}ms")
-        print(f"  Execution Time Mean: {ets['mean_ms']:.3f}ms")
-
-    # DETAILED RANGES - Less critical but informative
-    if results.get("frame_period_stats") and results.get("execution_time_stats"):
-        fps = results["frame_period_stats"]
-        ets = results["execution_time_stats"]
-        print(f"  Frame Period Min/Max: {fps['min_ms']:.1f}ms / {fps['max_ms']:.1f}ms")
-        print(f"  Execution Range: {ets['min_ms']:.3f}ms - {ets['max_ms']:.3f}ms")
-
-    # TEST VALIDATION INFO - Basic metadata last
-    print(f"  Frame Count: {results['frame_count']}")
-    print(f"  Total Duration: {results['total_duration_s']:.2f}s")
-    print(f"  Load Duration: {results['load_duration_ms']:.1f}ms per call")
+        print(f"Frame period std: {fps['std_ms']:.3f} ms")
+        print(f"Frame period mean: {fps['mean_ms']:.3f} ms")
+    print()
 
 
 def create_histogram_plots(
@@ -636,7 +620,8 @@ def main():
     }
     scheduling_policy = policy_map[args.scheduling_policy]
 
-    print("Running real-time thread scheduling comparison...")
+    # Print initial configuration
+    print_benchmark_config(args.target_fps, args.duration, args.load_duration_ms)
 
     # Run without real-time scheduling
     normal_results = run_benchmark(
@@ -664,33 +649,27 @@ def main():
         args.plot_dir,
     )
 
+    # Display benchmark configurations again before results
+    print_benchmark_config(args.target_fps, args.duration, args.load_duration_ms)
+
+    # Display benchmark results
+    print("=" * 80)
+    print("Benchmark Results")
+    print("=" * 80)
     print_results(normal_results)
     print_results(realtime_results)
 
-    print(f"\n{'=' * 65}")
-    print("COMPARISON SUMMARY")
-    print(f"{'=' * 65}")
-    print("                        Normal    Real-time    Improvement")
-    print("-" * 65)
+    # Performance Comparison
+    print("=" * 80)
+    print("Comparison")
+    print("=" * 80)
 
     if normal_results.get("frame_period_stats") and realtime_results.get("frame_period_stats"):
         normal_period_std = normal_results["frame_period_stats"]["std_ms"]
         realtime_period_std = realtime_results["frame_period_stats"]["std_ms"]
-        period_std_improvement = (realtime_period_std / normal_period_std - 1) * 100
-        print(
-            f"★ Frame Period Std Dev: {normal_period_std:7.3f}    "
-            f"{realtime_period_std:9.3f}    {period_std_improvement:+7.1f}% ★"
-        )
-
-    # Secondary metrics
-    if normal_results.get("execution_time_stats") and realtime_results.get("execution_time_stats"):
-        normal_exec_std = normal_results["execution_time_stats"]["std_ms"]
-        realtime_exec_std = realtime_results["execution_time_stats"]["std_ms"]
-        exec_std_improvement = (realtime_exec_std / normal_exec_std - 1) * 100
-        print(
-            f"  Exec Time Std Dev:     {normal_exec_std:7.3f}    "
-            f"{realtime_exec_std:9.3f}    {exec_std_improvement:+7.1f}%"
-        )
+        period_std_improvement = ((normal_period_std - realtime_period_std) / normal_period_std) * 100
+        print(f"Period std comparison: {normal_period_std:8.3f} ms → {realtime_period_std:8.3f} ms  ({period_std_improvement:+.2f}%)")
+    print()
 
 
 if __name__ == "__main__":

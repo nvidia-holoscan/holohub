@@ -199,7 +199,7 @@ class BenchmarkOp : public Operator {
     if (periods_ns_.empty()) {
       return benchmark_stats;
     }
-    
+
     // Convert nanoseconds to milliseconds for statistics
     std::vector<double> periods_ms;
     for (double ns : periods_ns_) {
@@ -295,7 +295,7 @@ void print_title(const std::string& title) {
   std::cout << std::string(80, '=') << std::endl;
 }
 
-void print_benchmark_config(int target_fps, int duration_seconds, const std::string& scheduling_policy_str, 
+void print_benchmark_config(int target_fps, int duration_seconds, const std::string& scheduling_policy_str,
                            int background_load_intensity, int background_workload_size, bool use_realtime, int worker_thread_number, int dummy_load_number) {
   std::cout << "  Target FPS: " << target_fps << std::endl;
   std::cout << "  Duration: " << duration_seconds << "s" << std::endl;
@@ -316,23 +316,14 @@ void print_benchmark_results(
   const std::string& context_type) {
   std::cout << "=== " << context_type << " ===" << std::endl;
   std::cout << std::fixed << std::setprecision(3) << std::dec;
-  
+
   if (period_stats.sample_count > 0) {
-    double target_period_ms = 1000.0 / target_fps;
-    std::cout << "Period Statistics:" << std::endl;
-    std::cout << "  Average: " << period_stats.avg << " ms (Target: " 
-              << std::fixed << std::setprecision(3) << target_period_ms << " ms)" << std::endl;
-    std::cout << "  Std Dev: " << period_stats.std_dev << " ms" << std::endl;
-    std::cout << "  Min:     " << period_stats.min_val << " ms" << std::endl;
-    std::cout << "  P50:     " << period_stats.p50 << " ms" << std::endl;
-    std::cout << "  P95:     " << period_stats.p95 << " ms" << std::endl;
-    std::cout << "  P99:     " << period_stats.p99 << " ms" << std::endl;
-    std::cout << "  Max:     " << period_stats.max_val << " ms" << std::endl;
-    std::cout << "  Samples: " << period_stats.sample_count << std::endl << std::endl;
+    std::cout << "Frame period std: " << period_stats.std_dev << " ms" << std::endl;
+    std::cout << "Frame period mean: " << period_stats.avg << " ms" << std::endl << std::endl;
   }
 }
 
-void write_json_results(const std::string& filename, 
+void write_json_results(const std::string& filename,
   const BenchmarkStats& non_rt_period_stats,
   const BenchmarkStats& rt_period_stats,
   const BenchmarkStats& non_rt_execution_stats,
@@ -563,22 +554,13 @@ int main(int argc, char* argv[]) {
   // Performance Comparison
   print_title("Non-real-time and Real-time Thread Benchmark Comparison");
 
-  // Calculate improvements in period metrics
-  double avg_improvement = ((non_rt_period_stats.avg - rt_period_stats.avg) / non_rt_period_stats.avg) * 100.0;
-  double p95_improvement = ((non_rt_period_stats.p95 - rt_period_stats.p95) / non_rt_period_stats.p95) * 100.0;
-  double p99_improvement = ((non_rt_period_stats.p99 - rt_period_stats.p99) / non_rt_period_stats.p99) * 100.0;
+  // Calculate improvement in standard deviation
+  double std_improvement = ((non_rt_period_stats.std_dev - rt_period_stats.std_dev) / non_rt_period_stats.std_dev) * 100.0;
 
   std::cout << std::fixed << std::setprecision(2) << std::dec;
 
-  std::cout << "Period:" << std::endl;
-  std::cout << "  Average Period:  " << std::setw(8) << non_rt_period_stats.avg << " ms → "
-            << std::setw(8) << rt_period_stats.avg << " ms  (" << std::showpos << avg_improvement << "%)"
-            << std::endl;
-  std::cout << "  95th Percentile:  " << std::setw(8) << non_rt_period_stats.p95 << " ms → "
-            << std::setw(8) << rt_period_stats.p95 << " ms  (" << std::showpos << p95_improvement << "%)"
-            << std::endl;
-  std::cout << "  99th Percentile:  " << std::setw(8) << non_rt_period_stats.p99 << " ms → "
-            << std::setw(8) << rt_period_stats.p99 << " ms  (" << std::showpos << p99_improvement << "%)"
+  std::cout << "Period std comparison: " << std::setw(8) << non_rt_period_stats.std_dev << " ms → "
+            << std::setw(8) << rt_period_stats.std_dev << " ms  (" << std::showpos << std_improvement << "%)"
             << std::endl << std::endl;
 
   std::cout << std::noshowpos;

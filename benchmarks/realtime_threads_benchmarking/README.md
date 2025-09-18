@@ -60,20 +60,19 @@ Available options:
 
 ### C++ Version Usage
 
-The C++ version can be run directly (without Docker) if you have the Holoscan SDK installed:
+To run the C++ version specifically:
 
 ```bash
-# Build the benchmark
-cd cpp
-mkdir build && cd build
-cmake ..
-make
+sudo ./holohub run realtime_threads_benchmarking --language=cpp \
+  --docker-opts="--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots"
+```
 
-# Run the benchmark
-./realtime_thread_benchmark --target-fps 60 --duration 30 --scheduling-policy SCHED_DEADLINE
+With custom parameters:
 
-# Generate plots from results
-python3 ../plot.py --input benchmark_results.json --output-dir ./plots
+```bash
+sudo ./holohub run realtime_threads_benchmarking --language=cpp \
+  --docker-opts="--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots" \
+  --run-args="--target-fps 60 --duration 30 --scheduling-policy SCHED_DEADLINE"
 ```
 
 The C++ version outputs JSON data that can be processed by the `plot.py` script for visualization.
@@ -174,13 +173,8 @@ This time-series plot demonstrates timing behavior throughout the benchmark dura
 - **Real-time Benefits**: Reduced standard deviation and more consistent timing with RT scheduling
 
 ### Good Real-time Performance Indicators
-- **Frame Period Standard Deviation Reduction** (★ key metric): Lower standard deviation in frame periods indicates more consistent timing
+- **Frame Period Standard Deviation Reduction** : Lower standard deviation in frame periods indicates more consistent timing
 - Better handling of CPU contention under load
-- Visual feedback indicates improvement level:
-  - 🚀 EXCELLENT: >50% reduction in frame period standard deviation
-  - ✅ Good: >20% reduction in frame period standard deviation
-  - 👍 Modest: >5% reduction in frame period standard deviation
-  - ⚠️ Limited: <5% improvement
 
 ### Example Output
 ```
@@ -188,41 +182,32 @@ Timing plots saved to: /tmp/benchmark_plots
 Generated plots:
   - timing_over_time.png (raw data points over time)
   - simple_histograms.png (distribution without overlays)
+================================================================================
+Benchmark Configurations
+================================================================================
+  Target FPS: 60
+  Duration: 30s
+  Realtime: false
+  Background Workload Intensity: 20.0
+  Background Workload Size: 100
+  Worker Thread Number: 3
+  Dummy Load Number: 2
 
-Benchmark Results:
-  Configuration: Normal (Normal)
-  Target FPS: 60.0
-  ★ Frame Period Std Dev: 0.297ms  ← KEY METRIC
-  Frame Period Mean: 16.667ms (Target: 16.7ms)
-  Execution Time Std Dev: 0.035ms
-  Execution Time Mean: 0.114ms
-  Frame Period Min/Max: 7.9ms / 25.5ms
-  Execution Range: 0.083ms - 0.348ms
-  Frame Count: 1956
-  Total Duration: 32.58s
-  Load Duration: 20.0ms per call
+================================================================================
+Benchmark Results
+================================================================================
+=== Normal results ===
+Frame period std: 0.302 ms
+Frame period mean: 16.667 ms
 
-Benchmark Results:
-  Configuration: SCHED_DEADLINE (RT)
-  Target FPS: 60.0
-  ★ Frame Period Std Dev: 0.049ms  ← KEY METRIC
-  Frame Period Mean: 16.666ms (Target: 16.7ms)
-  Execution Time Std Dev: 0.039ms
-  Execution Time Mean: 0.122ms
-  Frame Period Min/Max: 15.2ms / 16.9ms
-  Execution Range: 0.082ms - 0.276ms
-  Frame Count: 1956
-  Total Duration: 32.58s
-  Load Duration: 20.0ms per call
+=== RT results ===
+Frame period std: 0.128 ms
+Frame period mean: 16.665 ms
 
-=================================================================
-COMPARISON SUMMARY
-=================================================================
-                        Normal    Real-time    Improvement
------------------------------------------------------------------
-★ Frame Period Std Dev: 0.297        0.049      -83.6% ★
-🚀 EXCELLENT real-time improvement!
-  Exec Time Std Dev:     0.035        0.039      +11.0%
+================================================================================
+Comparison
+================================================================================
+Period std comparison:    0.302 ms →    0.128 ms  (+57.52%)
 ```
 
 ## Troubleshooting
