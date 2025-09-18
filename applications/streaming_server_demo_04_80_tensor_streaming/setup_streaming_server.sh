@@ -8,7 +8,7 @@ set -e  # Exit on any error
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OPERATOR_DIR="${SCRIPT_DIR}/../../operators/streaming_server_enhanced"
-NGC_RESOURCE="nvstaging/holoscan/holoscan_server_cloud_streaming:1.0"
+NGC_RESOURCE="nvidia/holoscan/holoscan_server_cloud_streaming:1.0"
 DOWNLOAD_DIR="holoscan_server_cloud_streaming_v1.0"
 EXTRACT_DIR="holoscan_server_cloud_streaming"
 
