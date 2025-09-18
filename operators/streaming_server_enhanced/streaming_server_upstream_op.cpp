@@ -176,8 +176,8 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
       return; // Skip processing this duplicate frame
     }
     
-    //write a utility class that writes the frame to a file to test is the frame data is valid and test the recieved frame data
-    //add loggign to check if we recieved the frame 
+    //write a utility class that writes the frame to a file to test is the frame data is valid and test the received frame data
+    //add loggign to check if we received the frame 
     HOLOSCAN_LOG_INFO("✅ Processing UNIQUE frame: {}x{}, {} bytes, timestamp={}", 
                       received_frame.getWidth(), 
                       received_frame.getHeight(), 
