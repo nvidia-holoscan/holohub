@@ -211,7 +211,7 @@ In order to build the server operator, you must first download the server binari
 ```bash
 # Download using NGC CLI
 cd <your_holohub_path>/operators/streaming_server_enhanced
-ngc registry resource download-version "nvstaging/holoscan/holoscan_server_cloud_streaming:1.0"
+ngc registry resource download-version "nvidia/holoscan/holoscan_server_cloud_streaming:1.0"
 unzip -o holoscan_server_cloud_streaming_v1.0/holoscan_server_cloud_streaming.zip
 
 # Move the extracted contents to the expected location
@@ -224,7 +224,7 @@ rm -rf streaming_server_enhanced holoscan_server_cloud_streaming_v1.0
 ### Deployment on NVCF
 
 The Holoscan cloud streaming stack provides plugins with endpoints required to deploy the server docker container as a streaming function.
-You can push the container and create/update/delpoy the streaming function from the [web portal](https://nvcf.ngc.nvidia.com/functions).
+You can push the container and create/update/deploy the streaming function from the [web portal](https://nvcf.ngc.nvidia.com/functions).
 
 #### Push Container
 

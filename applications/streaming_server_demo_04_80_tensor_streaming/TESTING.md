@@ -16,7 +16,7 @@ For automated integration testing, use the provided setup script to quickly prep
 The script performs the following steps automatically:
 - ✅ **Prerequisites Check**: Verifies NGC CLI installation and configuration
 - ✅ **Architecture Detection**: Automatically detects x86_64 or aarch64 
-- ✅ **NGC Download**: Downloads `nvstaging/holoscan/holoscan_server_cloud_streaming:1.0`
+- ✅ **NGC Download**: Downloads `nvidia/holoscan/holoscan_server_cloud_streaming:1.0`
 - ✅ **Directory Setup**: Extracts and organizes the directory structure
 - ✅ **Library Configuration**: Copies architecture-specific libraries to correct locations
 - ✅ **Cleanup**: Removes temporary files and NGC download directories
