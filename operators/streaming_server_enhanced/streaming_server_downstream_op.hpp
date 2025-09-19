@@ -31,7 +31,6 @@
 #include <mutex>
 
 namespace holoscan::ops {
-
 /**
  * @brief Operator that handles downstream (sending) video streaming to clients
  *
@@ -83,5 +82,4 @@ class StreamingServerDownstreamOp : public holoscan::Operator {
   // Event callback handler (for connection status)
   void on_streaming_server_event(const StreamingServerResource::Event& event);
 };
-
 }  // namespace holoscan::ops

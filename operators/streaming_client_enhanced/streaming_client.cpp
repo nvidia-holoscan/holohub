@@ -51,7 +51,6 @@
 } while (0)
 
 namespace holoscan::ops {
-
 // Utility function to write video frame to disk for debugging
 bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefix,
                       int frame_number = -1) {
@@ -152,14 +151,14 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
 
             // Add first few pixel values for inspection
             meta_file << "\nFirst 10 pixels (raw bytes):\n";
-            size_t bytes_per_pixel = (format == PixelFormat::BGRA || 
+            size_t bytes_per_pixel = (format == PixelFormat::BGRA ||
                 format == PixelFormat::RGBA) ? 4 : 3;
             size_t bytes_per_pixel = (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
-            for (int i = 0; i < std::min(10, static_cast<int>(width * height)) && 
+            for (int i = 0; i < std::min(10, static_cast<int>(width * height)) &&
                 i * bytes_per_pixel < data_size; ++i) {
             for (int i = 0; i < std::min(10, static_cast<int>(width * height)) && i * bytes_per_pixel < data_size; ++i) {
                 meta_file << "Pixel " << i << ": ";
-                for (size_t j = 0; j < bytes_per_pixel && 
+                for (size_t j = 0; j < bytes_per_pixel &&
                     (i * bytes_per_pixel + j) < data_size; ++j) {
                 for (size_t j = 0; j < bytes_per_pixel && (i * bytes_per_pixel + j) < data_size; ++j) {
                     meta_file << static_cast<int>(data[i * bytes_per_pixel + j]) << " ";
@@ -172,7 +171,7 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
         }
 
         // Write as PPM image file (for easy viewing)
-        if (format == PixelFormat::BGRA || format == PixelFormat::BGR || 
+        if (format == PixelFormat::BGRA || format == PixelFormat::BGR ||
             format == PixelFormat::RGBA) {
         if (format == PixelFormat::BGRA || format == PixelFormat::BGR || format == PixelFormat::RGBA) {
             std::string ppm_filename = filename.str() + ".ppm";
@@ -182,7 +181,7 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
                 ppm_file << "P6\n" << width << " " << height << "\n255\n";
 
                 // Convert pixel data to RGB for PPM
-                size_t bytes_per_pixel = (format == PixelFormat::BGRA || 
+                size_t bytes_per_pixel = (format == PixelFormat::BGRA ||
                     format == PixelFormat::RGBA) ? 4 : 3;
                 size_t bytes_per_pixel = (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
                 for (uint32_t y = 0; y < height; ++y) {
@@ -496,7 +495,7 @@ void StreamingClientOp::start() {
 
         int wait_attempts = 0;
         // Check for upstream readiness using the actual method
-        while ((std::chrono::steady_clock::now() - start_wait) < upstream_timeout && 
+        while ((std::chrono::steady_clock::now() - start_wait) < upstream_timeout &&
             !client_->isUpstreamReady()) {
         while ((std::chrono::steady_clock::now() - start_wait) < upstream_timeout && !client_->isUpstreamReady()) {
           wait_attempts++;
@@ -640,7 +639,6 @@ void StreamingClientOp::stop() {
 void StreamingClientOp::compute(holoscan::InputContext& op_input,
                              holoscan::OutputContext& op_output,
                              holoscan::ExecutionContext& context) {
-
   // Add detailed connection state logging
   static int compute_call_count = 0;
   static int connection_retry_interval = 0;
@@ -1084,8 +1082,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     size_t expected_size = frame.getWidth() * frame.getHeight() * 4;  // BGRA = 4 bytes per pixel
     if (frame.getDataSize() != expected_size) {
       validation_errors += fmt::format(
-          "Size mismatch (expected {},
-          got {}); ",
+          "Size mismatch (expected {}, got {}); ",
           expected_size,
           frame.getDataSize());
       frame_validation_passed = false;
@@ -1094,8 +1091,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     // Check frame format
     if (frame.getFormat() != PixelFormat::BGRA) {
       validation_errors += fmt::format(
-          "Wrong format (expected BGRA,
-          got {}); ",
+          "Wrong format (expected BGRA, got {}); ",
           static_cast<int>(frame.getFormat()));
       frame_validation_passed = false;
     }
@@ -1436,10 +1432,10 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
 
           // Add first few pixel values for inspection
           meta_file << "\nFirst 10 pixels received from server (raw bytes):\n";
-          size_t bytes_per_pixel = (format == PixelFormat::BGRA || 
+          size_t bytes_per_pixel = (format == PixelFormat::BGRA ||
               format == PixelFormat::RGBA) ? 4 : 3;
           size_t bytes_per_pixel = (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
-          for (int i = 0; i < std::min(10, static_cast<int>(width * height)) && 
+          for (int i = 0; i < std::min(10, static_cast<int>(width * height)) &&
               i * bytes_per_pixel < data_size; ++i) {
           for (int i = 0; i < std::min(10, static_cast<int>(width * height)) && i * bytes_per_pixel < data_size; ++i) {
             meta_file << "Pixel " << i << ": ";
@@ -1454,7 +1450,7 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
         }
 
         // Write as PPM image file (for easy viewing)
-        if (format == PixelFormat::BGRA || format == PixelFormat::BGR || 
+        if (format == PixelFormat::BGRA || format == PixelFormat::BGR ||
             format == PixelFormat::RGBA) {
         if (format == PixelFormat::BGRA || format == PixelFormat::BGR || format == PixelFormat::RGBA) {
           std::string ppm_filename = filename.str() + ".ppm";
@@ -1464,7 +1460,7 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
             ppm_file << "P6\n" << width << " " << height << "\n255\n";
 
             // Convert pixel data to RGB for PPM
-            size_t bytes_per_pixel = (format == PixelFormat::BGRA || 
+            size_t bytes_per_pixel = (format == PixelFormat::BGRA ||
                 format == PixelFormat::RGBA) ? 4 : 3;
             size_t bytes_per_pixel = (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
             for (uint32_t y = 0; y < height; ++y) {

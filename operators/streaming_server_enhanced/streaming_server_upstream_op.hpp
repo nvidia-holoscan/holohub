@@ -32,7 +32,6 @@
 #include <unordered_set>
 
 namespace holoscan::ops {
-
 /**
  * @brief Operator that handles upstream (receiving) video streaming from clients
  *
@@ -87,5 +86,4 @@ class StreamingServerUpstreamOp : public holoscan::Operator {
   // Duplicate detection helper
   bool is_duplicate_frame(const Frame& frame);
 };
-
 }  // namespace holoscan::ops

@@ -23,7 +23,6 @@
 class Frame;
 
 namespace holoscan::ops::debug_utils {
-
 #ifdef HOLOSCAN_DEBUG_FRAME_WRITING
 /**
  * @brief Utility function to write Frame to disk for debugging purposes
@@ -43,5 +42,4 @@ namespace holoscan::ops::debug_utils {
  */
 bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, int frame_number = -1);
 #endif  // HOLOSCAN_DEBUG_FRAME_WRITING
-
 }  // namespace holoscan::ops::debug_utils
