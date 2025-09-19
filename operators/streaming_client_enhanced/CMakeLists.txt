@@ -123,7 +123,7 @@ set_target_properties(streaming_client PROPERTIES
 
 # Copy the operator library to the application directory and ensure ALL dependencies are available
 add_custom_command(TARGET streaming_client POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E make_directory 
+  COMMAND ${CMAKE_COMMAND} -E make_directory
   ${CMAKE_BINARY_DIR}/operators/streaming_client
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
   $<TARGET_FILE:streaming_client>
@@ -157,7 +157,7 @@ add_custom_command(TARGET streaming_client POST_BUILD
   ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}/libcudart.so.12
   ${CMAKE_BINARY_DIR}/operators/streaming_client/libcudart.so.12
   # Copy libraries to the main lib directory as well
-  COMMAND ${CMAKE_COMMAND} -E make_directory 
+  COMMAND ${CMAKE_COMMAND} -E make_directory
   ${CMAKE_BINARY_DIR}/lib
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
   ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}/libNvStreamingSession.so
