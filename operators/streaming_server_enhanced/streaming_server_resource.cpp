@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http:  // www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,22 +37,22 @@ StreamingServerResource::~StreamingServerResource() {
 
 void StreamingServerResource::setup(ComponentSpec& spec) {
   spec.param(port_, "port", "Server Port", "Port for streaming server", uint16_t{48010});
-  spec.param(is_multi_instance_, "is_multi_instance", "Multi Instance",
+  spec.param(is_multi_instance_, "is_multi_instance", "Multi Instance", 
              "Allow multiple server instances", false);
-  spec.param(server_name_, "server_name", "Server Name",
+  spec.param(server_name_, "server_name", "Server Name", 
              "Server identifier", std::string("HoloscanStreamingServer"));
   spec.param(width_, "width", "Video Width", "Video frame width", 854U);
   spec.param(height_, "height", "Video Height", "Video frame height", 480U);
   spec.param(fps_, "fps", "Frame Rate", "Video frame rate", uint16_t{30});
-  spec.param(enable_upstream_, "enable_upstream", "Enable Upstream",
+  spec.param(enable_upstream_, "enable_upstream", "Enable Upstream", 
              "Enable upstream (receiving) functionality", true);
-  spec.param(enable_downstream_, "enable_downstream", "Enable Downstream",
+  spec.param(enable_downstream_, "enable_downstream", "Enable Downstream", 
              "Enable downstream (sending) functionality", true);
 }
 
 void StreamingServerResource::initialize() {
   Resource::initialize();
-
+  
   // Build configuration from parameters
   config_.port = port_.has_value() ? port_.get() : 48010;
   config_.server_name = server_name_.has_value() ? server_name_.get() : "HoloscanStreamingServer";
@@ -62,23 +62,21 @@ void StreamingServerResource::initialize() {
   config_.enable_upstream = enable_upstream_.has_value() ? enable_upstream_.get() : true;
   config_.enable_downstream = enable_downstream_.has_value() ? enable_downstream_.get() : true;
   config_.multi_instance = is_multi_instance_.has_value() ? is_multi_instance_.get() : false;
-
+  
   try {
     StreamingServer::Config server_config = to_streaming_server_config(config_);
     streaming_server_ = std::make_unique<StreamingServer>(server_config);
-
+    
     // Only set event callback - this is the only callback that exists in the library
     streaming_server_->setEventCallback([this](const StreamingServer::Event& event) {
       handle_streaming_server_event(event);
     });
-
+    
     is_initialized_ = true;
     start_time_ticks_ = std::chrono::steady_clock::now().time_since_epoch().count();
-
-    HOLOSCAN_LOG_INFO(
-        "StreamingServerResource initialized: {}:{}",
-        config_.server_name,
-        config_.port);
+    
+    HOLOSCAN_LOG_INFO("StreamingServerResource initialized: {}:{}", config_.server_name, config_.port);
+    
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to initialize StreamingServerResource: {}", e.what());
     throw;
@@ -89,7 +87,7 @@ void StreamingServerResource::start() {
   if (!is_initialized_ || !streaming_server_) {
     throw std::runtime_error("StreamingServerResource not initialized");
   }
-
+  
   if (is_running()) {
     HOLOSCAN_LOG_WARN("StreamingServerResource already running");
     return;
@@ -97,12 +95,13 @@ void StreamingServerResource::start() {
 
   try {
     HOLOSCAN_LOG_INFO("Starting StreamingServerResource on port {}", config_.port);
-
+    
     // Start the StreamingServer (it handles all the Holoscan Streaming Stack complexity internally)
     streaming_server_->start();
     is_running_ = true;
-
+    
     HOLOSCAN_LOG_INFO("✅ StreamingServerResource started successfully");
+    
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to start StreamingServerResource: {}", e.what());
     throw;
@@ -116,13 +115,14 @@ void StreamingServerResource::stop() {
 
   try {
     HOLOSCAN_LOG_INFO("Stopping StreamingServerResource");
-
+    
     if (streaming_server_) {
       streaming_server_->stop();
     }
-
+    
     HOLOSCAN_LOG_INFO("StreamingServerResource stopped");
     is_running_ = false;  // Only set after successful stop
+    
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error stopping StreamingServerResource: {}", e.what());
     // Don't re-throw to maintain compatibility with destructor and update_config()
@@ -142,7 +142,7 @@ void StreamingServerResource::send_frame(const Frame& frame) {
   if (!is_running() || !streaming_server_) {
     return;
   }
-
+  
   try {
     if (config_.enable_downstream) {
       VideoFrame server_frame = convert_to_streaming_server_frame(frame);
@@ -158,7 +158,7 @@ Frame StreamingServerResource::receive_frame() {
   if (!is_running() || !streaming_server_) {
     return Frame{};
   }
-
+  
   try {
     if (config_.enable_upstream) {
       VideoFrame server_frame = streaming_server_->receiveFrame();
@@ -167,7 +167,7 @@ Frame StreamingServerResource::receive_frame() {
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error receiving frame: {}", e.what());
   }
-
+  
   return Frame{};
 }
 
@@ -175,7 +175,7 @@ bool StreamingServerResource::try_receive_frame(Frame& frame) {
   if (!is_running() || !streaming_server_) {
     return false;
   }
-
+  
   try {
     if (config_.enable_upstream) {
       VideoFrame server_frame;
@@ -187,7 +187,7 @@ bool StreamingServerResource::try_receive_frame(Frame& frame) {
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error trying to receive frame: {}", e.what());
   }
-
+  
   return false;
 }
 
@@ -246,7 +246,7 @@ double StreamingServerResource::get_upstream_fps() const {
   if (!is_running() || frames_received_ == 0) {
     return 0.0;
   }
-
+  
   auto now = std::chrono::steady_clock::now();
   auto start_time = std::chrono::steady_clock::time_point(std::chrono::steady_clock::duration(start_time_ticks_.load()));
   auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time);
@@ -257,7 +257,7 @@ double StreamingServerResource::get_downstream_fps() const {
   if (!is_running() || frames_sent_ == 0) {
     return 0.0;
   }
-
+  
   auto now = std::chrono::steady_clock::now();
   auto start_time = std::chrono::steady_clock::time_point(std::chrono::steady_clock::duration(start_time_ticks_.load()));
   auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time);
@@ -294,9 +294,9 @@ void StreamingServerResource::handle_streaming_server_event(const StreamingServe
     default:
       break;
   }
-
+  
   // Log events for debugging
-  HOLOSCAN_LOG_DEBUG("StreamingServerResource event: {} - {}",
+  HOLOSCAN_LOG_DEBUG("StreamingServerResource event: {} - {}", 
                     static_cast<int>(event.type), event.message);
 }
 
@@ -327,25 +327,26 @@ StreamingServerResource::Config StreamingServerResource::from_streaming_server_c
 
 VideoFrame StreamingServerResource::convert_to_streaming_server_frame(const Frame& ops_frame) const {
   // Create VideoFrame with dimensions and data
-  VideoFrame server_frame(ops_frame.getWidth(), ops_frame.getHeight(),
-                          ops_frame.getData(), ops_frame.getDataSize(),
+  VideoFrame server_frame(ops_frame.getWidth(), ops_frame.getHeight(), 
+                          ops_frame.getData(), ops_frame.getDataSize(), 
                           ops_frame.getTimestamp());
-
+  
   // Convert format - VideoFrame and ops_frame use the same PixelFormat enum
   server_frame.setFormat(ops_frame.getFormat());
-
+  
   return server_frame;
 }
 
 Frame StreamingServerResource::convert_from_streaming_server_frame(const VideoFrame& server_frame) const {
   // Create Frame with dimensions and data
-  Frame ops_frame(server_frame.getWidth(), server_frame.getHeight(),
-                  server_frame.getData(), server_frame.getDataSize(),
+  Frame ops_frame(server_frame.getWidth(), server_frame.getHeight(), 
+                  server_frame.getData(), server_frame.getDataSize(), 
                   server_frame.getTimestamp());
-
+  
   // Convert format - VideoFrame and ops_frame use the same PixelFormat enum
   ops_frame.setFormat(server_frame.getFormat());
-
+  
   return ops_frame;
 }
-}  // namespace holoscan::ops
+
+} // namespace holoscan::ops 
