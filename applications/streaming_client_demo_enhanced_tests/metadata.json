@@ -1,0 +1,44 @@
+{
+    "application": {
+        "name": "Streaming Client Demo",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "C++",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.4.0",
+            "tested_versions": [
+                "3.4.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [
+            "Streaming",
+            "Client",
+            "Demo"
+        ],
+        "ranking": 1,
+        "requirements": {
+            "operators": [
+                {
+                    "name": "streaming_client_enhanced",
+                    "version": "1.0"
+                }
+            ]
+        },
+        "run": {
+            "command": "<holohub_app_bin>/cpp/streaming_client_demo_enhanced",
+            "workdir": "holohub_bin"
+        }
+    }
+} 
