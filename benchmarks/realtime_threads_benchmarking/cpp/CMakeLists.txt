@@ -32,6 +32,11 @@ target_link_libraries(realtime_thread_benchmark
 # Set C++ standard
 target_compile_features(realtime_thread_benchmark PRIVATE cxx_std_17)
 
+# Copy plotting script to build directory
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plot_results.py
+               ${CMAKE_CURRENT_BINARY_DIR}/plot_results.py
+               COPYONLY)
+
 # Install the executable
 install(TARGETS realtime_thread_benchmark
   RUNTIME DESTINATION bin

@@ -16,6 +16,7 @@
  */
 
 #include <chrono>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -565,6 +566,17 @@ int main(int argc, char* argv[]) {
     bm_workload_size,
     worker_thread_number,
     dummy_load_number);
+
+  // Generate plots using Python plotting script
+  std::string plot_script = std::string(__FILE__);
+  plot_script = plot_script.substr(0, plot_script.find_last_of("/\\")) + "/plot_results.py";
+  std::string plot_command = "python3 " + plot_script + " --input " + output_file + " --output-dir /tmp/benchmark_plots";
+
+  std::cout << "\nGenerating plots..." << std::endl;
+  int plot_result = std::system(plot_command.c_str());
+  if (plot_result != 0) {
+    std::cerr << "Warning: Failed to generate plots. Make sure Python3 and matplotlib are installed." << std::endl;
+  }
 
   return 0;
 }
