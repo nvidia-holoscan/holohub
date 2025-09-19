@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(streaming_client_demo_04_80_streaming LANGUAGES NONE)
+project(streaming_client_demo_enhanced_tests LANGUAGES NONE)
 
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
