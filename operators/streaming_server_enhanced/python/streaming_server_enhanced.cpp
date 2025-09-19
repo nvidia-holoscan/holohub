@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http:  // www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,7 +51,7 @@ Parameters
 ----------
 width : uint32_t, optional
     Width of the video frames in pixels. Default is 854.
-height : uint32_t, optional
+height : uint32_t, optional  
     Height of the video frames in pixels. Default is 480.
 fps : uint32_t, optional
     Frame rate of the video. Default is 30.
@@ -62,7 +62,7 @@ port : uint16_t, optional
       .def("initialize", &StreamingServerResource::initialize, "Initialize the resource")
       .def("setup", &StreamingServerResource::setup, "spec"_a, "Setup the resource");
 
-  // StreamingServerUpstreamOp
+  // StreamingServerUpstreamOp  
   py::class_<StreamingServerUpstreamOp, holoscan::Operator, std::shared_ptr<StreamingServerUpstreamOp>>(
       m, "StreamingServerUpstreamOp", R"doc(
 Operator that handles upstream (receiving) video streaming from clients.
@@ -75,7 +75,7 @@ Parameters
 width : uint32_t, optional
     Width of the video frames in pixels. Default is 854.
 height : uint32_t, optional
-    Height of the video frames in pixels. Default is 480.
+    Height of the video frames in pixels. Default is 480. 
 fps : uint32_t, optional
     Frame rate of the video. Default is 30.
 streaming_server_resource : StreamingServerResource

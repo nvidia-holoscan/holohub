@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http:  // www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,12 +48,12 @@ namespace FrameFormat {
 
 /**
  * @brief Holoscan resource for managing streaming server connections
- *
+ * 
  * This resource acts as a centralized manager for streaming server operations,
  * handling both upstream (receiving) and downstream (sending) connections.
  * It provides a Holoscan-native interface to the StreamingServer class which
  * already implements the PIMPL pattern for Holoscan Streaming Stack abstraction.
- *
+ * 
  * The resource can be shared between multiple operators (e.g., upstream and downstream)
  * to coordinate streaming operations on a single server instance.
  */
@@ -104,7 +104,7 @@ class StreamingServerResource : public holoscan::Resource {
   // Event and callback management
   void set_event_callback(EventCallback callback);
   // Note: setFrameReceivedCallback is not available in the current StreamingServer library
-
+  
   // Status and metrics
   bool is_upstream_connected() const;
   bool is_downstream_connected() const;
@@ -130,32 +130,32 @@ class StreamingServerResource : public holoscan::Resource {
 
   // StreamingServer instance (uses its own PIMPL internally)
   std::unique_ptr<StreamingServer> streaming_server_;
-
+  
   // Resource configuration
   Config config_;
-
+  
   // Internal state
   std::atomic<bool> is_initialized_{false};
   std::atomic<bool> is_running_{false};
   std::atomic<bool> upstream_connected_{false};
   std::atomic<bool> downstream_connected_{false};
   std::atomic<size_t> connected_client_count_{0};
-
+  
   // Performance tracking
   std::atomic<uint64_t> frames_received_{0};
   std::atomic<uint64_t> frames_sent_{0};
   std::atomic<std::chrono::steady_clock::time_point::rep> start_time_ticks_{0};
-
+  
   // Internal event handling
   void handle_streaming_server_event(const StreamingServer::Event& event);
-
+  
   // Convert between Config types
   StreamingServer::Config to_streaming_server_config(const Config& config) const;
   Config from_streaming_server_config(const StreamingServer::Config& config) const;
-
+  
   // Convert between Frame types
   VideoFrame convert_to_streaming_server_frame(const Frame& ops_frame) const;
   Frame convert_from_streaming_server_frame(const VideoFrame& server_frame) const;
 };
 
-}  // namespace holoscan::ops
+} // namespace holoscan::ops 

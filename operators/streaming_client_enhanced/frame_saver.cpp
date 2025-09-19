@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http:  // www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,21 +35,21 @@ namespace holoscan::ops {
 
 void FrameSaverOp::setup(holoscan::OperatorSpec& spec) {
   spec.input<holoscan::gxf::Entity>("input_frames");
-
-  spec.param(output_dir_, "output_dir", "Output Directory",
+  
+  spec.param(output_dir_, "output_dir", "Output Directory", 
              "Directory where frames will be saved", std::string("output_frames"));
-  spec.param(base_filename_, "base_filename", "Base Filename",
+  spec.param(base_filename_, "base_filename", "Base Filename", 
              "Base name for saved frame files", std::string("frame_"));
-  spec.param(save_as_raw_, "save_as_raw", "Save as Raw",
+  spec.param(save_as_raw_, "save_as_raw", "Save as Raw", 
              "Whether to save frames as raw binary files", false);
 }
 
 void FrameSaverOp::initialize() {
   Operator::initialize();
-
+  
   // Create output directory if it doesn't exist
   std::filesystem::create_directories(output_dir_.get());
-
+  
   HOLOSCAN_LOG_INFO("FrameSaverOp initialized: saving to {}", output_dir_.get());
 }
 
@@ -62,27 +62,27 @@ void FrameSaverOp::compute(holoscan::InputContext& op_input,
     HOLOSCAN_LOG_ERROR("No input message received");
     return;
   }
-
+  
   // Get tensor from message
   auto tensor = input_message.value().get<holoscan::Tensor>();
   if (!tensor) {
     HOLOSCAN_LOG_ERROR("No tensor in input message");
     return;
   }
-
+  
   // Generate filename
   std::stringstream ss;
-  ss << output_dir_.get() << "/" << base_filename_.get()
+  ss << output_dir_.get() << "/" << base_filename_.get() 
      << std::setw(6) << std::setfill('0') << frame_count_++;
-
+  
   if (save_as_raw_.get()) {
     ss << ".raw";
   } else {
     ss << ".bgr";
   }
-
+  
   current_file_ = ss.str();
-
+  
   try {
     // Open output file
     output_file_.open(current_file_, std::ios::binary);
@@ -90,11 +90,11 @@ void FrameSaverOp::compute(holoscan::InputContext& op_input,
       HOLOSCAN_LOG_ERROR("Failed to open output file: {}", current_file_);
       return;
     }
-
+    
     // Get tensor data
     const uint8_t* data = static_cast<const uint8_t*>(tensor->data());
     size_t data_size = tensor->nbytes();
-
+    
     // Add debug logging for data analysis
     bool all_zeros = true;
     int non_zero_count = 0;
@@ -104,36 +104,33 @@ void FrameSaverOp::compute(holoscan::InputContext& op_input,
         non_zero_count++;
       }
     }
-    HOLOSCAN_LOG_INFO("Frame {} data analysis: size={}, all_zeros={}, non_zero_count={}",
+    HOLOSCAN_LOG_INFO("Frame {} data analysis: size={}, all_zeros={}, non_zero_count={}", 
                      frame_count_ - 1, data_size, all_zeros, non_zero_count);
-
+    
     // Check if tensor is on GPU
     if (tensor->device().device_type == kDLCUDA) {
       // Allocate host memory
       std::vector<uint8_t> host_data(data_size);
-
+      
       // Copy from GPU to CPU
-      cudaError_t cuda_status = cudaMemcpy(
-          host_data.data(),
-          data,
-          data_size,
-          cudaMemcpyDeviceToHost);
+      cudaError_t cuda_status = cudaMemcpy(host_data.data(), data, data_size, cudaMemcpyDeviceToHost);
       if (cuda_status != cudaSuccess) {
         HOLOSCAN_LOG_ERROR("CUDA memcpy failed: {}", cudaGetErrorString(cuda_status));
         output_file_.close();
         return;
       }
-
+      
       // Write to file
       output_file_.write(reinterpret_cast<const char*>(host_data.data()), data_size);
     } else {
       // Write directly from CPU memory
       output_file_.write(reinterpret_cast<const char*>(data), data_size);
     }
-
+    
     output_file_.close();
-
+    
     HOLOSCAN_LOG_INFO("Saved frame {} to {}", frame_count_ - 1, current_file_);
+    
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error saving frame: {}", e.what());
     if (output_file_.is_open()) {
@@ -141,4 +138,5 @@ void FrameSaverOp::compute(holoscan::InputContext& op_input,
     }
   }
 }
-}  // namespace holoscan::ops
+
+} // namespace holoscan::ops 
