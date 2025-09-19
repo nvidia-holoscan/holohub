@@ -32,6 +32,7 @@
 #include "streaming_server_resource.hpp"
 
 namespace holoscan::ops::debug_utils {
+
 bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, int frame_number) {
     try {
         // Generate filename with timestamp and frame number
@@ -90,14 +91,14 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
 
             // Add first few pixel values for inspection
             meta_file << "\nFirst 10 pixels (raw bytes):\n";
-            size_t bytes_per_pixel = (format == ::PixelFormat::BGRA ||
+            size_t bytes_per_pixel = (format == ::PixelFormat::BGRA || 
                 format == ::PixelFormat::RGBA) ? 4 : 3;
             size_t bytes_per_pixel = (format == ::PixelFormat::BGRA || format == ::PixelFormat::RGBA) ? 4 : 3;
-            for (int i = 0; i < std::min(10, static_cast<int>(width * height)) &&
+            for (int i = 0; i < std::min(10, static_cast<int>(width * height)) && 
                 i * bytes_per_pixel < data_size; ++i) {
             for (int i = 0; i < std::min(10, static_cast<int>(width * height)) && i * bytes_per_pixel < data_size; ++i) {
                 meta_file << "Pixel " << i << ": ";
-                for (size_t j = 0; j < bytes_per_pixel &&
+                for (size_t j = 0; j < bytes_per_pixel && 
                     (i * bytes_per_pixel + j) < data_size; ++j) {
                 for (size_t j = 0; j < bytes_per_pixel && (i * bytes_per_pixel + j) < data_size; ++j) {
                     meta_file << static_cast<int>(data[i * bytes_per_pixel + j]) << " ";
@@ -110,7 +111,7 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
         }
 
         // Write as PPM image file (for easy viewing)
-        if (format == ::PixelFormat::BGRA || format == ::PixelFormat::BGR ||
+        if (format == ::PixelFormat::BGRA || format == ::PixelFormat::BGR || 
             format == ::PixelFormat::RGBA) {
         if (format == ::PixelFormat::BGRA || format == ::PixelFormat::BGR || format == ::PixelFormat::RGBA) {
             std::string ppm_filename = filename.str() + ".ppm";
@@ -120,7 +121,7 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
                 ppm_file << "P6\n" << width << " " << height << "\n255\n";
 
                 // Convert pixel data to RGB for PPM
-                size_t bytes_per_pixel = (format == ::PixelFormat::BGRA ||
+                size_t bytes_per_pixel = (format == ::PixelFormat::BGRA || 
                     format == ::PixelFormat::RGBA) ? 4 : 3;
                 size_t bytes_per_pixel = (format == ::PixelFormat::BGRA || format == ::PixelFormat::RGBA) ? 4 : 3;
                 for (uint32_t y = 0; y < height; ++y) {
