@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# V4L2 camera test configuration
+%YAML 1.2
+---
+application:
+  title: Streaming Client V4L2 Test
+  version: 1.0
+  log_level: INFO
+
+data_logging: false
+
+# Use V4L2 source
+source: "v4l2"
+
+# V4L2 configuration with fallback device
+v4l2_source:
+  device: "/dev/video0"
+  width: 640
+  height: 480
+  frame_rate: 30
+  pixel_format: "YUYV"
+
+format_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+  out_tensor_name: tensor
+
+streaming_client:
+  width: 640
+  height: 480
+  fps: 30
+  server_ip: "127.0.0.1"
+  signaling_port: 48010
+  receive_frames: false
+  send_frames: false
+
+visualize_frames: false
+scheduler: "default"
+tracking: false
