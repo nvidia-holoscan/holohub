@@ -32,7 +32,6 @@
 #include "VideoFrame.h"
 
 namespace holoscan::ops {
-
 // Use VideoFrame as our Frame type for better API consistency
 using Frame = VideoFrame;
 
@@ -157,5 +156,4 @@ class StreamingServerResource : public holoscan::Resource {
   VideoFrame convert_to_streaming_server_frame(const Frame& ops_frame) const;
   Frame convert_from_streaming_server_frame(const VideoFrame& server_frame) const;
 };
-
 }  // namespace holoscan::ops

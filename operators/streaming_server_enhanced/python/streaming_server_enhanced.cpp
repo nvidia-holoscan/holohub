@@ -31,7 +31,6 @@ using pybind11::literals::operator""_a;
 namespace py = pybind11;
 
 namespace holoscan::ops {
-
 PYBIND11_MODULE(_streaming_server_enhanced, m) {
   m.doc() = R"pbdoc(
       Holoscan SDK Streaming Server 04_80 Tensor Python Bindings
@@ -110,5 +109,4 @@ streaming_server_resource : StreamingServerResource
       .def("initialize", &StreamingServerDownstreamOp::initialize, "Initialize the operator")
       .def("setup", &StreamingServerDownstreamOp::setup, "spec"_a, "Setup the operator");
 }
-
 }  // namespace holoscan::ops
