@@ -153,15 +153,12 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
             meta_file << "\nFirst 10 pixels (raw bytes):\n";
             size_t bytes_per_pixel = (format == PixelFormat::BGRA ||
                 format == PixelFormat::RGBA) ? 4 : 3;
-            size_t bytes_per_pixel = (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
             for (int i = 0; i < std::min(10, static_cast<int>(width * height)) &&
                 i * bytes_per_pixel < data_size; ++i) {
-            for (int i = 0; i < std::min(10, static_cast<int>(width * height)) && i * bytes_per_pixel < data_size; ++i) {
                 meta_file << "Pixel " << i << ": ";
                 for (size_t j = 0; j < bytes_per_pixel &&
                     (i * bytes_per_pixel + j) < data_size; ++j) {
-                     for (size_t j = 0; j < bytes_per_pixel && (i * bytes_per_pixel + j) < data_size; ++j) {
-                       meta_file << static_cast<int>(data[i * bytes_per_pixel + j]) << " ";
+                    meta_file << static_cast<int>(data[i * bytes_per_pixel + j]) << " ";
                 }
                 meta_file << "\n";
             }
@@ -184,7 +181,6 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
                 // Convert pixel data to RGB for PPM
                 size_t bytes_per_pixel = (format == PixelFormat::BGRA ||
                     format == PixelFormat::RGBA) ? 4 : 3;
-                size_t bytes_per_pixel = (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
                 for (uint32_t y = 0; y < height; ++y) {
                     for (uint32_t x = 0; x < width; ++x) {
                         size_t pixel_offset = (y * width + x) * bytes_per_pixel;
@@ -264,8 +260,7 @@ bool writeTensorToDisk(
             meta_file << "Shape: [" << height << ", " << width << ", " << channels << "]\n";
             meta_file << "Data Type: code=" << static_cast<int>(tensor->dtype().code)
                      << ", bits=" << tensor->dtype().bits << "\n";
-            meta_file << "Device: " << (tensor->device().device_type == kDLCUDA ? "GPU" : "CPU") << "
-";
+            meta_file << "Device: " << (tensor->device().device_type == kDLCUDA ? "GPU" : "CPU") << "\n";
             meta_file << "Size: " << tensor->nbytes() << " bytes\n";
             meta_file.close();
         }
