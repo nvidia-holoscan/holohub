@@ -1,6 +1,6 @@
 {
     "application": {
-        "name": "Streaming Server Demo Application",
+        "name": "Streaming Server Demo",
         "authors": [
             {
                 "name": "Holoscan Team",
