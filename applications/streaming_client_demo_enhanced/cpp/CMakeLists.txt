@@ -59,8 +59,8 @@ target_compile_options(streaming_client_demo_enhanced
 )
 
 # Add include directories
-target_include_directories(streaming_client_demo_enhanced 
-    PUBLIC 
+target_include_directories(streaming_client_demo_enhanced
+    PUBLIC
     $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -108,17 +108,17 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml")
     add_custom_command(TARGET streaming_client_demo_enhanced POST_BUILD
         # Copy to current binary dir
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml" "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo.yaml"
-        
+
         # Copy to bin directory
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml" "${CMAKE_BINARY_DIR}/bin/streaming_client_demo.yaml"
-        
+
         # Copy to build root
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml" "${CMAKE_BINARY_DIR}/streaming_client_demo.yaml"
-        
+
         # The build/streaming_client_demo directory
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/streaming_client_demo"
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml" "${CMAKE_BINARY_DIR}/streaming_client_demo/streaming_client_demo.yaml"
-        
+
         # Copy to target directory
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml" "$<TARGET_FILE_DIR:streaming_client_demo_enhanced>/streaming_client_demo.yaml"
     )
@@ -171,10 +171,10 @@ if(BUILD_TESTING)
 
   # Test 2: Basic Configuration Test - Functional test with minimal config
   add_test(NAME streaming_client_demo_enhanced_config_test
-           COMMAND timeout 15s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced 
+           COMMAND timeout 15s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced
                    --config "${TEST_CONFIG_DIR}/config_basic_test.yaml"
                    --data "/workspace/holohub/data/endoscopy")
-                   
+
   set_tests_properties(streaming_client_demo_enhanced_config_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Streaming Client Test Application|Successfully loaded configuration|Configuration:"
                        FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|does not exist"
@@ -182,10 +182,10 @@ if(BUILD_TESTING)
 
   # Test 3: Data Directory Discovery Test - Test data path validation
   add_test(NAME streaming_client_demo_enhanced_data_test
-           COMMAND timeout 10s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced 
+           COMMAND timeout 10s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced
                    --config "${TEST_CONFIG_DIR}/config_basic_test.yaml"
                    --data "/workspace/holohub/data/endoscopy")
-                   
+
   set_tests_properties(streaming_client_demo_enhanced_data_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Using data from:|Video file path:|Current working directory"
                        FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|does not exist"
@@ -193,10 +193,10 @@ if(BUILD_TESTING)
 
   # Test 4: Configuration Validation Test - Invalid config handling
   add_test(NAME streaming_client_demo_enhanced_memory_test
-           COMMAND timeout 5s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced 
+           COMMAND timeout 5s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced
                    --config "${TEST_CONFIG_DIR}/config_error_test.yaml"
                    --data "/workspace/holohub/data/endoscopy")
-                   
+
   set_tests_properties(streaming_client_demo_enhanced_memory_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Streaming Client Test Application|Successfully loaded configuration|Configuration:"
                        FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault"
@@ -205,15 +205,15 @@ if(BUILD_TESTING)
   # Test 5: Scheduler Configuration Tests - Functional tests with different schedulers
   foreach(scheduler_type "default" "greedy" "multi_thread" "event_based")
     # Create a scheduler-specific config file
-    configure_file("${TEST_CONFIG_DIR}/config_scheduler_test.yaml" 
-                   "${CMAKE_CURRENT_BINARY_DIR}/config_scheduler_${scheduler_type}_test.yaml" 
+    configure_file("${TEST_CONFIG_DIR}/config_scheduler_test.yaml"
+                   "${CMAKE_CURRENT_BINARY_DIR}/config_scheduler_${scheduler_type}_test.yaml"
                    COPYONLY)
-    
+
     add_test(NAME streaming_client_demo_enhanced_scheduler_${scheduler_type}_test
-             COMMAND timeout 15s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced 
+             COMMAND timeout 15s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced
                      --config "${CMAKE_CURRENT_BINARY_DIR}/config_scheduler_${scheduler_type}_test.yaml"
                      --data "/workspace/holohub/data/endoscopy")
-             
+
     set_tests_properties(streaming_client_demo_enhanced_scheduler_${scheduler_type}_test PROPERTIES
                          PASS_REGULAR_EXPRESSION "Streaming Client Test Application|Configuration:|Successfully loaded"
                          FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault"
@@ -222,10 +222,10 @@ if(BUILD_TESTING)
 
   # Test 6: V4L2 Camera Source Test - Functional test (graceful handling of missing camera)
   add_test(NAME streaming_client_demo_enhanced_v4l2_test
-           COMMAND timeout 10s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced 
+           COMMAND timeout 10s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced
                    --config "${TEST_CONFIG_DIR}/config_v4l2_test.yaml"
                    --data "/workspace/holohub/data/endoscopy")
-                   
+
   set_tests_properties(streaming_client_demo_enhanced_v4l2_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Streaming Client Test Application|Configuration:|Successfully loaded|Warning"
                        FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault"
@@ -233,10 +233,10 @@ if(BUILD_TESTING)
 
   # Test 7: Format Converter Test - Test with basic config
   add_test(NAME streaming_client_demo_enhanced_format_test
-           COMMAND timeout 15s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced 
+           COMMAND timeout 15s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced
                    --config "${TEST_CONFIG_DIR}/config_basic_test.yaml"
                    --data "/workspace/holohub/data/endoscopy")
-                   
+
   set_tests_properties(streaming_client_demo_enhanced_format_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Streaming Client Test Application|Format converter|Successfully loaded"
                        FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault"
@@ -244,10 +244,10 @@ if(BUILD_TESTING)
 
   # Test 8: Network Configuration Test - Test with disabled streaming
   add_test(NAME streaming_client_demo_enhanced_network_test
-           COMMAND timeout 10s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced 
+           COMMAND timeout 10s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced
                    --config "${TEST_CONFIG_DIR}/config_basic_test.yaml"
                    --data "/workspace/holohub/data/endoscopy")
-  
+
   set_tests_properties(streaming_client_demo_enhanced_network_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Server: 127.0.0.1:48010|Receive frames: no|Send frames: no"
                        FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault"
@@ -255,10 +255,10 @@ if(BUILD_TESTING)
 
   # Test 9: Application Startup Test - Test application initialization
   add_test(NAME streaming_client_demo_enhanced_gpu_test
-           COMMAND timeout 10s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced 
+           COMMAND timeout 10s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced
                    --config "${TEST_CONFIG_DIR}/config_basic_test.yaml"
                    --data "/workspace/holohub/data/endoscopy")
-  
+
   set_tests_properties(streaming_client_demo_enhanced_gpu_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Streaming Client Test Application|Resolution: 640x480|FPS: 30"
                        FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault"
@@ -268,7 +268,7 @@ if(BUILD_TESTING)
   # This test expects the app to show warnings about missing config and then gracefully fail
   add_test(NAME streaming_client_demo_enhanced_logging_test
            COMMAND bash -c "timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced --config '/nonexistent/invalid.yaml' --data '/workspace/holohub/data/endoscopy' 2>&1 | grep -q 'WARNING.*Failed to create default configuration file' && echo 'TEST_PASSED: Config error handling working'")
-  
+
   set_tests_properties(streaming_client_demo_enhanced_logging_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "TEST_PASSED.*Config error handling working"
                        TIMEOUT 10)
