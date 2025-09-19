@@ -31,14 +31,28 @@ from holoscan.schedulers import EventBasedScheduler
 matplotlib.use("Agg")  # Non-interactive backend for containers
 
 
+def run_dummy_cpu_workload(workload_size=100, load_intensity=100):
+    """Perform CPU-intensive work matching the C++ implementation."""
+    data = [0.0] * workload_size
+    work_result = 0.0
+    for _ in range(load_intensity):
+        for i in range(len(data)):
+            data[i] = math.sin(i * 0.01) * math.cos(i * 0.02)
+        for x in data:
+            work_result += math.sqrt(abs(x) + 1.0)
+    return work_result
+
+
 class TargetOperator(Operator):
     """
     Target operator that aims to run at a specific FPS and measures timing performance.
     """
 
-    def __init__(self, fragment, target_fps: int, *args, **kwargs):
+    def __init__(self, fragment, target_fps: int, bm_load_intensity: int = 10, bm_workload_size: int = 10, *args, **kwargs):
         self.target_fps = target_fps
         self.target_period_ns = int(1e9 / target_fps)  # Period in nanoseconds
+        self.load_intensity = bm_load_intensity
+        self.workload_size = bm_workload_size
         self.frame_periods: list[float] = []  # Store frame periods in nanoseconds
         self.execution_times: list[float] = []  # Store execution times in nanoseconds
         self.frame_count = 0
@@ -132,14 +146,7 @@ class TargetOperator(Operator):
 
     def _do_real_work(self):
         """Perform actual computational work representing real processing."""
-        # Simulate image processing or data analysis work
-
-        # Matrix-like computations
-        data = [0.0] * 1000
-        for i in range(len(data)):
-            data[i] = math.sin(i * 0.01) * math.cos(i * 0.02)
-
-        self._work_result = sum(math.sqrt(abs(x) + 1.0) for x in data)
+        self._work_result = run_dummy_cpu_workload(self.workload_size, self.load_intensity)
 
 
 class LoadOperator(Operator):
@@ -147,8 +154,9 @@ class LoadOperator(Operator):
     Load operator that consumes CPU resources to create contention.
     """
 
-    def __init__(self, fragment, load_duration_ms: float = 10.0, *args, **kwargs):
-        self.load_duration_ms = load_duration_ms  # Duration in milliseconds
+    def __init__(self, fragment, workload_size: int = 100, load_intensity: int = 1000, *args, **kwargs):
+        self.workload_size = workload_size
+        self.load_intensity = load_intensity
         self.iterations = 0
         super().__init__(fragment, *args, **kwargs)
 
@@ -156,24 +164,11 @@ class LoadOperator(Operator):
         spec.output("load_data")
 
     def compute(self, op_input, op_output, context):
-        # Perform CPU-intensive work
-        self._consume_cpu()
+        # Perform CPU-intensive work using same algorithm as C++ version
+        self._work_result = run_dummy_cpu_workload(self.workload_size, self.load_intensity)
 
         self.iterations += 1
         op_output.emit({"iteration": self.iterations}, "load_data")
-
-    def _consume_cpu(self):
-        """Consume CPU for the specified duration in milliseconds."""
-        # Convert milliseconds to seconds
-        work_duration = self.load_duration_ms / 1000.0
-        end_time = time.perf_counter() + work_duration
-
-        # Busy loop to consume CPU
-        dummy = 0
-        while time.perf_counter() < end_time:
-            dummy += 1
-            if dummy > 1000000:  # Prevent overflow
-                dummy = 0
 
 
 class DataSinkOperator(Operator):
@@ -205,7 +200,12 @@ class RealtimeThreadBenchmark(Application):
         duration_seconds: int = 30,
         use_realtime: bool = False,
         scheduling_policy: SchedulingPolicy = SchedulingPolicy.SCHED_DEADLINE,
-        load_duration_ms: float = 10.0,
+        bg_load_intensity: int = 1000,
+        bg_workload_size: int = 100,
+        bm_load_intensity: int = 10,
+        bm_workload_size: int = 10,
+        worker_thread_number: int = 2,
+        dummy_load_number: int = 2,
         *args,
         **kwargs,
     ):
@@ -213,7 +213,12 @@ class RealtimeThreadBenchmark(Application):
         self.duration_seconds = duration_seconds
         self.use_realtime = use_realtime
         self.scheduling_policy = scheduling_policy
-        self.load_duration_ms = load_duration_ms
+        self.bg_load_intensity = bg_load_intensity
+        self.bg_workload_size = bg_workload_size
+        self.bm_load_intensity = bm_load_intensity
+        self.bm_workload_size = bm_workload_size
+        self.worker_thread_number = worker_thread_number
+        self.dummy_load_number = dummy_load_number
 
         super().__init__(*args, **kwargs)
 
@@ -224,6 +229,8 @@ class RealtimeThreadBenchmark(Application):
             target_op = TargetOperator(
                 self,
                 self.target_fps,
+                self.bm_load_intensity,
+                self.bm_workload_size,
                 name="target_op",
             )
         else:
@@ -231,21 +238,22 @@ class RealtimeThreadBenchmark(Application):
             target_op = TargetOperator(
                 self,
                 self.target_fps,
+                self.bm_load_intensity,
+                self.bm_workload_size,
                 PeriodicCondition(self, int(1e9 / self.target_fps)),  # Period in nanoseconds
                 name="target_op",
             )
 
-        load_op1 = LoadOperator(
-            self,
-            self.load_duration_ms,
-            name="load_op1",
-        )
-
-        load_op2 = LoadOperator(
-            self,
-            self.load_duration_ms,
-            name="load_op2",
-        )
+        # Create load operators based on dummy_load_number
+        load_ops = []
+        for i in range(self.dummy_load_number):
+            load_op = LoadOperator(
+                self,
+                self.bg_workload_size,
+                self.bg_load_intensity,
+                name=f"load_op{i+1}",
+            )
+            load_ops.append(load_op)
 
         sink_op = DataSinkOperator(self, name="sink_op")
 
@@ -259,7 +267,7 @@ class RealtimeThreadBenchmark(Application):
 
             if self.scheduling_policy == SchedulingPolicy.SCHED_DEADLINE:
                 period_ns = int(1e9 / self.target_fps)
-                deadline_ns = period_ns  # 100% of period
+                deadline_ns = int(period_ns * 0.95)  # 95% of period
                 runtime_ns = int(period_ns * 0.10)  # 10% of period
 
                 realtime_pool.add_realtime(
@@ -282,19 +290,19 @@ class RealtimeThreadBenchmark(Application):
 
             # Regular pool for load operators (competing for resources)
             load_pool = self.make_thread_pool("load_pool", 1)
-            load_pool.add(load_op1, pin_cores=[1])
-            load_pool.add(load_op2, pin_cores=[1])
+            for load_op in load_ops:
+                load_pool.add(load_op, pin_cores=[1])
         else:
             # All operators share the same pool (no realtime scheduling)
-            shared_pool = self.make_thread_pool("shared_pool", 2)
+            shared_pool = self.make_thread_pool("shared_pool", self.worker_thread_number)
             shared_pool.add(target_op, pin_cores=[0, 1])
-            shared_pool.add(load_op1, pin_cores=[0, 1])
-            shared_pool.add(load_op2, pin_cores=[0, 1])
+            for load_op in load_ops:
+                shared_pool.add(load_op, pin_cores=[0, 1])
 
         # Connect operators
         self.add_flow(target_op, sink_op, {("frame", "data")})
-        self.add_flow(load_op1, sink_op, {("load_data", "data")})
-        self.add_flow(load_op2, sink_op, {("load_data", "data")})
+        for load_op in load_ops:
+            self.add_flow(load_op, sink_op, {("load_data", "data")})
 
     def get_benchmark_results(self):
         """Get benchmark results and raw data from the target operator."""
@@ -306,7 +314,12 @@ def run_benchmark(
     duration_seconds: int,
     use_realtime: bool,
     scheduling_policy: SchedulingPolicy,
-    load_duration_ms: float,
+    bg_load_intensity: int,
+    bg_workload_size: int,
+    bm_load_intensity: int,
+    bm_workload_size: int,
+    worker_thread_number: int,
+    dummy_load_number: int,
 ):
     """Run a single benchmark configuration."""
 
@@ -315,7 +328,12 @@ def run_benchmark(
         duration_seconds=duration_seconds,
         use_realtime=use_realtime,
         scheduling_policy=scheduling_policy,
-        load_duration_ms=load_duration_ms,
+        bg_load_intensity=bg_load_intensity,
+        bg_workload_size=bg_workload_size,
+        bm_load_intensity=bm_load_intensity,
+        bm_workload_size=bm_workload_size,
+        worker_thread_number=worker_thread_number,
+        dummy_load_number=dummy_load_number,
     )
 
     # Calculate scheduler timeout with reasonable buffer
@@ -331,7 +349,7 @@ def run_benchmark(
 
     scheduler = EventBasedScheduler(
         app,
-        worker_thread_number=3,  # Just enough to service our thread pools efficiently
+        worker_thread_number=worker_thread_number,
         name="benchmark_scheduler",
         max_duration_ms=max_duration_ms,
     )
@@ -348,12 +366,17 @@ def run_benchmark(
     results["actual_duration_s"] = end_time - start_time
     results["use_realtime"] = use_realtime
     results["scheduling_policy"] = scheduling_policy.name if use_realtime else "Normal"
-    results["load_duration_ms"] = load_duration_ms
+    results["bg_load_intensity"] = bg_load_intensity
+    results["bg_workload_size"] = bg_workload_size
+    results["bm_load_intensity"] = bm_load_intensity
+    results["bm_workload_size"] = bm_workload_size
+    results["worker_thread_number"] = worker_thread_number
+    results["dummy_load_number"] = dummy_load_number
 
     return results
 
 
-def print_benchmark_config(target_fps, duration_seconds, load_duration_ms):
+def print_benchmark_config(target_fps, duration_seconds, bg_load_intensity, bg_workload_size, bm_load_intensity, bm_workload_size, worker_thread_number, dummy_load_number):
     """Print benchmark configuration."""
     print("=" * 80)
     print("Benchmark Configurations")
@@ -362,10 +385,12 @@ def print_benchmark_config(target_fps, duration_seconds, load_duration_ms):
     print(f"  Target FPS: {target_fps} ({target_period_ms:.3f} ms period)")
     print(f"  Duration: {duration_seconds}s")
     print(f"  Realtime: false")
-    print(f"  Background Workload Intensity: {load_duration_ms}")
-    print(f"  Background Workload Size: 100")
-    print(f"  Worker Thread Number: 3")
-    print(f"  Dummy Load Number: 2")
+    print(f"  Background Load Intensity: {bg_load_intensity}")
+    print(f"  Background Workload Size: {bg_workload_size}")
+    print(f"  Benchmark Load Intensity: {bm_load_intensity}")
+    print(f"  Benchmark Workload Size: {bm_workload_size}")
+    print(f"  Worker Thread Number: {worker_thread_number}")
+    print(f"  Dummy Load Number: {dummy_load_number}")
     print()
 
 
@@ -601,10 +626,40 @@ def main():
         help="Real-time scheduling policy to compare against normal scheduling",
     )
     parser.add_argument(
-        "--load-duration-ms",
-        type=float,
-        default=20.0,
-        help="CPU work duration per load operator call (milliseconds)",
+        "--bg-load-intensity",
+        type=int,
+        default=1000,
+        help="Background load intensity (iterations, default: 1000)",
+    )
+    parser.add_argument(
+        "--bg-workload-size",
+        type=int,
+        default=100,
+        help="Background workload size (data array size, default: 100)",
+    )
+    parser.add_argument(
+        "--bm-load-intensity",
+        type=int,
+        default=10,
+        help="Benchmark target load intensity (iterations, default: 10)",
+    )
+    parser.add_argument(
+        "--bm-workload-size",
+        type=int,
+        default=10,
+        help="Benchmark target workload size (data array size, default: 10)",
+    )
+    parser.add_argument(
+        "--worker-thread-number",
+        type=int,
+        default=2,
+        help="Worker thread number (default: 2)",
+    )
+    parser.add_argument(
+        "--dummy-load-number",
+        type=int,
+        default=2,
+        help="Number of dummy load operators (default: 2)",
     )
     parser.add_argument(
         "--plot-dir",
@@ -623,7 +678,7 @@ def main():
     scheduling_policy = policy_map[args.scheduling_policy]
 
     # Print initial configuration
-    print_benchmark_config(args.target_fps, args.duration, args.load_duration_ms)
+    print_benchmark_config(args.target_fps, args.duration, args.bg_load_intensity, args.bg_workload_size, args.bm_load_intensity, args.bm_workload_size, args.worker_thread_number, args.dummy_load_number)
 
     # Run without real-time scheduling
     normal_results = run_benchmark(
@@ -631,7 +686,12 @@ def main():
         args.duration,
         False,
         scheduling_policy,
-        args.load_duration_ms,
+        args.bg_load_intensity,
+        args.bg_workload_size,
+        args.bm_load_intensity,
+        args.bm_workload_size,
+        args.worker_thread_number,
+        args.dummy_load_number,
     )
 
     # Run with real-time scheduling
@@ -640,7 +700,12 @@ def main():
         args.duration,
         True,
         scheduling_policy,
-        args.load_duration_ms,
+        args.bg_load_intensity,
+        args.bg_workload_size,
+        args.bm_load_intensity,
+        args.bm_workload_size,
+        args.worker_thread_number,
+        args.dummy_load_number,
     )
 
     # Create histogram plots
@@ -652,7 +717,7 @@ def main():
     )
 
     # Display benchmark configurations again before results
-    print_benchmark_config(args.target_fps, args.duration, args.load_duration_ms)
+    print_benchmark_config(args.target_fps, args.duration, args.bg_load_intensity, args.bg_workload_size, args.bm_load_intensity, args.bm_workload_size, args.worker_thread_number, args.dummy_load_number)
 
     # Display benchmark results
     print("=" * 80)
