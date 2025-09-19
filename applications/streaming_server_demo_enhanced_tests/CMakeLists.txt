@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(streaming_server_demo_enhanced)
+project(streaming_server_demo_enhanced_tests)
 
 # Add C++ and Python subdirectories
 message(STATUS "=== PROCESSING PARENT streaming_server_demo_enhanced/CMakeLists.txt ===")
