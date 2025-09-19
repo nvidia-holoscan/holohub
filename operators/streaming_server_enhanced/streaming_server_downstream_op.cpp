@@ -36,6 +36,7 @@
 #include "frame_debug_utils.hpp"
 
 namespace holoscan::ops {
+
 StreamingServerDownstreamOp::~StreamingServerDownstreamOp() {
   try {
     HOLOSCAN_LOG_INFO("StreamingServerDownstreamOp destructor: beginning cleanup...");
