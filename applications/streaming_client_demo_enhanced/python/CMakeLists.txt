@@ -29,7 +29,7 @@ if(BUILD_TESTING)
   add_test(NAME streaming_client_demo_enhanced_python_help_test
            COMMAND python3 streaming_client_demo.py --help
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  
+
   # To get the environment path (needed for holoscan core operators)
   find_package(holoscan 1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
@@ -45,7 +45,7 @@ if(BUILD_TESTING)
   add_test(NAME streaming_client_demo_enhanced_python_import_test
            COMMAND python3 -c "import sys; sys.path.append('${CMAKE_CURRENT_BINARY_DIR}'); import streaming_client_demo; print('✅ Import successful')"
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  
+
   set_property(TEST streaming_client_demo_enhanced_python_import_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
@@ -58,7 +58,7 @@ if(BUILD_TESTING)
   add_test(NAME streaming_client_demo_enhanced_python_bindings_test
            COMMAND python3 -c "from holohub.streaming_client import StreamingClientOp; print('✅ StreamingClientOp binding available')"
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  
+
   set_property(TEST streaming_client_demo_enhanced_python_bindings_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
@@ -77,7 +77,7 @@ print('✅ Application instantiated successfully')
 print(f'✅ Parameters: {app.width}x{app.height}@{app.fps}fps, server={app.server_ip}:{app.signaling_port}')
 "
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  
+
   set_property(TEST streaming_client_demo_enhanced_python_instantiation_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
@@ -90,7 +90,7 @@ print(f'✅ Parameters: {app.width}x{app.height}@{app.fps}fps, server={app.serve
   add_test(NAME streaming_client_demo_enhanced_python_syntax_test
            COMMAND python3 -m py_compile streaming_client_demo.py
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  
+
   set_tests_properties(streaming_client_demo_enhanced_python_syntax_test PROPERTIES
                        FAIL_REGULAR_EXPRESSION "SyntaxError|IndentationError|FATAL|CRITICAL"
                        TIMEOUT 10)
@@ -101,17 +101,17 @@ print(f'✅ Parameters: {app.width}x{app.height}@{app.fps}fps, server={app.serve
 import sys; sys.path.append('${CMAKE_CURRENT_BINARY_DIR}')
 import streaming_client_demo
 app = streaming_client_demo.StreamingClientTestApp(
-    server_ip='192.168.1.100', 
-    signaling_port=8080, 
-    width=1280, 
-    height=720, 
+    server_ip='192.168.1.100',
+    signaling_port=8080,
+    width=1280,
+    height=720,
     fps=60
 )
 print(f'✅ Custom parameters: {app.width}x{app.height}@{app.fps}fps')
 print(f'✅ Network config: {app.server_ip}:{app.signaling_port}')
 "
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  
+
   set_property(TEST streaming_client_demo_enhanced_python_parameters_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
