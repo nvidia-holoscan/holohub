@@ -18,4 +18,4 @@ pybind11_add_holohub_module(
     CPP_CMAKE_TARGET streaming_client
     CLASS_NAME "StreamingClientOp"
     SOURCES streaming_client_enhanced.cpp
-)
+) 

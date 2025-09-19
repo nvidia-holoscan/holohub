@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http:  // www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,7 @@ class PyStreamingClientOp : public StreamingClientOp {
   using StreamingClientOp::StreamingClientOp;
 
   /* Constructor for Python with proper fragment setup */
-  explicit PyStreamingClientOp(Fragment* fragment,
+  explicit PyStreamingClientOp(Fragment* fragment, 
                                const py::args& args,
                                uint32_t width = 640,
                                uint32_t height = 480,
@@ -81,7 +81,7 @@ PYBIND11_MODULE(_streaming_client, m) {
 #else
   m.attr("__version__") = "dev";
 #endif
-
+  
   py::class_<StreamingClientOp, PyStreamingClientOp, Operator, std::shared_ptr<StreamingClientOp>>(
       m, "StreamingClientOp", R"doc(
 Operator that wraps the StreamingClient for video streaming in Holoscan.
@@ -113,7 +113,7 @@ name : str, optional
       .def(py::init<Fragment*,
                     const py::args&,
                     uint32_t,
-                    uint32_t,
+                    uint32_t, 
                     uint32_t,
                     const std::string&,
                     uint16_t,
