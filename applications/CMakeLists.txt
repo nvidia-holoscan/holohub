@@ -119,7 +119,7 @@ add_holohub_application(psd_pipeline DEPENDS
                                   data_writer)
 
 add_holohub_application(streaming_client_demo_enhanced DEPENDS OPERATORS streaming_client_enhanced)
-add_holohub_application(streaming_server_demo_enhanced DEPENDS OPERATORS streaming_server_enhanced)                                  
+add_holohub_application(streaming_server_demo_enhanced DEPENDS OPERATORS streaming_server_enhanced)
 
 add_holohub_application(ultrasound_segmentation DEPENDS
                         OPERATORS OPTIONAL aja_source)
