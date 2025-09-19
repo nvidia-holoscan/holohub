@@ -40,6 +40,7 @@
 #include "frame_debug_utils.hpp"
 
 namespace holoscan::ops {
+
 StreamingServerUpstreamOp::~StreamingServerUpstreamOp() {
   try {
     HOLOSCAN_LOG_INFO("StreamingServerUpstreamOp destructor: beginning cleanup...");
@@ -152,6 +153,7 @@ void StreamingServerUpstreamOp::stop() {
 
 void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& op_output,
                                        ExecutionContext& context) {
+
   if (is_shutting_down_.load()) {
     return;
   }

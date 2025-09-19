@@ -24,6 +24,7 @@
 #include <stdexcept>
 
 namespace holoscan::ops {
+
 StreamingServerResource::~StreamingServerResource() {
   if (streaming_server_ && is_running()) {
     try {

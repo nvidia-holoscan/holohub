@@ -221,7 +221,7 @@ class StreamingClientTestApp : public holoscan::Application {
         Arg("signaling_port", signaling_port_),
         Arg("receive_frames", receive_frames_),
         Arg("send_frames", send_frames_),
-        Arg("min_non_zero_bytes", static_cast<uint32_t>(10)) // Reduced for lenient validation
+        Arg("min_non_zero_bytes", static_cast<uint32_t>(10))  // Reduced for lenient validation
     );
 
     // Connect source to format converter - V4L2 outputs "signal", replayer outputs "output"
@@ -360,8 +360,7 @@ int main(int argc, char** argv) {
         std::string video_path = path + "/surgical_video.gxf_index";
         if (std::filesystem::exists(video_path)) {
           data_directory = path;
-          std::cout << "Found valid data directory with video file: " << data_directory
-                    << std::endl;
+          std::cout << "Found valid data directory with video file: " << data_directory << std::endl;
           break;
         } else {
           std::cout << "Directory exists but no video file found at: " << video_path << std::endl;
