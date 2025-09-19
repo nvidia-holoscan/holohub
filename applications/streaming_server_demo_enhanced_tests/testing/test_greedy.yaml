@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+%YAML 1.2
+---
+# Greedy scheduler test configuration
+application:
+  title: Greedy Scheduler Test
+  version: 1.0
+  log_level: INFO
+
+streaming_server:
+  width: 854
+  height: 480
+  fps: 30
+  port: 48013
+  multi_instance: false
+  server_name: "GreedyTest"
+  receive_frames: true
+  send_frames: true
+  allocator: !ref "allocator"
+
+allocator:
+  type: "holoscan::UnboundedAllocator"
+
+scheduler: "greedy"
+
+greedy_scheduler:
+  max_duration_ms: 5000
+  check_recession_period_ms: 100
+
+tracking: false
+log_level: "INFO"
