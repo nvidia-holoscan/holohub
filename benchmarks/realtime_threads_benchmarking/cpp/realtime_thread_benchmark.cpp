@@ -30,30 +30,11 @@ struct BenchmarkStats {
   double avg = 0.0;
   double std_dev = 0.0;
   double min_val = 0.0;
-  double p50 = 0.0;
-  double p95 = 0.0;
-  double p99 = 0.0;
   double max_val = 0.0;
   size_t sample_count = 0;
   std::vector<double> sorted_data;
 };
 
-// Calculate percentiles from sorted data
-double calculate_percentile(const std::vector<double>& sorted_data, double percentile) {
-  if (sorted_data.empty())
-    return 0.0;
-
-  double index = (percentile / 100.0) * (sorted_data.size() - 1);
-  size_t lower = static_cast<size_t>(std::floor(index));
-  size_t upper = static_cast<size_t>(std::ceil(index));
-
-  if (lower == upper) {
-    return sorted_data[lower];
-  }
-
-  double weight = index - lower;
-  return sorted_data[lower] * (1.0 - weight) + sorted_data[upper] * weight;
-}
 
 // Calculate standard deviation
 double calculate_std_dev(const std::vector<double>& data, double mean) {
@@ -92,29 +73,13 @@ BenchmarkStats calculate_benchmark_stats(
       std::accumulate(stats.sorted_data.begin(), stats.sorted_data.end(), 0.0) / stats.sample_count;
   stats.std_dev = calculate_std_dev(stats.sorted_data, stats.avg);
 
-  // Calculate percentiles
+  // Calculate min/max
   stats.min_val = stats.sorted_data.front();
   stats.max_val = stats.sorted_data.back();
-  stats.p50 = calculate_percentile(stats.sorted_data, 50.0);
-  stats.p95 = calculate_percentile(stats.sorted_data, 95.0);
-  stats.p99 = calculate_percentile(stats.sorted_data, 99.0);
 
   return stats;
 }
 
-// Calculate empirical CDF at a given value
-double calculate_cdf(const std::vector<double>& data, double x) {
-  if (data.empty())
-    return 0.0;
-
-  int count = 0;
-  for (double value : data) {
-    if (value <= x)
-      count++;
-  }
-
-  return static_cast<double>(count) / data.size();
-}
 
 void run_dummy_cpu_workload(int workload_size = 100, int load_intensity = 100) {
   std::vector<double> data(workload_size);
@@ -297,7 +262,8 @@ void print_title(const std::string& title) {
 
 void print_benchmark_config(int target_fps, int duration_seconds, const std::string& scheduling_policy_str,
                            int background_load_intensity, int background_workload_size, bool use_realtime, int worker_thread_number, int dummy_load_number) {
-  std::cout << "  Target FPS: " << target_fps << std::endl;
+  double target_period_ms = 1000.0 / target_fps;
+  std::cout << "  Target FPS: " << target_fps << " (" << std::fixed << std::setprecision(3) << target_period_ms << " ms period)" << std::endl;
   std::cout << "  Duration: " << duration_seconds << "s" << std::endl;
   std::cout << "  Realtime: " << (use_realtime ? "true" : "false") << std::endl;
   if (use_realtime) {
@@ -319,7 +285,8 @@ void print_benchmark_results(
 
   if (period_stats.sample_count > 0) {
     std::cout << "Frame period std: " << period_stats.std_dev << " ms" << std::endl;
-    std::cout << "Frame period mean: " << period_stats.avg << " ms" << std::endl << std::endl;
+    std::cout << "Frame period mean: " << period_stats.avg << " ms" << std::endl;
+    std::cout << "Frame period min/max: " << period_stats.min_val << " ms / " << period_stats.max_val << " ms" << std::endl << std::endl;
   }
 }
 
@@ -366,9 +333,6 @@ file << "        \"sample_count\": " << non_rt_period_stats.sample_count << ",\n
 file << "        \"average\": " << non_rt_period_stats.avg << ",\n";
 file << "        \"std_dev\": " << non_rt_period_stats.std_dev << ",\n";
 file << "        \"min\": " << non_rt_period_stats.min_val << ",\n";
-file << "        \"p50\": " << non_rt_period_stats.p50 << ",\n";
-file << "        \"p95\": " << non_rt_period_stats.p95 << ",\n";
-file << "        \"p99\": " << non_rt_period_stats.p99 << ",\n";
 file << "        \"max\": " << non_rt_period_stats.max_val << "\n";
 file << "      }\n";
 file << "    },\n";
@@ -385,9 +349,6 @@ file << "        \"sample_count\": " << rt_period_stats.sample_count << ",\n";
 file << "        \"average\": " << rt_period_stats.avg << ",\n";
 file << "        \"std_dev\": " << rt_period_stats.std_dev << ",\n";
 file << "        \"min\": " << rt_period_stats.min_val << ",\n";
-file << "        \"p50\": " << rt_period_stats.p50 << ",\n";
-file << "        \"p95\": " << rt_period_stats.p95 << ",\n";
-file << "        \"p99\": " << rt_period_stats.p99 << ",\n";
 file << "        \"max\": " << rt_period_stats.max_val << "\n";
 file << "      }\n";
 file << "    }\n";
@@ -406,9 +367,6 @@ file << "        \"sample_count\": " << non_rt_execution_stats.sample_count << "
 file << "        \"average\": " << non_rt_execution_stats.avg << ",\n";
 file << "        \"std_dev\": " << non_rt_execution_stats.std_dev << ",\n";
 file << "        \"min\": " << non_rt_execution_stats.min_val << ",\n";
-file << "        \"p50\": " << non_rt_execution_stats.p50 << ",\n";
-file << "        \"p95\": " << non_rt_execution_stats.p95 << ",\n";
-file << "        \"p99\": " << non_rt_execution_stats.p99 << ",\n";
 file << "        \"max\": " << non_rt_execution_stats.max_val << "\n";
 file << "      }\n";
 file << "    },\n";
@@ -425,9 +383,6 @@ file << "        \"sample_count\": " << rt_execution_stats.sample_count << ",\n"
 file << "        \"average\": " << rt_execution_stats.avg << ",\n";
 file << "        \"std_dev\": " << rt_execution_stats.std_dev << ",\n";
 file << "        \"min\": " << rt_execution_stats.min_val << ",\n";
-file << "        \"p50\": " << rt_execution_stats.p50 << ",\n";
-file << "        \"p95\": " << rt_execution_stats.p95 << ",\n";
-file << "        \"p99\": " << rt_execution_stats.p99 << ",\n";
 file << "        \"max\": " << rt_execution_stats.max_val << "\n";
 file << "      }\n";
 file << "    }\n";

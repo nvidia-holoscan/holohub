@@ -358,7 +358,8 @@ def print_benchmark_config(target_fps, duration_seconds, load_duration_ms):
     print("=" * 80)
     print("Benchmark Configurations")
     print("=" * 80)
-    print(f"  Target FPS: {target_fps}")
+    target_period_ms = 1000.0 / target_fps
+    print(f"  Target FPS: {target_fps} ({target_period_ms:.3f} ms period)")
     print(f"  Duration: {duration_seconds}s")
     print(f"  Realtime: false")
     print(f"  Background Workload Intensity: {load_duration_ms}")
@@ -377,6 +378,7 @@ def print_results(results: dict):
         fps = results["frame_period_stats"]
         print(f"Frame period std: {fps['std_ms']:.3f} ms")
         print(f"Frame period mean: {fps['mean_ms']:.3f} ms")
+        print(f"Frame period min/max: {fps['min_ms']:.3f} ms / {fps['max_ms']:.3f} ms")
     print()
 
 
