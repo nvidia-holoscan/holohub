@@ -98,16 +98,17 @@ class DummyLoadOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(DummyLoadOp)
 
-  DummyLoadOp(int workload_size = 1000)
-  : workload_size_(workload_size) {}
+  DummyLoadOp(int workload_size = 1000, int load_intensity = 100)
+  : workload_size_(workload_size), load_intensity_(load_intensity) {}
 
   void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) override {
-    run_dummy_cpu_workload(workload_size_);
+    run_dummy_cpu_workload(workload_size_, load_intensity_);
   };
 
  private:
    int workload_size_;
- };
+   int load_intensity_;
+};
 
 class BenchmarkOp : public Operator {
  public:
@@ -192,18 +193,22 @@ class RealtimeThreadBenchmarkApp : public Application {
   RealtimeThreadBenchmarkApp(int target_fps = 60,
                          bool use_realtime = false,
                          SchedulingPolicy scheduling_policy = SchedulingPolicy::kDeadline,
-                         int background_load_intensity = 1000,
-                         int background_workload_size = 1000,
+                         int bg_load_intensity = 1000,
+                         int bg_workload_size = 100,
+                         int bm_load_intensity = 100,
+                         int bm_workload_size = 100,
                          int dummy_load_number = 2)
       : target_fps_(target_fps),
         use_realtime_(use_realtime),
         scheduling_policy_(scheduling_policy),
-        background_load_intensity_(background_load_intensity),
-        background_workload_size_(background_workload_size),
+        bg_load_intensity_(bg_load_intensity),
+        bg_workload_size_(bg_workload_size),
+        bm_load_intensity_(bm_load_intensity),
+        bm_workload_size_(bm_workload_size),
         dummy_load_number_(dummy_load_number) {}
 
   void compose() override {
-    benchmark_op_ = make_operator<BenchmarkOp>("benchmark_op", target_fps_);
+    benchmark_op_ = make_operator<BenchmarkOp>("benchmark_op", target_fps_, bm_load_intensity_, bm_workload_size_);
     add_operator(benchmark_op_);
 
     auto periodic_condition = make_condition<PeriodicCondition>("periodic_condition", 1000000000 / target_fps_);
@@ -230,7 +235,7 @@ class RealtimeThreadBenchmarkApp : public Application {
 
     // Create dummy load operators based on dummy_load_number_
     for (int i = 0; i < dummy_load_number_; ++i) {
-      auto dummy_load_op = make_operator<DummyLoadOp>(("dummy_load_op_" + std::to_string(i + 1)), background_workload_size_);
+      auto dummy_load_op = make_operator<DummyLoadOp>(("dummy_load_op_" + std::to_string(i + 1)), bg_workload_size_, bg_load_intensity_);
       add_operator(dummy_load_op);
     }
 
@@ -248,8 +253,10 @@ class RealtimeThreadBenchmarkApp : public Application {
   int target_fps_;
   bool use_realtime_;
   SchedulingPolicy scheduling_policy_;
-  int background_load_intensity_;
-  int background_workload_size_;
+  int bg_load_intensity_;
+  int bg_workload_size_;
+  int bm_load_intensity_;
+  int bm_workload_size_;
   int dummy_load_number_;
   std::shared_ptr<BenchmarkOp> benchmark_op_;
 };
@@ -261,7 +268,8 @@ void print_title(const std::string& title) {
 }
 
 void print_benchmark_config(int target_fps, int duration_seconds, const std::string& scheduling_policy_str,
-                           int background_load_intensity, int background_workload_size, bool use_realtime, int worker_thread_number, int dummy_load_number) {
+                           int bg_load_intensity, int bg_workload_size, int bm_load_intensity, int bm_workload_size,
+                           bool use_realtime, int worker_thread_number, int dummy_load_number) {
   double target_period_ms = 1000.0 / target_fps;
   std::cout << "  Target FPS: " << target_fps << " (" << std::fixed << std::setprecision(3) << target_period_ms << " ms period)" << std::endl;
   std::cout << "  Duration: " << duration_seconds << "s" << std::endl;
@@ -269,8 +277,10 @@ void print_benchmark_config(int target_fps, int duration_seconds, const std::str
   if (use_realtime) {
     std::cout << "  Scheduling Policy: " << scheduling_policy_str << std::endl;
   }
-  std::cout << "  Background Workload Intensity: " << background_load_intensity << std::endl;
-  std::cout << "  Background Workload Size: " << background_workload_size << std::endl;
+  std::cout << "  Background Load Intensity: " << bg_load_intensity << std::endl;
+  std::cout << "  Background Workload Size: " << bg_workload_size << std::endl;
+  std::cout << "  Benchmark Load Intensity: " << bm_load_intensity << std::endl;
+  std::cout << "  Benchmark Workload Size: " << bm_workload_size << std::endl;
   std::cout << "  Worker Thread Number: " << worker_thread_number << std::endl;
   std::cout << "  Dummy Load Number: " << dummy_load_number << std::endl;
 }
@@ -298,8 +308,10 @@ void write_json_results(const std::string& filename,
   int target_fps,
   int duration_seconds,
   const std::string& scheduling_policy_str,
-  int background_load_intensity,
-  int background_workload_size,
+  int bg_load_intensity,
+  int bg_workload_size,
+  int bm_load_intensity,
+  int bm_workload_size,
   int worker_thread_number,
   int dummy_load_number) {
 std::ofstream file(filename);
@@ -314,8 +326,10 @@ file << "  \"benchmark_config\": {\n";
 file << "    \"target_fps\": " << target_fps << ",\n";
 file << "    \"duration_seconds\": " << duration_seconds << ",\n";
 file << "    \"scheduling_policy\": \"" << scheduling_policy_str << "\",\n";
-file << "    \"background_load_intensity\": " << background_load_intensity << ",\n";
-file << "    \"background_workload_size\": " << background_workload_size << ",\n";
+file << "    \"bg_load_intensity\": " << bg_load_intensity << ",\n";
+file << "    \"bg_workload_size\": " << bg_workload_size << ",\n";
+file << "    \"bm_load_intensity\": " << bm_load_intensity << ",\n";
+file << "    \"bm_workload_size\": " << bm_workload_size << ",\n";
 file << "    \"worker_thread_number\": " << worker_thread_number << ",\n";
 file << "    \"dummy_load_number\": " << dummy_load_number << "\n";
 file << "  },\n";
@@ -396,10 +410,12 @@ std::cout << "Raw measurement data written to: " << filename << std::endl;
 int main(int argc, char* argv[]) {
   // Default parameters
   int target_fps = 60;
-  int duration_seconds = 10;
+  int duration_seconds = 30;
   std::string scheduling_policy_str = "SCHED_DEADLINE";
-  int background_load_intensity = 1000;
-  int background_workload_size = 100;
+  int bg_load_intensity = 1000;
+  int bg_workload_size = 100;
+  int bm_load_intensity = 100;
+  int bm_workload_size = 100;
   int worker_thread_number = 2;
   int dummy_load_number = 2;
   std::string output_file = "/tmp/benchmark_plots/realtime_thread_benchmark_results.json";
@@ -412,16 +428,28 @@ int main(int argc, char* argv[]) {
       duration_seconds = std::atoi(argv[++i]);
     } else if (arg == "--scheduling-policy" && i + 1 < argc) {
       scheduling_policy_str = argv[++i];
-    } else if (arg == "--load-intensity" && i + 1 < argc) {
-      background_load_intensity = std::atoi(argv[++i]);
-      if (background_load_intensity <= 0) {
-        std::cerr << "Error: load-intensity must be positive\n";
+    } else if (arg == "--bg-load-intensity" && i + 1 < argc) {
+      bg_load_intensity = std::atoi(argv[++i]);
+      if (bg_load_intensity <= 0) {
+        std::cerr << "Error: bg-load-intensity must be positive\n";
         return 1;
       }
-    } else if (arg == "--workload-size" && i + 1 < argc) {
-      background_workload_size = std::atoi(argv[++i]);
-      if (background_workload_size <= 0) {
-        std::cerr << "Error: workload-size must be positive\n";
+    } else if (arg == "--bg-workload-size" && i + 1 < argc) {
+      bg_workload_size = std::atoi(argv[++i]);
+      if (bg_workload_size <= 0) {
+        std::cerr << "Error: bg-workload-size must be positive\n";
+        return 1;
+      }
+    } else if (arg == "--bm-load-intensity" && i + 1 < argc) {
+      bm_load_intensity = std::atoi(argv[++i]);
+      if (bm_load_intensity <= 0) {
+        std::cerr << "Error: bm-load-intensity must be positive\n";
+        return 1;
+      }
+    } else if (arg == "--bm-workload-size" && i + 1 < argc) {
+      bm_workload_size = std::atoi(argv[++i]);
+      if (bm_workload_size <= 0) {
+        std::cerr << "Error: bm-workload-size must be positive\n";
         return 1;
       }
     } else if (arg == "--worker-thread-number" && i + 1 < argc) {
@@ -444,8 +472,10 @@ int main(int argc, char* argv[]) {
       std::cout << "  --target-fps <fps>           Target FPS (30 or 60, default: 60)" << std::endl;
       std::cout << "  --duration <seconds>        Benchmark duration in seconds (default: 30)" << std::endl;
       std::cout << "  --scheduling-policy <policy> SCHED_DEADLINE, SCHED_FIFO, or SCHED_RR (default: SCHED_DEADLINE)" << std::endl;
-      std::cout << "  --load-intensity <intensity> Background workload intensity (default: 1000)" << std::endl;
-      std::cout << "  --workload-size <size>     Background workload size (default: 1000)" << std::endl;
+      std::cout << "  --bg-load-intensity <intensity> Background load intensity (default: 1000)" << std::endl;
+      std::cout << "  --bg-workload-size <size>   Background workload size (default: 100)" << std::endl;
+      std::cout << "  --bm-load-intensity <intensity> Benchmark target load intensity (default: 100)" << std::endl;
+      std::cout << "  --bm-workload-size <size>   Benchmark target workload size (default: 100)" << std::endl;
       std::cout << "  --worker-thread-number <number> Worker thread number (default: 2)" << std::endl;
       std::cout << "  --dummy-load-number <number> Number of dummy load operators (default: 2)" << std::endl;
       std::cout << "  --output <file>            Output JSON file for raw data (default: /tmp/benchmark_plots/realtime_thread_benchmark_results.json)" << std::endl;
@@ -468,12 +498,12 @@ int main(int argc, char* argv[]) {
   }
 
   print_title("Real-time Thread Benchmark");
-  print_benchmark_config(target_fps, duration_seconds, scheduling_policy_str, background_load_intensity, background_workload_size, false, worker_thread_number, dummy_load_number);
+  print_benchmark_config(target_fps, duration_seconds, scheduling_policy_str, bg_load_intensity, bg_workload_size, bm_load_intensity, bm_workload_size, false, worker_thread_number, dummy_load_number);
 
   // Run without real-time scheduling
   print_title("Running benchmark for baseline\n(without real-time thread)");
   auto non_rt_app = std::make_unique<RealtimeThreadBenchmarkApp>(
-    target_fps, false, scheduling_policy, background_load_intensity, background_workload_size, dummy_load_number);
+    target_fps, false, scheduling_policy, bg_load_intensity, bg_workload_size, bm_load_intensity, bm_workload_size, dummy_load_number);
   non_rt_app->scheduler(non_rt_app->make_scheduler<EventBasedScheduler>(
     "event-based",
     Arg("worker_thread_number", static_cast<int64_t>(worker_thread_number)),
@@ -486,7 +516,7 @@ int main(int argc, char* argv[]) {
   // Run with real-time scheduling
   print_title("Running benchmark for real-time\n(with real-time scheduling)");
   auto rt_app = std::make_unique<RealtimeThreadBenchmarkApp>(
-    target_fps, true, scheduling_policy, background_load_intensity, background_workload_size, dummy_load_number);
+    target_fps, true, scheduling_policy, bg_load_intensity, bg_workload_size, bm_load_intensity, bm_workload_size, dummy_load_number);
   rt_app->scheduler(rt_app->make_scheduler<EventBasedScheduler>(
     "event-based",
     Arg("worker_thread_number", static_cast<int64_t>(worker_thread_number)),
@@ -498,7 +528,7 @@ int main(int argc, char* argv[]) {
 
   // Display benchmark configurations
   print_title("Benchmark Configurations");
-  print_benchmark_config(target_fps, duration_seconds, scheduling_policy_str, background_load_intensity, background_workload_size, false, worker_thread_number, dummy_load_number);
+  print_benchmark_config(target_fps, duration_seconds, scheduling_policy_str, bg_load_intensity, bg_workload_size, bm_load_intensity, bm_workload_size, false, worker_thread_number, dummy_load_number);
   std::cout << std::endl;
 
   // Display benchmark results
@@ -529,8 +559,10 @@ int main(int argc, char* argv[]) {
     target_fps,
     duration_seconds,
     scheduling_policy_str,
-    background_load_intensity,
-    background_workload_size,
+    bg_load_intensity,
+    bg_workload_size,
+    bm_load_intensity,
+    bm_workload_size,
     worker_thread_number,
     dummy_load_number);
 

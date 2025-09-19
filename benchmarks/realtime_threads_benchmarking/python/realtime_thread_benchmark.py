@@ -259,7 +259,7 @@ class RealtimeThreadBenchmark(Application):
 
             if self.scheduling_policy == SchedulingPolicy.SCHED_DEADLINE:
                 period_ns = int(1e9 / self.target_fps)
-                deadline_ns = int(period_ns * 0.95)  # 95% of period
+                deadline_ns = period_ns  # 100% of period
                 runtime_ns = int(period_ns * 0.10)  # 10% of period
 
                 realtime_pool.add_realtime(
