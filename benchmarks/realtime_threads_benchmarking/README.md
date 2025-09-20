@@ -174,19 +174,19 @@ Benchmark Configurations
 Benchmark Results
 ================================================================================
 === Non-real-time Thread (Baseline) ===
-Frame period std: 0.646 ms
+Frame period std: 0.257 ms
 Frame period mean: 16.667 ms
-Frame period min/max: 10.027 ms / 21.073 ms
+Frame period min/max: 16.120 ms / 17.218 ms
 
 === Real-time Thread ===
-Frame period std: 0.024 ms
+Frame period std: 0.013 ms
 Frame period mean: 16.667 ms
-Frame period min/max: 16.435 ms / 16.899 ms
+Frame period min/max: 16.569 ms / 16.753 ms
 
 ================================================================================
 Non-real-time and Real-time Thread Benchmark Comparison
 ================================================================================
-Period std comparison:     0.65 ms →     0.02 ms  (+96.22%)
+Period std comparison:     0.26 ms →     0.01 ms  (+94.77%)
 
 Raw measurement data written to: /tmp/benchmark_plots/realtime_thread_benchmark_results.json
 
