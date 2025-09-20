@@ -570,7 +570,15 @@ int main(int argc, char* argv[]) {
   // Generate plots using Python plotting script
   std::string plot_script = std::string(__FILE__);
   plot_script = plot_script.substr(0, plot_script.find_last_of("/\\")) + "/plot_results.py";
-  std::string plot_command = "python3 " + plot_script + " --input " + output_file + " --output-dir /tmp/benchmark_plots";
+
+  // Extract directory from JSON output file path for plots
+  std::string output_dir = output_file.substr(0, output_file.find_last_of("/\\"));
+  if (output_dir == output_file) {
+    // No directory separator found, use current directory
+    output_dir = ".";
+  }
+
+  std::string plot_command = "python3 " + plot_script + " --input " + output_file + " --output-dir " + output_dir;
 
   std::cout << "\nGenerating plots..." << std::endl;
   int plot_result = std::system(plot_command.c_str());
