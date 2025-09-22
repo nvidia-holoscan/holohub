@@ -60,7 +60,6 @@ class HoloHubContainer:
 
     # Docker and runtime configuration
     DOCKER_EXE = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")  # Docker executable
-    PYTHON_EXE = os.environ.get("HOLOHUB_PYTHON_EXE", "python3")  # Python executable
 
     # SDK and path configuration
     SDK_PATH = os.environ.get("HOLOHUB_SDK_PATH", "/opt/nvidia/holoscan")
@@ -355,7 +354,6 @@ class HoloHubContainer:
             print("No project provided, proceeding with default container")
 
         # Environment defaults
-        self.holoscan_py_exe = self.PYTHON_EXE
         self.holoscan_docker_exe = self.DOCKER_EXE
 
         self.project_metadata = project_metadata
@@ -387,7 +385,7 @@ class HoloHubContainer:
         # Check if buildx exists
         if not self.dryrun:
             try:
-                run_command(["docker", "buildx", "version"], check=True, capture_output=True)
+                run_command([self.DOCKER_EXE, "buildx", "version"], check=True, capture_output=True)
             except subprocess.CalledProcessError:
                 fatal(
                     "docker buildx plugin is missing. Please install docker-buildx-plugin:\n"
@@ -398,7 +396,7 @@ class HoloHubContainer:
         os.environ["DOCKER_BUILDKIT"] = "1"
 
         cmd = [
-            "docker",
+            self.DOCKER_EXE,
             "build",
             "--build-arg",
             "BUILDKIT_INLINE_CACHE=1",
