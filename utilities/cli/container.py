@@ -353,9 +353,6 @@ class HoloHubContainer:
         elif not isinstance(project_metadata, dict):
             print("No project provided, proceeding with default container")
 
-        # Environment defaults
-        self.holoscan_docker_exe = self.DOCKER_EXE
-
         self.project_metadata = project_metadata
         # Get first language from project metadata if not provided.
         if language is None and self.project_metadata:
@@ -446,7 +443,7 @@ class HoloHubContainer:
         add_volumes = add_volumes or []
         extra_args = extra_args or []
 
-        cmd = [self.holoscan_docker_exe, "run"]
+        cmd = [self.DOCKER_EXE, "run"]
 
         cmd.extend(self.get_basic_args())
         cmd.extend(self.get_security_args(as_root))
