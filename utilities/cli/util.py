@@ -1108,10 +1108,24 @@ def collect_environment_variables() -> None:
     holohub_env_vars = [
         "HOLOHUB_CMD_NAME",
         "HOLOHUB_BUILD_LOCAL",
+        "HOLOHUB_ALWAYS_BUILD",
+        "HOLOHUB_REPO_PREFIX",
+        "HOLOHUB_CONTAINER_PREFIX",
+        "HOLOHUB_WORKSPACE_NAME",
+        "HOLOHUB_HOSTNAME_PREFIX",
         "HOLOHUB_BASE_IMAGE",
+        "HOLOHUB_DOCKER_EXE",
+        "HOLOHUB_PYTHON_EXE",
+        "HOLOHUB_SDK_PATH",
+        "HOLOHUB_BASE_SDK_VERSION",
+        "HOLOHUB_BENCHMARKING_SUBDIR",
+        "HOLOHUB_DEFAULT_DOCKERFILE",
+        "HOLOHUB_BASE_IMAGE_FORMAT",
+        "HOLOHUB_DEFAULT_IMAGE_FORMAT",
+        "HOLOHUB_DOCS_URL",
+        # Legacy variables
         "HOLOHUB_APP_NAME",
         "HOLOHUB_CONTAINER_BASE_NAME",
-        "HOLOHUB_ALWAYS_BUILD",
     ]
     for var in sorted(holohub_env_vars):
         print(f"  {var}: {os.environ.get(var) or '(not set)'}")

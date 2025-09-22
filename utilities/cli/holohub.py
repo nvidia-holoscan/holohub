@@ -42,7 +42,7 @@ from typing import List, Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
-from utilities.cli.container import HoloHubContainer, base_sdk_version
+from utilities.cli.container import HoloHubContainer
 from utilities.cli.util import Color
 
 
@@ -612,7 +612,7 @@ class HoloHubCLI:
             holohub_cli_util.fatal(
                 f"Cannot specify CLI parameters {params_str} when using explicit mode '{mode_name}'. "
                 f"All configuration must be provided through the mode definition.\n"
-                f"See https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/README.md"
+                f"See {os.environ.get('HOLOHUB_DOCS_URL', 'https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/README.md')}"
             )
 
     def get_effective_build_config(
@@ -1898,7 +1898,7 @@ class HoloHubCLI:
             "project_name": args.project,
             "project_slug": args.project.lower().replace(" ", "_"),
             "language": args.language.lower() if args.language else None,  # Only set if provided
-            "holoscan_version": base_sdk_version,
+            "holoscan_version": HoloHubContainer.BASE_SDK_VERSION,
             "year": datetime.datetime.now().year,
         }
 
