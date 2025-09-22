@@ -71,7 +71,7 @@ test_streaming_client_op_bindings.py ...............................     [100%]
 
 ## 📋 **Test Categories Available**
 
-Your pytest tests include:
+Pytests include:
 
 - **Basic Operator Tests**: Creation, initialization
 - **Parameter Tests**: Video dimensions, network settings
@@ -87,6 +87,4 @@ If tests fail with import errors:
 2. Check Python bindings exist: `ls build/streaming_client_demo_enhanced_tests/python/lib/holohub/`
 3. Verify operator compiled: `ls build/streaming_client_demo_enhanced_tests/operators/`
 
-## ✨ **Success!**
 
-Your operator now has **professional-grade pytest testing** following the `adv_networking_bench` pattern! 🎉
