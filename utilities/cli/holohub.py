@@ -612,7 +612,7 @@ class HoloHubCLI:
             holohub_cli_util.fatal(
                 f"Cannot specify CLI parameters {params_str} when using explicit mode '{mode_name}'. "
                 f"All configuration must be provided through the mode definition.\n"
-                f"See {os.environ.get('HOLOHUB_DOCS_URL', 'https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/README.md')}"
+                f"See {os.environ.get('HOLOHUB_CLI_DOCS_URL', 'https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/README.md')}"
             )
 
     def get_effective_build_config(
