@@ -99,16 +99,17 @@ class DummyLoadOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(DummyLoadOp)
 
-  DummyLoadOp(int workload_size = 1000, int load_intensity = 100)
+  explicit DummyLoadOp(int workload_size = 1000, int load_intensity = 100)
   : workload_size_(workload_size), load_intensity_(load_intensity) {}
 
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) override {
+  void compute(InputContext& op_input, OutputContext& op_output,
+               ExecutionContext& context) override {
     run_dummy_cpu_workload(workload_size_, load_intensity_);
   };
 
  private:
-   int workload_size_;
-   int load_intensity_;
+  int workload_size_;
+  int load_intensity_;
 };
 
 class BenchmarkOp : public Operator {
@@ -123,7 +124,8 @@ class BenchmarkOp : public Operator {
               load_intensity_(load_intensity),
               workload_size_(workload_size) {}
 
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) override {
+  void compute(InputContext& op_input, OutputContext& op_output,
+               ExecutionContext& context) override {
     auto start_time = std::chrono::steady_clock::now();
 
     if (last_start_time_ == std::chrono::steady_clock::time_point()) {
@@ -177,7 +179,7 @@ class BenchmarkOp : public Operator {
     return benchmark_stats;
   }
 
-private:
+ private:
   int target_fps_;
   int64_t target_period_ns_;
   int load_intensity_;
@@ -209,10 +211,12 @@ class RealtimeThreadBenchmarkApp : public Application {
         dummy_load_number_(dummy_load_number) {}
 
   void compose() override {
-    benchmark_op_ = make_operator<BenchmarkOp>("benchmark_op", target_fps_, bm_load_intensity_, bm_workload_size_);
+    benchmark_op_ = make_operator<BenchmarkOp>("benchmark_op", target_fps_,
+                                               bm_load_intensity_, bm_workload_size_);
     add_operator(benchmark_op_);
 
-    auto periodic_condition = make_condition<PeriodicCondition>("periodic_condition", 1000000000 / target_fps_);
+    auto periodic_condition = make_condition<PeriodicCondition>("periodic_condition",
+                                                                1000000000 / target_fps_);
 
     if (use_realtime_) {
       // Create a thread pool for hosting the real-time thread
@@ -236,10 +240,10 @@ class RealtimeThreadBenchmarkApp : public Application {
 
     // Create dummy load operators based on dummy_load_number_
     for (int i = 0; i < dummy_load_number_; ++i) {
-      auto dummy_load_op = make_operator<DummyLoadOp>(("dummy_load_op_" + std::to_string(i + 1)), bg_workload_size_, bg_load_intensity_);
+      auto dummy_load_op = make_operator<DummyLoadOp>(
+        ("dummy_load_op_" + std::to_string(i + 1)), bg_workload_size_, bg_load_intensity_);
       add_operator(dummy_load_op);
     }
-
   }
 
   BenchmarkStats get_execution_time_benchmark_stats() {
@@ -268,11 +272,15 @@ void print_title(const std::string& title) {
   std::cout << std::string(80, '=') << std::endl;
 }
 
-void print_benchmark_config(int target_fps, int duration_seconds, const std::string& scheduling_policy_str,
-                           int bg_load_intensity, int bg_workload_size, int bm_load_intensity, int bm_workload_size,
-                           bool use_realtime, int worker_thread_number, int dummy_load_number) {
+void print_benchmark_config(int target_fps, int duration_seconds,
+                           const std::string& scheduling_policy_str,
+                           int bg_load_intensity, int bg_workload_size,
+                           int bm_load_intensity, int bm_workload_size,
+                           bool use_realtime, int worker_thread_number,
+                           int dummy_load_number) {
   double target_period_ms = 1000.0 / target_fps;
-  std::cout << "  Target FPS: " << target_fps << " (" << std::fixed << std::setprecision(3) << target_period_ms << " ms period)" << std::endl;
+  std::cout << "  Target FPS: " << target_fps << " (" << std::fixed << std::setprecision(3)
+            << target_period_ms << " ms period)" << std::endl;
   std::cout << "  Duration: " << duration_seconds << "s" << std::endl;
   std::cout << "  Realtime: " << (use_realtime ? "true" : "false") << std::endl;
   if (use_realtime) {
@@ -297,7 +305,8 @@ void print_benchmark_results(
   if (period_stats.sample_count > 0) {
     std::cout << "Frame period std: " << period_stats.std_dev << " ms" << std::endl;
     std::cout << "Frame period mean: " << period_stats.avg << " ms" << std::endl;
-    std::cout << "Frame period min/max: " << period_stats.min_val << " ms / " << period_stats.max_val << " ms" << std::endl << std::endl;
+    std::cout << "Frame period min/max: " << period_stats.min_val << " ms / "
+              << period_stats.max_val << " ms" << std::endl << std::endl;
   }
 }
 
@@ -471,15 +480,25 @@ int main(int argc, char* argv[]) {
       std::cout << "Usage: " << argv[0] << " [options]" << std::endl;
       std::cout << "Options:" << std::endl;
       std::cout << "  --target-fps <fps>           Target FPS (30 or 60, default: 60)" << std::endl;
-      std::cout << "  --duration <seconds>        Benchmark duration in seconds (default: 30)" << std::endl;
-      std::cout << "  --scheduling-policy <policy> SCHED_DEADLINE, SCHED_FIFO, or SCHED_RR (default: SCHED_DEADLINE)" << std::endl;
-      std::cout << "  --bg-load-intensity <intensity> Background load intensity (default: 1000)" << std::endl;
-      std::cout << "  --bg-workload-size <size>   Background workload size (default: 100)" << std::endl;
-      std::cout << "  --bm-load-intensity <intensity> Benchmark target load intensity (default: 100)" << std::endl;
-      std::cout << "  --bm-workload-size <size>   Benchmark target workload size (default: 100)" << std::endl;
-      std::cout << "  --worker-thread-number <number> Worker thread number (default: 2)" << std::endl;
-      std::cout << "  --dummy-load-number <number> Number of dummy load operators (default: 2)" << std::endl;
-      std::cout << "  --output <file>            Output JSON file for raw data (default: /tmp/benchmark_plots/realtime_thread_benchmark_results.json)" << std::endl;
+      std::cout << "  --duration <seconds>        Benchmark duration in seconds (default: 30)"
+                << std::endl;
+      std::cout << "  --scheduling-policy <policy> SCHED_DEADLINE, SCHED_FIFO, or SCHED_RR "
+                << "(default: SCHED_DEADLINE)" << std::endl;
+      std::cout << "  --bg-load-intensity <intensity> Background load intensity "
+                << "(default: 1000)" << std::endl;
+      std::cout << "  --bg-workload-size <size>   Background workload size "
+                << "(default: 100)" << std::endl;
+      std::cout << "  --bm-load-intensity <intensity> Benchmark target load intensity "
+                << "(default: 100)" << std::endl;
+      std::cout << "  --bm-workload-size <size>   Benchmark target workload size "
+                << "(default: 100)" << std::endl;
+      std::cout << "  --worker-thread-number <number> Worker thread number "
+                << "(default: 2)" << std::endl;
+      std::cout << "  --dummy-load-number <number> Number of dummy load operators "
+                << "(default: 2)" << std::endl;
+      std::cout << "  --output <file>            Output JSON file for raw data "
+                << "(default: /tmp/benchmark_plots/realtime_thread_benchmark_results.json)"
+                << std::endl;
       std::cout << "  --help                      Show this help message" << std::endl;
       return 0;
     }
@@ -499,12 +518,15 @@ int main(int argc, char* argv[]) {
   }
 
   print_title("Real-time Thread Benchmark");
-  print_benchmark_config(target_fps, duration_seconds, scheduling_policy_str, bg_load_intensity, bg_workload_size, bm_load_intensity, bm_workload_size, false, worker_thread_number, dummy_load_number);
+  print_benchmark_config(target_fps, duration_seconds, scheduling_policy_str,
+                          bg_load_intensity, bg_workload_size, bm_load_intensity,
+                          bm_workload_size, false, worker_thread_number, dummy_load_number);
 
   // Run without real-time scheduling
   print_title("Running benchmark for baseline\n(without real-time thread)");
   auto non_rt_app = std::make_unique<RealtimeThreadBenchmarkApp>(
-    target_fps, false, scheduling_policy, bg_load_intensity, bg_workload_size, bm_load_intensity, bm_workload_size, dummy_load_number);
+    target_fps, false, scheduling_policy, bg_load_intensity, bg_workload_size,
+    bm_load_intensity, bm_workload_size, dummy_load_number);
   non_rt_app->scheduler(non_rt_app->make_scheduler<EventBasedScheduler>(
     "event-based",
     Arg("worker_thread_number", static_cast<int64_t>(worker_thread_number)),
@@ -512,12 +534,12 @@ int main(int argc, char* argv[]) {
   non_rt_app->run();
   auto non_rt_period_stats = non_rt_app->get_period_benchmark_stats();
   auto non_rt_execution_time_stats = non_rt_app->get_execution_time_benchmark_stats();
-  // auto normal_results = run_benchmark(target_fps, duration_seconds, false, scheduling_policy, background_load_intensity, background_workload_size);
 
   // Run with real-time scheduling
   print_title("Running benchmark for real-time\n(with real-time scheduling)");
   auto rt_app = std::make_unique<RealtimeThreadBenchmarkApp>(
-    target_fps, true, scheduling_policy, bg_load_intensity, bg_workload_size, bm_load_intensity, bm_workload_size, dummy_load_number);
+    target_fps, true, scheduling_policy, bg_load_intensity, bg_workload_size,
+    bm_load_intensity, bm_workload_size, dummy_load_number);
   rt_app->scheduler(rt_app->make_scheduler<EventBasedScheduler>(
     "event-based",
     Arg("worker_thread_number", static_cast<int64_t>(worker_thread_number)),
@@ -525,29 +547,33 @@ int main(int argc, char* argv[]) {
   rt_app->run();
   auto rt_period_stats = rt_app->get_period_benchmark_stats();
   auto rt_execution_time_stats = rt_app->get_execution_time_benchmark_stats();
-  // auto realtime_results = run_benchmark(target_fps, duration_seconds, true, scheduling_policy, background_load_intensity, background_workload_size);
 
   // Display benchmark configurations
   print_title("Benchmark Configurations");
-  print_benchmark_config(target_fps, duration_seconds, scheduling_policy_str, bg_load_intensity, bg_workload_size, bm_load_intensity, bm_workload_size, false, worker_thread_number, dummy_load_number);
+  print_benchmark_config(target_fps, duration_seconds, scheduling_policy_str,
+                          bg_load_intensity, bg_workload_size, bm_load_intensity,
+                          bm_workload_size, false, worker_thread_number, dummy_load_number);
   std::cout << std::endl;
 
   // Display benchmark results
   print_title("Benchmark Results");
-  print_benchmark_results(non_rt_period_stats, non_rt_execution_time_stats, target_fps, "Non-real-time Thread (Baseline)");
-  print_benchmark_results(rt_period_stats, rt_execution_time_stats, target_fps, "Real-time Thread");
+  print_benchmark_results(non_rt_period_stats, non_rt_execution_time_stats, target_fps,
+                           "Non-real-time Thread (Baseline)");
+  print_benchmark_results(rt_period_stats, rt_execution_time_stats, target_fps,
+                           "Real-time Thread");
 
   // Performance Comparison
   print_title("Non-real-time and Real-time Thread Benchmark Comparison");
 
   // Calculate improvement in standard deviation
-  double std_improvement = ((non_rt_period_stats.std_dev - rt_period_stats.std_dev) / non_rt_period_stats.std_dev) * 100.0;
+  double std_improvement = ((non_rt_period_stats.std_dev - rt_period_stats.std_dev) /
+                            non_rt_period_stats.std_dev) * 100.0;
 
   std::cout << std::fixed << std::setprecision(2) << std::dec;
 
-  std::cout << "Period std comparison: " << std::setw(8) << non_rt_period_stats.std_dev << " ms → "
-            << std::setw(8) << rt_period_stats.std_dev << " ms  (" << std::showpos << std_improvement << "%)"
-            << std::endl << std::endl;
+  std::cout << "Period std comparison: " << std::setw(8) << non_rt_period_stats.std_dev
+            << " ms → " << std::setw(8) << rt_period_stats.std_dev << " ms  ("
+            << std::showpos << std_improvement << "%)" << std::endl << std::endl;
 
   std::cout << std::noshowpos;
 
@@ -578,12 +604,14 @@ int main(int argc, char* argv[]) {
     output_dir = ".";
   }
 
-  std::string plot_command = "python3 " + plot_script + " --input " + output_file + " --output-dir " + output_dir;
+  std::string plot_command = "python3 " + plot_script + " --input " + output_file +
+                             " --output-dir " + output_dir;
 
   std::cout << "\nGenerating plots..." << std::endl;
   int plot_result = std::system(plot_command.c_str());
   if (plot_result != 0) {
-    std::cerr << "Warning: Failed to generate plots. Make sure Python3 and matplotlib are installed." << std::endl;
+    std::cerr << "Warning: Failed to generate plots. Make sure Python3 and matplotlib are installed"
+              << std::endl;
   }
 
   return 0;

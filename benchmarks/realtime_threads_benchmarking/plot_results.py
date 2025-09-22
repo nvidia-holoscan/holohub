@@ -1,4 +1,18 @@
-#!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Plotting script for C++ realtime thread benchmark results.
 Reads JSON output from C++ benchmark and generates the same plots as Python version.
@@ -224,23 +238,20 @@ def create_histogram_plots(json_data, output_dir="/tmp/benchmark_plots"):
 def main():
     parser = argparse.ArgumentParser(description="Generate plots from C++ benchmark JSON results")
     parser.add_argument(
-        "--input",
-        type=str,
-        required=True,
-        help="Input JSON file from C++ benchmark"
+        "--input", type=str, required=True, help="Input JSON file from C++ benchmark"
     )
     parser.add_argument(
         "--output-dir",
         type=str,
         default="/tmp/benchmark_plots",
-        help="Output directory for plots (default: /tmp/benchmark_plots)"
+        help="Output directory for plots (default: /tmp/benchmark_plots)",
     )
 
     args = parser.parse_args()
 
     # Read JSON data
     try:
-        with open(args.input, 'r') as f:
+        with open(args.input, "r") as f:
             json_data = json.load(f)
     except FileNotFoundError:
         print(f"Error: Could not find input file {args.input}")
