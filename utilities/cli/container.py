@@ -325,8 +325,6 @@ class HoloHubContainer:
         # Environment defaults
         self.holoscan_py_exe = os.environ.get("HOLOSCAN_PY_EXE", "python3")
         self.holoscan_docker_exe = os.environ.get("HOLOSCAN_DOCKER_EXE", "docker")
-        self.holoscan_sdk_version = os.environ.get("HOLOSCAN_SDK_VERSION", "sdk-latest")
-        self.holohub_container_base_name = os.environ.get("HOLOHUB_CONTAINER_BASE_NAME", "holohub")
 
         self.project_metadata = project_metadata
         # Get first language from project metadata if not provided.
