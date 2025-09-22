@@ -66,8 +66,9 @@ target_link_libraries(object_detection_torch
     holoscan::ops::inference
     holoscan::ops::inference_processor
     holoscan::ops::holoviz
-    $<$<TARGET_EXISTS:holoscan::aja>:holoscan::aja>
+    $<TARGET_NAME_IF_EXISTS:holoscan::aja>
 )
+
 if(holoscan_VERSION GREATER 3.5)
   # Forcibly link torchvision and its required Python symbols to prevent ResNet runtime import failure
   target_link_libraries(object_detection_torch

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ target_link_libraries(multiai_ultrasound
     holoscan::ops::holoviz
     holoscan::ops::inference
     holoscan::ops::inference_processor
-    holoscan::aja
+    $<TARGET_NAME_IF_EXISTS:holoscan::aja>
     visualizer_icardio
 )
 
