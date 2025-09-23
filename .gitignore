@@ -55,3 +55,9 @@ tmp/
 
 # Licenses
 rti_license.dat
+
+# Exclude unwanted streaming operators/applications
+operators/streaming_client_04_80/
+operators/streaming_server_04_80_tensor/
+applications/streaming_client_demo_04_80_streaming/
+applications/streaming_server_demo_04_80_tensor_streaming/
