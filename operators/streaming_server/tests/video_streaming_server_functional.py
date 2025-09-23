@@ -34,6 +34,7 @@ except ImportError:
     except ImportError:
         # If we can't import either, create a minimal mock for testing
         print("Warning: StreamingServerOp not available, using mock for testing")
+
         class StreamingServerOp:
             def __init__(self, **kwargs):
                 pass

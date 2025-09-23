@@ -161,13 +161,11 @@ if(BUILD_TESTING)
       RESULT_VARIABLE PYTEST_AVAILABLE
       OUTPUT_QUIET ERROR_QUIET
     )
-    
     # Always use manual pytest test registration for reliability
     message(STATUS "Adding pytest tests manually...")
     add_test(NAME streaming_client_operator_unit_test
              COMMAND /bin/bash -c "${Python3_EXECUTABLE} -m pip install --user pytest --quiet && ${Python3_EXECUTABLE} -m pytest tests/test_streaming_client_op.py -v"
              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    
     set_tests_properties(streaming_client_operator_unit_test PROPERTIES
                          ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
                          TIMEOUT 120
@@ -213,7 +211,6 @@ if(BUILD_TESTING)
                      "${CMAKE_CURRENT_SOURCE_DIR}/testing/video_streaming_client_testing.yaml"
                      "${HOLOHUB_DATA_DIR}/endoscopy"
              WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-    
     set_tests_properties(streaming_client_operator_cpp_test PROPERTIES
                          TIMEOUT 90
                          PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingClient.*test successful"

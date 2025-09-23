@@ -19,16 +19,3 @@ project(video_streaming LANGUAGES NONE)
 add_holohub_application(video_streaming_client DEPENDS OPERATORS streaming_client)
 add_holohub_application(video_streaming_server DEPENDS OPERATORS streaming_server)
 
-# NOTE: Tests for streaming operators have been moved to their respective operator directories:
-# - Streaming Client tests: operators/streaming_client/tests/
-# - Streaming Server tests: operators/streaming_server/tests/
-#
-# This centralizes testing closer to the operator implementations and avoids duplication.
-# The video_streaming applications now focus on demo/example functionality.
-
-# Application-level integration tests can be added here in the future
-# if needed for end-to-end testing of the full application workflows.
-if(BUILD_TESTING)
-  # Future: Add application-level integration tests here
-  # These would test the complete video streaming workflow between client and server
-endif()

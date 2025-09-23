@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 from unittest.mock import Mock
-from holoscan.core import Operator, Fragment
+
+import pytest
+from holoscan.core import Operator
 
 try:
     from holoscan.core import BaseOperator
@@ -30,16 +31,20 @@ except ImportError:
     class Arg:
         def __init__(self, name):
             self.name = name
+
         def __call__(self, value):
             return (self.name, value)
 
+
 try:
     from holohub.streaming_server import StreamingServerOp
+
     REAL_OPERATOR_AVAILABLE = True
 except ImportError:
     try:
         # Try alternative import path
         from holohub.streaming_server_operator import StreamingServerOp
+
         REAL_OPERATOR_AVAILABLE = True
     except ImportError:
         REAL_OPERATOR_AVAILABLE = False
@@ -48,7 +53,7 @@ except ImportError:
 
 class MockStreamingServerOp:
     """Mock StreamingServerOp for testing when the real operator isn't available."""
-    
+
     def __init__(self, fragment=None, name="streaming_server", **kwargs):
         self.fragment = fragment
         self.name = name
@@ -56,27 +61,31 @@ class MockStreamingServerOp:
         self._spec = Mock()
         self._spec.inputs = {}
         self._spec.outputs = {}
-        self.operator_type = getattr(Operator, 'OperatorType', Mock()).NATIVE if hasattr(Operator, 'OperatorType') else Mock()
-    
+        self.operator_type = (
+            getattr(Operator, "OperatorType", Mock()).NATIVE
+            if hasattr(Operator, "OperatorType")
+            else Mock()
+        )
+
     @property
     def spec(self):
         return self._spec
-    
+
     def setup(self, spec):
         pass
-    
+
     def initialize(self):
         pass
-    
+
     def start(self):
         pass
-    
+
     def stop(self):
         pass
-    
+
     def compute(self, op_input, op_output, context):
         pass
-    
+
     def __repr__(self):
         return f"MockStreamingServerOp(name: {self.name})"
 
@@ -96,16 +105,18 @@ class TestStreamingServerOp:
         """Test basic StreamingServerOp initialization and properties."""
         name = "streaming_server_op"
         op = operator_class(fragment, name=name)
-        
+
         if REAL_OPERATOR_AVAILABLE:
             assert isinstance(op, BaseOperator), "StreamingServerOp should be a Holoscan operator"
-            assert op.operator_type == Operator.OperatorType.NATIVE, "Operator type should be NATIVE"
+            assert (
+                op.operator_type == Operator.OperatorType.NATIVE
+            ), "Operator type should be NATIVE"
         assert f"name: {name}" in repr(op), "Operator name should appear in repr()"
 
     def test_streaming_server_op_init_with_default_name(self, fragment, operator_class):
         """Test StreamingServerOp initialization with default name."""
         op = operator_class(fragment=fragment)
-        
+
         if REAL_OPERATOR_AVAILABLE:
             assert isinstance(op, BaseOperator), "StreamingServerOp should be a Holoscan operator"
         assert "streaming_server" in repr(op), "Default name should be 'streaming_server'"
@@ -114,17 +125,21 @@ class TestStreamingServerOp:
         """Test StreamingServerOp setup - should have no input/output ports (standalone operator)."""
         op = operator_class(fragment=fragment, name="test_streaming_server")
         spec = op.spec
-        
+
         # StreamingServerOp is a standalone operator with no pipeline ports
         # It communicates via network, not through Holoscan ports
-        assert len(spec.inputs) == 0, "StreamingServerOp should have no input ports (standalone operator)"
-        assert len(spec.outputs) == 0, "StreamingServerOp should have no output ports (standalone operator)"
+        assert (
+            len(spec.inputs) == 0
+        ), "StreamingServerOp should have no input ports (standalone operator)"
+        assert (
+            len(spec.outputs) == 0
+        ), "StreamingServerOp should have no output ports (standalone operator)"
 
     def test_streaming_server_op_basic_initialization(self, fragment, operator_class):
         """Test StreamingServerOp basic initialization without custom parameters."""
         # Test with default parameters - this is what the real operator supports
         op = operator_class(fragment, name="test_streaming_server")
-        
+
         assert isinstance(op, BaseOperator), "StreamingServerOp should be a Holoscan operator"
         # Note: The real operator uses default parameters defined in setup() method
 
@@ -132,57 +147,48 @@ class TestStreamingServerOp:
         """Test StreamingServerOp initialization with custom name."""
         custom_name = "custom_streaming_server"
         op = operator_class(fragment, name=custom_name)
-        
+
         assert isinstance(op, BaseOperator), "StreamingServerOp should be a Holoscan operator"
 
     def test_streaming_server_op_default_initialization(self, fragment, operator_class):
         """Test StreamingServerOp initialization with default settings."""
         op = operator_class(fragment, name="default_streaming_server")
-        
+
         assert isinstance(op, BaseOperator), "StreamingServerOp should be a Holoscan operator"
         # Test that initialization completes without errors
-
-    def test_streaming_server_op_multiple_instances(self, fragment, operator_class):
-        """Test creating multiple StreamingServerOp instances."""
-        op1 = operator_class(fragment, name="server1")
-        op2 = operator_class(fragment, name="server2")
-        
-        assert isinstance(op1, BaseOperator), "First StreamingServerOp should be valid"
-        assert isinstance(op2, BaseOperator), "Second StreamingServerOp should be valid"
-        # Both should be separate instances
 
     def test_streaming_server_op_is_holoscan_operator(self, fragment, operator_class):
         """Test that StreamingServerOp is indeed a Holoscan operator."""
         op = operator_class(fragment, name="test_streaming_server")
-        
+
         # Should inherit from Holoscan's base operator class
         assert isinstance(op, BaseOperator), "StreamingServerOp should inherit from BaseOperator"
 
     def test_streaming_server_op_parameters_not_directly_accessible(self, fragment, operator_class):
         """Test that StreamingServerOp parameters are properly encapsulated."""
         op = operator_class(fragment, name="test_streaming_server")
-        
+
         # Parameters should be encapsulated and not directly accessible
         # This is expected behavior for Holoscan operators
-        assert not hasattr(op, 'width'), "Width parameter should be encapsulated"
-        assert not hasattr(op, 'height'), "Height parameter should be encapsulated" 
-        assert not hasattr(op, 'fps'), "FPS parameter should be encapsulated"
+        assert not hasattr(op, "width"), "Width parameter should be encapsulated"
+        assert not hasattr(op, "height"), "Height parameter should be encapsulated"
+        assert not hasattr(op, "fps"), "FPS parameter should be encapsulated"
 
     def test_streaming_server_op_lifecycle_methods_exist(self, fragment, operator_class):
         """Test that StreamingServerOp has required lifecycle methods."""
         op = operator_class(fragment=fragment, name="test_streaming_server")
-        
+
         # Verify lifecycle methods exist
-        assert hasattr(op, 'setup'), "StreamingServerOp should have setup method"
-        assert hasattr(op, 'initialize'), "StreamingServerOp should have initialize method"
-        assert hasattr(op, 'start'), "StreamingServerOp should have start method"
-        assert hasattr(op, 'stop'), "StreamingServerOp should have stop method"
-        assert hasattr(op, 'compute'), "StreamingServerOp should have compute method"
+        assert hasattr(op, "setup"), "StreamingServerOp should have setup method"
+        assert hasattr(op, "initialize"), "StreamingServerOp should have initialize method"
+        assert hasattr(op, "start"), "StreamingServerOp should have start method"
+        assert hasattr(op, "stop"), "StreamingServerOp should have stop method"
+        assert hasattr(op, "compute"), "StreamingServerOp should have compute method"
 
     def test_streaming_server_op_setup_call(self, fragment, operator_class):
         """Test that StreamingServerOp setup method can be called."""
         op = operator_class(fragment, name="test_streaming_server")
-        
+
         # Setup should be callable without raising exceptions
         # Note: We don't call it here as it's automatically called during operator creation
         assert callable(op.setup), "Setup method should be callable"
@@ -191,7 +197,7 @@ class TestStreamingServerOp:
         """Test creating multiple StreamingServerOp instances."""
         op1 = operator_class(fragment, name="server1")
         op2 = operator_class(fragment, name="server2")
-        
+
         assert op1 != op2, "Different instances should not be equal"
         assert isinstance(op1, BaseOperator), "First instance should be valid operator"
         assert isinstance(op2, BaseOperator), "Second instance should be valid operator"
@@ -201,7 +207,7 @@ class TestStreamingServerOp:
         name = "test_streaming_server"
         op = operator_class(fragment, name=name)
         repr_str = repr(op)
-        
+
         assert name in repr_str, "Operator name should appear in repr"
         # The repr may not contain the exact class name, just verify it's a valid representation
         assert len(repr_str) > 10, "Operator repr should contain meaningful information"
@@ -216,26 +222,26 @@ class TestStreamingServerOp:
         """Test StreamingServerOp with long name."""
         long_name = "very_long_streaming_server_name_that_should_still_work"
         op = operator_class(fragment, name=long_name)
-        
+
         assert isinstance(op, BaseOperator), "StreamingServerOp should handle long names"
 
     def test_streaming_server_op_compute_method_callable(self, fragment, operator_class):
         """Test that StreamingServerOp compute method is callable (standalone operator)."""
         op = operator_class(fragment, name="test_streaming_server")
-        
+
         # For standalone operators, compute should be callable but may not do much without network clients
         assert callable(op.compute), "Compute method should be callable"
-        
+
         # Note: We don't actually call compute here as it requires proper initialization
         # and network setup, which is complex for unit testing
 
     def test_streaming_server_op_default_parameter_values(self, fragment, operator_class):
         """Test StreamingServerOp uses appropriate default values."""
         op = operator_class(fragment, name="default_server")
-        
+
         # Operator should initialize successfully with defaults
         assert isinstance(op, BaseOperator), "StreamingServerOp should work with default parameters"
-        
+
         # Note: Default values are typically:
-        # width=854, height=480, fps=30, port=48010, multi_instance=false, 
+        # width=854, height=480, fps=30, port=48010, multi_instance=false,
         # server_name="StreamingServer", receive_frames=true, send_frames=true

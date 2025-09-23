@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+%YAML 1.2
+---
+# Basic test configuration - minimal setup for quick validation
+application:
+  title: Basic Test Config
+  version: 1.0
+  log_level: INFO
+
+streaming_server:
+  width: 640
+  height: 480
+  fps: 15
+  port: 48011
+  multi_instance: false
+  server_name: "BasicTest"
+  receive_frames: true
+  send_frames: true
+  allocator: !ref "allocator"
+
+allocator:
+  type: "holoscan::UnboundedAllocator"
+
+scheduler: "default"
+tracking: false
+log_level: "INFO"

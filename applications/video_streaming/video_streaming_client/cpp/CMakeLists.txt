@@ -124,8 +124,6 @@ install(
     DESTINATION bin
 )
 
-# NOTE: Tests for streaming_client have been moved to operators/streaming_client/tests/
-# This application now focuses on demo functionality only.
 
 
 
