@@ -1,8 +1,15 @@
 # StreamingClient Operator Testing
 
-## Unit Tests
+## Overview
 
-This directory contains comprehensive unit tests for the `StreamingClientOp` Python operator.
+This directory contains comprehensive tests for the `StreamingClientOp` operator, covering both **Python** and **C++** implementations:
+
+- **Python Unit Tests** (pytest): Test Python operator bindings and parameter validation
+- **Python Infrastructure Tests**: Test Python demo applications without video data
+- **Python Functional Tests**: Test Python applications with real video data
+- **C++ Infrastructure Tests** (CTest): Test C++ demo applications and operator functionality
+
+## Python Unit Tests
 
 ### Test File: `test_streaming_client_op.py`
 
@@ -58,43 +65,127 @@ Contains functional and integration tests for complete streaming workflows:
 
 ### Running the Tests
 
-#### Unit Tests:
-```bash
-# From repository root
-pytest operators/streaming_client/test_streaming_client_op.py -v
+## **Test 1: Python Unit Tests**
 
-# From StreamingClient directory
-cd operators/streaming_client/
-pytest test_streaming_client_op.py -v
+**Purpose:** Validate StreamingClientOp Python operator creation, parameter validation, and lifecycle methods
+
+**What it Tests:**
+- Operator initialization with various parameters (video resolution, network settings, frame modes)
+- Parameter encapsulation and validation
+- Lifecycle method existence (setup, initialize, start, stop, compute)
+- Multiple operator instances
+- Edge cases and error handling
+
+**How to build and run the test:**
+```bash
+./holohub test video_streaming_client --verbose
 ```
 
-#### Integration Tests:
+**Expected Outcome:** 
+- All 28+ unit tests pass
+- Test execution completes in < 1 second
+- No import or initialization errors
+
+**Acceptance Criteria:**
+- ✅ All pytest assertions pass
+- ✅ Mock fallback works when real operator unavailable
+- ✅ Parameter validation catches invalid inputs
+- ✅ Multiple operator instances can be created
+
+## **Test 2: Python Infrastructure Tests**
+
+**Purpose:** Basic Python functionality validation without video data
+
+**What it Tests:**
+- StreamingClient operator can start and initialize properly
+- Network configuration and connection setup
+- Graceful shutdown and cleanup
+- Basic pipeline functionality
+
+**How to build and run the test:**
 ```bash
-# Python infrastructure test
-bash operators/streaming_client/tests/run_test.sh \
-  operators/streaming_client/python/streaming_client_demo.py
+./holohub test video_streaming_client --verbose
+```
 
-# Python functional test (requires video data)
-bash operators/streaming_client/tests/run_functional_test.sh \
-  build/operators/streaming_client/python \
-  operators/streaming_client/tests/video_streaming_client_functional.py \
-  data/endoscopy
+**Expected Outcome:**
+- Test passes within 30-120 seconds
+- StreamingClient initializes successfully
+- No critical errors during startup/shutdown
 
-# C++ test (requires built streaming_client_demo)
-bash operators/streaming_client/tests/run_cpp_test.sh \
-  build/applications/video_streaming/video_streaming_client/cpp/streaming_client_demo \
-  operators/streaming_client/testing/video_streaming_client_testing.yaml \
-  data/endoscopy
+**Acceptance Criteria:**
+- ✅ "Test PASSED: StreamingClient functionality validated" message appears
+- ✅ No fatal errors or exceptions
+- ✅ Clean shutdown without hanging
+
+## **Test 3: Python Functional Tests**
+
+**Purpose:** End-to-end Python streaming functionality with real video data
+
+**What it Tests:**
+- StreamingClient processing with actual video frames
+- Client-server communication protocols
+- Video data handling and frame processing
+- Performance under realistic conditions
+
+**How to build and run the test:**
+```bash
+./holohub test video_streaming_client --verbose
+```
+
+**Expected Outcome:**
+- Test passes within 60-120 seconds
+- Video frames processed successfully
+- Client connects to server and streams data
+
+**Acceptance Criteria:**
+- ✅ "FUNCTIONAL test.*successful" regex match
+- ✅ Video data directory found and used
+- ✅ No streaming protocol errors
+
+## **Test 4: C++ Infrastructure Tests**
+
+**Purpose:** Validate C++ StreamingClient demo application functionality
+
+**What it Tests:**
+- C++ implementation of streaming client
+- Binary executable functionality
+- Configuration file loading
+- C++ operator integration
+
+**How to build and run the test:**
+```bash
+./holohub test video_streaming_client --verbose
+```
+
+**Expected Outcome:**
+- C++ executable runs successfully
+- Configuration loads properly
+- Test completes within 90 seconds
+
+**Acceptance Criteria:**
+- ✅ "Test PASSED: C\\+\\+ StreamingClient.*test successful" regex match
+- ✅ No compilation or runtime errors
+- ✅ Clean application shutdown
+
+## **Quick Test Commands Summary:**
+
+```bash
+# Run all StreamingClient tests
+./holohub test video_streaming_client --verbose
 ```
 
 ### Test Categories
 
-| Category | Test Count | Purpose |
-|----------|------------|---------|
-| **Unit Tests** | 20+ tests | Operator creation, parameter validation, structure |
-| **Infrastructure Tests** | 2 tests | Basic functionality without video data |
-| **Functional Tests** | 2 tests | End-to-end streaming with real video data |
-| **Golden Frame Tests** | 1 test | Visual regression testing |
+| Test Type | Category | Test Count | Purpose |
+|-----------|----------|------------|---------|
+| **Python Unit** | Initialization | 15 tests | Operator creation with various parameters |
+| **Python Unit** | Port Setup | 1 test | Input port validation (video input) |
+| **Python Unit** | Error Handling | 4 tests | Invalid parameter handling |
+| **Python Unit** | Edge Cases | 6 tests | Boundary conditions and special cases |
+| **Python Unit** | Architecture | 6+ tests | Operator structure and lifecycle |
+| **Python Infrastructure** | Runtime | 1 test | Basic client startup without video data |
+| **Python Functional** | Data Processing | 1 test | Client with video data processing |
+| **C++ Infrastructure** | Runtime | 1 test | C++ demo application functionality |
 
 ### Key Testing Insights
 
@@ -155,4 +246,4 @@ def test_streaming_client_op_init_basic(self, fragment):
 - Tests focus on **unit testing** (operator creation/validation) and **integration testing** (streaming workflows)
 - **Network testing** requires server infrastructure and is typically done in integration environments
 - Tests are designed to work with standard HoloHub fixtures from `conftest.py`
-- All tests follow HoloHub testing best practices and conventions
+
