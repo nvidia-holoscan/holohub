@@ -124,45 +124,8 @@ install(
     DESTINATION bin
 )
 
-# Enable testing
-include(CTest)
-
-# Testing infrastructure
-if(BUILD_TESTING)
-  # Copy test configuration file
-  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../testing/video_streaming_client_testing.yaml")
-    add_custom_command(TARGET streaming_client_demo POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../testing/video_streaming_client_testing.yaml" "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_client_testing.yaml"
-    )
-  endif()
-
-  # Create fallback video data for VideoStreamReplayer when real data is not available
-  # This prevents the C++ app from crashing when it can't find video files
-  file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/data)
-  file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_index)
-  file(TOUCH ${CMAKE_SOURCE_DIR}/data/surgical_video.gxf_entities)
-  # Use real endoscopy video data for functional testing when available
-  # The test system automatically provides real video data at ${HOLOHUB_DATA_DIR}/endoscopy
-  # which contains surgical_video.gxf_index and surgical_video.gxf_entities with real frame data
-
-  # Add C++ test
-  add_test(NAME video_streaming_client_cpp_test
-           COMMAND ${CMAKE_COMMAND} -E env
-                   "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_client:${CMAKE_BINARY_DIR}/operators/streaming_client/lib:${CMAKE_SOURCE_DIR}/operators/streaming_client/lib:${CMAKE_BINARY_DIR}/lib:$ENV{LD_LIBRARY_PATH}"
-                   bash "${CMAKE_CURRENT_SOURCE_DIR}/run_test.sh"
-                   "$<TARGET_FILE:streaming_client_demo>"
-                   "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_client_testing.yaml"
-                   "${HOLOHUB_DATA_DIR}/endoscopy"
-          )
-
-  # Set test properties including library path and pass/fail criteria
-  set_tests_properties(video_streaming_client_cpp_test PROPERTIES
-                       ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_client:${CMAKE_BINARY_DIR}/operators/streaming_client/lib:${CMAKE_SOURCE_DIR}/operators/streaming_client/lib:${CMAKE_BINARY_DIR}/lib:$ENV{LD_LIBRARY_PATH}"
-                       TIMEOUT 90
-                       PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingClient.*test successful"
-                       FAIL_REGULAR_EXPRESSION "Test FAILED:")
-
-endif()
+# NOTE: Tests for streaming_client have been moved to operators/streaming_client/tests/
+# This application now focuses on demo functionality only.
 
 
 
