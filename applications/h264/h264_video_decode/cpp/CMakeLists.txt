@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(h264_video_decode CXX)
 
-find_package(holoscan 2.1.0 REQUIRED CONFIG
+find_package(holoscan 3.6.1 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(h264_video_decode

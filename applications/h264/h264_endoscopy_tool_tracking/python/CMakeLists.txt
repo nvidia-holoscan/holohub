@@ -14,7 +14,7 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 3.20)
 
-find_package(holoscan 2.1.0 REQUIRED CONFIG
+find_package(holoscan 3.6.1 REQUIRED CONFIG
   PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Enable the operators

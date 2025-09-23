@@ -25,6 +25,16 @@ FROM ${BASE_IMAGE} as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+# Starting from Holoscan SDK 3.6.0, only CUDA 13 is supported.
+# To run H.264 application with CUDA 12, please use tags with holoscan-sdk-3.5.0 or earlier.
+RUN CUDA_VERSION_MAJOR=$(echo $CUDA_VERSION | cut -d '.' -f 1) \
+    && if [ "$CUDA_VERSION_MAJOR" != "13" ]; then \
+        echo "CUDA version $CUDA_VERSION is not supported."; \
+        echo "Starting from Holoscan SDK 3.6.0, H.264 applications only support CUDA 13 or higher."; \
+        echo "To run H.264 application with CUDA 12, please use tags with holoscan-sdk-3.5.0 or earlier."; \
+        exit 1; \
+    fi
+
 # --------------------------------------------------------------------------
 #
 # Holohub dev setup 
@@ -65,3 +75,5 @@ WORKDIR /
 #ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 
 RUN /install_dependencies.sh
+
+ENV LD_PRELOAD=/opt/nvidia/holoscan/lib/libgxf_core.so
