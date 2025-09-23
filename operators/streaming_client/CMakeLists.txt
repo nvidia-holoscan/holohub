@@ -168,10 +168,10 @@ if(HOLOHUB_DOWNLOAD_DATASETS AND BUILD_TESTING)
   )
   # Create a symlink to make the data easily accessible at the expected location
   add_custom_command(TARGET endoscopy_data POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink 
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
             ${CMAKE_BINARY_DIR}/data/endoscopy/surgical_video.gxf_entities
             ${CMAKE_BINARY_DIR}/data/surgical_video.gxf_entities
-    COMMAND ${CMAKE_COMMAND} -E create_symlink 
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
             ${CMAKE_BINARY_DIR}/data/endoscopy/surgical_video.gxf_index
             ${CMAKE_BINARY_DIR}/data/surgical_video.gxf_index
     COMMENT "Creating symlinks for surgical video data"
@@ -244,7 +244,6 @@ if(BUILD_TESTING)
                          TIMEOUT 90
                          PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingClient.*test successful"
                          FAIL_REGULAR_EXPRESSION "Test FAILED:")
-    
     # Make the C++ test depend on the data download if data downloading is enabled
     if(HOLOHUB_DOWNLOAD_DATASETS AND TARGET endoscopy_data)
       set_tests_properties(streaming_client_operator_cpp_test PROPERTIES
