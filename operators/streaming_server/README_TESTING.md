@@ -47,7 +47,7 @@ The test suite covers:
 
 ### Running the Tests
 
-## **Test 1: Python Unit Tests**
+## **Unit Test 1**
 
 **Purpose:** Validate StreamingServerOp Python operator creation, parameter validation, and lifecycle methods
 
@@ -58,23 +58,25 @@ The test suite covers:
 - Multiple operator instances
 - Mock operator fallback for testing environments
 
-**How to build and run the test:**
+**Expected Outcome:**
+- All 16 unit tests pass in 0.04 seconds
+- Test execution completes quickly
+- Mock fallback works when real operator unavailable
+- Output: `============================== 16 passed in 0.04s ==============================`
+
+**Acceptance Criteria:**
+- ✅ All 16 pytest assertions pass
+- ✅ No import or initialization errors
+- ✅ Test completes in under 1 second
+- ✅ Mock fallback works when real operator unavailable
+- ✅ Output contains "16 passed" message
+
+**How to Build & Execute the Test:**
 ```bash
 ./holohub test video_streaming_server --verbose
 ```
 
-**Expected Outcome:**
-- All 16 unit tests pass in ~0.04 seconds
-- Test execution completes quickly
-- Mock fallback works when real operator unavailable
-
-**Acceptance Criteria:**
-- ✅ `16 passed in 0.04s` pytest output
-- ✅ No import or initialization errors
-- ✅ All operator creation tests pass
-- ✅ String representation test passes
-
-## **Test 2: Python Infrastructure Tests**
+## **Unit Test 2**
 
 **Purpose:** Basic StreamingServer Python functionality validation without video data
 
@@ -84,23 +86,32 @@ The test suite covers:
 - Server configuration validation (854x480, 30fps)
 - Graceful shutdown and cleanup processes
 
-**How to build and run the test:**
+**Expected Outcome:**
+- Test passes in ~30.7 seconds
+- Server starts successfully on port 48010
+- Timeout after 30 seconds is expected (normal behavior)
+- Output: `Test PASSED: StreamingServer functionality validated successfully (timeout expected)`
+
+**Expected Behavior (Normal Operation):**
+Since there are no streaming clients connecting during tests, the server behavior is expected:
+- Server starts and listens on port 48010
+- Server waits for client connections (timeout after 30 seconds is normal)
+- No connection errors since the server is waiting, not attempting connections
+
+**Acceptance Criteria:**
+- ✅ "StreamingServer functionality validated successfully" message appears
+- ✅ Server starts and listens on port 48010
+- ✅ "✅ StreamingServer started successfully and is running" log message
+- ✅ Server status shows "Is running: YES"
+- ✅ Timeout behavior is expected (no clients connecting)
+- ✅ Clean shutdown and destructor completion
+
+**How to Build & Execute the Test:**
 ```bash
 ./holohub test video_streaming_server --verbose
 ```
 
-**Expected Outcome:**
-- Test passes within 30-120 seconds
-- Server starts successfully on port 48010
-- Timeout after 30 seconds is expected (normal behavior)
-
-**Acceptance Criteria:**
-- ✅ "✅ StreamingServer started successfully and is running" log message
-- ✅ "Test PASSED: StreamingServer functionality validated successfully" output
-- ✅ Server status shows "Is running: YES"
-- ✅ Clean shutdown and destructor completion
-
-## **Test 3: Python Functional Tests**
+## **Unit Test 3**
 
 **Purpose:** StreamingServer Python functionality with video data directory detection
 
@@ -110,23 +121,33 @@ The test suite covers:
 - Functional test mode with data directory setup
 - Client connection readiness
 
-**How to build and run the test:**
+**Expected Outcome:**
+- Test passes in ~60.7 seconds
+- Video data directory detected and configured (/workspace/holohub/data)
+- Server ready for client connections
+- Output: `✅ FUNCTIONAL test PASSED: Python StreamingServer with data directory successful`
+
+**Expected Behavior (Normal Operation):**
+Since there are no streaming clients connecting during tests, the server behavior is expected:
+- Server starts and waits for client connections
+- Video data is loaded and ready for streaming
+- Timeout after 60 seconds is normal (no clients connecting)
+- No connection errors since the server is in listening mode
+
+**Acceptance Criteria:**
+- ✅ "FUNCTIONAL test PASSED: Python StreamingServer with data directory successful" message
+- ✅ "Available video data" and "ready to accept client connections" messages
+- ✅ Video data directory found and configured
+- ✅ Server starts and listens for client connections
+- ✅ Timeout behavior is expected (no clients connecting)
+- ✅ No critical streaming errors
+
+**How to Build & Execute the Test:**
 ```bash
 ./holohub test video_streaming_server --verbose
 ```
 
-**Expected Outcome:**
-- Test passes within 60-120 seconds
-- Video data directory detected and configured
-- Server ready for client connections
-
-**Acceptance Criteria:**
-- ✅ "🎬 FUNCTIONAL test: StreamingServer with data directory available" message
-- ✅ "✅ FUNCTIONAL test PASSED: Python StreamingServer with data directory successful"
-- ✅ "Available video data" and "ready to accept client connections" messages
-- ✅ Server starts and listens for client connections
-
-## **Test 4: C++ Infrastructure Tests**
+## **Unit Test 4**
 
 **Purpose:** Validate C++ StreamingServer demo application functionality
 
@@ -136,23 +157,32 @@ The test suite covers:
 - C++ operator integration and initialization
 - Server startup and graceful shutdown in C++
 
-**How to build and run the test:**
+**Expected Outcome:**
+- Test passes in ~30.9 seconds
+- C++ executable runs successfully
+- Configuration loads from YAML file
+- Output: `Test PASSED: C++ StreamingServer test successful`
+
+**Expected Behavior (Normal Operation):**
+Since there are no streaming clients connecting during tests, the server behavior is expected:
+- Server starts and waits for client connections
+- Timeout after 30 seconds is normal (no clients connecting)
+- No connection errors since the server is in listening mode
+
+**Acceptance Criteria:**
+- ✅ "Test PASSED: C++ StreamingServer test successful" message appears
+- ✅ "Streaming Server Test Application" startup message
+- ✅ "Successfully loaded configuration" message
+- ✅ Server starts, runs, and stops cleanly
+- ✅ Timeout behavior is expected (no clients connecting)
+- ✅ No compilation or runtime errors
+
+**How to Build & Execute the Test:**
 ```bash
 ./holohub test video_streaming_server --verbose
 ```
 
-**Expected Outcome:**
-- C++ executable runs successfully
-- Configuration loads from YAML file
-- Test completes within 30-120 seconds
-
-**Acceptance Criteria:**
-- ✅ "Streaming Server Test Application" startup message
-- ✅ "Successfully loaded configuration" message
-- ✅ "Test PASSED: C++ StreamingServer test successful" output
-- ✅ Server starts, runs, and stops cleanly
-
-## **Test 5: C++ Functional Tests**
+## **Unit Test 5**
 
 **Purpose:** End-to-end C++ StreamingServer with real video data
 
@@ -162,21 +192,31 @@ The test suite covers:
 - Complete streaming server workflow in C++
 - Performance under realistic data conditions
 
-**How to build and run the test:**
+**Expected Outcome:**
+- Test passes in ~60.7 seconds
+- Real video data processed successfully
+- Full functional streaming server capability demonstrated
+- Output: `✅ FUNCTIONAL test PASSED: C++ StreamingServer with data directory successful`
+
+**Expected Behavior (Normal Operation):**
+Since there are no streaming clients connecting during tests, the server behavior is expected:
+- Server starts with real video data loaded
+- Server waits for client connections with video ready to stream
+- Timeout after 60 seconds is normal (no clients connecting)
+- No connection errors since the server is in listening mode
+
+**Acceptance Criteria:**
+- ✅ "FUNCTIONAL test PASSED: C++ StreamingServer with data directory successful" message
+- ✅ "🎬 FUNCTIONAL test: Using real video data" message
+- ✅ Video data size information displayed
+- ✅ Server accepts client connections and processes video streams
+- ✅ Timeout behavior is expected (no clients connecting)
+- ✅ Complete streaming server workflow demonstrated
+
+**How to Build & Execute the Test:**
 ```bash
 ./holohub test video_streaming_server --verbose
 ```
-
-**Expected Outcome:**
-- Test passes within 60-120 seconds
-- Real video data processed successfully
-- Full functional streaming server capability demonstrated
-
-**Acceptance Criteria:**
-- ✅ "🎬 FUNCTIONAL test: Using real video data" message
-- ✅ "✅ FUNCTIONAL test PASSED: C++ StreamingServer with data directory successful"
-- ✅ Video data size information displayed
-- ✅ Server accepts client connections and processes video streams
 
 ## **Quick Test Commands Summary:**
 
