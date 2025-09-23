@@ -76,4 +76,3 @@ WORKDIR /
 
 RUN /install_dependencies.sh
 
-ENV LD_PRELOAD=/opt/nvidia/holoscan/lib/libgxf_core.so
