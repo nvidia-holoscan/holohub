@@ -1,0 +1,119 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+%YAML 1.2
+---
+# Application configuration
+application:
+  title: Video Streaming Client Test App
+  version: 1.0
+  log_level: INFO
+
+extensions:
+  - libgxf_std.so
+  - libgxf_cuda.so
+
+source: "replayer"
+
+# Video replayer configuration
+video_replayer:
+  directory: "/workspace/holohub/data/endoscopy"
+  basename: "surgical_video"
+  frame_rate: 30
+  repeat: true
+  realtime: true
+  count: 10
+
+# Legacy replayer configuration (kept for compatibility)
+replayer:
+  directory: "/workspace/holohub/data/endoscopy"
+  basename: "surgical_video"
+  frame_rate: 30
+  repeat: true
+  realtime: true
+  count: 10
+
+# Format converter configuration for uint8 output (HoloViz compatible)
+format_converter:
+  out_tensor_name: tensor
+  out_dtype: "uint8"
+
+# Streaming client settings
+streaming_client:
+  # Video/stream parameters
+  width: 854
+  height: 480
+  fps: 30
+  
+  # Server connection settings
+  server_ip: "127.0.0.1"
+  signaling_port: 48010  # Changed back to match server port
+  
+  # Operation mode
+  receive_frames: true
+  send_frames: true
+  
+  # Advanced options
+  #timeout_ms: 5000
+  #reconnect_attempts: 3
+  #buffer_size: 10
+
+# Visualization options
+visualize_frames: true
+
+# HoloViz configuration (used only if visualize_frames is true)
+holoviz:
+  # Window size and title
+  width: 854  
+  height: 480
+  window_title: "Video Streaming Client Test - With Streaming Client (Simplified)"
+  
+  # Rendering parameters for streaming client output
+  headless: false
+  
+  # Tensor specifications for streaming client output
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0
+
+# Optional scheduler configuration
+# Use one of: "default", "multi_thread", "event_based", "greedy"
+scheduler: "greedy"
+
+# Multi-thread scheduler configuration (if using it)
+multi_thread_scheduler:
+  worker_thread_number: 4
+  stop_on_deadlock: false
+  stop_on_deadlock_timeout: 1000
+
+# Event-based scheduler configuration (if using it)
+event_based_scheduler:
+  stop_on_deadlock: false
+  stop_on_deadlock_timeout: 1000
+
+# Greedy scheduler configuration (if using custom parameters)
+greedy_scheduler:
+  max_duration_ms: 1000
+
+# Video recorder configuration for testing
+video_recorder:
+  directory: "./recording_output"
+  basename: "streaming_client_demo_output"
+  record_type: "visualizer"
+
+# Enable data flow tracking for debugging/profiling
+tracking: false 
