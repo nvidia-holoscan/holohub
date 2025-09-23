@@ -263,5 +263,95 @@ if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
 endif()
 
+# Testing infrastructure
+include(CTest)
+if(BUILD_TESTING)
+  # Register individual pytest tests with CTest using HoloHub's standard method
+  find_package(Python3 COMPONENTS Interpreter)
+  if(Python3_FOUND)
+    # Check if pytest is available
+    execute_process(
+      COMMAND ${Python3_EXECUTABLE} -c "import pytest"
+      RESULT_VARIABLE PYTEST_AVAILABLE
+      OUTPUT_QUIET ERROR_QUIET
+    )
+    
+    # Always use manual pytest test registration for reliability
+    message(STATUS "Adding pytest tests manually...")
+    add_test(NAME streaming_server_operator_unit_test
+             COMMAND /bin/bash -c "${Python3_EXECUTABLE} -m pip install --user pytest --quiet && ${Python3_EXECUTABLE} -m pytest tests/test_streaming_server_op.py -v"
+             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    
+    set_tests_properties(streaming_server_operator_unit_test PROPERTIES
+                         ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+                         TIMEOUT 120
+                         PASS_REGULAR_EXPRESSION "passed"
+                         FAIL_REGULAR_EXPRESSION "failed|ERROR")
+  endif()
+
+  # Infrastructure tests (basic functionality without video data)
+  add_test(NAME streaming_server_operator_infrastructure_test
+           COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_test.sh"
+                   "${CMAKE_BINARY_DIR}/applications/video_streaming/video_streaming_server/python"
+                   "${CMAKE_BINARY_DIR}/applications/video_streaming/video_streaming_server/python/streaming_server_demo.py"
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+  set_tests_properties(streaming_server_operator_infrastructure_test PROPERTIES
+                       ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+                       TIMEOUT 120
+                       PASS_REGULAR_EXPRESSION "Test PASSED: StreamingServer functionality validated"
+                       FAIL_REGULAR_EXPRESSION "Test FAILED:")
+
+  # Functional tests (with real video data, if available)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/video_streaming_server_functional.py")
+    add_test(NAME streaming_server_operator_functional_test
+             COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_functional_test.sh"
+                     "${CMAKE_BINARY_DIR}/operators/streaming_server/python"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/tests/video_streaming_server_functional.py"
+                     "${HOLOHUB_DATA_DIR}/endoscopy"
+             WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+    set_tests_properties(streaming_server_operator_functional_test PROPERTIES
+                         ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+                         TIMEOUT 120
+                         PASS_REGULAR_EXPRESSION "FUNCTIONAL test.*successful"
+                         FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
+  endif()
+
+  # C++ tests (if streaming_server_demo target exists)
+  if(TARGET streaming_server_demo)
+    add_test(NAME streaming_server_operator_cpp_test
+             COMMAND ${CMAKE_COMMAND} -E env
+                     "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_server:${CMAKE_BINARY_DIR}/operators/streaming_server/lib:${CMAKE_SOURCE_DIR}/operators/streaming_server/lib:${CMAKE_BINARY_DIR}/lib:$ENV{LD_LIBRARY_PATH}"
+                     bash "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_cpp_test.sh"
+                     "$<TARGET_FILE:streaming_server_demo>"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/testing/video_streaming_server_testing.yaml"
+                     "${HOLOHUB_DATA_DIR}/endoscopy"
+             WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+    set_tests_properties(streaming_server_operator_cpp_test PROPERTIES
+                         TIMEOUT 120
+                         PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingServer.*test successful"
+                         FAIL_REGULAR_EXPRESSION "Test FAILED:")
+
+    # C++ functional test (if script exists)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_cpp_functional_test.sh")
+      add_test(NAME streaming_server_operator_cpp_functional_test
+               COMMAND ${CMAKE_COMMAND} -E env
+                       "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/operators/streaming_server:${CMAKE_BINARY_DIR}/operators/streaming_server/lib:${CMAKE_SOURCE_DIR}/operators/streaming_server/lib:${CMAKE_BINARY_DIR}/lib:$ENV{LD_LIBRARY_PATH}"
+                       bash "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_cpp_functional_test.sh"
+                       "$<TARGET_FILE:streaming_server_demo>"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/testing/video_streaming_server_testing.yaml"
+                       "${HOLOHUB_DATA_DIR}/endoscopy"
+               WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+      set_tests_properties(streaming_server_operator_cpp_functional_test PROPERTIES
+                           TIMEOUT 120
+                           PASS_REGULAR_EXPRESSION "FUNCTIONAL test.*successful"
+                           FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
+    endif()
+  endif()
+endif()
+
 # Print status message
 message(STATUS "StreamingServer operator configuration complete.")
