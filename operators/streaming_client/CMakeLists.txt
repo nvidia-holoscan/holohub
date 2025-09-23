@@ -198,8 +198,8 @@ if(BUILD_TESTING)
     set_tests_properties(streaming_client_operator_unit_test PROPERTIES
                          ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
                          TIMEOUT 120
-                         PASS_REGULAR_EXPRESSION "passed"
-                         FAIL_REGULAR_EXPRESSION "failed|ERROR")
+                         PASS_REGULAR_EXPRESSION "14 passed"
+                         FAIL_REGULAR_EXPRESSION "failed|FAILED|ERROR")
   endif()
 
   # Infrastructure tests (basic functionality without video data)
@@ -211,7 +211,7 @@ if(BUILD_TESTING)
   set_tests_properties(streaming_client_operator_infrastructure_test PROPERTIES
                        ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
                        TIMEOUT 120
-                       PASS_REGULAR_EXPRESSION "Test PASSED: StreamingClient functionality validated"
+                       PASS_REGULAR_EXPRESSION "StreamingClient functionality validated successfully"
                        FAIL_REGULAR_EXPRESSION "Test FAILED:")
 
   # Functional tests (with real video data, if available)
@@ -226,7 +226,7 @@ if(BUILD_TESTING)
     set_tests_properties(streaming_client_operator_functional_test PROPERTIES
                          ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
                          TIMEOUT 120
-                         PASS_REGULAR_EXPRESSION "FUNCTIONAL test.*successful"
+                         PASS_REGULAR_EXPRESSION "FUNCTIONAL test PASSED"
                          FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
   endif()
 
@@ -242,7 +242,7 @@ if(BUILD_TESTING)
              WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
     set_tests_properties(streaming_client_operator_cpp_test PROPERTIES
                          TIMEOUT 90
-                         PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingClient.*test successful"
+                         PASS_REGULAR_EXPRESSION "C\\+\\+ StreamingClient.*test successful"
                          FAIL_REGULAR_EXPRESSION "Test FAILED:")
     # Make the C++ test depend on the data download if data downloading is enabled
     if(HOLOHUB_DOWNLOAD_DATASETS AND TARGET endoscopy_data)

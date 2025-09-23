@@ -283,8 +283,8 @@ if(BUILD_TESTING)
     set_tests_properties(streaming_server_operator_unit_test PROPERTIES
                          ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
                          TIMEOUT 120
-                         PASS_REGULAR_EXPRESSION "passed"
-                         FAIL_REGULAR_EXPRESSION "failed|ERROR")
+                         PASS_REGULAR_EXPRESSION "16 passed"
+                         FAIL_REGULAR_EXPRESSION "failed|FAILED|ERROR")
   endif()
 
   # Infrastructure tests (basic functionality without video data)
@@ -297,7 +297,7 @@ if(BUILD_TESTING)
   set_tests_properties(streaming_server_operator_infrastructure_test PROPERTIES
                        ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
                        TIMEOUT 120
-                       PASS_REGULAR_EXPRESSION "Test PASSED: StreamingServer functionality validated"
+                       PASS_REGULAR_EXPRESSION "StreamingServer functionality validated successfully"
                        FAIL_REGULAR_EXPRESSION "Test FAILED:")
 
   # Functional tests (with real video data, if available)
@@ -312,7 +312,7 @@ if(BUILD_TESTING)
     set_tests_properties(streaming_server_operator_functional_test PROPERTIES
                          ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
                          TIMEOUT 120
-                         PASS_REGULAR_EXPRESSION "FUNCTIONAL test.*successful"
+                         PASS_REGULAR_EXPRESSION "FUNCTIONAL test PASSED.*Python StreamingServer.*successful"
                          FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
   endif()
 
@@ -329,7 +329,7 @@ if(BUILD_TESTING)
 
     set_tests_properties(streaming_server_operator_cpp_test PROPERTIES
                          TIMEOUT 120
-                         PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingServer.*test successful"
+                         PASS_REGULAR_EXPRESSION "C\\+\\+ StreamingServer.*test successful"
                          FAIL_REGULAR_EXPRESSION "Test FAILED:")
 
     # C++ functional test (if script exists)
@@ -345,7 +345,7 @@ if(BUILD_TESTING)
 
       set_tests_properties(streaming_server_operator_cpp_functional_test PROPERTIES
                            TIMEOUT 120
-                           PASS_REGULAR_EXPRESSION "FUNCTIONAL test.*successful"
+                           PASS_REGULAR_EXPRESSION "FUNCTIONAL test PASSED.*C\\+\\+ StreamingServer.*successful"
                            FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
     endif()
   endif()
