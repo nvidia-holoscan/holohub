@@ -1,5 +1,34 @@
 # StreamingClient Operator Testing
 
+## Prerequisites
+
+⚠️ **IMPORTANT**: Before running any tests, you must download the required NGC resources as specified in the main [README.md](README.md).
+
+### Download Required NGC Resources
+
+The StreamingClient operator requires downloading the Holoscan Client Cloud Streaming library from NGC:
+
+```bash
+# Download using NGC CLI
+cd <your_holohub_path>/operators/streaming_client
+ngc registry resource download-version nvidia/holoscan_client_cloud_streaming:0.1
+unzip -o holoscan_client_cloud_streaming_v0.1/holoscan_client_cloud_streaming.zip
+
+# Copy the appropriate architecture libraries to lib/ directory
+# For x86_64 systems:
+cp lib/x86_64/* lib/
+# For aarch64 systems:
+# cp lib/aarch64/* lib/
+
+# Clean up architecture-specific directories and NGC download directory
+rm -rf lib/x86_64 lib/aarch64
+rm -rf holoscan_client_cloud_streaming_v0.1
+```
+
+**NGC Resource URL**: https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_client_cloud_streaming
+
+📋 **Note**: Tests may fail or behave unexpectedly if these dependencies are not properly installed.
+
 ## Overview
 
 This directory contains comprehensive tests for the `StreamingClientOp` operator, covering both **Python** and **C++** implementations:
