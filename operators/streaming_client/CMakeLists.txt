@@ -149,6 +149,35 @@ if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
 endif()
 
+# Download test data for streaming client tests
+# Default to download datasets for testing
+option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
+
+# Download the endoscopy sample data for testing
+if(HOLOHUB_DOWNLOAD_DATASETS AND BUILD_TESTING)
+  include(holoscan_download_data)
+  holoscan_download_data(endoscopy
+    URL nvidia/clara-holoscan/holoscan_endoscopy_sample_data:20230222
+    DOWNLOAD_NAME holoscan_endoscopy_sample_data_20230222.zip
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/data
+    GENERATE_GXF_ENTITIES
+    GXF_ENTITIES_HEIGHT 480
+    GXF_ENTITIES_WIDTH 854
+    GXF_ENTITIES_CHANNELS 3
+    GXF_ENTITIES_FRAMERATE 30
+  )
+  # Create a symlink to make the data easily accessible at the expected location
+  add_custom_command(TARGET endoscopy_data POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink 
+            ${CMAKE_BINARY_DIR}/data/endoscopy/surgical_video.gxf_entities
+            ${CMAKE_BINARY_DIR}/data/surgical_video.gxf_entities
+    COMMAND ${CMAKE_COMMAND} -E create_symlink 
+            ${CMAKE_BINARY_DIR}/data/endoscopy/surgical_video.gxf_index
+            ${CMAKE_BINARY_DIR}/data/surgical_video.gxf_index
+    COMMENT "Creating symlinks for surgical video data"
+  )
+endif()
+
 # Testing infrastructure
 include(CTest)
 if(BUILD_TESTING)
@@ -191,7 +220,7 @@ if(BUILD_TESTING)
              COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_functional_test.sh"
                      "${CMAKE_BINARY_DIR}/operators/streaming_client/python"
                      "${CMAKE_CURRENT_SOURCE_DIR}/tests/video_streaming_client_functional.py"
-                     "${HOLOHUB_DATA_DIR}/endoscopy"
+                     "${CMAKE_BINARY_DIR}/data"
              WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
     set_tests_properties(streaming_client_operator_functional_test PROPERTIES
@@ -209,12 +238,21 @@ if(BUILD_TESTING)
                      bash "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_cpp_test.sh"
                      "$<TARGET_FILE:streaming_client_demo>"
                      "${CMAKE_CURRENT_SOURCE_DIR}/testing/video_streaming_client_testing.yaml"
-                     "${HOLOHUB_DATA_DIR}/endoscopy"
+                     "${CMAKE_BINARY_DIR}/data"
              WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
     set_tests_properties(streaming_client_operator_cpp_test PROPERTIES
                          TIMEOUT 90
                          PASS_REGULAR_EXPRESSION "Test PASSED: C\\+\\+ StreamingClient.*test successful"
                          FAIL_REGULAR_EXPRESSION "Test FAILED:")
+    
+    # Make the C++ test depend on the data download if data downloading is enabled
+    if(HOLOHUB_DOWNLOAD_DATASETS AND TARGET endoscopy_data)
+      set_tests_properties(streaming_client_operator_cpp_test PROPERTIES
+                           FIXTURES_REQUIRED endoscopy_data_downloaded)
+      set_tests_properties(streaming_client_operator_unit_test PROPERTIES
+                           FIXTURES_SETUP endoscopy_data_downloaded)
+      add_dependencies(streaming_client_demo endoscopy_data)
+    endif()
   endif()
 endif()
 

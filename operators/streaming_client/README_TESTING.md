@@ -29,6 +29,18 @@ rm -rf holoscan_client_cloud_streaming_v0.1
 
 📋 **Note**: Tests may fail or behave unexpectedly if these dependencies are not properly installed.
 
+### Automatic Test Data Download
+
+**✅ Self-Sufficient Testing**: The streaming client tests are now **self-sufficient** and will automatically download the required surgical video data during the build process. The test infrastructure uses the same data download mechanism as other HoloHub applications.
+
+**📥 What Gets Downloaded**:
+- Endoscopy surgical video sample data from NGC
+- Automatic conversion to GXF entities format
+- Video resolution: 854x480, 30fps, RGB24
+- Files: `surgical_video.gxf_entities` and `surgical_video.gxf_index`
+
+**🎯 Data Location**: `{BUILD_DIR}/data/surgical_video.*`
+
 ## Overview
 
 This directory contains comprehensive tests for the `StreamingClientOp` operator, covering both **Python** and **C++** implementations:
