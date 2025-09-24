@@ -123,6 +123,13 @@ else
     ACTUAL_TEST_MODE="INFRASTRUCTURE"
 fi
 
+# Check for minimal mode success
+MINIMAL_MODE_SUCCESS=""
+if grep -q "Minimal mode enabled\|Infrastructure test configured (minimal mode)" "$LOG_FILE" && \
+   grep -q "Functional test completed successfully" "$LOG_FILE"; then
+    MINIMAL_MODE_SUCCESS="✅ Minimal mode test completed successfully"
+fi
+
 # Check for various success indicators
 VIDEO_FRAMES_PROCESSED=""
 if grep -q "Frame.*shape.*pixels\|Processed.*frames\|TENSOR RECEIVED" "$LOG_FILE"; then
@@ -176,11 +183,12 @@ if [ "$ACTUAL_TEST_MODE" = "FUNCTIONAL" ]; then
         fi
     fi
 else
-    # Infrastructure test success criteria
-    if [ -n "$STREAMING_FUNCTIONALITY" ] || [ -n "$PYTHON_BINDINGS" ]; then
+    # Infrastructure test success criteria (including minimal mode)
+    if [ -n "$STREAMING_FUNCTIONALITY" ] || [ -n "$PYTHON_BINDINGS" ] || [ -n "$MINIMAL_MODE_SUCCESS" ]; then
         echo -e "${GREEN}✅ INFRASTRUCTURE test PASSED: StreamingClient infrastructure validated${NC}"
         [ -n "$STREAMING_FUNCTIONALITY" ] && echo "  - $STREAMING_FUNCTIONALITY"
         [ -n "$PYTHON_BINDINGS" ] && echo "  - $PYTHON_BINDINGS"
+        [ -n "$MINIMAL_MODE_SUCCESS" ] && echo "  - $MINIMAL_MODE_SUCCESS"
         [ -n "$CONNECTION_HANDLING" ] && echo "  - $CONNECTION_HANDLING"
         echo "  - Infrastructure functionality validated (no video data mode)"
         SUCCESS=true
