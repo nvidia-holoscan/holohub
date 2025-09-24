@@ -24,6 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="${SCRIPT_DIR}/comprehensive_test.log"
 PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-python3}
 PYTEST_EXECUTABLE=${PYTEST_EXECUTABLE:-pytest}
+PYTEST_USE_MODULE=false
 
 # Default test configuration
 DEFAULT_TIMEOUT=300
@@ -145,8 +146,8 @@ check_test_prerequisites() {
         log_info "pytest not found, attempting to install..."
         if "$PYTHON_EXECUTABLE" -m pip install --user pytest --quiet; then
             log_success "pytest installed successfully"
-            # Update the executable path to use the Python module
-            PYTEST_EXECUTABLE="$PYTHON_EXECUTABLE -m pytest"
+            # Set flag to use Python module instead of direct command
+            PYTEST_USE_MODULE=true
         else
             missing_deps+=("pytest ($PYTEST_EXECUTABLE)")
         fi
@@ -178,6 +179,21 @@ check_test_prerequisites() {
     
     log_success "All prerequisites satisfied"
     return 0
+}
+
+# Function to run pytest with proper handling of module vs command
+run_pytest() {
+    if [[ "$PYTEST_USE_MODULE" == "true" ]]; then
+        "$PYTHON_EXECUTABLE" -m pytest "$@"
+    else
+        # Check if pytest command exists before trying to run it
+        if command -v "$PYTEST_EXECUTABLE" &> /dev/null; then
+            "$PYTEST_EXECUTABLE" "$@"
+        else
+            log_error "pytest command not found: $PYTEST_EXECUTABLE"
+            return 127
+        fi
+    fi
 }
 
 # Function to record test result
@@ -241,7 +257,7 @@ run_unit_tests() {
             local file_start_time
             file_start_time=$(date +%s)
             
-            if timeout "$timeout" "$PYTEST_EXECUTABLE" "${pytest_args[@]}" \
+            if timeout "$timeout" run_pytest "${pytest_args[@]}" \
                 "${SCRIPT_DIR}/$test_file" >> "$LOG_FILE" 2>&1; then
                 local duration=$(($(date +%s) - file_start_time))
                 record_test_result "Unit Tests: $test_file" "PASSED" "$duration"
@@ -322,7 +338,7 @@ run_golden_frame_tests() {
     
     log_info "Running golden frame tests..."
     
-    if timeout "$timeout" "$PYTEST_EXECUTABLE" "${pytest_args[@]}" \
+    if timeout "$timeout" run_pytest "${pytest_args[@]}" \
         "$golden_test_file" >> "$LOG_FILE" 2>&1; then
         local duration=$(($(date +%s) - start_time))
         record_test_result "Golden Frame Tests" "PASSED" "$duration"
