@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,5 +19,9 @@ pybind11_add_holohub_module(
     CLASS_NAME "VisualizerICardioOp"
     SOURCES visualizer_icardio_pybind.cpp
 )
+
+if("${holoscan_VERSION}" VERSION_GREATER_EQUAL "3.7")
+  target_link_libraries(visualizer_icardio_python PRIVATE holoscan::holoinfer_utils)
+endif()
 
 target_include_directories(visualizer_icardio_python PRIVATE ${Holohub_SOURCE_DIR}/operators)
