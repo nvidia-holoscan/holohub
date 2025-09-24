@@ -14,10 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(streaming_server_demo_enhanced)
-
-# Add C++ and Python subdirectories
-message(STATUS "=== PROCESSING PARENT streaming_server_demo_enhanced/CMakeLists.txt ===")
+project(streaming_server_demo_enhanced LANGUAGES NONE)
 
 # Add C++ subdirectory
 add_subdirectory(cpp)
@@ -26,18 +23,3 @@ add_subdirectory(cpp)
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
 endif()
-
-# Copy Python files to build directory
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/python/streaming_server_demo.py
-    ${CMAKE_BINARY_DIR}/streaming_server_demo.py
-    COPYONLY
-)
-
-# Create run_python.sh script
-file(WRITE ${CMAKE_BINARY_DIR}/run_python.sh "#!/bin/bash\n\npython3 streaming_server_demo.py \"$@\"\n")
-file(CHMOD ${CMAKE_BINARY_DIR}/run_python.sh
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-)
-
-message(STATUS "=== COMPLETED PARENT streaming_server_demo_enhanced/CMakeLists.txt ===")
