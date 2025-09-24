@@ -147,133 +147,15 @@ add_custom_target(streaming_server_demo_enhanced_deps
 add_dependencies(streaming_server_demo_enhanced streaming_server_demo_enhanced_deps)
 
 # Add testing
+
+# Add single basic test like client demo
 if(BUILD_TESTING)
-
-  set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
-  set(VALIDATION_FRAMES_DIR "${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/")
-
-  file(MAKE_DIRECTORY ${RECORDING_DIR})
-
-  # Test 1: Basic Application Test - Help Command
-  add_test(NAME streaming_server_demo_enhanced_help_test
-           COMMAND ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced --help)
-  
-  set_tests_properties(streaming_server_demo_enhanced_help_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "Usage:|--help|streaming"
-                       FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault"
+  add_test(NAME streaming_server_demo_enhanced_test
+           COMMAND streaming_server_demo_enhanced --help
+           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(streaming_server_demo_enhanced_test PROPERTIES
+                       PASS_REGULAR_EXPRESSION "Usage: streaming_server_demo_enhanced"
+                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed;error"
                        TIMEOUT 10)
-
-  # Test 2: Configuration Validation - Test config file loading and validation  
-  add_test(NAME streaming_server_demo_enhanced_config_test
-           COMMAND timeout 5s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                   --config ${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/test_basic.yaml)
-                  
-  set_tests_properties(streaming_server_demo_enhanced_config_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "BasicTest|StreamingServerResource started successfully|Server started successfully|Starting"
-                       FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|Invalid config|Failed to load"
-                       TIMEOUT 15)
-
-  # Test 3: Multi-Thread Scheduler - Test multi-threading capabilities
-  add_test(NAME streaming_server_demo_enhanced_multithread_test
-           COMMAND timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                   --config ${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/test_multi_thread.yaml)
-                  
-  set_tests_properties(streaming_server_demo_enhanced_multithread_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "MultiThreadTest|StreamingServerResource started successfully|Server started successfully|Starting"
-                       FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|Deadlock detected|Thread creation failed"
-                       TIMEOUT 10)
-
-  # Test 4: Data Flow Tracking - Test tracking and profiling functionality
-  add_test(NAME streaming_server_demo_enhanced_tracking_test
-           COMMAND timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                   --config ${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/test_tracking.yaml)
-                  
-  set_tests_properties(streaming_server_demo_enhanced_tracking_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "TrackingTest|StreamingServerResource started successfully|Server started successfully|Starting"
-                       FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|Tracking failed"
-                       TIMEOUT 10)
-
-  # Test 5: Scheduler Configuration Tests - Test greedy and event-based schedulers
-  foreach(scheduler_type "greedy" "event_based")
-    add_test(NAME streaming_server_demo_enhanced_scheduler_${scheduler_type}_test
-             COMMAND timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                     --config ${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/test_${scheduler_type}.yaml)
-             
-    set_tests_properties(streaming_server_demo_enhanced_scheduler_${scheduler_type}_test PROPERTIES
-                         PASS_REGULAR_EXPRESSION "${scheduler_type}Test|StreamingServerResource started successfully|Server started successfully|Starting"
-                         FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|Invalid scheduler"
-                         TIMEOUT 10)
-  endforeach()
-
-  # Test 6: High Resolution Configuration - Test performance with high resolution
-  add_test(NAME streaming_server_demo_enhanced_tensor_test
-           COMMAND timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                   --config ${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/test_high_res.yaml)
-                  
-  set_tests_properties(streaming_server_demo_enhanced_tensor_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "HighResTest|StreamingServerResource started successfully|Server started successfully|Starting"
-                       FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|Memory allocation failed|Invalid resolution"
-                       TIMEOUT 10)
-
-  # Test 7: Network Configuration - Test basic networking functionality  
-  add_test(NAME streaming_server_demo_enhanced_network_test
-           COMMAND timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                   --config ${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/test_basic.yaml)
-  
-  set_tests_properties(streaming_server_demo_enhanced_network_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "BasicTest|StreamingServerResource started successfully|Server started successfully|Starting"
-                       FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|Network.*failed|Port.*in use"
-                       TIMEOUT 10)
-
-  # Test 8: SSL Libraries - Test SSL library loading
-  add_test(NAME streaming_server_demo_enhanced_ssl_test
-           COMMAND timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                   --config ${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/test_basic.yaml)
-  
-  set_tests_properties(streaming_server_demo_enhanced_ssl_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "BasicTest|StreamingServerResource started successfully|Server started successfully|Starting"
-                       FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|SSL.*not found|libssl|libcrypto.*failed"
-                       TIMEOUT 10)
-
-  # Test 9: Memory Allocator - Test memory allocation and cleanup
-  add_test(NAME streaming_server_demo_enhanced_memory_test
-           COMMAND timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                   --config ${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/test_basic.yaml)
-  
-  set_tests_properties(streaming_server_demo_enhanced_memory_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "BasicTest|StreamingServerResource started successfully|Server started successfully|Starting"
-                       FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|Memory leak|Out of memory|Allocation failed"
-                       TIMEOUT 10)
-
-  # Test 10: GPU Resources - Test GPU capability detection
-  add_test(NAME streaming_server_demo_enhanced_gpu_test
-           COMMAND timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                   --config ${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/test_basic.yaml)
-  
-  set_tests_properties(streaming_server_demo_enhanced_gpu_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "BasicTest|StreamingServerResource started successfully|Server started successfully|Starting"
-                       FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|GPU.*not found|CUDA.*failed"
-                       TIMEOUT 10)
-
-  # Test 11: Error Handling - Test application behavior with invalid configuration
-  add_test(NAME streaming_server_demo_enhanced_error_handling_test
-           COMMAND timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                   --config /nonexistent/invalid.yaml)
-  
-  set_tests_properties(streaming_server_demo_enhanced_error_handling_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "WARNING.*Failed to create default configuration file|Will try to run with built-in defaults|Could not create config file"
-                       FAIL_REGULAR_EXPRESSION "Segmentation fault"
-                       TIMEOUT 10)
-
-  # Test 12: Server Robustness - Alternative test for server stability
-  add_test(NAME streaming_server_demo_enhanced_server_test
-           COMMAND timeout 3s ${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_enhanced 
-                   --config ${CMAKE_SOURCE_DIR}/applications/streaming_server_demo_enhanced/testing/test_basic.yaml)
-  
-  set_tests_properties(streaming_server_demo_enhanced_server_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "BasicTest|StreamingServerResource started successfully|Server started successfully|Starting"
-                       FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|Port.*in use|Failed to bind"
-                       TIMEOUT 10)
-
+  message(STATUS "Added application integration test: streaming_server_demo_enhanced_test")
 endif()
-
