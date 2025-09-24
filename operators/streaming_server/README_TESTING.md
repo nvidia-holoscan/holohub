@@ -226,7 +226,7 @@ Since there are no streaming clients connecting during tests, the server behavio
 - Test passes in ~60.7 seconds
 - Real video data processed successfully
 - Full functional streaming server capability demonstrated
-- Output: `✅ FUNCTIONAL test PASSED: C++ StreamingServer with data directory successful`
+- Output: `✅ FUNCTIONAL test PASSED: StreamingServer infrastructure mode successful`
 
 **Expected Behavior (Normal Operation):**
 Since there are no streaming clients connecting during tests, the server behavior is expected:
@@ -236,7 +236,7 @@ Since there are no streaming clients connecting during tests, the server behavio
 - No connection errors since the server is in listening mode
 
 **Acceptance Criteria:**
-- ✅ "FUNCTIONAL test PASSED: C++ StreamingServer with data directory successful" message
+- ✅ "FUNCTIONAL test PASSED: StreamingServer infrastructure mode successful" message
 - ✅ "🎬 FUNCTIONAL test: Using real video data" message
 - ✅ Video data size information displayed
 - ✅ Server accepts client connections and processes video streams

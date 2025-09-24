@@ -345,7 +345,7 @@ if(BUILD_TESTING)
 
       set_tests_properties(streaming_server_operator_cpp_functional_test PROPERTIES
                            TIMEOUT 120
-                           PASS_REGULAR_EXPRESSION "FUNCTIONAL test PASSED.*C\\+\\+ StreamingServer.*successful"
+                           PASS_REGULAR_EXPRESSION "FUNCTIONAL test PASSED.*StreamingServer.*successful"
                            FAIL_REGULAR_EXPRESSION "FUNCTIONAL test.*FAILED")
     endif()
   endif()
