@@ -119,6 +119,25 @@ sudo usermod -a -G video $USER
 v4l2-ctl --device=/dev/video0 --list-formats-ext | grep -E "Size:|Interval:"
 ```
 
+## Testing
+
+This operator includes comprehensive test coverage:
+- **C++ Unit Tests**: GTest-based tests for core operator functionality
+- **Python Unit Tests**: pytest-based tests for Python bindings
+
+For detailed testing instructions, see: **[testing/README.md](testing/README.md)**
+
+### Quick Test Commands
+
+```bash
+# Run all tests (C++ and Python)
+./holohub test streaming_client_enhanced_test
+
+# Run only pytest tests manually
+./holohub run streaming_client_demo_enhanced_tests --docker-opts="--entrypoint=/bin/bash"
+# Inside container: pip install pytest numpy && python3 -m pytest -v
+```
+
 ## Supported Platforms
 
 - Linux x86_64
