@@ -1,6 +1,6 @@
-# Testing Guide for Streaming Server Demo 04_80 Tensor Streaming
+# Testing Guide for Streaming Server Demo Enhanced
 
-This document describes the comprehensive test suite for the streaming server demo 04_80 tensor streaming application.
+This document describes the comprehensive test suite for the streaming server demo enhanced application.
 
 ## Integration Testing Setup
 

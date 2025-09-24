@@ -156,8 +156,8 @@ This creates a bidirectional streaming server that:
         "-c",
         "--config",
         type=str,
-        default="streaming_server_demo_04_80.yaml",
-        help="Configuration file path (default: streaming_server_demo_04_80.yaml)",
+        default="streaming_server_demo.yaml",
+        help="Configuration file path (default: streaming_server_demo.yaml)",
     )
     parser.add_argument(
         "-d",
