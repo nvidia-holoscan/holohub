@@ -1,4 +1,4 @@
-# Testing Directory for Streaming Server Demo 04_80 Tensor Streaming
+# Testing Directory for Streaming Server Demo Enhanced
 
 This directory contains reference files and test assets for the streaming server demo application.
 
