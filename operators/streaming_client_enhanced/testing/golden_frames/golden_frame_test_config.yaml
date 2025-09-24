@@ -1,0 +1,23 @@
+# Golden Frame Testing Configuration for StreamingClientOp Enhanced
+# This configuration is used for regression testing with golden reference frames
+
+# Video settings (matching golden frame generation)
+width: 854
+height: 480
+fps: 30
+
+# Network settings (test configuration)
+server_ip: "127.0.0.1"
+signaling_port: 48010
+
+# Frame handling for testing
+receive_frames: false  # Disable for unit testing
+send_frames: false     # Disable for unit testing
+
+# Validation settings
+min_non_zero_bytes: 100
+
+# Test-specific settings
+golden_frame_dir: "./golden_frames"
+tolerance: 0.05  # 5% tolerance for frame comparison
+max_test_frames: 10
