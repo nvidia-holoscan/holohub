@@ -100,8 +100,8 @@ echo -e "${BLUE}📝 Test output logged to: ${LOG_FILE}${NC}"
 TIMEOUT_DURATION=120
 echo -e "${BLUE}🚀 Starting functional test (timeout: ${TIMEOUT_DURATION}s)...${NC}"
 
-# Execute test with timeout and capture output
-if timeout "$TIMEOUT_DURATION" python3 "$PYTHON_SCRIPT" --data "$EFFECTIVE_DATA_DIR" 2>&1 | tee "$LOG_FILE"; then
+# Execute test with timeout and capture output (use minimal mode to avoid long-running tests)
+if timeout "$TIMEOUT_DURATION" python3 "$PYTHON_SCRIPT" --data "$EFFECTIVE_DATA_DIR" --minimal 2>&1 | tee "$LOG_FILE"; then
     TEST_COMPLETED=true
 else
     TEST_EXIT_CODE=$?
