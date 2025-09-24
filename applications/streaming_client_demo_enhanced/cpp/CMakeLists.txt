@@ -150,3 +150,15 @@ add_custom_target(streaming_client_demo_enhanced_deps
   BYPRODUCTS "streaming_client_demo.yaml"
 )
 add_dependencies(streaming_client_demo_enhanced streaming_client_demo_enhanced_deps)
+
+
+if(BUILD_TESTING)
+  add_test(NAME streaming_client_demo_enhanced_test
+           COMMAND streaming_client_demo_enhanced --help
+           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(streaming_client_demo_enhanced_test PROPERTIES
+                       PASS_REGULAR_EXPRESSION "Usage: streaming_client_demo_enhanced"
+                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed;error"
+                       TIMEOUT 10)
+  message(STATUS "Added application integration test: streaming_client_demo_enhanced_test")
+endif()
