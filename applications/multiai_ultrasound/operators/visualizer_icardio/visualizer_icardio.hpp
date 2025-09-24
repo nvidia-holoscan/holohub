@@ -26,7 +26,6 @@
 #include "holoscan/core/gxf/gxf_operator.hpp"
 #include "holoscan/utils/cuda_stream_handler.hpp"
 
-#include "holoinfer.hpp"
 #include "holoinfer_buffer.hpp"
 #include "holoinfer_utils.hpp"
 
