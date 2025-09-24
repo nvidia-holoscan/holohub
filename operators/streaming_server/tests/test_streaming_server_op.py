@@ -55,11 +55,21 @@ class TestStreamingServerOp:
     @pytest.fixture
     def fragment(self):
         """Provide a mock Holoscan Fragment."""
-        return Mock()
+        try:
+            from holoscan.core import Fragment
+            # Try to create a real Fragment for testing
+            return Fragment()
+        except Exception:
+            # Fallback to Mock if Fragment creation fails
+            mock_fragment = Mock()
+            # Add necessary attributes that StreamingServerOp might expect
+            mock_fragment.name = "test_fragment"
+            return mock_fragment
 
     def test_streaming_server_op_init_basic(self, fragment):
         """Test basic StreamingServerOp initialization and properties."""
         name = "streaming_server_op"
+        # Force Docker to see this as a new file - fixed fragment and constructor issues
         op = StreamingServerOp(fragment, name=name)
 
         assert isinstance(op, BaseOperator), "StreamingServerOp should be a Holoscan operator"
@@ -68,14 +78,14 @@ class TestStreamingServerOp:
 
     def test_streaming_server_op_init_with_default_name(self, fragment):
         """Test StreamingServerOp initialization with default name."""
-        op = StreamingServerOp(fragment=fragment)
+        op = StreamingServerOp(fragment)
 
         assert isinstance(op, BaseOperator), "StreamingServerOp should be a Holoscan operator"
         assert "streaming_server" in repr(op), "Default name should be 'streaming_server'"
 
     def test_streaming_server_op_setup_no_ports(self, fragment):
         """Test StreamingServerOp setup - should have no input/output ports (standalone operator)."""
-        op = StreamingServerOp(fragment=fragment, name="test_streaming_server")
+        op = StreamingServerOp(fragment, name="test_streaming_server")
         spec = op.spec
 
         # StreamingServerOp is a standalone operator with no pipeline ports
@@ -128,7 +138,7 @@ class TestStreamingServerOp:
 
     def test_streaming_server_op_lifecycle_methods_exist(self, fragment):
         """Test that StreamingServerOp has required lifecycle methods."""
-        op = StreamingServerOp(fragment=fragment, name="test_streaming_server")
+        op = StreamingServerOp(fragment, name="test_streaming_server")
 
         # Verify lifecycle methods exist
         assert hasattr(op, "setup"), "StreamingServerOp should have setup method"
