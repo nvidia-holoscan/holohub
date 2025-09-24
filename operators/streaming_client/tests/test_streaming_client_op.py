@@ -68,7 +68,7 @@ class TestStreamingClientOp:
         """Test basic StreamingClientOp initialization and properties."""
         name = "streaming_client_op"
         # Force Docker to see this as a new file - fixed all constructor issues
-        op = StreamingClientOp(fragment, name)
+        op = StreamingClientOp(fragment, name=name)
 
         assert isinstance(op, BaseOperator)
         assert op.operator_type == Operator.OperatorType.NATIVE
@@ -76,7 +76,7 @@ class TestStreamingClientOp:
 
     def test_streaming_client_op_has_input_output_ports(self, fragment):
         """Test that StreamingClientOp has input and output ports (pipeline operator)."""
-        op = StreamingClientOp(fragment, "streaming_client")
+        op = StreamingClientOp(fragment, name="streaming_client")
         spec = op.spec
 
         # StreamingClientOp is a pipeline operator with ports for video frames
@@ -85,7 +85,7 @@ class TestStreamingClientOp:
 
     def test_streaming_client_op_init_with_custom_name(self, fragment):
         """Test StreamingClientOp initialization with custom name."""
-        op = StreamingClientOp(fragment, "custom_streaming_client")
+        op = StreamingClientOp(fragment, name="custom_streaming_client")
 
         assert isinstance(op, BaseOperator), "StreamingClientOp should be a Holoscan operator"
 
@@ -93,7 +93,7 @@ class TestStreamingClientOp:
 
     def test_streaming_client_op_basic_properties(self, fragment):
         """Test StreamingClientOp basic properties."""
-        op = StreamingClientOp(fragment, "test_streaming_client")
+        op = StreamingClientOp(fragment, name="test_streaming_client")
 
         assert isinstance(op, BaseOperator), "StreamingClientOp should be a Holoscan operator"
 
@@ -102,7 +102,7 @@ class TestStreamingClientOp:
     def test_streaming_client_op_constructor_limitation(self, fragment):
         """Test StreamingClientOp constructor accepts only fragment and name."""
         # Test that constructor works with valid params
-        op = StreamingClientOp(fragment, "test_client")
+        op = StreamingClientOp(fragment, name="test_client")
         assert isinstance(op, BaseOperator)
 
         # Constructor limitation: parameters must be set via setup() or Arg() in C++
@@ -110,7 +110,7 @@ class TestStreamingClientOp:
 
     def test_streaming_client_op_has_lifecycle_methods(self, fragment):
         """Test that StreamingClientOp has required lifecycle methods."""
-        op = StreamingClientOp(fragment, "test_streaming_client")
+        op = StreamingClientOp(fragment, name="test_streaming_client")
 
         # Check that essential operator methods exist
         assert hasattr(op, "setup"), "StreamingClientOp should have setup method"
@@ -121,8 +121,8 @@ class TestStreamingClientOp:
 
     def test_streaming_client_op_multiple_instances(self, fragment):
         """Test creating multiple StreamingClientOp instances."""
-        op1 = StreamingClientOp(fragment, "client1")
-        op2 = StreamingClientOp(fragment, "client2")
+        op1 = StreamingClientOp(fragment, name="client1")
+        op2 = StreamingClientOp(fragment, name="client2")
 
         assert op1.name == "client1", "First operator should have correct name"
         assert op2.name == "client2", "Second operator should have correct name"
@@ -131,7 +131,7 @@ class TestStreamingClientOp:
     def test_streaming_client_op_repr_contains_info(self, fragment):
         """Test that StreamingClientOp repr contains useful information."""
         name = "test_streaming_client"
-        op = StreamingClientOp(fragment, name)
+        op = StreamingClientOp(fragment, name=name)
         repr_str = repr(op)
 
         assert name in repr_str, "Operator name should appear in repr"
@@ -141,7 +141,7 @@ class TestStreamingClientOp:
     def test_streaming_client_op_edge_case_names(self, fragment):
         """Test StreamingClientOp with edge case names."""
         # Test with minimal name
-        op = StreamingClientOp(fragment, "a")
+        op = StreamingClientOp(fragment, name="a")
         assert op.name == "a", "Should accept single character name"
 
         # Test with longer name
@@ -164,7 +164,7 @@ class TestStreamingClientOp:
 
     def test_streaming_client_op_fragment_association(self, fragment):
         """Test that StreamingClientOp is properly associated with fragment."""
-        op = StreamingClientOp(fragment, "test_streaming_client")
+        op = StreamingClientOp(fragment, name="test_streaming_client")
 
         try:
             assert (
@@ -176,7 +176,7 @@ class TestStreamingClientOp:
 
     def test_streaming_client_op_spec_validation(self, fragment):
         """Test that StreamingClientOp spec is properly configured."""
-        op = StreamingClientOp(fragment, "test_streaming_client")
+        op = StreamingClientOp(fragment, name="test_streaming_client")
         spec = op.spec
 
         # Basic spec validation
@@ -186,7 +186,7 @@ class TestStreamingClientOp:
 
     def test_streaming_client_op_operator_type(self, fragment):
         """Test StreamingClientOp operator type validation."""
-        op = StreamingClientOp(fragment, "test_streaming_client")
+        op = StreamingClientOp(fragment, name="test_streaming_client")
 
         try:
             # Should be a native operator type
@@ -198,7 +198,7 @@ class TestStreamingClientOp:
 
     def test_streaming_client_op_architecture_validation(self, fragment):
         """Test StreamingClientOp architecture and structure."""
-        op = StreamingClientOp(fragment, "test_streaming_client")
+        op = StreamingClientOp(fragment, name="test_streaming_client")
 
         # Validate basic operator structure
         assert hasattr(op, "name"), "Operator should have name attribute"
