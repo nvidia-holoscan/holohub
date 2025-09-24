@@ -28,7 +28,7 @@ rm -rf holoscan_client_cloud_streaming_v0.1
 
 ## Automatic Test Data Download
 
-The streaming client tests automatically download surgical video data for realistic testing:
+The streaming client tests automatically download surgical video data at build time for realistic testing:
 
 - **Video Data**: Endoscopy sample data (854x480, 30fps) is automatically downloaded from NGC
 - **GXF Entities**: Video files are converted to GXF entities during the build process
