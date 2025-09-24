@@ -227,7 +227,7 @@ Since there is no streaming server running during tests, these connection error 
 # Run all StreamingClient tests (4 test types)
 ./holohub test video_streaming_client --verbose
 
-# Expected total test time: ~11.2 seconds for all 4 tests  
+# Expected total test time: ~11.0 seconds for all 4 tests  
 # Test results: 100% tests passed, 0 tests failed out of 4
 # Real video data: symlinked surgical_video.gxf_entities and surgical_video.gxf_index
 ```
