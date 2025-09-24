@@ -61,8 +61,30 @@ if(pytest_available EQUAL 0)
         PYTEST_ARGS "-v" "-s" "--tb=short" "--log-cli-level=INFO"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
+    
+    # Set PYTHONPATH for all pytest tests to match the working Test #1 environment
+    get_cmake_property(_variableNames VARIABLES)
+    foreach (_variableName ${_variableNames})
+        if (_variableName MATCHES "^_PYTEST_.*")
+            unset(${_variableName})
+        endif()
+    endforeach()
+    
+    # Get list of all tests and add PYTHONPATH environment to pytest tests
+    get_property(all_tests DIRECTORY PROPERTY TESTS)
+    foreach(test_name ${all_tests})
+        if(test_name MATCHES "^pytest\\.")
+            set_tests_properties("${test_name}" PROPERTIES
+                ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+                TIMEOUT 600
+                LABELS "unit;operator;python;bindings"
+            )
+        endif()
+    endforeach()
+    
     message(STATUS "Added pytest tests to CTest for streaming_client_enhanced")
     message(STATUS "  - Python binding tests: test_streaming_client_op_bindings.py")
+    message(STATUS "  - PYTHONPATH configured: ${CMAKE_BINARY_DIR}/python/lib")
 else()
     message(WARNING "pytest not available - skipping automatic test discovery. Install pytest to enable individual test registration.")
 endif()
