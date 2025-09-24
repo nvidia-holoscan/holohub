@@ -311,7 +311,7 @@ main() {
         # Run Python functional test
         run_single_test \
             "Python Functional Test" \
-            "cd '$SCRIPT_DIR' && python3 video_streaming_client_functional.py --frames 20 --verbose" \
+            "cd '$SCRIPT_DIR' && python3 video_streaming_client_functional.py --frames 20 --minimal --verbose" \
             $((TIMEOUT_DEFAULT * 2))
         
         # Run functional test with wrapper script

@@ -151,7 +151,7 @@ echo -e "${BLUE}🚀 Starting test execution...${NC}"
 trap 'handle_timeout' SIGTERM
 
 # Run the test with timeout and capture all output
-if timeout "${TIMEOUT_DURATION}" python3 "$PYTHON_SCRIPT" 2>&1 | tee "$LOG_FILE"; then
+if timeout "${TIMEOUT_DURATION}" python3 "$PYTHON_SCRIPT" --minimal 2>&1 | tee "$LOG_FILE"; then
     # Test completed within timeout
     echo -e "${BLUE}📊 Test execution completed. Analyzing results...${NC}"
     
