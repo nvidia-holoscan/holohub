@@ -295,7 +295,7 @@ def simulate_streaming_pipeline(upstream_op, downstream_op, frames, process_fram
     return results
 
 
-class TestFrameValidator:
+class FrameValidator:
     """Helper class for validating frame processing results."""
     
     def __init__(self, tolerance=1.0):

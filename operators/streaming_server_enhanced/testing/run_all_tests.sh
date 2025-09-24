@@ -140,9 +140,16 @@ check_test_prerequisites() {
         missing_deps+=("Python ($PYTHON_EXECUTABLE)")
     fi
     
-    # Check pytest
+    # Check pytest and attempt to install if missing
     if ! command -v "$PYTEST_EXECUTABLE" &> /dev/null; then
-        missing_deps+=("pytest ($PYTEST_EXECUTABLE)")
+        log_info "pytest not found, attempting to install..."
+        if "$PYTHON_EXECUTABLE" -m pip install --user pytest --quiet; then
+            log_success "pytest installed successfully"
+            # Update the executable path to use the Python module
+            PYTEST_EXECUTABLE="$PYTHON_EXECUTABLE -m pytest"
+        else
+            missing_deps+=("pytest ($PYTEST_EXECUTABLE)")
+        fi
     fi
     
     # Check required test files

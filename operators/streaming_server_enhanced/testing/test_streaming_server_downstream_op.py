@@ -27,7 +27,7 @@ from test_utils import (
     assert_frame_properties,
     assert_tensor_properties,
     get_test_configuration,
-    TestFrameValidator
+    FrameValidator
 )
 from mock_holoscan_framework import (
     MockStreamingServer,
@@ -77,7 +77,7 @@ class TestStreamingServerDownstreamOp:
     @pytest.fixture
     def frame_validator(self):
         """Provide a frame validator for testing."""
-        return TestFrameValidator(tolerance=1.0)
+        return FrameValidator(tolerance=1.0)
 
     @pytest.mark.unit
     def test_operator_initialization(self, downstream_op):
