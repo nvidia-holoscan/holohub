@@ -146,8 +146,8 @@ check_test_prerequisites() {
         log_info "pytest not found, attempting to install..."
         if "$PYTHON_EXECUTABLE" -m pip install --user pytest --quiet; then
             log_success "pytest installed successfully"
-            # Set flag to use Python module instead of direct command
-            PYTEST_USE_MODULE=true
+            # Set flag to use Python module instead of direct command (global scope)
+            export PYTEST_USE_MODULE=true
         else
             missing_deps+=("pytest ($PYTEST_EXECUTABLE)")
         fi
@@ -178,14 +178,18 @@ check_test_prerequisites() {
     fi
     
     log_success "All prerequisites satisfied"
+    echo "[DEBUG] PYTEST_USE_MODULE=$PYTEST_USE_MODULE" >&2
     return 0
 }
 
 # Function to run pytest with proper handling of module vs command
 run_pytest() {
+    # Debug: Show pytest execution mode
     if [[ "$PYTEST_USE_MODULE" == "true" ]]; then
+        echo "[DEBUG] Using Python module: $PYTHON_EXECUTABLE -m pytest $*" >&2
         "$PYTHON_EXECUTABLE" -m pytest "$@"
     else
+        echo "[DEBUG] Using direct command: $PYTEST_EXECUTABLE $*" >&2
         # Check if pytest command exists before trying to run it
         if command -v "$PYTEST_EXECUTABLE" &> /dev/null; then
             "$PYTEST_EXECUTABLE" "$@"
