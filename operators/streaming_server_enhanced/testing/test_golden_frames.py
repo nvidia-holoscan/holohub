@@ -28,7 +28,7 @@ except ImportError:
 from test_utils import (
     create_test_frame_sequence,
     assert_frame_properties,
-    TestFrameValidator
+    FrameValidator
 )
 from mock_holoscan_framework import (
     MockFrame,
