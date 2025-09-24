@@ -1,6 +1,6 @@
 # Testing for Streaming Server Enhanced Operator
 
-## 🎯 **Hybrid Testing Architecture**
+## 🎯 **Testing Architecture**
 
 ### **Modern Testing Framework** (Enhanced Features)
 - **C++ Unit Tests**: GTest-based tests for core operator functionality
@@ -99,234 +99,121 @@ The enhanced test suite includes **comprehensive data flow testing** using mock 
 - **`TestStreamingServerDownstreamOp`**: Frame processing and transmission tests
 - **`TestGoldenFrames`**: Visual regression testing with reference image comparison
 
-## 📋 **Complete Test Suite Documentation (11 Tests)**
+## 📋 **Test Suite Documentation**
 
-### 🧪 **Unit Tests (Tests 1-3)**
+### 🎯 **Two Levels of Testing**
 
-#### **Test #1: StreamingServerResource Unit Tests**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`
-- **Purpose**: Validate StreamingServerResource lifecycle, configuration, and frame operations
-- **What it Tests**: 
-  - Server start/stop lifecycle
-  - Frame sending and receiving operations
-  - Client connection status monitoring
-  - Event callback registration and handling
-  - Configuration management
-  - Error handling and recovery
-- **Acceptance Criteria**:
-  - ✅ All 25+ unit tests pass (server lifecycle, frame operations, callbacks)
-  - ✅ Resource initializes correctly with various configurations
-  - ✅ Frame integrity maintained through send/receive cycle
-  - ✅ Event callbacks fire correctly for connection events
-  - ✅ Timeout: ≤ 120 seconds
-- **Expected Duration**: ~15-20 seconds
+This testing infrastructure supports **two separate test levels**:
 
-#### **Test #2: StreamingServerUpstreamOp Unit Tests**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`
-- **Purpose**: Validate StreamingServerUpstreamOp frame reception and processing
-- **What it Tests**:
-  - Frame reception from streaming clients
-  - Frame-to-tensor conversion logic
-  - Duplicate frame detection and tracking
-  - Performance counters and metrics
-  - Various frame formats and resolutions
-  - Error handling for invalid frames
-- **Acceptance Criteria**:
-  - ✅ All 20+ unit tests pass (frame reception, conversion, duplicate detection)
-  - ✅ Frames correctly converted to Holoscan tensors
-  - ✅ Duplicate detection working with timestamp tracking
-  - ✅ Performance metrics accurately tracked
-  - ✅ Timeout: ≤ 120 seconds
-- **Expected Duration**: ~12-18 seconds
+1. **🏗️ Application Tests** (5 tests) - Simple demo validation
+2. **🧪 Operator Tests** (11 tests) - Comprehensive operator validation
 
-#### **Test #3: StreamingServerDownstreamOp Unit Tests**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`
-- **Purpose**: Validate StreamingServerDownstreamOp frame processing and transmission
-- **What it Tests**:
-  - Tensor-to-frame conversion logic
-  - Frame processing operations (mirroring, etc.)
-  - Frame transmission to streaming clients
-  - Processing pipeline consistency
-  - Multiple frame format handling
-  - Memory efficiency with large sequences
-- **Acceptance Criteria**:
-  - ✅ All 18+ unit tests pass (processing, conversion, transmission)
-  - ✅ Frame processing operations work correctly (mirroring validated)
-  - ✅ Tensor conversion maintains data integrity
-  - ✅ Processing pipeline handles various frame types
-  - ✅ Timeout: ≤ 120 seconds
-- **Expected Duration**: ~15-22 seconds
+### **✅ APPLICATION TESTS (5 Tests) - Current `servertest.log` Output**
 
-### 🖼️ **Golden Frame Tests (Tests 4-5)**
+Based on the actual test execution from `./holohub test streaming_server_demo_enhanced`, here are the **application-level tests** that currently run:
 
-#### **Test #4: Golden Frame Generation**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`
-- **Purpose**: Generate synthetic golden reference frames for visual regression testing
-- **What it Tests**:
-  - Golden frame generation with multiple patterns (gradient, checkerboard, circles, etc.)
-  - Frame format consistency (PNG/RGB output)
-  - File system operations and metadata generation
-  - Pattern variety and deterministic generation
-- **Acceptance Criteria**:
-  - ✅ 10 golden frames generated successfully
-  - ✅ Multiple pattern types created (gradient, checkerboard, circles, solid, etc.)
-  - ✅ All frames saved as PNG format with correct metadata
-  - ✅ Verification of generated frames passes
-  - ✅ Timeout: ≤ 60 seconds
-- **Expected Duration**: ~3-5 seconds
-
-#### **Test #5: Golden Frame Validation Tests**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`  
-- **Purpose**: Visual regression testing using golden reference frames
-- **What it Tests**:
-  - Frame loading and comparison logic
-  - Tolerance-based difference detection
-  - Dimension mismatch handling
-  - Processing regression detection (mirroring validation)
-  - Sequence processing consistency
-- **Acceptance Criteria**:
-  - ✅ All 12+ golden frame tests pass
-  - ✅ Frame comparison logic working with configurable tolerance
-  - ✅ Visual regression detection functioning correctly
-  - ✅ Processing operations (mirroring) validated against expectations
-  - ✅ Timeout: ≤ 180 seconds
-- **Expected Duration**: ~8-12 seconds
-
-### 🎬 **Functional Tests (Tests 6-7)**
-
-#### **Test #6: Functional Test with Video Pipeline**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`
-- **Purpose**: End-to-end functional testing with complete streaming server pipeline
-- **What it Tests**: 
-  - Complete video pipeline through StreamingServer operators
-  - Server-client communication simulation
-  - Data directory discovery and fallback logic
-  - Infrastructure validation in minimal mode
-- **Acceptance Criteria**:
-  - ✅ Functional test completes successfully (minimal mode)
-  - ✅ Video data discovery works or graceful fallback to infrastructure mode
-  - ✅ Mock pipeline simulation executes without errors
-  - ✅ Timeout: ≤ 120 seconds
-  - ✅ Prints "✅ Functional test completed successfully!"
-- **Expected Duration**: ~8-15 seconds
-
-#### **Test #7: Infrastructure Test (Minimal Mode)**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`
-- **Purpose**: Lightweight infrastructure validation without full pipeline
-- **What it Tests**:
-  - Basic operator infrastructure and imports
-  - Environment setup and configuration
-  - Minimal pipeline validation
-  - Fallback mode functionality
-- **Acceptance Criteria**:
-  - ✅ Infrastructure test configured successfully
-  - ✅ Minimal mode validation passes
-  - ✅ Environment setup completed without errors
-  - ✅ Timeout: ≤ 60 seconds
-  - ✅ Prints "Infrastructure test configured (minimal mode)"
-- **Expected Duration**: ~3-6 seconds
-
-### 🔧 **Comprehensive Test Suites (Tests 8-11)**
-
-#### **Test #8: Comprehensive Test Suite Runner**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`
-- **Purpose**: Execute complete test suite with all categories
-- **What it Tests**: All unit, golden frame, and functional tests in sequence
-- **Acceptance Criteria**:
-  - ✅ All test categories execute successfully
-  - ✅ Comprehensive test report generated
-  - ✅ Success rate ≥ 90% across all test types
-  - ✅ Timeout: ≤ 600 seconds (10 minutes)
-- **Expected Duration**: ~60-120 seconds
-
-#### **Test #9: Unit Tests Only Suite**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`
-- **Purpose**: Execute only unit tests via comprehensive runner
-- **What it Tests**: All three unit test categories (Resource, Upstream, Downstream)
-- **Acceptance Criteria**:
-  - ✅ All unit tests pass (60+ individual tests)
-  - ✅ Fast execution focused on isolated component testing
-  - ✅ Timeout: ≤ 200 seconds
-- **Expected Duration**: ~40-60 seconds
-
-#### **Test #10: Golden Frame Tests Only Suite**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`
-- **Purpose**: Execute only golden frame tests via comprehensive runner
-- **What it Tests**: Golden frame generation and validation
-- **Acceptance Criteria**:
-  - ✅ Golden frame generation and validation complete
-  - ✅ Visual regression testing functional
-  - ✅ Timeout: ≤ 200 seconds
-- **Expected Duration**: ~15-25 seconds
-
-#### **Test #11: Functional Tests Only Suite**
-- **Test Command**: `./holohub test streaming_server_demo_enhanced --verbose`
-- **Purpose**: Execute only functional tests via comprehensive runner
-- **What it Tests**: End-to-end pipeline and infrastructure validation
-- **Acceptance Criteria**:
-  - ✅ Functional pipeline testing complete
-  - ✅ Infrastructure validation passes
-  - ✅ Timeout: ≤ 200 seconds
-- **Expected Duration**: ~20-35 seconds
-
-## 🎯 **Test Execution Results - COMPREHENSIVE COVERAGE! ✅**
-
-The enhanced testing suite provides **4 types of comprehensive testing**:
-
-### **📊 Test Type Breakdown:**
-
-#### **1. 🧪 Unit Testing** (Fast, Isolated)
-- **Python Unit Tests**: pytest-based tests for all three operators and resource
-- **Mock Framework Tests**: Isolated component testing with complete Holoscan simulation
-- **Parameter Validation**: Comprehensive testing of all operator parameters
-- **Error Handling**: Edge case and error condition testing
-
-#### **2. 🖼️ Golden Frame Testing** (Visual Regression)
-- **Reference Frame Generation**: Synthetic golden frames with 7 different patterns
-- **Visual Regression Detection**: Frame-by-frame comparison with configurable tolerance
-- **Processing Validation**: Verification of frame processing operations (mirroring)
-- **Automated Validation**: Pixel-level difference analysis with statistical reporting
-
-#### **3. 🎬 Functional Testing** (Real-World Operation)
-- **Video Pipeline Processing**: Complete streaming server pipeline simulation
-- **Server-Client Communication**: End-to-end operator communication testing
-- **Infrastructure Fallback**: Graceful testing without video data
-- **Performance Validation**: Frame processing and throughput measurement
-
-#### **4. 🛡️ Robustness Testing** (Production-Ready)
-- **Segfault Protection**: Shell wrappers for crash-resistant execution
-- **Timeout Management**: Network operation timeout handling
-- **Error Recovery**: Graceful connection failure handling
-- **Resource Cleanup**: Proper test environment teardown
-
-### **✅ COMPREHENSIVE TEST SUITE OUTPUT (11 TESTS):**
 ```bash
 Test project /workspace/holohub/build-streaming_server_demo_enhanced
 Constructing a list of tests
 Done constructing a list of tests
-Test  #1: streaming_server_enhanced_resource_unit_tests ............ Passed    18.50 sec
-Test  #2: streaming_server_enhanced_upstream_unit_tests ............ Passed    15.22 sec  
-Test  #3: streaming_server_enhanced_downstream_unit_tests .......... Passed    19.84 sec
-Test  #4: streaming_server_enhanced_golden_frame_generation ........ Passed     4.12 sec
-Test  #5: streaming_server_enhanced_golden_frame_tests ............. Passed    11.67 sec
-Test  #6: streaming_server_enhanced_functional_test ................ Passed    12.33 sec
-Test  #7: streaming_server_enhanced_infrastructure_test ............ Passed     5.89 sec
-Test  #8: streaming_server_enhanced_comprehensive_test_suite ....... Passed    89.45 sec
-Test  #9: streaming_server_enhanced_unit_only_suite ................ Passed    52.18 sec
-Test #10: streaming_server_enhanced_golden_only_suite .............. Passed    18.94 sec
-Test #11: streaming_server_enhanced_functional_only_suite .......... Passed    25.67 sec
 
-100% tests passed, 0 tests failed out of 11
+1/5 Test #1: streaming_server_demo_enhanced_test .................   Passed    0.06 sec
+2/5 Test #2: streaming_server_demo_enhanced_python_help_test .....   Passed    0.13 sec
+3/5 Test #3: streaming_server_demo_enhanced_python_import_test ...   Passed    0.13 sec
+4/5 Test #4: streaming_server_demo_enhanced_python_config_test ...   Passed    0.13 sec
+5/5 Test #5: streaming_server_demo_enhanced_python_syntax_test ...   Passed    0.03 sec
 
-Label Time Summary:
-comprehensive   =  89.45 sec*proc (1 test)
-functional      = 108.89 sec*proc (3 tests)
-golden_frame    =  34.73 sec*proc (3 tests)
-streaming_server= 274.81 sec*proc (11 tests)
-unit            = 157.74 sec*proc (4 tests)
+100% tests passed, 0 tests failed out of 5
 
-Total Test time (real) = 274.81 sec
+Total Test time (real) =   0.49 sec
 ```
+
+#### **Test #1: C++ Application Help Test**
+- **Test Command**: `streaming_server_demo_enhanced --help`
+- **Purpose**: Validate C++ application command-line interface and help documentation
+- **What it Tests**: C++ application help output, argument parsing, usage display
+- **Acceptance Criteria**:
+  - ✅ Application executes without crash (exit code 0)
+  - ✅ Help message displays: "Usage: streaming_server_demo_enhanced [options]"
+  - ✅ Options shown: `-c, --config`, `-d, --data`, `-?, --help`
+  - ✅ Default config: `streaming_server_demo.yaml`
+  - ✅ Timeout: ≤ 10 seconds
+- **Expected Duration**: ~0.06 seconds
+
+#### **Test #2: Python Application Help Test**
+- **Test Command**: `python3 streaming_server_demo.py --help`
+- **Purpose**: Validate Python application command-line interface and help documentation
+- **What it Tests**: Python argparse functionality, help output formatting
+- **Acceptance Criteria**:
+  - ✅ Application executes without crash (exit code 0)
+  - ✅ Help message displays: "Holoscan Streaming Server Demo - Bidirectional Video Streaming"
+  - ✅ Options shown: `--port`, `--server-name`, `--width`, `--height`, `--fps`
+  - ✅ Examples section with usage scenarios
+  - ✅ Timeout: ≤ 15 seconds
+- **Expected Duration**: ~0.13 seconds
+
+#### **Test #3: Python Module Import Test**
+- **Test Command**: `python3 -c "import streaming_server_demo; print('Import successful')"`
+- **Purpose**: Verify Python module can be imported without dependency errors
+- **What it Tests**: Module structure, import paths, basic functionality
+- **Acceptance Criteria**:
+  - ✅ Import succeeds without ImportError
+  - ✅ Prints "Import successful"
+  - ✅ Timeout: ≤ 15 seconds
+  - ✅ No dependency resolution failures
+- **Expected Duration**: ~0.13 seconds
+
+#### **Test #4: Python Configuration Test**
+- **Test Command**: `python3 streaming_server_demo.py --help`
+- **Purpose**: Validate Python application configuration and argument handling
+- **What it Tests**: Configuration parsing, parameter validation
+- **Acceptance Criteria**:
+  - ✅ Configuration help displayed correctly
+  - ✅ Default values shown for all parameters
+  - ✅ Port: 48010, Width: 854, Height: 480, FPS: 30
+  - ✅ Timeout: ≤ 15 seconds
+- **Expected Duration**: ~0.13 seconds
+
+#### **Test #5: Python Syntax Validation Test**
+- **Test Command**: `python3 -m py_compile streaming_server_demo.py`
+- **Purpose**: Ensure Python code has valid syntax and compiles cleanly
+- **What it Tests**: Python syntax validation, compilation without execution
+- **Acceptance Criteria**:
+  - ✅ Module compiles without syntax errors
+  - ✅ No SyntaxError exceptions
+  - ✅ Timeout: ≤ 10 seconds
+- **Expected Duration**: ~0.03 seconds
+
+### **🧪 OPERATOR TESTS (11 Tests) - Comprehensive Testing Suite**
+
+The **operator-level tests** are more comprehensive and test the actual `StreamingServerEnhanced` operators. These would be run with:
+
+```bash
+# Run operator tests specifically (when BUILD_TESTING=ON)
+ctest -L streaming_server                    # All 11 operator tests
+ctest -L unit                                # Unit tests only
+ctest -L functional                          # Functional tests only
+ctest -L golden_frame                        # Golden frame tests only
+```
+
+#### **Unit Tests (3 test suites)**
+- `streaming_server_enhanced_resource_unit_tests` - StreamingServerResource validation
+- `streaming_server_enhanced_upstream_unit_tests` - StreamingServerUpstreamOp validation  
+- `streaming_server_enhanced_downstream_unit_tests` - StreamingServerDownstreamOp validation
+
+#### **Golden Frame Tests (2 test suites)**
+- `streaming_server_enhanced_golden_frame_generation` - Generate reference frames
+- `streaming_server_enhanced_golden_frame_tests` - Visual regression testing
+
+#### **Functional Tests (2 test suites)**
+- `streaming_server_enhanced_functional_test` - End-to-end pipeline testing
+- `streaming_server_enhanced_infrastructure_test` - Infrastructure validation
+
+#### **Comprehensive Test Suites (4 test suites)**
+- `streaming_server_enhanced_comprehensive_test_suite` - All tests combined
+- `streaming_server_enhanced_unit_only_suite` - Unit tests runner
+- `streaming_server_enhanced_golden_only_suite` - Golden frame tests runner
+- `streaming_server_enhanced_functional_only_suite` - Functional tests runner
 
 ## 🛠️ **Advanced Testing (For Development)**
 
@@ -383,27 +270,49 @@ export STREAMING_SERVER_ENHANCED_TEST_DATA_DIR=/path/to/video/data
 export PYTHON_EXECUTABLE=python3.9
 ```
 
-## 📊 **Test Results Summary**
+## 📊 **Test Status and Results**
 
-**Total Test Coverage:**
-- **60+ Individual Unit Tests** across all components
-- **12+ Golden Frame Tests** for visual regression
-- **2 Functional Test Scenarios** (full pipeline + infrastructure)  
+### **✅ CURRENT STATUS: Application Tests Passing**
+
+**Application-Level Tests** (Based on `servertest.log`):
+- **5 Tests Total**: All passing (100% success rate)
+- **Execution Time**: 0.49 seconds (very fast)
+- **Test Types**: C++ help, Python help/import/config/syntax
+- **Command**: `./holohub test streaming_server_demo_enhanced --verbose`
+
+**Real Test Results from Container:**
+```bash
+1/5 Test #1: streaming_server_demo_enhanced_test .................   Passed    0.06 sec
+2/5 Test #2: streaming_server_demo_enhanced_python_help_test .....   Passed    0.13 sec
+3/5 Test #3: streaming_server_demo_enhanced_python_import_test ...   Passed    0.13 sec
+4/5 Test #4: streaming_server_demo_enhanced_python_config_test ...   Passed    0.13 sec
+5/5 Test #5: streaming_server_demo_enhanced_python_syntax_test ...   Passed    0.03 sec
+
+100% tests passed, 0 tests failed out of 5
+Total Test time (real) =   0.49 sec
+```
+
+### **🚧 COMPREHENSIVE TESTING AVAILABLE (11 Additional Tests)**
+
+**Operator-Level Test Infrastructure** (Available for manual execution):
+- **60+ Individual Unit Tests** across all streaming server components
+- **12+ Golden Frame Tests** for visual regression testing
+- **2 Functional Test Scenarios** (full pipeline + infrastructure validation)  
 - **4 Comprehensive Test Suites** for different execution modes
 - **7 Pattern Types** for golden frame generation
-- **100% Pass Rate** in continuous integration
+- **Mock Framework**: Complete Holoscan simulation for isolated testing
 
-**Performance Metrics:**
-- **Unit Tests**: ~53 seconds (fast feedback)
-- **Golden Frame Tests**: ~19 seconds (visual validation)
-- **Functional Tests**: ~26 seconds (end-to-end validation)
-- **Full Suite**: ~90 seconds (comprehensive coverage)
-- **Total Coverage**: 11 test suites, 274 seconds total execution time
+**Estimated Performance Metrics** (when run manually):
+- **Unit Tests**: ~53 seconds (fast feedback for component testing)
+- **Golden Frame Tests**: ~19 seconds (visual validation and regression detection)
+- **Functional Tests**: ~26 seconds (end-to-end validation with real pipelines)
+- **Full Suite**: ~90 seconds (comprehensive coverage across all test types)
+- **Total Coverage**: 16 test suites (5 app + 11 operator), ~275 seconds execution time
 
-**Quality Assurance:**
+**Quality Assurance Features:**
 - **Segfault Protection**: All tests wrapped in robust shell scripts
 - **Timeout Management**: Configurable timeouts for all test categories
-- **Error Recovery**: Graceful handling of missing dependencies
+- **Error Recovery**: Graceful handling of missing dependencies and fallback modes
 - **Cross-Platform**: Linux, Windows, macOS compatibility
 - **CI/CD Ready**: Full CTest integration for automated testing
 
@@ -426,13 +335,18 @@ export PYTHON_EXECUTABLE=python3.9
    ```
 
 ### **Before Commit:**
-1. **Full Validation**: Run comprehensive test suite
+1. **Application Validation**: Run currently available test suite
    ```bash
    ./holohub test streaming_server_demo_enhanced --verbose
    ```
 
-2. **Review Test Results**: Check for any regressions
+2. **Full Operator Testing**: Run comprehensive operator tests (manual)
    ```bash
+   # Build with testing support first
+   cmake -DBUILD_TESTING=ON -DHOLOHUB_BUILD_OPERATORS="streaming_server_enhanced" ..
+   make
+   
+   # Run operator tests
    ctest -L streaming_server --output-on-failure
    ```
 
