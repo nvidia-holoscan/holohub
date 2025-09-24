@@ -272,7 +272,7 @@ class StreamingClientTestApp : public holoscan::Application {
 };
 
 void print_usage() {
-  std::cout << "Usage: streaming_client_demo_04_80 [options]\n"
+  std::cout << "Usage: streaming_client_demo_enhanced [options]\n"
             << "  -h, --help                Show this help message\n"
             << "  -c, --config <file>        Configuration file path (default: streaming_client_demo.yaml)\n"
             << "  -d, --data <directory>     Data directory (default: environment variable HOLOSCAN_INPUT_PATH or current directory)\n"
