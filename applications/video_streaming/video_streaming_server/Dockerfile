@@ -33,6 +33,9 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Python packages for testing
+RUN python3 -m pip install --no-cache-dir pytest
+
 # Setup holohub run environment
 ENV PYTHONPATH=/opt/nvidia/holoscan/python/lib:${PYTHONPATH}
 

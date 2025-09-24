@@ -307,7 +307,7 @@ if(BUILD_TESTING)
     # Always use manual pytest test registration for reliability
     message(STATUS "Adding pytest tests manually...")
     add_test(NAME streaming_server_operator_unit_test
-             COMMAND /bin/bash -c "${Python3_EXECUTABLE} -m pip install --user pytest --quiet && ${Python3_EXECUTABLE} -m pytest tests/test_streaming_server_op.py -v"
+             COMMAND /bin/bash -c "${Python3_EXECUTABLE} -m pytest tests/test_streaming_server_op.py -v"
              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     set_tests_properties(streaming_server_operator_unit_test PROPERTIES
                          ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"

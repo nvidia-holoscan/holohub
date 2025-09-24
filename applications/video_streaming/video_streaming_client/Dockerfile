@@ -57,7 +57,7 @@ ENV PATH="/usr/local/ngc/ngc-cli:${PATH}"
 RUN echo "source /etc/bash_completion" >> ~/.bashrc
 
 # Install Python packages
-RUN python3 -m pip install --no-cache-dir setuptools && \
+RUN python3 -m pip install --no-cache-dir setuptools pytest && \
     python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Set CMake build type for docker build time only
