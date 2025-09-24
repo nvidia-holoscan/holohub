@@ -93,19 +93,16 @@ The test suite covers:
 - Basic operator properties and type validation
 - Lifecycle method existence (setup, initialize, start, stop, compute)
 - Multiple operator instances
-- Mock operator fallback for testing environments
 
 **Expected Outcome:**
 - All 14 unit tests pass in 0.04 seconds
 - Test execution completes quickly
-- Mock fallback works when real operator unavailable
 - Output: `============================== 14 passed in 0.04s ==============================`
 
 **Acceptance Criteria:**
 - ✅ All 14 pytest assertions pass
 - ✅ No import or initialization errors
 - ✅ Test completes in under 1 second
-- ✅ Mock fallback works when real operator unavailable
 - ✅ Output contains "14 passed" message
 
 **How to Build & Execute the Test:**
