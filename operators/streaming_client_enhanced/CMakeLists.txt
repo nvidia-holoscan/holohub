@@ -282,5 +282,10 @@ if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
 endif()
 
+# Add unit testing subdirectory
+if(BUILD_TESTING)
+  add_subdirectory(testing)
+endif()
+
 # Print status message
 message(STATUS "StreamingClient operator configuration complete with imported targets.")
