@@ -1,0 +1,20 @@
+# StreamingServer Enhanced Testing Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core testing framework
+pytest>=6.0.0
+pytest-timeout>=2.0.0
+pytest-mock>=3.0.0
+
+# Image processing for golden frames
+Pillow>=8.0.0
+
+# Numerical computing
+numpy>=1.19.0
+
+# Optional: Enhanced test reporting
+pytest-html>=3.0.0
+pytest-cov>=3.0.0
+
+# Optional: Parallel test execution
+pytest-xdist>=2.0.0

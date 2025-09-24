@@ -1,0 +1,54 @@
+================================================================
+StreamingServer Enhanced Functional Test Log
+Started at: Tue Sep 23 10:45:44 PM PDT 2025
+================================================================
+[0;32m[SUCCESS][0m Test environment configured
+[0;34m[INFO][0m Checking system requirements...
+[0;34m[INFO][0m Python version: Python 3.10.12
+[0;34m[INFO][0m Available memory: 100650MB
+[0;34m[INFO][0m Available disk space: 22430MB
+[0;32m[SUCCESS][0m System requirements check completed
+[0;34m[INFO][0m Minimal mode requested by user
+[0;34m[INFO][0m Test mode determined: minimal
+[0;34m[INFO][0m Running StreamingServer functional test
+[0;34m[INFO][0m Mode: minimal
+[0;34m[INFO][0m Data directory: /workspace/holohub/data/endoscopy
+[0;34m[INFO][0m Timeout: 30s
+[0;34m[INFO][0m Running in minimal infrastructure mode
+[0;34m[INFO][0m Executing functional test...
+[0;34m[INFO][0m Command: python3 /home/cdinea/Downloads/enhancedapp_holohub/holohub/operators/streaming_server_enhanced/testing/video_streaming_server_functional.py --data-dir /workspace/holohub/data/endoscopy --timeout 30 --minimal
+[0;32m[SUCCESS][0m Functional test execution completed
+
+=== Functional Test Output ===
+2025-09-23 22:45:45 [WARNING] __main__: Holoscan not available: libcudart.so.11.0: cannot open shared object file: No such file or directory
+2025-09-23 22:45:45 [INFO] __main__: 🎯 StreamingServer Enhanced Functional Test
+2025-09-23 22:45:45 [INFO] __main__: 📁 Data directory: /workspace/holohub/data/endoscopy
+2025-09-23 22:45:45 [INFO] __main__: ⚡ Minimal mode: True
+2025-09-23 22:45:45 [INFO] __main__: ⏱️  Timeout: 30s
+2025-09-23 22:45:45 [INFO] __main__: 🚀 Starting StreamingServer functional test
+2025-09-23 22:45:45 [INFO] __main__: 🔧 Minimal mode enabled - performing basic infrastructure validation
+2025-09-23 22:45:45 [INFO] __main__: ✅ Functional test completed successfully!
+2025-09-23 22:45:45 [INFO] __main__: 📊 Test Results:
+2025-09-23 22:45:45 [INFO] __main__:   Type: minimal_infrastructure
+2025-09-23 22:45:45 [INFO] __main__:   Success: True
+2025-09-23 22:45:45 [INFO] __main__:   Duration: 0.00s
+✅ Infrastructure test configured (minimal mode)
+✅ Functional test completed successfully!
+✅ Functional test completed successfully!
+=== End Functional Test Output ===
+[0;34m[INFO][0m Validating test results...
+[0;32m[SUCCESS][0m Found success pattern: Infrastructure test configured
+[0;32m[SUCCESS][0m ✅ StreamingServer functional test PASSED
+
+================================================================
+STREAMING SERVER ENHANCED FUNCTIONAL TEST SUMMARY
+================================================================
+Test Mode: minimal
+Duration: 1s
+Result: PASSED
+Completed at: Tue Sep 23 10:45:45 PM PDT 2025
+================================================================
+[0;34m[INFO][0m Cleaning up test environment...
+[0;34m[INFO][0m Cleanup completed
+[0;34m[INFO][0m Cleaning up test environment...
+[0;34m[INFO][0m Cleanup completed
