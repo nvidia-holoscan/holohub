@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -320,8 +320,7 @@ class MultiAIDetectionSegmentation(Application):
         return label_dict
 
 
-if __name__ == "__main__":
-
+def main():
     parser = ArgumentParser(description="Multi-AI Detection Segmentation application.")
     parser.add_argument(
         "-s",
@@ -381,3 +380,7 @@ if __name__ == "__main__":
     print("sys.argv:", sys.argv)
     print("app.argv:", app.argv)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

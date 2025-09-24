@@ -288,7 +288,7 @@ class MultiAIICardio(Application):
             self.add_flow(recorder_format_converter, recorder)
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser(description="Multi-AI demo application.")
     parser.add_argument(
         "-s",
@@ -333,3 +333,7 @@ if __name__ == "__main__":
     app = MultiAIICardio(record_type=record_type, source=args.source, data=args.data)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -192,7 +192,7 @@ class PolypDetectionApp(Application):
         self.add_flow(detection_postprocessor, detection_visualizer, {("out", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = ArgumentParser(description="Polyp Detection demo application.")
     parser.add_argument(
@@ -241,3 +241,7 @@ if __name__ == "__main__":
     )
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()
