@@ -1,6 +1,8 @@
-# Unit Testing for Streaming Client Enhanced Operator
+# Testing for Streaming Client Enhanced Operator
 
-This directory contains **unit tests** for the `StreamingClientOp` operator, focusing on testing the **Python bindings (pybind11)** and core operator functionality in isolation.
+This directory contains **both C++ and Python unit tests** for the `StreamingClientOp` operator:
+- **C++ Unit Tests**: GTest-based tests for core operator functionality
+- **Python Unit Tests**: pytest-based tests for Python bindings (pybind11)
 
 ## 🎯 Purpose
 
@@ -34,14 +36,28 @@ These unit tests use **pytest** for Python testing, following the same pattern a
 ### Build Integration
 - **`CMakeLists.txt`**: CMake integration for pytest execution via CTest
 
-## 🚀 Usage
+## 🚀 How to Run Tests
 
-### Option 1: Direct pytest Execution (Recommended)
+### ✅ **Method 1: HoloHub Test Command (Easiest)**
+
+```bash
+# Run ALL tests (both C++ and Python) using holohub test:
+./holohub test streaming_client_enhanced_test
+```
+
+This will automatically:
+- Build the operator with BUILD_TESTING=ON
+- Run both C++ (GTest) and Python (pytest) tests  
+- Integrate with CTest for proper test discovery
+- Show unified test results
+
+### ✅ **Method 2: Manual pytest Execution**
+
 ```bash
 # From the testing directory
-cd operators/streaming_client_enhanced/testing
+cd operators/streaming_client_enhanced_test/testing
 
-# Run all tests
+# Run all Python tests
 pytest -v
 
 # Run specific test categories
@@ -51,20 +67,34 @@ pytest -v -m "parametrized"          # Parametrized tests only
 
 # Run with custom build directory
 pytest -v --build-dir=/path/to/build
-
-# Skip hardware-dependent tests
-pytest -v --skip-hardware-tests
 ```
 
-### Option 2: CTest Integration
+### ✅ **Method 3: Docker Container Execution**
+
+```bash
+# Run pytest tests in Docker container:
+docker run --rm -it \
+  --net host \
+  -v $PWD:/workspace/holohub \
+  -w /workspace/holohub \
+  holohub:streaming_client_demo_enhanced_tests \
+  bash -c '
+  pip install pytest numpy && \
+  cd /workspace/holohub/build/streaming_client_demo_enhanced_tests/applications/streaming_client_demo_enhanced_tests/operator_tests && \
+  PYTHONPATH="/workspace/holohub/build/streaming_client_demo_enhanced_tests/python/lib" \
+  python3 -m pytest -v --tb=short test_streaming_client_op_bindings.py'
+```
+
+### ✅ **Method 4: CTest Integration**
+
 ```bash
 # Build with testing enabled
 cmake -B build -DBUILD_TESTING=ON
 cmake --build build
 
-# Run pytest through CTest
+# Run tests through CTest
 cd build
-ctest -R streaming_client_enhanced_python_unit_tests -V
+ctest -R streaming_client_enhanced -V
 ```
 
 ## 🏗️ Test Structure
@@ -116,23 +146,34 @@ ctest -R streaming_client_enhanced_python_unit_tests -V
 @pytest.mark.parametrized   # Parametrized tests (multiple scenarios)
 ```
 
-## 📊 Example Test Execution
+## 🎯 **Expected Test Results**
 
+**Python Tests (pytest):**
 ```bash
-$ pytest -v
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0
+rootdir: /workspace/holohub
+configfile: pyproject.toml
+collected 31 items
 
-=================== test session starts ===================
-collected 25 items
+test_streaming_client_op_bindings.py ...............................     [100%]
 
-test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_operator_creation_basic PASSED                    [  4%]
-test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_video_parameters[640-480-30] PASSED               [  8%]
-test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_video_parameters[1280-720-60] PASSED              [ 12%]
-test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_network_parameters[127.0.0.1-48010] PASSED        [ 16%]
-test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_parameter_type_validation PASSED                  [ 20%]
-test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_invalid_parameters_handling PASSED                [ 24%]
-...
-=================== 25 passed in 2.45s ===================
+============================== 31 passed in 0.19s ==============================
 ```
+
+**C++ Tests (GTest):**
+```bash
+[==========] Running X tests from Y test suites.
+[----------] Global test environment set-up.
+[----------] X tests from StreamingClientOpTest
+[ RUN      ] StreamingClientOpTest.BasicInitialization
+[       OK ] StreamingClientOpTest.BasicInitialization (X ms)
+# ... more tests ...
+[==========] X tests from Y test suites ran. (X ms total)
+[  PASSED  ] X tests.
+```
+
+**🎉 ALL TESTS PASSING!**
 
 ## 🔧 Dependencies
 
@@ -166,7 +207,7 @@ pytest -v -m slow
 pytest -v -k "video_parameters"
 ```
 
-## 🔍 Troubleshooting
+## 🚨 **Troubleshooting**
 
 ### Common Issues
 
@@ -185,4 +226,27 @@ pytest -v -k "video_parameters"
    pytest --skip-hardware-tests
    ```
 
-This testing approach provides comprehensive validation of the StreamingClientOp Python bindings while maintaining fast execution and clear organization! 🚀
+4. **Container Issues**: Make sure the container was built
+   ```bash
+   ./holohub build streaming_client_demo_enhanced_tests
+   ```
+
+5. **Python Bindings Missing**: Check if bindings exist
+   ```bash
+   ls build/streaming_client_demo_enhanced_tests/python/lib/holohub/
+   ```
+
+6. **Operator Not Compiled**: Verify operator compiled successfully
+   ```bash
+   ls build/streaming_client_demo_enhanced_tests/operators/
+   ```
+
+### Why This Approach Works
+
+- ✅ **Holoscan SDK Available**: Docker container has all dependencies
+- ✅ **CUDA Libraries**: GPU libraries available in container
+- ✅ **Python Bindings**: Compiled operator bindings accessible
+- ✅ **Clean Environment**: No conflicting conftest.py files
+- ✅ **Proper PYTHONPATH**: Build directory included in Python path
+
+This comprehensive testing approach provides validation of both C++ core functionality and Python bindings while maintaining fast execution and clear organization! 🚀

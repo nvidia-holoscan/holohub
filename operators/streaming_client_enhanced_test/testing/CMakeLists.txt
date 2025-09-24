@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# CMakeLists.txt for Streaming Client Enhanced Operator Python Unit Tests
+# CMakeLists.txt for Streaming Client Enhanced Operator Unit Tests
 
 cmake_minimum_required(VERSION 3.20)
 
@@ -21,76 +21,32 @@ cmake_minimum_required(VERSION 3.20)
 find_package(holoscan 3.2 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-# Find Python for pytest execution
-find_package(Python3 REQUIRED COMPONENTS Interpreter)
+# Copy pytest files to build directory (following adv_networking_bench pattern)
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/conftest.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/test_streaming_client_op_bindings.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/test_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/pytest.ini" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/unit_test_config.yaml" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
-# Check if pytest is available
+# Register individual pytest tests with CTest using add_python_tests (only if pytest is available)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 execute_process(
-    COMMAND ${Python3_EXECUTABLE} -c "import pytest; print(pytest.__version__)"
+    COMMAND ${Python3_EXECUTABLE} -c "import pytest"
     RESULT_VARIABLE pytest_available
-    OUTPUT_VARIABLE pytest_version
     ERROR_QUIET
 )
 
 if(pytest_available EQUAL 0)
-    string(STRIP "${pytest_version}" pytest_version)
-    message(STATUS "Found pytest version: ${pytest_version}")
-    
-    # Add pytest-based unit tests for Python bindings
-    add_test(
-        NAME streaming_client_enhanced_python_unit_tests
-        COMMAND ${Python3_EXECUTABLE} -m pytest 
-                -v 
-                --tb=short
-                --build-dir=${CMAKE_BINARY_DIR}
-                ${CMAKE_CURRENT_SOURCE_DIR}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    include(add_python_tests)
+    add_python_tests(
+        INPUT "."
+        PYTEST_ARGS "-v" "-s" "--tb=short" "--log-cli-level=INFO"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
-    
-    # Set test environment
-    set_tests_properties(streaming_client_enhanced_python_unit_tests PROPERTIES
-        ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
-        TIMEOUT 60
-        LABELS "unit;python;bindings"
-    )
-    
-    # Add test for Python bindings specifically
-    add_test(
-        NAME streaming_client_enhanced_python_bindings_only
-        COMMAND ${Python3_EXECUTABLE} -m pytest 
-                -v 
-                -m "unit and not hardware"
-                --build-dir=${CMAKE_BINARY_DIR}
-                ${CMAKE_CURRENT_SOURCE_DIR}/test_streaming_client_op_bindings.py
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-    
-    set_tests_properties(streaming_client_enhanced_python_bindings_only PROPERTIES
-        ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
-        TIMEOUT 30
-        LABELS "unit;python;bindings;fast"
-    )
-    
-    # Add test for parametrized tests
-    add_test(
-        NAME streaming_client_enhanced_python_parametrized_tests
-        COMMAND ${Python3_EXECUTABLE} -m pytest 
-                -v 
-                -m "parametrized"
-                --build-dir=${CMAKE_BINARY_DIR}
-                ${CMAKE_CURRENT_SOURCE_DIR}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-    
-    set_tests_properties(streaming_client_enhanced_python_parametrized_tests PROPERTIES
-        ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
-        TIMEOUT 45
-        LABELS "unit;python;parametrized"
-    )
-    
+    message(STATUS "Added pytest tests to CTest for streaming_client_enhanced_test")
 else()
-    message(WARNING "pytest not found. Python unit tests will be skipped.")
-    message(STATUS "To install pytest: pip install pytest")
+    message(WARNING "pytest not available - skipping automatic test discovery. Install pytest to enable individual test registration.")
 endif()
 
 # Optional: Add C++ unit tests if GTest is available
@@ -121,6 +77,7 @@ if(GTest_FOUND)
                              FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|FAILED"
                              TIMEOUT 30
                              LABELS "unit;cpp;gtest")
+        message(STATUS "Added C++ unit tests to CTest for streaming_client_enhanced_test")
     endif()
 else()
     message(STATUS "GTest not found. C++ unit tests will be skipped.")
