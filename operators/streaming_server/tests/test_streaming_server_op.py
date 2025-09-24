@@ -57,6 +57,7 @@ class TestStreamingServerOp:
         """Provide a mock Holoscan Fragment."""
         try:
             from holoscan.core import Fragment
+
             # Try to create a real Fragment for testing
             return Fragment()
         except Exception:
