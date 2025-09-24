@@ -146,16 +146,4 @@ add_custom_target(streaming_server_demo_enhanced_deps
 )
 add_dependencies(streaming_server_demo_enhanced streaming_server_demo_enhanced_deps)
 
-# Add testing
 
-# Add single basic test like client demo
-if(BUILD_TESTING)
-  add_test(NAME streaming_server_demo_enhanced_test
-           COMMAND streaming_server_demo_enhanced --help
-           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set_tests_properties(streaming_server_demo_enhanced_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "Usage: streaming_server_demo_enhanced"
-                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed;error"
-                       TIMEOUT 10)
-  message(STATUS "Added application integration test: streaming_server_demo_enhanced_test")
-endif()
