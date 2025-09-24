@@ -41,10 +41,9 @@ except ImportError:
 try:
     from holohub.streaming_client_operator import StreamingClientOp
 except ImportError as e:
-    pytest.fail(f"Failed to import StreamingClientOp: {e}. "
-                "Ensure the operator is built and available.")
-
-
+    pytest.fail(
+        f"Failed to import StreamingClientOp: {e}. " "Ensure the operator is built and available."
+    )
 
 
 class TestStreamingClientOp:
@@ -55,6 +54,7 @@ class TestStreamingClientOp:
         """Provide a mock Holoscan Fragment."""
         try:
             from holoscan.core import Fragment
+
             # Try to create a real Fragment for testing
             return Fragment()
         except Exception:

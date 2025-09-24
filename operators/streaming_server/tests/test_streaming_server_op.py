@@ -43,10 +43,10 @@ except ImportError:
         # Try alternative import path
         from holohub.streaming_server_operator import StreamingServerOp
     except ImportError as e:
-        pytest.fail(f"Failed to import StreamingServerOp: {e}. "
-                    "Ensure the operator is built and available.")
-
-
+        pytest.fail(
+            f"Failed to import StreamingServerOp: {e}. "
+            "Ensure the operator is built and available."
+        )
 
 
 class TestStreamingServerOp:
@@ -63,9 +63,7 @@ class TestStreamingServerOp:
         op = StreamingServerOp(fragment, name=name)
 
         assert isinstance(op, BaseOperator), "StreamingServerOp should be a Holoscan operator"
-        assert (
-            op.operator_type == Operator.OperatorType.NATIVE
-        ), "Operator type should be NATIVE"
+        assert op.operator_type == Operator.OperatorType.NATIVE, "Operator type should be NATIVE"
         assert f"name: {name}" in repr(op), "Operator name should appear in repr()"
 
     def test_streaming_server_op_init_with_default_name(self, fragment):
