@@ -22,9 +22,8 @@ set -euo pipefail
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="${SCRIPT_DIR}/comprehensive_test.log"
+# Simple setup following working client pattern
 PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-python3}
-PYTEST_EXECUTABLE=${PYTEST_EXECUTABLE:-pytest}
-PYTEST_USE_MODULE=false
 
 # Default test configuration
 DEFAULT_TIMEOUT=300
@@ -95,7 +94,6 @@ Examples:
 
 Environment Variables:
   PYTHON_EXECUTABLE              Python executable to use (default: python3)
-  PYTEST_EXECUTABLE              Pytest executable to use (default: pytest)
   STREAMING_SERVER_ENHANCED_TEST_VERBOSE  Enable verbose output (true/false)
 
 EOF
@@ -132,73 +130,20 @@ initialize_test_environment() {
 
 # Function to check test prerequisites
 check_test_prerequisites() {
-    log_info "Checking test prerequisites..."
+    log_info "Basic prerequisite check..."
     
-    local missing_deps=()
-    
-    # Check Python
-    if ! command -v "$PYTHON_EXECUTABLE" &> /dev/null; then
-        missing_deps+=("Python ($PYTHON_EXECUTABLE)")
-    fi
-    
-    # Check pytest and attempt to install if missing
-    if ! command -v "$PYTEST_EXECUTABLE" &> /dev/null; then
-        log_info "pytest not found, attempting to install..."
-        if "$PYTHON_EXECUTABLE" -m pip install --user pytest --quiet; then
-            log_success "pytest installed successfully"
-            # Set flag to use Python module instead of direct command (global scope)
-            export PYTEST_USE_MODULE=true
-        else
-            missing_deps+=("pytest ($PYTEST_EXECUTABLE)")
-        fi
-    fi
-    
-    # Check required test files
-    local required_files=(
-        "conftest.py"
-        "test_streaming_server_resource.py"
-        "test_streaming_server_upstream_op.py"
-        "test_streaming_server_downstream_op.py"
-        "test_golden_frames.py"
-        "video_streaming_server_functional.py"
-    )
-    
-    for file in "${required_files[@]}"; do
-        if [[ ! -f "${SCRIPT_DIR}/$file" ]]; then
-            missing_deps+=("Test file: $file")
-        fi
-    done
-    
-    if [[ ${#missing_deps[@]} -gt 0 ]]; then
-        log_error "Missing dependencies:"
-        for dep in "${missing_deps[@]}"; do
-            log_error "  - $dep"
-        done
+    # Simple Python check (like the working client does)
+    if ! command -v python3 &> /dev/null; then
+        log_error "Python3 not found"
         return 1
     fi
     
     log_success "All prerequisites satisfied"
-    echo "[DEBUG] PYTEST_USE_MODULE=$PYTEST_USE_MODULE" >&2
     return 0
 }
 
-# Function to run pytest with proper handling of module vs command
-run_pytest() {
-    # Debug: Show pytest execution mode
-    if [[ "$PYTEST_USE_MODULE" == "true" ]]; then
-        echo "[DEBUG] Using Python module: $PYTHON_EXECUTABLE -m pytest $*" >&2
-        "$PYTHON_EXECUTABLE" -m pytest "$@"
-    else
-        echo "[DEBUG] Using direct command: $PYTEST_EXECUTABLE $*" >&2
-        # Check if pytest command exists before trying to run it
-        if command -v "$PYTEST_EXECUTABLE" &> /dev/null; then
-            "$PYTEST_EXECUTABLE" "$@"
-        else
-            log_error "pytest command not found: $PYTEST_EXECUTABLE"
-            return 127
-        fi
-    fi
-}
+# Simple pytest execution following the working client pattern
+# No complex functions needed - just use direct python3 -m pytest commands
 
 # Function to record test result
 record_test_result() {
@@ -261,8 +206,8 @@ run_unit_tests() {
             local file_start_time
             file_start_time=$(date +%s)
             
-            if timeout "$timeout" run_pytest "${pytest_args[@]}" \
-                "${SCRIPT_DIR}/$test_file" >> "$LOG_FILE" 2>&1; then
+            # Use simple pytest approach like the working client
+            if timeout "$timeout" bash -c "cd '$SCRIPT_DIR' && python3 -m pip install --user pytest --quiet && python3 -m pytest ${pytest_args[*]} '$test_file'" >> "$LOG_FILE" 2>&1; then
                 local duration=$(($(date +%s) - file_start_time))
                 record_test_result "Unit Tests: $test_file" "PASSED" "$duration"
             else
@@ -342,8 +287,8 @@ run_golden_frame_tests() {
     
     log_info "Running golden frame tests..."
     
-    if timeout "$timeout" run_pytest "${pytest_args[@]}" \
-        "$golden_test_file" >> "$LOG_FILE" 2>&1; then
+    # Use simple pytest approach like the working client  
+    if timeout "$timeout" bash -c "cd '$SCRIPT_DIR' && python3 -m pip install --user pytest --quiet && python3 -m pytest ${pytest_args[*]} '$golden_test_file'" >> "$LOG_FILE" 2>&1; then
         local duration=$(($(date +%s) - start_time))
         record_test_result "Golden Frame Tests" "PASSED" "$duration"
         return 0
