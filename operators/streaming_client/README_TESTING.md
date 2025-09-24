@@ -15,10 +15,7 @@ ngc registry resource download-version nvidia/holoscan_client_cloud_streaming:0.
 unzip -o holoscan_client_cloud_streaming_v0.1/holoscan_client_cloud_streaming.zip
 
 # Copy the appropriate architecture libraries to lib/ directory
-# For x86_64 systems:
-cp lib/x86_64/* lib/
-# For aarch64 systems:
-# cp lib/aarch64/* lib/
+cp lib/$(uname -m)/* lib/
 
 # Clean up architecture-specific directories and NGC download directory
 rm -rf lib/x86_64 lib/aarch64
