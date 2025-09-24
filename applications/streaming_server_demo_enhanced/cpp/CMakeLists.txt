@@ -62,11 +62,11 @@ target_compile_definitions(streaming_server_demo_enhanced
 )
 
 # Copy YAML file if it exists
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_04_80.yaml")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml")
     add_custom_command(TARGET streaming_server_demo_enhanced POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_04_80.yaml"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/streaming_server_demo_04_80.yaml"
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml"
+        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/streaming_server_demo.yaml"
     )
 endif()
 
@@ -134,15 +134,15 @@ install(
 # Install config files
 install(
     FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_04_80.yaml"
+    "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml"
     DESTINATION bin
 )
 
 # Copy config dependencies for testing
 add_custom_target(streaming_server_demo_enhanced_deps
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_04_80.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "streaming_server_demo_04_80.yaml"
-  BYPRODUCTS "streaming_server_demo_04_80.yaml"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "streaming_server_demo.yaml"
+  BYPRODUCTS "streaming_server_demo.yaml"
 )
 add_dependencies(streaming_server_demo_enhanced streaming_server_demo_enhanced_deps)
 
