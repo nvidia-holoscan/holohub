@@ -111,7 +111,7 @@ The test suite covers:
 ./holohub test video_streaming_server --verbose
 ```
 
-## **Unit Test 2**
+## **Python Initialization Functional Test**
 
 **Purpose:** Basic StreamingServer Python functionality validation without video data
 
@@ -148,13 +148,13 @@ Since there are no streaming clients connecting during tests, the server behavio
 
 ## **Unit Test 3**
 
-**Purpose:** StreamingServer Python functionality with real surgical video data
+**Purpose:** StreamingServer initialization and readiness with real surgical video data
 
 **What it Tests:**
-- Real video data loading and processing from automatically downloaded endoscopy data
-- Server configuration with actual video frames
-- Functional test mode with real surgical video streaming
-- Client connection readiness with video content available
+- Real video data loading and configuration from automatically downloaded endoscopy data
+- Server initialization with actual video frames ready for streaming
+- Server listening mode with video data prepared for client connections
+- Timeout handling when no clients connect (expected behavior in isolated test)
 
 **Expected Outcome:**
 - Test passes in ~60.7 seconds

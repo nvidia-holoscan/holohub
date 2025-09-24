@@ -148,13 +148,13 @@ Since there is no streaming server running during tests, these connection error 
 
 ## **Unit Test 3**
 
-**Purpose:** End-to-end Python streaming functionality with real video data
+**Purpose:** StreamingClient initialization and connection testing with real video data available
 
 **What it Tests:**
-- StreamingClient processing with actual video frames
-- Client-server communication protocols
-- Video data handling and frame processing
-- Performance under realistic conditions
+- StreamingClient initialization with real video data loaded in pipeline
+- Video data file detection and accessibility validation
+- Connection attempts with video data available (no actual streaming due to no server)
+- Graceful handling of connection failures when video data is present
 
 **Expected Outcome:**
 - Test passes in ~3.5 seconds
