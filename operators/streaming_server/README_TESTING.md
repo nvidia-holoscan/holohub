@@ -165,7 +165,7 @@ Since there are no streaming clients connecting during tests, the server behavio
 **Expected Outcome:**
 - Test passes in ~60.7 seconds
 - Real surgical video data loaded and processed (854x480, 30fps)
-- Server ready for client connections with video streaming capability
+- Video data directory found and configured: `/workspace/holohub/build-video_streaming_server/data/endoscopy`
 - Output: `✅ FUNCTIONAL test PASSED: Python StreamingServer with data directory successful`
 
 **Expected Behavior (Normal Operation):**
@@ -177,6 +177,7 @@ Since there are no streaming clients connecting during tests, the server behavio
 
 **Acceptance Criteria:**
 - ✅ "FUNCTIONAL test PASSED: Python StreamingServer with data directory successful" message
+- ✅ "🎬 FUNCTIONAL test: Using real video data from /workspace/holohub/build-video_streaming_server/data/endoscopy" message
 - ✅ "Available video data" and "ready to accept client connections" messages
 - ✅ Video data directory found and configured
 - ✅ Server starts and listens for client connections
@@ -235,9 +236,9 @@ Since there are no streaming clients connecting during tests, the server behavio
 
 **Expected Outcome:**
 - Test passes in ~60.7 seconds
-- Real video data processed successfully
-- Full functional streaming server capability demonstrated
-- Output: `✅ FUNCTIONAL test PASSED: StreamingServer infrastructure mode successful`
+- Real video data files detected: `surgical_video.264` (4.5M), `surgical_video.gxf_entities` (802M), `surgical_video.gxf_index` (17K)
+- Full functional streaming server capability demonstrated with real video processing
+- Output: `✅ FUNCTIONAL test PASSED: C++ StreamingServer with data directory successful`
 
 **Expected Behavior (Normal Operation):**
 Since there are no streaming clients connecting during tests, the server behavior is expected:
@@ -247,12 +248,12 @@ Since there are no streaming clients connecting during tests, the server behavio
 - No connection errors since the server is in listening mode
 
 **Acceptance Criteria:**
-- ✅ "FUNCTIONAL test PASSED: StreamingServer infrastructure mode successful" message
-- ✅ "🎬 FUNCTIONAL test: Using real video data" message
-- ✅ Video data size information displayed
+- ✅ "FUNCTIONAL test PASSED: C++ StreamingServer with data directory successful" message
+- ✅ "🎬 FUNCTIONAL test: Using real video data from /workspace/holohub/build-video_streaming_server/data/endoscopy" message
+- ✅ Video data files listed: `surgical_video.264`, `surgical_video.gxf_entities`, `surgical_video.gxf_index`
 - ✅ Server accepts client connections and processes video streams
 - ✅ Timeout behavior is expected (no clients connecting)
-- ✅ Complete streaming server workflow demonstrated
+- ✅ Complete streaming server workflow demonstrated with real video data
 
 **How to Build & Execute the Test:**
 ```bash
@@ -265,8 +266,9 @@ Since there are no streaming clients connecting during tests, the server behavio
 # Run all StreamingServer tests (recommended)
 ./holohub test video_streaming_server --verbose
 
-# Expected total test time: ~180 seconds for all 5 tests
+# Expected total test time: ~183.8 seconds for all 5 tests
 # Test results: 100% tests passed, 0 tests failed out of 5
+# Real video data: 802M surgical_video.gxf_entities with 4.5M surgical_video.264 source
 ```
 
 ### Test Categories
