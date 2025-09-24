@@ -17,8 +17,9 @@ In order to build the server operator, you must first download the server binari
 ```bash
 # Download using NGC CLI
 cd <your_holohub_path>/operators/streaming_server_enhanced
-ngc registry resource download-version "nvidia/holoscan/holoscan_server_cloud_streaming:1.2"
-unzip -o holoscan_server_cloud_streaming_v1.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
+ngc registry resource download-version "nvidia/holoscan/holoscan_server_cloud_streaming:0.2"
+unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
+
 ```
 
 
@@ -34,16 +35,16 @@ To run the application use this command from the holohub root directory:
 ### Command Line Options
 
 - `-h, --help`: Show help message
-- `-c, --config <file>`: Configuration file path (default: streaming_server_demo_04_80.yaml)
+- `-c, --config <file>`: Configuration file path (default: streaming_server_demo.yaml)
 - `-d, --data <directory>`: Data directory (default: environment variable HOLOSCAN_INPUT_PATH or current directory)
 
 ## Configuration
 
-The application can be configured using a YAML file. By default, it looks for `streaming_server_demo_04_80.yaml` in the current directory.
+The application can be configured using a YAML file. By default, it looks for `streaming_server_demo.yaml` in the current directory.
 
 ### Server Resolution Configuration
 
-Edit `streaming_server_demo_04_80.yaml` to configure the streaming server resolution:
+Edit `streaming_server_demo.yaml` to configure the streaming server resolution:
 
 ```yaml
 # Streaming server settings
