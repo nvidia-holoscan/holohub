@@ -94,22 +94,19 @@ foreach(test_file ${TEST_FILES})
     )
 endforeach()
 
-# Copy and make shell scripts executable
+# Copy and make shell scripts executable (force fresh copy every configure)
 foreach(script ${SHELL_SCRIPTS})
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/${script}
-        ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/${script}
-        COPYONLY
-    )
+    # Remove any existing cached version first, then copy fresh
+    file(REMOVE ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/${script})
     
-    # Make executable (Unix-like systems)
-    if(UNIX)
-        file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${script}
-             DESTINATION ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}
-             FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                             GROUP_READ GROUP_EXECUTE
-                             WORLD_READ WORLD_EXECUTE)
-    endif()
+    # Copy fresh version with executable permissions
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${script}
+         DESTINATION ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}
+         FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                        GROUP_READ GROUP_EXECUTE
+                        WORLD_READ WORLD_EXECUTE)
+                        
+    message(STATUS "Copied fresh shell script: ${script}")
 endforeach()
 
 # Create golden frames directory
