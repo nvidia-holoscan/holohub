@@ -30,6 +30,22 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/pytest.ini" DESTINATION "${CMAKE_CURRENT_
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/unit_test_config.yaml" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
+# Copy enhanced testing files
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/test_golden_frames.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/generate_golden_frames.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client_functional.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
+# Copy shell script wrappers
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_test.sh" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_functional_test.sh" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_cpp_test.sh" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/run_all_tests.sh" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
+# Copy golden frames if they exist
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/golden_frames")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/golden_frames" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+endif()
+
 # Register individual pytest tests with CTest using add_python_tests (only if pytest is available)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 execute_process(
@@ -84,3 +100,59 @@ if(GTest_FOUND)
 else()
     message(STATUS "GTest not found. C++ unit tests will be skipped.")
 endif()
+
+# Add shell script-based tests for robust testing
+add_test(NAME streaming_client_enhanced_functional_test
+         COMMAND bash "${CMAKE_CURRENT_BINARY_DIR}/run_functional_test.sh" 
+                 "${CMAKE_BINARY_DIR}" 
+                 "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_client_functional.py"
+                 ""
+         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+
+set_tests_properties(streaming_client_enhanced_functional_test PROPERTIES
+                     PASS_REGULAR_EXPRESSION "✅.*test PASSED"
+                     FAIL_REGULAR_EXPRESSION "❌.*test FAILED|FATAL|CRITICAL|Segmentation fault"
+                     TIMEOUT 120
+                     LABELS "functional;python;integration")
+
+# Add golden frame generation test
+add_test(NAME streaming_client_enhanced_golden_frame_generation
+         COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/generate_golden_frames.py" 
+                 --frames 5 --config
+         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+
+set_tests_properties(streaming_client_enhanced_golden_frame_generation PROPERTIES
+                     PASS_REGULAR_EXPRESSION "✅ Golden frame generation complete"
+                     TIMEOUT 30
+                     LABELS "golden;generation;unit")
+
+# Add comprehensive test suite
+add_test(NAME streaming_client_enhanced_comprehensive_test_suite
+         COMMAND bash "${CMAKE_CURRENT_BINARY_DIR}/run_all_tests.sh" --timeout 60
+         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+
+set_tests_properties(streaming_client_enhanced_comprehensive_test_suite PROPERTIES
+                     PASS_REGULAR_EXPRESSION "🎉 All tests passed"
+                     FAIL_REGULAR_EXPRESSION "❌.*failed|Some tests failed"
+                     TIMEOUT 300
+                     LABELS "comprehensive;integration;all")
+
+# Add infrastructure test with robust wrapper
+add_test(NAME streaming_client_enhanced_infrastructure_test
+         COMMAND bash "${CMAKE_CURRENT_BINARY_DIR}/run_test.sh"
+                 "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_client_functional.py"
+                 "infrastructure"
+                 "60"
+         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+
+set_tests_properties(streaming_client_enhanced_infrastructure_test PROPERTIES
+                     PASS_REGULAR_EXPRESSION "✅.*test PASSED"
+                     FAIL_REGULAR_EXPRESSION "❌.*test FAILED"
+                     TIMEOUT 80
+                     LABELS "infrastructure;python;robust")
+
+message(STATUS "Added enhanced test suite to CTest for streaming_client_enhanced")
+message(STATUS "  - Golden frame generation test")
+message(STATUS "  - Functional test with video pipeline")
+message(STATUS "  - Infrastructure test with robust wrapper")
+message(STATUS "  - Comprehensive test suite runner")
