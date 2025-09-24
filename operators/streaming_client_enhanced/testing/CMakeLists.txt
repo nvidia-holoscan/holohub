@@ -22,9 +22,10 @@ find_package(holoscan 3.2 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 
-# Copy pytest files to build directory (only copy files that exist)
+# Copy test files to build directory (only copy files that exist)
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/conftest.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/test_streaming_client_op_bindings.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/test_streaming_client_op.cpp" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/pytest.ini" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/unit_test_config.yaml" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
