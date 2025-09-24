@@ -86,13 +86,18 @@ def holoscan_modules(build_directory):
 
 @pytest.fixture(scope="session")
 def streaming_client_op_class(holoscan_modules):
-    """Import and return the StreamingClientOp class."""
+    """Import and return the StreamingClientOp class using app1_testing pattern."""
+    # Use the same robust import pattern that worked in app1_testing
     try:
-        # Try to import the compiled StreamingClientOp module
         from holohub.streaming_client import StreamingClientOp
         return StreamingClientOp
-    except ImportError as e:
-        pytest.skip(f"Cannot import StreamingClientOp: {e}. Make sure the operator is built with Python bindings.")
+    except ImportError:
+        try:
+            # Try alternative import path
+            from holohub.streaming_client_enhanced import StreamingClientOp
+            return StreamingClientOp
+        except ImportError as e:
+            pytest.skip(f"Cannot import StreamingClientOp: {e}. Make sure the operator is built with Python bindings.")
 
 
 @pytest.fixture
