@@ -282,9 +282,34 @@ if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
 endif()
 
-# Add unit testing subdirectory
+# Testing infrastructure 
+include(CTest)
 if(BUILD_TESTING)
   add_subdirectory(testing)
+  
+  # Register pytest tests with CTest 
+  find_package(Python3 COMPONENTS Interpreter)
+  if(Python3_FOUND)
+    # Check if pytest is available
+    execute_process(
+      COMMAND ${Python3_EXECUTABLE} -c "import pytest"
+      RESULT_VARIABLE PYTEST_AVAILABLE
+      OUTPUT_QUIET ERROR_QUIET
+    )
+    
+    if(PYTEST_AVAILABLE EQUAL 0)
+      message(STATUS "Adding pytest tests for streaming_client_enhanced operator...")
+      add_test(NAME streaming_client_enhanced_operator_unit_test
+               COMMAND ${Python3_EXECUTABLE} -m pytest testing/test_streaming_client_op_bindings.py -v
+               WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      set_tests_properties(streaming_client_enhanced_operator_unit_test PROPERTIES
+                           ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+                           TIMEOUT 120
+                           LABELS "unit;operator;python")
+    else()
+      message(WARNING "pytest not available - skipping operator Python unit tests")
+    endif()
+  endif()
 endif()
 
 # Print status message
