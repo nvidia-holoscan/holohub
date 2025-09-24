@@ -207,7 +207,7 @@ run_unit_tests() {
             file_start_time=$(date +%s)
             
             # Use simple pytest approach like the working client
-            if timeout "$timeout" bash -c "cd '$SCRIPT_DIR' && python3 -m pip install --user pytest --quiet && python3 -m pytest ${pytest_args[*]} '$test_file'" >> "$LOG_FILE" 2>&1; then
+            if timeout "$timeout" bash -c "cd '$SCRIPT_DIR' && python3 -m pip install --user pytest --quiet && python3 -m pytest ${pytest_args[*]} $test_file" >> "$LOG_FILE" 2>&1; then
                 local duration=$(($(date +%s) - file_start_time))
                 record_test_result "Unit Tests: $test_file" "PASSED" "$duration"
             else
@@ -288,7 +288,7 @@ run_golden_frame_tests() {
     log_info "Running golden frame tests..."
     
     # Use simple pytest approach like the working client  
-    if timeout "$timeout" bash -c "cd '$SCRIPT_DIR' && python3 -m pip install --user pytest --quiet && python3 -m pytest ${pytest_args[*]} '$golden_test_file'" >> "$LOG_FILE" 2>&1; then
+    if timeout "$timeout" bash -c "cd '$SCRIPT_DIR' && python3 -m pip install --user pytest --quiet && python3 -m pytest ${pytest_args[*]} $golden_test_file" >> "$LOG_FILE" 2>&1; then
         local duration=$(($(date +%s) - start_time))
         record_test_result "Golden Frame Tests" "PASSED" "$duration"
         return 0
