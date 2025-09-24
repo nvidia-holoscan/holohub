@@ -1,0 +1,27 @@
+%YAML 1.2
+---
+# Minimal configuration for StreamingClientOp unit testing
+
+# Application configuration
+application:
+  title: Streaming Client Unit Test Config
+  version: 1.0
+  log_level: INFO
+
+# Streaming client settings for unit testing
+streaming_client:
+  # Video/stream parameters
+  width: 640
+  height: 480
+  fps: 30
+  
+  # Server connection settings (for unit testing)
+  server_ip: "127.0.0.1"
+  signaling_port: 48010
+  
+  # Operation mode - disabled for unit testing
+  receive_frames: false
+  send_frames: false
+  
+  # Frame validation (minimal for unit testing)
+  min_non_zero_bytes: 10
