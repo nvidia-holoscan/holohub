@@ -164,6 +164,106 @@ Dummy Load Execution Time Statistics
   Samples: 281813
 ```
 
+## Benchmark Results
+
+### Executive Summary
+
+Green Context delivers consistent, substantial performance improvements across both edge and high-end hardware:
+
+| Platform | Best Case Improvement | Optimal Configuration | Launch-Start Time with GC |
+|----------|----------------------|----------------------|------------|
+| **Orin (16 SMs)** | 95.5% latency reduction | 4MB workload, 128-256 threads | 23-35μs |
+| **RTX 6000 Ada (142 SMs)** | 97.9% latency reduction | 8-16MB workload, any thread count | 4-6μs |
+
+### Detailed Results by Platform
+
+**Performance Matrix Parameter Mapping**:
+- **Load Int** → `--load-intensity`
+- **Size (MB)** → `--workload-size`
+- **Threads/Block** → `--threads-per-block`
+
+#### Orin (16 SMs)
+
+**Performance Matrix** :
+```
+Load  Size  Threads   Avg%    Baseline    GC
+Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
+----------------------------------------------------
+5     1     64        75.5    106.54      26.13
+5     1     128       72.5    99.74       27.45
+5     1     256       73.1    108.09      29.08
+5     1     512       70.1    91.63       27.36
+5     2     64        87.6    251.08      31.07
+5     2     128       89.0    253.93      27.82
+5     2     256       87.5    244.75      30.73
+5     2     512       87.2    250.33      32.00
+5     4     64        93.4    543.96      35.73
+5     4     128       95.5    531.56      23.86
+5     4     256       94.5    539.75      29.92
+5     4     512       94.8    546.71      28.39
+10    1     256       94.2    462.73      26.78
+10    1     512       87.2    199.80      25.47
+10    2     64        94.3    485.92      27.91
+10    2     128       94.5    475.67      26.38
+10    2     256       94.1    475.66      28.12
+10    2     512       94.6    479.83      26.04
+```
+
+**Orin Key Insights**:
+- **Sweet Spot**: 4MB workload with 128-256 threads per block achieves >94% improvement
+- **Reliability**: Low variance in Green Context performance (23-35μs range)
+
+#### RTX 6000 Ada Generation (142 SMs)
+
+**Performance Matrix** :
+```
+Load  Size  Threads   Avg%    Baseline    GC
+Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
+----------------------------------------------------
+5     1     64        2.7     3.61        3.51
+5     1     128       -0.8    3.35        3.38
+5     1     256       10.8    4.08        3.64
+5     1     512       6.3     3.48        3.26
+5     2     64        55.8    9.15        4.05
+5     2     128       46.0    8.18        4.41
+5     2     256       58.4    10.21       4.25
+5     2     512       55.5    9.70        4.31
+5     4     64        81.4    24.22       4.51
+5     4     128       80.8    24.15       4.63
+5     4     256       80.6    22.84       4.44
+5     4     512       81.6    23.40       4.31
+5     8     64        93.8    70.23       4.35
+5     8     128       93.3    68.74       4.59
+5     8     256       93.0    64.91       4.53
+5     8     512       92.0    57.69       4.61
+5     16    64        96.6    154.00      5.26
+5     16    128       96.3    143.26      5.36
+5     16    256       96.6    146.40      4.93
+5     16    512       95.9    138.77      5.74
+10    8     64        95.7    115.27      4.96
+10    8     128       95.5    108.94      4.95
+10    8     256       95.8    110.68      4.67
+10    8     512       95.6    112.37      4.98
+10    16    64        97.9    286.67      5.93
+10    16    128       97.5    271.31      6.80
+10    16    256       97.7    278.56      6.49
+10    16    512       97.8    280.72      6.06
+20    8     64        97.8    266.16      5.74
+20    8     128       97.9    266.65      5.59
+20    8     256       97.8    261.38      5.89
+20    8     512       97.7    268.53      6.08
+40    1     64        97.8    201.41      4.34
+40    4     64        97.1    210.54      6.08
+40    4     128       97.1    201.47      5.85
+40    4     256       97.3    215.81      5.89
+40    4     512       96.9    189.12      5.87
+```
+
+**RTX 6000 Ada Key Insights**:
+- **Sweet Spot**: 8-16MB workload with load-intensity 10+ achieves >95% improvement
+- **Threshold Effect**: Minimal benefits below 2MB workload, dramatic improvements above 4MB
+- **Reliability**: Low variance in Green Context performance (4-6μs range)
+
 ## Understanding Results
 
 ### Key Metrics

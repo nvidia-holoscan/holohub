@@ -198,7 +198,7 @@ class DummyLoadOp : public Operator {
         reinterpret_cast<long long>(cached_stream_));
     }
 
-    run_background_load_kernel(context);
+    run_background_load_kernel();
 
     auto tick_end_time = std::chrono::steady_clock::now();
     auto tick_duration_us =
@@ -230,7 +230,7 @@ class DummyLoadOp : public Operator {
   }
 
  private:
-  void run_background_load_kernel(ExecutionContext& context) {
+  void run_background_load_kernel() {
     int workload_size = workload_size_.get();
     int load_intensity = load_intensity_.get();
 
