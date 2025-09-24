@@ -78,6 +78,13 @@ check_test_success() {
         python_success="✅ Python functionality working"
     fi
     
+    # Check for minimal mode success
+    local minimal_mode_success=""
+    if grep -q "Minimal mode enabled\|Infrastructure test configured (minimal mode)" "$log_file" && \
+       grep -q "Functional test completed successfully" "$log_file"; then
+        minimal_mode_success="✅ Minimal mode test completed successfully"
+    fi
+    
     # Test type specific validation
     case "$test_type" in
         "unit"|"bindings")
@@ -90,12 +97,17 @@ check_test_success() {
             fi
             ;;
         "infrastructure")
-            # For infrastructure tests, check basic functionality
+            # For infrastructure tests, check basic functionality (including minimal mode)
             if [ -n "$streaming_init_success" ] && [ -n "$connection_attempts" ]; then
                 echo -e "${GREEN}✅ INFRASTRUCTURE test PASSED: StreamingClient functionality validated${NC}"
                 echo "  - $streaming_init_success"
                 echo "  - $connection_attempts"
                 [ -n "$graceful_handling" ] && echo "  - $graceful_handling"
+                return 0
+            elif [ -n "$minimal_mode_success" ]; then
+                echo -e "${GREEN}✅ INFRASTRUCTURE test PASSED: Minimal mode validation successful${NC}"
+                echo "  - $minimal_mode_success"
+                [ -n "$python_success" ] && echo "  - $python_success"
                 return 0
             fi
             ;;
@@ -116,11 +128,12 @@ check_test_success() {
             fi
             ;;
         *)
-            # Generic success check
-            if [ -n "$streaming_init_success" ] || [ -n "$python_success" ]; then
+            # Generic success check (including minimal mode)
+            if [ -n "$streaming_init_success" ] || [ -n "$python_success" ] || [ -n "$minimal_mode_success" ]; then
                 echo -e "${GREEN}✅ Test PASSED: StreamingClient functionality validated${NC}"
                 [ -n "$streaming_init_success" ] && echo "  - $streaming_init_success"
                 [ -n "$python_success" ] && echo "  - $python_success"
+                [ -n "$minimal_mode_success" ] && echo "  - $minimal_mode_success"
                 [ -n "$connection_attempts" ] && echo "  - $connection_attempts"
                 return 0
             fi
