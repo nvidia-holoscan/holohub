@@ -29,17 +29,17 @@ rm -rf holoscan_client_cloud_streaming_v0.1
 
 📋 **Note**: Tests may fail or behave unexpectedly if these dependencies are not properly installed.
 
-### Automatic Test Data Download
+## Automatic Test Data Download
 
-**✅ Self-Sufficient Testing**: The streaming client tests are now **self-sufficient** and will automatically download the required surgical video data during the build process. The test infrastructure uses the same data download mechanism as other HoloHub applications.
+The streaming client tests automatically download surgical video data for realistic testing:
 
-**📥 What Gets Downloaded**:
-- Endoscopy surgical video sample data from NGC
-- Automatic conversion to GXF entities format
-- Video resolution: 854x480, 30fps, RGB24
-- Files: `surgical_video.gxf_entities` and `surgical_video.gxf_index`
+- **Video Data**: Endoscopy sample data (854x480, 30fps) is automatically downloaded from NGC
+- **GXF Entities**: Video files are converted to GXF entities during the build process
+- **Test Data Location**: Data is placed in `${CMAKE_BINARY_DIR}/data/endoscopy/`
+- **Symlinks Created**: `surgical_video.gxf_entities` and `surgical_video.gxf_index` are symlinked for easy access
+- **Self-Sufficient Tests**: No manual data preparation required - tests download what they need
 
-**🎯 Data Location**: `{BUILD_DIR}/data/surgical_video.*`
+This ensures that functional and C++ tests run with real video content for comprehensive validation.
 
 ## Overview
 
@@ -99,10 +99,10 @@ The test suite covers:
 - Mock operator fallback for testing environments
 
 **Expected Outcome:**
-- All 14 unit tests pass in 0.05 seconds
+- All 14 unit tests pass in 0.04 seconds
 - Test execution completes quickly
 - Mock fallback works when real operator unavailable
-- Output: `============================== 14 passed in 0.05s ==============================`
+- Output: `============================== 14 passed in 0.04s ==============================`
 
 **Acceptance Criteria:**
 - ✅ All 14 pytest assertions pass
@@ -128,7 +128,7 @@ The test suite covers:
 
 **Expected Outcome:**
 - Test passes in ~3.5 seconds
-- StreamingClient initializes successfully
+- StreamingClient initializes successfully (width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010)
 - Expected connection failures handled gracefully (5 connection attempts made)
 - Output: `✅ Test PASSED: StreamingClient functionality validated successfully`
 
@@ -164,8 +164,8 @@ Since there is no streaming server running during tests, these connection error 
 
 **Expected Outcome:**
 - Test passes in ~3.5 seconds
-- Video data directory found and used (/workspace/holohub/data)
-- Functional test with video data processing attempted
+- Real video data directory found: `/workspace/holohub/build-video_streaming_client/data`
+- Video data files confirmed: `surgical_video.gxf_entities` and `surgical_video.gxf_index` (symlinked)
 - Output: `✅ FUNCTIONAL test PASSED: StreamingClient functionality validated (partial)`
 
 **Expected Error Messages (Normal Behavior):**
@@ -177,7 +177,8 @@ Since there is no streaming server running during tests, these connection error 
 
 **Acceptance Criteria:**
 - ✅ "FUNCTIONAL test PASSED" message appears
-- ✅ Video data directory found and used
+- ✅ "🎬 FUNCTIONAL test: Using real video data" message appears
+- ✅ Video data directory found: `/workspace/holohub/build-video_streaming_client/data`
 - ✅ StreamingClient processes video frames
 - ✅ Connection failure errors are expected (no server running)
 - ✅ No critical streaming protocol errors
@@ -200,9 +201,9 @@ Since there is no streaming server running during tests, these connection error 
 
 **Expected Outcome:**
 - Test passes in ~3.4 seconds
-- C++ executable runs successfully
-- Configuration loads from YAML file
-- Output: `✅ Test PASSED: C++ StreamingClient INFRASTRUCTURE test successful`
+- C++ executable runs successfully with video data loading
+- Configuration loads from YAML file (854x480, 30fps, server 127.0.0.1:48010)
+- Output: `✅ Test PASSED: C++ StreamingClient FUNCTIONAL test successful`
 
 **Expected Error Messages (Normal Behavior):**
 Since there is no streaming server running during tests, these connection error messages are expected:
@@ -212,9 +213,11 @@ Since there is no streaming server running during tests, these connection error 
 - `std::runtime_error: Failed to connect to server: NVST_R_INVALID_OPERATION`
 
 **Acceptance Criteria:**
-- ✅ "C++ StreamingClient INFRASTRUCTURE test successful" message appears
+- ✅ "C++ StreamingClient FUNCTIONAL test successful" message appears
+- ✅ "🎬 FUNCTIONAL test: Using real video data" message appears
 - ✅ No compilation or runtime errors
 - ✅ YAML configuration loads properly
+- ✅ Video data files detected: `surgical_video.gxf_index`
 - ✅ Connection failure errors are expected (no server running)
 - ✅ Clean application shutdown
 - ✅ Test completes within 5 seconds
@@ -227,8 +230,12 @@ Since there is no streaming server running during tests, these connection error 
 ## **Quick Test Commands Summary:**
 
 ```bash
-# Run all StreamingClient tests
+# Run all StreamingClient tests (4 test types)
 ./holohub test video_streaming_client --verbose
+
+# Expected total test time: ~11.2 seconds for all 4 tests  
+# Test results: 100% tests passed, 0 tests failed out of 4
+# Real video data: symlinked surgical_video.gxf_entities and surgical_video.gxf_index
 ```
 
 ### Test Categories
