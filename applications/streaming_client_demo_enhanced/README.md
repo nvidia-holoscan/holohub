@@ -15,11 +15,8 @@ In order to build the client operator, you must first download the client binari
 ```bash
 # Download using NGC CLI
 cd <your_holohub_path>/operators/streaming_client_enhanced
-ngc registry resource download-version "nvidia/holoscan/holoscan_client_cloud_streaming:1.2"
-unzip -o holoscan_client_cloud_streaming_v1.2/holoscan_client_cloud_streaming.zip
-
-# Move the extracted contents to the expected location
-mv streaming_client_enhanced/holoscan_client_cloud_streaming ./
+ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
+unzip -o holoscan_client_cloud_streaming_v1.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
 
 # Clean up extraction directory and NGC download directory
 rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v1.2
@@ -30,7 +27,7 @@ rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v1.2
 To run the application use this command from the holohub root directory:
 
 ```bash
- ./holohub run --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0' streaming_client_demo_enhanced --language cpp --config streaming_client_demo.yaml
+./holohub run --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0' streaming_client_demo_enhanced --language cpp --config streaming_client_demo.yaml
 ```
 
 **Important Notes:**
