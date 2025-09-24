@@ -173,7 +173,7 @@ Since there is no streaming server running during tests, these connection error 
 - ✅ "FUNCTIONAL test PASSED" message appears
 - ✅ "🎬 FUNCTIONAL test: Using real video data" message appears
 - ✅ Video data directory found: `/workspace/holohub/build-video_streaming_client/data`
-- ✅ StreamingClient processes video frames
+- ✅ StreamingClient loads video data files into pipeline
 - ✅ Connection failure errors are expected (no server running)
 - ✅ No critical streaming protocol errors
 - ✅ Test completes within 5 seconds
