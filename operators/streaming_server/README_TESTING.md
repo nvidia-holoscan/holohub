@@ -30,6 +30,17 @@ rm -rf holoscan_server_cloud_streaming_v0.1
 
 📋 **Note**: Tests may fail or behave unexpectedly if these dependencies are not properly installed.
 
+## Automatic Test Data Download
+
+The streaming server tests now automatically download surgical video data for realistic testing:
+
+- **Video Data**: Endoscopy sample data (854x480, 30fps) is automatically downloaded from NGC
+- **GXF Entities**: Video files are converted to GXF entities during the build process  
+- **Test Data Location**: Data is placed in `${CMAKE_BINARY_DIR}/data/endoscopy/`
+- **Self-Sufficient Tests**: No manual data preparation required - tests download what they need
+
+This ensures that functional tests run with real video content rather than infrastructure-only testing.
+
 ## Overview
 
 This directory contains comprehensive tests for the `StreamingServerOp` operator, covering both **Python** and **C++** implementations:
@@ -143,18 +154,18 @@ Since there are no streaming clients connecting during tests, the server behavio
 
 ## **Unit Test 3**
 
-**Purpose:** StreamingServer Python functionality with video data directory detection
+**Purpose:** StreamingServer Python functionality with real surgical video data
 
 **What it Tests:**
-- Video data directory discovery and validation
-- Server configuration with available video data
-- Functional test mode with data directory setup
-- Client connection readiness
+- Real video data loading and processing from automatically downloaded endoscopy data
+- Server configuration with actual video frames
+- Functional test mode with real surgical video streaming
+- Client connection readiness with video content available
 
 **Expected Outcome:**
 - Test passes in ~60.7 seconds
-- Video data directory detected and configured (/workspace/holohub/data)
-- Server ready for client connections
+- Real surgical video data loaded and processed (854x480, 30fps)
+- Server ready for client connections with video streaming capability
 - Output: `✅ FUNCTIONAL test PASSED: Python StreamingServer with data directory successful`
 
 **Expected Behavior (Normal Operation):**
@@ -214,13 +225,13 @@ Since there are no streaming clients connecting during tests, the server behavio
 
 ## **Unit Test 5**
 
-**Purpose:** End-to-end C++ StreamingServer with real video data
+**Purpose:** End-to-end C++ StreamingServer with automatically downloaded surgical video data
 
 **What it Tests:**
-- C++ implementation with actual video file processing
-- Real video data detection and usage
-- Complete streaming server workflow in C++
-- Performance under realistic data conditions
+- C++ implementation with real surgical video file processing
+- Automatic video data loading from downloaded endoscopy dataset
+- Complete streaming server workflow in C++ with real video frames
+- Performance under realistic video streaming conditions
 
 **Expected Outcome:**
 - Test passes in ~60.7 seconds
