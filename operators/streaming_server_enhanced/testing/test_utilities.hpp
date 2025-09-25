@@ -57,7 +57,7 @@ struct TestConfig {
 class MockFragment : public holoscan::Fragment {
  public:
   MockFragment() : holoscan::Fragment() {}
-  
+
   void compose() override {
     // Mock implementation - does nothing
   }
@@ -68,8 +68,8 @@ class MockFragment : public holoscan::Fragment {
  */
 class MockExecutor : public holoscan::Executor {
  public:
-  MockExecutor(holoscan::Fragment* fragment) : holoscan::Executor(fragment) {}
-  
+  explicit MockExecutor(holoscan::Fragment* fragment) : holoscan::Executor(fragment) {}
+
   void run(holoscan::OperatorGraph& graph) override {
     // Mock implementation - does nothing
   }
@@ -80,7 +80,7 @@ class MockExecutor : public holoscan::Executor {
  */
 class MockOperatorSpec : public holoscan::OperatorSpec {
  public:
-  MockOperatorSpec(holoscan::Fragment* fragment) : holoscan::OperatorSpec(fragment) {}
+  explicit MockOperatorSpec(holoscan::Fragment* fragment) : holoscan::OperatorSpec(fragment) {}
 };
 
 /**
@@ -88,7 +88,7 @@ class MockOperatorSpec : public holoscan::OperatorSpec {
  */
 class MockExecutionContext : public holoscan::ExecutionContext {
  public:
-  MockExecutionContext(holoscan::Fragment* fragment, 
+  MockExecutionContext(holoscan::Fragment* fragment,
                        holoscan::Executor* executor)
     : holoscan::ExecutionContext(fragment, executor) {}
 };
