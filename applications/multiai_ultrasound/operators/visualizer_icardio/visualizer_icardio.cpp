@@ -27,6 +27,7 @@
 #include "holoscan/core/resources/gxf/allocator.hpp"
 #include "holoscan/utils/holoinfer_utils.hpp"
 
+#include "holoinfer_buffer.hpp"
 #include "holoinfer_utils.hpp"
 
 #include <cuda_runtime.h>
