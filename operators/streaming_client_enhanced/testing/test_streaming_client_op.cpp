@@ -48,8 +48,7 @@ TEST_F(StreamingClientOpTest, BasicInitialization) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = 48010,
       holoscan::Arg("send_frames") = false,  // Disable for unit testing
-      holoscan::Arg("receive_frames") = false  // Disable for unit testing
-  );
+      holoscan::Arg("receive_frames") = false);  // Disable for unit testing
 
   // Verify the operator was created successfully
   ASSERT_NE(streaming_client_op_, nullptr);
@@ -73,8 +72,7 @@ TEST_F(StreamingClientOpTest, ParameterValidation) {
       holoscan::Arg("signaling_port") = 8080,
       holoscan::Arg("send_frames") = true,
       holoscan::Arg("receive_frames") = false,
-      holoscan::Arg("min_non_zero_bytes") = 100u
-  );
+      holoscan::Arg("min_non_zero_bytes") = 100u);
 
   ASSERT_NE(streaming_client_op_, nullptr);
   EXPECT_EQ(streaming_client_op_->name(), "test_hd_client");
@@ -91,7 +89,7 @@ TEST_F(StreamingClientOpTest, OperatorSetup) {
       holoscan::Arg("signaling_port") = 48010,
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false
-  );
+);
 
   ASSERT_NE(streaming_client_op_, nullptr);
 
@@ -113,7 +111,7 @@ TEST_F(StreamingClientOpTest, MinimalParameters) {
       holoscan::Arg("signaling_port") = 3000,
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false
-  );
+);
 
   ASSERT_NE(streaming_client_op_, nullptr);
   EXPECT_EQ(streaming_client_op_->name(), "minimal_client");
@@ -132,7 +130,7 @@ TEST_F(StreamingClientOpTest, ParameterEdgeCases) {
       holoscan::Arg("send_frames") = true,
       holoscan::Arg("receive_frames") = true,
       holoscan::Arg("min_non_zero_bytes") = 1000u
-  );
+);
 
   ASSERT_NE(streaming_client_op_, nullptr);
   EXPECT_EQ(streaming_client_op_->name(), "max_params_client");
@@ -149,7 +147,7 @@ TEST_F(StreamingClientOpTest, OperatorCleanup) {
       holoscan::Arg("signaling_port") = 48010,
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false
-  );
+);
 
   ASSERT_NE(streaming_client_op_, nullptr);
 
