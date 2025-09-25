@@ -124,6 +124,18 @@ sudo usermod -a -G video $USER
 - Verify server and client are using the same resolution settings
 - Test with `netstat -tlnp | grep 48010` to see if port is listening
 
+## Operator Documentation
+
+For detailed information about the underlying streaming server operators used in this application, see:
+
+📋 **[Streaming Server Enhanced Operator](../../operators/streaming_server_enhanced/README.md)** - Complete operator documentation
+
+The operator documentation includes:
+- **Architecture Components**: StreamingServerResource, StreamingServerUpstreamOp, StreamingServerDownstreamOp
+- **Parameters and Configuration**: Detailed parameter descriptions and usage examples
+- **Testing Documentation**: Comprehensive test suite with 15/15 tests passing
+- **API Reference**: Complete API documentation for all components
+
 ## Related Applications
 
-- [Streaming Client Demo Application](../streaming_client_demo_enhanced/README.md) 
+- **[Streaming Client Demo Enhanced](../streaming_client_demo_enhanced/README.md)** - Companion client application for bidirectional streaming 
