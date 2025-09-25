@@ -16,10 +16,10 @@ In order to build the client operator, you must first download the client binari
 # Download using NGC CLI
 cd <your_holohub_path>/operators/streaming_client_enhanced
 ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
-unzip -o holoscan_client_cloud_streaming_v1.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
+unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
 
 # Clean up extraction directory and NGC download directory
-rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v1.2
+rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v0.2
 ```
 
 ## Running the Application
@@ -39,7 +39,7 @@ To run the application use this command from the holohub root directory:
 ### Command Line Options
 
 - `-h, --help`: Show help message
-- `-c, --config <file>`: Configuration file path (default: streaming_client_demo_04_80.yaml)
+- `-c, --config <file>`: Configuration file path (default: streaming_client_demo.yaml)
 - `-d, --data <directory>`: Data directory (default: environment variable HOLOSCAN_INPUT_PATH or current directory)
 
 ### Troubleshooting Camera Issues
@@ -66,7 +66,7 @@ If you're getting errors about missing video files, it means the application mig
 
 ## Configuration
 
-The application can be configured using a YAML file. By default, it looks for `streaming_client_demo_04_80.yaml` in the current directory. The configuration is set to use V4L2 camera input by default (`source: "v4l2"`).
+The application can be configured using a YAML file. By default, it looks for `streaming_client_demo.yaml` in the current directory. The configuration is set to use V4L2 camera input by default (`source: "v4l2"`).
 
 ## Operator Documentation
 
