@@ -107,6 +107,12 @@ holoviz:
       opacity: 1.0
       priority: 0
 
+# Buffer pool configuration to fix GXF_EXCEEDING_PREALLOCATED_SIZE errors
+# Increases buffer size to accommodate BGR->BGRA conversion (921600 -> 1228800 bytes)
+allocator:
+  block_size: 2097152    # 2MB buffer blocks (larger than 1228800 bytes needed for BGRA frames)
+  num_blocks: 10         # Number of pre-allocated blocks for smooth streaming
+
 # Optional scheduler configuration
 # Use one of: "default", "multi_thread", "event_based", "greedy"
 scheduler: "greedy"
