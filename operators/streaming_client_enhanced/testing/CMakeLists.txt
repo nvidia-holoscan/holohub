@@ -61,15 +61,15 @@ if(pytest_available EQUAL 0)
         PYTEST_ARGS "-v" "-s" "--tb=short" "--log-cli-level=INFO"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
-    
+
     # Set PYTHONPATH for all pytest tests to match the working Test #1 environment
     get_cmake_property(_variableNames VARIABLES)
-    foreach (_variableName ${_variableNames})
-        if (_variableName MATCHES "^_PYTEST_.*")
+    foreach(_variableName ${_variableNames})
+        if(_variableName MATCHES "^_PYTEST_.*")
             unset(${_variableName})
         endif()
     endforeach()
-    
+
     # Get list of all tests and add PYTHONPATH environment to pytest tests
     get_property(all_tests DIRECTORY PROPERTY TESTS)
     foreach(test_name ${all_tests})
@@ -81,7 +81,7 @@ if(pytest_available EQUAL 0)
             )
         endif()
     endforeach()
-    
+
     message(STATUS "Added pytest tests to CTest for streaming_client_enhanced")
     message(STATUS "  - Python binding tests: test_streaming_client_op_bindings.py")
     message(STATUS "  - PYTHONPATH configured: ${CMAKE_BINARY_DIR}/python/lib")
@@ -89,17 +89,17 @@ else()
     message(WARNING "pytest not available - skipping automatic test discovery. Install pytest to enable individual test registration.")
 endif()
 
-# Optional: Add C++ unit tests if GTest is available
+
 find_package(GTest QUIET)
 if(GTest_FOUND)
     # Include the parent directory to get access to the operator's sources and headers
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../holoscan_client_cloud_streaming/include)
-    
+
     # Add the C++ unit test executable (if test_streaming_client_op.cpp exists)
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_streaming_client_op.cpp)
         add_executable(streaming_client_enhanced_cpp_unit_tests test_streaming_client_op.cpp)
-        
+
         # Link against Holoscan SDK, GTest, and the operator's library
         target_link_libraries(streaming_client_enhanced_cpp_unit_tests
                               PRIVATE
@@ -107,11 +107,11 @@ if(GTest_FOUND)
                                   GTest::gtest_main
                                   holoscan::ops::streaming_client
                               )
-        
+
         # Add the C++ test to CTest
         add_test(NAME streaming_client_enhanced_cpp_unit_tests
                  COMMAND $<TARGET_FILE:streaming_client_enhanced_cpp_unit_tests>)
-        
+
         set_tests_properties(streaming_client_enhanced_cpp_unit_tests PROPERTIES
                              PASS_REGULAR_EXPRESSION "^\\[==========\\] \\d+ tests from \\d+ test suites ran\\.$"
                              FAIL_REGULAR_EXPRESSION "FATAL|CRITICAL|Segmentation fault|FAILED"
@@ -125,8 +125,8 @@ endif()
 
 # Add shell script-based tests for robust testing
 add_test(NAME streaming_client_enhanced_functional_test
-         COMMAND bash "${CMAKE_CURRENT_BINARY_DIR}/run_functional_test.sh" 
-                 "${CMAKE_BINARY_DIR}" 
+         COMMAND bash "${CMAKE_CURRENT_BINARY_DIR}/run_functional_test.sh"
+                 "${CMAKE_BINARY_DIR}"
                  "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_client_functional.py"
                  ""
          WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
@@ -139,7 +139,7 @@ set_tests_properties(streaming_client_enhanced_functional_test PROPERTIES
 
 # Add golden frame generation test
 add_test(NAME streaming_client_enhanced_golden_frame_generation
-         COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/generate_golden_frames.py" 
+         COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/generate_golden_frames.py"
                  --frames 5 --config
          WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 

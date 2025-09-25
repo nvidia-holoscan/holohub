@@ -31,10 +31,10 @@ class StreamingServerResourceTest : public StreamingServerTestFixture {
  protected:
   void SetUp() override {
     StreamingServerTestFixture::SetUp();
-    
+
     // Create a resource instance for testing
     resource_ = std::make_shared<StreamingServerResource>();
-    
+
     // Create operator spec for setup calls
     op_spec_ = std::make_shared<MockOperatorSpec>(fragment_.get());
   }
@@ -70,7 +70,7 @@ TEST_F(StreamingServerResourceTest, SetWidthParameter) {
   EXPECT_NO_THROW({
     resource_->width(test_config_.width);
   });
-  
+
   // Test with different valid widths
   uint32_t test_widths[] = {640, 854, 1920, 3840};
   for (uint32_t width : test_widths) {
@@ -84,7 +84,7 @@ TEST_F(StreamingServerResourceTest, SetHeightParameter) {
   EXPECT_NO_THROW({
     resource_->height(test_config_.height);
   });
-  
+
   // Test with different valid heights
   uint32_t test_heights[] = {480, 720, 1080, 2160};
   for (uint32_t height : test_heights) {
@@ -98,7 +98,7 @@ TEST_F(StreamingServerResourceTest, SetFpsParameter) {
   EXPECT_NO_THROW({
     resource_->fps(test_config_.fps);
   });
-  
+
   // Test with different valid frame rates
   uint32_t test_fps[] = {15, 30, 60, 120};
   for (uint32_t fps : test_fps) {
@@ -112,7 +112,7 @@ TEST_F(StreamingServerResourceTest, SetPortParameter) {
   EXPECT_NO_THROW({
     resource_->port(test_config_.port);
   });
-  
+
   // Test with different valid ports
   uint16_t test_ports[] = {48010, 48020, 49000, 50000};
   for (uint16_t port : test_ports) {
@@ -126,7 +126,7 @@ TEST_F(StreamingServerResourceTest, SetServerNameParameter) {
   EXPECT_NO_THROW({
     resource_->server_name(test_config_.server_name);
   });
-  
+
   // Test with different valid server names
   std::vector<std::string> test_names = {
     "TestServer",
@@ -134,7 +134,7 @@ TEST_F(StreamingServerResourceTest, SetServerNameParameter) {
     "My_Custom_Server_123",
     ""  // Empty name should be allowed
   };
-  
+
   for (const auto& name : test_names) {
     EXPECT_NO_THROW({
       resource_->server_name(name);
@@ -149,7 +149,7 @@ TEST_F(StreamingServerResourceTest, InvalidWidthParameters) {
   EXPECT_NO_THROW({
     resource_->width(1);  // Minimum valid width
   });
-  
+
   EXPECT_NO_THROW({
     resource_->width(7680);  // Large width (8K)
   });
@@ -160,7 +160,7 @@ TEST_F(StreamingServerResourceTest, InvalidHeightParameters) {
   EXPECT_NO_THROW({
     resource_->height(1);  // Minimum valid height
   });
-  
+
   EXPECT_NO_THROW({
     resource_->height(4320);  // Large height (8K)
   });
@@ -171,7 +171,7 @@ TEST_F(StreamingServerResourceTest, InvalidFpsParameters) {
   EXPECT_NO_THROW({
     resource_->fps(1);  // Minimum valid FPS
   });
-  
+
   EXPECT_NO_THROW({
     resource_->fps(240);  // High FPS
   });
@@ -186,7 +186,7 @@ TEST_F(StreamingServerResourceTest, SetupWithValidParameters) {
   resource_->fps(test_config_.fps);
   resource_->port(test_config_.port);
   resource_->server_name(test_config_.server_name);
-  
+
   // Setup should not throw with valid parameters
   EXPECT_NO_THROW({
     resource_->setup(*op_spec_);
@@ -200,11 +200,11 @@ TEST_F(StreamingServerResourceTest, InitializeAfterSetup) {
   resource_->fps(test_config_.fps);
   resource_->port(test_config_.port);
   resource_->fragment(fragment_.get());
-  
+
   EXPECT_NO_THROW({
     resource_->setup(*op_spec_);
   });
-  
+
   EXPECT_NO_THROW({
     resource_->initialize();
   });
@@ -216,7 +216,7 @@ TEST_F(StreamingServerResourceTest, MultipleSetupCalls) {
   // Should be able to call setup multiple times without error
   resource_->width(test_config_.width);
   resource_->height(test_config_.height);
-  
+
   EXPECT_NO_THROW({
     resource_->setup(*op_spec_);
     resource_->setup(*op_spec_);
@@ -230,12 +230,12 @@ TEST_F(StreamingServerResourceTest, SetupAndInitializeLifecycle) {
   resource_->fps(test_config_.fps);
   resource_->port(test_config_.port);
   resource_->fragment(fragment_.get());
-  
+
   // Setup
   EXPECT_NO_THROW({
     resource_->setup(*op_spec_);
   });
-  
+
   // Initialize
   EXPECT_NO_THROW({
     resource_->initialize();
@@ -250,7 +250,7 @@ TEST_F(StreamingServerResourceTest, CommonResolutionConfigurations) {
     uint32_t height;
     std::string name;
   };
-  
+
   std::vector<ResolutionConfig> configs = {
     {640, 480, "VGA"},
     {854, 480, "FWVGA"},
@@ -258,20 +258,20 @@ TEST_F(StreamingServerResourceTest, CommonResolutionConfigurations) {
     {1920, 1080, "Full HD"},
     {3840, 2160, "4K UHD"}
   };
-  
+
   for (const auto& config : configs) {
     EXPECT_NO_THROW({
       resource_->width(config.width);
       resource_->height(config.height);
       resource_->setup(*op_spec_);
-    }) << "Failed for " << config.name << " resolution (" 
+    }) << "Failed for " << config.name << " resolution ("
       << config.width << "x" << config.height << ")";
   }
 }
 
 TEST_F(StreamingServerResourceTest, CommonFrameRateConfigurations) {
   std::vector<uint32_t> framerates = {15, 24, 30, 60, 120};
-  
+
   for (uint32_t fps : framerates) {
     EXPECT_NO_THROW({
       resource_->fps(fps);
@@ -285,7 +285,7 @@ TEST_F(StreamingServerResourceTest, CommonFrameRateConfigurations) {
 TEST_F(StreamingServerResourceTest, ConcurrentParameterSetting) {
   // This is a basic test - in a real implementation you might use threading
   // For now, just test that multiple parameter sets work
-  
+
   EXPECT_NO_THROW({
     resource_->width(1920);
     resource_->height(1080);
@@ -293,7 +293,7 @@ TEST_F(StreamingServerResourceTest, ConcurrentParameterSetting) {
     resource_->port(48015);
     resource_->server_name("ConcurrentTest");
   });
-  
+
   EXPECT_NO_THROW({
     resource_->setup(*op_spec_);
   });
@@ -308,7 +308,7 @@ TEST_F(StreamingServerResourceTest, SetupAfterParameterChanges) {
   EXPECT_NO_THROW({
     resource_->setup(*op_spec_);
   });
-  
+
   // Change parameters and setup again
   resource_->width(1920);
   resource_->height(1080);
@@ -322,7 +322,7 @@ TEST_F(StreamingServerResourceTest, ResourceReuse) {
   for (int i = 0; i < 3; ++i) {
     resource_->width(test_config_.width);
     resource_->height(test_config_.height);
-    
+
     EXPECT_NO_THROW({
       resource_->setup(*op_spec_);
     }) << "Failed on iteration " << i;

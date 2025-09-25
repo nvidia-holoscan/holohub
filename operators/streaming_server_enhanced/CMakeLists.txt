@@ -65,10 +65,10 @@ add_library(streaming_server_enhanced
     # Split operators for tensor-based processing
     streaming_server_upstream_op.cpp
     streaming_server_downstream_op.cpp
-    
+
     # Resource
     streaming_server_resource.cpp
-    
+
     # Shared debug utilities
     frame_debug_utils.cpp
 )
@@ -82,7 +82,7 @@ set_target_properties(streaming_server_enhanced PROPERTIES
 
 # Set target properties
 target_include_directories(streaming_server_enhanced
-    PUBLIC 
+    PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${STREAMINGSERVER_DIR}/include>
     $<INSTALL_INTERFACE:include>
@@ -204,7 +204,7 @@ endif()
 # Add testing subdirectory if enabled
 if(BUILD_TESTING)
   add_subdirectory(testing)
-  
+
   # Register operator-level pytest tests (following streaming_client_enhanced pattern)
   find_package(Python3 COMPONENTS Interpreter)
   if(Python3_FOUND)

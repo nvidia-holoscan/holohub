@@ -40,7 +40,7 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
         auto time_t = std::chrono::system_clock::to_time_t(now);
         auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
             now.time_since_epoch()) % 1000;
-        
+
         std::stringstream filename;
         filename << filename_prefix;
         if (frame_number >= 0) {
@@ -48,19 +48,19 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
         }
         filename << "_" << std::put_time(std::localtime(&time_t), "%H%M%S")
                  << "_" << std::setfill('0') << std::setw(3) << ms.count();
-        
+
         // Get frame properties
         uint32_t width = frame.getWidth();
         uint32_t height = frame.getHeight();
         const uint8_t* data = frame.getData();
         size_t data_size = frame.getDataSize();
         auto format = frame.getFormat();
-        
+
         if (!data || data_size == 0 || width == 0 || height == 0) {
             HOLOSCAN_LOG_ERROR("writeFrameToDisk: Invalid frame data");
             return false;
         }
-        
+
         // Write raw binary data
         std::string raw_filename = filename.str() + "_raw.bin";
         std::ofstream raw_file(raw_filename, std::ios::binary);
@@ -69,7 +69,7 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
             raw_file.close();
             HOLOSCAN_LOG_INFO("Wrote raw frame data to: {}", raw_filename);
         }
-        
+
         // Write metadata file
         std::string meta_filename = filename.str() + "_meta.txt";
         std::ofstream meta_file(meta_filename);
@@ -88,7 +88,7 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
             meta_file << ")\n";
             meta_file << "Timestamp: " << frame.getTimestamp() << "\n";
             meta_file << "Bytes per pixel: " << (data_size / (width * height)) << "\n";
-            
+
             // Add first few pixel values for inspection
             meta_file << "\nFirst 10 pixels (raw bytes):\n";
             size_t bytes_per_pixel = (format == ::PixelFormat::BGRA || format == ::PixelFormat::RGBA) ? 4 : 3;
@@ -99,11 +99,11 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
                 }
                 meta_file << "\n";
             }
-            
+
             meta_file.close();
             HOLOSCAN_LOG_INFO("Wrote frame metadata to: {}", meta_filename);
         }
-        
+
         // Write as PPM image file (for easy viewing)
         if (format == ::PixelFormat::BGRA || format == ::PixelFormat::BGR || format == ::PixelFormat::RGBA) {
             std::string ppm_filename = filename.str() + ".ppm";
@@ -111,7 +111,7 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
             if (ppm_file.is_open()) {
                 // PPM header
                 ppm_file << "P6\n" << width << " " << height << "\n255\n";
-                
+
                 // Convert pixel data to RGB for PPM
                 size_t bytes_per_pixel = (format == ::PixelFormat::BGRA || format == ::PixelFormat::RGBA) ? 4 : 3;
                 for (uint32_t y = 0; y < height; ++y) {
@@ -140,9 +140,9 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
                 HOLOSCAN_LOG_INFO("Wrote PPM image to: {} (can be viewed with image viewers)", ppm_filename);
             }
         }
-        
+
         return true;
-        
+
     } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("writeFrameToDisk exception: {}", e.what());
         return false;
