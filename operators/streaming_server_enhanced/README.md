@@ -183,15 +183,13 @@ In order to build the server operator, you must first download the server binari
 
 ```bash
 # Download using NGC CLI
-cd <your_holohub_path>/operators/streaming_server_enhanced
-ngc registry resource download-version "nvidia/holoscan/holoscan_server_cloud_streaming:1.0"
-unzip -o holoscan_server_cloud_streaming_v1.0/holoscan_server_cloud_streaming.zip
 
-# Move the extracted contents to the expected location
-mv streaming_server_enhanced/holoscan_server_cloud_streaming ./
+cd <your_holohub_path>/operators/streaming_server_enhanced
+ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
+unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
 
 # Clean up extraction directory and NGC download directory
-rm -rf streaming_server_enhanced holoscan_server_cloud_streaming_v1.0
+rm -rf streaming_server_enhanced holoscan_server_cloud_streaming_v0.2
 ```
 
 ### Deployment on NVCF
@@ -274,6 +272,26 @@ Note: If the test haproxy is still running, and you wish to test the executable 
 ```bash
 ./nvcf/stop_test_intermediate_haproxy.sh
 ```
+
+## Testing
+
+For comprehensive testing information including unit tests, golden frame testing, and functional tests, see:
+
+📋 **[Testing Documentation](testing/README.md)** - Complete testing suite with 15/15 tests passing
+
+The testing infrastructure includes:
+- **Unit Tests**: Comprehensive operator testing with mock framework
+- **Golden Frame Tests**: Visual regression testing with reference images
+- **Functional Tests**: End-to-end pipeline testing with real video data
+- **Python Binding Tests**: pybind11 interface validation
+- **Comprehensive Test Suites**: Multiple execution modes for different scenarios
+
+Run all tests with: `./holohub test streaming_server_demo_enhanced --verbose`
+
+## Related Applications
+
+- **[Streaming Server Demo Enhanced](../../applications/streaming_server_demo_enhanced/README.md)** - Complete application demonstrating the streaming server operators
+- **[Streaming Client Demo Enhanced](../../applications/streaming_client_demo_enhanced/README.md)** - Companion client application for bidirectional streaming
 
 ## Supported Platforms
 
