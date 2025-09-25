@@ -68,6 +68,18 @@ If you're getting errors about missing video files, it means the application mig
 
 The application can be configured using a YAML file. By default, it looks for `streaming_client_demo_04_80.yaml` in the current directory. The configuration is set to use V4L2 camera input by default (`source: "v4l2"`).
 
+## Operator Documentation
+
+For detailed information about the underlying streaming client operator used in this application, see:
+
+📋 **[Streaming Client Enhanced Operator](../../operators/streaming_client_enhanced/README.md)** - Complete operator documentation
+
+The operator documentation includes:
+- **Architecture and Implementation**: StreamingClientOp configuration and usage
+- **Parameters and Configuration**: Detailed parameter descriptions and camera setup
+- **Testing Documentation**: Comprehensive test suite with 25/25 tests passing
+- **API Reference**: Complete API documentation and troubleshooting guides
+
 ## Related Applications
 
-- [Streaming Server Demo Application](../streaming_server_demo_enhanced/README.md) 
+- **[Streaming Server Demo Enhanced](../streaming_server_demo_enhanced/README.md)** - Companion server application for bidirectional streaming 
