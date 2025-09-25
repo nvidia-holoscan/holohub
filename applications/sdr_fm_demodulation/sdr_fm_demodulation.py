@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -153,7 +153,7 @@ class FMDemod(Application):
         self.add_flow(resample, sink)
 
 
-if __name__ == "__main__":
+def main():
     app = FMDemod()
     app.config("")
 
@@ -162,3 +162,7 @@ if __name__ == "__main__":
     duration = time.time() - tstart
 
     print(f"{duration:0.3f}")
+
+
+if __name__ == "__main__":
+    main()

@@ -180,7 +180,7 @@ class UltrasoundApp(Application):
         )
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = ArgumentParser(description="Ultrasound segmentation demo application.")
     parser.add_argument(
@@ -215,3 +215,7 @@ if __name__ == "__main__":
     app = UltrasoundApp(source=args.source, data=args.data)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

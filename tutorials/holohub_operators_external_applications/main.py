@@ -29,6 +29,10 @@ class App(Application):
         self.add_operator(aja_source)
 
 
-if __name__ == "__main__":
+def main():
     app = App()
     app.run()
+
+
+if __name__ == "__main__":
+    main()
