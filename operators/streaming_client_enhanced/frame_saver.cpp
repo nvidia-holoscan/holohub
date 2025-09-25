@@ -113,7 +113,8 @@ void FrameSaverOp::compute(holoscan::InputContext& op_input,
       std::vector<uint8_t> host_data(data_size);
 
       // Copy from GPU to CPU
-      cudaError_t cuda_status = cudaMemcpy(host_data.data(), data, data_size, cudaMemcpyDeviceToHost);
+      cudaError_t cuda_status =
+          cudaMemcpy(host_data.data(), data, data_size, cudaMemcpyDeviceToHost);
       if (cuda_status != cudaSuccess) {
         HOLOSCAN_LOG_ERROR("CUDA memcpy failed: {}", cudaGetErrorString(cuda_status));
         output_file_.close();
@@ -126,11 +127,9 @@ void FrameSaverOp::compute(holoscan::InputContext& op_input,
       // Write directly from CPU memory
       output_file_.write(reinterpret_cast<const char*>(data), data_size);
     }
-
     output_file_.close();
 
     HOLOSCAN_LOG_INFO("Saved frame {} to {}", frame_count_ - 1, current_file_);
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error saving frame: {}", e.what());
     if (output_file_.is_open()) {
@@ -139,4 +138,4 @@ void FrameSaverOp::compute(holoscan::InputContext& op_input,
   }
 }
 
-} // namespace holoscan::ops
+}  // namespace holoscan::ops
