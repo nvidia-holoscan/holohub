@@ -18,7 +18,7 @@
 #ifndef VISUALIZER_ICARDIO_CUH
 #define VISUALIZER_ICARDIO_CUH
 
-#include <cuda.h>
+#include <cuda_runtime.h>
 
 #include <stdexcept>
 

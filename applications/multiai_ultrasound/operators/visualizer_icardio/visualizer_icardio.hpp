@@ -26,11 +26,6 @@
 #include "holoscan/core/gxf/gxf_operator.hpp"
 #include "holoscan/utils/cuda_stream_handler.hpp"
 
-#include "holoinfer_buffer.hpp"
-#include "holoinfer_utils.hpp"
-
-namespace HoloInfer = holoscan::inference;
-
 namespace holoscan::ops {
 /**
  * @brief Visualizer iCardio Operator class to generate data for visualization
