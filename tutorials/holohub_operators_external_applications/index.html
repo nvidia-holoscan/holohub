@@ -15322,9 +15322,12 @@ python3<span class="w"> </span>../main.py
         <span class="c1"># Add the operator to your application</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_operator</span><span class="p">(</span><span class="n">aja_source</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
     <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
 </code></pre></div>
 <h4 id="python-bindings-location">Python Bindings Location<a class="headerlink" href="#python-bindings-location" title="Permanent link">#</a></h4>
 <p>The Python modules are built and installed in the following structure:
