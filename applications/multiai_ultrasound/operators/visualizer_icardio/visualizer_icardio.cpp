@@ -34,6 +34,8 @@
 
 #include "visualizer_icardio.cuh"
 
+namespace HoloInfer = holoscan::inference;
+
 namespace holoscan::ops {
 
 void VisualizerICardioOp::setup(OperatorSpec& spec) {
