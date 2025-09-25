@@ -39,6 +39,12 @@ target_compile_definitions(streaming_server_demo
     HOLOSCAN_PATCH_VERSION=${holoscan_VERSION_PATCH}
 )
 
+# Set compile features
+target_compile_features(streaming_server_demo
+    PUBLIC
+    cxx_std_17
+)
+
 # Set compile options
 target_compile_options(streaming_server_demo
     PRIVATE
@@ -56,6 +62,8 @@ add_dependencies(streaming_server_demo streaming_server)
 target_link_libraries(streaming_server_demo
     PUBLIC
     holoscan::core
+    holoscan::ops::video_stream_replayer
+    holoscan::ops::format_converter
     holoscan::streaming_server
     CUDA::cudart
     CUDA::cuda_driver
@@ -69,6 +77,8 @@ set_target_properties(streaming_server_demo PROPERTIES
     BUILD_WITH_INSTALL_RPATH TRUE
     INSTALL_RPATH_USE_LINK_PATH TRUE
     SKIP_BUILD_RPATH FALSE
+    BUILD_RPATH "${CMAKE_BINARY_DIR}/operators/streaming_server:${CMAKE_BINARY_DIR}/operators/streaming_server/lib:/opt/nvidia/holoscan/lib"
+    INSTALL_RPATH "$ORIGIN:$ORIGIN/../../../operators/streaming_server:$ORIGIN/../../operators/streaming_server:/opt/nvidia/holoscan/lib"
 )
 
 # Add include directories
@@ -104,4 +114,5 @@ install(
     "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml"
     DESTINATION bin
 )
+
 

@@ -212,6 +212,17 @@ Note: If the test haproxy is still running, and you wish to test the executable 
 ./nvcf/stop_test_intermediate_haproxy.sh
 ```
 
+## Testing
+
+For comprehensive testing documentation including unit tests, infrastructure tests, functional tests, and C++ tests, see [README_TESTING.md](README_TESTING.md).
+
+**Quick test commands:**
+```bash
+# Run all StreamingServer tests (5 test types)
+./holohub test video_streaming_server --verbose
+
+```
+
 ## Supported Platforms
 
 - Linux x86_64

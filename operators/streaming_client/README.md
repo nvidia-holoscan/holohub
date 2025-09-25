@@ -82,6 +82,19 @@ If you encounter build errors:
 - Check that the libraries have appropriate permissions (644)
 - Ensure the directories exist inside the container environment 
 
+## Testing
+
+For comprehensive testing documentation including unit tests, infrastructure tests, functional tests, and C++ tests, see [README_TESTING.md](README_TESTING.md).
+
+**Quick test commands:**
+```bash
+# Run all StreamingClient tests (4 test types)
+./holohub test video_streaming_client --verbose
+
+# Run only unit tests (fastest - <1s)
+cd operators/streaming_client && python3 -m pytest tests/test_streaming_client_op.py -v
+```
+
 ## Supported Platforms
 
 - Linux x86_64

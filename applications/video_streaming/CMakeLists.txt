@@ -18,3 +18,4 @@ project(video_streaming LANGUAGES NONE)
 
 add_holohub_application(video_streaming_client DEPENDS OPERATORS streaming_client)
 add_holohub_application(video_streaming_server DEPENDS OPERATORS streaming_server)
+

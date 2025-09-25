@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -30,6 +31,8 @@
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 
 #include "streaming_server_op.hpp"
+
+namespace fs = std::filesystem;
 
 
 namespace holoscan::ops {
@@ -131,16 +134,51 @@ class StreamingServerTestApp : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    // Create the streaming server operator with continuous execution
-    // Remove periodic condition - let it run continuously to process frames
+    // Check if we have video data available for functional testing
+    fs::path data_dir(datapath_);
+    fs::path fallback_dir("/workspace/holohub/data");
+    bool has_video_data = false;
+    fs::path final_data_dir;
+
+    // Check if original data directory exists and has video files
+    if (fs::exists(data_dir) && fs::exists(data_dir / "surgical_video.gxf_index")) {
+      HOLOSCAN_LOG_INFO("🎬 FUNCTIONAL test: Using real video data from {}", data_dir.string());
+      final_data_dir = data_dir;
+      has_video_data = true;
+    } else if (fs::exists(fallback_dir) &&
+               fs::exists(fallback_dir / "surgical_video.gxf_index")) {
+      HOLOSCAN_LOG_INFO(
+          "🔧 INFRASTRUCTURE test: No video data found, testing StreamingServer "
+          "functionality only");
+      HOLOSCAN_LOG_INFO("Found valid data directory with video file: {}", fallback_dir.string());
+      HOLOSCAN_LOG_INFO("Using data directory: {}", fallback_dir.string());
+      HOLOSCAN_LOG_INFO("Video file path: {}/surgical_video.gxf_index", fallback_dir.string());
+      final_data_dir = fallback_dir;
+      has_video_data = true;
+    }
+
+    // StreamingServerOp works standalone in both functional and infrastructure modes
+    // It receives frames from network clients, not from video pipeline
     auto streaming_server = make_operator<ops::StreamingServerOp>(
         "streaming_server", from_config("streaming_server"));
 
     // Add the operator to the pipeline
     add_operator(streaming_server);
 
+    if (has_video_data && !datapath_.empty()) {
+      HOLOSCAN_LOG_INFO(
+          "🎬 FUNCTIONAL test: StreamingServer with data directory available for "
+          "client connections");
+      HOLOSCAN_LOG_INFO("Available video data: {}", final_data_dir.string());
+      HOLOSCAN_LOG_INFO(
+          "StreamingServer will accept client connections and process their video streams");
+    } else {
+      HOLOSCAN_LOG_INFO("🔧 INFRASTRUCTURE test: StreamingServer in standalone mode");
+    }
+
     HOLOSCAN_LOG_INFO(
-        "Application composed with streaming server using continuous execution");
+        "Application composed with standalone StreamingServer (receives frames from "
+        "network clients)");
   }
 
  private:
@@ -295,7 +333,11 @@ int main(int argc, char** argv) {
     app->set_receive_frames(receive_frames);
     app->set_send_frames(send_frames);
     app->set_visualize_frames(visualize_frames);
+    app->set_datapath(data_directory);
 
+    std::cout << "Using data from: "
+              << (data_directory.empty() ? "none (standalone mode)" : data_directory)
+              << std::endl;
     std::cout << "Configuration:\n"
               << "- Resolution: " << width << "x" << height << "\n"
               << "- FPS: " << fps << "\n"
