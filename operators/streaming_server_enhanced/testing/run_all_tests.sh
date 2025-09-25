@@ -206,8 +206,8 @@ run_unit_tests() {
             local file_start_time
             file_start_time=$(date +%s)
             
-            # Use exact same command as working individual tests (Test 2)
-            if timeout "$timeout" /usr/bin/python3.12 -m pytest -v --tb=short "$SCRIPT_DIR/$test_file" >> "$LOG_FILE" 2>&1; then
+            # Use exact same command and environment as working individual tests (Test 2)
+            if timeout "$timeout" env PYTHONPATH="$SCRIPT_DIR" /usr/bin/python3.12 -m pytest -v --tb=short "$SCRIPT_DIR/$test_file" >> "$LOG_FILE" 2>&1; then
                 local duration=$(($(date +%s) - file_start_time))
                 record_test_result "Unit Tests: $test_file" "PASSED" "$duration"
             else
@@ -287,8 +287,8 @@ run_golden_frame_tests() {
     
     log_info "Running golden frame tests..."
     
-    # Use exact same command as working individual tests (Test 2)
-    if timeout "$timeout" /usr/bin/python3.12 -m pytest -v --tb=short "$golden_test_file" >> "$LOG_FILE" 2>&1; then
+    # Use exact same command and environment as working individual tests (Test 2)
+    if timeout "$timeout" env PYTHONPATH="$SCRIPT_DIR" /usr/bin/python3.12 -m pytest -v --tb=short "$golden_test_file" >> "$LOG_FILE" 2>&1; then
         local duration=$(($(date +%s) - start_time))
         record_test_result "Golden Frame Tests" "PASSED" "$duration"
         return 0
