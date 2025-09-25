@@ -68,6 +68,19 @@ If you're getting errors about missing video files, it means the application mig
 
 The application can be configured using a YAML file. By default, it looks for `streaming_client_demo.yaml` in the current directory. The configuration is set to use V4L2 camera input by default (`source: "v4l2"`).
 
+## Expected Behavior and Logs
+
+During normal operation, you may see the following messages in the logs, which are **expected and do not indicate errors**:
+
+```
+[warning] [double_buffer_transmitter.cpp:79] Push failed on 'output_frames'
+[error] [gxf_io_context.cpp:673] Failed to publish output message with error: GXF_EXCEEDING_PREALLOCATED_SIZE
+[error] [streaming_client.cpp:1299] Error in receive_frames processing: Failed to publish output message with error: GXF_EXCEEDING_PREALLOCATED_SIZE
+[warning] [double_buffer_receiver.cpp:80] Push failed on 'receivers:0'
+```
+
+These messages occur due to buffer management during high-throughput streaming and frame format conversion (BGR to BGRA). The streaming client continues to operate normally despite these buffer warnings, as the system automatically handles buffer overflow scenarios by dropping frames when necessary. This is the intended behavior for real-time streaming applications to maintain performance.
+
 ## Operator Documentation
 
 For detailed information about the underlying streaming client operator used in this application, see:
