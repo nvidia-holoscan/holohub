@@ -66,21 +66,6 @@ streaming_server:
   send_frames: true
 ```
 
-### Python Application Options
-
-The Python version supports command-line resolution configuration:
-
-```bash
-# Run with custom resolution
-python streaming_server_demo.py --width 1280 --height 720 --port 48010
-
-# Run with 1080p resolution
-python streaming_server_demo.py --width 1920 --height 1080 --fps 30
-
-# Test with different configurations
-python streaming_server_demo.py --width 1280 --height 720 --fps 60
-```
-
 ### Recommended Settings
 
 **For streaming with V4L2 cameras (like Logitech C920):**
