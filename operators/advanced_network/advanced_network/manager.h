@@ -69,6 +69,7 @@ class Manager {
   virtual void print_stats() = 0;
   virtual uint64_t get_burst_tot_byte(BurstParams* burst) = 0;
   virtual BurstParams* create_tx_burst_params() = 0;
+  virtual Status get_rx_burst(BurstParams** burst, int port, int q, int stream_id);
   virtual Status get_rx_burst(BurstParams** burst, int port, int q) = 0;
   virtual Status get_rx_burst(BurstParams** burst, int port_id);
   virtual Status get_rx_burst(BurstParams** burst);

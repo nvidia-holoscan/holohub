@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,17 +20,20 @@ enable_language(CUDA)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_subdirectory(rmax_service)
+add_subdirectory(rivermax_service)
+add_subdirectory(applications)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/rmax_mgr_impl)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/rivermax_mgr_impl)
 
 target_sources(${PROJECT_NAME}
     PRIVATE
-        rmax_mgr_impl/adv_network_rmax_mgr.cpp
-        rmax_mgr_impl/burst_manager.cpp
-        rmax_mgr_impl/rmax_config_manager.cpp
+        rivermax_mgr_impl/adv_network_rivermax_mgr.cpp
+        rivermax_mgr_impl/rivermax_mgr_service.cpp
+        rivermax_mgr_impl/burst_manager.cpp
+        rivermax_mgr_impl/rivermax_config_manager.cpp
+        rivermax_mgr_impl/rivermax_queue_configs.cpp
     PUBLIC
-        adv_network_rmax_mgr.h
+        adv_network_rivermax_mgr.h
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
@@ -39,8 +42,6 @@ target_compile_options(${PROJECT_NAME} PUBLIC -std=c++17)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        rmax_service
-        rmax-ral-lib
-        rmax-ral-build
+        rivermax_service
         holoscan::core
 )

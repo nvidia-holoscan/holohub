@@ -409,6 +409,16 @@ void set_num_packets(BurstParams* burst, int64_t num);
 Status send_tx_burst(BurstParams* burst);
 
 /**
+ * @brief Get a RX burst from a specific stream
+ *
+ * @param burst Burst structure
+ * @param port Port ID of interface
+ * @param q Queue ID of interface
+ * @param stream_id Stream ID
+ */
+Status get_rx_burst(BurstParams** burst, int port, int q, int stream_id);
+
+/**
  * @brief Get a RX burst
  *
  * @param burst Burst structure

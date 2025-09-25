@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@
 #include <rte_ethdev.h>
 #endif
 #if ANO_MGR_RIVERMAX
-#include "advanced_network/managers/rivermax/adv_network_rmax_mgr.h"
+#include "advanced_network/managers/rivermax/adv_network_rivermax_mgr.h"
 #endif
 
 #define ASSERT_ANO_MGR_INITIALIZED() \
@@ -277,6 +277,11 @@ Status send_tx_burst(BurstParams* burst) {
   return g_ano_mgr->send_tx_burst(burst);
 }
 
+Status get_rx_burst(BurstParams** burst, int port, int q, int stream_id) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_rx_burst(burst, port, q, stream_id);
+}
+
 Status get_rx_burst(BurstParams** burst, int port, int q) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_rx_burst(burst, port, q);
@@ -456,7 +461,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {
       holoscan::advanced_network::Status status =
-          holoscan::advanced_network::RmaxMgr::parse_rx_queue_rivermax_config(q_item, q);
+          holoscan::advanced_network::RivermaxMgr::parse_rx_queue_rivermax_config(q_item, q);
       if (status != holoscan::advanced_network::Status::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse RX Queue config for Rivermax");
         return false;
@@ -480,6 +485,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_common_config(
     const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q) {
   if (!parse_common_queue_config(q_item, q.common_)) { return false; }
+#if !ANO_MGR_RIVERMAX
   try {
     const auto& offload = q_item["offloads"];
     q.common_.offloads_.reserve(offload.size());
@@ -488,6 +494,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
     HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
     return false;
   }
+#endif
   return true;
 }
 
@@ -514,7 +521,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {
       holoscan::advanced_network::Status status =
-          holoscan::advanced_network::RmaxMgr::parse_tx_queue_rivermax_config(q_item, q);
+          holoscan::advanced_network::RivermaxMgr::parse_tx_queue_rivermax_config(q_item, q);
       if (status != holoscan::advanced_network::Status::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse TX Queue config for Rivermax");
         return false;

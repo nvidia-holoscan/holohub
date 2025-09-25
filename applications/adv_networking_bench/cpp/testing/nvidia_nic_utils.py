@@ -33,10 +33,11 @@ class NetworkInterface:
     bus_id: str  # PCI bus ID (e.g., "0000:3b:00.0")
     mac_address: str  # MAC address
     is_up: bool  # Whether the interface is up
+    ip_address: str  # IP address
 
     def __str__(self) -> str:
         status = "Up" if self.is_up else "Down"
-        return f"NetworkInterface(name={self.interface_name}, bus_id={self.bus_id}, mac={self.mac_address}, status={status})"
+        return f"NetworkInterface(name={self.interface_name}, bus_id={self.bus_id}, mac={self.mac_address}, status={status}, ip={self.ip_address})"
 
 
 def get_nvidia_nics() -> List[NetworkInterface]:
@@ -84,9 +85,17 @@ def get_nvidia_nics() -> List[NetworkInterface]:
 
         mac_address = result.stdout.strip()
 
+        # Get IP address
+        result = run_command(f"ip -4 addr show {interface_name} | grep -oP '(?<=inet\s)\d+(\.\d+){{3}}'")
+        if result.returncode != 0:
+            ip_address = None
+        else:
+            ip_address = result.stdout.strip()
+
         # Create and add the interface
         interface = NetworkInterface(
-            interface_name=interface_name, bus_id=bus_id, mac_address=mac_address, is_up=is_up
+            interface_name=interface_name, bus_id=bus_id, mac_address=mac_address, is_up=is_up, 
+            ip_address=ip_address
         )
 
         interfaces.append(interface)
