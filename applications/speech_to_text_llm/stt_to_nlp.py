@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,10 +127,14 @@ class STT_To_LLM(Application):
         self.add_flow(llm, print_llm_answers, {("gpt_answers", "text")})
 
 
-if __name__ == "__main__":
+def main():
     set_log_level(LogLevel.WARN)
 
     app = STT_To_LLM()
     config_file = os.path.join(os.path.dirname(__file__), "stt_to_nlp.yaml")
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

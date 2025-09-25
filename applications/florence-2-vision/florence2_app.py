@@ -117,9 +117,13 @@ class FlorenceApp(Application):
         self.add_flow(detection_postprocessor, holoviz, {("output_specs", "input_specs")})
 
 
-if __name__ == "__main__":
+def main():
     # Load the configuration file and run the application
     config_file = os.path.join(os.path.dirname(__file__), "config.yaml")
     app = FlorenceApp()
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -237,7 +237,7 @@ class ColonoscopyApp(Application):
             )
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = argparse.ArgumentParser(description="Colonoscopy segmentation demo application.")
     parser.add_argument(
@@ -278,3 +278,7 @@ if __name__ == "__main__":
     app = ColonoscopyApp(source=args.source, data=args.data, contours=args.contours)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

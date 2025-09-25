@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,12 +69,16 @@ class HighSpeedEndoscopyApp(Application):
         self.add_flow(bayer_demosaic, viz, {("transmitter", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser(description="High-speed endoscopy demo application.")
-    args = parser.parse_args()
+    parser.parse_args()
 
     config_file = os.path.join(os.path.dirname(__file__), "high_speed_endoscopy.yaml")
 
     app = HighSpeedEndoscopyApp()
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()
