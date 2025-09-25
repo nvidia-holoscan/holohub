@@ -15,7 +15,6 @@
 
 """Pytest configuration and fixtures for StreamingServerEnhanced testing."""
 
-import os
 import sys
 import tempfile
 from pathlib import Path
@@ -27,13 +26,12 @@ import pytest
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
-from mock_holoscan_framework import (
+from mock_holoscan_framework import (  # noqa: E402
+    MockAllocator,
+    MockExecutionContext,
     MockFragment,
-    MockOperatorSpec,
     MockInputContext,
     MockOutputContext,
-    MockExecutionContext,
-    MockAllocator,
     MockTensor,
     MockTensorMap,
 )
@@ -108,7 +106,7 @@ def sample_video_config():
         "server_name": "TestStreamingServer",
         "enable_upstream": True,
         "enable_downstream": True,
-        "multi_instance": False
+        "multi_instance": False,
     }
 
 
@@ -145,10 +143,8 @@ def mock_streaming_server():
 def mock_streaming_server_resource(mock_streaming_server, mock_streaming_server_config):
     """Provide a mock StreamingServerResource for testing."""
     from test_utils import MockStreamingServerResource
-    return MockStreamingServerResource(
-        mock_streaming_server,
-        mock_streaming_server_config
-    )
+
+    return MockStreamingServerResource(mock_streaming_server, mock_streaming_server_config)
 
 
 # Pytest configuration
@@ -166,13 +162,17 @@ def pytest_collection_modifyitems(config, items):
     """Modify test collection to add markers."""
     for item in items:
         # Add unit marker to all tests by default
-        if not any(marker.name in ["functional", "golden_frame", "hardware", "slow"] 
-                  for marker in item.iter_markers()):
+        if not any(
+            marker.name in ["functional", "golden_frame", "hardware", "slow"]
+            for marker in item.iter_markers()
+        ):
             item.add_marker(pytest.mark.unit)
-        
+
         # Add slow marker to tests that typically take longer
-        if any(keyword in item.name.lower() 
-               for keyword in ["functional", "pipeline", "server", "network"]):
+        if any(
+            keyword in item.name.lower()
+            for keyword in ["functional", "pipeline", "server", "network"]
+        ):
             item.add_marker(pytest.mark.slow)
 
 
@@ -182,24 +182,26 @@ def pytest_addoption(parser):
         "--skip-hardware-tests",
         action="store_true",
         default=False,
-        help="Skip hardware-dependent tests"
+        help="Skip hardware-dependent tests",
     )
     parser.addoption(
         "--skip-slow-tests",
-        action="store_true", 
+        action="store_true",
         default=False,
-        help="Skip slow tests (> 5 seconds)"
+        help="Skip slow tests (> 5 seconds)",
     )
 
 
 def pytest_runtest_setup(item):
     """Setup function called before each test."""
     # Skip hardware tests if requested
-    if item.config.getoption("--skip-hardware-tests") and \
-       any(marker.name == "hardware" for marker in item.iter_markers()):
+    if item.config.getoption("--skip-hardware-tests") and any(
+        marker.name == "hardware" for marker in item.iter_markers()
+    ):
         pytest.skip("Skipping hardware-dependent test")
-    
+
     # Skip slow tests if requested
-    if item.config.getoption("--skip-slow-tests") and \
-       any(marker.name == "slow" for marker in item.iter_markers()):
+    if item.config.getoption("--skip-slow-tests") and any(
+        marker.name == "slow" for marker in item.iter_markers()
+    ):
         pytest.skip("Skipping slow test")

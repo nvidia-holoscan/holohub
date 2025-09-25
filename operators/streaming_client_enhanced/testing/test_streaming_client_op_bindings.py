@@ -21,8 +21,6 @@ This module tests the Python bindings of the StreamingClientOp operator.
 """
 
 import pytest
-import numpy as np
-from unittest.mock import patch, MagicMock
 
 
 class TestStreamingClientOpBinding:
@@ -33,8 +31,8 @@ class TestStreamingClientOpBinding:
         """Test basic operator creation through Python bindings."""
         op = operator_factory()
         assert op is not None
-        assert hasattr(op, 'initialize')
-        assert hasattr(op, 'setup')
+        assert hasattr(op, "initialize")
+        assert hasattr(op, "setup")
 
     @pytest.mark.unit
     def test_operator_creation_with_custom_name(self, operator_factory):
@@ -44,18 +42,17 @@ class TestStreamingClientOpBinding:
         assert op is not None
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("width,height,fps", [
-        (640, 480, 30),
-        (1280, 720, 60),
-        (1920, 1080, 30),
-    ])
+    @pytest.mark.parametrize(
+        "width,height,fps",
+        [
+            (640, 480, 30),
+            (1280, 720, 60),
+            (1920, 1080, 30),
+        ],
+    )
     def test_video_parameters(self, operator_factory, width, height, fps):
         """Test operator creation with different video parameters."""
-        op = operator_factory(
-            width=width,
-            height=height,
-            fps=fps
-        )
+        op = operator_factory(width=width, height=height, fps=fps)
         assert op is not None
 
     @pytest.mark.unit
@@ -69,7 +66,7 @@ class TestStreamingClientOpBinding:
             signaling_port=48010,
             receive_frames=True,
             send_frames=False,
-            min_non_zero_bytes=100
+            min_non_zero_bytes=100,
         )
         assert op is not None
 
@@ -77,18 +74,18 @@ class TestStreamingClientOpBinding:
     def test_method_availability(self, operator_factory):
         """Test that required methods are available through Python bindings."""
         op = operator_factory()
-        
+
         # Check core operator methods
-        assert hasattr(op, 'initialize')
-        assert callable(getattr(op, 'initialize'))
-        
-        assert hasattr(op, 'setup')
-        assert callable(getattr(op, 'setup'))
+        assert hasattr(op, "initialize")
+        assert callable(getattr(op, "initialize"))
+
+        assert hasattr(op, "setup")
+        assert callable(getattr(op, "setup"))
 
     @pytest.mark.unit
     def test_docstring_availability(self, streaming_client_op_class):
         """Test that docstrings are available for the Python bindings."""
-        assert hasattr(streaming_client_op_class, '__doc__')
-        doc = getattr(streaming_client_op_class, '__doc__')
+        assert hasattr(streaming_client_op_class, "__doc__")
+        doc = getattr(streaming_client_op_class, "__doc__")
         assert doc is not None
         assert len(doc.strip()) > 0
