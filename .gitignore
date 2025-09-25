@@ -60,3 +60,10 @@ rti_license.dat
 **/holoscan_server_cloud_streaming/
 **/holoscan_server_cloud_streaming_logs/
 **/holoscan_client_cloud_streaming/
+data-streaming_*/
+data-streaming_*/
+*.gxf_entities
+*.264
+Testing/
+*.log
+*_backup/

@@ -27,17 +27,17 @@ namespace holoscan::ops::debug_utils {
 #ifdef HOLOSCAN_DEBUG_FRAME_WRITING
 /**
  * @brief Utility function to write Frame to disk for debugging purposes
- * 
+ *
  * This function writes frame data in multiple formats for debugging:
  * - Raw binary data (.bin)
  * - Metadata file (.txt) with frame properties and pixel samples
  * - PPM image file (.ppm) for visual inspection
- * 
+ *
  * @param frame The frame to write to disk
  * @param filename_prefix Prefix for the output filenames
  * @param frame_number Optional frame number to include in filename (-1 to omit)
  * @return true if successful, false otherwise
- * 
+ *
  * @note This function is only available when compiled with -DHOLOSCAN_DEBUG_FRAME_WRITING
  *       to avoid performance impact and disk I/O in production builds.
  */

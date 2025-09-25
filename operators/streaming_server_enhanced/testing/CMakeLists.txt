@@ -98,14 +98,14 @@ endforeach()
 foreach(script ${SHELL_SCRIPTS})
     # Remove any existing cached version first, then copy fresh
     file(REMOVE ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/${script})
-    
+
     # Copy fresh version with executable permissions
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${script}
          DESTINATION ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}
          FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
                         GROUP_READ GROUP_EXECUTE
                         WORLD_READ WORLD_EXECUTE)
-                        
+
     message(STATUS "Copied fresh shell script: ${script}")
 endforeach()
 
@@ -135,69 +135,69 @@ set(TEST_ENV_VARS
 
 if(GTest_FOUND AND GMock_FOUND)
     message(STATUS "Configuring C++ unit tests")
-    
+
     # C++ test utilities library
     add_library(streaming_server_enhanced_test_utils
         test_utilities.cpp
     )
-    
+
     target_include_directories(streaming_server_enhanced_test_utils PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/operators/streaming_server_enhanced
     )
-    
+
     target_link_libraries(streaming_server_enhanced_test_utils
         PUBLIC
         holoscan::core
         GTest::gtest
         GTest::gmock
     )
-    
+
     # StreamingServerResource C++ tests
     add_executable(test_streaming_server_resource_cpp
         test_streaming_server_resource_cpp.cpp
     )
-    
+
     target_link_libraries(test_streaming_server_resource_cpp
         streaming_server_enhanced_test_utils
         holoscan::ops::streaming_server_enhanced
         GTest::gtest_main
         GTest::gmock
     )
-    
+
     # StreamingServerUpstreamOp C++ tests
     add_executable(test_streaming_server_upstream_op_cpp
         test_streaming_server_upstream_op_cpp.cpp
     )
-    
+
     target_link_libraries(test_streaming_server_upstream_op_cpp
         streaming_server_enhanced_test_utils
         holoscan::ops::streaming_server_enhanced
         GTest::gtest_main
         GTest::gmock
     )
-    
+
     # StreamingServerDownstreamOp C++ tests
     add_executable(test_streaming_server_downstream_op_cpp
         test_streaming_server_downstream_op_cpp.cpp
     )
-    
+
     target_link_libraries(test_streaming_server_downstream_op_cpp
         streaming_server_enhanced_test_utils
         holoscan::ops::streaming_server_enhanced
         GTest::gtest_main
         GTest::gmock
     )
-    
+
     # Register C++ tests with CTest
     add_test(NAME streaming_server_enhanced_cpp_resource_tests
              COMMAND test_streaming_server_resource_cpp
              WORKING_DIRECTORY ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR})
-    
+
     set_tests_properties(streaming_server_enhanced_cpp_resource_tests PROPERTIES
                          TIMEOUT 60
                          LABELS "unit;cpp;streaming_server;resource")
-    
+
     # Enable automatic pytest discovery like streaming_client_enhanced
     include(add_python_tests)
     add_python_tests(
@@ -207,23 +207,23 @@ if(GTest_FOUND AND GMock_FOUND)
     )
     message(STATUS "Added automatic pytest discovery for streaming_server_enhanced")
     message(STATUS "  - Python binding tests will be auto-discovered")
-    
+
     add_test(NAME streaming_server_enhanced_cpp_upstream_tests
              COMMAND test_streaming_server_upstream_op_cpp
              WORKING_DIRECTORY ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR})
-    
+
     set_tests_properties(streaming_server_enhanced_cpp_upstream_tests PROPERTIES
                          TIMEOUT 60
                          LABELS "unit;cpp;streaming_server;upstream")
-    
+
     add_test(NAME streaming_server_enhanced_cpp_downstream_tests
              COMMAND test_streaming_server_downstream_op_cpp
              WORKING_DIRECTORY ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR})
-    
+
     set_tests_properties(streaming_server_enhanced_cpp_downstream_tests PROPERTIES
                          TIMEOUT 60
                          LABELS "unit;cpp;streaming_server;downstream")
-    
+
     message(STATUS "C++ unit tests configured (3 test suites)")
 else()
     message(STATUS "GTest/GMock not found - skipping C++ unit tests")
@@ -237,7 +237,7 @@ message(STATUS "Configuring Python unit tests")
 
 # Test 1: StreamingServerResource unit tests
 add_test(NAME streaming_server_enhanced_resource_unit_tests
-         COMMAND ${PYTEST_EXECUTABLE} -v --tb=short 
+         COMMAND ${PYTEST_EXECUTABLE} -v --tb=short
                  ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/test_streaming_server_resource.py
          WORKING_DIRECTORY ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR})
 
@@ -246,7 +246,7 @@ set_tests_properties(streaming_server_enhanced_resource_unit_tests PROPERTIES
                      TIMEOUT 120
                      LABELS "unit;python;streaming_server;resource")
 
-# Test 2: StreamingServerUpstreamOp unit tests  
+# Test 2: StreamingServerUpstreamOp unit tests
 add_test(NAME streaming_server_enhanced_upstream_unit_tests
          COMMAND ${PYTEST_EXECUTABLE} -v --tb=short
                  ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/test_streaming_server_upstream_op.py
@@ -258,7 +258,7 @@ set_tests_properties(streaming_server_enhanced_upstream_unit_tests PROPERTIES
                      LABELS "unit;python;streaming_server;upstream")
 
 # Test 3: StreamingServerDownstreamOp unit tests
-add_test(NAME streaming_server_enhanced_downstream_unit_tests  
+add_test(NAME streaming_server_enhanced_downstream_unit_tests
          COMMAND ${PYTEST_EXECUTABLE} -v --tb=short
                  ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/test_streaming_server_downstream_op.py
          WORKING_DIRECTORY ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR})
@@ -270,7 +270,7 @@ set_tests_properties(streaming_server_enhanced_downstream_unit_tests PROPERTIES
 
 # Test 4: StreamingServerResource Python bindings tests
 add_test(NAME streaming_server_enhanced_resource_bindings_tests
-         COMMAND ${PYTEST_EXECUTABLE} -v --tb=short 
+         COMMAND ${PYTEST_EXECUTABLE} -v --tb=short
                  ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/test_streaming_server_resource_bindings.py
          WORKING_DIRECTORY ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR})
 
@@ -279,7 +279,7 @@ set_tests_properties(streaming_server_enhanced_resource_bindings_tests PROPERTIE
                      TIMEOUT 120
                      LABELS "bindings;python;streaming_server;resource")
 
-# Test 5: StreamingServerUpstreamOp Python bindings tests  
+# Test 5: StreamingServerUpstreamOp Python bindings tests
 add_test(NAME streaming_server_enhanced_upstream_bindings_tests
          COMMAND ${PYTEST_EXECUTABLE} -v --tb=short
                  ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/test_streaming_server_upstream_op_bindings.py
@@ -291,7 +291,7 @@ set_tests_properties(streaming_server_enhanced_upstream_bindings_tests PROPERTIE
                      LABELS "bindings;python;streaming_server;upstream")
 
 # Test 6: StreamingServerDownstreamOp Python bindings tests
-add_test(NAME streaming_server_enhanced_downstream_bindings_tests  
+add_test(NAME streaming_server_enhanced_downstream_bindings_tests
          COMMAND ${PYTEST_EXECUTABLE} -v --tb=short
                  ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/test_streaming_server_downstream_op_bindings.py
          WORKING_DIRECTORY ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR})
@@ -309,7 +309,7 @@ message(STATUS "Configuring golden frame tests")
 
 # Test 7: Golden frame generation
 add_test(NAME streaming_server_enhanced_golden_frame_generation
-         COMMAND ${PYTHON_EXECUTABLE} 
+         COMMAND ${PYTHON_EXECUTABLE}
                  ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/generate_golden_frames.py
                  --output-dir ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/golden_frames
                  --count 10
@@ -398,7 +398,7 @@ set_tests_properties(streaming_server_enhanced_unit_only_suite PROPERTIES
                      TIMEOUT 200
                      LABELS "unit;streaming_server;suite")
 
-# Test 10: Golden frame tests only (via comprehensive runner)  
+# Test 10: Golden frame tests only (via comprehensive runner)
 add_test(NAME streaming_server_enhanced_golden_only_suite
          COMMAND bash ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/run_all_tests.sh
                  --golden-only
@@ -444,7 +444,7 @@ add_custom_target(streaming_server_enhanced_test_quick
 
 # Create custom target for full testing
 add_custom_target(streaming_server_enhanced_test_full
-    COMMAND ${CMAKE_CTEST_COMMAND} -L "streaming_server" --output-on-failure  
+    COMMAND ${CMAKE_CTEST_COMMAND} -L "streaming_server" --output-on-failure
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMENT "Running full StreamingServer Enhanced test suite"
 )
@@ -465,14 +465,14 @@ if(GTest_FOUND AND GMock_FOUND)
     message(STATUS "  - C++ unit tests: 3 test suites")
     message(STATUS "  - Python unit tests: 3 test suites")
     message(STATUS "  - Python binding tests: 3 test suites")
-    message(STATUS "  - Golden frame tests: 2 test suites") 
+    message(STATUS "  - Golden frame tests: 2 test suites")
     message(STATUS "  - Functional tests: 2 test suites")
     message(STATUS "  - Comprehensive tests: 4 test suites")
     message(STATUS "  - Total tests: 17 (C++ + Python + Bindings)")
 else()
     message(STATUS "  - Python unit tests: 3 test suites")
     message(STATUS "  - Python binding tests: 3 test suites")
-    message(STATUS "  - Golden frame tests: 2 test suites") 
+    message(STATUS "  - Golden frame tests: 2 test suites")
     message(STATUS "  - Functional tests: 2 test suites")
     message(STATUS "  - Comprehensive tests: 4 test suites")
     message(STATUS "  - Total tests: 14 (Python + Bindings)")
@@ -487,7 +487,7 @@ file(WRITE ${STREAMING_SERVER_ENHANCED_TEST_BINARY_DIR}/test_summary.txt
 Test Categories:
 1. Unit Tests (3 suites)
    - streaming_server_enhanced_resource_unit_tests
-   - streaming_server_enhanced_upstream_unit_tests  
+   - streaming_server_enhanced_upstream_unit_tests
    - streaming_server_enhanced_downstream_unit_tests
 
 2. Golden Frame Tests (2 suites)
@@ -509,7 +509,7 @@ Usage:
   ctest -L unit                                # Run unit tests only
   ctest -L functional                          # Run functional tests only
   ctest -L golden_frame                        # Run golden frame tests only
-  
+
   make streaming_server_enhanced_test_quick    # Quick unit tests
   make streaming_server_enhanced_test_full     # Full test suite
   make streaming_server_enhanced_test_functional # Functional tests only
