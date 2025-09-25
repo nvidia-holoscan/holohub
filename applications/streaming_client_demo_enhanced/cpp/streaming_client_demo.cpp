@@ -168,7 +168,8 @@ class StreamingClientTestApp : public holoscan::Application {
         data_path = "data";
         HOLOSCAN_LOG_INFO("Using local data path: {}", data_path);
       } else {
-        HOLOSCAN_LOG_ERROR("No valid data directory found! Please set HOLOSCAN_INPUT_PATH or provide a valid data directory.");
+        HOLOSCAN_LOG_ERROR("No valid data directory found! Please set HOLOSCAN_INPUT_PATH "
+                           "or provide a valid data directory.");
         return;
       }
     }
@@ -193,16 +194,14 @@ class StreamingClientTestApp : public holoscan::Application {
       source = make_operator<ops::V4L2VideoCaptureOp>(
           "v4l2_source",
           from_config("v4l2_source"),
-          Arg("allocator", allocator)
-      );
+          Arg("allocator", allocator));
     } else {
       HOLOSCAN_LOG_INFO("Using video replayer as source");
       source = make_operator<ops::VideoStreamReplayerOp>(
           "replayer",
           from_config("replayer"),
           Arg("directory", data_path),  // Use the resolved data_path
-          Arg("count", static_cast<int64_t>(0))
-      );
+          Arg("count", static_cast<int64_t>(0)));
     }
 
     const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
@@ -213,8 +212,7 @@ class StreamingClientTestApp : public holoscan::Application {
         from_config("format_converter"),
         Arg("pool", make_resource<BlockMemoryPool>(
             "pool", 1, source_block_size, source_num_blocks)),
-        Arg("cuda_stream_pool", cuda_stream_pool)
-    );
+        Arg("cuda_stream_pool", cuda_stream_pool));
 
     auto streaming_client = make_operator<ops::StreamingClientOp>(
         "streaming_client",
@@ -225,8 +223,7 @@ class StreamingClientTestApp : public holoscan::Application {
         Arg("signaling_port", signaling_port_),
         Arg("receive_frames", receive_frames_),
         Arg("send_frames", send_frames_),
-        Arg("min_non_zero_bytes", static_cast<uint32_t>(10))  // Reduced from 100 to 10 for more lenient validation
-    );
+        Arg("min_non_zero_bytes", static_cast<uint32_t>(10)));  // Reduced from 100
 
     // Connect source to format converter - V4L2 outputs "signal", replayer outputs "output"
     if (source_ == "v4l2") {
@@ -243,8 +240,7 @@ class StreamingClientTestApp : public holoscan::Application {
             Arg("width", width_),
             Arg("height", height_),
             Arg("allocator", allocator),
-            Arg("cuda_stream_pool", cuda_stream_pool)
-        );
+            Arg("cuda_stream_pool", cuda_stream_pool));
 
         add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
     }
@@ -269,14 +265,15 @@ class StreamingClientTestApp : public holoscan::Application {
   int32_t columns_ = 64;
   int32_t channels_ = 0;
   std::string data_type_{"uint8_t"};
-
 };
 
 void print_usage() {
   std::cout << "Usage: streaming_client_demo_enhanced [options]\n"
             << "  -h, --help                Show this help message\n"
-            << "  -c, --config <file>        Configuration file path (default: streaming_client_demo.yaml)\n"
-            << "  -d, --data <directory>     Data directory (default: environment variable HOLOSCAN_INPUT_PATH or current directory)\n"
+            << "  -c, --config <file>        Configuration file path "
+               "(default: streaming_client_demo.yaml)\n"
+            << "  -d, --data <directory>     Data directory (default: environment "
+               "variable HOLOSCAN_INPUT_PATH or current directory)\n"
             << std::endl;
 }
 
