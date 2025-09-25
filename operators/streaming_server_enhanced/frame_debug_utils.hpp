@@ -41,7 +41,8 @@ namespace holoscan::ops::debug_utils {
  * @note This function is only available when compiled with -DHOLOSCAN_DEBUG_FRAME_WRITING
  *       to avoid performance impact and disk I/O in production builds.
  */
-bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, int frame_number = -1);
-#endif // HOLOSCAN_DEBUG_FRAME_WRITING
+bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix,
+                      int frame_number = -1);
+#endif  // HOLOSCAN_DEBUG_FRAME_WRITING
 
-} // namespace holoscan::ops::debug_utils
+}  // namespace holoscan::ops::debug_utils
