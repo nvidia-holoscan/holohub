@@ -370,7 +370,8 @@ int main(int argc, char** argv) {
     if (data_directory.empty()) {
       std::cerr << "ERROR: Could not find surgical_video.gxf_index in any of the standard "
                    "locations." << std::endl;
-      std::cerr << "Please ensure the video file is present in one of these locations:" << std::endl;
+      std::cerr << "Please ensure the video file is present in one of these locations:"
+                << std::endl;
       for (const auto& path : possible_paths) {
         if (!path.empty()) {
           std::cerr << "  - " << path << std::endl;
@@ -382,7 +383,8 @@ int main(int argc, char** argv) {
 
   // Verify both the directory and video file exist
   if (!std::filesystem::exists(data_directory)) {
-    std::cerr << "ERROR: Specified data directory '" << data_directory << "' does not exist!" << std::endl;
+    std::cerr << "ERROR: Specified data directory '" << data_directory
+              << "' does not exist!" << std::endl;
     return 1;
   }
 
@@ -426,7 +428,8 @@ int main(int argc, char** argv) {
   uint32_t width = get_config_value(app.get(), "streaming_client.width", 640U);
   uint32_t height = get_config_value(app.get(), "streaming_client.height", 480U);
   uint32_t fps = get_config_value(app.get(), "streaming_client.fps", 30U);
-  std::string server_ip = get_config_value(app.get(), "streaming_client.server_ip", std::string("127.0.0.1"));
+  std::string server_ip = get_config_value(app.get(), "streaming_client.server_ip",
+                                           std::string("127.0.0.1"));
   uint16_t signaling_port = get_config_value(app.get(), "streaming_client.signaling_port", 48010);
   bool receive_frames = get_config_value(app.get(), "streaming_client.receive_frames", true);
   bool send_frames = get_config_value(app.get(), "streaming_client.send_frames", true);
@@ -484,7 +487,8 @@ int main(int argc, char** argv) {
   // enable logging of message contents to console if requested
   auto enable_data_logging = get_config_value(app.get(), "data_logging", false);
   if (enable_data_logging) {
-    HOLOSCAN_LOG_INFO("Enabled data logging!!!!!!!!!!!!!!!!!!!!!!!");// custom text serializer to limit the number of data elements printed for each tensor
+    HOLOSCAN_LOG_INFO("Enabled data logging!!!!!!!!!!!!!!!!!!!!!!!");
+    // custom text serializer to limit the number of data elements printed for each tensor
     auto text_serializer = app->make_resource<holoscan::data_loggers::SimpleTextSerializer>(
         "simple_text_serializer", app->from_config("simple_text_serializer"));
 
