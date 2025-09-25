@@ -17,6 +17,13 @@
 
 #include <getopt.h>
 
+#include <filesystem>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
@@ -131,12 +138,19 @@ class App : public holoscan::Application {
     }
 
     if (configuration.find("color") != configuration.end()) {
+      auto string_split = [](const std::string& line, std::vector<std::string>& tokens, char c) {
+        std::string token;
+        std::istringstream tokenStream(line);
+        while (std::getline(tokenStream, token, c)) {
+          tokens.push_back(token);
+        }
+      };
       for (const auto &[current_object, current_color] : configuration["color"]) {
         std::vector<std::string> tokens;
         std::vector<float> col;
 
         if (current_color.length() != 0) {
-          holoscan::inference::string_split(current_color, tokens, ' ');
+          string_split(current_color, tokens, ' ');
           if (tokens.size() == 4) {
             for (const auto &t : tokens) {
               col.push_back(std::stof(t));
