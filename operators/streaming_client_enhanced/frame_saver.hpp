@@ -51,10 +51,10 @@ class FrameSaverOp : public holoscan::Operator {
   Parameter<std::string> output_dir_;
   Parameter<std::string> base_filename_;
   Parameter<bool> save_as_raw_;
-  
+
   std::string current_file_;
   std::ofstream output_file_;
   uint64_t frame_count_ = 0;
 };
 
-}  // namespace holoscan::ops 
+}  // namespace holoscan::ops

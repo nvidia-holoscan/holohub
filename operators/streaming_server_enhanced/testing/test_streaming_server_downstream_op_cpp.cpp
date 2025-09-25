@@ -32,7 +32,7 @@ class StreamingServerDownstreamOpTest : public StreamingServerTestFixture {
  protected:
   void SetUp() override {
     StreamingServerTestFixture::SetUp();
-    
+
     // Create resource for the operator
     resource_ = std::make_shared<StreamingServerResource>();
     resource_->width(test_config_.width);
@@ -40,18 +40,18 @@ class StreamingServerDownstreamOpTest : public StreamingServerTestFixture {
     resource_->fps(test_config_.fps);
     resource_->port(test_config_.port);
     resource_->fragment(fragment_.get());
-    
+
     // Create operator instance
     downstream_op_ = std::make_shared<StreamingServerDownstreamOp>();
     downstream_op_->fragment(fragment_.get());
-    
+
     // Create operator spec for setup calls
     op_spec_ = std::make_shared<MockOperatorSpec>(fragment_.get());
-    
+
     // Set up input/output contexts for the operator
-    input_context_ = std::make_shared<MockInputContext>(execution_context_.get(), 
+    input_context_ = std::make_shared<MockInputContext>(execution_context_.get(),
                                                          downstream_op_.get());
-    output_context_ = std::make_shared<MockOutputContext>(execution_context_.get(), 
+    output_context_ = std::make_shared<MockOutputContext>(execution_context_.get(),
                                                            downstream_op_.get());
   }
 
@@ -88,7 +88,7 @@ TEST_F(StreamingServerDownstreamOpTest, SetWidthParameter) {
   EXPECT_NO_THROW({
     downstream_op_->width(test_config_.width);
   });
-  
+
   // Test with different valid widths
   uint32_t test_widths[] = {640, 854, 1920, 3840};
   for (uint32_t width : test_widths) {
@@ -102,7 +102,7 @@ TEST_F(StreamingServerDownstreamOpTest, SetHeightParameter) {
   EXPECT_NO_THROW({
     downstream_op_->height(test_config_.height);
   });
-  
+
   // Test with different valid heights
   uint32_t test_heights[] = {480, 720, 1080, 2160};
   for (uint32_t height : test_heights) {
@@ -116,7 +116,7 @@ TEST_F(StreamingServerDownstreamOpTest, SetFpsParameter) {
   EXPECT_NO_THROW({
     downstream_op_->fps(test_config_.fps);
   });
-  
+
   // Test with different valid frame rates
   uint32_t test_fps[] = {15, 30, 60, 120};
   for (uint32_t fps : test_fps) {
@@ -147,7 +147,7 @@ TEST_F(StreamingServerDownstreamOpTest, SetupWithValidParameters) {
   downstream_op_->height(test_config_.height);
   downstream_op_->fps(test_config_.fps);
   downstream_op_->streaming_server_resource(resource_);
-  
+
   // Setup should not throw with valid parameters
   EXPECT_NO_THROW({
     downstream_op_->setup(*op_spec_);
@@ -161,7 +161,7 @@ TEST_F(StreamingServerDownstreamOpTest, SetupWithMirrorEnabled) {
   downstream_op_->fps(test_config_.fps);
   downstream_op_->mirror(true);
   downstream_op_->streaming_server_resource(resource_);
-  
+
   EXPECT_NO_THROW({
     downstream_op_->setup(*op_spec_);
   });
@@ -172,7 +172,7 @@ TEST_F(StreamingServerDownstreamOpTest, SetupWithoutResource) {
   downstream_op_->width(test_config_.width);
   downstream_op_->height(test_config_.height);
   downstream_op_->fps(test_config_.fps);
-  
+
   // Setup might handle missing resource gracefully
   EXPECT_NO_THROW({
     downstream_op_->setup(*op_spec_);
@@ -185,11 +185,11 @@ TEST_F(StreamingServerDownstreamOpTest, InitializeAfterSetup) {
   downstream_op_->height(test_config_.height);
   downstream_op_->fps(test_config_.fps);
   downstream_op_->streaming_server_resource(resource_);
-  
+
   EXPECT_NO_THROW({
     downstream_op_->setup(*op_spec_);
   });
-  
+
   EXPECT_NO_THROW({
     downstream_op_->initialize();
   });
@@ -203,12 +203,12 @@ TEST_F(StreamingServerDownstreamOpTest, CompleteLifecycle) {
   downstream_op_->height(test_config_.height);
   downstream_op_->fps(test_config_.fps);
   downstream_op_->streaming_server_resource(resource_);
-  
+
   // Setup
   EXPECT_NO_THROW({
     downstream_op_->setup(*op_spec_);
   });
-  
+
   // Initialize
   EXPECT_NO_THROW({
     downstream_op_->initialize();
@@ -223,7 +223,7 @@ TEST_F(StreamingServerDownstreamOpTest, ValidResolutionCombinations) {
     uint32_t height;
     std::string name;
   };
-  
+
   std::vector<ResolutionConfig> configs = {
     {640, 480, "VGA"},
     {854, 480, "FWVGA"},
@@ -231,21 +231,21 @@ TEST_F(StreamingServerDownstreamOpTest, ValidResolutionCombinations) {
     {1920, 1080, "Full HD"},
     {3840, 2160, "4K UHD"}
   };
-  
+
   for (const auto& config : configs) {
     EXPECT_NO_THROW({
       downstream_op_->width(config.width);
       downstream_op_->height(config.height);
       downstream_op_->streaming_server_resource(resource_);
       downstream_op_->setup(*op_spec_);
-    }) << "Failed for " << config.name << " resolution (" 
+    }) << "Failed for " << config.name << " resolution ("
       << config.width << "x" << config.height << ")";
   }
 }
 
 TEST_F(StreamingServerDownstreamOpTest, ValidFrameRates) {
   std::vector<uint32_t> framerates = {15, 24, 30, 60, 120};
-  
+
   for (uint32_t fps : framerates) {
     EXPECT_NO_THROW({
       downstream_op_->width(test_config_.width);
@@ -261,7 +261,7 @@ TEST_F(StreamingServerDownstreamOpTest, ValidFrameRates) {
 
 TEST_F(StreamingServerDownstreamOpTest, MirrorParameterCombinations) {
   std::vector<bool> mirror_settings = {true, false};
-  
+
   for (bool mirror : mirror_settings) {
     EXPECT_NO_THROW({
       downstream_op_->width(test_config_.width);
@@ -280,13 +280,13 @@ TEST_F(StreamingServerDownstreamOpTest, MirrorWithDifferentResolutions) {
     uint32_t height;
     std::string name;
   };
-  
+
   std::vector<ResolutionConfig> configs = {
     {640, 480, "VGA"},
     {1920, 1080, "Full HD"},
     {3840, 2160, "4K UHD"}
   };
-  
+
   for (const auto& config : configs) {
     EXPECT_NO_THROW({
       downstream_op_->width(config.width);
@@ -313,7 +313,7 @@ TEST_F(StreamingServerDownstreamOpTest, MinimumValidParameters) {
 TEST_F(StreamingServerDownstreamOpTest, LargeResolutionParameters) {
   EXPECT_NO_THROW({
     downstream_op_->width(7680);  // 8K width
-    downstream_op_->height(4320); // 8K height
+    downstream_op_->height(4320);  // 8K height
     downstream_op_->fps(30);
     downstream_op_->streaming_server_resource(resource_);
     downstream_op_->setup(*op_spec_);
@@ -337,7 +337,7 @@ TEST_F(StreamingServerDownstreamOpTest, MultipleSetupCalls) {
   downstream_op_->height(test_config_.height);
   downstream_op_->fps(test_config_.fps);
   downstream_op_->streaming_server_resource(resource_);
-  
+
   // Should be able to call setup multiple times
   EXPECT_NO_THROW({
     downstream_op_->setup(*op_spec_);
@@ -352,17 +352,17 @@ TEST_F(StreamingServerDownstreamOpTest, ParameterChangeAfterSetup) {
   downstream_op_->fps(30);
   downstream_op_->mirror(false);
   downstream_op_->streaming_server_resource(resource_);
-  
+
   EXPECT_NO_THROW({
     downstream_op_->setup(*op_spec_);
   });
-  
+
   // Change parameters and setup again
   downstream_op_->width(1920);
   downstream_op_->height(1080);
   downstream_op_->fps(60);
   downstream_op_->mirror(true);
-  
+
   EXPECT_NO_THROW({
     downstream_op_->setup(*op_spec_);
   });
@@ -374,16 +374,16 @@ TEST_F(StreamingServerDownstreamOpTest, ResourceSharing) {
   // Create another operator that shares the same resource
   auto downstream_op2 = std::make_shared<StreamingServerDownstreamOp>();
   downstream_op2->fragment(fragment_.get());
-  
+
   // Both operators should be able to use the same resource
   EXPECT_NO_THROW({
     downstream_op_->streaming_server_resource(resource_);
     downstream_op2->streaming_server_resource(resource_);
-    
+
     downstream_op_->width(test_config_.width);
     downstream_op_->height(test_config_.height);
     downstream_op_->setup(*op_spec_);
-    
+
     downstream_op2->width(test_config_.width);
     downstream_op2->height(test_config_.height);
     downstream_op2->setup(*op_spec_);
@@ -395,12 +395,12 @@ TEST_F(StreamingServerDownstreamOpTest, ResourceParameterConsistency) {
   resource_->width(1920);
   resource_->height(1080);
   resource_->fps(60);
-  
+
   downstream_op_->width(1920);
   downstream_op_->height(1080);
   downstream_op_->fps(60);
   downstream_op_->streaming_server_resource(resource_);
-  
+
   EXPECT_NO_THROW({
     downstream_op_->setup(*op_spec_);
   });
@@ -416,14 +416,14 @@ TEST_F(StreamingServerDownstreamOpTest, ProcessingPipelineConfiguration) {
     bool mirror;
     std::string description;
   };
-  
+
   std::vector<ProcessingConfig> configs = {
     {854, 480, false, "Standard processing"},
     {854, 480, true, "Mirrored processing"},
     {1920, 1080, false, "HD processing"},
     {1920, 1080, true, "HD mirrored processing"}
   };
-  
+
   for (const auto& config : configs) {
     EXPECT_NO_THROW({
       downstream_op_->width(config.width);

@@ -53,10 +53,10 @@ TEST_F(StreamingClientOpTest, BasicInitialization) {
 
   // Verify the operator was created successfully
   ASSERT_NE(streaming_client_op_, nullptr);
-  
+
   // Verify the operator has the expected name
   EXPECT_EQ(streaming_client_op_->name(), "test_streaming_client");
-  
+
   // Verify operator type
   EXPECT_EQ(streaming_client_op_->operator_type(), holoscan::Operator::OperatorType::kNative);
 }
@@ -97,7 +97,7 @@ TEST_F(StreamingClientOpTest, OperatorSetup) {
 
   // Create an operator spec for setup testing
   auto spec = std::make_shared<holoscan::OperatorSpec>(fragment_.get());
-  
+
   // Test that setup doesn't crash (basic smoke test)
   EXPECT_NO_THROW(streaming_client_op_->setup(*spec));
 }
@@ -123,7 +123,7 @@ TEST_F(StreamingClientOpTest, MinimalParameters) {
 TEST_F(StreamingClientOpTest, ParameterEdgeCases) {
   // Test with maximum reasonable values
   streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
-      "max_params_client", 
+      "max_params_client",
       holoscan::Arg("width") = 3840u,       // 4K width
       holoscan::Arg("height") = 2160u,      // 4K height
       holoscan::Arg("fps") = 120u,          // High FPS
@@ -152,12 +152,12 @@ TEST_F(StreamingClientOpTest, OperatorCleanup) {
   );
 
   ASSERT_NE(streaming_client_op_, nullptr);
-  
+
   // Test that cleanup doesn't crash
   EXPECT_NO_THROW({
     streaming_client_op_.reset();
   });
-  
+
   EXPECT_EQ(streaming_client_op_, nullptr);
 }
 

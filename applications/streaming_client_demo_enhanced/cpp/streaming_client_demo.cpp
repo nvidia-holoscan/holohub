@@ -44,15 +44,15 @@ bool ensure_config_file_exists(const std::string& config_path) {
     file.close();
     return true;
   }
-  
+
   std::cout << "Config file not found, creating default at: " << config_path << std::endl;
-  
+
   std::ofstream out_file(config_path);
   if (!out_file.is_open()) {
     std::cerr << "Error: Could not create config file at " << config_path << std::endl;
     return false;
   }
-  
+
   // Write default YAML configuration
   out_file << "%YAML 1.2\n";
   out_file << "---\n";
@@ -61,7 +61,7 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  title: Streaming Client Test App\n";
   out_file << "  version: 1.0\n";
   out_file << "  log_level: INFO\n\n";
-  
+
   out_file << "# Streaming client settings\n";
   out_file << "streaming_client:\n";
   out_file << "  # Video/stream parameters\n";
@@ -81,13 +81,14 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  timeout_ms: 5000\n";
   out_file << "  reconnect_attempts: 3\n";
   out_file << "  buffer_size: 10\n\n";
-  
-  out_file << "# Source configuration: \"replayer\" for video file playback, \"v4l2\" for camera capture\n";
+
+  out_file << "# Source configuration: \"replayer\" for video file playback, "
+              "\"v4l2\" for camera capture\n";
   out_file << "source: \"replayer\"\n\n";
 
   out_file << "# Visualization options\n";
   out_file << "visualize_frames: false\n\n";  // Changed from true to false
-  
+
   out_file << "# HoloViz configuration (used only if visualize_frames is true)\n";
   out_file << "holoviz:\n";
   out_file << "  # Window size and title\n";
@@ -98,7 +99,7 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  # Rendering parameters\n";
   out_file << "  color_format: \"rgb\"\n";
   out_file << "  enable_render_buffer_timestamp: true\n\n";
-  
+
   out_file << "# Video replayer configuration\n";
   out_file << "replayer:\n";
   out_file << "  basename: \"surgical_video\"\n";
@@ -116,10 +117,10 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  pixel_format: \"auto\"\n";
   out_file << "  # Optional: exposure_time: 100  # in multiples of 100μs\n";
   out_file << "  # Optional: gain: 10\n\n";
-  
+
   out_file << "# Scheduler configuration (optional)\n";
   out_file << "scheduler: \"default\"\n";
-  
+
   out_file.close();
   std::cout << "Created default config file at: " << config_path << std::endl;
   return true;
@@ -137,7 +138,7 @@ class StreamingClientTestApp : public holoscan::Application {
   void set_visualize_frames(bool visualize_frames) { visualize_frames_ = visualize_frames; }
   void set_source(const std::string& source) { source_ = source; }
   void set_datapath(const std::string& datapath) { datapath_ = datapath; }
-  
+
   void compose() override {
     using namespace holoscan;
 
@@ -150,12 +151,12 @@ class StreamingClientTestApp : public holoscan::Application {
     }
 
     auto allocator = make_resource<UnboundedAllocator>("allocator");
-    
+
     // Find a valid data directory
     std::string data_path = datapath_;
     if (!std::filesystem::exists(data_path)) {
       HOLOSCAN_LOG_WARN("Data directory '{}' does not exist!", data_path);
-      
+
       // Try alternative paths
       if (std::filesystem::exists("/workspace/holoscan-sdk/data")) {
         data_path = "/workspace/holoscan-sdk/data";
@@ -175,15 +176,15 @@ class StreamingClientTestApp : public holoscan::Application {
     // Log the full path we're trying to use
     std::string full_video_path = data_path + "/surgical_video";
     HOLOSCAN_LOG_INFO("Attempting to load video from: {}", full_video_path);
-    
+
     // Fixed memory pool sizing - V4L2 outputs RGBA (4 channels), replayer outputs BGR (3 channels)
     uint64_t source_block_size;
     if (source_ == "v4l2") {
-      source_block_size = width_ * height_ * 4; // 4 channels for RGBA from V4L2
+      source_block_size = width_ * height_ * 4;  // 4 channels for RGBA from V4L2
     } else {
-      source_block_size = width_ * height_ * 3; // 3 channels for BGR from replayer
+      source_block_size = width_ * height_ * 3;  // 3 channels for BGR from replayer
     }
-    uint64_t source_num_blocks = 4; // Keep multiple blocks for pipeline stability
+    uint64_t source_num_blocks = 4;  // Keep multiple blocks for pipeline stability
 
     // Create source operator based on configuration
     std::shared_ptr<holoscan::Operator> source;
@@ -197,7 +198,7 @@ class StreamingClientTestApp : public holoscan::Application {
     } else {
       HOLOSCAN_LOG_INFO("Using video replayer as source");
       source = make_operator<ops::VideoStreamReplayerOp>(
-          "replayer", 
+          "replayer",
           from_config("replayer"),
           Arg("directory", data_path),  // Use the resolved data_path
           Arg("count", static_cast<int64_t>(0))
@@ -206,7 +207,7 @@ class StreamingClientTestApp : public holoscan::Application {
 
     const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
         make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
-     
+
     auto format_converter = make_operator<ops::FormatConverterOp>(
         "format_converter",
         from_config("format_converter"),
@@ -226,7 +227,7 @@ class StreamingClientTestApp : public holoscan::Application {
         Arg("send_frames", send_frames_),
         Arg("min_non_zero_bytes", static_cast<uint32_t>(10))  // Reduced from 100 to 10 for more lenient validation
     );
-    
+
     // Connect source to format converter - V4L2 outputs "signal", replayer outputs "output"
     if (source_ == "v4l2") {
       add_flow(source, format_converter, {{"signal", "source_video"}});
@@ -234,7 +235,7 @@ class StreamingClientTestApp : public holoscan::Application {
       add_flow(source, format_converter, {{"output", "source_video"}});
     }
     add_flow(format_converter, streaming_client);
-    
+
     if (visualize_frames_) {
         auto holoviz = make_operator<ops::HolovizOp>(
             "holoviz",
@@ -244,14 +245,14 @@ class StreamingClientTestApp : public holoscan::Application {
             Arg("allocator", allocator),
             Arg("cuda_stream_pool", cuda_stream_pool)
         );
-        
+
         add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
     }
   }
-  
+
  private:
   // Default parameters (will be overridden from config if available)
-  uint32_t width_ = 640; // 854 for replayer
+  uint32_t width_ = 640;  // 854 for replayer
   uint32_t height_ = 480;
   uint32_t fps_ = 30;
   std::string server_ip_ = "127.0.0.1";
@@ -260,7 +261,7 @@ class StreamingClientTestApp : public holoscan::Application {
   bool send_frames_ = true;
   bool visualize_frames_ = true;
   std::string source_ = "replayer";  // Added source_ member variable
-  std::string datapath_ = "data/endoscopy"; 
+  std::string datapath_ = "data/endoscopy";
   bool gpu_tensor_ = false;
   int64_t count_ = 10;
   int32_t batch_size_ = 0;
@@ -398,7 +399,7 @@ int main(int argc, char** argv) {
   }
   std::cout << "Using data directory: " << data_directory << std::endl;
   std::cout << "Video file path: " << video_path << std::endl;
-  
+
   // Create a default configuration file if it doesn't exist
   if (!ensure_config_file_exists(config_path)) {
     std::cerr << "WARNING: Failed to create default configuration file." << std::endl;
@@ -407,11 +408,11 @@ int main(int argc, char** argv) {
 
   // Create the application
   auto app = holoscan::make_application<StreamingClientTestApp>();
-  
+
   // Print configuration file path
   std::cout << "Streaming Client Test Application\n"
             << "Using config file: " << config_path << std::endl;
-  
+
   // Try to load configuration from YAML (but continue even if it fails)
   try {
     app->config(config_path);
@@ -420,7 +421,7 @@ int main(int argc, char** argv) {
     std::cerr << "Warning: Failed to load config file: " << e.what() << std::endl;
     std::cerr << "Will continue with default values" << std::endl;
   }
-  
+
   // Load parameters from config with safe defaults (640x480 for V4L2 compatibility)
   uint32_t width = get_config_value(app.get(), "streaming_client.width", 640U);
   uint32_t height = get_config_value(app.get(), "streaming_client.height", 480U);
@@ -430,7 +431,7 @@ int main(int argc, char** argv) {
   bool receive_frames = get_config_value(app.get(), "streaming_client.receive_frames", true);
   bool send_frames = get_config_value(app.get(), "streaming_client.send_frames", true);
   bool visualize_frames = get_config_value(app.get(), "visualize_frames", true);
-  
+
   // Set application parameters from config
   app->set_width(width);
   app->set_height(height);
@@ -440,11 +441,11 @@ int main(int argc, char** argv) {
   app->set_receive_frames(receive_frames);
   app->set_send_frames(send_frames);
   app->set_visualize_frames(visualize_frames);
-  
+
   // Set data directory
   std::cout << "Using data from: " << data_directory << std::endl;
   app->set_datapath(data_directory);
-  
+
   std::cout << "Configuration:\n"
             << "- Resolution: " << width << "x" << height << "\n"
             << "- FPS: " << fps << "\n"
@@ -452,7 +453,7 @@ int main(int argc, char** argv) {
             << "- Receive frames: " << (receive_frames ? "yes" : "no") << "\n"
             << "- Send frames: " << (send_frames ? "yes" : "no") << "\n"
             << "- Visualize frames: " << (visualize_frames ? "yes" : "no") << std::endl;
-              
+
   // Configure scheduler based on the config file
   std::string scheduler = get_config_value(app.get(), "scheduler", std::string("default"));
   if (scheduler == "multi_thread") {
@@ -471,7 +472,7 @@ int main(int argc, char** argv) {
     // Always fallback to default scheduler
     std::cout << "Using default scheduler" << std::endl;
   }
-  
+
   // Turn on data flow tracking if specified in the YAML
   bool tracking = get_config_value(app.get(), "tracking", false);
   holoscan::DataFlowTracker* tracker = nullptr;
@@ -479,7 +480,7 @@ int main(int argc, char** argv) {
     std::cout << "Enabling data flow tracking" << std::endl;
     tracker = &app->track(0, 0, 0);
   }
-  
+
   // enable logging of message contents to console if requested
   auto enable_data_logging = get_config_value(app.get(), "data_logging", false);
   if (enable_data_logging) {
@@ -499,11 +500,11 @@ int main(int argc, char** argv) {
 
   // Run the application
   app->run();
-  
+
   // Print data flow tracking results if enabled
   if (tracking && tracker) {
     tracker->print();
   }
-  
+
   return 0;
 }

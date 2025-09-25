@@ -29,7 +29,7 @@ std::vector<uint8_t> TestFrameGenerator::generateTestFrame(uint32_t width, uint3
                                                             const std::string& pattern,
                                                             uint8_t color_value) {
   std::vector<uint8_t> frame_data(width * height * 3);  // BGR format
-  
+
   if (pattern == "solid") {
     std::fill(frame_data.begin(), frame_data.end(), color_value);
   } else if (pattern == "gradient") {
@@ -38,8 +38,8 @@ std::vector<uint8_t> TestFrameGenerator::generateTestFrame(uint32_t width, uint3
         size_t idx = (y * width + x) * 3;
         // Create RGB gradient
         frame_data[idx] = static_cast<uint8_t>((x * 255) / width);     // B
-        frame_data[idx + 1] = static_cast<uint8_t>((y * 255) / height); // G
-        frame_data[idx + 2] = static_cast<uint8_t>(((x + y) * 255) / (width + height)); // R
+        frame_data[idx + 1] = static_cast<uint8_t>((y * 255) / height);  // G
+        frame_data[idx + 2] = static_cast<uint8_t>(((x + y) * 255) / (width + height));  // R
       }
     }
   } else if (pattern == "checkerboard") {
@@ -49,15 +49,15 @@ std::vector<uint8_t> TestFrameGenerator::generateTestFrame(uint32_t width, uint3
         size_t idx = (y * width + x) * 3;
         uint8_t value = ((x / block_size) + (y / block_size)) % 2 ? 255 : 0;
         frame_data[idx] = value;     // B
-        frame_data[idx + 1] = value; // G
-        frame_data[idx + 2] = value; // R
+        frame_data[idx + 1] = value;  // G
+        frame_data[idx + 2] = value;  // R
       }
     }
   } else if (pattern == "noise") {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<uint8_t> dis(0, 255);
-    
+
     std::generate(frame_data.begin(), frame_data.end(), [&]() { return dis(gen); });
   } else {
     // Default: fill with test pattern (horizontal stripes)
@@ -66,12 +66,12 @@ std::vector<uint8_t> TestFrameGenerator::generateTestFrame(uint32_t width, uint3
         size_t idx = (y * width + x) * 3;
         uint8_t value = static_cast<uint8_t>((y * 255) / height);
         frame_data[idx] = value;     // B
-        frame_data[idx + 1] = value; // G
-        frame_data[idx + 2] = value; // R
+        frame_data[idx + 1] = value;  // G
+        frame_data[idx + 2] = value;  // R
       }
     }
   }
-  
+
   return frame_data;
 }
 
@@ -79,7 +79,7 @@ std::vector<std::vector<uint8_t>> TestFrameGenerator::generateTestFrameSequence(
     size_t count, uint32_t width, uint32_t height, const std::string& pattern) {
   std::vector<std::vector<uint8_t>> sequence;
   sequence.reserve(count);
-  
+
   for (size_t i = 0; i < count; ++i) {
     if (pattern == "animated_gradient") {
       // Create animated gradient by shifting colors
@@ -89,7 +89,7 @@ std::vector<std::vector<uint8_t>> TestFrameGenerator::generateTestFrameSequence(
       sequence.push_back(generateTestFrame(width, height, pattern));
     }
   }
-  
+
   return sequence;
 }
 
@@ -133,12 +133,12 @@ void StreamingServerTestFixture::SetUp() {
   fragment_ = std::make_shared<MockFragment>();
   executor_ = std::make_shared<MockExecutor>(fragment_.get());
   execution_context_ = std::make_shared<MockExecutionContext>(fragment_.get(), executor_.get());
-  
+
   // Note: Input/Output contexts need an operator instance
   // For now, we'll set them to nullptr and create them in individual tests
   input_context_ = nullptr;
   output_context_ = nullptr;
-  
+
   // Set up default test configuration
   test_config_.width = 854;
   test_config_.height = 480;

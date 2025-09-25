@@ -140,7 +140,7 @@ class StreamingServerTestApp : public holoscan::Application {
     auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>("upstream_op");
     upstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
-    auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>("downstream_op");  
+    auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>("downstream_op");
     downstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
     // Connect them in pipeline
@@ -259,11 +259,11 @@ int main(int argc, char** argv) {
   std::shared_ptr<StreamingServerTestApp> app;
   try {
     app = holoscan::make_application<StreamingServerTestApp>();
-    
+
     // Print configuration file path
     std::cout << "Streaming Server Test Application\n"
               << "Using config file: " << config_path << std::endl;
-    
+
     // Try to load configuration from YAML (but continue even if it fails)
     try {
       app->config(config_path);
@@ -272,7 +272,7 @@ int main(int argc, char** argv) {
       std::cerr << "Warning: Failed to load config file: " << e.what() << std::endl;
       std::cerr << "Will continue with default values" << std::endl;
     }
-    
+
     // Load parameters from config with safe defaults
     uint32_t width = get_config_value(app.get(), "streaming_server.width", 854u);
     uint32_t height = get_config_value(app.get(), "streaming_server.height", 480u);
@@ -282,7 +282,7 @@ int main(int argc, char** argv) {
     bool receive_frames = get_config_value(app.get(), "streaming_server.receive_frames", true);
     bool send_frames = get_config_value(app.get(), "streaming_server.send_frames", true);
     bool visualize_frames = get_config_value(app.get(), "streaming_server.visualize_frames", false);
-    
+
     // Set application parameters from config
     app->set_width(width);
     app->set_height(height);
@@ -292,13 +292,13 @@ int main(int argc, char** argv) {
     app->set_receive_frames(receive_frames);
     app->set_send_frames(send_frames);
     app->set_visualize_frames(visualize_frames);
-    
+
     // Set data directory if provided via command line
     if (!data_directory.empty()) {
       app->set_datapath(data_directory);
       std::cout << "Using data directory: " << data_directory << std::endl;
     }
-    
+
     std::cout << "Configuration:\n"
               << "- Resolution: " << width << "x" << height << "\n"
               << "- FPS: " << fps << "\n"
@@ -306,7 +306,7 @@ int main(int argc, char** argv) {
               << "- Receive frames: " << (receive_frames ? "yes" : "no") << "\n"
               << "- Send frames: " << (send_frames ? "yes" : "no") << "\n"
               << "- Visualize frames: " << (visualize_frames ? "yes" : "no") << std::endl;
-    
+
     // Configure scheduler
     std::string scheduler = get_config_value(app.get(), "scheduler", std::string("greedy"));
     if (scheduler == "multi_thread") {
@@ -319,7 +319,7 @@ int main(int argc, char** argv) {
       app->scheduler(app->make_scheduler<holoscan::GreedyScheduler>("greedy-scheduler"));
       std::cout << "Using greedy scheduler" << std::endl;
     }
-    
+
     // Enable data flow tracking if specified
     bool tracking = get_config_value(app.get(), "tracking", false);
     holoscan::DataFlowTracker* tracker = nullptr;
@@ -327,20 +327,20 @@ int main(int argc, char** argv) {
       std::cout << "Enabling data flow tracking" << std::endl;
       tracker = &app->track(0, 0, 0);
     }
-    
+
     std::cout << "Starting streaming server..." << std::endl;
     std::cout << "Press Ctrl+C to stop gracefully" << std::endl;
-    
+
     // Run the application with exception handling
     app->run();
-    
+
     // Print data flow tracking results if enabled
     if (tracking && tracker) {
       tracker->print();
     }
-    
+
     std::cout << "Server stopped successfully" << std::endl;
-    
+
   } catch (const std::exception& e) {
     std::cerr << "Application error: " << e.what() << std::endl;
     return 1;
@@ -348,6 +348,6 @@ int main(int argc, char** argv) {
     std::cerr << "Unknown application error" << std::endl;
     return 1;
   }
-  
+
   return 0;
 }
