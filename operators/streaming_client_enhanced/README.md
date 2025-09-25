@@ -26,15 +26,13 @@ In order to build the client operator, you must first download the client binari
 
 ```bash
 # Download using NGC CLI
-cd <your_holohub_path>/operators/streaming_client_enhanced
-ngc registry resource download-version "nvstaging/holoscan/holoscan_server_cloud_streaming:1.2"
-unzip -o holoscan_client_cloud_streaming_v1.2/holoscan_client_cloud_streaming.zip
 
-# Move the extracted contents to the expected location
-mv streaming_client_enhanced/holoscan_client_cloud_streaming_v1.2 ./
+cd <your_holohub_path>/operators/streaming_client_enhanced
+ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
+unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
 
 # Clean up extraction directory and NGC download directory
-rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v1.2
+rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v0.2
 ```
 
 All dependencies need to be properly installed in the operator directory structure.
@@ -118,6 +116,26 @@ sudo usermod -a -G video $USER
 # Check what formats your camera actually supports
 v4l2-ctl --device=/dev/video0 --list-formats-ext | grep -E "Size:|Interval:"
 ```
+
+## Testing
+
+For comprehensive testing information including unit tests, golden frame testing, and functional tests, see:
+
+📋 **[Testing Documentation](testing/README.md)** - Complete testing suite with 25/25 tests passing
+
+The testing infrastructure includes:
+- **Unit Tests**: Comprehensive operator testing with mock framework
+- **Golden Frame Tests**: Visual regression testing with reference images
+- **Functional Tests**: End-to-end pipeline testing with real video data
+- **Python Binding Tests**: pybind11 interface validation
+- **Comprehensive Test Suites**: Multiple execution modes for different scenarios
+
+Run all tests with: `./holohub test streaming_client_demo_enhanced --verbose`
+
+## Related Applications
+
+- **[Streaming Client Demo Enhanced](../../applications/streaming_client_demo_enhanced/README.md)** - Complete application demonstrating the streaming client operator
+- **[Streaming Server Demo Enhanced](../../applications/streaming_server_demo_enhanced/README.md)** - Companion server application for bidirectional streaming
 
 ## Supported Platforms
 
