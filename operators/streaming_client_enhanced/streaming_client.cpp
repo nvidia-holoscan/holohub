@@ -54,7 +54,8 @@
 namespace holoscan::ops {
 
 // Utility function to write video frame to disk for debugging
-bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefix, int frame_number = -1) {
+bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefix,
+                      int frame_number = -1) {
     try {
         // Generate filename with timestamp and frame number
         auto now = std::chrono::system_clock::now();
@@ -89,14 +90,16 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
                          (format == PixelFormat::RGBA) ? "RGBA" : "Unknown");
 
         if (!data || data_size == 0 || width == 0 || height == 0) {
-            HOLOSCAN_LOG_ERROR("❌ writeFrameToDisk: Invalid frame data - width={}, height={}, data={}, size={}",
+            HOLOSCAN_LOG_ERROR("❌ writeFrameToDisk: Invalid frame data - width={}, height={}, "
+                               "data={}, size={}",
                                width, height, static_cast<const void*>(data), data_size);
             return false;
         }
 
         // 🔍 MEMORY ANALYSIS: Check if data appears to be valid
         if (data && data_size >= 20) {
-            HOLOSCAN_LOG_INFO("  - Frame data first 20 bytes: {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+            HOLOSCAN_LOG_INFO("  - Frame data first 20 bytes: {} {} {} {} {} {} {} {} {} {} {} {} "
+                             "{} {} {} {} {} {} {} {}",
                              data[0], data[1], data[2], data[3], data[4],
                              data[5], data[6], data[7], data[8], data[9],
                              data[10], data[11], data[12], data[13], data[14],
@@ -113,7 +116,8 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
             }
 
             if (all_zeros) {
-                HOLOSCAN_LOG_WARN("⚠️  WARNING: First {} bytes of frame data are all zeros!", check_bytes);
+                HOLOSCAN_LOG_WARN("⚠️  WARNING: First {} bytes of frame data are all zeros!",
+                                  check_bytes);
             } else {
                 HOLOSCAN_LOG_INFO("✅ Frame data appears valid (contains non-zero bytes)");
             }
@@ -149,8 +153,10 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
 
             // Add first few pixel values for inspection
             meta_file << "\nFirst 10 pixels (raw bytes):\n";
-            size_t bytes_per_pixel = (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
-            for (int i = 0; i < std::min(10, static_cast<int>(width * height)) && i * bytes_per_pixel < data_size; ++i) {
+            size_t bytes_per_pixel =
+                (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
+            for (int i = 0; i < std::min(10, static_cast<int>(width * height)) &&
+                            i * bytes_per_pixel < data_size; ++i) {
                 meta_file << "Pixel " << i << ": ";
                 for (size_t j = 0; j < bytes_per_pixel && (i * bytes_per_pixel + j) < data_size; ++j) {
                     meta_file << static_cast<int>(data[i * bytes_per_pixel + j]) << " ";
@@ -475,7 +481,7 @@ void StreamingClientOp::start() {
         // Check for upstream readiness using the actual method
         while ((std::chrono::steady_clock::now() - start_wait) < upstream_timeout && !client_->isUpstreamReady()) {
           wait_attempts++;
-          if (wait_attempts % 10 == 0) { // Log every second (10 * 100ms)
+          if (wait_attempts % 10 == 0) {  // Log every second (10 * 100ms)
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
               std::chrono::steady_clock::now() - start_wait).count();
             HOLOSCAN_LOG_INFO("⏳ Waiting for upstream to be ready... attempt {}, elapsed {}ms",
@@ -498,7 +504,7 @@ void StreamingClientOp::start() {
         HOLOSCAN_LOG_WARN("❌ Connection attempt {} failed: {}", retry_count, e.what());
 
         // Log connection details but don't be too verbose
-        if (retry_count == 1) { // Only log details on first failure
+        if (retry_count == 1) {  // Only log details on first failure
           HOLOSCAN_LOG_INFO("Connection details: server={}:{}", server_ip_.get(), signaling_port_.get());
         }
 
@@ -624,7 +630,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
   static int debug_frame_counter = 0;  // Add debug frame counter
   compute_call_count++;
 
-  if (compute_call_count % 30 == 0) { // Log every second at 30fps
+  if (compute_call_count % 30 == 0) {  // Log every second at 30fps
     HOLOSCAN_LOG_INFO("Compute called {} times, client streaming: {}",
                      compute_call_count, client_ ? (client_->isStreaming() ? "true" : "false") : "null");
   }
@@ -656,7 +662,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 
       try {
         // Only attempt reconnection if we haven't tried too recently
-        if (time_since_last_reconnect >= 5) { // Wait at least 5 seconds between attempts
+        if (time_since_last_reconnect >= 5) {  // Wait at least 5 seconds between attempts
           reconnection_attempts++;
           last_reconnect_time = now;
 
@@ -768,7 +774,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 
     // 🔧 ENHANCED DEBUG: Write tensor to disk before processing - standardized to every 10th frame
     debug_frame_counter++;
-    if (debug_frame_counter % 10 == 0) { // Save every 10th frame to match server frequency
+    if (debug_frame_counter % 10 == 0) {  // Save every 10th frame to match server frequency
       HOLOSCAN_LOG_INFO("💾 DEBUG: Writing input tensor to disk (frame {})", debug_frame_counter);
       writeTensorToDisk(tensor, "client_input_tensor", debug_frame_counter);
     }
@@ -926,7 +932,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
                      static_cast<int>(frame.getFormat()), frame.getDataSize());
 
     // 🔧 ENHANCED DEBUG: Write VideoFrame to disk before sending - standardized to every 10th frame
-    if (debug_frame_counter % 10 == 0) { // Save every 10th frame to match server frequency
+    if (debug_frame_counter % 10 == 0) {  // Save every 10th frame to match server frequency
       HOLOSCAN_LOG_INFO("💾 DEBUG: Writing VideoFrame to disk before sending (frame {})", debug_frame_counter);
 
       // 🔍 ENHANCED DEBUGGING: Validate frame data before writing to disk
