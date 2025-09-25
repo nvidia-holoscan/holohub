@@ -115,7 +115,7 @@ add_custom_command(TARGET streaming_server_demo_enhanced POST_BUILD
 )
 
 # Set RPATH to prioritize bundled libraries over system libraries
-# Use BUILD_RPATH so it works during development/testing  
+# Use BUILD_RPATH so it works during development/testing
 set_target_properties(streaming_server_demo_enhanced PROPERTIES
     BUILD_RPATH "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib:$<TARGET_FILE_DIR:streaming_server_demo_enhanced>:${OPERATOR_SSL_DIR}"
     INSTALL_RPATH "$ORIGIN/lib:$ORIGIN"
@@ -126,7 +126,7 @@ set_target_properties(streaming_server_demo_enhanced PROPERTIES
 
 # Install rules
 install(
-    TARGETS streaming_server_demo_enhanced              
+    TARGETS streaming_server_demo_enhanced
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
 )
