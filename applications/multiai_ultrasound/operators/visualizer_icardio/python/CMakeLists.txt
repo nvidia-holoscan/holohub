@@ -20,8 +20,4 @@ pybind11_add_holohub_module(
     SOURCES visualizer_icardio_pybind.cpp
 )
 
-if("${holoscan_VERSION}" VERSION_GREATER_EQUAL "3.7")
-  target_link_libraries(visualizer_icardio_python PRIVATE holoscan::holoinfer_utils)
-endif()
-
 target_include_directories(visualizer_icardio_python PRIVATE ${Holohub_SOURCE_DIR}/operators)
