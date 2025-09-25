@@ -291,7 +291,8 @@ T get_config_value(holoscan::Application* app, const std::string& key, const T& 
 
 // Specialization for std::string to avoid printing issues
 template<>
-std::string get_config_value<std::string>(holoscan::Application* app, const std::string& key, const std::string& default_value) {
+std::string get_config_value<std::string>(holoscan::Application* app, const std::string& key,
+                                          const std::string& default_value) {
   try {
     return app->from_config(key).as<std::string>();
   } catch (const std::exception& e) {
@@ -357,7 +358,8 @@ int main(int argc, char** argv) {
         std::string video_path = path + "/surgical_video.gxf_index";
         if (std::filesystem::exists(video_path)) {
           data_directory = path;
-          std::cout << "Found valid data directory with video file: " << data_directory << std::endl;
+          std::cout << "Found valid data directory with video file: " << data_directory
+                    << std::endl;
           break;
         } else {
           std::cout << "Directory exists but no video file found at: " << video_path << std::endl;
@@ -366,7 +368,8 @@ int main(int argc, char** argv) {
     }
 
     if (data_directory.empty()) {
-      std::cerr << "ERROR: Could not find surgical_video.gxf_index in any of the standard locations." << std::endl;
+      std::cerr << "ERROR: Could not find surgical_video.gxf_index in any of the standard "
+                   "locations." << std::endl;
       std::cerr << "Please ensure the video file is present in one of these locations:" << std::endl;
       for (const auto& path : possible_paths) {
         if (!path.empty()) {
