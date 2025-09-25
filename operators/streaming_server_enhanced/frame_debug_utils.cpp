@@ -91,10 +91,13 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
 
             // Add first few pixel values for inspection
             meta_file << "\nFirst 10 pixels (raw bytes):\n";
-            size_t bytes_per_pixel = (format == ::PixelFormat::BGRA || format == ::PixelFormat::RGBA) ? 4 : 3;
-            for (int i = 0; i < std::min(10, static_cast<int>(width * height)) && i * bytes_per_pixel < data_size; ++i) {
+            size_t bytes_per_pixel =
+                (format == ::PixelFormat::BGRA || format == ::PixelFormat::RGBA) ? 4 : 3;
+            for (int i = 0; i < std::min(10, static_cast<int>(width * height)) &&
+                            i * bytes_per_pixel < data_size; ++i) {
                 meta_file << "Pixel " << i << ": ";
-                for (size_t j = 0; j < bytes_per_pixel && (i * bytes_per_pixel + j) < data_size; ++j) {
+                for (size_t j = 0; j < bytes_per_pixel &&
+                                   (i * bytes_per_pixel + j) < data_size; ++j) {
                     meta_file << static_cast<int>(data[i * bytes_per_pixel + j]) << " ";
                 }
                 meta_file << "\n";
@@ -105,7 +108,8 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
         }
 
         // Write as PPM image file (for easy viewing)
-        if (format == ::PixelFormat::BGRA || format == ::PixelFormat::BGR || format == ::PixelFormat::RGBA) {
+        if (format == ::PixelFormat::BGRA || format == ::PixelFormat::BGR ||
+            format == ::PixelFormat::RGBA) {
             std::string ppm_filename = filename.str() + ".ppm";
             std::ofstream ppm_file(ppm_filename, std::ios::binary);
             if (ppm_file.is_open()) {
@@ -113,7 +117,8 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
                 ppm_file << "P6\n" << width << " " << height << "\n255\n";
 
                 // Convert pixel data to RGB for PPM
-                size_t bytes_per_pixel = (format == ::PixelFormat::BGRA || format == ::PixelFormat::RGBA) ? 4 : 3;
+                size_t bytes_per_pixel =
+                    (format == ::PixelFormat::BGRA || format == ::PixelFormat::RGBA) ? 4 : 3;
                 for (uint32_t y = 0; y < height; ++y) {
                     for (uint32_t x = 0; x < width; ++x) {
                         size_t pixel_offset = (y * width + x) * bytes_per_pixel;
@@ -137,18 +142,18 @@ bool writeFrameToDisk(const Frame& frame, const std::string& filename_prefix, in
                     }
                 }
                 ppm_file.close();
-                HOLOSCAN_LOG_INFO("Wrote PPM image to: {} (can be viewed with image viewers)", ppm_filename);
+                HOLOSCAN_LOG_INFO("Wrote PPM image to: {} (can be viewed with image viewers)",
+                                  ppm_filename);
             }
         }
 
         return true;
-
     } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("writeFrameToDisk exception: {}", e.what());
         return false;
     }
 }
 
-} // namespace holoscan::ops::debug_utils
+}  // namespace holoscan::ops::debug_utils
 
-#endif // HOLOSCAN_DEBUG_FRAME_WRITING
+#endif  // HOLOSCAN_DEBUG_FRAME_WRITING
