@@ -10,13 +10,12 @@ Tests actual video frame processing through the streaming client pipeline.
 import argparse
 import os
 import sys
-from pathlib import Path
 from typing import Optional
 
 import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import FormatConverterOp, VideoStreamReplayerOp
-from holoscan.resources import UnboundedAllocator, BlockMemoryPool, CudaStreamPool
+from holoscan.resources import BlockMemoryPool, CudaStreamPool, UnboundedAllocator
 
 
 class VideoFrameValidatorOp(Operator):
@@ -44,15 +43,15 @@ class VideoFrameValidatorOp(Operator):
             # Try different possible tensor names
             tensor_names = ["tensor", "output", "frames", "video"]
             tensor = None
-            
+
             for name in tensor_names:
                 try:
                     tensor = input_message.get(name)
                     if tensor is not None:
                         break
-                except:
+                except Exception:
                     continue
-            
+
             if tensor is not None:
                 shape = tensor.shape
                 pixel_count = np.prod(shape) if len(shape) > 0 else 0
@@ -67,28 +66,32 @@ class VideoFrameValidatorOp(Operator):
                     self.log_info(
                         f"📊 Processed {self.frame_count} frames, avg pixels: {avg_pixels:.0f}"
                     )
-                
+
                 # Validate frame content
-                if hasattr(tensor, 'data'):
+                if hasattr(tensor, "data"):
                     # Check for non-zero content
                     data = np.array(tensor.data())
                     non_zero_count = np.count_nonzero(data)
                     total_elements = data.size
                     non_zero_ratio = non_zero_count / total_elements if total_elements > 0 else 0
-                    
-                    self.log_info(f"📈 Frame {self.frame_count}: {non_zero_ratio:.2%} non-zero pixels")
-                    
+
+                    self.log_info(
+                        f"📈 Frame {self.frame_count}: {non_zero_ratio:.2%} non-zero pixels"
+                    )
+
                     if non_zero_ratio > 0.01:  # At least 1% non-zero content
                         self.log_info(f"✅ Frame {self.frame_count}: Content validation passed")
                     else:
                         self.log_warn(f"⚠️ Frame {self.frame_count}: Low content detected")
-                        
+
             else:
                 self.log_warn(f"⚠️ Frame {self.frame_count}: No tensor found in message")
                 # Try to inspect message contents
                 try:
-                    self.log_info(f"🔍 Message contents: {list(input_message.keys()) if hasattr(input_message, 'keys') else 'Unknown'}")
-                except:
+                    self.log_info(
+                        f"🔍 Message contents: {list(input_message.keys()) if hasattr(input_message, 'keys') else 'Unknown'}"
+                    )
+                except Exception:
                     pass
 
         except Exception as e:
@@ -98,8 +101,10 @@ class VideoFrameValidatorOp(Operator):
         """Log final statistics when stopping."""
         if self.frame_count > 0:
             avg_pixels = self.total_pixels / self.frame_count
-            self.log_info(f"🏁 Final stats: {self.frame_count} frames, avg pixels: {avg_pixels:.0f}")
-            
+            self.log_info(
+                f"🏁 Final stats: {self.frame_count} frames, avg pixels: {avg_pixels:.0f}"
+            )
+
             if self.frame_sizes:
                 min_size = min(self.frame_sizes)
                 max_size = max(self.frame_sizes)
@@ -128,25 +133,27 @@ class StreamingClientFunctionalTestApp(Application):
         self.max_frames = max_frames
         self.minimal_mode = minimal_mode
         self.data_path = self._find_video_data(data_path)
-        
+
     def _find_video_data(self, provided_path: Optional[str]) -> Optional[str]:
         """Find video data in standard locations."""
         search_paths = []
-        
+
         # Add provided path first
         if provided_path:
             search_paths.append(provided_path)
-        
+
         # Add standard search locations
-        search_paths.extend([
-            os.environ.get("HOLOSCAN_INPUT_PATH", ""),
-            "/workspace/holohub/data/endoscopy",
-            "/workspace/holohub/data-streaming_client_demo-v3.5.0-dgpu/endoscopy",
-            "./data/endoscopy",
-            "../data/endoscopy",
-            "../../data/endoscopy",
-            "/opt/nvidia/holohub/data/endoscopy",
-        ])
+        search_paths.extend(
+            [
+                os.environ.get("HOLOSCAN_INPUT_PATH", ""),
+                "/workspace/holohub/data/endoscopy",
+                "/workspace/holohub/data-streaming_client_demo-v3.5.0-dgpu/endoscopy",
+                "./data/endoscopy",
+                "../data/endoscopy",
+                "../../data/endoscopy",
+                "/opt/nvidia/holohub/data/endoscopy",
+            ]
+        )
 
         for path in search_paths:
             if path and os.path.exists(os.path.join(path, "surgical_video.gxf_index")):
@@ -158,7 +165,7 @@ class StreamingClientFunctionalTestApp(Application):
         for path in search_paths:
             if path:
                 print(f"  - {path}")
-        
+
         return None
 
     def compose(self):
@@ -168,10 +175,11 @@ class StreamingClientFunctionalTestApp(Application):
             print("🔧 Minimal mode enabled - skipping operator pipeline")
             print("✅ Infrastructure test configured (minimal mode)")
             return
-            
+
         # Import the streaming client operator
         try:
-            from holohub.streaming_client import StreamingClientOp
+            from holohub.streaming_client import StreamingClientOp  # noqa: F401
+
             print("✅ StreamingClientOp imported successfully")
         except ImportError as e:
             print(f"❌ Failed to import StreamingClientOp: {e}")
@@ -185,7 +193,7 @@ class StreamingClientFunctionalTestApp(Application):
             print("🔧 No video data available - running infrastructure test")
             self._compose_infrastructure_test()
             return
-        
+
         video_index = os.path.join(self.data_path, "surgical_video.gxf_index")
         if not os.path.exists(video_index):
             print(f"⚠️ Video index file not found: {video_index}")
@@ -198,9 +206,9 @@ class StreamingClientFunctionalTestApp(Application):
     def _compose_infrastructure_test(self):
         """Compose infrastructure test without video data."""
         from holohub.streaming_client import StreamingClientOp
-        
+
         print("🔧 Configuring infrastructure test mode")
-        
+
         # Create streaming client operator with test parameters
         streaming_client = StreamingClientOp(
             self,
@@ -213,18 +221,18 @@ class StreamingClientFunctionalTestApp(Application):
             send_frames=False,  # Disable for infrastructure testing
             receive_frames=False,  # Disable for infrastructure testing
         )
-        
+
         print("✅ StreamingClient configured for infrastructure testing")
         print(f"📊 Parameters: {self.width}x{self.height}@{self.fps}fps")
         print("🔌 Network: 127.0.0.1:48010 (test server)")
-        
+
         # Add to application
         self.add_operator(streaming_client)
 
     def _compose_functional_test(self):
         """Compose functional test with real video data."""
         from holohub.streaming_client import StreamingClientOp
-        
+
         print("🎬 Configuring functional test with real video pipeline")
 
         # Create resources
@@ -250,7 +258,7 @@ class StreamingClientFunctionalTestApp(Application):
             basename="surgical_video",
             frame_rate=self.fps,
             realtime=False,  # Run as fast as possible for testing
-            repeat=False,    # Don't repeat for testing
+            repeat=False,  # Don't repeat for testing
             count=self.max_frames,  # Limit frames for testing
         )
 
@@ -265,19 +273,19 @@ class StreamingClientFunctionalTestApp(Application):
                 block_size=source_block_size,
                 num_blocks=source_num_blocks,
             )
-            
+
             format_converter_args = {
                 "name": "format_converter",
                 "pool": pool,
                 "out_tensor_name": "tensor",
                 "out_dtype": "uint8",
             }
-            
+
             if cuda_stream_pool:
                 format_converter_args["cuda_stream_pool"] = cuda_stream_pool
-                
+
             format_converter = FormatConverterOp(self, **format_converter_args)
-            
+
         except Exception as e:
             print(f"⚠️ Format converter creation failed: {e}")
             # Create allocator as fallback
@@ -290,7 +298,7 @@ class StreamingClientFunctionalTestApp(Application):
                 out_dtype="uint8",
             )
 
-        # Streaming client operator  
+        # Streaming client operator
         streaming_client = StreamingClientOp(
             self,
             name="streaming_client",
@@ -299,7 +307,7 @@ class StreamingClientFunctionalTestApp(Application):
             fps=self.fps,
             server_ip="127.0.0.1",
             signaling_port=48010,
-            send_frames=True,   # Enable for functional testing
+            send_frames=True,  # Enable for functional testing
             receive_frames=False,  # Focus on sending for testing
             min_non_zero_bytes=100,
         )
@@ -312,16 +320,18 @@ class StreamingClientFunctionalTestApp(Application):
             self.add_flow(source, format_converter, {("output", "source_video")})
             self.add_flow(format_converter, streaming_client, {("tensor", "input")})
             self.add_flow(streaming_client, validator, {("output", "input_frames")})
-            
+
             print("✅ Video processing pipeline connected:")
             print("   📹 VideoSource → 🔄 FormatConverter → 📡 StreamingClient → ✅ Validator")
-            
+
         except Exception as e:
             print(f"⚠️ Pipeline connection failed: {e}")
             # Fallback to simpler pipeline
             self.add_flow(source, format_converter)
             self.add_flow(format_converter, streaming_client)
-            print("✅ Simplified pipeline connected: VideoSource → FormatConverter → StreamingClient")
+            print(
+                "✅ Simplified pipeline connected: VideoSource → FormatConverter → StreamingClient"
+            )
 
         print(f"🎯 Processing up to {self.max_frames} frames from real endoscopy video")
 
@@ -332,15 +342,17 @@ def main():
         "--data",
         type=str,
         default=None,
-        help="Path to video data directory containing surgical_video.gxf_index"
+        help="Path to video data directory containing surgical_video.gxf_index",
     )
     parser.add_argument("--width", type=int, default=854, help="Video width")
     parser.add_argument("--height", type=int, default=480, help="Video height")
     parser.add_argument("--fps", type=int, default=30, help="Frame rate")
     parser.add_argument("--frames", type=int, default=50, help="Maximum frames to process")
-    parser.add_argument("--minimal", action="store_true", help="Run in minimal mode (no pipeline, fast exit)")
+    parser.add_argument(
+        "--minimal", action="store_true", help="Run in minimal mode (no pipeline, fast exit)"
+    )
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
-    
+
     args = parser.parse_args()
 
     print("🧪 StreamingClient Enhanced Functional Test")
@@ -358,13 +370,13 @@ def main():
             height=args.height,
             fps=args.fps,
             max_frames=args.frames,
-            minimal_mode=args.minimal
+            minimal_mode=args.minimal,
         )
-        
+
         print("🚀 Starting functional test application...")
         app.run()
         print("✅ Functional test completed successfully!")
-        
+
     except KeyboardInterrupt:
         print("\n⚠️ Test interrupted by user")
         sys.exit(1)
@@ -372,6 +384,7 @@ def main():
         print(f"❌ Functional test failed: {e}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 
