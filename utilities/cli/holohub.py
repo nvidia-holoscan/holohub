@@ -42,7 +42,7 @@ from typing import List, Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
-from utilities.cli.container import HoloHubContainer, base_sdk_version
+from utilities.cli.container import HoloHubContainer
 from utilities.cli.util import Color
 
 
@@ -50,9 +50,15 @@ class HoloHubCLI:
     """Command-line interface for HoloHub"""
 
     HOLOHUB_ROOT = holohub_cli_util.get_holohub_root()
-    DEFAULT_BUILD_PARENT_DIR = HOLOHUB_ROOT / "build"
-    DEFAULT_DATA_DIR = HOLOHUB_ROOT / "data"
-    DEFAULT_SDK_DIR = "/opt/nvidia/holoscan/lib"
+    DEFAULT_BUILD_PARENT_DIR = Path(
+        os.environ.get("HOLOHUB_BUILD_PARENT_DIR", HOLOHUB_ROOT / "build")
+    )
+    DEFAULT_DATA_DIR = Path(os.environ.get("HOLOHUB_DATA_DIR", HOLOHUB_ROOT / "data"))
+    DEFAULT_SDK_DIR = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan/lib")
+    # Allow overriding the default CTest script path via environment variable
+    DEFAULT_CTEST_SCRIPT = os.environ.get(
+        "HOLOHUB_CTEST_SCRIPT", "utilities/testing/holohub.container.ctest"
+    )
 
     def __init__(self):
         self.script_name = os.environ.get("HOLOHUB_CMD_NAME", "./holohub")
@@ -612,7 +618,7 @@ class HoloHubCLI:
             holohub_cli_util.fatal(
                 f"Cannot specify CLI parameters {params_str} when using explicit mode '{mode_name}'. "
                 f"All configuration must be provided through the mode definition.\n"
-                f"See https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/README.md"
+                f"See {os.environ.get('HOLOHUB_CLI_DOCS_URL', 'https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/README.md')}"
             )
 
     def get_effective_build_config(
@@ -872,7 +878,7 @@ class HoloHubCLI:
         if args.ctest_script:
             ctest_cmd += f"-S {args.ctest_script} "
         else:
-            ctest_cmd += "-S utilities/testing/holohub.container.ctest "
+            ctest_cmd += f"-S {self.DEFAULT_CTEST_SCRIPT} "
 
         if args.verbose:
             ctest_cmd += "-VV "
@@ -1798,14 +1804,22 @@ class HoloHubCLI:
             print(Color.blue("Would clear cache folders:"))
         else:
             print(Color.blue("Clearing cache..."))
+
+        cache_dirs = [
+            self.DEFAULT_BUILD_PARENT_DIR,
+            self.DEFAULT_DATA_DIR,
+        ]
         for pattern in ["build", "build-*", "data", "data-*", "install"]:
             for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                if path.is_dir():
-                    if args.dryrun:
-                        print(f"  {Color.yellow('Would remove:')} {path}")
-                    else:
-                        print(f"  {Color.red('Removing:')} {path}")
-                        shutil.rmtree(path)
+                if path.is_dir() and path not in cache_dirs:
+                    cache_dirs.append(path)
+        for path in set(cache_dirs):
+            if path.exists() and path.is_dir():
+                if args.dryrun:
+                    print(f"  {Color.yellow('Would remove:')} {path}")
+                else:
+                    print(f"  {Color.red('Removing:')} {path}")
+                    shutil.rmtree(path)
 
     def _add_to_cmakelists(self, project_name: str) -> None:
         """Add a new application to applications/CMakeLists.txt if it doesn't exist"""
@@ -1901,7 +1915,7 @@ class HoloHubCLI:
             "project_name": args.project,
             "project_slug": args.project.lower().replace(" ", "_"),
             "language": args.language.lower() if args.language else None,  # Only set if provided
-            "holoscan_version": base_sdk_version,
+            "holoscan_version": HoloHubContainer.BASE_SDK_VERSION,
             "year": datetime.datetime.now().year,
         }
 

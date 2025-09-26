@@ -871,8 +871,9 @@ def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[s
         return None
 
     try:
+        docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
         result = run_command(
-            ["docker", "inspect", "--format={{json .Config.Entrypoint}}", img],
+            [docker_exe, "inspect", "--format={{json .Config.Entrypoint}}", img],
             capture_output=True,
             check=False,
             dry_run=dry_run,
@@ -902,8 +903,9 @@ def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
         )
         return ""
     try:
+        docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
         result = run_command(
-            ["docker", "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
+            [docker_exe, "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
             check=False,
             capture_output=True,
             dry_run=dry_run,
@@ -1060,8 +1062,9 @@ def collect_git_info(holohub_root: Path) -> None:
 def collect_docker_info() -> None:
     """Collect and display Docker information"""
     print(f"\n{Color.blue('Docker Information:')}")
-    docker_version = run_info_command(["docker", "--version"])
-    docker_info = run_info_command(["docker", "info", "--format", "{{.ServerVersion}}"])
+    docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
+    docker_version = run_info_command([docker_exe, "--version"])
+    docker_info = run_info_command([docker_exe, "info", "--format", "{{.ServerVersion}}"])
     if docker_version is None or docker_info is None:
         print("  Docker not available")
         return
@@ -1108,10 +1111,29 @@ def collect_environment_variables() -> None:
     holohub_env_vars = [
         "HOLOHUB_CMD_NAME",
         "HOLOHUB_BUILD_LOCAL",
+        "HOLOHUB_ALWAYS_BUILD",
+        "HOLOHUB_BUILD_PARENT_DIR",
+        "HOLOHUB_DATA_DIR",
+        "HOLOHUB_DEFAULT_HSDK_DIR",
+        "HOLOHUB_CTEST_SCRIPT",
+        "HOLOHUB_REPO_PREFIX",
+        "HOLOHUB_CONTAINER_PREFIX",
+        "HOLOHUB_WORKSPACE_NAME",
+        "HOLOHUB_HOSTNAME_PREFIX",
         "HOLOHUB_BASE_IMAGE",
+        "HOLOHUB_DOCKER_EXE",
+        "HOLOHUB_SDK_PATH",
+        "HOLOHUB_BASE_SDK_VERSION",
+        "HOLOHUB_BENCHMARKING_SUBDIR",
+        "HOLOHUB_DEFAULT_DOCKERFILE",
+        "HOLOHUB_BASE_IMAGE_FORMAT",
+        "HOLOHUB_DEFAULT_IMAGE_FORMAT",
+        "HOLOHUB_DOCS_URL",
+        "HOLOHUB_CLI_DOCS_URL",
+        "HOLOHUB_DATA_PATH",
+        # Legacy variables
         "HOLOHUB_APP_NAME",
         "HOLOHUB_CONTAINER_BASE_NAME",
-        "HOLOHUB_ALWAYS_BUILD",
     ]
     for var in sorted(holohub_env_vars):
         print(f"  {var}: {os.environ.get(var) or '(not set)'}")
