@@ -20,8 +20,7 @@
 set -e
 
 # URL of the DeepStream dependencies required for gxf-mm extensions above
-DS_DEPS_URL="https://api.ngc.nvidia.com/v2/resources/org/nvidia/gxf_and_gc/4.0.0/files?redirect=true&path=nvv4l2_x86_ds-7.0.deb"
-
+DS_DEPS_URL="https://api.ngc.nvidia.com/v2/resources/org/nvidia/gxf_and_gc/5.1.0/files?redirect=true&path=nvv4l2_x86_ds-8.0.deb"
 ARCH=$(arch)
 HOLOSCAN_LIBS_DIR=/opt/nvidia/holoscan/lib/
 
@@ -39,8 +38,8 @@ gxf_mm_extensions=(["decoderio"]="45081ccb-982e-4946-96f9-0d684f2cfbd0" \
                    ["encoder"]="ea5c44e4-15db-4448-a3a6-f32004303338")
 mkdir -p gxf-mm
 mkdir -p ${HOLOSCAN_LIBS_DIR}
-MM_VERSION=1.4.1
-CUDA_VERSION=12.8
+MM_VERSION=1.5.0
+CUDA_VERSION=13.0
 UBUNTU_VERSION=24.04
 for extension in "${!gxf_mm_extensions[@]}"; do
   if [[ $extension == "decoderio" ]] || [[ $extension == "encoderio" ]]; then
