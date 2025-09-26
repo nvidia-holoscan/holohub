@@ -52,6 +52,7 @@ class HoloHubContainer:
     Default attributes may be overridden by a project-specific implementation.
     """
 
+    HOLOHUB_ROOT = get_holohub_root()  # Repository root directory
     # Primary repository prefix - sets defaults for container, workspace, and hostname
     REPO_PREFIX = os.environ.get("HOLOHUB_REPO_PREFIX", "holohub")
     CONTAINER_PREFIX = os.environ.get("HOLOHUB_CONTAINER_PREFIX", REPO_PREFIX)
@@ -67,7 +68,7 @@ class HoloHubContainer:
     BENCHMARKING_SUBDIR = os.environ.get(
         "HOLOHUB_BENCHMARKING_SUBDIR", "benchmarks/holoscan_flow_benchmarking"
     )
-    DEFAULT_DOCKERFILE = os.environ.get("HOLOHUB_DEFAULT_DOCKERFILE", "Dockerfile")
+    DEFAULT_DOCKERFILE = os.environ.get("HOLOHUB_DEFAULT_DOCKERFILE", HOLOHUB_ROOT / "Dockerfile")
 
     # Image naming format templates
     BASE_IMAGE_NAME = os.environ.get("HOLOHUB_BASE_IMAGE", "nvcr.io/nvidia/clara-holoscan/holoscan")
@@ -77,8 +78,6 @@ class HoloHubContainer:
     DEFAULT_IMAGE_FORMAT = os.environ.get(
         "HOLOHUB_DEFAULT_IMAGE_FORMAT", "{container_prefix}:ngc-v{sdk_version}-{gpu_type}"
     )
-
-    HOLOHUB_ROOT = get_holohub_root()  # Repository root directory
 
     @classmethod
     def default_base_image(cls) -> str:
@@ -98,7 +97,7 @@ class HoloHubContainer:
 
     @classmethod
     def default_dockerfile(cls) -> Path:
-        return cls.HOLOHUB_ROOT / cls.DEFAULT_DOCKERFILE
+        return cls.DEFAULT_DOCKERFILE
 
     @staticmethod
     def get_build_argparse() -> argparse.ArgumentParser:
