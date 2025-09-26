@@ -114,6 +114,9 @@ add_holohub_application(psd_pipeline DEPENDS
                                   vita49_psd_packetizer
                                   data_writer)
 
+add_holohub_application(streaming_client_demo_enhanced DEPENDS OPERATORS streaming_client_enhanced)
+add_holohub_application(streaming_server_demo_enhanced DEPENDS OPERATORS streaming_server_enhanced)
+
 add_holohub_application(ultrasound_segmentation DEPENDS OPERATORS aja_source)
 
 add_holohub_application(velodyne_lidar_app DEPENDS
