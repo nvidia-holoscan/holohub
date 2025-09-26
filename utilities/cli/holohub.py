@@ -55,6 +55,10 @@ class HoloHubCLI:
     )
     DEFAULT_DATA_DIR = Path(os.environ.get("DEFAULT_HOLOHUB_DATA_DIR", HOLOHUB_ROOT / "data"))
     DEFAULT_SDK_DIR = os.environ.get("DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan/lib")
+    # Allow overriding the default CTest script path via environment variable
+    DEFAULT_CTEST_SCRIPT = os.environ.get(
+        "DEFAULT_HOLOHUB_CTEST_SCRIPT", "utilities/testing/holohub.container.ctest"
+    )
 
     def __init__(self):
         self.script_name = os.environ.get("HOLOHUB_CMD_NAME", "./holohub")
@@ -874,7 +878,7 @@ class HoloHubCLI:
         if args.ctest_script:
             ctest_cmd += f"-S {args.ctest_script} "
         else:
-            ctest_cmd += "-S utilities/testing/holohub.container.ctest "
+            ctest_cmd += f"-S {self.DEFAULT_CTEST_SCRIPT} "
 
         if args.verbose:
             ctest_cmd += "-VV "
