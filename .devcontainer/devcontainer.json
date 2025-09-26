@@ -7,7 +7,7 @@
     "build": {
         "dockerfile": "${localWorkspaceFolder}/.devcontainer/Dockerfile",
         "args": {
-            "HOLOHUB_BASE_IMAGE": "${localEnv:HOLOHUB_BASE_IMAGE}",
+            "HOLOHUB_BASE_IMAGE": "nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.0-dgpu",
             "WORKSPACE_DIR": "${containerWorkspaceFolder}"
         },
         "options": [
