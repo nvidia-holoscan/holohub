@@ -50,9 +50,11 @@ class HoloHubCLI:
     """Command-line interface for HoloHub"""
 
     HOLOHUB_ROOT = holohub_cli_util.get_holohub_root()
-    DEFAULT_BUILD_PARENT_DIR = HOLOHUB_ROOT / "build"
-    DEFAULT_DATA_DIR = HOLOHUB_ROOT / "data"
-    DEFAULT_SDK_DIR = "/opt/nvidia/holoscan/lib"
+    DEFAULT_BUILD_PARENT_DIR = Path(
+        os.environ.get("DEFAULT_HOLOHUB_BUILD_PARENT_DIR", HOLOHUB_ROOT / "build")
+    )
+    DEFAULT_DATA_DIR = Path(os.environ.get("DEFAULT_HOLOHUB_DATA_DIR", HOLOHUB_ROOT / "data"))
+    DEFAULT_SDK_DIR = os.environ.get("DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan/lib")
 
     def __init__(self):
         self.script_name = os.environ.get("HOLOHUB_CMD_NAME", "./holohub")
@@ -1795,14 +1797,22 @@ class HoloHubCLI:
             print(Color.blue("Would clear cache folders:"))
         else:
             print(Color.blue("Clearing cache..."))
+
+        cache_dirs = [
+            self.DEFAULT_BUILD_PARENT_DIR,
+            self.DEFAULT_DATA_DIR,
+        ]
         for pattern in ["build", "build-*", "data", "data-*", "install"]:
             for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                if path.is_dir():
-                    if args.dryrun:
-                        print(f"  {Color.yellow('Would remove:')} {path}")
-                    else:
-                        print(f"  {Color.red('Removing:')} {path}")
-                        shutil.rmtree(path)
+                if path.is_dir() and path not in cache_dirs:
+                    cache_dirs.append(path)
+        for path in set(cache_dirs):
+            if path.exists() and path.is_dir():
+                if args.dryrun:
+                    print(f"  {Color.yellow('Would remove:')} {path}")
+                else:
+                    print(f"  {Color.red('Removing:')} {path}")
+                    shutil.rmtree(path)
 
     def _add_to_cmakelists(self, project_name: str) -> None:
         """Add a new application to applications/CMakeLists.txt if it doesn't exist"""
