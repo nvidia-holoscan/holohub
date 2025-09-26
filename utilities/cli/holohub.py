@@ -1207,6 +1207,9 @@ class HoloHubCLI:
                 "HOLOSCAN_INPUT_PATH", str(HoloHubCLI.DEFAULT_DATA_DIR)
             )
 
+            if run_config.get("env", None) is not None:
+                env.update(run_config["env"])
+
             # Print environment setup
             if args.verbose or args.dryrun:
                 print(
