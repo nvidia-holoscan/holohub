@@ -66,6 +66,8 @@ target_link_libraries(object_detection_torch
     holoscan::ops::inference
     holoscan::ops::inference_processor
     holoscan::ops::holoviz
+    holoscan::infer
+    $<TARGET_NAME_IF_EXISTS:holoscan::holoinfer_utils>
     $<TARGET_NAME_IF_EXISTS:holoscan::aja>
 )
 
