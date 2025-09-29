@@ -41,6 +41,7 @@ class CuptiSchedulingProfiler {
   CUpti_SubscriberHandle subscriber_;
   std::unordered_map<uint32_t, KernelLaunchData> launch_map_;  // correlationId -> launch data
   std::unordered_map<uint32_t, double> scheduling_latencies_;  // correlationId -> latency (us)
+  std::unordered_map<uint32_t, double> execution_durations_;  // correlationId -> execution duration
   std::mutex data_mutex_;
   bool initialized_;
   int successful_measurements_ = 0;  // Count successful measurements
@@ -163,6 +164,30 @@ class CuptiSchedulingProfiler {
     return latest_latency;
   }
 
+  // Get latest kernel execution duration
+  double getLatestExecutionDuration() {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+
+    if (execution_durations_.empty()) {
+      return -1.0;  // No execution duration available
+    }
+
+    // Find the measurement with the highest correlation ID (most recent)
+    auto max_it = std::max_element(
+        execution_durations_.begin(),
+        execution_durations_.end(),
+        [](const std::pair<uint32_t, double>& a, const std::pair<uint32_t, double>& b) {
+          return a.first < b.first;  // Compare correlation IDs
+        });
+
+    double latest_duration = max_it->second;
+
+    // Clear execution durations
+    execution_durations_.clear();
+
+    return latest_duration;
+  }
+
  private:
   // CUPTI API callback for kernel launches
   static void CUPTIAPI apiCallback(void* userdata, CUpti_CallbackDomain domain,
@@ -248,9 +273,14 @@ class CuptiSchedulingProfiler {
             double latency_ns = (double)(kernelRecord->start - it->second.launch_timestamp);
             double latency_us = latency_ns / 1000.0;  // Convert to microseconds
 
+            // Calculate kernel execution duration: GPU execution end - GPU execution start
+            double execution_duration_ns = (double)(kernelRecord->end - kernelRecord->start);
+            double execution_duration_us = execution_duration_ns / 1000.0;
+
             // Sanity check - latency should be reasonable (0.1μs to 10ms)
             if (latency_us >= 0.1 && latency_us <= 10000.0) {
               scheduling_latencies_[kernelRecord->correlationId] = latency_us;
+              execution_durations_[kernelRecord->correlationId] = execution_duration_us;
               successful_measurements_++;  // Count successful measurements
             }
 

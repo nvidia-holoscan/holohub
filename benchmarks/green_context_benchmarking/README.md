@@ -118,50 +118,75 @@ Benchmark Configurations
   CUDA Threads Per Block: 512
 
 ================================================================================
-Benchmark Results
+Comprehensive Timing Results
 ================================================================================
 === Without Green Context (Baseline) ===
 CUDA Kernel Launch-Start Time:
-  Average: 241.29 μs
-  Std Dev: 168.54 μs
-  Min:     2.31 μs
-  P50:     252.35 μs
-  P95:     465.74 μs
-  P99:     472.84 μs
-  Max:     744.14 μs
+  Average: 249.09 μs
+  Std Dev: 157.42 μs
+  Min:     1.53 μs
+  P50:     271.73 μs
+  P95:     460.79 μs
+  P99:     478.52 μs
+  Max:     586.59 μs
+  Samples: 1000
+
+CUDA Kernel Execution Time:
+  Average: 12.48 μs
+  Std Dev: 3.98 μs
+  Min:     1.34 μs
+  P50:     13.44 μs
+  P95:     16.83 μs
+  P99:     17.54 μs
+  Max:     18.59 μs
   Samples: 1000
 
 === With Green Context ===
 CUDA Kernel Launch-Start Time:
-  Average: 5.14 μs
-  Std Dev: 2.77 μs
+  Average: 4.64 μs
+  Std Dev: 2.37 μs
   Min:     2.78 μs
-  P50:     4.07 μs
-  P95:     10.42 μs
-  P99:     15.37 μs
-  Max:     24.85 μs
+  P50:     3.88 μs
+  P95:     10.04 μs
+  P99:     14.01 μs
+  Max:     23.98 μs
+  Samples: 1000
+
+CUDA Kernel Execution Time:
+  Average: 1.18 μs
+  Std Dev: 0.08 μs
+  Min:     0.99 μs
+  P50:     1.18 μs
+  P95:     1.31 μs
+  P99:     1.38 μs
+  Max:     1.95 μs
   Samples: 1000
 
 ================================================================================
 Baseline and Green Context Benchmark Comparison
 ================================================================================
 Launch-Start Latency:
-  Average Latency:    241.29 μs →     5.14 μs  (+97.87%)
-  95th Percentile:   +465.74 μs →   +10.42 μs  (+97.76%)
-  99th Percentile:   +472.84 μs →   +15.37 μs  (+96.75%)
+  Average Latency:    249.09 μs →     4.64 μs  (+98.14%)
+  95th Percentile:   +460.79 μs →   +10.04 μs  (+97.82%)
+  99th Percentile:   +478.52 μs →   +14.01 μs  (+97.07%)
+
+Kernel Execution Time:
+  Average Duration:    12.48 μs →     1.18 μs  (+90.57%)
+  95th Percentile:    +16.83 μs →    +1.31 μs  (+92.21%)
+  99th Percentile:    +17.54 μs →    +1.38 μs  (+92.16%)
 
 ================================================================================
 Dummy Load Execution Time Statistics
 ================================================================================
 === Without Green Context (Baseline) ===
-  Average: 503.75 μs
-  Std Dev: 18.99 μs
-  Samples: 235707
+  Average: 513.20 μs
+  Std Dev: 17.45 μs
+  Samples: 262730
 
 === With Green Context ===
-  Average: 532.27 μs
-  Std Dev: 17.78 μs
-  Samples: 281813
+  Average: 532.74 μs
+  Std Dev: 13.97 μs
+  Samples: 289987
 ```
 
 ## Benchmark Results

@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <iomanip>
 #include <memory>
 #include <mutex>
 #include <numeric>
@@ -308,13 +309,13 @@ class TimingBenchmarkOp : public Operator {
                         execution_count_, total_samples_.get());
     }
 
-    // Launch kernel - CUPTI will capture launch and execution start timestamps
+    // Launch kernel - CUPTI will capture launch and execution timestamps
     async_run_simple_benchmark_kernel(d_benchmark_data_, workload_size_.get(),
                                        threads_per_block_, cached_stream_);
     cudaStreamSynchronize(cached_stream_);
 
-    // Get CUPTI-based CUDA kernel launch-start time if available
-    double cuda_kernel_launch_start_time = -1.0;  // Default to -1 if CUPTI not available
+    double cuda_kernel_launch_start_time = -1.0;
+    double cuda_kernel_execution_time = -1.0;
     if (cupti_profiler_) {
       // Force flush CUPTI activities to trigger processing
       cuptiActivityFlushAll(0);
@@ -355,8 +356,8 @@ class TimingBenchmarkOp : public Operator {
         poll_count++;
       }
 
-      // Get the latest scheduling latency measurement
       cuda_kernel_launch_start_time = cupti_profiler_->getLatestSchedulingLatency();
+      cuda_kernel_execution_time = cupti_profiler_->getLatestExecutionDuration();
 
       // More detailed timeout warning
       if (poll_count >= max_poll_attempts) {
@@ -370,6 +371,7 @@ class TimingBenchmarkOp : public Operator {
     }
 
     cuda_kernel_launch_start_times_us_.push_back(cuda_kernel_launch_start_time);
+    cuda_kernel_execution_times_us_.push_back(cuda_kernel_execution_time);
 
     // Stop the entire benchmark app if the total number of samples is reached
     if (execution_count_ >= total_samples_.get()) {
@@ -379,6 +381,10 @@ class TimingBenchmarkOp : public Operator {
 
   BenchmarkStats get_cuda_kernel_launch_start_time_benchmark_stats() const {
     return calculate_benchmark_stats(cuda_kernel_launch_start_times_us_, true);
+  }
+
+  BenchmarkStats get_cuda_kernel_execution_time_benchmark_stats() const {
+    return calculate_benchmark_stats(cuda_kernel_execution_times_us_, true);
   }
 
   ~TimingBenchmarkOp() {
@@ -393,6 +399,7 @@ class TimingBenchmarkOp : public Operator {
   int execution_count_ = 0;
   float* d_benchmark_data_;
   std::vector<double> cuda_kernel_launch_start_times_us_;
+  std::vector<double> cuda_kernel_execution_times_us_;
   cudaStream_t cached_stream_ = nullptr;
   cupti_timing::CuptiSchedulingProfiler* cupti_profiler_;
   // CUDA kernel parameters
@@ -515,6 +522,10 @@ class GreenContextBenchmarkApp : public holoscan::Application {
     return timing_benchmark_op_->get_cuda_kernel_launch_start_time_benchmark_stats();
   }
 
+  BenchmarkStats get_cuda_kernel_execution_time_benchmark_stats() const {
+    return timing_benchmark_op_->get_cuda_kernel_execution_time_benchmark_stats();
+  }
+
   BenchmarkStats get_dummy_load_execution_time_benchmark_stats() const {
     return dummy_load_op_->get_compute_execution_time_benchmark_stats();
   }
@@ -529,25 +540,47 @@ class GreenContextBenchmarkApp : public holoscan::Application {
   std::shared_ptr<TimingBenchmarkOp> timing_benchmark_op_;
 };
 
-void print_benchmark_results(const BenchmarkStats& stats, const std::string& context_type) {
+void print_comprehensive_timing_results(const BenchmarkStats& launch_start_stats,
+                                       const BenchmarkStats& execution_stats,
+                                       const std::string& context_type) {
   std::cout << "=== " << context_type << " ===" << std::endl;
   std::cout << std::fixed << std::setprecision(2) << std::dec;
+
+  // Launch-Start Time Results
   std::cout << "CUDA Kernel Launch-Start Time:" << std::endl;
-  if (stats.sample_count == 0) {
+  if (launch_start_stats.sample_count == 0) {
     std::cout << "  Not available" << std::endl;
     std::cout << "  (CUPTI initialization may have failed or no measurements captured)"
     << std::endl;
-    return;
+  } else {
+    std::cout << "  Average: " << launch_start_stats.avg << " μs" << std::endl;
+    std::cout << "  Std Dev: " << launch_start_stats.std_dev << " μs" << std::endl;
+    std::cout << "  Min:     " << launch_start_stats.min_val << " μs" << std::endl;
+    std::cout << "  P50:     " << launch_start_stats.p50 << " μs" << std::endl;
+    std::cout << "  P95:     " << launch_start_stats.p95 << " μs" << std::endl;
+    std::cout << "  P99:     " << launch_start_stats.p99 << " μs" << std::endl;
+    std::cout << "  Max:     " << launch_start_stats.max_val << " μs" << std::endl;
+    std::cout << "  Samples: " << launch_start_stats.sample_count << std::endl;
   }
 
-  std::cout << "  Average: " << stats.avg << " μs" << std::endl;
-  std::cout << "  Std Dev: " << stats.std_dev << " μs" << std::endl;
-  std::cout << "  Min:     " << stats.min_val << " μs" << std::endl;
-  std::cout << "  P50:     " << stats.p50 << " μs" << std::endl;
-  std::cout << "  P95:     " << stats.p95 << " μs" << std::endl;
-  std::cout << "  P99:     " << stats.p99 << " μs" << std::endl;
-  std::cout << "  Max:     " << stats.max_val << " μs" << std::endl;
-  std::cout << "  Samples: " << stats.sample_count << std::endl;
+  std::cout << std::endl;
+
+  // Kernel Execution Time Results
+  std::cout << "CUDA Kernel Execution Time:" << std::endl;
+  if (execution_stats.sample_count == 0) {
+    std::cout << "  Not available" << std::endl;
+    std::cout << "  (CUPTI initialization may have failed or no measurements captured)"
+    << std::endl;
+  } else {
+    std::cout << "  Average: " << execution_stats.avg << " μs" << std::endl;
+    std::cout << "  Std Dev: " << execution_stats.std_dev << " μs" << std::endl;
+    std::cout << "  Min:     " << execution_stats.min_val << " μs" << std::endl;
+    std::cout << "  P50:     " << execution_stats.p50 << " μs" << std::endl;
+    std::cout << "  P95:     " << execution_stats.p95 << " μs" << std::endl;
+    std::cout << "  P99:     " << execution_stats.p99 << " μs" << std::endl;
+    std::cout << "  Max:     " << execution_stats.max_val << " μs" << std::endl;
+    std::cout << "  Samples: " << execution_stats.sample_count << std::endl;
+  }
 }
 
 void print_title(const std::string& title) {
@@ -666,6 +699,7 @@ int main(int argc, char* argv[]) {
   BenchmarkStats cuda_kernel_launch_start_time_stats_without_gc,
                  cuda_kernel_launch_start_time_stats_with_gc;
   BenchmarkStats dummy_load_stats_without_gc, dummy_load_stats_with_gc;
+  BenchmarkStats cuda_kernel_execution_stats_without_gc, cuda_kernel_execution_stats_with_gc;
 
   // Run benchmark without green context (baseline: both kernels on separate non-default streams)
   if (mode == "baseline" || mode == "all") {
@@ -682,6 +716,8 @@ int main(int argc, char* argv[]) {
           app_no_gc->get_cuda_kernel_launch_start_time_benchmark_stats();
       dummy_load_stats_without_gc =
           app_no_gc->get_dummy_load_execution_time_benchmark_stats();
+      cuda_kernel_execution_stats_without_gc =
+          app_no_gc->get_cuda_kernel_execution_time_benchmark_stats();
       std::cout << "Baseline benchmark completed" << std::endl;
     } catch (const std::exception& e) {
       std::cerr << "Baseline benchmark failed: " << e.what() << std::endl;
@@ -704,6 +740,8 @@ int main(int argc, char* argv[]) {
           app_with_gc->get_cuda_kernel_launch_start_time_benchmark_stats();
       dummy_load_stats_with_gc =
           app_with_gc->get_dummy_load_execution_time_benchmark_stats();
+      cuda_kernel_execution_stats_with_gc =
+          app_with_gc->get_cuda_kernel_execution_time_benchmark_stats();
       std::cout << "Main benchmark completed" << std::endl;
     } catch (const std::exception& e) {
       std::cerr << "Main benchmark failed: " << e.what() << std::endl;
@@ -717,17 +755,20 @@ int main(int argc, char* argv[]) {
                          background_load_size_mb, background_load_size, threads_per_block);
   std::cout << std::endl;
 
-  // Display benchmark results
-  print_title("Benchmark Results");
+  // Display comprehensive benchmark results (launch-start time + execution time)
+  print_title("Comprehensive Timing Results");
 
   if (mode == "baseline" || mode == "all") {
-    print_benchmark_results(cuda_kernel_launch_start_time_stats_without_gc,
-                             "Without Green Context (Baseline)");
+    print_comprehensive_timing_results(cuda_kernel_launch_start_time_stats_without_gc,
+                                      cuda_kernel_execution_stats_without_gc,
+                                      "Without Green Context (Baseline)");
     std::cout << std::endl;
   }
 
   if (mode == "green-context" || mode == "all") {
-    print_benchmark_results(cuda_kernel_launch_start_time_stats_with_gc, "With Green Context");
+    print_comprehensive_timing_results(cuda_kernel_launch_start_time_stats_with_gc,
+                                      cuda_kernel_execution_stats_with_gc,
+                                      "With Green Context");
     std::cout << std::endl;
   }
 
@@ -766,6 +807,39 @@ int main(int argc, char* argv[]) {
               << " μs  (" << std::showpos << p99_improvement << "%)"
               << std::endl << std::endl;
     std::cout << std::noshowpos;
+
+    // Add kernel execution time comparison if data is available
+    if (cuda_kernel_execution_stats_without_gc.sample_count > 0 &&
+        cuda_kernel_execution_stats_with_gc.sample_count > 0) {
+      // Calculate improvements in kernel execution time
+      double exec_avg_improvement = ((cuda_kernel_execution_stats_without_gc.avg -
+                                     cuda_kernel_execution_stats_with_gc.avg) /
+                                    cuda_kernel_execution_stats_without_gc.avg) * 100.0;
+      double exec_p95_improvement = ((cuda_kernel_execution_stats_without_gc.p95 -
+                                     cuda_kernel_execution_stats_with_gc.p95) /
+                                    cuda_kernel_execution_stats_without_gc.p95) * 100.0;
+      double exec_p99_improvement = ((cuda_kernel_execution_stats_without_gc.p99 -
+                                     cuda_kernel_execution_stats_with_gc.p99) /
+                                    cuda_kernel_execution_stats_without_gc.p99) * 100.0;
+
+      std::cout << "Kernel Execution Time:" << std::endl;
+      std::cout << "  Average Duration: " << std::setw(8)
+                << cuda_kernel_execution_stats_without_gc.avg << " μs → "
+                << std::setw(8) << cuda_kernel_execution_stats_with_gc.avg
+                << " μs  (" << std::showpos << exec_avg_improvement << "%)"
+                << std::endl;
+      std::cout << "  95th Percentile:  " << std::setw(8)
+                << cuda_kernel_execution_stats_without_gc.p95 << " μs → "
+                << std::setw(8) << cuda_kernel_execution_stats_with_gc.p95
+                << " μs  (" << std::showpos << exec_p95_improvement << "%)"
+                << std::endl;
+      std::cout << "  99th Percentile:  " << std::setw(8)
+                << cuda_kernel_execution_stats_without_gc.p99 << " μs → "
+                << std::setw(8) << cuda_kernel_execution_stats_with_gc.p99
+                << " μs  (" << std::showpos << exec_p99_improvement << "%)"
+                << std::endl << std::endl;
+      std::cout << std::noshowpos;
+    }
   }
 
   // Display DummyLoadOp execution time statistics
