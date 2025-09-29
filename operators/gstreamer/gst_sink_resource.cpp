@@ -20,8 +20,6 @@
 #include <gst/base/gstbasesink.h>
 #include <gst/video/video.h>
 
-#include <sstream>
-
 // Forward declaration of GstSinkResource for C code
 namespace holoscan { class GstSinkResource; }
 
@@ -243,15 +241,7 @@ gst_holoscan_sink_plugin_init(GstPlugin *plugin)
 
 namespace holoscan {
 namespace {
-// Factory function implementation
-GstBufferGuard make_buffer_guard(GstBuffer* buffer) {
-    return buffer ? GstBufferGuard(gst_buffer_ref(buffer), gst_buffer_unref) : nullptr;
-}
-
-// Factory function implementation for GstCaps
-GstCapsGuard make_caps_guard(GstCaps* caps) {
-    return caps ? GstCapsGuard(gst_caps_ref(caps), gst_caps_unref) : nullptr;
-}
+// Factory function implementations moved to common.cpp
 } // unnamed namespace
 
 // Asynchronously get next buffer using promise-based approach
@@ -335,11 +325,11 @@ gboolean GstSinkResource::start_callback(GstBaseSink *sink) {
 // Stop callback
 gboolean GstSinkResource::stop_callback(GstBaseSink *sink) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
-  
+
   GST_DEBUG_OBJECT(sink, "Stopping Holoscan bridge sink");
-  
+
   holoscan_sink->caps_set = FALSE;
-  
+
   return TRUE;
 }
 
@@ -427,128 +417,6 @@ void GstSinkResource::initialize() {
   HOLOSCAN_LOG_INFO("GstSinkResource initialized successfully for data bridging");
 }
 
-// ============================================================================
-// Buffer and Caps Analysis Helper Functions
-// ============================================================================
-
-const char* get_media_type_from_caps(GstCaps* caps) {
-  if (!caps || gst_caps_is_empty(caps) || gst_caps_get_size(caps) == 0) {
-    return nullptr;
-  }
-
-  GstStructure* structure = gst_caps_get_structure(caps, 0);
-  if (!structure) {
-    return nullptr;
-  }
-
-  return gst_structure_get_name(structure);
-}
-
-bool get_video_info_from_caps(GstCaps* caps, int* width, int* height, const char** format) {
-  if (!caps || !width || !height) {
-    return false;
-  }
-
-  const char* media_type = get_media_type_from_caps(caps);
-  if (!media_type || !g_str_has_prefix(media_type, "video/")) {
-    return false;
-  }
-
-  GstStructure* structure = gst_caps_get_structure(caps, 0);
-  if (!structure) {
-    return false;
-  }
-
-  if (!gst_structure_get_int(structure, "width", width) ||
-      !gst_structure_get_int(structure, "height", height)) {
-    return false;
-  }
-
-  if (format) {
-    *format = gst_structure_get_string(structure, "format");
-  }
-
-  return true;
-}
-
-bool get_audio_info_from_caps(GstCaps* caps, int* channels, int* rate, const char** format) {
-  if (!caps || !channels || !rate) {
-    return false;
-  }
-
-  const char* media_type = get_media_type_from_caps(caps);
-  if (!media_type || !g_str_has_prefix(media_type, "audio/")) {
-    return false;
-  }
-
-  GstStructure* structure = gst_caps_get_structure(caps, 0);
-  if (!structure) {
-    return false;
-  }
-
-  if (!gst_structure_get_int(structure, "channels", channels) ||
-      !gst_structure_get_int(structure, "rate", rate)) {
-    return false;
-  }
-
-  if (format) {
-    *format = gst_structure_get_string(structure, "format");
-  }
-
-  return true;
-}
-
-std::string get_buffer_info_string(GstBuffer* buffer, GstCaps* caps) {
-  if (!buffer) {
-    return "Invalid buffer";
-  }
-
-  std::stringstream info;
-  info << "Buffer info: ";
-
-  // Basic buffer information
-  info << "size=" << gst_buffer_get_size(buffer) << " bytes";
-
-  // Timestamp information
-  if (GST_BUFFER_PTS_IS_VALID(buffer)) {
-    info << ", pts=" << GST_BUFFER_PTS(buffer);
-  }
-  if (GST_BUFFER_DTS_IS_VALID(buffer)) {
-    info << ", dts=" << GST_BUFFER_DTS(buffer);
-  }
-  if (GST_BUFFER_DURATION_IS_VALID(buffer)) {
-    info << ", duration=" << GST_BUFFER_DURATION(buffer);
-  }
-
-  // Format information from caps
-  if (caps) {
-    const char* media_type = get_media_type_from_caps(caps);
-    if (media_type) {
-      info << ", type=" << media_type;
-
-      if (g_str_has_prefix(media_type, "video/")) {
-        int width, height;
-        const char* format;
-        if (get_video_info_from_caps(caps, &width, &height, &format)) {
-          info << ", " << width << "x" << height;
-          if (format) {
-            info << " " << format;
-          }
-        }
-      } else if (g_str_has_prefix(media_type, "audio/")) {
-        int channels, rate;
-        const char* format;
-        if (get_audio_info_from_caps(caps, &channels, &rate, &format)) {
-          info << ", " << channels << "ch " << rate << "Hz";
-          if (format) {
-            info << " " << format;
-          }
-        }
-      }
-    }
-  }
-
-  return info.str();
-}
+// Helper functions are now in gst_common.cpp
 
 }  // namespace holoscan

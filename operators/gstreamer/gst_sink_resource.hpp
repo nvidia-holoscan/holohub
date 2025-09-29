@@ -28,13 +28,9 @@
 #include <gst/base/gstbasesink.h>
 #include <holoscan/holoscan.hpp>
 
+#include "gst_common.hpp"
+
 namespace holoscan {
-
-// RAII wrapper for GstBuffer using shared_ptr with direct function deleter
-using GstBufferGuard = std::shared_ptr<GstBuffer>;
-
-// RAII wrapper for GstCaps using shared_ptr with direct function deleter
-using GstCapsGuard = std::shared_ptr<GstCaps>;
 
 /**
  * @brief Holoscan Resource wrapper for GStreamer sink element
@@ -127,45 +123,6 @@ class GstSinkResource : public holoscan::Resource {
 };
 
 using GstSinkResourcePtr = GstSinkResource::SharedPtr;
-
-/**
- * @brief Helper functions for analyzing GStreamer buffers and caps
- */
-
-/**
- * @brief Get media type string from caps
- * @param caps GstCaps to analyze
- * @return Media type string (e.g., "video/x-raw", "audio/x-raw") or nullptr
- */
-const char* get_media_type_from_caps(GstCaps* caps);
-
-/**
- * @brief Extract video format information from caps
- * @param caps GstCaps to analyze
- * @param width Output parameter for video width
- * @param height Output parameter for video height
- * @param format Output parameter for format string (optional, can be nullptr)
- * @return true if video information was extracted successfully
- */
-bool get_video_info_from_caps(GstCaps* caps, int* width, int* height, const char** format = nullptr);
-
-/**
- * @brief Extract audio format information from caps
- * @param caps GstCaps to analyze
- * @param channels Output parameter for number of audio channels
- * @param rate Output parameter for sample rate
- * @param format Output parameter for format string (optional, can be nullptr)
- * @return true if audio information was extracted successfully
- */
-bool get_audio_info_from_caps(GstCaps* caps, int* channels, int* rate, const char** format = nullptr);
-
-/**
- * @brief Get buffer metadata as a formatted string
- * @param buffer GstBuffer to analyze
- * @param caps Optional GstCaps for additional format information
- * @return Formatted string with buffer information (size, timestamps, etc.)
- */
-std::string get_buffer_info_string(GstBuffer* buffer, GstCaps* caps = nullptr);
 
 }  // namespace holoscan
 
