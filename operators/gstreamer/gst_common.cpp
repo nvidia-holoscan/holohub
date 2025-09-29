@@ -35,6 +35,53 @@ GstCapsGuard make_caps_guard(GstCaps* caps) {
 }
 
 // ============================================================================
+// GstMapInfo Implementation - RAII for buffer memory mapping
+// ============================================================================
+
+GstMapInfo::GstMapInfo(const GstBufferGuard& buffer, GstMapFlags flags)
+    : buffer_(buffer), mapped_(false) {
+  if (buffer_) {
+    mapped_ = gst_buffer_map(buffer_.get(), &gst_map_info_, flags);
+    if (!mapped_) {
+      // Note: Using g_warning instead of HOLOSCAN_LOG_WARN to avoid dependency issues
+      g_warning("Failed to map GstBuffer");
+    }
+  }
+}
+
+GstMapInfo::~GstMapInfo() {
+  if (mapped_ && buffer_) {
+    gst_buffer_unmap(buffer_.get(), &gst_map_info_);
+    mapped_ = false;
+  }
+}
+
+GstMapInfo::GstMapInfo(GstMapInfo&& other) noexcept
+    : buffer_(std::move(other.buffer_)), gst_map_info_(other.gst_map_info_), mapped_(other.mapped_) {
+  other.buffer_ = nullptr;  // Move will leave it empty, but this is explicit
+  other.mapped_ = false;
+}
+
+GstMapInfo& GstMapInfo::operator=(GstMapInfo&& other) noexcept {
+  if (this != &other) {
+    // Clean up current mapping
+    if (mapped_ && buffer_) {
+      gst_buffer_unmap(buffer_.get(), &gst_map_info_);
+    }
+    
+    // Move from other
+    buffer_ = std::move(other.buffer_);
+    gst_map_info_ = other.gst_map_info_;
+    mapped_ = other.mapped_;
+    
+    // Reset other
+    other.buffer_ = nullptr;  // Move will leave it empty, but this is explicit
+    other.mapped_ = false;
+  }
+  return *this;
+}
+
+// ============================================================================
 // Buffer and Caps Analysis Helper Functions
 // ============================================================================
 

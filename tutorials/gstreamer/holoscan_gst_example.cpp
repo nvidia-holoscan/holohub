@@ -131,6 +131,36 @@ class GstSinkOperator : public Operator {
       }
 
       // No manual cleanup needed - GstCapsGuard handles it automatically!
+      
+      // Demonstrate accessing actual buffer data using RAII mapping
+      {
+        holoscan::GstMapInfo map(buffer, GST_MAP_READ);
+        if (map.is_mapped()) {
+          HOLOSCAN_LOG_DEBUG("Mapped buffer: {} bytes at address {}", 
+                           map.size(), static_cast<void*>(map.data()));
+                           
+          // Example: Show first few bytes of data (safe for any buffer type)
+          if (map.size() >= 8) {
+            const guint8* data = map.data();
+            HOLOSCAN_LOG_INFO("First 8 bytes: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
+                             data[0], data[1], data[2], data[3], 
+                             data[4], data[5], data[6], data[7]);
+          }
+          
+          // In a real application, you would:
+          // - Convert to OpenCV Mat for image processing
+          // - Copy to CUDA memory for GPU processing  
+          // - Pass to neural networks for inference
+          // - Write to files or network streams
+          // Example pseudocode:
+          // if (g_str_has_prefix(media_type, "video/")) {
+          //   cv::Mat frame = gst_buffer_to_opencv_mat(map.data(), width, height, format);
+          //   your_processing_function(frame);
+          // }
+        } else {
+          HOLOSCAN_LOG_WARN("Failed to map buffer data");
+        }
+      } // GstMapInfo destructor automatically unmaps the buffer
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_ERROR("Error processing buffer: {}", e.what());
     }

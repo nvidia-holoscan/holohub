@@ -31,7 +31,7 @@ namespace holoscan {
 
 /**
  * @brief RAII wrapper for GstBuffer using shared_ptr with automatic reference counting
- * 
+ *
  * This wrapper ensures proper reference counting for GstBuffer objects and provides
  * automatic cleanup when the last reference is released. The underlying buffer memory
  * is guaranteed to remain valid as long as any GstBufferGuard references it.
@@ -40,11 +40,70 @@ using GstBufferGuard = std::shared_ptr<GstBuffer>;
 
 /**
  * @brief RAII wrapper for GstCaps using shared_ptr with automatic reference counting
- * 
+ *
  * This wrapper ensures proper reference counting for GstCaps objects and provides
  * automatic cleanup when the last reference is released.
  */
 using GstCapsGuard = std::shared_ptr<GstCaps>;
+
+/**
+ * @brief RAII wrapper for GstBuffer memory mapping
+ *
+ * Automatically maps GstBuffer memory on construction and unmaps on destruction.
+ * This ensures safe access to buffer data and prevents memory leaks from forgotten
+ * unmap calls. Supports move semantics but prevents copying to avoid double unmapping.
+ */
+class GstMapInfo {
+public:
+  /**
+   * @brief Constructor that maps the buffer
+   * @param buffer GstBufferGuard to map (maintains reference during mapping)
+   * @param flags Map flags (GST_MAP_READ, GST_MAP_WRITE, GST_MAP_READWRITE)
+   */
+  GstMapInfo(const GstBufferGuard& buffer, GstMapFlags flags);
+
+  /**
+   * @brief Destructor automatically unmaps the buffer
+   */
+  ~GstMapInfo();
+
+  // Delete copy operations to prevent double unmapping
+  GstMapInfo(const GstMapInfo&) = delete;
+  GstMapInfo& operator=(const GstMapInfo&) = delete;
+
+  // Allow move operations
+  GstMapInfo(GstMapInfo&& other) noexcept;
+  GstMapInfo& operator=(GstMapInfo&& other) noexcept;
+
+  /**
+   * @brief Check if mapping was successful
+   * @return true if buffer is mapped and data is accessible
+   */
+  bool is_mapped() const { return mapped_; }
+
+  /**
+   * @brief Get pointer to mapped data
+   * @return Pointer to buffer data, or nullptr if not mapped
+   */
+  guint8* data() const { return mapped_ ? gst_map_info_.data : nullptr; }
+
+  /**
+   * @brief Get size of mapped data
+   * @return Size in bytes, or 0 if not mapped
+   */
+  gsize size() const { return mapped_ ? gst_map_info_.size : 0; }
+
+  /**
+   * @brief Get the native GStreamer GstMapInfo structure (advanced usage)
+   * @return Reference to internal GstMapInfo
+   */
+  const ::GstMapInfo& native_map_info() const { return gst_map_info_; }
+
+private:
+  GstBufferGuard buffer_;      // Keep buffer alive during mapping
+  ::GstMapInfo gst_map_info_;  // Native GStreamer structure
+  bool mapped_;
+};
 
 // ============================================================================
 // Factory Functions for RAII Guards
@@ -52,11 +111,11 @@ using GstCapsGuard = std::shared_ptr<GstCaps>;
 
 /**
  * @brief Factory function to create GstBufferGuard with proper reference counting
- * 
+ *
  * Creates a shared_ptr wrapper around a GstBuffer that automatically handles
  * reference counting. The buffer is ref'd when the guard is created and unref'd
  * when the guard is destroyed.
- * 
+ *
  * @param buffer GstBuffer to wrap (can be nullptr)
  * @return GstBufferGuard with automatic reference counting, or nullptr if input was nullptr
  */
@@ -64,11 +123,11 @@ GstBufferGuard make_buffer_guard(GstBuffer* buffer);
 
 /**
  * @brief Factory function to create GstCapsGuard with proper reference counting
- * 
+ *
  * Creates a shared_ptr wrapper around GstCaps that automatically handles
  * reference counting. The caps are ref'd when the guard is created and unref'd
  * when the guard is destroyed.
- * 
+ *
  * @param caps GstCaps to wrap (can be nullptr)
  * @return GstCapsGuard with automatic reference counting, or nullptr if input was nullptr
  */

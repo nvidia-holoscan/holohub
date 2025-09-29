@@ -8,27 +8,27 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 
 ---
 
-## Phase 1: Basic Buffer Data Access 🚀
+## Phase 1: Basic Buffer Data Access ✅ COMPLETED
 
 ### Foundation Components
-- [ ] **1. Re-implement GstMapGuard for CPU memory mapping**
-  - Create RAII wrapper for `gst_buffer_map`/`gst_buffer_unmap`
-  - Handle different map flags (READ/WRITE/READWRITE)
-  - Add safety checks and error handling
+- [x] **1. Re-implement GstMapGuard for CPU memory mapping**
+  - ✅ Create RAII wrapper for `gst_buffer_map`/`gst_buffer_unmap`
+  - ✅ Handle different map flags (READ/WRITE/READWRITE)
+  - ✅ Add safety checks and error handling
 
-- [ ] **2. Add process_buffer_data helper template function**
-  - Lambda-based processing with automatic mapping
-  - Exception-safe buffer access
-  - Support for different map modes
+- [x] **2. Add direct GstMapInfo usage** (removed generic template function)
+  - ✅ Direct RAII buffer mapping for more control
+  - ✅ Exception-safe buffer access
+  - ✅ Support for different map modes
 
-- [ ] **3. Update example to demonstrate basic data access**
-  - Show first few bytes of buffer data
-  - Log buffer size and memory characteristics
-  - Verify mapping works correctly
+- [x] **3. Update example to demonstrate basic data access**
+  - ✅ Show first few bytes of buffer data
+  - ✅ Log buffer size and memory characteristics
+  - ✅ Verify mapping works correctly
 
-**Estimated Time:** 1 week  
+**Estimated Time:** 1 week ✅  
 **Dependencies:** None  
-**Deliverable:** Basic buffer data access functionality
+**Deliverable:** ✅ Basic buffer data access functionality
 
 ---
 
@@ -206,9 +206,9 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 
 ## Current Status
 
-**Current Phase:** Phase 1 - Basic Buffer Data Access  
+**Current Phase:** ✅ Phase 1 Complete - Ready for Phase 2  
 **Last Updated:** [Current Date]  
-**Next Milestone:** Complete GstMapGuard implementation
+**Next Milestone:** Phase 2 - Format-Aware Processing
 
 ### Progress Notes
 - ✅ Initial roadmap created
@@ -216,6 +216,10 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 - ✅ Promise-based buffer retrieval working correctly
 - ✅ Refactored to gst_common.hpp/cpp for better organization
 - ✅ All RAII guards and helper functions properly separated
+- ✅ **Phase 1 COMPLETED**: GstMapGuard implemented with full RAII memory mapping
+- ✅ Direct GstMapInfo usage with RAII for safe buffer access
+- ✅ Example updated to demonstrate actual buffer data access
+- ✅ All builds passing - ready for Phase 2!
 
 ---
 
