@@ -20,6 +20,8 @@
 #include <gst/base/gstbasesink.h>
 #include <gst/video/video.h>
 
+#include <sstream>
+
 // Forward declaration of GstSinkResource for C code
 namespace holoscan { class GstSinkResource; }
 
@@ -47,24 +49,22 @@ typedef struct _GstHoloscanSinkClass GstHoloscanSinkClass;
 /**
  * GstHoloscanSink:
  * @parent: the parent object
- * @buffer_count: number of buffers processed (for monitoring)
  * @caps_set: whether caps have been negotiated
- * @holoscan_resource: pointer back to the GstSinkResource instance
  * @caps: the negotiated caps for this sink
+ * @holoscan_resource: pointer back to the GstSinkResource instance
  *
  * The Holoscan sink object structure (internal GStreamer element for data bridging)
  */
-struct _GstHoloscanSink 
+struct _GstHoloscanSink
 {
   GstBaseSink parent;
 
   /* Processing state */
-  guint buffer_count;
   gboolean caps_set;
-  
+
   /* Media information */
   GstCaps *caps;          // Full caps information
-  
+
   /* Bridge to C++ Holoscan resource */
   void* holoscan_resource;  // GstSinkResource* (stored as void* for C compatibility)
 };
@@ -109,22 +109,22 @@ static void gst_holoscan_sink_finalize(GObject *object);
 static const gchar* gst_holoscan_sink_get_media_type_string(GstCaps *caps);
 
 /* Helper function implementations */
-static const gchar* 
+static const gchar*
 gst_holoscan_sink_get_media_type_string(GstCaps *caps)
 {
   if (!caps || gst_caps_is_empty(caps)) {
     return "unknown";
   }
-  
+
   if (gst_caps_is_any(caps)) {
     return "ANY";
   }
-  
+
   GstStructure *structure = gst_caps_get_structure(caps, 0);
   if (!structure) {
     return "unknown";
   }
-  
+
   return gst_structure_get_name(structure);
 }
 
@@ -175,7 +175,6 @@ static void
 gst_holoscan_sink_init(GstHoloscanSink *sink)
 {
   /* Initialize state */
-  sink->buffer_count = 0;
   sink->caps_set = FALSE;
   sink->holoscan_resource = NULL;
 
@@ -249,13 +248,55 @@ GstBufferGuard make_buffer_guard(GstBuffer* buffer) {
     return buffer ? GstBufferGuard(gst_buffer_ref(buffer), gst_buffer_unref) : nullptr;
 }
 
+// Asynchronously get next buffer using promise-based approach
+std::future<GstBufferGuard> GstSinkResource::get_buffer() {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  // Create a promise for this request
+  std::promise<GstBufferGuard> promise;
+  auto future = promise.get_future();
+
+  // Check if we have buffers available immediately
+  if (!buffer_queue_.empty()) {
+    // Fulfill promise immediately with available buffer
+    GstBufferGuard buffer = std::move(buffer_queue_.front());
+    buffer_queue_.pop();
+    promise.set_value(std::move(buffer));
+    HOLOSCAN_LOG_DEBUG("Fulfilled buffer request immediately, remaining buffers: {}", buffer_queue_.size());
+  } else {
+    // No buffers available, queue the promise for later fulfillment
+    request_queue_.push(std::move(promise));
+    HOLOSCAN_LOG_DEBUG("Queued buffer request, pending requests: {}", request_queue_.size());
+  }
+
+  return future;
+}
+
+// Get current negotiated caps
+GstCaps* GstSinkResource::get_caps() const {
+  if (!sink_element_) {
+    return nullptr;
+  }
+
+  // Get the sink pad and its current caps
+  GstPad* pad = gst_element_get_static_pad(sink_element_, "sink");
+  if (!pad) {
+    return nullptr;
+  }
+
+  GstCaps* caps = gst_pad_get_current_caps(pad);
+  gst_object_unref(pad);
+
+  return caps; // Caller is responsible for unreferencing
+}
+
 // Static member function implementations for GStreamer callbacks
 
 // Set caps callback
 gboolean GstSinkResource::set_caps_callback(GstBaseSink *sink, GstCaps *caps) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
   const gchar *media_type;
-  
+
   GST_DEBUG_OBJECT(sink, "Setting caps: %" GST_PTR_FORMAT, caps);
 
   /* Get media type using our helper function */
@@ -274,15 +315,14 @@ gboolean GstSinkResource::set_caps_callback(GstBaseSink *sink, GstCaps *caps) {
   return TRUE;
 }
 
-// Start callback  
+// Start callback
 gboolean GstSinkResource::start_callback(GstBaseSink *sink) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
-  
+
   GST_DEBUG_OBJECT(sink, "Starting Holoscan bridge sink");
-  
-  holoscan_sink->buffer_count = 0;
+
   holoscan_sink->caps_set = FALSE;
-  
+
   return TRUE;
 }
 
@@ -291,9 +331,6 @@ gboolean GstSinkResource::stop_callback(GstBaseSink *sink) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
   
   GST_DEBUG_OBJECT(sink, "Stopping Holoscan bridge sink");
-  GST_INFO_OBJECT(sink, "Processed %u buffers total (type: %s)", 
-      holoscan_sink->buffer_count, 
-      gst_holoscan_sink_get_media_type_string(holoscan_sink->caps));
   
   holoscan_sink->caps_set = FALSE;
   
@@ -309,53 +346,39 @@ GstFlowReturn GstSinkResource::render_callback(GstBaseSink *sink, GstBuffer *buf
     return GST_FLOW_NOT_NEGOTIATED;
   }
 
-  holoscan_sink->buffer_count++;
-
   /* Log buffer information for monitoring */
-  GST_DEBUG_OBJECT(sink, "Bridging buffer %u, size: %" G_GSIZE_FORMAT " bytes",
-      holoscan_sink->buffer_count, gst_buffer_get_size(buffer));
+  GST_DEBUG_OBJECT(sink, "Bridging buffer, size: %" G_GSIZE_FORMAT " bytes",
+      gst_buffer_get_size(buffer));
 
   /* Access the GstSinkResource instance from callback */
-  if (holoscan_sink->holoscan_resource) {
-    /* Cast back to GstSinkResource* to access C++ methods and members */
-    GstSinkResource* resource = static_cast<GstSinkResource*>(holoscan_sink->holoscan_resource);
-    std::lock_guard<std::mutex> lock(resource->mutex_);
-
-    /* Get media type using helper function */
-    auto media_type = gst_holoscan_sink_get_media_type_string(holoscan_sink->caps);
-    HOLOSCAN_LOG_INFO("Buffer {}: type: {}, size: {} bytes (bridged to {})",
-        holoscan_sink->buffer_count, media_type, gst_buffer_get_size(buffer),
-        resource->get_sink_name());
-
-    /* Extract additional format information based on media type */
-    if (holoscan_sink->caps && !gst_caps_is_empty(holoscan_sink->caps)) {
-      if (g_str_has_prefix(media_type, "video/")) {
-        /* For video buffers, extract video-specific information */
-        GstStructure *structure = gst_caps_get_structure(holoscan_sink->caps, 0);
-        gint width, height;
-        if (gst_structure_get_int(structure, "width", &width) &&
-            gst_structure_get_int(structure, "height", &height)) {
-          HOLOSCAN_LOG_DEBUG("Video frame: {}x{}", width, height);
-        }
-      } else if (g_str_has_prefix(media_type, "audio/")) {
-        /* For audio buffers, extract audio-specific information */
-        GstStructure *structure = gst_caps_get_structure(holoscan_sink->caps, 0);
-        gint channels, rate;
-        if (gst_structure_get_int(structure, "channels", &channels) &&
-            gst_structure_get_int(structure, "rate", &rate)) {
-          HOLOSCAN_LOG_DEBUG("Audio samples: {} channels, {} Hz", channels, rate);
-        }
-      }
-    }
-
-    auto buffer_guard = make_buffer_guard(buffer);
-    resource->buffer_queue_.push(std::move(buffer_guard));
-
-    HOLOSCAN_LOG_DEBUG("Queued buffer, total in queue: {}", resource->buffer_queue_.size());
-  } else {
+  if (!holoscan_sink->holoscan_resource) {
     /* Fallback if resource pointer not set */
-    HOLOSCAN_LOG_WARN("Buffer {}: size: {} bytes (no resource bridge - this shouldn't happen)",
-        holoscan_sink->buffer_count, gst_buffer_get_size(buffer));
+    HOLOSCAN_LOG_WARN("Buffer size: {} bytes (no resource bridge - this shouldn't happen)",
+        gst_buffer_get_size(buffer));
+    return GST_FLOW_OK;
+  }
+
+  /* Cast back to GstSinkResource* to access C++ methods and members */
+  GstSinkResource* resource = static_cast<GstSinkResource*>(holoscan_sink->holoscan_resource);
+  std::lock_guard<std::mutex> lock(resource->mutex_);
+
+  /* Simple logging for monitoring */
+  HOLOSCAN_LOG_DEBUG("Bridging buffer: size: {} bytes (sink: {})",
+      gst_buffer_get_size(buffer), resource->get_sink_name());
+
+  auto buffer_guard = make_buffer_guard(buffer);
+
+  /* Check if there are pending requests waiting for buffers */
+  if (!resource->request_queue_.empty()) {
+    /* Fulfill the oldest pending request */
+    std::promise<GstBufferGuard> promise = std::move(resource->request_queue_.front());
+    resource->request_queue_.pop();
+    promise.set_value(std::move(buffer_guard));
+    HOLOSCAN_LOG_DEBUG("Fulfilled pending buffer request, remaining requests: {}", resource->request_queue_.size());
+  } else {
+    /* No pending requests, queue the buffer for future requests */
+    resource->buffer_queue_.push(std::move(buffer_guard));
+    HOLOSCAN_LOG_DEBUG("Queued buffer, total in queue: {}", resource->buffer_queue_.size());
   }
 
   return GST_FLOW_OK;
@@ -398,5 +421,128 @@ void GstSinkResource::initialize() {
   HOLOSCAN_LOG_INFO("GstSinkResource initialized successfully for data bridging");
 }
 
+// ============================================================================
+// Buffer and Caps Analysis Helper Functions
+// ============================================================================
+
+const char* get_media_type_from_caps(GstCaps* caps) {
+  if (!caps || gst_caps_is_empty(caps) || gst_caps_get_size(caps) == 0) {
+    return nullptr;
+  }
+
+  GstStructure* structure = gst_caps_get_structure(caps, 0);
+  if (!structure) {
+    return nullptr;
+  }
+
+  return gst_structure_get_name(structure);
+}
+
+bool get_video_info_from_caps(GstCaps* caps, int* width, int* height, const char** format) {
+  if (!caps || !width || !height) {
+    return false;
+  }
+
+  const char* media_type = get_media_type_from_caps(caps);
+  if (!media_type || !g_str_has_prefix(media_type, "video/")) {
+    return false;
+  }
+
+  GstStructure* structure = gst_caps_get_structure(caps, 0);
+  if (!structure) {
+    return false;
+  }
+
+  if (!gst_structure_get_int(structure, "width", width) ||
+      !gst_structure_get_int(structure, "height", height)) {
+    return false;
+  }
+
+  if (format) {
+    *format = gst_structure_get_string(structure, "format");
+  }
+
+  return true;
+}
+
+bool get_audio_info_from_caps(GstCaps* caps, int* channels, int* rate, const char** format) {
+  if (!caps || !channels || !rate) {
+    return false;
+  }
+
+  const char* media_type = get_media_type_from_caps(caps);
+  if (!media_type || !g_str_has_prefix(media_type, "audio/")) {
+    return false;
+  }
+
+  GstStructure* structure = gst_caps_get_structure(caps, 0);
+  if (!structure) {
+    return false;
+  }
+
+  if (!gst_structure_get_int(structure, "channels", channels) ||
+      !gst_structure_get_int(structure, "rate", rate)) {
+    return false;
+  }
+
+  if (format) {
+    *format = gst_structure_get_string(structure, "format");
+  }
+
+  return true;
+}
+
+std::string get_buffer_info_string(GstBuffer* buffer, GstCaps* caps) {
+  if (!buffer) {
+    return "Invalid buffer";
+  }
+
+  std::stringstream info;
+  info << "Buffer info: ";
+
+  // Basic buffer information
+  info << "size=" << gst_buffer_get_size(buffer) << " bytes";
+
+  // Timestamp information
+  if (GST_BUFFER_PTS_IS_VALID(buffer)) {
+    info << ", pts=" << GST_BUFFER_PTS(buffer);
+  }
+  if (GST_BUFFER_DTS_IS_VALID(buffer)) {
+    info << ", dts=" << GST_BUFFER_DTS(buffer);
+  }
+  if (GST_BUFFER_DURATION_IS_VALID(buffer)) {
+    info << ", duration=" << GST_BUFFER_DURATION(buffer);
+  }
+
+  // Format information from caps
+  if (caps) {
+    const char* media_type = get_media_type_from_caps(caps);
+    if (media_type) {
+      info << ", type=" << media_type;
+
+      if (g_str_has_prefix(media_type, "video/")) {
+        int width, height;
+        const char* format;
+        if (get_video_info_from_caps(caps, &width, &height, &format)) {
+          info << ", " << width << "x" << height;
+          if (format) {
+            info << " " << format;
+          }
+        }
+      } else if (g_str_has_prefix(media_type, "audio/")) {
+        int channels, rate;
+        const char* format;
+        if (get_audio_info_from_caps(caps, &channels, &rate, &format)) {
+          info << ", " << channels << "ch " << rate << "Hz";
+          if (format) {
+            info << " " << format;
+          }
+        }
+      }
+    }
+  }
+
+  return info.str();
+}
 
 }  // namespace holoscan

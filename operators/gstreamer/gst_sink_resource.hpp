@@ -18,6 +18,7 @@
 #ifndef GST_SINK_RESOURCE_HPP
 #define GST_SINK_RESOURCE_HPP
 
+#include <future>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -41,15 +42,9 @@ using GstBufferGuard = std::shared_ptr<GstBuffer>;
  */
 class GstSinkResource : public holoscan::Resource {
  public:
-  using SharedPtr = std::shared_ptr<GstSinkResource>;
+ using SharedPtr = std::shared_ptr<GstSinkResource>;
 
-  // Static member functions for GStreamer callbacks
-  static gboolean set_caps_callback(GstBaseSink *sink, GstCaps *caps);
-  static GstFlowReturn render_callback(GstBaseSink *sink, GstBuffer *buffer);
-  static gboolean start_callback(GstBaseSink *sink);
-  static gboolean stop_callback(GstBaseSink *sink);
-
-  /**
+ /**
    * @brief Default constructor
    */
   GstSinkResource() = default;
@@ -99,16 +94,76 @@ class GstSinkResource : public holoscan::Resource {
     return sink_name_;
   }
 
+  /**
+   * @brief Asynchronously get the next buffer from the GStreamer pipeline
+   * @return Future that will be fulfilled when a buffer becomes available
+   */
+  std::future<GstBufferGuard> get_buffer();
+
+  /**
+   * @brief Get the current negotiated caps from the sink
+   * @return GstCaps* or nullptr if caps not negotiated yet
+   * @note The returned caps should not be modified or unreferenced
+   */
+  GstCaps* get_caps() const;
+
+  // Static member functions for GStreamer callbacks
+  static gboolean set_caps_callback(GstBaseSink *sink, GstCaps *caps);
+  static GstFlowReturn render_callback(GstBaseSink *sink, GstBuffer *buffer);
+  static gboolean start_callback(GstBaseSink *sink);
+  static gboolean stop_callback(GstBaseSink *sink);
+
  private:
   std::string sink_name_;
   GstElement* sink_element_ = nullptr;
 
   // Buffer queue for thread-safe async processing
   std::queue<GstBufferGuard> buffer_queue_;
+  // Promise queue for pending buffer requests
+  std::queue<std::promise<GstBufferGuard>> request_queue_;
   mutable std::mutex mutex_;
 };
 
 using GstSinkResourcePtr = GstSinkResource::SharedPtr;
+
+/**
+ * @brief Helper functions for analyzing GStreamer buffers and caps
+ */
+
+/**
+ * @brief Get media type string from caps
+ * @param caps GstCaps to analyze
+ * @return Media type string (e.g., "video/x-raw", "audio/x-raw") or nullptr
+ */
+const char* get_media_type_from_caps(GstCaps* caps);
+
+/**
+ * @brief Extract video format information from caps
+ * @param caps GstCaps to analyze
+ * @param width Output parameter for video width
+ * @param height Output parameter for video height
+ * @param format Output parameter for format string (optional, can be nullptr)
+ * @return true if video information was extracted successfully
+ */
+bool get_video_info_from_caps(GstCaps* caps, int* width, int* height, const char** format = nullptr);
+
+/**
+ * @brief Extract audio format information from caps
+ * @param caps GstCaps to analyze
+ * @param channels Output parameter for number of audio channels
+ * @param rate Output parameter for sample rate
+ * @param format Output parameter for format string (optional, can be nullptr)
+ * @return true if audio information was extracted successfully
+ */
+bool get_audio_info_from_caps(GstCaps* caps, int* channels, int* rate, const char** format = nullptr);
+
+/**
+ * @brief Get buffer metadata as a formatted string
+ * @param buffer GstBuffer to analyze
+ * @param caps Optional GstCaps for additional format information
+ * @return Formatted string with buffer information (size, timestamps, etc.)
+ */
+std::string get_buffer_info_string(GstBuffer* buffer, GstCaps* caps = nullptr);
 
 }  // namespace holoscan
 

@@ -76,24 +76,65 @@ class GstSinkOperator : public Operator {
     HOLOSCAN_LOG_INFO("GstSinkOperator initialized successfully");
   }
 
-  void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
-    // Start the pipeline if not already running
-    static bool started = false;
-    if (!started) {
-      GstStateChangeReturn ret = gst_element_set_state(pipeline_, GST_STATE_PLAYING);
-      if (ret == GST_STATE_CHANGE_FAILURE) {
-        HOLOSCAN_LOG_ERROR("Failed to start GStreamer pipeline");
-        return;
-      }
-      started = true;
-      HOLOSCAN_LOG_INFO("GStreamer pipeline started");
+  void start() override {
+    Operator::start();
+
+    // Start the GStreamer pipeline
+    GstStateChangeReturn ret = gst_element_set_state(pipeline_, GST_STATE_PLAYING);
+    if (ret == GST_STATE_CHANGE_FAILURE) {
+      HOLOSCAN_LOG_ERROR("Failed to start GStreamer pipeline");
+      throw std::runtime_error("Failed to start GStreamer pipeline");
     }
 
-    // In a real operator, you would process input data here
-    // For this example, we just let the pipeline run and process one iteration
+    HOLOSCAN_LOG_INFO("GStreamer pipeline started");
+  }
 
-    // Sleep a bit to let the pipeline process data
-    std::this_thread::sleep_for(std::chrono::milliseconds(33)); // ~30 FPS
+  void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
+
+    // Demonstrate the new client-side buffer retrieval and analysis
+    try {
+      GstBufferGuard buffer =gst_sink_resource()->get_buffer().get();
+
+      // Client-side buffer counting
+      buffer_count_++;
+
+      // Get current caps for format analysis
+      GstCaps* caps = gst_sink_resource()->get_caps();
+
+      // Demonstrate client-side buffer analysis using helper functions
+      const char* media_type = holoscan::get_media_type_from_caps(caps);
+      if (media_type) {
+        HOLOSCAN_LOG_INFO("Buffer {}: {}", buffer_count_,
+            holoscan::get_buffer_info_string(buffer.get(), caps));
+
+        // Demonstrate format-specific analysis
+        if (g_str_has_prefix(media_type, "video/")) {
+          int width, height;
+          const char* format;
+          if (holoscan::get_video_info_from_caps(caps, &width, &height, &format)) {
+            HOLOSCAN_LOG_DEBUG("Video analysis: {}x{} {}", width, height,
+                format ? format : "unknown");
+          }
+        } else if (g_str_has_prefix(media_type, "audio/")) {
+          int channels, rate;
+          const char* format;
+          if (holoscan::get_audio_info_from_caps(caps, &channels, &rate, &format)) {
+            HOLOSCAN_LOG_DEBUG("Audio analysis: {}ch {}Hz {}", channels, rate,
+                format ? format : "unknown");
+          }
+        }
+      } else {
+        HOLOSCAN_LOG_INFO("Buffer {}: size={} bytes", buffer_count_,
+            gst_buffer_get_size(buffer.get()));
+      }
+
+      // Clean up caps
+      if (caps) {
+        gst_caps_unref(caps);
+      }
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_ERROR("Error processing buffer: {}", e.what());
+    }
 
     // Check for EOS or errors
     GstBus* bus = gst_element_get_bus(pipeline_);
@@ -127,6 +168,9 @@ class GstSinkOperator : public Operator {
   }
 
   void stop() override {
+    // Log final buffer count processed by this client
+    HOLOSCAN_LOG_INFO("GstSinkOperator processed {} buffers total", buffer_count_);
+
     if (pipeline_ && GST_IS_ELEMENT(pipeline_)) {
       gst_element_set_state(pipeline_, GST_STATE_NULL);
       gst_object_unref(pipeline_);
@@ -142,6 +186,7 @@ class GstSinkOperator : public Operator {
   Parameter<GstSinkResourcePtr> gst_sink_resource_;
   Parameter<std::string> pipeline_desc_;
   GstElement* pipeline_ = nullptr;
+  uint32_t buffer_count_ = 0;  // Client-side buffer counting
 };
 
 /**
