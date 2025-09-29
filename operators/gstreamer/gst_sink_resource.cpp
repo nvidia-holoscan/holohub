@@ -242,11 +242,17 @@ gst_holoscan_sink_plugin_init(GstPlugin *plugin)
 // ============================================================================
 
 namespace holoscan {
-
+namespace {
 // Factory function implementation
 GstBufferGuard make_buffer_guard(GstBuffer* buffer) {
     return buffer ? GstBufferGuard(gst_buffer_ref(buffer), gst_buffer_unref) : nullptr;
 }
+
+// Factory function implementation for GstCaps
+GstCapsGuard make_caps_guard(GstCaps* caps) {
+    return caps ? GstCapsGuard(gst_caps_ref(caps), gst_caps_unref) : nullptr;
+}
+} // unnamed namespace
 
 // Asynchronously get next buffer using promise-based approach
 std::future<GstBufferGuard> GstSinkResource::get_buffer() {
@@ -273,7 +279,7 @@ std::future<GstBufferGuard> GstSinkResource::get_buffer() {
 }
 
 // Get current negotiated caps
-GstCaps* GstSinkResource::get_caps() const {
+GstCapsGuard GstSinkResource::get_caps() const {
   if (!sink_element_) {
     return nullptr;
   }
@@ -287,7 +293,7 @@ GstCaps* GstSinkResource::get_caps() const {
   GstCaps* caps = gst_pad_get_current_caps(pad);
   gst_object_unref(pad);
 
-  return caps; // Caller is responsible for unreferencing
+  return make_caps_guard(caps); // Automatic reference counting
 }
 
 // Static member function implementations for GStreamer callbacks

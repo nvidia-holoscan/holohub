@@ -33,11 +33,14 @@ namespace holoscan {
 // RAII wrapper for GstBuffer using shared_ptr with direct function deleter
 using GstBufferGuard = std::shared_ptr<GstBuffer>;
 
+// RAII wrapper for GstCaps using shared_ptr with direct function deleter
+using GstCapsGuard = std::shared_ptr<GstCaps>;
+
 /**
  * @brief Holoscan Resource wrapper for GStreamer sink element
  *
  * This class provides a clean bridge between GStreamer pipelines and Holoscan operators.
- * The primary purpose is to enable Holoscan operators to retrieve and process data 
+ * The primary purpose is to enable Holoscan operators to retrieve and process data
  * from GStreamer pipelines.
  */
 class GstSinkResource : public holoscan::Resource {
@@ -102,10 +105,9 @@ class GstSinkResource : public holoscan::Resource {
 
   /**
    * @brief Get the current negotiated caps from the sink
-   * @return GstCaps* or nullptr if caps not negotiated yet
-   * @note The returned caps should not be modified or unreferenced
+   * @return GstCapsGuard with automatic reference counting, or nullptr if caps not negotiated yet
    */
-  GstCaps* get_caps() const;
+  GstCapsGuard get_caps() const;
 
   // Static member functions for GStreamer callbacks
   static gboolean set_caps_callback(GstBaseSink *sink, GstCaps *caps);
