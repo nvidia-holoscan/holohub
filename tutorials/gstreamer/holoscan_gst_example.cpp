@@ -153,8 +153,8 @@ class GstSinkApp : public Application {
     : iteration_count_(iteration_count), pipeline_desc_(pipeline_desc) {}
 
   void compose() override {
-    // Create the GStreamer sink resource
-    auto gst_sink = make_resource<GstSinkResource>("gst_sink", "holoscan_sink", false, "/tmp", 30.0);
+    // Create the GStreamer sink resource for data bridging
+    auto gst_sink = make_resource<GstSinkResource>("gst_sink", "holoscan_sink");
 
     // Create the operator that uses the sink
     auto gst_op = make_operator<GstSinkOperator>(

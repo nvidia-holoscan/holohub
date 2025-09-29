@@ -27,10 +27,11 @@
 namespace holoscan {
 
 /**
- * @brief Holoscan Resource wrapper for GstSimpleCustomSink
+ * @brief Holoscan Resource wrapper for GStreamer sink element
  * 
- * This class provides a Holoscan Resource interface to the custom GStreamer sink,
- * allowing it to be used seamlessly within Holoscan applications and operators.
+ * This class provides a clean bridge between GStreamer pipelines and Holoscan operators.
+ * The primary purpose is to enable Holoscan operators to retrieve and process data 
+ * from GStreamer pipelines.
  */
 class GstSinkResource : public holoscan::Resource {
  public:
@@ -42,27 +43,11 @@ class GstSinkResource : public holoscan::Resource {
   GstSinkResource() = default;
 
   /**
-   * @brief Constructor with sink name
-   * @param sink_name Name for the GStreamer element instance
+   * @brief Constructor with optional sink name
+   * @param sink_name Name for the GStreamer element instance (optional)
    */
-  explicit GstSinkResource(const std::string& sink_name)
+  explicit GstSinkResource(const std::string& sink_name = "")
       : sink_name_(sink_name) {}
-
-  /**
-   * @brief Constructor with full configuration
-   * @param sink_name Name for the GStreamer element instance
-   * @param save_buffers Whether to save received buffers to files
-   * @param output_dir Directory to save buffers (if save_buffers is true)
-   * @param data_rate Target data rate for display purposes
-   */
-  GstSinkResource(const std::string& sink_name, 
-                  bool save_buffers = false,
-                  const std::string& output_dir = "/tmp",
-                  double data_rate = 30.0)
-      : sink_name_(sink_name),
-        save_buffers_(save_buffers),
-        output_dir_(output_dir),
-        data_rate_(data_rate) {}
 
   // Move semantics
   GstSinkResource(GstSinkResource&& other) noexcept = default;
@@ -102,67 +87,11 @@ class GstSinkResource : public holoscan::Resource {
     return sink_name_;
   }
 
-  /**
-   * @brief Set whether to save buffers to files
-   * @param save_buffers true to enable buffer saving
-   */
-  void set_save_buffers(bool save_buffers);
-
-  /**
-   * @brief Get current save buffers setting
-   * @return true if buffer saving is enabled
-   */
-  bool get_save_buffers() const {
-    return save_buffers_;
-  }
-
-  /**
-   * @brief Set output directory for saved buffers
-   * @param output_dir Path to directory for saving buffers
-   */
-  void set_output_dir(const std::string& output_dir);
-
-  /**
-   * @brief Get current output directory
-   * @return Path to output directory
-   */
-  const std::string& get_output_dir() const {
-    return output_dir_;
-  }
-
-  /**
-   * @brief Set target data rate
-   * @param data_rate Target data rate per second
-   */
-  void set_data_rate(double data_rate);
-
-  /**
-   * @brief Get current data rate setting
-   * @return Current data rate setting
-   */
-  double get_data_rate() const {
-    return data_rate_;
-  }
-
-  /**
-   * @brief Get statistics about processed buffers
-   * @return Number of buffers processed so far
-   */
-  uint32_t get_buffer_count() const;
 
 
  private:
   std::string sink_name_;
-  bool save_buffers_ = false;
-  std::string output_dir_ = "/tmp";
-  double data_rate_ = 30.0;
-  
   GstElement* sink_element_ = nullptr;
-
-  /**
-   * @brief Configure the sink element properties
-   */
-  void configure_properties();
 };
 
 using GstSinkResourcePtr = GstSinkResource::SharedPtr;

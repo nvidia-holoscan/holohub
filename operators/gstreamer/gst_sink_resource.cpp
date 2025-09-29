@@ -44,30 +44,18 @@ typedef struct _GstHoloscanSinkClass GstHoloscanSinkClass;
 /**
  * GstHoloscanSink:
  * @parent: the parent object
- * @width: video width
- * @height: video height
- * @frame_count: number of frames processed
- * @fps: frames per second (for demonstration)
- * @save_frames: whether to save frames to files
- * @output_dir: directory to save frames
+ * @buffer_count: number of buffers processed (for monitoring)
+ * @caps_set: whether caps have been negotiated
  *
- * The Holoscan sink object structure (internal GStreamer element)
+ * The Holoscan sink object structure (internal GStreamer element for data bridging)
  */
 struct _GstHoloscanSink 
 {
   GstBaseSink parent;
 
-  /* Properties */
-  gint width;
-  gint height;
-  guint frame_count;
-  gdouble fps;
-  gboolean save_frames;
-  gchar *output_dir;
-  
-  /* Private data */
-  GstVideoInfo video_info;
-  gboolean info_set;
+  /* Processing state */
+  guint buffer_count;
+  gboolean caps_set;
 };
 
 /**
@@ -87,16 +75,8 @@ GST_DEBUG_CATEGORY_STATIC(gst_holoscan_sink_debug);
 /* Properties */
 enum
 {
-  PROP_0,
-  PROP_SAVE_FRAMES,
-  PROP_OUTPUT_DIR,
-  PROP_FPS
+  PROP_0
 };
-
-/* Default values */
-#define DEFAULT_SAVE_FRAMES FALSE
-#define DEFAULT_OUTPUT_DIR "/tmp"
-#define DEFAULT_FPS 30.0
 
 /* Pad templates */
 static GstStaticPadTemplate sink_pad_template = GST_STATIC_PAD_TEMPLATE("sink",
@@ -137,28 +117,14 @@ gst_holoscan_sink_class_init(GstHoloscanSinkClass *klass)
   gobject_class->get_property = gst_holoscan_sink_get_property;
   gobject_class->finalize = gst_holoscan_sink_finalize;
 
-  /* Install properties */
-  g_object_class_install_property(gobject_class, PROP_SAVE_FRAMES,
-      g_param_spec_boolean("save-frames", "Save Buffers",
-          "Save received data buffers to files", DEFAULT_SAVE_FRAMES,
-          static_cast<GParamFlags>(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
-
-  g_object_class_install_property(gobject_class, PROP_OUTPUT_DIR,
-      g_param_spec_string("output-dir", "Output Directory",
-          "Directory to save data buffers", DEFAULT_OUTPUT_DIR,
-          static_cast<GParamFlags>(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
-
-  g_object_class_install_property(gobject_class, PROP_FPS,
-      g_param_spec_double("fps", "Data Rate",
-          "Target data rate per second (for display)", 0.0, G_MAXDOUBLE,
-          DEFAULT_FPS, static_cast<GParamFlags>(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+  /* No properties needed for basic data bridging */
 
   /* Set element metadata */
   gst_element_class_set_static_metadata(gstelement_class,
-      "Simple Custom Universal Sink",
+      "Holoscan Bridge Sink",
       "Sink/Generic",
-      "A universal custom sink that accepts any data type for demonstration purposes",
-      "Your Name <your.email@example.com>");
+      "A GStreamer sink element that bridges data to Holoscan operators",
+      "NVIDIA Corporation <holoscan@nvidia.com>");
 
   /* Add pad template */
   gst_element_class_add_static_pad_template(gstelement_class, &sink_pad_template);
@@ -177,16 +143,11 @@ gst_holoscan_sink_class_init(GstHoloscanSinkClass *klass)
 static void
 gst_holoscan_sink_init(GstHoloscanSink *sink)
 {
-  /* Initialize properties */
-  sink->save_frames = DEFAULT_SAVE_FRAMES;
-  sink->output_dir = g_strdup(DEFAULT_OUTPUT_DIR);
-  sink->fps = DEFAULT_FPS;
-  sink->frame_count = 0;
-  sink->width = 0;
-  sink->height = 0;
-  sink->info_set = FALSE;
+  /* Initialize state */
+  sink->buffer_count = 0;
+  sink->caps_set = FALSE;
 
-  /* Enable QoS and lateness handling */
+  /* Enable QoS and lateness handling for better performance */
   gst_base_sink_set_qos_enabled(GST_BASE_SINK(sink), TRUE);
 }
 
@@ -195,7 +156,8 @@ gst_holoscan_sink_finalize(GObject *object)
 {
   GstHoloscanSink *sink = GST_HOLOSCAN_SINK(object);
 
-  g_free(sink->output_dir);
+  /* No dynamic resources to clean up in the simplified version */
+  GST_DEBUG_OBJECT(sink, "Finalizing Holoscan sink");
 
   G_OBJECT_CLASS(parent_class)->finalize(object);
 }
@@ -207,16 +169,6 @@ gst_holoscan_sink_set_property(GObject *object, guint prop_id,
   GstHoloscanSink *sink = GST_HOLOSCAN_SINK(object);
 
   switch (prop_id) {
-    case PROP_SAVE_FRAMES:
-      sink->save_frames = g_value_get_boolean(value);
-      break;
-    case PROP_OUTPUT_DIR:
-      g_free(sink->output_dir);
-      sink->output_dir = g_value_dup_string(value);
-      break;
-    case PROP_FPS:
-      sink->fps = g_value_get_double(value);
-      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
       break;
@@ -230,15 +182,6 @@ gst_holoscan_sink_get_property(GObject *object, guint prop_id,
   GstHoloscanSink *sink = GST_HOLOSCAN_SINK(object);
 
   switch (prop_id) {
-    case PROP_SAVE_FRAMES:
-      g_value_set_boolean(value, sink->save_frames);
-      break;
-    case PROP_OUTPUT_DIR:
-      g_value_set_string(value, sink->output_dir);
-      break;
-    case PROP_FPS:
-      g_value_set_double(value, sink->fps);
-      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
       break;
@@ -248,7 +191,7 @@ gst_holoscan_sink_get_property(GObject *object, guint prop_id,
 static gboolean
 gst_holoscan_sink_set_caps(GstBaseSink *sink, GstCaps *caps)
 {
-  GstHoloscanSink *custom_sink = GST_HOLOSCAN_SINK(sink);
+  GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
   GstStructure *structure;
   const gchar *media_type;
   
@@ -258,82 +201,35 @@ gst_holoscan_sink_set_caps(GstBaseSink *sink, GstCaps *caps)
   structure = gst_caps_get_structure(caps, 0);
   media_type = gst_structure_get_name(structure);
 
-  GST_INFO_OBJECT(sink, "Accepting media type: %s", media_type);
+  GST_INFO_OBJECT(sink, "Accepting caps for bridging: %s", media_type);
 
-  /* Try to parse video info if it's a video stream */
-  if (g_str_has_prefix(media_type, "video/")) {
-    if (gst_video_info_from_caps(&custom_sink->video_info, caps)) {
-      custom_sink->width = GST_VIDEO_INFO_WIDTH(&custom_sink->video_info);
-      custom_sink->height = GST_VIDEO_INFO_HEIGHT(&custom_sink->video_info);
-      GST_INFO_OBJECT(sink, "Video format: %s, %dx%d",
-          gst_video_format_to_string(GST_VIDEO_INFO_FORMAT(&custom_sink->video_info)),
-          custom_sink->width, custom_sink->height);
-    } else {
-      GST_WARNING_OBJECT(sink, "Could not parse video info, but continuing anyway");
-      custom_sink->width = 0;
-      custom_sink->height = 0;
-    }
-  } else {
-    /* For non-video data, just set dimensions to 0 */
-    custom_sink->width = 0;
-    custom_sink->height = 0;
-    GST_INFO_OBJECT(sink, "Non-video data accepted: %s", media_type);
-  }
-
-  custom_sink->info_set = TRUE;
+  /* Mark caps as successfully negotiated */
+  holoscan_sink->caps_set = TRUE;
   return TRUE;
 }
 
 static GstFlowReturn
 gst_holoscan_sink_render(GstBaseSink *sink, GstBuffer *buffer)
 {
-  GstHoloscanSink *custom_sink = GST_HOLOSCAN_SINK(sink);
-  GstMapInfo map;
-  gchar *filename;
-  FILE *file;
+  GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
 
-  if (!custom_sink->info_set) {
-    GST_ERROR_OBJECT(sink, "Caps not set");
+  if (!holoscan_sink->caps_set) {
+    GST_ERROR_OBJECT(sink, "Caps not negotiated");
     return GST_FLOW_NOT_NEGOTIATED;
   }
 
-  custom_sink->frame_count++;
+  holoscan_sink->buffer_count++;
 
-  /* Log buffer information */
-  GST_DEBUG_OBJECT(sink, "Received buffer %u, size: %" G_GSIZE_FORMAT " bytes",
-      custom_sink->frame_count, gst_buffer_get_size(buffer));
+  /* Log buffer information for monitoring */
+  GST_DEBUG_OBJECT(sink, "Bridging buffer %u, size: %" G_GSIZE_FORMAT " bytes",
+      holoscan_sink->buffer_count, gst_buffer_get_size(buffer));
 
-  /* Print buffer info to console - format depends on whether we have video info */
-  if (custom_sink->width > 0 && custom_sink->height > 0) {
-    g_print("Buffer %u (Video): %dx%d, size: %" G_GSIZE_FORMAT " bytes\n",
-        custom_sink->frame_count, custom_sink->width, custom_sink->height,
-        gst_buffer_get_size(buffer));
-  } else {
-    g_print("Buffer %u (Generic): size: %" G_GSIZE_FORMAT " bytes\n",
-        custom_sink->frame_count, gst_buffer_get_size(buffer));
-  }
+  /* Print basic info to console for demo purposes */
+  g_print("Buffer %u: size: %" G_GSIZE_FORMAT " bytes\n",
+      holoscan_sink->buffer_count, gst_buffer_get_size(buffer));
 
-  /* Save buffer to file if requested */
-  if (custom_sink->save_frames) {
-    if (gst_buffer_map(buffer, &map, GST_MAP_READ)) {
-      filename = g_strdup_printf("%s/buffer_%06u.raw", 
-          custom_sink->output_dir, custom_sink->frame_count);
-      
-      file = fopen(filename, "wb");
-      if (file) {
-        fwrite(map.data, 1, map.size, file);
-        fclose(file);
-        GST_DEBUG_OBJECT(sink, "Saved buffer to: %s", filename);
-      } else {
-        GST_WARNING_OBJECT(sink, "Failed to open file: %s", filename);
-      }
-      
-      g_free(filename);
-      gst_buffer_unmap(buffer, &map);
-    } else {
-      GST_ERROR_OBJECT(sink, "Failed to map buffer");
-    }
-  }
+  /* TODO: This is where Holoscan operators would retrieve the buffer data */
+  /* Future extension point for data bridging to Holoscan operators */
 
   return GST_FLOW_OK;
 }
@@ -341,16 +237,12 @@ gst_holoscan_sink_render(GstBaseSink *sink, GstBuffer *buffer)
 static gboolean
 gst_holoscan_sink_start(GstBaseSink *sink)
 {
-  GstHoloscanSink *custom_sink = GST_HOLOSCAN_SINK(sink);
+  GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
   
-  GST_DEBUG_OBJECT(sink, "Starting");
+  GST_DEBUG_OBJECT(sink, "Starting Holoscan bridge sink");
   
-  custom_sink->frame_count = 0;
-  
-  /* Create output directory if saving buffers */
-  if (custom_sink->save_frames) {
-    g_mkdir_with_parents(custom_sink->output_dir, 0755);
-  }
+  holoscan_sink->buffer_count = 0;
+  holoscan_sink->caps_set = FALSE;
   
   return TRUE;
 }
@@ -358,12 +250,12 @@ gst_holoscan_sink_start(GstBaseSink *sink)
 static gboolean
 gst_holoscan_sink_stop(GstBaseSink *sink)
 {
-  GstHoloscanSink *custom_sink = GST_HOLOSCAN_SINK(sink);
+  GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
   
-  GST_DEBUG_OBJECT(sink, "Stopping");
-  GST_INFO_OBJECT(sink, "Processed %u buffers total", custom_sink->frame_count);
+  GST_DEBUG_OBJECT(sink, "Stopping Holoscan bridge sink");
+  GST_INFO_OBJECT(sink, "Processed %u buffers total", holoscan_sink->buffer_count);
   
-  custom_sink->info_set = FALSE;
+  holoscan_sink->caps_set = FALSE;
   
   return TRUE;
 }
@@ -395,77 +287,28 @@ GstSinkResource::~GstSinkResource() {
 }
 
 void GstSinkResource::initialize() {
-  HOLOSCAN_LOG_INFO("Initializing GstSinkResource");
-  
+  HOLOSCAN_LOG_INFO("Initializing GstSinkResource for data bridging");
+
   // Initialize GStreamer if not already done
   if (!gst_is_initialized()) {
     gst_init(nullptr, nullptr);
   }
 
-  // Register our custom sink element type
-  gst_element_register(nullptr, "holoscansink", GST_RANK_NONE, 
+  // Register our bridge sink element type
+  gst_element_register(nullptr, "holoscansink", GST_RANK_NONE,
                       gst_holoscan_sink_get_type());
 
   // Create the sink element
-  sink_element_ = gst_element_factory_make("holoscansink", 
+  sink_element_ = gst_element_factory_make("holoscansink",
                                          sink_name_.empty() ? nullptr : sink_name_.c_str());
-  
+
   if (!sink_element_) {
-    HOLOSCAN_LOG_ERROR("Failed to create GStreamer sink element");
+    HOLOSCAN_LOG_ERROR("Failed to create Holoscan bridge sink element");
     return;
   }
 
-  // Configure properties
-  configure_properties();
-
-  HOLOSCAN_LOG_INFO("GstSinkResource initialized successfully");
+  HOLOSCAN_LOG_INFO("GstSinkResource initialized successfully for data bridging");
 }
 
-void GstSinkResource::set_save_buffers(bool save_buffers) {
-  save_buffers_ = save_buffers;
-  if (sink_element_) {
-    g_object_set(sink_element_, "save-frames", save_buffers_, nullptr);
-  }
-}
-
-void GstSinkResource::set_output_dir(const std::string& output_dir) {
-  output_dir_ = output_dir;
-  if (sink_element_) {
-    g_object_set(sink_element_, "output-dir", output_dir_.c_str(), nullptr);
-  }
-}
-
-void GstSinkResource::set_data_rate(double data_rate) {
-  data_rate_ = data_rate;
-  if (sink_element_) {
-    g_object_set(sink_element_, "fps", data_rate_, nullptr);
-  }
-}
-
-uint32_t GstSinkResource::get_buffer_count() const {
-  if (!sink_element_) {
-    return 0;
-  }
-  
-  // This would require exposing frame_count as a property in the sink
-  // For now, return 0 as a placeholder
-  return 0;
-}
-
-
-void GstSinkResource::configure_properties() {
-  if (!sink_element_) {
-    return;
-  }
-
-  g_object_set(sink_element_,
-               "save-frames", save_buffers_,
-               "output-dir", output_dir_.c_str(),
-               "fps", data_rate_,
-               nullptr);
-
-  HOLOSCAN_LOG_DEBUG("Configured sink properties: save-frames={}, output-dir={}, fps={}",
-                    save_buffers_, output_dir_, data_rate_);
-}
 
 }  // namespace holoscan
