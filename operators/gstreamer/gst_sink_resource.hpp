@@ -19,16 +19,22 @@
 #define GST_SINK_RESOURCE_HPP
 
 #include <memory>
+#include <mutex>
+#include <queue>
 #include <string>
 
 #include <gst/gst.h>
+#include <gst/base/gstbasesink.h>
 #include <holoscan/holoscan.hpp>
 
 namespace holoscan {
 
+// RAII wrapper for GstBuffer using shared_ptr with direct function deleter
+using GstBufferGuard = std::shared_ptr<GstBuffer>;
+
 /**
  * @brief Holoscan Resource wrapper for GStreamer sink element
- * 
+ *
  * This class provides a clean bridge between GStreamer pipelines and Holoscan operators.
  * The primary purpose is to enable Holoscan operators to retrieve and process data 
  * from GStreamer pipelines.
@@ -36,6 +42,12 @@ namespace holoscan {
 class GstSinkResource : public holoscan::Resource {
  public:
   using SharedPtr = std::shared_ptr<GstSinkResource>;
+
+  // Static member functions for GStreamer callbacks
+  static gboolean set_caps_callback(GstBaseSink *sink, GstCaps *caps);
+  static GstFlowReturn render_callback(GstBaseSink *sink, GstBuffer *buffer);
+  static gboolean start_callback(GstBaseSink *sink);
+  static gboolean stop_callback(GstBaseSink *sink);
 
   /**
    * @brief Default constructor
@@ -87,11 +99,13 @@ class GstSinkResource : public holoscan::Resource {
     return sink_name_;
   }
 
-
-
  private:
   std::string sink_name_;
   GstElement* sink_element_ = nullptr;
+
+  // Buffer queue for thread-safe async processing
+  std::queue<GstBufferGuard> buffer_queue_;
+  mutable std::mutex mutex_;
 };
 
 using GstSinkResourcePtr = GstSinkResource::SharedPtr;
