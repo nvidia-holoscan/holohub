@@ -14648,6 +14648,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#example-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#api-structures" class="md-nav__link">
     <span class="md-ellipsis">
       API Structures
@@ -14816,7 +14825,7 @@ Frequently asked questions, customers product highlights, Video link and more ar
 <ul>
 <li>Visit the <a href="https://developer.nvidia.com/networking/rivermax-getting-started">Rivermax SDK Page</a> to download the Rivermax Release SDK.</li>
 <li>Obtain a Rivermax developer license from the same page. This is necessary for using the SDK.</li>
-<li>Copy the downloaded SDK tar file (e.g., <code>rivermax_ubuntu2204_1.60.1.tar.gz</code>) into your current working directory.</li>
+<li>Copy the downloaded SDK tar file (e.g., <code>rivermax_ubuntu2204_1.70.31.tar.gz</code>) into your current working directory.</li>
 <li>You can adjust the path using the <code>RIVERMAX_SDK_ZIP_PATH</code> build argument if needed.</li>
 <li>Modify the version using the <code>RIVERMAX_VERSION</code> build argument if you're using a different SDK version.</li>
 <li>Place the obtained Rivermax developer license file (<code>rivermax.lic</code>) into the <code>/opt/mellanox/rivermax/</code> directory.</li>
@@ -14872,39 +14881,6 @@ full path: <code>cfg\interfaces\[rx|tx]</code></li>
 </ul>
 <h5 id="receive-configuration-rx">Receive Configuration (rx)<a class="headerlink" href="#receive-configuration-rx" title="Permanent link">#</a></h5>
 <ul>
-<li><strong><code>queues</code></strong>: List of queues on NIC
-    type: <code>list</code>
-    full path: <code>cfg\interfaces\rx\queues</code><ul>
-<li><strong><code>name</code></strong>: Name of queue<ul>
-<li>type: <code>string</code></li>
-</ul>
-</li>
-<li><strong><code>id</code></strong>: Integer ID used for flow connection or lookup in operator compute method<ul>
-<li>type: <code>integer</code></li>
-</ul>
-</li>
-<li><strong><code>cpu_core</code></strong>: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNetIO</mark>
-    Rivermax manager can accept coma separated list of CPU IDs<ul>
-<li>type: <code>string</code></li>
-</ul>
-</li>
-<li><strong><code>batch_size</code></strong>: Number of packets in a batch passed from the NIC to the downstream operator. A
-larger number increases throughput but reduces end-to-end latency, as it takes longer to populate a single
-buffer. A smaller number reduces end-to-end latency but can also reduce throughput.<ul>
-<li>type: <code>integer</code></li>
-</ul>
-</li>
-<li><strong><code>memory_regions</code></strong>: List of memory regions where buffers are stored. memory regions names are configured in the <a href="#memory-regions">Memory Regions</a> section
-    type: <code>list</code></li>
-<li><strong><code>timeout_us</code></strong>: Timeout value that a batch will be sent on even if not enough packets to fill a batch were received<ul>
-<li>type: <code>integer</code></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h5 id="transmit-configuration-tx">Transmit Configuration (tx)<a class="headerlink" href="#transmit-configuration-tx" title="Permanent link">#</a></h5>
-<ul>
 <li>
 <p><strong><code>queues</code></strong>: List of queues on NIC
     type: <code>list</code>
@@ -14931,8 +14907,8 @@ buffer. A smaller number reduces end-to-end latency but can also reduce throughp
 </li>
 <li><strong><code>memory_regions</code></strong>: List of memory regions where buffers are stored. memory regions names are configured in the <a href="#memory-regions">Memory Regions</a> section
     type: <code>list</code></li>
-<li><strong><code>accurate_send</code></strong>: Accurate TX sending enabled for sending packets at a specific PTP timestamp<ul>
-<li>type: <code>boolean</code></li>
+<li><strong><code>timeout_us</code></strong>: Timeout value that a batch will be sent on even if not enough packets to fill a batch were received<ul>
+<li>type: <code>integer</code></li>
 </ul>
 </li>
 </ul>
@@ -14972,10 +14948,10 @@ buffer. A smaller number reduces end-to-end latency but can also reduce throughp
 <h5 id="extended-receive-configuration-for-rivermax-manager">Extended Receive Configuration for Rivermax manager<a class="headerlink" href="#extended-receive-configuration-for-rivermax-manager" title="Permanent link">#</a></h5>
 <ul>
 <li>
-<p><strong><code>rmax_rx_settings</code></strong>: Extended RX settings for Rivermax Manager. Rivermax Manager supports receiving the same stream from multiple redundant paths (IPO - Inline Packet Ordering).
+<p><strong><code>rivermax_rx_settings</code></strong>: Extended RX settings for Rivermax Manager. Rivermax Manager supports receiving the same stream from multiple redundant paths (IPO - Inline Packet Ordering).
     Each path is a combination of a source IP address, a destination IP address, a destination port, and a local IP address of the receiver device.
   type: <code>list</code>
-  full path: <code>cfg\interfaces\rx\queues\rmax_rx_settings</code></p>
+  full path: <code>cfg\interfaces\rx\queues\rivermax_rx_settings</code></p>
 <ul>
 <li><strong><code>memory_registration</code></strong>: Flag, when enabled, reduces the number of memory keys in use by registering all the memory in a single pass on the application side.
     <mark>Can be used only together with HDS enabled</mark><ul>
@@ -15016,7 +14992,7 @@ buffer. A smaller number reduces end-to-end latency but can also reduce throughp
 <li>type: <code>sequence</code></li>
 </ul>
 </li>
-<li><strong><code>rx_stats_period_report_ms</code></strong>: Specifies the duration, in milliseconds, that the receiver will display statistics in the log. Set <code>0</code> to disable statistics logging feature<ul>
+<li><strong><code>stats_report_interval_ms</code></strong>: Specifies the duration, in milliseconds, that the receiver will display statistics in the log. Set <code>0</code> to disable statistics logging feature<ul>
 <li>type: <code>integer</code></li>
 <li>default:<code>0</code></li>
 </ul>
@@ -15056,14 +15032,15 @@ buffer. A smaller number reduces end-to-end latency but can also reduce throughp
 <span class="w">      </span><span class="nt">rx</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">queues</span><span class="p">:</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Data1</span>
-<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 <span class="w">          </span><span class="nt">cpu_core</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;11&#39;</span>
 <span class="w">          </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4320</span>
-<span class="w">          </span><span class="nt">rmax_rx_settings</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">rivermax_rx_settings</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">settings_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ipo_receiver&quot;</span>
 <span class="w">            </span><span class="nt">memory_registration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">            </span><span class="nt">max_path_diff_us</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">            </span><span class="nt">max_path_diff_us</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10000</span>
 <span class="w">            </span><span class="nt">ext_seq_num</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">            </span><span class="nt">sleep_between_operations_us</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">            </span><span class="nt">sleep_between_operations_us</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 <span class="w">            </span><span class="nt">memory_regions</span><span class="p">:</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;Data_RX_CPU&quot;</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;Data_RX_GPU&quot;</span>
@@ -15079,13 +15056,12 @@ buffer. A smaller number reduces end-to-end latency but can also reduce throughp
 <span class="w">            </span><span class="nt">destination_ports</span><span class="p">:</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50001</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50001</span>
-<span class="w">            </span><span class="nt">rx_stats_period_report_ms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3000</span>
+<span class="w">            </span><span class="nt">stats_report_interval_ms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3000</span>
 <span class="w">            </span><span class="nt">send_packet_ext_info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </code></pre></div></p>
 </li>
 </ul>
-<h5 id="transmit-configuration-tx_1">Transmit Configuration (tx)<a class="headerlink" href="#transmit-configuration-tx_1" title="Permanent link">#</a></h5>
-<p>(<mark>Current version of Rivermax manager doesn't support TX</mark>)</p>
+<h5 id="transmit-configuration-tx">Transmit Configuration (tx)<a class="headerlink" href="#transmit-configuration-tx" title="Permanent link">#</a></h5>
 <ul>
 <li><strong><code>queues</code></strong>: List of queues on NIC
     type: <code>list</code>
@@ -15111,9 +15087,227 @@ A smaller number reduces end-to-end latency but can also reduce throughput.<ul>
 </li>
 <li><strong><code>memory_regions</code></strong>: List of memory regions where buffers are stored. memory regions names are configured in the <a href="#memory-regions">Memory Regions</a> section
     type: <code>list</code></li>
+<li><strong><code>accurate_send</code></strong>: Accurate TX sending enabled for sending packets at a specific PTP timestamp<ul>
+<li>type: <code>boolean</code></li>
 </ul>
 </li>
 </ul>
+</li>
+</ul>
+<h5 id="transmit-configuration-tx_1">Transmit Configuration (tx)<a class="headerlink" href="#transmit-configuration-tx_1" title="Permanent link">#</a></h5>
+<ul>
+<li>
+<p><strong><code>queues</code></strong>: List of queues on NIC
+  <strong>Type</strong>: <code>list</code>
+  <strong>Full Path</strong>: <code>cfg\interfaces\tx\queues</code></p>
+</li>
+<li>
+<p><strong><code>name</code></strong>: Name of the queue</p>
+<ul>
+<li><strong>Type</strong>: <code>string</code></li>
+</ul>
+</li>
+<li>
+<p><strong><code>id</code></strong>: Integer ID used for flow connection or lookup in operator compute method</p>
+<ul>
+<li><strong>Type</strong>: <code>integer</code></li>
+</ul>
+</li>
+<li>
+<p><strong><code>cpu_core</code></strong>: CPU core ID. Should be isolated when CPU polls the NIC for best performance. <mark>Not in use for DOCA GPUNetIO</mark>. Rivermax Manager can accept comma-separated list of CPU IDs.</p>
+<ul>
+<li><strong>Type</strong>: <code>string</code></li>
+</ul>
+</li>
+<li>
+<p><strong><code>batch_size</code></strong>: Number of packets in batch passed between operators. Larger values increase throughput at cost of latency.</p>
+<ul>
+<li><strong>Type</strong>: <code>integer</code></li>
+</ul>
+</li>
+<li>
+<p><strong><code>memory_regions</code></strong>: List of memory regions where buffers are stored (configured in Memory Regions section)</p>
+<ul>
+<li><strong>Type</strong>: <code>list</code></li>
+</ul>
+</li>
+</ul>
+<h5 id="extended-transmit-configuration-for-rivermax-manager">Extended Transmit Configuration for Rivermax manager<a class="headerlink" href="#extended-transmit-configuration-for-rivermax-manager" title="Permanent link">#</a></h5>
+<p>The Rivermax TX configuration enables hardware-assisted SMPTE 2110-20 compliant video streaming with:
+- Precision timestamping via PCIe PTP clock synchronization
+- Jitter-free packetization of rasterized video frames
+- Automatic UDP checksum offload
+- Traffic shaping for constant bitrate delivery</p>
+<ul>
+<li>
+<p><strong><code>rivermax_tx_settings</code></strong>: Extended TX settings for SMPTE 2110-20 media streaming
+    <strong>Type</strong>: <code>sequence</code>
+    <strong>Full Path</strong>: <code>cfg\interfaces\tx\queues\rivermax_tx_settings</code></p>
+<ul>
+<li><strong><code>settings_type</code></strong>: Transmission mode. Must be <code>media_sender</code> for video</li>
+<li><strong>Type</strong>: <code>string</code></li>
+<li><strong>Required</strong>: Yes</li>
+<li>
+<p><strong>Valid Values</strong>: <code>media_sender</code></p>
+</li>
+<li>
+<p><strong><code>memory_registration</code></strong>: Enables bulk registration of GPU/CPU memory regions with NIC for zero-copy transfers. Recommended for high-throughput scenarios.</p>
+</li>
+<li><strong>Type</strong>: <code>boolean</code></li>
+<li>
+<p><strong>Default</strong>: <code>true</code></p>
+</li>
+<li>
+<p><strong><code>memory_allocation</code></strong>:  I\O Memory allocated by application</p>
+</li>
+<li><strong>Type</strong>: <code>boolean</code></li>
+<li>
+<p><strong>Default</strong>: <code>true</code></p>
+</li>
+<li>
+<p><strong><code>memory_pool_location</code></strong>: Buffer memory type (<code>device/huge_pages/host_pinned/host</code>)</p>
+</li>
+<li><strong>Type</strong>: <code>string</code></li>
+<li>
+<p><strong>Required</strong>: Yes</p>
+</li>
+<li>
+<p><strong><code>local_ip_address</code></strong>: Source IP address bound to transmitting network interface.</p>
+</li>
+<li><strong>Type</strong>: <code>string</code></li>
+<li>
+<p><strong>Required</strong>: Yes</p>
+</li>
+<li>
+<p><strong><code>destination_ip_address</code></strong>: Unicast/Multicast group address for media stream distribution.</p>
+</li>
+<li><strong>Type</strong>: <code>string</code></li>
+<li>
+<p><strong>Required</strong>: Yes</p>
+</li>
+<li>
+<p><strong><code>destination_port</code></strong>: UDP port number for media stream transmission</p>
+</li>
+<li><strong>Type</strong>: <code>integer</code></li>
+<li><strong>Range</strong>: 1024-65535</li>
+<li>
+<p><strong>Required</strong>: Yes</p>
+</li>
+<li>
+<p><strong><code>video_format</code></strong>: Defines pixel sampling structure per SMPTE ST 2110-20</p>
+</li>
+<li><strong>Type</strong>: <code>string</code></li>
+<li><strong>Required</strong>: Yes</li>
+<li>
+<p><strong>Valid Values</strong>: <code>YCbCr-4:2:2</code>, <code>YCbCr-4:4:4</code>,<code>YCbCr-4:2:0</code>, <code>RGB</code></p>
+</li>
+<li>
+<p><strong><code>bit_depth</code></strong>: Color component quantization precision</p>
+</li>
+<li><strong>Type</strong>: <code>integer</code></li>
+<li><strong>Required</strong>: Yes</li>
+<li>
+<p><strong>Valid Values</strong>: <code>8</code>, <code>10</code>, <code>12</code></p>
+</li>
+<li>
+<p><strong><code>frame_width</code></strong>: Horizontal resolution in pixels</p>
+</li>
+<li><strong>Type</strong>: <code>integer</code></li>
+<li><strong>Required</strong>: Yes</li>
+<li>
+<p><strong>Valid Values</strong>: <code>1920</code> for HD, <code>3840</code> for 4K UHD</p>
+</li>
+<li>
+<p><strong><code>frame_height</code></strong>: The vertical resolution of the video in pixels</p>
+</li>
+<li><strong>Type</strong>: <code>integer</code></li>
+<li><strong>Required</strong>: Yes</li>
+<li>
+<p><strong>Valid Values</strong>: <code>1080</code> for HD, <code>2160</code> for 4K UHD</p>
+</li>
+<li>
+<p><strong><code>frame_rate</code></strong>: Frame rate in fps</p>
+</li>
+<li><strong>Type</strong>: <code>integer</code></li>
+<li><strong>Required</strong>: Yes</li>
+<li>
+<p><strong>Valid Values</strong>:  <code>24</code>, <code>25</code>, <code>30</code>, <code>50</code>, and <code>60</code></p>
+</li>
+<li>
+<p><strong><code>dummy_sender</code></strong>: Test mode without NIC transmission</p>
+</li>
+<li><strong>Type</strong>: <code>boolean</code></li>
+<li>
+<p><strong>Default</strong>: <code>false</code></p>
+</li>
+<li>
+<p><strong><code>stats_report_interval_ms</code></strong>: Transmission stats logging interval (0=disable)</p>
+</li>
+<li><strong>Type</strong>: <code>integer</code></li>
+<li>
+<p><strong>Default</strong>: <code>0</code></p>
+</li>
+<li>
+<p><strong><code>verbose</code></strong>: Enable detailed transmission logging</p>
+</li>
+<li><strong>Type</strong>: <code>boolean</code></li>
+<li>
+<p><strong>Default</strong>: <code>false</code></p>
+</li>
+<li>
+<p><strong><code>sleep_between_operations</code></strong>: Add inter-burst delays for timing sync</p>
+</li>
+<li><strong>Type</strong>: <code>boolean</code></li>
+<li><strong>Default</strong>: <code>false</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="example-configuration">Example Configuration<a class="headerlink" href="#example-configuration" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">memory_regions</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Data_TX_CPU&quot;</span>
+<span class="w">      </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;huge&quot;</span>
+<span class="w">      </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">      </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">43200</span>
+<span class="w">      </span><span class="nt">buf_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Data_TX_GPU&quot;</span>
+<span class="w">      </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;device&quot;</span>
+<span class="w">      </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">      </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">43200</span>
+<span class="w">      </span><span class="nt">buf_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1200</span>
+
+<span class="w">    </span><span class="nt">interfaces</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;tx_port&quot;</span>
+<span class="w">      </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cc:00.1</span>
+<span class="w">      </span><span class="nt">tx</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">queues</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;tx_q_1&quot;</span>
+<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">          </span><span class="nt">cpu_core</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;13&quot;</span>
+<span class="w">          </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4320</span>
+<span class="w">          </span><span class="nt">output_port</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;bench_tx_out_1&quot;</span>
+<span class="w">          </span><span class="nt">memory_regions</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;Data_TX_CPU&quot;</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;Data_TX_GPU&quot;</span>
+<span class="w">          </span><span class="nt">rivermax_tx_settings</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">settings_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;media_sender&quot;</span>
+<span class="w">            </span><span class="nt">memory_registration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">            </span><span class="nt">memory_allocation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">            </span><span class="nt">memory_pool_location</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;host_pinned&quot;</span>
+<span class="w">            </span><span class="c1">#allocator_type: &quot;huge_page_2mb&quot;</span>
+<span class="w">            </span><span class="nt">verbose</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">            </span><span class="nt">sleep_between_operations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">            </span><span class="nt">local_ip_address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.1.0.12</span>
+<span class="w">            </span><span class="nt">destination_ip_address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">224.1.1.2</span>
+<span class="w">            </span><span class="nt">destination_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50001</span>
+<span class="w">            </span><span class="nt">stats_report_interval_ms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">            </span><span class="nt">send_packet_ext_info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">            </span><span class="nt">video_format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YCbCr-4:2:2</span>
+<span class="w">            </span><span class="nt">bit_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">            </span><span class="nt">frame_width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1920</span>
+<span class="w">            </span><span class="nt">frame_height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1080</span>
+<span class="w">            </span><span class="nt">frame_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
+<span class="w">            </span><span class="nt">dummy_sender</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
 <h4 id="api-structures">API Structures<a class="headerlink" href="#api-structures" title="Permanent link">#</a></h4>
 <p>The Advanced Network library uses a common structure named <code>BurstParams</code> to pass data to/from other operators. <code>BurstParams</code> provides pointers to packet memory locations (e.g., CPU or GPU) and contains metadata needed by any operator to track allocations. Interacting with <code>BurstParams</code> should only be done with the helper functions described below.</p>
 <h4 id="example-api-usage">Example API Usage<a class="headerlink" href="#example-api-usage" title="Permanent link">#</a></h4>
