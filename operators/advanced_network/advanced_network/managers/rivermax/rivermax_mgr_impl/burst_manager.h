@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,20 +21,22 @@
 #include <cstddef>
 #include <iostream>
 
-#include "rmax_ano_data_types.h"
-#include "rmax_service/ipo_chunk_consumer_base.h"
-#include "rmax_service/rmax_ipo_receiver_service.h"
-#include "advanced_network/types.h"
 #include <holoscan/logger/logger.hpp>
 
+#include "rdk/services/services.h"
+
+#include "advanced_network/types.h"
+#include "rivermax_ano_data_types.h"
+
 namespace holoscan::advanced_network {
-using namespace ral::services;
+
+using namespace rivermax::dev_kit::services;
 
 /**
- * @class RmaxBurst
+ * @class RivermaxBurst
  * @brief Represents a burst of packets in the advanced network.
  */
-class RmaxBurst : public BurstParams {
+class RivermaxBurst : public BurstParams {
  public:
   static constexpr int MAX_PKT_IN_BURST = 9100;
 
@@ -160,9 +162,7 @@ class RmaxBurst : public BurstParams {
    * @return The flags of the burst.
    */
   inline BurstFlags get_burst_flags() const {
-    auto burst_info = get_burst_info();
-    if (burst_info == nullptr) { return FLAGS_NONE; }
-    return burst_info->burst_flags;
+    return static_cast<BurstFlags>(hdr.hdr.burst_flags);
   }
 
   /**
@@ -180,7 +180,7 @@ class RmaxBurst : public BurstParams {
    *
    * @return The maximum number of packets in the burst.
    */
-  inline uint16_t get_max_num_packets() const { return m_max_num_packets; }
+  inline uint16_t get_max_num_packets() const { return max_num_packets_; }
 
   /**
    * @brief Gets the number of packets in a burst.
@@ -196,10 +196,10 @@ class RmaxBurst : public BurstParams {
    *
    * @throws runtime_error If the maximum number of packets is exceeded.
    */
-  inline void append_packet(const RmaxPacketData& packet_data) {
-    if (hdr.hdr.num_pkts >= m_max_num_packets) {
+  inline void append_packet(const RivermaxPacketData& packet_data) {
+    if (hdr.hdr.num_pkts >= max_num_packets_) {
       throw std::runtime_error("Maximum number of packets exceeded (num_packets: " +
-                               std::to_string(m_max_num_packets) + ")");
+                               std::to_string(max_num_packets_) + ")");
     }
     set_packet_data(get_num_packets(), packet_data);
     hdr.hdr.num_pkts += 1;
@@ -213,12 +213,13 @@ class RmaxBurst : public BurstParams {
    *                                Index boundary checks are not performed in this function.
    * @param packet_data The data of the packet to append.
    */
-  inline void set_packet_data(size_t packet_ind_in_out_burst, const RmaxPacketData& packet_data) {
+  inline void set_packet_data(size_t packet_ind_in_out_burst,
+                              const RivermaxPacketData& packet_data) {
     auto burst_info = get_burst_info();
 
-    if (burst_info->burst_flags & BurstFlags::INFO_PER_PACKET) {
-      RmaxPacketExtendedInfo* rx_packet_info =
-          reinterpret_cast<RmaxPacketExtendedInfo*>(pkt_extra_info[packet_ind_in_out_burst]);
+    if (get_burst_flags() & BurstFlags::INFO_PER_PACKET) {
+      RivermaxPacketExtendedInfo* rx_packet_info =
+          reinterpret_cast<RivermaxPacketExtendedInfo*>(pkt_extra_info[packet_ind_in_out_burst]);
       rx_packet_info->timestamp = packet_data.extended_info.timestamp;
       rx_packet_info->flow_tag = packet_data.extended_info.flow_tag;
     }
@@ -244,26 +245,27 @@ class RmaxBurst : public BurstParams {
   inline void set_num_packets(uint16_t num_pkts) { hdr.hdr.num_pkts = num_pkts; }
 
   /**
-   * @brief Constructs an RmaxBurst object.
+   * @brief Constructs an RivermaxBurst object.
    *
    * @param port_id The port ID.
    * @param queue_id The queue ID.
    * @param max_packets_in_burst The maximum number of packets in the burst.
    */
-  RmaxBurst(uint16_t port_id, uint16_t queue_id, uint16_t max_packets_in_burst = MAX_PKT_IN_BURST)
-      : m_max_num_packets(max_packets_in_burst) {
+  RivermaxBurst(uint16_t port_id, uint16_t queue_id,
+                uint16_t max_packets_in_burst = MAX_PKT_IN_BURST)
+      : max_num_packets_(max_packets_in_burst) {
     hdr.hdr.port_id = port_id;
     hdr.hdr.q_id = queue_id;
   }
 
  private:
-  uint16_t m_max_num_packets = MAX_PKT_IN_BURST;
+  uint16_t max_num_packets_ = MAX_PKT_IN_BURST;
 };
 
 /**
  * @brief Class responsible for handling burst operations.
  */
-class RmaxBurst::BurstHandler {
+class RivermaxBurst::BurstHandler {
  public:
   /**
    * @brief Constructs a BurstHandler object.
@@ -281,21 +283,21 @@ class RmaxBurst::BurstHandler {
    * @param burst_id The ID of the burst to create.
    * @return A shared pointer to the created burst.
    */
-  std::shared_ptr<RmaxBurst> create_burst(uint16_t burst_id);
+  std::shared_ptr<RivermaxBurst> create_burst(uint16_t burst_id);
 
   /**
    * @brief Deletes a burst and frees its associated resources.
    *
    * @param burst A shared pointer to the burst to delete.
    */
-  void delete_burst(std::shared_ptr<RmaxBurst> burst);
+  void delete_burst(std::shared_ptr<RivermaxBurst> burst);
 
  private:
-  bool m_send_packet_ext_info;
-  int m_port_id;
-  int m_queue_id;
-  bool m_gpu_direct;
-  AnoBurstExtendedInfo m_burst_info;
+  bool send_packet_ext_info_;
+  int port_id_;
+  int queue_id_;
+  bool gpu_direct_;
+  AnoBurstExtendedInfo burst_info_;
 };
 
 /**
@@ -303,7 +305,7 @@ class RmaxBurst::BurstHandler {
  *
  * The RxBurstsManager class is responsible for managing RX bursts in advanced networking
  * operations. It handles the creation, deletion, and processing of bursts, as well as
- * managing the lifecycle of packets within bursts. This class interfaces with the Rmax
+ * managing the lifecycle of packets within bursts. This class interfaces with the Rivermax
  * framework to provide the necessary functionality for handling and transforming data
  * into a format suitable for advanced_network to process.
  */
@@ -323,6 +325,7 @@ class RxBurstsManager {
    * @param burst_out_size Size of the burst output.
    * @param gpu_id ID of the GPU.
    * @param rx_bursts_out_queue Shared pointer to the output queue for RX bursts.
+   *                            If not provided a local queue will be used.
    */
   RxBurstsManager(bool send_packet_ext_info, int port_id, int queue_id, uint16_t burst_out_size = 0,
                   int gpu_id = INVALID_GPU_ID,
@@ -340,36 +343,36 @@ class RxBurstsManager {
    * @param hds_on Flag indicating if header data splitting (HDS) is enabled.
    * @param header_stride_size Stride size for the header data.
    * @param payload_stride_size Stride size for the payload data.
-   * @return ReturnStatus indicating the success or failure of the operation.
+   * @return Status indicating the success or failure of the operation.
    */
-  inline ReturnStatus set_next_chunk_params(size_t chunk_size, bool hds_on,
-                                            size_t header_stride_size, size_t payload_stride_size) {
-    m_hds_on = hds_on;
-    m_header_stride_size = header_stride_size;
-    m_payload_stride_size = payload_stride_size;
-    return ReturnStatus::success;
+  inline Status set_next_chunk_params(size_t chunk_size, bool hds_on, size_t header_stride_size,
+                                      size_t payload_stride_size) {
+    hds_on_ = hds_on;
+    header_stride_size_ = header_stride_size;
+    payload_stride_size_ = payload_stride_size;
+    return Status::SUCCESS;
   }
 
   /**
    * @brief Submits the next packet to the burst manager.
    *
    * @param packet_data Extended information about the packet.
-   * @return ReturnStatus indicating the success or failure of the operation.
+   * @return Status indicating the success or failure of the operation.
    */
-  inline ReturnStatus submit_next_packet(const RmaxPacketData& packet_data) {
+  inline Status submit_next_packet(const RivermaxPacketData& packet_data) {
     get_or_allocate_current_burst();
-    if (m_cur_out_burst == nullptr) {
+    if (cur_out_burst_ == nullptr) {
       HOLOSCAN_LOG_ERROR("Failed to allocate burst, running out of resources");
-      return ReturnStatus::no_free_chunks;
+      return Status::NO_FREE_BURST_BUFFERS;
     }
 
-    m_cur_out_burst->append_packet(packet_data);
+    cur_out_burst_->append_packet(packet_data);
 
-    if (m_cur_out_burst->get_num_packets() >= m_burst_out_size) {
+    if (cur_out_burst_->get_num_packets() >= burst_out_size_) {
       return enqueue_and_reset_current_burst();
     }
 
-    return ReturnStatus::success;
+    return Status::SUCCESS;
   }
 
   /**
@@ -377,17 +380,17 @@ class RxBurstsManager {
    *
    * @param burst Pointer to the burst parameters.
    * @throws logic_error If shared output queue is used.
-   * @return ReturnStatus indicating the success or failure of the operation.
+   * @return Status indicating the success or failure of the operation.
    */
-  inline ReturnStatus get_rx_burst(BurstParams** burst) {
-    if (m_using_shared_out_queue) {
+  inline Status get_rx_burst(BurstParams** burst) {
+    if (using_shared_out_queue_) {
       throw std::logic_error("Cannot get RX burst when using shared output queue");
     }
 
-    auto out_burst = m_rx_bursts_out_queue->dequeue_burst().get();
+    auto out_burst = rx_bursts_out_queue_->dequeue_burst().get();
     *burst = static_cast<BurstParams*>(out_burst);
-    if (*burst == nullptr) { return ReturnStatus::failure; }
-    return ReturnStatus::success;
+    if (*burst == nullptr) { return Status::NULL_PTR; }
+    return Status::SUCCESS;
   }
 
   /**
@@ -395,7 +398,7 @@ class RxBurstsManager {
    *
    * @param burst Pointer to the burst parameters.
    */
-  void rx_burst_done(RmaxBurst* burst);
+  void rx_burst_done(RivermaxBurst* burst);
 
  protected:
   /**
@@ -403,66 +406,72 @@ class RxBurstsManager {
    *
    * @return Shared pointer to the allocated burst parameters.
    */
-  inline std::shared_ptr<RmaxBurst> allocate_burst() {
-    auto burst = m_rx_bursts_mempool->dequeue_burst();
+  inline std::shared_ptr<RivermaxBurst> allocate_burst() {
+    auto burst = rx_bursts_mempool_->dequeue_burst();
     return burst;
   }
 
   /**
    * @brief Gets or allocates the current burst.
    *
+   * This function checks if the current burst is null and allocates
+   * a new one if necessary.
    * @return Shared pointer to the current burst parameters.
    */
-  inline std::shared_ptr<RmaxBurst> get_or_allocate_current_burst() {
-    if (m_cur_out_burst == nullptr) {
-      m_cur_out_burst = allocate_burst();
-      if (m_cur_out_burst == nullptr) {
+  inline std::shared_ptr<RivermaxBurst> get_or_allocate_current_burst() {
+    if (cur_out_burst_ == nullptr) {
+      cur_out_burst_ = allocate_burst();
+      if (cur_out_burst_ == nullptr) {
         HOLOSCAN_LOG_ERROR("Failed to allocate burst, running out of resources");
         return nullptr;
       }
-      m_cur_out_burst->reset_burst_with_updated_params(
-          m_hds_on, m_header_stride_size, m_payload_stride_size, m_gpu_direct);
+      cur_out_burst_->reset_burst_with_updated_params(
+          hds_on_, header_stride_size_, payload_stride_size_, gpu_direct_);
     }
-    return m_cur_out_burst;
+    return cur_out_burst_;
   }
-
-  inline ReturnStatus enqueue_and_reset_current_burst() {
-    if (m_cur_out_burst == nullptr) {
+  /**
+   * @brief Enqueues the current burst and resets it.
+   *
+   * @return Status indicating the success or failure of the operation.
+   */
+  inline Status enqueue_and_reset_current_burst() {
+    if (cur_out_burst_ == nullptr) {
       HOLOSCAN_LOG_ERROR("Trying to enqueue an empty burst");
-      return ReturnStatus::failure;
+      return Status::NULL_PTR;
     }
 
-    bool res = m_rx_bursts_out_queue->enqueue_burst(m_cur_out_burst);
+    bool res = rx_bursts_out_queue_->enqueue_burst(cur_out_burst_);
     reset_current_burst();
     if (!res) {
       HOLOSCAN_LOG_ERROR("Failed to enqueue burst");
-      return ReturnStatus::failure;
+      return Status::NO_SPACE_AVAILABLE;
     }
 
-    return ReturnStatus::success;
+    return Status::SUCCESS;
   }
 
   /**
    * @brief Resets the current burst.
    */
-  inline void reset_current_burst() { m_cur_out_burst = nullptr; }
+  inline void reset_current_burst() { cur_out_burst_ = nullptr; }
 
  protected:
-  bool m_send_packet_ext_info = false;
-  int m_port_id = 0;
-  int m_queue_id = 0;
-  uint16_t m_burst_out_size = 0;
-  int m_gpu_id = -1;
-  bool m_hds_on = false;
-  bool m_gpu_direct = false;
-  size_t m_header_stride_size = 0;
-  size_t m_payload_stride_size = 0;
-  bool m_using_shared_out_queue = true;
-  std::unique_ptr<IAnoBurstsCollection> m_rx_bursts_mempool = nullptr;
-  std::shared_ptr<IAnoBurstsCollection> m_rx_bursts_out_queue = nullptr;
-  std::shared_ptr<RmaxBurst> m_cur_out_burst = nullptr;
-  AnoBurstExtendedInfo m_burst_info;
-  std::unique_ptr<RmaxBurst::BurstHandler> m_burst_handler;
+  bool send_packet_ext_info_ = false;
+  int port_id_ = 0;
+  int queue_id_ = 0;
+  uint16_t burst_out_size_ = 0;
+  int gpu_id_ = -1;
+  bool hds_on_ = false;
+  bool gpu_direct_ = false;
+  size_t header_stride_size_ = 0;
+  size_t payload_stride_size_ = 0;
+  bool using_shared_out_queue_ = true;
+  std::unique_ptr<IAnoBurstsCollection> rx_bursts_mempool_ = nullptr;
+  std::shared_ptr<IAnoBurstsCollection> rx_bursts_out_queue_ = nullptr;
+  std::shared_ptr<RivermaxBurst> cur_out_burst_ = nullptr;
+  AnoBurstExtendedInfo burst_info_;
+  std::unique_ptr<RivermaxBurst::BurstHandler> burst_handler_;
 };
 
 };  // namespace holoscan::advanced_network
