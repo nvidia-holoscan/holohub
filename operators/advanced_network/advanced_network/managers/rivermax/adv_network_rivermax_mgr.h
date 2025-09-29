@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,16 +18,17 @@
 #pragma once
 
 #include <string>
+#include <mutex>
 #include <yaml-cpp/yaml.h>
 
 #include "advanced_network/manager.h"
 
 namespace holoscan::advanced_network {
 
-class RmaxMgr : public Manager {
+class RivermaxMgr : public Manager {
  public:
-  RmaxMgr();
-  ~RmaxMgr();
+  RivermaxMgr();
+  ~RivermaxMgr();
   bool set_config_and_initialize(const NetworkConfig& cfg) override;
   void initialize() override;
   void run() override;
@@ -73,8 +74,9 @@ class RmaxMgr : public Manager {
   Status get_mac_addr(int port, char* mac) override;
 
  private:
-  class RmaxMgrImpl;
-  std::unique_ptr<RmaxMgr::RmaxMgrImpl> pImpl;
+  class RivermaxMgrImpl;
+  std::unique_ptr<RivermaxMgr::RivermaxMgrImpl> pImpl;
+  std::mutex initialization_mutex_;
 };
 
 };  // namespace holoscan::advanced_network
