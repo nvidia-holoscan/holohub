@@ -245,6 +245,7 @@ class MyGstOperator : public holoscan::Operator {
 
  private:
   Parameter<GstSinkResourcePtr> gst_sink_resource_;
+  GstElement* pipeline_ = nullptr;
 };
 
 // In your application:
@@ -265,7 +266,7 @@ class MyApp : public Application {
 };
 ```
 
-This provides seamless integration between GStreamer and Holoscan, allowing you to leverage GStreamer's powerful media processing capabilities within Holoscan's application framework.
+This provides seamless integration between GStreamer and Holoscan, allowing you to leverage GStreamer's powerful media processing capabilities within Holoscan's application framework. The `GstSinkResource` focuses solely on managing the sink element, giving you full control over pipeline construction and element connectivity.
 
 ## Next Steps
 

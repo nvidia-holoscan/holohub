@@ -79,15 +79,15 @@ bus_call(GstBus *bus, GstMessage *msg, gpointer data)
 }
 
 extern "C" {
-  GType gst_simple_custom_sink_get_type(void);
+  GType gst_holoscan_sink_get_type(void);
 }
 
 static void
 register_custom_plugin()
 {
   // Register the element factory directly
-  gst_element_register(NULL, "simplecustomsink", GST_RANK_NONE, 
-                      gst_simple_custom_sink_get_type());
+  gst_element_register(NULL, "holoscansink", GST_RANK_NONE, 
+                      gst_holoscan_sink_get_type());
 }
 
 int main(int argc, char *argv[])
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
   pipeline = gst_pipeline_new("custom-sink-pipeline");
   source = gst_element_factory_make("videotestsrc", "source");
   convert = gst_element_factory_make("videoconvert", "convert");
-  sink = gst_element_factory_make("simplecustomsink", "custom_sink");
+  sink = gst_element_factory_make("holoscansink", "custom_sink");
 
   if (!pipeline || !source || !convert || !sink) {
     g_printerr("One or more elements could not be created. Exiting.\n");
