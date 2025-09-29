@@ -5,7 +5,7 @@
 
 #include <gst/gst.h>
 #include <holoscan/holoscan.hpp>
-#include "../../operators/gstreamer/core/gst_sink_resource.hpp"
+#include "../../operators/gstreamer/gst_sink_resource.hpp"
 
 using namespace holoscan;
 
@@ -19,6 +19,8 @@ class GstSinkOperator : public Operator {
   GstSinkOperator() = default;
 
   void setup(OperatorSpec& spec) override {
+    /// Add parameters to the operator spec
+    spec.param(gst_sink_resource_, "gst_sink_resource", "GStreamerSink", "GStreamer sink resource object");
     spec.param(pipeline_desc_, "pipeline_desc", "Pipeline Description", 
                "GStreamer pipeline description", std::string("videotestsrc pattern=0 ! videoconvert"));
   }
@@ -26,21 +28,49 @@ class GstSinkOperator : public Operator {
   void initialize() override {
     Operator::initialize();
 
-    // Create the GStreamer sink resource directly in the operator
-    gst_sink_ = std::make_shared<GstSinkResource>("holoscan_sink", false, "/tmp", 30.0);
-    gst_sink_->initialize();
+    // Ensure the GStreamer sink resource is provided and valid
+    assert(gst_sink_resource_.get());
+    assert(gst_sink_resource_.get()->valid());
 
-    if (!gst_sink_ || !gst_sink_->valid()) {
-      throw std::runtime_error("GstSinkResource not properly initialized");
-    }
-
-    // Create pipeline with the sink
+    // Create pipeline and add our sink element
     std::string pipeline_str = pipeline_desc_.get();
     HOLOSCAN_LOG_INFO("Creating pipeline: {}", pipeline_str);
-
-    pipeline_ = gst_sink_->create_pipeline(pipeline_str);
+    
+    // Create the main pipeline
+    pipeline_ = gst_pipeline_new("holoscan-pipeline");
     if (!pipeline_) {
       throw std::runtime_error("Failed to create GStreamer pipeline");
+    }
+
+    // Parse the pipeline description to create source elements
+    GError* error = nullptr;
+    GstElement* source_bin = gst_parse_bin_from_description(pipeline_str.c_str(), TRUE, &error);
+    if (error) {
+      HOLOSCAN_LOG_ERROR("Failed to parse pipeline: {}", error->message);
+      g_error_free(error);
+      gst_object_unref(pipeline_);
+      pipeline_ = nullptr;
+      throw std::runtime_error("Failed to parse GStreamer pipeline description");
+    }
+
+    // Get the sink element from our resource
+    GstElement* sink_element = gst_sink_resource()->get_element();
+    if (!sink_element) {
+      gst_object_unref(source_bin);
+      gst_object_unref(pipeline_);
+      pipeline_ = nullptr;
+      throw std::runtime_error("Failed to get sink element from resource");
+    }
+
+    // Add elements to pipeline
+    gst_bin_add_many(GST_BIN(pipeline_), source_bin, sink_element, nullptr);
+
+    // Link the source bin to our sink
+    if (!gst_element_link(source_bin, sink_element)) {
+      HOLOSCAN_LOG_ERROR("Failed to link pipeline elements to sink");
+      gst_object_unref(pipeline_);
+      pipeline_ = nullptr;
+      throw std::runtime_error("Failed to link GStreamer pipeline elements");
     }
 
     HOLOSCAN_LOG_INFO("GstSinkOperator initialized successfully");
@@ -105,10 +135,13 @@ class GstSinkOperator : public Operator {
     Operator::stop();
   }
 
+ protected:
+  GstSinkResourcePtr gst_sink_resource() { return gst_sink_resource_.get(); }
+
  private:
+  Parameter<GstSinkResourcePtr> gst_sink_resource_;
   Parameter<std::string> pipeline_desc_;
   GstElement* pipeline_ = nullptr;
-  std::shared_ptr<GstSinkResource> gst_sink_;
 };
 
 /**
@@ -120,10 +153,14 @@ class GstSinkApp : public Application {
     : iteration_count_(iteration_count), pipeline_desc_(pipeline_desc) {}
 
   void compose() override {
+    // Create the GStreamer sink resource
+    auto gst_sink = make_resource<GstSinkResource>("gst_sink", "holoscan_sink", false, "/tmp", 30.0);
+
     // Create the operator that uses the sink
     auto gst_op = make_operator<GstSinkOperator>(
         "gst_sink_op",
         make_condition<CountCondition>(iteration_count_),
+        Arg("gst_sink_resource", gst_sink),
         Arg("pipeline_desc", pipeline_desc_)
     );
 

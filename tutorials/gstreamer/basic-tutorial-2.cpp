@@ -1,5 +1,5 @@
 #include <gst/gst.h>
-#include "../../../operators/gstreamer/core/initializer.hpp"
+#include "../../operators/gstreamer/core/initializer.hpp"
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>

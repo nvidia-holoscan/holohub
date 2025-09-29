@@ -30,7 +30,8 @@ add_definitions(${GSTREAMER_VIDEO_CFLAGS_OTHER})
 
 # Create custom sink library
 add_library(holoscan_gstreamer_sink SHARED 
-    core/gstsimplecustomsink.c
+    gstsimplecustomsink.c
+    gst_sink_resource.cpp
 )
 
 # Set library directories
@@ -66,10 +67,10 @@ install(TARGETS holoscan_gstreamer_sink DESTINATION lib)
 
 # Install headers
 install(FILES 
-    core/gst_sink_resource.hpp
-    core/gstsimplecustomsink.h
+    gst_sink_resource.hpp
+    gstsimplecustomsink.h
     core/initializer.hpp
-    DESTINATION include/holoscan/operators/gstreamer/core)
+    DESTINATION include/holoscan/operators/gstreamer)
 
 # Export the library for use by other CMake projects
 export(TARGETS holoscan_gstreamer_sink 

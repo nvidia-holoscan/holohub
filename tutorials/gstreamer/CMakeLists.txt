@@ -23,7 +23,7 @@ pkg_check_modules(GSTREAMER_VIDEO REQUIRED gstreamer-video-1.0)
 include_directories(${GSTREAMER_INCLUDE_DIRS})
 include_directories(${GSTREAMER_BASE_INCLUDE_DIRS})
 include_directories(${GSTREAMER_VIDEO_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../operators/gstreamer/core)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../operators/gstreamer)
 
 # Add the operators/gstreamer subdirectory
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../operators/gstreamer ${CMAKE_CURRENT_BINARY_DIR}/operators_gstreamer)

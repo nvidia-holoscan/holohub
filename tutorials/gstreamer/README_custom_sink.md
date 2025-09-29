@@ -12,7 +12,7 @@ The custom sink (`simplecustomsink`) is a video sink that:
 
 ## Files
 
-**In `operators/gstreamer/core/`:**
+**In `operators/gstreamer/`:**
 - `gstsimplecustomsink.h` - Header file defining the sink element
 - `gstsimplecustomsink.c` - Implementation of the custom sink
 - `gst_sink_resource.hpp` - Holoscan Resource wrapper for the GStreamer sink
@@ -204,25 +204,64 @@ The `GstSinkResource` class provides a Holoscan Resource wrapper around the cust
 
 - **Holoscan Resource API**: Follows Holoscan Resource patterns with `initialize()` and proper lifecycle management
 - **Automatic GStreamer Management**: Handles GStreamer initialization and element registration
-- **Pipeline Creation**: Built-in `create_pipeline()` method for easy pipeline construction
+- **Element Access**: Provides `get_element()` method to access the sink element for pipeline integration
 - **Property Management**: Methods to configure sink properties (save buffers, output directory, data rate)
 - **Resource Cleanup**: Automatic cleanup of GStreamer resources in destructor
 
 ### Usage in Holoscan Applications
 
+The `GstSinkResource` follows the same parameter pattern as other Holoscan resources (like ROS2 Bridge):
+
 ```cpp
-#include "../../operators/gstreamer/core/gst_sink_resource.hpp"
+#include "../../operators/gstreamer/gst_sink_resource.hpp"
 
-// Create the resource
-auto gst_sink = std::make_shared<GstSinkResource>("my_sink", false, "/tmp", 30.0);
-gst_sink->initialize();
+// In your operator class:
+class MyGstOperator : public holoscan::Operator {
+ public:
+  void setup(OperatorSpec& spec) override {
+    // Add GstSinkResource as a parameter (similar to ros2_bridge pattern)
+    spec.param(gst_sink_resource_, "gst_sink_resource", "GStreamerSink", 
+               "GStreamer sink resource object");
+  }
 
-// Create a pipeline
-GstElement* pipeline = gst_sink->create_pipeline("videotestsrc ! videoconvert");
+  void initialize() override {
+    Operator::initialize();
+    // Ensure the resource is provided and valid
+    assert(gst_sink_resource_.get());
+    assert(gst_sink_resource_.get()->valid());
+    
+    // Create your own pipeline and add the sink element
+    pipeline_ = gst_pipeline_new("my-pipeline");
+    GstElement* source = gst_element_factory_make("videotestsrc", "source");
+    GstElement* convert = gst_element_factory_make("videoconvert", "convert");
+    GstElement* sink = gst_sink_resource()->get_element();
+    
+    gst_bin_add_many(GST_BIN(pipeline_), source, convert, sink, nullptr);
+    gst_element_link_many(source, convert, sink, nullptr);
+  }
 
-// Use in Holoscan operator
-class MyOperator : public holoscan::Operator {
-  // ... operator implementation using gst_sink
+ protected:
+  GstSinkResourcePtr gst_sink_resource() { return gst_sink_resource_.get(); }
+
+ private:
+  Parameter<GstSinkResourcePtr> gst_sink_resource_;
+};
+
+// In your application:
+class MyApp : public Application {
+ public:
+  void compose() override {
+    // Create the resource outside the operator
+    auto gst_sink = make_resource<GstSinkResource>("gst_sink", "sink_name", false, "/tmp", 30.0);
+    
+    // Pass it to the operator as a parameter
+    auto my_op = make_operator<MyGstOperator>(
+        "my_op",
+        Arg("gst_sink_resource", gst_sink)
+    );
+    
+    add_operator(my_op);
+  }
 };
 ```
 
