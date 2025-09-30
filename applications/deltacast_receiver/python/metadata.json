@@ -1,0 +1,42 @@
+{
+	"application": {
+		"name": "Deltacast Videomaster Receiver",
+		"authors": [
+			{
+				"name": "Pierre PERICK",
+				"affiliation": "DELTACAST"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0",
+				"2.9.0",
+				"3.0.0"
+			]
+		},
+		"videomaster_sdk": {
+			"minimum_required_version": "6.26.0",
+			"tested_versions": [
+				"6.29.0",
+				"6.30.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Healthcare AI", "Video", "Deltacast", "Endoscopy", "RDMA", "GPUDirect", "Receiver"],
+		"ranking": 2,
+		"requirements": {},
+		"run": {
+			"command": "python3 <holohub_app_source>/deltacast_receiver.py",
+			"workdir": "holohub_bin"
+		}
+	}
+}
