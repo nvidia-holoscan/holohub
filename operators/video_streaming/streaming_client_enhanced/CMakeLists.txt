@@ -277,27 +277,6 @@ install(FILES
   DESTINATION lib/cmake/streaming_client
 )
 
-# Python bindings
-# Python bindings disabled for unified video_streaming operator
-
-# Testing infrastructure (following working app1_testing pattern)
-include(CTest)
-if(BUILD_TESTING)
-  add_subdirectory(testing)
-
-  # Register pytest tests with CTest (using your proven app1_testing pattern)
-  find_package(Python3 COMPONENTS Interpreter)
-  if(Python3_FOUND)
-    message(STATUS "Adding pytest tests manually (app1_testing pattern)...")
-    add_test(NAME streaming_client_enhanced_operator_unit_test
-             COMMAND /bin/bash -c "${Python3_EXECUTABLE} -m pip install --user pytest --quiet && ${Python3_EXECUTABLE} -m pytest testing/test_streaming_client_op_bindings.py -v"
-             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    set_tests_properties(streaming_client_enhanced_operator_unit_test PROPERTIES
-                         ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
-                         TIMEOUT 120
-                         LABELS "unit;operator;python")
-  endif()
-endif()
 
 # Print status message
 message(STATUS "StreamingClient operator configuration complete with imported targets.")

@@ -196,27 +196,7 @@ if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcudart.so)
     )
 endif()
 
-# Add Python bindings if enabled
-# Python bindings disabled for unified video_streaming operator
 
-# Add testing subdirectory if enabled
-if(BUILD_TESTING)
-  add_subdirectory(testing)
-
-  # Register operator-level pytest tests (following streaming_client_enhanced pattern)
-  find_package(Python3 COMPONENTS Interpreter)
-  if(Python3_FOUND)
-    message(STATUS "Adding operator-level pytest tests for streaming_server_enhanced...")
-    add_test(NAME streaming_server_enhanced_operator_binding_tests
-             COMMAND /bin/bash -c "${Python3_EXECUTABLE} -m pip install --user pytest --quiet && ${Python3_EXECUTABLE} -m pytest testing/test_streaming_server_*_bindings.py -v"
-             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    set_tests_properties(streaming_server_enhanced_operator_binding_tests PROPERTIES
-                         ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
-                         TIMEOUT 120
-                         LABELS "python;bindings;streaming_server;operator")
-    message(STATUS "  - Python binding tests: test_streaming_server_*_bindings.py")
-  endif()
-endif()
 
 # Export targets
 install(EXPORT streaming_server_enhanced_targets
