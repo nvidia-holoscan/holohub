@@ -198,9 +198,6 @@ endif()
 
 # Add Python bindings if enabled
 # Python bindings disabled for unified video_streaming operator
-# if(HOLOHUB_BUILD_PYTHON)
-#   add_subdirectory(python)
-# endif()
 
 # Add testing subdirectory if enabled
 if(BUILD_TESTING)
