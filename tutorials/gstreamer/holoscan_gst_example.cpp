@@ -173,12 +173,22 @@ class GstSinkOperator : public Operator {
         //   HOLOSCAN_LOG_WARN("Failed to map buffer data");
         // }
       } // GstMapInfo destructor automatically unmaps the buffer
-      
+
       // Demonstrate accessing actual buffer data using MappedBuffer
       if (buffer_size >= 8) {
         HOLOSCAN_LOG_INFO("First 8 bytes: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
                          buffer_data[0], buffer_data[1], buffer_data[2], buffer_data[3],
                          buffer_data[4], buffer_data[5], buffer_data[6], buffer_data[7]);
+      }
+
+      // Demonstrate new validation features (Phase 2 Step 6)
+      bool is_valid = mapped_buffer.validate();
+      HOLOSCAN_LOG_INFO("Buffer validation: {}", is_valid ? "PASS" : "FAIL");
+
+      // Show detailed validation report (only for first few buffers to avoid spam)
+      if (buffer_count_ <= 3) {
+        std::string validation_report = mapped_buffer.get_validation_report();
+        HOLOSCAN_LOG_INFO("Validation Report:\n{}", validation_report);
       }
 
       // In a real application, you would:

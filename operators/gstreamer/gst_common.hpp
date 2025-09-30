@@ -413,6 +413,18 @@ public:
    */
   const MapInfo& get_map_info() const;
 
+  /**
+   * @brief Validate the mapped buffer data
+   * @return true if buffer data is valid, false otherwise
+   */
+  bool validate() const;
+
+  /**
+   * @brief Get detailed validation report for this buffer
+   * @return Detailed validation report string
+   */
+  std::string get_validation_report() const;
+
 private:
   Buffer buffer_;           // Keep buffer alive during mapping
   VideoInfo video_info_;   // Video format information
