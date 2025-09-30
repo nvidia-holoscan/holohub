@@ -15,9 +15,9 @@
         "platforms": ["x86_64", "aarch64"],
         "tags": ["Streaming", "Server", "Networking", "Cloud", "Video"],
         "holoscan_sdk": {
-            "minimum_required_version": "3.4.0",
+            "minimum_required_version": "3.5.0",
             "tested_versions": [
-                "3.4.0"
+                "3.5.0"
             ]
         },
         "ranking": 1,
