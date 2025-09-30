@@ -78,6 +78,14 @@ if(holoscan_VERSION GREATER 3.5)
   )
 endif()
 
+if("${holoscan_VERSION}" VERSION_GREATER_EQUAL "3.7")
+  # holoscan::holoinfer_utils is directly available in Holoscan SDK 3.7 and later
+  target_link_libraries(object_detection_torch PRIVATE holoscan::holoinfer_utils)
+else()
+  # "holoscan_utils.hpp" is exposed through holoscan::infer in Holoscan SDK 3.6 and earlier
+  target_link_libraries(object_detection_torch PRIVATE holoscan::infer)
+endif()
+
 # Download the cars sample data
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)

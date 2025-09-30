@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <holoscan/holoscan.hpp>
+#include <holoinfer_utils.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/inference/inference.hpp>
