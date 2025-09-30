@@ -279,9 +279,6 @@ install(FILES
 
 # Python bindings
 # Python bindings disabled for unified video_streaming operator
-# if(HOLOHUB_BUILD_PYTHON)
-#   add_subdirectory(python)
-# endif()
 
 # Testing infrastructure (following working app1_testing pattern)
 include(CTest)
