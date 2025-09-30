@@ -67,3 +67,7 @@ data-streaming_*/
 Testing/
 *.log
 *_backup/
+
+# Exclude holoscan cloud streaming binaries
+**/holoscan_client_cloud_streaming/
+**/holoscan_server_cloud_streaming/
