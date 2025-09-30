@@ -13,14 +13,10 @@ video_streaming/
 ├── streaming_client_enhanced/    # Complete streaming client operator
 │   ├── streaming_client.cpp     # Main client implementation
 │   ├── frame_saver.cpp          # Frame saving utility
-│   ├── testing/                 # Client test suite
-│   ├── python/                  # Python bindings
 │   └── holoscan_client_cloud_streaming/  # Client streaming binary
 ├── streaming_server_enhanced/    # Complete streaming server operator
 │   ├── streaming_server_*.cpp   # Server implementations
 │   ├── frame_debug_utils.cpp    # Debug utilities
-│   ├── testing/                 # Server test suite  
-│   ├── python/                  # Python bindings
 │   └── holoscan_server_cloud_streaming/  # Server streaming binary
 ├── CMakeLists.txt               # Unified build configuration
 ├── metadata.json                # Combined metadata
@@ -90,18 +86,6 @@ add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
 #include "streaming_server_downstream_op.hpp"
 ```
 
-#### Python Applications
-```python
-# Client
-from holohub.streaming_client_enhanced import StreamingClientOp
-
-# Server
-from holohub.streaming_server_enhanced import (
-    StreamingServerResource,
-    StreamingServerUpstreamOp, 
-    StreamingServerDownstreamOp
-)
-```
 
 ## Dependencies
 
@@ -122,12 +106,7 @@ ngc registry resource download-version nvidia/holoscan_server_cloud_streaming:0.
 
 ## Testing
 
-Each component maintains its own comprehensive test suite:
-
-- **Client Tests**: `streaming_client_enhanced/testing/`
-- **Server Tests**: `streaming_server_enhanced/testing/`
-
-Run tests individually or as part of the unified build.
+Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of both client and server components working together.
 
 ## Related Applications
 
@@ -142,7 +121,6 @@ If migrating from the previous separate operators:
 
 1. **CMakeLists.txt**: Update dependency from `streaming_client_enhanced` and `streaming_server_enhanced` to `video_streaming`
 2. **Include paths**: No changes needed - original paths are preserved
-3. **Python imports**: No changes needed - original module names are preserved
 
 ### Benefits of Unification
 

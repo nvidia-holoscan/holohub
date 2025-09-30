@@ -11,7 +11,7 @@
         "changelog": {
             "2.7.0": "Unified video streaming operators with client and server components"
         },
-        "language": ["C++", "Python"],
+        "language": ["C++"],
         "platforms": ["x86_64", "aarch64"],
         "tags": ["Video", "Streaming", "Client", "Server", "Networking", "Cloud", "Bidirectional"],
         "holoscan_sdk": {

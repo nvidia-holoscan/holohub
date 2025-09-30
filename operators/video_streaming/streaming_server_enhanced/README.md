@@ -275,18 +275,7 @@ Note: If the test haproxy is still running, and you wish to test the executable 
 
 ## Testing
 
-For comprehensive testing information including unit tests, golden frame testing, and functional tests, see:
-
-📋 **[Testing Documentation](testing/README.md)** - Complete testing suite with 15/15 tests passing
-
-The testing infrastructure includes:
-- **Unit Tests**: Comprehensive operator testing with mock framework
-- **Golden Frame Tests**: Visual regression testing with reference images
-- **Functional Tests**: End-to-end pipeline testing with real video data
-- **Python Binding Tests**: pybind11 interface validation
-- **Comprehensive Test Suites**: Multiple execution modes for different scenarios
-
-Run all tests with: `./holohub test streaming_server_demo_enhanced --verbose`
+Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of the streaming server working with the client.
 
 ## Related Applications
 

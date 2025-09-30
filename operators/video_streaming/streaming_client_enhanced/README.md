@@ -119,18 +119,7 @@ v4l2-ctl --device=/dev/video0 --list-formats-ext | grep -E "Size:|Interval:"
 
 ## Testing
 
-For comprehensive testing information including unit tests, golden frame testing, and functional tests, see:
-
-📋 **[Testing Documentation](testing/README.md)** - Complete testing suite with 25/25 tests passing
-
-The testing infrastructure includes:
-- **Unit Tests**: Comprehensive operator testing with mock framework
-- **Golden Frame Tests**: Visual regression testing with reference images
-- **Functional Tests**: End-to-end pipeline testing with real video data
-- **Python Binding Tests**: pybind11 interface validation
-- **Comprehensive Test Suites**: Multiple execution modes for different scenarios
-
-Run all tests with: `./holohub test streaming_client_demo_enhanced --verbose`
+Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of the streaming client working with the server.
 
 ## Related Applications
 
