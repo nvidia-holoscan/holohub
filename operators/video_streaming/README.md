@@ -1,0 +1,163 @@
+# Video Streaming Operators
+
+A unified package containing both streaming client and server operators for real-time video communication in Holoscan applications.
+
+## Overview
+
+This operator package combines `streaming_client_enhanced` and `streaming_server_enhanced` into a single, cohesive video streaming solution while maintaining the original directory structure for backward compatibility.
+
+## Structure
+
+```
+video_streaming/
+├── streaming_client_enhanced/    # Complete streaming client operator
+│   ├── streaming_client.cpp     # Main client implementation
+│   ├── frame_saver.cpp          # Frame saving utility
+│   ├── testing/                 # Client test suite
+│   ├── python/                  # Python bindings
+│   └── holoscan_client_cloud_streaming/  # Client streaming binary
+├── streaming_server_enhanced/    # Complete streaming server operator
+│   ├── streaming_server_*.cpp   # Server implementations
+│   ├── frame_debug_utils.cpp    # Debug utilities
+│   ├── testing/                 # Server test suite  
+│   ├── python/                  # Python bindings
+│   └── holoscan_server_cloud_streaming/  # Server streaming binary
+├── CMakeLists.txt               # Unified build configuration
+├── metadata.json                # Combined metadata
+└── README.md                    # This file
+```
+
+## Components
+
+### Streaming Client Enhanced (`streaming_client_enhanced/`)
+
+The client component provides bidirectional video streaming capabilities:
+
+- **StreamingClientOp**: Main operator for video streaming client functionality
+- **FrameSaverOp**: Utility operator for saving frames to disk
+- **Features**: 
+  - Send and receive video frames
+  - Multiple video formats (BGR, BGRA, RGBA)
+  - V4L2 camera support
+  - Frame validation and debugging
+
+**Documentation**: See `streaming_client_enhanced/README.md` for detailed information.
+
+### Streaming Server Enhanced (`streaming_server_enhanced/`)
+
+The server component provides comprehensive streaming server functionality:
+
+- **StreamingServerResource**: Shared resource managing server connections
+- **StreamingServerUpstreamOp**: Handles incoming video streams from clients
+- **StreamingServerDownstreamOp**: Handles outgoing video streams to clients
+- **Features**:
+  - Multi-client support
+  - Format conversion utilities
+  - Frame processing and validation
+  - Debug utilities for troubleshooting
+
+**Documentation**: See `streaming_server_enhanced/README.md` for detailed information.
+
+## Usage
+
+### Building
+
+The video_streaming operator is built as a unified package:
+
+```bash
+# From holohub root
+cmake --build build --target video_streaming
+```
+
+This builds both client and server components simultaneously.
+
+### In Applications
+
+#### CMakeLists.txt
+```cmake
+add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
+```
+
+#### C++ Applications
+```cpp
+// Client functionality
+#include "streaming_client.hpp"
+#include "frame_saver.hpp"
+
+// Server functionality  
+#include "streaming_server_resource.hpp"
+#include "streaming_server_upstream_op.hpp"
+#include "streaming_server_downstream_op.hpp"
+```
+
+#### Python Applications
+```python
+# Client
+from holohub.streaming_client_enhanced import StreamingClientOp
+
+# Server
+from holohub.streaming_server_enhanced import (
+    StreamingServerResource,
+    StreamingServerUpstreamOp, 
+    StreamingServerDownstreamOp
+)
+```
+
+## Dependencies
+
+### Required
+- **Holoscan SDK 2.7+**: Core framework
+- **CUDA**: GPU acceleration support
+
+### Cloud Streaming Binaries
+Both client and server require their respective NGC binaries:
+
+```bash
+# Client binary
+ngc registry resource download-version nvidia/holoscan_client_cloud_streaming:0.2
+
+# Server binary  
+ngc registry resource download-version nvidia/holoscan_server_cloud_streaming:0.2
+```
+
+## Testing
+
+Each component maintains its own comprehensive test suite:
+
+- **Client Tests**: `streaming_client_enhanced/testing/`
+- **Server Tests**: `streaming_server_enhanced/testing/`
+
+Run tests individually or as part of the unified build.
+
+## Related Applications
+
+- **[Streaming Client Demo Enhanced](../../applications/streaming_client_demo_enhanced/)**: Example client application
+- **[Streaming Server Demo Enhanced](../../applications/streaming_server_demo_enhanced/)**: Example server application
+
+## Migration Notes
+
+### From Separate Operators
+
+If migrating from the previous separate operators:
+
+1. **CMakeLists.txt**: Update dependency from `streaming_client_enhanced` and `streaming_server_enhanced` to `video_streaming`
+2. **Include paths**: No changes needed - original paths are preserved
+3. **Python imports**: No changes needed - original module names are preserved
+
+### Benefits of Unification
+
+- **Simplified Dependencies**: Single operator dependency instead of two
+- **Coordinated Releases**: Client and server components stay in sync  
+- **Unified Documentation**: Comprehensive overview of the streaming ecosystem
+- **Easier Maintenance**: Single build target and configuration
+
+## Performance Notes
+
+- Both components support GPU memory allocation for optimal performance
+- Configure appropriate buffer sizes for your streaming requirements
+- Monitor network bandwidth for remote streaming scenarios
+- Use debug utilities to troubleshoot frame processing issues
+
+## License
+
+Apache-2.0 - See the LICENSE file for details.
