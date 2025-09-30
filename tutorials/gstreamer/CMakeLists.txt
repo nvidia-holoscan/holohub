@@ -46,9 +46,9 @@ target_link_libraries(basic-tutorial-1 ${GSTREAMER_LIBRARIES})
 target_link_libraries(basic-tutorial-2 ${GSTREAMER_LIBRARIES})
 target_link_libraries(basic-tutorial-3 ${GSTREAMER_LIBRARIES})
 target_link_libraries(playback-tutorial-1 ${GSTREAMER_LIBRARIES})
-target_link_libraries(custom-sink-example 
+target_link_libraries(custom-sink-example
     ${GSTREAMER_LIBRARIES}
-    ${GSTREAMER_BASE_LIBRARIES} 
+    ${GSTREAMER_BASE_LIBRARIES}
     ${GSTREAMER_VIDEO_LIBRARIES}
     holoscan_gstreamer_sink)
 target_link_libraries(holoscan-gst-example
@@ -56,7 +56,8 @@ target_link_libraries(holoscan-gst-example
     ${GSTREAMER_BASE_LIBRARIES}
     ${GSTREAMER_VIDEO_LIBRARIES}
     holoscan_gstreamer_sink
-    holoscan::core)
+    holoscan::core
+    holoscan::ops::holoviz)
 
 # Set library directories
 link_directories(${GSTREAMER_LIBRARY_DIRS})

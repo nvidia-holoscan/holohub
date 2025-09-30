@@ -69,9 +69,19 @@ RUN apt-get update \
         gstreamer1.0-gtk3 \
         gstreamer1.0-qt5 \
         gstreamer1.0-pulseaudio \
+        # Vulkan packages for Holoviz support
+        vulkan-tools \
+        vulkan-validationlayers \
+        libvulkan-dev \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
+
+# Create Vulkan directories and configure NVIDIA ICD
+RUN mkdir -p /usr/share/vulkan/icd.d /usr/share/vulkan/explicit_layer.d
+
+# Create NVIDIA Vulkan ICD configuration
+RUN echo '{"file_format_version": "1.0.0", "ICD": {"library_path": "libGLX_nvidia.so.0", "api_version": "1.3.275"}}' > /usr/share/vulkan/icd.d/nvidia_icd.json
 
 # Set the default user.
 # (See https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user)

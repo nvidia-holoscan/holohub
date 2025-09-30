@@ -32,8 +32,10 @@
         }
     },
     "runArgs": [
+        "--runtime=nvidia",
         "--net=host",
-        //"<env>"
+        "--cap-add=SYS_PTRACE",
+        "--security-opt=seccomp=unconfined"
     ],
     "containerEnv": {
         // X11 support
@@ -45,7 +47,12 @@
         "HOLOSCAN_INPUT_PATH": "/opt/nvidia/holoscan/data",
         "HOLOSCAN_ROOT": "/opt/nvidia/holoscan",
         "WORKSPACE_DIR": "${containerWorkspaceFolder}",
-        "CUPY_CACHE_DIR": "/workspace/holohub/.cupy/kernel_cache"
+        "CUPY_CACHE_DIR": "/workspace/holohub/.cupy/kernel_cache",
+        // CUDA library path for Holoviz support
+        "LD_LIBRARY_PATH": "/usr/local/cuda-12.8/compat/lib.real:${containerEnv:LD_LIBRARY_PATH}",
+        // Vulkan environment variables for Holoviz
+        "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "VK_LAYER_PATH": "/usr/share/vulkan/explicit_layer.d"
     },
     "mounts": [
         "source=/dev,target=/dev,type=bind",
@@ -53,6 +60,8 @@
         "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
         // Wayland support
         "source=${localEnv:XDG_RUNTIME_DIR},target=${localEnv:XDG_RUNTIME_DIR},type=bind,consistency=cached",
+        // Mount Vulkan driver ICD configuration
+        "source=/usr/share/vulkan/icd.d/nvidia_icd.json,target=/usr/share/vulkan/icd.d/nvidia_icd.json,type=bind",
         // Persist home directory to a volume
         "source=holohub-vscode-profile,target=/home/holohub/,type=volume",
     ],

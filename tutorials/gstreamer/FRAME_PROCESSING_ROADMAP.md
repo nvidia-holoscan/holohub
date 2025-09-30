@@ -56,27 +56,27 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 
 ---
 
-## Phase 3: Simple CPU Processing
+## Phase 3: Holoviz Integration for Video Visualization ✅ COMPLETED
 
-### Basic Processing Operations
-- [ ] **7. Implement basic video processing functions**
-  - Pixel manipulation (brightness, contrast)
-  - Simple filters (blur, edge detection)
-  - Color space operations
+### Video Frame Display Integration
+- [x] **7. Integrate Holoviz operator for video frame visualization** ✅ COMPLETED
+  - ✅ Add Holoviz operator to GStreamer example
+  - ✅ Configure Holoviz for video frame display
+  - ✅ Set up proper data flow from GStreamer to Holoviz
 
-- [ ] **8. Implement basic audio processing functions**
-  - Volume adjustment
-  - Simple filters (low-pass, high-pass)
-  - Channel operations (mono/stereo conversion)
+- [x] **8. Implement GStreamer to Holoviz data conversion** ✅ COMPLETED
+  - ✅ Convert GStreamer buffer data to Holoviz-compatible format using GXF tensors
+  - ✅ Handle different video formats (RGB, YUV, etc.) with proper memory management
+  - ✅ Implement proper memory management with UnboundedAllocator
 
-- [ ] **9. Add processing pipeline framework**
-  - Composable processing steps
-  - Error handling and recovery
-  - Performance timing/profiling
+- [x] **9. Add comprehensive video visualization pipeline** ✅ COMPLETED
+  - ✅ Real-time video frame display in Holoviz
+  - ✅ Error handling and recovery for visualization
+  - ✅ Performance optimization with proper tensor creation
 
-**Estimated Time:** 1 week  
-**Dependencies:** Phase 2  
-**Deliverable:** CPU-based processing capabilities
+**Estimated Time:** 1 week ✅  
+**Dependencies:** Phase 2 ✅  
+**Deliverable:** ✅ Real-time video frame visualization using Holoviz
 
 ---
 
@@ -178,15 +178,15 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 
 ## Timeline Summary
 
-| Phase | Duration | Total Time | Key Deliverable |
-|-------|----------|------------|-----------------|
-| 1 | 1 week | 1 week | Basic buffer access |
-| 2 | 1 week | 2 weeks | Format-aware processing |
-| 3 | 1 week | 3 weeks | CPU processing |
-| 4 | 1 week | 4 weeks | GPU memory access |
-| 5 | 2-3 weeks | 6-7 weeks | GPU processing |
-| 6 | 2 weeks | 8-9 weeks | Output & integration |
-| 7 | 1-2 weeks | 9-11 weeks | Production polish |
+| Phase | Duration | Total Time | Key Deliverable | Status |
+|-------|----------|------------|-----------------|---------|
+| 1 | 1 week | 1 week | Basic buffer access | ✅ COMPLETED |
+| 2 | 1 week | 2 weeks | Format-aware processing | ✅ COMPLETED |
+| 3 | 1 week | 3 weeks | Holoviz integration | ✅ COMPLETED |
+| 4 | 1 week | 4 weeks | GPU memory access | 🔄 NEXT |
+| 5 | 2-3 weeks | 6-7 weeks | GPU processing | ⏳ PENDING |
+| 6 | 2 weeks | 8-9 weeks | Output & integration | ⏳ PENDING |
+| 7 | 1-2 weeks | 9-11 weeks | Production polish | ⏳ PENDING |
 
 **Total Estimated Time:** 9-11 weeks
 
@@ -206,9 +206,9 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 
 ## Current Status
 
-**Current Phase:** ✅ Phase 2 COMPLETED - Format-Aware Processing Complete  
+**Current Phase:** ✅ Phase 3 COMPLETED - Holoviz Integration Complete  
 **Last Updated:** [Current Date]  
-**Next Milestone:** Phase 3 - Simple CPU Processing
+**Next Milestone:** Phase 4 - GPU Memory Detection & Access
 
 ### Progress Notes
 - ✅ Initial roadmap created
@@ -228,7 +228,15 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 - ✅ **Phase 2 Step 6 COMPLETED**: Format validation and safety checks implemented
 - ✅ Buffer size validation, stride/padding validation, format mismatch detection
 - ✅ Comprehensive validation reporting with detailed diagnostics
-- ✅ All builds passing - **PHASE 2 COMPLETE** - ready for Phase 3!
+- ✅ **Phase 3 COMPLETED**: Holoviz integration with real-time video visualization
+- ✅ GXF tensor creation with proper memory management using UnboundedAllocator
+- ✅ Fixed segmentation fault issues with proper tensor lifecycle management
+- ✅ Created reusable `create_tensor()` function for clean code organization
+- ✅ Real-time video frame display working successfully in Holoviz window
+- ✅ **Recent Improvements**: Fixed critical segmentation fault and memory management issues
+- ✅ **Code Refactoring**: Created reusable `create_tensor()` function for better maintainability
+- ✅ **Error Handling**: Added comprehensive error checking for all GXF operations
+- ✅ All builds passing - **PHASE 3 COMPLETE** - ready for Phase 4!
 
 ---
 

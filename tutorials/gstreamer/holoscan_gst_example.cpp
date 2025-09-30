@@ -5,6 +5,9 @@
 
 #include <gst/gst.h>
 #include <holoscan/holoscan.hpp>
+#include <holoscan/operators/holoviz/holoviz.hpp>
+#include <dlpack/dlpack.h>
+#include <gxf/std/tensor.hpp>
 #include "../../operators/gstreamer/gst_sink_resource.hpp"
 
 using namespace holoscan;
@@ -24,9 +27,18 @@ class GstSinkOperator : public Operator {
     spec.param(gst_sink_resource_, "gst_sink_resource", "GStreamerSink", "GStreamer sink resource object");
     spec.param(pipeline_desc_, "pipeline_desc", "Pipeline Description", 
                "GStreamer pipeline description", std::string("videotestsrc pattern=0 ! videoconvert"));
+    
+    /// Add output for video frames to Holoviz
+    spec.output<holoscan::Tensor>("output");
   }
 
   void initialize() override {
+    // Create an allocator for the operator
+    allocator_ = fragment()->make_resource<UnboundedAllocator>("pool");
+    // Add the allocator to the operator so that it is initialized
+    add_arg(allocator_);
+
+    // Call the base class initialize function
     Operator::initialize();
 
     // Ensure the GStreamer sink resource is provided and valid
@@ -90,6 +102,67 @@ class GstSinkOperator : public Operator {
     HOLOSCAN_LOG_INFO("GStreamer pipeline started");
   }
 
+  /**
+   * @brief Create a Holoscan tensor from raw data
+   * @param data Raw data pointer
+   * @param size Size of the data in bytes
+   * @param height Image height
+   * @param width Image width
+   * @param context Execution context for GXF operations
+   * @return Shared pointer to Holoscan tensor, or nullptr if creation fails
+   */
+  std::shared_ptr<holoscan::Tensor> create_tensor(const guint8* data, gsize size, 
+                                                  int height, int width, 
+                                                  ExecutionContext& context) {
+    try {
+      // Create a GXF entity to hold our tensor
+      auto entity = holoscan::gxf::Entity::New(&context);
+      
+      // Get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
+      auto gxf_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(),
+                                                                             allocator_->gxf_cid());
+      if (!gxf_allocator) {
+          HOLOSCAN_LOG_ERROR("Failed to create GXF allocator handle");
+          return nullptr;
+      }
+      
+      // Create a GXF tensor with proper memory management
+      auto gxf_tensor_result = static_cast<nvidia::gxf::Entity&>(entity).add<nvidia::gxf::Tensor>("image");
+      if (!gxf_tensor_result) {
+          HOLOSCAN_LOG_ERROR("Failed to add tensor to entity");
+          return nullptr;
+      }
+      auto gxf_tensor = gxf_tensor_result.value();
+      
+      // Reshape the tensor to match our image dimensions (HWC format)
+      auto reshape_result = gxf_tensor->reshape<uint8_t>(
+          nvidia::gxf::Shape({height, width, 4}), 
+          nvidia::gxf::MemoryStorageType::kHost, 
+          gxf_allocator.value());
+      if (!reshape_result) {
+          HOLOSCAN_LOG_ERROR("Failed to reshape tensor");
+          return nullptr;
+      }
+      
+      // Copy the data from source to the tensor
+      std::memcpy(gxf_tensor->pointer(), data, size);
+      
+      // Convert GXF tensor to DLManagedTensorContext
+      auto maybe_dl_ctx = gxf_tensor->toDLManagedTensorContext();
+      if (!maybe_dl_ctx) {
+          HOLOSCAN_LOG_ERROR("Failed to convert GXF tensor to DLManagedTensorContext");
+          return nullptr;
+      }
+      
+      // Create Holoscan tensor from DLManagedTensorContext
+      return std::make_shared<holoscan::Tensor>(maybe_dl_ctx.value());
+      
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_ERROR("Failed to create tensor: {}", e.what());
+      return nullptr;
+    }
+  }
+
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
 
     // Demonstrate the new client-side buffer retrieval and analysis
@@ -142,38 +215,6 @@ class GstSinkOperator : public Operator {
         }
       }
 
-      // No manual cleanup needed - GstCaps handles it automatically!
-
-      // Demonstrate accessing actual buffer data using RAII mapping
-      {
-        // MapInfo map_info(buffer, GST_MAP_READ); // Removed - using MappedBuffer instead
-        // if (map_info.is_mapped()) { // Removed - using MappedBuffer instead
-          // HOLOSCAN_LOG_DEBUG("Mapped buffer: {} bytes at address {}",
-          //                  map_info.size(), static_cast<void*>(map_info.data()));
-
-          // Example: Show first few bytes of data (safe for any buffer type)
-          // if (map_info.size() >= 8) {
-          //   const guint8* data = map_info.data();
-          //   HOLOSCAN_LOG_INFO("First 8 bytes: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
-          //                    data[0], data[1], data[2], data[3],
-          //                    data[4], data[5], data[6], data[7]);
-          // }
-
-          // In a real application, you would:
-          // - Convert to OpenCV Mat for image processing
-          // - Copy to CUDA memory for GPU processing
-          // - Pass to neural networks for inference
-          // - Write to files or network streams
-          // Example pseudocode:
-          // if (g_str_has_prefix(media_type, "video/")) {
-          //   cv::Mat frame = gst_buffer_to_opencv_mat(map_info.data(), width, height, format);
-          //   your_processing_function(frame);
-          // }
-        // } else {
-        //   HOLOSCAN_LOG_WARN("Failed to map buffer data");
-        // }
-      } // GstMapInfo destructor automatically unmaps the buffer
-
       // Demonstrate accessing actual buffer data using MappedBuffer
       if (buffer_size >= 8) {
         HOLOSCAN_LOG_INFO("First 8 bytes: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
@@ -189,6 +230,16 @@ class GstSinkOperator : public Operator {
       if (buffer_count_ <= 3) {
         std::string validation_report = mapped_buffer.get_validation_report();
         HOLOSCAN_LOG_INFO("Validation Report:\n{}", validation_report);
+      }
+
+      // Create a tensor from the buffer data using our helper function
+      auto tensor = create_tensor(buffer_data, buffer_size, height, width, context);
+      if (tensor) {
+          output.emit(tensor, "output");
+          HOLOSCAN_LOG_INFO("Emitted tensor to Holoviz: {}x{}x{} ({} bytes)", 
+                            height, width, 4, buffer_size);
+      } else {
+          HOLOSCAN_LOG_ERROR("Failed to create tensor from buffer data");
       }
 
       // In a real application, you would:
@@ -257,6 +308,7 @@ class GstSinkOperator : public Operator {
   Parameter<std::string> pipeline_desc_;
   GstElement* pipeline_ = nullptr;
   uint32_t buffer_count_ = 0;  // Client-side buffer counting
+  std::shared_ptr<UnboundedAllocator> allocator_;
 };
 
 /**
@@ -279,8 +331,24 @@ class GstSinkApp : public Application {
         Arg("pipeline_desc", pipeline_desc_)
     );
 
-    // Add to the application
+    // Create Holoviz operator for video visualization
+    // Note: Resolution will be determined dynamically from GStreamer pipeline
+    auto holoviz = make_operator<ops::HolovizOp>(
+        "holoviz",
+        Arg("width", 320U),  // Match typical videotestsrc resolution
+        Arg("height", 240U),
+        Arg("allocator", make_resource<UnboundedAllocator>("holoviz_allocator")),
+        Arg("tensors", std::vector<ops::HolovizOp::InputSpec>{
+            ops::HolovizOp::InputSpec("", ops::HolovizOp::InputType::COLOR)
+        })
+    );
+
+    // Add operators to the application
     add_operator(gst_op);
+    add_operator(holoviz);
+
+    // Connect GStreamer operator output to Holoviz input
+    add_flow(gst_op, holoviz, {{"output", "receivers"}});
   }
 
  private:
