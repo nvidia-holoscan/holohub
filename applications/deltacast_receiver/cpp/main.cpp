@@ -51,16 +51,14 @@ class App : public holoscan::Application {
         make_operator<ops::FormatConverterOp>("format_converter",
                                               from_config("format_converter"),
                                               Arg("pool") = make_resource<BlockMemoryPool>(
-                                                  "converter_pool", 1, source_block_size, source_num_blocks));
+                                                  "converter_pool", 1, source_block_size,
+                                                  source_num_blocks));
 
-    
     auto drop_alpha_channel_converter = make_operator<ops::FormatConverterOp>(
             "drop_alpha_channel_converter",
             from_config("drop_alpha_channel_converter"),
             Arg("pool") =
                 make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
-    
-    // Holoviz for visualization
     auto visualizer = make_operator<ops::HolovizOp>(
         "holoviz",
         from_config("holoviz"),

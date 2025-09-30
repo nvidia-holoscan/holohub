@@ -18,10 +18,10 @@ extensions:
  - lib/gxf_extensions/libgxf_videomaster.so
 
 deltacast:
-  width: 3840
-  height: 2160
+  width: 1920
+  height: 1080
   progressive: true
-  framerate: 60
+  framerate: 30
   board: 0
   input: 0
   rdma: false
