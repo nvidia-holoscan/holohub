@@ -8,14 +8,14 @@
             }
         ],
         "language": "C++",
-        "version": "2.7.0",
+        "version": "3.5.0",
         "changelog": {
-            "2.7.0": "Enhanced video streaming server demo with bidirectional streaming support"
+            "3.5.0": "Enhanced video streaming server demo with bidirectional streaming support"
         },
         "holoscan_sdk": {
-            "minimum_required_version": "2.7.0",
+            "minimum_required_version": "3.5.0",
             "tested_versions": [
-                "2.7.0"
+                "3.5.0"
             ]
         },
         "platforms": [
@@ -34,7 +34,7 @@
             "operators": [
                 {
                     "name": "video_streaming",
-                    "version": "2.7.0"
+                    "version": "3.5.0"
                 }
             ]
         },
