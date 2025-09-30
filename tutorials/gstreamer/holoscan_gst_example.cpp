@@ -8,9 +8,10 @@
 #include "../../operators/gstreamer/gst_sink_resource.hpp"
 
 using namespace holoscan;
+using namespace holoscan::gst;
 
 /**
- * @brief Simple Holoscan operator that uses the GstSinkResource
+ * @brief Simple Holoscan operator that uses the SinkResource
  */
 class GstSinkOperator : public Operator {
  public:
@@ -101,28 +102,26 @@ class GstSinkOperator : public Operator {
       buffer_count_++;
 
       // Get current caps for format analysis with automatic reference counting
-      holoscan::GstCapsGuard caps = gst_sink_resource()->get_caps();
+      Caps caps = gst_sink_resource()->get_caps();
 
       // Demonstrate client-side buffer analysis using helper functions
-      const char* media_type = holoscan::get_media_type_from_caps(caps.get());
+      const char* media_type = caps.get_media_type();
       if (media_type) {
         HOLOSCAN_LOG_INFO("Buffer {}: {}", buffer_count_,
-            holoscan::get_buffer_info_string(buffer.get(), caps.get()));
+            get_buffer_info_string(buffer.get(), caps.get()));
 
         // Demonstrate format-specific analysis
         if (g_str_has_prefix(media_type, "video/")) {
-          int width, height;
-          const char* format;
-          if (holoscan::get_video_info_from_caps(caps.get(), &width, &height, &format)) {
-            HOLOSCAN_LOG_DEBUG("Video analysis: {}x{} {}", width, height,
-                format ? format : "unknown");
+          if (auto video_info = caps.get_video_info()) {
+            HOLOSCAN_LOG_DEBUG("Video analysis: {}x{} {}",
+                video_info->width(), video_info->height(),
+                video_info->format() ? video_info->format() : "unknown");
           }
         } else if (g_str_has_prefix(media_type, "audio/")) {
-          int channels, rate;
-          const char* format;
-          if (holoscan::get_audio_info_from_caps(caps.get(), &channels, &rate, &format)) {
-            HOLOSCAN_LOG_DEBUG("Audio analysis: {}ch {}Hz {}", channels, rate,
-                format ? format : "unknown");
+          if (auto audio_info = caps.get_audio_info()) {
+            HOLOSCAN_LOG_DEBUG("Audio analysis: {}ch {}Hz {}",
+                audio_info->channels(), audio_info->rate(),
+                audio_info->format() ? audio_info->format() : "unknown");
           }
         }
       } else {
@@ -130,31 +129,31 @@ class GstSinkOperator : public Operator {
             gst_buffer_get_size(buffer.get()));
       }
 
-      // No manual cleanup needed - GstCapsGuard handles it automatically!
-      
+      // No manual cleanup needed - GstCaps handles it automatically!
+
       // Demonstrate accessing actual buffer data using RAII mapping
       {
-        holoscan::GstMapInfo map(buffer, GST_MAP_READ);
-        if (map.is_mapped()) {
-          HOLOSCAN_LOG_DEBUG("Mapped buffer: {} bytes at address {}", 
-                           map.size(), static_cast<void*>(map.data()));
-                           
+        MapInfo map_info(buffer, GST_MAP_READ);
+        if (map_info.is_mapped()) {
+          HOLOSCAN_LOG_DEBUG("Mapped buffer: {} bytes at address {}",
+                           map_info.size(), static_cast<void*>(map_info.data()));
+
           // Example: Show first few bytes of data (safe for any buffer type)
-          if (map.size() >= 8) {
-            const guint8* data = map.data();
+          if (map_info.size() >= 8) {
+            const guint8* data = map_info.data();
             HOLOSCAN_LOG_INFO("First 8 bytes: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
-                             data[0], data[1], data[2], data[3], 
+                             data[0], data[1], data[2], data[3],
                              data[4], data[5], data[6], data[7]);
           }
-          
+
           // In a real application, you would:
           // - Convert to OpenCV Mat for image processing
-          // - Copy to CUDA memory for GPU processing  
+          // - Copy to CUDA memory for GPU processing
           // - Pass to neural networks for inference
           // - Write to files or network streams
           // Example pseudocode:
           // if (g_str_has_prefix(media_type, "video/")) {
-          //   cv::Mat frame = gst_buffer_to_opencv_mat(map.data(), width, height, format);
+          //   cv::Mat frame = gst_buffer_to_opencv_mat(map_info.data(), width, height, format);
           //   your_processing_function(frame);
           // }
         } else {
@@ -209,17 +208,17 @@ class GstSinkOperator : public Operator {
   }
 
  protected:
-  GstSinkResourcePtr gst_sink_resource() { return gst_sink_resource_.get(); }
+  SinkResourcePtr gst_sink_resource() { return gst_sink_resource_.get(); }
 
  private:
-  Parameter<GstSinkResourcePtr> gst_sink_resource_;
+  Parameter<SinkResourcePtr> gst_sink_resource_;
   Parameter<std::string> pipeline_desc_;
   GstElement* pipeline_ = nullptr;
   uint32_t buffer_count_ = 0;  // Client-side buffer counting
 };
 
 /**
- * @brief Simple Holoscan application that uses GstSinkResource
+ * @brief Simple Holoscan application that uses SinkResource
  */
 class GstSinkApp : public Application {
  public:
@@ -228,7 +227,7 @@ class GstSinkApp : public Application {
 
   void compose() override {
     // Create the GStreamer sink resource for data bridging
-    auto gst_sink = make_resource<GstSinkResource>("gst_sink", "holoscan_sink");
+    auto gst_sink = make_resource<SinkResource>("gst_sink", "holoscan_sink");
 
     // Create the operator that uses the sink
     auto gst_op = make_operator<GstSinkOperator>(

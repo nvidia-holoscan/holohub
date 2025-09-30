@@ -212,7 +212,7 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 
 ### Progress Notes
 - ✅ Initial roadmap created
-- ✅ Foundation established with GstBufferGuard and GstCapsGuard  
+- ✅ Foundation established with GstBufferGuard and GstCaps  
 - ✅ Promise-based buffer retrieval working correctly
 - ✅ Refactored to gst_common.hpp/cpp for better organization
 - ✅ All RAII guards and helper functions properly separated

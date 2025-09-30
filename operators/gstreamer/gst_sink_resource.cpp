@@ -20,8 +20,8 @@
 #include <gst/base/gstbasesink.h>
 #include <gst/video/video.h>
 
-// Forward declaration of GstSinkResource for C code
-namespace holoscan { class GstSinkResource; }
+// Forward declaration of SinkResource for C code
+namespace holoscan { namespace gst { class SinkResource; } }
 
 extern "C" {
 
@@ -159,10 +159,10 @@ gst_holoscan_sink_class_init(GstHoloscanSinkClass *klass)
   gst_element_class_add_static_pad_template(gstelement_class, &sink_pad_template);
 
   /* Set up base sink methods using static member functions */
-  gstbasesink_class->set_caps = GST_DEBUG_FUNCPTR(holoscan::GstSinkResource::set_caps_callback);
-  gstbasesink_class->render = GST_DEBUG_FUNCPTR(holoscan::GstSinkResource::render_callback);
-  gstbasesink_class->start = GST_DEBUG_FUNCPTR(holoscan::GstSinkResource::start_callback);
-  gstbasesink_class->stop = GST_DEBUG_FUNCPTR(holoscan::GstSinkResource::stop_callback);
+  gstbasesink_class->set_caps = GST_DEBUG_FUNCPTR(holoscan::gst::SinkResource::set_caps_callback);
+  gstbasesink_class->render = GST_DEBUG_FUNCPTR(holoscan::gst::SinkResource::render_callback);
+  gstbasesink_class->start = GST_DEBUG_FUNCPTR(holoscan::gst::SinkResource::start_callback);
+  gstbasesink_class->stop = GST_DEBUG_FUNCPTR(holoscan::gst::SinkResource::stop_callback);
 
   /* Initialize debug category */
   GST_DEBUG_CATEGORY_INIT(gst_holoscan_sink_debug, "holoscansink", 0,
@@ -240,12 +240,28 @@ gst_holoscan_sink_plugin_init(GstPlugin *plugin)
 // ============================================================================
 
 namespace holoscan {
+namespace gst {
 namespace {
 // Factory function implementations moved to common.cpp
+
+// Helper function to extract media type from caps (internal use only)
+const char* get_media_type_from_caps(::GstCaps* caps) {
+  if (!caps || gst_caps_is_empty(caps) || gst_caps_get_size(caps) == 0) {
+    return nullptr;
+  }
+
+  ::GstStructure* structure = gst_caps_get_structure(caps, 0);
+  if (!structure) {
+    return nullptr;
+  }
+
+  return gst_structure_get_name(structure);
+}
+
 } // unnamed namespace
 
 // Asynchronously get next buffer using promise-based approach
-std::future<GstBufferGuard> GstSinkResource::get_buffer() {
+std::future<GstBufferGuard> SinkResource::get_buffer() {
   std::lock_guard<std::mutex> lock(mutex_);
 
   // Create a promise for this request
@@ -269,27 +285,27 @@ std::future<GstBufferGuard> GstSinkResource::get_buffer() {
 }
 
 // Get current negotiated caps
-GstCapsGuard GstSinkResource::get_caps() const {
+Caps SinkResource::get_caps() const {
   if (!sink_element_) {
-    return nullptr;
+    return Caps(); // Return empty caps
   }
 
   // Get the sink pad and its current caps
-  GstPad* pad = gst_element_get_static_pad(sink_element_, "sink");
+  ::GstPad* pad = gst_element_get_static_pad(sink_element_, "sink");
   if (!pad) {
-    return nullptr;
+    return Caps(); // Return empty caps
   }
 
-  GstCaps* caps = gst_pad_get_current_caps(pad);
+  ::GstCaps* caps = gst_pad_get_current_caps(pad);
   gst_object_unref(pad);
 
-  return make_caps_guard(caps); // Automatic reference counting
+  return Caps(caps); // Automatic reference counting
 }
 
 // Static member function implementations for GStreamer callbacks
 
 // Set caps callback
-gboolean GstSinkResource::set_caps_callback(GstBaseSink *sink, GstCaps *caps) {
+gboolean SinkResource::set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
   const gchar *media_type;
 
@@ -312,7 +328,7 @@ gboolean GstSinkResource::set_caps_callback(GstBaseSink *sink, GstCaps *caps) {
 }
 
 // Start callback
-gboolean GstSinkResource::start_callback(GstBaseSink *sink) {
+gboolean SinkResource::start_callback(::GstBaseSink *sink) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
 
   GST_DEBUG_OBJECT(sink, "Starting Holoscan bridge sink");
@@ -323,7 +339,7 @@ gboolean GstSinkResource::start_callback(GstBaseSink *sink) {
 }
 
 // Stop callback
-gboolean GstSinkResource::stop_callback(GstBaseSink *sink) {
+gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
 
   GST_DEBUG_OBJECT(sink, "Stopping Holoscan bridge sink");
@@ -334,7 +350,7 @@ gboolean GstSinkResource::stop_callback(GstBaseSink *sink) {
 }
 
 // Render callback implementation
-GstFlowReturn GstSinkResource::render_callback(GstBaseSink *sink, GstBuffer *buffer) {
+::GstFlowReturn SinkResource::render_callback(::GstBaseSink *sink, ::GstBuffer *buffer) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
 
   if (!holoscan_sink->caps_set) {
@@ -355,7 +371,7 @@ GstFlowReturn GstSinkResource::render_callback(GstBaseSink *sink, GstBuffer *buf
   }
 
   /* Cast back to GstSinkResource* to access C++ methods and members */
-  GstSinkResource* resource = static_cast<GstSinkResource*>(holoscan_sink->holoscan_resource);
+  SinkResource* resource = static_cast<SinkResource*>(holoscan_sink->holoscan_resource);
   std::lock_guard<std::mutex> lock(resource->mutex_);
 
   /* Simple logging for monitoring */
@@ -380,7 +396,7 @@ GstFlowReturn GstSinkResource::render_callback(GstBaseSink *sink, GstBuffer *buf
   return GST_FLOW_OK;
 }
 
-GstSinkResource::~GstSinkResource() {
+SinkResource::~SinkResource() {
   HOLOSCAN_LOG_DEBUG("Destroying GstSinkResource");
   if (sink_element_ && GST_IS_ELEMENT(sink_element_)) {
     gst_element_set_state(sink_element_, GST_STATE_NULL);
@@ -390,7 +406,7 @@ GstSinkResource::~GstSinkResource() {
   HOLOSCAN_LOG_DEBUG("GstSinkResource destroyed");
 }
 
-void GstSinkResource::initialize() {
+void SinkResource::initialize() {
   HOLOSCAN_LOG_INFO("Initializing GstSinkResource for data bridging");
   // Initialize GStreamer if not already done
   if (!gst_is_initialized()) {
@@ -398,11 +414,11 @@ void GstSinkResource::initialize() {
   }
 
   // Register our bridge sink element type
-  gst_element_register(nullptr, "holoscansink", GST_RANK_NONE, 
+  gst_element_register(nullptr, "holoscansink", GST_RANK_NONE,
                       gst_holoscan_sink_get_type());
 
   // Create the sink element
-  sink_element_ = gst_element_factory_make("holoscansink", 
+  sink_element_ = gst_element_factory_make("holoscansink",
                                          sink_name_.empty() ? nullptr : sink_name_.c_str());
 
   if (!sink_element_) {
@@ -419,4 +435,5 @@ void GstSinkResource::initialize() {
 
 // Helper functions are now in gst_common.cpp
 
+}  // namespace gst
 }  // namespace holoscan

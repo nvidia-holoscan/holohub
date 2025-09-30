@@ -31,6 +31,7 @@
 #include "gst_common.hpp"
 
 namespace holoscan {
+namespace gst {
 
 /**
  * @brief Holoscan Resource wrapper for GStreamer sink element
@@ -39,30 +40,30 @@ namespace holoscan {
  * The primary purpose is to enable Holoscan operators to retrieve and process data
  * from GStreamer pipelines.
  */
-class GstSinkResource : public holoscan::Resource {
+class SinkResource : public holoscan::Resource {
  public:
- using SharedPtr = std::shared_ptr<GstSinkResource>;
+ using SharedPtr = std::shared_ptr<SinkResource>;
 
  /**
    * @brief Default constructor
    */
-  GstSinkResource() = default;
+  SinkResource() = default;
 
   /**
    * @brief Constructor with optional sink name
    * @param sink_name Name for the GStreamer element instance (optional)
    */
-  explicit GstSinkResource(const std::string& sink_name = "")
+  explicit SinkResource(const std::string& sink_name = "")
       : sink_name_(sink_name) {}
 
   // Move semantics
-  GstSinkResource(GstSinkResource&& other) noexcept = default;
-  GstSinkResource& operator=(GstSinkResource&& other) noexcept = default;
+  SinkResource(SinkResource&& other) noexcept = default;
+  SinkResource& operator=(SinkResource&& other) noexcept = default;
 
   /**
    * @brief Destructor - cleans up GStreamer resources
    */
-  ~GstSinkResource();
+  ~SinkResource();
 
   /**
    * @brief Initialize the GStreamer sink resource
@@ -97,33 +98,34 @@ class GstSinkResource : public holoscan::Resource {
    * @brief Asynchronously get the next buffer from the GStreamer pipeline
    * @return Future that will be fulfilled when a buffer becomes available
    */
-  std::future<GstBufferGuard> get_buffer();
+  std::future<holoscan::gst::GstBufferGuard> get_buffer();
 
   /**
    * @brief Get the current negotiated caps from the sink
-   * @return GstCapsGuard with automatic reference counting, or nullptr if caps not negotiated yet
+   * @return Caps with automatic reference counting
    */
-  GstCapsGuard get_caps() const;
+  holoscan::gst::Caps get_caps() const;
 
   // Static member functions for GStreamer callbacks
-  static gboolean set_caps_callback(GstBaseSink *sink, GstCaps *caps);
-  static GstFlowReturn render_callback(GstBaseSink *sink, GstBuffer *buffer);
-  static gboolean start_callback(GstBaseSink *sink);
-  static gboolean stop_callback(GstBaseSink *sink);
+  static gboolean set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps);
+  static ::GstFlowReturn render_callback(::GstBaseSink *sink, ::GstBuffer *buffer);
+  static gboolean start_callback(::GstBaseSink *sink);
+  static gboolean stop_callback(::GstBaseSink *sink);
 
  private:
   std::string sink_name_;
-  GstElement* sink_element_ = nullptr;
+  ::GstElement* sink_element_ = nullptr;
 
   // Buffer queue for thread-safe async processing
-  std::queue<GstBufferGuard> buffer_queue_;
+  std::queue<holoscan::gst::GstBufferGuard> buffer_queue_;
   // Promise queue for pending buffer requests
-  std::queue<std::promise<GstBufferGuard>> request_queue_;
+  std::queue<std::promise<holoscan::gst::GstBufferGuard>> request_queue_;
   mutable std::mutex mutex_;
 };
 
-using GstSinkResourcePtr = GstSinkResource::SharedPtr;
+  using SinkResourcePtr = SinkResource::SharedPtr;
 
+}  // namespace gst
 }  // namespace holoscan
 
 #endif /* GST_SINK_RESOURCE_HPP */
