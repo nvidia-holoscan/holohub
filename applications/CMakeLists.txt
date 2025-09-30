@@ -118,10 +118,6 @@ add_holohub_application(psd_pipeline DEPENDS
                                   vita49_psd_packetizer
                                   data_writer)
 
-# Original streaming applications (kept for backward compatibility)
-add_holohub_application(streaming_client_demo_enhanced DEPENDS OPERATORS streaming_client_enhanced)
-add_holohub_application(streaming_server_demo_enhanced DEPENDS OPERATORS streaming_server_enhanced)
-
 # Unified streaming applications
 add_subdirectory(video_streaming_demo_enhanced)
 
