@@ -35,10 +35,10 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 ## Phase 2: Format-Aware Processing
 
 ### Media Format Support
-- [ ] **4. Add format detection utilities**
-  - Video format parsing (RGB, YUV, etc.)
-  - Audio format parsing (S16LE, F32LE, etc.) 
-  - Pixel/sample size calculations
+- [x] **4. Add format detection utilities** ✅ COMPLETED
+  - ✅ Video format parsing (RGB, YUV, etc.)
+  - ✅ Pixel/sample size calculations
+  - ✅ Buffer size calculations for different formats
 
 - [ ] **5. Create format-specific data accessors**
   - Video: pixel access by (x,y) coordinates
@@ -206,9 +206,9 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 
 ## Current Status
 
-**Current Phase:** ✅ Phase 1 Complete - Ready for Phase 2  
+**Current Phase:** 🔄 Phase 2 In Progress - Format Detection Complete  
 **Last Updated:** [Current Date]  
-**Next Milestone:** Phase 2 - Format-Aware Processing
+**Next Milestone:** Phase 2 - Format-Specific Data Accessors
 
 ### Progress Notes
 - ✅ Initial roadmap created
@@ -219,7 +219,10 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 - ✅ **Phase 1 COMPLETED**: GstMapGuard implemented with full RAII memory mapping
 - ✅ Direct GstMapInfo usage with RAII for safe buffer access
 - ✅ Example updated to demonstrate actual buffer data access
-- ✅ All builds passing - ready for Phase 2!
+- ✅ **Phase 2 Step 4 COMPLETED**: Video format detection utilities implemented
+- ✅ VideoFormat enum with support for RGB, BGR, YUV variants, NV12/NV21, I420/YV12, GRAY
+- ✅ Format detection, bytes-per-pixel calculation, buffer size calculation
+- ✅ All builds passing - ready for Phase 2 Step 5!
 
 ---
 

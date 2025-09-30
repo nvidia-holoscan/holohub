@@ -23,6 +23,7 @@
 #include <string>
 
 #include <gst/gst.h>
+#include <gst/video/video.h>
 
 namespace holoscan {
 namespace gst {
@@ -133,22 +134,10 @@ private:
 class VideoInfo {
 public:
   /**
-   * @brief Get video width
-   * @return Video width in pixels, or 0 if not available
+   * @brief Access the underlying GstVideoInfo structure directly
+   * @return Pointer to GstVideoInfo structure
    */
-  int width() const;
-
-  /**
-   * @brief Get video height
-   * @return Video height in pixels, or 0 if not available
-   */
-  int height() const;
-
-  /**
-   * @brief Get video format string
-   * @return Format string (e.g., "I420", "RGB", "BGR") or nullptr if not available
-   */
-  const char* format() const;
+  const ::GstVideoInfo* operator->() const { return &video_info_; }
 
 private:
   /**
@@ -161,7 +150,7 @@ private:
   friend class Caps;
 
   Caps caps_;      // Keep caps alive to ensure GstCaps validity
-  ::GstStructure* structure_; // Cached structure for efficient access
+  ::GstVideoInfo video_info_; // Cached GstVideoInfo for direct format access
 };
 
 /**

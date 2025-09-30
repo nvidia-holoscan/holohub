@@ -108,26 +108,12 @@ GstBufferGuard make_buffer_guard(::GstBuffer* buffer) {
 // VideoInfo Implementation
 // ============================================================================
 
-VideoInfo::VideoInfo(const Caps& caps) : caps_(caps), structure_(gst_caps_get_structure(caps_.get(), 0)) {
-  // Extract and cache the GstStructure for efficient access
+VideoInfo::VideoInfo(const Caps& caps) : caps_(caps) {
+  // Extract GstVideoInfo for direct format access
   // No need to check media type - Caps::get_video_info() already validated it
+  gst_video_info_from_caps(&video_info_, caps_.get());
 }
 
-int VideoInfo::width() const {
-  int width = 0;
-  gst_structure_get_int(structure_, "width", &width);
-  return width;
-}
-
-int VideoInfo::height() const {
-  int height = 0;
-  gst_structure_get_int(structure_, "height", &height);
-  return height;
-}
-
-const char* VideoInfo::format() const {
-  return gst_structure_get_string(structure_, "format");
-}
 
 // ============================================================================
 // AudioInfo Implementation

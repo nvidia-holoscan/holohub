@@ -113,9 +113,14 @@ class GstSinkOperator : public Operator {
         // Demonstrate format-specific analysis
         if (g_str_has_prefix(media_type, "video/")) {
           if (auto video_info = caps.get_video_info()) {
-            HOLOSCAN_LOG_DEBUG("Video analysis: {}x{} {}",
-                video_info->width(), video_info->height(),
-                video_info->format() ? video_info->format() : "unknown");
+            // Access GstVideoInfo directly through operator->()
+            auto format = (*video_info)->finfo->format;
+            auto width = (*video_info)->width;
+            auto height = (*video_info)->height;
+            
+            HOLOSCAN_LOG_DEBUG("Video analysis: {}x{} (GStreamer format: {})", 
+                width, height,
+                gst_video_format_to_string(format));
           }
         } else if (g_str_has_prefix(media_type, "audio/")) {
           if (auto audio_info = caps.get_audio_info()) {
