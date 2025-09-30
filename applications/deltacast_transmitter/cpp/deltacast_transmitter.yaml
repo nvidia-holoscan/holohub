@@ -36,7 +36,7 @@ deltacast:
   width: 1920
   height: 1080
   progressive: true
-  framerate: 25
+  framerate: 30
   board: 0
   output: 0
   rdma: false
