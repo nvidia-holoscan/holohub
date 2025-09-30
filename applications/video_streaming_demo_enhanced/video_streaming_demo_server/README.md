@@ -23,7 +23,7 @@ This is the enhanced video streaming server demo application that provides bidir
 
 ## Dependencies
 
-- Holoscan SDK 2.7.0+
+- Holoscan SDK 3.5.0+
 - video_streaming operator
 - OpenCV
 - CUDA Toolkit

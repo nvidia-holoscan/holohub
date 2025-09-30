@@ -90,7 +90,7 @@ add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
 ## Dependencies
 
 ### Required
-- **Holoscan SDK 2.7+**: Core framework
+- **Holoscan SDK 3.5+**: Core framework
 - **CUDA**: GPU acceleration support
 
 ### Cloud Streaming Binaries
