@@ -99,10 +99,118 @@ bool get_audio_info_from_caps(::GstCaps* caps, int* channels, int* rate, const c
 // RAII Factory Function Implementations
 // ============================================================================
 
-GstBufferGuard make_buffer_guard(::GstBuffer* buffer) {
-    return buffer ? GstBufferGuard(gst_buffer_ref(buffer), gst_buffer_unref) : nullptr;
+// Note: make_buffer_guard function removed - use Buffer class constructor instead
+
+
+// ============================================================================
+// Buffer Implementation - RAII for GstBuffer with member functions
+// ============================================================================
+
+Buffer::Buffer() : buffer_(gst_buffer_new()) {}
+
+Buffer::Buffer(::GstBuffer* buffer) : buffer_(buffer ? gst_buffer_ref(buffer) : gst_buffer_new()) {}
+
+Buffer::~Buffer() {
+  gst_buffer_unref(buffer_);
 }
 
+Buffer::Buffer(const Buffer& other) : buffer_(other.buffer_) {
+  gst_buffer_ref(buffer_);
+}
+
+Buffer& Buffer::operator=(const Buffer& other) {
+  if (this != &other) {
+    // Clean up current buffer
+    gst_buffer_unref(buffer_);
+
+    // Copy from other
+    buffer_ = other.buffer_;
+    gst_buffer_ref(buffer_);
+  }
+  return *this;
+}
+
+Buffer::Buffer(Buffer&& other) noexcept : buffer_(other.buffer_) {
+  other.buffer_ = gst_buffer_new();
+}
+
+Buffer& Buffer::operator=(Buffer&& other) noexcept {
+  if (this != &other) {
+    // Clean up current buffer
+    gst_buffer_unref(buffer_);
+
+    // Move from other
+    buffer_ = other.buffer_;
+    other.buffer_ = gst_buffer_new();
+  }
+  return *this;
+}
+
+gsize Buffer::size() const {
+  return gst_buffer_get_size(buffer_);
+}
+
+GstClockTime Buffer::pts() const {
+  return GST_BUFFER_PTS(buffer_);
+}
+
+GstClockTime Buffer::duration() const {
+  return GST_BUFFER_DURATION(buffer_);
+}
+
+GstBufferFlags Buffer::flags() const {
+  return static_cast<GstBufferFlags>(GST_BUFFER_FLAGS(buffer_));
+}
+
+// ============================================================================
+// MappedBuffer Implementation - RAII for buffer memory mapping
+// ============================================================================
+
+MappedBuffer::MappedBuffer(const Buffer& buffer, const VideoInfo& video_info, ::GstMapFlags flags)
+    : buffer_(buffer), video_info_(video_info), map_info_(buffer, flags) {
+}
+
+
+MappedBuffer::MappedBuffer(MappedBuffer&& other) noexcept
+    : buffer_(std::move(other.buffer_)), video_info_(std::move(other.video_info_)), map_info_(std::move(other.map_info_)) {
+}
+
+MappedBuffer& MappedBuffer::operator=(MappedBuffer&& other) noexcept {
+  if (this != &other) {
+    // Move from other
+    buffer_ = std::move(other.buffer_);
+    video_info_ = std::move(other.video_info_);
+    map_info_ = std::move(other.map_info_);
+  }
+  return *this;
+}
+
+const guint8* MappedBuffer::data() const {
+  return map_info_.data();
+}
+
+gsize MappedBuffer::size() const {
+  return map_info_.size();
+}
+
+const guint8* MappedBuffer::get_plane_data(int plane_index) const {
+  if (plane_index < 0 || plane_index >= video_info_.get()->finfo->n_planes) {
+    return nullptr;
+  }
+
+  // Get the plane offset and return pointer to plane data
+  const ::GstVideoInfo* gst_video_info = video_info_.get();
+  gsize plane_offset = GST_VIDEO_INFO_PLANE_OFFSET(gst_video_info, plane_index);
+  return map_info_.data() + plane_offset;
+}
+
+const MapInfo& MappedBuffer::get_map_info() const {
+  return map_info_;
+}
+
+const VideoInfo& MappedBuffer::get_video_info() const {
+  return video_info_;
+}
 
 // ============================================================================
 // VideoInfo Implementation
@@ -112,6 +220,29 @@ VideoInfo::VideoInfo(const Caps& caps) : caps_(caps) {
   // Extract GstVideoInfo for direct format access
   // No need to check media type - Caps::get_video_info() already validated it
   gst_video_info_from_caps(&video_info_, caps_.get());
+}
+
+
+gsize VideoInfo::get_total_size() const {
+  return GST_VIDEO_INFO_SIZE(&video_info_);
+}
+
+
+gsize VideoInfo::get_plane_stride(int plane_index) const {
+  if (plane_index < 0 || plane_index >= video_info_.finfo->n_planes) {
+    return 0;
+  }
+  return GST_VIDEO_INFO_PLANE_STRIDE(&video_info_, plane_index);
+}
+
+gsize VideoInfo::get_plane_size(int plane_index) const {
+  if (plane_index < 0 || plane_index >= video_info_.finfo->n_planes) {
+    return 0;
+  }
+  // Calculate plane size: stride * height (for this plane)
+  gsize stride = GST_VIDEO_INFO_PLANE_STRIDE(&video_info_, plane_index);
+  gsize height = GST_VIDEO_INFO_COMP_HEIGHT(&video_info_, plane_index);
+  return stride * height;
 }
 
 
@@ -218,19 +349,16 @@ guint Caps::get_size() const {
 // MapInfo Implementation - RAII for buffer memory mapping
 // ============================================================================
 
-MapInfo::MapInfo(const GstBufferGuard& buffer, ::GstMapFlags flags)
+MapInfo::MapInfo(const Buffer& buffer, ::GstMapFlags flags)
     : buffer_(buffer), mapped_(false) {
-  if (buffer_) {
-    mapped_ = gst_buffer_map(buffer_.get(), &gst_map_info_, flags);
-    if (!mapped_) {
-      // Note: Using g_warning instead of HOLOSCAN_LOG_WARN to avoid dependency issues
-      g_warning("Failed to map GstBuffer");
-    }
+  mapped_ = gst_buffer_map(buffer_.get(), &gst_map_info_, flags);
+  if (!mapped_) {
+    throw std::runtime_error("Failed to map GstBuffer - buffer may be invalid or already mapped");
   }
 }
 
 MapInfo::~MapInfo() {
-  if (mapped_ && buffer_) {
+  if (mapped_) {
     gst_buffer_unmap(buffer_.get(), &gst_map_info_);
     mapped_ = false;
   }
@@ -238,14 +366,14 @@ MapInfo::~MapInfo() {
 
 MapInfo::MapInfo(MapInfo&& other) noexcept
     : buffer_(std::move(other.buffer_)), gst_map_info_(other.gst_map_info_), mapped_(other.mapped_) {
-  other.buffer_ = nullptr;  // Move will leave it empty, but this is explicit
+  other.buffer_ = Buffer();  // Move will leave it with empty buffer
   other.mapped_ = false;
 }
 
 MapInfo& MapInfo::operator=(MapInfo&& other) noexcept {
   if (this != &other) {
     // Clean up current mapping
-    if (mapped_ && buffer_) {
+    if (mapped_) {
       gst_buffer_unmap(buffer_.get(), &gst_map_info_);
     }
 
@@ -255,7 +383,7 @@ MapInfo& MapInfo::operator=(MapInfo&& other) noexcept {
     mapped_ = other.mapped_;
 
     // Reset other
-    other.buffer_ = nullptr;  // Move will leave it empty, but this is explicit
+    other.buffer_ = Buffer();  // Move will leave it with empty buffer
     other.mapped_ = false;
   }
   return *this;

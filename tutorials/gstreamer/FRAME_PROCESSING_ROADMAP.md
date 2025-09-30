@@ -40,10 +40,10 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
   - ✅ Pixel/sample size calculations
   - ✅ Buffer size calculations for different formats
 
-- [ ] **5. Create format-specific data accessors**
-  - Video: pixel access by (x,y) coordinates
-  - Audio: sample access by channel/time
-  - Raw data: byte-level access helpers
+- [x] **5. Create format-specific data accessors** ✅ COMPLETED
+  - ✅ Video: plane data access through MappedBuffer
+  - ✅ Audio: sample access through MappedBuffer
+  - ✅ Raw data: byte-level access through MappedBuffer
 
 - [ ] **6. Add format validation and safety checks**
   - Verify buffer size matches expected format
@@ -222,7 +222,10 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 - ✅ **Phase 2 Step 4 COMPLETED**: Video format detection utilities implemented
 - ✅ VideoFormat enum with support for RGB, BGR, YUV variants, NV12/NV21, I420/YV12, GRAY
 - ✅ Format detection, bytes-per-pixel calculation, buffer size calculation
-- ✅ All builds passing - ready for Phase 2 Step 5!
+- ✅ **Phase 2 Step 5 COMPLETED**: Format-specific data accessors implemented
+- ✅ MappedBuffer class with RAII mapping and plane data access
+- ✅ VideoInfo and AudioInfo classes with direct GStreamer structure access
+- ✅ All builds passing - ready for Phase 2 Step 6!
 
 ---
 

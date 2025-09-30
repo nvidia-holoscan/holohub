@@ -98,7 +98,7 @@ class SinkResource : public holoscan::Resource {
    * @brief Asynchronously get the next buffer from the GStreamer pipeline
    * @return Future that will be fulfilled when a buffer becomes available
    */
-  std::future<holoscan::gst::GstBufferGuard> get_buffer();
+  std::future<holoscan::gst::MappedBuffer> get_buffer();
 
   /**
    * @brief Get the current negotiated caps from the sink
@@ -117,9 +117,9 @@ class SinkResource : public holoscan::Resource {
   ::GstElement* sink_element_ = nullptr;
 
   // Buffer queue for thread-safe async processing
-  std::queue<holoscan::gst::GstBufferGuard> buffer_queue_;
+  std::queue<holoscan::gst::MappedBuffer> buffer_queue_;
   // Promise queue for pending buffer requests
-  std::queue<std::promise<holoscan::gst::GstBufferGuard>> request_queue_;
+  std::queue<std::promise<holoscan::gst::MappedBuffer>> request_queue_;
   mutable std::mutex mutex_;
 };
 

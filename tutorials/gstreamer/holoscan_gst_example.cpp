@@ -94,62 +94,70 @@ class GstSinkOperator : public Operator {
 
     // Demonstrate the new client-side buffer retrieval and analysis
     try {
-      // Get a buffer asynchronously from the GStreamer pipeline (blocks until available)
-      auto buffer_future = gst_sink_resource()->get_buffer();
-      GstBufferGuard buffer = buffer_future.get(); // Blocks until buffer arrives
+      // Get a mapped buffer asynchronously from the GStreamer pipeline (blocks until available)
+      auto mapped_buffer_future = gst_sink_resource()->get_buffer();
+      MappedBuffer mapped_buffer = mapped_buffer_future.get(); // Blocks until buffer arrives
 
       // Client-side buffer counting
       buffer_count_++;
 
-      // Get current caps for format analysis with automatic reference counting
-      Caps caps = gst_sink_resource()->get_caps();
+      // Get the VideoInfo from the MappedBuffer
+      const VideoInfo& video_info = mapped_buffer.get_video_info();
 
-      // Demonstrate client-side buffer analysis using helper functions
-      const char* media_type = caps.get_media_type();
-      if (media_type) {
-        HOLOSCAN_LOG_INFO("Buffer {}: {}", buffer_count_,
-            get_buffer_info_string(buffer.get(), caps.get()));
+      // Access GstVideoInfo directly through operator->()
+      auto format = video_info->finfo->format;
+      auto width = video_info->width;
+      auto height = video_info->height;
 
-        // Demonstrate format-specific analysis
-        if (g_str_has_prefix(media_type, "video/")) {
-          if (auto video_info = caps.get_video_info()) {
-            // Access GstVideoInfo directly through operator->()
-            auto format = (*video_info)->finfo->format;
-            auto width = (*video_info)->width;
-            auto height = (*video_info)->height;
-            
-            HOLOSCAN_LOG_DEBUG("Video analysis: {}x{} (GStreamer format: {})", 
-                width, height,
-                gst_video_format_to_string(format));
-          }
-        } else if (g_str_has_prefix(media_type, "audio/")) {
-          if (auto audio_info = caps.get_audio_info()) {
-            HOLOSCAN_LOG_DEBUG("Audio analysis: {}ch {}Hz {}",
-                audio_info->channels(), audio_info->rate(),
-                audio_info->format() ? audio_info->format() : "unknown");
-          }
+      // Demonstrate raw data access capabilities
+      auto plane_count = video_info->finfo->n_planes;
+      auto total_size = video_info.get_total_size();
+
+      HOLOSCAN_LOG_INFO("Buffer {}: {}x{} {} ({} planes, {} bytes total)", 
+          buffer_count_, width, height,
+          gst_video_format_to_string(format),
+          plane_count, total_size);
+
+      // Show plane information
+      for (int i = 0; i < plane_count; i++) {
+        auto plane_stride = video_info.get_plane_stride(i);
+        auto plane_size = video_info.get_plane_size(i);
+        HOLOSCAN_LOG_DEBUG("  Plane {}: stride={} bytes, size={} bytes", 
+            i, plane_stride, plane_size);
+      }
+
+      // Demonstrate MappedBuffer for safe data access
+      const guint8* buffer_data = mapped_buffer.data();
+      gsize buffer_size = mapped_buffer.size();
+
+      HOLOSCAN_LOG_DEBUG("Buffer data access: {} bytes mapped at address {}", 
+          buffer_size, static_cast<const void*>(buffer_data));
+
+      // Demonstrate plane-specific data access
+      if (plane_count > 0) {
+        const guint8* plane_0_data = mapped_buffer.get_plane_data(0);
+        if (plane_0_data) {
+          HOLOSCAN_LOG_DEBUG("Plane 0 data accessible at address {}", 
+              static_cast<const void*>(plane_0_data));
         }
-      } else {
-        HOLOSCAN_LOG_INFO("Buffer {}: size={} bytes", buffer_count_,
-            gst_buffer_get_size(buffer.get()));
       }
 
       // No manual cleanup needed - GstCaps handles it automatically!
 
       // Demonstrate accessing actual buffer data using RAII mapping
       {
-        MapInfo map_info(buffer, GST_MAP_READ);
-        if (map_info.is_mapped()) {
-          HOLOSCAN_LOG_DEBUG("Mapped buffer: {} bytes at address {}",
-                           map_info.size(), static_cast<void*>(map_info.data()));
+        // MapInfo map_info(buffer, GST_MAP_READ); // Removed - using MappedBuffer instead
+        // if (map_info.is_mapped()) { // Removed - using MappedBuffer instead
+          // HOLOSCAN_LOG_DEBUG("Mapped buffer: {} bytes at address {}",
+          //                  map_info.size(), static_cast<void*>(map_info.data()));
 
           // Example: Show first few bytes of data (safe for any buffer type)
-          if (map_info.size() >= 8) {
-            const guint8* data = map_info.data();
-            HOLOSCAN_LOG_INFO("First 8 bytes: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
-                             data[0], data[1], data[2], data[3],
-                             data[4], data[5], data[6], data[7]);
-          }
+          // if (map_info.size() >= 8) {
+          //   const guint8* data = map_info.data();
+          //   HOLOSCAN_LOG_INFO("First 8 bytes: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
+          //                    data[0], data[1], data[2], data[3],
+          //                    data[4], data[5], data[6], data[7]);
+          // }
 
           // In a real application, you would:
           // - Convert to OpenCV Mat for image processing
@@ -161,10 +169,29 @@ class GstSinkOperator : public Operator {
           //   cv::Mat frame = gst_buffer_to_opencv_mat(map_info.data(), width, height, format);
           //   your_processing_function(frame);
           // }
-        } else {
-          HOLOSCAN_LOG_WARN("Failed to map buffer data");
-        }
+        // } else {
+        //   HOLOSCAN_LOG_WARN("Failed to map buffer data");
+        // }
       } // GstMapInfo destructor automatically unmaps the buffer
+      
+      // Demonstrate accessing actual buffer data using MappedBuffer
+      if (buffer_size >= 8) {
+        HOLOSCAN_LOG_INFO("First 8 bytes: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
+                         buffer_data[0], buffer_data[1], buffer_data[2], buffer_data[3],
+                         buffer_data[4], buffer_data[5], buffer_data[6], buffer_data[7]);
+      }
+
+      // In a real application, you would:
+      // - Convert to OpenCV Mat for image processing
+      // - Copy to CUDA memory for GPU processing
+      // - Pass to neural networks for inference
+      // - Write to files or network streams
+      // Example pseudocode:
+      // if (g_str_has_prefix(media_type, "video/")) {
+      //   cv::Mat frame = gst_buffer_to_opencv_mat(mapped_buffer.data(), width, height, format);
+      //   cv::imshow("Frame", frame);
+      // }
+
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_ERROR("Error processing buffer: {}", e.what());
     }

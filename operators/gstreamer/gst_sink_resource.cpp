@@ -261,19 +261,19 @@ const char* get_media_type_from_caps(::GstCaps* caps) {
 } // unnamed namespace
 
 // Asynchronously get next buffer using promise-based approach
-std::future<GstBufferGuard> SinkResource::get_buffer() {
+std::future<MappedBuffer> SinkResource::get_buffer() {
   std::lock_guard<std::mutex> lock(mutex_);
 
   // Create a promise for this request
-  std::promise<GstBufferGuard> promise;
+  std::promise<MappedBuffer> promise;
   auto future = promise.get_future();
 
   // Check if we have buffers available immediately
   if (!buffer_queue_.empty()) {
     // Fulfill promise immediately with available buffer
-    GstBufferGuard buffer = std::move(buffer_queue_.front());
+    MappedBuffer mapped_buffer = std::move(buffer_queue_.front());
     buffer_queue_.pop();
-    promise.set_value(std::move(buffer));
+    promise.set_value(std::move(mapped_buffer));
     HOLOSCAN_LOG_DEBUG("Fulfilled buffer request immediately, remaining buffers: {}", buffer_queue_.size());
   } else {
     // No buffers available, queue the promise for later fulfillment
@@ -378,18 +378,33 @@ gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
   HOLOSCAN_LOG_DEBUG("Bridging buffer: size: {} bytes (sink: {})",
       gst_buffer_get_size(buffer), resource->get_sink_name());
 
-  auto buffer_guard = make_buffer_guard(buffer);
+  // Get the current caps to create VideoInfo
+  Caps caps = resource->get_caps();
+  if (caps.is_empty()) {
+    HOLOSCAN_LOG_WARN("No caps available for buffer, cannot create MappedBuffer");
+    return GST_FLOW_OK;
+  }
+
+  auto video_info_opt = caps.get_video_info();
+  if (!video_info_opt) {
+    HOLOSCAN_LOG_WARN("Cannot get video info from caps, cannot create MappedBuffer");
+    gst_object_unref(sink);
+    return GST_FLOW_OK;
+  }
+
+  // Create Buffer and MappedBuffer
+  MappedBuffer mapped_buffer(Buffer(buffer), *video_info_opt, GST_MAP_READ);
 
   /* Check if there are pending requests waiting for buffers */
   if (!resource->request_queue_.empty()) {
     /* Fulfill the oldest pending request */
-    std::promise<GstBufferGuard> promise = std::move(resource->request_queue_.front());
+    std::promise<MappedBuffer> promise = std::move(resource->request_queue_.front());
     resource->request_queue_.pop();
-    promise.set_value(std::move(buffer_guard));
+    promise.set_value(std::move(mapped_buffer));
     HOLOSCAN_LOG_DEBUG("Fulfilled pending buffer request, remaining requests: {}", resource->request_queue_.size());
   } else {
     /* No pending requests, queue the buffer for future requests */
-    resource->buffer_queue_.push(std::move(buffer_guard));
+    resource->buffer_queue_.push(std::move(mapped_buffer));
     HOLOSCAN_LOG_DEBUG("Queued buffer, total in queue: {}", resource->buffer_queue_.size());
   }
 

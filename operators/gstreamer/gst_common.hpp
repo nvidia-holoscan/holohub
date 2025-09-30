@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string>
 
 #include <gst/gst.h>
@@ -32,19 +33,94 @@ namespace gst {
 class Caps;
 class VideoInfo;
 class AudioInfo;
+class Buffer;
+class MapInfo;
 
 // ============================================================================
 // RAII Wrappers for GStreamer Objects
 // ============================================================================
 
 /**
- * @brief RAII wrapper for GstBuffer using shared_ptr with automatic reference counting
+ * @brief RAII wrapper for GstBuffer with automatic reference counting and member functions
  *
- * This wrapper ensures proper reference counting for GstBuffer objects and provides
- * automatic cleanup when the last reference is released. The underlying buffer memory
- * is guaranteed to remain valid as long as any GstBufferGuard references it.
+ * This class ensures proper reference counting for GstBuffer objects and provides
+ * automatic cleanup when destroyed. It also provides convenient member functions
+ * for common GstBuffer operations.
+ * 
+ * The default constructor creates an empty but valid GstBuffer, ensuring that
+ * all Buffer objects are always in a valid state.
  */
-using GstBufferGuard = std::shared_ptr<GstBuffer>;
+class Buffer {
+public:
+  /**
+   * @brief Default constructor (creates empty buffer)
+   */
+  Buffer();
+
+  /**
+   * @brief Constructor from native GstBuffer
+   * @param buffer Native GstBuffer pointer (will be referenced)
+   */
+  explicit Buffer(::GstBuffer* buffer);
+
+  /**
+   * @brief Destructor (automatically unreferences the buffer)
+   */
+  ~Buffer();
+
+  // Copy operations using GStreamer reference counting
+  Buffer(const Buffer& other);
+  Buffer& operator=(const Buffer& other);
+
+  // Allow move operations
+  Buffer(Buffer&& other) noexcept;
+  Buffer& operator=(Buffer&& other) noexcept;
+
+  /**
+   * @brief Check if buffer is valid
+   * @return true if buffer is valid (always true since we create a valid buffer)
+   */
+  bool is_valid() const { return true; }
+
+  /**
+   * @brief Get the underlying GstBuffer pointer
+   * @return Native GstBuffer pointer (always valid)
+   */
+  ::GstBuffer* get() const { return buffer_; }
+
+  /**
+   * @brief Get buffer size in bytes
+   * @return Buffer size in bytes
+   */
+  gsize size() const;
+
+  /**
+   * @brief Get presentation timestamp
+   * @return PTS in nanoseconds, or GST_CLOCK_TIME_NONE if not set
+   */
+  GstClockTime pts() const;
+
+  /**
+   * @brief Get duration
+   * @return Duration in nanoseconds, or GST_CLOCK_TIME_NONE if not set
+   */
+  GstClockTime duration() const;
+
+  /**
+   * @brief Get buffer flags
+   * @return Buffer flags
+   */
+  GstBufferFlags flags() const;
+
+private:
+  ::GstBuffer* buffer_;
+};
+
+// ============================================================================
+// RAII Wrappers for GStreamer Objects
+// ============================================================================
+
+// Note: GstBufferGuard typedef removed - use Buffer class instead
 
 /**
  * @brief RAII wrapper for GstCaps with automatic reference counting and member functions
@@ -139,6 +215,34 @@ public:
    */
   const ::GstVideoInfo* operator->() const { return &video_info_; }
 
+  /**
+   * @brief Get the underlying GstVideoInfo pointer
+   * @return Native GstVideoInfo pointer
+   */
+  const ::GstVideoInfo* get() const { return &video_info_; }
+
+
+  /**
+   * @brief Get total buffer size for all planes
+   * @return Total size in bytes for all video planes
+   */
+  gsize get_total_size() const;
+
+
+  /**
+   * @brief Get stride (bytes per line) for a specific plane
+   * @param plane_index Plane index
+   * @return Stride in bytes, or 0 if invalid
+   */
+  gsize get_plane_stride(int plane_index) const;
+
+  /**
+   * @brief Get plane size for a specific plane
+   * @param plane_index Plane index
+   * @return Size in bytes for the specified plane, or 0 if invalid
+   */
+  gsize get_plane_size(int plane_index) const;
+
 private:
   /**
    * @brief Constructor from Caps object (private - only Caps can create VideoInfo)
@@ -204,10 +308,11 @@ class MapInfo {
 public:
   /**
    * @brief Constructor that maps the buffer
-   * @param buffer GstBufferGuard to map (maintains reference during mapping)
+   * @param buffer Buffer to map (maintains reference during mapping)
    * @param flags Map flags (GST_MAP_READ, GST_MAP_WRITE, GST_MAP_READWRITE)
+   * @throws std::runtime_error if buffer mapping fails
    */
-  MapInfo(const GstBufferGuard& buffer, ::GstMapFlags flags);
+  MapInfo(const Buffer& buffer, ::GstMapFlags flags);
 
   /**
    * @brief Destructor automatically unmaps the buffer
@@ -247,26 +352,78 @@ public:
   const ::GstMapInfo& native_map_info() const { return gst_map_info_; }
 
 private:
-  GstBufferGuard buffer_;      // Keep buffer alive during mapping
+  Buffer buffer_;      // Keep buffer alive during mapping
   ::GstMapInfo gst_map_info_;  // Native GStreamer structure
   bool mapped_;
+};
+
+/**
+ * @brief RAII wrapper for mapped GstBuffer with automatic unmapping
+ *
+ * This class provides safe access to buffer data by automatically handling
+ * the mapping and unmapping lifecycle. It ensures that buffers are properly
+ * unmapped when the object goes out of scope, preventing memory leaks.
+ */
+class MappedBuffer {
+public:
+  /**
+   * @brief Constructor that maps the buffer with video format information
+   * @param buffer Buffer to map (maintains reference during mapping)
+   * @param video_info VideoInfo containing format information
+   * @param flags Map flags (GST_MAP_READ, GST_MAP_WRITE, GST_MAP_READWRITE)
+   * @throws std::runtime_error if buffer mapping fails
+   */
+  MappedBuffer(const Buffer& buffer, const VideoInfo& video_info, ::GstMapFlags flags = GST_MAP_READ);
+
+  // Move-only semantics (no copying to avoid double unmapping)
+  MappedBuffer(const MappedBuffer&) = delete;
+  MappedBuffer& operator=(const MappedBuffer&) = delete;
+
+  MappedBuffer(MappedBuffer&& other) noexcept;
+  MappedBuffer& operator=(MappedBuffer&& other) noexcept;
+
+  /**
+   * @brief Get pointer to mapped data
+   * @return Pointer to buffer data
+   */
+  const guint8* data() const;
+
+  /**
+   * @brief Get size of mapped data
+   * @return Size in bytes
+   */
+  gsize size() const;
+
+  /**
+   * @brief Get raw data pointer for a specific plane (video buffers only)
+   * @param plane_index Plane index (0 for Y/luma, 1 for U/chroma, 2 for V/chroma)
+   * @return Pointer to raw data for the specified plane, or nullptr if invalid
+   */
+  const guint8* get_plane_data(int plane_index) const;
+
+  /**
+   * @brief Get the VideoInfo associated with this buffer
+   * @return Reference to VideoInfo object
+   */
+  const VideoInfo& get_video_info() const;
+
+  /**
+   * @brief Get reference to internal GstMapInfo
+   * @return Reference to internal GstMapInfo
+   */
+  const MapInfo& get_map_info() const;
+
+private:
+  Buffer buffer_;           // Keep buffer alive during mapping
+  VideoInfo video_info_;   // Video format information
+  MapInfo map_info_;       // RAII wrapper for mapping
 };
 
 // ============================================================================
 // Factory Functions for RAII Guards
 // ============================================================================
 
-/**
- * @brief Factory function to create GstBufferGuard with proper reference counting
- *
- * Creates a shared_ptr wrapper around a GstBuffer that automatically handles
- * reference counting. The buffer is ref'd when the guard is created and unref'd
- * when the guard is destroyed.
- *
- * @param buffer GstBuffer to wrap (can be nullptr)
- * @return GstBufferGuard with automatic reference counting, or nullptr if input was nullptr
- */
-GstBufferGuard make_buffer_guard(::GstBuffer* buffer);
+// Note: make_buffer_guard function removed - use Buffer class constructor instead
 
 
 // ============================================================================
