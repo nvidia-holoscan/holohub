@@ -329,8 +329,8 @@ Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tenso
 
     // Validate reasonable dimensions for video frames
   if (height == 0 || width == 0 || channels == 0) {
-    throw std::runtime_error(fmt::format("Invalid tensor dimensions: height={}, width={}, channels={}",
-                                          height, width, channels));
+    throw std::runtime_error(fmt::format("Invalid tensor dimensions: height={}, width={}, 
+                                          channels={}",height, width, channels));
   }
   if (channels > 4) {
     throw std::runtime_error(fmt::format("Unsupported number of channels: {}. "
