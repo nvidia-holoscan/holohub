@@ -158,7 +158,7 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
             for (int i = 0; i < std::min(10, static_cast<int>(width * height)) &&
                             i * bytes_per_pixel < data_size; ++i) {
                 meta_file << "Pixel " << i << ": ";
-                for (size_t j = 0; j < bytes_per_pixel && 
+                for (size_t j = 0; j < bytes_per_pixel &&
                      (i * bytes_per_pixel + j) < data_size; ++j) {
                     meta_file << static_cast<int>(data[i * bytes_per_pixel + j]) << " ";
                 }
@@ -170,7 +170,9 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
         }
 
         // Write as PPM image file (for easy viewing)
-        if (format == PixelFormat::BGRA || format == PixelFormat::BGR || format == PixelFormat::RGBA) {
+        if (format == PixelFormat::BGRA ||
+            format == PixelFormat::BGR ||
+            format == PixelFormat::RGBA) {
             std::string ppm_filename = filename.str() + ".ppm";
             std::ofstream ppm_file(ppm_filename, std::ios::binary);
             if (ppm_file.is_open()) {
@@ -205,9 +207,7 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
                 HOLOSCAN_LOG_INFO("Wrote PPM image to: {} (can be viewed with image viewers)", ppm_filename);
             }
         }
-
         return true;
-
     } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("writeFrameToDisk exception: {}", e.what());
         return false;
@@ -307,9 +307,7 @@ bool writeTensorToDisk(const std::shared_ptr<holoscan::Tensor>& tensor, const st
                 HOLOSCAN_LOG_INFO("Wrote tensor PPM image to: {}", ppm_filename);
             }
         }
-
         return true;
-
     } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("writeTensorToDisk exception: {}", e.what());
         return false;
@@ -497,9 +495,7 @@ void StreamingClientOp::start() {
         if (client_->isUpstreamReady()) {
           HOLOSCAN_LOG_INFO("✅ Upstream connection established successfully!");
         } else {
-          HOLOSCAN_LOG_WARN("⚠️ Upstream connection not ready after timeout - will continue anyway");
         }
-
       } catch (const std::exception& e) {
         retry_count++;
         HOLOSCAN_LOG_WARN("❌ Connection attempt {} failed: {}", retry_count, e.what());
@@ -544,9 +540,7 @@ void StreamingClientOp::start() {
         } else {
           HOLOSCAN_LOG_WARN("⚠️ No frame received yet (may be normal for server startup)");
         }
-      }
     }
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("❌ Failed to start streaming client: {}", e.what());
     // Don't throw - let compute() handle the error state
@@ -597,9 +591,7 @@ void StreamingClientOp::stop() {
         HOLOSCAN_LOG_WARN("StreamingClient did not stop gracefully within timeout");
         // Don't force anything - just proceed with cleanup
       } else {
-        HOLOSCAN_LOG_INFO("StreamingClient stopped gracefully");
       }
-
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_ERROR("Error stopping StreamingClient: {}", e.what());
     } catch (...) {
@@ -622,9 +614,7 @@ void StreamingClientOp::stop() {
 }
 
 void StreamingClientOp::compute(holoscan::InputContext& op_input,
-                             holoscan::OutputContext& op_output,
                              holoscan::ExecutionContext& context) {
-
   // Add detailed connection state logging
   static int compute_call_count = 0;
   static int connection_retry_interval = 0;
@@ -690,9 +680,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
             }
           }
         } else {
-          HOLOSCAN_LOG_DEBUG("Skipping reconnection attempt (only {} seconds since last attempt)", time_since_last_reconnect);
         }
-
       } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("❌ Reconnection failed: {}", e.what());
 
@@ -1540,7 +1528,6 @@ bool StreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tenso
 
   return true;
 }
-
 }  // namespace holoscan::ops
 
 
