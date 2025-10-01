@@ -16,6 +16,11 @@
 cmake_minimum_required(VERSION 3.20)
 project(streaming_server_demo_enhanced CXX)
 
+# Check if this application should be built
+if(NOT APP_video_streaming_demo_enhanced)
+  return()
+endif()
+
 find_package(holoscan REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
