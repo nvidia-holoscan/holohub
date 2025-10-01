@@ -18,7 +18,7 @@
 #include "streaming_server_upstream_op.hpp"
 
 #include <algorithm>
-#include <cstdlib>  // For setenv
+#include <cstdlib>    // For setenv
 #include <cstring>
 #include <thread>
 #include <chrono>
@@ -45,7 +45,7 @@ StreamingServerUpstreamOp::~StreamingServerUpstreamOp() {
   try {
     HOLOSCAN_LOG_INFO("StreamingServerUpstreamOp destructor: beginning cleanup...");
 
-    // Set shutdown flag to prevent new operations
+      // Set shutdown flag to prevent new operations
     is_shutting_down_ = true;
 
     HOLOSCAN_LOG_INFO("StreamingServerUpstreamOp destructor: cleanup completed");
@@ -57,10 +57,10 @@ StreamingServerUpstreamOp::~StreamingServerUpstreamOp() {
 }
 
 void StreamingServerUpstreamOp::setup(OperatorSpec& spec) {
-  // This operator only outputs holoscan::Tensor - no inputs
+    // This operator only outputs holoscan::Tensor - no inputs
   spec.output<holoscan::Tensor>("output_frames");
 
-  // Define parameters with explicit default values (can override resource defaults)
+    // Define parameters with explicit default values (can override resource defaults)
   spec.param(width_, "width", "Frame Width", "Width of the video frames in pixels", 854u);
   spec.param(height_, "height", "Frame Height", "Height of the video frames in pixels", 480u);
   spec.param(fps_, "fps", "Frames Per Second", "Frame rate of the video", 30u);
@@ -75,13 +75,12 @@ void StreamingServerUpstreamOp::setup(OperatorSpec& spec) {
 void StreamingServerUpstreamOp::initialize() {
   Operator::initialize();
 
-  // Get the streaming server resource
-  auto streaming_server_resource = streaming_server_resource_.get();
+    // Get the streaming server resource
   if (!streaming_server_resource) {
     throw std::runtime_error("StreamingServerResource is null");
   }
 
-  // Validate parameters and use resource defaults if not specified
+    // Validate parameters and use resource defaults if not specified
   auto resource_config = streaming_server_resource->get_config();
 
   if (!width_.has_value() || width_.get() == 0) {
@@ -101,28 +100,24 @@ void StreamingServerUpstreamOp::initialize() {
 
   HOLOSCAN_LOG_INFO("StreamingServerUpstreamOp initializing with parameters:");
   HOLOSCAN_LOG_INFO("  - Width: {}", width_.get());
-  HOLOSCAN_LOG_INFO("  - Height: {}", height_.get());
   HOLOSCAN_LOG_INFO("  - FPS: {}", fps_.get());
 
   try {
-    // Set up event callback on the shared resource
+      // Set up event callback on the shared resource
     streaming_server_resource->set_event_callback([this](const StreamingServerResource::Event& event) {
       on_streaming_server_event(event);
     });
 
-    // Note: Frame received callback is not available in the library
-    // We'll use polling approach with tryReceiveFrame instead
+      // Note: Frame received callback is not available in the library
+      // We'll use polling approach with tryReceiveFrame instead
 
     HOLOSCAN_LOG_INFO("StreamingServerUpstreamOp initialized successfully");
-    start_time_ticks_ = std::chrono::steady_clock::now().time_since_epoch().count();
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to initialize StreamingServerUpstreamOp: {}", e.what());
     throw;
   }
 }
 
-void StreamingServerUpstreamOp::start() {
   auto streaming_server_resource = streaming_server_resource_.get();
   if (!streaming_server_resource) {
     HOLOSCAN_LOG_ERROR("Cannot start upstream operator: StreamingServerResource not available");
@@ -132,13 +127,11 @@ void StreamingServerUpstreamOp::start() {
   try {
     HOLOSCAN_LOG_INFO("Starting upstream streaming server...");
 
-    // Start the shared streaming server resource
-    // Note: This might already be started by another operator, which is fine
+      // Start the shared streaming server resource
+      // Note: This might already be started by another operator, which is fine
     if (!streaming_server_resource->is_running()) {
       streaming_server_resource->start();
     }
-
-    HOLOSCAN_LOG_INFO("✅ Upstream StreamingServer started successfully");
 
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Exception during upstream server start: {}", e.what());
@@ -149,13 +142,12 @@ void StreamingServerUpstreamOp::stop() {
   HOLOSCAN_LOG_INFO("StreamingServerUpstreamOp::stop() called");
   is_shutting_down_ = true;
 
-  // Note: We don't stop the StreamingServerResource here as it might be shared
-  // with other operators. The resource manages its own lifecycle.
+    // Note: We don't stop the StreamingServerResource here as it might be shared
+    // with other operators. The resource manages its own lifecycle.
 }
 
 void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& op_output,
                                        ExecutionContext& context) {
-
   if (is_shutting_down_.load()) {
     return;
   }
@@ -165,15 +157,15 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
     return;
   }
 
-  // Try to receive a frame using polling approach
+    // Try to receive a frame using polling approach
   Frame received_frame;
   if (streaming_server_resource->try_receive_frame(received_frame)) {
     frames_received_++;
 
-    // 🔍 DUPLICATE DETECTION: Check if this frame was already processed
+      // 🔍 DUPLICATE DETECTION: Check if this frame was already processed
     if (is_duplicate_frame(received_frame)) {
       HOLOSCAN_LOG_WARN("⚠️  Skipping duplicate frame with timestamp {}", received_frame.getTimestamp());
-      return;  // Skip processing this duplicate frame
+      return;    // Skip processing this duplicate frame
     }
 
     //write a utility class that writes the frame to a file to test is the frame data is valid and test the received frame data
@@ -184,7 +176,7 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
                       received_frame.getDataSize(),
                       received_frame.getTimestamp());
 
-    // Log duplicate detection statistics every 30 frames
+      // Log duplicate detection statistics every 30 frames
     static int stats_counter = 0;
     stats_counter++;
     if (stats_counter % 30 == 0) {
@@ -194,11 +186,11 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
                        duplicate_frames_detected_.load());
     }
 
-    // Only write unique frames to disk (use unique frame counter for consistent numbering)
+      // Only write unique frames to disk (use unique frame counter for consistent numbering)
     uint64_t unique_count = unique_frames_processed_.load();
 
 #ifdef HOLOSCAN_DEBUG_FRAME_WRITING
-    // DEBUG: Write received Frame to disk (every 10 frames for more frequent validation)
+      // DEBUG: Write received Frame to disk (every 10 frames for more frequent validation)
     static int debug_frame_counter = 0;
     debug_frame_counter++;
 
@@ -208,10 +200,10 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
     }
 #endif // HOLOSCAN_DEBUG_FRAME_WRITING
 
-    // Convert Frame to holoscan::Tensor
+      // Convert Frame to holoscan::Tensor
     holoscan::Tensor output_tensor = convert_frame_to_tensor(received_frame);
 
-    // DEBUG: Log converted tensor information (every 10 unique frames)
+      // DEBUG: Log converted tensor information (every 10 unique frames)
     if (unique_count % 10 == 0) {
       auto shape = output_tensor.shape();
       auto dtype = output_tensor.dtype();
@@ -223,14 +215,14 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
     }
 
     if (output_tensor.data() != nullptr) {
-      // Output the tensor
+        // Output the tensor
       op_output.emit(output_tensor, "output_frames");
 
       auto shape = output_tensor.shape();
       HOLOSCAN_LOG_DEBUG("Emitted tensor: shape={}, {} bytes",
                         fmt::join(shape, "x"), output_tensor.nbytes());
 
-      // Log performance every 30 frames
+        // Log performance every 30 frames
       if (frames_received_ % 30 == 0) {
         auto now = std::chrono::steady_clock::now();
         auto start_time = std::chrono::steady_clock::time_point(std::chrono::steady_clock::duration(start_time_ticks_.load()));
@@ -240,7 +232,6 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
           HOLOSCAN_LOG_INFO("📊 Upstream Performance: Received {} frames ({:.2f} FPS)",
                            frames_received_.load(), fps);
         }
-      }
     }
   }
 }
@@ -286,18 +277,18 @@ void StreamingServerUpstreamOp::on_streaming_server_event(const StreamingServerR
 
 holoscan::Tensor StreamingServerUpstreamOp::convert_frame_to_tensor(const Frame& frame) {
   if (!frame.isValid()) {
-    // Return empty tensor for invalid frame
+      // Return empty tensor for invalid frame
     return holoscan::Tensor();
   }
 
-  // Get frame properties
+    // Get frame properties
   uint32_t width = frame.getWidth();
   uint32_t height = frame.getHeight();
   size_t data_size = frame.getDataSize();
   const uint8_t* frame_data = frame.getData();
   auto frame_format = frame.getFormat();
 
-  // Determine number of channels based on pixel format
+    // Determine number of channels based on pixel format
   uint32_t channels;
   switch (frame_format) {
     case ::PixelFormat::BGR:
@@ -308,22 +299,22 @@ holoscan::Tensor StreamingServerUpstreamOp::convert_frame_to_tensor(const Frame&
       channels = 4;
       break;
     default:
-      channels = 4;  // Default to 4 channels
+      channels = 4;    // Default to 4 channels
       break;
   }
 
-  // Create tensor shape [height, width, channels] (HWC format)
+    // Create tensor shape [height, width, channels] (HWC format)
   std::vector<int64_t> shape = {static_cast<int64_t>(height),
                                 static_cast<int64_t>(width),
                                 static_cast<int64_t>(channels)};
 
-  // Calculate expected size
+    // Calculate expected size
   size_t expected_size = height * width * channels;
   if (data_size != expected_size) {
     HOLOSCAN_LOG_WARN("Frame data size mismatch: expected {}, got {}", expected_size, data_size);
   }
 
-  // Create GXF tensor first (following the correct pattern)
+    // Create GXF tensor first (following the correct pattern)
   auto primitive_type = nvidia::gxf::PrimitiveType::kUnsigned8;
   auto gxf_tensor = std::make_shared<nvidia::gxf::Tensor>();
 
@@ -338,7 +329,7 @@ holoscan::Tensor StreamingServerUpstreamOp::convert_frame_to_tensor(const Frame&
     static_cast<int32_t>(channels)
   };
 
-  // Copy frame data to host memory
+    // Copy frame data to host memory
   auto host_data = std::shared_ptr<uint8_t[]>(new uint8_t[data_size]);
   if (!host_data) {
     HOLOSCAN_LOG_ERROR("Failed to allocate memory for tensor data");
@@ -347,7 +338,7 @@ holoscan::Tensor StreamingServerUpstreamOp::convert_frame_to_tensor(const Frame&
 
   std::memcpy(host_data.get(), frame_data, data_size);
 
-  // Wrap memory in GXF tensor
+    // Wrap memory in GXF tensor
   try {
     gxf_tensor->wrapMemory(
         gxf_shape,
@@ -365,7 +356,7 @@ holoscan::Tensor StreamingServerUpstreamOp::convert_frame_to_tensor(const Frame&
     return holoscan::Tensor();
   }
 
-  // Convert to Holoscan tensor
+    // Convert to Holoscan tensor
   auto maybe_dl_ctx = gxf_tensor->toDLManagedTensorContext();
   if (!maybe_dl_ctx) {
     HOLOSCAN_LOG_ERROR("Failed to convert GXF tensor to Holoscan tensor");
@@ -378,37 +369,37 @@ holoscan::Tensor StreamingServerUpstreamOp::convert_frame_to_tensor(const Frame&
 bool StreamingServerUpstreamOp::is_duplicate_frame(const Frame& frame) {
   uint64_t frame_timestamp = frame.getTimestamp();
 
-  // Quick check: if timestamp is same as last processed, it's definitely a duplicate
+    // Quick check: if timestamp is same as last processed, it's definitely a duplicate
   if (frame_timestamp == last_processed_timestamp_.load()) {
     duplicate_frames_detected_++;
     HOLOSCAN_LOG_DEBUG("Duplicate frame detected: same timestamp as last processed ({})", frame_timestamp);
     return true;
   }
 
-  // More comprehensive check: maintain a set of recent timestamps
+    // More comprehensive check: maintain a set of recent timestamps
   std::lock_guard<std::mutex> lock(frame_tracking_mutex_);
 
-  // Check if we've already processed this exact timestamp
+    // Check if we've already processed this exact timestamp
   if (processed_frame_timestamps_.find(frame_timestamp) != processed_frame_timestamps_.end()) {
     duplicate_frames_detected_++;
     HOLOSCAN_LOG_WARN("🔍 DUPLICATE FRAME DETECTED: timestamp {} already processed", frame_timestamp);
     return true;
   }
 
-  // Add to processed set
+    // Add to processed set
   processed_frame_timestamps_.insert(frame_timestamp);
 
-  // Keep only recent timestamps (last 1000) to prevent memory growth
+    // Keep only recent timestamps (last 1000) to prevent memory growth
   if (processed_frame_timestamps_.size() > 1000) {
-    // Remove timestamps older than the most recent 900 (keep some buffer)
-    // Find the 900th most recent timestamp as the cutoff
+      // Remove timestamps older than the most recent 900 (keep some buffer)
+      // Find the 900th most recent timestamp as the cutoff
     std::vector<uint64_t> sorted_timestamps(processed_frame_timestamps_.begin(), processed_frame_timestamps_.end());
     std::sort(sorted_timestamps.begin(), sorted_timestamps.end(), std::greater<uint64_t>());
 
     if (sorted_timestamps.size() > 900) {
-      uint64_t cutoff_timestamp = sorted_timestamps[899];  // Keep top 900 (0-indexed)
+      uint64_t cutoff_timestamp = sorted_timestamps[899];    // Keep top 900 (0-indexed)
 
-      // Remove all timestamps older than cutoff
+        // Remove all timestamps older than cutoff
       auto it = processed_frame_timestamps_.begin();
       while (it != processed_frame_timestamps_.end()) {
         if (*it < cutoff_timestamp) {
@@ -423,7 +414,7 @@ bool StreamingServerUpstreamOp::is_duplicate_frame(const Frame& frame) {
     }
   }
 
-  // Update last processed timestamp
+    // Update last processed timestamp
   last_processed_timestamp_.store(frame_timestamp);
   unique_frames_processed_++;
 
