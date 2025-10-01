@@ -279,8 +279,8 @@ Testing is handled at the application level through the unified `video_streaming
 
 ## Related Applications
 
-- **[Streaming Server Demo Enhanced](../../applications/streaming_server_demo_enhanced/README.md)** - Complete application demonstrating the streaming server operators
-- **[Streaming Client Demo Enhanced](../../applications/streaming_client_demo_enhanced/README.md)** - Companion client application for bidirectional streaming
+- **[Streaming Server Demo Enhanced](../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/README.md)** - Complete application demonstrating the streaming server operators
+- **[Streaming Client Demo Enhanced](../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/README.md)** - Companion client application for bidirectional streaming
 
 ## Supported Platforms
 
