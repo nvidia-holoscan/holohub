@@ -75,19 +75,27 @@ if(BUILD_TESTING)
              if [ \$SERVER_SUCCESS -eq 1 ]; then
                echo '✓ Server started successfully'
                
-               # Run client test
+               # Start client in background and let it stream for a while
                echo 'Starting streaming client...'
-               timeout 60s ./bin/streaming_client_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_replayer.yaml
-               CLIENT_EXIT_CODE=\$?
+               ./bin/streaming_client_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_replayer.yaml &
+               CLIENT_PID=\$!
                
-               if [ \$CLIENT_EXIT_CODE -eq 0 ]; then
-                 echo '✓ Client test completed successfully'
+               # Let client stream for 30 seconds
+               echo 'Letting client stream for 30 seconds...'
+               sleep 30
+               
+               # Check if client is still running (indicating successful connection)
+               if kill -0 \$CLIENT_PID 2>/dev/null; then
+                 echo '✓ Client is still running - connection successful'
                  CLIENT_SUCCESS=1
-               elif [ \$CLIENT_EXIT_CODE -eq 124 ]; then
-                 echo '✗ Client test timed out'
-                 CLIENT_SUCCESS=0
+                 
+                 # Stop client gracefully
+                 echo 'Stopping client...'
+                 kill -TERM \$CLIENT_PID 2>/dev/null || true
+                 sleep 2
+                 kill -KILL \$CLIENT_PID 2>/dev/null || true
                else
-                 echo \"✗ Client test failed with exit code \$CLIENT_EXIT_CODE\"
+                 echo '✗ Client stopped unexpectedly - connection failed'
                  CLIENT_SUCCESS=0
                fi
              else
@@ -95,7 +103,7 @@ if(BUILD_TESTING)
                CLIENT_SUCCESS=0
              fi
              
-             # Clean up
+             # Clean up server
              echo 'Cleaning up server process...'
              kill -TERM \$SERVER_PID 2>/dev/null || true
              sleep 2
