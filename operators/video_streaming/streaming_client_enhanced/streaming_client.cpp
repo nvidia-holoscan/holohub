@@ -583,7 +583,7 @@ void StreamingClientOp::stop() {
       }
 
       // Wait for streaming to end with timeout
-      auto stop_timeout = std::chrono::steady_clock::now() + 
+      auto stop_timeout = std::chrono::steady_clock::now() +
                           std::chrono::seconds(3);  // Reduced timeout
       bool stopped = false;
 
@@ -637,7 +637,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 
   if (compute_call_count % 30 == 0) {  // Log every second at 30fps
     HOLOSCAN_LOG_INFO("Compute called {} times, client streaming: {}",
-                       compute_call_count, 
+                       compute_call_count,
                        client_ ? (client_->isStreaming() ? "true" : "false") : "null");
   }
 
@@ -664,7 +664,8 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       static auto last_reconnect_time = std::chrono::steady_clock::now();
 
       auto now = std::chrono::steady_clock::now();
-      auto time_since_last_reconnect = std::chrono::duration_cast<std::chrono::seconds>(now - last_reconnect_time).count();
+      auto time_since_last_reconnect = 
+          std::chrono::duration_cast<std::chrono::seconds>(now - last_reconnect_time).count();
 
       try {
         // Only attempt reconnection if we haven't tried too recently
@@ -685,11 +686,13 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
             HOLOSCAN_LOG_INFO("✅ Reconnection successful!");
             reconnection_attempts = 0;  // Reset on success
           } else {
-            HOLOSCAN_LOG_WARN("❌ Reconnection attempt {} failed - client not streaming", reconnection_attempts);
+            HOLOSCAN_LOG_WARN("❌ Reconnection attempt {} failed - client not streaming", 
+                               reconnection_attempts);
 
             // If we've tried many times, give a longer break
             if (reconnection_attempts >= 10) {
-              HOLOSCAN_LOG_WARN("⏸️  Too many reconnection attempts ({}), will wait longer before trying again", reconnection_attempts);
+              HOLOSCAN_LOG_WARN("⏸️  Too many reconnection attempts ({}), will wait longer "
+                                "before trying again", reconnection_attempts);
               reconnection_attempts = 0;  // Reset counter to avoid infinite accumulation
               last_reconnect_time = now + std::chrono::seconds(30);  // Wait 30 more seconds
             }
