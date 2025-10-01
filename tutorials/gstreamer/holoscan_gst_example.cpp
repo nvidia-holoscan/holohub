@@ -323,18 +323,14 @@ class GstSinkOperator : public Operator {
  */
 class GstSinkApp : public Application {
  public:
-  GstSinkApp(int64_t iteration_count, const std::string& pipeline_desc)
-    : iteration_count_(iteration_count), pipeline_desc_(pipeline_desc) {}
+  GstSinkApp(int64_t iteration_count, const std::string& pipeline_desc, const std::string& caps)
+    : iteration_count_(iteration_count), pipeline_desc_(pipeline_desc), caps_(caps) {}
 
   void compose() override {
     // Create the GStreamer sink resource for data bridging
-    // Test with specific video caps to verify the caps validation works:
+    // Use the caps parameter from command line arguments
     auto gst_sink = make_resource<SinkResource>("holoscan_sink", 
-        Arg("capabilities", "video/x-raw,format=(string){I420,YV12,RGBx,BGRx,RGBA,BGRA}"));
-    
-    // You can also use "ANY" for maximum flexibility:
-    // auto gst_sink = make_resource<SinkResource>("holoscan_sink", 
-    //     Arg("capabilities", "ANY"));
+        Arg("capabilities", caps_));
 
     // Create the operator that uses the sink
     auto gst_op = make_operator<GstSinkOperator>(
@@ -365,6 +361,7 @@ class GstSinkApp : public Application {
  private:
   int64_t iteration_count_;
   std::string pipeline_desc_;
+  std::string caps_;
 };
 
 void print_usage(const char* program_name) {
@@ -373,12 +370,16 @@ void print_usage(const char* program_name) {
     std::cout << "  -c, --count <number>     Number of iterations to run (default: 300)\n";
     std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description (default: videotestsrc pattern=0 ! videoconvert)\n";
     std::cout << "                            Note: RGBA conversion is automatically appended if not present\n";
+    std::cout << "  --caps <caps_string>     GStreamer capabilities string for the sink (default: ANY)\n";
     std::cout << "  -h, --help               Show this help message\n\n";
     std::cout << "Examples:\n";
     std::cout << "  " << program_name << " --count 150 --pipeline \"videotestsrc pattern=1 ! videoconvert\"\n";
     std::cout << "  " << program_name << " -c 600 -p \"audiotestsrc ! audioconvert\"\n";
     std::cout << "  " << program_name << " --pipeline \"autovideosrc ! videoconvert\"  # Use camera\n";
-    std::cout << "  " << program_name << " --pipeline \"souphttpsrc location=https://example.com/video.mp4 ! decodebin ! videoconvert\"  # Network video\n\n";
+    std::cout << "  " << program_name << " --pipeline \"souphttpsrc location=https://example.com/video.mp4 ! decodebin ! videoconvert\"  # Network video\n";
+    std::cout << "  " << program_name << " --caps \"video/x-raw,format=RGBA\" --pipeline \"videotestsrc ! videoconvert\"  # Specific video format\n";
+    std::cout << "  " << program_name << " --caps \"audio/x-raw\" --pipeline \"audiotestsrc ! audioconvert\"  # Audio only\n";
+    std::cout << "  " << program_name << " --caps \"ANY\" --pipeline \"videotestsrc ! videoconvert\"  # Accept any format\n\n";
     std::cout << "Note: The SinkResource now supports configurable capabilities. You can modify the code to use specific caps like:\n";
     std::cout << "  - video/x-raw,format=RGBA (for raw video)\n";
     std::cout << "  - audio/x-raw (for raw audio)\n";
@@ -389,6 +390,7 @@ void print_usage(const char* program_name) {
 int main(int argc, char** argv) {
   int64_t iteration_count = 300;  // Default value
   std::string pipeline_desc = "videotestsrc pattern=0 ! videoconvert";  // Default value
+  std::string caps = "ANY";  // Default value
 
   // Parse command line arguments
   for (int i = 1; i < argc; i++) {
@@ -404,6 +406,9 @@ int main(int argc, char** argv) {
     else if ((arg == "-p" || arg == "--pipeline") && i + 1 < argc) {
       pipeline_desc = argv[++i];
     }
+    else if (arg == "--caps" && i + 1 < argc) {
+      caps = argv[++i];
+    }
     else {
       std::cerr << "Unknown argument: " << arg << std::endl;
       print_usage(argv[0]);
@@ -416,10 +421,10 @@ int main(int argc, char** argv) {
   gst_init(&argc, &argv);
 
   // Create the Holoscan application with parsed parameters
-  auto app = std::make_shared<GstSinkApp>(iteration_count, pipeline_desc);
+  auto app = std::make_shared<GstSinkApp>(iteration_count, pipeline_desc, caps);
 
   HOLOSCAN_LOG_INFO("Starting Holoscan GStreamer Sink Example");
-  HOLOSCAN_LOG_INFO("Configuration: {} iterations, pipeline: '{}'", iteration_count, pipeline_desc);
+  HOLOSCAN_LOG_INFO("Configuration: {} iterations, pipeline: '{}', caps: '{}'", iteration_count, pipeline_desc, caps);
   HOLOSCAN_LOG_INFO("This will display video frames using our custom universal sink");
 
   app->run();
