@@ -13,7 +13,7 @@ rm -f streamingserver.log streamingclient.log
 # Test 1: Run server test
 echo "=== Test 1: Server Test ==="
 echo "Starting streaming server test..."
-timeout 60s ../../../holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_server_demo_enhanced_cpp_test" 2>&1 > streamingserver.log &
+timeout 60s /workspace/holohub/holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_server_demo_enhanced_cpp_test" 2>&1 > streamingserver.log &
 SERVER_PID=$!
 
 # Wait for server test to complete
@@ -29,7 +29,7 @@ cat streamingserver.log
 # Test 2: Run client test
 echo "=== Test 2: Client Test ==="
 echo "Starting streaming client test..."
-timeout 60s ../../../holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_client_demo_enhanced_cpp_test" 2>&1 > streamingclient.log &
+timeout 60s /workspace/holohub/holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_client_demo_enhanced_cpp_test" 2>&1 > streamingclient.log &
 CLIENT_PID=$!
 
 # Wait for client test to complete
