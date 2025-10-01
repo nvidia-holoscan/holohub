@@ -489,7 +489,7 @@ void StreamingClientOp::start() {
 
         int wait_attempts = 0;
         // Check for upstream readiness using the actual method
-        while ((std::chrono::steady_clock::now() - start_wait) < upstream_timeout && 
+        while ((std::chrono::steady_clock::now() - start_wait) < upstream_timeout &&
                !client_->isUpstreamReady()) {
           wait_attempts++;
           if (wait_attempts % 10 == 0) {  // Log every second (10 * 100ms)
@@ -514,7 +514,7 @@ void StreamingClientOp::start() {
 
         // Log connection details but don't be too verbose
         if (retry_count == 1) {  // Only log details on first failure
-          HOLOSCAN_LOG_INFO("Connection details: server={}:{}", 
+          HOLOSCAN_LOG_INFO("Connection details: server={}:{}",
                              server_ip_.get(), signaling_port_.get());
         }
 
@@ -583,7 +583,8 @@ void StreamingClientOp::stop() {
       }
 
       // Wait for streaming to end with timeout
-      auto stop_timeout = std::chrono::steady_clock::now() + std::chrono::seconds(3);  // Reduced timeout
+      auto stop_timeout = std::chrono::steady_clock::now() + 
+                          std::chrono::seconds(3);  // Reduced timeout
       bool stopped = false;
 
       while (!stopped && std::chrono::steady_clock::now() < stop_timeout) {
@@ -636,7 +637,8 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 
   if (compute_call_count % 30 == 0) {  // Log every second at 30fps
     HOLOSCAN_LOG_INFO("Compute called {} times, client streaming: {}",
-                     compute_call_count, client_ ? (client_->isStreaming() ? "true" : "false") : "null");
+                       compute_call_count, 
+                       client_ ? (client_->isStreaming() ? "true" : "false") : "null");
   }
 
   // Check if client exists
