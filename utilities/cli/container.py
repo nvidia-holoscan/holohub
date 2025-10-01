@@ -369,19 +369,22 @@ class HoloHubContainer:
         if not build_args:
             return
         args_list = shlex.split(build_args)
-        for i, arg in enumerate(args_list):
-            # --build-context name=path
-            if arg == "--build-context" and i + 1 < len(args_list):
+        i = 0
+        while i < len(args_list):
+            arg = args_list[i]
+            context_spec = None
+            if arg == "--build-context" and i + 1 < len(args_list):  # --build-context name=path
                 context_spec = args_list[i + 1]
-            # --build-context=name=path
-            elif arg.startswith("--build-context="):
+                i += 2  # Skip both arguments
+            elif arg.startswith("--build-context="):  # --build-context=name=path
                 context_spec = arg.split("=", 1)[1]
+                i += 1
             else:
+                i += 1
                 continue
-            if "=" in context_spec:
-                _, path = context_spec.split("=", 1)
+            if context_spec and "=" in context_spec:
                 ensure_local_directory(
-                    path=path,
+                    path=context_spec.split("=", 1)[1],
                     base_dir=HoloHubContainer.HOLOHUB_ROOT,
                     dry_run=self.dryrun,
                     verbose=self.verbose,
