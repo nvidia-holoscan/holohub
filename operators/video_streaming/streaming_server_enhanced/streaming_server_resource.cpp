@@ -136,6 +136,8 @@ bool StreamingServerResource::has_connected_clients() const {
   return streaming_server_ ? streaming_server_->hasConnectedClients() : false;
 }
 
+void StreamingServerResource::send_frame(const Frame& frame) {
+  if (!is_running() || !streaming_server_) {
     return;
   }
 
@@ -151,6 +153,7 @@ bool StreamingServerResource::has_connected_clients() const {
 }
 
 Frame StreamingServerResource::receive_frame() {
+  if (!is_running() || !streaming_server_) {
     return Frame{};
   }
 
@@ -235,6 +238,7 @@ uint64_t StreamingServerResource::get_frames_received() const {
 
 uint64_t StreamingServerResource::get_frames_sent() const {
   return frames_sent_;
+}
 
 double StreamingServerResource::get_upstream_fps() const {
   if (!is_running() || frames_received_ == 0) {
@@ -317,14 +321,12 @@ StreamingServerResource::Config StreamingServerResource::from_streaming_server_c
   config.width = server_config.width;
   config.height = server_config.height;
   config.fps = server_config.fps;
-    // Note: enable_upstream and enable_downstream are resource-specific,
-    // not part of StreamingServer::Config
   config.enable_upstream = config_.enable_upstream;
   config.enable_downstream = config_.enable_downstream;
   return config;
 }
 
-VideoFrame StreamingServerResource::convert_to_streaming_server_frame(
+  VideoFrame StreamingServerResource::convert_to_streaming_server_frame(
     const Frame& ops_frame) const {
     // Create VideoFrame with dimensions and data
   VideoFrame server_frame(ops_frame.getWidth(), ops_frame.getHeight(),
@@ -348,4 +350,6 @@ Frame StreamingServerResource::convert_from_streaming_server_frame(
   ops_frame.setFormat(server_frame.getFormat());
 
   return ops_frame;
+}
+
 }  // namespace holoscan::ops
