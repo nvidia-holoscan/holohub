@@ -135,7 +135,6 @@ install(
     "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml"
     DESTINATION bin
 )
-
 # Copy config dependencies for testing
 add_custom_target(streaming_server_demo_enhanced_deps
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml" ${CMAKE_CURRENT_BINARY_DIR}
@@ -143,6 +142,7 @@ add_custom_target(streaming_server_demo_enhanced_deps
   BYPRODUCTS "streaming_server_demo.yaml"
 )
 add_dependencies(streaming_server_demo_enhanced streaming_server_demo_enhanced_deps)
+
 
 
 
