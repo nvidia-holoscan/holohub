@@ -12,14 +12,14 @@ rm -f streamingserver.log streamingclient.log
 
 # Launch server test
 echo "Starting streaming server test..."
-../../holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test" 2>&1 > streamingserver.log &
+../../../holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test" 2>&1 > streamingserver.log &
 SERVER_PID=$!
 
 sleep 10
 
 # Launch client test
 echo "Starting streaming client test..."
-../../holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test" 2>&1 > streamingclient.log &
+../../../holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test" 2>&1 > streamingclient.log &
 CLIENT_PID=$!
 
 sleep 30
