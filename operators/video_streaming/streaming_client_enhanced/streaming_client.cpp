@@ -444,9 +444,9 @@ void StreamingClientOp::start() {
     }
 
     // Add server connectivity test
-    HOLOSCAN_LOG_INFO("Testing server connectivity to {}:{}...", 
+    HOLOSCAN_LOG_INFO("Testing server connectivity to {}:{}...",
                        server_ip_.get(), signaling_port_.get());
-    // Note: A full socket test could be added here, but for now we'll rely on the 
+    // Note: A full socket test could be added here, but for now we'll rely on the
     // Holoscan Streaming Stack connection attempt
 
     // Implement robust connection with exponential backoff
@@ -489,7 +489,8 @@ void StreamingClientOp::start() {
 
         int wait_attempts = 0;
         // Check for upstream readiness using the actual method
-        while ((std::chrono::steady_clock::now() - start_wait) < upstream_timeout && !client_->isUpstreamReady()) {
+        while ((std::chrono::steady_clock::now() - start_wait) < upstream_timeout && 
+               !client_->isUpstreamReady()) {
           wait_attempts++;
           if (wait_attempts % 10 == 0) {  // Log every second (10 * 100ms)
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -513,7 +514,8 @@ void StreamingClientOp::start() {
 
         // Log connection details but don't be too verbose
         if (retry_count == 1) {  // Only log details on first failure
-          HOLOSCAN_LOG_INFO("Connection details: server={}:{}", server_ip_.get(), signaling_port_.get());
+          HOLOSCAN_LOG_INFO("Connection details: server={}:{}", 
+                             server_ip_.get(), signaling_port_.get());
         }
 
         if (retry_count >= max_retries) {
