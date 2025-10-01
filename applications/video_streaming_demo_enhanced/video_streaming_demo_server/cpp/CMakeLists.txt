@@ -42,7 +42,7 @@ add_executable(streaming_server_demo_enhanced
 target_link_libraries(streaming_server_demo_enhanced
     PRIVATE
     holoscan::core
-    holoscan::ops::video_streaming
+    holoscan::ops::streaming_server_enhanced
     CUDA::cudart
     "${OPERATOR_SSL_DIR}/libssl.so.3"
     "${OPERATOR_SSL_DIR}/libcrypto.so.3"

@@ -18,7 +18,7 @@ target_link_libraries(streaming_client_demo_enhanced
   holoscan::ops::video_stream_replayer
   holoscan::ops::v4l2
   holoscan::ops::format_converter
-  holoscan::ops::video_streaming
+  holoscan::ops::streaming_client_enhanced
   holoscan::data_loggers::basic_console_logger
   CUDA::cudart
   CUDA::cuda_driver
