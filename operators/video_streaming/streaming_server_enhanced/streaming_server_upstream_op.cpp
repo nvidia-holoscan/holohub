@@ -201,7 +201,7 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
       debug_utils::writeFrameToDisk(received_frame, "debug_upstream_received",
                                      static_cast<int>(unique_count));
     }
-#endif // HOLOSCAN_DEBUG_FRAME_WRITING
+#endif  // HOLOSCAN_DEBUG_FRAME_WRITING
 
       // Convert Frame to holoscan::Tensor
     holoscan::Tensor output_tensor = convert_frame_to_tensor(received_frame);
@@ -358,7 +358,7 @@ holoscan::Tensor StreamingServerUpstreamOp::convert_frame_to_tensor(const Frame&
         gxf_shape,
         primitive_type,
         nvidia::gxf::PrimitiveTypeSize(primitive_type),
-        nvidia::gxf::ComputeTrivialStrides(gxf_shape, 
+        nvidia::gxf::ComputeTrivialStrides(gxf_shape,
                                             nvidia::gxf::PrimitiveTypeSize(primitive_type)),
         nvidia::gxf::MemoryStorageType::kSystem,
         host_data.get(),
@@ -387,7 +387,8 @@ bool StreamingServerUpstreamOp::is_duplicate_frame(const Frame& frame) {
     // Quick check: if timestamp is same as last processed, it's definitely a duplicate
   if (frame_timestamp == last_processed_timestamp_.load()) {
     duplicate_frames_detected_++;
-    HOLOSCAN_LOG_DEBUG("Duplicate frame detected: same timestamp as last processed ({})", frame_timestamp);
+    HOLOSCAN_LOG_DEBUG("Duplicate frame detected: same timestamp as last processed ({})", 
+                        frame_timestamp);
     return true;
   }
 
@@ -397,7 +398,8 @@ bool StreamingServerUpstreamOp::is_duplicate_frame(const Frame& frame) {
     // Check if we've already processed this exact timestamp
   if (processed_frame_timestamps_.find(frame_timestamp) != processed_frame_timestamps_.end()) {
     duplicate_frames_detected_++;
-    HOLOSCAN_LOG_WARN("🔍 DUPLICATE FRAME DETECTED: timestamp {} already processed", frame_timestamp);
+    HOLOSCAN_LOG_WARN("🔍 DUPLICATE FRAME DETECTED: timestamp {} already processed", 
+                       frame_timestamp);
     return true;
   }
 
@@ -408,7 +410,8 @@ bool StreamingServerUpstreamOp::is_duplicate_frame(const Frame& frame) {
   if (processed_frame_timestamps_.size() > 1000) {
       // Remove timestamps older than the most recent 900 (keep some buffer)
       // Find the 900th most recent timestamp as the cutoff
-    std::vector<uint64_t> sorted_timestamps(processed_frame_timestamps_.begin(), processed_frame_timestamps_.end());
+    std::vector<uint64_t> sorted_timestamps(processed_frame_timestamps_.begin(), 
+                                             processed_frame_timestamps_.end());
     std::sort(sorted_timestamps.begin(), sorted_timestamps.end(), std::greater<uint64_t>());
 
     if (sorted_timestamps.size() > 900) {
@@ -437,4 +440,4 @@ bool StreamingServerUpstreamOp::is_duplicate_frame(const Frame& frame) {
   return false;
 }
 
-} // namespace holoscan::ops
+}  // namespace holoscan::ops

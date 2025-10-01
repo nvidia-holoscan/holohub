@@ -59,8 +59,8 @@ class StreamingServerDownstreamOp : public holoscan::Operator {
   Parameter<uint32_t> height_;          ///< Frame height
   Parameter<uint32_t> fps_;             ///< Frames per second
   Parameter<bool> enable_processing_;     ///< Enable frame processing (mirroring, etc.)
-  Parameter<std::string> processing_type_; ///< Type of processing to apply
-  Parameter<std::shared_ptr<Allocator>> allocator_; ///< Memory allocator
+  Parameter<std::string> processing_type_;  ///< Type of processing to apply
+  Parameter<std::shared_ptr<Allocator>> allocator_;  ///< Memory allocator
 
     // StreamingServerResource reference
   Parameter<std::shared_ptr<StreamingServerResource>> streaming_server_resource_;

@@ -97,7 +97,7 @@ void StreamingServerResource::start() {
     HOLOSCAN_LOG_INFO("Starting StreamingServerResource on port {}",
                        config_.port);
 
-      // Start the StreamingServer (it handles all the Holoscan Streaming Stack 
+      // Start the StreamingServer (it handles all the Holoscan Streaming Stack
       // complexity internally)
     streaming_server_->start();
     is_running_ = true;
@@ -317,14 +317,15 @@ StreamingServerResource::Config StreamingServerResource::from_streaming_server_c
   config.width = server_config.width;
   config.height = server_config.height;
   config.fps = server_config.fps;
-    // Note: enable_upstream and enable_downstream are resource-specific, 
+    // Note: enable_upstream and enable_downstream are resource-specific,
     // not part of StreamingServer::Config
   config.enable_upstream = config_.enable_upstream;
   config.enable_downstream = config_.enable_downstream;
   return config;
 }
 
-VideoFrame StreamingServerResource::convert_to_streaming_server_frame(const Frame& ops_frame) const {
+VideoFrame StreamingServerResource::convert_to_streaming_server_frame(
+    const Frame& ops_frame) const {
     // Create VideoFrame with dimensions and data
   VideoFrame server_frame(ops_frame.getWidth(), ops_frame.getHeight(),
                           ops_frame.getData(), ops_frame.getDataSize(),
@@ -336,7 +337,8 @@ VideoFrame StreamingServerResource::convert_to_streaming_server_frame(const Fram
   return server_frame;
 }
 
-Frame StreamingServerResource::convert_from_streaming_server_frame(const VideoFrame& server_frame) const {
+Frame StreamingServerResource::convert_from_streaming_server_frame(
+    const VideoFrame& server_frame) const {
     // Create Frame with dimensions and data
   Frame ops_frame(server_frame.getWidth(), server_frame.getHeight(),
                   server_frame.getData(), server_frame.getDataSize(),
