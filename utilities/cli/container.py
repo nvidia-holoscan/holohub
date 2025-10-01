@@ -436,7 +436,7 @@ class HoloHubContainer:
         if no_cache:
             cmd.append("--no-cache")
 
-        full_build_args = " ".join(filter(str.strip, [HoloHubContainer.DEFAULT_BUILD_ARGS, build_args]))
+        full_build_args = " ".join(filter(None, [HoloHubContainer.DEFAULT_BUILD_ARGS, build_args]))
         if full_build_args:
             self.ensure_build_context_dirs(full_build_args)
             cmd.extend(shlex.split(full_build_args))
