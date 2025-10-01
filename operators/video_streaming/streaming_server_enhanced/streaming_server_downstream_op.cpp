@@ -17,7 +17,7 @@
 
 #include "streaming_server_downstream_op.hpp"
 
-#include <cstdlib>  // For setenv
+#include <cstdlib>    // For setenv
 #include <cstring>
 #include <thread>
 #include <chrono>
@@ -42,7 +42,7 @@ StreamingServerDownstreamOp::~StreamingServerDownstreamOp() {
   try {
     HOLOSCAN_LOG_INFO("StreamingServerDownstreamOp destructor: beginning cleanup...");
 
-    // Set shutdown flag to prevent new operations
+      // Set shutdown flag to prevent new operations
     is_shutting_down_ = true;
 
     HOLOSCAN_LOG_INFO("StreamingServerDownstreamOp destructor: cleanup completed");
@@ -54,10 +54,10 @@ StreamingServerDownstreamOp::~StreamingServerDownstreamOp() {
 }
 
 void StreamingServerDownstreamOp::setup(OperatorSpec& spec) {
-  // This operator only takes input holoscan::Tensor - no outputs
+    // This operator only takes input holoscan::Tensor - no outputs
   spec.input<holoscan::Tensor>("input_frames");
 
-  // Define parameters with explicit default values (can override resource defaults)
+    // Define parameters with explicit default values (can override resource defaults)
   spec.param(width_, "width", "Frame Width", "Width of the video frames in pixels", 854u);
   spec.param(height_, "height", "Frame Height", "Height of the video frames in pixels", 480u);
   spec.param(fps_, "fps", "Frames Per Second", "Frame rate of the video", 30u);
@@ -76,13 +76,12 @@ void StreamingServerDownstreamOp::setup(OperatorSpec& spec) {
 void StreamingServerDownstreamOp::initialize() {
   Operator::initialize();
 
-  // Get the streaming server resource
   auto streaming_server_resource = streaming_server_resource_.get();
   if (!streaming_server_resource) {
     throw std::runtime_error("StreamingServerResource is null");
   }
 
-  // Validate parameters and use resource defaults if not specified
+    // Validate parameters and use resource defaults if not specified
   auto resource_config = streaming_server_resource->get_config();
 
   if (!width_.has_value() || width_.get() == 0) {
@@ -101,28 +100,24 @@ void StreamingServerDownstreamOp::initialize() {
   }
 
   HOLOSCAN_LOG_INFO("StreamingServerDownstreamOp initializing with parameters:");
-  HOLOSCAN_LOG_INFO("  - Width: {}", width_.get());
   HOLOSCAN_LOG_INFO("  - Height: {}", height_.get());
   HOLOSCAN_LOG_INFO("  - FPS: {}", fps_.get());
   HOLOSCAN_LOG_INFO("  - Processing enabled: {}", enable_processing_.has_value() ? enable_processing_.get() : false);
 
   try {
-    // Set up event callback on the shared resource
+      // Set up event callback on the shared resource
     streaming_server_resource->set_event_callback([this](const StreamingServerResource::Event& event) {
       on_streaming_server_event(event);
     });
 
     HOLOSCAN_LOG_INFO("StreamingServerDownstreamOp initialized successfully");
     start_time_ticks_ = std::chrono::steady_clock::now().time_since_epoch().count();
-
-  } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to initialize StreamingServerDownstreamOp: {}", e.what());
     throw;
   }
 }
 
 void StreamingServerDownstreamOp::start() {
-  auto streaming_server_resource = streaming_server_resource_.get();
   if (!streaming_server_resource) {
     HOLOSCAN_LOG_ERROR("Cannot start downstream operator: StreamingServerResource not available");
     return;
@@ -131,15 +126,13 @@ void StreamingServerDownstreamOp::start() {
   try {
     HOLOSCAN_LOG_INFO("Starting downstream streaming server...");
 
-    // Start the shared streaming server resource
-    // Note: This might already be started by another operator, which is fine
+      // Start the shared streaming server resource
+      // Note: This might already be started by another operator, which is fine
     if (!streaming_server_resource->is_running()) {
       streaming_server_resource->start();
     }
 
     HOLOSCAN_LOG_INFO("✅ Downstream StreamingServer started successfully");
-
-  } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Exception during downstream server start: {}", e.what());
   }
 }
@@ -148,14 +141,13 @@ void StreamingServerDownstreamOp::stop() {
   HOLOSCAN_LOG_INFO("StreamingServerDownstreamOp::stop() called");
   is_shutting_down_ = true;
 
-  // Note: We don't stop the StreamingServerResource here as it might be shared
-  // with other operators. The resource manages its own lifecycle.
+    // Note: We don't stop the StreamingServerResource here as it might be shared
+    // with other operators. The resource manages its own lifecycle.
 }
 
 void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext& op_output,
                                          ExecutionContext& context) {
   if (is_shutting_down_.load()) {
-    return;
   }
 
   auto streaming_server_resource = streaming_server_resource_.get();
@@ -163,13 +155,13 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
     return;
   }
 
-  // Receive input tensor data
+    // Receive input tensor data
   auto input_message = op_input.receive<holoscan::Tensor>("input_frames");
 
-  // Add debugging for tensor reception
+    // Add debugging for tensor reception
   if (!input_message) {
     HOLOSCAN_LOG_ERROR("❌ No input frames received in downstream operator!");
-    return;  // No input data available
+    return;    // No input data available
   }
 
   HOLOSCAN_LOG_INFO("✅ DOWNSTREAM: Received holoscan::Tensor from pipeline");
@@ -177,14 +169,14 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
   auto& input_tensor = input_message.value();
   frames_processed_++;
 
-  // Get tensor dimensions and size
+    // Get tensor dimensions and size
   auto shape = input_tensor.shape();
   size_t tensor_size = input_tensor.nbytes();
 
   HOLOSCAN_LOG_INFO("📊 DOWNSTREAM: Processing tensor {} - shape: {}, {} bytes",
                    frames_processed_.load(), fmt::join(shape, "x"), tensor_size);
 
-  // DEBUG: Log tensor information (every 10 frames for more frequent validation)
+    // DEBUG: Log tensor information (every 10 frames for more frequent validation)
   static int debug_frame_counter = 0;
   debug_frame_counter++;
   if (debug_frame_counter % 10 == 0) {
@@ -197,17 +189,17 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
   }
 
   try {
-    // Process the tensor if processing is enabled
+      // Process the tensor if processing is enabled
     holoscan::Tensor processed_tensor = input_tensor;
     if (enable_processing_.has_value() && enable_processing_.get()) {
       processed_tensor = process_frame(input_tensor);
     }
 
-    // Convert tensor to output frame format
+      // Convert tensor to output frame format
     Frame output_frame = convert_tensor_to_frame(processed_tensor);
 
 #ifdef HOLOSCAN_DEBUG_FRAME_WRITING
-    // DEBUG: Write output Frame to disk (every 10 frames for more frequent validation)
+      // DEBUG: Write output Frame to disk (every 10 frames for more frequent validation)
     static int debug_output_frame_counter = 0;
     debug_output_frame_counter++;
     if (debug_output_frame_counter % 10 == 0) {
@@ -216,7 +208,7 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
     }
 #endif // HOLOSCAN_DEBUG_FRAME_WRITING
 
-    // Send frame to connected clients via StreamingServerResource
+      // Send frame to connected clients via StreamingServerResource
     if (output_frame.getDataSize() > 0) {
       HOLOSCAN_LOG_INFO("📤 DOWNSTREAM: Attempting to send frame to client: {}x{}, {} bytes",
                        output_frame.getWidth(), output_frame.getHeight(), output_frame.getDataSize());
@@ -229,7 +221,7 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
       HOLOSCAN_LOG_ERROR("❌ DOWNSTREAM: Cannot send frame - invalid data size: {}", output_frame.getDataSize());
     }
 
-    // Log performance every 30 frames
+      // Log performance every 30 frames
     if (frames_processed_ % 30 == 0) {
       auto now = std::chrono::steady_clock::now();
       auto start_time = std::chrono::steady_clock::time_point(std::chrono::steady_clock::duration(start_time_ticks_.load()));
@@ -240,7 +232,6 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
                          frames_processed_.load(), frames_sent_.load(), fps);
       }
     }
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error processing frame in downstream operator: {}", e.what());
   }
@@ -284,7 +275,7 @@ void StreamingServerDownstreamOp::on_streaming_server_event(const StreamingServe
 
 holoscan::Tensor StreamingServerDownstreamOp::process_frame(const holoscan::Tensor& input_tensor) {
   if (!enable_processing_.has_value() || !enable_processing_.get()) {
-    return input_tensor;  // No processing
+    return input_tensor;    // No processing
   }
 
   std::string processing_type = processing_type_.has_value() ? processing_type_.get() : "none";
@@ -292,33 +283,33 @@ holoscan::Tensor StreamingServerDownstreamOp::process_frame(const holoscan::Tens
   if (processing_type == "mirror") {
     return mirror_horizontally(input_tensor);
   } else if (processing_type == "rotate") {
-    // TODO: Implement rotation if needed
+      // TODO: Implement rotation if needed
     HOLOSCAN_LOG_WARN("Rotation processing not implemented yet");
     return input_tensor;
   } else {
-    return input_tensor;  // No processing
+    return input_tensor;    // No processing
   }
 }
 
 Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tensor& tensor) {
-  // Get tensor properties
+    // Get tensor properties
   auto shape = tensor.shape();
   auto dtype = tensor.dtype();
   const void* data_ptr = tensor.data();
   size_t data_size = tensor.nbytes();
 
-  // Validate tensor dimensions and layout
-  // This operator expects exactly 3D tensors in HWC format: height, width, channels
+    // Validate tensor dimensions and layout
+    // This operator expects exactly 3D tensors in HWC format: height, width, channels
   if (shape.size() != 3) {
     throw std::runtime_error(fmt::format("Expected 3D tensor in HWC format (height, width, channels), but got {}D tensor with shape [{}]",
                                         shape.size(), fmt::join(shape, ", ")));
   }
 
-  uint32_t height = static_cast<uint32_t>(shape[0]);   // Height (first dimension)
-  uint32_t width = static_cast<uint32_t>(shape[1]);    // Width (second dimension)
-  uint32_t channels = static_cast<uint32_t>(shape[2]);  // Channels (third dimension)
+  uint32_t height = static_cast<uint32_t>(shape[0]);     // Height (first dimension)
+  uint32_t width = static_cast<uint32_t>(shape[1]);      // Width (second dimension)
+  uint32_t channels = static_cast<uint32_t>(shape[2]);    // Channels (third dimension)
 
-  // Validate reasonable dimensions for video frames
+    // Validate reasonable dimensions for video frames
   if (height == 0 || width == 0 || channels == 0) {
     throw std::runtime_error(fmt::format("Invalid tensor dimensions: height={}, width={}, channels={}", height, width, channels));
   }
@@ -326,24 +317,24 @@ Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tenso
     throw std::runtime_error(fmt::format("Unsupported number of channels: {}. Expected 1-4 channels for video frames.", channels));
   }
 
-  // Create VideoFrame with appropriate dimensions
+    // Create VideoFrame with appropriate dimensions
   Frame output_frame(width, height);
 
-  // Set timestamp (use current time as tensor doesn't have timestamp)
+    // Set timestamp (use current time as tensor doesn't have timestamp)
   auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::system_clock::now().time_since_epoch()).count();
   output_frame.setTimestamp(static_cast<uint64_t>(now));
 
-  // Set pixel format based on number of channels
+    // Set pixel format based on number of channels
   if (channels == 3) {
-    output_frame.setFormat(::PixelFormat::BGR);  // Assume BGR for 3 channels
+    output_frame.setFormat(::PixelFormat::BGR);    // Assume BGR for 3 channels
   } else if (channels == 4) {
-    output_frame.setFormat(::PixelFormat::BGRA);  // Assume BGRA for 4 channels
+    output_frame.setFormat(::PixelFormat::BGRA);    // Assume BGRA for 4 channels
   } else {
-    output_frame.setFormat(::PixelFormat::BGRA);  // Default fallback
+    output_frame.setFormat(::PixelFormat::BGRA);    // Default fallback
   }
 
-  // Copy tensor data to frame - only support uint8 data
+    // Copy tensor data to frame - only support uint8 data
   if (dtype.code == kDLUInt && dtype.bits == 8 && dtype.lanes == 1) { // uint8
     output_frame.setData(static_cast<const uint8_t*>(data_ptr), data_size);
   } else {
@@ -354,13 +345,13 @@ Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tenso
 }
 
 holoscan::Tensor StreamingServerDownstreamOp::mirror_horizontally(const holoscan::Tensor& input_tensor) {
-  // This is a simplified implementation
-  // In a real implementation, you would need to properly mirror the tensor data
+    // This is a simplified implementation
+    // In a real implementation, you would need to properly mirror the tensor data
 
   HOLOSCAN_LOG_DEBUG("Applying horizontal mirror processing to tensor");
 
-  // For now, just return the input tensor
-  // TODO: Implement actual horizontal mirroring using tensor operations
+    // For now, just return the input tensor
+    // TODO: Implement actual horizontal mirroring using tensor operations
   return input_tensor;
 }
 
