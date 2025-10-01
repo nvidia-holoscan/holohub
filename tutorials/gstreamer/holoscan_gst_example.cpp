@@ -328,13 +328,13 @@ class GstSinkApp : public Application {
 
   void compose() override {
     // Create the GStreamer sink resource for data bridging
-    // Test with explicit Arg to verify the parameter mechanism works:
+    // Test with specific video caps to verify the caps validation works:
     auto gst_sink = make_resource<SinkResource>("holoscan_sink", 
-        Arg("capabilities", "ANY"));
+        Arg("capabilities", "video/x-raw,format=(string){I420,YV12,RGBx,BGRx,RGBA,BGRA}"));
     
-    // You can also specify custom caps like this:
+    // You can also use "ANY" for maximum flexibility:
     // auto gst_sink = make_resource<SinkResource>("holoscan_sink", 
-    //     Arg("capabilities", "video/x-raw,format=RGBA"));
+    //     Arg("capabilities", "ANY"));
 
     // Create the operator that uses the sink
     auto gst_op = make_operator<GstSinkOperator>(

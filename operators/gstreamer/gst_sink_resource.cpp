@@ -193,7 +193,7 @@ gst_holoscan_sink_finalize(GObject *object)
     gst_caps_unref(sink->caps);
   }
 
-  GST_DEBUG_OBJECT(sink, "Finalizing Holoscan sink");
+  HOLOSCAN_LOG_DEBUG("Finalizing Holoscan sink");
 
   G_OBJECT_CLASS(parent_class)->finalize(object);
 }
@@ -309,12 +309,44 @@ gboolean SinkResource::set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
   const gchar *media_type;
 
-  GST_DEBUG_OBJECT(sink, "Setting caps: %" GST_PTR_FORMAT, caps);
-
   /* Get media type using our helper function */
   media_type = gst_holoscan_sink_get_media_type_string(caps);
 
-  GST_INFO_OBJECT(sink, "Accepting caps for bridging: %s", media_type);
+  /* Access the SinkResource instance to get the configured caps */
+  if (holoscan_sink->holoscan_resource) {
+    SinkResource* resource = static_cast<SinkResource*>(holoscan_sink->holoscan_resource);
+    std::string configured_caps = resource->caps_.get();
+    
+    HOLOSCAN_LOG_DEBUG("Setting caps: {} (configured: '{}', incoming: {})", 
+        gst_caps_to_string(caps), configured_caps, media_type);
+    
+    /* If configured caps is not "ANY", validate the incoming caps */
+    if (configured_caps != "ANY") {
+      /* Create GstCaps from the configured caps string */
+      GstCaps *configured_gst_caps = gst_caps_from_string(configured_caps.c_str());
+      if (configured_gst_caps) {
+        /* Check if the incoming caps intersect with configured caps */
+        GstCaps *intersection = gst_caps_intersect(caps, configured_gst_caps);
+        if (gst_caps_is_empty(intersection)) {
+          HOLOSCAN_LOG_WARN("Incoming caps '{}' do not match configured caps '{}' - rejecting", 
+              media_type, configured_caps);
+          gst_caps_unref(intersection);
+          gst_caps_unref(configured_gst_caps);
+          return FALSE;  // Reject the caps
+        }
+        gst_caps_unref(intersection);
+        gst_caps_unref(configured_gst_caps);
+        HOLOSCAN_LOG_INFO("Caps validation passed for: {} (configured: '{}')", 
+            media_type, configured_caps);
+      } else {
+        HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", configured_caps);
+      }
+    } else {
+      HOLOSCAN_LOG_INFO("Accepting any caps: {} (configured: ANY)", media_type);
+    }
+  } else {
+    HOLOSCAN_LOG_WARN("No resource bridge available for caps validation");
+  }
 
   /* Store caps information */
   if (holoscan_sink->caps) {
@@ -331,7 +363,7 @@ gboolean SinkResource::set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps) {
 gboolean SinkResource::start_callback(::GstBaseSink *sink) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
 
-  GST_DEBUG_OBJECT(sink, "Starting Holoscan bridge sink");
+  HOLOSCAN_LOG_DEBUG("Starting Holoscan bridge sink");
 
   holoscan_sink->caps_set = FALSE;
 
@@ -342,7 +374,7 @@ gboolean SinkResource::start_callback(::GstBaseSink *sink) {
 gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
 
-  GST_DEBUG_OBJECT(sink, "Stopping Holoscan bridge sink");
+  HOLOSCAN_LOG_DEBUG("Stopping Holoscan bridge sink");
 
   holoscan_sink->caps_set = FALSE;
 
@@ -354,13 +386,12 @@ gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
 
   if (!holoscan_sink->caps_set) {
-    GST_ERROR_OBJECT(sink, "Caps not negotiated");
+    HOLOSCAN_LOG_ERROR("Caps not negotiated");
     return GST_FLOW_NOT_NEGOTIATED;
   }
 
   /* Log buffer information for monitoring */
-  GST_DEBUG_OBJECT(sink, "Bridging buffer, size: %" G_GSIZE_FORMAT " bytes",
-      gst_buffer_get_size(buffer));
+  HOLOSCAN_LOG_DEBUG("Bridging buffer, size: {} bytes", gst_buffer_get_size(buffer));
 
   /* Access the GstSinkResource instance from callback */
   if (!holoscan_sink->holoscan_resource) {
@@ -442,6 +473,7 @@ void SinkResource::initialize() {
   if (!gst_is_initialized()) {
     gst_init(nullptr, nullptr);
   }
+
 
   // Register our bridge sink element type
   gst_element_register(nullptr, "holoscansink", GST_RANK_NONE,
