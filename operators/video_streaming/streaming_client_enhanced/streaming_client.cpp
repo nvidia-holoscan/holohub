@@ -180,7 +180,7 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
                 ppm_file << "P6\n" << width << " " << height << "\n255\n";
 
                 // Convert pixel data to RGB for PPM
-                size_t bytes_per_pixel = (format == PixelFormat::BGRA || 
+                size_t bytes_per_pixel = (format == PixelFormat::BGRA ||
                                          format == PixelFormat::RGBA) ? 4 : 3;
                 for (uint32_t y = 0; y < height; ++y) {
                     for (uint32_t x = 0; x < width; ++x) {
@@ -205,7 +205,7 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
                     }
                 }
                 ppm_file.close();
-                HOLOSCAN_LOG_INFO("Wrote PPM image to: {} (can be viewed with image viewers)", 
+                HOLOSCAN_LOG_INFO("Wrote PPM image to: {} (can be viewed with image viewers)",
                                   ppm_filename);
             }
         }
@@ -217,7 +217,7 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
 }
 
 // Utility function to write tensor data to disk for debugging
-bool writeTensorToDisk(const std::shared_ptr<holoscan::Tensor>& tensor, 
+bool writeTensorToDisk(const std::shared_ptr<holoscan::Tensor>& tensor,
                        const std::string& filename_prefix, int frame_number = -1) {
     try {
         if (!tensor || !tensor->data()) {
@@ -254,10 +254,12 @@ bool writeTensorToDisk(const std::shared_ptr<holoscan::Tensor>& tensor,
         std::ofstream meta_file(meta_filename);
         if (meta_file.is_open()) {
             meta_file << "Tensor Metadata:\n";
-            meta_file << "Shape: [" << height << ", " << width << ", " << channels << "]\n";
+            meta_file << "Shape: [" << height << ", " << width << ", " << channels
+                      << "]\n";
             meta_file << "Data Type: code=" << static_cast<int>(tensor->dtype().code)
                      << ", bits=" << tensor->dtype().bits << "\n";
-            meta_file << "Device: " << (tensor->device().device_type == kDLCUDA ? "GPU" : "CPU") << "\n";
+            meta_file << "Device: " << (tensor->device().device_type == kDLCUDA ? 
+                                       "GPU" : "CPU") << "\n";
             meta_file << "Size: " << tensor->nbytes() << " bytes\n";
             meta_file.close();
         }
@@ -268,7 +270,8 @@ bool writeTensorToDisk(const std::shared_ptr<holoscan::Tensor>& tensor,
 
         if (tensor->device().device_type == kDLCUDA) {
             host_data.resize(tensor->nbytes());
-            CUDA_TRY(cudaMemcpy(host_data.data(), tensor->data(), tensor->nbytes(), cudaMemcpyDeviceToHost));
+            CUDA_TRY(cudaMemcpy(host_data.data(), tensor->data(), tensor->nbytes(), 
+                                cudaMemcpyDeviceToHost));
             data_ptr = host_data.data();
         } else {
             data_ptr = static_cast<const uint8_t*>(tensor->data());
@@ -326,8 +329,8 @@ void StreamingClientOp::setup(holoscan::OperatorSpec& spec) {
   spec.param(width_, "width", "Frame Width", "Width of the video frames in pixels", 854u);
   spec.param(height_, "height", "Frame Height", "Height of the video frames in pixels", 480u);
   spec.param(fps_, "fps", "Frames Per Second", "Frame rate of the video", 30u);
-  spec.param(server_ip_, "server_ip", "Server IP", "IP address of the streaming server",
-             std::string("127.0.0.1"));
+  spec.param(server_ip_, "server_ip", "Server IP", 
+             "IP address of the streaming server", std::string("127.0.0.1"));
   spec.param(signaling_port_, "signaling_port", "Signaling Port",
              "Port used for signaling", uint16_t{48010});  // Match Holoscan Streaming Stack hardcoded port
   spec.param(receive_frames_, "receive_frames", "Receive Frames",
