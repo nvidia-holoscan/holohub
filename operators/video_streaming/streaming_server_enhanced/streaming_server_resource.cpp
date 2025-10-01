@@ -75,7 +75,7 @@ void StreamingServerResource::initialize() {
     is_initialized_ = true;
     start_time_ticks_ = std::chrono::steady_clock::now().time_since_epoch().count();
 
-    HOLOSCAN_LOG_INFO("StreamingServerResource initialized: {}:{}", 
+    HOLOSCAN_LOG_INFO("StreamingServerResource initialized: {}:{}",
                        config_.server_name, config_.port);
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to initialize StreamingServerResource: {}", e.what());
@@ -94,10 +94,11 @@ void StreamingServerResource::start() {
   }
 
   try {
-    HOLOSCAN_LOG_INFO("Starting StreamingServerResource on port {}", 
+    HOLOSCAN_LOG_INFO("Starting StreamingServerResource on port {}",
                        config_.port);
 
-      // Start the StreamingServer (it handles all the Holoscan Streaming Stack complexity internally)
+      // Start the StreamingServer (it handles all the Holoscan Streaming Stack 
+      // complexity internally)
     streaming_server_->start();
     is_running_ = true;
 
@@ -295,7 +296,8 @@ void StreamingServerResource::handle_streaming_server_event(const StreamingServe
                       static_cast<int>(event.type), event.message);
 }
 
-StreamingServer::Config StreamingServerResource::to_streaming_server_config(const Config& config) const {
+StreamingServer::Config StreamingServerResource::to_streaming_server_config(
+    const Config& config) const {
   StreamingServer::Config server_config;
   server_config.port = config.port;
   server_config.isMultiInstance = config.multi_instance;
@@ -315,7 +317,8 @@ StreamingServerResource::Config StreamingServerResource::from_streaming_server_c
   config.width = server_config.width;
   config.height = server_config.height;
   config.fps = server_config.fps;
-    // Note: enable_upstream and enable_downstream are resource-specific, not part of StreamingServer::Config
+    // Note: enable_upstream and enable_downstream are resource-specific, 
+    // not part of StreamingServer::Config
   config.enable_upstream = config_.enable_upstream;
   config.enable_downstream = config_.enable_downstream;
   return config;

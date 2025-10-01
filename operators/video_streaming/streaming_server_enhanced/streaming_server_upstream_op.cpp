@@ -165,12 +165,11 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
 
       // 🔍 DUPLICATE DETECTION: Check if this frame was already processed
     if (is_duplicate_frame(received_frame)) {
-      HOLOSCAN_LOG_WARN("⚠️  Skipping duplicate frame with timestamp {}", 
+      HOLOSCAN_LOG_WARN("⚠️  Skipping duplicate frame with timestamp {}",
                          received_frame.getTimestamp());
       return;    // Skip processing this duplicate frame
     }
 
-    // write a utility class that writes the frame to a file to test is the frame data is valid and test the received frame data
     // add loggign to check if we received the frame
     HOLOSCAN_LOG_INFO("✅ Processing UNIQUE frame: {}x{}, {} bytes, timestamp={}",
                       received_frame.getWidth(),
@@ -197,9 +196,9 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
     debug_frame_counter++;
 
     if (unique_count % 10 == 0) {
-      HOLOSCAN_LOG_INFO("💾 DEBUG: Writing UNIQUE received Frame to disk (unique frame {})", 
+      HOLOSCAN_LOG_INFO("💾 DEBUG: Writing UNIQUE received Frame to disk (unique frame {})",
                          unique_count);
-      debug_utils::writeFrameToDisk(received_frame, "debug_upstream_received", 
+      debug_utils::writeFrameToDisk(received_frame, "debug_upstream_received",
                                      static_cast<int>(unique_count));
     }
 #endif // HOLOSCAN_DEBUG_FRAME_WRITING
@@ -212,7 +211,8 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
       auto shape = output_tensor.shape();
       auto dtype = output_tensor.dtype();
       auto device = output_tensor.device();
-      HOLOSCAN_LOG_INFO("💾 DEBUG: Converted tensor info (unique frame {}): shape={}, dtype=({},{},{}), device=({},{})",
+      HOLOSCAN_LOG_INFO("💾 DEBUG: Converted tensor info (unique frame {}): shape={}, "
+                         "dtype=({},{},{}), device=({},{})",
                          unique_count, fmt::join(shape, "x"),
                        dtype.code, dtype.bits, dtype.lanes,
                        static_cast<int>(device.device_type), device.device_id);
@@ -241,44 +241,46 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
   }
 }
 
-void StreamingServerUpstreamOp::on_streaming_server_event(const StreamingServerResource::Event& event) {
+void StreamingServerUpstreamOp::on_streaming_server_event(
+    const StreamingServerResource::Event& event) {
   if (is_shutting_down_.load()) {
     return;
   }
 
   auto now = std::chrono::steady_clock::now();
-  auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+  auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+      now.time_since_epoch()).count();
 
   try {
     switch (event.type) {
       case StreamingServerResource::EventType::ClientConnecting:
-        HOLOSCAN_LOG_INFO("🔄 [UPSTREAM {}] Client connecting: {}", 
+        HOLOSCAN_LOG_INFO("🔄 [UPSTREAM {}] Client connecting: {}",
                            timestamp, event.message);
         break;
       case StreamingServerResource::EventType::ClientConnected:
-        HOLOSCAN_LOG_INFO("✅ [UPSTREAM {}] Client connected: {}", 
+        HOLOSCAN_LOG_INFO("✅ [UPSTREAM {}] Client connected: {}",
                            timestamp, event.message);
         break;
       case StreamingServerResource::EventType::ClientDisconnected:
-        HOLOSCAN_LOG_WARN("❌ [UPSTREAM {}] Client disconnected: {}", 
+        HOLOSCAN_LOG_WARN("❌ [UPSTREAM {}] Client disconnected: {}",
                            timestamp, event.message);
         break;
       case StreamingServerResource::EventType::UpstreamConnected:
-        HOLOSCAN_LOG_INFO("⬆️ [UPSTREAM {}] Upstream connection established: {}", 
+        HOLOSCAN_LOG_INFO("⬆️ [UPSTREAM {}] Upstream connection established: {}",
                            timestamp, event.message);
         upstream_connected_ = true;
         break;
       case StreamingServerResource::EventType::UpstreamDisconnected:
-        HOLOSCAN_LOG_WARN("⬆️❌ [UPSTREAM {}] Upstream connection lost: {}", 
+        HOLOSCAN_LOG_WARN("⬆️❌ [UPSTREAM {}] Upstream connection lost: {}",
                            timestamp, event.message);
         upstream_connected_ = false;
         break;
       case StreamingServerResource::EventType::FrameReceived:
-        HOLOSCAN_LOG_DEBUG("📥 [UPSTREAM {}] Frame received: {}", 
+        HOLOSCAN_LOG_DEBUG("📥 [UPSTREAM {}] Frame received: {}",
                             timestamp, event.message);
         break;
       default:
-        HOLOSCAN_LOG_DEBUG("🔔 [UPSTREAM {}] Event [{}]: {}", 
+        HOLOSCAN_LOG_DEBUG("🔔 [UPSTREAM {}] Event [{}]: {}",
                             timestamp, static_cast<int>(event.type), event.message);
         break;
     }
@@ -356,7 +358,8 @@ holoscan::Tensor StreamingServerUpstreamOp::convert_frame_to_tensor(const Frame&
         gxf_shape,
         primitive_type,
         nvidia::gxf::PrimitiveTypeSize(primitive_type),
-        nvidia::gxf::ComputeTrivialStrides(gxf_shape, nvidia::gxf::PrimitiveTypeSize(primitive_type)),
+        nvidia::gxf::ComputeTrivialStrides(gxf_shape, 
+                                            nvidia::gxf::PrimitiveTypeSize(primitive_type)),
         nvidia::gxf::MemoryStorageType::kSystem,
         host_data.get(),
         [host_data](void*) mutable {
