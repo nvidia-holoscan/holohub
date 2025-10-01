@@ -53,7 +53,7 @@ void StreamingServerResource::setup(ComponentSpec& spec) {
 void StreamingServerResource::initialize() {
   Resource::initialize();
 
-  // Build configuration from parameters
+    // Build configuration from parameters
   config_.port = port_.has_value() ? port_.get() : 48010;
   config_.server_name = server_name_.has_value() ? server_name_.get() : "HoloscanStreamingServer";
   config_.width = width_.has_value() ? width_.get() : 854;
@@ -67,7 +67,7 @@ void StreamingServerResource::initialize() {
     StreamingServer::Config server_config = to_streaming_server_config(config_);
     streaming_server_ = std::make_unique<StreamingServer>(server_config);
 
-    // Only set event callback - this is the only callback that exists in the library
+      // Only set event callback - this is the only callback that exists in the library
     streaming_server_->setEventCallback([this](const StreamingServer::Event& event) {
       handle_streaming_server_event(event);
     });
@@ -76,7 +76,6 @@ void StreamingServerResource::initialize() {
     start_time_ticks_ = std::chrono::steady_clock::now().time_since_epoch().count();
 
     HOLOSCAN_LOG_INFO("StreamingServerResource initialized: {}:{}", config_.server_name, config_.port);
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to initialize StreamingServerResource: {}", e.what());
     throw;
@@ -96,12 +95,11 @@ void StreamingServerResource::start() {
   try {
     HOLOSCAN_LOG_INFO("Starting StreamingServerResource on port {}", config_.port);
 
-    // Start the StreamingServer (it handles all the Holoscan Streaming Stack complexity internally)
+      // Start the StreamingServer (it handles all the Holoscan Streaming Stack complexity internally)
     streaming_server_->start();
     is_running_ = true;
 
     HOLOSCAN_LOG_INFO("✅ StreamingServerResource started successfully");
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to start StreamingServerResource: {}", e.what());
     throw;
@@ -114,19 +112,16 @@ void StreamingServerResource::stop() {
   }
 
   try {
-    HOLOSCAN_LOG_INFO("Stopping StreamingServerResource");
-
     if (streaming_server_) {
       streaming_server_->stop();
     }
 
     HOLOSCAN_LOG_INFO("StreamingServerResource stopped");
-    is_running_ = false;  // Only set after successful stop
-
+    is_running_ = false;    // Only set after successful stop
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error stopping StreamingServerResource: {}", e.what());
-    // Don't re-throw to maintain compatibility with destructor and update_config()
-    // The is_running() method checks streaming_server_->isRunning() for actual state
+      // Don't re-throw to maintain compatibility with destructor and update_config()
+      // The is_running() method checks streaming_server_->isRunning() for actual state
   }
 }
 
@@ -138,8 +133,6 @@ bool StreamingServerResource::has_connected_clients() const {
   return streaming_server_ ? streaming_server_->hasConnectedClients() : false;
 }
 
-void StreamingServerResource::send_frame(const Frame& frame) {
-  if (!is_running() || !streaming_server_) {
     return;
   }
 
@@ -155,7 +148,6 @@ void StreamingServerResource::send_frame(const Frame& frame) {
 }
 
 Frame StreamingServerResource::receive_frame() {
-  if (!is_running() || !streaming_server_) {
     return Frame{};
   }
 
@@ -196,7 +188,7 @@ StreamingServerResource::Config StreamingServerResource::get_config() const {
 }
 
 void StreamingServerResource::update_config(const Config& new_config) {
-  // Note: Some config changes may require restart
+    // Note: Some config changes may require restart
   bool needs_restart = (config_.port != new_config.port) ||
                       (config_.width != new_config.width) ||
                       (config_.height != new_config.height) ||
@@ -240,7 +232,6 @@ uint64_t StreamingServerResource::get_frames_received() const {
 
 uint64_t StreamingServerResource::get_frames_sent() const {
   return frames_sent_;
-}
 
 double StreamingServerResource::get_upstream_fps() const {
   if (!is_running() || frames_received_ == 0) {
@@ -265,7 +256,7 @@ double StreamingServerResource::get_downstream_fps() const {
 }
 
 void StreamingServerResource::handle_streaming_server_event(const StreamingServer::Event& event) {
-  // Update internal state based on StreamingServer events
+    // Update internal state based on StreamingServer events
   switch (event.type) {
     case StreamingServer::EventType::ClientConnected:
       connected_client_count_++;
@@ -295,7 +286,7 @@ void StreamingServerResource::handle_streaming_server_event(const StreamingServe
       break;
   }
 
-  // Log events for debugging
+    // Log events for debugging
   HOLOSCAN_LOG_DEBUG("StreamingServerResource event: {} - {}",
                     static_cast<int>(event.type), event.message);
 }
@@ -319,31 +310,31 @@ StreamingServerResource::Config StreamingServerResource::from_streaming_server_c
   config.width = server_config.width;
   config.height = server_config.height;
   config.fps = server_config.fps;
-  // Note: enable_upstream and enable_downstream are resource-specific, not part of StreamingServer::Config
+    // Note: enable_upstream and enable_downstream are resource-specific, not part of StreamingServer::Config
   config.enable_upstream = config_.enable_upstream;
   config.enable_downstream = config_.enable_downstream;
   return config;
 }
 
 VideoFrame StreamingServerResource::convert_to_streaming_server_frame(const Frame& ops_frame) const {
-  // Create VideoFrame with dimensions and data
+    // Create VideoFrame with dimensions and data
   VideoFrame server_frame(ops_frame.getWidth(), ops_frame.getHeight(),
                           ops_frame.getData(), ops_frame.getDataSize(),
                           ops_frame.getTimestamp());
 
-  // Convert format - VideoFrame and ops_frame use the same PixelFormat enum
+    // Convert format - VideoFrame and ops_frame use the same PixelFormat enum
   server_frame.setFormat(ops_frame.getFormat());
 
   return server_frame;
 }
 
 Frame StreamingServerResource::convert_from_streaming_server_frame(const VideoFrame& server_frame) const {
-  // Create Frame with dimensions and data
+    // Create Frame with dimensions and data
   Frame ops_frame(server_frame.getWidth(), server_frame.getHeight(),
                   server_frame.getData(), server_frame.getDataSize(),
                   server_frame.getTimestamp());
 
-  // Convert format - VideoFrame and ops_frame use the same PixelFormat enum
+    // Convert format - VideoFrame and ops_frame use the same PixelFormat enum
   ops_frame.setFormat(server_frame.getFormat());
 
   return ops_frame;
