@@ -29,6 +29,7 @@ from .util import (
     build_holohub_path_mapping,
     check_nvidia_ctk,
     docker_args_to_devcontainer_format,
+    ensure_local_directory,
     fatal,
     find_hsdk_build_rel_dir,
     get_compute_capacity,
@@ -78,6 +79,8 @@ class HoloHubContainer:
     DEFAULT_IMAGE_FORMAT = os.environ.get(
         "HOLOHUB_DEFAULT_IMAGE_FORMAT", "{container_prefix}:ngc-v{sdk_version}-{gpu_type}"
     )
+    # Additional Default build arguments for docker build command (e.g., --build-context flags)
+    DEFAULT_BUILD_ARGS = os.environ.get("HOLOHUB_DEFAULT_BUILD_ARGS", "")
 
     @classmethod
     def default_base_image(cls) -> str:
@@ -361,6 +364,29 @@ class HoloHubContainer:
         self.dryrun = False
         self.verbose = False
 
+    def ensure_build_context_dirs(self, build_args: Optional[str]) -> None:
+        """Parse build args for --build-context and ensure local directories exist"""
+        if not build_args:
+            return
+        args_list = shlex.split(build_args)
+        for i, arg in enumerate(args_list):
+            # --build-context name=path
+            if arg == "--build-context" and i + 1 < len(args_list):
+                context_spec = args_list[i + 1]
+            # --build-context=name=path
+            elif arg.startswith("--build-context="):
+                context_spec = arg.split("=", 1)[1]
+            else:
+                continue
+            if "=" in context_spec:
+                _, path = context_spec.split("=", 1)
+                ensure_local_directory(
+                    path=path,
+                    base_dir=HoloHubContainer.HOLOHUB_ROOT,
+                    dry_run=self.dryrun,
+                    verbose=self.verbose,
+                )
+
     def build(
         self,
         docker_file: Optional[str] = None,
@@ -410,8 +436,10 @@ class HoloHubContainer:
         if no_cache:
             cmd.append("--no-cache")
 
-        if build_args:
-            cmd.extend(shlex.split(build_args))
+        full_build_args = " ".join(filter(None, [HoloHubContainer.DEFAULT_BUILD_ARGS, build_args]))
+        if full_build_args:
+            self.ensure_build_context_dirs(full_build_args)
+            cmd.extend(shlex.split(full_build_args))
 
         cmd.extend(["-f", str(docker_file_path), "-t", img, str(HoloHubContainer.HOLOHUB_ROOT)])
 

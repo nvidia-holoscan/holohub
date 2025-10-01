@@ -848,7 +848,7 @@ class HoloHubCLI:
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
 
-        # TAG is used in utilities/testing/holohub.container.ctest by default
+        # TAG is used in CTest scripts by default
         if getattr(args, "build_name_suffix", None):
             tag = args.build_name_suffix
         else:
@@ -857,7 +857,11 @@ class HoloHubCLI:
             else:
                 image_name = args.base_img or container.default_base_image()
             tag = image_name.split(":")[-1]
-        ctest_cmd = f"{xvfb} ctest -DAPP={args.project} -DTAG={tag} "
+
+        ctest_cmd = f"{xvfb} ctest "
+        if args.project:
+            ctest_cmd += f"-DAPP={args.project} "
+        ctest_cmd += f"-DTAG={tag} "
 
         if args.cmake_options:
             cmake_opts = ";".join(args.cmake_options)

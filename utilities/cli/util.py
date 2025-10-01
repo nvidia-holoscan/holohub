@@ -823,6 +823,32 @@ def docker_args_to_devcontainer_format(docker_args: List[str]) -> List[str]:
     return result
 
 
+def ensure_local_directory(
+    path: Union[str, Path],
+    base_dir: Optional[Path] = None,
+    dry_run: bool = False,
+    verbose: bool = False,
+) -> Path:
+    """Ensure a local directory exists after expanding env vars and user home.
+
+    - Expands environment variables and '~'
+    - Resolves relative paths against `base_dir` (defaults to `HOLOHUB_ROOT`)
+    - Creates the directory (parents=True) if it doesn't exist
+
+    Returns the absolute resolved path.
+    """
+    expanded = Path(os.path.expandvars(os.path.expanduser(str(path))))
+    # Resolve relative paths against provided base or HOLOHUB_ROOT
+    if not expanded.is_absolute():
+        expanded = Path(base_dir or get_holohub_root()) / expanded
+    if not expanded.exists():
+        if verbose:
+            print(f"Creating directory: {expanded}")
+        if not dry_run:
+            expanded.mkdir(parents=True, exist_ok=True)
+    return expanded
+
+
 def get_entrypoint_command_args(
     img: str, command: str, docker_opts: str, dry_run: bool = False
 ) -> tuple[str, List[str]]:
@@ -1128,6 +1154,7 @@ def collect_environment_variables() -> None:
         "HOLOHUB_DEFAULT_DOCKERFILE",
         "HOLOHUB_BASE_IMAGE_FORMAT",
         "HOLOHUB_DEFAULT_IMAGE_FORMAT",
+        "HOLOHUB_DEFAULT_BUILD_ARGS",
         "HOLOHUB_DOCS_URL",
         "HOLOHUB_CLI_DOCS_URL",
         "HOLOHUB_DATA_PATH",
