@@ -75,7 +75,8 @@ void StreamingServerResource::initialize() {
     is_initialized_ = true;
     start_time_ticks_ = std::chrono::steady_clock::now().time_since_epoch().count();
 
-    HOLOSCAN_LOG_INFO("StreamingServerResource initialized: {}:{}", config_.server_name, config_.port);
+    HOLOSCAN_LOG_INFO("StreamingServerResource initialized: {}:{}", 
+                       config_.server_name, config_.port);
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to initialize StreamingServerResource: {}", e.what());
     throw;
@@ -93,7 +94,8 @@ void StreamingServerResource::start() {
   }
 
   try {
-    HOLOSCAN_LOG_INFO("Starting StreamingServerResource on port {}", config_.port);
+    HOLOSCAN_LOG_INFO("Starting StreamingServerResource on port {}", 
+                       config_.port);
 
       // Start the StreamingServer (it handles all the Holoscan Streaming Stack complexity internally)
     streaming_server_->start();
@@ -239,7 +241,8 @@ double StreamingServerResource::get_upstream_fps() const {
   }
 
   auto now = std::chrono::steady_clock::now();
-  auto start_time = std::chrono::steady_clock::time_point(std::chrono::steady_clock::duration(start_time_ticks_.load()));
+  auto start_time = std::chrono::steady_clock::time_point(
+      std::chrono::steady_clock::duration(start_time_ticks_.load()));
   auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time);
   return elapsed.count() > 0 ? static_cast<double>(frames_received_) / elapsed.count() : 0.0;
 }
@@ -250,7 +253,8 @@ double StreamingServerResource::get_downstream_fps() const {
   }
 
   auto now = std::chrono::steady_clock::now();
-  auto start_time = std::chrono::steady_clock::time_point(std::chrono::steady_clock::duration(start_time_ticks_.load()));
+  auto start_time = std::chrono::steady_clock::time_point(
+      std::chrono::steady_clock::duration(start_time_ticks_.load()));
   auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time);
   return elapsed.count() > 0 ? static_cast<double>(frames_sent_) / elapsed.count() : 0.0;
 }
@@ -288,7 +292,7 @@ void StreamingServerResource::handle_streaming_server_event(const StreamingServe
 
     // Log events for debugging
   HOLOSCAN_LOG_DEBUG("StreamingServerResource event: {} - {}",
-                    static_cast<int>(event.type), event.message);
+                      static_cast<int>(event.type), event.message);
 }
 
 StreamingServer::Config StreamingServerResource::to_streaming_server_config(const Config& config) const {
@@ -302,7 +306,8 @@ StreamingServer::Config StreamingServerResource::to_streaming_server_config(cons
   return server_config;
 }
 
-StreamingServerResource::Config StreamingServerResource::from_streaming_server_config(const StreamingServer::Config& server_config) const {
+StreamingServerResource::Config StreamingServerResource::from_streaming_server_config(
+    const StreamingServer::Config& server_config) const {
   Config config;
   config.port = server_config.port;
   config.multi_instance = server_config.isMultiInstance;
@@ -340,4 +345,4 @@ Frame StreamingServerResource::convert_from_streaming_server_frame(const VideoFr
   return ops_frame;
 }
 
-} // namespace holoscan::ops
+}  // namespace holoscan::ops
