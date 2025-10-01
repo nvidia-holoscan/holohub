@@ -110,8 +110,8 @@ Testing is handled at the application level through the unified `video_streaming
 
 ## Related Applications
 
-- **[Streaming Client Demo Enhanced](../../applications/streaming_client_demo_enhanced/)**: Example client application
-- **[Streaming Server Demo Enhanced](../../applications/streaming_server_demo_enhanced/)**: Example server application
+- **[Streaming Client Demo Enhanced](../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/)**: Example client application
+- **[Streaming Server Demo Enhanced](../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/)**: Example server application
 
 ## Migration Notes
 
