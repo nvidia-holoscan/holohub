@@ -55,11 +55,13 @@ rm -rf holoscan_server_cloud_streaming_v0.2
 
 The unified application provides both client and server as separate components:
 
+**⚠️ Important: Enhanced applications require Holoscan SDK 3.5.0. Use the base image parameter to ensure compatibility.**
+
 ### 1. Start the Streaming Server
 
 ```bash
-# From holohub root directory
-./holohub run --docker-opts='-e EnableHybridMode=1' video_streaming_demo_server --language cpp
+# From holohub root directory - with Holoscan 3.5.0 base image
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_server --language cpp
 ```
 
 ### 2. Start the Streaming Client (in another terminal)
@@ -67,13 +69,13 @@ The unified application provides both client and server as separate components:
 **Option A: V4L2 Camera (Webcam)**
 ```bash
 # From holohub root directory - captures live video from webcam
-./holohub run --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0' video_streaming_demo_client --language cpp
+./holohub run --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_client --language cpp
 ```
 
 **Option B: Video File Replay**
 ```bash
 # From holohub root directory - replays pre-recorded video file
-./holohub run --docker-opts='-e EnableHybridMode=1' video_streaming_demo_client --language cpp --run-args='-c streaming_client_demo_replayer.yaml'
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_client --language cpp --run-args='-c streaming_client_demo_replayer.yaml'
 ```
 
 **Key Differences:**
@@ -85,9 +87,9 @@ The unified application provides both client and server as separate components:
 The original separate applications are still available for backward compatibility:
 
 ```bash
-# Original applications (still work)
-./holohub run --docker-opts='-e EnableHybridMode=1' streaming_server_demo_enhanced --language cpp
-./holohub run --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0' streaming_client_demo_enhanced --language cpp
+# Original applications (still work) - with Holoscan 3.5.0 base image
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu streaming_server_demo_enhanced --language cpp
+./holohub run --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu streaming_client_demo_enhanced --language cpp
 ```
 
 ## Command Line Options
