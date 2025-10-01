@@ -152,6 +152,7 @@ void StreamingServerDownstreamOp::stop() {
 void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext& op_output,
                                          ExecutionContext& context) {
   if (is_shutting_down_.load()) {
+    return;
   }
 
   auto streaming_server_resource = streaming_server_resource_.get();
@@ -212,7 +213,7 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
       debug_utils::writeFrameToDisk(output_frame, "debug_downstream_output",
                                      debug_output_frame_counter);
     }
-#endif // HOLOSCAN_DEBUG_FRAME_WRITING
+#endif  // HOLOSCAN_DEBUG_FRAME_WRITING
 
       // Send frame to connected clients via StreamingServerResource
     if (output_frame.getDataSize() > 0) {
@@ -266,12 +267,12 @@ void StreamingServerDownstreamOp::on_streaming_server_event(
         HOLOSCAN_LOG_WARN("❌ [DOWNSTREAM {}] Client disconnected: {}", timestamp, event.message);
         break;
       case StreamingServerResource::EventType::DownstreamConnected:
-        HOLOSCAN_LOG_INFO("⬇️ [DOWNSTREAM {}] Downstream connection established: {}", 
+        HOLOSCAN_LOG_INFO("⬇️ [DOWNSTREAM {}] Downstream connection established: {}",
                            timestamp, event.message);
         downstream_connected_ = true;
         break;
       case StreamingServerResource::EventType::DownstreamDisconnected:
-        HOLOSCAN_LOG_WARN("⬇️❌ [DOWNSTREAM {}] Downstream connection lost: {}", 
+        HOLOSCAN_LOG_WARN("⬇️❌ [DOWNSTREAM {}] Downstream connection lost: {}",
                            timestamp, event.message);
         downstream_connected_ = false;
         break;
@@ -279,7 +280,7 @@ void StreamingServerDownstreamOp::on_streaming_server_event(
         HOLOSCAN_LOG_DEBUG("📤 [DOWNSTREAM {}] Frame sent: {}", timestamp, event.message);
         break;
       default:
-        HOLOSCAN_LOG_DEBUG("🔔 [DOWNSTREAM {}] Event [{}]: {}", 
+        HOLOSCAN_LOG_DEBUG("🔔 [DOWNSTREAM {}] Event [{}]: {}",
                             timestamp, static_cast<int>(event.type), event.message);
         break;
     }
@@ -328,7 +329,7 @@ Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tenso
 
     // Validate reasonable dimensions for video frames
   if (height == 0 || width == 0 || channels == 0) {
-    throw std::runtime_error(fmt::format("Invalid tensor dimensions: height={}, width={}, channels={}", 
+    throw std::runtime_error(fmt::format("Invalid tensor dimensions: height={}, width={}, channels={}",
                                           height, width, channels));
   }
   if (channels > 4) {
@@ -354,18 +355,20 @@ Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tenso
   }
 
     // Copy tensor data to frame - only support uint8 data
-  if (dtype.code == kDLUInt && dtype.bits == 8 && dtype.lanes == 1) { // uint8
+  if (dtype.code == kDLUInt && dtype.bits == 8 && dtype.lanes == 1) {  // uint8
     output_frame.setData(static_cast<const uint8_t*>(data_ptr), data_size);
   } else {
     throw std::runtime_error(fmt::format(
-        "Unsupported tensor data type: code={}, bits={}, lanes={}. Only uint8 tensors are supported.",
+        "Unsupported tensor data type: code={}, bits={}, lanes={}. "
+        "Only uint8 tensors are supported.",
         dtype.code, dtype.bits, dtype.lanes));
   }
 
   return output_frame;
 }
 
-holoscan::Tensor StreamingServerDownstreamOp::mirror_horizontally(const holoscan::Tensor& input_tensor) {
+holoscan::Tensor StreamingServerDownstreamOp::mirror_horizontally(
+    const holoscan::Tensor& input_tensor) {
     // This is a simplified implementation
     // In a real implementation, you would need to properly mirror the tensor data
 
@@ -376,4 +379,4 @@ holoscan::Tensor StreamingServerDownstreamOp::mirror_horizontally(const holoscan
   return input_tensor;
 }
 
-} // namespace holoscan::ops
+}  // namespace holoscan::ops

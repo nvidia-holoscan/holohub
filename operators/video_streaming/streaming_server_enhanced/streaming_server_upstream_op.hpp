@@ -51,14 +51,15 @@ class StreamingServerUpstreamOp : public holoscan::Operator {
   void initialize() override;
   void start() override;
   void stop() override;
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) override;
+  void compute(InputContext& op_input, OutputContext& op_output, 
+               ExecutionContext& context) override;
 
  private:
     // Configuration parameters (can override StreamingServerResource defaults)
   Parameter<uint32_t> width_;           ///< Frame width
   Parameter<uint32_t> height_;          ///< Frame height
   Parameter<uint32_t> fps_;             ///< Frames per second
-  Parameter<std::shared_ptr<Allocator>> allocator_; ///< Memory allocator
+  Parameter<std::shared_ptr<Allocator>> allocator_;  ///< Memory allocator
 
     // StreamingServerResource reference
   Parameter<std::shared_ptr<StreamingServerResource>> streaming_server_resource_;
@@ -88,4 +89,4 @@ class StreamingServerUpstreamOp : public holoscan::Operator {
   bool is_duplicate_frame(const Frame& frame);
 };
 
-} // namespace holoscan::ops
+}  // namespace holoscan::ops
