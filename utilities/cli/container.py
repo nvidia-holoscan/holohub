@@ -667,6 +667,8 @@ class HoloHubContainer:
         docker_args.extend(self.ucx_args())
         docker_args.extend(self.get_device_cgroup_args())
         docker_args.extend(self.get_nvidia_runtime_args())
+        if HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS:
+            docker_args.extend(shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS))
         if docker_opts:
             docker_args.extend(shlex.split(docker_opts))
         project_name = self.project_metadata.get("project_name") if self.project_metadata else None
