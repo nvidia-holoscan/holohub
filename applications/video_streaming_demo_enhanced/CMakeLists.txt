@@ -50,6 +50,10 @@ if(BUILD_TESTING)
              echo '=== Custom Integration Test ==='
              echo 'Starting server and client in same container...'
              
+             # Initialize variables
+             SERVER_SUCCESS=0
+             CLIENT_SUCCESS=0
+             
              # Start server in background
              echo 'Starting streaming server...'
              ./applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo.yaml &
@@ -62,7 +66,8 @@ if(BUILD_TESTING)
              # Check if server is listening
              echo 'Checking if server is listening on port 48010...'
              for i in {1..30}; do
-               if netstat -tlnp 2>/dev/null | grep -q ':48010'; then
+               # Check if server process is still running and listening on port
+               if kill -0 \$SERVER_PID 2>/dev/null && (ss -tlnp 2>/dev/null | grep -q ':48010' || netstat -tlnp 2>/dev/null | grep -q ':48010'); then
                  echo '✓ Server is listening on port 48010'
                  SERVER_SUCCESS=1
                  break
