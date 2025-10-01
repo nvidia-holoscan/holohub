@@ -38,31 +38,31 @@ if(BUILD_TESTING)
     "${CMAKE_BINARY_DIR}/integration_test.sh"
     COPYONLY
   )
-  
+
   # Make script executable
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/integration_test.sh"
        DESTINATION "${CMAKE_BINARY_DIR}"
        FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-  
+
   # Add integration test for video streaming demo
   add_test(NAME video_streaming_integration_test
            COMMAND bash -c "
              echo '=== Custom Integration Test ==='
              echo 'Starting server and client in same container...'
-             
+
              # Initialize variables
              SERVER_SUCCESS=0
              CLIENT_SUCCESS=0
-             
+
              # Start server in background
              echo 'Starting streaming server...'
              ./applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo.yaml &
              SERVER_PID=\$!
-             
+
              # Wait for server to start
              echo 'Waiting for server to initialize...'
              sleep 10
-             
+
              # Check if server is running and has been running for a while
              echo 'Checking if server is running and stable...'
              for i in {1..15}; do
@@ -81,24 +81,24 @@ if(BUILD_TESTING)
                  break
                fi
              done
-             
+
              if [ \$SERVER_SUCCESS -eq 1 ]; then
                echo '✓ Server started successfully'
-               
+
                # Start client in background and let it stream for a while
                echo 'Starting streaming client...'
                ./applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_replayer.yaml &
                CLIENT_PID=\$!
-               
+
                # Let client stream for 30 seconds
                echo 'Letting client stream for 30 seconds...'
                sleep 30
-               
+
                # Check if client is still running (indicating successful connection)
                if kill -0 \$CLIENT_PID 2>/dev/null; then
                  echo '✓ Client is still running - connection successful'
                  CLIENT_SUCCESS=1
-                 
+
                  # Stop client gracefully
                  echo 'Stopping client...'
                  kill -TERM \$CLIENT_PID 2>/dev/null || true
@@ -112,13 +112,13 @@ if(BUILD_TESTING)
                echo '✗ Server failed to start'
                CLIENT_SUCCESS=0
              fi
-             
+
              # Clean up server
              echo 'Cleaning up server process...'
              kill -TERM \$SERVER_PID 2>/dev/null || true
              sleep 2
              kill -KILL \$SERVER_PID 2>/dev/null || true
-             
+
              # Overall result
              if [ \$SERVER_SUCCESS -eq 1 ] && [ \$CLIENT_SUCCESS -eq 1 ]; then
                echo '✓ Integration test PASSED'
@@ -129,7 +129,7 @@ if(BUILD_TESTING)
              fi
            "
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-  
+
   set_tests_properties(video_streaming_integration_test PROPERTIES
                        TIMEOUT 300
                        PASS_REGULAR_EXPRESSION "Integration test PASSED"
