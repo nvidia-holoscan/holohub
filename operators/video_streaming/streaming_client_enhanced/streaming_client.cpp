@@ -343,7 +343,8 @@ void StreamingClientOp::setup(holoscan::OperatorSpec& spec) {
              100u);
 
   // Print the parameters for debugging with correct values
-  HOLOSCAN_LOG_INFO("StreamingClientOp setup with defaults: width={}, height={}, fps={}, server_ip={}, port={}, send_frames={}, min_non_zero_bytes={}",
+  HOLOSCAN_LOG_INFO("StreamingClientOp setup with defaults: width={}, height={}, fps={}, "
+                     "server_ip={}, port={}, send_frames={}, min_non_zero_bytes={}",
                     854u, 480u, 30u, "127.0.0.1", 48010, true, 100u);
 }
 
@@ -398,7 +399,8 @@ void StreamingClientOp::initialize() {
 
   // Log client creation success
   if (client_) {
-    HOLOSCAN_LOG_INFO("🔧 ENHANCED StreamingClient constructed! Version with buffer validation fixes!");
+    HOLOSCAN_LOG_INFO("🔧 ENHANCED StreamingClient constructed! "
+                       "Version with buffer validation fixes!");
     HOLOSCAN_LOG_INFO("StreamingClient created successfully");
   } else {
     HOLOSCAN_LOG_ERROR("Failed to create StreamingClient");
@@ -442,8 +444,10 @@ void StreamingClientOp::start() {
     }
 
     // Add server connectivity test
-    HOLOSCAN_LOG_INFO("Testing server connectivity to {}:{}...", server_ip_.get(), signaling_port_.get());
-    // Note: A full socket test could be added here, but for now we'll rely on the Holoscan Streaming Stack connection attempt
+    HOLOSCAN_LOG_INFO("Testing server connectivity to {}:{}...", 
+                       server_ip_.get(), signaling_port_.get());
+    // Note: A full socket test could be added here, but for now we'll rely on the 
+    // Holoscan Streaming Stack connection attempt
 
     // Implement robust connection with exponential backoff
     int max_retries = 3;  // Reduced from 5
