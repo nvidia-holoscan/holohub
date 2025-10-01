@@ -38,9 +38,27 @@ This design ensures that any performance difference is due to Green Context part
 
 ### Basic Usage
 
+**Default (older GPUs and Orin systems):**
 ```bash
 ./holohub run green_context_benchmarking --docker-opts="--user root"
 ```
+
+**Modern GPUs and Jetson Thor:**
+```bash
+./holohub run green_context_benchmarking --docker-opts="--user root" --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu
+```
+
+### GPU Compatibility
+
+**Use default command for:**
+- Older GPUs (compute capability < 7.0, e.g., GTX 1080, GTX 1060, etc.)
+- NVIDIA Jetson Orin systems
+
+**Use v3.6.1-cuda13 image for:**
+- Modern GPUs (compute capability ≥ 7.0, e.g., RTX 2080, RTX 3080, RTX 4090, RTX 6000 Ada Generation)
+- NVIDIA Jetson Thor systems
+
+**Note**: CUDA 13.0 dropped support for older GPU architectures (compute capability < 7.0). If you encounter `nvcc fatal : Unsupported gpu architecture 'compute_XX'` errors, use the default command instead.
 
 ### Command Line Options
 
@@ -59,9 +77,14 @@ Options:
   --help               Show this help message
 
 Examples:
+  # Default (older GPUs and Orin)
   ./holohub run green_context_benchmarking --docker-opts="--user root" --run-args="--help"
   ./holohub run green_context_benchmarking --docker-opts="--user root" --run-args="--samples 1000 --load-intensity 10 --mode all"
   ./holohub run green_context_benchmarking --docker-opts="--user root" --run-args="--workload-size 16 --threads-per-block 256 --mode baseline"
+
+  # Modern GPUs and Jetson Thor
+  ./holohub run green_context_benchmarking --docker-opts="--user root" --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu --run-args="--samples 1000 --load-intensity 10"
+  ./holohub run green_context_benchmarking --docker-opts="--user root" --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu --run-args="--workload-size 16 --mode all"
 ```
 
 ### Parameters Explained
@@ -238,6 +261,45 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 - **Sweet Spot**: 4MB workload with 128-256 threads per block achieves >94% improvement
 - **Reliability**: Low variance in Green Context performance (23-35μs range)
 
+#### Jetson Thor
+
+**Performance Matrix** :
+```
+Load  Size  Threads   Avg%    Baseline    GC
+Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
+----------------------------------------------------
+5     1     64        73.5    44.41       11.75
+5     1     128       69.9    39.59       11.93
+5     1     256       61.8    31.78       12.14
+5     1     512       73.5    38.54       10.19
+5     4     64        95.3    211.91      9.97
+5     4     128       95.2    271.31      12.95
+5     4     256       94.1    226.10      13.32
+5     4     512       96.2    278.20      10.62
+5     16    64        99.1    1169.41     10.02
+5     16    128       98.9    1192.72     12.83
+5     16    256       99.3    1224.37     8.02
+5     16    512       98.6    1096.32     15.40
+20    4     64        99.3    1045.09     7.66
+20    4     128       99.4    1092.23     6.67
+20    4     256       98.7    1080.32     13.56
+20    4     512       99.2    1056.79     8.94
+20    16    64        99.7    4517.73     12.22
+20    16    128       99.7    4500.81     13.12
+20    16    256       99.7    4425.59     12.73
+20    16    512       99.7    4477.69     13.71
+80    8     64        99.8    7518.14     12.21
+80    8     128       99.8    7321.67     12.52
+80    8     256       99.8    7153.78     12.16
+80    8     512       99.8    7273.29     13.58
+```
+
+**Jetson Thor Key Insights**:
+- **Sweet Spot**: 16MB+ workload with load-intensity 20+ achieves >99% improvement
+- **Excellent scaling**: Performance improves dramatically with workload size (1MB→16MB)
+- **Consistent GC performance**: 8-15μs range regardless of baseline variability
+- **High-end performance**: Up to 99.8% improvement with large workloads
+
 #### RTX 6000 Ada Generation (142 SMs)
 
 **Performance Matrix** :
@@ -370,6 +432,19 @@ This ensures proper isolation with each workload getting dedicated GPU resources
 3. **Low contention or insufficient GPU stress**:
    - Increase `--load-intensity` to create more background computation
    - Increase `--workload-size` to use more GPU memory for background load
+
+4. **CUDA linking errors**:
+   ```
+   /usr/bin/ld: cannot find /usr/local/cuda-12.8/targets/sbsa-linux/lib/libcudart.so: No such file or directory
+   /usr/bin/ld: cannot find /usr/local/cuda-12.8/targets/sbsa-linux/lib/libcupti.so: No such file or directory
+   ```
+
+   **Solution**: Clear holohub cache and refresh base image:
+   ```bash
+   ./holohub clear-cache
+   docker rmi nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu
+   ```
+   Then retry the benchmark command. This resolves CUDA version path mismatches from stale cached layers.
 
 ### Performance Tuning
 

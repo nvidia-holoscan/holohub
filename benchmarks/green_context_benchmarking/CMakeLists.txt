@@ -45,3 +45,16 @@ set_property(TARGET green_context_benchmarking PROPERTY CUDA_SEPARABLE_COMPILATI
 
 # Include CUDA headers
 target_include_directories(green_context_benchmarking PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
+
+# Find and configure CCCL (CUDA C++ Core Libraries) for CUDA standard library headers
+# This resolves issues with missing cuda/std/complex, cuda/stream_ref etc.
+find_package(CCCL CONFIG QUIET)
+if(TARGET CCCL::CCCL)
+    # Use the proper CCCL target if available
+    target_link_libraries(green_context_benchmarking PRIVATE CCCL::CCCL)
+    message(STATUS "Using CCCL::CCCL target for CUDA standard library headers")
+else()
+    # Fallback: manually add CCCL include directory
+    target_include_directories(green_context_benchmarking PRIVATE "${CUDAToolkit_INCLUDE_DIRS}/cccl")
+    message(STATUS "Using manual CCCL include path: ${CUDAToolkit_INCLUDE_DIRS}/cccl")
+endif()
