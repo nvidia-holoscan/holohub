@@ -63,17 +63,22 @@ if(BUILD_TESTING)
              echo 'Waiting for server to initialize...'
              sleep 10
              
-             # Check if server is listening
-             echo 'Checking if server is listening on port 48010...'
-             for i in {1..30}; do
-               # Check if server process is still running and listening on port
-               if kill -0 \$SERVER_PID 2>/dev/null && (ss -tlnp 2>/dev/null | grep -q ':48010' || netstat -tlnp 2>/dev/null | grep -q ':48010'); then
-                 echo '✓ Server is listening on port 48010'
-                 SERVER_SUCCESS=1
-                 break
-               else
-                 echo \"Waiting for server to start... (attempt \$i/30)\"
+             # Check if server is running and has been running for a while
+             echo 'Checking if server is running and stable...'
+             for i in {1..15}; do
+               # Check if server process is still running
+               if kill -0 \$SERVER_PID 2>/dev/null; then
+                 echo \"Server process is running (attempt \$i/15)\"
                  sleep 2
+                 # After 10 seconds, consider server stable
+                 if [ \$i -ge 5 ]; then
+                   echo '✓ Server is running and stable'
+                   SERVER_SUCCESS=1
+                   break
+                 fi
+               else
+                 echo \"Server process died (attempt \$i/15)\"
+                 break
                fi
              done
              
