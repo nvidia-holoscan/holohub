@@ -6,6 +6,7 @@
 set -e
 
 echo "=== Video Streaming Demo Integration Test ==="
+echo "This test may take up to 10 minutes to complete..."
 
 # Clean up any existing log files
 rm -f streamingserver.log streamingclient.log
@@ -47,13 +48,17 @@ fi
 # Launch client only if server is running and listening
 if [ $SERVER_SUCCESS -eq 1 ]; then
     echo "Starting streaming client..."
-    ./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_client_demo_enhanced_cpp_test" 2>&1 > streamingclient.log
+    echo "Client test may take up to 5 minutes to complete..."
+    timeout 300s ./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_client_demo_enhanced_cpp_test" 2>&1 > streamingclient.log
     CLIENT_EXIT_CODE=$?
     
     # Check if client test passed
     if [ $CLIENT_EXIT_CODE -eq 0 ]; then
         echo "✓ Client test completed successfully"
         CLIENT_SUCCESS=1
+    elif [ $CLIENT_EXIT_CODE -eq 124 ]; then
+        echo "✗ Client test timed out after 5 minutes"
+        CLIENT_SUCCESS=0
     else
         echo "✗ Client test failed with exit code $CLIENT_EXIT_CODE"
         CLIENT_SUCCESS=0
