@@ -24,6 +24,10 @@ echo "Building Docker image for integration test..."
 # Create a custom integration test that runs both server and client in the same container
 echo "Running custom integration test using holohub test..."
 
+# Clean up build directory manually to avoid ctest_empty_binary_directory issues
+echo "Cleaning up build directory manually..."
+rm -rf build-video_streaming_demo_enhanced
+
 # Use holohub test with a custom command that runs both server and client
 ./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test" 2>&1 > integration_test.log
 INTEGRATION_EXIT_CODE=$?
