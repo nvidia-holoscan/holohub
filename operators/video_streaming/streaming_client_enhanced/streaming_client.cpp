@@ -664,7 +664,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       static auto last_reconnect_time = std::chrono::steady_clock::now();
 
       auto now = std::chrono::steady_clock::now();
-      auto time_since_last_reconnect = 
+      auto time_since_last_reconnect =
           std::chrono::duration_cast<std::chrono::seconds>(now - last_reconnect_time).count();
 
       try {
@@ -686,7 +686,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
             HOLOSCAN_LOG_INFO("✅ Reconnection successful!");
             reconnection_attempts = 0;  // Reset on success
           } else {
-            HOLOSCAN_LOG_WARN("❌ Reconnection attempt {} failed - client not streaming", 
+            HOLOSCAN_LOG_WARN("❌ Reconnection attempt {} failed - client not streaming",
                                reconnection_attempts);
 
             // If we've tried many times, give a longer break
@@ -705,8 +705,10 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
         // Log specific error types for debugging but don't force client recreation
         std::string error_msg = e.what();
         if (error_msg.find("NVST_R_INVALID_OPERATION") != std::string::npos) {
-          HOLOSCAN_LOG_WARN("⚠️  DETECTED: NVST_R_INVALID_OPERATION - Client may be in error state");
-          HOLOSCAN_LOG_WARN("   Will continue attempting reconnection without forcing client recreation");
+          HOLOSCAN_LOG_WARN("⚠️  DETECTED: NVST_R_INVALID_OPERATION - "
+                             "Client may be in error state");
+          HOLOSCAN_LOG_WARN("   Will continue attempting reconnection without "
+                             "forcing client recreation");
         }
 
         // Give it more time before next attempt if we get specific errors
@@ -798,7 +800,8 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       return;  // Exit compute method entirely - message fully consumed
     }
 
-    // FIXED: Replace continue with early return - expect 3D tensor: [height, width, channels]
+    // FIXED: Replace continue with early return - expect 3D tensor: 
+    // [height, width, channels]
     if (tensor->ndim() != 3) {
       HOLOSCAN_LOG_WARN("Unexpected tensor dimensions: {}, expected 3D [height, width, channels], discarding entire message", tensor->ndim());
       return;  // Exit compute method entirely - message fully consumed
