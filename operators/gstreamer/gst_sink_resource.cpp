@@ -317,7 +317,7 @@ gboolean SinkResource::set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps) {
     SinkResource* resource = static_cast<SinkResource*>(holoscan_sink->holoscan_resource);
     std::string configured_caps = resource->caps_.get();
     
-    HOLOSCAN_LOG_DEBUG("Setting caps: {} (configured: '{}', incoming: {})", 
+    HOLOSCAN_LOG_INFO("Setting caps: {} (configured: '{}', incoming: {})", 
         gst_caps_to_string(caps), configured_caps, media_type);
     
     /* If configured caps is not "ANY", validate the incoming caps */
@@ -363,7 +363,7 @@ gboolean SinkResource::set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps) {
 gboolean SinkResource::start_callback(::GstBaseSink *sink) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
 
-  HOLOSCAN_LOG_DEBUG("Starting Holoscan bridge sink");
+  HOLOSCAN_LOG_INFO("Starting Holoscan bridge sink");
 
   holoscan_sink->caps_set = FALSE;
 
@@ -374,7 +374,7 @@ gboolean SinkResource::start_callback(::GstBaseSink *sink) {
 gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
 
-  HOLOSCAN_LOG_DEBUG("Stopping Holoscan bridge sink");
+  HOLOSCAN_LOG_INFO("Stopping Holoscan bridge sink");
 
   holoscan_sink->caps_set = FALSE;
 
@@ -391,7 +391,7 @@ gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
   }
 
   /* Log buffer information for monitoring */
-  HOLOSCAN_LOG_DEBUG("Bridging buffer, size: {} bytes", gst_buffer_get_size(buffer));
+  HOLOSCAN_LOG_INFO("Bridging buffer, size: {} bytes", gst_buffer_get_size(buffer));
 
   /* Access the GstSinkResource instance from callback */
   if (!holoscan_sink->holoscan_resource) {
@@ -406,7 +406,7 @@ gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
   std::lock_guard<std::mutex> lock(resource->mutex_);
 
   /* Simple logging for monitoring */
-  HOLOSCAN_LOG_DEBUG("Bridging buffer: size: {} bytes (sink: {})",
+  HOLOSCAN_LOG_INFO("Bridging buffer: size: {} bytes (sink: {})",
       gst_buffer_get_size(buffer), resource->name());
 
   // Get the current caps to create VideoInfo
@@ -493,6 +493,124 @@ void SinkResource::initialize() {
   sink->holoscan_resource = this;
 
   HOLOSCAN_LOG_INFO("GstSinkResource initialized successfully for data bridging");
+}
+
+bool SinkResource::setup_dynamic_pad_handling(GstElement* pipeline) {
+  if (!pipeline || !sink_element_) {
+    HOLOSCAN_LOG_ERROR("Invalid pipeline or sink element for dynamic pad handling");
+    return false;
+  }
+
+  HOLOSCAN_LOG_INFO("Setting up dynamic pad handling for pipeline");
+
+  // Recursively search for dynamic elements in the pipeline
+  gboolean found_dynamic_element = FALSE;
+  found_dynamic_element = search_and_connect_dynamic_elements(pipeline);
+  
+  if (!found_dynamic_element) {
+    HOLOSCAN_LOG_INFO("No dynamic elements found in pipeline, static linking should work");
+  }
+  
+  return true;
+}
+
+bool SinkResource::search_and_connect_dynamic_elements(GstElement* element) {
+  gboolean found_dynamic_element = FALSE;
+  
+  // Check if this element is a bin
+  if (GST_IS_BIN(element)) {
+    GstIterator *it = gst_bin_iterate_elements(GST_BIN(element));
+    GValue item = G_VALUE_INIT;
+    
+    while (gst_iterator_next(it, &item) == GST_ITERATOR_OK) {
+      GstElement *child_element = GST_ELEMENT(g_value_get_object(&item));
+      const gchar *element_name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(gst_element_get_factory(child_element)));
+      
+      HOLOSCAN_LOG_INFO("Found element: {}", element_name);
+      
+      // Check for elements that create dynamic pads
+      if (g_strcmp0(element_name, "decodebin") == 0 || 
+          g_strcmp0(element_name, "decodebin3") == 0 ||
+          g_strcmp0(element_name, "uridecodebin") == 0) {
+        HOLOSCAN_LOG_INFO("Found dynamic element: {}, connecting to pad-added signal", element_name);
+        g_signal_connect(child_element, "pad-added", G_CALLBACK(on_pad_added_callback), sink_element_);
+        found_dynamic_element = TRUE;
+      }
+      
+      // Recursively search in child bins
+      if (GST_IS_BIN(child_element)) {
+        if (search_and_connect_dynamic_elements(child_element)) {
+          found_dynamic_element = TRUE;
+        }
+      }
+      
+      g_value_reset(&item);
+    }
+    g_value_unset(&item);
+    gst_iterator_free(it);
+  }
+  
+  return found_dynamic_element;
+}
+
+void SinkResource::on_pad_added_callback(GstElement *element, GstPad *pad, gpointer data) {
+  GstElement *sink_element = (GstElement *)data;
+  
+  // Get pad capabilities to check if it's video
+  GstCaps *caps = gst_pad_get_current_caps(pad);
+  if (caps) {
+    GstStructure *structure = gst_caps_get_structure(caps, 0);
+    const gchar *media_type = gst_structure_get_name(structure);
+    
+    // Get more detailed caps information
+    gchar *caps_string = gst_caps_to_string(caps);
+    HOLOSCAN_LOG_INFO("Dynamic pad added: {} - creating format conversion and linking to sink", media_type);
+    HOLOSCAN_LOG_INFO("Detailed caps: {}", caps_string);
+    g_free(caps_string);
+    
+    if (g_str_has_prefix(media_type, "video/")) {
+      // Create videoconvert element for video pads with RGBA conversion
+      GstElement *convert = gst_element_factory_make("videoconvert", nullptr);
+      GstElement *capsfilter = gst_element_factory_make("capsfilter", nullptr);
+      
+      if (convert && capsfilter) {
+        // Set caps filter to force RGBA format
+        GstCaps *rgba_caps = gst_caps_from_string("video/x-raw,format=RGBA");
+        g_object_set(capsfilter, "caps", rgba_caps, nullptr);
+        gst_caps_unref(rgba_caps);
+        
+        // Get the pipeline (parent of the element)
+        GstObject *pipeline_obj = gst_element_get_parent(element);
+        GstElement *pipeline = GST_ELEMENT(pipeline_obj);
+        gst_bin_add_many(GST_BIN(pipeline), convert, capsfilter, nullptr);
+        gst_element_sync_state_with_parent(convert);
+        gst_element_sync_state_with_parent(capsfilter);
+        
+        // Link: pad -> convert -> capsfilter -> sink
+        if (gst_element_link_pads(element, gst_pad_get_name(pad), convert, "sink")) {
+          if (gst_element_link(convert, capsfilter)) {
+            if (gst_element_link(capsfilter, sink_element)) {
+              HOLOSCAN_LOG_INFO("Successfully linked dynamic element to videoconvert->capsfilter (RGBA)");
+            } else {
+              HOLOSCAN_LOG_ERROR("Failed to link capsfilter to sink");
+            }
+          } else {
+            HOLOSCAN_LOG_ERROR("Failed to link videoconvert to capsfilter");
+          }
+        } else {
+          HOLOSCAN_LOG_ERROR("Failed to link dynamic element to videoconvert");
+        }
+        
+        gst_object_unref(pipeline_obj);
+      } else {
+        HOLOSCAN_LOG_ERROR("Failed to create videoconvert or capsfilter elements");
+      }
+    } else {
+      HOLOSCAN_LOG_INFO("Ignoring non-video pad: {} (audio or other stream)", media_type);
+    }
+    
+    gst_caps_unref(caps);
+  }
 }
 
 // Helper functions are now in gst_common.cpp

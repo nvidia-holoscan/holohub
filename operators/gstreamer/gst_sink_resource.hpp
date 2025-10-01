@@ -97,11 +97,26 @@ class SinkResource : public holoscan::Resource {
    */
   holoscan::gst::Caps get_caps() const;
 
+  /**
+   * @brief Set up dynamic pad handling for a pipeline
+   * @param pipeline The GStreamer pipeline to set up dynamic pad handling for
+   * @return true if dynamic pad handling was set up successfully
+   */
+  bool setup_dynamic_pad_handling(GstElement* pipeline);
+
+  /**
+   * @brief Search for dynamic elements and connect them
+   * @param element The element to search in
+   * @return true if dynamic elements were found and connected
+   */
+  bool search_and_connect_dynamic_elements(GstElement* element);
+
   // Static member functions for GStreamer callbacks
   static gboolean set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps);
   static ::GstFlowReturn render_callback(::GstBaseSink *sink, ::GstBuffer *buffer);
   static gboolean start_callback(::GstBaseSink *sink);
   static gboolean stop_callback(::GstBaseSink *sink);
+  static void on_pad_added_callback(GstElement *element, GstPad *pad, gpointer data);
 
  private:
   ::GstElement* sink_element_ = nullptr;

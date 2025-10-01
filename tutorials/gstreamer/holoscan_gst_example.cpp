@@ -42,17 +42,16 @@ class GstSinkOperator : public Operator {
     Operator::initialize();
 
     // Ensure the GStreamer sink resource is provided and valid
-    assert(gst_sink_resource_.get());
-    assert(gst_sink_resource_.get()->valid());
+    if (!gst_sink_resource_.get()) {
+      throw std::runtime_error("GStreamer sink resource is not provided");
+    }
+    if (!gst_sink_resource_.get()->valid()) {
+      throw std::runtime_error("GStreamer sink resource is not valid");
+    }
 
     // Create pipeline and add our sink element
     std::string pipeline_str = pipeline_desc_.get();
     
-    // Automatically append RGBA conversion if not already present
-    if (pipeline_str.find("format=RGBA") == std::string::npos) {
-        pipeline_str += " ! video/x-raw,format=RGBA ! videoconvert";
-        HOLOSCAN_LOG_INFO("Auto-appended RGBA conversion to pipeline");
-    }
     
     HOLOSCAN_LOG_INFO("Creating pipeline: {}", pipeline_str);
 
@@ -74,23 +73,22 @@ class GstSinkOperator : public Operator {
     }
 
     // Get the sink element from our resource
-    GstElement* sink_element = gst_sink_resource()->get_element();
-    if (!sink_element) {
-      gst_object_unref(source_bin);
-      gst_object_unref(pipeline_);
-      pipeline_ = nullptr;
-      throw std::runtime_error("Failed to get sink element from resource");
-    }
-
+    GstElement* sink_element = gst_sink_resource_.get()->get_element();
     // Add elements to pipeline
     gst_bin_add_many(GST_BIN(pipeline_), source_bin, sink_element, nullptr);
 
-    // Link the source bin to our sink
+    // Try to link the source bin to our sink (may fail for dynamic elements, that's OK)
     if (!gst_element_link(source_bin, sink_element)) {
-      HOLOSCAN_LOG_ERROR("Failed to link pipeline elements to sink");
-      gst_object_unref(pipeline_);
-      pipeline_ = nullptr;
-      throw std::runtime_error("Failed to link GStreamer pipeline elements");
+      HOLOSCAN_LOG_INFO("Static linking failed, setting up dynamic pad handling");
+      // Set up dynamic pad handling for elements like decodebin, uridecodebin
+      if (!gst_sink_resource_.get()->setup_dynamic_pad_handling(pipeline_)) {
+        HOLOSCAN_LOG_ERROR("Failed to set up dynamic pad handling");
+        gst_object_unref(pipeline_);
+        pipeline_ = nullptr;
+        throw std::runtime_error("Failed to set up dynamic pad handling");
+      }
+    } else {
+      HOLOSCAN_LOG_INFO("Static linking successful");
     }
 
     HOLOSCAN_LOG_INFO("GstSinkOperator initialized successfully");
@@ -175,7 +173,7 @@ class GstSinkOperator : public Operator {
     // Demonstrate the new client-side buffer retrieval and analysis
     try {
       // Get a mapped buffer asynchronously from the GStreamer pipeline (blocks until available)
-      auto mapped_buffer_future = gst_sink_resource()->get_buffer();
+      auto mapped_buffer_future = gst_sink_resource_.get()->get_buffer();
       MappedBuffer mapped_buffer = mapped_buffer_future.get(); // Blocks until buffer arrives
 
       // Client-side buffer counting
@@ -307,8 +305,6 @@ class GstSinkOperator : public Operator {
     Operator::stop();
   }
 
- protected:
-  SinkResourcePtr gst_sink_resource() { return gst_sink_resource_.get(); }
 
  private:
   Parameter<SinkResourcePtr> gst_sink_resource_;
