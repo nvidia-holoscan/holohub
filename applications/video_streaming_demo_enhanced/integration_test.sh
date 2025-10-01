@@ -10,26 +10,42 @@ echo "=== Video Streaming Demo Integration Test ==="
 # Clean up any existing log files
 rm -f streamingserver.log streamingclient.log
 
-# Launch server
+# Launch server first and wait for it to complete
 echo "Starting streaming server..."
-./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_server_demo_enhanced_cpp_test" 2>&1 > streamingserver.log &
-SERVER_PID=$!
+./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_server_demo_enhanced_cpp_test" 2>&1 > streamingserver.log
+SERVER_EXIT_CODE=$?
 
-sleep 10
+# Check if server test passed
+if [ $SERVER_EXIT_CODE -eq 0 ]; then
+    echo "✓ Server test completed successfully"
+    SERVER_SUCCESS=1
+else
+    echo "✗ Server test failed with exit code $SERVER_EXIT_CODE"
+    SERVER_SUCCESS=0
+fi
 
-# Launch client (using replayer mode for video file replay)
-echo "Starting streaming client..."
-./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_client_demo_enhanced_cpp_test" 2>&1 > streamingclient.log &
-CLIENT_PID=$!
+# Wait a bit for server to fully initialize
+echo "Waiting for server to initialize..."
+sleep 5
 
-sleep 30
-
-# Wait for both server and client to terminate (timeout = 300 secs for Docker builds)
-echo "Waiting for processes to complete..."
-timeout 300s bash -c "wait $SERVER_PID $CLIENT_PID" || echo "Timeout reached, killing processes..."
-
-# Kill processes if still running
-kill -9 $SERVER_PID $CLIENT_PID 2>/dev/null || true
+# Launch client only if server was successful
+if [ $SERVER_SUCCESS -eq 1 ]; then
+    echo "Starting streaming client..."
+    ./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_client_demo_enhanced_cpp_test" 2>&1 > streamingclient.log
+    CLIENT_EXIT_CODE=$?
+    
+    # Check if client test passed
+    if [ $CLIENT_EXIT_CODE -eq 0 ]; then
+        echo "✓ Client test completed successfully"
+        CLIENT_SUCCESS=1
+    else
+        echo "✗ Client test failed with exit code $CLIENT_EXIT_CODE"
+        CLIENT_SUCCESS=0
+    fi
+else
+    echo "Skipping client test due to server failure"
+    CLIENT_SUCCESS=0
+fi
 
 # Check the log files
 echo "=== SERVER LOG ==="
@@ -41,22 +57,18 @@ cat streamingclient.log
 # Verify success conditions
 echo "=== VERIFICATION ==="
 
-# Check server started successfully
-if grep -q "StreamingServerResource started successfully\|Server started\|Listening on\|streaming_server_demo_enhanced" streamingserver.log; then
-    echo "✓ Server started successfully"
-    SERVER_SUCCESS=1
+# Server success is already determined by exit code
+if [ $SERVER_SUCCESS -eq 1 ]; then
+    echo "✓ Server test passed"
 else
-    echo "✗ Server failed to start"
-    SERVER_SUCCESS=0
+    echo "✗ Server test failed"
 fi
 
-# Check client connected/created successfully
-if grep -q "StreamingClient created successfully\|Client connected\|Connection established\|streaming_client_demo_enhanced" streamingclient.log; then
-    echo "✓ Client created/connected successfully"
-    CLIENT_SUCCESS=1
+# Client success is already determined by exit code
+if [ $CLIENT_SUCCESS -eq 1 ]; then
+    echo "✓ Client test passed"
 else
-    echo "✗ Client failed to create/connect"
-    CLIENT_SUCCESS=0
+    echo "✗ Client test failed"
 fi
 
 # Overall result
