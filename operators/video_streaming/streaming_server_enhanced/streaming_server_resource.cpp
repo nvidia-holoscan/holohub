@@ -348,6 +348,5 @@ Frame StreamingServerResource::convert_from_streaming_server_frame(
   ops_frame.setFormat(server_frame.getFormat());
 
   return ops_frame;
-}
 
 }  // namespace holoscan::ops
