@@ -158,7 +158,8 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
             for (int i = 0; i < std::min(10, static_cast<int>(width * height)) &&
                             i * bytes_per_pixel < data_size; ++i) {
                 meta_file << "Pixel " << i << ": ";
-                for (size_t j = 0; j < bytes_per_pixel && (i * bytes_per_pixel + j) < data_size; ++j) {
+                for (size_t j = 0; j < bytes_per_pixel && 
+                     (i * bytes_per_pixel + j) < data_size; ++j) {
                     meta_file << static_cast<int>(data[i * bytes_per_pixel + j]) << " ";
                 }
                 meta_file << "\n";
