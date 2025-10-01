@@ -13,21 +13,23 @@ rm -f streamingserver.log streamingclient.log
 # Launch server
 echo "Starting streaming server..."
 ./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_server_demo_enhanced_cpp_test" 2>&1 > streamingserver.log &
+SERVER_PID=$!
 
 sleep 10
 
 # Launch client (using replayer mode for video file replay)
 echo "Starting streaming client..."
 ./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming_client_demo_enhanced_cpp_test" 2>&1 > streamingclient.log &
+CLIENT_PID=$!
 
 sleep 30
 
-# Wait for both server and client to terminate (timeout = 10 secs)
+# Wait for both server and client to terminate (timeout = 300 secs for Docker builds)
 echo "Waiting for processes to complete..."
-timeout 10s wait
+timeout 300s bash -c "wait $SERVER_PID $CLIENT_PID" || echo "Timeout reached, killing processes..."
 
 # Kill processes if still running
-kill -9 %1 %2 2>/dev/null || true
+kill -9 $SERVER_PID $CLIENT_PID 2>/dev/null || true
 
 # Check the log files
 echo "=== SERVER LOG ==="
