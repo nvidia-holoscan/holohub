@@ -10,16 +10,16 @@ echo "=== Video Streaming Demo Integration Test ==="
 # Clean up any existing log files
 rm -f streamingserver.log streamingclient.log
 
-# Launch server
-echo "Starting streaming server..."
-./holohub test --docker-opts='-e EnableHybridMode=1' video_streaming_demo_enhanced/video_streaming_demo_server --language cpp 2>&1 > streamingserver.log &
+# Launch server test
+echo "Starting streaming server test..."
+./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test" 2>&1 > streamingserver.log &
 SERVER_PID=$!
 
 sleep 10
 
-# Launch client with replayer config
-echo "Starting streaming client..."
-./holohub test --docker-opts='-e EnableHybridMode=1' video_streaming_demo_enhanced/video_streaming_demo_client --language cpp --run-args='-c streaming_client_demo_replayer.yaml' 2>&1 > streamingclient.log &
+# Launch client test
+echo "Starting streaming client test..."
+./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test" 2>&1 > streamingclient.log &
 CLIENT_PID=$!
 
 sleep 30
