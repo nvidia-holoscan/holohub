@@ -47,6 +47,13 @@ class GstSinkOperator : public Operator {
 
     // Create pipeline and add our sink element
     std::string pipeline_str = pipeline_desc_.get();
+    
+    // Automatically append RGBA conversion if not already present
+    if (pipeline_str.find("format=RGBA") == std::string::npos) {
+        pipeline_str += " ! video/x-raw,format=RGBA ! videoconvert";
+        HOLOSCAN_LOG_INFO("Auto-appended RGBA conversion to pipeline");
+    }
+    
     HOLOSCAN_LOG_INFO("Creating pipeline: {}", pipeline_str);
 
     // Create the main pipeline
@@ -335,8 +342,6 @@ class GstSinkApp : public Application {
     // Note: Resolution will be determined dynamically from GStreamer pipeline
     auto holoviz = make_operator<ops::HolovizOp>(
         "holoviz",
-        Arg("width", 320U),  // Match typical videotestsrc resolution
-        Arg("height", 240U),
         Arg("allocator", make_resource<UnboundedAllocator>("holoviz_allocator")),
         Arg("tensors", std::vector<ops::HolovizOp::InputSpec>{
             ops::HolovizOp::InputSpec("", ops::HolovizOp::InputType::COLOR)
@@ -361,6 +366,7 @@ void print_usage(const char* program_name) {
     std::cout << "Options:\n";
     std::cout << "  -c, --count <number>     Number of iterations to run (default: 300)\n";
     std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description (default: videotestsrc pattern=0 ! videoconvert)\n";
+    std::cout << "                            Note: RGBA conversion is automatically appended if not present\n";
     std::cout << "  -h, --help               Show this help message\n\n";
     std::cout << "Examples:\n";
     std::cout << "  " << program_name << " --count 150 --pipeline \"videotestsrc pattern=1 ! videoconvert\"\n";

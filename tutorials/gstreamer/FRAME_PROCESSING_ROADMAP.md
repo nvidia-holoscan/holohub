@@ -283,3 +283,6 @@ This roadmap builds incrementally upon the existing promise-based buffer retriev
 
 
 Add a SYNC-ing mechanism between the Holoscan pipe and the Gst pipe. Block the render function
+
+
+./holoscan-gst-example --count 1000 --pipeline "videotestsrc pattern=0 ! videoconvert"
