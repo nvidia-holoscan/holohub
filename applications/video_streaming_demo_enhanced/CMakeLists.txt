@@ -52,7 +52,7 @@ if(BUILD_TESTING)
              
              # Start server in background
              echo 'Starting streaming server...'
-             ./bin/streaming_server_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo.yaml &
+             ./applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo.yaml &
              SERVER_PID=\$!
              
              # Wait for server to start
@@ -77,7 +77,7 @@ if(BUILD_TESTING)
                
                # Start client in background and let it stream for a while
                echo 'Starting streaming client...'
-               ./bin/streaming_client_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_replayer.yaml &
+               ./applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_replayer.yaml &
                CLIENT_PID=\$!
                
                # Let client stream for 30 seconds
