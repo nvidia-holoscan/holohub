@@ -207,9 +207,9 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
     static int debug_output_frame_counter = 0;
     debug_output_frame_counter++;
     if (debug_output_frame_counter % 10 == 0) {
-      HOLOSCAN_LOG_INFO("DEBUG: Writing output Frame to disk for frame {}", 
+      HOLOSCAN_LOG_INFO("DEBUG: Writing output Frame to disk for frame {}",
                          debug_output_frame_counter);
-      debug_utils::writeFrameToDisk(output_frame, "debug_downstream_output", 
+      debug_utils::writeFrameToDisk(output_frame, "debug_downstream_output",
                                      debug_output_frame_counter);
     }
 #endif // HOLOSCAN_DEBUG_FRAME_WRITING
@@ -217,7 +217,7 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
       // Send frame to connected clients via StreamingServerResource
     if (output_frame.getDataSize() > 0) {
       HOLOSCAN_LOG_INFO("📤 DOWNSTREAM: Attempting to send frame to client: {}x{}, {} bytes",
-                          output_frame.getWidth(), output_frame.getHeight(), 
+                          output_frame.getWidth(), output_frame.getHeight(),
                           output_frame.getDataSize());
 
       streaming_server_resource->send_frame(output_frame);
@@ -225,7 +225,7 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
 
       HOLOSCAN_LOG_INFO("✅ DOWNSTREAM: Frame sent successfully to StreamingServerResource");
     } else {
-      HOLOSCAN_LOG_ERROR("❌ DOWNSTREAM: Cannot send frame - invalid data size: {}", 
+      HOLOSCAN_LOG_ERROR("❌ DOWNSTREAM: Cannot send frame - invalid data size: {}",
                           output_frame.getDataSize());
     }
 
@@ -237,7 +237,8 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
       auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time);
       if (elapsed.count() > 0) {
         float fps = static_cast<float>(frames_processed_) / elapsed.count();
-        HOLOSCAN_LOG_INFO("📊 Downstream Performance: Processed {} frames, Sent {} frames ({:.2f} FPS)",
+        HOLOSCAN_LOG_INFO("📊 Downstream Performance: Processed {} frames, Sent {} frames "
+                          "({:.2f} FPS)",
                            frames_processed_.load(), frames_sent_.load(), fps);
       }
     }
@@ -246,13 +247,15 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
   }
 }
 
-void StreamingServerDownstreamOp::on_streaming_server_event(const StreamingServerResource::Event& event) {
+void StreamingServerDownstreamOp::on_streaming_server_event(
+    const StreamingServerResource::Event& event) {
   if (is_shutting_down_.load()) {
     return;
   }
 
   auto now = std::chrono::steady_clock::now();
-  auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+  auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+      now.time_since_epoch()).count();
 
   try {
     switch (event.type) {
@@ -263,18 +266,21 @@ void StreamingServerDownstreamOp::on_streaming_server_event(const StreamingServe
         HOLOSCAN_LOG_WARN("❌ [DOWNSTREAM {}] Client disconnected: {}", timestamp, event.message);
         break;
       case StreamingServerResource::EventType::DownstreamConnected:
-        HOLOSCAN_LOG_INFO("⬇️ [DOWNSTREAM {}] Downstream connection established: {}", timestamp, event.message);
+        HOLOSCAN_LOG_INFO("⬇️ [DOWNSTREAM {}] Downstream connection established: {}", 
+                           timestamp, event.message);
         downstream_connected_ = true;
         break;
       case StreamingServerResource::EventType::DownstreamDisconnected:
-        HOLOSCAN_LOG_WARN("⬇️❌ [DOWNSTREAM {}] Downstream connection lost: {}", timestamp, event.message);
+        HOLOSCAN_LOG_WARN("⬇️❌ [DOWNSTREAM {}] Downstream connection lost: {}", 
+                           timestamp, event.message);
         downstream_connected_ = false;
         break;
       case StreamingServerResource::EventType::FrameSent:
         HOLOSCAN_LOG_DEBUG("📤 [DOWNSTREAM {}] Frame sent: {}", timestamp, event.message);
         break;
       default:
-        HOLOSCAN_LOG_DEBUG("🔔 [DOWNSTREAM {}] Event [{}]: {}", timestamp, static_cast<int>(event.type), event.message);
+        HOLOSCAN_LOG_DEBUG("🔔 [DOWNSTREAM {}] Event [{}]: {}", 
+                            timestamp, static_cast<int>(event.type), event.message);
         break;
     }
   } catch (const std::exception& e) {
@@ -311,7 +317,8 @@ Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tenso
     // This operator expects exactly 3D tensors in HWC format: height, width, channels
   if (shape.size() != 3) {
     throw std::runtime_error(fmt::format(
-        "Expected 3D tensor in HWC format (height, width, channels), but got {}D tensor with shape [{}]",
+        "Expected 3D tensor in HWC format (height, width, channels), but got {}D tensor "
+        "with shape [{}]",
         shape.size(), fmt::join(shape, ", ")));
   }
 
@@ -321,10 +328,12 @@ Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tenso
 
     // Validate reasonable dimensions for video frames
   if (height == 0 || width == 0 || channels == 0) {
-    throw std::runtime_error(fmt::format("Invalid tensor dimensions: height={}, width={}, channels={}", height, width, channels));
+    throw std::runtime_error(fmt::format("Invalid tensor dimensions: height={}, width={}, channels={}", 
+                                          height, width, channels));
   }
   if (channels > 4) {
-    throw std::runtime_error(fmt::format("Unsupported number of channels: {}. Expected 1-4 channels for video frames.", channels));
+    throw std::runtime_error(fmt::format("Unsupported number of channels: {}. "
+                                          "Expected 1-4 channels for video frames.", channels));
   }
 
     // Create VideoFrame with appropriate dimensions
@@ -349,7 +358,7 @@ Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tenso
     output_frame.setData(static_cast<const uint8_t*>(data_ptr), data_size);
   } else {
     throw std::runtime_error(fmt::format(
-        "Unsupported tensor data type: code={}, bits={}, lanes={}. Only uint8 tensors are supported.", 
+        "Unsupported tensor data type: code={}, bits={}, lanes={}. Only uint8 tensors are supported.",
         dtype.code, dtype.bits, dtype.lanes));
   }
 
