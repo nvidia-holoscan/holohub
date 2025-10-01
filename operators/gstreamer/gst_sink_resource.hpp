@@ -42,19 +42,13 @@ namespace gst {
  */
 class SinkResource : public holoscan::Resource {
  public:
- using SharedPtr = std::shared_ptr<SinkResource>;
+  HOLOSCAN_RESOURCE_FORWARD_ARGS(SinkResource)
+  using SharedPtr = std::shared_ptr<SinkResource>;
 
  /**
    * @brief Default constructor
    */
   SinkResource() = default;
-
-  /**
-   * @brief Constructor with optional sink name
-   * @param sink_name Name for the GStreamer element instance (optional)
-   */
-  explicit SinkResource(const std::string& sink_name = "")
-      : sink_name_(sink_name) {}
 
   // Move semantics
   SinkResource(SinkResource&& other) noexcept = default;
@@ -64,6 +58,11 @@ class SinkResource : public holoscan::Resource {
    * @brief Destructor - cleans up GStreamer resources
    */
   ~SinkResource();
+
+  /**
+   * @brief Setup the resource parameters
+   */
+  void setup(holoscan::ComponentSpec& spec) override;
 
   /**
    * @brief Initialize the GStreamer sink resource
@@ -87,14 +86,6 @@ class SinkResource : public holoscan::Resource {
   }
 
   /**
-   * @brief Get the sink name
-   * @return The name of the sink element
-   */
-  const std::string& get_sink_name() const {
-    return sink_name_;
-  }
-
-  /**
    * @brief Asynchronously get the next buffer from the GStreamer pipeline
    * @return Future that will be fulfilled when a buffer becomes available
    */
@@ -113,7 +104,6 @@ class SinkResource : public holoscan::Resource {
   static gboolean stop_callback(::GstBaseSink *sink);
 
  private:
-  std::string sink_name_;
   ::GstElement* sink_element_ = nullptr;
 
   // Buffer queue for thread-safe async processing
@@ -121,6 +111,9 @@ class SinkResource : public holoscan::Resource {
   // Promise queue for pending buffer requests
   std::queue<std::promise<holoscan::gst::MappedBuffer>> request_queue_;
   mutable std::mutex mutex_;
+
+  // Resource parameters
+  holoscan::Parameter<std::string> caps_;
 };
 
   using SinkResourcePtr = SinkResource::SharedPtr;

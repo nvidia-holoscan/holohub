@@ -328,7 +328,13 @@ class GstSinkApp : public Application {
 
   void compose() override {
     // Create the GStreamer sink resource for data bridging
-    auto gst_sink = make_resource<SinkResource>("gst_sink", "holoscan_sink");
+    // Test with explicit Arg to verify the parameter mechanism works:
+    auto gst_sink = make_resource<SinkResource>("holoscan_sink", 
+        Arg("capabilities", "ANY"));
+    
+    // You can also specify custom caps like this:
+    // auto gst_sink = make_resource<SinkResource>("holoscan_sink", 
+    //     Arg("capabilities", "video/x-raw,format=RGBA"));
 
     // Create the operator that uses the sink
     auto gst_op = make_operator<GstSinkOperator>(
@@ -372,6 +378,12 @@ void print_usage(const char* program_name) {
     std::cout << "  " << program_name << " --count 150 --pipeline \"videotestsrc pattern=1 ! videoconvert\"\n";
     std::cout << "  " << program_name << " -c 600 -p \"audiotestsrc ! audioconvert\"\n";
     std::cout << "  " << program_name << " --pipeline \"autovideosrc ! videoconvert\"  # Use camera\n";
+    std::cout << "  " << program_name << " --pipeline \"souphttpsrc location=https://example.com/video.mp4 ! decodebin ! videoconvert\"  # Network video\n\n";
+    std::cout << "Note: The SinkResource now supports configurable capabilities. You can modify the code to use specific caps like:\n";
+    std::cout << "  - video/x-raw,format=RGBA (for raw video)\n";
+    std::cout << "  - audio/x-raw (for raw audio)\n";
+    std::cout << "  - ANY (default, for maximum flexibility)\n";
+    std::cout << "Example: make_resource<SinkResource>(\"my_sink\", Arg(\"capabilities\", \"video/x-raw,format=RGBA\"))\n";
 }
 
 int main(int argc, char** argv) {

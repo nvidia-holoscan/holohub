@@ -376,7 +376,7 @@ gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
 
   /* Simple logging for monitoring */
   HOLOSCAN_LOG_DEBUG("Bridging buffer: size: {} bytes (sink: {})",
-      gst_buffer_get_size(buffer), resource->get_sink_name());
+      gst_buffer_get_size(buffer), resource->name());
 
   // Get the current caps to create VideoInfo
   Caps caps = resource->get_caps();
@@ -421,8 +421,23 @@ SinkResource::~SinkResource() {
   HOLOSCAN_LOG_DEBUG("GstSinkResource destroyed");
 }
 
+void SinkResource::setup(holoscan::ComponentSpec& spec) {
+  spec.param(caps_,
+      "capabilities",
+      "GStreamer Capabilities",
+      "GStreamer caps string defining what data formats this sink can accept. "
+      "Use 'ANY' for maximum flexibility, or specify specific formats like "
+      "'video/x-raw,format=RGBA' for video or 'audio/x-raw' for audio.",
+      std::string("ANY"));
+}
+
 void SinkResource::initialize() {
+  // Call parent initialize first
+  holoscan::Resource::initialize();
+  
   HOLOSCAN_LOG_INFO("Initializing GstSinkResource for data bridging");
+  HOLOSCAN_LOG_INFO("Configured capabilities: '{}'", caps_.get());
+  
   // Initialize GStreamer if not already done
   if (!gst_is_initialized()) {
     gst_init(nullptr, nullptr);
@@ -434,7 +449,7 @@ void SinkResource::initialize() {
 
   // Create the sink element
   sink_element_ = gst_element_factory_make("holoscansink",
-                                         sink_name_.empty() ? nullptr : sink_name_.c_str());
+                                         name().empty() ? nullptr : name().c_str());
 
   if (!sink_element_) {
     HOLOSCAN_LOG_ERROR("Failed to create Holoscan bridge sink element");
