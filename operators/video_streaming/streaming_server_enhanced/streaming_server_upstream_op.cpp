@@ -133,7 +133,6 @@ void StreamingServerUpstreamOp::initialize() {
     if (!streaming_server_resource->is_running()) {
       streaming_server_resource->start();
     }
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Exception during upstream server start: {}", e.what());
   }
@@ -387,7 +386,7 @@ bool StreamingServerUpstreamOp::is_duplicate_frame(const Frame& frame) {
     // Quick check: if timestamp is same as last processed, it's definitely a duplicate
   if (frame_timestamp == last_processed_timestamp_.load()) {
     duplicate_frames_detected_++;
-    HOLOSCAN_LOG_DEBUG("Duplicate frame detected: same timestamp as last processed ({})", 
+    HOLOSCAN_LOG_DEBUG("Duplicate frame detected: same timestamp as last processed ({})",
                         frame_timestamp);
     return true;
   }
@@ -398,7 +397,7 @@ bool StreamingServerUpstreamOp::is_duplicate_frame(const Frame& frame) {
     // Check if we've already processed this exact timestamp
   if (processed_frame_timestamps_.find(frame_timestamp) != processed_frame_timestamps_.end()) {
     duplicate_frames_detected_++;
-    HOLOSCAN_LOG_WARN("🔍 DUPLICATE FRAME DETECTED: timestamp {} already processed", 
+    HOLOSCAN_LOG_WARN("🔍 DUPLICATE FRAME DETECTED: timestamp {} already processed",
                        frame_timestamp);
     return true;
   }
@@ -410,7 +409,7 @@ bool StreamingServerUpstreamOp::is_duplicate_frame(const Frame& frame) {
   if (processed_frame_timestamps_.size() > 1000) {
       // Remove timestamps older than the most recent 900 (keep some buffer)
       // Find the 900th most recent timestamp as the cutoff
-    std::vector<uint64_t> sorted_timestamps(processed_frame_timestamps_.begin(), 
+    std::vector<uint64_t> sorted_timestamps(processed_frame_timestamps_.begin(),
                                              processed_frame_timestamps_.end());
     std::sort(sorted_timestamps.begin(), sorted_timestamps.end(), std::greater<uint64_t>());
 
@@ -439,5 +438,4 @@ bool StreamingServerUpstreamOp::is_duplicate_frame(const Frame& frame) {
   HOLOSCAN_LOG_DEBUG("✅ Unique frame accepted: timestamp {}", frame_timestamp);
   return false;
 }
-
 }  // namespace holoscan::ops

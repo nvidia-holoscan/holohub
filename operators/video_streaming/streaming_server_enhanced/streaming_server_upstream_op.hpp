@@ -51,7 +51,7 @@ class StreamingServerUpstreamOp : public holoscan::Operator {
   void initialize() override;
   void start() override;
   void stop() override;
-  void compute(InputContext& op_input, OutputContext& op_output, 
+  void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override;
 
  private:
