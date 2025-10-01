@@ -29,7 +29,6 @@ from .util import (
     build_holohub_path_mapping,
     check_nvidia_ctk,
     docker_args_to_devcontainer_format,
-    ensure_local_directory,
     fatal,
     find_hsdk_build_rel_dir,
     get_compute_capacity,
@@ -80,7 +79,9 @@ class HoloHubContainer:
         "HOLOHUB_DEFAULT_IMAGE_FORMAT", "{container_prefix}:ngc-v{sdk_version}-{gpu_type}"
     )
     # Additional Default build arguments for docker build command (e.g., --build-context flags)
-    DEFAULT_BUILD_ARGS = os.environ.get("HOLOHUB_DEFAULT_BUILD_ARGS", "")
+    DEFAULT_DOCKER_BUILD_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS", "")
+    # Additional Default run arguments for docker run command
+    DEFAULT_DOCKER_RUN_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_RUN_ARGS", "")
 
     @classmethod
     def default_base_image(cls) -> str:
@@ -364,32 +365,6 @@ class HoloHubContainer:
         self.dryrun = False
         self.verbose = False
 
-    def ensure_build_context_dirs(self, build_args: Optional[str]) -> None:
-        """Parse build args for --build-context and ensure local directories exist"""
-        if not build_args:
-            return
-        args_list = shlex.split(build_args)
-        i = 0
-        while i < len(args_list):
-            arg = args_list[i]
-            context_spec = None
-            if arg == "--build-context" and i + 1 < len(args_list):  # --build-context name=path
-                context_spec = args_list[i + 1]
-                i += 2  # Skip both arguments
-            elif arg.startswith("--build-context="):  # --build-context=name=path
-                context_spec = arg.split("=", 1)[1]
-                i += 1
-            else:
-                i += 1
-                continue
-            if context_spec and "=" in context_spec:
-                ensure_local_directory(
-                    path=context_spec.split("=", 1)[1],
-                    base_dir=HoloHubContainer.HOLOHUB_ROOT,
-                    dry_run=self.dryrun,
-                    verbose=self.verbose,
-                )
-
     def build(
         self,
         docker_file: Optional[str] = None,
@@ -439,9 +414,10 @@ class HoloHubContainer:
         if no_cache:
             cmd.append("--no-cache")
 
-        full_build_args = " ".join(filter(None, [HoloHubContainer.DEFAULT_BUILD_ARGS, build_args]))
+        full_build_args = " ".join(
+            filter(None, [HoloHubContainer.DEFAULT_DOCKER_BUILD_ARGS, build_args])
+        )
         if full_build_args:
-            self.ensure_build_context_dirs(full_build_args)
             cmd.extend(shlex.split(full_build_args))
 
         cmd.extend(["-f", str(docker_file_path), "-t", img, str(HoloHubContainer.HOLOHUB_ROOT)])
@@ -491,6 +467,10 @@ class HoloHubContainer:
 
         if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
+
+        # Add default docker run arguments
+        if HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS:
+            cmd.extend(shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS))
 
         if docker_opts:
             cmd.extend(shlex.split(docker_opts))
