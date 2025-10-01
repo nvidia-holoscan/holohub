@@ -10,26 +10,24 @@ echo "=== Video Streaming Demo Integration Test ==="
 # Clean up any existing log files
 rm -f streamingserver.log streamingclient.log
 
-# Launch server test
-echo "Starting streaming server test..."
-/workspace/holohub/holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test" 2>&1 > streamingserver.log &
-SERVER_PID=$!
+# Launch server
+echo "Starting streaming server..."
+/workspace/holohub/holohub test --docker-opts='-e EnableHybridMode=1' video_streaming_demo_server --language cpp 2>&1 > streamingserver.log &
 
 sleep 10
 
-# Launch client test
-echo "Starting streaming client test..."
-/workspace/holohub/holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test" 2>&1 > streamingclient.log &
-CLIENT_PID=$!
+# Launch client (using replayer mode for video file replay)
+echo "Starting streaming client..."
+/workspace/holohub/holohub test --docker-opts='-e EnableHybridMode=1' video_streaming_demo_client --language cpp --run-args='-c streaming_client_demo_replayer.yaml' 2>&1 > streamingclient.log &
 
 sleep 30
 
 # Wait for both server and client to terminate (timeout = 10 secs)
 echo "Waiting for processes to complete..."
-timeout 10s bash -c "wait $SERVER_PID $CLIENT_PID" || echo "Timeout reached, killing processes..."
+wait -t 10
 
 # Kill processes if still running
-kill -9 $SERVER_PID $CLIENT_PID 2>/dev/null || true
+kill -9 %1 %2 2>/dev/null || true
 
 # Check the log files
 echo "=== SERVER LOG ==="
@@ -42,7 +40,7 @@ cat streamingclient.log
 echo "=== VERIFICATION ==="
 
 # Check server started successfully
-if grep -q "StreamingServerResource started successfully\|Server started\|Listening on" streamingserver.log; then
+if grep -q "StreamingServerResource started successfully\|Server started\|Listening on\|streaming_server_demo_enhanced" streamingserver.log; then
     echo "✓ Server started successfully"
     SERVER_SUCCESS=1
 else
@@ -51,7 +49,7 @@ else
 fi
 
 # Check client connected/created successfully
-if grep -q "StreamingClient created successfully\|Client connected\|Connection established" streamingclient.log; then
+if grep -q "StreamingClient created successfully\|Client connected\|Connection established\|streaming_client_demo_enhanced" streamingclient.log; then
     echo "✓ Client created/connected successfully"
     CLIENT_SUCCESS=1
 else
