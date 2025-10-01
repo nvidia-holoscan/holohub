@@ -11,9 +11,11 @@ This is the enhanced video streaming server demo application that provides bidir
 
 ## Running the Application
 
+**⚠️ Important: Enhanced applications require Holoscan SDK 3.5.0. Use the base image parameter to ensure compatibility.**
+
 ```bash
-# From holohub root directory
-./holohub run --docker-opts='-e EnableHybridMode=1' video_streaming_demo_server --language cpp
+# From holohub root directory - with Holoscan 3.5.0 base image
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_server --language cpp
 ```
 
 ## Configuration
