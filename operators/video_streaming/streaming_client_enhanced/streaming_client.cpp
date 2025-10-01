@@ -804,7 +804,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     // [height, width, channels]
     if (tensor->ndim() != 3) {
       HOLOSCAN_LOG_WARN("Unexpected tensor dimensions: {}, expected 3D "
-                        "[height, width, channels], discarding entire message", 
+                        "[height, width, channels], discarding entire message",
                         tensor->ndim());
       return;  // Exit compute method entirely - message fully consumed
     }
@@ -847,7 +847,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     HOLOSCAN_LOG_INFO("  - Input BGR frame size: {} bytes", tensor->nbytes());
     HOLOSCAN_LOG_INFO("  - Tensor shape: {}", shape_str);
     HOLOSCAN_LOG_INFO("  - Converting BGR to BGRA format");
-    HOLOSCAN_LOG_INFO("  - Using client configured dimensions: {}x{}", 
+    HOLOSCAN_LOG_INFO("  - Using client configured dimensions: {}x{}",
                        expected_width, expected_height);
 
     // IMPORTANT: Use configured client dimensions, not tensor dimensions
@@ -911,7 +911,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 
     HOLOSCAN_LOG_INFO("✅ Successfully converted BGR to BGRA: {} bytes", bgra_frame_size);
     HOLOSCAN_LOG_INFO("Frame data (first 5 BGRA pixels): {}, {}, {}, {}, {}",
-                       (*bgra_buffer)[0], (*bgra_buffer)[1], (*bgra_buffer)[2], 
+                       (*bgra_buffer)[0], (*bgra_buffer)[1], (*bgra_buffer)[2],
                        (*bgra_buffer)[3], (*bgra_buffer)[4]);
 
     // CRITICAL FIX: Create VideoFrame using configured client dimensions, not tensor dimensions
@@ -935,42 +935,52 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     HOLOSCAN_LOG_INFO("  - VideoFrame height: {}", frame.getHeight());
     HOLOSCAN_LOG_INFO("  - VideoFrame data size: {}", frame.getDataSize());
     HOLOSCAN_LOG_INFO("  - VideoFrame format: {}", static_cast<int>(frame.getFormat()));
-    HOLOSCAN_LOG_INFO("  - VideoFrame data pointer: {}", static_cast<const void*>(frame.getData()));
-    HOLOSCAN_LOG_INFO("  - Original bgra_buffer pointer: {}", static_cast<const void*>(bgra_buffer->data()));
+    HOLOSCAN_LOG_INFO("  - VideoFrame data pointer: {}",
+                       static_cast<const void*>(frame.getData()));
+    HOLOSCAN_LOG_INFO("  - Original bgra_buffer pointer: {}",
+                       static_cast<const void*>(bgra_buffer->data()));
 
     // Verify the frame data is accessible and valid
     const uint8_t* frame_data = frame.getData();
     if (frame_data && frame.getDataSize() > 4) {
         HOLOSCAN_LOG_INFO("  - VideoFrame first 5 bytes: {}, {}, {}, {}, {}",
-                         frame_data[0], frame_data[1], frame_data[2], frame_data[3], frame_data[4]);
+                           frame_data[0], frame_data[1], frame_data[2],
+                           frame_data[3], frame_data[4]);
     } else {
         HOLOSCAN_LOG_ERROR("  - VideoFrame data is not accessible!");
     }
 
-    HOLOSCAN_LOG_INFO("✅ VideoFrame created with configured dimensions: {}x{}, format={}, size={} bytes",
-                     frame.getWidth(), frame.getHeight(),
-                     static_cast<int>(frame.getFormat()), frame.getDataSize());
+    HOLOSCAN_LOG_INFO("✅ VideoFrame created with configured dimensions: {}x{}, "
+                      "format={}, size={} bytes",
+                      frame.getWidth(), frame.getHeight(),
+                      static_cast<int>(frame.getFormat()), frame.getDataSize());
 
-    // 🔧 ENHANCED DEBUG: Write VideoFrame to disk before sending - standardized to every 10th frame
+    // 🔧 ENHANCED DEBUG: Write VideoFrame to disk before sending -
+    // standardized to every 10th frame
     if (debug_frame_counter % 10 == 0) {  // Save every 10th frame to match server frequency
-      HOLOSCAN_LOG_INFO("💾 DEBUG: Writing VideoFrame to disk before sending (frame {})", debug_frame_counter);
+      HOLOSCAN_LOG_INFO("💾 DEBUG: Writing VideoFrame to disk before sending (frame {})",
+                        debug_frame_counter);
 
       // 🔍 ENHANCED DEBUGGING: Validate frame data before writing to disk
       const uint8_t* frame_data_ptr = frame.getData();
       size_t frame_data_size = frame.getDataSize();
 
       HOLOSCAN_LOG_INFO("📊 PRE-WRITE DEBUG:");
-      HOLOSCAN_LOG_INFO("  - bgra_buffer.data(): {}", static_cast<const void*>(bgra_buffer->data()));
+      HOLOSCAN_LOG_INFO("  - bgra_buffer.data(): {}",
+                         static_cast<const void*>(bgra_buffer->data()));
       HOLOSCAN_LOG_INFO("  - frame.getData(): {}", static_cast<const void*>(frame_data_ptr));
-      HOLOSCAN_LOG_INFO("  - Same pointer: {}", (frame_data_ptr == bgra_buffer->data()) ? "YES" : "NO");
+      HOLOSCAN_LOG_INFO("  - Same pointer: {}",
+                         (frame_data_ptr == bgra_buffer->data()) ? "YES" : "NO");
       HOLOSCAN_LOG_INFO("  - bgra_buffer size: {}", bgra_buffer->size());
       HOLOSCAN_LOG_INFO("  - frame data size: {}", frame_data_size);
       HOLOSCAN_LOG_INFO("  - bgra_buffer first 5 bytes: {}, {}, {}, {}, {}",
-                       (*bgra_buffer)[0], (*bgra_buffer)[1], (*bgra_buffer)[2], (*bgra_buffer)[3], (*bgra_buffer)[4]);
+                         (*bgra_buffer)[0], (*bgra_buffer)[1], (*bgra_buffer)[2],
+                         (*bgra_buffer)[3], (*bgra_buffer)[4]);
 
       if (frame_data_ptr && frame_data_size > 4) {
         HOLOSCAN_LOG_INFO("  - frame data first 5 bytes: {}, {}, {}, {}, {}",
-                         frame_data_ptr[0], frame_data_ptr[1], frame_data_ptr[2], frame_data_ptr[3], frame_data_ptr[4]);
+                           frame_data_ptr[0], frame_data_ptr[1], frame_data_ptr[2],
+                           frame_data_ptr[3], frame_data_ptr[4]);
       } else {
         HOLOSCAN_LOG_ERROR("  - frame data is NULL or too small!");
       }
@@ -1061,13 +1071,15 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     // Check expected vs actual frame size
     size_t expected_size = frame.getWidth() * frame.getHeight() * 4;  // BGRA = 4 bytes per pixel
     if (frame.getDataSize() != expected_size) {
-      validation_errors += fmt::format("Size mismatch (expected {}, got {}); ", expected_size, frame.getDataSize());
+      validation_errors += fmt::format("Size mismatch (expected {}, got {}); ",
+                                        expected_size, frame.getDataSize());
       frame_validation_passed = false;
     }
 
     // Check frame format
     if (frame.getFormat() != PixelFormat::BGRA) {
-      validation_errors += fmt::format("Wrong format (expected BGRA, got {}); ", static_cast<int>(frame.getFormat()));
+      validation_errors += fmt::format("Wrong format (expected BGRA, got {}); ",
+                                        static_cast<int>(frame.getFormat()));
       frame_validation_passed = false;
     }
 
@@ -1080,7 +1092,8 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       }
 
       if (non_zero_bytes < min_non_zero_bytes_.get()) {
-        validation_errors += fmt::format("Insufficient content ({}/{} non-zero bytes); ", non_zero_bytes, min_non_zero_bytes_.get());
+        validation_errors += fmt::format("Insufficient content ({}/{} non-zero bytes); ",
+                                          non_zero_bytes, min_non_zero_bytes_.get());
         frame_validation_passed = false;
       }
 
@@ -1166,8 +1179,9 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       try {
         // Check if client is ready to send frames (both streaming and upstream ready)
         if (client_ && client_->isStreaming() && client_->isUpstreamReady()) {
-          HOLOSCAN_LOG_INFO("Attempting to send frame: {}x{}, {} bytes, streaming=active, upstream=ready",
-                           frame.getWidth(), frame.getHeight(), frame.getDataSize());
+          HOLOSCAN_LOG_INFO("Attempting to send frame: {}x{}, {} bytes, "
+                            "streaming=active, upstream=ready",
+                            frame.getWidth(), frame.getHeight(), frame.getDataSize());
 
           // Add detailed pre-send validation
           HOLOSCAN_LOG_DEBUG("Pre-send validation:");
@@ -1191,14 +1205,14 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
             HOLOSCAN_LOG_ERROR("❌ Frame send failed, attempt {}/{} - INVESTIGATING CAUSE:",
                              send_attempts, max_send_attempts);
             HOLOSCAN_LOG_ERROR("  - Frame properties: {}x{}, format={}, {} bytes",
-                              frame.getWidth(), frame.getHeight(),
-                              static_cast<int>(frame.getFormat()), frame.getDataSize());
+                                frame.getWidth(), frame.getHeight(),
+                                static_cast<int>(frame.getFormat()), frame.getDataSize());
             HOLOSCAN_LOG_ERROR("  - Frame validation: valid={}, data_ptr={}",
-                              frame.isValid() ? "YES" : "NO",
-                              frame.getData() ? "VALID" : "NULL");
+                                frame.isValid() ? "YES" : "NO",
+                                frame.getData() ? "VALID" : "NULL");
             HOLOSCAN_LOG_ERROR("  - Client state: streaming={}, upstream_ready={}",
-                              client_->isStreaming() ? "YES" : "NO",
-                              client_->isUpstreamReady() ? "YES" : "NO");
+                                client_->isStreaming() ? "YES" : "NO",
+                                client_->isUpstreamReady() ? "YES" : "NO");
 
             // Check if it's a connection issue
             if (!client_->isStreaming()) {
@@ -1208,8 +1222,10 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
               HOLOSCAN_LOG_ERROR("  - ROOT CAUSE: Upstream connection not ready");
               HOLOSCAN_LOG_ERROR("  - Client connected but upstream channel not established");
             } else {
-              HOLOSCAN_LOG_ERROR("  - POSSIBLE CAUSE: Client reports streaming and upstream ready but sendFrame fails");
-              HOLOSCAN_LOG_ERROR("  - This could be Holoscan Streaming Stack internal error or frame format issue");
+              HOLOSCAN_LOG_ERROR("  - POSSIBLE CAUSE: Client reports streaming and upstream ready "
+                                  "but sendFrame fails");
+              HOLOSCAN_LOG_ERROR("  - This could be Holoscan Streaming Stack internal error or "
+                                  "frame format issue");
             }
 
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -1333,7 +1349,7 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
 
   // 🔧 FIX: Add debugging for client frame reception
   HOLOSCAN_LOG_INFO("🎯 CLIENT: Frame received callback triggered! Frame: {}x{}, {} bytes",
-                   frame.getWidth(), frame.getHeight(), frame.getDataSize());
+                     frame.getWidth(), frame.getHeight(), frame.getDataSize());
 
   // Store the new frame
   current_frame_ = frame;
@@ -1344,11 +1360,12 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
   received_frame_counter++;
 
   HOLOSCAN_LOG_INFO("📥 CLIENT: Received frame #{} from server: {}x{}",
-                   received_frame_counter, frame.getWidth(), frame.getHeight());
+                     received_frame_counter, frame.getWidth(), frame.getHeight());
 
   // Write every 10th frame to disk to match server frequency
   if (received_frame_counter % 10 == 0) {
-    HOLOSCAN_LOG_INFO("💾 DEBUG: Writing frame received from server to disk (frame {})", received_frame_counter);
+    HOLOSCAN_LOG_INFO("💾 DEBUG: Writing frame received from server to disk (frame {})",
+                       received_frame_counter);
 
     try {
       // Generate filename with timestamp and frame number
@@ -1401,10 +1418,13 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
 
           // Add first few pixel values for inspection
           meta_file << "\nFirst 10 pixels received from server (raw bytes):\n";
-          size_t bytes_per_pixel = (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
-          for (int i = 0; i < std::min(10, static_cast<int>(width * height)) && i * bytes_per_pixel < data_size; ++i) {
+          size_t bytes_per_pixel = (format == PixelFormat::BGRA ||
+                                    format == PixelFormat::RGBA) ? 4 : 3;
+          for (int i = 0; i < std::min(10, static_cast<int>(width * height)) &&
+               i * bytes_per_pixel < data_size; ++i) {
             meta_file << "Pixel " << i << ": ";
-            for (size_t j = 0; j < bytes_per_pixel && (i * bytes_per_pixel + j) < data_size; ++j) {
+            for (size_t j = 0; j < bytes_per_pixel &&
+                 (i * bytes_per_pixel + j) < data_size; ++j) {
               meta_file << static_cast<int>(data[i * bytes_per_pixel + j]) << " ";
             }
             meta_file << "\n";
@@ -1415,7 +1435,8 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
         }
 
         // Write as PPM image file (for easy viewing)
-        if (format == PixelFormat::BGRA || format == PixelFormat::BGR || format == PixelFormat::RGBA) {
+        if (format == PixelFormat::BGRA || format == PixelFormat::BGR ||
+            format == PixelFormat::RGBA) {
           std::string ppm_filename = filename.str() + ".ppm";
           std::ofstream ppm_file(ppm_filename, std::ios::binary);
           if (ppm_file.is_open()) {
@@ -1423,13 +1444,15 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
             ppm_file << "P6\n" << width << " " << height << "\n255\n";
 
             // Convert pixel data to RGB for PPM
-            size_t bytes_per_pixel = (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
+            size_t bytes_per_pixel = (format == PixelFormat::BGRA ||
+                                      format == PixelFormat::RGBA) ? 4 : 3;
             for (uint32_t y = 0; y < height; ++y) {
               for (uint32_t x = 0; x < width; ++x) {
                 size_t pixel_offset = (y * width + x) * bytes_per_pixel;
                 if (pixel_offset + 2 < data_size) {
                   uint8_t r, g, b;
-                  if (format == PixelFormat::BGRA || format == PixelFormat::BGR) {
+                  if (format == PixelFormat::BGRA ||
+                      format == PixelFormat::BGR) {
                     // BGR(A) format - swap B and R
                     b = data[pixel_offset + 0];
                     g = data[pixel_offset + 1];
@@ -1447,7 +1470,8 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
               }
             }
             ppm_file.close();
-            HOLOSCAN_LOG_INFO("🖼️ Wrote PPM image received from server to: {} (can be opened with image viewers)", ppm_filename);
+            HOLOSCAN_LOG_INFO("🖼️ Wrote PPM image received from server to: {} "
+                              "(can be opened with image viewers)", ppm_filename);
           }
         }
       } else {
@@ -1475,7 +1499,8 @@ bool StreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tenso
 
   // Check tensor dimensions
   if (tensor->ndim() != 3) {
-    HOLOSCAN_LOG_ERROR("Tensor validation failed: expected 3D tensor, got {} dimensions", tensor->ndim());
+    HOLOSCAN_LOG_ERROR("Tensor validation failed: expected 3D tensor, got {} dimensions",
+                        tensor->ndim());
     return false;
   }
 
@@ -1491,7 +1516,8 @@ bool StreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tenso
 
   // Validate dimensions
   if (width <= 0 || height <= 0 || channels != 3) {
-    HOLOSCAN_LOG_ERROR("Tensor validation failed: invalid dimensions {}x{}x{}", height, width, channels);
+    HOLOSCAN_LOG_ERROR("Tensor validation failed: invalid dimensions {}x{}x{}",
+                        height, width, channels);
     return false;
   }
 
@@ -1512,7 +1538,7 @@ bool StreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tenso
   size_t expected_size = width * height * channels;
   if (tensor->nbytes() != expected_size) {
     HOLOSCAN_LOG_ERROR("Tensor validation failed: size mismatch, expected {} bytes, got {}",
-                       expected_size, tensor->nbytes());
+                        expected_size, tensor->nbytes());
     return false;
   }
 
@@ -1523,9 +1549,11 @@ bool StreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tenso
   if (tensor->device().device_type == kDLCUDA) {
     // For GPU tensors, copy a small sample to check
     std::vector<uint8_t> sample_data(1000);
-    size_t check_size = std::min(static_cast<size_t>(tensor->nbytes()), static_cast<size_t>(1000));
+    size_t check_size = std::min(static_cast<size_t>(tensor->nbytes()),
+                                  static_cast<size_t>(1000));
 
-    cudaError_t cuda_result = cudaMemcpy(sample_data.data(), data_ptr, check_size, cudaMemcpyDeviceToHost);
+    cudaError_t cuda_result = cudaMemcpy(sample_data.data(), data_ptr, check_size,
+                                          cudaMemcpyDeviceToHost);
     if (cuda_result == cudaSuccess) {
       for (size_t i = 0; i < check_size; ++i) {
         if (sample_data[i] != 0) {
@@ -1534,12 +1562,14 @@ bool StreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tenso
         }
       }
     } else {
-      HOLOSCAN_LOG_ERROR("Tensor validation failed: CUDA memcpy error: {}", cudaGetErrorString(cuda_result));
+      HOLOSCAN_LOG_ERROR("Tensor validation failed: CUDA memcpy error: {}",
+                          cudaGetErrorString(cuda_result));
       return false;
     }
   } else {
     // For CPU tensors, check directly
-    size_t check_size = std::min(static_cast<size_t>(tensor->nbytes()), static_cast<size_t>(1000));
+    size_t check_size = std::min(static_cast<size_t>(tensor->nbytes()),
+                                  static_cast<size_t>(1000));
     for (size_t i = 0; i < check_size; ++i) {
       if (data_ptr[i] != 0) {
         has_valid_data = true;
@@ -1549,13 +1579,14 @@ bool StreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tenso
   }
 
   if (!has_valid_data) {
-    HOLOSCAN_LOG_WARN("Tensor validation warning: first 1000 bytes are all zeros (may indicate empty frame)");
+    HOLOSCAN_LOG_WARN("Tensor validation warning: first 1000 bytes are all zeros "
+                      "(may indicate empty frame)");
     // Don't fail validation, but warn - empty frames during startup are common
   }
 
   HOLOSCAN_LOG_DEBUG("✅ Tensor validation passed: {}x{}x{}, {} bytes, device={}",
-                     height, width, channels, tensor->nbytes(),
-                     tensor->device().device_type == kDLCUDA ? "GPU" : "CPU");
+                      height, width, channels, tensor->nbytes(),
+                      tensor->device().device_type == kDLCUDA ? "GPU" : "CPU");
 
   return true;
 }
