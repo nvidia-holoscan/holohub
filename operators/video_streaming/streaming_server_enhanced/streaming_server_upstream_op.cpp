@@ -104,7 +104,8 @@ void StreamingServerUpstreamOp::initialize() {
 
   try {
       // Set up event callback on the shared resource
-    streaming_server_resource->set_event_callback([this](const StreamingServerResource::Event& event) {
+    streaming_server_resource->set_event_callback(
+        [this](const StreamingServerResource::Event& event) {
       on_streaming_server_event(event);
     });
 
@@ -164,12 +165,13 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
 
       // 🔍 DUPLICATE DETECTION: Check if this frame was already processed
     if (is_duplicate_frame(received_frame)) {
-      HOLOSCAN_LOG_WARN("⚠️  Skipping duplicate frame with timestamp {}", received_frame.getTimestamp());
+      HOLOSCAN_LOG_WARN("⚠️  Skipping duplicate frame with timestamp {}", 
+                         received_frame.getTimestamp());
       return;    // Skip processing this duplicate frame
     }
 
-    //write a utility class that writes the frame to a file to test is the frame data is valid and test the received frame data
-    //add loggign to check if we received the frame
+    // write a utility class that writes the frame to a file to test is the frame data is valid and test the received frame data
+    // add loggign to check if we received the frame
     HOLOSCAN_LOG_INFO("✅ Processing UNIQUE frame: {}x{}, {} bytes, timestamp={}",
                       received_frame.getWidth(),
                       received_frame.getHeight(),
@@ -195,8 +197,10 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
     debug_frame_counter++;
 
     if (unique_count % 10 == 0) {
-      HOLOSCAN_LOG_INFO("💾 DEBUG: Writing UNIQUE received Frame to disk (unique frame {})", unique_count);
-      debug_utils::writeFrameToDisk(received_frame, "debug_upstream_received", static_cast<int>(unique_count));
+      HOLOSCAN_LOG_INFO("💾 DEBUG: Writing UNIQUE received Frame to disk (unique frame {})", 
+                         unique_count);
+      debug_utils::writeFrameToDisk(received_frame, "debug_upstream_received", 
+                                     static_cast<int>(unique_count));
     }
 #endif // HOLOSCAN_DEBUG_FRAME_WRITING
 
@@ -209,7 +213,7 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
       auto dtype = output_tensor.dtype();
       auto device = output_tensor.device();
       HOLOSCAN_LOG_INFO("💾 DEBUG: Converted tensor info (unique frame {}): shape={}, dtype=({},{},{}), device=({},{})",
-                       unique_count, fmt::join(shape, "x"),
+                         unique_count, fmt::join(shape, "x"),
                        dtype.code, dtype.bits, dtype.lanes,
                        static_cast<int>(device.device_type), device.device_id);
     }
@@ -225,12 +229,13 @@ void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& o
         // Log performance every 30 frames
       if (frames_received_ % 30 == 0) {
         auto now = std::chrono::steady_clock::now();
-        auto start_time = std::chrono::steady_clock::time_point(std::chrono::steady_clock::duration(start_time_ticks_.load()));
+        auto start_time = std::chrono::steady_clock::time_point(
+            std::chrono::steady_clock::duration(start_time_ticks_.load()));
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time);
         if (elapsed.count() > 0) {
           float fps = static_cast<float>(frames_received_) / elapsed.count();
           HOLOSCAN_LOG_INFO("📊 Upstream Performance: Received {} frames ({:.2f} FPS)",
-                           frames_received_.load(), fps);
+                             frames_received_.load(), fps);
         }
     }
   }
@@ -247,27 +252,34 @@ void StreamingServerUpstreamOp::on_streaming_server_event(const StreamingServerR
   try {
     switch (event.type) {
       case StreamingServerResource::EventType::ClientConnecting:
-        HOLOSCAN_LOG_INFO("🔄 [UPSTREAM {}] Client connecting: {}", timestamp, event.message);
+        HOLOSCAN_LOG_INFO("🔄 [UPSTREAM {}] Client connecting: {}", 
+                           timestamp, event.message);
         break;
       case StreamingServerResource::EventType::ClientConnected:
-        HOLOSCAN_LOG_INFO("✅ [UPSTREAM {}] Client connected: {}", timestamp, event.message);
+        HOLOSCAN_LOG_INFO("✅ [UPSTREAM {}] Client connected: {}", 
+                           timestamp, event.message);
         break;
       case StreamingServerResource::EventType::ClientDisconnected:
-        HOLOSCAN_LOG_WARN("❌ [UPSTREAM {}] Client disconnected: {}", timestamp, event.message);
+        HOLOSCAN_LOG_WARN("❌ [UPSTREAM {}] Client disconnected: {}", 
+                           timestamp, event.message);
         break;
       case StreamingServerResource::EventType::UpstreamConnected:
-        HOLOSCAN_LOG_INFO("⬆️ [UPSTREAM {}] Upstream connection established: {}", timestamp, event.message);
+        HOLOSCAN_LOG_INFO("⬆️ [UPSTREAM {}] Upstream connection established: {}", 
+                           timestamp, event.message);
         upstream_connected_ = true;
         break;
       case StreamingServerResource::EventType::UpstreamDisconnected:
-        HOLOSCAN_LOG_WARN("⬆️❌ [UPSTREAM {}] Upstream connection lost: {}", timestamp, event.message);
+        HOLOSCAN_LOG_WARN("⬆️❌ [UPSTREAM {}] Upstream connection lost: {}", 
+                           timestamp, event.message);
         upstream_connected_ = false;
         break;
       case StreamingServerResource::EventType::FrameReceived:
-        HOLOSCAN_LOG_DEBUG("📥 [UPSTREAM {}] Frame received: {}", timestamp, event.message);
+        HOLOSCAN_LOG_DEBUG("📥 [UPSTREAM {}] Frame received: {}", 
+                            timestamp, event.message);
         break;
       default:
-        HOLOSCAN_LOG_DEBUG("🔔 [UPSTREAM {}] Event [{}]: {}", timestamp, static_cast<int>(event.type), event.message);
+        HOLOSCAN_LOG_DEBUG("🔔 [UPSTREAM {}] Event [{}]: {}", 
+                            timestamp, static_cast<int>(event.type), event.message);
         break;
     }
   } catch (const std::exception& e) {
