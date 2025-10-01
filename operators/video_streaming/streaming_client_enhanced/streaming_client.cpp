@@ -258,7 +258,7 @@ bool writeTensorToDisk(const std::shared_ptr<holoscan::Tensor>& tensor,
                       << "]\n";
             meta_file << "Data Type: code=" << static_cast<int>(tensor->dtype().code)
                      << ", bits=" << tensor->dtype().bits << "\n";
-            meta_file << "Device: " << (tensor->device().device_type == kDLCUDA ? 
+            meta_file << "Device: " << (tensor->device().device_type == kDLCUDA ?
                                        "GPU" : "CPU") << "\n";
             meta_file << "Size: " << tensor->nbytes() << " bytes\n";
             meta_file.close();
@@ -270,7 +270,7 @@ bool writeTensorToDisk(const std::shared_ptr<holoscan::Tensor>& tensor,
 
         if (tensor->device().device_type == kDLCUDA) {
             host_data.resize(tensor->nbytes());
-            CUDA_TRY(cudaMemcpy(host_data.data(), tensor->data(), tensor->nbytes(), 
+            CUDA_TRY(cudaMemcpy(host_data.data(), tensor->data(), tensor->nbytes(),
                                 cudaMemcpyDeviceToHost));
             data_ptr = host_data.data();
         } else {
@@ -329,16 +329,17 @@ void StreamingClientOp::setup(holoscan::OperatorSpec& spec) {
   spec.param(width_, "width", "Frame Width", "Width of the video frames in pixels", 854u);
   spec.param(height_, "height", "Frame Height", "Height of the video frames in pixels", 480u);
   spec.param(fps_, "fps", "Frames Per Second", "Frame rate of the video", 30u);
-  spec.param(server_ip_, "server_ip", "Server IP", 
+  spec.param(server_ip_, "server_ip", "Server IP",
              "IP address of the streaming server", std::string("127.0.0.1"));
   spec.param(signaling_port_, "signaling_port", "Signaling Port",
-             "Port used for signaling", uint16_t{48010});  // Match Holoscan Streaming Stack hardcoded port
+             "Port used for signaling", uint16_t{48010});  // Match Holoscan Streaming Stack
   spec.param(receive_frames_, "receive_frames", "Receive Frames",
              "Whether to receive frames from server", true);
   spec.param(send_frames_, "send_frames", "Send Frames",
              "Whether to send frames to server", true);
   spec.param(min_non_zero_bytes_, "min_non_zero_bytes", "Minimum Non-Zero Bytes",
-             "Minimum number of non-zero bytes required to consider a frame valid (prevents sending empty frames)",
+             "Minimum number of non-zero bytes required to consider a frame valid "
+             "(prevents sending empty frames)",
              100u);
 
   // Print the parameters for debugging with correct values
