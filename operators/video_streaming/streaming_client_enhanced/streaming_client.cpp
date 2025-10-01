@@ -180,7 +180,8 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
                 ppm_file << "P6\n" << width << " " << height << "\n255\n";
 
                 // Convert pixel data to RGB for PPM
-                size_t bytes_per_pixel = (format == PixelFormat::BGRA || format == PixelFormat::RGBA) ? 4 : 3;
+                size_t bytes_per_pixel = (format == PixelFormat::BGRA || 
+                                         format == PixelFormat::RGBA) ? 4 : 3;
                 for (uint32_t y = 0; y < height; ++y) {
                     for (uint32_t x = 0; x < width; ++x) {
                         size_t pixel_offset = (y * width + x) * bytes_per_pixel;
@@ -204,7 +205,8 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
                     }
                 }
                 ppm_file.close();
-                HOLOSCAN_LOG_INFO("Wrote PPM image to: {} (can be viewed with image viewers)", ppm_filename);
+                HOLOSCAN_LOG_INFO("Wrote PPM image to: {} (can be viewed with image viewers)", 
+                                  ppm_filename);
             }
         }
         return true;
@@ -215,7 +217,8 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
 }
 
 // Utility function to write tensor data to disk for debugging
-bool writeTensorToDisk(const std::shared_ptr<holoscan::Tensor>& tensor, const std::string& filename_prefix, int frame_number = -1) {
+bool writeTensorToDisk(const std::shared_ptr<holoscan::Tensor>& tensor, 
+                       const std::string& filename_prefix, int frame_number = -1) {
     try {
         if (!tensor || !tensor->data()) {
             HOLOSCAN_LOG_ERROR("writeTensorToDisk: Invalid tensor");
