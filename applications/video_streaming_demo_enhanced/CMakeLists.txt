@@ -16,8 +16,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(video_streaming_demo_enhanced LANGUAGES NONE)
 
-add_holohub_application(video_streaming_demo_client DEPENDS OPERATORS streaming_client_enhanced)
-add_holohub_application(video_streaming_demo_server DEPENDS OPERATORS streaming_server_enhanced)
+add_holohub_application(video_streaming_demo_client DEPENDS OPERATORS video_streaming)
+add_holohub_application(video_streaming_demo_server DEPENDS OPERATORS video_streaming)
 
 # Build client and server subdirectories
 add_subdirectory(video_streaming_demo_client)
