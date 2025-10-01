@@ -12,13 +12,13 @@ rm -f streamingserver.log streamingclient.log
 
 # Launch server
 echo "Starting streaming server..."
-./holohub test --docker-opts='-e EnableHybridMode=1' video_streaming_demo_server 2>&1 > streamingserver.log &
+./holohub test --docker-opts='-e EnableHybridMode=1' video_streaming_demo_enhanced --ctest-options='-R streaming_server_demo_enhanced_cpp_test' 2>&1 > streamingserver.log &
 
 sleep 10
 
 # Launch client (using replayer mode for video file replay)
 echo "Starting streaming client..."
-./holohub test --docker-opts='-e EnableHybridMode=1' video_streaming_demo_client --run-args='-c streaming_client_demo_replayer.yaml' 2>&1 > streamingclient.log &
+./holohub test --docker-opts='-e EnableHybridMode=1' video_streaming_demo_enhanced --ctest-options='-R streaming_client_demo_enhanced_cpp_test' 2>&1 > streamingclient.log &
 
 sleep 30
 
