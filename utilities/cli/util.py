@@ -367,26 +367,29 @@ def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: st
     """
     Determine the CUDA container tag based on CUDA version and GPU type.
 
-    Starting from Holoscan SDK v3.6.1, there are three container tags:
-    - cuda13: CUDA 13 (x86_64, Jetson Thor)
-    - cuda12-dgpu: CUDA 12 dGPU (x86_64, IGX Orin dGPU, Clara AGX dGPU, GH200)
-    - cuda12-igpu: CUDA 12 iGPU (Jetson Orin, IGX Orin iGPU, Clara AGX iGPU)
-
-    For SDK versions < 3.6.1, returns the old format (dgpu/igpu).
+    SDK version support:
+    - SDK < 3.6.1: Old format (dgpu/igpu)
+    - SDK == 3.6.1: only cuda13-dgpu available
+    - SDK >= 3.7.0: Full CUDA support
+      - cuda13: CUDA 13 (x86_64, Jetson Thor)
+      - cuda12-dgpu: CUDA 12 dGPU (x86_64, IGX Orin dGPU, Clara AGX dGPU, GH200)
+      - cuda12-igpu: CUDA 12 iGPU (Jetson Orin, IGX Orin iGPU, Clara AGX iGPU)
 
     Args:
         cuda_version: CUDA major version (e.g., 12, 13). If None, uses platform default.
-        sdk_version: SDK version string (e.g., "3.6.0", "3.7.0").
+        sdk_version: SDK version string (e.g., "3.6.0", "3.6.1", "3.7.0").
 
     Returns:
         The appropriate container tag string
     """
     try:
-        is_37_format = parse_semantic_version(sdk_version) >= (3, 6, 1)
+        sdk_ver = parse_semantic_version(sdk_version)
     except (ValueError, IndexError):
-        is_37_format = True
-    if not is_37_format:
+        sdk_ver = (3, 7, 0)
+    if sdk_ver < (3, 6, 1):
         return get_host_gpu()
+    if sdk_ver == (3, 6, 1):
+        return "cuda13-dgpu"
     if cuda_version is None:
         cuda_version = get_default_cuda_version()
     cuda_str = str(cuda_version)
