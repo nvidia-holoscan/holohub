@@ -282,7 +282,7 @@ In order to build the server operator, you must first download the server binari
 ```bash
 # Download using NGC CLI
 
-cd <your_holohub_path>/operators/streaming_server_enhanced
+cd <your_holohub_path>/operators/video_streaming/streaming_server_enhanced
 ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
 unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
 
