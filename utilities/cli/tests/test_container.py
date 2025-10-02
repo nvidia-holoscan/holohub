@@ -137,7 +137,7 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertEqual(get_cuda_tag("12", "3.6.0"), "dgpu")
         self.assertEqual(get_cuda_tag("13", "3.6.0"), "dgpu")
 
-        # Test SDK 3.7.0 (new format) - returns cuda{version}-{gpu_type}
+        # Test SDK >= 3.6.1 (new format) - returns cuda{version}-{gpu_type}
         self.assertEqual(get_cuda_tag("12", "3.7.0"), "cuda12-dgpu")
         self.assertEqual(get_cuda_tag("13", "3.7.0"), "cuda13")
         self.assertEqual(get_cuda_tag("11", "3.7.0"), "cuda11-dgpu")
