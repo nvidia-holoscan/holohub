@@ -104,7 +104,7 @@ void StreamingServerUpstreamOp::initialize() {
 
   try {
       // Set up event callback on the shared resource
-    streaming_server_resource->set_event_callback(
+    streaming_server_resource_.get()->set_event_callback(
         [this](const StreamingServerResource::Event& event) {
       on_streaming_server_event(event);
     });
@@ -237,6 +237,7 @@ void StreamingServerUpstreamOp::compute(holoscan::InputContext& op_input, holosc
           HOLOSCAN_LOG_INFO("📊 Upstream Performance: Received {} frames ({:.2f} FPS)",
                              frames_received_.load(), fps);
         }
+      }
     }
   }
 }
