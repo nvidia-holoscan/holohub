@@ -38,7 +38,7 @@ docker system prune -f --filter "label=holohub" 2>/dev/null || true
 echo "Running integration test with Docker (using committed fixes)..."
 # Set SDK version via environment variable to match base image version
 export HOLOHUB_BASE_SDK_VERSION=3.5.0
-./holohub test video_streaming_demo_enhanced --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming.*test -V" --verbose 2>&1 | tee applications/video_streaming_demo_enhanced/integration_test.log
+./holohub test video_streaming_demo_enhanced --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test -V" --verbose 2>&1 | tee applications/video_streaming_demo_enhanced/integration_test.log
 INTEGRATION_EXIT_CODE=$?
 
 # Check results
