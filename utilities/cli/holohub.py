@@ -779,6 +779,7 @@ class HoloHubCLI:
             img=args.img,
             no_cache=args.no_cache,
             build_args=args.build_args,
+            cuda_version=getattr(args, "cuda", None),
         )
 
     def handle_run_container(self, args: argparse.Namespace) -> None:
@@ -796,6 +797,7 @@ class HoloHubCLI:
                 img=args.img,
                 no_cache=args.no_cache,
                 build_args=args.build_args,
+                cuda_version=getattr(args, "cuda", None),
             )
 
         trailing_args = getattr(args, "_trailing_args", [])
@@ -844,6 +846,7 @@ class HoloHubCLI:
                 img=args.img,
                 no_cache=args.no_cache,
                 build_args=args.build_args,
+                cuda_version=getattr(args, "cuda", None),
             )
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
@@ -1044,6 +1047,7 @@ class HoloHubCLI:
                     img=args.img,
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
+                    cuda_version=getattr(args, "cuda", None),
                 )
 
             # Build command with all necessary arguments
@@ -1275,6 +1279,7 @@ class HoloHubCLI:
                     img=args.img,
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
+                    cuda_version=getattr(args, "cuda", None),
                 )
             language = holohub_cli_util.normalize_language(
                 container.project_metadata.get("metadata", {}).get("language", None)
@@ -1761,6 +1766,7 @@ class HoloHubCLI:
                     img=args.img,
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
+                    cuda_version=getattr(args, "cuda", None),
                 )
 
             # Install command with all necessary arguments
@@ -1869,6 +1875,7 @@ class HoloHubCLI:
                 img=dev_container_tag,
                 no_cache=args.no_cache,
                 build_args=args.build_args,
+                cuda_version=getattr(args, "cuda", None),
             )
         else:
             print(f"Skipping build, using existing Dev Container {dev_container_tag}...")
