@@ -6,7 +6,10 @@ This unified application demonstrates how to use the Holoscan SDK to create both
 
 The video streaming demo provides:
 - **Streaming Client**: Captures video from V4L2 cameras or video files and streams to a server
-- **Streaming Server**: Receives video streams from clients and can echo them back (passthrough mode)
+- **Streaming Server**: Comprehensive server architecture with three main components:
+  - **StreamingServerResource**: Manages server connections and client lifecycle
+  - **StreamingServerUpstreamOp**: Receives video streams from clients
+  - **StreamingServerDownstreamOp**: Sends video frames back to clients (passthrough/echo mode)
 - **Bidirectional Communication**: Both sending and receiving video frames
 - **Multiple Source Support**: V4L2 cameras, video replay files
 
