@@ -13,11 +13,11 @@ video_streaming/
 ├── streaming_client_enhanced/    # Complete streaming client operator
 │   ├── streaming_client.cpp     # Main client implementation
 │   ├── frame_saver.cpp          # Frame saving utility
-│   └── holoscan_client_cloud_streaming/  # Client streaming binary
+│   └── holoscan_client_cloud_streaming/  # Client streaming binary once NGC download is complete
 ├── streaming_server_enhanced/    # Complete streaming server operator
 │   ├── streaming_server_*.cpp   # Server implementations
 │   ├── frame_debug_utils.cpp    # Debug utilities
-│   └── holoscan_server_cloud_streaming/  # Server streaming binary
+│   └── holoscan_server_cloud_streaming/  # Server streaming binary once NGC download is complete 
 ├── CMakeLists.txt               # Unified build configuration
 ├── metadata.json                # Combined metadata
 └── README.md                    # This file
@@ -56,16 +56,6 @@ The server component provides comprehensive streaming server functionality:
 
 ## Usage
 
-### Building
-
-The video_streaming operator is built as a unified package:
-
-```bash
-# From holohub root
-cmake --build build --target video_streaming
-```
-
-This builds both client and server components simultaneously.
 
 ### In Applications
 
@@ -106,7 +96,7 @@ ngc registry resource download-version nvidia/holoscan_server_cloud_streaming:0.
 
 ## Testing
 
-Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of both client and server components working together.
+Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides end-to-end validation of both client and server components working together.
 
 ## Related Applications
 
