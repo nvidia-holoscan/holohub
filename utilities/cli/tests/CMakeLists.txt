@@ -100,6 +100,20 @@ set_property(TEST test_holohub_build_container_build_args PROPERTY
     PASS_REGULAR_EXPRESSION "--build-arg TEST=value"
 )
 
+# default docker build args via environment variable
+add_test(
+    NAME test_holohub_default_docker_build_args_env
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build-container --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_default_docker_build_args_env PROPERTY
+    ENVIRONMENT "HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS=--build-arg DEFAULT_FLAG=abc"
+)
+set_property(TEST test_holohub_default_docker_build_args_env PROPERTY
+    PASS_REGULAR_EXPRESSION "docker build"
+    PASS_REGULAR_EXPRESSION "DEFAULT_FLAG=abc"
+)
+
 add_test(
     NAME test_holohub_run_container_docker_opts
     COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --docker-opts "--memory 4g --entrypoint=bash"
@@ -118,6 +132,20 @@ add_test(
 set_property(TEST test_holohub_run_container_add_volume PROPERTY
     PASS_REGULAR_EXPRESSION "docker run"
     PASS_REGULAR_EXPRESSION "-v /tmp:/tmp"
+)
+
+# default docker run args via environment variable
+add_test(
+    NAME test_holohub_default_docker_run_args_env
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_default_docker_run_args_env PROPERTY
+    ENVIRONMENT "HOLOHUB_DEFAULT_DOCKER_RUN_ARGS=-e TEST_ENV=123"
+)
+set_property(TEST test_holohub_default_docker_run_args_env PROPERTY
+    PASS_REGULAR_EXPRESSION "docker run"
+    PASS_REGULAR_EXPRESSION "TEST_ENV=123"
 )
 
 add_test(
