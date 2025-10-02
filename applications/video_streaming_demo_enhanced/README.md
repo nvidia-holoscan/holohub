@@ -409,40 +409,176 @@ video_streaming_demo_enhanced/
 
 ## Integration Testing
 
-An integration test is provided that automatically tests both server and client components together:
+The video streaming demo includes comprehensive integration testing to verify end-to-end functionality between client and server components.
 
-### Running the Integration Test
+### Integration Test Overview
+
+The integration test validates:
+- **Server Startup**: Streaming server initializes and starts listening
+- **Client Connection**: Streaming client connects to server successfully  
+- **Video Streaming**: Bidirectional video frame transmission
+- **Resource Management**: Proper cleanup and resource handling
+- **Error Handling**: Graceful handling of connection issues
+
+### Running Integration Tests
+
+#### Method 1: Simple Integration Test (Recommended)
 
 ```bash
-# Run the integration test script directly
-./applications/video_streaming_demo_enhanced/integration_test.sh
-
-# Or run via CMake/CTest (after building)
-cd build
-ctest -R video_streaming_integration_test -V
+# Run the simplified integration test
+./applications/video_streaming_demo_enhanced/simple_integration_test.sh
 ```
 
-### Integration Test Design
+**Expected Duration**: 2-3 minutes  
+**Requirements**: Docker, NVIDIA GPU, Holoscan SDK 3.5.0+
 
-The integration test follows this pattern:
+#### Method 2: Manual Integration Test
 
-1. **Launch Server**: Starts the streaming server in background mode with hybrid mode enabled
-2. **Wait**: Allows 10 seconds for server initialization
-3. **Launch Client**: Starts the streaming client with replayer configuration in background mode
-4. **Stream**: Allows 30 seconds for video streaming to occur
-5. **Cleanup**: Terminates both processes gracefully
-6. **Verify**: Checks log files for success indicators:
-   - Server: "StreamingServerResource started successfully" or similar
-   - Client: "StreamingClient created successfully" or similar
-7. **Report**: Outputs detailed logs and final PASS/FAIL result
+For manual testing and debugging:
 
-### Log Files
+```bash
+# Terminal 1: Start Server
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced server --language cpp
 
-The integration test generates:
-- `streamingserver.log`: Server application logs
-- `streamingclient.log`: Client application logs
+# Terminal 2: Start Client (after server is running)
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced client_replayer --language cpp
+```
 
-These files are automatically displayed during test execution for debugging purposes.
+### Integration Test Process
+
+The automated integration test follows this sequence:
+
+1. **Build Phase** (30-60 seconds)
+   - Builds Docker image with all dependencies
+   - Compiles server and client applications
+   - Copies configuration files to build directory
+
+2. **Server Startup** (15 seconds)
+   - Launches streaming server in background
+   - Waits for server initialization
+   - Verifies server is listening on port 48010
+
+3. **Client Connection** (30 seconds)  
+   - Starts streaming client with replayer configuration
+   - Establishes connection to server
+   - Begins video frame transmission
+
+4. **Streaming Verification** (30 seconds)
+   - Monitors frame transmission logs
+   - Verifies bidirectional communication
+   - Checks for performance metrics
+
+5. **Cleanup & Analysis**
+   - Gracefully terminates both processes
+   - Analyzes log files for success indicators
+   - Reports final PASS/FAIL status
+
+### Success Criteria
+
+The integration test **PASSES** when all conditions are met:
+
+#### Server Success Indicators
+- ✅ `StreamingServerResource started successfully`
+- ✅ `Server listening on port 48010` 
+- ✅ `Client connection established`
+- ✅ `Frame received from client`
+
+#### Client Success Indicators  
+- ✅ `StreamingClient created successfully`
+- ✅ `Connection established successfully`
+- ✅ `Frame sent successfully`
+- ✅ `Tensor validation passed`
+
+#### Performance Metrics
+- ✅ Frame rate > 15 FPS (for 30 second test)
+- ✅ No memory leaks detected
+- ✅ Graceful shutdown without errors
+
+### Expected Log Output
+
+#### Successful Server Logs
+```
+[info] StreamingServerResource starting...
+[info] Server listening on 127.0.0.1:48010
+[info] Client connection established from 127.0.0.1
+[info] Frame received: 854x480x3, 1229760 bytes
+[info] 📊 Server Performance: Processed 450 frames (15.0 FPS)
+```
+
+#### Successful Client Logs  
+```
+[info] Source set to: replayer
+[info] Using video replayer as source
+[info] Connection established successfully
+[info] Tensor validation passed: 480x854x3, 1229760 bytes
+[info] Frame sent successfully
+[info] 📊 Client Performance: Sent 450 frames (15.0 FPS)
+```
+
+### Troubleshooting Integration Tests
+
+#### Common Issues and Solutions
+
+**Build Failures:**
+```bash
+# Clean build and retry
+rm -rf build/
+./holohub build video_streaming_demo_enhanced --language cpp
+```
+
+**Server Connection Issues:**
+```bash
+# Check if port is in use
+netstat -tlnp | grep 48010
+sudo lsof -ti:48010 | xargs sudo kill -9
+```
+
+**Client Connection Timeout:**
+- Verify server started successfully (check server logs)
+- Ensure firewall allows port 48010
+- Check Docker network connectivity
+
+**Frame Transmission Issues:**
+- Verify video data files exist: `/workspace/holohub/data/endoscopy/`
+- Check format converter settings in config files
+- Monitor GPU memory usage
+
+#### Debug Mode
+
+For detailed debugging, run components separately:
+
+```bash
+# Server with verbose logging
+HOLOSCAN_LOG_LEVEL=DEBUG ./holohub run video_streaming_demo_enhanced server --language cpp
+
+# Client with verbose logging  
+HOLOSCAN_LOG_LEVEL=DEBUG ./holohub run video_streaming_demo_enhanced client_replayer --language cpp
+```
+
+### Integration Test Files
+
+The integration test generates these log files:
+
+- **`server_test.log`**: Complete server application logs
+- **`client_test.log`**: Complete client application logs  
+- **`integration_test.log`**: Overall test execution log
+
+These files contain detailed information for debugging failed tests.
+
+### Continuous Integration
+
+The integration test is designed for CI/CD pipelines:
+
+```bash
+# CI-friendly command with timeout and exit codes
+timeout 300 ./applications/video_streaming_demo_enhanced/simple_integration_test.sh
+echo "Integration test exit code: $?"
+```
+
+**Exit Codes:**
+- `0`: All tests passed successfully
+- `1`: Test failures detected
+- `124`: Test timeout (5 minutes)
 
 ## Operator Documentation
 
