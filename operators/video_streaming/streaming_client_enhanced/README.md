@@ -19,6 +19,74 @@ Streaming Protocol Implementation:
 - Frame source system for sending frames
 - Connection management with server including timeout handling
 
+## Architecture Overview
+
+The StreamingClient operator integrates with the Holoscan Client Cloud Streaming library to provide seamless video streaming capabilities:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           Holoscan Application                                  │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐    ┌─────────────────────────────────────────────────────┐ │
+│  │   Input Source  │    │              StreamingClientOp                      │ │
+│  │                 │    │                                                     │ │
+│  │  • V4L2 Camera  │───▶│  ┌─────────────────┐    ┌─────────────────────────┐ │ │
+│  │  • Video File   │    │  │  Frame Convert  │    │    VideoFrame Object   │ │ │
+│  │  • Tensor Data  │    │  │  BGR → BGRA     │───▶│    • Width/Height      │ │ │
+│  │                 │    │  │  Validation     │    │    • Pixel Data        │ │ │
+│  └─────────────────┘    │  └─────────────────┘    │    • Format (BGRA)     │ │ │
+│                         │                         │    • Timestamp         │ │ │
+│  ┌─────────────────┐    │                         └─────────────────────────┘ │ │
+│  │  Output Sink    │◀───┤                                      │              │ │
+│  │                 │    │                                      ▼              │ │
+│  │  • HoloViz      │    │  ┌─────────────────────────────────────────────────┐ │ │
+│  │  • File Writer  │    │  │         Holoscan Client Cloud Streaming        │ │ │
+│  │  • Next Op      │    │  │                                                 │ │ │
+│  └─────────────────┘    │  │  ┌─────────────────┐    ┌─────────────────────┐ │ │ │
+│                         │  │  │ StreamingClient │    │   Network Protocol  │ │ │ │
+│                         │  │  │                 │    │                     │ │ │ │
+│                         │  │  │ • sendFrame()   │───▶│  • WebRTC/NVST     │ │ │ │
+│                         │  │  │ • Callbacks     │    │  • Signaling       │ │ │ │
+│                         │  │  │ • Connection    │    │  • Media Transport  │ │ │ │
+│                         │  │  │   Management    │    │  • Encryption       │ │ │ │
+│                         │  │  └─────────────────┘    └─────────────────────┘ │ │ │
+│                         │  │                                      │          │ │ │
+│                         │  └──────────────────────────────────────┼──────────┘ │ │
+│                         │                                         │            │ │
+│                         └─────────────────────────────────────────┼────────────┘ │
+└───────────────────────────────────────────────────────────────────┼──────────────┘
+                                                                    │
+                          ┌─────────────────────────────────────────┼──────────────┐
+                          │                    Network                             │
+                          │                                                        │
+                          │  ┌─────────────────────────────────────────────────┐   │
+                          │  │              Streaming Server                   │   │
+                          │  │                                                 │   │
+                          │  │  • Holoscan Server Cloud Streaming             │   │
+                          │  │  • Multi-client support                        │   │
+                          │  │  • Bidirectional communication                 │   │
+                          │  │  • Frame processing and relay                  │   │
+                          │  └─────────────────────────────────────────────────┘   │
+                          └────────────────────────────────────────────────────────┘
+```
+
+### Component Interactions
+
+1. **Input Processing**: The operator receives video frames from upstream Holoscan operators (V4L2, video replayer, etc.)
+
+2. **Frame Conversion**: Input tensors are converted to VideoFrame objects with proper format validation and memory management
+
+3. **Cloud Streaming Integration**: The VideoFrame is passed to the Holoscan Client Cloud Streaming library via `StreamingClient::sendFrame()`
+
+4. **Network Transport**: The cloud streaming library handles:
+   - WebRTC/NVST protocol implementation
+   - Signaling and connection establishment
+   - Media encoding and transport
+   - Security and encryption
+
+5. **Bidirectional Communication**: Frames received from the server are processed through callbacks and converted back to Holoscan tensors
+
+6. **Output Generation**: Processed frames are emitted as GXF entities for downstream operators (HoloViz, file writers, etc.)
 
 ## Dependencies
 

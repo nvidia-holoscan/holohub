@@ -103,21 +103,6 @@ Testing is handled at the application level through the unified `video_streaming
 - **[Streaming Client Demo Enhanced](../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/)**: Example client application
 - **[Streaming Server Demo Enhanced](../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/)**: Example server application
 
-## Migration Notes
-
-### From Separate Operators
-
-If migrating from the previous separate operators:
-
-1. **CMakeLists.txt**: Update dependency from `streaming_client_enhanced` and `streaming_server_enhanced` to `video_streaming`
-2. **Include paths**: No changes needed - original paths are preserved
-
-### Benefits of Unification
-
-- **Simplified Dependencies**: Single operator dependency instead of two
-- **Coordinated Releases**: Client and server components stay in sync  
-- **Unified Documentation**: Comprehensive overview of the streaming ecosystem
-- **Easier Maintenance**: Single build target and configuration
 
 ## Performance Notes
 
