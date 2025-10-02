@@ -60,6 +60,24 @@ RUN cd /tmp && \
 ENV LD_LIBRARY_PATH="/usr/local/ssl/lib64:${LD_LIBRARY_PATH}"
 ENV PKG_CONFIG_PATH="/usr/local/ssl/lib64/pkgconfig:${PKG_CONFIG_PATH}"
 
+# Install NGC CLI following official instructions
+WORKDIR /tmp/ngc-install
+RUN wget --no-check-certificate --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.151.0/files/ngccli_linux.zip -O ngccli_linux.zip && \
+    unzip ngccli_linux.zip && \
+    # Verify SHA256
+    echo "834aeebcdfee2f6db61744dbae5f976c4e3a7a4a9aa99d23dd1ed2928a2abd60 ngccli_linux.zip" | sha256sum --check && \
+    # Make NGC CLI executable and add to path
+    chmod u+x ngc-cli/ngc && \
+    # Install to system path
+    mkdir -p /usr/local/ngc && \
+    mv ngc-cli /usr/local/ngc/ && \
+    ln -s /usr/local/ngc/ngc-cli/ngc /usr/local/bin/ngc && \
+    # Cleanup
+    rm ngccli_linux.zip
+
+# Add NGC to PATH
+ENV PATH="/usr/local/ngc/ngc-cli:${PATH}"
+
 # Setup holohub run environment
 ENV PYTHONPATH=/opt/nvidia/holoscan/python/lib:${PYTHONPATH}
 
