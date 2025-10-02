@@ -23,7 +23,7 @@ import stat
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from .util import (
     build_holohub_path_mapping,
@@ -32,6 +32,8 @@ from .util import (
     fatal,
     find_hsdk_build_rel_dir,
     get_compute_capacity,
+    get_cuda_tag,
+    get_default_cuda_version,
     get_group_id,
     get_holohub_root,
     get_host_gpu,
@@ -73,26 +75,26 @@ class HoloHubContainer:
     # Image naming format templates
     BASE_IMAGE_NAME = os.environ.get("HOLOHUB_BASE_IMAGE", "nvcr.io/nvidia/clara-holoscan/holoscan")
     BASE_IMAGE_FORMAT = os.environ.get(
-        "HOLOHUB_BASE_IMAGE_FORMAT", "{base_image}:v{sdk_version}-{gpu_type}"
+        "HOLOHUB_BASE_IMAGE_FORMAT", "{base_image}:v{sdk_version}-{cuda_tag}"
     )
     DEFAULT_IMAGE_FORMAT = os.environ.get(
-        "HOLOHUB_DEFAULT_IMAGE_FORMAT", "{container_prefix}:ngc-v{sdk_version}-{gpu_type}"
+        "HOLOHUB_DEFAULT_IMAGE_FORMAT", "{container_prefix}:ngc-v{sdk_version}-{cuda_tag}"
     )
 
     @classmethod
-    def default_base_image(cls) -> str:
+    def default_base_image(cls, cuda_version: Optional[Union[str, int]] = None) -> str:
         return cls.BASE_IMAGE_FORMAT.format(
             base_image=cls.BASE_IMAGE_NAME,
             sdk_version=cls.BASE_SDK_VERSION,
-            gpu_type=get_host_gpu(),
+            cuda_tag=get_cuda_tag(cuda_version, cls.BASE_SDK_VERSION),
         )
 
     @classmethod
-    def default_image(cls) -> str:
+    def default_image(cls, cuda_version: Optional[Union[str, int]] = None) -> str:
         return cls.DEFAULT_IMAGE_FORMAT.format(
             container_prefix=cls.CONTAINER_PREFIX,
             sdk_version=cls.BASE_SDK_VERSION,
-            gpu_type=get_host_gpu(),
+            cuda_tag=get_cuda_tag(cuda_version, cls.BASE_SDK_VERSION),
         )
 
     @classmethod
@@ -112,6 +114,11 @@ class HoloHubContainer:
             "--no-cache",
             action="store_true",
             help="(Build container) Do not use cache when building the image",
+        )
+        parser.add_argument(
+            "--cuda",
+            type=str,
+            help="(Build container) CUDA version (e.g., 12, 13). Default: 12",
         )
         parser.add_argument(
             "--build-args",
@@ -303,7 +310,7 @@ class HoloHubContainer:
     def image_name(self) -> str:
         if self.dockerfile_path != HoloHubContainer.default_dockerfile():
             return f"{self.CONTAINER_PREFIX}:{self.project_metadata.get('project_name', '')}"
-        return HoloHubContainer.default_image()
+        return HoloHubContainer.default_image(self.cuda_version)
 
     @property
     def dockerfile_path(self) -> Path:
@@ -358,6 +365,7 @@ class HoloHubContainer:
             language = self.project_metadata.get("metadata", {}).get("language", "")
         self.language = list_normalized_languages(language)[0]
 
+        self.cuda_version = None  # None means use default from get_cuda_tag
         self.dryrun = False
         self.verbose = False
 
@@ -368,15 +376,23 @@ class HoloHubContainer:
         img: Optional[str] = None,
         no_cache: bool = False,
         build_args: Optional[str] = None,
+        cuda_version: Optional[Union[str, int]] = None,
     ) -> None:
         """Build the container image"""
 
+        if cuda_version is not None:
+            self.cuda_version = cuda_version
+
         # Get Dockerfile path
         docker_file_path = docker_file or self.dockerfile_path
-        base_img = base_img or self.default_base_image()
+        base_img = base_img or self.default_base_image(self.cuda_version)
         img = img or self.image_name
         gpu_type = get_host_gpu()
         compute_capacity = get_compute_capacity()
+
+        cuda_major = (
+            self.cuda_version if self.cuda_version is not None else get_default_cuda_version()
+        )
 
         # Check if buildx exists
         if not self.dryrun:
@@ -404,6 +420,8 @@ class HoloHubContainer:
             f"BASE_SDK_VERSION={self.BASE_SDK_VERSION}",
             "--build-arg",
             f"COMPUTE_CAPACITY={compute_capacity}",
+            "--build-arg",
+            f"CUDA_MAJOR={cuda_major}",
             "--network=host",
         ]
 
