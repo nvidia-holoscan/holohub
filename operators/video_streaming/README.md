@@ -1,10 +1,10 @@
 # Video Streaming Operators
 
-A unified package containing both streaming client and server operators for real-time video communication in Holoscan applications.
+A unified package containing both streaming client and server operators for real-time video communication in Holoscan streaming applications.
 
 ## Overview
 
-This operator package combines `streaming_client_enhanced` and `streaming_server_enhanced` into a single, cohesive video streaming solution while maintaining the original directory structure for backward compatibility.
+This operator package combines `streaming_client_enhanced` and `streaming_server_enhanced` into a single, cohesive video streaming solution.
 
 ## Structure
 
