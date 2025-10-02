@@ -17,26 +17,32 @@
 extensions:
  - lib/gxf_extensions/libgxf_videomaster.so
 
-replayer:
-  basename: "surgical_video"
-  frame_rate: 0   # as specified in timestamps
-  repeat: true    # default: false
-  realtime: true  # default: true
-  count: 0        # default: 0 (no frame count restriction)
-
-output_format_converter:
-  in_dtype: "rgb888"
-  alpha_value: 255
-  out_dtype: "rgba8888"
-  out_channel_order: [2,1,0,3]
-  resize_width: 1920
-  resize_height: 1080
-
-videomaster:
+deltacast:
   width: 1920
   height: 1080
   progressive: true
   framerate: 30
   board: 0
-  output: 0
+  input: 0
   rdma: false
+
+format_converter:
+  in_dtype: "rgb888"
+  alpha_value: 255
+  out_dtype: "rgba8888"
+  out_channel_order: [2,1,0,3]
+
+drop_alpha_channel_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+  resize_height: 270
+  resize_width: 480
+
+holoviz:
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0
+  width: 480
+  height: 270

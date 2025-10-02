@@ -1,4 +1,3 @@
-%YAML 1.2
 # SPDX-FileCopyrightText: Copyright (c) 2022-2025 DELTACAST.TV. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -13,30 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-extensions:
- - lib/gxf_extensions/libgxf_videomaster.so
 
-replayer:
-  basename: "surgical_video"
-  frame_rate: 0   # as specified in timestamps
-  repeat: true    # default: false
-  realtime: true  # default: true
-  count: 0        # default: 0 (no frame count restriction)
+cmake_minimum_required(VERSION 3.20)
+project(deltacast_receiver_apps LANGUAGES NONE)
 
-output_format_converter:
-  in_dtype: "rgb888"
-  alpha_value: 255
-  out_dtype: "rgba8888"
-  out_channel_order: [2,1,0,3]
-  resize_width: 1920
-  resize_height: 1080
-
-videomaster:
-  width: 1920
-  height: 1080
-  progressive: true
-  framerate: 30
-  board: 0
-  output: 0
-  rdma: false
+add_subdirectory(cpp)
