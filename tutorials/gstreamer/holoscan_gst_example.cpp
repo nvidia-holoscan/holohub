@@ -16,6 +16,9 @@ using namespace holoscan::gst;
 /**
  * @brief Simple Holoscan operator that uses the SinkResource
  */
+// Forward declaration for the pad-added callback
+static void on_pad_added_callback(GstElement *element, GstPad *pad, gpointer data);
+
 class GstSinkOperator : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(GstSinkOperator)
@@ -55,8 +58,8 @@ class GstSinkOperator : public Operator {
     
     HOLOSCAN_LOG_INFO("Creating pipeline: {}", pipeline_str);
 
-    // Create the main pipeline
-    pipeline_ = gst_pipeline_new("holoscan-pipeline");
+    // Create the main pipeline with automatic cleanup
+    pipeline_ = make_gst_object_guard(gst_pipeline_new("holoscan-pipeline"));
     if (!pipeline_) {
       throw std::runtime_error("Failed to create GStreamer pipeline");
     }
@@ -65,28 +68,49 @@ class GstSinkOperator : public Operator {
     GError* error = nullptr;
     GstElement* source_bin = gst_parse_bin_from_description(pipeline_str.c_str(), TRUE, &error);
     if (error) {
-      HOLOSCAN_LOG_ERROR("Failed to parse pipeline: {}", error->message);
-      g_error_free(error);
-      gst_object_unref(pipeline_);
-      pipeline_ = nullptr;
+      auto error_guard = make_gst_error_guard(error);
+      HOLOSCAN_LOG_ERROR("Failed to parse pipeline: {}", error_guard->message);
       throw std::runtime_error("Failed to parse GStreamer pipeline description");
     }
 
     // Get the sink element from our resource
     GstElement* sink_element = gst_sink_resource_.get()->get_element();
     // Add elements to pipeline
-    gst_bin_add_many(GST_BIN(pipeline_), source_bin, sink_element, nullptr);
+    gst_bin_add_many(GST_BIN(pipeline_.get()), source_bin, sink_element, nullptr);
 
     // Try to link the source bin to our sink (may fail for dynamic elements, that's OK)
     if (!gst_element_link(source_bin, sink_element)) {
       HOLOSCAN_LOG_INFO("Static linking failed, setting up dynamic pad handling");
-      // Set up dynamic pad handling for elements like decodebin, uridecodebin
-      if (!gst_sink_resource_.get()->setup_dynamic_pad_handling(pipeline_)) {
-        HOLOSCAN_LOG_ERROR("Failed to set up dynamic pad handling");
-        gst_object_unref(pipeline_);
-        pipeline_ = nullptr;
-        throw std::runtime_error("Failed to set up dynamic pad handling");
+      
+      // Find the uridecodebin element inside the source_bin and connect to its pad-added signal
+      GstIterator *it = gst_bin_iterate_elements(GST_BIN(source_bin));
+      GValue item = G_VALUE_INIT;
+      gboolean found_uridecodebin = FALSE;
+      
+      while (gst_iterator_next(it, &item) == GST_ITERATOR_OK) {
+        GstElement *child_element = GST_ELEMENT(g_value_get_object(&item));
+        const gchar *element_name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(gst_element_get_factory(child_element)));
+        
+        HOLOSCAN_LOG_INFO("Found element in source_bin: {}", element_name);
+        
+        if (g_strcmp0(element_name, "uridecodebin") == 0) {
+          HOLOSCAN_LOG_INFO("Found uridecodebin, connecting to pad-added signal");
+          g_signal_connect(child_element, "pad-added", G_CALLBACK(on_pad_added_callback), sink_element);
+          found_uridecodebin = TRUE;
+          break;
+        }
+        
+        g_value_reset(&item);
       }
+      g_value_unset(&item);
+      gst_iterator_free(it);
+      
+      if (!found_uridecodebin) {
+        HOLOSCAN_LOG_ERROR("uridecodebin not found in source_bin, connecting to source_bin instead");
+        g_signal_connect(source_bin, "pad-added", G_CALLBACK(on_pad_added_callback), sink_element);
+      }
+      
+      HOLOSCAN_LOG_INFO("Dynamic pad handling configured");
     } else {
       HOLOSCAN_LOG_INFO("Static linking successful");
     }
@@ -98,7 +122,7 @@ class GstSinkOperator : public Operator {
     Operator::start();
 
     // Start the GStreamer pipeline
-    GstStateChangeReturn ret = gst_element_set_state(pipeline_, GST_STATE_PLAYING);
+    GstStateChangeReturn ret = gst_element_set_state(pipeline_.get(), GST_STATE_PLAYING);
     if (ret == GST_STATE_CHANGE_FAILURE) {
       HOLOSCAN_LOG_ERROR("Failed to start GStreamer pipeline");
       throw std::runtime_error("Failed to start GStreamer pipeline");
@@ -263,22 +287,22 @@ class GstSinkOperator : public Operator {
     }
 
     // Check for EOS or errors
-    GstBus* bus = gst_element_get_bus(pipeline_);
-    GstMessage* msg = gst_bus_pop_filtered(bus, static_cast<GstMessageType>(
-        GST_MESSAGE_ERROR | GST_MESSAGE_EOS));
+    auto bus = make_gst_object_guard(gst_element_get_bus(pipeline_.get()));
+    auto msg = make_gst_message_guard(gst_bus_pop_filtered(bus.get(), static_cast<GstMessageType>(
+        GST_MESSAGE_ERROR | GST_MESSAGE_EOS)));
 
     if (msg) {
-      switch (GST_MESSAGE_TYPE(msg)) {
+      switch (GST_MESSAGE_TYPE(msg.get())) {
         case GST_MESSAGE_ERROR: {
           GError* error;
           gchar* debug_info;
-          gst_message_parse_error(msg, &error, &debug_info);
-          HOLOSCAN_LOG_ERROR("GStreamer error: {}", error->message);
+          gst_message_parse_error(msg.get(), &error, &debug_info);
+          auto error_guard = make_gst_error_guard(error);
+          HOLOSCAN_LOG_ERROR("GStreamer error: {}", error_guard->message);
           if (debug_info) {
             HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
+            g_free(debug_info);
           }
-          g_error_free(error);
-          g_free(debug_info);
           break;
         }
         case GST_MESSAGE_EOS:
@@ -287,20 +311,19 @@ class GstSinkOperator : public Operator {
         default:
           break;
       }
-      gst_message_unref(msg);
+      // Message is automatically cleaned up by the guard
     }
 
-    gst_object_unref(bus);
+    // Bus is automatically cleaned up by the guard
   }
 
   void stop() override {
     // Log final buffer count processed by this client
     HOLOSCAN_LOG_INFO("GstSinkOperator processed {} buffers total", buffer_count_);
 
-    if (pipeline_ && GST_IS_ELEMENT(pipeline_)) {
-      gst_element_set_state(pipeline_, GST_STATE_NULL);
-      gst_object_unref(pipeline_);
-      pipeline_ = nullptr;
+    if (pipeline_ && GST_IS_ELEMENT(pipeline_.get())) {
+      gst_element_set_state(pipeline_.get(), GST_STATE_NULL);
+      pipeline_.reset();  // Automatic cleanup via guard
     }
     Operator::stop();
   }
@@ -309,7 +332,7 @@ class GstSinkOperator : public Operator {
  private:
   Parameter<SinkResourcePtr> gst_sink_resource_;
   Parameter<std::string> pipeline_desc_;
-  GstElement* pipeline_ = nullptr;
+  GstElementGuard pipeline_;
   uint32_t buffer_count_ = 0;  // Client-side buffer counting
   std::shared_ptr<UnboundedAllocator> allocator_;
 };
@@ -381,6 +404,60 @@ void print_usage(const char* program_name) {
     std::cout << "  - audio/x-raw (for raw audio)\n";
     std::cout << "  - ANY (default, for maximum flexibility)\n";
     std::cout << "Example: make_resource<SinkResource>(\"my_sink\", Arg(\"capabilities\", \"video/x-raw,format=RGBA\"))\n";
+}
+
+// Simple pad-added callback for dynamic elements like uridecodebin
+static void on_pad_added_callback(GstElement *element, GstPad *pad, gpointer data) {
+  GstElement *sink_element = (GstElement *)data;
+  
+  // Get pad capabilities to check if it's video
+  holoscan::gst::Caps caps(gst_pad_get_current_caps(pad));
+  if (!caps.is_empty()) {
+    const gchar *media_type = caps.get_media_type();
+    
+    // Get more detailed caps information
+    gchar *caps_string = gst_caps_to_string(caps.get());
+    HOLOSCAN_LOG_INFO("Dynamic pad added: {} - creating format conversion and linking to sink", media_type);
+    HOLOSCAN_LOG_INFO("Detailed caps: {}", caps_string);
+    g_free(caps_string);
+    
+    if (g_str_has_prefix(media_type, "video/")) {
+      // Create videoconvert element for video pads with RGBA conversion
+      GstElement *convert = gst_element_factory_make("videoconvert", nullptr);
+      GstElement *capsfilter = gst_element_factory_make("capsfilter", nullptr);
+      
+      if (convert && capsfilter) {
+        // Set caps filter to force RGBA format
+        holoscan::gst::Caps rgba_caps("video/x-raw,format=RGBA");
+        g_object_set(capsfilter, "caps", rgba_caps.get(), nullptr);
+        
+        // Get the pipeline (parent of the element) with automatic cleanup
+        auto pipeline_guard = make_gst_object_guard(GST_ELEMENT(gst_element_get_parent(element)));
+        gst_bin_add_many(GST_BIN(pipeline_guard.get()), convert, capsfilter, nullptr);
+        gst_element_sync_state_with_parent(convert);
+        gst_element_sync_state_with_parent(capsfilter);
+        
+        // Link: pad -> convert -> capsfilter -> sink
+        if (gst_element_link_pads(element, gst_pad_get_name(pad), convert, "sink")) {
+          if (gst_element_link(convert, capsfilter)) {
+            if (gst_element_link(capsfilter, sink_element)) {
+              HOLOSCAN_LOG_INFO("Successfully linked dynamic element to videoconvert->capsfilter (RGBA)");
+            } else {
+              HOLOSCAN_LOG_ERROR("Failed to link capsfilter to sink");
+            }
+          } else {
+            HOLOSCAN_LOG_ERROR("Failed to link videoconvert to capsfilter");
+          }
+        } else {
+          HOLOSCAN_LOG_ERROR("Failed to link dynamic element to videoconvert");
+        }
+      } else {
+        HOLOSCAN_LOG_ERROR("Failed to create videoconvert or capsfilter elements");
+      }
+    } else {
+      HOLOSCAN_LOG_INFO("Ignoring non-video pad: {} (audio or other stream)", media_type);
+    }
+  }
 }
 
 int main(int argc, char** argv) {

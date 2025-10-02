@@ -420,6 +420,13 @@ Caps::Caps() : caps_(gst_caps_new_empty()) {}
 
 Caps::Caps(::GstCaps* caps) : caps_(caps ? gst_caps_ref(caps) : gst_caps_new_empty()) {}
 
+Caps::Caps(const std::string& caps_string) {
+  caps_ = gst_caps_from_string(caps_string.c_str());
+  if (!caps_) {
+    throw std::runtime_error("Invalid caps string: '" + caps_string + "'");
+  }
+}
+
 Caps::~Caps() {
   gst_caps_unref(caps_);
 }
