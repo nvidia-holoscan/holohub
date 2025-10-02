@@ -76,12 +76,12 @@ void StreamingServerUpstreamOp::initialize() {
   Operator::initialize();
 
     // Get the streaming server resource
-  if (!streaming_server_resource) {
+  if (!streaming_server_resource_.get()) {
     throw std::runtime_error("StreamingServerResource is null");
   }
 
     // Validate parameters and use resource defaults if not specified
-  auto resource_config = streaming_server_resource->get_config();
+  auto resource_config = streaming_server_resource_.get()->get_config();
 
   if (!width_.has_value() || width_.get() == 0) {
     HOLOSCAN_LOG_INFO("Using resource width: {}", resource_config.width);
@@ -119,6 +119,7 @@ void StreamingServerUpstreamOp::initialize() {
   }
 }
 
+void StreamingServerUpstreamOp::start() {
   auto streaming_server_resource = streaming_server_resource_.get();
   if (!streaming_server_resource) {
     HOLOSCAN_LOG_ERROR("Cannot start upstream operator: StreamingServerResource not available");
@@ -146,8 +147,8 @@ void StreamingServerUpstreamOp::stop() {
     // with other operators. The resource manages its own lifecycle.
 }
 
-void StreamingServerUpstreamOp::compute(InputContext& op_input, OutputContext& op_output,
-                                       ExecutionContext& context) {
+void StreamingServerUpstreamOp::compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
+                                       holoscan::ExecutionContext& context) {
   if (is_shutting_down_.load()) {
     return;
   }

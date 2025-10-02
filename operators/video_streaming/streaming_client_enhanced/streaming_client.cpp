@@ -553,6 +553,7 @@ void StreamingClientOp::start() {
         } else {
           HOLOSCAN_LOG_WARN("⚠️ No frame received yet (may be normal for server startup)");
         }
+      }
     }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("❌ Failed to start streaming client: {}", e.what());
