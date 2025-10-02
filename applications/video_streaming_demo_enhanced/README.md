@@ -90,16 +90,6 @@ The unified application provides both client and server as separate components:
 - **V4L2 Mode**: Uses `streaming_client_demo.yaml` (default), captures from webcam, 640x480 resolution
 - **Replayer Mode**: Uses `streaming_client_demo_replayer.yaml` (custom), plays video file, 854x480 resolution
 
-### Backward Compatibility
-
-The original separate applications are still available for backward compatibility:
-
-```bash
-# Original applications (still work) - with Holoscan 3.5.0 base image
-./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu streaming_server_demo_enhanced --language cpp
-./holohub run --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu streaming_client_demo_enhanced --language cpp
-```
-
 ## Command Line Options
 
 ### Server Options
@@ -240,57 +230,6 @@ v4l2-ctl --device=/dev/video0 --list-formats-ext
 
 **Important:** Ensure both client and server use matching resolution settings for optimal performance.
 
-## Workflow Examples
-
-### Example 1: Local Camera to Server Echo (Unified Application)
-
-1. **Build Application:**
-   ```bash
-   ./holohub build video_streaming_demo_enhanced --language cpp
-   ```
-
-2. **Start Server (Terminal 1):**
-   ```bash
-   ./holohub run --docker-opts='-e EnableHybridMode=1' video_streaming_demo_enhanced --language cpp
-   ```
-
-3. **Start Client with Camera (Terminal 2):**
-   ```bash
-   cd build/video_streaming_demo_enhanced/applications/video_streaming_demo_enhanced/cpp
-   docker run --net host --runtime nvidia --gpus all -v /dev:/dev -e device=/dev/video0 -v $(pwd):/workspace/app -w /workspace/app holohub:video_streaming_demo_enhanced ./streaming_client_demo_enhanced
-   ```
-
-4. **Expected Behavior:**
-   - Client captures video from `/dev/video0`
-   - Client sends frames to server
-   - Server receives frames and echoes them back
-   - Client displays received frames (if `visualize_frames: true`)
-
-### Example 2: Video File Replay (Unified Application)
-
-1. **Build Application:**
-   ```bash
-   ./holohub build video_streaming_demo_enhanced --language cpp
-   ```
-
-2. **Start Server (Terminal 1):**
-   ```bash
-   ./holohub run --docker-opts='-e EnableHybridMode=1' video_streaming_demo_enhanced --language cpp
-   ```
-
-3. **Start Client with Video File (Terminal 2):**
-   ```bash
-   cd build/video_streaming_demo_enhanced/applications/video_streaming_demo_enhanced/cpp
-   docker run --net host --runtime nvidia --gpus all -v $(pwd):/workspace/app -v /home/cdinea/Downloads/enhancedapp_holohub/holohub/data:/workspace/holohub/data -w /workspace/app holohub:video_streaming_demo_enhanced ./streaming_client_demo_enhanced -c streaming_client_demo_replayer.yaml
-   ```
-
-4. **Expected Behavior:**
-   - Client replays video from `/workspace/holohub/data/endoscopy/surgical_video.gxf`
-   - Client sends frames to server (854x480 resolution)
-   - Server receives frames and echoes them back
-   - Client displays received frames (if `visualize_frames: true`)
-
-
 ## Video Source Modes
 
 ### V4L2 Camera Mode vs Video Replayer Mode
@@ -383,37 +322,6 @@ The server should display connection status and frame processing information. Lo
 [info] Tensor validation passed: 480x854x3, 1229760 bytes
 [info] Frame sent successfully
 ```
-
-## Directory Structure
-
-```
-video_streaming_demo_enhanced/
-├── client/                          # Client application components
-│   ├── cpp/                        # C++ client implementation
-│   │   ├── streaming_client_demo_enhanced    # Built client executable
-│   │   ├── streaming_client_demo.cpp         # Client source code
-│   │   ├── streaming_client_demo.yaml        # Client V4L2 config
-│   │   ├── streaming_client_demo_replayer.yaml # Client replayer config
-│   │   └── CMakeLists.txt                     # Client build configuration
-│   └── setup_streaming_client.sh   # Client setup script
-├── server/                          # Server application components
-│   ├── cpp/                        # C++ server implementation
-│   │   ├── streaming_server_demo_enhanced    # Built server executable
-│   │   ├── streaming_server_demo.cpp         # Server source code
-│   │   ├── streaming_server_demo.yaml        # Server config
-│   │   └── CMakeLists.txt                     # Server build configuration
-│   └── setup_streaming_server.sh   # Server setup script
-├── CMakeLists.txt                   # Main build configuration with add_holohub_application
-├── metadata.json                    # Application metadata
-├── Dockerfile                       # Container configuration
-└── README.md                        # This file
-```
-
-**Key Features:**
-- **Unified build**: Single `./holohub build` command builds both client and server
-- **Clean structure**: Maintains separate client and server directories
-- **HoloHub integration**: Uses `add_holohub_application` for proper CLI integration
-- **Backward compatibility**: Works with existing separate application commands
 
 ## Integration Testing
 
@@ -707,18 +615,6 @@ sudo lsof -ti:48010 | xargs sudo kill -9
 - Verify video data files exist: `/workspace/holohub/data/endoscopy/`
 - Check format converter settings in config files
 - Monitor GPU memory usage
-
-#### Debug Mode
-
-For detailed debugging, run components separately:
-
-```bash
-# Server with verbose logging
-HOLOSCAN_LOG_LEVEL=DEBUG ./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced --language cpp
-
-# Client with verbose logging  
-HOLOSCAN_LOG_LEVEL=DEBUG ./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced --language cpp --run-args='-c streaming_client_demo_replayer.yaml'
-```
 
 ### Integration Test Files
 
