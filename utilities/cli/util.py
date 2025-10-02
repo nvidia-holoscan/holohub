@@ -363,7 +363,7 @@ def get_default_cuda_version() -> str:
     return "12"
 
 
-def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: str = "3.6.0") -> str:
+def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: str = "3.6.1") -> str:
     """
     Determine the CUDA container tag based on CUDA version and GPU type.
 
