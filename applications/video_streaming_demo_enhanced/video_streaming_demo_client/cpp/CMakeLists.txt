@@ -9,6 +9,14 @@ project(streaming_client_demo_enhanced CXX)
 find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# Find the streaming client operator directory
+set(OPERATOR_CLIENT_DIR "${CMAKE_SOURCE_DIR}/operators/video_streaming/streaming_client_enhanced/holoscan_client_cloud_streaming/lib/x86_64")
+
+# Check if NGC binaries exist
+if(NOT EXISTS "${OPERATOR_CLIENT_DIR}/libStreamingClient.so")
+    message(WARNING "StreamingClient NGC binaries not found at ${OPERATOR_CLIENT_DIR}. Please download them using NGC CLI.")
+endif()
+
 add_executable(streaming_client_demo_enhanced
   streaming_client_demo.cpp
 )
@@ -26,13 +34,49 @@ target_link_libraries(streaming_client_demo_enhanced
   CUDA::cuda_driver
 )
 
-# Copy the config to the binary directory
-add_custom_target(streaming_client_demo_enhanced_deps
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "streaming_client_demo_replayer.yaml"
-  BYPRODUCTS "streaming_client_demo_replayer.yaml"
+# Copy wrapper script and make executable
+add_custom_command(TARGET streaming_client_demo_enhanced POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_enhanced_wrapper.sh.in"
+        "$<TARGET_FILE_DIR:streaming_client_demo_enhanced>/streaming_client_demo_enhanced_wrapper.sh"
+    COMMAND chmod +x "$<TARGET_FILE_DIR:streaming_client_demo_enhanced>/streaming_client_demo_enhanced_wrapper.sh"
+    COMMENT "Installing wrapper script with LD_LIBRARY_PATH"
 )
-add_dependencies(streaming_client_demo_enhanced streaming_client_demo_enhanced_deps)
+
+# Copy config files to multiple locations where they might be needed
+add_custom_command(TARGET streaming_client_demo_enhanced POST_BUILD
+    # Copy to the binary directory
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml"
+        "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo.yaml"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml"
+        "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_replayer.yaml"
+    # Copy to the build root directory (where the application runs)
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml"
+        "${CMAKE_BINARY_DIR}/streaming_client_demo.yaml"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml"
+        "${CMAKE_BINARY_DIR}/streaming_client_demo_replayer.yaml"
+    # Copy to the target file directory
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml"
+        "$<TARGET_FILE_DIR:streaming_client_demo_enhanced>/streaming_client_demo.yaml"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml"
+        "$<TARGET_FILE_DIR:streaming_client_demo_enhanced>/streaming_client_demo_replayer.yaml"
+    COMMENT "Copying config files to all necessary locations"
+)
+
+# Set RPATH to prioritize bundled libraries over system libraries
+set_target_properties(streaming_client_demo_enhanced PROPERTIES
+    BUILD_RPATH "$<TARGET_FILE_DIR:streaming_client_demo_enhanced>/lib:$<TARGET_FILE_DIR:streaming_client_demo_enhanced>:${OPERATOR_CLIENT_DIR}"
+    INSTALL_RPATH "$ORIGIN/lib:$ORIGIN"
+    BUILD_WITH_INSTALL_RPATH FALSE
+    INSTALL_RPATH_USE_LINK_PATH FALSE
+    SKIP_BUILD_RPATH FALSE
+)
 
 # Add testing
 if(BUILD_TESTING)
@@ -52,6 +96,12 @@ install(
 )
 
 install(
-  FILES streaming_client_demo_replayer.yaml
+  FILES streaming_client_demo.yaml streaming_client_demo_replayer.yaml
   DESTINATION bin/video_streaming_demo_enhanced/cpp
+)
+
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_enhanced_wrapper.sh"
+  DESTINATION bin/video_streaming_demo_enhanced/cpp
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
