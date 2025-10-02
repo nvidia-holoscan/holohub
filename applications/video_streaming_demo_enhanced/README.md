@@ -64,7 +64,12 @@ The unified application provides both client and server as separate components:
 
 ```bash
 # From holohub root directory - with Holoscan 3.5.0 base image
-./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_server --language cpp
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced server --language cpp
+```
+
+**Note**: The `server` mode is the default, so you can also just use:
+```bash
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced --language cpp
 ```
 
 ### 2. Start the Streaming Client (in another terminal)
@@ -72,13 +77,13 @@ The unified application provides both client and server as separate components:
 **Option A: V4L2 Camera (Webcam)**
 ```bash
 # From holohub root directory - captures live video from webcam
-./holohub run --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_client --language cpp
+./holohub run --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced client_v4l2 --language cpp
 ```
 
 **Option B: Video File Replay**
 ```bash
 # From holohub root directory - replays pre-recorded video file
-./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_client --language cpp --run-args='-c streaming_client_demo_replayer.yaml'
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced client_replayer --language cpp
 ```
 
 **Key Differences:**
