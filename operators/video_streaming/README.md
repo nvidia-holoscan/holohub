@@ -33,7 +33,6 @@ The client component provides bidirectional video streaming capabilities:
 - **FrameSaverOp**: Utility operator for saving frames to disk
 - **Features**: 
   - Send and receive video frames
-  - Multiple video formats (BGR, BGRA, RGBA)
   - V4L2 camera support
   - Frame validation and debugging
 
