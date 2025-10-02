@@ -706,10 +706,10 @@ For detailed debugging, run components separately:
 
 ```bash
 # Server with verbose logging
-HOLOSCAN_LOG_LEVEL=DEBUG ./holohub run video_streaming_demo_enhanced server --language cpp
+HOLOSCAN_LOG_LEVEL=DEBUG ./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced --language cpp
 
 # Client with verbose logging  
-HOLOSCAN_LOG_LEVEL=DEBUG ./holohub run video_streaming_demo_enhanced client_replayer --language cpp
+HOLOSCAN_LOG_LEVEL=DEBUG ./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced --language cpp --run-args='-c streaming_client_demo_replayer.yaml'
 ```
 
 ### Integration Test Files
