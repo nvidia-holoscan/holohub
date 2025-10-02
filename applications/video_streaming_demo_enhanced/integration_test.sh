@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+ #!/usr/bin/env bash
 
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
@@ -36,7 +36,7 @@ docker system prune -f --filter "label=holohub" 2>/dev/null || true
 
 # Build and test using Docker with fresh cache (this will use your committed C++ fixes)
 echo "Running integration test with Docker (using committed fixes)..."
-./holohub test video_streaming_demo_enhanced --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming.*test" --no-cache 2>&1 > applications/video_streaming_demo_enhanced/integration_test.log
+./holohub test video_streaming_demo_enhanced --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming.*test" 2>&1 > applications/video_streaming_demo_enhanced/integration_test.log
 INTEGRATION_EXIT_CODE=$?
 
 # Check results
