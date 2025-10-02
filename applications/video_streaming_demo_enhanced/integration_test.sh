@@ -21,9 +21,9 @@ fi
 
 # Build the Docker image first
 echo "Building Docker image for integration test..."
-./holohub build video_streaming_demo_enhanced --no-docker-build || {
+./holohub build video_streaming_demo_enhanced --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu --no-docker-build || {
     echo "Building Docker image..."
-    ./holohub build video_streaming_demo_enhanced
+    ./holohub build video_streaming_demo_enhanced --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
 }
 
 # Create a custom integration test that runs both server and client in the same container
@@ -34,8 +34,8 @@ echo "Cleaning up build directory manually..."
 rm -rf build-video_streaming_demo_enhanced
 
 # Use holohub test with the correct application name and test pattern
-# Look for any existing tests in the video_streaming_demo_enhanced application
-./holohub test video_streaming_demo_enhanced --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming.*test" 2>&1 > applications/video_streaming_demo_enhanced/integration_test.log
+# Force Holoscan 3.5.0 to match our code requirements
+./holohub test video_streaming_demo_enhanced --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R streaming.*test" 2>&1 > applications/video_streaming_demo_enhanced/integration_test.log
 INTEGRATION_EXIT_CODE=$?
 
 # Check results
