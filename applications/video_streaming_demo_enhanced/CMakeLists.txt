@@ -21,6 +21,25 @@ if(NOT APP_video_streaming_demo_enhanced)
   return()
 endif()
 
+# Default to download datasets
+option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
+
+# Download the endoscopy sample data (required for replayer mode)
+if(HOLOHUB_DOWNLOAD_DATASETS)
+  include(holoscan_download_data)
+  holoscan_download_data(endoscopy
+    URL nvidia/clara-holoscan/holoscan_endoscopy_sample_data:20230222
+    DOWNLOAD_NAME holoscan_endoscopy_sample_data_20230222.zip
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    GENERATE_GXF_ENTITIES
+    GXF_ENTITIES_HEIGHT 480
+    GXF_ENTITIES_WIDTH 854
+    GXF_ENTITIES_CHANNELS 3
+    GXF_ENTITIES_FRAMERATE 30
+    ALL
+  )
+endif()
+
 # Enable required operators manually
 set(OP_video_streaming ON CACHE BOOL "Build the video_streaming operator" FORCE)
 set(OP_streaming_client_enhanced ON CACHE BOOL "Build the streaming_client_enhanced operator" FORCE)
