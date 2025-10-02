@@ -714,13 +714,17 @@ HOLOSCAN_LOG_LEVEL=DEBUG ./holohub run --docker-opts='-e EnableHybridMode=1' --b
 
 ### Integration Test Files
 
-The integration test generates these log files:
+The integration test generates one comprehensive log file:
 
-- **`server_test.log`**: Complete server application logs
-- **`client_test.log`**: Complete client application logs  
-- **`integration_test.log`**: Overall test execution log
+- **`integration_test.log`**: Complete test execution log containing:
+  - Docker build output with all dependencies
+  - CMake configuration and build logs
+  - CTest execution with detailed timestamps
+  - Server application logs (initialization, frame processing, shutdown)
+  - Client application logs (connection, streaming, frame reception)
+  - Test summary with final PASS/FAIL status
 
-These files contain detailed information for debugging failed tests.
+This file contains all information needed for debugging failed tests (~25,000-30,000 lines for a complete run).
 
 ### Continuous Integration
 
@@ -728,7 +732,7 @@ The integration test is designed for CI/CD pipelines:
 
 ```bash
 # CI-friendly command with timeout and exit codes
-timeout 300 ./applications/video_streaming_demo_enhanced/simple_integration_test.sh
+timeout 300 ./applications/video_streaming_demo_enhanced/integration_test.sh
 echo "Integration test exit code: $?"
 ```
 
