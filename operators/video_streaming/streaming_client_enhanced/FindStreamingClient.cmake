@@ -81,19 +81,19 @@ foreach(lib_name ${StreamingClient_LIBRARY_NAMES})
         PATHS ${StreamingClient_LIB_DIR}
         NO_DEFAULT_PATH
     )
-    
+
     if(StreamingClient_${lib_name}_LIBRARY)
         # Add to found libraries list
         list(APPEND StreamingClient_FOUND_LIBRARIES ${StreamingClient_${lib_name}_LIBRARY})
         list(APPEND StreamingClient_LIBRARIES ${StreamingClient_${lib_name}_LIBRARY})
-        
+
         # Create imported target for this library
         add_library(StreamingClient::${lib_name} SHARED IMPORTED)
         set_target_properties(StreamingClient::${lib_name} PROPERTIES
             IMPORTED_LOCATION "${StreamingClient_${lib_name}_LIBRARY}"
             INTERFACE_INCLUDE_DIRECTORIES "${StreamingClient_INCLUDE_DIR}"
         )
-        
+
         message(STATUS "Found StreamingClient library: ${lib_name} at ${StreamingClient_${lib_name}_LIBRARY}")
     else()
         message(STATUS "StreamingClient library not found: ${lib_name}")
@@ -131,7 +131,7 @@ if(StreamingClient_MAIN_LIBRARY AND TARGET StreamingClient::StreamingClient)
             INTERFACE_LINK_LIBRARIES "StreamingClient::StreamClientShared"
         )
     endif()
-    
+
     # Add other dependencies if found
     set(StreamingClient_DEPENDENCIES)
     foreach(dep_lib NvStreamBase NvStreamingSession Poco)
@@ -139,7 +139,7 @@ if(StreamingClient_MAIN_LIBRARY AND TARGET StreamingClient::StreamingClient)
             list(APPEND StreamingClient_DEPENDENCIES StreamingClient::${dep_lib})
         endif()
     endforeach()
-    
+
     if(StreamingClient_DEPENDENCIES)
         set_property(TARGET StreamingClient::StreamingClient APPEND PROPERTY
             INTERFACE_LINK_LIBRARIES ${StreamingClient_DEPENDENCIES}

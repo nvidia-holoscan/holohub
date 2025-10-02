@@ -147,8 +147,9 @@ void StreamingServerUpstreamOp::stop() {
     // with other operators. The resource manages its own lifecycle.
 }
 
-void StreamingServerUpstreamOp::compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
-                                       holoscan::ExecutionContext& context) {
+void StreamingServerUpstreamOp::compute(holoscan::InputContext& op_input,
+                                        holoscan::OutputContext& op_output,
+                                        holoscan::ExecutionContext& context) {
   if (is_shutting_down_.load()) {
     return;
   }
