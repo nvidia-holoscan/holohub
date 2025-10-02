@@ -95,7 +95,7 @@ In order to build the client operator, you must first download the client binari
 ```bash
 # Download using NGC CLI
 
-cd <your_holohub_path>/operators/streaming_client_enhanced
+cd <your_holohub_path>/operators/video_streaming/streaming_client_enhanced
 ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
 unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
 
