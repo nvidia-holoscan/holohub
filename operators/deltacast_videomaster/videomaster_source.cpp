@@ -17,8 +17,6 @@
 
 #include "videomaster_source.hpp"
 
-//TODO ne plus utiliser l'héritage
-
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -58,7 +56,7 @@ void VideoMasterSourceOp::setup(OperatorSpec& spec) {
 void VideoMasterSourceOp::initialize() {
   Operator::initialize();
   _has_lost_signal = false;
-  _video_master_base = std::make_unique<VideoMasterBase>(false, _board_index, _channel_index, _use_rdma);
+  _video_master_base = std::make_unique<VideoMasterBase>(true, _board_index, _channel_index, _use_rdma);
 }
 
 void VideoMasterSourceOp::start() {
