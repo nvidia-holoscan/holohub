@@ -122,7 +122,7 @@ void StreamingServerDownstreamOp::initialize() {
 }
 
 void StreamingServerDownstreamOp::start() {
-  if (!streaming_server_resource) {
+  if (!streaming_server_resource_.get()) {
     HOLOSCAN_LOG_ERROR("Cannot start downstream operator: StreamingServerResource not available");
     return;
   }
@@ -132,11 +132,12 @@ void StreamingServerDownstreamOp::start() {
 
       // Start the shared streaming server resource
       // Note: This might already be started by another operator, which is fine
-    if (!streaming_server_resource->is_running()) {
-      streaming_server_resource->start();
+    if (!streaming_server_resource_.get()->is_running()) {
+      streaming_server_resource_.get()->start();
     }
 
     HOLOSCAN_LOG_INFO("✅ Downstream StreamingServer started successfully");
+  } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Exception during downstream server start: {}", e.what());
   }
 }
