@@ -629,6 +629,7 @@ void StreamingClientOp::stop() {
 }
 
 void StreamingClientOp::compute(holoscan::InputContext& op_input,
+                             holoscan::OutputContext& op_output,
                              holoscan::ExecutionContext& context) {
   // Add detailed connection state logging
   static int compute_call_count = 0;
