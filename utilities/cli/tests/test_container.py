@@ -24,6 +24,7 @@ from unittest.mock import patch
 sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
 from utilities.cli.container import HoloHubContainer
+from utilities.cli.util import get_cuda_tag, get_default_cuda_version
 
 
 class TestHoloHubContainer(unittest.TestCase):
@@ -126,6 +127,49 @@ class TestHoloHubContainer(unittest.TestCase):
         expected_pythonpath = "/docker/lib1:/docker/lib2:/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
         self.assertEqual(result, ["-e", f"PYTHONPATH={expected_pythonpath}"])
         self.container.dryrun = False
+
+    @patch("utilities.cli.util.get_host_gpu")
+    def test_get_cuda_tag_sdk(self, mock_get_host_gpu):
+        """Test CUDA tag with different SDK versions"""
+        mock_get_host_gpu.return_value = "dgpu"
+
+        # Test SDK 3.6.0 (old format) - returns gpu_type only
+        self.assertEqual(get_cuda_tag("12", "3.6.0"), "dgpu")
+        self.assertEqual(get_cuda_tag("13", "3.6.0"), "dgpu")
+
+        # Test SDK 3.7.0 (new format) - returns cuda{version}-{gpu_type}
+        self.assertEqual(get_cuda_tag("12", "3.7.0"), "cuda12-dgpu")
+        self.assertEqual(get_cuda_tag("13", "3.7.0"), "cuda13")
+        self.assertEqual(get_cuda_tag("11", "3.7.0"), "cuda11-dgpu")
+
+        # Test with iGPU
+        mock_get_host_gpu.return_value = "igpu"
+        self.assertEqual(get_cuda_tag("12", "3.7.0"), "cuda12-igpu")
+        self.assertEqual(get_cuda_tag("12", "3.6.0"), "igpu")
+
+    @patch("utilities.cli.util.get_host_arch")
+    @patch("utilities.cli.util.get_gpu_name")
+    def test_get_default_cuda_version(self, mock_get_gpu_name, mock_get_host_arch):
+        """Test default CUDA version detection for different platforms"""
+        # Test x86_64 platform (should return 12)
+        mock_get_host_arch.return_value = "x86_64"
+        mock_get_gpu_name.return_value = "NVIDIA RTX 6000 Ada Generation"
+        self.assertEqual(get_default_cuda_version(), "12")
+
+        # Test aarch64 with Orin (should return 12)
+        mock_get_host_arch.return_value = "aarch64"
+        mock_get_gpu_name.return_value = "Orin (nvgpu)"
+        self.assertEqual(get_default_cuda_version(), "12")
+
+        # Test aarch64 with Thor (should return 13)
+        mock_get_host_arch.return_value = "aarch64"
+        mock_get_gpu_name.return_value = "NVIDIA Thor"
+        self.assertEqual(get_default_cuda_version(), "13")
+
+        # Test aarch64 with no GPU (should return 12)
+        mock_get_host_arch.return_value = "aarch64"
+        mock_get_gpu_name.return_value = None
+        self.assertEqual(get_default_cuda_version(), "12")
 
 
 if __name__ == "__main__":

@@ -101,6 +101,16 @@ set_property(TEST test_holohub_build_container_build_args PROPERTY
 )
 
 add_test(
+    NAME test_holohub_build_container_cuda_version
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build-container --dryrun --cuda 13
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_build_container_cuda_version PROPERTY
+    PASS_REGULAR_EXPRESSION "docker build"
+    PASS_REGULAR_EXPRESSION "--build-arg CUDA_MAJOR=13"
+)
+
+add_test(
     NAME test_holohub_run_container_docker_opts
     COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --docker-opts "--memory 4g --entrypoint=bash"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
