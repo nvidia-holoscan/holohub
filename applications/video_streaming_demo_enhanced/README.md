@@ -416,23 +416,40 @@ The video streaming demo includes comprehensive integration testing to verify en
 The integration test validates:
 - **Server Startup**: Streaming server initializes and starts listening
 - **Client Connection**: Streaming client connects to server successfully  
-- **Video Streaming**: Bidirectional video frame transmission
+- **Video Streaming**: Bidirectional video frame transmission (client→server→client)
 - **Resource Management**: Proper cleanup and resource handling
 - **Error Handling**: Graceful handling of connection issues
 
 ### Running Integration Tests
 
-#### Method 1: Simple Integration Test (Recommended)
+#### Automated Integration Test (Recommended)
+
+The integration test script (`integration_test.sh`) runs the complete end-to-end test in a Docker container with proper SDK version and dependencies.
 
 ```bash
-# Run the simplified integration test
-./applications/video_streaming_demo_enhanced/simple_integration_test.sh
+# From the video_streaming_demo_enhanced directory
+cd applications/video_streaming_demo_enhanced
+./integration_test.sh
 ```
 
-**Expected Duration**: 2-3 minutes  
-**Requirements**: Docker, NVIDIA GPU, Holoscan SDK 3.5.0+
+**OR from holohub root:**
+```bash
+./applications/video_streaming_demo_enhanced/integration_test.sh
+```
 
-#### Method 2: Manual Integration Test
+**Test Configuration:**
+- **Duration**: 3-5 minutes total (includes Docker build and test execution)
+- **SDK Version**: Holoscan 3.5.0 (enforced via environment variable)
+- **Test Duration**: 30 seconds of active streaming
+- **Requirements**: Docker, NVIDIA GPU, committed C++ source code
+- **Output**: Detailed logs saved to `integration_test.log`
+
+**⚠️ Important Notes:**
+1. The test runs in Docker and builds from **committed source code**
+2. If you have local C++ changes, **commit them first** before running the test
+3. The test uses cached Docker layers for faster builds (unless cache is cleared)
+
+#### Manual Integration Test
 
 For manual testing and debugging:
 
@@ -446,73 +463,213 @@ For manual testing and debugging:
 
 ### Integration Test Process
 
-The automated integration test follows this sequence:
+The automated integration test (`integration_test.sh`) follows this sequence:
 
-1. **Build Phase** (30-60 seconds)
-   - Builds Docker image with all dependencies
-   - Compiles server and client applications
-   - Copies configuration files to build directory
+#### 1. **Pre-Test Setup** (10-20 seconds)
+```bash
+# Displays current git commit
+echo "Current commit: $(git log --oneline -1)"
 
-2. **Server Startup** (15 seconds)
-   - Launches streaming server in background
-   - Waits for server initialization
-   - Verifies server is listening on port 48010
+# Cleans Docker build cache (optional, for fresh builds)
+docker system prune -f --filter "label=holohub"
 
-3. **Client Connection** (30 seconds)  
-   - Starts streaming client with replayer configuration
+# Sets SDK version environment variable
+export HOLOHUB_BASE_SDK_VERSION=3.5.0
+```
+
+#### 2. **Docker Build & Test Execution** (2-4 minutes)
+```bash
+# Builds Docker image and runs CTest
+./holohub test video_streaming_demo_enhanced \
+  --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu \
+  --cmake-options="-DBUILD_TESTING=ON" \
+  --ctest-options="-R video_streaming_integration_test -V" \
+  --verbose
+```
+
+**What happens internally:**
+- Builds Docker image with Holoscan SDK 3.5.0
+- Compiles server and client C++ applications
+- Copies configuration files to build directory
+- Runs CTest with the integration test
+
+#### 3. **Integration Test Execution** (54 seconds)
+The `video_streaming_integration_test` defined in CMakeLists.txt:
+
+1. **Server Startup** (10 seconds)
+   - Launches streaming server in background: `streaming_server_demo_enhanced`
+   - Uses config: `streaming_server_demo.yaml`
+   - Waits for initialization (15 stability checks over 30 seconds)
+
+2. **Client Connection & Streaming** (30 seconds)
+   - Starts streaming client: `streaming_client_demo_enhanced`
+   - Uses config: `streaming_client_demo_replayer.yaml` (video replay mode)
    - Establishes connection to server
-   - Begins video frame transmission
+   - Streams video frames bidirectionally for 30 seconds
 
-4. **Streaming Verification** (30 seconds)
-   - Monitors frame transmission logs
-   - Verifies bidirectional communication
-   - Checks for performance metrics
+3. **Verification & Cleanup**
+   - Verifies both processes are still running (connection successful)
+   - Gracefully terminates client (SIGTERM)
+   - Gracefully terminates server (SIGTERM)
+   - Reports PASS/FAIL based on process stability
 
-5. **Cleanup & Analysis**
-   - Gracefully terminates both processes
-   - Analyzes log files for success indicators
-   - Reports final PASS/FAIL status
+#### 4. **Post-Test Analysis** (5 seconds)
+```bash
+# Verifies test results from log file
+if grep -q "Test.*Passed\|100%.*tests passed" integration_test.log; then
+  echo "✓ Integration test PASSED"
+  exit 0
+fi
+```
 
 ### Success Criteria
 
-The integration test **PASSES** when all conditions are met:
+The integration test **PASSES** when **ALL** conditions are met:
 
-#### Server Success Indicators
-- ✅ `StreamingServerResource started successfully`
-- ✅ `Server listening on port 48010` 
-- ✅ `Client connection established`
-- ✅ `Frame received from client`
+#### ✅ Server Success Criteria
+1. **Process Stability**: Server process runs continuously for entire test (54+ seconds)
+2. **Initialization**: Server starts and becomes stable within 30 seconds
+3. **Client Connection**: Successfully accepts client connection
+4. **Frame Reception**: Receives frames from client (logged in verbose output)
+5. **Frame Transmission**: Sends frames back to client (bidirectional communication)
+6. **Graceful Shutdown**: Stops cleanly without crashes
 
-#### Client Success Indicators  
-- ✅ `StreamingClient created successfully`
-- ✅ `Connection established successfully`
-- ✅ `Frame sent successfully`
-- ✅ `Tensor validation passed`
+#### ✅ Client Success Criteria
+1. **Process Stability**: Client process runs continuously for 30+ seconds
+2. **Server Connection**: Successfully connects to server on port 48010
+3. **Video Replay**: Successfully loads and plays surgical video file
+4. **Frame Transmission**: Sends frames to server (500+ frames in 30 seconds)
+5. **Frame Reception**: Receives frames back from server (bidirectional communication)
+6. **Graceful Shutdown**: Stops cleanly without crashes
 
-#### Performance Metrics
-- ✅ Frame rate > 15 FPS (for 30 second test)
-- ✅ No memory leaks detected
-- ✅ Graceful shutdown without errors
+#### ✅ CTest Success Criteria
+1. **Test Execution**: `video_streaming_integration_test` completes without timeout
+2. **Test Status**: CTest reports test as "Passed"
+3. **Exit Code**: Overall test exit code is 0
+4. **Log Output**: Contains "✓ Integration test PASSED" message
 
-### Expected Log Output
+### Expected Output
 
-#### Successful Server Logs
+#### Console Output (Successful Test)
+```bash
+=== Video Streaming Demo Integration Test ===
+This test may take up to 10 minutes to complete...
+NOTE: Test runs in Docker and uses committed source code (not local build)
+
+Forcing Docker to use latest committed changes...
+Current commit: 72240492 Run only integration test, skip individual client/server tests
+
+Cleaning Docker build cache...
+Total reclaimed space: 0B
+
+Running integration test with Docker (using committed fixes)...
+
+[Docker build output...]
+Step 1/15 : ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
+Step 2/15 : FROM ${BASE_IMAGE}
+[...]
+
+[CTest output...]
+UpdateCTestConfiguration from :/workspace/holohub/build/DartConfiguration.tcl
+Test project /workspace/holohub/build
+    Start 1: video_streaming_integration_test
+
+1: === Custom Integration Test ===
+1: Starting server and client in same container...
+1: Starting streaming server...
+1: Waiting for server to initialize...
+1: Checking if server is running and stable...
+1: Server process is running (attempt 1/15)
+1: Server process is running (attempt 2/15)
+[...]
+1: Server process is running (attempt 5/15)
+1: ✓ Server is running and stable
+1: ✓ Server started successfully
+1: Starting streaming client...
+1: Letting client stream for 30 seconds...
+[Streaming logs showing frame transmission...]
+1: [info] Frame sent successfully
+1: [info] CLIENT: Received frame #533 from server: 854x480
+1: ✓ Client is still running - connection successful
+1: Stopping client...
+1: Cleaning up server process...
+1: ✓ Integration test PASSED
+
+1/1 Test #1: video_streaming_integration_test ...   Passed   54.05 sec
+
+The following tests passed:
+	video_streaming_integration_test
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) = 54.06 sec
+
+=== VERIFICATION ===
+✓ Integration test passed with detailed verification
+✓ Server component verified
+✓ Client component verified
+✓ Integration test PASSED
+```
+
+#### Key Log Patterns to Look For
+
+**Server Success Indicators:**
 ```
 [info] StreamingServerResource starting...
-[info] Server listening on 127.0.0.1:48010
-[info] Client connection established from 127.0.0.1
-[info] Frame received: 854x480x3, 1229760 bytes
-[info] 📊 Server Performance: Processed 450 frames (15.0 FPS)
+[info] StreamingServerUpstreamOp::start() called
+[info] StreamingServerDownstreamOp::start() called
+[info] ✅ UPSTREAM: Client connected successfully
+[info] ✅ Processing UNIQUE frame: 854x480, 1639680 bytes
+[info] ✅ DOWNSTREAM: Frame sent successfully to StreamingServerResource
 ```
 
-#### Successful Client Logs  
+**Client Success Indicators:**
 ```
 [info] Source set to: replayer
 [info] Using video replayer as source
+[info] StreamingClient created successfully
 [info] Connection established successfully
-[info] Tensor validation passed: 480x854x3, 1229760 bytes
-[info] Frame sent successfully
-[info] 📊 Client Performance: Sent 450 frames (15.0 FPS)
+[info] ✅ Tensor validation passed: 480x854x3, 1229760 bytes
+[info] ✅ Frame sent successfully on attempt 1
+[info] 🎯 CLIENT: Frame received callback triggered!
+[info] 📥 CLIENT: Received frame #533 from server: 854x480
+```
+
+**Performance Indicators:**
+```
+# Server processed ~565 frames
+[info] 📊 DOWNSTREAM: Processing tensor 565 - shape: 480x854x4
+
+# Client sent and received ~533 frames
+[info] 📥 CLIENT: Received frame #533 from server
+
+# Frame rate: ~17-19 FPS (533 frames ÷ 30 seconds)
+```
+
+#### Integration Test Log File
+
+The complete test execution is saved to `integration_test.log` (typically 25,000-30,000 lines). This file contains:
+
+1. **Docker Build Logs**: Complete build output with all dependencies
+2. **CMake Configuration**: Build configuration and test setup
+3. **CTest Execution**: Detailed test execution with timestamps
+4. **Server Logs**: All server application logs (initialization, frame processing, shutdown)
+5. **Client Logs**: All client application logs (connection, streaming, frame reception)
+6. **Test Summary**: Final PASS/FAIL status with verification details
+
+**Analyzing the log:**
+```bash
+# Check test status
+grep "Integration test PASSED" integration_test.log
+
+# Check frame counts
+grep "CLIENT: Received frame" integration_test.log | tail -5
+
+# Check for errors
+grep -i "error\|fail\|crash" integration_test.log
+
+# View test summary
+tail -100 integration_test.log
 ```
 
 ### Troubleshooting Integration Tests
