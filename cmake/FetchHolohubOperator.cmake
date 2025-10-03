@@ -66,6 +66,7 @@ function(fetch_holohub_operator OPERATOR_NAME)
         && git sparse-checkout set --no-cone
             operators/${ARGS_PATH}
             cmake/pybind11_add_holohub_module.cmake
+            cmake/nvidia_video_codec.cmake
             cmake/pybind11/
             cmake/pydoc/
             operators/operator_util.hpp
