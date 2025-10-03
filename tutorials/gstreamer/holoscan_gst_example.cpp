@@ -19,79 +19,6 @@ class GstSinkOperator : public Operator {
 
   GstSinkOperator() = default;
 
-  // Static callback for dynamic pad linking
-  static void on_pad_added(GstElement *element, GstPad *pad, gpointer user_data) {
-    GstSinkOperator* self = static_cast<GstSinkOperator*>(user_data);
-    self->handle_pad_added(element, pad);
-  }
-
-  // Instance method to handle dynamic pad addition
-  void handle_pad_added(GstElement *element, GstPad *pad) {
-    HOLOSCAN_LOG_INFO("New pad '{}' added to element '{}'", 
-                      GST_PAD_NAME(pad), GST_ELEMENT_NAME(element));
-
-    // Get pad capabilities
-    GstCaps *caps = gst_pad_query_caps(pad, nullptr);
-    if (caps) {
-      gchar *caps_str = gst_caps_to_string(caps);
-      HOLOSCAN_LOG_INFO("Pad capabilities: {}", caps_str);
-      g_free(caps_str);
-    }
-
-    // Check if this is a video pad
-    if (caps && gst_caps_get_size(caps) > 0) {
-      GstStructure *structure = gst_caps_get_structure(caps, 0);
-      const gchar *media_type = gst_structure_get_name(structure);
-      
-      if (g_str_has_prefix(media_type, "video/")) {
-        HOLOSCAN_LOG_INFO("Found video pad, attempting to link to pipeline");
-        
-        // Find the first available element to link to
-        // Try videoconvert first (most likely to accept any video format)
-        GstElement *target_element = gst_bin_get_by_name(GST_BIN(pipeline_.get()), "videoconvert");
-        if (!target_element) {
-          // If no videoconvert, try videoscale
-          target_element = gst_bin_get_by_name(GST_BIN(pipeline_.get()), "videoscale");
-        }
-        if (!target_element) {
-          // Finally try "last" element
-          target_element = gst_bin_get_by_name(GST_BIN(pipeline_.get()), "last");
-        }
-        
-        if (target_element) {
-          GstPad *sink_pad = gst_element_get_static_pad(target_element, "sink");
-          if (sink_pad && !gst_pad_is_linked(sink_pad)) {
-            GstPadLinkReturn link_result = gst_pad_link(pad, sink_pad);
-            if (link_result == GST_PAD_LINK_OK) {
-              HOLOSCAN_LOG_INFO("Successfully linked dynamic pad to {}", GST_ELEMENT_NAME(target_element));
-              dynamic_link_established_ = true;
-            } else {
-              HOLOSCAN_LOG_ERROR("Failed to link dynamic pad to {}: {}", 
-                                GST_ELEMENT_NAME(target_element), gst_pad_link_get_name(link_result));
-              
-              // If linking failed, try to diagnose the issue
-              GstCaps *sink_caps = gst_pad_query_caps(sink_pad, nullptr);
-              if (sink_caps) {
-                gchar *sink_caps_str = gst_caps_to_string(sink_caps);
-                HOLOSCAN_LOG_INFO("Target sink pad capabilities: {}", sink_caps_str);
-                g_free(sink_caps_str);
-                gst_caps_unref(sink_caps);
-              }
-            }
-          } else if (sink_pad && gst_pad_is_linked(sink_pad)) {
-            HOLOSCAN_LOG_INFO("Target element {} sink pad is already linked", GST_ELEMENT_NAME(target_element));
-          }
-          if (sink_pad) gst_object_unref(sink_pad);
-          gst_object_unref(target_element);
-        } else {
-          HOLOSCAN_LOG_ERROR("Could not find target element to link dynamic pad to");
-        }
-      }
-    }
-    
-    if (caps) gst_caps_unref(caps);
-  }
-
   void setup(OperatorSpec& spec) override {
     /// Add parameters to the operator spec
     spec.param(gst_sink_resource_, "gst_sink_resource", "GStreamerSink", "GStreamer sink resource object");
@@ -139,29 +66,7 @@ class GstSinkOperator : public Operator {
     // Add our sink element to the pipeline
     gst_bin_add(GST_BIN(pipeline_.get()), sink_element);
     
-    // Check for dynamic elements that need pad-added signal handling
-    bool has_dynamic_elements = false;
-    GstIterator* iter = gst_bin_iterate_elements(GST_BIN(pipeline_.get()));
-    GValue item = G_VALUE_INIT;
-    while (gst_iterator_next(iter, &item) == GST_ITERATOR_OK) {
-      GstElement* element = GST_ELEMENT(g_value_get_object(&item));
-      const gchar* element_name = gst_element_get_name(element);
-      const gchar* factory_name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(gst_element_get_factory(element)));
-      
-      // Check for elements that create dynamic pads
-      if (g_str_has_prefix(factory_name, "uridecodebin") || 
-          g_str_has_prefix(factory_name, "decodebin") ||
-          g_str_has_prefix(factory_name, "parsebin")) {
-        HOLOSCAN_LOG_INFO("Found dynamic element: {} ({})", element_name, factory_name);
-        g_signal_connect(element, "pad-added", G_CALLBACK(on_pad_added), this);
-        has_dynamic_elements = true;
-      }
-      g_value_reset(&item);
-    }
-    g_value_unset(&item);
-    gst_iterator_free(iter);
-    
-    // Look for an element named "last" for static linking
+    // Look for an element named "last" - user should name their final element as "last"
     GstElement *last_element = gst_bin_get_by_name(GST_BIN(pipeline_.get()), "last");
     
     if (last_element) {
@@ -170,7 +75,6 @@ class GstSinkOperator : public Operator {
       // Link directly: last_element -> sink_element
       if (gst_element_link(last_element, sink_element)) {
         HOLOSCAN_LOG_INFO("Successfully linked: {} -> sink", gst_element_get_name(last_element));
-        static_link_established_ = true;
       } else {
         HOLOSCAN_LOG_ERROR("Failed to link {} to sink", gst_element_get_name(last_element));
         throw std::runtime_error("Failed to link pipeline to sink");
@@ -178,12 +82,10 @@ class GstSinkOperator : public Operator {
       
       // Clean up the reference
       gst_object_unref(last_element);
-    } else if (!has_dynamic_elements) {
-      HOLOSCAN_LOG_ERROR("Could not find element named 'last' in pipeline and no dynamic elements detected");
+    } else {
+      HOLOSCAN_LOG_ERROR("Could not find element named 'last' in pipeline");
       HOLOSCAN_LOG_ERROR("Please name your final pipeline element as 'last', e.g.: 'videoconvert name=last'");
       throw std::runtime_error("Could not find element named 'last' to connect to sink");
-    } else {
-      HOLOSCAN_LOG_INFO("No 'last' element found, but dynamic elements detected - will use pad-added signal");
     }
     HOLOSCAN_LOG_INFO("Pipeline created and connected successfully");
 
@@ -415,8 +317,6 @@ class GstSinkOperator : public Operator {
   GstElementGuard pipeline_;
   uint32_t buffer_count_ = 0;  // Client-side buffer counting
   std::shared_ptr<UnboundedAllocator> allocator_;
-  bool static_link_established_ = false;
-  bool dynamic_link_established_ = false;
 };
 
 /**
@@ -470,20 +370,18 @@ void print_usage(const char* program_name) {
     std::cout << "Options:\n";
     std::cout << "  -c, --count <number>     Number of iterations to run (default: 300)\n";
     std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description (default: videotestsrc pattern=0 ! videoconvert name=last)\n";
-    std::cout << "                            IMPORTANT: For static linking, name the final element as 'last'\n";
-    std::cout << "                            For dynamic elements (uridecodebin, decodebin), this is handled automatically\n";
+    std::cout << "                            IMPORTANT: Your pipeline MUST name the final element as 'last'\n";
     std::cout << "  --caps <caps_string>     GStreamer capabilities string for the sink (default: video/x-raw)\n";
     std::cout << "  -h, --help               Show this help message\n\n";
     std::cout << "Pipeline Requirements:\n";
-    std::cout << "  Static Linking: The final element in your pipeline MUST be named 'last'\n";
-    std::cout << "  Dynamic Linking: Elements like uridecodebin, decodebin are handled automatically\n\n";
+    std::cout << "  - The final element in your pipeline MUST be named 'last'\n";
+    std::cout << "  - GStreamer automatically handles dynamic linking within the pipeline\n\n";
     std::cout << "Examples:\n";
-    std::cout << "  Static linking:\n";
+    std::cout << "  Basic examples:\n";
     std::cout << "    " << program_name << " --pipeline \"videotestsrc pattern=0 ! videoconvert name=last\"\n";
     std::cout << "    " << program_name << " --pipeline \"filesrc location=video.mp4 ! qtdemux ! h264parse ! avdec_h264 ! videoconvert name=last\"\n\n";
-    std::cout << "  Dynamic linking (automatic):\n";
-    std::cout << "    " << program_name << " --pipeline \"uridecodebin uri=https://example.com/video.webm ! videoconvert ! videoscale name=last\"\n";
-    std::cout << "    " << program_name << " --pipeline \"uridecodebin uri=file:///path/to/video.mp4 ! videoconvert name=last\"\n";
+    std::cout << "  Dynamic elements (uridecodebin, decodebin work automatically):\n";
+    std::cout << "    " << program_name << " --caps \"video/x-raw,format=RGBA\" --pipeline \"uridecodebin uri=https://example.com/video.webm ! videoconvert ! capsfilter caps=video/x-raw,format=RGBA name=last\"\n";
     std::cout << "    " << program_name << " --pipeline \"souphttpsrc location=https://example.com/stream ! decodebin ! videoconvert name=last\"\n\n";
     std::cout << "  Audio examples:\n";
     std::cout << "    " << program_name << " --caps \"ANY\" --pipeline \"audiotestsrc ! audioconvert name=last\"\n";
