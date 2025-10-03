@@ -99,6 +99,7 @@ class SinkResource : public holoscan::Resource {
 
 
   // Static member functions for GStreamer callbacks
+  static ::GstCaps* get_caps_callback(::GstBaseSink *sink, ::GstCaps *filter);
   static gboolean set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps);
   static ::GstFlowReturn render_callback(::GstBaseSink *sink, ::GstBuffer *buffer);
   static gboolean start_callback(::GstBaseSink *sink);

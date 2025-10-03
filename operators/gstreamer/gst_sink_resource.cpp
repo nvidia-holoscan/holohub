@@ -87,11 +87,11 @@ enum
   PROP_0
 };
 
-/* Pad templates */
+/* Pad templates - will be dynamically updated based on configured caps */
 static GstStaticPadTemplate sink_pad_template = GST_STATIC_PAD_TEMPLATE("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS("ANY")
+    GST_STATIC_CAPS("ANY")  // Default fallback, will be overridden
 );
 
 /* Function prototypes */
@@ -159,6 +159,7 @@ gst_holoscan_sink_class_init(GstHoloscanSinkClass *klass)
   gst_element_class_add_static_pad_template(gstelement_class, &sink_pad_template);
 
   /* Set up base sink methods using static member functions */
+  gstbasesink_class->get_caps = GST_DEBUG_FUNCPTR(holoscan::gst::SinkResource::get_caps_callback);
   gstbasesink_class->set_caps = GST_DEBUG_FUNCPTR(holoscan::gst::SinkResource::set_caps_callback);
   gstbasesink_class->render = GST_DEBUG_FUNCPTR(holoscan::gst::SinkResource::render_callback);
   gstbasesink_class->start = GST_DEBUG_FUNCPTR(holoscan::gst::SinkResource::start_callback);
@@ -304,6 +305,48 @@ Caps SinkResource::get_caps() const {
 
 // Static member function implementations for GStreamer callbacks
 
+// Get caps callback - advertise what the sink wants
+::GstCaps* SinkResource::get_caps_callback(::GstBaseSink *sink, ::GstCaps *filter) {
+  GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
+  
+  /* Access the SinkResource instance to get the configured caps */
+  if (holoscan_sink->holoscan_resource) {
+    SinkResource* resource = static_cast<SinkResource*>(holoscan_sink->holoscan_resource);
+    std::string configured_caps = resource->caps_.get();
+    
+    if (configured_caps != "ANY") {
+      /* Create GstCaps from the configured caps string */
+      GstCaps *caps = gst_caps_from_string(configured_caps.c_str());
+      if (caps) {
+        HOLOSCAN_LOG_INFO("Advertising sink capabilities: {}", configured_caps);
+        
+        /* If there's a filter, intersect with it */
+        if (filter) {
+          GstCaps *filtered_caps = gst_caps_intersect_full(caps, filter, GST_CAPS_INTERSECT_FIRST);
+          gst_caps_unref(caps);
+          return filtered_caps;
+        }
+        
+        return caps;
+      } else {
+        HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", configured_caps);
+      }
+    }
+  }
+  
+  /* Fallback to template caps */
+  GstPad *pad = GST_BASE_SINK_PAD(sink);
+  GstCaps *template_caps = gst_pad_get_pad_template_caps(pad);
+  
+  if (filter) {
+    GstCaps *filtered_caps = gst_caps_intersect_full(template_caps, filter, GST_CAPS_INTERSECT_FIRST);
+    gst_caps_unref(template_caps);
+    return filtered_caps;
+  }
+  
+  return template_caps;
+}
+
 // Set caps callback
 gboolean SinkResource::set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps) {
   GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
@@ -320,28 +363,10 @@ gboolean SinkResource::set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps) {
     HOLOSCAN_LOG_INFO("Setting caps: {} (configured: '{}', incoming: {})", 
         gst_caps_to_string(caps), configured_caps, media_type);
     
-    /* If configured caps is not "ANY", validate the incoming caps */
+    /* Accept the caps - let GStreamer handle conversion upstream */
     if (configured_caps != "ANY") {
-      /* Create GstCaps from the configured caps string */
-      GstCaps *configured_gst_caps = gst_caps_from_string(configured_caps.c_str());
-      if (configured_gst_caps) {
-        /* Check if the incoming caps intersect with configured caps */
-        GstCaps *intersection = gst_caps_intersect(caps, configured_gst_caps);
-        if (gst_caps_is_empty(intersection)) {
-          HOLOSCAN_LOG_WARN("Incoming caps '{}' do not match configured caps '{}' - rejecting", 
-              media_type, configured_caps);
-          gst_caps_unref(intersection);
-          gst_caps_unref(configured_gst_caps);
-          return FALSE;  // Reject the caps
-        }
-        gst_caps_unref(intersection);
-        gst_caps_unref(configured_gst_caps);
-        HOLOSCAN_LOG_INFO("Caps validation passed for: {} (configured: '{}')", 
-            media_type, configured_caps);
-      } else {
-        HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", configured_caps);
-        throw std::runtime_error("Invalid caps configuration: '" + configured_caps + "'");
-      }
+      HOLOSCAN_LOG_INFO("Accepting caps: {} (sink configured for: '{}')", 
+          media_type, configured_caps);
     } else {
       HOLOSCAN_LOG_INFO("Accepting any caps: {} (configured: ANY)", media_type);
     }
