@@ -118,6 +118,9 @@ add_holohub_application(psd_pipeline DEPENDS
                                   vita49_psd_packetizer
                                   data_writer)
 
+# Unified streaming applications
+add_subdirectory(video_streaming_demo_enhanced)
+
 add_holohub_application(ultrasound_segmentation DEPENDS
                         OPERATORS OPTIONAL aja_source)
 
@@ -148,4 +151,3 @@ add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)
 add_subdirectory(slang)
-add_subdirectory(video_streaming)
