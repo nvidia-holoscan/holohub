@@ -17,7 +17,8 @@ cmake_minimum_required(VERSION 3.20)
 project(video_streaming_demo_enhanced LANGUAGES NONE)
 
 # Check if this application should be built
-if(NOT APP_video_streaming_demo_enhanced)
+# Accept either the parent app name or individual server/client names
+if(NOT (APP_video_streaming_demo_enhanced OR APP_video_streaming_demo_server OR APP_video_streaming_demo_client))
   return()
 endif()
 
@@ -153,4 +154,107 @@ if(BUILD_TESTING)
                        TIMEOUT 300
                        PASS_REGULAR_EXPRESSION "Integration test PASSED"
                        FAIL_REGULAR_EXPRESSION "Integration test FAILED")
+
+  # Python Integration Test
+  if(HOLOHUB_BUILD_PYTHON)
+    add_test(NAME video_streaming_integration_test_python
+             COMMAND bash -c "
+               set -e
+               export EnableHybridMode=1
+               export PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:${CMAKE_BINARY_DIR}/video_streaming_demo_server/python/lib:${CMAKE_BINARY_DIR}/video_streaming_demo_client/python/lib:\$PYTHONPATH
+
+               echo '=== Starting Python Integration Test ==='
+               echo 'Using PYTHONPATH: '\$PYTHONPATH
+
+               SERVER_SUCCESS=0
+               CLIENT_SUCCESS=0
+
+               # Start Python server in background
+               echo 'Starting Python streaming server...'
+               cd ${CMAKE_BINARY_DIR}
+               python3 streaming_server_demo.py --port 48010 --width 854 --height 480 > server_python.log 2>&1 &
+               SERVER_PID=\$!
+
+               # Wait for server to start
+               echo 'Waiting for Python server to initialize...'
+               sleep 10
+
+               # Check if server is running and stable
+               echo 'Checking if Python server is running and stable...'
+               for i in {1..15}; do
+                 if kill -0 \$SERVER_PID 2>/dev/null; then
+                   echo \"Python server process is running (attempt \$i/15)\"
+                   sleep 2
+                   if [ \$i -ge 5 ]; then
+                     echo '✓ Python server is running and stable'
+                     SERVER_SUCCESS=1
+                     break
+                   fi
+                 else
+                   echo \"Python server process died (attempt \$i/15)\"
+                   break
+                 fi
+               done
+
+               if [ \$SERVER_SUCCESS -eq 1 ]; then
+                 echo '✓ Python server started successfully'
+
+                 # Start Python client in background
+                 echo 'Starting Python streaming client...'
+                 python3 streaming_client_demo.py --port 48010 --source replayer --width 854 --height 480 --no-viz > client_python.log 2>&1 &
+                 CLIENT_PID=\$!
+
+                 # Let client stream for 30 seconds
+                 echo 'Letting Python client stream for 30 seconds...'
+                 sleep 30
+
+                 # Check if client is still running
+                 if kill -0 \$CLIENT_PID 2>/dev/null; then
+                   echo '✓ Python client is still running - connection successful'
+                   CLIENT_SUCCESS=1
+
+                   # Stop client gracefully
+                   echo 'Stopping Python client...'
+                   kill -TERM \$CLIENT_PID 2>/dev/null || true
+                   sleep 2
+                   kill -KILL \$CLIENT_PID 2>/dev/null || true
+                 else
+                   echo '✗ Python client stopped unexpectedly - connection failed'
+                   CLIENT_SUCCESS=0
+                 fi
+               else
+                 echo '✗ Python server failed to start'
+                 CLIENT_SUCCESS=0
+               fi
+
+               # Clean up server
+               echo 'Cleaning up Python server process...'
+               kill -TERM \$SERVER_PID 2>/dev/null || true
+               sleep 2
+               kill -KILL \$SERVER_PID 2>/dev/null || true
+
+               # Show logs on failure
+               if [ \$SERVER_SUCCESS -eq 0 ] || [ \$CLIENT_SUCCESS -eq 0 ]; then
+                 echo '=== Python Server Log ==='
+                 cat server_python.log || true
+                 echo '=== Python Client Log ==='
+                 cat client_python.log || true
+               fi
+
+               # Overall result
+               if [ \$SERVER_SUCCESS -eq 1 ] && [ \$CLIENT_SUCCESS -eq 1 ]; then
+                 echo '✓ Python Integration test PASSED'
+                 exit 0
+               else
+                 echo '✗ Python Integration test FAILED'
+                 exit 1
+               fi
+             "
+             WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+    set_tests_properties(video_streaming_integration_test_python PROPERTIES
+                         TIMEOUT 300
+                         PASS_REGULAR_EXPRESSION "Python Integration test PASSED"
+                         FAIL_REGULAR_EXPRESSION "Python Integration test FAILED")
+  endif()
 endif()

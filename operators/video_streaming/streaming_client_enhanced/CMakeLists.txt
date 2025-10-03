@@ -277,6 +277,10 @@ install(FILES
   DESTINATION lib/cmake/streaming_client
 )
 
-
 # Print status message
 message(STATUS "StreamingClient operator configuration complete with imported targets.")
+
+# Python bindings (added at the end after all target configuration is complete)
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

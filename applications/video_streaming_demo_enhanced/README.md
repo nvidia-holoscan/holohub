@@ -365,16 +365,57 @@ cd applications/video_streaming_demo_enhanced
 2. If you have local C++ changes, **commit them first** before running the test
 3. The test uses cached Docker layers for faster builds (unless cache is cleared)
 
+#### Python Integration Test (NEW!)
+
+Test the Python bindings and Python applications:
+
+```bash
+# From the video_streaming_demo_enhanced directory
+cd applications/video_streaming_demo_enhanced
+./integration_test_python.sh
+```
+
+**OR from holohub root:**
+```bash
+./applications/video_streaming_demo_enhanced/integration_test_python.sh
+```
+
+**Test Configuration:**
+- **Duration**: 2-3 minutes total (includes build with Python support)
+- **Test Duration**: 30 seconds of active streaming
+- **Requirements**: Python 3.8+, pybind11, NVIDIA GPU
+- **Output**: Detailed logs saved to `integration_test_python.log`
+
+**What it tests:**
+- Python bindings for StreamingServerResource, StreamingServerUpstreamOp, StreamingServerDownstreamOp
+- Python bindings for StreamingClientOp
+- Python server application (`streaming_server_demo.py`)
+- Python client application (`streaming_client_demo.py`)
+- Bidirectional video streaming between Python server and client
+
 #### Manual Integration Test
 
 For manual testing and debugging:
 
+**C++ Applications:**
 ```bash
-# Terminal 1: Start Server
+# Terminal 1: Start C++ Server
 ./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced server --language cpp
 
-# Terminal 2: Start Client (after server is running)
+# Terminal 2: Start C++ Client (after server is running)
 ./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_enhanced client_replayer --language cpp
+```
+
+**Python Applications:**
+```bash
+# Terminal 1: Start Python Server
+./holohub run --docker-opts='-e EnableHybridMode=1' video_streaming_demo_server --language python --run-args='--port 48010' --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+
+# Terminal 2: Start Python Client with replayer (after server is running)
+./holohub run --docker-opts='-e EnableHybridMode=1' video_streaming_demo_client --language python --run-args='--port 48010 --source replayer --width 854 --height 480' --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+
+# OR: Start Python Client with V4L2 camera
+./holohub run --docker-opts='-e EnableHybridMode=1' video_streaming_demo_client --language python --run-args='--port 48010 --source v4l2 --width 640 --height 480' --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
 ### Integration Test Process

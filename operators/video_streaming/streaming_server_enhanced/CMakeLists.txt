@@ -103,6 +103,11 @@ target_link_libraries(streaming_server_enhanced
 # Create the main alias that applications will use
 add_library(holoscan::ops::streaming_server_enhanced ALIAS streaming_server_enhanced)
 
+# Python bindings
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
+
 # Note: DecodedFrameData library removed since we now work with holoscan::Tensor directly
 
 
@@ -195,8 +200,6 @@ if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcudart.so)
         DESTINATION lib
     )
 endif()
-
-
 
 # Export targets
 install(EXPORT streaming_server_enhanced_targets

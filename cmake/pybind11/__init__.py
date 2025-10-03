@@ -20,7 +20,9 @@ import holoscan.gxf
 
 # Load the python binding
 try:
-    from ._@MODULE_NAME@ import @MODULE_CLASS_NAME@
+    from ._@MODULE_NAME@ import (
+        @MODULE_CLASS_NAME@
+    )
 except ImportError as e:
     pybind11_hsdk_err = 'unknown base type "holoscan::'
 

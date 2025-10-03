@@ -134,6 +134,8 @@ void StreamingServerUpstreamOp::start() {
     if (!streaming_server_resource->is_running()) {
       streaming_server_resource->start();
     }
+
+    HOLOSCAN_LOG_INFO("✅ Upstream StreamingServer started successfully");
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Exception during upstream server start: {}", e.what());
   }

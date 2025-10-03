@@ -34,8 +34,12 @@
         "requirements": {
             "operators": [
                 {
-                    "name": "video_streaming",
-                    "version": "3.5.0"
+                    "name": "streaming_client_enhanced",
+                    "version": "1.0"
+                },
+                {
+                    "name": "streaming_server_enhanced", 
+                    "version": "1.0"
                 }
             ]
         },
@@ -59,6 +63,20 @@
                 "description": "Streaming client using video file replay",
                 "run": {
                     "command": "<holohub_app_bin>/video_streaming_demo_client/cpp/streaming_client_demo_enhanced_wrapper.sh --config streaming_client_demo_replayer.yaml",
+                    "workdir": "holohub_bin"
+                }
+            },
+            "server_python": {
+                "description": "Streaming server (Python implementation)",
+                "run": {
+                    "command": "python3 streaming_server_demo.py",
+                    "workdir": "holohub_bin"
+                }
+            },
+            "client_python": {
+                "description": "Streaming client (Python implementation)",
+                "run": {
+                    "command": "python3 streaming_client_demo.py",
                     "workdir": "holohub_bin"
                 }
             }
