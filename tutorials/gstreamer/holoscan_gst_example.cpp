@@ -2,6 +2,7 @@
 #include <memory>
 #include <thread>
 #include <chrono>
+#include <cstdint>
 
 #include <gst/gst.h>
 #include <gst/cuda/gstcudamemory.h>
@@ -427,19 +428,6 @@ class GstSinkOperator : public Operator {
         return;
       }
       output.emit(tensor, "output");
-      
-      // Check if the tensor is using CUDA memory
-      auto tensor_device = tensor->device();
-      const char* memory_type = (tensor_device.device_type == kDLCUDA) ? "CUDA" : "CPU";
-      
-      // Get dimensions from tensor shape for logging
-      auto shape = tensor->shape();
-      HOLOSCAN_LOG_INFO("Emitted tensor to Holoviz: {}x{}x{} (using {} shared memory)", 
-                        shape.size() > 0 ? shape[0] : 0, 
-                        shape.size() > 1 ? shape[1] : 0, 
-                        shape.size() > 2 ? shape[2] : 0, 
-                        memory_type);
-
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_ERROR("Error processing buffer: {}", e.what());
     }
@@ -544,7 +532,7 @@ class GstSinkApp : public Application {
 void print_usage(const char* program_name) {
     std::cout << "Usage: " << program_name << " [OPTIONS]\n\n";
     std::cout << "Options:\n";
-    std::cout << "  -c, --count <number>     Number of iterations to run (default: 300)\n";
+    std::cout << "  -c, --count <number>     Number of iterations to run (default: unlimited)\n";
     std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description (default: videotestsrc pattern=0 ! videoconvert name=last)\n";
     std::cout << "                            IMPORTANT: Your pipeline MUST name the final element as 'last'\n";
     std::cout << "  --caps <caps_string>     GStreamer capabilities string for the sink (default: video/x-raw)\n";
@@ -564,7 +552,7 @@ void print_usage(const char* program_name) {
 }
 
 int main(int argc, char** argv) {
-  int64_t iteration_count = 300;  // Default value
+  int64_t iteration_count = INT64_MAX;  // Default: run until video ends (unlimited)
   std::string pipeline_desc = "videotestsrc pattern=0 ! videoconvert name=last";  // Default value
   std::string caps = "video/x-raw";  // Default value
 
