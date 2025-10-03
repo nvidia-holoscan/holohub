@@ -315,6 +315,13 @@ public:
    */
   guint get_size() const;
 
+  /**
+   * @brief Check if caps contain a specific feature
+   * @param feature_name The feature name to check for (e.g., GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY)
+   * @return true if any structure in the caps contains the specified feature
+   */
+  bool has_feature(const char* feature_name) const;
+
 private:
   ::GstCaps* caps_;
 };
@@ -542,6 +549,12 @@ public:
    * @return Detailed validation report string
    */
   std::string get_validation_report() const;
+
+  /**
+   * @brief Get the underlying Buffer object (for advanced usage)
+   * @return Reference to the underlying Buffer object
+   */
+  const Buffer& get_buffer() const;
 
 private:
   Buffer buffer_;           // Keep buffer alive during mapping

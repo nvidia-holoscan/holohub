@@ -455,6 +455,10 @@ std::string MappedBuffer::get_validation_report() const {
   return report.str();
 }
 
+const Buffer& MappedBuffer::get_buffer() const {
+  return buffer_;
+}
+
 // ============================================================================
 // VideoInfo Implementation
 // ============================================================================
@@ -593,6 +597,22 @@ bool Caps::is_empty() const {
 
 guint Caps::get_size() const {
   return gst_caps_get_size(caps_);
+}
+
+bool Caps::has_feature(const char* feature_name) const {
+  if (!feature_name || is_empty()) {
+    return false;
+  }
+
+  guint caps_size = gst_caps_get_size(caps_);
+  for (guint i = 0; i < caps_size; i++) {
+    GstCapsFeatures* features = gst_caps_get_features(caps_, i);
+    if (features && gst_caps_features_contains(features, feature_name)) {
+      return true;
+    }
+  }
+  
+  return false;
 }
 
 // ============================================================================
