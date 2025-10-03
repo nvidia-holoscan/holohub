@@ -393,6 +393,123 @@ cd applications/video_streaming_demo_enhanced
 - Python client application (`streaming_client_demo.py`)
 - Bidirectional video streaming between Python server and client
 
+**How to run:**
+```bash
+# From holohub root directory
+cd /home/your_path/holohub/applications/video_streaming_demo_enhanced
+./integration_test_python.sh
+```
+
+**Expected Output (Successful Test):**
+```bash
+=== Python Video Streaming Demo Integration Test ===
+This test may take up to 10 minutes to complete...
+NOTE: Test runs in Docker and uses committed source code (not local build)
+
+Forcing Docker to use latest committed changes...
+Current commit: cd1047d5 Add Python bindings for video streaming operators and applications
+
+Cleaning Docker build cache...
+Total reclaimed space: 371.4kB
+
+Running Python integration test with Docker (using committed fixes)...
+
+[Docker build output...]
+#1 [internal] load build definition from Dockerfile
+[...]
+#16 exporting to image
+#16 DONE 1.7s
+
+[CMake configuration...]
+-- Found Python3: /usr/bin/python3.12 (found version "3.12.3")
+-- pybind11 v2.13.6
+-- streaming_client_python: Linking against holoscan::pybind11
+-- streaming_server_enhanced_python: Linking against holoscan::pybind11
+-- Configuring done (4.2s)
+-- Build files have been written to: /workspace/holohub/build-video_streaming_demo_enhanced
+
+[Build output...]
+[19/19] Linking CXX shared module python/lib/holohub/streaming_server_enhanced/_streaming_server_enhanced.cpython-312-x86_64-linux-gnu.so
+Command exited with the value: 0
+
+[CTest execution...]
+Test project /workspace/holohub/build-video_streaming_demo_enhanced
+    Start 2: video_streaming_integration_test_python
+
+2: === Starting Python Integration Test ===
+2: Using PYTHONPATH: /workspace/holohub/build-video_streaming_demo_enhanced/python/lib:...
+2: Starting Python streaming server...
+2: Waiting for Python server to initialize...
+2: Checking if Python server is running and stable...
+2: Python server process is running (attempt 1/15)
+2: Python server process is running (attempt 2/15)
+2: Python server process is running (attempt 3/15)
+2: Python server process is running (attempt 4/15)
+2: Python server process is running (attempt 5/15)
+2: ✓ Python server is running and stable
+2: ✓ Python server started successfully
+2: Starting Python streaming client...
+2: Letting Python client stream for 30 seconds...
+2: ✓ Python client is still running - connection successful
+2: Stopping Python client...
+2: Cleaning up Python server process...
+2: ✓ Python Integration test PASSED
+
+1/1 Test #2: video_streaming_integration_test_python ...   Passed   54.05 sec
+
+The following tests passed:
+	video_streaming_integration_test_python
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) = 54.06 sec
+
+=== VERIFICATION ===
+✓ Python integration test passed with detailed verification
+✓ Python server component verified
+✓ Python client component verified
+✓ Python Integration test PASSED
+```
+
+**Success Criteria:**
+- ✅ Python bindings build successfully (`.so` files created)
+- ✅ Python server starts and remains stable for 10+ seconds
+- ✅ Python client connects to server successfully
+- ✅ Bidirectional streaming maintained for 30 seconds
+- ✅ Both processes remain running throughout test
+- ✅ CTest reports "100% tests passed"
+- ✅ Exit code: 0
+
+**Performance Metrics:**
+- **Test Duration**: ~3 minutes total (including Docker build)
+- **Streaming Duration**: 30 seconds of active bidirectional streaming
+- **Server Stability**: 10+ seconds of validated uptime
+- **Build Artifacts**: Python bindings (`.so` files) for both server and client operators
+
+**Log File:**
+Complete test output saved to `integration_test_python.log` (~25,000 lines) containing:
+- Docker build logs with Python binding compilation
+- CMake configuration showing pybind11 integration
+- Python server application logs
+- Python client application logs  
+- CTest execution with detailed timestamps
+- Final PASS/FAIL status
+
+**Troubleshooting Python Integration Test:**
+```bash
+# Check if Python bindings built successfully
+grep "streaming_client_python\|streaming_server_enhanced_python" integration_test_python.log
+
+# Verify Python modules loaded
+grep "Using PYTHONPATH" integration_test_python.log
+
+# Check for Python errors
+grep -i "ImportError\|ModuleNotFoundError\|AttributeError" integration_test_python.log
+
+# View test summary
+tail -100 integration_test_python.log
+```
+
 #### Manual Integration Test
 
 For manual testing and debugging:

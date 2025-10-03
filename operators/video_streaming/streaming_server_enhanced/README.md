@@ -371,9 +371,180 @@ Note: If the test haproxy is still running, and you wish to test the executable 
 ./nvcf/stop_test_intermediate_haproxy.sh
 ```
 
+## Python Bindings
+
+The streaming server operators provide Python bindings built with pybind11, enabling use in Python-based Holoscan applications.
+
+### Building Python Bindings
+
+Python bindings are automatically built when `-DHOLOHUB_BUILD_PYTHON=ON` is specified:
+
+```bash
+# Build with Python support
+./holohub build video_streaming_demo_server --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+### Using in Python Applications
+
+**Import the operators:**
+```python
+from holohub.streaming_server_enhanced import (
+    StreamingServerResource,
+    StreamingServerUpstreamOp,
+    StreamingServerDownstreamOp
+)
+```
+
+**Create operator instances:**
+```python
+from holoscan.core import Application
+from holoscan.resources import UnboundedAllocator
+from holohub.streaming_server_enhanced import (
+    StreamingServerResource,
+    StreamingServerUpstreamOp,
+    StreamingServerDownstreamOp
+)
+
+class StreamingServerApp(Application):
+    def __init__(self, port=48010, width=854, height=480, fps=30):
+        super().__init__()
+        self.port = port
+        self.width = width
+        self.height = height
+        self.fps = fps
+        
+    def compose(self):
+        # Create allocator
+        allocator = UnboundedAllocator(self, name="allocator")
+        
+        # Create shared streaming server resource
+        streaming_resource = StreamingServerResource(
+            self,
+            name="streaming_server_resource",
+            port=self.port,
+            width=self.width,
+            height=self.height,
+            fps=self.fps,
+            enable_upstream=True,
+            enable_downstream=True
+        )
+        
+        # Create upstream operator (receives from clients)
+        upstream_op = StreamingServerUpstreamOp(
+            self,
+            name="upstream_op",
+            streaming_server_resource=streaming_resource
+        )
+        
+        # Create downstream operator (sends to clients)
+        downstream_op = StreamingServerDownstreamOp(
+            self,
+            name="downstream_op",
+            streaming_server_resource=streaming_resource
+        )
+        
+        # Connect: upstream -> downstream (echo/passthrough mode)
+        self.add_flow(upstream_op, downstream_op, {("output_frames", "input_frames")})
+
+if __name__ == "__main__":
+    app = StreamingServerApp(port=48010, width=854, height=480, fps=30)
+    app.run()
+```
+
+### Python Parameters
+
+#### StreamingServerResource (Python)
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `port` | int | 48010 | Server listening port |
+| `width` | int | 854 | Frame width in pixels |
+| `height` | int | 480 | Frame height in pixels |
+| `fps` | int | 30 | Frame rate |
+| `server_name` | str | "HoloscanStreamingServer" | Server identifier |
+| `enable_upstream` | bool | True | Enable receiving from clients |
+| `enable_downstream` | bool | True | Enable sending to clients |
+| `is_multi_instance` | bool | False | Allow multiple server instances |
+
+#### StreamingServerUpstreamOp (Python)
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `streaming_server_resource` | StreamingServerResource | Required | Reference to server resource |
+| `name` | str | "upstream_op" | Operator name |
+
+#### StreamingServerDownstreamOp (Python)
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `streaming_server_resource` | StreamingServerResource | Required | Reference to server resource |
+| `name` | str | "downstream_op" | Operator name |
+
+### Complete Python Example
+
+A complete working Python server application is available:
+
+**[Python Streaming Server Demo](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/python/streaming_server_demo.py)**
+
+### Running the Python Server
+
+```bash
+# Run with default settings (port 48010, 854x480 @ 30fps)
+./holohub run video_streaming_demo_server --language python \
+  --run-args='--port 48010' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --docker-opts='-e EnableHybridMode=1'
+
+# Run with custom resolution
+./holohub run video_streaming_demo_server --language python \
+  --run-args='--port 48010 --width 1280 --height 720 --fps 30' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --docker-opts='-e EnableHybridMode=1'
+```
+
+**Important:** The `EnableHybridMode=1` environment variable is required for bidirectional streaming support.
+
+### Python Integration Test
+
+A comprehensive integration test validates the Python bindings:
+
+```bash
+# Run Python integration test
+cd applications/video_streaming_demo_enhanced
+./integration_test_python.sh
+```
+
+The test validates:
+- Python bindings build successfully (`.so` files created)
+- Python server starts and remains stable
+- Python client connects to Python server
+- Bidirectional streaming works correctly
+- Both processes run for 30+ seconds without errors
+
+### Architecture with Python
+
+The Python bindings maintain the same split architecture as the C++ implementation:
+
+```
+Python Application
+    ├── StreamingServerResource (shared)
+    │   └── Holoscan Server Cloud Streaming
+    ├── StreamingServerUpstreamOp
+    │   └── Receives frames from clients → Outputs Holoscan tensors
+    └── StreamingServerDownstreamOp
+        └── Receives Holoscan tensors → Sends frames to clients
+```
+
+This allows for flexible pipeline configurations, optional processing operators between upstream and downstream, and clean separation of concerns.
+
 ## Testing
 
-Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of the streaming server working with the client.
+Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration tests:
+
+- **C++ Integration Test**: Validates C++ server with C++ client
+- **Python Integration Test**: Validates Python server with Python client (including Python bindings)
+
+Both tests provide comprehensive end-to-end validation of the streaming server working with the client in bidirectional streaming scenarios.
 
 ## Related Applications
 

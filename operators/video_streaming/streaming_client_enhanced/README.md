@@ -282,9 +282,180 @@ target_link_libraries(frame_saver
 - **Testing**: Verify frame data integrity
 - **Development**: Visual inspection of processed frames
 
+## Python Bindings
+
+The StreamingClientOp provides Python bindings built with pybind11, enabling use in Python-based Holoscan applications.
+
+### Building Python Bindings
+
+Python bindings are automatically built when `-DHOLOHUB_BUILD_PYTHON=ON` is specified:
+
+```bash
+# Build with Python support
+./holohub build video_streaming_demo_client --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+### Using in Python Applications
+
+**Import the operator:**
+```python
+from holohub.streaming_client_enhanced import StreamingClientOp
+```
+
+**Create operator instance:**
+```python
+from holoscan.core import Application
+from holoscan.resources import UnboundedAllocator, CudaStreamPool
+from holoscan.operators import VideoStreamReplayerOp, FormatConverterOp, HolovizOp
+from holohub.streaming_client_enhanced import StreamingClientOp
+
+class StreamingClientApp(Application):
+    def compose(self):
+        # Create resources
+        allocator = UnboundedAllocator(self, name="allocator")
+        cuda_stream_pool = CudaStreamPool(
+            self,
+            name="cuda_stream_pool",
+            dev_id=0,
+            stream_flags=0,
+            stream_priority=0,
+            reserved_size=1,
+            max_size=5
+        )
+        
+        # Create video source (replayer or V4L2)
+        source_op = VideoStreamReplayerOp(
+            self,
+            name="replayer",
+            directory="/workspace/holohub/data/endoscopy",
+            basename="surgical_video",
+            frame_rate=30,
+            repeat=True,
+            realtime=True,
+            count=0
+        )
+        
+        # Create format converter
+        format_converter = FormatConverterOp(
+            self,
+            name="format_converter",
+            in_dtype="rgb888",
+            out_dtype="rgb888",
+            out_tensor_name="tensor",
+            scale_min=0.0,
+            scale_max=255.0,
+            out_channel_order=[2, 1, 0],  # RGB to BGR
+            pool=allocator,
+            cuda_stream_pool=cuda_stream_pool
+        )
+        
+        # Create streaming client
+        streaming_client = StreamingClientOp(
+            self,
+            allocator,  # Memory allocator for output buffers
+            name="streaming_client",
+            width=854,
+            height=480,
+            fps=30,
+            server_ip="127.0.0.1",
+            signaling_port=48010,
+            send_frames=True,
+            receive_frames=True,
+            min_non_zero_bytes=10
+        )
+        
+        # Optional: Add visualization
+        holoviz = HolovizOp(
+            self,
+            name="holoviz",
+            width=854,
+            height=480,
+            allocator=allocator,
+            cuda_stream_pool=cuda_stream_pool,
+            tensors=[
+                {
+                    "name": "bgra_tensor",
+                    "type": "color",
+                    "image_format": "b8g8r8a8_unorm",
+                    "opacity": 1.0,
+                    "priority": 0
+                }
+            ]
+        )
+        
+        # Connect the pipeline
+        self.add_flow(source_op, format_converter, {("output", "source_video")})
+        self.add_flow(format_converter, streaming_client)
+        self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
+```
+
+### StreamingClientOp Parameters (Python)
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `width` | int | 854 | Frame width in pixels |
+| `height` | int | 480 | Frame height in pixels |
+| `fps` | int | 30 | Frame rate |
+| `server_ip` | str | "127.0.0.1" | Server IP address |
+| `signaling_port` | int | 48010 | Server signaling port |
+| `send_frames` | bool | True | Enable sending frames to server |
+| `receive_frames` | bool | True | Enable receiving frames from server |
+| `min_non_zero_bytes` | int | 10 | Minimum non-zero bytes for frame validation |
+
+**Note:** The first positional argument after `self` should be an `Allocator` resource for output buffer allocation.
+
+### Complete Python Example
+
+A complete working Python client application is available:
+
+**[Python Streaming Client Demo](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/python/streaming_client_demo.py)**
+
+### Running the Python Client
+
+```bash
+# With video replayer (pre-recorded video)
+./holohub run video_streaming_demo_client --language python \
+  --run-args='--port 48010 --source replayer --width 854 --height 480' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --docker-opts='-e EnableHybridMode=1'
+
+# With V4L2 camera (webcam)
+./holohub run video_streaming_demo_client --language python \
+  --run-args='--port 48010 --source v4l2 --width 640 --height 480' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --docker-opts='-e EnableHybridMode=1'
+
+# Without visualization (headless)
+./holohub run video_streaming_demo_client --language python \
+  --run-args='--port 48010 --source replayer --width 854 --height 480 --no-viz' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --docker-opts='-e EnableHybridMode=1'
+```
+
+### Python Integration Test
+
+A comprehensive integration test validates the Python bindings:
+
+```bash
+# Run Python integration test
+cd applications/video_streaming_demo_enhanced
+./integration_test_python.sh
+```
+
+The test validates:
+- Python bindings build successfully
+- Python client connects to Python server
+- Bidirectional streaming works correctly
+- Both processes run for 30+ seconds without errors
+
 ## Testing
 
-Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of the streaming client working with the server.
+Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration tests:
+
+- **C++ Integration Test**: Validates C++ client with C++ server
+- **Python Integration Test**: Validates Python client with Python server (including Python bindings)
+
+Both tests provide comprehensive end-to-end validation of the streaming client working with the server.
 
 ## Related Applications
 
