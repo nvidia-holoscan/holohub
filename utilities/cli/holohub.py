@@ -967,7 +967,7 @@ class HoloHubCLI:
         # Build the project with optional parallel jobs
         build_cmd = ["cmake", "--build", str(build_dir), "--config", build_type]
         # Determine the number of parallel jobs (user input > env var > CPU count):
-        build_njobs = parallel or os.environ.get("CMAKE_BUILD_PARALLEL_LEVEL", str(os.cpu_count()))
+        build_njobs = parallel if parallel is not None else os.environ.get("CMAKE_BUILD_PARALLEL_LEVEL", str(os.cpu_count()))
         build_cmd.extend(["-j", build_njobs])
 
         holohub_cli_util.run_command(build_cmd, dry_run=dryrun)
