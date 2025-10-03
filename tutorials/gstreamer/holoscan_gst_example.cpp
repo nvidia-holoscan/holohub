@@ -106,28 +106,23 @@ class GstSinkOperator : public Operator {
   }
 
   /**
-   * @brief Create a Holoscan tensor from raw data
-   * @param data Raw data pointer
-   * @param size Size of the data in bytes
+   * @brief Create a Holoscan tensor from MappedBuffer using shared memory
+   * @param mapped_buffer Shared pointer to MappedBuffer containing GStreamer data
    * @param height Image height
    * @param width Image width
    * @param context Execution context for GXF operations
    * @return Shared pointer to Holoscan tensor, or nullptr if creation fails
    */
-  std::shared_ptr<holoscan::Tensor> create_tensor(const guint8* data, gsize size, 
+  std::shared_ptr<holoscan::Tensor> create_tensor(std::shared_ptr<MappedBuffer> mapped_buffer,
                                                   int height, int width, 
                                                   ExecutionContext& context) {
     try {
+      // Get the data from the MappedBuffer
+      const guint8* data = mapped_buffer->data();
+      gsize size = mapped_buffer->size();
+      
       // Create a GXF entity to hold our tensor
       auto entity = holoscan::gxf::Entity::New(&context);
-      
-      // Get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
-      auto gxf_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(),
-                                                                             allocator_->gxf_cid());
-      if (!gxf_allocator) {
-          HOLOSCAN_LOG_ERROR("Failed to create GXF allocator handle");
-          return nullptr;
-      }
       
       // Create a GXF tensor with proper memory management
       auto gxf_tensor_result = static_cast<nvidia::gxf::Entity&>(entity).add<nvidia::gxf::Tensor>("image");
@@ -137,18 +132,22 @@ class GstSinkOperator : public Operator {
       }
       auto gxf_tensor = gxf_tensor_result.value();
       
-      // Reshape the tensor to match our image dimensions (HWC format)
-      auto reshape_result = gxf_tensor->reshape<uint8_t>(
-          nvidia::gxf::Shape({height, width, 4}), 
-          nvidia::gxf::MemoryStorageType::kHost, 
-          gxf_allocator.value());
-      if (!reshape_result) {
-          HOLOSCAN_LOG_ERROR("Failed to reshape tensor");
-          return nullptr;
-      }
-      
-      // Copy the data from source to the tensor
-      std::memcpy(gxf_tensor->pointer(), data, size);
+      // Use the GStreamer buffer data directly without copying
+      // Wrap the existing GStreamer memory in a GXF tensor
+      gxf_tensor->wrapMemory(
+          nvidia::gxf::Shape({height, width, 4}),
+          nvidia::gxf::PrimitiveType::kUnsigned8,
+          nvidia::gxf::PrimitiveTypeSize(nvidia::gxf::PrimitiveType::kUnsigned8),
+          nvidia::gxf::ComputeTrivialStrides(
+              nvidia::gxf::Shape({height, width, 4}), 
+              nvidia::gxf::PrimitiveTypeSize(nvidia::gxf::PrimitiveType::kUnsigned8)),
+          nvidia::gxf::MemoryStorageType::kSystem,
+          const_cast<uint8_t*>(data),
+          [mapped_buffer](void*) {
+              // Custom deleter that keeps the MappedBuffer alive
+              // The shared_ptr will automatically manage the lifetime
+              return nvidia::gxf::Success;
+          });
       
       // Convert GXF tensor to DLManagedTensorContext
       auto maybe_dl_ctx = gxf_tensor->toDLManagedTensorContext();
@@ -180,13 +179,13 @@ class GstSinkOperator : public Operator {
         return;
       }
       
-      MappedBuffer mapped_buffer = mapped_buffer_future.get(); // Should not block now
+      std::shared_ptr<MappedBuffer> mapped_buffer = std::make_shared<MappedBuffer>(mapped_buffer_future.get());
 
       // Client-side buffer counting
       buffer_count_++;
 
       // Get the VideoInfo from the MappedBuffer
-      const VideoInfo& video_info = mapped_buffer.get_video_info();
+      const VideoInfo& video_info = mapped_buffer->get_video_info();
 
       // Access GstVideoInfo directly through operator->()
       auto format = video_info->finfo->format;
@@ -211,15 +210,15 @@ class GstSinkOperator : public Operator {
       }
 
       // Demonstrate MappedBuffer for safe data access
-      const guint8* buffer_data = mapped_buffer.data();
-      gsize buffer_size = mapped_buffer.size();
+      const guint8* buffer_data = mapped_buffer->data();
+      gsize buffer_size = mapped_buffer->size();
 
       HOLOSCAN_LOG_DEBUG("Buffer data access: {} bytes mapped at address {}", 
           buffer_size, static_cast<const void*>(buffer_data));
 
       // Demonstrate plane-specific data access
       if (plane_count > 0) {
-        const guint8* plane_0_data = mapped_buffer.get_plane_data(0);
+        const guint8* plane_0_data = mapped_buffer->get_plane_data(0);
         if (plane_0_data) {
           HOLOSCAN_LOG_DEBUG("Plane 0 data accessible at address {}", 
               static_cast<const void*>(plane_0_data));
@@ -234,21 +233,21 @@ class GstSinkOperator : public Operator {
       }
 
       // Demonstrate new validation features (Phase 2 Step 6)
-      bool is_valid = mapped_buffer.validate();
+      bool is_valid = mapped_buffer->validate();
       HOLOSCAN_LOG_INFO("Buffer validation: {}", is_valid ? "PASS" : "FAIL");
 
       // Show detailed validation report (only for first few buffers to avoid spam)
       if (buffer_count_ <= 3) {
-        std::string validation_report = mapped_buffer.get_validation_report();
+        std::string validation_report = mapped_buffer->get_validation_report();
         HOLOSCAN_LOG_INFO("Validation Report:\n{}", validation_report);
       }
 
       // Create a tensor from the buffer data using our helper function
-      auto tensor = create_tensor(buffer_data, buffer_size, height, width, context);
+      auto tensor = create_tensor(mapped_buffer, height, width, context);
       if (tensor) {
           output.emit(tensor, "output");
-          HOLOSCAN_LOG_INFO("Emitted tensor to Holoviz: {}x{}x{} ({} bytes)", 
-                            height, width, 4, buffer_size);
+          HOLOSCAN_LOG_INFO("Emitted tensor to Holoviz: {}x{}x{} (using shared memory)", 
+                            height, width, 4);
       } else {
           HOLOSCAN_LOG_ERROR("Failed to create tensor from buffer data");
       }
