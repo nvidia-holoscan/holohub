@@ -97,7 +97,6 @@ WORKDIR /workspace/holohub
 
 # Set environment variables
 ENV HOLOSCAN_INPUT_PATH=/workspace/data/endoscopy
-ENV PYTHONPATH=/workspace/holohub/applications/streaming_server_demo/python:${PYTHONPATH}
 ENV EnableHybridMode=1
 
 # Default command
