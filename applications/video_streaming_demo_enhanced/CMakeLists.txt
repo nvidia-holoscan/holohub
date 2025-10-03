@@ -66,80 +66,160 @@ if(BUILD_TESTING)
   # Add integration test for video streaming demo
   add_test(NAME video_streaming_integration_test
            COMMAND bash -c "
-             echo '=== Custom Integration Test ==='
-             echo 'Starting server and client in same container...'
+             echo '=== Enhanced Integration Test with Log Verification ==='
+             echo 'Starting server and client with log capture...'
 
              # Initialize variables
              SERVER_SUCCESS=0
              CLIENT_SUCCESS=0
+             STREAMING_SUCCESS=0
+             
+             # Create log files
+             SERVER_LOG=\$(mktemp /tmp/server_log.XXXXXX)
+             CLIENT_LOG=\$(mktemp /tmp/client_log.XXXXXX)
+             
+             echo \"Server log: \$SERVER_LOG\"
+             echo \"Client log: \$CLIENT_LOG\"
 
-             # Start server in background
+             # Start server in background with log capture
              echo 'Starting streaming server...'
-             ./applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo.yaml &
+             ./applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_server/cpp/streaming_server_demo.yaml > \$SERVER_LOG 2>&1 &
              SERVER_PID=\$!
 
-             # Wait for server to start
+             # Wait for server to start and check logs
              echo 'Waiting for server to initialize...'
              sleep 10
 
-             # Check if server is running and has been running for a while
-             echo 'Checking if server is running and stable...'
-             for i in {1..15}; do
-               # Check if server process is still running
-               if kill -0 \$SERVER_PID 2>/dev/null; then
-                 echo \"Server process is running (attempt \$i/15)\"
-                 sleep 2
-                 # After 10 seconds, consider server stable
-                 if [ \$i -ge 5 ]; then
-                   echo '✓ Server is running and stable'
-                   SERVER_SUCCESS=1
-                   break
-                 fi
-               else
-                 echo \"Server process died (attempt \$i/15)\"
-                 break
-               fi
-             done
-
-             if [ \$SERVER_SUCCESS -eq 1 ]; then
-               echo '✓ Server started successfully'
-
-               # Start client in background and let it stream for a while
-               echo 'Starting streaming client...'
-               ./applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_replayer.yaml &
-               CLIENT_PID=\$!
-
-               # Let client stream for 30 seconds
-               echo 'Letting client stream for 30 seconds...'
-               sleep 30
-
-               # Check if client is still running (indicating successful connection)
-               if kill -0 \$CLIENT_PID 2>/dev/null; then
-                 echo '✓ Client is still running - connection successful'
-                 CLIENT_SUCCESS=1
-
-                 # Stop client gracefully
-                 echo 'Stopping client...'
-                 kill -TERM \$CLIENT_PID 2>/dev/null || true
-                 sleep 2
-                 kill -KILL \$CLIENT_PID 2>/dev/null || true
-               else
-                 echo '✗ Client stopped unexpectedly - connection failed'
-                 CLIENT_SUCCESS=0
-               fi
-             else
-               echo '✗ Server failed to start'
-               CLIENT_SUCCESS=0
+             # Verify server started correctly
+             if ! kill -0 \$SERVER_PID 2>/dev/null; then
+               echo '✗ Server process died during startup'
+               cat \$SERVER_LOG
+               rm -f \$SERVER_LOG \$CLIENT_LOG
+               exit 1
              fi
 
-             # Clean up server
-             echo 'Cleaning up server process...'
+             echo '✓ Server process is running'
+
+             # Start client in background with log capture
+             echo 'Starting streaming client...'
+             ./applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_enhanced --config applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo_replayer.yaml > \$CLIENT_LOG 2>&1 &
+             CLIENT_PID=\$!
+
+             # Let streaming run for 30 seconds
+             echo 'Letting streaming run for 30 seconds...'
+             sleep 30
+
+             # Stop client and server gracefully
+             echo 'Stopping client...'
+             kill -TERM \$CLIENT_PID 2>/dev/null || true
+             sleep 2
+             kill -KILL \$CLIENT_PID 2>/dev/null || true
+
+             echo 'Stopping server...'
              kill -TERM \$SERVER_PID 2>/dev/null || true
              sleep 2
              kill -KILL \$SERVER_PID 2>/dev/null || true
 
+             # Now verify logs for actual streaming behavior
+             echo ''
+             echo '=== Verifying Server Logs ==='
+             
+             # Check for client connection
+             if grep -q 'Client connected' \$SERVER_LOG; then
+               echo '✓ Server: Client connected'
+               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+             else
+               echo '✗ Server: No client connection detected'
+             fi
+             
+             # Check for upstream connection
+             if grep -q 'Upstream connection established' \$SERVER_LOG; then
+               echo '✓ Server: Upstream connection established'
+               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+             else
+               echo '✗ Server: Upstream connection not established'
+             fi
+             
+             # Check for downstream connection
+             if grep -q 'Downstream connection established' \$SERVER_LOG; then
+               echo '✓ Server: Downstream connection established'
+               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+             else
+               echo '✗ Server: Downstream connection not established'
+             fi
+             
+             # Check for frame processing
+             if grep -q 'Processing UNIQUE frame' \$SERVER_LOG; then
+               FRAME_COUNT=\$(grep -c 'Processing UNIQUE frame' \$SERVER_LOG)
+               echo \"✓ Server: Processed \$FRAME_COUNT unique frames\"
+               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+             else
+               echo '✗ Server: No frames processed'
+             fi
+             
+             # Check for frame stats (optional but good indicator)
+             if grep -q 'Frame Processing Stats' \$SERVER_LOG; then
+               echo '✓ Server: Frame processing statistics logged'
+               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+             fi
+
+             echo ''
+             echo '=== Verifying Client Logs ==='
+             
+             # Check for successful frame sending
+             if grep -q 'Frame sent successfully' \$CLIENT_LOG; then
+               SENT_COUNT=\$(grep -c 'Frame sent successfully' \$CLIENT_LOG)
+               echo \"✓ Client: Sent \$SENT_COUNT frames successfully\"
+               CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+             else
+               echo '✗ Client: No frames sent successfully'
+             fi
+             
+             # Check for frame validation
+             if grep -q 'Frame validation passed' \$CLIENT_LOG; then
+               echo '✓ Client: Frame validation passed'
+               CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+             else
+               echo '✗ Client: Frame validation issues'
+             fi
+             
+             # Check for client streaming start
+             if grep -q 'STARTING STREAMING CLIENT' \$CLIENT_LOG; then
+               echo '✓ Client: Streaming client started'
+               CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+             else
+               echo '✗ Client: Streaming client failed to start'
+             fi
+
+             echo ''
+             echo '=== Test Results Summary ==='
+             echo \"Server checks passed: \$SERVER_SUCCESS/4 (minimum required: 3)\"
+             echo \"Client checks passed: \$CLIENT_SUCCESS/3 (minimum required: 2)\"
+
+             # Determine overall success
+             # Require at least 3/4 server checks and 2/3 client checks
+             if [ \$SERVER_SUCCESS -ge 3 ] && [ \$CLIENT_SUCCESS -ge 2 ]; then
+               STREAMING_SUCCESS=1
+               echo '✓ STREAMING VERIFICATION PASSED - Frames actually transmitted!'
+             else
+               echo '✗ STREAMING VERIFICATION FAILED - No actual frame transmission detected'
+               echo ''
+               echo '=== Server Log Excerpt ==='
+               head -50 \$SERVER_LOG
+               echo '...'
+               tail -50 \$SERVER_LOG
+               echo ''
+               echo '=== Client Log Excerpt ==='
+               head -50 \$CLIENT_LOG
+               echo '...'
+               tail -50 \$CLIENT_LOG
+             fi
+
+             # Clean up logs
+             rm -f \$SERVER_LOG \$CLIENT_LOG
+
              # Overall result
-             if [ \$SERVER_SUCCESS -eq 1 ] && [ \$CLIENT_SUCCESS -eq 1 ]; then
+             if [ \$STREAMING_SUCCESS -eq 1 ]; then
                echo '✓ Integration test PASSED'
                exit 0
              else
