@@ -23,6 +23,108 @@
 namespace holoscan {
 namespace gst {
 
+// ============================================================================
+// Iterator Implementation
+// ============================================================================
+
+Iterator::Iterator(::GstIterator* iterator) 
+    : iterator_(iterator), current_item_(G_VALUE_INIT), last_result_(GST_ITERATOR_OK) {
+  // Immediately advance to first item if iterator is valid
+  if (iterator_) {
+    last_result_ = gst_iterator_next(iterator_, &current_item_);
+  } else {
+    last_result_ = GST_ITERATOR_ERROR;
+  }
+}
+
+Iterator::~Iterator() {
+  // Always unset the GValue since we initialize it in constructor
+  g_value_unset(&current_item_);
+  if (iterator_) {
+    gst_iterator_free(iterator_);
+  }
+}
+
+Iterator::Iterator(Iterator&& other) noexcept 
+    : iterator_(other.iterator_), 
+      current_item_(other.current_item_),
+      last_result_(other.last_result_) {
+  other.iterator_ = nullptr;
+  other.current_item_ = G_VALUE_INIT;
+}
+
+Iterator& Iterator::operator=(Iterator&& other) noexcept {
+  if (this != &other) {
+    // Clean up current state
+    g_value_unset(&current_item_);
+    if (iterator_) {
+      gst_iterator_free(iterator_);
+    }
+    
+    // Move from other
+    iterator_ = other.iterator_;
+    current_item_ = other.current_item_;
+    last_result_ = other.last_result_;
+    
+    // Reset other
+    other.iterator_ = nullptr;
+    other.current_item_ = G_VALUE_INIT;
+  }
+  return *this;
+}
+
+void Iterator::operator++() {
+  if (!iterator_) {
+    throw std::runtime_error("Cannot advance invalid iterator");
+  }
+  
+  // Reset previous value and advance to next
+  g_value_reset(&current_item_);
+  last_result_ = gst_iterator_next(iterator_, &current_item_);
+}
+
+const ::GValue& Iterator::operator*() const {
+  return current_item_;
+}
+
+Iterator::operator bool() const {
+  return iterator_ != nullptr && last_result_ == GST_ITERATOR_OK;
+}
+
+
+// ============================================================================
+// RAII Guard Implementations
+// ============================================================================
+
+template<typename T>
+GstObjectGuard<T> make_gst_object_guard(T* object) {
+  return std::shared_ptr<T>(object, [](T* obj) {
+    if (obj) {
+      gst_object_unref(obj);
+    }
+  });
+}
+
+// Explicit template instantiations for common types
+template GstObjectGuard<GstElement> make_gst_object_guard<GstElement>(GstElement* object);
+template GstObjectGuard<GstBus> make_gst_object_guard<GstBus>(GstBus* object);
+
+GstMessageGuard make_gst_message_guard(GstMessage* message) {
+  return std::shared_ptr<GstMessage>(message, [](GstMessage* msg) {
+    if (msg) {
+      gst_message_unref(msg);
+    }
+  });
+}
+
+GstErrorGuard make_gst_error_guard(GError* error) {
+  return std::shared_ptr<GError>(error, [](GError* err) {
+    if (err) {
+      g_error_free(err);
+    }
+  });
+}
+
 namespace {
 // Helper function to extract media type from caps (internal use only)
 const char* get_media_type_from_caps(::GstCaps* caps) {

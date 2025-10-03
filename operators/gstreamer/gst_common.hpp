@@ -30,6 +30,7 @@ namespace holoscan {
 namespace gst {
 
 // Forward declarations
+class Iterator;
 class Caps;
 class VideoInfo;
 class AudioInfo;
@@ -39,6 +40,62 @@ class MapInfo;
 // ============================================================================
 // RAII Guards for GStreamer Objects
 // ============================================================================
+
+/**
+ * @brief RAII wrapper for GstIterator with automatic cleanup and C++ iterator interface
+ *
+ * This class provides safe access to GStreamer iterators by automatically handling
+ * the cleanup lifecycle and providing a C++-style iterator interface.
+ */
+class Iterator {
+public:
+  /**
+   * @brief Constructor that takes ownership of a GstIterator
+   * @param iterator GstIterator to wrap (takes ownership, can be nullptr)
+   */
+  explicit Iterator(::GstIterator* iterator);
+
+  /**
+   * @brief Destructor automatically frees the iterator
+   */
+  ~Iterator();
+
+  // Delete copy operations to prevent double free
+  Iterator(const Iterator&) = delete;
+  Iterator& operator=(const Iterator&) = delete;
+
+  // Allow move operations
+  Iterator(Iterator&& other) noexcept;
+  Iterator& operator=(Iterator&& other) noexcept;
+
+
+  /**
+   * @brief Advance iterator to next item (prefix increment)
+   */
+  void operator++();
+  
+
+  /**
+   * @brief Get current item from iterator
+   * @return Reference to current GValue (only valid when iterator is valid)
+   */
+  const ::GValue& operator*() const;
+
+  
+  /**
+   * @brief Boolean conversion operator - check if current item is valid
+   * @return true if current item can be safely accessed
+   */
+  explicit operator bool() const;
+
+
+
+private:
+  ::GstIterator* iterator_;
+  ::GValue current_item_;
+  ::GstIteratorResult last_result_;
+};
+
 
 /**
  * @brief RAII wrapper for GStreamer objects with automatic cleanup
@@ -54,13 +111,7 @@ using GstObjectGuard = std::shared_ptr<T>;
  * @return Shared pointer that will automatically unref the object when destroyed
  */
 template<typename T>
-inline GstObjectGuard<T> make_gst_object_guard(T* object) {
-  return std::shared_ptr<T>(object, [](T* obj) {
-    if (obj) {
-      gst_object_unref(obj);
-    }
-  });
-}
+GstObjectGuard<T> make_gst_object_guard(T* object);
 
 /**
  * @brief Convenience alias for GstElement guard
@@ -82,13 +133,7 @@ using GstMessageGuard = std::shared_ptr<GstMessage>;
  * @param message The GstMessage to wrap (takes ownership)
  * @return Shared pointer that will automatically unref the message when destroyed
  */
-inline GstMessageGuard make_gst_message_guard(GstMessage* message) {
-  return std::shared_ptr<GstMessage>(message, [](GstMessage* msg) {
-    if (msg) {
-      gst_message_unref(msg);
-    }
-  });
-}
+GstMessageGuard make_gst_message_guard(GstMessage* message);
 
 /**
  * @brief RAII wrapper for GError with automatic cleanup
@@ -100,13 +145,7 @@ using GstErrorGuard = std::shared_ptr<GError>;
  * @param error The GError to wrap (takes ownership)
  * @return Shared pointer that will automatically free the error when destroyed
  */
-inline GstErrorGuard make_gst_error_guard(GError* error) {
-  return std::shared_ptr<GError>(error, [](GError* err) {
-    if (err) {
-      g_error_free(err);
-    }
-  });
-}
+GstErrorGuard make_gst_error_guard(GError* error);
 
 // ============================================================================
 // RAII Wrappers for GStreamer Objects
