@@ -1,0 +1,40 @@
+{
+  "application": {
+    "name": "GStreamer to Holoviz",
+    "authors": [
+      {
+        "name": "Holoscan Team",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "language": "C++",
+    "version": "1.0",
+    "changelog": {
+      "1.0": "Initial Release"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "3.0.0",
+      "tested_versions": [
+        "3.6.0"
+      ]
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": ["GStreamer", "Video", "Visualization", "Holoviz", "Video Stream Processing"],
+    "ranking": 3,
+    "requirements": {
+      "gstreamer": {
+        "type": "dependency",
+        "name": "GStreamer",
+        "description": "GStreamer multimedia framework (version 1.0+)",
+        "url": "https://gstreamer.freedesktop.org/"
+      }
+    },
+    "run": {
+      "command": "./gst-to-holoviz --caps \"video/x-raw,format=RGBA\" --pipeline \"videotestsrc pattern=0 ! videoconvert name=last\"",
+      "workdir": "applications/gstreamer/gst_to_holoviz/build"
+    }
+  }
+}
