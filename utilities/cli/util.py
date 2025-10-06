@@ -28,6 +28,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
+DEFAULT_BASE_SDK_VERSION = "3.7.0"
+
 PROJECT_PREFIXES = {
     "application": "APP",
     "benchmark": "APP",
@@ -314,25 +316,107 @@ def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.
         fatal(f"Could not determine nvidia-ctk version. Version {min_version}+ required.")
 
 
+def get_gpu_name() -> Optional[str]:
+    """
+    Helper function to get GPU name from nvidia-smi.  Returns None if nvidia-smi is not available.
+    """
+    if not shutil.which("nvidia-smi"):
+        return None
+    try:
+        output = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+        return output.strip() if output else None
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
 def get_host_gpu() -> str:
     """Determine if running on dGPU or iGPU"""
-    if not shutil.which("nvidia-smi"):
+    gpu_name = get_gpu_name()
+    if gpu_name is None:
         print(
             "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack.",
             file=sys.stderr,
         )
         return "dgpu"
 
-    try:
-        output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"]
-        )
-        if not output or "Orin (nvgpu)" in output.decode():
-            return "igpu"
-    except subprocess.CalledProcessError:
-        return "dgpu"
-
+    # Check for iGPU (Orin integrated GPU)
+    if "Orin (nvgpu)" in gpu_name:
+        return "igpu"
     return "dgpu"
+
+
+def get_default_cuda_version() -> str:
+    """
+    Get default CUDA version based on NVIDIA driver version.
+
+    Returns:
+        - "13" if driver version >= 580 or if nvidia-smi is not available
+        - "12" if driver version < 580
+    """
+    # Default to CUDA 13 if nvidia-smi is not available
+    if not shutil.which("nvidia-smi"):
+        warn("nvidia-smi not found, default CUDA version is 13")
+        return "13"
+
+    # Check the driver version using nvidia-smi
+    driver_version = run_info_command(
+        ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"]
+    )
+
+    if not driver_version:
+        warn("Unable to detect NVIDIA driver version, default CUDA version is 13")
+        return "13"
+
+    try:
+        driver_major_version = int(driver_version.split(".")[0])
+        if driver_major_version >= 580:
+            return "13"
+        else:
+            return "12"
+    except (ValueError, IndexError):
+        warn(f"Unable to parse driver version '{driver_version}', default CUDA version is 13")
+        return "13"
+
+
+def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: str = "3.6.1") -> str:
+    """
+    Determine the CUDA container tag based on CUDA version and GPU type.
+
+    SDK version support:
+    - SDK < 3.6.1: Old format (dgpu/igpu)
+    - SDK == 3.6.1: only cuda13-dgpu available
+    - SDK >= 3.7.0: Full CUDA support
+      - cuda13: CUDA 13 (x86_64, Jetson Thor)
+      - cuda12-dgpu: CUDA 12 dGPU (x86_64, IGX Orin dGPU, Clara AGX dGPU, GH200)
+      - cuda12-igpu: CUDA 12 iGPU (Jetson Orin, IGX Orin iGPU, Clara AGX iGPU)
+
+    Args:
+        cuda_version: CUDA major version (e.g., 12, 13). If None, uses platform default.
+        sdk_version: SDK version string (e.g., "3.6.0", "3.6.1", "3.7.0").
+
+    Returns:
+        The appropriate container tag string
+    """
+    try:
+        sdk_ver = parse_semantic_version(sdk_version)
+    except (ValueError, IndexError):
+        sdk_ver = parse_semantic_version(DEFAULT_BASE_SDK_VERSION)
+    if sdk_ver < (3, 6, 1):
+        return get_host_gpu()
+    if sdk_ver == (3, 6, 1):
+        return "cuda13-dgpu"
+    if cuda_version is None:
+        cuda_version = get_default_cuda_version()
+    cuda_str = str(cuda_version)
+    if cuda_str == "13":
+        return "cuda13"
+    if cuda_str == "12":
+        return f"cuda12-{get_host_gpu()}"
+    return f"cuda{cuda_str}-{get_host_gpu()}"
 
 
 def get_host_arch() -> str:
