@@ -110,6 +110,8 @@ Run the following command to build the development container for a given project
 ./holohub build-container [project_name]
 ```
 
+For Holoscan SDK v3.6.1 and later, you can specify the CUDA version using the `--cuda` option (e.g., `--cuda 12` or `--cuda 13`), which automatically selects the appropriate container tag and passes the CUDA version as a build argument.
+
 Check to verify that the image is created:
 
 ```sh
