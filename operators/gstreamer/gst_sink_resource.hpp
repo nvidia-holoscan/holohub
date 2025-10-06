@@ -97,6 +97,21 @@ class SinkResource : public holoscan::Resource {
    */
   holoscan::gst::Caps get_caps() const;
 
+  /**
+   * @brief Create a GXF Entity with tensor(s) from GStreamer buffer with zero-copy
+   * 
+   * Supports both packed formats (RGBA, RGB) and planar formats (I420, NV12).
+   * For multi-plane formats, creates separate tensors with naming convention:
+   *   - "video_frame" for Y/luma plane
+   *   - "video_frame_u", "video_frame_v" for chroma planes (I420)
+   *   - "video_frame_uv" for interleaved chroma (NV12)
+   * 
+   * @param context Execution context for GXF operations
+   * @param buffer GStreamer buffer containing the data
+   * @return GXF Entity containing one or more tensors, empty entity on failure
+   */
+  holoscan::gxf::Entity create_entity_from_buffer(holoscan::ExecutionContext& context,
+                                                   const holoscan::gst::Buffer& buffer) const;
 
   // Static member functions for GStreamer callbacks
   static ::GstCaps* get_caps_callback(::GstBaseSink *sink, ::GstCaps *filter);

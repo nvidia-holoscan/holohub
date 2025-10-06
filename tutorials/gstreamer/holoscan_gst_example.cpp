@@ -5,319 +5,24 @@
 #include <cstdint>
 
 #include <gst/gst.h>
-#include <gst/cuda/gstcudamemory.h>
-#include <dlpack/dlpack.h>
-#include <cuda_runtime.h>
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
-#include <gxf/std/tensor.hpp>
 #include "../../operators/gstreamer/gst_sink_resource.hpp"
 
 using namespace holoscan;
 using namespace holoscan::gst;
 
-// Convenient constant for mapping CUDA memory for reading
-constexpr ::GstMapFlags GST_MAP_READ_CUDA = static_cast<::GstMapFlags>(GST_MAP_READ | GST_MAP_CUDA);
-
 /**
- * @brief Convert CUDA memory type to DLPack device type
- * @param cuda_memory_type CUDA memory type from cudaPointerAttributes
- * @return Corresponding DLDeviceType
+ * GstSinkOperator - Operator for bridging GStreamer data into Holoscan
  */
-DLDeviceType cuda_memory_type_to_dldevice_type(cudaMemoryType cuda_memory_type) {
-  switch (cuda_memory_type) {
-    case cudaMemoryTypeHost:
-      return kDLCUDAHost;     // CUDA pinned memory
-    case cudaMemoryTypeDevice:
-      return kDLCUDA;         // True CUDA device memory
-    case cudaMemoryTypeManaged:
-      return kDLCUDAManaged;  // CUDA managed/unified memory
-    case cudaMemoryTypeUnregistered:
-      return kDLCPU;          // Regular host memory
-    default:
-      return kDLCPU;          // Unknown -> treat as CPU
-  }
-}
-
-/**
- * @brief Convert GStreamer video format info to GXF PrimitiveType
- * @param video_format_info GStreamer video format info structure
- * @return Corresponding GXF PrimitiveType
- */
-nvidia::gxf::PrimitiveType gstreamer_format_to_primitive_type(const GstVideoFormatInfo* video_format_info) {
-  if (!video_format_info) {
-    HOLOSCAN_LOG_WARN("Invalid video format info, defaulting to kUnsigned8");
-    return nvidia::gxf::PrimitiveType::kUnsigned8;
-  }
-
-  // Calculate bytes per component from bits per component
-  guint bits_per_component = video_format_info->depth[0];  // Bits per first component
-  guint bytes_per_component = (bits_per_component + 7) / 8;  // Round up to nearest byte
-
-  // Determine GXF primitive type based on bytes per component
-  // This follows the same pattern as GXF VideoFormat to PrimitiveType conversion
-  switch (bytes_per_component) {
-    case 1:
-      return nvidia::gxf::PrimitiveType::kUnsigned8;
-    case 2:
-      return nvidia::gxf::PrimitiveType::kUnsigned16;
-    case 4:
-      // For video formats, 4-byte components are typically unsigned integers
-      // Float formats are rare in video and would need special handling
-      return nvidia::gxf::PrimitiveType::kUnsigned32;
-    case 8:
-      return nvidia::gxf::PrimitiveType::kFloat64;
-    default:
-      HOLOSCAN_LOG_WARN("Unsupported component size: {} bytes, defaulting to kUnsigned8", 
-                       bytes_per_component);
-      return nvidia::gxf::PrimitiveType::kUnsigned8;
-  }
-}
-
-/**
- * @brief Accurately detect CUDA memory type using CUDA API
- * @param ptr Pointer to check
- * @return DLDeviceType corresponding to the memory type
- */
-DLDeviceType detect_cuda_memory_type(void* ptr) {
-  if (!ptr) {
-    return kDLCPU;  // Treat null pointer as CPU memory
-  }
-
-  cudaPointerAttributes attributes;
-  cudaError_t result = cudaPointerGetAttributes(&attributes, ptr);
-  
-  if (result != cudaSuccess) {
-    // Reset the CUDA error state
-    cudaGetLastError();
-    return kDLCPU;  // Treat non-CUDA memory as CPU memory
-  }
-
-  return cuda_memory_type_to_dldevice_type(attributes.type);
-}
-
-namespace {
-
-/**
- * @brief Helper function to map GStreamer memory with the specified flags
- * @param memory GStreamer memory block to map
- * @param map_info Output map info structure
- * @param flags Mapping flags (GST_MAP_READ, GST_MAP_READ_CUDA, etc.)
- * @param mapped_device_type Output device type detected by CUDA API
- * @param storage_type Output GXF storage type based on device type
- * @param data_ptr Output pointer to mapped data
- * @param size Output size of mapped data
- * @return true if mapping succeeded, false otherwise
- */
-bool map_gst_memory(::GstMemory* memory, ::GstMapInfo& map_info, ::GstMapFlags flags,
-                    DLDeviceType& mapped_device_type, nvidia::gxf::MemoryStorageType& storage_type,
-                    void*& data_ptr, gsize& size) {
-  if (!gst_memory_map(memory, &map_info, flags)) {
-    return false;
-  }
-  
-  // Use CUDA API to accurately detect the memory type
-  mapped_device_type = detect_cuda_memory_type(map_info.data);
-  
-  // Set storage type based on actual device type
-  if (mapped_device_type == kDLCUDA || mapped_device_type == kDLCUDAManaged) {
-    storage_type = nvidia::gxf::MemoryStorageType::kDevice;
-  } else if (mapped_device_type == kDLCUDAHost) {
-    storage_type = nvidia::gxf::MemoryStorageType::kHost;  // CUDA pinned memory
-  } else {
-    storage_type = nvidia::gxf::MemoryStorageType::kSystem;  // Regular CPU memory
-  }
-  
-  data_ptr = map_info.data;
-  size = map_info.size;
-  
-  return true;
-}
-
-/**
- * @brief Create a Holoscan tensor from GStreamer buffer with optimal memory handling
- * @param buffer GStreamer buffer containing the data
- * @param caps GStreamer capabilities containing format and memory type information
- * @param context Execution context for GXF operations
- * @return Shared pointer to Holoscan tensor, or nullptr if creation fails
- */
-std::shared_ptr<holoscan::Tensor> create_tensor(const Buffer& buffer, 
-                                                const Caps& caps,
-                                                ExecutionContext& context) {
-  // Validate caps
-  if (caps.is_empty()) {
-    HOLOSCAN_LOG_ERROR("No caps available for buffer");
-    return nullptr;
-  }
-  
-  try {
-    auto video_info_opt = caps.get_video_info();
-    if (!video_info_opt) {
-      HOLOSCAN_LOG_ERROR("Cannot get video info from caps");
-      return nullptr;
-    }
-    const VideoInfo& video_info = *video_info_opt;
-    
-    // Get dimensions and format info from video info
-    int width = video_info->width;
-    int height = video_info->height;
-    auto format = video_info->finfo->format;
-    auto plane_count = video_info->finfo->n_planes;
-    auto total_size = video_info.get_total_size();
-    
-    // Extract format-specific information for tensor creation
-    guint n_components = GST_VIDEO_INFO_N_COMPONENTS(video_info.get());
-    guint bits_per_component = GST_VIDEO_INFO_COMP_DEPTH(video_info.get(), 0);  // Bits per first component
-    guint bytes_per_component = (bits_per_component + 7) / 8;  // Round up to nearest byte
-    
-    // Determine GXF primitive type from GStreamer format info
-    nvidia::gxf::PrimitiveType primitive_type = gstreamer_format_to_primitive_type(video_info->finfo);
-    
-    // Get the first memory block from the GstBuffer
-    ::GstMemory* memory = gst_buffer_peek_memory(buffer.get(), 0);
-    if (!memory) {
-      HOLOSCAN_LOG_ERROR("No memory found in GstBuffer");
-      return nullptr;
-    }
-
-    // Unified mapping approach for both CUDA and CPU memory
-    ::GstMapInfo map_info;
-    void* data_ptr = nullptr;
-    gsize size = 0;
-    DLDeviceType mapped_device_type = kDLCPU;
-    nvidia::gxf::MemoryStorageType storage_type = nvidia::gxf::MemoryStorageType::kSystem;
-    
-    // Extract information from caps
-    bool caps_indicate_cuda_memory = caps.has_feature(GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY);
-    HOLOSCAN_LOG_INFO("Tensor creation: {}x{} {} ({} components, {} bits/comp, {} planes, {} bytes total), caps_indicate_cuda_memory={}", 
-                      width, height, gst_video_format_to_string(format),
-                      n_components, bits_per_component, plane_count, total_size, caps_indicate_cuda_memory);
-    
-    bool memory_mapped = false;
-    
-    // Try CUDA mapping first if caps indicate CUDA memory
-    if (caps_indicate_cuda_memory) {
-      if (map_gst_memory(memory, map_info, GST_MAP_READ_CUDA, mapped_device_type, storage_type, data_ptr, size)) {
-        memory_mapped = true;
-      }
-    }
-    
-    // If CUDA mapping failed or we're dealing with CPU memory, use host mapping
-    if (!memory_mapped) {
-      if (!map_gst_memory(memory, map_info, GST_MAP_READ, mapped_device_type, storage_type, data_ptr, size)) {
-        HOLOSCAN_LOG_ERROR("Failed to map memory with CPU flags");
-        return nullptr;
-      }
-    }
-    
-    // Unified logging for all mapping scenarios
-    const char* mapping_result;
-    if (caps_indicate_cuda_memory) {
-      mapping_result = memory_mapped ? "✅ CUDA mapping succeeded" : "⚠️  CUDA mapping failed, using CPU fallback";
-    } else {
-      mapping_result = "✅ CPU mapping succeeded";
-    }
-    
-    HOLOSCAN_LOG_INFO("{}: device_type={}, pointer={}, size={} bytes", 
-                     mapping_result, static_cast<int>(mapped_device_type),
-                     static_cast<void*>(map_info.data), map_info.size);
-    
-    HOLOSCAN_LOG_INFO("Buffer info: {}x{}, buffer_size={}", 
-                      width, height, size);
-    
-    // Check if CUDA memory was mapped to CPU (zero-copy warning)
-    if (mapped_device_type == kDLCUDA || mapped_device_type == kDLCUDAHost || mapped_device_type == kDLCUDAManaged) {
-      if (!memory_mapped || !caps_indicate_cuda_memory) {
-        HOLOSCAN_LOG_WARN("CUDA memory was mapped to CPU - true zero-copy not achieved (device_type={})", 
-                         static_cast<int>(mapped_device_type));
-      }
-    }
-    
-    // Create a GXF entity to hold our tensor
-    auto entity = holoscan::gxf::Entity::New(&context);
-    
-    // Create a GXF tensor with proper memory management
-    auto gxf_tensor_result = static_cast<nvidia::gxf::Entity&>(entity).add<nvidia::gxf::Tensor>("image");
-    if (!gxf_tensor_result) {
-        HOLOSCAN_LOG_ERROR("Failed to add tensor to entity");
-        gst_memory_unmap(memory, &map_info);
-        return nullptr;
-    }
-    auto gxf_tensor = gxf_tensor_result.value();
-    
-    // Use actual GStreamer strides - must match the wrapped memory layout
-    // GXF requires std::array<size_t, 8> for up to 8-dimensional tensors
-    std::array<size_t, 8> tensor_strides{{
-      static_cast<size_t>(video_info.get_plane_stride(0)),                    // Row stride from GStreamer
-      static_cast<size_t>(video_info->finfo->pixel_stride[0]),                // Pixel stride from GStreamer
-      static_cast<size_t>(GST_VIDEO_INFO_COMP_PSTRIDE(video_info.get(), 0)),  // Component stride from GStreamer
-      0, 0, 0, 0, 0  // Unused dimensions (4-8) set to 0
-    }};
-    
-    HOLOSCAN_LOG_INFO("Tensor strides: row={}, pixel={}, component={}", 
-                      tensor_strides[0], tensor_strides[1], tensor_strides[2]);
-    
-    HOLOSCAN_LOG_INFO("Tensor format: {}x{}x{} components, primitive_type={}, element_size={} bytes", 
-                      height, width, n_components, 
-                      static_cast<int>(primitive_type), bytes_per_component);
-        
-    HOLOSCAN_LOG_INFO("Creating tensor with storage type: {} (caps_indicate_cuda_memory={}, device_type={})", 
-                      (storage_type == nvidia::gxf::MemoryStorageType::kDevice) ? "kDevice" : 
-                      (storage_type == nvidia::gxf::MemoryStorageType::kHost) ? "kHost" : "kSystem",
-                      caps_indicate_cuda_memory, static_cast<int>(mapped_device_type));
-        
-    // Create deleter for memory unmapping - captures buffer to keep it alive
-    // The Buffer object must outlive the mapped memory to prevent GStreamer reference counting issues
-    std::function<nvidia::gxf::Expected<void>(void*)> deleter = [buffer, memory, map_info](void*) mutable {
-      // Unmap the GstMemory for both CUDA and CPU paths
-      gst_memory_unmap(memory, const_cast<::GstMapInfo*>(&map_info));
-      // Buffer will be destroyed here when deleter is called, properly cleaning up references
-      return nvidia::gxf::Success;
-    };
-    
-    gxf_tensor->wrapMemory(
-        nvidia::gxf::Shape({static_cast<int32_t>(height), static_cast<int32_t>(width), static_cast<int32_t>(n_components)}),
-        primitive_type,
-        nvidia::gxf::PrimitiveTypeSize(primitive_type),
-        tensor_strides,
-        storage_type,
-        static_cast<uint8_t*>(data_ptr),
-        deleter);
-    
-    // Convert GXF tensor to DLManagedTensorContext
-    auto maybe_dl_ctx = gxf_tensor->toDLManagedTensorContext();
-    if (!maybe_dl_ctx) {
-        HOLOSCAN_LOG_ERROR("Failed to convert GXF tensor to DLManagedTensorContext");
-        gst_memory_unmap(memory, &map_info);
-        return nullptr;
-    }
-    
-    // Create Holoscan tensor from DLManagedTensorContext
-    auto tensor = std::make_shared<holoscan::Tensor>(maybe_dl_ctx.value());
-    
-    // Log final tensor device information
-    auto tensor_device = tensor->device();
-    HOLOSCAN_LOG_INFO("Created tensor: device_type={}, device_id={}", 
-                      static_cast<int>(tensor_device.device_type), tensor_device.device_id);
-    
-    return tensor;
-    
-  } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Failed to create tensor: {}", e.what());
-    return nullptr;
-  }
-}
-
-}  // namespace
-
 class GstSinkOperator : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(GstSinkOperator)
 
 
   void setup(OperatorSpec& spec) override {
-    /// Add output for video frames to Holoviz
-    spec.output<holoscan::Tensor>("output");
+    /// Add output for video frames to Holoviz (Entity can contain multiple tensors/planes)
+    spec.output<holoscan::gxf::Entity>("output");
 
     /// Add parameters to the operator spec
     spec.param(gst_sink_resource_, "gst_sink_resource", "GStreamerSink", "GStreamer sink resource object");
@@ -335,13 +40,13 @@ class GstSinkOperator : public Operator {
     /// Get the buffer
     Buffer buffer = buffer_future.get();
 
-    // Create tensor using unified function that extracts all needed info from caps
-    std::shared_ptr<holoscan::Tensor> tensor = create_tensor(buffer, gst_sink_resource_.get()->get_caps(), context);
-    if (!tensor) {
-      HOLOSCAN_LOG_ERROR("Failed to create tensor from buffer data");
+    // Create entity with tensor(s) - supports both packed (RGBA) and planar (I420, NV12) formats
+    auto entity = gst_sink_resource_.get()->create_entity_from_buffer(context, buffer);
+    if (!entity) {
+      HOLOSCAN_LOG_ERROR("Failed to create entity from buffer data");
       return;
     }
-    output.emit(tensor, "output");
+    output.emit(entity, "output");
   }
 
  private:
@@ -371,12 +76,16 @@ class GstSinkApp : public Application {
 
     // Create Holoviz operator for video visualization
     // Note: Resolution will be determined dynamically from GStreamer pipeline
+    // The input spec matches the tensor name "video_frame" from create_tensor_wrapper
+    ops::HolovizOp::InputSpec video_input("video_frame", ops::HolovizOp::InputType::COLOR);
+    // For YUV formats, set image_format_ appropriately:
+    // video_input.image_format_ = ops::HolovizOp::ImageFormat::Y8_U8V8_3PLANE_420_UNORM;  // For I420
+    // video_input.image_format_ = ops::HolovizOp::ImageFormat::Y8_U8V8_2PLANE_420_UNORM;  // For NV12
+    
     auto holoviz = make_operator<ops::HolovizOp>(
         "holoviz",
         Arg("allocator", make_resource<UnboundedAllocator>("holoviz_allocator")),
-        Arg("tensors", std::vector<ops::HolovizOp::InputSpec>{
-            ops::HolovizOp::InputSpec("", ops::HolovizOp::InputType::COLOR)
-        })
+        Arg("tensors", std::vector<ops::HolovizOp::InputSpec>{video_input})
     );
 
     // Add operators to the application
