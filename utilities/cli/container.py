@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 from .util import (
+    DEFAULT_BASE_SDK_VERSION,
     build_holohub_path_mapping,
     check_nvidia_ctk,
     docker_args_to_devcontainer_format,
@@ -66,7 +67,7 @@ class HoloHubContainer:
 
     # SDK and path configuration
     SDK_PATH = os.environ.get("HOLOHUB_SDK_PATH", "/opt/nvidia/holoscan")
-    BASE_SDK_VERSION = os.environ.get("HOLOHUB_BASE_SDK_VERSION", "3.6.0")
+    BASE_SDK_VERSION = os.environ.get("HOLOHUB_BASE_SDK_VERSION", DEFAULT_BASE_SDK_VERSION)
     BENCHMARKING_SUBDIR = os.environ.get(
         "HOLOHUB_BENCHMARKING_SUBDIR", "benchmarks/holoscan_flow_benchmarking"
     )

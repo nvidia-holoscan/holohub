@@ -28,6 +28,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
+DEFAULT_BASE_SDK_VERSION = "3.7.0"
+
 PROJECT_PREFIXES = {
     "application": "APP",
     "benchmark": "APP",
@@ -385,7 +387,7 @@ def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: st
     try:
         sdk_ver = parse_semantic_version(sdk_version)
     except (ValueError, IndexError):
-        sdk_ver = (3, 7, 0)
+        sdk_ver = parse_semantic_version(DEFAULT_BASE_SDK_VERSION)
     if sdk_ver < (3, 6, 1):
         return get_host_gpu()
     if sdk_ver == (3, 6, 1):
