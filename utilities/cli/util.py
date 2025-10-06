@@ -351,18 +351,35 @@ def get_host_gpu() -> str:
 
 def get_default_cuda_version() -> str:
     """
-    Get default CUDA version based on platform.
+    Get default CUDA version based on NVIDIA driver version.
 
     Returns:
-        - "13" for Thor (aarch64 with "Thor" in GPU name)
-        - "12" for x86_64, Orin, and other platforms
+        - "13" if driver version >= 580 or if nvidia-smi is not available
+        - "12" if driver version < 580
     """
-    arch = get_host_arch()
-    if arch == "aarch64":
-        gpu_name = get_gpu_name()
-        if gpu_name and "Thor" in gpu_name:
+    # Default to CUDA 13 if nvidia-smi is not available
+    if not shutil.which("nvidia-smi"):
+        warn("nvidia-smi not found, default CUDA version is 13")
+        return "13"
+
+    # Check the driver version using nvidia-smi
+    driver_version = run_info_command(
+        ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"]
+    )
+
+    if not driver_version:
+        warn("Unable to detect NVIDIA driver version, default CUDA version is 13")
+        return "13"
+
+    try:
+        driver_major_version = int(driver_version.split(".")[0])
+        if driver_major_version >= 580:
             return "13"
-    return "12"
+        else:
+            return "12"
+    except (ValueError, IndexError):
+        warn(f"Unable to parse driver version '{driver_version}', default CUDA version is 13")
+        return "13"
 
 
 def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: str = "3.6.1") -> str:
