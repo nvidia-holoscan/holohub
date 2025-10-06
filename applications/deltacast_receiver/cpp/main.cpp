@@ -43,8 +43,7 @@ class App : public holoscan::Application {
         Arg("width") = width,
         Arg("height") = height,
         Arg("progressive") = from_config("deltacast.progressive").as<bool>(),
-        Arg("framerate") = from_config("deltacast.framerate").as<uint32_t>(),
-        Arg("pool") = make_resource<UnboundedAllocator>("pool"));
+        Arg("framerate") = from_config("deltacast.framerate").as<uint32_t>());
 
     // Format converter to prepare for visualization
     auto format_converter =
