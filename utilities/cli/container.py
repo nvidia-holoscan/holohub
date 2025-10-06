@@ -81,6 +81,10 @@ class HoloHubContainer:
     DEFAULT_IMAGE_FORMAT = os.environ.get(
         "HOLOHUB_DEFAULT_IMAGE_FORMAT", "{container_prefix}:ngc-v{sdk_version}-{cuda_tag}"
     )
+    # Additional Default build arguments for docker build command (e.g., --build-context flags)
+    DEFAULT_DOCKER_BUILD_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS", "")
+    # Additional Default run arguments for docker run command
+    DEFAULT_DOCKER_RUN_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_RUN_ARGS", "")
 
     @classmethod
     def default_base_image(cls, cuda_version: Optional[Union[str, int]] = None) -> str:
@@ -429,8 +433,11 @@ class HoloHubContainer:
         if no_cache:
             cmd.append("--no-cache")
 
-        if build_args:
-            cmd.extend(shlex.split(build_args))
+        full_build_args = " ".join(
+            filter(None, [HoloHubContainer.DEFAULT_DOCKER_BUILD_ARGS, build_args])
+        )
+        if full_build_args:
+            cmd.extend(shlex.split(full_build_args))
 
         cmd.extend(["-f", str(docker_file_path), "-t", img, str(HoloHubContainer.HOLOHUB_ROOT)])
 
@@ -479,6 +486,10 @@ class HoloHubContainer:
 
         if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
+
+        # Add default docker run arguments
+        if HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS:
+            cmd.extend(shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS))
 
         if docker_opts:
             cmd.extend(shlex.split(docker_opts))
@@ -675,6 +686,8 @@ class HoloHubContainer:
         docker_args.extend(self.ucx_args())
         docker_args.extend(self.get_device_cgroup_args())
         docker_args.extend(self.get_nvidia_runtime_args())
+        if HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS:
+            docker_args.extend(shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS))
         if docker_opts:
             docker_args.extend(shlex.split(docker_opts))
         project_name = self.project_metadata.get("project_name") if self.project_metadata else None

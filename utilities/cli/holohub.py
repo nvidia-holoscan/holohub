@@ -181,8 +181,8 @@ class HoloHubCLI:
         build.add_argument("--verbose", action="store_true", help="Print extra output")
         build.add_argument(
             "--build-type",
-            choices=["debug", "release", "rel-debug"],
-            help="Build type (debug, release, rel-debug)",
+            help="Build type (debug, release, rel-debug). "
+            "If not specified, uses CMAKE_BUILD_TYPE environment variable or defaults to 'release'",
         )
         build.add_argument(
             "--build-with",
@@ -236,8 +236,8 @@ class HoloHubCLI:
         )
         run.add_argument(
             "--build-type",
-            choices=["debug", "release", "rel-debug"],
-            help="Build type (debug, release, rel-debug)",
+            help="Build type (debug, release, rel-debug). "
+            "If not specified, uses CMAKE_BUILD_TYPE environment variable or defaults to 'release'",
         )
         run.add_argument(
             "--run-args",
@@ -337,8 +337,8 @@ class HoloHubCLI:
         )
         install.add_argument(
             "--build-type",
-            choices=["debug", "release", "rel-debug"],
-            help="Build type (debug, release, rel-debug)",
+            help="Build type (debug, release, rel-debug). "
+            "If not specified, uses CMAKE_BUILD_TYPE environment variable or defaults to 'release'",
         )
         install.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
@@ -851,7 +851,7 @@ class HoloHubCLI:
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
 
-        # TAG is used in utilities/testing/holohub.container.ctest by default
+        # TAG is used in CTest scripts by default
         if getattr(args, "build_name_suffix", None):
             tag = args.build_name_suffix
         else:
@@ -860,7 +860,11 @@ class HoloHubCLI:
             else:
                 image_name = args.base_img or container.default_base_image()
             tag = image_name.split(":")[-1]
-        ctest_cmd = f"{xvfb} ctest -DAPP={args.project} -DTAG={tag} "
+
+        ctest_cmd = f"{xvfb} ctest "
+        if args.project:
+            ctest_cmd += f"-DAPP={args.project} "
+        ctest_cmd += f"-DTAG={tag} "
 
         if args.cmake_options:
             cmake_opts = ";".join(args.cmake_options)
@@ -965,10 +969,12 @@ class HoloHubCLI:
 
         # Build the project with optional parallel jobs
         build_cmd = ["cmake", "--build", str(build_dir), "--config", build_type]
-        if parallel:
-            build_cmd.extend(["-j", parallel])
+        # Determine the number of parallel jobs (user input > env var > CPU count):
+        if parallel is not None:
+            build_njobs = str(parallel)
         else:
-            build_cmd.append("-j")  # Use default number of jobs
+            build_njobs = os.environ.get("CMAKE_BUILD_PARALLEL_LEVEL", str(os.cpu_count()))
+        build_cmd.extend(["-j", build_njobs])
 
         holohub_cli_util.run_command(build_cmd, dry_run=dryrun)
 
@@ -1135,7 +1141,7 @@ class HoloHubCLI:
                 build_dir, project_data = self.build_project_locally(
                     project_name=args.project,
                     language=args.language if hasattr(args, "language") else None,
-                    build_type=args.build_type or "Release",  # Default to Release for run
+                    build_type=args.build_type,
                     with_operators=build_args.get("with_operators"),
                     dryrun=args.dryrun,
                     pkg_generator=getattr(args, "pkg_generator", "DEB"),
