@@ -412,7 +412,7 @@ holoscan::gxf::Entity SinkResource::create_entity_from_buffer(
   // Get number of memory blocks in the buffer
   guint n_mem = gst_buffer_n_memory(buffer.get());
   
-  HOLOSCAN_LOG_INFO("Buffer format: {}x{} {}, {} planes, {} memory blocks", 
+  HOLOSCAN_LOG_DEBUG("Buffer format: {}x{} {}, {} planes, {} memory blocks", 
                     width, height, gst_video_format_to_string(format), n_planes, n_mem);
   
   // Validate memory block count matches plane count (for proper zero-copy)
@@ -442,7 +442,7 @@ holoscan::gxf::Entity SinkResource::create_entity_from_buffer(
     guint plane_components = (plane_idx == 0 && n_planes == 1) ? 
                              GST_VIDEO_INFO_N_COMPONENTS(video_info.get()) : 1;
     
-    HOLOSCAN_LOG_INFO("Plane {}: {}x{}, stride={}, components={}", 
+    HOLOSCAN_LOG_DEBUG("Plane {}: {}x{}, stride={}, components={}", 
                       plane_idx, plane_width, plane_height, plane_stride, plane_components);
     
     // Map memory for this plane
@@ -471,7 +471,7 @@ holoscan::gxf::Entity SinkResource::create_entity_from_buffer(
       }
     }
     
-    HOLOSCAN_LOG_INFO("Plane {} mapped: device_type={}, pointer={}, size={} bytes", 
+    HOLOSCAN_LOG_DEBUG("Plane {} mapped: device_type={}, pointer={}, size={} bytes", 
                       plane_idx, static_cast<int>(mapped_device_type),
                       static_cast<void*>(map_info.data), map_info.size);
     
@@ -494,7 +494,7 @@ holoscan::gxf::Entity SinkResource::create_entity_from_buffer(
       }
     }
     
-    HOLOSCAN_LOG_INFO("Creating tensor '{}' for plane {}", tensor_name, plane_idx);
+    HOLOSCAN_LOG_DEBUG("Creating tensor '{}' for plane {}", tensor_name, plane_idx);
     
     // Add tensor to entity
     auto gxf_tensor_result = static_cast<nvidia::gxf::Entity&>(entity)
@@ -534,7 +534,7 @@ holoscan::gxf::Entity SinkResource::create_entity_from_buffer(
       deleter);
   }
   
-  HOLOSCAN_LOG_INFO("Created entity with {} tensor(s) for {} plane(s)", n_mem, n_planes);
+  HOLOSCAN_LOG_DEBUG("Created entity with {} tensor(s) for {} plane(s)", n_mem, n_planes);
   return entity;
 }
 
@@ -553,7 +553,7 @@ holoscan::gxf::Entity SinkResource::create_entity_from_buffer(
       /* Create GstCaps from the configured caps string */
       GstCaps *caps = gst_caps_from_string(configured_caps.c_str());
       if (caps) {
-        HOLOSCAN_LOG_INFO("Advertising sink capabilities: {}", configured_caps);
+        HOLOSCAN_LOG_DEBUG("Advertising sink capabilities: {}", configured_caps);
         
         /* If there's a filter, intersect with it */
         if (filter) {
@@ -652,7 +652,7 @@ gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
   }
 
   /* Log buffer information for monitoring */
-  HOLOSCAN_LOG_INFO("Bridging buffer, size: {} bytes", gst_buffer_get_size(buffer));
+  HOLOSCAN_LOG_DEBUG("Bridging buffer, size: {} bytes", gst_buffer_get_size(buffer));
 
   /* Access the GstSinkResource instance from callback */
   if (!holoscan_sink->holoscan_resource) {
@@ -667,7 +667,7 @@ gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
   std::lock_guard<std::mutex> lock(resource->mutex_);
 
   /* Simple logging for monitoring */
-  HOLOSCAN_LOG_INFO("Bridging buffer: size: {} bytes (sink: {})",
+  HOLOSCAN_LOG_DEBUG("Bridging buffer: size: {} bytes (sink: {})",
       gst_buffer_get_size(buffer), resource->name());
 
   // Create Buffer object (no mapping yet - let the operator decide)

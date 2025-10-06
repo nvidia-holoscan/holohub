@@ -10,7 +10,6 @@
 #include "../../operators/gstreamer/gst_sink_resource.hpp"
 
 using namespace holoscan;
-using namespace holoscan::gst;
 
 /**
  * GstSinkOperator - Operator for bridging GStreamer data into Holoscan
@@ -38,7 +37,7 @@ class GstSinkOperator : public Operator {
     }
 
     /// Get the buffer
-    Buffer buffer = buffer_future.get();
+    gst::Buffer buffer = buffer_future.get();
 
     // Create entity with tensor(s) - supports both packed (RGBA) and planar (I420, NV12) formats
     auto entity = gst_sink_resource_.get()->create_entity_from_buffer(context, buffer);
@@ -50,7 +49,7 @@ class GstSinkOperator : public Operator {
   }
 
  private:
-  Parameter<SinkResourcePtr> gst_sink_resource_;
+  Parameter<gst::SinkResourcePtr> gst_sink_resource_;
 };
 
 /**
@@ -64,14 +63,14 @@ class GstSinkApp : public Application {
   void compose() override {
     // Create the GStreamer sink resource for data bridging
     // Use the caps parameter from command line arguments
-    gst_sink_ = make_resource<SinkResource>("holoscan_sink", 
+    holoscan_gst_sink_ = make_resource<gst::SinkResource>("holoscan_sink", 
         Arg("capabilities", caps_));
 
     // Create the operator that uses the sink
     auto gst_op = make_operator<GstSinkOperator>(
         "gst_sink_op",
         make_condition<CountCondition>(iteration_count_),
-        Arg("gst_sink_resource", gst_sink_)
+        Arg("gst_sink_resource", holoscan_gst_sink_)
     );
 
     // Create Holoviz operator for video visualization
@@ -96,26 +95,26 @@ class GstSinkApp : public Application {
     add_flow(gst_op, holoviz, {{"output", "receivers"}});
   }
 
-  std::shared_ptr<SinkResource> get_sink_resource() const {
-    return gst_sink_;
+  std::shared_ptr<gst::SinkResource> get_sink_resource() const {
+    return holoscan_gst_sink_;
   }
 
  private:
   int64_t iteration_count_;
   std::string caps_;
-  std::shared_ptr<SinkResource> gst_sink_;
+  std::shared_ptr<gst::SinkResource> holoscan_gst_sink_;
 };
 
 // Pipeline management helper functions
 namespace {
 
 // Forward declaration
-void monitor_pipeline_bus(const GstElementGuard& pipeline,
+void monitor_pipeline_bus(const gst::GstElementGuard& pipeline,
                          std::atomic<bool>& stop_bus_monitor);
 
 void setup_pipeline(const std::string& pipeline_desc, 
-                   std::shared_ptr<SinkResource> gst_sink,
-                   GstElementGuard& pipeline) {
+                   std::shared_ptr<gst::SinkResource> gst_sink,
+                   gst::GstElementGuard& pipeline) {
     HOLOSCAN_LOG_INFO("Setting up GStreamer pipeline");
     
     // Wait for the sink element to be initialized
@@ -125,57 +124,62 @@ void setup_pipeline(const std::string& pipeline_desc,
     }
     
     // Block until the element is ready
-    GstElementGuard sink_element = sink_element_future.get();
+    gst::GstElementGuard sink_element = sink_element_future.get();
     if (!sink_element || !sink_element.get()) {
       throw std::runtime_error("Failed to get initialized sink element");
     }
     
     // Parse the source pipeline
     GError* error = nullptr;
-    pipeline = make_gst_object_guard(gst_parse_launch(pipeline_desc.c_str(), &error));
+    pipeline = gst::make_gst_object_guard(gst_parse_launch(pipeline_desc.c_str(), &error));
     if (error) {
-      auto error_guard = make_gst_error_guard(error);
+      auto error_guard = gst::make_gst_error_guard(error);
       HOLOSCAN_LOG_ERROR("Failed to parse pipeline: {}", error_guard->message);
       throw std::runtime_error("Failed to parse GStreamer pipeline description");
     }
     
     // Add sink element to pipeline
+    // Note: gst_bin_add() takes ownership by sinking the floating reference (doesn't add a new ref).
+    // Since our shared_ptr in SinkResource will call gst_object_unref() when destroyed,
+    // we need to manually add a ref here so both the bin and our shared_ptr have their own references.
+    // Without this: bin sinks the only ref → bin destroyed unrefs to 0 → SinkResource tries to unref freed memory.
+    gst_object_ref(sink_element.get());
     gst_bin_add(GST_BIN(pipeline.get()), sink_element.get());
     
     // Find and link the "last" element
-    GstElement *last_element = gst_bin_get_by_name(GST_BIN(pipeline.get()), "last");
+    // Note: gst_bin_get_by_name returns a new reference, so wrap it in a guard
+    auto last_element = gst::make_gst_object_guard(
+        gst_bin_get_by_name(GST_BIN(pipeline.get()), "last"));
     if (!last_element) {
       HOLOSCAN_LOG_ERROR("Could not find element named 'last' in pipeline");
       HOLOSCAN_LOG_ERROR("Please name your final pipeline element as 'last', e.g.: 'videoconvert name=last'");
       throw std::runtime_error("Could not find element named 'last' to connect to sink");
     }
     
-    HOLOSCAN_LOG_INFO("Linking {} to sink", gst_element_get_name(last_element));
+    HOLOSCAN_LOG_INFO("Linking {} to sink", gst_element_get_name(last_element.get()));
     
-    if (!gst_element_link(last_element, sink_element.get())) {
-      gst_object_unref(last_element);
-      HOLOSCAN_LOG_ERROR("Failed to link {} to sink", gst_element_get_name(last_element));
+    if (!gst_element_link(last_element.get(), sink_element.get())) {
+      HOLOSCAN_LOG_ERROR("Failed to link {} to sink", gst_element_get_name(last_element.get()));
       throw std::runtime_error("Failed to link pipeline to sink");
     }
     
-    gst_object_unref(last_element);
     HOLOSCAN_LOG_INFO("Pipeline setup complete");
 }
 
-void start_pipeline(const GstElementGuard& pipeline,
+void start_pipeline(const gst::GstElementGuard& pipeline,
                    std::thread& bus_monitor_thread,
                    std::atomic<bool>& stop_bus_monitor) {
     if (!pipeline || !pipeline.get()) {
       throw std::runtime_error("Pipeline not created");
     }
-    
+
     // Start the GStreamer pipeline
     GstStateChangeReturn ret = gst_element_set_state(pipeline.get(), GST_STATE_PLAYING);
     if (ret == GST_STATE_CHANGE_FAILURE) {
       HOLOSCAN_LOG_ERROR("Failed to start GStreamer pipeline");
       throw std::runtime_error("Failed to start GStreamer pipeline");
     }
-    
+
     HOLOSCAN_LOG_INFO("GStreamer pipeline started");
     
     // Start bus monitoring in a background thread
@@ -185,12 +189,12 @@ void start_pipeline(const GstElementGuard& pipeline,
     });
 }
 
-void monitor_pipeline_bus(const GstElementGuard& pipeline,
+void monitor_pipeline_bus(const gst::GstElementGuard& pipeline,
                          std::atomic<bool>& stop_bus_monitor) {
-    auto bus = make_gst_object_guard(gst_element_get_bus(pipeline.get()));
+    auto bus = gst::make_gst_object_guard(gst_element_get_bus(pipeline.get()));
     
     while (!stop_bus_monitor) {
-      auto msg = make_gst_message_guard(
+      auto msg = gst::make_gst_message_guard(
           gst_bus_timed_pop_filtered(bus.get(), 100 * GST_MSECOND,
               static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS)));
       
@@ -200,26 +204,26 @@ void monitor_pipeline_bus(const GstElementGuard& pipeline,
             GError* error;
             gchar* debug_info;
             gst_message_parse_error(msg.get(), &error, &debug_info);
-            auto error_guard = make_gst_error_guard(error);
-            HOLOSCAN_LOG_ERROR("GStreamer error: {}", error_guard->message);
-            if (debug_info) {
-              HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
-              g_free(debug_info);
-            }
-            break;
+            auto error_guard = gst::make_gst_error_guard(error);
+          HOLOSCAN_LOG_ERROR("GStreamer error: {}", error_guard->message);
+          if (debug_info) {
+            HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
+            g_free(debug_info);
           }
-          case GST_MESSAGE_EOS:
-            HOLOSCAN_LOG_INFO("End of stream reached");
-            stop_bus_monitor = true;
-            break;
-          default:
-            break;
+          break;
         }
+        case GST_MESSAGE_EOS:
+          HOLOSCAN_LOG_INFO("End of stream reached");
+            stop_bus_monitor = true;
+          break;
+        default:
+          break;
+      }
       }
     }
 }
 
-void cleanup_pipeline(GstElementGuard& pipeline,
+void cleanup_pipeline(gst::GstElementGuard& pipeline,
                      std::thread& bus_monitor_thread,
                      std::atomic<bool>& stop_bus_monitor) {
     // Stop bus monitoring
@@ -289,22 +293,22 @@ int main(int argc, char** argv) {
   }
 
   try {
-    // Initialize GStreamer
-    gst_init(&argc, &argv);
+  // Initialize GStreamer
+  gst_init(&argc, &argv);
 
-    // Create the Holoscan application with parsed parameters
+  // Create the Holoscan application with parsed parameters
     auto app = std::make_shared<GstSinkApp>(iteration_count, caps);
 
-    HOLOSCAN_LOG_INFO("Starting Holoscan GStreamer Sink Example");
+  HOLOSCAN_LOG_INFO("Starting Holoscan GStreamer Sink Example");
     HOLOSCAN_LOG_INFO("Configuration: {} iterations, pipeline: '{}', caps: '{}'", 
                       iteration_count, pipeline_desc, caps);
-    HOLOSCAN_LOG_INFO("This will display video frames using our custom universal sink");
+  HOLOSCAN_LOG_INFO("This will display video frames using our custom universal sink");
 
     // Compose the graph (creates resources and operators)
     app->compose_graph();
 
     // Setup the GStreamer pipeline (after resources are initialized)
-    GstElementGuard pipeline;
+    gst::GstElementGuard pipeline;
     std::thread bus_monitor_thread;
     std::atomic<bool> stop_bus_monitor{false};
     
@@ -321,7 +325,7 @@ int main(int argc, char** argv) {
     // Cleanup
     cleanup_pipeline(pipeline, bus_monitor_thread, stop_bus_monitor);
 
-    HOLOSCAN_LOG_INFO("Application finished");
+  HOLOSCAN_LOG_INFO("Application finished");
 
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Application error: {}", e.what());
