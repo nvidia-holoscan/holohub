@@ -287,12 +287,13 @@ std::future<Buffer> SinkResource::get_buffer() {
 
 // Get current negotiated caps
 Caps SinkResource::get_caps() const {
-  if (!sink_element_) {
-    return Caps(); // Return empty caps
+  // Check if element is ready and valid
+  if (!valid()) {
+    return Caps(); // Return empty caps if not ready
   }
 
   // Get the sink pad and its current caps
-  ::GstPad* pad = gst_element_get_static_pad(sink_element_, "sink");
+  ::GstPad* pad = gst_element_get_static_pad(sink_element_future_.get().get(), "sink");
   if (!pad) {
     return Caps(); // Return empty caps
   }
@@ -456,11 +457,16 @@ gboolean SinkResource::stop_callback(::GstBaseSink *sink) {
 
 SinkResource::~SinkResource() {
   HOLOSCAN_LOG_DEBUG("Destroying GstSinkResource");
-  if (sink_element_ && GST_IS_ELEMENT(sink_element_)) {
-    gst_element_set_state(sink_element_, GST_STATE_NULL);
-    gst_object_unref(sink_element_);
-    sink_element_ = nullptr;
+  
+  // Check if element was created and set it to NULL state
+  if (valid()) {
+    auto element = sink_element_future_.get();
+    if (GST_IS_ELEMENT(element.get())) {
+      gst_element_set_state(element.get(), GST_STATE_NULL);
+      // GstElementGuard will automatically unref when it goes out of scope
+    }
   }
+  
   HOLOSCAN_LOG_DEBUG("GstSinkResource destroyed");
 }
 
@@ -478,6 +484,9 @@ void SinkResource::initialize() {
   // Call parent initialize first
   holoscan::Resource::initialize();
   
+  // Initialize the future from the promise (after any construction/moves are complete)
+  sink_element_future_ = sink_element_promise_.get_future();
+  
   HOLOSCAN_LOG_INFO("Initializing GstSinkResource for data bridging");
   HOLOSCAN_LOG_INFO("Configured capabilities: '{}'", caps_.get());
   
@@ -492,19 +501,20 @@ void SinkResource::initialize() {
                       gst_holoscan_sink_get_type());
 
   // Create the sink element
-  sink_element_ = gst_element_factory_make("holoscansink",
-                                         name().empty() ? nullptr : name().c_str());
+  auto element = make_gst_object_guard(gst_element_factory_make("holoscansink",
+                                         name().empty() ? nullptr : name().c_str()));
 
-  if (!sink_element_) {
+  if (element) {
+    // Establish the bridge: set the C++ resource pointer in the C element
+    GstHoloscanSink *sink = GST_HOLOSCAN_SINK(element.get());
+    sink->holoscan_resource = this;
+    HOLOSCAN_LOG_INFO("GstSinkResource initialized successfully for data bridging");
+  } else {
     HOLOSCAN_LOG_ERROR("Failed to create Holoscan bridge sink element");
-    return;
   }
 
-  // Establish the bridge: set the C++ resource pointer in the C element
-  GstHoloscanSink *sink = GST_HOLOSCAN_SINK(sink_element_);
-  sink->holoscan_resource = this;
-
-  HOLOSCAN_LOG_INFO("GstSinkResource initialized successfully for data bridging");
+  // Set the promise with the successfully created element guard (or empty guard on failure)
+  sink_element_promise_.set_value(element);
 }
 
 

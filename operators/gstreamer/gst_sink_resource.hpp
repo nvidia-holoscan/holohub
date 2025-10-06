@@ -45,10 +45,8 @@ class SinkResource : public holoscan::Resource {
   HOLOSCAN_RESOURCE_FORWARD_ARGS(SinkResource)
   using SharedPtr = std::shared_ptr<SinkResource>;
 
- /**
-   * @brief Default constructor
-   */
-  SinkResource() = default;
+  SinkResource(const SinkResource& other) = delete;
+  SinkResource& operator=(const SinkResource& other) = delete;
 
   // Move semantics
   SinkResource(SinkResource&& other) noexcept = default;
@@ -70,19 +68,21 @@ class SinkResource : public holoscan::Resource {
   void initialize() override;
 
   /**
-   * @brief Check if the resource is valid and ready to use
-   * @return true if the sink element is created and ready
+   * @brief Check if the sink element is ready (non-blocking)
+   * @return true if the element has been initialized and is ready to use
    */
   bool valid() const {
-    return sink_element_ != nullptr;
+    return sink_element_future_.valid() && 
+           sink_element_future_.wait_for(std::chrono::seconds(0)) == std::future_status::ready && 
+           sink_element_future_.get();
   }
 
   /**
-   * @brief Get the underlying GStreamer element
-   * @return Pointer to the GstElement (do not unref manually)
+   * @brief Get the underlying GStreamer element (waits for initialization if needed)
+   * @return Shared future that will provide the GstElementGuard when ready
    */
-  GstElement* get_element() const {
-    return sink_element_;
+  std::shared_future<GstElementGuard> get_gst_element() const {
+    return sink_element_future_;
   }
 
   /**
@@ -106,7 +106,9 @@ class SinkResource : public holoscan::Resource {
   static gboolean stop_callback(::GstBaseSink *sink);
 
  private:
-  ::GstElement* sink_element_ = nullptr;
+  // Promise/future for safe element access across threads
+  std::promise<GstElementGuard> sink_element_promise_;
+  std::shared_future<GstElementGuard> sink_element_future_;
 
   // Buffer queue for thread-safe async processing
   std::queue<holoscan::gst::Buffer> buffer_queue_;
