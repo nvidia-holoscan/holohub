@@ -2,6 +2,16 @@
 
 This benchmark measures CUDA kernel launch-start time improvements provided by NVIDIA CUDA Green Context technology in the Holoscan SDK framework using NVIDIA CUPTI (CUDA Profiling Tools Interface) for precise GPU timing measurements.
 
+## ⚠️ Important Disclaimers
+
+### CUPTI Profiling Overhead
+This benchmark uses NVIDIA CUPTI for timing measurements, which introduces profiling overhead that affects absolute timing values. The measurements include both the actual kernel scheduling latency and CUPTI's profiling overhead. However, **the relative performance comparison between baseline and Green Context configurations remains valid** for evaluating Green Context benefits.
+
+### Not Official SOL Numbers
+**These timing measurements are NOT official NVIDIA CUDA launch latency specifications.** The absolute timing values reported should not be used as reference numbers for CUDA kernel launch performance, as they include CUPTI profiling overhead and are specific to this benchmark's testing methodology. To publish official SOL (Speed of Light) performance numbers, additional validation and vetting processes would be required beyond the scope of this benchmark.
+
+This confirms that while absolute timing values include profiling overhead, **the relative performance comparisons accurately represent Green Context benefits**.
+
 ## Overview
 
 The benchmark compares CUDA kernel launch-start times with and without Green Context by measuring the **actual time from kernel launch to GPU execution start** using NVIDIA CUPTI under realistic GPU contention scenarios. The benchmark uses a controlled A/B testing approach to isolate the pure Green Context benefit from general stream isolation effects.
@@ -52,13 +62,14 @@ This design ensures that any performance difference is due to Green Context part
 
 **Use default command for:**
 - Older GPUs (compute capability < 7.0, e.g., GTX 1080, GTX 1060, etc.)
-- NVIDIA Jetson Orin systems
+- NVIDIA IGX/Jetson Orin systems
+  If your system has a CUDA version `< 13`, then you can use the default command as well.
 
 **Use v3.6.1-cuda13 image for:**
 - Modern GPUs (compute capability ≥ 7.0, e.g., RTX 2080, RTX 3080, RTX 4090, RTX 6000 Ada Generation)
-- NVIDIA Jetson Thor systems
+- NVIDIA IGX/Jetson Thor systems
 
-**Note**: CUDA 13.0 dropped support for older GPU architectures (compute capability < 7.0). If you encounter `nvcc fatal : Unsupported gpu architecture 'compute_XX'` errors, use the default command instead.
+**Note**: CUDA 13.x does not support older GPU architectures (compute capability < 7.0). If you encounter `nvcc fatal : Unsupported gpu architecture 'compute_XX'` errors, use the default command instead.
 
 ### Command Line Options
 
@@ -433,18 +444,25 @@ This ensures proper isolation with each workload getting dedicated GPU resources
    - Increase `--load-intensity` to create more background computation
    - Increase `--workload-size` to use more GPU memory for background load
 
-4. **CUDA linking errors**:
+4. **Build cache contamination when switching between container images**:
+
+   **CUDA linking errors**:
    ```
    /usr/bin/ld: cannot find /usr/local/cuda-12.8/targets/sbsa-linux/lib/libcudart.so: No such file or directory
    /usr/bin/ld: cannot find /usr/local/cuda-12.8/targets/sbsa-linux/lib/libcupti.so: No such file or directory
    ```
 
-   **Solution**: Clear holohub cache and refresh base image:
-   ```bash
-   ./holohub clear-cache
-   docker rmi nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu
+   **CMake configuration errors**:
    ```
-   Then retry the benchmark command. This resolves CUDA version path mismatches from stale cached layers.
+   CMake Error: Imported target "holoscan::core" includes non-existent path
+   "/usr/local/cuda/targets/x86_64-linux/include/cccl"
+   ```
+
+   **Solution**: Clear holohub cache to resolve build contamination:
+   ```bash
+   sudo ./holohub clear-cache
+   ```
+   Then retry the benchmark command. This resolves CUDA version path mismatches from cached build artifacts.
 
 ### Performance Tuning
 
