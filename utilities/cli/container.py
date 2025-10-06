@@ -64,7 +64,7 @@ class HoloHubContainer:
 
     # SDK and path configuration
     SDK_PATH = os.environ.get("HOLOHUB_SDK_PATH", "/opt/nvidia/holoscan")
-    BASE_SDK_VERSION = os.environ.get("HOLOHUB_BASE_SDK_VERSION", "3.6.0")
+    BASE_SDK_VERSION = os.environ.get("HOLOHUB_BASE_SDK_VERSION", "3.7.0")
     BENCHMARKING_SUBDIR = os.environ.get(
         "HOLOHUB_BENCHMARKING_SUBDIR", "benchmarks/holoscan_flow_benchmarking"
     )
