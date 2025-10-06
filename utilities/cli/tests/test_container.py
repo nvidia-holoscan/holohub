@@ -147,29 +147,26 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertEqual(get_cuda_tag("12", "3.7.0"), "cuda12-igpu")
         self.assertEqual(get_cuda_tag("12", "3.6.0"), "igpu")
 
-    @patch("utilities.cli.util.get_host_arch")
-    @patch("utilities.cli.util.get_gpu_name")
-    def test_get_default_cuda_version(self, mock_get_gpu_name, mock_get_host_arch):
-        """Test default CUDA version detection for different platforms"""
-        # Test x86_64 platform (should return 12)
-        mock_get_host_arch.return_value = "x86_64"
-        mock_get_gpu_name.return_value = "NVIDIA RTX 6000 Ada Generation"
-        self.assertEqual(get_default_cuda_version(), "12")
-
-        # Test aarch64 with Orin (should return 12)
-        mock_get_host_arch.return_value = "aarch64"
-        mock_get_gpu_name.return_value = "Orin (nvgpu)"
-        self.assertEqual(get_default_cuda_version(), "12")
-
-        # Test aarch64 with Thor (should return 13)
-        mock_get_host_arch.return_value = "aarch64"
-        mock_get_gpu_name.return_value = "NVIDIA Thor"
+    @patch("utilities.cli.util.run_info_command")
+    @patch("utilities.cli.util.shutil.which")
+    def test_get_default_cuda_version(self, mock_which, mock_run_info_command):
+        """Test default CUDA version detection based on NVIDIA driver version"""
+        # nvidia-smi not available -> default to 13
+        mock_which.return_value = None
         self.assertEqual(get_default_cuda_version(), "13")
-
-        # Test aarch64 with no GPU (should return 12)
-        mock_get_host_arch.return_value = "aarch64"
-        mock_get_gpu_name.return_value = None
+        # nvidia-smi available but driver version unknown -> default to 13
+        mock_which.return_value = "/usr/bin/nvidia-smi"
+        mock_run_info_command.return_value = None
+        self.assertEqual(get_default_cuda_version(), "13")
+        # Driver version < 580 -> CUDA 12
+        mock_run_info_command.return_value = "550.54.14"
         self.assertEqual(get_default_cuda_version(), "12")
+        # Driver version >= 580 -> CUDA 13
+        mock_run_info_command.return_value = "580.1"
+        self.assertEqual(get_default_cuda_version(), "13")
+        # Unparsable driver version -> default to 13
+        mock_run_info_command.return_value = "not.a.version"
+        self.assertEqual(get_default_cuda_version(), "13")
 
 
 if __name__ == "__main__":
