@@ -101,6 +101,7 @@ bool success_b = true;
     _has_lost_signal = false;
   }
 
+  HOLOSCAN_LOG_DEBUG("Videoformat detectction");
   auto detected_video_format = _video_master_base->video_information()->get_video_format(_video_master_base->stream_handle());
   if (detected_video_format && *detected_video_format != _video_master_base->video_format()) {
     HOLOSCAN_LOG_INFO("Input signal has changed, exiting");
@@ -109,6 +110,7 @@ bool success_b = true;
   }
 
   HANDLE slot_handle;
+  HOLOSCAN_LOG_DEBUG("Waiting for incoming slot");
   ULONG api_result = VHD_WaitSlotFilled(*_video_master_base->stream_handle(), &slot_handle, VideoMasterBase::SLOT_TIMEOUT);
   if (api_result != VHDERR_NOERROR && api_result != VHDERR_TIMEOUT) {
     throw std::runtime_error("Failed to wait for incoming slot");
@@ -128,8 +130,10 @@ bool success_b = true;
     throw std::runtime_error("Failed to get slot buffer");
   }
 
+  HOLOSCAN_LOG_DEBUG("Transmit slot buffer {} - size: {} bytes", (void*)buffer, buffer_size);
   transmit_buffer_data(buffer, buffer_size, op_output, context);
 
+  HOLOSCAN_LOG_DEBUG("Queue slot");
   VHD_QueueInSlot(slot_handle);
   _slot_count++;
 
@@ -165,7 +169,7 @@ void VideoMasterSourceOp::transmit_buffer_data(void* buffer, uint32_t buffer_siz
   auto color_planes = color_format.getDefaultColorPlanes(format->width, format->height);
   nvidia::gxf::VideoBufferInfo info{format->width, format->height, video_type.value, color_planes,
                             nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
-  auto storage_type = nvidia::gxf::MemoryStorageType::kDevice;
+  auto storage_type = _use_rdma ? nvidia::gxf::MemoryStorageType::kDevice : nvidia::gxf::MemoryStorageType::kHost;
   video_buffer.value()->wrapMemory(info, buffer_size, storage_type, buffer, nullptr);
 
   auto result = nvidia::gxf::Entity(std::move(video_output.value()));
