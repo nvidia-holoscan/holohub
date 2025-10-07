@@ -30,7 +30,14 @@ add_definitions(${GSTREAMER_VIDEO_CFLAGS_OTHER})
 
 # Create custom sink library
 add_library(holoscan_gstreamer_sink SHARED
-  gst_common.cpp
+  gst/guards.cpp
+  gst/iterator.cpp
+  gst/buffer.cpp
+  gst/caps.cpp
+  gst/video_info.cpp
+  gst/audio_info.cpp
+  gst/map_info.cpp
+  gst/mapped_buffer.cpp
   gst_sink_resource.cpp
 )
 
@@ -67,7 +74,14 @@ install(TARGETS holoscan_gstreamer_sink DESTINATION lib)
 
 # Install headers
 install(FILES 
-    gst_common.hpp
+    gst/guards.hpp
+    gst/iterator.hpp
+    gst/buffer.hpp
+    gst/caps.hpp
+    gst/video_info.hpp
+    gst/audio_info.hpp
+    gst/map_info.hpp
+    gst/mapped_buffer.hpp
     gst_sink_resource.hpp
     core/initializer.hpp
     DESTINATION include/holoscan/operators/gstreamer)

@@ -28,10 +28,11 @@
 #include <gst/base/gstbasesink.h>
 #include <holoscan/holoscan.hpp>
 
-#include "gst_common.hpp"
+#include "gst/guards.hpp"
+#include "gst/buffer.hpp"
+#include "gst/caps.hpp"
 
 namespace holoscan {
-namespace gst {
 
 /**
  * @brief Holoscan Resource wrapper for GStreamer sink element
@@ -40,22 +41,22 @@ namespace gst {
  * The primary purpose is to enable Holoscan operators to retrieve and process data
  * from GStreamer pipelines.
  */
-class SinkResource : public holoscan::Resource {
+class GstSinkResource : public holoscan::Resource {
  public:
-  HOLOSCAN_RESOURCE_FORWARD_ARGS(SinkResource)
-  using SharedPtr = std::shared_ptr<SinkResource>;
+  HOLOSCAN_RESOURCE_FORWARD_ARGS(GstSinkResource)
+  using SharedPtr = std::shared_ptr<GstSinkResource>;
 
-  SinkResource(const SinkResource& other) = delete;
-  SinkResource& operator=(const SinkResource& other) = delete;
+  GstSinkResource(const GstSinkResource& other) = delete;
+  GstSinkResource& operator=(const GstSinkResource& other) = delete;
 
   // Move semantics
-  SinkResource(SinkResource&& other) noexcept = default;
-  SinkResource& operator=(SinkResource&& other) noexcept = default;
+  GstSinkResource(GstSinkResource&& other) noexcept = default;
+  GstSinkResource& operator=(GstSinkResource&& other) noexcept = default;
 
   /**
    * @brief Destructor - cleans up GStreamer resources
    */
-  ~SinkResource();
+  ~GstSinkResource();
 
   /**
    * @brief Setup the resource parameters
@@ -81,7 +82,7 @@ class SinkResource : public holoscan::Resource {
    * @brief Get the underlying GStreamer element (waits for initialization if needed)
    * @return Shared future that will provide the GstElementGuard when ready
    */
-  std::shared_future<GstElementGuard> get_gst_element() const {
+  std::shared_future<holoscan::gst::GstElementGuard> get_gst_element() const {
     return sink_element_future_;
   }
 
@@ -122,8 +123,8 @@ class SinkResource : public holoscan::Resource {
 
  private:
   // Promise/future for safe element access across threads
-  std::promise<GstElementGuard> sink_element_promise_;
-  std::shared_future<GstElementGuard> sink_element_future_;
+  std::promise<holoscan::gst::GstElementGuard> sink_element_promise_;
+  std::shared_future<holoscan::gst::GstElementGuard> sink_element_future_;
 
   // Buffer queue for thread-safe async processing
   std::queue<holoscan::gst::Buffer> buffer_queue_;
@@ -135,9 +136,8 @@ class SinkResource : public holoscan::Resource {
   holoscan::Parameter<std::string> caps_;
 };
 
-  using SinkResourcePtr = SinkResource::SharedPtr;
+using GstSinkResourcePtr = GstSinkResource::SharedPtr;
 
-}  // namespace gst
 }  // namespace holoscan
 
 #endif /* GST_SINK_RESOURCE_HPP */

@@ -49,11 +49,11 @@ class GstSinkOperator : public Operator {
   }
 
  private:
-  Parameter<gst::SinkResourcePtr> gst_sink_resource_;
+  Parameter<GstSinkResourcePtr> gst_sink_resource_;
 };
 
 /**
- * @brief Simple Holoscan application that uses SinkResource
+ * @brief Simple Holoscan application that uses GstSinkResource
  */
 class GstSinkApp : public Application {
  public:
@@ -63,7 +63,7 @@ class GstSinkApp : public Application {
   void compose() override {
     // Create the GStreamer sink resource for data bridging
     // Use the caps parameter from command line arguments
-    holoscan_gst_sink_ = make_resource<gst::SinkResource>("holoscan_sink", 
+    holoscan_gst_sink_ = make_resource<GstSinkResource>("holoscan_sink", 
         Arg("capabilities", caps_));
 
     // Create the operator that uses the sink
@@ -95,14 +95,14 @@ class GstSinkApp : public Application {
     add_flow(gst_op, holoviz, {{"output", "receivers"}});
   }
 
-  std::shared_ptr<gst::SinkResource> get_sink_resource() const {
+  std::shared_ptr<GstSinkResource> get_sink_resource() const {
     return holoscan_gst_sink_;
   }
 
  private:
   int64_t iteration_count_;
   std::string caps_;
-  std::shared_ptr<gst::SinkResource> holoscan_gst_sink_;
+  std::shared_ptr<GstSinkResource> holoscan_gst_sink_;
 };
 
 }  // namespace holoscan
@@ -137,9 +137,9 @@ public:
     
     // Add sink element to pipeline
     // Note: gst_bin_add() takes ownership by sinking the floating reference (doesn't add a new ref).
-    // Since our shared_ptr in SinkResource will call gst_object_unref() when destroyed,
+    // Since our shared_ptr in GstSinkResource will call gst_object_unref() when destroyed,
     // we need to manually add a ref here so both the bin and our shared_ptr have their own references.
-    // Without this: bin sinks the only ref → bin destroyed unrefs to 0 → SinkResource tries to unref freed memory.
+    // Without this: bin sinks the only ref → bin destroyed unrefs to 0 → GstSinkResource tries to unref freed memory.
     gst_object_ref(sink_element_.get());
     gst_bin_add(GST_BIN(pipeline_.get()), sink_element_.get());
     
