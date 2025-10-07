@@ -243,7 +243,7 @@ void print_usage(const char* program_name) {
     std::cout << "  -c, --count <number>     Number of iterations to run (default: unlimited)\n";
     std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description (default: videotestsrc pattern=0 ! videoconvert name=last)\n";
     std::cout << "                            IMPORTANT: Your pipeline MUST name the final element as 'last'\n";
-    std::cout << "  --caps <caps_string>     GStreamer capabilities string for the sink (default: video/x-raw)\n";
+    std::cout << "  --caps <caps_string>     GStreamer capabilities string for the sink (default: video/x-raw(memory:CUDAMemory),format=RGBA)\n";
     std::cout << "  -h, --help               Show this help message\n\n";
     std::cout << "Pipeline Requirements:\n";
     std::cout << "  - The final element in your pipeline MUST be named 'last'\n";
@@ -262,7 +262,7 @@ void print_usage(const char* program_name) {
 int main(int argc, char** argv) {
   int64_t iteration_count = INT64_MAX;  // Default: run until video ends (unlimited)
   std::string pipeline_desc = "videotestsrc pattern=0 ! videoconvert name=last";  // Default value
-  std::string caps = "video/x-raw";  // Default value
+  std::string caps = "video/x-raw,format=RGBA";  // Default value
 
   // Parse command line arguments
   for (int i = 1; i < argc; i++) {

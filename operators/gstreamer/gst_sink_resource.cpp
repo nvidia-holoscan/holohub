@@ -477,12 +477,7 @@ holoscan::gxf::Entity SinkResource::create_entity_from_buffer(
     
     // Determine GXF primitive type (usually uint8 for video)
     nvidia::gxf::PrimitiveType primitive_type = nvidia::gxf::PrimitiveType::kUnsigned8;
-    uint64_t element_size = 1;
-    
-    // For packed formats with multiple components, adjust
-    if (plane_components > 1) {
-      element_size = plane_components;
-    }
+    uint64_t element_size = nvidia::gxf::PrimitiveTypeSize(primitive_type);  // Size of a single uint8 element
     
     // Create tensor name with appropriate suffix
     std::string tensor_name = "video_frame";
@@ -506,13 +501,36 @@ holoscan::gxf::Entity SinkResource::create_entity_from_buffer(
     }
     auto gxf_tensor = gxf_tensor_result.value();
     
-    // Set up strides for this plane
+    // Create shape for this plane
+    nvidia::gxf::Shape tensor_shape({static_cast<int32_t>(plane_height), 
+                                      static_cast<int32_t>(plane_width),
+                                      static_cast<int32_t>(plane_components)});
+    
+    // Calculate actual stride from memory size if it differs from reported stride
+    // This handles cases where CUDA memory has different alignment than reported
+    size_t actual_stride = plane_stride;
+    if (plane_height > 0) {
+      size_t stride_from_size = map_info.size / plane_height;
+      if (stride_from_size != plane_stride) {
+        HOLOSCAN_LOG_DEBUG("Stride adjusted: GStreamer reports {} but buffer size indicates {}. Using actual stride {}",
+                           plane_stride, stride_from_size, stride_from_size);
+        actual_stride = stride_from_size;
+      }
+    }
+    
+    // For packed formats (RGBA), stride[1] is bytes per pixel (components * element_size)
+    // For planar formats (Y/U/V), stride[1] is just element_size
+    size_t bytes_per_pixel = plane_components * element_size;
     std::array<size_t, 8> tensor_strides{{
-      static_cast<size_t>(plane_stride),
-      static_cast<size_t>(element_size),
-      static_cast<size_t>(1),
+      actual_stride,       // Use actual stride from buffer
+      bytes_per_pixel,     // Bytes per pixel
+      element_size,        // Bytes per component
       0, 0, 0, 0, 0
     }};
+    
+    HOLOSCAN_LOG_DEBUG("Tensor shape: [{}x{}x{}], strides: [{}, {}, {}], element_size: {}, gst_stride: {}, actual_stride: {}", 
+                      plane_height, plane_width, plane_components,
+                      tensor_strides[0], tensor_strides[1], tensor_strides[2], element_size, plane_stride, actual_stride);
     
     // Create deleter that captures this plane's map_info and buffer
     std::function<nvidia::gxf::Expected<void>(void*)> deleter = 
@@ -523,9 +541,7 @@ holoscan::gxf::Entity SinkResource::create_entity_from_buffer(
     
     // Wrap memory for this plane
     gxf_tensor->wrapMemory(
-      nvidia::gxf::Shape({static_cast<int32_t>(plane_height), 
-                          static_cast<int32_t>(plane_width),
-                          static_cast<int32_t>(plane_components)}),
+      tensor_shape,
       primitive_type,
       element_size,
       tensor_strides,
