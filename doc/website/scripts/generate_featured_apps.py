@@ -111,7 +111,7 @@ def generate_featured_component_card(metadata_path: Path, git_repo_path: Path) -
             readme_text = f.read()
             readme_content = readme_text
             if not description:
-                description = extract_first_sentences(readme_text, 1, max_chars=105)
+                description = extract_first_sentences(readme_text, 1, max_chars=120)
     if readme_content:
         image_path = extract_image_from_readme(readme_content)
         if image_path:
@@ -126,10 +126,10 @@ def generate_featured_component_card(metadata_path: Path, git_repo_path: Path) -
 
     # Generate card HTML with the found image URL
     card_html = f"""
- <div class="col-lg-3 col-sm-6 mb-4 feature-box">
+ <div class="col-lg-4 col-sm-12 mb-1 feature-box">
                 <a href="{component_path}" class="bg-white shadow padding-feature-box-item text-center d-block match-height" >
                     <img src="{image_url}" alt="{name}" width="120" height="120">
-                    <h3 class="mb-3 mt-0">{name}</h3>
+                    <h3 class="mb-1 mt-0">{name}</h3>
                     <p class="feature-card-desc">{description}</p>
                     <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p>
                 </a>
@@ -191,6 +191,7 @@ def main():
         ("applications", "overrides/_pages/featured-applications.html"),
         ("benchmarks", "overrides/_pages/featured-benchmarks.html"),
         ("tutorials", "overrides/_pages/featured-tutorials.html"),
+        ("workflows", "overrides/_pages/featured-workflows.html"),
     ]
     
     # Generate featured content for each component type
@@ -203,7 +204,7 @@ def main():
             logger.error(f"Output directory does not exist: {output_path.parent}")
             continue
         
-        generate_featured_content_html([component_type], output_file, 4)
+        generate_featured_content_html([component_type], output_file, 3)
     
     logger.info("Finished generating all featured content HTML files")
 

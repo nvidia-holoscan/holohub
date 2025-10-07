@@ -321,6 +321,7 @@ def extract_first_sentences(readme_text, num_sentences=3, max_chars=160):
         # Fallback to regex-based approach
         sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z])", text_content)
     result = " ".join(sentences[:num_sentences]).strip()
+
     result = re.sub(r"\s+", " ", result)
     if len(result) > max_chars:
         result = result[: max_chars - 3].rstrip() + "..."
