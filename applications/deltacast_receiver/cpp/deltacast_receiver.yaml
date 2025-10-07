@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
- - lib/gxf_extensions/libgxf_videomaster.so
 
 deltacast:
   width: 1920
