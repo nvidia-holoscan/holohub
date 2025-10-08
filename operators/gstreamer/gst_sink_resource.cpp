@@ -257,9 +257,6 @@ gst_holoscan_sink_init(GstHoloscanSink *sink)
 
   /* Initialize caps */
   sink->caps = NULL;
-
-  /* Enable QoS and lateness handling for better performance */
-  gst_base_sink_set_qos_enabled(GST_BASE_SINK(sink), TRUE);
 }
 
 static void
@@ -339,20 +336,23 @@ const char* get_media_type_from_caps(::GstCaps* caps) {
 } // unnamed namespace
 
 // Asynchronously get next buffer using promise-based approach
-std::future<holoscan::gst::Buffer> GstSinkResource::get_buffer() {
+std::future<gst::Buffer> GstSinkResource::get_buffer() {
   std::lock_guard<std::mutex> lock(mutex_);
 
   // Create a promise for this request
-  std::promise<holoscan::gst::Buffer> promise;
+  std::promise<gst::Buffer> promise;
   auto future = promise.get_future();
 
   // Check if we have buffers available immediately
   if (!buffer_queue_.empty()) {
     // Fulfill promise immediately with available buffer
-    holoscan::gst::Buffer buffer = std::move(buffer_queue_.front());
+    gst::Buffer buffer = std::move(buffer_queue_.front());
     buffer_queue_.pop();
     promise.set_value(std::move(buffer));
     HOLOSCAN_LOG_DEBUG("Fulfilled buffer request immediately, remaining buffers: {}", buffer_queue_.size());
+    
+    // Notify waiting producers that space is available in the queue
+    queue_cv_.notify_one();
   } else {
     // No buffers available, queue the promise for later fulfillment
     request_queue_.push(std::move(promise));
@@ -363,47 +363,47 @@ std::future<holoscan::gst::Buffer> GstSinkResource::get_buffer() {
 }
 
 // Get current negotiated caps
-holoscan::gst::Caps GstSinkResource::get_caps() const {
+gst::Caps GstSinkResource::get_caps() const {
   // Check if element is ready and valid
   if (!valid()) {
-    return holoscan::gst::Caps(); // Return empty caps if not ready
+    return gst::Caps(); // Return empty caps if not ready
   }
 
   // Get the sink pad and its current caps
   ::GstPad* pad = gst_element_get_static_pad(sink_element_future_.get().get(), "sink");
   if (!pad) {
-    return holoscan::gst::Caps(); // Return empty caps
+    return gst::Caps(); // Return empty caps
   }
 
   ::GstCaps* caps = gst_pad_get_current_caps(pad);
   gst_object_unref(pad);
 
-  return holoscan::gst::Caps(caps); // Automatic reference counting
+  return gst::Caps(caps); // Automatic reference counting
 }
 
-holoscan::gxf::Entity GstSinkResource::create_entity_from_buffer(
-    holoscan::ExecutionContext& context,
-    const holoscan::gst::Buffer& buffer) const {
+gxf::Entity GstSinkResource::create_entity_from_buffer(
+    ExecutionContext& context,
+    const gst::Buffer& buffer) const {
   
   // Get current caps
-  holoscan::gst::Caps caps = get_caps();
+  gst::Caps caps = get_caps();
   
   // Create entity to hold tensor(s)
-  auto entity = holoscan::gxf::Entity::New(&context);
+  auto entity = gxf::Entity::New(&context);
 
   // Validate caps
   if (caps.is_empty()) {
     HOLOSCAN_LOG_ERROR("No caps available for buffer");
-    return holoscan::gxf::Entity();
+    return gxf::Entity();
   }
 
   // Validate video info
   auto video_info_opt = caps.get_video_info();
   if (!video_info_opt) {
     HOLOSCAN_LOG_ERROR("Cannot get video info from caps");
-    return holoscan::gxf::Entity();
+    return gxf::Entity();
   }
-  const holoscan::gst::VideoInfo& video_info = *video_info_opt;
+  const gst::VideoInfo& video_info = *video_info_opt;
   
   // Get dimensions and format info
   int width = video_info->width;
@@ -434,7 +434,7 @@ holoscan::gxf::Entity GstSinkResource::create_entity_from_buffer(
     ::GstMemory* memory = gst_buffer_peek_memory(buffer.get(), plane_idx);
     if (!memory) {
       HOLOSCAN_LOG_ERROR("No memory found for plane {}", plane_idx);
-      return holoscan::gxf::Entity();
+      return gxf::Entity();
     }
     
     // Get plane-specific dimensions
@@ -469,7 +469,7 @@ holoscan::gxf::Entity GstSinkResource::create_entity_from_buffer(
       if (!map_gst_memory(memory, map_info, GST_MAP_READ, mapped_device_type, 
                          storage_type, data_ptr, size)) {
         HOLOSCAN_LOG_ERROR("Failed to map memory for plane {} with CPU flags", plane_idx);
-        return holoscan::gxf::Entity();
+        return gxf::Entity();
       }
     }
     
@@ -499,7 +499,7 @@ holoscan::gxf::Entity GstSinkResource::create_entity_from_buffer(
     if (!gxf_tensor_result) {
       HOLOSCAN_LOG_ERROR("Failed to add tensor '{}' to entity", tensor_name);
       gst_memory_unmap(memory, &map_info);
-      return holoscan::gxf::Entity();
+      return gxf::Entity();
     }
     auto gxf_tensor = gxf_tensor_result.value();
     
@@ -682,19 +682,19 @@ gboolean GstSinkResource::stop_callback(::GstBaseSink *sink) {
 
   /* Cast back to GstSinkResource* to access C++ methods and members */
   GstSinkResource* resource = static_cast<GstSinkResource*>(holoscan_sink->holoscan_resource);
-  std::lock_guard<std::mutex> lock(resource->mutex_);
+  std::unique_lock<std::mutex> lock(resource->mutex_);
 
   /* Simple logging for monitoring */
   HOLOSCAN_LOG_DEBUG("Bridging buffer: size: {} bytes (sink: {})",
       gst_buffer_get_size(buffer), resource->name());
 
   // Create Buffer object (no mapping yet - let the operator decide)
-  holoscan::gst::Buffer buffer_obj(buffer);
+  gst::Buffer buffer_obj(buffer);
 
   /* Check if there are pending requests waiting for buffers */
   if (!resource->request_queue_.empty()) {
     /* Fulfill the oldest pending request */
-    std::promise<holoscan::gst::Buffer> promise = std::move(resource->request_queue_.front());
+    std::promise<gst::Buffer> promise = std::move(resource->request_queue_.front());
     resource->request_queue_.pop();
     promise.set_value(std::move(buffer_obj));
     HOLOSCAN_LOG_DEBUG("Fulfilled pending buffer request, remaining requests: {}", resource->request_queue_.size());
@@ -702,7 +702,18 @@ gboolean GstSinkResource::stop_callback(::GstBaseSink *sink) {
     /* No pending requests, queue the buffer for future requests */
     resource->buffer_queue_.push(std::move(buffer_obj));
     HOLOSCAN_LOG_DEBUG("Queued buffer, total in queue: {}", resource->buffer_queue_.size());
+    
+    /* Wait until queue size is within limit */
+    size_t queue_limit = resource->queue_limit_.get();
+    while (resource->buffer_queue_.size() > queue_limit) {
+      HOLOSCAN_LOG_DEBUG("Buffer queue size ({}) exceeds limit ({}), waiting...", 
+                        resource->buffer_queue_.size(), queue_limit);
+      resource->queue_cv_.wait(lock);
+    }
+    HOLOSCAN_LOG_DEBUG("Buffer queue size now within limit: {}", resource->buffer_queue_.size());
   }
+
+//  std::this_thread::sleep_for(std::chrono::seconds(1));
 
   return GST_FLOW_OK;
 }
@@ -730,11 +741,23 @@ void GstSinkResource::setup(holoscan::ComponentSpec& spec) {
       "Use 'ANY' for maximum flexibility, or specify specific formats like "
       "'video/x-raw,format=RGBA' for video or 'audio/x-raw' for audio.",
       std::string("ANY"));
+  spec.param(qos_enabled_,
+      "qos_enabled",
+      "QoS Enabled",
+      "Enable Quality of Service (QoS) in the sink. When enabled, frames may be dropped "
+      "to maintain real-time performance. When disabled, all frames are processed.",
+      false);
+  spec.param(queue_limit_,
+      "queue_limit",
+      "Queue Limit",
+      "Maximum number of buffers to keep in queue. The render callback will block when "
+      "queue size exceeds this limit. 0 means one buffer at a time (blocks until consumed).",
+      size_t(1));
 }
 
 void GstSinkResource::initialize() {
   // Call parent initialize first
-  holoscan::Resource::initialize();
+  Resource::initialize();
   
   // Initialize the future from the promise (after any construction/moves are complete)
   sink_element_future_ = sink_element_promise_.get_future();
@@ -747,26 +770,33 @@ void GstSinkResource::initialize() {
     gst_init(nullptr, nullptr);
   }
 
-
   // Register our bridge sink element type
   gst_element_register(nullptr, "holoscansink", GST_RANK_NONE,
                       gst_holoscan_sink_get_type());
 
   // Create the sink element
-  auto element = holoscan::gst::make_gst_object_guard(gst_element_factory_make("holoscansink",
+  auto element = gst::make_gst_object_guard(gst_element_factory_make("holoscansink",
                                          name().empty() ? nullptr : name().c_str()));
 
   if (element) {
     // Establish the bridge: set the C++ resource pointer in the C element
     GstHoloscanSink *sink = GST_HOLOSCAN_SINK(element.get());
     sink->holoscan_resource = this;
-    HOLOSCAN_LOG_INFO("GstSinkResource initialized successfully for data bridging");
+    
+    // Configure QoS based on parameter
+    gst_base_sink_set_qos_enabled(GST_BASE_SINK(sink), static_cast<gboolean>(qos_enabled_.get()));
+    HOLOSCAN_LOG_INFO("GstSinkResource initialized successfully for data bridging (QoS: {})",
+                      qos_enabled_.get() ? "enabled" : "disabled");
+    
+    // Set the promise with the successfully created element
+    sink_element_promise_.set_value(std::move(element));
   } else {
     HOLOSCAN_LOG_ERROR("Failed to create Holoscan bridge sink element");
+    
+    // Set exception on the promise so waiting code will be notified of failure
+    sink_element_promise_.set_exception(
+        std::make_exception_ptr(std::runtime_error("Failed to create holoscansink element")));
   }
-
-  // Set the promise with the successfully created element guard (or empty guard on failure)
-  sink_element_promise_.set_value(element);
 }
 
 

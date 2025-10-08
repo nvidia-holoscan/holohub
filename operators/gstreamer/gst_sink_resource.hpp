@@ -18,6 +18,7 @@
 #ifndef GST_SINK_RESOURCE_HPP
 #define GST_SINK_RESOURCE_HPP
 
+#include <condition_variable>
 #include <future>
 #include <memory>
 #include <mutex>
@@ -131,9 +132,12 @@ class GstSinkResource : public holoscan::Resource {
   // Promise queue for pending buffer requests
   std::queue<std::promise<holoscan::gst::Buffer>> request_queue_;
   mutable std::mutex mutex_;
+  std::condition_variable queue_cv_;
 
   // Resource parameters
   holoscan::Parameter<std::string> caps_;
+  holoscan::Parameter<bool> qos_enabled_;
+  holoscan::Parameter<size_t> queue_limit_;
 };
 
 using GstSinkResourcePtr = GstSinkResource::SharedPtr;
