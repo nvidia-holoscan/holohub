@@ -105,7 +105,23 @@ def parse_metadata_file(metadata_path: Path) -> dict:
 
 
 def get_metadata_file_commit_date(metadata_path: Path, git_repo_path: Path) -> datetime:
-    """Get the date of the first commit that introduced the metadata file."""
+    """Get the creation date of a metadata.json file from git history.
+    
+    This function determines when an application/component was first created by finding
+    the first commit that introduced its metadata.json file.
+    
+    Uses: git log --follow --format=%at --reverse <file>
+    - --follow: Tracks file through renames
+    - --format=%at: Returns Unix timestamp
+    - --reverse: Oldest commits first (so first entry is the creation date)
+    
+    Args:
+        metadata_path: Path to the metadata.json file
+        git_repo_path: Path to the Git repository root
+        
+    Returns:
+        datetime: The date when the metadata.json was first committed (application creation date)
+    """
     rel_file_path = str(metadata_path.relative_to(git_repo_path))
     cmd = f"git -C {git_repo_path} log --follow --format=%at --reverse {rel_file_path}".split()
     try:
@@ -115,7 +131,50 @@ def get_metadata_file_commit_date(metadata_path: Path, git_repo_path: Path) -> d
             return datetime.fromtimestamp(int(timestamps[0]))
     except (subprocess.CalledProcessError, ValueError) as e:
         logger.error(f"Error getting creation date for {metadata_path}: {e}")
+    # Fallback to file modification time if git fails
     return datetime.fromtimestamp(metadata_path.stat().st_mtime)
+
+
+def get_recent_source_code_update_date(metadata_path: Path, git_repo_path: Path):
+    """Get the most recent update date for source code files in a component directory.
+    
+    This function checks for recent modifications to source code files (.py, .cpp, .h, .hpp, .cu, .cuh)
+    in the component directory to determine if the component has been recently updated.
+    
+    Args:
+        metadata_path: Path to the metadata.json file
+        git_repo_path: Path to the Git repository root
+        
+    Returns:
+        datetime: The date of the most recent source code update, or None if no updates found
+    """
+    # Get the component directory (parent of metadata.json, or parent's parent if in cpp/python subdirs)
+    component_dir = metadata_path.parent
+    if component_dir.name in ["cpp", "python"]:
+        component_dir = component_dir.parent
+    
+    # Source code file extensions to check
+    source_extensions = ["*.py", "*.cpp", "*.h", "*.hpp", "*.cu", "*.cuh", "*.c", "*.cc", "*.cxx"]
+    
+    rel_component_dir = str(component_dir.relative_to(git_repo_path))
+    
+    # Build git command to find the most recent commit affecting source files
+    # Format: git log -1 --format=%at -- <pattern1> <pattern2> ...
+    patterns = [f"{rel_component_dir}/**/{ext}" for ext in source_extensions]
+    
+    # Use git log to find the most recent commit that modified source files
+    cmd = ["git", "-C", str(git_repo_path), "log", "-1", "--format=%at", "--"]
+    cmd.extend(patterns)
+    
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        timestamp_str = result.stdout.strip()
+        if timestamp_str:
+            return datetime.fromtimestamp(int(timestamp_str))
+    except (subprocess.CalledProcessError, ValueError) as e:
+        logger.debug(f"No recent source code updates found for {component_dir.name}: {e}")
+    
+    return None
 
 
 def format_date(date_str: str) -> str:

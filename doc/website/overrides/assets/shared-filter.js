@@ -169,4 +169,3 @@ function setupFilterHandlers(filterFn, navSelector) {
         }
     });
 }
-

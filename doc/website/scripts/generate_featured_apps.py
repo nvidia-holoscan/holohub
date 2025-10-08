@@ -29,6 +29,7 @@ from common_utils import (  # noqa: E402
     get_full_image_url,
     get_git_root,
     get_metadata_file_commit_date,
+    get_recent_source_code_update_date,
     logger,
     parse_metadata_file,
 )
@@ -65,7 +66,10 @@ def find_most_recent_metadata_files(
             component_dir_path = component_dir_path.parent
 
         component_name = component_dir_path.name
+        # Get the creation date of the metadata.json file from git history
+        # This uses 'git log --follow --format=%at --reverse' to find the first commit
         commit_date = get_metadata_file_commit_date(metadata_path, git_repo_path)
+        logger.debug(f"Component '{component_name}' was created on {commit_date.strftime('%Y-%m-%d')}")
 
         if (
             component_name not in unique_components
@@ -101,7 +105,7 @@ def get_component_path(metadata_path: Path, git_repo_path: Path) -> str:
     return f"{rel_path}"
 
 
-def generate_featured_component_card(metadata_path: Path, git_repo_path: Path) -> str:
+def generate_featured_component_card(metadata_path: Path, git_repo_path: Path, commit_date=None) -> str:
     """Generate HTML for a featured component card."""
     metadata, component_type = parse_metadata_file(metadata_path)
     name = metadata.get("name", metadata_path.parent.name)
@@ -132,6 +136,36 @@ def generate_featured_component_card(metadata_path: Path, git_repo_path: Path) -
         logger.info(f"No image found in README for {name}, using default")
         image_url = f"/holohub/assets/images/{component_type}_default.png"
 
+    # Check if this is a recent contribution (within 45 days)
+    # commit_date is the date when metadata.json was first committed to git
+    from datetime import datetime, timedelta
+    
+    is_recent_attr = ""
+    badge_html = ""
+    is_new = False
+    
+    if commit_date:
+        days_old = (datetime.now() - commit_date).days
+        if days_old <= 45:
+            is_recent_attr = ' data-recent="true"'
+            badge_html = '<span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>'
+            is_new = True
+            logger.info(f"✓ Marking '{name}' as NEW - created {days_old} days ago ({commit_date.strftime('%Y-%m-%d')})")
+        else:
+            logger.debug(f"  '{name}' is {days_old} days old (created {commit_date.strftime('%Y-%m-%d')})")
+    
+    # Check for recent source code updates (within 30 days) - only if not already marked as "New"
+    if not is_new:
+        update_date = get_recent_source_code_update_date(metadata_path, git_repo_path)
+        if update_date:
+            days_since_update = (datetime.now() - update_date).days
+            if days_since_update <= 30:
+                is_recent_attr = ' data-updated="true"'
+                badge_html = '<span class="updated-badge" style="position: absolute; top: 10px; right: 10px; background-color: #ff9933; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">Updated</span>'
+                logger.info(f"✓ Marking '{name}' as UPDATED - source code modified {days_since_update} days ago ({update_date.strftime('%Y-%m-%d')})")
+            else:
+                logger.debug(f"  '{name}' last updated {days_since_update} days ago ({update_date.strftime('%Y-%m-%d')})")
+
     # Generate tags HTML (hide first tag visually but keep it for filtering)
     tags_html = ""
     if tags:
@@ -155,8 +189,9 @@ def generate_featured_component_card(metadata_path: Path, git_repo_path: Path) -
 
     # Generate card HTML with the found image URL
     card_html = f"""
- <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
-                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer;" onclick="window.location.href='/holohub/{component_path}';">
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box"{is_recent_attr}>
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/{component_path}';">
+                    {badge_html}
                     <img src="{image_url}" alt="{name}" width="120" height="120">
                     <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">{name}</h3>
                     <p class="feature-card-desc">{description}</p>
@@ -185,11 +220,11 @@ def generate_featured_content_html(component_type: str, output_path: str, count:
         )
         return
     cards = []
-    for metadata_path, _ in recent_metadata_files:
+    for metadata_path, commit_date in recent_metadata_files:
         # Skip if '/template/' is in the directory path
         if "/template/" in str(metadata_path).replace("\\", "/") + "/":
             continue
-        card_html = generate_featured_component_card(metadata_path, git_repo_path)
+        card_html = generate_featured_component_card(metadata_path, git_repo_path, commit_date)
         cards.append(card_html)
     cards_html = "".join(cards)
 
@@ -353,7 +388,7 @@ def generate_component_html(component_type: str, output_path: str):
     cards = []
     unique_app_names = set()  # Track unique app names for total count
 
-    for metadata_path, _ in recent_metadata_files:
+    for metadata_path, commit_date in recent_metadata_files:
         # Skip if '/template/' is in the directory path
         if "/template/" in str(metadata_path).replace("\\", "/") + "/":
             continue
@@ -376,7 +411,7 @@ def generate_component_html(component_type: str, output_path: str):
             logger.warning(f"Error parsing {metadata_path}: {e}")
             continue
 
-        card_html = generate_featured_component_card(metadata_path, git_repo_path)
+        card_html = generate_featured_component_card(metadata_path, git_repo_path, commit_date)
         cards.append(card_html)
     cards_html = "".join(cards)
 
