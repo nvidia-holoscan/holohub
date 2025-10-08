@@ -22,7 +22,7 @@
 {% block tabs %}
 {{ super() }}
 <style>
-    /* Applications page-specific styles */
+    /* Workflows page-specific styles */
     
     /* Sidebar navigation hover effect only */
     .sidebar-nav a:not([data-active]):hover {
@@ -61,9 +61,9 @@
             <!-- Side Navigation -->
             <div style="flex: 0 0 250px; min-width: 250px; background: var(--md-default-bg-color); border-right: 1px solid var(--md-default-fg-color--lightest);">
                 <div style="position: sticky; top: 80px;">
-                    <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Applications</h4>
+                    <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Workflows</h4>
                     <nav class="sidebar-nav" style="display: flex; flex-direction: column; gap: 0;">
-                        {% include '_pages/applications_nav.html' %}
+                        {% include '_pages/workflows_nav.html' %}
                     </nav>
                 </div>
             </div>
@@ -72,15 +72,15 @@
             <div style="flex: 1; min-width: 0;">
                 <div class="row justify-content-center">
                     <div class="col-12" style="text-align: left; padding-left: 2rem; padding-right: 2rem;">
-                        <h3 class="section-title" id="category-title" style="font-size: 0.9rem; text-align: left;">All Applications</h3>
+                        <h3 class="section-title" id="category-title" style="font-size: 0.9rem; text-align: left;">All Workflows</h3>
                         <p style="margin-bottom: 1.5rem; line-height: 1.6; color: var(--md-default-fg-color); font-size: 0.7rem;">
-                            Explore a diverse collection of reference applications showcasing NVIDIA Holoscan capabilities across multiple domains. 
-                            These production-ready examples demonstrate real-time AI workflows in healthcare, computer vision, robotics, streaming, 
-                            and more. Browse by category to find applications relevant to your use case, or use them as starting points for your own 
-                            sensor processing pipelines and AI-powered applications.
+                            Workflows demonstrate complete end-to-end processing pipelines built by composing multiple operators together. 
+                            These examples showcase how to orchestrate complex data flows for real-time sensor processing, from data ingestion 
+                            through AI inference to visualization and output. Explore workflows across different domains to understand pipeline 
+                            architecture patterns, data flow management, and integration strategies for building production-ready streaming applications.
                         </p>
                     </div>
-                    {% include '_pages/applications.html' %}
+                    {% include '_pages/workflows.html' %}
                 </div>
             </div>
         </div>
@@ -89,11 +89,11 @@
 <!-- /feature-box -->
 
 <script type="text/javascript">
-// Initialize filter function for Applications page
+// Initialize filter function for Workflows page
 var filterByTag = createFilterFunction({
     normalizeSpaces: true,
     updateTitle: true,
-    allTitle: 'All Applications',
+    allTitle: 'All Workflows',
     navSelector: '.sidebar-nav a',
     tagMatchStrategy: 'text'
 });
@@ -106,3 +106,4 @@ setupFilterHandlers(filterByTag, '.sidebar-nav a');
 
 {% block content %}
 {% endblock %}
+

@@ -1,4 +1,4 @@
 ---
 template: pages/applications.html
-title: Home
+title: Applications
 ---

@@ -1,4 +1,4 @@
 ---
 template: pages/benchmarks.html
-title: Home
+title: Benchmarks
 ---

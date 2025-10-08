@@ -422,11 +422,11 @@ def main():
     """Main function that generates featured content for operators, applications, benchmarks, and tutorials."""
     # Define the component types and their corresponding output files
     component_configs = [
-    #    "operators",
+        "operators",
         "applications",
         "benchmarks",
-    #    "tutorials",
-   #     "workflows",
+        "tutorials",
+        "workflows",
     ]
     
     # Validate output file path

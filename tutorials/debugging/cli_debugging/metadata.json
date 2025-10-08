@@ -24,7 +24,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Container"],
+		"tags": ["Development","Debugging"],
 		"ranking": 1,
 		"requirements": {
 			"applications": [

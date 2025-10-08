@@ -134,11 +134,11 @@
     }
 
     .top-hr {
-        margin: 14px 0px 30px;
+        margin: 14px 0px 10px;
     }
-    @media (min-width: 576px){ .top-hr { margin: 14px 0px 30px ; } }
-    @media (min-width: 720px){ .top-hr { margin: 21px 0px 45px; } }
-    @media (min-width: 992px){ .top-hr { margin: 21px 0px 45px; } }
+    @media (min-width: 576px){ .top-hr { margin: 14px 0px 10px ; } }
+    @media (min-width: 720px){ .top-hr { margin: 21px 0px 15px; } }
+    @media (min-width: 992px){ .top-hr { margin: 21px 0px 15px; } }
     
     .row {
         display:-ms-flexbox;
@@ -529,6 +529,12 @@
     [data-md-color-scheme="dark"] .app-card .feature-card-desc {
         color: #d3d3d3 !important;
     }
+    
+    /* Image backgrounds in dark mode for better visibility of default images only */
+    [data-md-color-scheme="dark"] .app-card img[src*="_default.png"] {
+        background-color: #e8e8e8;
+        padding: 0.5rem;
+    }
 </style>
 
 <!-- Main site Entry button descriptions -->
@@ -568,7 +574,7 @@
     <div class="top-hr">
         <div class="row justify-content-center">
             <div class="col-12 text-center">
-                <h2 class="section-title"><a href="tutorials">Tutorials</a></h2>
+                <h2 class="section-title"><a href="tutorials">Newest Tutorials</a></h2>
             </div>
             {% include '_pages/featured-tutorials.html' %}
             </div>
