@@ -21,38 +21,6 @@
 
 {% block tabs %}
 {{ super() }}
-<style>
-    /* Operators page-specific styles */
-    
-    /* Sidebar navigation hover effect only */
-    .sidebar-nav a:not([data-active]):hover {
-        background-color: #76b900 !important;
-        color: white !important;
-    }
-    
-    /* Card backgrounds - light mode */
-    .app-card {
-        background-color: #fff;
-        border-radius: 0.5rem;
-        border: 1px solid transparent;
-    }
-    
-    /* Card backgrounds - dark mode */
-    [data-md-color-scheme="dark"] .app-card {
-        background-color: var(--md-default-bg-color);
-        border: 1px solid #969696;
-    }
-    
-    /* Card title in dark mode */
-    [data-md-color-scheme="dark"] .app-card h3 {
-        color: #fff !important;
-    }
-    
-    /* Card description in dark mode */
-    [data-md-color-scheme="dark"] .app-card .feature-card-desc {
-        color: #d3d3d3 !important;
-    }
-</style>
 
 <!-- feature-box -->
 <section class="section">
@@ -62,7 +30,7 @@
             <div style="flex: 0 0 250px; min-width: 250px; background: var(--md-default-bg-color); border-right: 1px solid var(--md-default-fg-color--lightest);">
                 <div style="position: sticky; top: 80px;">
                     <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Operators</h4>
-                    <nav class="sidebar-nav" style="display: flex; flex-direction: column; gap: 0;">
+                    <nav class="sidebar-nav" data-page-type="operators" style="display: flex; flex-direction: column; gap: 0;">
                         {% include '_pages/operators_nav.html' %}
                     </nav>
                 </div>
@@ -87,20 +55,7 @@
     </div>
 </section>
 <!-- /feature-box -->
-
-<script type="text/javascript">
-// Initialize filter function for Operators page
-var filterByTag = createFilterFunction({
-    normalizeSpaces: true,
-    updateTitle: true,
-    allTitle: 'All Operators',
-    navSelector: '.sidebar-nav a',
-    tagMatchStrategy: 'text'
-});
-
-// Setup hash change and page load handlers
-setupFilterHandlers(filterByTag, '.sidebar-nav a');
-</script>
+<!-- Filters are auto-initialized by shared-filter.js based on data-page-type attribute -->
 
 {% endblock %}
 

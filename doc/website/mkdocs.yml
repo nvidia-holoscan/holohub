@@ -10,9 +10,9 @@ theme:
     - content.code.annotate
     - navigation.tabs
     - navigation.indexes
-    - navigation.instant
+    # - navigation.instant  # Disabled due to JavaScript timing issues with filterByTag
     - navigation.path
-    - navigation.instant.prefetch
+    # - navigation.instant.prefetch  # Disabled to fix JavaScript initialization issues
     - navigation.top
     - navigation.footer
     - search.suggest

@@ -1,5 +1,54 @@
 // Shared JavaScript for filtering cards on Applications and Benchmarks pages
 
+// Store the current page's filter function and nav selector globally
+// These are declared at the top so they're available immediately
+var currentFilterFn = null;
+var currentNavSelector = null;
+var globalHandlersInitialized = false;
+
+// Global filterByTag function that delegates to the current page's filter
+window.filterByTag = function(tag) {
+    if (currentFilterFn) {
+        currentFilterFn(tag);
+    }
+    return false;
+};
+
+// Auto-initialize based on page type data attribute
+function autoInitializeFilters() {
+    var sidebarNav = document.querySelector('.sidebar-nav[data-page-type]');
+    if (!sidebarNav) {
+        return; // Not a filterable page
+    }
+    
+    var pageType = sidebarNav.getAttribute('data-page-type');
+    if (!pageType) {
+        return;
+    }
+    
+    // Map page types to their titles
+    var pageTitles = {
+        'applications': 'All Applications',
+        'operators': 'All Operators',
+        'benchmarks': 'All Benchmarks',
+        'tutorials': 'All Tutorials',
+        'workflows': 'All Workflows'
+    };
+    
+    var allTitle = pageTitles[pageType] || 'All';
+    
+    // Create and setup the filter function
+    var pageFilterFn = createFilterFunction({
+        normalizeSpaces: true,
+        updateTitle: true,
+        allTitle: allTitle,
+        navSelector: '.sidebar-nav a',
+        tagMatchStrategy: 'text'
+    });
+    
+    setupFilterHandlers(pageFilterFn, '.sidebar-nav a');
+}
+
 function nat_at_top() {
     var navtab = document.getElementsByClassName('md-tabs');
     if (navtab && navtab[0]) {
@@ -7,8 +56,16 @@ function nat_at_top() {
     }
 }
 
-window.onload = nat_at_top;
+// Initialize filters and navigation on page load
+window.addEventListener('load', function() {
+    nat_at_top();
+    autoInitializeFilters();
+});
 
+// Also initialize on DOMContentLoaded for faster initial setup
+document.addEventListener('DOMContentLoaded', autoInitializeFilters);
+
+// Handle navigation tab scrolling
 window.addEventListener('scroll', function() {
     var scroll = document.body.scrollTop || document.documentElement.scrollTop;
     var navtab = document.getElementsByClassName('md-tabs');
@@ -34,8 +91,6 @@ function createFilterFunction(options) {
             activeCategory = activeCategory.replace(/ /g, '-');
         }
         
-        console.log('Filtering by tag:', tag, '(normalized:', activeCategory + ')');
-        
         // Update the category title if enabled
         if (updateTitle) {
             var categoryTitle = document.getElementById('category-title');
@@ -43,7 +98,19 @@ function createFilterFunction(options) {
                 if (tag.toLowerCase() === 'all') {
                     categoryTitle.textContent = allTitle;
                 } else {
-                    categoryTitle.textContent = tag;
+                    // Always convert to title case for consistent display
+                    // This handles both "Extended Reality" and "extended-reality" inputs
+                    var normalizedTag = tag.replace(/-/g, ' ').toLowerCase();
+                    var displayTitle = normalizedTag.split(' ')
+                        .map(function(word) {
+                            // Keep acronyms in uppercase
+                            if (word === 'ai') {
+                                return 'AI';
+                            }
+                            return word.charAt(0).toUpperCase() + word.slice(1);
+                        })
+                        .join(' ');
+                    categoryTitle.textContent = displayTitle;
                 }
             }
         }
@@ -80,7 +147,6 @@ function createFilterFunction(options) {
                         
                         if (tagTextNormalized === activeCategory) {
                             hasTag = true;
-                            console.log('Match found:', tagText, 'matches', tag);
                         }
                     }
                 });
@@ -93,7 +159,6 @@ function createFilterFunction(options) {
                     card.style.display = 'none';
                 }
             });
-            console.log('Shown', shownCount, 'cards with tag:', tag);
         }
         
         // Update active state on navigation links
@@ -149,23 +214,36 @@ function showAllCards(navSelector) {
     });
 }
 
+// Apply hash-based filter from URL
+function applyCurrentHashFilter() {
+    if (!currentFilterFn || !currentNavSelector) {
+        return;
+    }
+    
+    var hash = window.location.hash.substring(1);
+    if (hash) {
+        currentFilterFn(hash);
+    } else {
+        showAllCards(currentNavSelector);
+    }
+}
+
 // Setup hash change and page load handlers
 function setupFilterHandlers(filterFn, navSelector) {
-    // Handle hash change
-    window.addEventListener('hashchange', function() {
-        var hash = window.location.hash.substring(1); // Remove the #
-        if (hash) {
-            filterFn(hash);
-        } else {
-            showAllCards(navSelector);
-        }
-    });
-
-    // Check for hash on page load
-    window.addEventListener('load', function() {
-        var hash = window.location.hash.substring(1);
-        if (hash) {
-            filterFn(hash);
-        }
-    });
+    currentFilterFn = filterFn;
+    currentNavSelector = navSelector;
+    
+    // Only set up global event listeners once
+    if (!globalHandlersInitialized) {
+        window.addEventListener('hashchange', applyCurrentHashFilter);
+        window.addEventListener('load', applyCurrentHashFilter);
+        globalHandlersInitialized = true;
+    }
+    
+    // Apply filter immediately if DOM is ready
+    if (document.readyState !== 'loading') {
+        applyCurrentHashFilter();
+    } else {
+        document.addEventListener('DOMContentLoaded', applyCurrentHashFilter);
+    }
 }

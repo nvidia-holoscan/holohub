@@ -1,13 +1,14 @@
 /* Shared styles for Applications and Benchmarks pages */
 
 .md-main {
-    flex-grow: 0
+    flex-grow: 0;
 }
 
 .md-main__inner {
     display: flex;
     height: 100%;
 }
+
 
 .tx-container {
     padding-top: .0rem;
@@ -475,7 +476,42 @@ h2 {
     vertical-align: text-top;
 }
 
-/* Page-specific navigation styles should be defined in individual page files */
+/* Sidebar navigation styles */
+
+/* Sidebar navigation hover effect only */
+.sidebar-nav a:not([data-active]):hover {
+    background-color: #76b900 !important;
+    color: white !important;
+}
+
+/* Highlight the first link (All) by default only when no other link is active */
+.sidebar-nav:not(:has(a[data-active])) a:first-child {
+    background-color: #76b900 !important;
+    color: white !important;
+}
+
+/* Card backgrounds - light mode */
+.app-card {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+}
+
+/* Card backgrounds - dark mode */
+[data-md-color-scheme="dark"] .app-card {
+    background-color: var(--md-default-bg-color);
+    border: 1px solid #969696;
+}
+
+/* Card title in dark mode */
+[data-md-color-scheme="dark"] .app-card h3 {
+    color: #fff !important;
+}
+
+/* Card description in dark mode */
+[data-md-color-scheme="dark"] .app-card .feature-card-desc {
+    color: #d3d3d3 !important;
+}
 
 /* Image backgrounds in dark mode for better visibility of default images only */
 [data-md-color-scheme="dark"] .app-card img[src*="_default.png"] {
