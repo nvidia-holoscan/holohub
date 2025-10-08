@@ -49,6 +49,7 @@ class SegmentationPostprocessorOp : public Operator {
 
   // TODO(gbae): use std::expected
   void setup(OperatorSpec& spec) override;
+  void initialize() override;
   void start() override;
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override;
