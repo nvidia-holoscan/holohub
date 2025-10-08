@@ -599,9 +599,7 @@ class HoloHubContainer:
         # Pass CMAKE_BUILD_PARALLEL_LEVEL to container if set on host
         cmake_parallel_level = os.environ.get("CMAKE_BUILD_PARALLEL_LEVEL")
         if cmake_parallel_level:
-            args.extend(
-                ["-e", f"CMAKE_BUILD_PARALLEL_LEVEL={cmake_parallel_level}"]
-            )
+            args.extend(["-e", f"CMAKE_BUILD_PARALLEL_LEVEL={cmake_parallel_level}"])
         return args
 
     def enable_x11_access(self) -> None:
