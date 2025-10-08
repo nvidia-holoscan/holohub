@@ -248,9 +248,12 @@ AJAStatus AJASourceOp::SetupVideo() {
   // Determine input type based on device and channel
   NTV2InputSourceKinds input_kind = NTV2_INPUTSOURCES_SDI;  // default
 
-  HOLOSCAN_LOG_INFO("Setting input kind - HDMI count: {}, Channel config: {}, Channel enum: {} (NTV2_CHANNEL3 = {})",
-                    hdmi_in_count_, static_cast<int>(channel_.get()), static_cast<int>(channel_.get()), static_cast<int>(NTV2_CHANNEL3));
- 
+  HOLOSCAN_LOG_INFO(
+      "Setting input kind - HDMI count: {}, Channel config: {}, Channel enum: {} "
+      "(NTV2_CHANNEL3 = {})",
+      hdmi_in_count_, static_cast<int>(channel_.get()),
+      static_cast<int>(channel_.get()), static_cast<int>(NTV2_CHANNEL3));
+
   // Use HDMI if device has multiple HDMI inputs (Kona HDMI devices)
   // or if device has single HDMI and we're using NTV2_CHANNEL3 (HDMI channel)
   if (hdmi_in_count_ > 1 || (hdmi_in_count_ == 1 && channel_ == NTV2_CHANNEL3)) {
