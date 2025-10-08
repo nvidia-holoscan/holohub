@@ -47,31 +47,31 @@ using holoscan::ops::orsi::segmentation_postprocessor::cuda_resize;
 namespace holoscan::ops::orsi {
 
 void SegmentationPostprocessorOp::initialize() {
-  #if CUDART_VERSION >= 13000
-    // Workaround pending proper NPP support to get stream context in CUDA 13.0+
-    int device = 0;
-    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDevice(&device), "Failed to get CUDA device");
+#if CUDART_VERSION >= 13000
+  // Workaround pending proper NPP support to get stream context in CUDA 13.0+
+  int device = 0;
+  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDevice(&device), "Failed to get CUDA device");
 
-    cudaDeviceProp prop{};
-    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDeviceProperties(&prop, device),
-                                    "Failed to get CUDA device properties");
+  cudaDeviceProp prop{};
+  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDeviceProperties(&prop, device),
+                                  "Failed to get CUDA device properties");
 
-    npp_stream_ctx_.nCudaDeviceId = device;
-    npp_stream_ctx_.nMultiProcessorCount = prop.multiProcessorCount;
-    npp_stream_ctx_.nMaxThreadsPerMultiProcessor = prop.maxThreadsPerMultiProcessor;
-    npp_stream_ctx_.nMaxThreadsPerBlock = prop.maxThreadsPerBlock;
-    npp_stream_ctx_.nSharedMemPerBlock = prop.sharedMemPerBlock;
-    npp_stream_ctx_.nCudaDevAttrComputeCapabilityMajor = prop.major;
-    npp_stream_ctx_.nCudaDevAttrComputeCapabilityMinor = prop.minor;
-  #else
-    auto nppStatus = nppGetStreamContext(&npp_stream_ctx_);
-    if (NPP_SUCCESS != nppStatus) {
-      throw std::runtime_error("Failed to get NPP CUDA stream context");
-    }
-  #endif
-
-    Operator::initialize();
+  npp_stream_ctx_.nCudaDeviceId = device;
+  npp_stream_ctx_.nMultiProcessorCount = prop.multiProcessorCount;
+  npp_stream_ctx_.nMaxThreadsPerMultiProcessor = prop.maxThreadsPerMultiProcessor;
+  npp_stream_ctx_.nMaxThreadsPerBlock = prop.maxThreadsPerBlock;
+  npp_stream_ctx_.nSharedMemPerBlock = prop.sharedMemPerBlock;
+  npp_stream_ctx_.nCudaDevAttrComputeCapabilityMajor = prop.major;
+  npp_stream_ctx_.nCudaDevAttrComputeCapabilityMinor = prop.minor;
+#else
+  auto nppStatus = nppGetStreamContext(&npp_stream_ctx_);
+  if (NPP_SUCCESS != nppStatus) {
+    throw std::runtime_error("Failed to get NPP CUDA stream context");
   }
+#endif
+
+  Operator::initialize();
+}
 
 void SegmentationPostprocessorOp::setup(OperatorSpec& spec) {
   auto& in_tensor = spec.input<gxf::Entity>("in_tensor");
@@ -275,6 +275,7 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
 
     if (status != NPP_SUCCESS) {
       throw std::runtime_error("Failed to insert post processed buffer into output buffer");
+    }
 
     // ------------------------------------------------------------------------
     //
