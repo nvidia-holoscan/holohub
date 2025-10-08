@@ -848,41 +848,57 @@ def build_holohub_path_mapping(
     project_data: Optional[dict] = None,
     build_dir: Optional[Path] = None,
     data_dir: Optional[Path] = None,
+    prefix: Optional[str] = None,
 ) -> dict[str, str]:
-    """Build a mapping of HoloHub placeholders to their resolved paths"""
+    """Build a mapping of HoloHub placeholders to their resolved paths
+
+    Args:
+        holohub_root: Root directory of HoloHub
+        project_data: Optional project metadata dictionary
+        build_dir: Optional build directory path
+        data_dir: Optional data directory path
+        prefix: Prefix for placeholder keys. If None, reads from HOLOHUB_PATH_PREFIX
+                environment variable (default: "holohub_")
+
+    Returns:
+        Dictionary mapping placeholder names to their resolved paths
+    """
+    if prefix is None:
+        prefix = os.environ.get("HOLOHUB_PATH_PREFIX", "holohub_")
+
     if data_dir is None:
         data_dir = holohub_root / "data"
 
     path_mapping = {
-        "holohub_root": str(holohub_root),
-        "holohub_data_dir": str(data_dir),
+        f"{prefix}root": str(holohub_root),
+        f"{prefix}data_dir": str(data_dir),
     }
     if not project_data:
         return path_mapping
     # Add project-specific mappings if project_data is provided
     app_source_path = project_data.get("source_folder", "")
     if app_source_path:
-        path_mapping["holohub_app_source"] = str(app_source_path)
+        path_mapping[f"{prefix}app_source"] = str(app_source_path)
     if build_dir:
-        path_mapping["holohub_bin"] = str(build_dir)
+        path_mapping[f"{prefix}bin"] = str(build_dir)
         if app_source_path:
             try:
                 app_build_dir = build_dir / Path(app_source_path).relative_to(holohub_root)
-                path_mapping["holohub_app_bin"] = str(app_build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(app_build_dir)
             except ValueError:
                 # Handle case where app_source_path is not relative to holohub_root
-                path_mapping["holohub_app_bin"] = str(build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(build_dir)
     elif project_data.get("project_name"):
         # If no build_dir provided but we have project name, try to infer it
         project_name = project_data["project_name"]
         inferred_build_dir = holohub_root / "build" / project_name
-        path_mapping["holohub_bin"] = str(inferred_build_dir)
+        path_mapping[f"{prefix}bin"] = str(inferred_build_dir)
         if app_source_path:
             try:
                 app_build_dir = inferred_build_dir / Path(app_source_path).relative_to(holohub_root)
-                path_mapping["holohub_app_bin"] = str(app_build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(app_build_dir)
             except ValueError:
-                path_mapping["holohub_app_bin"] = str(inferred_build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(inferred_build_dir)
     return path_mapping
 
 
@@ -1220,6 +1236,7 @@ def collect_environment_variables() -> None:
         # Legacy variables
         "HOLOHUB_APP_NAME",
         "HOLOHUB_CONTAINER_BASE_NAME",
+        "HOLOHUB_PATH_PREFIX",
     ]
     for var in sorted(holohub_env_vars):
         print(f"  {var}: {os.environ.get(var) or '(not set)'}")
