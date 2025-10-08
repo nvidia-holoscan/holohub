@@ -41,6 +41,7 @@ RANKING_LEVELS = {
     5: "Level 5 - Obsolete",
 }
 
+
 def get_git_root() -> Path:
     """Get the absolute path to the Git repository root."""
     result = subprocess.run(
@@ -678,11 +679,11 @@ sort:
     # Update all featured component pages with component counts
     featured_pages = [
         "featured-operators.html",
-        "featured-applications.html", 
+        "featured-applications.html",
         "featured-benchmarks.html",
-        "featured-tutorials.html"
+        "featured-tutorials.html",
     ]
-    
+
     for featured_page in featured_pages:
         homefile_path = website_src_dir / "overrides" / "_pages" / featured_page
         if homefile_path.exists():
@@ -701,7 +702,6 @@ sort:
                 logger.info(f"Updated component counts in {featured_page}")
         else:
             logger.warning(f"Featured page not found: {featured_page}")
-
 
     # Write explicit navigation order for the root
     nav_content = """

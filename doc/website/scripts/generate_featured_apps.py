@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: LicenseRef-Apache2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,10 @@ from common_utils import (  # noqa: E402
     parse_metadata_file,
 )
 
-def find_most_recent_metadata_files(git_repo_path: Path, component_type: str, count: int = 3) -> list:
+
+def find_most_recent_metadata_files(
+    git_repo_path: Path, component_type: str, count: int = 3
+) -> list:
     """Find the most recently created/updated metadata.json files.
 
     Args:
@@ -52,12 +55,8 @@ def find_most_recent_metadata_files(git_repo_path: Path, component_type: str, co
 
     for metadata_path in component_dir.rglob("metadata.json"):
         # Skip certain non-regular components based on component type
-        if (
-            component_type == "applications"
-            and any(
-                t in str(metadata_path)
-                for t in ["datawriter", "operators", "xr_hello_holoscan"]
-            )
+        if component_type == "applications" and any(
+            t in str(metadata_path) for t in ["datawriter", "operators", "xr_hello_holoscan"]
         ):
             continue  # non regular apps skip.
 
@@ -139,15 +138,19 @@ def generate_featured_component_card(metadata_path: Path, git_repo_path: Path) -
         # First tag (category) - hidden but kept for filtering, all lowercase with spaces replaced by hyphens
         tag_items = []
         first_tag_display = tags[0].lower()
-        first_tag_href = tags[0].lower().replace(' ', '-')
-        tag_items.append(f'<a href="/holohub/tags/#tag:{first_tag_href}" class="md-tag" style="display: none;">{first_tag_display}</a>')
-        
+        first_tag_href = tags[0].lower().replace(" ", "-")
+        tag_items.append(
+            f'<a href="/holohub/tags/#tag:{first_tag_href}" class="md-tag" style="display: none;">{first_tag_display}</a>'
+        )
+
         # Remaining tags - visible, all lowercase with spaces replaced by hyphens
         for tag in tags[1:]:
             tag_display = tag.lower()
-            tag_href = tag.lower().replace(' ', '-')
-            tag_items.append(f'<a href="/holohub/tags/#tag:{tag_href}" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor=\'#5a9100\';" onmouseout="this.style.backgroundColor=\'\';" onclick="event.stopPropagation();">{tag_display}</a>')
-        
+            tag_href = tag.lower().replace(" ", "-")
+            tag_items.append(
+                f'<a href="/holohub/tags/#tag:{tag_href}" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor=\'#5a9100\';" onmouseout="this.style.backgroundColor=\'\';" onclick="event.stopPropagation();">{tag_display}</a>'
+            )
+
         tags_html = f'<div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();">{" ".join(tag_items)}</div>'
 
     # Generate card HTML with the found image URL
@@ -167,7 +170,7 @@ def generate_featured_component_card(metadata_path: Path, git_repo_path: Path) -
 
 def generate_featured_content_html(component_type: str, output_path: str, count: int = 3):
     """Generate the featured content HTML for specified component_type.
-    
+
     Args:
         component_type: Component type to feature (e.g., 'applications', 'tutorials')
         output_path: Path to the output HTML file
@@ -177,7 +180,9 @@ def generate_featured_content_html(component_type: str, output_path: str, count:
     output_file = Path(output_path) / f"featured-{component_type}.html"
     recent_metadata_files = find_most_recent_metadata_files(git_repo_path, component_type, count)
     if not recent_metadata_files:
-        logger.warning(f"No metadata files found to feature for {component_type} in {git_repo_path}")
+        logger.warning(
+            f"No metadata files found to feature for {component_type} in {git_repo_path}"
+        )
         return
     cards = []
     for metadata_path, _ in recent_metadata_files:
@@ -187,14 +192,16 @@ def generate_featured_content_html(component_type: str, output_path: str, count:
         card_html = generate_featured_component_card(metadata_path, git_repo_path)
         cards.append(card_html)
     cards_html = "".join(cards)
-    
+
     # Generate browse links for each component type
     browse_links = []
-    browse_links.append(f"""
+    browse_links.append(
+        f"""
                 <a href="{component_type}" title="Browse all {component_type}" class="md-button md-button--primary" style="padding-top: 0.7rem; padding-bottom: 0.7rem; margin-right: 0.5rem;">
                   Browse all {component_type} (#{component_type})
-               </a>""")
-    
+               </a>"""
+    )
+
     browse_links_html = "".join(browse_links)
     featured_content_html = f"""
             {cards_html}
@@ -204,59 +211,61 @@ def generate_featured_content_html(component_type: str, output_path: str, count:
 """
     with open(output_file, "w") as f:
         f.write(featured_content_html)
-    logger.info(f"Generated featured content HTML with {len(recent_metadata_files)} components for {component_type}")
+    logger.info(
+        f"Generated featured content HTML with {len(recent_metadata_files)} components for {component_type}"
+    )
 
 
 def get_unique_first_tags(git_repo_path: Path, component_type: str) -> dict:
     """Get unique first tags from all metadata.json files for a component type with counts.
-    
+
     This function counts how many applications have each tag (as first tag for categories,
     but counts all occurrences of each tag to match the filtering behavior).
     Applications with both cpp and python implementations are counted only once.
-    
+
     Args:
         git_repo_path: Path to the Git repository root
         component_type: Component type to search (e.g., 'applications', 'tutorials')
-    
+
     Returns:
         Dictionary mapping first tag names to their counts (counting all apps with that tag anywhere)
     """
     # First, collect all first tags (categories)
     first_tags = set()
     component_dir = git_repo_path / component_type
-    
+
     if not component_dir.exists():
         return {}
-    
+
     # Map plural component_type to singular key in metadata
     component_key_map = {
-        'applications': 'application',
-        'operators': 'operator',
-        'tutorials': 'tutorial',
-        'benchmarks': 'benchmark',
-        'workflows': 'workflow',
+        "applications": "application",
+        "operators": "operator",
+        "tutorials": "tutorial",
+        "benchmarks": "benchmark",
+        "workflows": "workflow",
     }
-    expected_key = component_key_map.get(component_type, component_type.rstrip('s'))
-    
+    expected_key = component_key_map.get(component_type, component_type.rstrip("s"))
+
     # First pass: collect all first tags (these are the categories)
     for metadata_path in component_dir.rglob("metadata.json"):
         # Skip template files
-        if 'template' in str(metadata_path):
+        if "template" in str(metadata_path):
             continue
-        
+
         try:
             metadata, parsed_type = parse_metadata_file(metadata_path)
-            
+
             # Skip if this metadata doesn't match the expected component type
             if parsed_type != expected_key:
                 continue
-            
+
             tags = metadata.get("tags", [])
             if tags and len(tags) > 0:
                 first_tags.add(tags[0])
         except Exception as e:
             logger.warning(f"Error reading {metadata_path}: {e}")
-    
+
     # Helper function to normalize app names for deduplication
     def normalize_app_name(name: str) -> str:
         """Normalize app name by removing common variations."""
@@ -267,25 +276,25 @@ def get_unique_first_tags(git_repo_path: Path, component_type: str) -> dict:
         # Remove multiple spaces
         normalized = " ".join(normalized.split())
         return normalized
-    
+
     # Second pass: for each category (first tag), count unique apps (by normalized name) that have that tag anywhere
     tag_counts = {}
     for category in first_tags:
         # Use a set to track unique app names for this category
         unique_app_names = set()
-        
+
         for metadata_path in component_dir.rglob("metadata.json"):
             # Skip template files
-            if 'template' in str(metadata_path):
+            if "template" in str(metadata_path):
                 continue
-            
+
             try:
                 metadata, parsed_type = parse_metadata_file(metadata_path)
-                
+
                 # Skip if this metadata doesn't match the expected component type
                 if parsed_type != expected_key:
                     continue
-                
+
                 tags = metadata.get("tags", [])
                 # Check if the category appears anywhere in the tags
                 if category in tags:
@@ -294,18 +303,18 @@ def get_unique_first_tags(git_repo_path: Path, component_type: str) -> dict:
                         # Use normalized name for deduplication
                         normalized_name = normalize_app_name(app_name)
                         unique_app_names.add(normalized_name)
-            except Exception as e:
+            except Exception:
                 pass
-        
+
         tag_counts[category] = len(unique_app_names)
-    
+
     # Return sorted by tag name
     return dict(sorted(tag_counts.items()))
 
 
 def generate_component_html(component_type: str, output_path: str):
     """Generate the featured content HTML for specified component types.
-    
+
     Args:
         component_type: Component type to feature (e.g., 'applications', 'tutorials')
         output_path: Path to the output HTML file
@@ -315,19 +324,21 @@ def generate_component_html(component_type: str, output_path: str):
     output_file = Path(output_path) / f"{component_type}.html"
     recent_metadata_files = find_most_recent_metadata_files(git_repo_path, component_type, 500)
     if not recent_metadata_files:
-        logger.warning(f"No metadata files found to feature for {component_type} in {git_repo_path}")
+        logger.warning(
+            f"No metadata files found to feature for {component_type} in {git_repo_path}"
+        )
         return
-    
+
     # Map plural component_type to singular key in metadata
     component_key_map = {
-        'applications': 'application',
-        'operators': 'operator',
-        'tutorials': 'tutorial',
-        'benchmarks': 'benchmark',
-        'workflows': 'workflow',
+        "applications": "application",
+        "operators": "operator",
+        "tutorials": "tutorial",
+        "benchmarks": "benchmark",
+        "workflows": "workflow",
     }
-    expected_key = component_key_map.get(component_type, component_type.rstrip('s'))
-    
+    expected_key = component_key_map.get(component_type, component_type.rstrip("s"))
+
     # Helper function to normalize app names for deduplication
     def normalize_app_name(name: str) -> str:
         """Normalize app name by removing common variations."""
@@ -338,22 +349,24 @@ def generate_component_html(component_type: str, output_path: str):
         # Remove multiple spaces
         normalized = " ".join(normalized.split())
         return normalized
-    
+
     cards = []
     unique_app_names = set()  # Track unique app names for total count
-    
+
     for metadata_path, _ in recent_metadata_files:
         # Skip if '/template/' is in the directory path
         if "/template/" in str(metadata_path).replace("\\", "/") + "/":
             continue
-        
+
         # Verify this metadata matches the expected component type
         try:
             metadata, parsed_type = parse_metadata_file(metadata_path)
             if parsed_type != expected_key:
-                logger.debug(f"Skipping {metadata_path}: expected {expected_key}, got {parsed_type}")
+                logger.debug(
+                    f"Skipping {metadata_path}: expected {expected_key}, got {parsed_type}"
+                )
                 continue
-            
+
             # Track unique app name for counting (normalized to avoid counting cpp/python separately)
             app_name = metadata.get("name", "")
             if app_name:
@@ -362,19 +375,21 @@ def generate_component_html(component_type: str, output_path: str):
         except Exception as e:
             logger.warning(f"Error parsing {metadata_path}: {e}")
             continue
-        
+
         card_html = generate_featured_component_card(metadata_path, git_repo_path)
         cards.append(card_html)
     cards_html = "".join(cards)
-    
+
     # Generate browse links for each component type
     content_html = f"""
             {cards_html}
 """
     with open(output_file, "w") as f:
         f.write(content_html)
-    logger.info(f"Generated featured content HTML with {len(cards)} components for {component_type}")
-    
+    logger.info(
+        f"Generated featured content HTML with {len(cards)} components for {component_type}"
+    )
+
     # Generate navigation HTML based on unique first tags
     tag_counts = get_unique_first_tags(git_repo_path, component_type)
     if tag_counts:
@@ -384,39 +399,44 @@ def generate_component_html(component_type: str, output_path: str):
         generate_navigation_html(tag_counts, component_type, nav_output_file, total_count)
 
 
-def generate_navigation_html(tag_counts: dict, component_type: str, output_file: Path, total_count: int):
+def generate_navigation_html(
+    tag_counts: dict, component_type: str, output_file: Path, total_count: int
+):
     """Generate navigation HTML for component categories.
-    
+
     Args:
         tag_counts: Dictionary mapping tag names to their counts
         component_type: Component type (e.g., 'applications')
         output_file: Path to output navigation HTML file
         total_count: Total number of components
     """
-    nav_items = [f'<a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag(\'all\'); return true;">All ({total_count})</a>']
-    
+    nav_items = [
+        f'<a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag(\'all\'); return true;">All ({total_count})</a>'
+    ]
+
     # Map long tag names to shorter display names
     tag_display_map = {
-        'Computer Vision and Perception': 'Computer Vision',
-        'Natural Language and Conversational AI': 'NLP & Conversational AI',
-        'Networking and Distributed Computing': 'Networking',
-        'Tools And Other Specialized Applications': 'Tools & Specialized',
+        "Computer Vision and Perception": "Computer Vision",
+        "Natural Language and Conversational AI": "NLP & Conversational AI",
+        "Networking and Distributed Computing": "Networking",
+        "Tools And Other Specialized Applications": "Tools & Specialized",
     }
-    
+
     for tag, count in tag_counts.items():
         tag_lower = tag.lower()
-        tag_href = tag_lower.replace(' ', '-')
+        tag_href = tag_lower.replace(" ", "-")
         display_name = tag_display_map.get(tag, tag)
-        
+
         nav_item = f'<a href="#{tag_href}" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag(\'{tag}\'); return true;">{display_name} ({count})</a>'
         nav_items.append(nav_item)
-    
-    nav_html = '\n                        '.join(nav_items)
-    
-    with open(output_file, 'w') as f:
+
+    nav_html = "\n                        ".join(nav_items)
+
+    with open(output_file, "w") as f:
         f.write(nav_html)
-    
+
     logger.info(f"Generated navigation HTML with {len(tag_counts)} categories for {component_type}")
+
 
 def main():
     """Main function that generates featured content for operators, applications, benchmarks, and tutorials."""
@@ -428,21 +448,20 @@ def main():
         "tutorials",
         "workflows",
     ]
-    
+
     # Validate output file path
     output_path = "overrides/_pages"
     if not Path(output_path).parent.exists():
         logger.error(f"Output directory does not exist: {output_path.parent}")
         return
-    
+
     # Generate featured content for each component type
     for component_type in component_configs:
         logger.info(f"Generating featured {component_type} HTML...")
-        
+
         generate_featured_content_html(component_type, output_path, 3)
         generate_component_html(component_type, output_path)
-        
-    
+
     logger.info("Finished generating all featured content HTML files")
 
 

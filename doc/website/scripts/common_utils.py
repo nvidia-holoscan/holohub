@@ -82,6 +82,7 @@ RANKING_LEVELS = {
     5: "Level 5 - Obsolete",
 }
 
+
 def get_git_root() -> Path:
     """Get the absolute path to the Git repository root."""
     try:
