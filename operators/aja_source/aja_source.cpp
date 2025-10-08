@@ -187,11 +187,11 @@ AJAStatus AJASourceOp::OpenDevice() {
   // Get the device ID.
   device_id_ = device_.GetDeviceID();
 
-  // Detect Kona HDMI device.
-  is_kona_hdmi_ = NTV2DeviceGetNumHDMIVideoInputs(device_id_) > 1;
+  // Get HDMI input count for device detection
+  hdmi_in_count_ = NTV2DeviceGetNumHDMIVideoInputs(device_id_);
+  HOLOSCAN_LOG_INFO("AJA device has {} HDMI inputs", hdmi_in_count_);
 
-  // Check if a TSI 4x format is needed.
-  if (is_kona_hdmi_) { use_tsi_ = GetNTV2VideoFormatTSI(&video_format_); }
+  // TSI will be determined in SetupVideo() based on actual input type
 
   // Check device capabilities.
   if (!NTV2DeviceCanDoVideoFormat(device_id_, video_format_)) {
@@ -245,7 +245,29 @@ AJAStatus AJASourceOp::OpenDevice() {
 AJAStatus AJASourceOp::SetupVideo() {
   constexpr size_t kWarmupFrames = 5;
 
-  NTV2InputSourceKinds input_kind = is_kona_hdmi_ ? NTV2_INPUTSOURCES_HDMI : NTV2_INPUTSOURCES_SDI;
+  // Determine input type based on device and channel
+  NTV2InputSourceKinds input_kind = NTV2_INPUTSOURCES_SDI;  // default
+
+  HOLOSCAN_LOG_INFO("Setting input kind - HDMI count: {}, Channel config: {}, Channel enum: {} (NTV2_CHANNEL3 = {})",
+                    hdmi_in_count_, static_cast<int>(channel_.get()), static_cast<int>(channel_.get()), static_cast<int>(NTV2_CHANNEL3));
+ 
+  // Use HDMI if device has multiple HDMI inputs (Kona HDMI devices)
+  // or if device has single HDMI and we're using NTV2_CHANNEL3 (HDMI channel)
+  if (hdmi_in_count_ > 1 || (hdmi_in_count_ == 1 && channel_ == NTV2_CHANNEL3)) {
+    // NTV2_CHANNEL3 is used to identify the HDMI input for the KONA XM,
+    // but this input will map to frame store 0
+    if (hdmi_in_count_ == 1)
+      channel_ = NTV2_CHANNEL1;
+
+    input_kind = NTV2_INPUTSOURCES_HDMI;
+    HOLOSCAN_LOG_INFO("Using HDMI input - HDMI count: {}, Channel: {}",
+                      hdmi_in_count_, static_cast<int>(channel_.get()));
+    // Check if TSI is needed for HDMI input
+    use_tsi_ = GetNTV2VideoFormatTSI(&video_format_);
+  } else {
+    HOLOSCAN_LOG_INFO("Using SDI input - HDMI count: {}, Channel: {}",
+                      hdmi_in_count_, static_cast<int>(channel_.get()));
+  }
   NTV2InputSource input_src = ::NTV2ChannelToInputSource(channel_, input_kind);
   NTV2Channel tsi_channel = static_cast<NTV2Channel>(channel_ + 1);
 
