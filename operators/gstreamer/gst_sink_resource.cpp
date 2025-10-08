@@ -159,12 +159,6 @@ struct _GstHoloscanSinkClass
 GST_DEBUG_CATEGORY_STATIC(gst_holoscan_sink_debug);
 #define GST_CAT_DEFAULT gst_holoscan_sink_debug
 
-/* Properties */
-enum
-{
-  PROP_0
-};
-
 /* Pad templates - will be dynamically updated based on configured caps */
 static GstStaticPadTemplate sink_pad_template = GST_STATIC_PAD_TEMPLATE("sink",
     GST_PAD_SINK,
@@ -354,9 +348,13 @@ std::future<gst::Buffer> GstSinkResource::pop_buffer() {
     // Notify waiting producers that space is available in the queue
     queue_cv_.notify_one();
   } else {
-    // No buffers available, queue the promise for later fulfillment
-    request_queue_.push(std::move(promise));
-    HOLOSCAN_LOG_DEBUG("Queued buffer request, pending requests: {}", request_queue_.size());
+    // No buffers available, store the promise for later fulfillment
+    if (pending_request_.has_value()) {
+      HOLOSCAN_LOG_WARN("Multiple concurrent pop_buffer() requests detected. "
+                        "Only one request is supported at a time. Previous request will be overwritten.");
+    }
+    pending_request_ = std::move(promise);
+    HOLOSCAN_LOG_DEBUG("Stored pending buffer request");
   }
 
   return future;
@@ -691,29 +689,29 @@ gboolean GstSinkResource::stop_callback(::GstBaseSink *sink) {
   // Create Buffer object (no mapping yet - let the operator decide)
   gst::Buffer buffer_obj(buffer);
 
-  /* Check if there are pending requests waiting for buffers */
-  if (!resource->request_queue_.empty()) {
-    /* Fulfill the oldest pending request */
-    std::promise<gst::Buffer> promise = std::move(resource->request_queue_.front());
-    resource->request_queue_.pop();
+  /* Check if there is a pending request waiting for a buffer */
+  if (resource->pending_request_.has_value()) {
+    /* Fulfill the pending request */
+    std::promise<gst::Buffer> promise = std::move(resource->pending_request_.value());
+    resource->pending_request_.reset();
     promise.set_value(std::move(buffer_obj));
-    HOLOSCAN_LOG_DEBUG("Fulfilled pending buffer request, remaining requests: {}", resource->request_queue_.size());
+    HOLOSCAN_LOG_DEBUG("Fulfilled pending buffer request");
   } else {
-    /* No pending requests, queue the buffer for future requests */
+    /* No pending request, queue the buffer for future requests */
     resource->buffer_queue_.push(std::move(buffer_obj));
     HOLOSCAN_LOG_DEBUG("Queued buffer, total in queue: {}", resource->buffer_queue_.size());
     
     /* Wait until queue size is within limit */
     size_t queue_limit = resource->queue_limit_.get();
-    while (resource->buffer_queue_.size() > queue_limit) {
+    if (resource->buffer_queue_.size() > queue_limit) {
       HOLOSCAN_LOG_DEBUG("Buffer queue size ({}) exceeds limit ({}), waiting...", 
                         resource->buffer_queue_.size(), queue_limit);
-      resource->queue_cv_.wait(lock);
     }
+    resource->queue_cv_.wait(lock, [resource, queue_limit]() {
+      return resource->buffer_queue_.size() <= queue_limit;
+    });
     HOLOSCAN_LOG_DEBUG("Buffer queue size now within limit: {}", resource->buffer_queue_.size());
   }
-
-//  std::this_thread::sleep_for(std::chrono::seconds(1));
 
   return GST_FLOW_OK;
 }
@@ -723,6 +721,16 @@ GstSinkResource::~GstSinkResource() {
   
   // Check if element was created and set it to NULL state
   if (valid()) {
+    HOLOSCAN_LOG_INFO("Destroying GstSinkResource");
+    {
+      // Clear the buffer queue and notify any waiting render callbacks
+      // This is necessary to avoid a deadlock in the render callback
+      std::lock_guard<std::mutex> lock(mutex_);
+      std::queue<gst::Buffer> empty_queue;
+      std::swap(buffer_queue_, empty_queue);
+      pending_request_.reset();
+      queue_cv_.notify_all();
+    }
     auto element = sink_element_future_.get();
     if (GST_IS_ELEMENT(element.get())) {
       gst_element_set_state(element.get(), GST_STATE_NULL);

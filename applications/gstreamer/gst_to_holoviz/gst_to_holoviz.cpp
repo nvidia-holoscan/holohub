@@ -324,6 +324,7 @@ int main(int argc, char** argv) {
     
     // Wait for the application to complete
     app_future.wait();
+    holoscan_app.reset();
 
     HOLOSCAN_LOG_INFO("Application finished");
 

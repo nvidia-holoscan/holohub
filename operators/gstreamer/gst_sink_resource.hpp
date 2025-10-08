@@ -129,8 +129,8 @@ class GstSinkResource : public holoscan::Resource {
 
   // Buffer queue for thread-safe async processing
   std::queue<holoscan::gst::Buffer> buffer_queue_;
-  // Promise queue for pending buffer requests
-  std::queue<std::promise<holoscan::gst::Buffer>> request_queue_;
+  // Single pending buffer pop request (only one request at a time)
+  std::optional<std::promise<holoscan::gst::Buffer>> pending_request_;
   mutable std::mutex mutex_;
   std::condition_variable queue_cv_;
 
