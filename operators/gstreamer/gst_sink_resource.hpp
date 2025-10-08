@@ -88,10 +88,10 @@ class GstSinkResource : public holoscan::Resource {
   }
 
   /**
-   * @brief Asynchronously get the next buffer from the GStreamer pipeline
+   * @brief Asynchronously pop the next buffer from the GStreamer pipeline
    * @return Future that will be fulfilled when a buffer becomes available
    */
-  std::future<holoscan::gst::Buffer> get_buffer();
+  std::future<holoscan::gst::Buffer> pop_buffer();
 
   /**
    * @brief Get the current negotiated caps from the sink

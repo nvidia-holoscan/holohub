@@ -28,8 +28,8 @@ class GstSinkOperator : public Operator {
   }
 
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
-    // Get a buffer asynchronously from the GStreamer pipeline (blocks until available)
-    auto buffer_future = gst_sink_resource_.get()->get_buffer();
+    // Pop a buffer asynchronously from the GStreamer pipeline (blocks until available)
+    auto buffer_future = gst_sink_resource_.get()->pop_buffer();
     // Wait for buffer with timeout to avoid hanging
     if (buffer_future.wait_for(std::chrono::seconds(1)) == std::future_status::timeout) {
       HOLOSCAN_LOG_ERROR("Timeout waiting for buffer - no data received in 1 seconds");

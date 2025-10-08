@@ -335,8 +335,8 @@ const char* get_media_type_from_caps(::GstCaps* caps) {
 
 } // unnamed namespace
 
-// Asynchronously get next buffer using promise-based approach
-std::future<gst::Buffer> GstSinkResource::get_buffer() {
+// Asynchronously pop next buffer using promise-based approach
+std::future<gst::Buffer> GstSinkResource::pop_buffer() {
   std::lock_guard<std::mutex> lock(mutex_);
 
   // Create a promise for this request
