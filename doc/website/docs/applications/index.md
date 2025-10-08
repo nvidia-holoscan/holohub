@@ -1,3 +1,4 @@
-# [Applications](https://github.com/nvidia-holoscan/holohub/tree/main/applications)
-
-Holohub features a curated collection of reference applications that demonstrate the platform's capabilities across various domains, from medical imaging to industrial automation. Each application is designed to showcase best practices for integrating Holoscan's optimized libraries and microservices, ensuring high performance and low latency. Whether you are looking to streamline data processing workflows, enhance real-time analytics, or develop cutting-edge AI models, the applications in Holohub provide valuable examples and templates to accelerate your development process. 
+---
+template: pages/applications.html
+title: Home
+---

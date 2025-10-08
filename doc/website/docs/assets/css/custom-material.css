@@ -182,3 +182,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Hide the left sidebar on every page */
+.md-sidebar--primary{
+  display: none;
+  }

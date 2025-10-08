@@ -211,11 +211,6 @@
             flex: 0 0 50%;
             max-width: 50%;
         }
-        .col-sm-12 {
-            -ms-flex: 0 0 100%;
-            flex: 0 0 100%;
-            max-width: 100%;
-        }
     }
     @media (min-width: 720px) {
         .col-lg-3 {
@@ -507,6 +502,12 @@
         vertical-align: text-top;
     }
     
+    /* Sidebar navigation hover effect only */
+    .sidebar-nav a:not([data-active]):hover {
+        background-color: #76b900 !important;
+        color: white !important;
+    }
+    
     /* Card backgrounds - light mode */
     .app-card {
         background-color: #fff;
@@ -531,63 +532,32 @@
     }
 </style>
 
-<!-- Main site Entry button descriptions -->
-<section class="tx-container">
-    <div class="md-grid md-typeset">
-      <div class="tx-hero">
-        <div class="tx-hero__content">
-            <h1>Accelerate Sensor Processing</h1>
-            <p>Bring Real-time AI to the world with NVIDIA Holoscan</p>
-            <a href="applications" title="Explore applications" class="md-button md-button--primary" style="padding-top: 0.7rem; padding-bottom: 0.7rem;">
-                Explore Applications
-            </a>
-            <a href="https://developer.nvidia.com/holoscan-sdk" style="padding-top: 0.6rem; padding-bottom: 0.6rem;" title="Explore Holoscan" class="md-button" target="_blank">
-                <i class="bi"></i>&nbsp;Learn more about Holoscan
-            </a>
+<!-- feature-box -->
+<section class="section">
+    <div class="top-hr" style="display: flex; max-width: 100%;">
+        <div style="display: flex; flex-direction: row; width: 100%; gap: 1rem;">
+            <!-- Side Navigation -->
+            <div style="flex: 0 0 250px; min-width: 250px; background: var(--md-default-bg-color); border-right: 1px solid var(--md-default-fg-color--lightest);">
+                <div style="position: sticky; top: 80px;">
+                    <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Applications</h4>
+                    <nav class="sidebar-nav" style="display: flex; flex-direction: column; gap: 0;">
+                        {% include '_pages/applications_nav.html' %}
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div style="flex: 1; min-width: 0;">
+                <div class="row justify-content-center">
+                    <div class="col-12" style="text-align: left; padding-left: 2rem;">
+                        <h3 class="section-title" id="category-title" style="font-size: 0.9rem; text-align: left;">All Applications</h3>
+                    </div>
+                    {% include '_pages/applications.html' %}
+                </div>
+            </div>
         </div>
-        <div class="tx-hero__image">
-            <img src="./assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" draggable="false">
-        </div>
-      </div>
     </div>
 </section>
-
-<section class="section">
-    <div class="top-hr">
-        <div class="row justify-content-center">
-            <div class="col-12 text-center">
-                <h2 class="section-title"><a href="applications">Newest Applications</a></h2>
-            </div>
-            {% include '_pages/featured-applications.html' %}
-            </div>
-       </div>
-</section>
-
-<!-- feature-box -->
-<section class="section-gray">
-    <div class="top-hr">
-        <div class="row justify-content-center">
-            <div class="col-12 text-center">
-                <h2 class="section-title"><a href="tutorials">Tutorials</a></h2>
-            </div>
-            {% include '_pages/featured-tutorials.html' %}
-            </div>
-       </div>
-   </section>
-<!-- /feature-box -->
-
-
-<!-- feature-box -->
-<section class="section">
-    <div class="top-hr">
-        <div class="row justify-content-center">
-            <div class="col-12 text-center">
-                <h2 class="section-title"><a href="benchmarks">Newest Benchmarks</a></h2>
-            </div>
-            {% include '_pages/featured-benchmarks.html' %}
-            </div>
-       </div>
-   </section>
 <!-- /feature-box -->
 
 <script type="text/javascript">
@@ -603,10 +573,116 @@ window.addEventListener('scroll', function(){
     console.log(navtab);
     navtab[0].classList.toggle("topped", scroll < navtab[0].offsetHeight);	
 });
+
+// Filter cards by tag
+function filterByTag(tag) {
+    var cards = document.querySelectorAll('.feature-box');
+    // Normalize: lowercase and replace spaces with hyphens
+    var activeCategory = tag.toLowerCase().replace(/ /g, '-');
+    
+    console.log('Filtering by tag:', tag, '(normalized:', activeCategory + ')');
+    
+    // Update the category title
+    var categoryTitle = document.getElementById('category-title');
+    if (categoryTitle) {
+        if (tag.toLowerCase() === 'all') {
+            categoryTitle.textContent = 'All Applications';
+        } else {
+            categoryTitle.textContent = tag;
+        }
+    }
+    
+    // If "all" is selected, show all cards
+    if (activeCategory === 'all') {
+        cards.forEach(function(card) {
+            card.style.display = '';
+        });
+    } else {
+        var shownCount = 0;
+        // Filter cards by tag
+        cards.forEach(function(card) {
+            // Get all tags in the card
+            var cardTags = card.querySelectorAll('.md-tag');
+            var hasTag = false;
+            
+            // Check if any of the card's tags match the selected category
+            cardTags.forEach(function(tagElement) {
+                var tagText = tagElement.textContent || tagElement.innerText;
+                var tagTextNormalized = tagText.toLowerCase().trim().replace(/ /g, '-');
+                
+                // Match by text content (case-insensitive, spaces normalized)
+                if (tagTextNormalized === activeCategory) {
+                    hasTag = true;
+                    console.log('Match found:', tagText, 'matches', tag);
+                }
+            });
+            
+            // Show or hide the card based on whether it has the tag
+            if (hasTag) {
+                card.style.display = '';
+                shownCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        console.log('Shown', shownCount, 'cards with tag:', tag);
+    }
+    
+    // Update active state on sidebar navigation links
+    var navLinks = document.querySelectorAll('.sidebar-nav a');
+    navLinks.forEach(function(link) {
+        var linkOnclick = link.getAttribute('onclick');
+        // Extract the tag from onclick="filterByTag('TagName')"
+        var match = linkOnclick && linkOnclick.match(/filterByTag\('([^']+)'\)/);
+        var linkTag = match ? match[1].toLowerCase().replace(/ /g, '-') : '';
+        
+        if (linkTag === activeCategory || (activeCategory === 'all' && link.getAttribute('href') === '#all')) {
+            link.style.backgroundColor = '#76b900';
+            link.style.color = 'white';
+            link.setAttribute('data-active', 'true');
+        } else {
+            link.style.backgroundColor = '';
+            link.style.color = 'var(--md-default-fg-color)';
+            link.removeAttribute('data-active');
+        }
+    });
+}
+
+// Show all cards
+function showAllCards() {
+    var cards = document.querySelectorAll('.feature-box');
+    cards.forEach(function(card) {
+        card.style.display = '';
+    });
+    
+    // Remove active state from all sidebar navigation links
+    var navLinks = document.querySelectorAll('.sidebar-nav a');
+    navLinks.forEach(function(link) {
+        link.style.backgroundColor = '';
+        link.style.color = 'var(--md-default-fg-color)';
+    });
+}
+
+// Handle hash change
+window.addEventListener('hashchange', function() {
+    var hash = window.location.hash.substring(1); // Remove the #
+    if (hash) {
+        filterByTag(hash);
+    } else {
+        showAllCards();
+    }
+});
+
+// Check for hash on page load
+window.addEventListener('load', function() {
+    var hash = window.location.hash.substring(1);
+    if (hash) {
+        filterByTag(hash);
+    }
+});
 </script>
 
 {% endblock %}
 
 {% block content %}
 {% endblock %}
-

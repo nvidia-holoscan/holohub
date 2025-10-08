@@ -17,6 +17,11 @@ body {
   background-color: var(--body-color)
 }
 
+/* Hide the left sidebar on every page */
+.md-sidebar--primary{
+  display: none;
+  }
+
 p {
   color: var(--text-color);
   font-size: 15px

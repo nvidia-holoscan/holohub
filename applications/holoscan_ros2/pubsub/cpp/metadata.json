@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["ROS2", "Publisher", "Subscriber"],
+		"tags": ["Robotics", "ROS2", "Publisher", "Subscriber"],
 		"ranking": 1,
 		"requirements": {},
 		"dependencies": {

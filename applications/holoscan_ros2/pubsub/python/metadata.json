@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Holoscan ROS2 Publisher/Subscriber Examples",
+		"name": "ROS2 Publisher/Subscriber",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",
@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["ROS2", "Publisher", "Subscriber", "Python"],
+		"tags": ["Robotics","ROS2", "Publisher", "Subscriber", "Python"],
 		"ranking": 1,
 		"requirements": {},
 		"default_mode": "publisher",

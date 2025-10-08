@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "TAO PeopleNet Detection Model on V4L2 Video Stream",
+		"name": "TAO PeopleNet Detection Model",
+		"description": "TAO PeopleNet Detection Model on V4L2 Video Stream",
 		"authors": [
 			{
 				"name": "Holoscan Team",
