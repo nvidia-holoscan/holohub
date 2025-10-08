@@ -865,6 +865,8 @@ def build_holohub_path_mapping(
     """
     if prefix is None:
         prefix = os.environ.get("HOLOHUB_PATH_PREFIX", "holohub_")
+    if not prefix.endswith("_"):
+        prefix = prefix + "_"
 
     if data_dir is None:
         data_dir = holohub_root / "data"
