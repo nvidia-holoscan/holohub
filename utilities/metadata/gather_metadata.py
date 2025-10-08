@@ -69,7 +69,7 @@ def extract_project_name(metadata_filepath: str) -> str:
 
     """
     parts = metadata_filepath.split(os.sep)
-    if parts[-2] in ["cpp", "python"]:
+    if parts[-2] in ["cpp", "python", "py"]:
         return parts[-3]
     return parts[-2]
 
