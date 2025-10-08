@@ -468,17 +468,20 @@ def create_page(
         dest_file.write(output_text)
 
 
-def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path) -> None:
+def parse_metadata_path(metadata_path: Path, components, git_repo_path: Path, processed_parent_readmes=None) -> None:
     """Copy README file from a sub-package to the user guide's developer guide directory.
 
     Args:
         metadata_path: Path to the metadata file
         components: Dictionary tracking unique components
         git_repo_path: Path to the Git repository root
+        processed_parent_readmes: Set tracking which parent READMEs have been processed
 
     Returns:
         None
     """
+    if processed_parent_readmes is None:
+        processed_parent_readmes = set()
     # Disable application with {{ in the name
     if "{{" in str(metadata_path):
         return
@@ -625,6 +628,103 @@ nav:
     # Write nav file
     with mkdocs_gen_files.open(nav_path, "w") as nav_file:
         nav_file.write(nav_content)
+    
+    # If we're in a language-specific directory (cpp/python) and processed a language-specific README,
+    # also check if there's a parent README to process as a language-agnostic page
+    if (metadata_dir.name in ["cpp", "python"] and 
+        readme_dir == metadata_dir and 
+        nbr_language_dirs > 1):
+        
+        parent_readme_path = language_agnostic_dir / "README.md"
+        parent_readme_key = str(parent_readme_path.relative_to(git_repo_path))
+        
+        # Only process if parent README exists and hasn't been processed yet
+        if parent_readme_path.exists() and parent_readme_key not in processed_parent_readmes:
+            processed_parent_readmes.add(parent_readme_key)
+            logger.info(f"Also processing parent README: {parent_readme_key}")
+            
+            # Read parent README
+            with parent_readme_path.open("r") as parent_readme_file:
+                parent_readme_text = parent_readme_file.read()
+            
+            # Extract title from parent README
+            parent_readme_title = metadata["name"]
+            parent_header_info = extract_markdown_header(parent_readme_text)
+            if parent_header_info:
+                parent_readme_title = parent_header_info[1]
+            
+            # Create title without language suffix (language-agnostic)
+            parent_title = re.sub(
+                r"(Operator|Operators|Op|Application|App|Workflow)\b",
+                "",
+                parent_readme_title,
+                flags=re.IGNORECASE,
+            ).strip()
+            
+            # Generate parent page
+            parent_dest_dir = language_agnostic_dir.relative_to(git_repo_path)
+            parent_dest_path = parent_dest_dir / "README.md"
+            parent_last_modified = get_last_modified_date(metadata_path, git_repo_path)
+            create_page(metadata, parent_readme_text, parent_dest_path, parent_last_modified, git_repo_path)
+            
+            # Write parent nav file
+            parent_nav_path = parent_dest_dir / ".nav.yml"
+            parent_nav_content = f"""
+title: "{parent_title}"
+"""
+            
+            # Check for archives in metadata (parent page uses same metadata)
+            if archives:
+                logger.info(f"Processing versioned documentation for parent {str(parent_dest_dir)}")
+                
+                parent_nav_content += """
+nav:
+  - README.md
+"""
+                
+                for version in sorted(archives.keys(), reverse=True):
+                    git_ref = archives[version]
+                    
+                    # Get archived parent README
+                    archived_parent_readme_content = get_file_from_git(parent_readme_path, git_ref, git_repo_path)
+                    archived_metadata_content = get_file_from_git(metadata_path, git_ref, git_repo_path)
+                    if not archived_parent_readme_content or not archived_metadata_content:
+                        logger.error(f"Failed to retrieve archived parent content for {parent_dest_dir} at {git_ref}")
+                        continue
+                    
+                    # Parse the archived metadata
+                    try:
+                        archived_metadata = json.loads(archived_metadata_content)
+                    except json.JSONDecodeError:
+                        logger.error(f"Failed to parse archived metadata for {parent_dest_dir.name} at {git_ref}")
+                        continue
+                    archived_metadata = archived_metadata[project_type]
+                    
+                    # Get commit date as last modified
+                    repo_str = str(git_repo_path)
+                    cmd = ["git", "-C", repo_str, "show", "-s", "--format=%ad", "--date=short", git_ref]
+                    archive_last_modified = subprocess.run(
+                        cmd, capture_output=True, text=True, check=True
+                    ).stdout.strip()
+                    archive_last_modified = format_date(archive_last_modified)
+                    
+                    # Create the archived version content for parent
+                    archive_dest_path = parent_dest_dir / f"{version}.md"
+                    create_page(
+                        archived_metadata,
+                        archived_parent_readme_content,
+                        archive_dest_path,
+                        archive_last_modified,
+                        git_repo_path,
+                        archive={"version": version, "git_ref": git_ref},
+                    )
+                    
+                    # Add archives to nav file
+                    parent_nav_content += f'  - "{version}": {version}.md\n'
+            
+            # Write parent nav file
+            with mkdocs_gen_files.open(parent_nav_path, "w") as parent_nav_file:
+                parent_nav_file.write(parent_nav_content)
 
 
 def generate_pages() -> None:
@@ -651,6 +751,9 @@ def generate_pages() -> None:
 
     # Initialize map of projects/component per type
     components = {key: set() for key in COMPONENT_TYPES}
+    
+    # Track processed parent READMEs to avoid duplicates
+    processed_parent_readmes = set()
 
     for component_type in COMPONENT_TYPES:
         component_dir = src_dir / component_type
@@ -661,7 +764,7 @@ def generate_pages() -> None:
         # Parse the metadata.json files
         for metadata_path in component_dir.rglob("metadata.json"):
             try:
-                parse_metadata_path(metadata_path, components, git_repo_path)
+                parse_metadata_path(metadata_path, components, git_repo_path, processed_parent_readmes)
             except Exception:
                 logger.error(f"Failed to process {metadata_path}:\n{traceback.format_exc()}")
 
