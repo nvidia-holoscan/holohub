@@ -69,7 +69,9 @@ def find_most_recent_metadata_files(
         # Get the creation date of the metadata.json file from git history
         # This uses 'git log --follow --format=%at --reverse' to find the first commit
         commit_date = get_metadata_file_commit_date(metadata_path, git_repo_path)
-        logger.debug(f"Component '{component_name}' was created on {commit_date.strftime('%Y-%m-%d')}")
+        logger.debug(
+            f"Component '{component_name}' was created on {commit_date.strftime('%Y-%m-%d')}"
+        )
 
         if (
             component_name not in unique_components
@@ -105,7 +107,9 @@ def get_component_path(metadata_path: Path, git_repo_path: Path) -> str:
     return f"{rel_path}"
 
 
-def generate_featured_component_card(metadata_path: Path, git_repo_path: Path, commit_date=None) -> str:
+def generate_featured_component_card(
+    metadata_path: Path, git_repo_path: Path, commit_date=None
+) -> str:
     """Generate HTML for a featured component card."""
     metadata, component_type = parse_metadata_file(metadata_path)
     name = metadata.get("name", metadata_path.parent.name)
@@ -138,22 +142,26 @@ def generate_featured_component_card(metadata_path: Path, git_repo_path: Path, c
 
     # Check if this is a recent contribution (within 45 days)
     # commit_date is the date when metadata.json was first committed to git
-    from datetime import datetime, timedelta
-    
+    from datetime import datetime
+
     is_recent_attr = ""
     badge_html = ""
     is_new = False
-    
+
     if commit_date:
         days_old = (datetime.now() - commit_date).days
         if days_old <= 45:
             is_recent_attr = ' data-recent="true"'
             badge_html = '<span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>'
             is_new = True
-            logger.info(f"✓ Marking '{name}' as NEW - created {days_old} days ago ({commit_date.strftime('%Y-%m-%d')})")
+            logger.info(
+                f"✓ Marking '{name}' as NEW - created {days_old} days ago ({commit_date.strftime('%Y-%m-%d')})"
+            )
         else:
-            logger.debug(f"  '{name}' is {days_old} days old (created {commit_date.strftime('%Y-%m-%d')})")
-    
+            logger.debug(
+                f"  '{name}' is {days_old} days old (created {commit_date.strftime('%Y-%m-%d')})"
+            )
+
     # Check for recent source code updates (within 30 days) - only if not already marked as "New"
     if not is_new:
         update_date = get_recent_source_code_update_date(metadata_path, git_repo_path)
@@ -162,9 +170,13 @@ def generate_featured_component_card(metadata_path: Path, git_repo_path: Path, c
             if days_since_update <= 30:
                 is_recent_attr = ' data-updated="true"'
                 badge_html = '<span class="updated-badge" style="position: absolute; top: 10px; right: 10px; background-color: #ff9933; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">Updated</span>'
-                logger.info(f"✓ Marking '{name}' as UPDATED - source code modified {days_since_update} days ago ({update_date.strftime('%Y-%m-%d')})")
+                logger.info(
+                    f"✓ Marking '{name}' as UPDATED - source code modified {days_since_update} days ago ({update_date.strftime('%Y-%m-%d')})"
+                )
             else:
-                logger.debug(f"  '{name}' last updated {days_since_update} days ago ({update_date.strftime('%Y-%m-%d')})")
+                logger.debug(
+                    f"  '{name}' last updated {days_since_update} days ago ({update_date.strftime('%Y-%m-%d')})"
+                )
 
     # Generate tags HTML (hide first tag visually but keep it for filtering)
     tags_html = ""
