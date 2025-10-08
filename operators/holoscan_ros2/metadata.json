@@ -13,7 +13,7 @@
 		},
 		"language": ["C++", "Python"],
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["ROS2", "Bridge", "Interface"],
+		"tags": ["Robotics", "ROS2", "Bridge", "Interface"],
 		"holoscan_sdk": {
 			"minimum_required_version": "3.0.0",
 			"tested_versions": [

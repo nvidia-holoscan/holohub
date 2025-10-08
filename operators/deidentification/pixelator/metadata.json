@@ -22,7 +22,7 @@
       "x86_64",
       "aarch64"
     ],
-    "tags": ["Deidentification", "Image Processing", "Anonymization"],
+    "tags": ["Image Processing", "Deidentification", "Anonymization"],
     "ranking": 1,
     "requirements": {
       "python-packages": {
