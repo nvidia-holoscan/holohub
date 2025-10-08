@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License")
@@ -89,7 +89,7 @@ def parse_args() -> Namespace:
     return args
 
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
 
     if args.data is None:
@@ -102,3 +102,7 @@ if __name__ == "__main__":
 
     app.config(args.config)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

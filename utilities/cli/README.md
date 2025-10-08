@@ -373,6 +373,7 @@ This container-first approach ensures consistency and reproducibility across dif
 - **`HOLOHUB_ALWAYS_BUILD`**: Controls whether builds should be executed (defaults to `true`)
   - Set to `false` to skip both local and container builds
   - Useful for development iterations where you only want to run existing builds
+- Additionally, please see [container.py](container.py) for a list of project-specific configuration environment variables.
 
 
 ## Getting Help

@@ -256,7 +256,7 @@ class GsplatApp(holoscan.core.Application):
         self.add_flow(xr_gsplat, xr_end_frame, {("xr_composition_layer", "xr_composition_layers")})
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser(description="XR Gsplat Application.")
     parser.add_argument(
         "-c",
@@ -270,3 +270,7 @@ if __name__ == "__main__":
     app = GsplatApp()
     app.config(args.config)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

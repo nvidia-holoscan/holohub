@@ -201,7 +201,7 @@ def valid_existing_path(path: str) -> pathlib.Path:
     raise argparse.ArgumentTypeError(f"No such file/folder: '{file_path}'")
 
 
-if __name__ == "__main__":
+def main():
     render_config_file_default = pathlib.Path(
         "../../../data/volume_rendering/config.json"
     ).resolve()
@@ -307,3 +307,7 @@ if __name__ == "__main__":
         app.run()
     except Exception as e:
         logger.error("Error:", str(e))
+
+
+if __name__ == "__main__":
+    main()

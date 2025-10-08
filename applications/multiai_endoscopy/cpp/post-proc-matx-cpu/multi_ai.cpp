@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -263,7 +263,12 @@ class App : public holoscan::Application {
     /* Source */
     std::shared_ptr<Operator> source;
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
+#else
+      throw std::runtime_error(
+          "AJA is requested but not available. Please enable AJA at build time.");
+#endif
     } else {
       source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
                                                   Arg("directory", datapath + "/endoscopy"));

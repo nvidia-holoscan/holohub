@@ -396,8 +396,12 @@ class MyApp(Application):
         # self.configurator_example()
 
 
-if __name__ == "__main__":
+def main():
     config_file = os.path.join(os.path.dirname(__file__), "iio_config.yaml")
     app = MyApp()
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

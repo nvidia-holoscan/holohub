@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -294,7 +294,7 @@ class YoloDetApp(Application):
         )
 
 
-if __name__ == "__main__":
+def main():
     # Argument parser
     parser = ArgumentParser(description="YOLO Detection Demo Application.")
     parser.add_argument(
@@ -328,3 +328,7 @@ if __name__ == "__main__":
     app = YoloDetApp(video_dir=args.video_dir, data=args.data, source=args.source)
     app.config(args.config)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

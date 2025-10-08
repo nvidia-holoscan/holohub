@@ -1,5 +1,5 @@
 """
- SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  SPDX-License-Identifier: Apache-2.0
 
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument("--out_path", help="Path for file output", default="/mnt/nvme/data/test-file")
 args = parser.parse_args()
+out_path = args.out_path
 
 
 # HDF5 reader operator
@@ -121,8 +122,7 @@ class HDF5ProcessingApp(Application):
         self.add_flow(threshold_sum, plotter, {("summed_frames_out", "data_in")})
 
 
-if __name__ == "__main__":
-    out_path = args.out_path
+def main():
     if kvikio.defaults.compat_mode():
         raise Exception("Enable compat_mode for Kvikio to ensure GDS is working correctly.")
     app = HDF5ProcessingApp()
@@ -130,3 +130,7 @@ if __name__ == "__main__":
     with Tracker(app, filename="logger.log") as tracker:
         app.run()
         tracker.print()
+
+
+if __name__ == "__main__":
+    main()

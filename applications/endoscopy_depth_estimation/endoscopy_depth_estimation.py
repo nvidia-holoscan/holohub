@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -271,7 +271,7 @@ class DepthApp(Application):
         self.add_flow(postprocessor, visualizer, {("out", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = ArgumentParser(description="Endoscopy depth estimation demo application.")
     parser.add_argument(
@@ -299,3 +299,7 @@ if __name__ == "__main__":
     app = DepthApp(data=args.data, model=args.model, apply_clahe=args.clahe)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

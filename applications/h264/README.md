@@ -27,6 +27,10 @@ for rendering decoded data to the native window.
 - x86_64
 - arm64 + discrete GPU platforms (SBSA, IGX dGPU)
 
+> [!IMPORTANT]  
+> Starting from Holoscan 3.6.0, H.264 applications only support CUDA 13 or higher.
+> To run H.264 application with CUDA 12, please use tags with [holoscan-sdk-3.5.0](https://github.com/nvidia-holoscan/holohub/tree/holoscan-sdk-3.5.0) or earlier.
+
 ## Known Issues
 
 ### Unsupported Platforms

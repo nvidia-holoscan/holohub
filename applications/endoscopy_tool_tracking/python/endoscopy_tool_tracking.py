@@ -402,7 +402,7 @@ class EndoscopyApp(Application):
             self.add_flow(recorder_format_converter, recorder)
 
 
-if __name__ == "__main__":
+def main():
     default_data_path = f"{os.getcwd()}/data/endoscopy"
     # Parse args
     parser = ArgumentParser(description="Endoscopy tool tracking demo application.")
@@ -474,3 +474,7 @@ if __name__ == "__main__":
     )
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

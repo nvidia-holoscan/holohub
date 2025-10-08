@@ -40,5 +40,5 @@
 +        self.add_flow(recorder_format_converter, recorder)
 +
  
- if __name__ == "__main__":
+ def main():
      parser = ArgumentParser(description="Multi-AI Detection Segmentation application.")

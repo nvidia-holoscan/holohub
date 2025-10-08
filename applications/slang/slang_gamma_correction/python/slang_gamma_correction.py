@@ -104,10 +104,14 @@ class SlangGammaCorrectionApp(Application):
         self.add_flow(gamma_correction, holoviz, {("output", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser()
     parser.add_argument("--count", type=int, default=-1)
     args = parser.parse_args()
 
     app = SlangGammaCorrectionApp(args.count)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

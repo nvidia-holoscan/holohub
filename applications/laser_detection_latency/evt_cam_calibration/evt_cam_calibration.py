@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -161,12 +161,16 @@ class EvtCamCalibrationApp(Application):
         self.add_flow(back_view, viz, {("output_specs", "input_specs")})
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser(description="Calibrating Emergent Camera.")
-    args = parser.parse_args()
+    parser.parse_args()
 
     config_file = os.path.join(os.path.dirname(__file__), "evt_cam_calibration.yaml")
 
     app = EvtCamCalibrationApp()
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

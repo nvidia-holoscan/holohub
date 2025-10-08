@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -277,7 +277,7 @@ class MultiAIDetectionSegmentation(Application):
         self.add_flow(segmentation_postprocessor, holoviz, {("", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser(description="Multi-AI Detection Segmentation application.")
     parser.add_argument(
         "-s",
@@ -329,3 +329,7 @@ if __name__ == "__main__":
     app = MultiAIDetectionSegmentation(source=args.source, data=args.data, labelfile=labelfile)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

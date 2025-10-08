@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -146,7 +146,7 @@ class AISpleenSegmentationApp(Application):
         logging.info(f"End {self.compose.__name__}")
 
 
-if __name__ == "__main__":
+def main():
     # Creates the app and test it standalone.
     parser = argparse.ArgumentParser(
         description="DICOM-to-USD MONAI Deploy and Holoscan sample tutorial",
@@ -186,3 +186,7 @@ if __name__ == "__main__":
     myapp.run()
 
     logger.info(f"USD file is available at {destination_path}")
+
+
+if __name__ == "__main__":
+    main()

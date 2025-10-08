@@ -24,7 +24,7 @@ target_link_libraries(endoscopy_out_of_body_detection
     holoscan::ops::format_converter
     holoscan::ops::inference
     holoscan::ops::inference_processor
-    holoscan::aja
+    $<TARGET_NAME_IF_EXISTS:holoscan::aja>
 )
 
 # Add downloaded data as a dependency

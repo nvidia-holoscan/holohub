@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -166,7 +166,7 @@ def valid_existing_path(path: str) -> pathlib.Path:
     raise argparse.ArgumentTypeError(f"No such file/folder: '{file_path}'")
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="NVIDIA Inference Microservice (NIM) - Vista-3D ")
     parser.add_argument(
         "-c",
@@ -199,3 +199,7 @@ if __name__ == "__main__":
         app.run()
     except Exception as e:
         logger.error("Error:", str(e))
+
+
+if __name__ == "__main__":
+    main()

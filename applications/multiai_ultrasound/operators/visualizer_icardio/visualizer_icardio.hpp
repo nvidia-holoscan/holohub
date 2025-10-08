@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,12 +25,6 @@
 
 #include "holoscan/core/gxf/gxf_operator.hpp"
 #include "holoscan/utils/cuda_stream_handler.hpp"
-
-#include "holoinfer.hpp"
-#include "holoinfer_buffer.hpp"
-#include "holoinfer_utils.hpp"
-
-namespace HoloInfer = holoscan::inference;
 
 namespace holoscan::ops {
 /**

@@ -43,5 +43,5 @@
 +        self.add_flow(recorder_format_converter, recorder)
 +
  
- if __name__ == "__main__":
+ def main():
      # Parse args

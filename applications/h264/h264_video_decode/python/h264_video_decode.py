@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License")
@@ -184,7 +184,7 @@ class H264VideoDecodeApp(Application):
         self.add_flow(decoder_output_format_converter, visualizer, {("tensor", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = ArgumentParser(description="H264 video decode demo application.")
 
@@ -218,3 +218,7 @@ if __name__ == "__main__":
 
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

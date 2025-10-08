@@ -98,6 +98,10 @@ class SlangSimpleApp(Application):
         self.add_flow(slang, sink, {("output_buffer", "input")})
 
 
-if __name__ == "__main__":
+def main():
     app = SlangSimpleApp()
     app.run()
+
+
+if __name__ == "__main__":
+    main()

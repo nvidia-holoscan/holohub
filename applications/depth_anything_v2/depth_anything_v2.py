@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -263,7 +263,7 @@ class DepthAnythingV2App(Application):
         self.add_flow(postprocessor, holoviz, {("output_specs", "input_specs")})
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = ArgumentParser(description="Depth Anything V2 Application.")
     parser.add_argument(
@@ -306,3 +306,7 @@ if __name__ == "__main__":
     app = DepthAnythingV2App(args.data, args.source, args.video_device)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()
