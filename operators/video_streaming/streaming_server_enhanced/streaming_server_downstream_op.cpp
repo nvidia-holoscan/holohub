@@ -257,6 +257,13 @@ void StreamingServerDownstreamOp::on_streaming_server_event(
     switch (event.type) {
       case StreamingServerResource::EventType::ClientConnected:
         HOLOSCAN_LOG_INFO("✅ [DOWNSTREAM {}] Client connected: {}", timestamp, event.message);
+        // Note: NVIDIA library may not fire separate DownstreamConnected event,
+        // so we mark the downstream as connected when client connects
+        if (!downstream_connected_) {
+          downstream_connected_ = true;
+          HOLOSCAN_LOG_INFO("⬇️ [DOWNSTREAM {}] Downstream connection established: {}",
+                           timestamp, event.message);
+        }
         break;
       case StreamingServerResource::EventType::ClientDisconnected:
         HOLOSCAN_LOG_WARN("❌ [DOWNSTREAM {}] Client disconnected: {}", timestamp, event.message);
