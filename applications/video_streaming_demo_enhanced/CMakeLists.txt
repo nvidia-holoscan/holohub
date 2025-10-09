@@ -175,16 +175,25 @@ if(BUILD_TESTING)
              echo ''
              echo '=== Verifying Client Logs ==='
 
-             # Check for successful frame sending
-             if grep -q 'Frame sent successfully' \$CLIENT_LOG; then
-               SENT_COUNT=\$(grep -c 'Frame sent successfully' \$CLIENT_LOG)
-               echo \"✓ Client: Sent \$SENT_COUNT frames successfully\"
-               CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
-             else
-               echo '✗ Client: No frames sent successfully'
-             fi
+            # Check for successful frame sending
+            if grep -q 'Frame sent successfully' \$CLIENT_LOG; then
+              SENT_COUNT=\$(grep -c 'Frame sent successfully' \$CLIENT_LOG)
+              echo \"✓ Client: Sent \$SENT_COUNT frames successfully\"
+              CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+            else
+              echo '✗ Client: No frames sent successfully'
+            fi
 
-             # Check for frame validation
+            # Check for client frame reception (bidirectional verification)
+            if grep -q 'CLIENT: Received frame' \$CLIENT_LOG; then
+              RECEIVED_COUNT=\$(grep -c 'CLIENT: Received frame' \$CLIENT_LOG)
+              echo \"✓ Client: Received \$RECEIVED_COUNT frames from server\"
+              CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+            else
+              echo '✗ Client: No frames received from server'
+            fi
+
+            # Check for frame validation
              if grep -q 'Frame validation passed' \$CLIENT_LOG; then
                echo '✓ Client: Frame validation passed'
                CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
@@ -203,11 +212,11 @@ if(BUILD_TESTING)
             echo ''
             echo '=== Test Results Summary ==='
             echo \"Server checks passed: \$SERVER_SUCCESS/6 (required: 6)\"
-            echo \"Client checks passed: \$CLIENT_SUCCESS/3 (required: 3)\"
+            echo \"Client checks passed: \$CLIENT_SUCCESS/4 (required: 4)\"
 
             # Determine overall success
             # Require ALL checks to pass for proper integration test
-            if [ \$SERVER_SUCCESS -eq 6 ] && [ \$CLIENT_SUCCESS -eq 3 ]; then
+            if [ \$SERVER_SUCCESS -eq 6 ] && [ \$CLIENT_SUCCESS -eq 4 ]; then
                STREAMING_SUCCESS=1
                echo '✓ STREAMING VERIFICATION PASSED - Frames actually transmitted!'
              else
