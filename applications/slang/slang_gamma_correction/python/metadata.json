@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Slang Gamma Correction Example",
+		"name": "Slang Gamma Correction",
 		"description": "Example for using the Slang shading language operator for gamma correction",
 		"authors": [
 			{
@@ -24,9 +24,9 @@
 			"aarch64"
 		],
 		"tags": [
+			"Rendering",
 			"Slang",
 			"shading",
-			"rendering",
 			"shader",
 			"compute",
 			"cuda",

@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Slang Simple Compute Kernel Example",
+		"name": "Slang Simple Compute Kernel",
 		"description": "Example for using the Slang shading language operator for simple compute kernels",
 		"authors": [
 			{
@@ -24,9 +24,9 @@
 			"aarch64"
 		],
 		"tags": [
+			"Rendering",
 			"Slang",
 			"shading",
-			"rendering",
 			"shader",
 			"shadertoy",
 			"compute",
