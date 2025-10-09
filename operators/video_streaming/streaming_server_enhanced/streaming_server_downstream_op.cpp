@@ -182,13 +182,13 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
   HOLOSCAN_LOG_INFO("📊 DOWNSTREAM: Processing tensor {} - shape: {}, {} bytes",
                    frames_processed_.load(), fmt::join(shape, "x"), tensor_size);
 
-    // DEBUG: Log tensor information (every 10 frames for more frequent validation)
+    // Log tensor information (every 10 frames)
   static int debug_frame_counter = 0;
   debug_frame_counter++;
   if (debug_frame_counter % 10 == 0) {
     auto dtype = input_tensor.dtype();
     auto device = input_tensor.device();
-    HOLOSCAN_LOG_INFO("DEBUG: Tensor info for frame {}: shape={}, dtype=({},{},{}), device=({},{})",
+    HOLOSCAN_LOG_INFO("Tensor info for frame {}: shape={}, dtype=({},{},{}), device=({},{})",
                      debug_frame_counter, fmt::join(shape, "x"),
                      dtype.code, dtype.bits, dtype.lanes,
                      static_cast<int>(device.device_type), device.device_id);
