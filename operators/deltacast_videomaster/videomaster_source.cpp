@@ -146,9 +146,13 @@ void VideoMasterSourceOp::stop() {
 
 void VideoMasterSourceOp::transmit_buffer_data(void* buffer, uint32_t buffer_size, OutputContext& op_output, ExecutionContext& context) {
   if (!_use_rdma) {
-    cudaMemcpy(_video_master_base->buffers()[_slot_count % VideoMasterBase::NB_SLOTS][_video_master_base->video_information()->get_buffer_type()], buffer,
-               buffer_size, cudaMemcpyHostToDevice);
-    buffer = _video_master_base->buffers()[_slot_count % VideoMasterBase::NB_SLOTS][_video_master_base->video_information()->get_buffer_type()];
+    // In non-RDMA mode, copy from system buffer (used by VideoMaster DMA) to GPU buffer (used by processing pipeline)
+    void* gpu_buffer = _video_master_base->gpu_buffers()[_slot_count % VideoMasterBase::NB_SLOTS][_video_master_base->video_information()->get_buffer_type()];
+    if(_video_master_base->is_igpu())
+      cudaMemcpy(gpu_buffer, buffer, buffer_size, cudaMemcpyHostToHost);
+    else
+      cudaMemcpy(gpu_buffer, buffer, buffer_size, cudaMemcpyHostToDevice);
+    buffer = gpu_buffer;
   }
   auto video_output = nvidia::gxf::Entity::New(context.context());
   if (!video_output) {
@@ -169,7 +173,7 @@ void VideoMasterSourceOp::transmit_buffer_data(void* buffer, uint32_t buffer_siz
   auto color_planes = color_format.getDefaultColorPlanes(format->width, format->height);
   nvidia::gxf::VideoBufferInfo info{format->width, format->height, video_type.value, color_planes,
                             nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
-  auto storage_type = _use_rdma ? nvidia::gxf::MemoryStorageType::kDevice : nvidia::gxf::MemoryStorageType::kHost;
+  auto storage_type = _video_master_base->is_igpu() ? nvidia::gxf::MemoryStorageType::kHost : nvidia::gxf::MemoryStorageType::kDevice;
   video_buffer.value()->wrapMemory(info, buffer_size, storage_type, buffer, nullptr);
 
   auto result = nvidia::gxf::Entity(std::move(video_output.value()));
