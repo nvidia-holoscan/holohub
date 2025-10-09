@@ -37,7 +37,7 @@ if holohub_root not in sys.path:
     sys.path.insert(0, holohub_root)
 
 from utilities.cli.holohub import HoloHubCLI  # noqa: E402
-from utilities.cli.util import build_holohub_path_mapping  # noqa: E402
+from utilities.cli.util import build_holohub_path_mapping, resolve_path_prefix  # noqa: E402
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.DEBUG)
@@ -120,16 +120,20 @@ def find_python_files_to_patch(project_metadata, holohub_root_path):
         return directories_to_patch
 
     build_dir = Path(holohub_root_path) / "build" / project_name
+    prefix = resolve_path_prefix(None)
     path_mapping = build_holohub_path_mapping(
-        holohub_root=Path(holohub_root_path), project_data=project_metadata, build_dir=build_dir
+        holohub_root=Path(holohub_root_path),
+        project_data=project_metadata,
+        build_dir=build_dir,
+        prefix=prefix,
     )
     command = run_config.get("command", "")
-    if "<holohub_app_source>" in command and source_folder and os.path.isdir(source_folder):
+    if f"<{prefix}app_source>" in command and source_folder and os.path.isdir(source_folder):
         directories_to_patch.append(source_folder)
         logger.info(f"Will patch source directory: {source_folder}")
-    if "<holohub_app_bin>" in command:
+    if f"<{prefix}app_bin>" in command:
         if source_folder:
-            app_build_dir = path_mapping.get("holohub_app_bin", "")
+            app_build_dir = path_mapping.get(f"{prefix}app_bin", "")
             if app_build_dir and os.path.isdir(app_build_dir):
                 directories_to_patch.append(app_build_dir)
                 logger.info(f"Will patch build directory: {app_build_dir}")
@@ -142,7 +146,7 @@ def find_python_files_to_patch(project_metadata, holohub_root_path):
     # If no placeholders found but it's a Python command, patch source directory
     if not directories_to_patch and "python" in command.lower() and source_folder:
         workdir = run_config.get("workdir", "")
-        if workdir in ["holohub_app_source", "holohub_app_bin"]:
+        if workdir in [f"{prefix}app_source", f"{prefix}app_bin"]:
             source_folder = path_mapping.get(workdir, source_folder)
         if os.path.isdir(source_folder):
             directories_to_patch.append(source_folder)

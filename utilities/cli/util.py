@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 import grp
 import json
 import os
@@ -843,6 +844,16 @@ def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
     return sorted(results)
 
 
+@functools.lru_cache(maxsize=32)
+def resolve_path_prefix(prefix: Optional[str] = None) -> str:
+    """Resolve the path prefix for HoloHub placeholders"""
+    if prefix is None:
+        prefix = os.environ.get("HOLOHUB_PATH_PREFIX", "holohub_")
+    if not prefix.endswith("_"):
+        prefix = prefix + "_"
+    return prefix
+
+
 def build_holohub_path_mapping(
     holohub_root: Path,
     project_data: Optional[dict] = None,
@@ -863,10 +874,7 @@ def build_holohub_path_mapping(
     Returns:
         Dictionary mapping placeholder names to their resolved paths
     """
-    if prefix is None:
-        prefix = os.environ.get("HOLOHUB_PATH_PREFIX", "holohub_")
-    if not prefix.endswith("_"):
-        prefix = prefix + "_"
+    prefix = resolve_path_prefix(prefix)
 
     if data_dir is None:
         data_dir = holohub_root / "data"
