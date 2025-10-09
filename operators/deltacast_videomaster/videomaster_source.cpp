@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 DELTACAST.TV. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025, DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,21 +56,23 @@ void VideoMasterSourceOp::setup(OperatorSpec& spec) {
 void VideoMasterSourceOp::initialize() {
   Operator::initialize();
   _has_lost_signal = false;
-  _video_master_base = std::make_unique<VideoMasterBase>(true, _board_index, _channel_index, _use_rdma);
+  _video_master_base = std::make_unique<VideoMasterBase>(true, _board_index,
+                                                        _channel_index, _use_rdma);
 }
 
 void VideoMasterSourceOp::start() {
-  HOLOSCAN_LOG_INFO("Starting VideoMaster Source on board {} channel {}", _board_index, _channel_index);
-  if(!_video_master_base->configure_board())
+  HOLOSCAN_LOG_INFO("Starting VideoMaster Source on board {} channel {}",
+                     _board_index, _channel_index);
+  if (!_video_master_base->configure_board())
     throw std::runtime_error("Failed to configure board");
-  if(!_video_master_base->open_stream())
+  if (!_video_master_base->open_stream())
     throw std::runtime_error("Failed to open stream");
   HOLOSCAN_LOG_INFO("VideoMaster Source started successfully");
 }
 
-void VideoMasterSourceOp::compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
-
-bool success_b = true;
+void VideoMasterSourceOp::compute(InputContext& op_input, OutputContext& op_output,
+                                   ExecutionContext& context) {
+  bool success_b = true;
 
   if (!_video_master_base->signal_present()) {
     if (!_has_lost_signal)
@@ -78,20 +80,22 @@ bool success_b = true;
 
     _has_lost_signal = true;
     return;
-  } else if (!(_video_master_base->video_format() != Deltacast::Helper::VideoFormat{})) {  // start stream
-    if(!_video_master_base->configure_stream())
+  } else if (!(_video_master_base->video_format() !=
+               Deltacast::Helper::VideoFormat{})) {  // start stream
+    if (!_video_master_base->configure_stream())
       throw std::runtime_error("Failed to configure stream");
 
-    auto config_video_format = Deltacast::Helper::VideoFormat{_width, _height
-                                                              , _progressive, _framerate};
+    auto config_video_format = Deltacast::Helper::VideoFormat{_width, _height,
+                                                              _progressive,
+                                                              _framerate};
     if (_video_master_base->video_format() != config_video_format) {
       VHD_StopStream(*_video_master_base->stream_handle());
       throw std::runtime_error("Input signal does not match configuration");
     }
 
-    if(!_video_master_base->init_buffers())
+    if (!_video_master_base->init_buffers())
       throw std::runtime_error("Failed to initialize buffers");
-    if(!_video_master_base->start_stream())
+    if (!_video_master_base->start_stream())
       throw std::runtime_error("Failed to start stream");
     _slot_count = 0;
   }
@@ -102,8 +106,10 @@ bool success_b = true;
   }
 
   HOLOSCAN_LOG_DEBUG("Videoformat detectction");
-  auto detected_video_format = _video_master_base->video_information()->get_video_format(_video_master_base->stream_handle());
-  if (detected_video_format && *detected_video_format != _video_master_base->video_format()) {
+  auto detected_video_format = _video_master_base->video_information()->get_video_format(
+      _video_master_base->stream_handle());
+  if (detected_video_format &&
+      *detected_video_format != _video_master_base->video_format()) {
     HOLOSCAN_LOG_INFO("Input signal has changed, exiting");
     VHD_StopStream(*_video_master_base->stream_handle());
     throw std::runtime_error("Input signal has changed");
@@ -111,7 +117,9 @@ bool success_b = true;
 
   HANDLE slot_handle;
   HOLOSCAN_LOG_DEBUG("Waiting for incoming slot");
-  ULONG api_result = VHD_WaitSlotFilled(*_video_master_base->stream_handle(), &slot_handle, VideoMasterBase::SLOT_TIMEOUT);
+  ULONG api_result = VHD_WaitSlotFilled(*_video_master_base->stream_handle(),
+                                        &slot_handle,
+                                        VideoMasterBase::SLOT_TIMEOUT);
   if (api_result != VHDERR_NOERROR && api_result != VHDERR_TIMEOUT) {
     throw std::runtime_error("Failed to wait for incoming slot");
   }
@@ -123,20 +131,22 @@ bool success_b = true;
   BYTE *buffer = nullptr;
   ULONG buffer_size = 0;
 
-  if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                VHD_GetSlotBuffer(slot_handle, _video_master_base->video_information()->get_buffer_type()
-                                                 , &buffer, &buffer_size)
-                                }, "Failed to get slot buffer")) {
+  if (!_video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{
+          VHD_GetSlotBuffer(slot_handle,
+                            _video_master_base->video_information()->get_buffer_type(),
+                            &buffer, &buffer_size)},
+      "Failed to get slot buffer")) {
     throw std::runtime_error("Failed to get slot buffer");
   }
 
-  HOLOSCAN_LOG_DEBUG("Transmit slot buffer {} - size: {} bytes", (void*)buffer, buffer_size);
+  HOLOSCAN_LOG_DEBUG("Transmit slot buffer {} - size: {} bytes",
+                     (void*)buffer, buffer_size);
   transmit_buffer_data(buffer, buffer_size, op_output, context);
 
   HOLOSCAN_LOG_DEBUG("Queue slot");
   VHD_QueueInSlot(slot_handle);
   _slot_count++;
-
 }
 
 void VideoMasterSourceOp::stop() {
@@ -144,11 +154,16 @@ void VideoMasterSourceOp::stop() {
   _video_master_base->stop_stream();
 }
 
-void VideoMasterSourceOp::transmit_buffer_data(void* buffer, uint32_t buffer_size, OutputContext& op_output, ExecutionContext& context) {
+void VideoMasterSourceOp::transmit_buffer_data(void* buffer, uint32_t buffer_size,
+                                               OutputContext& op_output,
+                                               ExecutionContext& context) {
   if (!_use_rdma) {
-    // In non-RDMA mode, copy from system buffer (used by VideoMaster DMA) to GPU buffer (used by processing pipeline)
-    void* gpu_buffer = _video_master_base->gpu_buffers()[_slot_count % VideoMasterBase::NB_SLOTS][_video_master_base->video_information()->get_buffer_type()];
-    if(_video_master_base->is_igpu())
+    // In non-RDMA mode, copy from system buffer (used by VideoMaster DMA) to GPU buffer
+    // (used by processing pipeline)
+    void* gpu_buffer = _video_master_base->gpu_buffers()[
+        _slot_count % VideoMasterBase::NB_SLOTS][
+        _video_master_base->video_information()->get_buffer_type()];
+    if (_video_master_base->is_igpu())
       cudaMemcpy(gpu_buffer, buffer, buffer_size, cudaMemcpyHostToHost);
     else
       cudaMemcpy(gpu_buffer, buffer, buffer_size, cudaMemcpyHostToDevice);
@@ -164,16 +179,21 @@ void VideoMasterSourceOp::transmit_buffer_data(void* buffer, uint32_t buffer_siz
     throw std::runtime_error("Failed to allocate video buffer; terminating.");
   }
 
-  auto format = _video_master_base->video_information()->get_video_format(_video_master_base->stream_handle());
-  if (!format)
-    throw std::runtime_error("Failed to get video format");
+  auto format = _video_master_base->video_information()->get_video_format(
+      _video_master_base->stream_handle());
+  if (!format) throw std::runtime_error("Failed to get video format");
 
-  nvidia::gxf::VideoTypeTraits<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA> video_type;
-  nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA> color_format;
+  nvidia::gxf::VideoTypeTraits<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA>
+      video_type;
+  nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA>
+      color_format;
   auto color_planes = color_format.getDefaultColorPlanes(format->width, format->height);
-  nvidia::gxf::VideoBufferInfo info{format->width, format->height, video_type.value, color_planes,
-                            nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
-  auto storage_type = _video_master_base->is_igpu() ? nvidia::gxf::MemoryStorageType::kHost : nvidia::gxf::MemoryStorageType::kDevice;
+  nvidia::gxf::VideoBufferInfo info{
+      format->width, format->height, video_type.value, color_planes,
+      nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
+  auto storage_type = _video_master_base->is_igpu()
+                          ? nvidia::gxf::MemoryStorageType::kHost
+                          : nvidia::gxf::MemoryStorageType::kDevice;
   video_buffer.value()->wrapMemory(info, buffer_size, storage_type, buffer, nullptr);
 
   auto result = nvidia::gxf::Entity(std::move(video_output.value()));
