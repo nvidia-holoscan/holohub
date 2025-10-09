@@ -140,7 +140,9 @@ tags:{tags_str}
 """
 
 
-def create_metadata_header(metadata: dict, last_modified: str, archive_version: str = None, version_selector_html: str = "") -> str:
+def create_metadata_header(
+    metadata: dict, last_modified: str, archive_version: str = None, version_selector_html: str = ""
+) -> str:
     """Create the metadata header for the documentation page.
 
     This function generates a formatted metadata header with icons and labels for display
@@ -382,38 +384,40 @@ def extract_markdown_header(md_txt: str) -> tuple[str, str, str] | None:
     return None
 
 
-def create_version_selector_html(current_version: str, archives: dict, dest_dir: Path, latest_version: str = None) -> tuple[str, str]:
+def create_version_selector_html(
+    current_version: str, archives: dict, dest_dir: Path, latest_version: str = None
+) -> tuple[str, str]:
     """Create HTML and JavaScript for version selector dropdown.
-    
+
     Args:
         current_version: The current version being displayed ("latest" or version number)
         archives: Dictionary mapping version names to git references
         dest_dir: Destination directory for the current page (to calculate relative paths)
         latest_version: The version string from metadata.json for the latest version
-    
+
     Returns:
         Tuple of (dropdown_html, script_html) - dropdown for inline use, script for page footer
     """
     # Build the version options
     options = []
-    
+
     # Add "latest" option with version number
     is_latest = current_version == "latest"
-    selected_latest = ' selected' if is_latest else ''
+    selected_latest = " selected" if is_latest else ""
     latest_label = f"latest ({latest_version})" if latest_version else "latest"
     options.append(f'<option value="latest"{selected_latest}>{latest_label}</option>')
-    
+
     # Add archived versions (sorted in reverse order)
     for version in sorted(archives.keys(), reverse=True):
         is_selected = current_version == version
-        selected_attr = ' selected' if is_selected else ''
+        selected_attr = " selected" if is_selected else ""
         options.append(f'<option value="{version}"{selected_attr}>{version}</option>')
-    
-    options_html = '\n'.join(options)
-    
+
+    options_html = "\n".join(options)
+
     dropdown_html = f'<select class="version-selector" id="versionSelector" aria-label="Select version">{options_html}</select>'
-    
-    script_html = '''
+
+    script_html = """
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const versionSelector = document.getElementById('versionSelector');
@@ -460,8 +464,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-'''
-    
+"""
+
     return dropdown_html, script_html
 
 
@@ -550,17 +554,21 @@ def create_page(
     if archives:
         current_version = archive_version if archive_version else "latest"
         latest_version = metadata.get("version")
-        version_selector_html, version_script_html = create_version_selector_html(current_version, archives, relative_dir, latest_version)
+        version_selector_html, version_script_html = create_version_selector_html(
+            current_version, archives, relative_dir, latest_version
+        )
 
     # Patch the header (finds header, links it, inserts metadata with version selector)
-    metadata_header = create_metadata_header(metadata, last_modified, archive_version, version_selector_html)
+    metadata_header = create_metadata_header(
+        metadata, last_modified, archive_version, version_selector_html
+    )
     encoded_rel_dir = _encode_path_for_url(relative_dir)
     url = f"{base_url}/{encoded_rel_dir}"
     readme_text = patch_header(readme_text, url, metadata_header)
 
     # Append the text to the output
     output_text += readme_text
-    
+
     # Append the version selector script at the end
     if version_script_html:
         output_text += "\n" + version_script_html
@@ -572,11 +580,11 @@ def create_page(
 
 def create_title_from_readme_title(readme_title: str, suffix: str = "") -> str:
     """Create a cleaned title from the README title by removing common component type suffixes.
-    
+
     Args:
         readme_title: The title extracted from the README
         suffix: Optional suffix to append (e.g., language identifier)
-    
+
     Returns:
         Cleaned title with suffix appended
     """
@@ -599,7 +607,7 @@ def process_archived_versions(
     git_repo_path: Path,
 ) -> str:
     """Process archived versions of documentation and return nav content.
-    
+
     Args:
         archives: Dictionary mapping version names to git references
         metadata: Current metadata dictionary
@@ -608,27 +616,27 @@ def process_archived_versions(
         dest_dir: Destination directory for generated pages
         project_type: Type of project (operator, application, etc.)
         git_repo_path: Path to the Git repository root
-    
+
     Returns:
         Navigation content string for archived versions
     """
     logger.info(f"Processing versioned documentation for {str(dest_dir)}")
-    
+
     nav_content = """
 nav:
   - README.md
 """
-    
+
     for version in sorted(archives.keys(), reverse=True):
         git_ref = archives[version]
-        
+
         # Get metadata and README from the specified git reference
         archived_metadata_content = get_file_from_git(metadata_path, git_ref, git_repo_path)
         archived_readme_content = get_file_from_git(readme_path, git_ref, git_repo_path)
         if not archived_metadata_content or not archived_readme_content:
             logger.error(f"Failed to retrieve archived content for {dest_dir} at {git_ref}")
             continue
-        
+
         # Parse the archived metadata
         try:
             archived_metadata = json.loads(archived_metadata_content)
@@ -636,7 +644,7 @@ nav:
             logger.error(f"Failed to parse archived metadata for {dest_dir.name} at {git_ref}")
             continue
         archived_metadata = archived_metadata[project_type]
-        
+
         # Get commit date as last modified
         repo_str = str(git_repo_path)
         cmd = [
@@ -653,7 +661,7 @@ nav:
             cmd, capture_output=True, text=True, check=True
         ).stdout.strip()
         archive_last_modified = format_date(archive_last_modified)
-        
+
         # Create the archived version content
         archive_dest_path = dest_dir / f"{version}.md"
         create_page(
@@ -665,16 +673,16 @@ nav:
             archive={"version": version, "git_ref": git_ref},
             archives=archives,
         )
-        
+
         # Add archives to nav file
         nav_content += f'  - "{version}": {version}.md\n'
-    
+
     return nav_content
 
 
 def write_nav_file(nav_path: Path, nav_content: str) -> None:
     """Write navigation file content to the specified path.
-    
+
     Args:
         nav_path: Path where the navigation file should be written
         nav_content: Content to write to the navigation file
@@ -827,7 +835,12 @@ title: "{title}"
             parent_dest_path = parent_dest_dir / "README.md"
             parent_last_modified = get_last_modified_date(metadata_path, git_repo_path)
             create_page(
-                metadata, parent_readme_text, parent_dest_path, parent_last_modified, git_repo_path, archives=archives
+                metadata,
+                parent_readme_text,
+                parent_dest_path,
+                parent_last_modified,
+                git_repo_path,
+                archives=archives,
             )
 
             # Write parent nav file
