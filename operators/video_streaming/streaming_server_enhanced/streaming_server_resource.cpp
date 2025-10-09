@@ -67,8 +67,19 @@ void StreamingServerResource::initialize() {
     StreamingServer::Config server_config = to_streaming_server_config(config_);
     streaming_server_ = std::make_unique<StreamingServer>(server_config);
 
-    // Note: Event callback will be set up by add_event_listener() when operators register
-    // This ensures the broadcast mechanism works correctly for multiple listeners
+    // Set up event callback that updates internal state and broadcasts to all listeners
+    streaming_server_->setEventCallback([this](const StreamingServer::Event& event) {
+      // Update internal state
+      handle_streaming_server_event(event);
+      
+      // Broadcast to all registered listeners
+      std::lock_guard<std::mutex> lock(event_listeners_mutex_);
+      for (const auto& listener : event_listeners_) {
+        if (listener) {
+          listener(event);
+        }
+      }
+    });
 
     is_initialized_ = true;
     start_time_ticks_ = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -214,58 +225,17 @@ StreamingServer::Config StreamingServerResource::get_streaming_server_config() c
 
 void StreamingServerResource::set_event_callback(EventCallback callback) {
   // For backward compatibility: clears existing listeners and sets a single callback
-  {
-    std::lock_guard<std::mutex> lock(event_listeners_mutex_);
-    event_listeners_.clear();
-    event_listeners_.push_back(callback);
-  }
-
-  // Set up the broadcast callback on the underlying StreamingServer
-  if (streaming_server_) {
-    streaming_server_->setEventCallback(
-        [this](const StreamingServer::Event& event) {
-          // First update internal state
-          handle_streaming_server_event(event);
-          
-          // Then broadcast to all listeners
-          std::lock_guard<std::mutex> lock(event_listeners_mutex_);
-          for (const auto& listener : event_listeners_) {
-            if (listener) {
-              listener(event);
-            }
-          }
-        });
-  }
+  // The broadcast callback is already set up in setup()
+  std::lock_guard<std::mutex> lock(event_listeners_mutex_);
+  event_listeners_.clear();
+  event_listeners_.push_back(callback);
 }
 
 void StreamingServerResource::add_event_listener(EventCallback callback) {
-  bool is_first_listener = false;
-  
   // Add a new listener without removing existing ones
-  {
-    std::lock_guard<std::mutex> lock(event_listeners_mutex_);
-    event_listeners_.push_back(callback);
-    // Check if this is the first listener while still holding the lock
-    is_first_listener = (event_listeners_.size() == 1);
-  }
-
-  // If this is the first listener, set up the broadcast callback
-  // (This happens outside the lock to avoid potential deadlock)
-  if (streaming_server_ && is_first_listener) {
-    streaming_server_->setEventCallback(
-        [this](const StreamingServer::Event& event) {
-          // First update internal state
-          handle_streaming_server_event(event);
-          
-          // Then broadcast to all listeners
-          std::lock_guard<std::mutex> lock(event_listeners_mutex_);
-          for (const auto& listener : event_listeners_) {
-            if (listener) {
-              listener(event);
-            }
-          }
-        });
-  }
+  // The broadcast callback is already set up in setup()
+  std::lock_guard<std::mutex> lock(event_listeners_mutex_);
+  event_listeners_.push_back(callback);
 }
 
 bool StreamingServerResource::is_upstream_connected() const {
