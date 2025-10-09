@@ -46,7 +46,7 @@ class VideoMasterSourceOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(VideoMasterSourceOp)
 
-  VideoMasterSourceOp();
+  VideoMasterSourceOp() = default;
 
   void setup(OperatorSpec& spec) override;
 
