@@ -96,4 +96,4 @@ class VideoMasterBase {
 
 }  // namespace holoscan::ops
 
-#endif  // NVIDIA_HOLOSCAN_GXF_EXTENSIONS_VIDEOMASTER_BASE_HPP
+#endif  // HOLOSCAN_OPERATORS_VIDEOMASTER_BASE_HPP_

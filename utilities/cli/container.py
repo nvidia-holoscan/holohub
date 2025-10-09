@@ -240,10 +240,6 @@ class HoloHubContainer:
             if os.path.exists(delta_sdi):
                 options.extend(["--device", f"{delta_sdi}:{delta_sdi}"])
 
-            delta_sdi = f"/dev/delta-x370{i}"
-            if os.path.exists(delta_sdi):
-                options.extend(["--device", f"{delta_sdi}:{delta_sdi}"])
-
             # Deltacast HDMI capture board
             delta_hdmi = f"/dev/delta-x350{i}"
             if os.path.exists(delta_hdmi):
