@@ -73,11 +73,11 @@ if(BUILD_TESTING)
              SERVER_SUCCESS=0
              CLIENT_SUCCESS=0
              STREAMING_SUCCESS=0
-             
+
              # Create log files
              SERVER_LOG=\$(mktemp /tmp/server_log.XXXXXX)
              CLIENT_LOG=\$(mktemp /tmp/client_log.XXXXXX)
-             
+
              echo \"Server log: \$SERVER_LOG\"
              echo \"Client log: \$CLIENT_LOG\"
 
@@ -123,7 +123,7 @@ if(BUILD_TESTING)
              # Now verify logs for actual streaming behavior
              echo ''
              echo '=== Verifying Server Logs ==='
-             
+
              # Check for client connection
              if grep -q 'Client connected' \$SERVER_LOG; then
                echo '✓ Server: Client connected'
@@ -131,7 +131,7 @@ if(BUILD_TESTING)
              else
                echo '✗ Server: No client connection detected'
              fi
-             
+
              # Check for upstream connection
              if grep -q 'Upstream connection established' \$SERVER_LOG; then
                echo '✓ Server: Upstream connection established'
@@ -139,7 +139,7 @@ if(BUILD_TESTING)
              else
                echo '✗ Server: Upstream connection not established'
              fi
-             
+
              # Check for downstream connection
              if grep -q 'Downstream connection established' \$SERVER_LOG; then
                echo '✓ Server: Downstream connection established'
@@ -147,7 +147,7 @@ if(BUILD_TESTING)
              else
                echo '✗ Server: Downstream connection not established'
              fi
-             
+
              # Check for frame processing
              if grep -q 'Processing UNIQUE frame' \$SERVER_LOG; then
                FRAME_COUNT=\$(grep -c 'Processing UNIQUE frame' \$SERVER_LOG)
@@ -156,7 +156,7 @@ if(BUILD_TESTING)
              else
                echo '✗ Server: No frames processed'
              fi
-             
+
              # Check for frame stats (optional but good indicator)
              if grep -q 'Frame Processing Stats' \$SERVER_LOG; then
                echo '✓ Server: Frame processing statistics logged'
@@ -165,7 +165,7 @@ if(BUILD_TESTING)
 
              echo ''
              echo '=== Verifying Client Logs ==='
-             
+
              # Check for successful frame sending
              if grep -q 'Frame sent successfully' \$CLIENT_LOG; then
                SENT_COUNT=\$(grep -c 'Frame sent successfully' \$CLIENT_LOG)
@@ -174,7 +174,7 @@ if(BUILD_TESTING)
              else
                echo '✗ Client: No frames sent successfully'
              fi
-             
+
              # Check for frame validation
              if grep -q 'Frame validation passed' \$CLIENT_LOG; then
                echo '✓ Client: Frame validation passed'
@@ -182,7 +182,7 @@ if(BUILD_TESTING)
              else
                echo '✗ Client: Frame validation issues'
              fi
-             
+
              # Check for client streaming start
              if grep -q 'STARTING STREAMING CLIENT' \$CLIENT_LOG; then
                echo '✓ Client: Streaming client started'
