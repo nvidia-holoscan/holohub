@@ -173,9 +173,7 @@ public:
     
     // Start bus monitoring in a background thread
     stop_bus_monitor_ = false;
-    bus_monitor_thread_ = std::thread([this]() {
-      monitor_pipeline_bus();
-    });
+    bus_monitor_thread_ = std::thread(&GStreamerApp::monitor_pipeline_bus, this);
   }
 
   ~GStreamerApp() {

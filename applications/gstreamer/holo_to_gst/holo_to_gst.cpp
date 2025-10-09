@@ -18,6 +18,115 @@ const char* get_pattern_name(int pattern) {
   return (pattern >= 0 && pattern <= 2) ? pattern_names[pattern] : "unknown";
 }
 
+void generate_gradient_pattern(uint8_t* data, int width, int height) {
+  static float time_offset = 0.0f;
+  time_offset += 0.02f;
+  
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      int idx = (y * width + x) * 4;
+      // Animated color gradient
+      data[idx + 0] = static_cast<uint8_t>(128 + 127 * std::sin(x * 0.01f + time_offset));  // R
+      data[idx + 1] = static_cast<uint8_t>(128 + 127 * std::sin(y * 0.01f + time_offset));  // G
+      data[idx + 2] = static_cast<uint8_t>(128 + 127 * std::cos((x + y) * 0.005f + time_offset));  // B
+      data[idx + 3] = 255;  // A (fully opaque)
+    }
+  }
+}
+
+void generate_checkerboard_pattern(uint8_t* data, int width, int height) {
+  static float animation_time = 0.0f;
+  animation_time += 0.05f;
+  
+  int square_size = 64 + static_cast<int>(32 * std::sin(animation_time));
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      int idx = (y * width + x) * 4;
+      bool is_white = ((x / square_size) + (y / square_size)) % 2 == 0;
+      uint8_t color = is_white ? 255 : 0;
+      data[idx + 0] = color;  // R
+      data[idx + 1] = color;  // G
+      data[idx + 2] = color;  // B
+      data[idx + 3] = 255;    // A
+    }
+  }
+}
+
+void generate_color_bars_pattern(uint8_t* data, int width, int height) {
+  // SMPTE color bars (7 bars)
+  const uint8_t colors[7][3] = {
+    {255, 255, 255},  // White
+    {255, 255, 0},    // Yellow
+    {0, 255, 255},    // Cyan
+    {0, 255, 0},      // Green
+    {255, 0, 255},    // Magenta
+    {255, 0, 0},      // Red
+    {0, 0, 255}       // Blue
+  };
+  
+  int bar_width = width / 7;
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      int idx = (y * width + x) * 4;
+      int bar_idx = x / bar_width;
+      if (bar_idx >= 7) bar_idx = 6;
+      
+      data[idx + 0] = colors[bar_idx][0];  // R
+      data[idx + 1] = colors[bar_idx][1];  // G
+      data[idx + 2] = colors[bar_idx][2];  // B
+      data[idx + 3] = 255;                 // A
+    }
+  }
+}
+
+holoscan::gst::Buffer generate_pattern_buffer(int width, int height, int pattern) {
+  using namespace holoscan;
+  
+  HOLOSCAN_LOG_DEBUG("Generating {}x{} pattern (type {})", width, height, pattern);
+  
+  // Allocate buffer for RGBA data (4 bytes per pixel)
+  size_t buffer_size = width * height * 4;
+  
+  // Create GStreamer buffer
+  ::GstBuffer* gst_buffer = gst_buffer_new_allocate(nullptr, buffer_size, nullptr);
+  if (!gst_buffer) {
+    HOLOSCAN_LOG_ERROR("Failed to allocate GStreamer buffer");
+    return gst::Buffer();
+  }
+  
+  // Map buffer for writing
+  GstMapInfo map_info;
+  if (!gst_buffer_map(gst_buffer, &map_info, GST_MAP_WRITE)) {
+    HOLOSCAN_LOG_ERROR("Failed to map buffer for writing");
+    gst_buffer_unref(gst_buffer);
+    return gst::Buffer();
+  }
+  
+  uint8_t* data = map_info.data;
+  
+  // Generate pattern based on type
+  switch (pattern) {
+    case 0:  // Animated gradient
+      generate_gradient_pattern(data, width, height);
+      break;
+    case 1:  // Animated checkerboard
+      generate_checkerboard_pattern(data, width, height);
+      break;
+    case 2:  // Color bars (SMPTE style)
+      generate_color_bars_pattern(data, width, height);
+      break;
+    default:
+      generate_gradient_pattern(data, width, height);
+  }
+  
+  // Unmap buffer
+  gst_buffer_unmap(gst_buffer, &map_info);
+  
+  // GStreamer will handle timestamps based on the pipeline clock and framerate in caps
+  
+  return gst::Buffer(gst_buffer);
+}
+
 }
 
 namespace holoscan {
@@ -39,15 +148,11 @@ class GstSrcOperator : public Operator {
     spec.param(pattern_, "pattern", "Pattern", "Pattern type: 0=gradient, 1=checkerboard, 2=color bars", 0);
   }
 
-  void start() override {
-    frame_count_ = 0;
-  }
-
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
-    HOLOSCAN_LOG_INFO("GstSrcOperator::compute() called - frame {}", frame_count_);
+    HOLOSCAN_LOG_INFO("GstSrcOperator::compute() called");
     
     // Generate a pattern buffer
-    auto buffer = generate_pattern_buffer();
+    auto buffer = generate_pattern_buffer(width_.get(), height_.get(), pattern_.get());
     if (buffer.size() == 0) {
       HOLOSCAN_LOG_ERROR("Failed to generate pattern buffer");
       return;
@@ -63,129 +168,13 @@ class GstSrcOperator : public Operator {
     // Optionally wait for the buffer to be consumed
     // For now we just let it push asynchronously
     // push_future.wait();
-    
-    frame_count_++;
   }
 
  private:
-  /**
-   * Generate a GStreamer buffer with a test pattern (RGBA format)
-   */
-  gst::Buffer generate_pattern_buffer() {
-    int width = width_.get();
-    int height = height_.get();
-    int pattern = pattern_.get();
-    
-    HOLOSCAN_LOG_DEBUG("Generating {}x{} pattern (type {})", width, height, pattern);
-    
-    // Allocate buffer for RGBA data (4 bytes per pixel)
-    size_t buffer_size = width * height * 4;
-    
-    // Create GStreamer buffer
-    ::GstBuffer* gst_buffer = gst_buffer_new_allocate(nullptr, buffer_size, nullptr);
-    if (!gst_buffer) {
-      HOLOSCAN_LOG_ERROR("Failed to allocate GStreamer buffer");
-      return gst::Buffer();
-    }
-    
-    // Map buffer for writing
-    GstMapInfo map_info;
-    if (!gst_buffer_map(gst_buffer, &map_info, GST_MAP_WRITE)) {
-      HOLOSCAN_LOG_ERROR("Failed to map buffer for writing");
-      gst_buffer_unref(gst_buffer);
-      return gst::Buffer();
-    }
-    
-    uint8_t* data = map_info.data;
-    
-    // Generate pattern based on type
-    switch (pattern) {
-      case 0:  // Animated gradient
-        generate_gradient_pattern(data, width, height);
-        break;
-      case 1:  // Animated checkerboard
-        generate_checkerboard_pattern(data, width, height);
-        break;
-      case 2:  // Color bars (SMPTE style)
-        generate_color_bars_pattern(data, width, height);
-        break;
-      default:
-        generate_gradient_pattern(data, width, height);
-    }
-    
-    // Unmap buffer
-    gst_buffer_unmap(gst_buffer, &map_info);
-    
-    // Set timestamps
-    GstClockTime timestamp = frame_count_ * GST_SECOND / 30;  // 30 fps
-    GST_BUFFER_PTS(gst_buffer) = timestamp;
-    GST_BUFFER_DTS(gst_buffer) = timestamp;
-    GST_BUFFER_DURATION(gst_buffer) = GST_SECOND / 30;
-    
-    return gst::Buffer(gst_buffer);
-  }
-  
-  void generate_gradient_pattern(uint8_t* data, int width, int height) {
-    float time_offset = frame_count_ * 0.02f;
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        int idx = (y * width + x) * 4;
-        // Animated color gradient
-        data[idx + 0] = static_cast<uint8_t>(128 + 127 * std::sin(x * 0.01f + time_offset));  // R
-        data[idx + 1] = static_cast<uint8_t>(128 + 127 * std::sin(y * 0.01f + time_offset));  // G
-        data[idx + 2] = static_cast<uint8_t>(128 + 127 * std::cos((x + y) * 0.005f + time_offset));  // B
-        data[idx + 3] = 255;  // A (fully opaque)
-      }
-    }
-  }
-  
-  void generate_checkerboard_pattern(uint8_t* data, int width, int height) {
-    int square_size = 64 + static_cast<int>(32 * std::sin(frame_count_ * 0.05f));
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        int idx = (y * width + x) * 4;
-        bool is_white = ((x / square_size) + (y / square_size)) % 2 == 0;
-        uint8_t color = is_white ? 255 : 0;
-        data[idx + 0] = color;  // R
-        data[idx + 1] = color;  // G
-        data[idx + 2] = color;  // B
-        data[idx + 3] = 255;    // A
-      }
-    }
-  }
-  
-  void generate_color_bars_pattern(uint8_t* data, int width, int height) {
-    // SMPTE color bars (7 bars)
-    const uint8_t colors[7][3] = {
-      {255, 255, 255},  // White
-      {255, 255, 0},    // Yellow
-      {0, 255, 255},    // Cyan
-      {0, 255, 0},      // Green
-      {255, 0, 255},    // Magenta
-      {255, 0, 0},      // Red
-      {0, 0, 255}       // Blue
-    };
-    
-    int bar_width = width / 7;
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        int idx = (y * width + x) * 4;
-        int bar_idx = x / bar_width;
-        if (bar_idx >= 7) bar_idx = 6;
-        
-        data[idx + 0] = colors[bar_idx][0];  // R
-        data[idx + 1] = colors[bar_idx][1];  // G
-        data[idx + 2] = colors[bar_idx][2];  // B
-        data[idx + 3] = 255;                 // A
-      }
-    }
-  }
-
   Parameter<GstSrcResourcePtr> gst_src_resource_;
   Parameter<int> width_;
   Parameter<int> height_;
   Parameter<int> pattern_;
-  uint64_t frame_count_ = 0;
 };
 
 /**
@@ -193,25 +182,23 @@ class GstSrcOperator : public Operator {
  */
 class GstSrcApp : public Application {
  public:
-  GstSrcApp(int64_t iteration_count, const std::string& caps, int width, int height, int pattern)
-    : iteration_count_(iteration_count), caps_(caps), width_(width), height_(height), pattern_(pattern) {}
+  GstSrcApp(int64_t iteration_count, const std::string& caps, int width, int height, int framerate, int pattern)
+    : iteration_count_(iteration_count), caps_(caps), width_(width), height_(height), framerate_(framerate), pattern_(pattern) {}
 
   void compose() override {
-    // Build caps string with actual width and height
+    // Build caps string with actual width, height, and framerate
     std::string full_caps = caps_ + ",width=" + std::to_string(width_) + 
                            ",height=" + std::to_string(height_) + 
-                           ",framerate=30/1";
+                           ",framerate=" + std::to_string(framerate_) + "/1";
     
     // Create the GStreamer source resource for data bridging
     holoscan_gst_src_ = make_resource<GstSrcResource>("holoscan_src", 
         Arg("capabilities", full_caps));
 
     // Create the operator that generates pattern and pushes to GStreamer
-    // Use PeriodicCondition to run at ~30 fps
     auto gst_op = make_operator<GstSrcOperator>(
         "gst_src_op",
         make_condition<CountCondition>(iteration_count_),
-        make_condition<PeriodicCondition>("periodic", Arg("recess_period", std::string("33ms"))),  // ~30 fps
         Arg("gst_src_resource", holoscan_gst_src_),
         Arg("width", width_),
         Arg("height", height_),
@@ -231,6 +218,7 @@ class GstSrcApp : public Application {
   std::string caps_;
   int width_;
   int height_;
+  int framerate_;
   int pattern_;
   std::shared_ptr<GstSrcResource> holoscan_gst_src_;
 };
@@ -265,13 +253,16 @@ public:
       throw std::runtime_error("Failed to parse GStreamer pipeline description");
     }
     
-    // Add source element to pipeline
-    // Note: gst_bin_add() takes ownership by sinking the floating reference.
-    // We need to add an extra ref so both the bin and our shared_ptr have their own references.
+    // Add sink element to pipeline
+    // Note: gst_bin_add() takes ownership by sinking the floating reference (doesn't add a new ref).
+    // Since our shared_ptr in GstSinkResource will call gst_object_unref() when destroyed,
+    // we need to manually add a ref here so both the bin and our shared_ptr have their own references.
+    // Without this: bin sinks the only ref → bin destroyed unrefs to 0 → GstSinkResource tries to unref freed memory.
     gst_object_ref(src_element_.get());
     gst_bin_add(GST_BIN(pipeline_.get()), src_element_.get());
     
     // Find and link the "first" element
+    // Note: gst_bin_get_by_name returns a new reference, so wrap it in a guard
     auto first_element = holoscan::gst::make_gst_object_guard(
         gst_bin_get_by_name(GST_BIN(pipeline_.get()), "first"));
     if (!first_element) {
@@ -300,9 +291,7 @@ public:
     
     // Start bus monitoring in a background thread
     stop_bus_monitor_ = false;
-    bus_monitor_thread_ = std::thread([this]() {
-      monitor_pipeline_bus();
-    });
+    bus_monitor_thread_ = std::thread(&GStreamerApp::monitor_pipeline_bus, this);
   }
 
   ~GStreamerApp() {
@@ -391,6 +380,7 @@ void print_usage(const char* program_name) {
     std::cout << "  -c, --count <number>     Number of frames to generate (default: unlimited)\n";
     std::cout << "  -w, --width <pixels>     Frame width (default: 1920)\n";
     std::cout << "  -h, --height <pixels>    Frame height (default: 1080)\n";
+    std::cout << "  -f, --framerate <fps>    Frame rate in frames per second (default: 30)\n";
     std::cout << "  --pattern <type>         Pattern type: 0=gradient, 1=checkerboard, 2=color bars (default: 0)\n";
     std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description (default: videoconvert ! autovideosink)\n";
     std::cout << "                            IMPORTANT: Your pipeline MUST name the first element as 'first'\n";
@@ -406,8 +396,8 @@ void print_usage(const char* program_name) {
     std::cout << "    " << program_name << " --pattern 1\n\n";
     std::cout << "  Display color bars:\n";
     std::cout << "    " << program_name << " --pattern 2\n\n";
-    std::cout << "  Custom resolution:\n";
-    std::cout << "    " << program_name << " --width 1280 --height 720\n\n";
+    std::cout << "  Custom resolution and framerate:\n";
+    std::cout << "    " << program_name << " --width 1280 --height 720 --framerate 60\n\n";
     std::cout << "  Save to file:\n";
     std::cout << "    " << program_name << " --count 300 --pipeline \"videoconvert name=first ! x264enc ! mp4mux ! filesink location=output.mp4\"\n\n";
     std::cout << "  Stream over network:\n";
@@ -420,6 +410,7 @@ int main(int argc, char** argv) {
   std::string caps = "video/x-raw,format=RGBA";  // Default value
   int width = 1920;
   int height = 1080;
+  int framerate = 30;
   int pattern = 0;  // 0=gradient, 1=checkerboard, 2=color bars
 
   // Parse command line arguments
@@ -438,6 +429,9 @@ int main(int argc, char** argv) {
     }
     else if ((arg == "-h" || arg == "--height") && i + 1 < argc) {
       height = std::stoi(argv[++i]);
+    }
+    else if ((arg == "-f" || arg == "--framerate") && i + 1 < argc) {
+      framerate = std::stoi(argv[++i]);
     }
     else if (arg == "--pattern" && i + 1 < argc) {
       pattern = std::stoi(argv[++i]);
@@ -460,11 +454,11 @@ int main(int argc, char** argv) {
     gst_init(&argc, &argv);
 
     // Create the Holoscan application with parsed parameters
-    auto holoscan_app = std::make_shared<holoscan::GstSrcApp>(iteration_count, caps, width, height, pattern);
+    auto holoscan_app = std::make_shared<holoscan::GstSrcApp>(iteration_count, caps, width, height, framerate, pattern);
 
     HOLOSCAN_LOG_INFO("Starting Holoscan GStreamer Source Example");
-    HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}, pattern: {}, pipeline: '{}', caps: '{}'", 
-                      iteration_count, width, height, get_pattern_name(pattern), pipeline_desc, caps);
+    HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, pipeline: '{}', caps: '{}'", 
+                      iteration_count, width, height, framerate, get_pattern_name(pattern), pipeline_desc, caps);
     HOLOSCAN_LOG_INFO("This will generate pattern data and push it into GStreamer");
 
     // Run the Holoscan application asynchronously
