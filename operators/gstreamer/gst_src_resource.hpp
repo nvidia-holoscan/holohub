@@ -133,6 +133,12 @@ class GstSrcResource : public holoscan::Resource {
  private:
   // Send EOS signal (called by destructor to unblock waiting threads)
   void send_eos();
+  
+  // Initialize CUDA resources if needed based on caps (const for lazy init)
+  void initialize_cuda_resources() const;
+  
+  // Clean up CUDA resources
+  void cleanup_cuda_resources();
 
   // Promise/future for safe element access across threads
   std::promise<holoscan::gst::GstElementGuard> src_element_promise_;
@@ -147,6 +153,11 @@ class GstSrcResource : public holoscan::Resource {
 
   // EOS flag
   std::atomic<bool> eos_sent_{false};
+  
+  // CUDA resources (initialized lazily on first device tensor, mutable for const methods)
+  mutable void* cuda_context_ = nullptr;     // GstCudaContext*
+  mutable void* cuda_allocator_ = nullptr;   // GstAllocator*
+  mutable bool use_cuda_memory_ = false;
 
   // Resource parameters
   holoscan::Parameter<std::string> caps_;

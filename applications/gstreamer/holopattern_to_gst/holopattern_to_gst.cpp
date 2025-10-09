@@ -7,6 +7,7 @@
 #include <cmath>
 #include <csignal>
 
+#include <cuda_runtime.h>
 #include <gst/gst.h>
 #include <holoscan/holoscan.hpp>
 #include "../../operators/gstreamer/gst_src_resource.hpp"
@@ -80,8 +81,11 @@ void generate_color_bars_pattern(uint8_t* data, int width, int height) {
 }
 
 holoscan::gxf::Entity generate_pattern_entity(int width, int height, int pattern, 
+                                               nvidia::gxf::MemoryStorageType storage_type,
                                                holoscan::Allocator* allocator) {
-  HOLOSCAN_LOG_DEBUG("Generating {}x{} pattern entity (type {})", width, height, pattern);
+  HOLOSCAN_LOG_DEBUG("Generating {}x{} pattern entity (type {}, storage: {})", 
+                     width, height, pattern, 
+                     storage_type == nvidia::gxf::MemoryStorageType::kDevice ? "device" : "host");
   
   gxf_context_t context = allocator->gxf_context();
   
@@ -98,7 +102,7 @@ holoscan::gxf::Entity generate_pattern_entity(int width, int height, int pattern
       context,
       allocator_handle.value(),
       {{"video_frame",
-        nvidia::gxf::MemoryStorageType::kHost,
+        storage_type,
         nvidia::gxf::Shape{static_cast<int32_t>(height),
                           static_cast<int32_t>(width),
                           static_cast<int32_t>(4)},  // RGBA channels
@@ -124,26 +128,62 @@ holoscan::gxf::Entity generate_pattern_entity(int width, int height, int pattern
     return holoscan::gxf::Entity();
   }
   
-  // Get pointer to tensor data
-  uint8_t* data = static_cast<uint8_t*>(maybe_tensor.value()->pointer());
-  if (!data) {
-    HOLOSCAN_LOG_ERROR("Failed to get tensor data pointer");
-    return holoscan::gxf::Entity();
-  }
+  size_t buffer_size = width * height * 4;  // RGBA
   
-  // Generate pattern based on type
-  switch (pattern) {
-    case 0:  // Animated gradient
-      generate_gradient_pattern(data, width, height);
-      break;
-    case 1:  // Animated checkerboard
-      generate_checkerboard_pattern(data, width, height);
-      break;
-    case 2:  // Color bars (SMPTE style)
-      generate_color_bars_pattern(data, width, height);
-      break;
-    default:
-      generate_gradient_pattern(data, width, height);
+  // For device memory, generate pattern in host buffer first, then copy to device
+  if (storage_type == nvidia::gxf::MemoryStorageType::kDevice) {
+    // Allocate temporary host buffer
+    std::vector<uint8_t> host_buffer(buffer_size);
+    
+    // Generate pattern in host buffer
+    switch (pattern) {
+      case 0:  // Animated gradient
+        generate_gradient_pattern(host_buffer.data(), width, height);
+        break;
+      case 1:  // Animated checkerboard
+        generate_checkerboard_pattern(host_buffer.data(), width, height);
+        break;
+      case 2:  // Color bars (SMPTE style)
+        generate_color_bars_pattern(host_buffer.data(), width, height);
+        break;
+      default:
+        generate_gradient_pattern(host_buffer.data(), width, height);
+    }
+    
+    // Copy from host to device
+    cudaError_t cuda_result = cudaMemcpy(
+        maybe_tensor.value()->pointer(),
+        host_buffer.data(),
+        buffer_size,
+        cudaMemcpyHostToDevice);
+    
+    if (cuda_result != cudaSuccess) {
+      HOLOSCAN_LOG_ERROR("Failed to copy pattern to device memory: {}", 
+                        cudaGetErrorString(cuda_result));
+      return holoscan::gxf::Entity();
+    }
+  } else {
+    // Host memory - generate pattern directly
+    uint8_t* data = static_cast<uint8_t*>(maybe_tensor.value()->pointer());
+    if (!data) {
+      HOLOSCAN_LOG_ERROR("Failed to get tensor data pointer");
+      return holoscan::gxf::Entity();
+    }
+    
+    // Generate pattern based on type
+    switch (pattern) {
+      case 0:  // Animated gradient
+        generate_gradient_pattern(data, width, height);
+        break;
+      case 1:  // Animated checkerboard
+        generate_checkerboard_pattern(data, width, height);
+        break;
+      case 2:  // Color bars (SMPTE style)
+        generate_color_bars_pattern(data, width, height);
+        break;
+      default:
+        generate_gradient_pattern(data, width, height);
+    }
   }
   
   // Wrap the GXF entity in a Holoscan entity and return
@@ -168,14 +208,21 @@ class PatternGenOperator : public Operator {
     spec.param(width_, "width", "Width", "Frame width in pixels", 1920);
     spec.param(height_, "height", "Height", "Frame height in pixels", 1080);
     spec.param(pattern_, "pattern", "Pattern", "Pattern type: 0=gradient, 1=checkerboard, 2=color bars", 0);
+    spec.param(storage_type_, "storage_type", "StorageType", 
+               "Memory storage type: 0=host, 1=device", 0);
   }
 
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
     HOLOSCAN_LOG_DEBUG("PatternGenOperator::compute() - Generating pattern");
     
+    // Convert storage_type parameter (0=host, 1=device) to MemoryStorageType enum
+    nvidia::gxf::MemoryStorageType storage = (storage_type_.get() == 1) 
+        ? nvidia::gxf::MemoryStorageType::kDevice 
+        : nvidia::gxf::MemoryStorageType::kHost;
+    
     // Generate a pattern entity with tensors
     auto entity = generate_pattern_entity(width_.get(), height_.get(), pattern_.get(), 
-                                          allocator_.get().get());
+                                          storage, allocator_.get().get());
     if (!entity) {
       HOLOSCAN_LOG_ERROR("Failed to generate pattern entity");
       return;
@@ -191,6 +238,7 @@ class PatternGenOperator : public Operator {
   Parameter<int> width_;
   Parameter<int> height_;
   Parameter<int> pattern_;
+  Parameter<int> storage_type_;
 };
 
 /**
@@ -239,14 +287,29 @@ class GstSrcOperator : public Operator {
  */
 class GstSrcApp : public Application {
  public:
-  GstSrcApp(int64_t iteration_count, const std::string& caps, int width, int height, int framerate, int pattern)
-    : iteration_count_(iteration_count), caps_(caps), width_(width), height_(height), framerate_(framerate), pattern_(pattern) {}
+  GstSrcApp(int64_t iteration_count, const std::string& caps, int width, int height, 
+            int framerate, int pattern, int storage_type)
+    : iteration_count_(iteration_count), caps_(caps), width_(width), height_(height), 
+      framerate_(framerate), pattern_(pattern), storage_type_(storage_type) {}
 
   void compose() override {
-    // Build caps string with actual width, height, and framerate
-    std::string full_caps = caps_ + ",width=" + std::to_string(width_) + 
-                           ",height=" + std::to_string(height_) + 
-                           ",framerate=" + std::to_string(framerate_) + "/1";
+    // Build caps string with actual width, height, framerate, and memory type
+    // Memory feature must come right after media type: video/x-raw(memory:CUDAMemory)
+    std::string full_caps;
+    
+    if (storage_type_ == 1) {
+      // CUDA memory: insert memory feature after media type
+      full_caps = "video/x-raw(memory:CUDAMemory),format=RGBA";
+    } else {
+      // Host memory: use default caps
+      full_caps = caps_;
+    }
+    
+    full_caps += ",width=" + std::to_string(width_) + 
+                 ",height=" + std::to_string(height_) + 
+                 ",framerate=" + std::to_string(framerate_) + "/1";
+    
+    HOLOSCAN_LOG_INFO("Source caps: {}", full_caps);
     
     // Create the GStreamer source resource for data bridging
     holoscan_gst_src_ = make_resource<GstSrcResource>("holoscan_src", 
@@ -262,7 +325,8 @@ class GstSrcApp : public Application {
         Arg("allocator", allocator),
         Arg("width", width_),
         Arg("height", height_),
-        Arg("pattern", pattern_)
+        Arg("pattern", pattern_),
+        Arg("storage_type", storage_type_)
     );
 
     // Create the GStreamer source operator
@@ -286,6 +350,7 @@ class GstSrcApp : public Application {
   int height_;
   int framerate_;
   int pattern_;
+  int storage_type_;
   std::shared_ptr<GstSrcResource> holoscan_gst_src_;
 };
 
@@ -448,6 +513,7 @@ void print_usage(const char* program_name) {
     std::cout << "  -h, --height <pixels>    Frame height (default: 1080)\n";
     std::cout << "  -f, --framerate <fps>    Frame rate in frames per second (default: 30)\n";
     std::cout << "  --pattern <type>         Pattern type: 0=gradient, 1=checkerboard, 2=color bars (default: 0)\n";
+    std::cout << "  --storage <type>         Memory storage type: 0=host, 1=device/CUDA (default: 0)\n";
     std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description (default: videoconvert ! autovideosink)\n";
     std::cout << "                            IMPORTANT: Your pipeline MUST name the first element as 'first'\n";
     std::cout << "  --caps <caps_string>     GStreamer capabilities string for the source (default: video/x-raw,format=RGBA)\n";
@@ -462,6 +528,8 @@ void print_usage(const char* program_name) {
     std::cout << "    " << program_name << " --pattern 1\n\n";
     std::cout << "  Display color bars:\n";
     std::cout << "    " << program_name << " --pattern 2\n\n";
+    std::cout << "  Generate pattern in CUDA device memory:\n";
+    std::cout << "    " << program_name << " --storage 1\n\n";
     std::cout << "  Custom resolution and framerate:\n";
     std::cout << "    " << program_name << " --width 1280 --height 720 --framerate 60\n\n";
     std::cout << "  Save to file:\n";
@@ -478,6 +546,7 @@ int main(int argc, char** argv) {
   int height = 1080;
   int framerate = 30;
   int pattern = 0;  // 0=gradient, 1=checkerboard, 2=color bars
+  int storage_type = 0;  // 0=host, 1=device
 
   // Parse command line arguments
   for (int i = 1; i < argc; i++) {
@@ -502,6 +571,9 @@ int main(int argc, char** argv) {
     else if (arg == "--pattern" && i + 1 < argc) {
       pattern = std::stoi(argv[++i]);
     }
+    else if (arg == "--storage" && i + 1 < argc) {
+      storage_type = std::stoi(argv[++i]);
+    }
     else if ((arg == "-p" || arg == "--pipeline") && i + 1 < argc) {
       pipeline_desc = argv[++i];
     }
@@ -520,11 +592,13 @@ int main(int argc, char** argv) {
     gst_init(&argc, &argv);
 
     // Create the Holoscan application with parsed parameters
-    auto holoscan_app = std::make_shared<holoscan::GstSrcApp>(iteration_count, caps, width, height, framerate, pattern);
+    auto holoscan_app = std::make_shared<holoscan::GstSrcApp>(
+        iteration_count, caps, width, height, framerate, pattern, storage_type);
 
     HOLOSCAN_LOG_INFO("Starting Holoscan Pattern to GStreamer Example");
-    HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, pipeline: '{}', caps: '{}'", 
-                      iteration_count, width, height, framerate, get_pattern_name(pattern), pipeline_desc, caps);
+    HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, storage: {}, pipeline: '{}', caps: '{}'", 
+                      iteration_count, width, height, framerate, get_pattern_name(pattern), 
+                      storage_type == 1 ? "device" : "host", pipeline_desc, caps);
     HOLOSCAN_LOG_INFO("This will generate pattern data from Holoscan and push it into GStreamer");
 
     // Run the Holoscan application asynchronously

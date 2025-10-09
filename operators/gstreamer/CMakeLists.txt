@@ -17,16 +17,19 @@ find_package(holoscan REQUIRED CONFIG
 pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
 pkg_check_modules(GSTREAMER_BASE REQUIRED gstreamer-base-1.0)
 pkg_check_modules(GSTREAMER_VIDEO REQUIRED gstreamer-video-1.0)
+pkg_check_modules(GSTREAMER_CUDA REQUIRED gstreamer-cuda-1.0)
 
 # Include directories
 include_directories(${GSTREAMER_INCLUDE_DIRS})
 include_directories(${GSTREAMER_BASE_INCLUDE_DIRS})
 include_directories(${GSTREAMER_VIDEO_INCLUDE_DIRS})
+include_directories(${GSTREAMER_CUDA_INCLUDE_DIRS})
 
 # Add compiler definitions
 add_definitions(${GSTREAMER_CFLAGS_OTHER})
 add_definitions(${GSTREAMER_BASE_CFLAGS_OTHER})
 add_definitions(${GSTREAMER_VIDEO_CFLAGS_OTHER})
+add_definitions(${GSTREAMER_CUDA_CFLAGS_OTHER})
 
 # Create custom sink library
 add_library(holoscan_gstreamer_sink SHARED
@@ -46,19 +49,22 @@ add_library(holoscan_gstreamer_sink SHARED
 link_directories(${GSTREAMER_LIBRARY_DIRS})
 link_directories(${GSTREAMER_BASE_LIBRARY_DIRS})
 link_directories(${GSTREAMER_VIDEO_LIBRARY_DIRS})
+link_directories(${GSTREAMER_CUDA_LIBRARY_DIRS})
 
 # Link libraries for custom sink
 target_link_libraries(holoscan_gstreamer_sink 
     ${GSTREAMER_LIBRARIES} 
     ${GSTREAMER_BASE_LIBRARIES} 
     ${GSTREAMER_VIDEO_LIBRARIES}
+    ${GSTREAMER_CUDA_LIBRARIES}
     holoscan::core)
 
 # Set compile flags for custom sink
 target_compile_options(holoscan_gstreamer_sink PRIVATE 
     ${GSTREAMER_CFLAGS_OTHER} 
     ${GSTREAMER_BASE_CFLAGS_OTHER} 
-    ${GSTREAMER_VIDEO_CFLAGS_OTHER})
+    ${GSTREAMER_VIDEO_CFLAGS_OTHER}
+    ${GSTREAMER_CUDA_CFLAGS_OTHER})
 
 # Platform-specific settings
 if(APPLE)
@@ -97,3 +103,4 @@ message(STATUS "Holoscan GStreamer Sink Library")
 message(STATUS "GStreamer include dirs: ${GSTREAMER_INCLUDE_DIRS}")
 message(STATUS "GStreamer libraries: ${GSTREAMER_LIBRARIES}")
 message(STATUS "GStreamer library dirs: ${GSTREAMER_LIBRARY_DIRS}")
+message(STATUS "GStreamer CUDA libraries: ${GSTREAMER_CUDA_LIBRARIES}")
