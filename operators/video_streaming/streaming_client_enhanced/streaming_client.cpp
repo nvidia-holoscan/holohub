@@ -78,7 +78,7 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
         size_t data_size = frame.getDataSize();
         PixelFormat format = frame.getFormat();
 
-        // 🔍 ENHANCED VALIDATION: Add detailed frame analysis
+        // Add detailed frame analysis
         HOLOSCAN_LOG_INFO("🔍 writeFrameToDisk DEBUG for {}:", filename_prefix);
         HOLOSCAN_LOG_INFO("  - Width: {}", width);
         HOLOSCAN_LOG_INFO("  - Height: {}", height);
@@ -96,7 +96,7 @@ bool writeFrameToDisk(const VideoFrame& frame, const std::string& filename_prefi
             return false;
         }
 
-        // 🔍 MEMORY ANALYSIS: Check if data appears to be valid
+        // Check if data appears to be valid
         if (data && data_size >= 20) {
             HOLOSCAN_LOG_INFO("  - Frame data first 20 bytes: {} {} {} {} {} {} {} {} {} {} {} {} "
                              "{} {} {} {} {} {} {} {}",
@@ -406,9 +406,6 @@ void StreamingClientOp::initialize() {
     HOLOSCAN_LOG_ERROR("Failed to create StreamingClient");
   }
 
-  // REMOVED: Frame source callback that returned empty frames
-  // We use sendFrame() directly in compute() instead
-  // This eliminates the conflict between frame source callback and direct sending
 
   HOLOSCAN_LOG_INFO("StreamingClientOp initialized successfully");
 }
@@ -678,8 +675,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
           HOLOSCAN_LOG_INFO("🔄 Reconnection attempt {} (last attempt {} seconds ago)",
                            reconnection_attempts, time_since_last_reconnect);
 
-          // REMOVED: Aggressive client recreation that caused segfaults
-          // Instead, just try to reconnect with existing client
+          // Reconnect with existing client
           client_->startStreaming(server_ip_.get(), signaling_port_.get());
 
           // Check if reconnection was successful
@@ -783,27 +779,26 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     shape_str += "]";
     HOLOSCAN_LOG_INFO("Tensor shape={}", shape_str);
 
-    // 🔧 ENHANCED DEBUG: Write tensor to disk before processing - standardized to every 10th frame
+    // Write tensor to disk for debugging - every 10th frame
     debug_frame_counter++;
     if (debug_frame_counter % 10 == 0) {  // Save every 10th frame to match server frequency
       HOLOSCAN_LOG_INFO("💾 DEBUG: Writing input tensor to disk (frame {})", debug_frame_counter);
       writeTensorToDisk(tensor, "client_input_tensor", debug_frame_counter);
     }
 
-    // FIXED: Replace continue with early return - validate tensor before processing
+    // Validate tensor before processing
     if (!validateTensorData(tensor)) {
       HOLOSCAN_LOG_ERROR("Tensor validation failed, discarding entire message");
       return;  // Exit compute method entirely - message fully consumed
     }
 
-    // FIXED: Replace continue with early return - process tensor based on data type
+    // Check tensor data type
     if (tensor->dtype().code != kDLUInt || tensor->dtype().bits != 8) {
       HOLOSCAN_LOG_WARN("Unsupported tensor data type, discarding entire message");
       return;  // Exit compute method entirely - message fully consumed
     }
 
-    // FIXED: Replace continue with early return - expect 3D tensor:
-    // [height, width, channels]
+    // Expect 3D tensor: [height, width, channels]
     if (tensor->ndim() != 3) {
       HOLOSCAN_LOG_WARN("Unexpected tensor dimensions: {}, expected 3D "
                         "[height, width, channels], discarding entire message",
@@ -823,8 +818,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
                        tensor_height, tensor_width, channels, tensor->nbytes());
     HOLOSCAN_LOG_INFO("Expected client dimensions: {}x{}", expected_width, expected_height);
 
-    // FIXED: Replace continue with early return - check for dimension mismatch
-    // between tensor and client configuration
+    // Check for dimension mismatch between tensor and client configuration
     if (tensor_width != expected_width || tensor_height != expected_height) {
       HOLOSCAN_LOG_ERROR("❌ DIMENSION MISMATCH: Tensor {}x{} does not match "
                          "client configuration {}x{}",
@@ -837,7 +831,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       return;  // Exit compute method entirely - message fully consumed
     }
 
-    // FIXED: Replace continue with early return - check channels
+    // Check channels
     if (channels != 3) {
       HOLOSCAN_LOG_WARN("Unexpected number of channels: {}, expected 3 for BGR, "
                         "discarding entire message", channels);
@@ -856,8 +850,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     size_t bgra_frame_size = expected_width * expected_height * 4;
     HOLOSCAN_LOG_INFO("  - Output BGRA frame size: {} bytes", bgra_frame_size);
 
-    // 🔧 POTENTIAL FIX: Use shared_ptr to ensure data persistence
-    // If VideoFrame doesn't copy data, we need to ensure the buffer stays alive
+    // Use shared_ptr to ensure data persistence
     auto bgra_buffer = std::make_shared<std::vector<uint8_t>>(bgra_frame_size);
 
     if (tensor->device().device_type == kDLCUDA) {
@@ -903,7 +896,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     HOLOSCAN_LOG_INFO("Frame content analysis: {}/{} non-zero bytes in first {} bytes",
                        non_zero_count, check_bytes, check_bytes);
 
-    // FIXED: Replace continue with early return - check minimum content
+    // Check minimum content
     if (non_zero_count < min_non_zero_bytes_.get()) {
       HOLOSCAN_LOG_WARN("Insufficient frame content: {}/{} non-zero bytes, "
                         "discarding entire message",
@@ -916,12 +909,11 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
                        (*bgra_buffer)[0], (*bgra_buffer)[1], (*bgra_buffer)[2],
                        (*bgra_buffer)[3], (*bgra_buffer)[4]);
 
-    // CRITICAL FIX: Create VideoFrame using configured client dimensions, not tensor dimensions
+    // Create VideoFrame using configured client dimensions
     uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
 
-    // 🔧 POTENTIAL FIX: Ensure VideoFrame has its own copy of the data
-    // Create VideoFrame - if it doesn't copy data internally, we need to ensure data persistence
+    // Create VideoFrame with data copy
     VideoFrame frame(static_cast<uint32_t>(expected_width),   // Use configured width (854)
                    static_cast<uint32_t>(expected_height),    // Use configured height (480)
                    bgra_buffer->data(),
@@ -931,7 +923,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     // Set format after construction
     frame.setFormat(PixelFormat::BGRA);
 
-    // 🔧 CRITICAL DEBUG: Verify the VideoFrame actually contains the data we expect
+    // Verify the VideoFrame contains the expected data
     HOLOSCAN_LOG_INFO("🔍 POST-CONSTRUCTION VERIFICATION:");
     HOLOSCAN_LOG_INFO("  - VideoFrame width: {}", frame.getWidth());
     HOLOSCAN_LOG_INFO("  - VideoFrame height: {}", frame.getHeight());
@@ -957,13 +949,12 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
                       frame.getWidth(), frame.getHeight(),
                       static_cast<int>(frame.getFormat()), frame.getDataSize());
 
-    // 🔧 ENHANCED DEBUG: Write VideoFrame to disk before sending -
-    // standardized to every 10th frame
+    // Write VideoFrame to disk for debugging - every 10th frame
     if (debug_frame_counter % 10 == 0) {  // Save every 10th frame to match server frequency
       HOLOSCAN_LOG_INFO("💾 DEBUG: Writing VideoFrame to disk before sending (frame {})",
                         debug_frame_counter);
 
-      // 🔍 ENHANCED DEBUGGING: Validate frame data before writing to disk
+      // Validate frame data before writing to disk
       const uint8_t* frame_data_ptr = frame.getData();
       size_t frame_data_size = frame.getDataSize();
 
@@ -990,7 +981,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       // Write both the buffer directly and the frame for comparison
       writeFrameToDisk(frame, "client_output_videoframe", debug_frame_counter);
 
-      // 🔧 ADDITIONAL DEBUG: Write bgra_buffer directly to compare
+      // Write bgra_buffer directly for comparison
       try {
         auto now = std::chrono::system_clock::now();
         auto time_t = std::chrono::system_clock::to_time_t(now);
@@ -1037,7 +1028,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       }
     }
 
-    // FIXED: Replace continue with early return - validate frame before sending
+    // Validate frame before sending
     if (frame.getWidth() == 0 || frame.getHeight() == 0) {
       HOLOSCAN_LOG_ERROR("Frame has invalid dimensions after creation, discarding entire message");
       return;  // Exit compute method entirely - message fully consumed
@@ -1103,7 +1094,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
                        non_zero_bytes, check_bytes, check_bytes);
     }
 
-    // FIXED: Replace continue with early return - check frame validation
+    // Check frame validation
     if (!frame_validation_passed) {
       HOLOSCAN_LOG_ERROR("❌ FRAME VALIDATION FAILED: {}", validation_errors);
       HOLOSCAN_LOG_ERROR("Frame details: {}x{}, format={}, size={}, data_ptr={}",
@@ -1116,7 +1107,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 
     HOLOSCAN_LOG_INFO("✅ Frame validation passed - ready for transmission");
 
-    // 🔧 NEW: Output BGRA tensor for HoloViz BEFORE network transmission
+    // Output BGRA tensor for HoloViz BEFORE network transmission
     try {
       // Create a GXF entity for BGRA tensor output
       auto maybe_bgra_entity = nvidia::gxf::Entity::New(context.context());
@@ -1349,7 +1340,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
   std::lock_guard<std::mutex> lock(frame_mutex_);
 
-  // 🔧 FIX: Add debugging for client frame reception
+  // Debug logging for client frame reception
   HOLOSCAN_LOG_INFO("🎯 CLIENT: Frame received callback triggered! Frame: {}x{}, {} bytes",
                      frame.getWidth(), frame.getHeight(), frame.getDataSize());
 
@@ -1357,7 +1348,7 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
   current_frame_ = frame;
   has_new_frame_ = true;
 
-  // ENHANCED DEBUG: Write received frames from server to disk for visualization
+  // Write received frames from server to disk for debugging
   static int received_frame_counter = 0;
   received_frame_counter++;
 
