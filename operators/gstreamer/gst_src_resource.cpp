@@ -1,0 +1,528 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "gst_src_resource.hpp"
+#include "gst/guards.hpp"
+#include "gst/buffer.hpp"
+#include "gst/caps.hpp"
+#include "gst/video_info.hpp"
+#include <gst/gst.h>
+#include <gst/base/gstpushsrc.h>
+#include <gst/video/video.h>
+#include <gst/cuda/gstcudamemory.h>
+
+#include <cuda_runtime_api.h>
+#include <dlpack/dlpack.h>
+#include <holoscan/core/execution_context.hpp>
+#include <gxf/std/tensor.hpp>
+
+// Forward declaration of GstSrcResource for C code
+namespace holoscan { class GstSrcResource; }
+
+// Convenience constant for mapping CUDA memory for reading
+#ifndef GST_MAP_READ_CUDA
+#define GST_MAP_READ_CUDA ((GstMapFlags) (GST_MAP_READ | GST_MAP_CUDA))
+#endif
+
+extern "C" {
+
+// ============================================================================
+// GStreamer Custom Push Source Element Implementation (embedded in C++)
+// ============================================================================
+
+/* Standard macros for defining the GStreamer element */
+#define GST_TYPE_HOLOSCAN_SRC \
+  (gst_holoscan_src_get_type())
+#define GST_HOLOSCAN_SRC(obj) \
+  (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_HOLOSCAN_SRC,GstHoloscanSrc))
+#define GST_HOLOSCAN_SRC_CLASS(klass) \
+  (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_HOLOSCAN_SRC,GstHoloscanSrcClass))
+#define GST_IS_HOLOSCAN_SRC(obj) \
+  (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_HOLOSCAN_SRC))
+#define GST_IS_HOLOSCAN_SRC_CLASS(klass) \
+  (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_HOLOSCAN_SRC))
+
+typedef struct _GstHoloscanSrc GstHoloscanSrc;
+typedef struct _GstHoloscanSrcClass GstHoloscanSrcClass;
+
+/**
+ * GstHoloscanSrc:
+ * @parent: the parent object
+ * @caps_set: whether caps have been negotiated
+ * @caps: the negotiated caps for this source
+ * @holoscan_resource: pointer back to the GstSrcResource instance
+ *
+ * The Holoscan source object structure (internal GStreamer element for data bridging)
+ */
+struct _GstHoloscanSrc
+{
+  GstPushSrc parent;
+
+  /* Processing state */
+  gboolean caps_set;
+
+  /* Media information */
+  GstCaps *caps;          // Full caps information
+
+  /* Bridge to C++ Holoscan resource */
+  void* holoscan_resource;  // GstSrcResource* (stored as void* for C compatibility)
+};
+
+/**
+ * GstHoloscanSrcClass:
+ * @parent_class: the parent class
+ *
+ * The Holoscan source class structure (internal GStreamer element class)
+ */
+struct _GstHoloscanSrcClass
+{
+  GstPushSrcClass parent_class;
+};
+
+GST_DEBUG_CATEGORY_STATIC(gst_holoscan_src_debug);
+#define GST_CAT_DEFAULT gst_holoscan_src_debug
+
+/* Pad templates - will be dynamically updated based on configured caps */
+static GstStaticPadTemplate src_pad_template = GST_STATIC_PAD_TEMPLATE("src",
+    GST_PAD_SRC,
+    GST_PAD_ALWAYS,
+    GST_STATIC_CAPS("ANY")  // Default fallback, will be overridden
+);
+
+/* Function prototypes */
+static void gst_holoscan_src_set_property(GObject *object, guint prop_id,
+    const GValue *value, GParamSpec *pspec);
+static void gst_holoscan_src_get_property(GObject *object, guint prop_id,
+    GValue *value, GParamSpec *pspec);
+static void gst_holoscan_src_finalize(GObject *object);
+
+/* Helper function to extract media type from caps */
+static const gchar* gst_holoscan_src_get_media_type_string(GstCaps *caps);
+
+/* Helper function implementations */
+static const gchar* gst_holoscan_src_get_media_type_string(GstCaps *caps)
+{
+  if (!caps || gst_caps_is_empty(caps)) {
+    return "unknown";
+  }
+
+  if (gst_caps_is_any(caps)) {
+    return "ANY";
+  }
+
+  GstStructure *structure = gst_caps_get_structure(caps, 0);
+  if (!structure) {
+    return "unknown";
+  }
+
+  return gst_structure_get_name(structure);
+}
+
+/* Class initialization */
+#define gst_holoscan_src_parent_class parent_class
+G_DEFINE_TYPE(GstHoloscanSrc, gst_holoscan_src, GST_TYPE_PUSH_SRC);
+
+static void
+gst_holoscan_src_class_init(GstHoloscanSrcClass *klass)
+{
+  GObjectClass *gobject_class;
+  GstElementClass *gstelement_class;
+  GstBaseSrcClass *gstbasesrc_class;
+  GstPushSrcClass *gstpushsrc_class;
+
+  gobject_class = G_OBJECT_CLASS(klass);
+  gstelement_class = GST_ELEMENT_CLASS(klass);
+  gstbasesrc_class = GST_BASE_SRC_CLASS(klass);
+  gstpushsrc_class = GST_PUSH_SRC_CLASS(klass);
+
+  /* Set up object methods */
+  gobject_class->set_property = gst_holoscan_src_set_property;
+  gobject_class->get_property = gst_holoscan_src_get_property;
+  gobject_class->finalize = gst_holoscan_src_finalize;
+
+  /* No properties needed for basic data bridging */
+
+  /* Set element metadata */
+  gst_element_class_set_static_metadata(gstelement_class,
+      "Holoscan Bridge Source",
+      "Source/Generic",
+      "A GStreamer source element that bridges data from Holoscan operators",
+      "NVIDIA Corporation <holoscan@nvidia.com>");
+
+  /* Add pad template */
+  gst_element_class_add_static_pad_template(gstelement_class, &src_pad_template);
+
+  /* Set up base source methods using static member functions */
+  gstbasesrc_class->get_caps = GST_DEBUG_FUNCPTR(holoscan::GstSrcResource::get_caps_callback);
+  gstbasesrc_class->set_caps = GST_DEBUG_FUNCPTR(holoscan::GstSrcResource::set_caps_callback);
+  gstbasesrc_class->start = GST_DEBUG_FUNCPTR(holoscan::GstSrcResource::start_callback);
+  gstbasesrc_class->stop = GST_DEBUG_FUNCPTR(holoscan::GstSrcResource::stop_callback);
+  gstpushsrc_class->create = GST_DEBUG_FUNCPTR(holoscan::GstSrcResource::create_callback);
+
+  /* Initialize debug category */
+  GST_DEBUG_CATEGORY_INIT(gst_holoscan_src_debug, "holoscansrc", 0,
+      "Holoscan Source Element");
+}
+
+static void
+gst_holoscan_src_init(GstHoloscanSrc *src)
+{
+  /* Initialize state */
+  src->caps_set = FALSE;
+  src->holoscan_resource = NULL;
+
+  /* Initialize caps */
+  src->caps = NULL;
+
+  /* Configure as live source */
+  gst_base_src_set_live(GST_BASE_SRC(src), TRUE);
+  gst_base_src_set_format(GST_BASE_SRC(src), GST_FORMAT_TIME);
+}
+
+static void
+gst_holoscan_src_finalize(GObject *object)
+{
+  GstHoloscanSrc *src = GST_HOLOSCAN_SRC(object);
+
+  /* Clean up caps information */
+  if (src->caps) {
+    gst_caps_unref(src->caps);
+  }
+
+  HOLOSCAN_LOG_DEBUG("Finalizing Holoscan source");
+
+  G_OBJECT_CLASS(parent_class)->finalize(object);
+}
+
+static void
+gst_holoscan_src_set_property(GObject *object, guint prop_id,
+    const GValue *value, GParamSpec *pspec)
+{
+  GstHoloscanSrc *src = GST_HOLOSCAN_SRC(object);
+
+  switch (prop_id) {
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+      break;
+  }
+}
+
+static void
+gst_holoscan_src_get_property(GObject *object, guint prop_id,
+    GValue *value, GParamSpec *pspec)
+{
+  GstHoloscanSrc *src = GST_HOLOSCAN_SRC(object);
+
+  switch (prop_id) {
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+      break;
+  }
+}
+
+/* Element registration function for direct use */
+gboolean
+gst_holoscan_src_plugin_init(GstPlugin *plugin)
+{
+  return gst_element_register(plugin, "holoscansrc", GST_RANK_NONE,
+      GST_TYPE_HOLOSCAN_SRC);
+}
+
+}  // extern "C"
+
+// ============================================================================
+// Holoscan GstSrcResource Implementation (C++)
+// ============================================================================
+
+namespace holoscan {
+
+// Push buffer into the pipeline
+std::future<void> GstSrcResource::push_buffer(gst::Buffer buffer) {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  // Create a promise for consumption notification
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  buffer_queue_.emplace(std::make_pair(std::move(buffer), std::move(promise)));
+  queue_cv_.notify_one();
+  return future;
+}
+
+// Get current negotiated caps
+gst::Caps GstSrcResource::get_caps() const {
+  // Check if element is ready and valid
+  if (!valid()) {
+    return gst::Caps(); // Return empty caps if not ready
+  }
+
+  // Get the source pad and its current caps
+  ::GstPad* pad = gst_element_get_static_pad(src_element_future_.get().get(), "src");
+  if (!pad) {
+    return gst::Caps(); // Return empty caps
+  }
+
+  ::GstCaps* caps = gst_pad_get_current_caps(pad);
+  gst_object_unref(pad);
+
+  return gst::Caps(caps); // Automatic reference counting
+}
+
+// Send end-of-stream signal (private - only called during shutdown)
+void GstSrcResource::send_eos() {
+  eos_sent_ = true;
+  queue_cv_.notify_all();
+  HOLOSCAN_LOG_DEBUG("EOS signal sent to source during shutdown");
+}
+
+gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity) const {
+  // TODO: Implement tensor to GStreamer buffer conversion with zero-copy
+  // This is the inverse of create_entity_from_buffer in GstSinkResource
+  // For now, return empty buffer
+  HOLOSCAN_LOG_WARN("create_buffer_from_entity not yet implemented");
+  return gst::Buffer();
+}
+
+// Static member function implementations for GStreamer callbacks
+
+// Get caps callback - advertise what the source will provide
+::GstCaps* GstSrcResource::get_caps_callback(::GstBaseSrc *src, ::GstCaps *filter) {
+  GstHoloscanSrc *holoscan_src = GST_HOLOSCAN_SRC(src);
+  
+  /* Access the GstSrcResource instance to get the configured caps */
+  if (holoscan_src->holoscan_resource) {
+    GstSrcResource* resource = static_cast<GstSrcResource*>(holoscan_src->holoscan_resource);
+    std::string configured_caps = resource->caps_.get();
+    
+    if (configured_caps != "ANY") {
+      /* Create GstCaps from the configured caps string */
+      GstCaps *caps = gst_caps_from_string(configured_caps.c_str());
+      if (caps) {
+        HOLOSCAN_LOG_DEBUG("Advertising source capabilities: {}", configured_caps);
+        
+        /* If there's a filter, intersect with it */
+        if (filter) {
+          GstCaps *filtered_caps = gst_caps_intersect_full(caps, filter, GST_CAPS_INTERSECT_FIRST);
+          gst_caps_unref(caps);
+          return filtered_caps;
+        }
+        
+        return caps;
+      } else {
+        HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", configured_caps);
+      }
+    }
+  }
+  
+  /* Fallback to template caps */
+  GstPad *pad = GST_BASE_SRC_PAD(src);
+  GstCaps *template_caps = gst_pad_get_pad_template_caps(pad);
+  
+  if (filter) {
+    GstCaps *filtered_caps = gst_caps_intersect_full(template_caps, filter, GST_CAPS_INTERSECT_FIRST);
+    gst_caps_unref(template_caps);
+    return filtered_caps;
+  }
+  
+  return template_caps;
+}
+
+// Set caps callback
+gboolean GstSrcResource::set_caps_callback(::GstBaseSrc *src, ::GstCaps *caps) {
+  GstHoloscanSrc *holoscan_src = GST_HOLOSCAN_SRC(src);
+  const gchar *media_type;
+
+  /* Get media type using our helper function */
+  media_type = gst_holoscan_src_get_media_type_string(caps);
+
+  /* Access the GstSrcResource instance to get the configured caps */
+  if (holoscan_src->holoscan_resource) {
+    GstSrcResource* resource = static_cast<GstSrcResource*>(holoscan_src->holoscan_resource);
+    std::string configured_caps = resource->caps_.get();
+    
+    HOLOSCAN_LOG_INFO("Setting caps: {} (configured: '{}', incoming: {})", 
+        gst_caps_to_string(caps), configured_caps, media_type);
+    
+    /* Accept the caps */
+    if (configured_caps != "ANY") {
+      HOLOSCAN_LOG_INFO("Accepting caps: {} (source configured for: '{}')", 
+          media_type, configured_caps);
+    } else {
+      HOLOSCAN_LOG_INFO("Accepting any caps: {} (configured: ANY)", media_type);
+    }
+  } else {
+    HOLOSCAN_LOG_WARN("No resource bridge available for caps validation");
+  }
+
+  /* Store caps information */
+  if (holoscan_src->caps) {
+    gst_caps_unref(holoscan_src->caps);
+  }
+  holoscan_src->caps = gst_caps_ref(caps);
+
+  /* Mark caps as successfully negotiated */
+  holoscan_src->caps_set = TRUE;
+  return TRUE;
+}
+
+// Start callback
+gboolean GstSrcResource::start_callback(::GstBaseSrc *src) {
+  GstHoloscanSrc *holoscan_src = GST_HOLOSCAN_SRC(src);
+
+  HOLOSCAN_LOG_INFO("Starting Holoscan bridge source");
+
+  holoscan_src->caps_set = FALSE;
+
+  return TRUE;
+}
+
+// Stop callback
+gboolean GstSrcResource::stop_callback(::GstBaseSrc *src) {
+  GstHoloscanSrc *holoscan_src = GST_HOLOSCAN_SRC(src);
+
+  HOLOSCAN_LOG_INFO("Stopping Holoscan bridge source");
+
+  holoscan_src->caps_set = FALSE;
+
+  return TRUE;
+}
+
+// Create callback implementation - called by GStreamer to get the next buffer
+::GstFlowReturn GstSrcResource::create_callback(::GstPushSrc *src, ::GstBuffer **buffer) {
+  GstHoloscanSrc *holoscan_src = GST_HOLOSCAN_SRC(src);
+
+  if (!holoscan_src->caps_set) {
+    HOLOSCAN_LOG_ERROR("Caps not negotiated");
+    return GST_FLOW_NOT_NEGOTIATED;
+  }
+
+  /* Access the GstSrcResource instance from callback */
+  if (!holoscan_src->holoscan_resource) {
+    HOLOSCAN_LOG_ERROR("No resource bridge available");
+    return GST_FLOW_ERROR;
+  }
+
+  /* Cast back to GstSrcResource* to access C++ methods and members */
+  GstSrcResource* resource = static_cast<GstSrcResource*>(holoscan_src->holoscan_resource);
+  std::unique_lock<std::mutex> lock(resource->mutex_);
+
+  /* Wait for buffer to become available or EOS */
+  if (resource->buffer_queue_.empty() && !resource->eos_sent_) {
+    HOLOSCAN_LOG_DEBUG("Waiting for buffer...");
+  }
+  resource->queue_cv_.wait(lock, [resource]() {
+    return !resource->buffer_queue_.empty() || resource->eos_sent_;
+  });
+
+  /* Check if EOS was signaled */
+  if (resource->eos_sent_ && resource->buffer_queue_.empty()) {
+    HOLOSCAN_LOG_INFO("End of stream reached");
+    return GST_FLOW_EOS;
+  }
+
+  /* Get buffer from queue */
+  gst::Buffer buffer_obj = std::move(resource->buffer_queue_.front().first);
+  std::promise<void> promise = std::move(resource->buffer_queue_.front().second);
+  resource->buffer_queue_.pop();
+  
+  HOLOSCAN_LOG_DEBUG("Retrieved buffer from queue, remaining: {}", resource->buffer_queue_.size());
+
+  /* Transfer ownership to GStreamer (increment ref count) */
+  *buffer = gst_buffer_ref(buffer_obj.get());
+
+  /* Fulfill the consumption promise */
+  promise.set_value();
+
+  return GST_FLOW_OK;
+}
+
+GstSrcResource::~GstSrcResource() {
+  HOLOSCAN_LOG_DEBUG("Destroying GstSrcResource");
+  
+  // Signal EOS to unblock any waiting GStreamer threads during shutdown
+  send_eos();
+  
+  // Check if element was created and set it to NULL state
+  if (valid()) {
+    auto element = src_element_future_.get();
+    if (GST_IS_ELEMENT(element.get())) {
+      gst_element_set_state(element.get(), GST_STATE_NULL);
+      // GstElementGuard will automatically unref when it goes out of scope
+    }
+  }
+  
+  HOLOSCAN_LOG_DEBUG("GstSrcResource destroyed");
+}
+
+void GstSrcResource::setup(holoscan::ComponentSpec& spec) {
+  spec.param(caps_,
+      "capabilities",
+      "GStreamer Capabilities",
+      "GStreamer caps string defining what data formats this source will provide. "
+      "Use 'ANY' for maximum flexibility, or specify specific formats like "
+      "'video/x-raw,format=RGBA,width=1920,height=1080' for video.",
+      std::string("ANY"));
+  spec.param(queue_limit_,
+      "queue_limit",
+      "Queue Limit",
+      "Maximum number of buffers to keep in queue. When exceeded, push_buffer() will block. "
+      "0 means unlimited queue size.",
+      size_t(10));
+}
+
+void GstSrcResource::initialize() {
+  // Call parent initialize first
+  Resource::initialize();
+  
+  // Initialize the future from the promise (after any construction/moves are complete)
+  src_element_future_ = src_element_promise_.get_future();
+  
+  HOLOSCAN_LOG_INFO("Initializing GstSrcResource for data bridging");
+  HOLOSCAN_LOG_INFO("Configured capabilities: '{}'", caps_.get());
+  
+  // Initialize GStreamer if not already done
+  if (!gst_is_initialized()) {
+    gst_init(nullptr, nullptr);
+  }
+
+  // Register our bridge source element type
+  gst_element_register(nullptr, "holoscansrc", GST_RANK_NONE,
+                      gst_holoscan_src_get_type());
+
+  // Create the source element
+  auto element = gst::make_gst_object_guard(gst_element_factory_make("holoscansrc",
+                                         name().empty() ? nullptr : name().c_str()));
+
+  if (element) {
+    // Establish the bridge: set the C++ resource pointer in the C element
+    GstHoloscanSrc *src = GST_HOLOSCAN_SRC(element.get());
+    src->holoscan_resource = this;
+    
+    HOLOSCAN_LOG_INFO("GstSrcResource initialized successfully for data bridging");
+    
+    // Set the promise with the successfully created element
+    src_element_promise_.set_value(std::move(element));
+  } else {
+    HOLOSCAN_LOG_ERROR("Failed to create Holoscan bridge source element");
+    
+    // Set exception on the promise so waiting code will be notified of failure
+    src_element_promise_.set_exception(
+        std::make_exception_ptr(std::runtime_error("Failed to create holoscansrc element")));
+  }
+}
+
+}  // namespace holoscan
+
