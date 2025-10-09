@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(holo-to-gst-application C CXX)
+project(holopattern-to-gst-application C CXX)
 
 # Set C and C++ standards
 set(CMAKE_C_STANDARD 99)
@@ -34,10 +34,10 @@ add_definitions(${GSTREAMER_BASE_CFLAGS_OTHER})
 add_definitions(${GSTREAMER_VIDEO_CFLAGS_OTHER})
 
 # Create executable
-add_executable(holo-to-gst holo_to_gst.cpp)
+add_executable(holopattern-to-gst holopattern_to_gst.cpp)
 
 # Link libraries
-target_link_libraries(holo-to-gst
+target_link_libraries(holopattern-to-gst
     ${GSTREAMER_LIBRARIES}
     ${GSTREAMER_BASE_LIBRARIES}
     ${GSTREAMER_VIDEO_LIBRARIES}
@@ -50,7 +50,7 @@ link_directories(${GSTREAMER_BASE_LIBRARY_DIRS})
 link_directories(${GSTREAMER_VIDEO_LIBRARY_DIRS})
 
 # Set compile flags
-target_compile_options(holo-to-gst PRIVATE 
+target_compile_options(holopattern-to-gst PRIVATE 
     ${GSTREAMER_CFLAGS_OTHER} 
     ${GSTREAMER_BASE_CFLAGS_OTHER} 
     ${GSTREAMER_VIDEO_CFLAGS_OTHER})
@@ -61,12 +61,12 @@ if(APPLE)
     find_library(FOUNDATION_FRAMEWORK Foundation)
     find_library(COCOA_FRAMEWORK Cocoa)
     if(FOUNDATION_FRAMEWORK AND COCOA_FRAMEWORK)
-        target_link_libraries(holo-to-gst ${FOUNDATION_FRAMEWORK} ${COCOA_FRAMEWORK})
+        target_link_libraries(holopattern-to-gst ${FOUNDATION_FRAMEWORK} ${COCOA_FRAMEWORK})
     endif()
 endif()
 
 # Install target
-install(TARGETS holo-to-gst DESTINATION bin)
+install(TARGETS holopattern-to-gst DESTINATION bin)
 
 # Print some information
 message(STATUS "GStreamer include dirs: ${GSTREAMER_INCLUDE_DIRS}")

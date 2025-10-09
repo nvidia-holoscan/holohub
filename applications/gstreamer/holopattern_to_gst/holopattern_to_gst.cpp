@@ -492,10 +492,10 @@ int main(int argc, char** argv) {
     // Create the Holoscan application with parsed parameters
     auto holoscan_app = std::make_shared<holoscan::GstSrcApp>(iteration_count, caps, width, height, framerate, pattern);
 
-    HOLOSCAN_LOG_INFO("Starting Holoscan GStreamer Source Example");
+    HOLOSCAN_LOG_INFO("Starting Holoscan Pattern to GStreamer Example");
     HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, pipeline: '{}', caps: '{}'", 
                       iteration_count, width, height, framerate, get_pattern_name(pattern), pipeline_desc, caps);
-    HOLOSCAN_LOG_INFO("This will generate pattern data and push it into GStreamer");
+    HOLOSCAN_LOG_INFO("This will generate pattern data from Holoscan and push it into GStreamer");
 
     // Run the Holoscan application asynchronously
     auto app_future = holoscan_app->run_async();
