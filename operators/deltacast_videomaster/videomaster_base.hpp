@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, DELTACAST.TV.
+ * Copyright (c) 2022-2025, DELTACAST.TV.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ namespace holoscan::ops {
 
 class VideoMasterBase {
  public:
-
-  VideoMasterBase(bool is_input, uint32_t board_index, uint32_t channel_index, bool use_rdma = false);
+  VideoMasterBase(bool is_input, uint32_t board_index, uint32_t channel_index,
+                  bool use_rdma = false);
 
   static constexpr uint32_t SLOT_TIMEOUT = 100;
   static constexpr uint32_t NB_SLOTS = 4;
@@ -47,17 +47,22 @@ class VideoMasterBase {
   bool configure_stream();
   bool init_buffers();
   bool start_stream();
-  bool holoscan_log_on_error(Deltacast::Helper::ApiSuccess result, const std::string& message);
+  bool holoscan_log_on_error(Deltacast::Helper::ApiSuccess result,
+                             const std::string& message);
   void stop_stream();
   bool signal_present();
   bool set_loopback_state(bool state);
 
   Deltacast::Helper::BoardHandle& board_handle() { return *_board_handle; }
   Deltacast::Helper::StreamHandle& stream_handle() { return *_stream_handle; }
-  
+
   // Getters for private members
-  std::unique_ptr<Deltacast::Helper::VideoInformation>& video_information() { return _video_information; }
-  const std::unique_ptr<Deltacast::Helper::VideoInformation>& video_information() const { return _video_information; }
+  std::unique_ptr<Deltacast::Helper::VideoInformation>& video_information() {
+    return _video_information;
+  }
+  const std::unique_ptr<Deltacast::Helper::VideoInformation>& video_information() const {
+    return _video_information;
+  }
   std::array<std::vector<BYTE*>, NB_SLOTS>& gpu_buffers() { return _gpu_buffers; }
   const std::array<std::vector<BYTE*>, NB_SLOTS>& gpu_buffers() const { return _gpu_buffers; }
   std::array<std::vector<BYTE*>, NB_SLOTS>& system_buffers() { return _system_buffers; }
@@ -69,13 +74,14 @@ class VideoMasterBase {
   const bool is_igpu() const { return _is_igpu; }
 
  private:
-
   bool _is_input;
   bool _is_igpu = false;
   VHD_CHANNELTYPE _channel_type;
   std::unique_ptr<Deltacast::Helper::VideoInformation> _video_information;
-  std::array<std::vector<BYTE*>, NB_SLOTS> _gpu_buffers;       // GPU buffers (always allocated)
-  std::array<std::vector<BYTE*>, NB_SLOTS> _system_buffers; // System buffers (only in non-RDMA mode)
+  // GPU buffers (always allocated)
+  std::array<std::vector<BYTE*>, NB_SLOTS> _gpu_buffers;
+  // System buffers (only in non-RDMA mode)
+  std::array<std::vector<BYTE*>, NB_SLOTS> _system_buffers;
   std::array<HANDLE, NB_SLOTS> _slot_handles;
   uint32_t _board_index;
   uint32_t _channel_index;
