@@ -1,3 +1,4 @@
+<!-- Custom HTML site displayed as the Tutorials chapter -->
 
 <!doctype html>
 <html lang="en" class="no-js">
@@ -22,7 +23,7 @@
     
     
       
-        <title>Tutorials - Holoscan Reference Applications</title>
+        <title>Tutorials - NVIDIA Holoscan Reference Applications</title>
       
     
     
@@ -75,6 +76,12 @@
     
     
     
+  <script src="https://kit.fontawesome.com/1512963100.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/shared-cards.css">
+  <script src="../assets/shared-filter.js"></script>
+  
+
   </head>
   
   
@@ -93,11 +100,6 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
-        
-        <a href="#tutorials" class="md-skip">
-          Skip to content
-        </a>
-      
     </div>
     <div data-md-component="announce">
       
@@ -112,7 +114,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Holoscan Reference Applications" class="md-header__button md-logo" aria-label="Holoscan Reference Applications" data-md-component="logo">
+    <a href=".." title="NVIDIA Holoscan Reference Applications" class="md-header__button md-logo" aria-label="NVIDIA Holoscan Reference Applications" data-md-component="logo">
       
   
   <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -134,7 +136,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Holoscan Reference Applications
+            NVIDIA Holoscan Reference Applications
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -240,6 +242,7 @@
     <div class="md-container" data-md-component="container">
       
       
+
         
           
             
@@ -384,6 +387,230 @@
           
         
       
+
+<!-- feature-box -->
+<section class="section">
+    <div class="top-hr" style="display: flex; max-width: 100%;">
+        <div style="display: flex; flex-direction: row; width: 100%; gap: 1rem;">
+            <!-- Side Navigation -->
+            <div style="flex: 0 0 250px; min-width: 250px; background: var(--md-default-bg-color); border-right: 1px solid var(--md-default-fg-color--lightest);">
+                <div style="position: sticky; top: 80px;">
+                    <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Tutorials</h4>
+                    <nav class="sidebar-nav" data-page-type="tutorials" style="display: flex; flex-direction: column; gap: 0;">
+                        <a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('all'); return true;">All (18)</a>
+                        <a href="#deployment" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Deployment'); return true;">Deployment (3)</a>
+                        <a href="#development" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Development'); return true;">Development (5)</a>
+                        <a href="#interoperability" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Interoperability'); return true;">Interoperability (6)</a>
+                        <a href="#networking-and-distributed-computing" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Networking and Distributed Computing'); return true;">Networking (2)</a>
+                        <a href="#optimization" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Optimization'); return true;">Optimization (4)</a>
+                        <a href="#xr" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('XR'); return true;">XR (1)</a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div style="flex: 1; min-width: 0;">
+                <div class="row justify-content-center">
+                    <div class="col-12" style="text-align: left; padding-left: 2rem; padding-right: 2rem;">
+                        <h3 class="section-title" id="category-title" style="font-size: 0.9rem; text-align: left;">All Tutorials</h3>
+                        <p style="margin-bottom: 1.5rem; line-height: 1.6; color: var(--md-default-fg-color); font-size: 0.7rem;">
+                            Learn NVIDIA Holoscan through hands-on tutorials covering fundamental concepts, advanced techniques, and best practices. 
+                            These step-by-step guides help you understand how to build sensor processing pipelines, integrate AI models, optimize performance, 
+                            and deploy applications. Whether you're new to Holoscan or looking to expand your expertise, these tutorials provide practical 
+                            knowledge for developing real-time streaming applications.
+                        </p>
+                    </div>
+                    
+            
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/async_buffer_deadline';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/async_buffer_deadline/tx1_latency_vs_tx2_period.png" alt="Asynchronous Lock-free Buffer" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Asynchronous Lock-free Buffer</h3>
+                    <p class="feature-card-desc">This tutorial demonstrates the impact of using an asynchronous lock-free buffer with SCHED_DEADLINE scheduling policy in Linux on the message latency.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:optimization" class="md-tag" style="display: none;">optimization</a> <a href="/holohub/tags/#tag:real-time" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">real-time</a> <a href="/holohub/tags/#tag:performance" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">performance</a> <a href="/holohub/tags/#tag:sched_deadline" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">sched_deadline</a> <a href="/holohub/tags/#tag:buffer" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">buffer</a> <a href="/holohub/tags/#tag:latency" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">latency</a> <a href="/holohub/tags/#tag:linux" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">linux</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/cloudxr_runtime_for_xr_applications';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/xr_gsplat/doc/gsplat-demo.gif" alt="NVIDIA CloudXR Runtime for XR Applications" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">NVIDIA CloudXR Runtime for XR Applications</h3>
+                    <p class="feature-card-desc">In this tutorial, we will walk through the process of setting up the NVIDIA CloudXR OpenXR Runtime for XR Applications.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:xr" class="md-tag" style="display: none;">xr</a> <a href="/holohub/tags/#tag:cloudxr" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">cloudxr</a> <a href="/holohub/tags/#tag:apple-vision-pro" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">apple vision pro</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/holohub_operators_external_applications';">
+                    
+                    <img src="/holohub/assets/images/tutorial_default.png" alt="Using holohub operators in external applications" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Using holohub operators in external applications</h3>
+                    <p class="feature-card-desc">In this tutorial, we will walk through the process of using holohub operators in external applications.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:development" class="md-tag" style="display: none;">development</a> <a href="/holohub/tags/#tag:interoperability" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">interoperability</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/holoscan_response_time_analysis';">
+                    
+                    <img src="/holohub/assets/images/tutorial_default.png" alt="Holoscan SDK Response Time Analysis" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Holoscan SDK Response Time Analysis</h3>
+                    <p class="feature-card-desc">A tutorial demonstrating how to analyze and optimize real-time performance in Holoscan applications</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:optimization" class="md-tag" style="display: none;">optimization</a> <a href="/holohub/tags/#tag:performance" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">performance</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/high_performance_networking';">
+                    
+                    <img src="/holohub/assets/images/tutorial_default.png" alt="High Performance Networking with Holoscan" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">High Performance Networking with Holoscan</h3>
+                    <p class="feature-card-desc">How to use the Advanced Network library (ANO) for low latency and high throughput communication through NVIDIA SmartNICs.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:networking-and-distributed-computing" class="md-tag" style="display: none;">networking and distributed computing</a> <a href="/holohub/tags/#tag:dpdk" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">dpdk</a> <a href="/holohub/tags/#tag:rdma" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">rdma</a> <a href="/holohub/tags/#tag:gpunetio" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">gpunetio</a> <a href="/holohub/tags/#tag:gpudirect" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">gpudirect</a> <a href="/holohub/tags/#tag:hpc" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">hpc</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/windows_vm';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/windows_vm/Windows_Linux_Holoscan.png" alt="Holoscan & Windows Application" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Holoscan & Windows Application</h3>
+                    <p class="feature-card-desc">Demonstrates interoperability between a Holoscan on Linux and a Windows VM application on a single machine</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:interoperability" class="md-tag" style="display: none;">interoperability</a> <a href="/holohub/tags/#tag:vm" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">vm</a> <a href="/holohub/tags/#tag:deployment" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">deployment</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/holoscan-bootcamp';">
+                    
+                    <img src="/holohub/assets/images/tutorial_default.png" alt="NVIDIA Holoscan Bootcamp lab materials" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">NVIDIA Holoscan Bootcamp lab materials</h3>
+                    <p class="feature-card-desc">Holoscan Bootcamp Jupyter notebook for self-paced learning of Holoscan core concepts</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:development" class="md-tag" style="display: none;">development</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/gpu_direct_storage_on_holoscan';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/gpu_direct_storage_on_holoscan/pictures/igx.png" alt="GPU Direct Storage on IGX" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">GPU Direct Storage on IGX</h3>
+                    <p class="feature-card-desc">Modern-day edge accelerated computing solutions constantly push the boundaries of what is possible.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:interoperability" class="md-tag" style="display: none;">interoperability</a> <a href="/holohub/tags/#tag:optimization" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">optimization</a> <a href="/holohub/tags/#tag:gpudirect" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">gpudirect</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/gui_for_python_applications';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/gui_for_python_applications/demo.gif" alt="Adding a GUI to Holoscan Python Applications" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Adding a GUI to Holoscan Python Applications</h3>
+                    <p class="feature-card-desc">In this tutorial, we will walk through the process in two scenarios of creating a multi node application from existing applications.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:development" class="md-tag" style="display: none;">development</a> <a href="/holohub/tags/#tag:ui" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">ui</a> <a href="/holohub/tags/#tag:python" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">python</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/debugging/holoscan_container_vscode';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/debugging/holoscan_container_vscode/static/vscode-explorer.png" alt="VSCode Dev Container for Holoscan" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">VSCode Dev Container for Holoscan</h3>
+                    <p class="feature-card-desc">Dev Container template with VS Code launch profiles to debug applications based on the Holoscan SDK NGC Container.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:development" class="md-tag" style="display: none;">development</a> <a href="/holohub/tags/#tag:vs-code" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">vs code</a> <a href="/holohub/tags/#tag:debugging" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">debugging</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/debugging/cli_debugging';">
+                    
+                    <img src="/holohub/assets/images/tutorial_default.png" alt="Interactively Debugging a Holoscan Application" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Interactively Debugging a Holoscan Application</h3>
+                    <p class="feature-card-desc">Demonstrates how to debug a Holoscan application with common software tools.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:development" class="md-tag" style="display: none;">development</a> <a href="/holohub/tags/#tag:debugging" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">debugging</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/integrate_external_libs_into_pipeline';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/integrate_external_libs_into_pipeline/images/typical_pipeline_holoscan.png" alt="Integrate External Libraries into a Holoscan Pipeline" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Integrate External Libraries into a Holoscan Pipeline</h3>
+                    <p class="feature-card-desc">General tutorial on how to integrate external libraries into Holoscan SDK based applications and pipelines</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:interoperability" class="md-tag" style="display: none;">interoperability</a> <a href="/holohub/tags/#tag:cv-cuda" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">cv cuda</a> <a href="/holohub/tags/#tag:opencv" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">opencv</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/pretrained_foundational_models/self_supervised_training';">
+                    
+                    <img src="/holohub/assets/images/tutorial_default.png" alt="Self-Supervised Learning for Surgical videos" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Self-Supervised Learning for Surgical videos</h3>
+                    <p class="feature-card-desc">The focus of this repo is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:interoperability" class="md-tag" style="display: none;">interoperability</a> <a href="/holohub/tags/#tag:monai" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">monai</a> <a href="/holohub/tags/#tag:learning" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">learning</a> <a href="/holohub/tags/#tag:healthcare-ai" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">healthcare ai</a> <a href="/holohub/tags/#tag:surgical-ai" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">surgical ai</a> <a href="/holohub/tags/#tag:video" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">video</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/holoscan-playground-on-aws';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/holoscan-playground-on-aws/images/Launch Instance 1.png" alt="Holoscan Playground on AWS" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Holoscan Playground on AWS</h3>
+                    <p class="feature-card-desc">The Holoscan on AWS EC2 experience is an easy way for having a first try at the Holoscan SDK.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:deployment" class="md-tag" style="display: none;">deployment</a> <a href="/holohub/tags/#tag:cloud" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">cloud</a> <a href="/holohub/tags/#tag:aws" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">aws</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/cuda_mps';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/cuda_mps/image.png" alt="CUDA MPS Tutorial" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">CUDA MPS Tutorial</h3>
+                    <p class="feature-card-desc">This tutorial describes the steps to enable CUDA MPS and demonstrate few performance benefits of using it.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:optimization" class="md-tag" style="display: none;">optimization</a> <a href="/holohub/tags/#tag:cuda" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">cuda</a> <a href="/holohub/tags/#tag:mps" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">mps</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box" data-updated="true">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/creating-multi-node-applications';">
+                    <span class="updated-badge" style="position: absolute; top: 10px; right: 10px; background-color: #ff9933; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">Updated</span>
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/creating-multi-node-applications/images/multiai_endoscopy_app_graph.png" alt="Creating Multi-Node Holoscan Applications" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Creating Multi-Node Holoscan Applications</h3>
+                    <p class="feature-card-desc">In this tutorial, we will walk through the process in two scenarios of creating a multi node application from existing applications.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:networking-and-distributed-computing" class="md-tag" style="display: none;">networking and distributed computing</a> <a href="/holohub/tags/#tag:distributed" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">distributed</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/local-llama';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/local-llama/IGX_w_llama.png" alt="Deploying Llama-2 70b model on the edge" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Deploying Llama-2 70b model on the edge</h3>
+                    <p class="feature-card-desc">This tutorial will walk you through how to run a quantized version of Meta's Llama-2 70b model as the backend LLM for a Gradio chatbot app, all running on an NVIDIA IGX Orin.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:deployment" class="md-tag" style="display: none;">deployment</a> <a href="/holohub/tags/#tag:nlp" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">nlp</a> <a href="/holohub/tags/#tag:cuda" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">cuda</a> <a href="/holohub/tags/#tag:huggingface" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">huggingface</a> <a href="/holohub/tags/#tag:llm" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">llm</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/tutorials/dicom_to_usd_with_monai_and_holoscan';">
+                    
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/dicom_to_usd_with_monai_and_holoscan/doc/spleen-seg.png" alt="DICOM to OpenUSD mesh segmentation" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">DICOM to OpenUSD mesh segmentation</h3>
+                    <p class="feature-card-desc">In this tutorial we demonstrate a method leveraging a combined MONAI Deploy and Holoscan pipeline to process DICOM input data and write a resulting mesh to disk in the OpenUSD file format.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:interoperability" class="md-tag" style="display: none;">interoperability</a> <a href="/holohub/tags/#tag:medical-imaging" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">medical imaging</a> <a href="/holohub/tags/#tag:monai" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">monai</a> <a href="/holohub/tags/#tag:openusd" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">openusd</a> <a href="/holohub/tags/#tag:stl" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">stl</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- /feature-box -->
+<!-- Filters are auto-initialized by shared-filter.js based on data-page-type attribute -->
+
+
       <main class="md-main" data-md-component="main">
         <div class="md-main__inner md-grid">
           
@@ -400,7 +627,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Holoscan Reference Applications" class="md-nav__button md-logo" aria-label="Holoscan Reference Applications" data-md-component="logo">
+    <a href=".." title="NVIDIA Holoscan Reference Applications" class="md-nav__button md-logo" aria-label="NVIDIA Holoscan Reference Applications" data-md-component="logo">
       
   
   <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -414,7 +641,7 @@
 </svg>
 
     </a>
-    Holoscan Reference Applications
+    NVIDIA Holoscan Reference Applications
   </label>
   
     <div class="md-nav__source">
@@ -1813,6 +2040,10 @@
     
       
         
+          
+        
+      
+        
       
         
       
@@ -1830,25 +2061,34 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_13_2_2" >
         
           
-          <label class="md-nav__link" for="__nav_3_13_2_2" id="__nav_3_13_2_2_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../applications/distributed/ucx/ucx_endoscopy_tool_tracking/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
-    Ucx endoscopy tool tracking
+    UCX-based Distributed Endoscopy Tool Tracking
     
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_13_2_2" id="__nav_3_13_2_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_13_2_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_13_2_2">
             <span class="md-nav__icon md-icon"></span>
-            Ucx endoscopy tool tracking
+            UCX-based Distributed Endoscopy Tool Tracking
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
             
               
                 
@@ -1874,7 +2114,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_13_2_2_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_13_2_2_2" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -1892,8 +2132,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_3_13_2_2_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_13_2_2_1">
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_3_13_2_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_13_2_2_2">
             <span class="md-nav__icon md-icon"></span>
             UCX-based Distributed Endoscopy Tool Tracking (C++)
           </label>
@@ -1933,7 +2173,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_13_2_2_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_13_2_2_3" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -1951,8 +2191,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_3_13_2_2_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_13_2_2_2">
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_3_13_2_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_13_2_2_3">
             <span class="md-nav__icon md-icon"></span>
             UCX-based Distributed Endoscopy Tool Tracking (Python)
           </label>
@@ -2234,6 +2474,10 @@
     
       
         
+          
+        
+      
+        
       
         
       
@@ -2251,25 +2495,34 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_16" >
         
           
-          <label class="md-nav__link" for="__nav_3_16" id="__nav_3_16_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../applications/endoscopy_out_of_body_detection/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
-    Endoscopy out of body detection
+    Endoscopy Out of Body Detection
     
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_16" id="__nav_3_16_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_16_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_16">
             <span class="md-nav__icon md-icon"></span>
-            Endoscopy out of body detection
+            Endoscopy Out of Body Detection
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
             
               
                 
@@ -2295,7 +2548,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_16_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_16_2" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -2313,8 +2566,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_16_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_16_1">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_16_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_16_2">
             <span class="md-nav__icon md-icon"></span>
             Endoscopy Out of Body Detection (C++)
           </label>
@@ -2354,7 +2607,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_16_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_16_3" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -2372,8 +2625,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_16_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_16_2">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_16_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_16_3">
             <span class="md-nav__icon md-icon"></span>
             Endoscopy Out of Body Detection (Python)
           </label>
@@ -2466,6 +2719,10 @@
     
       
         
+          
+        
+      
+        
       
         
       
@@ -2483,25 +2740,34 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_18" >
         
           
-          <label class="md-nav__link" for="__nav_3_18" id="__nav_3_18_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../applications/endoscopy_tool_tracking/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
-    Endoscopy tool tracking
+    Endoscopy Tool Tracking
     
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_18" id="__nav_3_18_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_18_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_18">
             <span class="md-nav__icon md-icon"></span>
-            Endoscopy tool tracking
+            Endoscopy Tool Tracking
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
             
               
                 
@@ -2527,7 +2793,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_18_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_18_2" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -2545,8 +2811,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_18_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_18_1">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_18_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_18_2">
             <span class="md-nav__icon md-icon"></span>
             Endoscopy Tool Tracking (C++)
           </label>
@@ -2586,7 +2852,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_18_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_18_3" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -2604,8 +2870,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_18_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_18_2">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_18_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_18_3">
             <span class="md-nav__icon md-icon"></span>
             Endoscopy Tool Tracking (Python)
           </label>
@@ -2989,6 +3255,10 @@
     
       
         
+          
+        
+      
+        
       
         
       
@@ -3006,25 +3276,34 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23" >
         
           
-          <label class="md-nav__link" for="__nav_3_23" id="__nav_3_23_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../applications/high_speed_endoscopy/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
-    High speed endoscopy
+    High Speed Endoscopy
     
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_23" id="__nav_3_23_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_23_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_23">
             <span class="md-nav__icon md-icon"></span>
-            High speed endoscopy
+            High Speed Endoscopy
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
             
               
                 
@@ -3050,7 +3329,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23_2" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -3068,8 +3347,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_23_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_23_1">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_23_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_23_2">
             <span class="md-nav__icon md-icon"></span>
             High-Speed Endoscopy (C++)
           </label>
@@ -3109,7 +3388,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23_3" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -3127,8 +3406,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_23_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_23_2">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_23_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_23_3">
             <span class="md-nav__icon md-icon"></span>
             High-Speed Endoscopy (Python)
           </label>
@@ -5245,6 +5524,10 @@
     
       
         
+          
+        
+      
+        
       
         
       
@@ -5264,25 +5547,34 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_36" >
         
           
-          <label class="md-nav__link" for="__nav_3_36" id="__nav_3_36_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../applications/multiai_ultrasound/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
-    Multiai ultrasound
+    Multi AI Ultrasound
     
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_36" id="__nav_3_36_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_36_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_36">
             <span class="md-nav__icon md-icon"></span>
-            Multiai ultrasound
+            Multi AI Ultrasound
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
             
               
                 
@@ -5308,7 +5600,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_36_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_36_2" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -5326,8 +5618,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_36_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_36_1">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_36_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_36_2">
             <span class="md-nav__icon md-icon"></span>
             Multi-AI Ultrasound (C++)
           </label>
@@ -5367,7 +5659,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_36_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_36_3" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -5385,8 +5677,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_36_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_36_2">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_36_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_36_3">
             <span class="md-nav__icon md-icon"></span>
             Multi-AI Ultrasound (Python)
           </label>
@@ -5424,10 +5716,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_36_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_36_4" >
         
           
-          <label class="md-nav__link" for="__nav_3_36_3" id="__nav_3_36_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_36_4" id="__nav_3_36_4_label" tabindex="0">
             
   
   
@@ -5440,8 +5732,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_36_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_36_3">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_36_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_36_4">
             <span class="md-nav__icon md-icon"></span>
             Operators
           </label>
@@ -5471,7 +5763,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_36_3_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_36_4_1" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -5489,8 +5781,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_36_3_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_36_3_1">
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_36_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_36_4_1">
             <span class="md-nav__icon md-icon"></span>
             Visualizer iCardio
           </label>
@@ -6190,7 +6482,7 @@
   
   
   <span class="md-ellipsis">
-    Orsi Academy In-Out Body Detection and Surgical Video Anonymization
+    In-Out Body Detection and Surgical Video Anonymization
     
   </span>
   
@@ -6202,7 +6494,7 @@
         <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_41_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_41_1">
             <span class="md-nav__icon md-icon"></span>
-            Orsi Academy In-Out Body Detection and Surgical Video Anonymization
+            In-Out Body Detection and Surgical Video Anonymization
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -6249,7 +6541,7 @@
   
   
   <span class="md-ellipsis">
-    Orsi Academy Multi AI and AR Visualization
+    Multi AI and AR Visualization
     
   </span>
   
@@ -6261,7 +6553,7 @@
         <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_41_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_41_2">
             <span class="md-nav__icon md-icon"></span>
-            Orsi Academy Multi AI and AR Visualization
+            Multi AI and AR Visualization
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -6308,7 +6600,7 @@
   
   
   <span class="md-ellipsis">
-    Orsi Academy Surgical Tool Segmentation and AR Overlay
+    Surgical Tool Segmentation and AR Overlay
     
   </span>
   
@@ -6320,7 +6612,7 @@
         <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_41_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_41_3">
             <span class="md-nav__icon md-icon"></span>
-            Orsi Academy Surgical Tool Segmentation and AR Overlay
+            Surgical Tool Segmentation and AR Overlay
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -7642,6 +7934,10 @@
     
       
         
+          
+        
+      
+        
       
         
       
@@ -7659,25 +7955,34 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_60" >
         
           
-          <label class="md-nav__link" for="__nav_3_60" id="__nav_3_60_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../applications/ultrasound_segmentation/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
-    Ultrasound segmentation
+    Ultrasound Bone Scoliosis Segmentation
     
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_60" id="__nav_3_60_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_60_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_60">
             <span class="md-nav__icon md-icon"></span>
-            Ultrasound segmentation
+            Ultrasound Bone Scoliosis Segmentation
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
             
               
                 
@@ -7703,7 +8008,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_60_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_60_2" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -7721,8 +8026,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_60_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_60_1">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_60_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_60_2">
             <span class="md-nav__icon md-icon"></span>
             Ultrasound Bone Scoliosis Segmentation (C++)
           </label>
@@ -7762,7 +8067,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_60_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_60_3" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -7780,8 +8085,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_60_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_60_2">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_60_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_60_3">
             <span class="md-nav__icon md-icon"></span>
             Ultrasound Bone Scoliosis Segmentation (Python)
           </label>
@@ -14591,8 +14896,6 @@
   
   
   
-    
-  
   
 </nav>
                   </div>
@@ -14604,32 +14907,7 @@
             <div class="md-content" data-md-component="content">
               <article class="md-content__inner md-typeset">
                 
-                  
 
-
-  
-  
-
-
-<h1 id="tutorials"><a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials">Tutorials</a><a class="headerlink" href="#tutorials" title="Permanent link">#</a></h1>
-<p>The HoloHub tutorials are an invaluable resource for developers looking to master the Holoscan SDK and build advanced AI sensor processing applications. 
-This page offers a collection of comprehensive tutorials that guide users through various aspects of the Holoscan platform, from basic setup to advanced workflow optimization.</p>
-<p>Each tutorial is designed to provide step-by-step instructions, code examples, and best practices, making it easier for developers to integrate Holoscan's powerful features into their projects. Whether you are new to Holoscan or an experienced developer seeking to enhance your skills, these tutorials offer practical insights and hands-on exercises to help you leverage the full potential of the Holoscan platform.</p>
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-                
               </article>
             </div>
           
@@ -14669,13 +14947,13 @@ This page offers a collection of comprehensive tutorials that guide users throug
         
         
           
-          <a href="async_buffer_deadline/" class="md-footer__link md-footer__link--next" aria-label="Next: A Study using Asynchronous Lock-free Buffer with SCHED_DEADLINE (latest)">
+          <a href="async_buffer_deadline/" class="md-footer__link md-footer__link--next" aria-label="Next: Asynchronous Lock-free Buffer (latest)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                A Study using Asynchronous Lock-free Buffer with SCHED_DEADLINE (latest)
+                Asynchronous Lock-free Buffer (latest)
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -14727,7 +15005,7 @@ This page offers a collection of comprehensive tutorials that guide users throug
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "navigation.tabs", "navigation.indexes", "navigation.instant", "navigation.path", "navigation.instant.prefetch", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "navigation.tabs", "navigation.indexes", "navigation.path", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>

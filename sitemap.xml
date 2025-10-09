@@ -73,6 +73,10 @@
          <lastmod>2025-10-09</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/distributed/ucx/ucx_endoscopy_tool_tracking/</loc>
+         <lastmod>2025-10-09</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/distributed/ucx/ucx_endoscopy_tool_tracking/cpp/</loc>
          <lastmod>2025-10-09</lastmod>
     </url>
@@ -97,11 +101,19 @@
          <lastmod>2025-10-09</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/endoscopy_out_of_body_detection/</loc>
+         <lastmod>2025-10-09</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/endoscopy_out_of_body_detection/cpp/</loc>
          <lastmod>2025-10-09</lastmod>
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/endoscopy_out_of_body_detection/python/</loc>
+         <lastmod>2025-10-09</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/endoscopy_tool_tracking/</loc>
          <lastmod>2025-10-09</lastmod>
     </url>
     <url>
@@ -126,6 +138,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/h264/h264_video_decode/</loc>
+         <lastmod>2025-10-09</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/high_speed_endoscopy/</loc>
          <lastmod>2025-10-09</lastmod>
     </url>
     <url>
@@ -210,6 +226,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/multiai_endoscopy/</loc>
+         <lastmod>2025-10-09</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/multiai_ultrasound/</loc>
          <lastmod>2025-10-09</lastmod>
     </url>
     <url>
@@ -350,6 +370,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/tao_peoplenet/</loc>
+         <lastmod>2025-10-09</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/ultrasound_segmentation/</loc>
          <lastmod>2025-10-09</lastmod>
     </url>
     <url>
