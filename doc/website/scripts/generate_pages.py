@@ -468,6 +468,118 @@ def create_page(
         dest_file.write(output_text)
 
 
+def create_title_from_readme_title(readme_title: str, suffix: str = "") -> str:
+    """Create a cleaned title from the README title by removing common component type suffixes.
+    
+    Args:
+        readme_title: The title extracted from the README
+        suffix: Optional suffix to append (e.g., language identifier)
+    
+    Returns:
+        Cleaned title with suffix appended
+    """
+    title = re.sub(
+        r"(Operator|Operators|Op|Application|App|Workflow)\b",
+        "",
+        readme_title,
+        flags=re.IGNORECASE,
+    ).strip()
+    return title + suffix
+
+
+def process_archived_versions(
+    archives: dict,
+    metadata: dict,
+    metadata_path: Path,
+    readme_path: Path,
+    dest_dir: Path,
+    project_type: str,
+    git_repo_path: Path,
+) -> str:
+    """Process archived versions of documentation and return nav content.
+    
+    Args:
+        archives: Dictionary mapping version names to git references
+        metadata: Current metadata dictionary
+        metadata_path: Path to the metadata file
+        readme_path: Path to the README file (may be language-specific or parent)
+        dest_dir: Destination directory for generated pages
+        project_type: Type of project (operator, application, etc.)
+        git_repo_path: Path to the Git repository root
+    
+    Returns:
+        Navigation content string for archived versions
+    """
+    logger.info(f"Processing versioned documentation for {str(dest_dir)}")
+    
+    nav_content = """
+nav:
+  - README.md
+"""
+    
+    for version in sorted(archives.keys(), reverse=True):
+        git_ref = archives[version]
+        
+        # Get metadata and README from the specified git reference
+        archived_metadata_content = get_file_from_git(metadata_path, git_ref, git_repo_path)
+        archived_readme_content = get_file_from_git(readme_path, git_ref, git_repo_path)
+        if not archived_metadata_content or not archived_readme_content:
+            logger.error(f"Failed to retrieve archived content for {dest_dir} at {git_ref}")
+            continue
+        
+        # Parse the archived metadata
+        try:
+            archived_metadata = json.loads(archived_metadata_content)
+        except json.JSONDecodeError:
+            logger.error(f"Failed to parse archived metadata for {dest_dir.name} at {git_ref}")
+            continue
+        archived_metadata = archived_metadata[project_type]
+        
+        # Get commit date as last modified
+        repo_str = str(git_repo_path)
+        cmd = [
+            "git",
+            "-C",
+            repo_str,
+            "show",
+            "-s",
+            "--format=%ad",
+            "--date=short",
+            git_ref,
+        ]
+        archive_last_modified = subprocess.run(
+            cmd, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        archive_last_modified = format_date(archive_last_modified)
+        
+        # Create the archived version content
+        archive_dest_path = dest_dir / f"{version}.md"
+        create_page(
+            archived_metadata,
+            archived_readme_content,
+            archive_dest_path,
+            archive_last_modified,
+            git_repo_path,
+            archive={"version": version, "git_ref": git_ref},
+        )
+        
+        # Add archives to nav file
+        nav_content += f'  - "{version}": {version}.md\n'
+    
+    return nav_content
+
+
+def write_nav_file(nav_path: Path, nav_content: str) -> None:
+    """Write navigation file content to the specified path.
+    
+    Args:
+        nav_path: Path where the navigation file should be written
+        nav_content: Content to write to the navigation file
+    """
+    with mkdocs_gen_files.open(nav_path, "w") as nav_file:
+        nav_file.write(nav_content)
+
+
 def parse_metadata_path(
     metadata_path: Path, components, git_repo_path: Path, processed_parent_readmes=None
 ) -> None:
@@ -553,17 +665,7 @@ def parse_metadata_path(
         suffix = f" ({suffix})"
     logger.debug(f"suffix: {suffix}")
 
-    # Create the title
-    # strip the common name from the end of the title ("Operator", "Operators", "Op", "Application", "App", "Workflow", "Benchmark")
-    title = (
-        re.sub(
-            r"(Operator|Operators|Op|Application|App|Workflow)\b",
-            "",
-            readme_title,
-            flags=re.IGNORECASE,
-        ).strip()
-        + suffix
-    )
+    title = create_title_from_readme_title(readme_title, suffix)
 
     # Generate page
     dest_path = dest_dir / "README.md"
@@ -579,57 +681,12 @@ title: "{title}"
     # Check for archives in metadata
     archives = metadata["archives"] if "archives" in metadata else None
     if archives:
-        logger.info(f"Processing versioned documentation for {str(dest_dir)}")
-
-        # List the current version first
-        nav_content += """
-nav:
-  - README.md
-"""
-
-        for version in sorted(archives.keys(), reverse=True):
-            git_ref = archives[version]
-
-            # Get metadata and README from the specified git reference
-            archived_metadata_content = get_file_from_git(metadata_path, git_ref, git_repo_path)
-            archived_readme_content = get_file_from_git(readme_path, git_ref, git_repo_path)
-            if not archived_metadata_content or not archived_readme_content:
-                logger.error(f"Failed to retrieve archived content for {dest_dir} at {git_ref}")
-                continue
-
-            # Parse the archived metadata
-            try:
-                archived_metadata = json.loads(archived_metadata_content)
-            except json.JSONDecodeError:
-                logger.error(f"Failed to parse archived metadata for {dest_dir.name} at {git_ref}")
-                return
-            archived_metadata = archived_metadata[project_type]
-
-            # Get commit date as last modified
-            repo_str = str(git_repo_path)
-            cmd = ["git", "-C", repo_str, "show", "-s", "--format=%ad", "--date=short", git_ref]
-            archive_last_modified = subprocess.run(
-                cmd, capture_output=True, text=True, check=True
-            ).stdout.strip()
-            archive_last_modified = format_date(archive_last_modified)
-
-            # Create the archived version content
-            archive_dest_path = dest_dir / f"{version}.md"
-            create_page(
-                archived_metadata,
-                archived_readme_content,
-                archive_dest_path,
-                archive_last_modified,
-                git_repo_path,
-                archive={"version": version, "git_ref": git_ref},
-            )
-
-            # Add archives to nav file
-            nav_content += f'  - "{version}": {version}.md\n'
+        nav_content += process_archived_versions(
+            archives, metadata, metadata_path, readme_path, dest_dir, project_type, git_repo_path
+        )
 
     # Write nav file
-    with mkdocs_gen_files.open(nav_path, "w") as nav_file:
-        nav_file.write(nav_content)
+    write_nav_file(nav_path, nav_content)
 
     # If we're in a language-specific directory (cpp/python) and processed a language-specific README,
     # also check if there's a parent README to process as a language-agnostic page
@@ -658,12 +715,7 @@ nav:
                 parent_readme_title = parent_header_info[1]
 
             # Create title without language suffix (language-agnostic)
-            parent_title = re.sub(
-                r"(Operator|Operators|Op|Application|App|Workflow)\b",
-                "",
-                parent_readme_title,
-                flags=re.IGNORECASE,
-            ).strip()
+            parent_title = create_title_from_readme_title(parent_readme_title)
 
             # Generate parent page
             parent_dest_dir = language_agnostic_dir.relative_to(git_repo_path)
@@ -681,73 +733,18 @@ title: "{parent_title}"
 
             # Check for archives in metadata (parent page uses same metadata)
             if archives:
-                logger.info(f"Processing versioned documentation for parent {str(parent_dest_dir)}")
-
-                parent_nav_content += """
-nav:
-  - README.md
-"""
-
-                for version in sorted(archives.keys(), reverse=True):
-                    git_ref = archives[version]
-
-                    # Get archived parent README
-                    archived_parent_readme_content = get_file_from_git(
-                        parent_readme_path, git_ref, git_repo_path
-                    )
-                    archived_metadata_content = get_file_from_git(
-                        metadata_path, git_ref, git_repo_path
-                    )
-                    if not archived_parent_readme_content or not archived_metadata_content:
-                        logger.error(
-                            f"Failed to retrieve archived parent content for {parent_dest_dir} at {git_ref}"
-                        )
-                        continue
-
-                    # Parse the archived metadata
-                    try:
-                        archived_metadata = json.loads(archived_metadata_content)
-                    except json.JSONDecodeError:
-                        logger.error(
-                            f"Failed to parse archived metadata for {parent_dest_dir.name} at {git_ref}"
-                        )
-                        continue
-                    archived_metadata = archived_metadata[project_type]
-
-                    # Get commit date as last modified
-                    repo_str = str(git_repo_path)
-                    cmd = [
-                        "git",
-                        "-C",
-                        repo_str,
-                        "show",
-                        "-s",
-                        "--format=%ad",
-                        "--date=short",
-                        git_ref,
-                    ]
-                    archive_last_modified = subprocess.run(
-                        cmd, capture_output=True, text=True, check=True
-                    ).stdout.strip()
-                    archive_last_modified = format_date(archive_last_modified)
-
-                    # Create the archived version content for parent
-                    archive_dest_path = parent_dest_dir / f"{version}.md"
-                    create_page(
-                        archived_metadata,
-                        archived_parent_readme_content,
-                        archive_dest_path,
-                        archive_last_modified,
-                        git_repo_path,
-                        archive={"version": version, "git_ref": git_ref},
-                    )
-
-                    # Add archives to nav file
-                    parent_nav_content += f'  - "{version}": {version}.md\n'
+                parent_nav_content += process_archived_versions(
+                    archives,
+                    metadata,
+                    metadata_path,
+                    parent_readme_path,
+                    parent_dest_dir,
+                    project_type,
+                    git_repo_path,
+                )
 
             # Write parent nav file
-            with mkdocs_gen_files.open(parent_nav_path, "w") as parent_nav_file:
-                parent_nav_file.write(parent_nav_content)
+            write_nav_file(parent_nav_path, parent_nav_content)
 
 
 def generate_pages() -> None:
