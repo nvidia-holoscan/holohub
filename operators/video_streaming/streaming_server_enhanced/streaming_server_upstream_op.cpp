@@ -103,8 +103,8 @@ void StreamingServerUpstreamOp::initialize() {
   HOLOSCAN_LOG_INFO("  - FPS: {}", fps_.get());
 
   try {
-      // Set up event callback on the shared resource
-    streaming_server_resource_.get()->set_event_callback(
+      // Add event listener on the shared resource (allows multiple operators to listen)
+    streaming_server_resource_.get()->add_event_listener(
         [this](const StreamingServerResource::Event& event) {
       on_streaming_server_event(event);
     });

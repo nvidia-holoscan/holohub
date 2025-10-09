@@ -200,14 +200,14 @@ if(BUILD_TESTING)
                echo '✗ Client: Streaming client failed to start'
              fi
 
-             echo ''
-             echo '=== Test Results Summary ==='
-             echo \"Server checks passed: \$SERVER_SUCCESS/4 (minimum required: 3)\"
-             echo \"Client checks passed: \$CLIENT_SUCCESS/3 (minimum required: 2)\"
+            echo ''
+            echo '=== Test Results Summary ==='
+            echo \"Server checks passed: \$SERVER_SUCCESS/6 (required: 6)\"
+            echo \"Client checks passed: \$CLIENT_SUCCESS/3 (required: 3)\"
 
-             # Determine overall success
-             # Require at least 3/4 server checks and 2/3 client checks
-             if [ \$SERVER_SUCCESS -ge 3 ] && [ \$CLIENT_SUCCESS -ge 2 ]; then
+            # Determine overall success
+            # Require ALL checks to pass for proper integration test
+            if [ \$SERVER_SUCCESS -eq 6 ] && [ \$CLIENT_SUCCESS -eq 3 ]; then
                STREAMING_SUCCESS=1
                echo '✓ STREAMING VERIFICATION PASSED - Frames actually transmitted!'
              else

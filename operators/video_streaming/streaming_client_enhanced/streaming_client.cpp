@@ -1108,6 +1108,12 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
       return;  // Exit compute method entirely - message fully consumed
     }
 
+    // Periodic INFO log for frame validation (every 30 frames)
+    static int validation_log_counter = 0;
+    validation_log_counter++;
+    if (validation_log_counter % 30 == 0) {
+      HOLOSCAN_LOG_INFO("Frame validation passed - ready for transmission");
+    }
     HOLOSCAN_LOG_DEBUG("Frame validation passed - ready for transmission");
 
     // Output BGRA tensor for HoloViz BEFORE network transmission

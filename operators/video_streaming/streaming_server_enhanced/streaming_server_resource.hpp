@@ -27,6 +27,7 @@
 #include <atomic>
 #include <chrono>
 #include <vector>
+#include <mutex>
 
 #include "StreamingServer.h"
 #include "VideoFrame.h"
@@ -103,7 +104,8 @@ class StreamingServerResource : public holoscan::Resource {
   StreamingServer::Config get_streaming_server_config() const;
 
   // Event and callback management
-  void set_event_callback(EventCallback callback);
+  void set_event_callback(EventCallback callback);  // For backward compatibility
+  void add_event_listener(EventCallback callback);  // For multiple listeners
   // Note: setFrameReceivedCallback is not available in the current StreamingServer library
 
   // Status and metrics
@@ -146,6 +148,10 @@ class StreamingServerResource : public holoscan::Resource {
   std::atomic<uint64_t> frames_received_{0};
   std::atomic<uint64_t> frames_sent_{0};
   std::atomic<std::chrono::steady_clock::time_point::rep> start_time_ticks_{0};
+
+  // Event listener management
+  std::vector<EventCallback> event_listeners_;
+  std::mutex event_listeners_mutex_;
 
   // Internal event handling
   void handle_streaming_server_event(const StreamingServer::Event& event);
