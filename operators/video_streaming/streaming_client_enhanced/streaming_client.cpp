@@ -1485,14 +1485,6 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
   }
 }
 
-// Remove the generateFrame() method
-
-// Adjust the initialize method to not set a frame source
-// Remove the line: client_->setFrameSource([this]() { return generateFrame(); });
-
-// Ensure the compute method processes tensors correctly
-// No changes needed in compute as it already processes tensors from the previous operator.
-
 bool StreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tensor>& tensor) {
   if (!tensor) {
     HOLOSCAN_LOG_ERROR("Tensor validation failed: null tensor");
