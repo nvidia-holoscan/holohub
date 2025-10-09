@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 DELTACAST.TV. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025, DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,11 +41,12 @@ class VideoMasterTransmitterOp : public holoscan::Operator {
   void setup(OperatorSpec& spec) override;
   void initialize() override;
   void start() override;
-  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) override;
+  void compute(InputContext& op_input, OutputContext& op_output,
+               ExecutionContext& context) override;
   void stop() override;
 
  private:
-  bool configure_board_for_overlay(); 
+  bool configure_board_for_overlay();
   bool configure_stream_for_overlay();
 
   Parameter<holoscan::IOSpec*> _source;
