@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 DELTACAST.TV. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025, DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,8 @@ class VideoMasterSourceOp : public holoscan::Operator {
   void stop() override;
 
  private:
-  void transmit_buffer_data(void* buffer, uint32_t buffer_size, OutputContext& op_output, ExecutionContext& context);
+  void transmit_buffer_data(void* buffer, uint32_t buffer_size,
+                            OutputContext& op_output, ExecutionContext& context);
 
   Parameter<holoscan::IOSpec*> _signal;
   Parameter<bool> _use_rdma;
@@ -70,9 +71,8 @@ class VideoMasterSourceOp : public holoscan::Operator {
 
   bool _has_lost_signal;
   uint64_t _slot_count;
-  
+
   std::unique_ptr<VideoMasterBase> _video_master_base;
-  
 };
 
 }  // namespace holoscan::ops

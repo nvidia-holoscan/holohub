@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText:  Copyright (c) 2022, DELTACAST.TV. All rights reserved.
+ * SPDX-FileCopyrightText:  Copyright (c) 2022-2025, DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,31 +85,37 @@ void VideoMasterTransmitterOp::setup(OperatorSpec& spec) {
 void VideoMasterTransmitterOp::initialize() {
   Operator::initialize();
   _has_lost_signal = false;
-  _video_master_base = std::make_unique<VideoMasterBase>(false, _board_index, _channel_index, _use_rdma);
+  _video_master_base = std::make_unique<VideoMasterBase>(false, _board_index,
+                                                        _channel_index, _use_rdma);
 }
 
 void VideoMasterTransmitterOp::start() {
-  HOLOSCAN_LOG_INFO("Starting VideoMaster Transmitter on board {} channel {}", _board_index, _channel_index);
-  if(!_video_master_base->configure_board())
+  HOLOSCAN_LOG_INFO("Starting VideoMaster Transmitter on board {} channel {}",
+                     _board_index, _channel_index);
+  if (!_video_master_base->configure_board())
     throw std::runtime_error("Failed to configure board");
-  if(!_video_master_base->open_stream())
+  if (!_video_master_base->open_stream())
     throw std::runtime_error("Failed to open stream");
 
   if (!_overlay) {
-    _video_master_base->video_format() = Deltacast::Helper::VideoFormat{_width, _height, _progressive, _framerate};
-    _video_master_base->video_information()->set_video_format(_video_master_base->stream_handle(), _video_master_base->video_format());
+    _video_master_base->video_format() = Deltacast::Helper::VideoFormat{
+        _width, _height, _progressive, _framerate};
+    _video_master_base->video_information()->set_video_format(
+        _video_master_base->stream_handle(), _video_master_base->video_format());
 
-    auto opt_sync_source_property = _video_master_base->video_information()->get_sync_source_properties();
+    auto opt_sync_source_property =
+        _video_master_base->video_information()->get_sync_source_properties();
     if (opt_sync_source_property)
-      VHD_SetBoardProperty(*_video_master_base->board_handle(), *opt_sync_source_property, VHD_GENLOCK_LOCAL);
+      VHD_SetBoardProperty(*_video_master_base->board_handle(),
+                           *opt_sync_source_property, VHD_GENLOCK_LOCAL);
 
-    if(!_video_master_base->configure_stream())
+    if (!_video_master_base->configure_stream())
       throw std::runtime_error("Failed to configure stream");
 
-    if(!_video_master_base->init_buffers())
+    if (!_video_master_base->init_buffers())
       throw std::runtime_error("Failed to initialize buffers");
 
-    if(!_video_master_base->start_stream())
+    if (!_video_master_base->start_stream())
       throw std::runtime_error("Failed to start stream");
 
     sleep_ms(200);
@@ -120,10 +126,10 @@ void VideoMasterTransmitterOp::start() {
   HOLOSCAN_LOG_INFO("VideoMaster Transmitter started successfully");
 }
 
-void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
-
-  HOLOSCAN_LOG_DEBUG("VideoMasterTransmitterOp::compute() - Starting compute cycle {}", _slot_count);
-  
+void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op_output,
+                                        ExecutionContext& context) {
+  HOLOSCAN_LOG_DEBUG("VideoMasterTransmitterOp::compute() - Starting compute cycle {}",
+                     _slot_count);
   auto source = op_input.receive<gxf::Entity>("source");
   if (!source) {
     throw std::runtime_error("Failed to receive source");
@@ -133,7 +139,6 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
   if (!tensor) {
     throw std::runtime_error("Failed to get tensor from source");
   }
-  
   HOLOSCAN_LOG_DEBUG("Successfully received tensor - size: {} bytes", tensor->nbytes());
 
   if (_overlay) {
@@ -143,37 +148,36 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
 
       _has_lost_signal = true;
       return;
-    } else if (!(_video_master_base->video_format() != Deltacast::Helper::VideoFormat{})) {  // stream not started yet
-      HOLOSCAN_LOG_INFO("Configuring overlay mode: {}x{} {}p @{}Hz", _width, _height, _progressive ? "progressive" : "interlaced", _framerate);
+    } else if (!(_video_master_base->video_format() !=
+                 Deltacast::Helper::VideoFormat{})) {  // stream not started yet
+      HOLOSCAN_LOG_INFO("Configuring overlay mode: {}x{} {}p @{}Hz",
+                        _width, _height,
+                        _progressive ? "progressive" : "interlaced", _framerate);
 
-      _video_master_base->video_format() = Deltacast::Helper::VideoFormat{_width, _height, _progressive, _framerate};
-      _video_master_base->video_information()->set_video_format(_video_master_base->stream_handle(), _video_master_base->video_format());
+      _video_master_base->video_format() = Deltacast::Helper::VideoFormat{
+          _width, _height, _progressive, _framerate};
+      _video_master_base->video_information()->set_video_format(
+          _video_master_base->stream_handle(), _video_master_base->video_format());
 
       HOLOSCAN_LOG_DEBUG("Configuring board for overlay...");
-      if(!configure_board_for_overlay())
+      if (!configure_board_for_overlay())
         throw std::runtime_error("Failed to configure board for overlay");
-      HOLOSCAN_LOG_DEBUG("Board configured for overlay successfully");
-      
+
       HOLOSCAN_LOG_DEBUG("Configuring stream...");
-      if(!_video_master_base->configure_stream())
+      if (!_video_master_base->configure_stream())
         throw std::runtime_error("Failed to configure stream");
-      HOLOSCAN_LOG_DEBUG("Stream configured successfully");
-      
+
       HOLOSCAN_LOG_DEBUG("Configuring stream for overlay...");
-      if(!configure_stream_for_overlay())
+      if (!configure_stream_for_overlay())
         throw std::runtime_error("Failed to configure stream for overlay");
-      HOLOSCAN_LOG_DEBUG("Stream configured for overlay successfully");
-      
+
       HOLOSCAN_LOG_DEBUG("Initializing buffers...");
-      if(!_video_master_base->init_buffers())
+      if (!_video_master_base->init_buffers())
         throw std::runtime_error("Failed to initialize buffers");
-      HOLOSCAN_LOG_DEBUG("Buffers initialized successfully - {} slots available", _video_master_base->slot_handles().size());
-      
+
       HOLOSCAN_LOG_DEBUG("Starting stream...");
-      if(!_video_master_base->start_stream())
+      if (!_video_master_base->start_stream())
         throw std::runtime_error("Failed to start stream");
-      HOLOSCAN_LOG_DEBUG("Stream started successfully");
-      
       _slot_count = 0;
 
       sleep_ms(200);
@@ -184,65 +188,75 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
   }
 
   HANDLE slot_handle;
-  HOLOSCAN_LOG_DEBUG("Getting slot handle - slot_count: {}, available slots: {}", _slot_count, _video_master_base->slot_handles().size());
-  
+  HOLOSCAN_LOG_DEBUG("Getting slot handle - slot_count: {}, available slots: {}",
+                     _slot_count, _video_master_base->slot_handles().size());
   if (_slot_count >= _video_master_base->slot_handles().size()) {
     HOLOSCAN_LOG_DEBUG("Waiting for slot to be sent (slot_count >= available slots)");
-    if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                      VHD_WaitSlotSent(*_video_master_base->stream_handle(), &slot_handle, VideoMasterBase::SLOT_TIMEOUT)
-                                      }, "Failed to wait for slot to be sent")){
+    if (!_video_master_base->holoscan_log_on_error(
+        Deltacast::Helper::ApiSuccess{
+            VHD_WaitSlotSent(*_video_master_base->stream_handle(), &slot_handle,
+                             VideoMasterBase::SLOT_TIMEOUT)},
+        "Failed to wait for slot to be sent")) {
       return;
-                                      }
-    HOLOSCAN_LOG_DEBUG("Successfully waited for slot to be sent - slot_handle: {}", static_cast<void*>(slot_handle));
+    }
+    HOLOSCAN_LOG_DEBUG("Successfully waited for slot to be sent - slot_handle: {}",
+                       static_cast<void*>(slot_handle));
   } else {
-    slot_handle = _video_master_base->slot_handles()[_slot_count % VideoMasterBase::NB_SLOTS];
-    HOLOSCAN_LOG_DEBUG("Using available slot handle - index: {}, slot_handle: {}", _slot_count % VideoMasterBase::NB_SLOTS, static_cast<void*>(slot_handle));
+    slot_handle = _video_master_base->slot_handles()[_slot_count %
+                                                     VideoMasterBase::NB_SLOTS];
+    HOLOSCAN_LOG_DEBUG("Using available slot handle - index: {}, slot_handle: {}",
+                       _slot_count % VideoMasterBase::NB_SLOTS,
+                       static_cast<void*>(slot_handle));
   }
 
   BYTE *buffer = nullptr;
   ULONG buffer_size = 0;
 
-  HOLOSCAN_LOG_DEBUG("Attempting to get video buffer - slot_handle: {}", static_cast<void*>(slot_handle));
-  
+  HOLOSCAN_LOG_DEBUG("Attempting to get video buffer - slot_handle: {}",
+                     static_cast<void*>(slot_handle));
+
   // Validate slot handle before use
   if (slot_handle == nullptr) {
-    HOLOSCAN_LOG_ERROR("Invalid slot handle detected: {}", static_cast<void*>(slot_handle));
+    HOLOSCAN_LOG_ERROR("Invalid slot handle detected: {}",
+                       static_cast<void*>(slot_handle));
     return;
   }
-  
-  auto get_buffer_result = VHD_GetSlotBuffer(slot_handle, VHD_SDI_BT_VIDEO, &buffer, &buffer_size);
-  HOLOSCAN_LOG_DEBUG("VHD_GetSlotBuffer result: {}, buffer: {}, buffer_size: {}", 
-                     static_cast<int>(get_buffer_result), static_cast<void*>(buffer), buffer_size);
-  
-  if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{get_buffer_result}, 
-                                                "Failed to retrieve the video buffer")){
-                                      return;
-                                    }
 
-  HOLOSCAN_LOG_DEBUG("Copying data to buffer - tensor size: {}, buffer size: {}, copy type: {}", 
-                     tensor->nbytes(), buffer_size, (_use_rdma ? "DeviceToDevice" : "DeviceToHost"));
-  
-  cudaError_t cuda_result = cudaMemcpy(buffer, tensor->data(), buffer_size,
-                                      (_use_rdma ? cudaMemcpyDeviceToDevice : cudaMemcpyDeviceToHost));
-  
+  auto get_buffer_result = VHD_GetSlotBuffer(slot_handle, VHD_SDI_BT_VIDEO, &buffer,
+                                             &buffer_size);
+  HOLOSCAN_LOG_DEBUG("VHD_GetSlotBuffer result: {}, buffer: {}, buffer_size: {}",
+                     static_cast<int>(get_buffer_result), static_cast<void*>(buffer),
+                     buffer_size);
+
+  if (!_video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{get_buffer_result},
+      "Failed to retrieve the video buffer")) {
+    return;
+  }
+
+  HOLOSCAN_LOG_DEBUG("Copying data to buffer - tensor size: {}, buffer size: {}, "
+                     "copy type: {}",
+                     tensor->nbytes(), buffer_size,
+                     (_use_rdma ? "DeviceToDevice" : "DeviceToHost"));
+
+  cudaError_t cuda_result = cudaMemcpy(
+      buffer, tensor->data(), buffer_size,
+      (_use_rdma ? cudaMemcpyDeviceToDevice : cudaMemcpyDeviceToHost));
   if (cuda_result != cudaSuccess) {
     HOLOSCAN_LOG_ERROR("CUDA memcpy failed: {}", cudaGetErrorString(cuda_result));
     return;
   }
-  
   HOLOSCAN_LOG_DEBUG("Successfully copied data, queuing slot for output");
 
-  if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_QueueOutSlot(slot_handle)
-                                    }, "Failed to queue out the video buffer")){
-                                      return;
-                                    }
+  if (!_video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{VHD_QueueOutSlot(slot_handle)},
+      "Failed to queue out the video buffer")) {
+    return;
+  }
 
   _slot_count++;
-  HOLOSCAN_LOG_DEBUG("Compute cycle completed successfully - new slot_count: {}", _slot_count);
-
-  return;
-
+  HOLOSCAN_LOG_DEBUG("Compute cycle completed successfully - new slot_count: {}",
+                     _slot_count);
 }
 
 void VideoMasterTransmitterOp::stop() {
@@ -251,70 +265,77 @@ void VideoMasterTransmitterOp::stop() {
 }
 
 bool VideoMasterTransmitterOp::configure_board_for_overlay() {
-  HOLOSCAN_LOG_INFO("Configuring board for overlay with keyer on channel {}", _channel_index);
+  HOLOSCAN_LOG_INFO("Configuring board for overlay with keyer on channel {}",
+                     _channel_index);
   bool success_b = true;
 
-  success_b = _video_master_base->video_information()->configure_sync(_video_master_base->board_handle(), _channel_index);
+  success_b = _video_master_base->video_information()->configure_sync(
+      _video_master_base->board_handle(), _channel_index);
 
-  auto keyer_props = _video_master_base->video_information()->get_keyer_properties(_video_master_base->board_handle());
+  auto keyer_props = _video_master_base->video_information()->get_keyer_properties(
+      _video_master_base->board_handle());
 
-  success_b = success_b & _video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_SetBoardProperty(*_video_master_base->board_handle()
-                                                        , keyer_props.at(VHD_KEYER_BP_INPUT_A)
-                                                        , id_to_rx_keyer_input.at(_channel_index))
-                                     }, "Could not configure keyer input A");
+  success_b = success_b & _video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{
+          VHD_SetBoardProperty(*_video_master_base->board_handle(),
+                               keyer_props.at(VHD_KEYER_BP_INPUT_A),
+                               id_to_rx_keyer_input.at(_channel_index))},
+      "Could not configure keyer input A");
 
-  success_b = success_b & _video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_SetBoardProperty(*_video_master_base->board_handle()
-                                                        , keyer_props.at(VHD_KEYER_BP_INPUT_B)
-                                                        , id_to_tx_keyer_input.at(_channel_index))
-                                     }, "Could not configure keyer input B");
+  success_b = success_b & _video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{
+          VHD_SetBoardProperty(*_video_master_base->board_handle(),
+                               keyer_props.at(VHD_KEYER_BP_INPUT_B),
+                               id_to_tx_keyer_input.at(_channel_index))},
+      "Could not configure keyer input B");
 
-  success_b = success_b & _video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_SetBoardProperty(*_video_master_base->board_handle()
-                                                        , keyer_props.at(VHD_KEYER_BP_INPUT_K)
-                                                        , id_to_tx_keyer_input.at(_channel_index))
-                                     }, "Could not configure keyer input K");
+  success_b = success_b & _video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{
+          VHD_SetBoardProperty(*_video_master_base->board_handle(),
+                               keyer_props.at(VHD_KEYER_BP_INPUT_K),
+                               id_to_tx_keyer_input.at(_channel_index))},
+      "Could not configure keyer input K");
 
-  if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_SetBoardProperty(*_video_master_base->board_handle()
-                                                       , id_to_keyer_video_output.at(_channel_index)
-                                                       , VHD_KOUTPUT_KEYER)
-                                     }, "Could not configure keyer video output")){
+  if (!_video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{
+          VHD_SetBoardProperty(*_video_master_base->board_handle(),
+                               id_to_keyer_video_output.at(_channel_index),
+                               VHD_KOUTPUT_KEYER)},
+      "Could not configure keyer video output")) {
     return false;
   }
 
-  if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_SetBoardProperty(*_video_master_base->board_handle()
-                                                        , keyer_props.at(VHD_KEYER_BP_ALPHACLIP_MIN)
-                                                        , 0)
-                                     }, "Could not configure alphaclip min")){
+  if (!_video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{
+          VHD_SetBoardProperty(*_video_master_base->board_handle(),
+                               keyer_props.at(VHD_KEYER_BP_ALPHACLIP_MIN), 0)},
+      "Could not configure alphaclip min")) {
     return false;
   }
 
-  if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_SetBoardProperty(*_video_master_base->board_handle()
-                                                        , keyer_props.at(VHD_KEYER_BP_ALPHACLIP_MAX)
-                                                        , 1020)
-                                     }, "Could not configure alphaclip max")){
-                                      return false;
-                                     }
+  if (!_video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{
+          VHD_SetBoardProperty(*_video_master_base->board_handle(),
+                               keyer_props.at(VHD_KEYER_BP_ALPHACLIP_MAX), 1020)},
+      "Could not configure alphaclip max")) {
+    return false;
+  }
 
-  if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_SetBoardProperty(*_video_master_base->board_handle()
-                                                    , keyer_props.at(VHD_KEYER_BP_ALPHABLEND_FACTOR)
-                                                    , 1023)
-                                     }, "Could not configure alphablend factor")){
-                                      return false;
-                                     }
+  if (!_video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{
+          VHD_SetBoardProperty(*_video_master_base->board_handle(),
+                               keyer_props.at(VHD_KEYER_BP_ALPHABLEND_FACTOR), 1023)},
+      "Could not configure alphablend factor")) {
+    return false;
+  }
 
-  if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_SetBoardProperty(*_video_master_base->board_handle()
-                                                        , keyer_props.at(VHD_KEYER_BP_ENABLE)
-                                                        , TRUE)
-                                     }, "Could not enable keyer")){
-                                      return false;
-                                     }
+  if (!_video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{
+          VHD_SetBoardProperty(*_video_master_base->board_handle(),
+                               keyer_props.at(VHD_KEYER_BP_ENABLE), TRUE)},
+      "Could not enable keyer")) {
+    return false;
+  }
 
   return true;
 }
@@ -322,20 +343,23 @@ bool VideoMasterTransmitterOp::configure_board_for_overlay() {
 bool VideoMasterTransmitterOp::configure_stream_for_overlay() {
   bool success_b = true;
 
-  if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                    VHD_SetStreamProperty(*_video_master_base->stream_handle()
-                                                         , VHD_CORE_SP_BUFFER_PACKING
-                                                         , VHD_BUFPACK_VIDEO_RGBA_32)
-                                     }, "Could not set buffer packing")){
+  if (!_video_master_base->holoscan_log_on_error(
+      Deltacast::Helper::ApiSuccess{
+          VHD_SetStreamProperty(*_video_master_base->stream_handle(),
+                                VHD_CORE_SP_BUFFER_PACKING,
+                                VHD_BUFPACK_VIDEO_RGBA_32)},
+      "Could not set buffer packing")) {
     return false;
   }
 
-  auto opt_sync_tx_property = _video_master_base->video_information()->get_sync_tx_properties();
+  auto opt_sync_tx_property =
+      _video_master_base->video_information()->get_sync_tx_properties();
   if (opt_sync_tx_property) {
-    if(!_video_master_base->holoscan_log_on_error(Deltacast::Helper::ApiSuccess{
-                                      VHD_SetStreamProperty(*_video_master_base->stream_handle()
-                                                           , *opt_sync_tx_property, TRUE)
-                                      }, "Could not set sync tx property")){
+    if (!_video_master_base->holoscan_log_on_error(
+        Deltacast::Helper::ApiSuccess{
+            VHD_SetStreamProperty(*_video_master_base->stream_handle(),
+                                  *opt_sync_tx_property, TRUE)},
+        "Could not set sync tx property")) {
       return false;
     }
   }

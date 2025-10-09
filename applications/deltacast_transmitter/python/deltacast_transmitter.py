@@ -18,7 +18,7 @@ from argparse import ArgumentParser
 
 from holoscan.core import Application
 from holoscan.operators import FormatConverterOp, VideoStreamReplayerOp
-from holoscan.resources import BlockMemoryPool, MemoryStorageType, UnboundedAllocator
+from holoscan.resources import BlockMemoryPool, MemoryStorageType
 
 from holohub.videomaster import VideoMasterTransmitterOp
 

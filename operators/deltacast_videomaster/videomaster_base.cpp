@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, DELTACAST.TV.
+ * Copyright (c) 2022-2025, DELTACAST.TV.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,26 +72,31 @@ const std::unordered_map<uint32_t, VHD_CORE_BOARDPROPERTY> id_to_firmware_loopba
     {1, VHD_CORE_BP_FIRMWARE_LOOPBACK_1}
 };
 
-VideoMasterBase::VideoMasterBase(bool is_input, uint32_t board_index, uint32_t channel_index, bool use_rdma)
-    : _is_input(is_input), _board_index(board_index), _channel_index(channel_index), _use_rdma(use_rdma) {
+VideoMasterBase::VideoMasterBase(bool is_input, uint32_t board_index,
+                                   uint32_t channel_index, bool use_rdma)
+    : _is_input(is_input), _board_index(board_index),
+      _channel_index(channel_index), _use_rdma(use_rdma) {
         // Initialize CUDA context and check for errors
         cudaError_t cuda_error = cudaSetDevice(0);
         if (cuda_error != cudaSuccess) {
-            HOLOSCAN_LOG_ERROR("Failed to set CUDA device: {}", cudaGetErrorString(cuda_error));
+            HOLOSCAN_LOG_ERROR("Failed to set CUDA device: {}",
+                               cudaGetErrorString(cuda_error));
             _is_igpu = false;  // Default to discrete GPU behavior
             return;
         }
-        
+
         cudaDeviceProp prop;
         cuda_error = cudaGetDeviceProperties(&prop, 0);
         if (cuda_error != cudaSuccess) {
-            HOLOSCAN_LOG_ERROR("Failed to get CUDA device properties: {}", cudaGetErrorString(cuda_error));
+            HOLOSCAN_LOG_ERROR("Failed to get CUDA device properties: {}",
+                               cudaGetErrorString(cuda_error));
             _is_igpu = false;  // Default to discrete GPU behavior
             return;
         }
-        
+
         _is_igpu = prop.integrated;
-        HOLOSCAN_LOG_INFO("CUDA device initialized: {} (Integrated: {})", prop.name, _is_igpu);
+        HOLOSCAN_LOG_INFO("CUDA device initialized: {} (Integrated: {})",
+                          prop.name, _is_igpu);
 }
 
 void VideoMasterBase::stop_stream() {
@@ -135,11 +140,12 @@ bool VideoMasterBase::configure_board() {
 }
 
 bool VideoMasterBase::open_stream() {
-  HOLOSCAN_LOG_INFO("Opening {} stream on channel {}", _is_input ? "input" : "output", _channel_index);
+  HOLOSCAN_LOG_INFO("Opening {} stream on channel {}",
+                    _is_input ? "input" : "output", _channel_index);
   Deltacast::Helper::ApiSuccess success;
 
   const auto &id_to_channel_type_prop =
-                      _is_input ? id_to_rx_channel_type_prop : id_to_tx_channel_type_prop;
+      _is_input ? id_to_rx_channel_type_prop : id_to_tx_channel_type_prop;
   const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
   if (id_to_channel_type_prop.find(_channel_index) == id_to_channel_type_prop.end() ||
       id_to_stream_type.find(_channel_index) == id_to_stream_type.end()) {
@@ -240,15 +246,13 @@ bool VideoMasterBase::init_buffers() {
   HOLOSCAN_LOG_INFO("Initializing {} buffers", _is_input ? "input" : "output");
   std::vector<ULONG> buffer_sizes;
   free_buffers();
-  
-  if(_use_rdma || _is_input)
-  {  
+
+  if (_use_rdma || _is_input) {
     for (auto &slot : _gpu_buffers)
       slot.resize(_video_information->get_nb_buffer_types());
   }
 
-  if(!_use_rdma)
-  {
+  if (!_use_rdma) {
     for (auto &slot : _system_buffers)
       slot.resize(_video_information->get_nb_buffer_types());
   }
@@ -261,40 +265,59 @@ bool VideoMasterBase::init_buffers() {
   }
 
   buffer_sizes.resize(_video_information->get_nb_buffer_types());
-  HOLOSCAN_LOG_DEBUG("Buffer types count: {}, Slots count: {}", _video_information->get_nb_buffer_types(), _gpu_buffers.size());
+  HOLOSCAN_LOG_DEBUG("Buffer types count: {}, Slots count: {}",
+                     _video_information->get_nb_buffer_types(), _gpu_buffers.size());
 
-  for (int buffer_type_index = 0; buffer_type_index < _video_information->get_nb_buffer_types();
+  for (int buffer_type_index = 0;
+       buffer_type_index < _video_information->get_nb_buffer_types();
        buffer_type_index++) {
     VHD_GetApplicationBuffersSize(*stream_handle(),
                                   buffer_type_index,
                                   &buffer_sizes[buffer_type_index]);
-    HOLOSCAN_LOG_DEBUG("Buffer type {}: size = {} bytes", buffer_type_index, buffer_sizes[buffer_type_index]);
+    HOLOSCAN_LOG_DEBUG("Buffer type {}: size = {} bytes",
+                       buffer_type_index, buffer_sizes[buffer_type_index]);
     if (!buffer_sizes[buffer_type_index])
       continue;
 
     HOLOSCAN_LOG_DEBUG("Is IGPU: {}", _is_igpu);
     for (int slot_index = 0; slot_index < _gpu_buffers.size(); slot_index++) {
-      if ((buffer_type_index == _video_information->get_buffer_type() && _use_rdma) || _is_input) {
+      if ((buffer_type_index == _video_information->get_buffer_type() && _use_rdma) ||
+          _is_input) {
         cudaError_t cuda_error;
-        if(_is_igpu){
-          HOLOSCAN_LOG_DEBUG("Trying to allocate Slot {}, Buffer type {}: CUDA host alloc (iGPU) - {} bytes", slot_index, buffer_type_index, buffer_sizes[buffer_type_index]);
-          cuda_error = cudaHostAlloc(&_gpu_buffers[slot_index][buffer_type_index], buffer_sizes[buffer_type_index], cudaHostAllocDefault);
+        if (_is_igpu) {
+          HOLOSCAN_LOG_DEBUG("Trying to allocate Slot {}, Buffer type {}: "
+                             "CUDA host alloc (iGPU) - {} bytes",
+                             slot_index, buffer_type_index,
+                             buffer_sizes[buffer_type_index]);
+          cuda_error = cudaHostAlloc(&_gpu_buffers[slot_index][buffer_type_index],
+                                     buffer_sizes[buffer_type_index],
+                                     cudaHostAllocDefault);
           if (cuda_error != cudaSuccess) {
-            HOLOSCAN_LOG_ERROR("CUDA host allocation failed: {}", cudaGetErrorString(cuda_error));
+            HOLOSCAN_LOG_ERROR("CUDA host allocation failed: {}",
+                               cudaGetErrorString(cuda_error));
             return false;
           }
         } else {
-          HOLOSCAN_LOG_DEBUG("Trying to allocate Slot {}, Buffer type {}: CUDA device alloc - {} bytes", slot_index, buffer_type_index, buffer_sizes[buffer_type_index]);
-          cuda_error = cudaMalloc(&_gpu_buffers[slot_index][buffer_type_index], buffer_sizes[buffer_type_index]);
+          HOLOSCAN_LOG_DEBUG("Trying to allocate Slot {}, Buffer type {}: "
+                             "CUDA device alloc - {} bytes",
+                             slot_index, buffer_type_index,
+                             buffer_sizes[buffer_type_index]);
+          cuda_error = cudaMalloc(&_gpu_buffers[slot_index][buffer_type_index],
+                                  buffer_sizes[buffer_type_index]);
           if (cuda_error != cudaSuccess) {
-            HOLOSCAN_LOG_ERROR("CUDA device allocation failed: {}", cudaGetErrorString(cuda_error));
+            HOLOSCAN_LOG_ERROR("CUDA device allocation failed: {}",
+                               cudaGetErrorString(cuda_error));
             return false;
           }
         }
       }
       if (buffer_type_index == _video_information->get_buffer_type() && !_use_rdma) {
-        HOLOSCAN_LOG_DEBUG("Trying to allocate Slot {}, Buffer type {}: posix_memalign alloc for VideoMaster DMA - {} bytes", slot_index, buffer_type_index, buffer_sizes[buffer_type_index]);
-        if(posix_memalign((void**)&_system_buffers[slot_index][buffer_type_index], 4096, buffer_sizes[buffer_type_index])) {
+        HOLOSCAN_LOG_DEBUG("Trying to allocate Slot {}, Buffer type {}: "
+                           "posix_memalign alloc for VideoMaster DMA - {} bytes",
+                           slot_index, buffer_type_index,
+                           buffer_sizes[buffer_type_index]);
+        if (posix_memalign((void**)&_system_buffers[slot_index][buffer_type_index],
+                           4096, buffer_sizes[buffer_type_index])) {
           HOLOSCAN_LOG_ERROR("posix_memalign failed for system buffers");
           return false;
         }
@@ -305,11 +328,12 @@ bool VideoMasterBase::init_buffers() {
   for (int slot_index = 0; slot_index < _slot_handles.size(); slot_index++) {
     HOLOSCAN_LOG_DEBUG("Creating slot {}/{}", slot_index + 1, _slot_handles.size());
     std::vector<VHD_APPLICATION_BUFFER_DESCRIPTOR> raw_buffer_pointer;
-    for (int buffer_type_index = 0; buffer_type_index < _video_information->get_nb_buffer_types();
+    for (int buffer_type_index = 0;
+         buffer_type_index < _video_information->get_nb_buffer_types();
          buffer_type_index++) {
       VHD_APPLICATION_BUFFER_DESCRIPTOR desc;
       desc.Size = sizeof(VHD_APPLICATION_BUFFER_DESCRIPTOR);
-      
+
       // Use system buffers for VideoMaster DMA in non-RDMA mode, GPU buffers otherwise
       if (buffer_type_index == _video_information->get_buffer_type() && !_use_rdma) {
         desc.pBuffer = (buffer_sizes[buffer_type_index]
@@ -320,16 +344,18 @@ bool VideoMasterBase::init_buffers() {
                           ? _gpu_buffers[slot_index][buffer_type_index]
                           : nullptr);
       }
-      desc.RDMAEnabled = (buffer_type_index == _video_information->get_buffer_type() && _use_rdma);
-      HOLOSCAN_LOG_DEBUG("  Buffer type {}: ptr={}, RDMA={}", buffer_type_index, (void*)desc.pBuffer, desc.RDMAEnabled);
+      desc.RDMAEnabled = (buffer_type_index == _video_information->get_buffer_type() &&
+                          _use_rdma);
+      HOLOSCAN_LOG_DEBUG("  Buffer type {}: ptr={}, RDMA={}",
+                         buffer_type_index, (void*)desc.pBuffer, desc.RDMAEnabled);
 
       raw_buffer_pointer.push_back(desc);
     }
     HOLOSCAN_LOG_DEBUG("Creating slot with {} buffer types", raw_buffer_pointer.size());
-    success = VHD_CreateSlotEx(*stream_handle()
-                              , raw_buffer_pointer.data(), &_slot_handles[slot_index]);
+    success = VHD_CreateSlotEx(*stream_handle(),
+                               raw_buffer_pointer.data(), &_slot_handles[slot_index]);
     if (!success) {
-      HOLOSCAN_LOG_ERROR("Failed to create slot. {}" , (int)success.error_code());
+      HOLOSCAN_LOG_ERROR("Failed to create slot.");
       return false;
     }
 
@@ -349,29 +375,36 @@ bool VideoMasterBase::init_buffers() {
 
 void VideoMasterBase::free_buffers() {
   HOLOSCAN_LOG_DEBUG("Freeing buffers");
-  
+
   // Free GPU buffers (always allocated)
   for (int slot_index = 0; slot_index < _gpu_buffers.size(); slot_index++) {
-    for (int buffer_type_index = 0; buffer_type_index < _gpu_buffers[slot_index].size(); buffer_type_index++) {
+    for (int buffer_type_index = 0;
+         buffer_type_index < _gpu_buffers[slot_index].size();
+         buffer_type_index++) {
       if (_gpu_buffers[slot_index][buffer_type_index] != nullptr) {
         if (_is_igpu) {
           cudaFreeHost(_gpu_buffers[slot_index][buffer_type_index]);
-          HOLOSCAN_LOG_DEBUG("Freed CUDA host buffer for slot {}, buffer type {}", slot_index, buffer_type_index);
+          HOLOSCAN_LOG_DEBUG("Freed CUDA host buffer for slot {}, buffer type {}",
+                             slot_index, buffer_type_index);
         } else {
           cudaFree(_gpu_buffers[slot_index][buffer_type_index]);
-          HOLOSCAN_LOG_DEBUG("Freed CUDA device buffer for slot {}, buffer type {}", slot_index, buffer_type_index);
+          HOLOSCAN_LOG_DEBUG("Freed CUDA device buffer for slot {}, buffer type {}",
+                             slot_index, buffer_type_index);
         }
         _gpu_buffers[slot_index][buffer_type_index] = nullptr;
       }
     }
   }
-  
+
   // Free system buffers (only allocated in non-RDMA mode)
   for (int slot_index = 0; slot_index < _system_buffers.size(); slot_index++) {
-    for (int buffer_type_index = 0; buffer_type_index < _system_buffers[slot_index].size(); buffer_type_index++) {
+    for (int buffer_type_index = 0;
+         buffer_type_index < _system_buffers[slot_index].size();
+         buffer_type_index++) {
       if (_system_buffers[slot_index][buffer_type_index] != nullptr) {
         free(_system_buffers[slot_index][buffer_type_index]);
-        HOLOSCAN_LOG_DEBUG("Freed system buffer for slot {}, buffer type {}", slot_index, buffer_type_index);
+        HOLOSCAN_LOG_DEBUG("Freed system buffer for slot {}, buffer type {}",
+                           slot_index, buffer_type_index);
         _system_buffers[slot_index][buffer_type_index] = nullptr;
       }
     }
@@ -379,7 +412,6 @@ void VideoMasterBase::free_buffers() {
 }
 
 bool VideoMasterBase::start_stream() {
-
   const auto &id_to_stream_type = _is_input ? id_to_rx_stream_type : id_to_tx_stream_type;
 
   Deltacast::Helper::ApiSuccess success;

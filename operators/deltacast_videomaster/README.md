@@ -6,8 +6,6 @@ This library contains two operators:
 - videomaster_source: Captures a signal from the DELTACAST capture card.
 - videomaster_transmitter: Streams a signal through the DELTACAST capture card.
 
-These operators wrap the GXF extension to provide support for the VideoMaster SDK.
-
 ## Requirements
 
 * VideoMaster SDK: Operators require the VideoMaster SDK from Deltacast.
@@ -47,25 +45,15 @@ The path to the VideoMaster SDK is also mandatory and can be given through the V
 
 ## Tests
 
-All tests performed with the DELTACAST VideoMaster SDK `6.30`.
+All tests performed with the DELTACAST VideoMaster SDK `6.32`.
 
-| Application             | Device                  | Configuration                       | Holoscan SDK 2.9 | Holoscan SDK 3.0 | Holoscan SDK 3.1 |
-| ----------------------- | ----------------------- | ----------------------------------- | ---------------- | ---------------- | ---------------- |
-| deltacast_transmitter   | DELTA-12G-elp-key 11    | TX0 (SDI) / ~~RDMA~~                | PASSED           | PASSED           | PASSED           |
-| deltacast_transmitter   | DELTA-12G-elp-key 11    | TX0 (SDI) / RDMA                    | PASSED           | PASSED           | PASSED           |
-| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX0 (SDI) / ~~RDMA~~                | PASSED           | PASSED           | PASSED           |
-| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX0 (SDI) / RDMA                    | PASSED           | PASSED           | PASSED           |
-| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX1 (HDMI) / ~~RDMA~~               | PASSED           | PASSED           | PASSED           |
-| deltacast_transmitter   | DELTA-12G11-hmi11-e-key | TX1 (HDMI) / RDMA                   | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0 (SDI) / ~~overlay~~ / ~~RDMA~~  | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0 (SDI) / ~~overlay~~ / RDMA      | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0/TX0 (SDI) / overlay / ~~RDMA~~  | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0/TX0 (SDI) / overlay / RDMA      | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0 (SDI) / ~~overlay~~ / ~~RDMA~~  | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0 (SDI) / ~~overlay~~ / RDMA      | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0/TX0 (SDI) / overlay / ~~RDMA~~  | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX0/TX0 (SDI) / overlay / RDMA      | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1 (HDMI) / ~~overlay~~ / ~~RDMA~~ | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1 (HDMI) / ~~overlay~~ / RDMA     | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1/TX1 (HDMI) / overlay / ~~RDMA~~ | PASSED           | PASSED           | PASSED           |
-| endoscopy_tool_tracking | DELTA-12G11-hmi11-e-key | RX1/TX1 (HDMI) / overlay / RDMA     | PASSED           | PASSED           | PASSED           |
+| Application             | Device                  | Configuration                       | Holoscan SDK 3.6 |
+| ----------------------- | ----------------------- | ----------------------------------- | ---------------- |
+| deltacast_transmitter   | DELTA-12G-elp-key 11    | TX0 (SDI) / ~~RDMA~~                | PASSED           |
+| deltacast_transmitter   | DELTA-12G-elp-key 11    | TX0 (SDI) / RDMA                    | PASSED           |
+| deltacast_receiver      | DELTA-12G-elp-key 11    | RX0 (SDI) / ~~RDMA~~                | PASSED           |
+| deltacast_receiver      | DELTA-12G-elp-key 11    | RX0 (SDI) / RDMA                    | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0 (SDI) / ~~overlay~~ / ~~RDMA~~  | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0 (SDI) / ~~overlay~~ / RDMA      | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0/TX0 (SDI) / overlay / ~~RDMA~~  | PASSED           |
+| endoscopy_tool_tracking | DELTA-12G-elp-key 11    | RX0/TX0 (SDI) / overlay / RDMA      | PASSED           |
