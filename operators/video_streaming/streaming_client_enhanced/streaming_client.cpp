@@ -782,12 +782,14 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
                       (tensor->device().device_type == kDLCUDA ? "GPU" : "CPU"));
     HOLOSCAN_LOG_DEBUG("Tensor shape=[{}]", fmt::join(shape, "x"));
 
+#ifdef HOLOSCAN_DEBUG_FRAME_WRITING
     // Write tensor to disk for debugging - every 10th frame
     debug_frame_counter++;
     if (debug_frame_counter % 10 == 0) {
       HOLOSCAN_LOG_DEBUG("Writing input tensor to disk (frame {})", debug_frame_counter);
       writeTensorToDisk(tensor, "client_input_tensor", debug_frame_counter);
     }
+#endif  // HOLOSCAN_DEBUG_FRAME_WRITING
 
     // Validate tensor before processing
     if (!validateTensorData(tensor)) {
@@ -952,6 +954,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
                       frame.getWidth(), frame.getHeight(),
                       static_cast<int>(frame.getFormat()), frame.getDataSize());
 
+#ifdef HOLOSCAN_DEBUG_FRAME_WRITING
     // Write VideoFrame to disk for debugging - every 10th frame
     if (debug_frame_counter % 10 == 0) {  // Save every 10th frame to match server frequency
       HOLOSCAN_LOG_DEBUG("Writing VideoFrame to disk before sending (frame {})",
@@ -1030,6 +1033,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
         HOLOSCAN_LOG_ERROR("Error writing direct buffer: {}", e.what());
       }
     }
+#endif  // HOLOSCAN_DEBUG_FRAME_WRITING
 
     // Validate frame before sending
     if (frame.getWidth() == 0 || frame.getHeight() == 0) {
@@ -1364,6 +1368,7 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
   HOLOSCAN_LOG_INFO("📥 CLIENT: Received frame #{} from server: {}x{}",
                      received_frame_counter, frame.getWidth(), frame.getHeight());
 
+#ifdef HOLOSCAN_DEBUG_FRAME_WRITING
   // Write every 10th frame to disk to match server frequency
   if (received_frame_counter % 10 == 0) {
     HOLOSCAN_LOG_INFO("💾 DEBUG: Writing frame received from server to disk (frame {})",
@@ -1483,6 +1488,7 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
       HOLOSCAN_LOG_ERROR("Exception writing received frame to disk: {}", e.what());
     }
   }
+#endif  // HOLOSCAN_DEBUG_FRAME_WRITING
 }
 
 bool StreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tensor>& tensor) {
