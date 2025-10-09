@@ -1,0 +1,468 @@
+# StreamingClient Operator
+
+The StreamingClientOp class implements a Holoscan operator that provides bidirectional video streaming capabilities with the following key components:
+
+- Configuration and Initialization:
+- Configurable parameters for frame dimensions (width, height), frame rate (fps), server connection (IP, port)
+- Input/output ports for frame data using GXF entities
+- Support for both sending and receiving frames through separate flags
+
+Frame Processing Pipeline:
+- Input handling: Receives frames as GXF entities containing H.264 encoded video tensors
+- Frame conversion: Converts input tensors to VideoFrame objects with BGRA format
+- Memory management: Implements safe memory handling with bounds checking and zero-padding
+- Output generation: Creates GXF entities with properly configured tensors for downstream processing
+
+Streaming Protocol Implementation:
+- Bidirectional streaming support through StreamingClient class
+- Frame callback system for receiving frames
+- Frame source system for sending frames
+- Connection management with server including timeout handling
+
+## Architecture Overview
+
+The StreamingClient operator integrates with the Holoscan Client Cloud Streaming library to provide seamless video streaming capabilities:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           Holoscan Application                                  │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐    ┌─────────────────────────────────────────────────────┐ │
+│  │   Input Source  │    │              StreamingClientOp                      │ │
+│  │                 │    │                                                     │ │
+│  │  • V4L2 Camera  │───▶│  ┌─────────────────┐    ┌─────────────────────────┐ │ │
+│  │  • Video File   │    │  │  Frame Convert  │    │    VideoFrame Object   │ │ │
+│  │  • Tensor Data  │    │  │  BGR → BGRA     │───▶│    • Width/Height      │ │ │
+│  │                 │    │  │  Validation     │    │    • Pixel Data        │ │ │
+│  └─────────────────┘    │  └─────────────────┘    │    • Format (BGRA)     │ │ │
+│                         │                         │    • Timestamp         │ │ │
+│  ┌─────────────────┐    │                         └─────────────────────────┘ │ │
+│  │  Output Sink    │◀───┤                                      │              │ │
+│  │                 │    │                                      ▼              │ │
+│  │  • HoloViz      │    │  ┌─────────────────────────────────────────────────┐ │ │
+│  │  • File Writer  │    │  │         Holoscan Client Cloud Streaming        │ │ │
+│  │  • Next Op      │    │  │                                                 │ │ │
+│  └─────────────────┘    │  │  ┌─────────────────┐    ┌─────────────────────┐ │ │ │
+│                         │  │  │ StreamingClient │    │   Network Protocol  │ │ │ │
+│                         │  │  │                 │    │                     │ │ │ │
+│                         │  │  │ • sendFrame()   │───▶│  • WebRTC/NVST     │ │ │ │
+│                         │  │  │ • Callbacks     │    │  • Signaling       │ │ │ │
+│                         │  │  │ • Connection    │    │  • Media Transport  │ │ │ │
+│                         │  │  │   Management    │    │  • Encryption       │ │ │ │
+│                         │  │  └─────────────────┘    └─────────────────────┘ │ │ │
+│                         │  │                                      │          │ │ │
+│                         │  └──────────────────────────────────────┼──────────┘ │ │
+│                         │                                         │            │ │
+│                         └─────────────────────────────────────────┼────────────┘ │
+└───────────────────────────────────────────────────────────────────┼──────────────┘
+                                                                    │
+                          ┌─────────────────────────────────────────┼──────────────┐
+                          │                    Network                             │
+                          │                                                        │
+                          │  ┌─────────────────────────────────────────────────┐   │
+                          │  │              Streaming Server                   │   │
+                          │  │                                                 │   │
+                          │  │  • Holoscan Server Cloud Streaming             │   │
+                          │  │  • Multi-client support                        │   │
+                          │  │  • Bidirectional communication                 │   │
+                          │  │  • Frame processing and relay                  │   │
+                          │  └─────────────────────────────────────────────────┘   │
+                          └────────────────────────────────────────────────────────┘
+```
+
+### Component Interactions
+
+1. **Input Processing**: The operator receives video frames from upstream Holoscan operators (V4L2, video replayer, etc.)
+
+2. **Frame Conversion**: Input tensors are converted to VideoFrame objects with proper format validation and memory management
+
+3. **Cloud Streaming Integration**: The VideoFrame is passed to the Holoscan Client Cloud Streaming library via `StreamingClient::sendFrame()`
+
+4. **Network Transport**: The cloud streaming library handles:
+   - WebRTC/NVST protocol implementation
+   - Signaling and connection establishment
+   - Media encoding and transport
+   - Security and encryption
+
+5. **Bidirectional Communication**: Frames received from the server are processed through callbacks and converted back to Holoscan tensors
+
+6. **Output Generation**: Processed frames are emitted as GXF entities for downstream operators (HoloViz, file writers, etc.)
+
+## Dependencies
+
+In order to build the client operator, you must first download the client binaries from NGC:
+
+```bash
+# Download using NGC CLI
+
+cd <your_holohub_path>/operators/video_streaming/streaming_client_enhanced
+ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
+unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
+
+# Clean up extraction directory and NGC download directory
+rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v0.2
+```
+
+All dependencies need to be properly installed in the operator directory structure.
+
+## Troubleshooting
+
+If you encounter build errors:
+- Make sure all required files are copied to the correct locations
+- Check that the libraries have appropriate permissions (644)
+- Ensure the directories exist inside the container environment 
+
+## Camera Setup and Testing
+
+### Testing Your V4L2 Camera
+
+Before using the streaming client with your camera, verify it's working properly:
+
+```bash
+# Check available video devices
+ls -la /dev/video*
+
+# Get camera information
+v4l2-ctl --device=/dev/video0 --info
+
+# List supported formats and resolutions
+v4l2-ctl --device=/dev/video0 --list-formats-ext
+
+# Test camera capture (replace resolution as needed)
+v4l2-ctl --device=/dev/video0 --set-fmt-video=width=1280,height=720,pixelformat=MJPG --stream-mmap --stream-count=10
+```
+
+### Configuring Camera Resolution
+
+The streaming client applications use YAML configuration files to set camera parameters. Edit the appropriate config file:
+
+#### For video_streaming_demo_client:
+Edit `../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo.yaml`:
+
+```yaml
+# V4L2 camera configuration
+v4l2_source:
+  device: "/dev/video0"        # Camera device path
+  width: 1280                  # Camera resolution width
+  height: 720                  # Camera resolution height  
+  frame_rate: 30               # Camera frame rate
+  pixel_format: "MJPG"         # Pixel format (MJPG recommended for higher resolutions)
+  # Optional camera settings:
+  # exposure_time: 100         # Exposure time in multiples of 100μs
+  # gain: 10                   # Camera gain value
+```
+
+### Recommended Settings by Camera Type
+
+**For Logitech HD Pro Webcam C920:**
+- **1280x720 @ 30fps MJPG** - Best balance of quality and performance
+- **1920x1080 @ 30fps MJPG** - High quality (higher bandwidth)
+- **640x480 @ 30fps YUYV** - Low bandwidth testing
+
+**General Guidelines:**
+- Use **MJPG** format for resolutions above 640x480 for better performance
+- Use **YUYV** format for lower resolutions or when uncompressed data is needed
+- Start with 30 FPS and adjust based on your system performance
+- Match the resolution between client and server applications
+
+### Troubleshooting Camera Issues
+
+**Camera not detected:**
+```bash
+# Check camera permissions
+sudo usermod -a -G video $USER
+# Log out and back in, then test again
+```
+
+**Poor performance:**
+- Try lower resolution (e.g., 640x480)
+- Switch from YUYV to MJPG format
+- Reduce frame rate to 15 or 24 FPS
+
+**Format not supported:**
+```bash
+# Check what formats your camera actually supports
+v4l2-ctl --device=/dev/video0 --list-formats-ext | grep -E "Size:|Interval:"
+```
+
+## FrameSaver Utility Class
+
+The `FrameSaverOp` is a utility operator that can save video frames to disk for debugging and analysis purposes. This operator is not integrated into the main streaming client but can be used as a standalone debugging tool.
+
+### Features
+
+- **Frame Capture**: Saves individual video frames to disk
+- **Multiple Formats**: Supports both raw binary (.raw) and BGR format (.bgr) output
+- **GPU/CPU Support**: Automatically handles frames from both GPU and CPU memory
+- **Configurable Output**: Customizable output directory and filename patterns
+- **Data Analysis**: Includes frame content analysis and logging
+
+### Usage
+
+#### Basic Configuration
+
+```yaml
+# Add FrameSaverOp to your Holoscan application
+frame_saver:
+  output_dir: "debug_frames"           # Directory to save frames
+  base_filename: "frame_"              # Base filename for saved frames
+  save_as_raw: false                   # false = .bgr format, true = .raw format
+```
+
+#### Integration Example
+
+```cpp
+#include "frame_saver.hpp"
+
+// In your application setup
+auto frame_saver = make_operator<holoscan::ops::FrameSaverOp>(
+    "frame_saver",
+    holoscan::Arg("output_dir", std::string("debug_frames")),
+    holoscan::Arg("base_filename", std::string("frame_")),
+    holoscan::Arg("save_as_raw", false)
+);
+
+// Connect to your frame source
+add_flow(frame_saver, source, {{"input_frames", "output_frames"}});
+```
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `output_dir` | string | "output_frames" | Directory where frames will be saved |
+| `base_filename` | string | "frame_" | Base name for saved frame files |
+| `save_as_raw` | bool | false | Whether to save as raw binary (.raw) or BGR format (.bgr) |
+
+#### Output Files
+
+- **BGR Format (.bgr)**: Standard BGR pixel format, can be opened with image viewers
+- **Raw Format (.raw)**: Binary data, useful for debugging memory layouts
+- **Naming**: `frame_000001.bgr`, `frame_000002.bgr`, etc.
+
+#### Debugging Features
+
+The FrameSaver includes built-in debugging features:
+
+- **Content Analysis**: Logs frame size, zero-pixel count, and data validity
+- **Memory Handling**: Automatically copies GPU frames to CPU before saving
+- **Error Handling**: Comprehensive error reporting for file operations
+
+#### Example Output
+
+```
+Frame 0 data analysis: size=1843200, all_zeros=false, non_zero_count=95
+Saved frame 0 to debug_frames/frame_000001.bgr
+```
+
+### Building the FrameSaver
+
+To use the FrameSaver in your application, you'll need to:
+
+1. **Include the source files** in your CMakeLists.txt:
+```cmake
+add_library(frame_saver
+  frame_saver.cpp
+  frame_saver.hpp
+)
+```
+
+2. **Link against required libraries**:
+```cmake
+target_link_libraries(frame_saver
+  holoscan::core
+  CUDA::cudart
+)
+```
+
+### Use Cases
+
+- **Debugging**: Save frames at specific points in your pipeline
+- **Analysis**: Examine frame content and format
+- **Testing**: Verify frame data integrity
+- **Development**: Visual inspection of processed frames
+
+## Python Bindings
+
+The StreamingClientOp provides Python bindings built with pybind11, enabling use in Python-based Holoscan applications.
+
+### Building Python Bindings
+
+Python bindings are automatically built when `-DHOLOHUB_BUILD_PYTHON=ON` is specified:
+
+```bash
+# Build with Python support
+./holohub build video_streaming_demo_client --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+### Using in Python Applications
+
+**Import the operator:**
+```python
+from holohub.streaming_client_enhanced import StreamingClientOp
+```
+
+**Create operator instance:**
+```python
+from holoscan.core import Application
+from holoscan.resources import UnboundedAllocator, CudaStreamPool
+from holoscan.operators import VideoStreamReplayerOp, FormatConverterOp, HolovizOp
+from holohub.streaming_client_enhanced import StreamingClientOp
+
+class StreamingClientApp(Application):
+    def compose(self):
+        # Create resources
+        allocator = UnboundedAllocator(self, name="allocator")
+        cuda_stream_pool = CudaStreamPool(
+            self,
+            name="cuda_stream_pool",
+            dev_id=0,
+            stream_flags=0,
+            stream_priority=0,
+            reserved_size=1,
+            max_size=5
+        )
+        
+        # Create video source (replayer or V4L2)
+        source_op = VideoStreamReplayerOp(
+            self,
+            name="replayer",
+            directory="/workspace/holohub/data/endoscopy",
+            basename="surgical_video",
+            frame_rate=30,
+            repeat=True,
+            realtime=True,
+            count=0
+        )
+        
+        # Create format converter
+        format_converter = FormatConverterOp(
+            self,
+            name="format_converter",
+            in_dtype="rgb888",
+            out_dtype="rgb888",
+            out_tensor_name="tensor",
+            scale_min=0.0,
+            scale_max=255.0,
+            out_channel_order=[2, 1, 0],  # RGB to BGR
+            pool=allocator,
+            cuda_stream_pool=cuda_stream_pool
+        )
+        
+        # Create streaming client
+        streaming_client = StreamingClientOp(
+            self,
+            allocator,  # Memory allocator for output buffers
+            name="streaming_client",
+            width=854,
+            height=480,
+            fps=30,
+            server_ip="127.0.0.1",
+            signaling_port=48010,
+            send_frames=True,
+            receive_frames=True,
+            min_non_zero_bytes=10
+        )
+        
+        # Optional: Add visualization
+        holoviz = HolovizOp(
+            self,
+            name="holoviz",
+            width=854,
+            height=480,
+            allocator=allocator,
+            cuda_stream_pool=cuda_stream_pool,
+            tensors=[
+                {
+                    "name": "bgra_tensor",
+                    "type": "color",
+                    "image_format": "b8g8r8a8_unorm",
+                    "opacity": 1.0,
+                    "priority": 0
+                }
+            ]
+        )
+        
+        # Connect the pipeline
+        self.add_flow(source_op, format_converter, {("output", "source_video")})
+        self.add_flow(format_converter, streaming_client)
+        self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
+```
+
+### StreamingClientOp Parameters (Python)
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `width` | int | 854 | Frame width in pixels |
+| `height` | int | 480 | Frame height in pixels |
+| `fps` | int | 30 | Frame rate |
+| `server_ip` | str | "127.0.0.1" | Server IP address |
+| `signaling_port` | int | 48010 | Server signaling port |
+| `send_frames` | bool | True | Enable sending frames to server |
+| `receive_frames` | bool | True | Enable receiving frames from server |
+| `min_non_zero_bytes` | int | 10 | Minimum non-zero bytes for frame validation |
+
+**Note:** The first positional argument after `self` should be an `Allocator` resource for output buffer allocation.
+
+### Complete Python Example
+
+A complete working Python client application is available:
+
+**[Python Streaming Client Demo](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/python/streaming_client_demo.py)**
+
+### Running the Python Client
+
+```bash
+# With video replayer (pre-recorded video)
+./holohub run video_streaming_demo_client --language python \
+  --run-args='--port 48010 --source replayer --width 854 --height 480' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --docker-opts='-e EnableHybridMode=1'
+
+# With V4L2 camera (webcam)
+./holohub run video_streaming_demo_client --language python \
+  --run-args='--port 48010 --source v4l2 --width 640 --height 480' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --docker-opts='-e EnableHybridMode=1'
+
+# Without visualization (headless)
+./holohub run video_streaming_demo_client --language python \
+  --run-args='--port 48010 --source replayer --width 854 --height 480 --no-viz' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --docker-opts='-e EnableHybridMode=1'
+```
+
+### Python Integration Test
+
+A comprehensive integration test validates the Python bindings:
+
+```bash
+# Run Python integration test
+cd applications/video_streaming_demo_enhanced
+./integration_test_python.sh
+```
+
+The test validates:
+- Python bindings build successfully
+- Python client connects to Python server
+- Bidirectional streaming works correctly
+- Both processes run for 30+ seconds without errors
+
+## Testing
+
+Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration tests:
+
+- **C++ Integration Test**: Validates C++ client with C++ server
+- **Python Integration Test**: Validates Python client with Python server (including Python bindings)
+
+Both tests provide comprehensive end-to-end validation of the streaming client working with the server.
+
+## Related Applications
+
+- **[Streaming Client Demo Enhanced](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/README.md)** - Complete application demonstrating the streaming client operator
+- **[Streaming Server Demo Enhanced](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/README.md)** - Companion server application for bidirectional streaming
+
+## Supported Platforms
+
+- Linux x86_64
+- Linux aarch64

@@ -1,0 +1,53 @@
+{
+  "application": {
+    "name": "Video Streaming Server Demo (Python)",
+    "description": "Python implementation of video streaming server using Holoscan SDK streaming operators",
+    "authors": [
+      {
+        "name": "NVIDIA",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "language": "python",
+    "version": "3.5.0",
+    "changelog": {
+      "3.5.0": "Initial Release"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "3.5.0",
+      "tested_versions": [
+        "3.5.0"
+      ]
+    },
+    "platforms": [
+      "amd64",
+      "arm64"
+    ],
+    "tags": [
+      "streaming",
+      "video",
+      "server",
+      "python",
+      "webrtc",
+      "real-time",
+      "bidirectional"
+    ],
+    "ranking": 1,
+    "requirements": {
+      "operators": [
+        {
+          "name": "streaming_server_enhanced",
+          "version": "1.0.0"
+        },
+        {
+          "name": "streaming_client_enhanced",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "run": {
+      "command": "python3 streaming_server_demo.py",
+      "workdir": "holohub_bin"
+    }
+  }
+}

@@ -78,6 +78,10 @@ function(pybind11_add_holohub_module)
 
     # custom target to ensure the module's __init__.py file is copied
     set(CMAKE_SUBMODULE_OUT_DIR ${HOLOHUB_PYTHON_MODULE_OUT_DIR}/${MODULE_NAME})
+    
+    # Convert semicolon-separated class names to comma-separated Python format
+    string(REPLACE ";" ",\n        " MODULE_CLASS_NAME "${MODULE_CLASS_NAME}")
+    
     configure_file(
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/pybind11/__init__.py
         ${HOLOHUB_PYTHON_MODULE_OUT_DIR}/${MODULE_NAME}/__init__.py
