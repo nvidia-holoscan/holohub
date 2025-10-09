@@ -155,17 +155,15 @@ holoscan::gxf::Entity generate_pattern_entity(int width, int height, int pattern
 namespace holoscan {
 
 /**
- * GstSrcOperator - Source operator that generates pattern data and pushes into GStreamer
+ * PatternGenOperator - Generates pattern data as GXF entities with tensors
  */
-class GstSrcOperator : public Operator {
+class PatternGenOperator : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(GstSrcOperator)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(PatternGenOperator)
 
   void setup(OperatorSpec& spec) override {
-    /// No input - this is a source operator that generates its own data
+    spec.output<gxf::Entity>("output");
     
-    /// Add parameters to the operator spec
-    spec.param(gst_src_resource_, "gst_src_resource", "GStreamerSource", "GStreamer source resource object");
     spec.param(allocator_, "allocator", "Allocator", "Memory allocator for tensor allocation");
     spec.param(width_, "width", "Width", "Frame width in pixels", 1920);
     spec.param(height_, "height", "Height", "Frame height in pixels", 1080);
@@ -173,7 +171,7 @@ class GstSrcOperator : public Operator {
   }
 
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
-    HOLOSCAN_LOG_INFO("GstSrcOperator::compute() called");
+    HOLOSCAN_LOG_DEBUG("PatternGenOperator::compute() - Generating pattern");
     
     // Generate a pattern entity with tensors
     auto entity = generate_pattern_entity(width_.get(), height_.get(), pattern_.get(), 
@@ -182,6 +180,37 @@ class GstSrcOperator : public Operator {
       HOLOSCAN_LOG_ERROR("Failed to generate pattern entity");
       return;
     }
+
+    // Emit the entity to the output port
+    output.emit(entity, "output");
+    HOLOSCAN_LOG_DEBUG("Pattern entity emitted");
+  }
+
+ private:
+  Parameter<std::shared_ptr<Allocator>> allocator_;
+  Parameter<int> width_;
+  Parameter<int> height_;
+  Parameter<int> pattern_;
+};
+
+/**
+ * GstSrcOperator - Receives GXF entities and pushes them into GStreamer
+ */
+class GstSrcOperator : public Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(GstSrcOperator)
+
+  void setup(OperatorSpec& spec) override {
+    spec.input<gxf::Entity>("input");
+    
+    spec.param(gst_src_resource_, "gst_src_resource", "GStreamerSource", "GStreamer source resource object");
+  }
+
+  void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
+    HOLOSCAN_LOG_DEBUG("GstSrcOperator::compute() - Receiving entity");
+    
+    // Receive the entity from the input port
+    auto entity = input.receive<gxf::Entity>("input").value();
 
     // Convert entity to GStreamer buffer
     auto buffer = gst_src_resource_.get()->create_buffer_from_entity(entity);
@@ -203,10 +232,6 @@ class GstSrcOperator : public Operator {
 
  private:
   Parameter<GstSrcResourcePtr> gst_src_resource_;
-  Parameter<std::shared_ptr<Allocator>> allocator_;
-  Parameter<int> width_;
-  Parameter<int> height_;
-  Parameter<int> pattern_;
 };
 
 /**
@@ -230,19 +255,24 @@ class GstSrcApp : public Application {
     // Create an allocator for tensor memory
     auto allocator = make_resource<UnboundedAllocator>("allocator");
 
-    // Create the operator that generates pattern and pushes to GStreamer
-    auto gst_op = make_operator<GstSrcOperator>(
-        "gst_src_op",
+    // Create the pattern generator operator
+    auto pattern_gen_op = make_operator<PatternGenOperator>(
+        "pattern_gen_op",
         make_condition<CountCondition>(iteration_count_),
-        Arg("gst_src_resource", holoscan_gst_src_),
         Arg("allocator", allocator),
         Arg("width", width_),
         Arg("height", height_),
         Arg("pattern", pattern_)
     );
 
-    // Add operator to the application
-    add_operator(gst_op);
+    // Create the GStreamer source operator
+    auto gst_src_op = make_operator<GstSrcOperator>(
+        "gst_src_op",
+        Arg("gst_src_resource", holoscan_gst_src_)
+    );
+
+    // Connect the operators: pattern generator -> GStreamer source
+    add_flow(pattern_gen_op, gst_src_op);
   }
 
   std::shared_ptr<GstSrcResource> get_src_resource() const {
