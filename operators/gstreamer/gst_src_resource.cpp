@@ -251,15 +251,29 @@ gst_holoscan_src_plugin_init(GstPlugin *plugin)
 namespace holoscan {
 
 // Push buffer into the pipeline
-std::future<void> GstSrcResource::push_buffer(gst::Buffer buffer) {
-  std::lock_guard<std::mutex> lock(mutex_);
-
-  // Create a promise for consumption notification
-  std::promise<void> promise;
-  auto future = promise.get_future();
-  buffer_queue_.emplace(std::make_pair(std::move(buffer), std::move(promise)));
+bool GstSrcResource::push_buffer(gst::Buffer buffer) {
+  if (!buffer.get()) {
+    return false;
+  }
+  
+  std::unique_lock<std::mutex> lock(mutex_);
+  
+  // Wait if queue is at capacity (only if queue_limit is not 0)
+  size_t limit = queue_limit_.get();
+  if (limit > 0) {
+    queue_cv_.wait(lock, [this, limit]() {
+      return buffer_queue_.size() < limit || eos_sent_;
+    });
+    
+    // Check if we woke up due to EOS
+    if (eos_sent_) {
+      return false;
+    }
+  }
+  
+  buffer_queue_.emplace(std::move(buffer));
   queue_cv_.notify_one();
-  return future;
+  return true;
 }
 
 // Get current negotiated caps
@@ -434,17 +448,16 @@ gboolean GstSrcResource::stop_callback(::GstBaseSrc *src) {
   }
 
   /* Get buffer from queue */
-  gst::Buffer buffer_obj = std::move(resource->buffer_queue_.front().first);
-  std::promise<void> promise = std::move(resource->buffer_queue_.front().second);
+  gst::Buffer buffer_obj = std::move(resource->buffer_queue_.front());
   resource->buffer_queue_.pop();
   
   HOLOSCAN_LOG_DEBUG("Retrieved buffer from queue, remaining: {}", resource->buffer_queue_.size());
 
+  /* Notify waiting producers that space is available in the queue */
+  resource->queue_cv_.notify_one();
+
   /* Transfer ownership to GStreamer (increment ref count) */
   *buffer = gst_buffer_ref(buffer_obj.get());
-
-  /* Fulfill the consumption promise */
-  promise.set_value();
 
   return GST_FLOW_OK;
 }

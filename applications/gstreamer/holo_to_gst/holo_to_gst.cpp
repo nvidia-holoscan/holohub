@@ -160,14 +160,13 @@ class GstSrcOperator : public Operator {
 
     HOLOSCAN_LOG_DEBUG("Generated buffer of size {} bytes", buffer.size());
 
-    // Push buffer into the GStreamer pipeline (non-blocking with future)
-    auto push_future = gst_src_resource_.get()->push_buffer(std::move(buffer));
+    // Push buffer into the GStreamer pipeline
+    if (!gst_src_resource_.get()->push_buffer(std::move(buffer))) {
+      HOLOSCAN_LOG_ERROR("Failed to push buffer to GstSrcResource");
+      return;
+    }
     
     HOLOSCAN_LOG_DEBUG("Buffer pushed to GstSrcResource");
-    
-    // Optionally wait for the buffer to be consumed
-    // For now we just let it push asynchronously
-    // push_future.wait();
   }
 
  private:

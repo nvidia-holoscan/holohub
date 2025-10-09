@@ -89,10 +89,19 @@ class GstSrcResource : public holoscan::Resource {
 
   /**
    * @brief Push a buffer into the GStreamer pipeline
+   * 
+   * This function adds a buffer to the internal queue for consumption by GStreamer.
+   * If the queue is at capacity (controlled by queue_limit parameter), this function
+   * will block until space becomes available or until EOS is signaled.
+   * 
    * @param buffer GStreamer buffer to push
-   * @return Future that will be fulfilled when the buffer has been consumed by GStreamer
+   * @return true if buffer was successfully queued, false if buffer is invalid or EOS was signaled
+   * 
+   * @note This function provides backpressure: when the queue is full, the caller will
+   *       block until GStreamer consumes a buffer, creating natural flow control.
+   * @note If queue_limit is set to 0, the queue is unlimited and no blocking occurs.
    */
-  std::future<void> push_buffer(holoscan::gst::Buffer buffer);
+  bool push_buffer(holoscan::gst::Buffer buffer);
 
     /**
    * @brief Get the current negotiated caps from the source
@@ -130,7 +139,7 @@ class GstSrcResource : public holoscan::Resource {
   std::shared_future<holoscan::gst::GstElementGuard> src_element_future_;
 
   // Buffer queue for thread-safe async processing
-  std::queue<std::pair<holoscan::gst::Buffer, std::promise<void>>> buffer_queue_;
+  std::queue<holoscan::gst::Buffer> buffer_queue_;
 
   ::GstBuffer** pending_buffer_ = nullptr;
   mutable std::mutex mutex_;
