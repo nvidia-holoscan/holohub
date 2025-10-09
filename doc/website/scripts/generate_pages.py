@@ -140,7 +140,7 @@ tags:{tags_str}
 """
 
 
-def create_metadata_header(metadata: dict, last_modified: str, archive_version: str = None) -> str:
+def create_metadata_header(metadata: dict, last_modified: str, archive_version: str = None, version_selector_html: str = "") -> str:
     """Create the metadata header for the documentation page.
 
     This function generates a formatted metadata header with icons and labels for display
@@ -151,6 +151,7 @@ def create_metadata_header(metadata: dict, last_modified: str, archive_version: 
         metadata (dict): Dictionary containing the application metadata
         last_modified (str): String representing the last modification date
         archive_version (str, optional): Version string for archived documentation. Default: None.
+        version_selector_html (str, optional): HTML for version selector dropdown. Default: "".
 
     Returns:
         str: Formatted HTML-like string containing the metadata header with icons and labels
@@ -186,7 +187,11 @@ def create_metadata_header(metadata: dict, last_modified: str, archive_version: 
 
     line_str_inputs.append(("clock", "Last modified", last_modified))
 
-    if archive_version:
+    # Add version line - either with dropdown selector or plain text
+    if version_selector_html:
+        # Use the version selector instead of plain text
+        line_str_inputs.append(("tag", "Version", version_selector_html))
+    elif archive_version:
         line_str_inputs.append(("history", "Archive version", archive_version))
     else:
         line_str_inputs.append(("tag", "Latest version", version))
@@ -377,6 +382,89 @@ def extract_markdown_header(md_txt: str) -> tuple[str, str, str] | None:
     return None
 
 
+def create_version_selector_html(current_version: str, archives: dict, dest_dir: Path, latest_version: str = None) -> tuple[str, str]:
+    """Create HTML and JavaScript for version selector dropdown.
+    
+    Args:
+        current_version: The current version being displayed ("latest" or version number)
+        archives: Dictionary mapping version names to git references
+        dest_dir: Destination directory for the current page (to calculate relative paths)
+        latest_version: The version string from metadata.json for the latest version
+    
+    Returns:
+        Tuple of (dropdown_html, script_html) - dropdown for inline use, script for page footer
+    """
+    # Build the version options
+    options = []
+    
+    # Add "latest" option with version number
+    is_latest = current_version == "latest"
+    selected_latest = ' selected' if is_latest else ''
+    latest_label = f"latest ({latest_version})" if latest_version else "latest"
+    options.append(f'<option value="latest"{selected_latest}>{latest_label}</option>')
+    
+    # Add archived versions (sorted in reverse order)
+    for version in sorted(archives.keys(), reverse=True):
+        is_selected = current_version == version
+        selected_attr = ' selected' if is_selected else ''
+        options.append(f'<option value="{version}"{selected_attr}>{version}</option>')
+    
+    options_html = '\n'.join(options)
+    
+    dropdown_html = f'<select class="version-selector" id="versionSelector" aria-label="Select version">{options_html}</select>'
+    
+    script_html = '''
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const versionSelector = document.getElementById('versionSelector');
+    if (versionSelector) {
+        // Get all available versions from the dropdown options
+        const availableVersions = Array.from(versionSelector.options)
+            .map(opt => opt.value)
+            .filter(val => val !== 'latest');
+        
+        versionSelector.addEventListener('change', function() {
+            const selectedValue = this.value;
+            let currentPath = window.location.pathname;
+            
+            // Remove trailing slash for easier processing
+            if (currentPath.endsWith('/')) {
+                currentPath = currentPath.slice(0, -1);
+            }
+            
+            let pathParts = currentPath.split('/').filter(part => part !== '');
+            
+            // Check if the last part is a version number
+            const lastPart = pathParts[pathParts.length - 1];
+            const isOnVersionPage = availableVersions.includes(lastPart);
+            
+            if (selectedValue === 'latest') {
+                // If currently on a version page, remove the version from the path
+                if (isOnVersionPage) {
+                    pathParts.pop();
+                }
+            } else {
+                // Selecting a specific version
+                if (isOnVersionPage) {
+                    // Replace the current version with the new one
+                    pathParts[pathParts.length - 1] = selectedValue;
+                } else {
+                    // Append the version to the path
+                    pathParts.push(selectedValue);
+                }
+            }
+            
+            const newPath = '/' + pathParts.join('/') + '/';
+            window.location.href = newPath;
+        });
+    }
+});
+</script>
+'''
+    
+    return dropdown_html, script_html
+
+
 def patch_header(readme_text: str, url: str, metadata_header: str) -> str:
     """Finds the main header in the readme_text, replaces it with a linked
     version, and inserts the metadata_header.
@@ -424,6 +512,7 @@ def create_page(
     last_modified: str,
     git_repo_path: Path,
     archive: dict = {"version": None, "git_ref": "main"},
+    archives: dict = None,
 ):
     """Create a documentation page, handling both versioned and non-versioned cases.
 
@@ -435,6 +524,7 @@ def create_page(
         git_repo_path: Path to the Git repository root
         archive: Dictionary of version label and git reference strings
           - if provided, links are versioned accordingly
+        archives: Dictionary of all archives (for version selector dropdown)
     Returns:
         Generated page content as string
     """
@@ -454,14 +544,26 @@ def create_page(
         base_url,
     )
 
-    # Patch the header (finds header, links it, inserts metadata)
-    metadata_header = create_metadata_header(metadata, last_modified, archive_version)
+    # Generate version selector HTML if archives are present
+    version_selector_html = ""
+    version_script_html = ""
+    if archives:
+        current_version = archive_version if archive_version else "latest"
+        latest_version = metadata.get("version")
+        version_selector_html, version_script_html = create_version_selector_html(current_version, archives, relative_dir, latest_version)
+
+    # Patch the header (finds header, links it, inserts metadata with version selector)
+    metadata_header = create_metadata_header(metadata, last_modified, archive_version, version_selector_html)
     encoded_rel_dir = _encode_path_for_url(relative_dir)
     url = f"{base_url}/{encoded_rel_dir}"
     readme_text = patch_header(readme_text, url, metadata_header)
 
     # Append the text to the output
     output_text += readme_text
+    
+    # Append the version selector script at the end
+    if version_script_html:
+        output_text += "\n" + version_script_html
 
     # Write the mkdocs page
     with mkdocs_gen_files.open(dest_path, "w") as dest_file:
@@ -561,6 +663,7 @@ nav:
             archive_last_modified,
             git_repo_path,
             archive={"version": version, "git_ref": git_ref},
+            archives=archives,
         )
         
         # Add archives to nav file
@@ -670,7 +773,9 @@ def parse_metadata_path(
     # Generate page
     dest_path = dest_dir / "README.md"
     last_modified = get_last_modified_date(metadata_path, git_repo_path)
-    create_page(metadata, readme_text, dest_path, last_modified, git_repo_path)
+    # Check for archives in metadata for version selector
+    archives = metadata["archives"] if "archives" in metadata else None
+    create_page(metadata, readme_text, dest_path, last_modified, git_repo_path, archives=archives)
 
     # Initialize nav file content to set title
     nav_path = dest_dir / ".nav.yml"
@@ -722,7 +827,7 @@ title: "{title}"
             parent_dest_path = parent_dest_dir / "README.md"
             parent_last_modified = get_last_modified_date(metadata_path, git_repo_path)
             create_page(
-                metadata, parent_readme_text, parent_dest_path, parent_last_modified, git_repo_path
+                metadata, parent_readme_text, parent_dest_path, parent_last_modified, git_repo_path, archives=archives
             )
 
             # Write parent nav file

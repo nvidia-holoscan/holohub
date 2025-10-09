@@ -189,3 +189,40 @@
     display: none;
   }
 }
+
+/* Version Selector Dropdown */
+.version-selector {
+  appearance: none;
+  background-color: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 4px;
+  color: var(--md-default-fg-color);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0.25em 1.5em 0.25em 0.5em;
+  font-family: var(--md-text-font);
+  font-weight: 500;
+  margin-left: 0.25em;
+  vertical-align: baseline;
+  transition: border-color 0.2s, background-color 0.2s;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.3em center;
+  background-size: 0.9em;
+}
+
+.version-selector:hover {
+  border-color: var(--md-accent-fg-color);
+  background-color: var(--md-default-fg-color--lightest);
+}
+
+.version-selector:focus {
+  outline: none;
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 0 0 2px var(--md-accent-fg-color--transparent);
+}
+
+.version-selector option {
+  background-color: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+}
