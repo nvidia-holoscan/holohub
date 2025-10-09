@@ -67,10 +67,8 @@ void StreamingServerResource::initialize() {
     StreamingServer::Config server_config = to_streaming_server_config(config_);
     streaming_server_ = std::make_unique<StreamingServer>(server_config);
 
-      // Only set event callback - this is the only callback that exists in the library
-    streaming_server_->setEventCallback([this](const StreamingServer::Event& event) {
-      handle_streaming_server_event(event);
-    });
+    // Note: Event callback will be set up by add_event_listener() when operators register
+    // This ensures the broadcast mechanism works correctly for multiple listeners
 
     is_initialized_ = true;
     start_time_ticks_ = std::chrono::steady_clock::now().time_since_epoch().count();
