@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Converter","OpenUSD", "STL"],
+		"tags": ["Converter", "OpenUSD", "STL"],
 		"ranking": 2,
 		"requirements": {}
 	}

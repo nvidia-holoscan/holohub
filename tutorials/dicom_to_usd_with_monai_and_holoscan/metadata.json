@@ -52,7 +52,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Interoperability","Medical Imaging", "MONAI", "OpenUSD", "STL"],
+		"tags": ["Interoperability", "Medical Imaging", "MONAI", "OpenUSD", "STL"],
 		"ranking": 2,
 		"requirements": {
 			"libraries": [

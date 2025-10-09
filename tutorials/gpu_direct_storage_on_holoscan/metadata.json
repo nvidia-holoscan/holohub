@@ -21,7 +21,7 @@
         "platforms": [
             "aarch64"
         ],
-        "tags": ["Interoperability","Optimization","GPUDirect"],
+        "tags": ["Interoperability", "Optimization", "GPUDirect"],
         "ranking": 4,
         "requirements": {}
     }

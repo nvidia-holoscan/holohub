@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Robotics","ROS2", "Publisher", "Subscriber", "Python"],
+		"tags": ["Robotics", "ROS2", "Publisher", "Subscriber", "Python"],
 		"ranking": 1,
 		"requirements": {},
 		"default_mode": "publisher",

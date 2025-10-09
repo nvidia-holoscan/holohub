@@ -28,7 +28,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Networking and Distributed Computing","DPDK", "RDMA", "GPUNetIO", "GPUDirect", "HPC"],
+		"tags": ["Networking and Distributed Computing", "DPDK", "RDMA", "GPUNetIO", "GPUDirect", "HPC"],
 		"ranking": 1,
 		"requirements": {
 			"applications": [

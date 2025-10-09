@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Development","VS Code","Debugging"],
+		"tags": ["Development", "VS Code", "Debugging"],
 		"ranking": 1,
 		"requirements": {}
 	}

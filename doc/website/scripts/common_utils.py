@@ -123,7 +123,16 @@ def get_metadata_file_commit_date(metadata_path: Path, git_repo_path: Path) -> d
         datetime: The date when the metadata.json was first committed (application creation date)
     """
     rel_file_path = str(metadata_path.relative_to(git_repo_path))
-    cmd = f"git -C {git_repo_path} log --follow --format=%at --reverse {rel_file_path}".split()
+    cmd = [
+        "git",
+        "-C",
+        str(git_repo_path),
+        "log",
+        "--follow",
+        "--format=%at",
+        "--reverse",
+        rel_file_path,
+    ]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         timestamps = result.stdout.strip().split("\n")
