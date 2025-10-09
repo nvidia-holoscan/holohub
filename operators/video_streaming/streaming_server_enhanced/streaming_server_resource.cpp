@@ -241,14 +241,19 @@ void StreamingServerResource::set_event_callback(EventCallback callback) {
 }
 
 void StreamingServerResource::add_event_listener(EventCallback callback) {
+  bool is_first_listener = false;
+  
   // Add a new listener without removing existing ones
   {
     std::lock_guard<std::mutex> lock(event_listeners_mutex_);
     event_listeners_.push_back(callback);
+    // Check if this is the first listener while still holding the lock
+    is_first_listener = (event_listeners_.size() == 1);
   }
 
   // If this is the first listener, set up the broadcast callback
-  if (streaming_server_ && event_listeners_.size() == 1) {
+  // (This happens outside the lock to avoid potential deadlock)
+  if (streaming_server_ && is_first_listener) {
     streaming_server_->setEventCallback(
         [this](const StreamingServer::Event& event) {
           // First update internal state
