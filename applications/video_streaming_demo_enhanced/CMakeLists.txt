@@ -148,20 +148,29 @@ if(BUILD_TESTING)
                echo '✗ Server: Downstream connection not established'
              fi
 
-             # Check for frame processing
-             if grep -q 'Processing UNIQUE frame' \$SERVER_LOG; then
-               FRAME_COUNT=\$(grep -c 'Processing UNIQUE frame' \$SERVER_LOG)
-               echo \"✓ Server: Processed \$FRAME_COUNT unique frames\"
-               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
-             else
-               echo '✗ Server: No frames processed'
-             fi
+            # Check for upstream frame processing (client -> server)
+            if grep -q 'Processing UNIQUE frame' \$SERVER_LOG; then
+              FRAME_COUNT=\$(grep -c 'Processing UNIQUE frame' \$SERVER_LOG)
+              echo \"✓ Server: StreamingServerUpstreamOp processed \$FRAME_COUNT unique frames\"
+              SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+            else
+              echo '✗ Server: StreamingServerUpstreamOp - No frames processed'
+            fi
 
-             # Check for frame stats (optional but good indicator)
-             if grep -q 'Frame Processing Stats' \$SERVER_LOG; then
-               echo '✓ Server: Frame processing statistics logged'
-               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
-             fi
+            # Check for downstream frame transmission (server -> client)
+            if grep -q 'DOWNSTREAM: Processing tensor' \$SERVER_LOG; then
+              DOWNSTREAM_COUNT=\$(grep -c 'DOWNSTREAM: Processing tensor' \$SERVER_LOG)
+              echo \"✓ Server: StreamingServerDownstreamOp processed \$DOWNSTREAM_COUNT tensors\"
+              SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+            else
+              echo '✗ Server: StreamingServerDownstreamOp - No tensors processed'
+            fi
+
+            # Check for frame stats (optional but good indicator)
+            if grep -q 'Frame Processing Stats' \$SERVER_LOG; then
+              echo '✓ Server: Frame processing statistics logged'
+              SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+            fi
 
              echo ''
              echo '=== Verifying Client Logs ==='
