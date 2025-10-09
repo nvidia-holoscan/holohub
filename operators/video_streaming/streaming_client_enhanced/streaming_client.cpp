@@ -844,7 +844,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     HOLOSCAN_LOG_DEBUG("BGRA FRAME PROCESSING:");
     HOLOSCAN_LOG_DEBUG("  - Tensor data pointer: {}", tensor->data() ? "VALID" : "NULL");
     HOLOSCAN_LOG_DEBUG("  - Input BGR frame size: {} bytes", tensor->nbytes());
-    HOLOSCAN_LOG_DEBUG("  - Tensor shape: {}", shape_str);
+    HOLOSCAN_LOG_DEBUG("  - Tensor shape: [{}]", fmt::join(shape, "x"));
     HOLOSCAN_LOG_DEBUG("  - Converting BGR to BGRA format");
     HOLOSCAN_LOG_DEBUG("  - Using client configured dimensions: {}x{}",
                        expected_width, expected_height);
