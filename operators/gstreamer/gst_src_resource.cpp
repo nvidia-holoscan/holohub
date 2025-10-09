@@ -29,6 +29,8 @@
 #include <dlpack/dlpack.h>
 #include <holoscan/core/execution_context.hpp>
 #include <gxf/std/tensor.hpp>
+#include <cstring>
+#include <memory>
 
 // Forward declaration of GstSrcResource for C code
 namespace holoscan { class GstSrcResource; }
@@ -302,12 +304,140 @@ void GstSrcResource::send_eos() {
   HOLOSCAN_LOG_DEBUG("EOS signal sent to source during shutdown");
 }
 
+// Wrapper to keep tensor alive while GStreamer uses its memory
+struct TensorWrapper {
+  std::shared_ptr<nvidia::gxf::DLManagedTensorContext> dl_ctx;  // Keep tensor memory alive
+  
+  explicit TensorWrapper(std::shared_ptr<nvidia::gxf::DLManagedTensorContext> ctx) 
+    : dl_ctx(std::move(ctx)) {}
+};
+
+// Callback to free TensorWrapper when GstMemory is destroyed
+static void free_tensor_wrapper(gpointer user_data) {
+  auto* wrapper = static_cast<TensorWrapper*>(user_data);
+  delete wrapper;
+}
+
 gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity) const {
-  // TODO: Implement tensor to GStreamer buffer conversion with zero-copy
-  // This is the inverse of create_entity_from_buffer in GstSinkResource
-  // For now, return empty buffer
-  HOLOSCAN_LOG_WARN("create_buffer_from_entity not yet implemented");
-  return gst::Buffer();
+  if (!entity) {
+    HOLOSCAN_LOG_ERROR("Invalid entity provided");
+    return gst::Buffer();
+  }
+
+  // Create an empty GStreamer buffer
+  ::GstBuffer* gst_buffer = gst_buffer_new();
+  if (!gst_buffer) {
+    HOLOSCAN_LOG_ERROR("Failed to create GStreamer buffer");
+    return gst::Buffer();
+  }
+
+  // Find all tensor components in the entity
+  gxf_uid_t component_ids[64];  // Max 64 components
+  uint64_t num_components = 64;
+  gxf_result_t result = GxfComponentFindAll(entity.context(), entity.eid(), 
+                                            &num_components, component_ids);
+  if (result != GXF_SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to find components in entity");
+    gst_buffer_unref(gst_buffer);
+    return gst::Buffer();
+  }
+
+  int tensor_count = 0;
+  size_t total_size = 0;
+
+  // Iterate through all components and process tensors
+  for (uint64_t i = 0; i < num_components; i++) {
+    // Get component type info
+    gxf_tid_t tid;
+    result = GxfComponentType(entity.context(), component_ids[i], &tid);
+    if (result != GXF_SUCCESS) {
+      continue;
+    }
+
+    // Check if this is a Tensor component
+    const char* type_name = nullptr;
+    result = GxfComponentTypeName(entity.context(), tid, &type_name);
+    if (result != GXF_SUCCESS || !type_name) {
+      continue;
+    }
+
+    if (std::strcmp(type_name, "nvidia::gxf::Tensor") != 0) {
+      continue;  // Not a tensor, skip
+    }
+
+    // Get tensor pointer
+    void* tensor_ptr = nullptr;
+    result = GxfComponentPointer(entity.context(), component_ids[i], 
+                                  GxfTidNull(), &tensor_ptr);
+    if (result != GXF_SUCCESS) {
+      HOLOSCAN_LOG_WARN("Failed to get tensor pointer for component {}", i);
+      continue;
+    }
+
+    auto* tensor = static_cast<nvidia::gxf::Tensor*>(tensor_ptr);
+    
+    // Verify tensor is on host memory
+    if (tensor->storage_type() != nvidia::gxf::MemoryStorageType::kHost) {
+      HOLOSCAN_LOG_WARN("Skipping tensor {} - not in host memory", tensor_count);
+      continue;
+    }
+
+    size_t tensor_size = tensor->size();
+    uint8_t* tensor_data = static_cast<uint8_t*>(tensor->pointer());
+    
+    if (!tensor_data || tensor_size == 0) {
+      HOLOSCAN_LOG_WARN("Skipping tensor {} - invalid data or size", tensor_count);
+      continue;
+    }
+
+    // Get the DLManagedTensorContext shared_ptr to keep tensor memory alive
+    auto maybe_dl_ctx = tensor->toDLManagedTensorContext();
+    if (!maybe_dl_ctx) {
+      HOLOSCAN_LOG_ERROR("Failed to get DLManagedTensorContext for tensor {}", tensor_count);
+      continue;
+    }
+
+    // Create a TensorWrapper with the shared_ptr to keep tensor alive
+    auto wrapper = std::make_unique<TensorWrapper>(maybe_dl_ctx.value());
+
+    // Wrap the tensor memory directly (zero-copy)
+    ::GstMemory* memory = gst_memory_new_wrapped(
+        static_cast<GstMemoryFlags>(0),  // flags
+        tensor_data,                      // data pointer
+        tensor_size,                      // maxsize
+        0,                                // offset
+        tensor_size,                      // size
+        wrapper.get(),                    // user_data (TensorWrapper pointer)
+        free_tensor_wrapper);             // notify callback
+
+    if (!memory) {
+      HOLOSCAN_LOG_ERROR("Failed to wrap tensor memory {}", tensor_count);
+      // unique_ptr will automatically clean up
+      continue;
+    }
+
+    // Release ownership - GStreamer now manages the wrapper lifetime
+    wrapper.release();
+
+    // Append wrapped memory to buffer
+    gst_buffer_append_memory(gst_buffer, memory);
+    
+    tensor_count++;
+    total_size += tensor_size;
+    
+    HOLOSCAN_LOG_DEBUG("Wrapped tensor {} (zero-copy): size={} bytes", tensor_count, tensor_size);
+  }
+
+  if (tensor_count == 0) {
+    HOLOSCAN_LOG_ERROR("No valid tensors found in entity");
+    gst_buffer_unref(gst_buffer);
+    return gst::Buffer();
+  }
+
+  HOLOSCAN_LOG_DEBUG("Successfully created zero-copy GStreamer buffer from entity: {} tensors, {} total bytes",
+                     tensor_count, total_size);
+  
+  return gst::Buffer(gst_buffer);
 }
 
 // Static member function implementations for GStreamer callbacks

@@ -79,30 +79,57 @@ void generate_color_bars_pattern(uint8_t* data, int width, int height) {
   }
 }
 
-holoscan::gst::Buffer generate_pattern_buffer(int width, int height, int pattern) {
-  using namespace holoscan;
+holoscan::gxf::Entity generate_pattern_entity(int width, int height, int pattern, 
+                                               holoscan::Allocator* allocator) {
+  HOLOSCAN_LOG_DEBUG("Generating {}x{} pattern entity (type {})", width, height, pattern);
   
-  HOLOSCAN_LOG_DEBUG("Generating {}x{} pattern (type {})", width, height, pattern);
+  gxf_context_t context = allocator->gxf_context();
   
-  // Allocate buffer for RGBA data (4 bytes per pixel)
-  size_t buffer_size = width * height * 4;
-  
-  // Create GStreamer buffer
-  ::GstBuffer* gst_buffer = gst_buffer_new_allocate(nullptr, buffer_size, nullptr);
-  if (!gst_buffer) {
-    HOLOSCAN_LOG_ERROR("Failed to allocate GStreamer buffer");
-    return gst::Buffer();
+  // Create allocator handle
+  auto allocator_handle =
+      nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context, allocator->gxf_cid());
+  if (!allocator_handle) {
+    HOLOSCAN_LOG_ERROR("Failed to create allocator handle");
+    return holoscan::gxf::Entity();
   }
   
-  // Map buffer for writing
-  GstMapInfo map_info;
-  if (!gst_buffer_map(gst_buffer, &map_info, GST_MAP_WRITE)) {
-    HOLOSCAN_LOG_ERROR("Failed to map buffer for writing");
-    gst_buffer_unref(gst_buffer);
-    return gst::Buffer();
+  // Create GXF entity with tensor using CreateTensorMap
+  auto gxf_entity = nvidia::gxf::CreateTensorMap(
+      context,
+      allocator_handle.value(),
+      {{"video_frame",
+        nvidia::gxf::MemoryStorageType::kHost,
+        nvidia::gxf::Shape{static_cast<int32_t>(height),
+                          static_cast<int32_t>(width),
+                          static_cast<int32_t>(4)},  // RGBA channels
+        nvidia::gxf::PrimitiveType::kUnsigned8,
+        0,
+        nvidia::gxf::ComputeTrivialStrides(
+            nvidia::gxf::Shape{static_cast<int32_t>(height),
+                              static_cast<int32_t>(width),
+                              static_cast<int32_t>(4)},
+            sizeof(uint8_t))}},
+      false);
+  
+  if (!gxf_entity) {
+    HOLOSCAN_LOG_ERROR("Failed to create GXF entity. Error code: {}", 
+                       static_cast<int>(gxf_entity.error()));
+    return holoscan::gxf::Entity();
   }
   
-  uint8_t* data = map_info.data;
+  // Get the tensor from the entity
+  auto maybe_tensor = gxf_entity.value().get<nvidia::gxf::Tensor>("video_frame");
+  if (!maybe_tensor) {
+    HOLOSCAN_LOG_ERROR("Failed to get tensor from entity");
+    return holoscan::gxf::Entity();
+  }
+  
+  // Get pointer to tensor data
+  uint8_t* data = static_cast<uint8_t*>(maybe_tensor.value()->pointer());
+  if (!data) {
+    HOLOSCAN_LOG_ERROR("Failed to get tensor data pointer");
+    return holoscan::gxf::Entity();
+  }
   
   // Generate pattern based on type
   switch (pattern) {
@@ -119,12 +146,8 @@ holoscan::gst::Buffer generate_pattern_buffer(int width, int height, int pattern
       generate_gradient_pattern(data, width, height);
   }
   
-  // Unmap buffer
-  gst_buffer_unmap(gst_buffer, &map_info);
-  
-  // GStreamer will handle timestamps based on the pipeline clock and framerate in caps
-  
-  return gst::Buffer(gst_buffer);
+  // Wrap the GXF entity in a Holoscan entity and return
+  return holoscan::gxf::Entity(std::move(gxf_entity.value()));
 }
 
 }
@@ -143,6 +166,7 @@ class GstSrcOperator : public Operator {
     
     /// Add parameters to the operator spec
     spec.param(gst_src_resource_, "gst_src_resource", "GStreamerSource", "GStreamer source resource object");
+    spec.param(allocator_, "allocator", "Allocator", "Memory allocator for tensor allocation");
     spec.param(width_, "width", "Width", "Frame width in pixels", 1920);
     spec.param(height_, "height", "Height", "Frame height in pixels", 1080);
     spec.param(pattern_, "pattern", "Pattern", "Pattern type: 0=gradient, 1=checkerboard, 2=color bars", 0);
@@ -151,10 +175,18 @@ class GstSrcOperator : public Operator {
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
     HOLOSCAN_LOG_INFO("GstSrcOperator::compute() called");
     
-    // Generate a pattern buffer
-    auto buffer = generate_pattern_buffer(width_.get(), height_.get(), pattern_.get());
+    // Generate a pattern entity with tensors
+    auto entity = generate_pattern_entity(width_.get(), height_.get(), pattern_.get(), 
+                                          allocator_.get().get());
+    if (!entity) {
+      HOLOSCAN_LOG_ERROR("Failed to generate pattern entity");
+      return;
+    }
+
+    // Convert entity to GStreamer buffer
+    auto buffer = gst_src_resource_.get()->create_buffer_from_entity(entity);
     if (buffer.size() == 0) {
-      HOLOSCAN_LOG_ERROR("Failed to generate pattern buffer");
+      HOLOSCAN_LOG_ERROR("Failed to convert entity to buffer");
       return;
     }
 
@@ -171,6 +203,7 @@ class GstSrcOperator : public Operator {
 
  private:
   Parameter<GstSrcResourcePtr> gst_src_resource_;
+  Parameter<std::shared_ptr<Allocator>> allocator_;
   Parameter<int> width_;
   Parameter<int> height_;
   Parameter<int> pattern_;
@@ -194,11 +227,15 @@ class GstSrcApp : public Application {
     holoscan_gst_src_ = make_resource<GstSrcResource>("holoscan_src", 
         Arg("capabilities", full_caps));
 
+    // Create an allocator for tensor memory
+    auto allocator = make_resource<UnboundedAllocator>("allocator");
+
     // Create the operator that generates pattern and pushes to GStreamer
     auto gst_op = make_operator<GstSrcOperator>(
         "gst_src_op",
         make_condition<CountCondition>(iteration_count_),
         Arg("gst_src_resource", holoscan_gst_src_),
+        Arg("allocator", allocator),
         Arg("width", width_),
         Arg("height", height_),
         Arg("pattern", pattern_)
