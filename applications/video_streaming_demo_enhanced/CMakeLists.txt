@@ -151,8 +151,12 @@ if(BUILD_TESTING)
             # Check for upstream frame processing (client -> server)
             if grep -q 'Processing UNIQUE frame' \$SERVER_LOG; then
               FRAME_COUNT=\$(grep -c 'Processing UNIQUE frame' \$SERVER_LOG)
-              echo \"✓ Server: StreamingServerUpstreamOp processed \$FRAME_COUNT unique frames\"
-              SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+              if [ \$FRAME_COUNT -ge 100 ]; then
+                echo \"✓ Server: StreamingServerUpstreamOp processed \$FRAME_COUNT unique frames\"
+                SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+              else
+                echo \"✗ Server: Only \$FRAME_COUNT frames processed (minimum: 100)\"
+              fi
             else
               echo '✗ Server: StreamingServerUpstreamOp - No frames processed'
             fi
@@ -160,8 +164,12 @@ if(BUILD_TESTING)
             # Check for downstream frame transmission (server -> client)
             if grep -q 'DOWNSTREAM: Processing tensor' \$SERVER_LOG; then
               DOWNSTREAM_COUNT=\$(grep -c 'DOWNSTREAM: Processing tensor' \$SERVER_LOG)
-              echo \"✓ Server: StreamingServerDownstreamOp processed \$DOWNSTREAM_COUNT tensors\"
-              SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+              if [ \$DOWNSTREAM_COUNT -ge 100 ]; then
+                echo \"✓ Server: StreamingServerDownstreamOp processed \$DOWNSTREAM_COUNT tensors\"
+                SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+              else
+                echo \"✗ Server: Only \$DOWNSTREAM_COUNT tensors processed (minimum: 100)\"
+              fi
             else
               echo '✗ Server: StreamingServerDownstreamOp - No tensors processed'
             fi
@@ -180,8 +188,12 @@ if(BUILD_TESTING)
             # Check for successful frame sending
             if grep -q 'Frame sent successfully' \$CLIENT_LOG; then
               SENT_COUNT=\$(grep -c 'Frame sent successfully' \$CLIENT_LOG)
-              echo \"✓ Client: Sent \$SENT_COUNT frames successfully\"
-              CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+              if [ \$SENT_COUNT -ge 100 ]; then
+                echo \"✓ Client: Sent \$SENT_COUNT frames successfully\"
+                CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+              else
+                echo \"✗ Client: Only \$SENT_COUNT frames sent (minimum: 100)\"
+              fi
             else
               echo '✗ Client: No frames sent successfully'
             fi
@@ -189,8 +201,12 @@ if(BUILD_TESTING)
             # Check for client frame reception (bidirectional verification)
             if grep -q 'CLIENT: Received frame' \$CLIENT_LOG; then
               RECEIVED_COUNT=\$(grep -c 'CLIENT: Received frame' \$CLIENT_LOG)
-              echo \"✓ Client: Received \$RECEIVED_COUNT frames from server\"
-              CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+              if [ \$RECEIVED_COUNT -ge 100 ]; then
+                echo \"✓ Client: Received \$RECEIVED_COUNT frames from server\"
+                CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+              else
+                echo \"✗ Client: Only \$RECEIVED_COUNT frames received (minimum: 100)\"
+              fi
             else
               echo '✗ Client: No frames received from server'
             fi
