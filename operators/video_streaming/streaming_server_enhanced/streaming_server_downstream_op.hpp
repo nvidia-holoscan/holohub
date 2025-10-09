@@ -58,8 +58,6 @@ class StreamingServerDownstreamOp : public holoscan::Operator {
   Parameter<uint32_t> width_;           ///< Frame width
   Parameter<uint32_t> height_;          ///< Frame height
   Parameter<uint32_t> fps_;             ///< Frames per second
-  Parameter<bool> enable_processing_;     ///< Enable frame processing (mirroring, etc.)
-  Parameter<std::string> processing_type_;  ///< Type of processing to apply
   Parameter<std::shared_ptr<Allocator>> allocator_;  ///< Memory allocator
 
     // StreamingServerResource reference
@@ -74,12 +72,8 @@ class StreamingServerDownstreamOp : public holoscan::Operator {
   std::atomic<uint64_t> frames_sent_{0};
   std::atomic<std::chrono::steady_clock::time_point::rep> start_time_ticks_{0};
 
-    // Frame processing methods
-  holoscan::Tensor process_frame(const holoscan::Tensor& input_tensor);
+    // Frame conversion method
   Frame convert_tensor_to_frame(const holoscan::Tensor& tensor);
-
-    // Mirror horizontally (example processing)
-  holoscan::Tensor mirror_horizontally(const holoscan::Tensor& input_tensor);
 
     // Event callback handler (for connection status)
   void on_streaming_server_event(const StreamingServerResource::Event& event);

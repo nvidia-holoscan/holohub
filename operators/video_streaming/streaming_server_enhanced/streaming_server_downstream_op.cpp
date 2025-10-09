@@ -61,10 +61,6 @@ void StreamingServerDownstreamOp::setup(OperatorSpec& spec) {
   spec.param(width_, "width", "Frame Width", "Width of the video frames in pixels", 854u);
   spec.param(height_, "height", "Frame Height", "Height of the video frames in pixels", 480u);
   spec.param(fps_, "fps", "Frames Per Second", "Frame rate of the video", 30u);
-  spec.param(enable_processing_, "enable_processing", "Enable Processing",
-             "Enable frame processing (mirroring, etc.)", false);
-  spec.param(processing_type_, "processing_type", "Processing Type",
-             "Type of processing to apply (mirror, rotate, etc.)", std::string("none"));
   spec.param(allocator_, "allocator", "Memory Allocator",
              "Memory allocator for frame data");
   spec.param(streaming_server_resource_, "streaming_server_resource", "Streaming Server Resource",
@@ -102,8 +98,6 @@ void StreamingServerDownstreamOp::initialize() {
   HOLOSCAN_LOG_INFO("StreamingServerDownstreamOp initializing with parameters:");
   HOLOSCAN_LOG_INFO("  - Height: {}", height_.get());
   HOLOSCAN_LOG_INFO("  - FPS: {}", fps_.get());
-  HOLOSCAN_LOG_INFO("  - Processing enabled: {}",
-                     enable_processing_.has_value() ? enable_processing_.get() : false);
 
   try {
       // Add event listener on the shared resource (allows multiple operators to listen)
@@ -189,14 +183,8 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
                     static_cast<int>(input_tensor.device().device_type), input_tensor.device().device_id);
 
   try {
-      // Process the tensor if processing is enabled
-    holoscan::Tensor processed_tensor = input_tensor;
-    if (enable_processing_.has_value() && enable_processing_.get()) {
-      processed_tensor = process_frame(input_tensor);
-    }
-
       // Convert tensor to output frame format
-    Frame output_frame = convert_tensor_to_frame(processed_tensor);
+    Frame output_frame = convert_tensor_to_frame(input_tensor);
 
 #ifdef HOLOSCAN_DEBUG_FRAME_WRITING
       // DEBUG: Write output Frame to disk (every 10 frames for more frequent validation)
@@ -257,8 +245,7 @@ void StreamingServerDownstreamOp::on_streaming_server_event(
     switch (event.type) {
       case StreamingServerResource::EventType::ClientConnected:
         HOLOSCAN_LOG_INFO("✅ [DOWNSTREAM {}] Client connected: {}", timestamp, event.message);
-        // Note: NVIDIA library may not fire separate DownstreamConnected event,
-        // so we mark the downstream as connected when client connects
+        
         if (!downstream_connected_) {
           downstream_connected_ = true;
           HOLOSCAN_LOG_INFO("⬇️ [DOWNSTREAM {}] Downstream connection established: {}",
@@ -290,25 +277,6 @@ void StreamingServerDownstreamOp::on_streaming_server_event(
     HOLOSCAN_LOG_ERROR("Exception in downstream event handler: {}", e.what());
   }
 }
-
-holoscan::Tensor StreamingServerDownstreamOp::process_frame(const holoscan::Tensor& input_tensor) {
-  if (!enable_processing_.has_value() || !enable_processing_.get()) {
-    return input_tensor;    // No processing
-  }
-
-  std::string processing_type = processing_type_.has_value() ? processing_type_.get() : "none";
-
-  if (processing_type == "mirror") {
-    return mirror_horizontally(input_tensor);
-  } else if (processing_type == "rotate") {
-      // TODO: Implement rotation if needed
-    HOLOSCAN_LOG_WARN("Rotation processing not implemented yet");
-    return input_tensor;
-  } else {
-    return input_tensor;    // No processing
-  }
-}
-
 Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tensor& tensor) {
     // Get tensor properties
   auto shape = tensor.shape();
@@ -367,18 +335,6 @@ Frame StreamingServerDownstreamOp::convert_tensor_to_frame(const holoscan::Tenso
   }
 
   return output_frame;
-}
-
-holoscan::Tensor StreamingServerDownstreamOp::mirror_horizontally(
-    const holoscan::Tensor& input_tensor) {
-    // This is a simplified implementation
-    // In a real implementation, you would need to properly mirror the tensor data
-
-  HOLOSCAN_LOG_DEBUG("Applying horizontal mirror processing to tensor");
-
-    // For now, just return the input tensor
-    // TODO: Implement actual horizontal mirroring using tensor operations
-  return input_tensor;
 }
 
 }  // namespace holoscan::ops
