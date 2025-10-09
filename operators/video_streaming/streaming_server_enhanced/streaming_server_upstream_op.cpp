@@ -164,7 +164,7 @@ void StreamingServerUpstreamOp::compute(holoscan::InputContext& op_input,
   if (streaming_server_resource->try_receive_frame(received_frame)) {
     frames_received_++;
 
-      // 🔍 DUPLICATE DETECTION: Check if this frame was already processed
+      // Check if this frame was already processed
     if (is_duplicate_frame(received_frame)) {
       HOLOSCAN_LOG_WARN("⚠️  Skipping duplicate frame with timestamp {}",
                          received_frame.getTimestamp());
@@ -207,12 +207,12 @@ void StreamingServerUpstreamOp::compute(holoscan::InputContext& op_input,
       // Convert Frame to holoscan::Tensor
     holoscan::Tensor output_tensor = convert_frame_to_tensor(received_frame);
 
-      // DEBUG: Log converted tensor information (every 10 unique frames)
+      // Log converted tensor information (every 10 unique frames)
     if (unique_count % 10 == 0) {
       auto shape = output_tensor.shape();
       auto dtype = output_tensor.dtype();
       auto device = output_tensor.device();
-      HOLOSCAN_LOG_INFO("💾 DEBUG: Converted tensor info (unique frame {}): shape={}, "
+      HOLOSCAN_LOG_INFO("Converted tensor info (unique frame {}): shape={}, "
                          "dtype=({},{},{}), device=({},{})",
                          unique_count, fmt::join(shape, "x"),
                        dtype.code, dtype.bits, dtype.lanes,
