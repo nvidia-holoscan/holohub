@@ -215,8 +215,47 @@ StreamingServer::Config StreamingServerResource::get_streaming_server_config() c
 }
 
 void StreamingServerResource::set_event_callback(EventCallback callback) {
+  // For backward compatibility: clears existing listeners and sets a single callback
+  {
+    std::lock_guard<std::mutex> lock(event_listeners_mutex_);
+    event_listeners_.clear();
+    event_listeners_.push_back(callback);
+  }
+
+  // Set up the broadcast callback on the underlying StreamingServer
   if (streaming_server_) {
-    streaming_server_->setEventCallback(callback);
+    streaming_server_->setEventCallback(
+        [this](const StreamingServer::Event& event) {
+          // Broadcast to all listeners
+          std::lock_guard<std::mutex> lock(event_listeners_mutex_);
+          for (const auto& listener : event_listeners_) {
+            if (listener) {
+              listener(event);
+            }
+          }
+        });
+  }
+}
+
+void StreamingServerResource::add_event_listener(EventCallback callback) {
+  // Add a new listener without removing existing ones
+  {
+    std::lock_guard<std::mutex> lock(event_listeners_mutex_);
+    event_listeners_.push_back(callback);
+  }
+
+  // If this is the first listener, set up the broadcast callback
+  if (streaming_server_ && event_listeners_.size() == 1) {
+    streaming_server_->setEventCallback(
+        [this](const StreamingServer::Event& event) {
+          // Broadcast to all listeners
+          std::lock_guard<std::mutex> lock(event_listeners_mutex_);
+          for (const auto& listener : event_listeners_) {
+            if (listener) {
+              listener(event);
+            }
+          }
+        });
   }
 }
 

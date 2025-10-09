@@ -106,8 +106,8 @@ void StreamingServerDownstreamOp::initialize() {
                      enable_processing_.has_value() ? enable_processing_.get() : false);
 
   try {
-      // Set up event callback on the shared resource
-    streaming_server_resource->set_event_callback(
+      // Add event listener on the shared resource (allows multiple operators to listen)
+    streaming_server_resource->add_event_listener(
         [this](const StreamingServerResource::Event& event) {
       on_streaming_server_event(event);
     });
