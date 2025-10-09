@@ -207,17 +207,12 @@ void StreamingServerUpstreamOp::compute(holoscan::InputContext& op_input,
       // Convert Frame to holoscan::Tensor
     holoscan::Tensor output_tensor = convert_frame_to_tensor(received_frame);
 
-      // Log converted tensor information (every 10 unique frames)
-    if (unique_count % 10 == 0) {
-      auto shape = output_tensor.shape();
-      auto dtype = output_tensor.dtype();
-      auto device = output_tensor.device();
-      HOLOSCAN_LOG_INFO("Converted tensor info (unique frame {}): shape={}, "
-                         "dtype=({},{},{}), device=({},{})",
-                         unique_count, fmt::join(shape, "x"),
-                       dtype.code, dtype.bits, dtype.lanes,
-                       static_cast<int>(device.device_type), device.device_id);
-    }
+      // Log converted tensor information at DEBUG level
+    HOLOSCAN_LOG_DEBUG("Converted tensor info (unique frame {}): shape={}, "
+                       "dtype=({},{},{}), device=({},{})",
+                       unique_count, fmt::join(output_tensor.shape(), "x"),
+                       output_tensor.dtype().code, output_tensor.dtype().bits, output_tensor.dtype().lanes,
+                       static_cast<int>(output_tensor.device().device_type), output_tensor.device().device_id);
 
     if (output_tensor.data() != nullptr) {
         // Output the tensor
