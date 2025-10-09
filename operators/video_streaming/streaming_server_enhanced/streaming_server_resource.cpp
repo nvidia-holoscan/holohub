@@ -226,7 +226,10 @@ void StreamingServerResource::set_event_callback(EventCallback callback) {
   if (streaming_server_) {
     streaming_server_->setEventCallback(
         [this](const StreamingServer::Event& event) {
-          // Broadcast to all listeners
+          // First update internal state
+          handle_streaming_server_event(event);
+          
+          // Then broadcast to all listeners
           std::lock_guard<std::mutex> lock(event_listeners_mutex_);
           for (const auto& listener : event_listeners_) {
             if (listener) {
@@ -248,7 +251,10 @@ void StreamingServerResource::add_event_listener(EventCallback callback) {
   if (streaming_server_ && event_listeners_.size() == 1) {
     streaming_server_->setEventCallback(
         [this](const StreamingServer::Event& event) {
-          // Broadcast to all listeners
+          // First update internal state
+          handle_streaming_server_event(event);
+          
+          // Then broadcast to all listeners
           std::lock_guard<std::mutex> lock(event_listeners_mutex_);
           for (const auto& listener : event_listeners_) {
             if (listener) {
