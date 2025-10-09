@@ -105,7 +105,7 @@ void VideoMasterSourceOp::compute(InputContext& op_input, OutputContext& op_outp
     _has_lost_signal = false;
   }
 
-  HOLOSCAN_LOG_DEBUG("Videoformat detectction");
+  HOLOSCAN_LOG_DEBUG("Videoformat detection");
   auto detected_video_format = _video_master_base->video_information()->get_video_format(
       _video_master_base->stream_handle());
   if (detected_video_format &&
