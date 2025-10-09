@@ -166,10 +166,12 @@ if(BUILD_TESTING)
               echo '✗ Server: StreamingServerDownstreamOp - No tensors processed'
             fi
 
-            # Check for frame stats (optional but good indicator)
+            # Check for frame processing statistics
             if grep -q 'Frame Processing Stats' \$SERVER_LOG; then
               echo '✓ Server: Frame processing statistics logged'
               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+            else
+              echo '✗ Server: No frame processing statistics logged'
             fi
 
              echo ''
