@@ -442,7 +442,7 @@ fi
 
 ### Success Criteria
 
-The integration test **PASSES** when **ALL 9 checks** are met (6 server + 3 client):
+The integration test **PASSES** when **ALL 10 checks** are met (6 server + 4 client):
 
 #### ✅ Server Log Verification Criteria (6 checks required)
 
@@ -466,28 +466,33 @@ The integration test **PASSES** when **ALL 9 checks** are met (6 server + 3 clie
 6. **Frame Processing Statistics**: `grep -q 'Frame Processing Stats' $SERVER_LOG`
    - Verifies the server logged performance statistics at shutdown
 
-#### ✅ Client Log Verification Criteria (3 checks required)
+#### ✅ Client Log Verification Criteria (4 checks required)
 
 1. **Frame Sending Success**: `grep -q 'Frame sent successfully' $CLIENT_LOG`
    - Verifies client successfully sent frames to server
    - Typical: 567 frames sent in 30 seconds
 
-2. **Frame Validation**: `grep -q 'Frame validation passed' $CLIENT_LOG`
+2. **Frame Reception Success**: `grep -q 'CLIENT: Received frame' $CLIENT_LOG`
+   - Verifies client successfully received frames from server (bidirectional)
+   - Typical: 567 frames received in 30 seconds
+   - Completes end-to-end bidirectional verification
+
+3. **Frame Validation**: `grep -q 'Frame validation passed' $CLIENT_LOG`
    - Verifies client frame validation logic is working
    - Logs appear every 30 frames (~1 second at 30 FPS)
 
-3. **Streaming Client Started**: `grep -q 'STARTING STREAMING CLIENT' $CLIENT_LOG`
+4. **Streaming Client Started**: `grep -q 'STARTING STREAMING CLIENT' $CLIENT_LOG`
    - Verifies client initialization completed successfully
 
 #### ✅ Overall Test Success
 
 **Test PASSES if:**
 - Server checks: **6/6 passed** (required: 6)
-- Client checks: **3/3 passed** (required: 3)
-- Total: **9/9 checks passed**
+- Client checks: **4/4 passed** (required: 4)
+- Total: **10/10 checks passed**
 
 **Test FAILS if:**
-- Any check fails (server < 6 or client < 3)
+- Any check fails (server < 6 or client < 4)
 - Process crashes during execution (segfault detected but test continues)
 - Test times out (> 300 seconds)
 
@@ -529,12 +534,13 @@ Test project /workspace/holohub/build-video_streaming_demo_enhanced
 1: 
 1: === Verifying Client Logs ===
 1: ✓ Client: Sent 567 frames successfully
+1: ✓ Client: Received 567 frames from server
 1: ✓ Client: Frame validation passed
 1: ✓ Client: Streaming client started
 1: 
 1: === Test Results Summary ===
 1: Server checks passed: 6/6 (required: 6)
-1: Client checks passed: 3/3 (required: 3)
+1: Client checks passed: 4/4 (required: 4)
 1: ✓ STREAMING VERIFICATION PASSED - Frames actually transmitted!
 1: ✓ Integration test PASSED
 
@@ -631,6 +637,10 @@ If you see output like:
 ✗ Server: Downstream connection not established
 ✓ Server: StreamingServerUpstreamOp processed 567 unique frames  # But frames work!
 ✓ Server: StreamingServerDownstreamOp processed 567 tensors      # But frames work!
+
+=== Verifying Client Logs ===
+✓ Client: Sent 567 frames successfully
+✓ Client: Received 567 frames from server  # Bidirectional works!
 ```
 
 **Root Cause:** Event callback overwriting in StreamingServerResource
