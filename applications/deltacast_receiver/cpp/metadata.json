@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Deltacast Videomaster Transmitter",
+		"name": "Deltacast Videomaster Receiver",
 		"authors": [
 			{
 				"name": "Laurent Radoux",
@@ -12,25 +12,19 @@
 			}
 		],
 		"language": "C++",
-		"version": "1.1",
+		"version": "1.0",
 		"changelog": {
-			"1.0": "Initial Release",
-			"1.1": "Fix common external video source parameters"
+			"1.0": "Initial Release - Simplified receiver application for video display without AI processing"
 		},
 		"holoscan_sdk": {
 			"minimum_required_version": "0.5.0",
 			"tested_versions": [
-				"0.5.0",
-				"2.9.0",
-				"3.0.0",
 				"3.6.0"
 			]
 		},
 		"videomaster_sdk": {
 			"minimum_required_version": "6.26.0",
 			"tested_versions": [
-				"6.29.0",
-				"6.30.0",
 				"6.32.0"
 			]
 		},
@@ -38,11 +32,11 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Streaming", "Healthcare AI", "Video", "Deltacast", "Endoscopy", "RDMA", "GPUDirect"],
+		"tags": ["Healthcare AI", "Video", "Deltacast", "Receiver", "Display", "Holoviz", "RDMA", "GPUDirect"],
 		"ranking": 2,
 		"requirements": {},
 		"run": {
-			"command": "<holohub_app_bin>/deltacast_transmitter --data <holohub_data_dir>/endoscopy",
+			"command": "<holohub_app_bin>/deltacast_receiver",
 			"workdir": "holohub_bin"
 		}
 	}
