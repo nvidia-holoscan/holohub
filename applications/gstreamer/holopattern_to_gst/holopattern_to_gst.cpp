@@ -419,18 +419,15 @@ public:
     }
 
     HOLOSCAN_LOG_INFO("GStreamer pipeline started");
-    
+
     // Start bus monitoring in a background thread
-    stop_bus_monitor_ = false;
-    bus_monitor_thread_ = std::thread(&GStreamerApp::monitor_pipeline_bus, this);
+    bus_monitor_future_ = std::async(std::launch::async, [this]() { monitor_pipeline_bus(); });
   }
 
   ~GStreamerApp() {
     // Stop bus monitoring
     stop_bus_monitor_ = true;
-    if (bus_monitor_thread_.joinable()) {
-      bus_monitor_thread_.join();
-    }
+    bus_monitor_future_.wait();
     
     // Stop and cleanup pipeline
     if (pipeline_ && pipeline_.get() && GST_IS_ELEMENT(pipeline_.get())) {
@@ -442,6 +439,10 @@ public:
   // Delete copy constructor and assignment
   GStreamerApp(const GStreamerApp&) = delete;
   GStreamerApp& operator=(const GStreamerApp&) = delete;
+
+  std::shared_future<void> get_bus_monitor_future() {
+    return bus_monitor_future_;
+  }
 
 private:
   void monitor_pipeline_bus() {
@@ -464,17 +465,11 @@ private:
               HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
               g_free(debug_info);
             }
-            stop_bus_monitor_ = true;
-            // Signal the application to terminate gracefully
-            std::raise(SIGINT);
-            break;
+            return;
           }
           case GST_MESSAGE_EOS:
             HOLOSCAN_LOG_INFO("End of stream reached");
-            stop_bus_monitor_ = true;
-            // Signal the application to terminate gracefully
-            std::raise(SIGINT);
-            break;
+            return;
           case GST_MESSAGE_STATE_CHANGED: {
             // Only check state changes from the pipeline (not individual elements)
             if (GST_MESSAGE_SRC(msg.get()) == GST_OBJECT(pipeline_.get())) {
@@ -484,9 +479,7 @@ private:
               // If pipeline transitions to NULL unexpectedly, stop monitoring
               if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
                 HOLOSCAN_LOG_INFO("GStreamer window closed");
-                stop_bus_monitor_ = true;
-                // Signal the application to terminate gracefully
-                std::raise(SIGINT);
+                return;
               }
             }
             break;
@@ -501,8 +494,8 @@ private:
   std::string pipeline_desc_;
   holoscan::gst::GstElementGuard src_element_;
   holoscan::gst::GstElementGuard pipeline_;
-  std::thread bus_monitor_thread_;
   std::atomic<bool> stop_bus_monitor_;
+  std::shared_future<void> bus_monitor_future_;
 };
 
 void print_usage(const char* program_name) {
@@ -621,11 +614,13 @@ int main(int argc, char** argv) {
     }
 
     // Create the GStreamer application with the source element and start it
-    GStreamerApp gstreamer_app(pipeline_desc, src_element);
+    auto gstreamer_app = std::make_shared<GStreamerApp>(pipeline_desc, src_element);
+
+    gstreamer_app->get_bus_monitor_future().wait();
     
-    // Wait for the application to complete (will be signaled if window closes)
+    // Then destroy Holoscan app (destroy GXF context)
+    raise(SIGINT);
     app_future.wait();
-    holoscan_app.reset();
 
     HOLOSCAN_LOG_INFO("Application finished");
 

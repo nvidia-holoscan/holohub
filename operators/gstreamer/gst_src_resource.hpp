@@ -124,9 +124,6 @@ class GstSrcResource : public holoscan::Resource {
   static gboolean stop_callback(::GstBaseSrc *src);
 
  private:
-  // Send EOS signal (called by destructor to unblock waiting threads)
-  void send_eos();
-  
   // Initialize memory wrapper based on tensor storage type and caps
   void initialize_memory_wrapper(nvidia::gxf::Tensor* tensor) const;
 
@@ -140,10 +137,8 @@ class GstSrcResource : public holoscan::Resource {
   ::GstBuffer** pending_buffer_ = nullptr;
   mutable std::mutex mutex_;
   std::condition_variable queue_cv_;
+  bool is_shutting_down_ = false;
 
-  // EOS flag
-  std::atomic<bool> eos_sent_{false};
-  
   // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
   // Forward declarations for nested classes
   class MemoryWrapper;

@@ -731,11 +731,6 @@ GstSinkResource::~GstSinkResource() {
       pending_request_.reset();
       queue_cv_.notify_all();
     }
-    auto element = sink_element_future_.get();
-    if (GST_IS_ELEMENT(element.get())) {
-      gst_element_set_state(element.get(), GST_STATE_NULL);
-      // GstElementGuard will automatically unref when it goes out of scope
-    }
   }
   
   HOLOSCAN_LOG_DEBUG("GstSinkResource destroyed");

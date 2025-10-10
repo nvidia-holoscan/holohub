@@ -417,25 +417,22 @@ private:
 
 // Push buffer into the pipeline
 bool GstSrcResource::push_buffer(gst::Buffer buffer) {
-  if (!buffer.get()) {
-    return false;
-  }
   
   std::unique_lock<std::mutex> lock(mutex_);
   
   // Wait if queue is at capacity (only if queue_limit is not 0)
   size_t limit = queue_limit_.get();
-  if (limit > 0) {
-    queue_cv_.wait(lock, [this, limit]() {
-      return buffer_queue_.size() < limit || eos_sent_;
-    });
-    
-    // Check if we woke up due to EOS
-    if (eos_sent_) {
-      return false;
-    }
-  }
+  HOLOSCAN_LOG_INFO("---- WAITING START ----");
+  queue_cv_.wait(lock, [this, limit]() {
+    return buffer_queue_.size() <= limit || is_shutting_down_;
+  });
+  HOLOSCAN_LOG_INFO("---- WAITING END ----");
   
+  // Check if we woke up due to shutdown
+  if (is_shutting_down_) {
+    return false;  // Don't touch buffer_queue_, just return
+  }
+
   buffer_queue_.emplace(std::move(buffer));
   queue_cv_.notify_one();
   return true;
@@ -458,13 +455,6 @@ gst::Caps GstSrcResource::get_caps() const {
   gst_object_unref(pad);
 
   return gst::Caps(caps); // Automatic reference counting
-}
-
-// Send end-of-stream signal (private - only called during shutdown)
-void GstSrcResource::send_eos() {
-  eos_sent_ = true;
-  queue_cv_.notify_all();
-  HOLOSCAN_LOG_DEBUG("EOS signal sent to source during shutdown");
 }
 
 // Initialize memory wrapper based on tensor storage type and caps
@@ -733,15 +723,16 @@ gboolean GstSrcResource::stop_callback(::GstBaseSrc *src) {
   std::unique_lock<std::mutex> lock(resource->mutex_);
 
   /* Wait for buffer to become available or EOS */
-  if (resource->buffer_queue_.empty() && !resource->eos_sent_) {
+  if (resource->buffer_queue_.empty()) {
+    HOLOSCAN_LOG_INFO("---- WAITING START ----");
     HOLOSCAN_LOG_DEBUG("Waiting for buffer...");
   }
   resource->queue_cv_.wait(lock, [resource]() {
-    return !resource->buffer_queue_.empty() || resource->eos_sent_;
+    return !resource->buffer_queue_.empty() || resource->is_shutting_down_;
   });
-
+  HOLOSCAN_LOG_INFO("---- WAITING END ----");
   /* Check if EOS was signaled */
-  if (resource->eos_sent_ && resource->buffer_queue_.empty()) {
+  if (resource->is_shutting_down_) {
     HOLOSCAN_LOG_INFO("End of stream reached");
     return GST_FLOW_EOS;
   }
@@ -763,18 +754,15 @@ gboolean GstSrcResource::stop_callback(::GstBaseSrc *src) {
 
 GstSrcResource::~GstSrcResource() {
   HOLOSCAN_LOG_DEBUG("Destroying GstSrcResource");
-  
-  // Signal EOS to unblock any waiting GStreamer threads during shutdown
-  send_eos();
-  
-  // Check if element was created and set it to NULL state
-  if (valid()) {
-    auto element = src_element_future_.get();
-    if (GST_IS_ELEMENT(element.get())) {
-      gst_element_set_state(element.get(), GST_STATE_NULL);
-      // GstElementGuard will automatically unref when it goes out of scope
-    }
-  }
+
+  std::unique_lock<std::mutex> lock(mutex_);
+  std::queue<gst::Buffer> empty_queue;
+  std::swap(buffer_queue_, empty_queue);
+  is_shutting_down_ = true;
+  queue_cv_.notify_all();
+  queue_cv_.wait(lock, [this]() {
+    return buffer_queue_.empty();
+  });
   
   HOLOSCAN_LOG_DEBUG("GstSrcResource destroyed");
 }
