@@ -211,8 +211,10 @@ void StreamingServerUpstreamOp::compute(holoscan::InputContext& op_input,
     HOLOSCAN_LOG_DEBUG("Converted tensor info (unique frame {}): shape={}, "
                        "dtype=({},{},{}), device=({},{})",
                        unique_count, fmt::join(output_tensor.shape(), "x"),
-                       output_tensor.dtype().code, output_tensor.dtype().bits, output_tensor.dtype().lanes,
-                       static_cast<int>(output_tensor.device().device_type), output_tensor.device().device_id);
+                       output_tensor.dtype().code, output_tensor.dtype().bits,
+                       output_tensor.dtype().lanes,
+                       static_cast<int>(output_tensor.device().device_type),
+                       output_tensor.device().device_id);
 
     if (output_tensor.data() != nullptr) {
         // Output the tensor

@@ -71,7 +71,7 @@ void StreamingServerResource::initialize() {
     streaming_server_->setEventCallback([this](const StreamingServer::Event& event) {
       // Update internal state
       handle_streaming_server_event(event);
-      
+
       // Broadcast to all registered listeners
       std::lock_guard<std::mutex> lock(event_listeners_mutex_);
       for (const auto& listener : event_listeners_) {
