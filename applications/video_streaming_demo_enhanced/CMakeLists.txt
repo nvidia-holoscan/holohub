@@ -16,6 +16,11 @@
 cmake_minimum_required(VERSION 3.20)
 project(video_streaming_demo_enhanced LANGUAGES CXX)
 
+# Check if this application should be built
+if(NOT APP_video_streaming_demo_enhanced)
+  return()
+endif()
+
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 
