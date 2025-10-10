@@ -422,11 +422,9 @@ bool GstSrcResource::push_buffer(gst::Buffer buffer) {
   
   // Wait if queue is at capacity (only if queue_limit is not 0)
   size_t limit = queue_limit_.get();
-  HOLOSCAN_LOG_INFO("---- WAITING START ----");
   queue_cv_.wait(lock, [this, limit]() {
     return buffer_queue_.size() <= limit || is_shutting_down_;
   });
-  HOLOSCAN_LOG_INFO("---- WAITING END ----");
   
   // Check if we woke up due to shutdown
   if (is_shutting_down_) {
@@ -724,13 +722,11 @@ gboolean GstSrcResource::stop_callback(::GstBaseSrc *src) {
 
   /* Wait for buffer to become available or EOS */
   if (resource->buffer_queue_.empty()) {
-    HOLOSCAN_LOG_INFO("---- WAITING START ----");
     HOLOSCAN_LOG_DEBUG("Waiting for buffer...");
   }
   resource->queue_cv_.wait(lock, [resource]() {
     return !resource->buffer_queue_.empty() || resource->is_shutting_down_;
   });
-  HOLOSCAN_LOG_INFO("---- WAITING END ----");
   /* Check if EOS was signaled */
   if (resource->is_shutting_down_) {
     HOLOSCAN_LOG_INFO("End of stream reached");
