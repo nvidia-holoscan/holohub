@@ -179,8 +179,10 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
     // Log tensor information at DEBUG level
   HOLOSCAN_LOG_DEBUG("Tensor info: shape={}, dtype=({},{},{}), device=({},{})",
                     fmt::join(shape, "x"),
-                    input_tensor.dtype().code, input_tensor.dtype().bits, input_tensor.dtype().lanes,
-                    static_cast<int>(input_tensor.device().device_type), input_tensor.device().device_id);
+                    input_tensor.dtype().code, input_tensor.dtype().bits,
+                    input_tensor.dtype().lanes,
+                    static_cast<int>(input_tensor.device().device_type),
+                    input_tensor.device().device_id);
 
   try {
       // Convert tensor to output frame format
@@ -245,7 +247,7 @@ void StreamingServerDownstreamOp::on_streaming_server_event(
     switch (event.type) {
       case StreamingServerResource::EventType::ClientConnected:
         HOLOSCAN_LOG_INFO("✅ [DOWNSTREAM {}] Client connected: {}", timestamp, event.message);
-        
+
         if (!downstream_connected_) {
           downstream_connected_ = true;
           HOLOSCAN_LOG_INFO("⬇️ [DOWNSTREAM {}] Downstream connection established: {}",

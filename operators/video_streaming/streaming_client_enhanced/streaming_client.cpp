@@ -764,7 +764,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
   // Log tensor information for debugging
   for (const auto& [key, tensor] : message) {
     auto shape = tensor->shape();
-    
+
     // Periodic INFO summary (every 30 frames = ~1 second at 30fps)
     static int info_log_counter = 0;
     info_log_counter++;
