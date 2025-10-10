@@ -47,13 +47,6 @@ class GstSinkResource : public holoscan::Resource {
   HOLOSCAN_RESOURCE_FORWARD_ARGS(GstSinkResource)
   using SharedPtr = std::shared_ptr<GstSinkResource>;
 
-  GstSinkResource(const GstSinkResource& other) = delete;
-  GstSinkResource& operator=(const GstSinkResource& other) = delete;
-
-  // Move semantics
-  GstSinkResource(GstSinkResource&& other) noexcept = default;
-  GstSinkResource& operator=(GstSinkResource&& other) noexcept = default;
-
   /**
    * @brief Destructor - cleans up GStreamer resources
    */

@@ -686,8 +686,8 @@ gboolean GstSinkResource::stop_callback(::GstBaseSink *sink) {
   HOLOSCAN_LOG_DEBUG("Bridging buffer: size: {} bytes (sink: {})",
       gst_buffer_get_size(buffer), resource->name());
 
-  // Create Buffer object (no mapping yet - let the operator decide)
-  gst::Buffer buffer_obj(buffer);
+  // Create Buffer object and take ownership of the buffer (no mapping yet - let the operator decide)
+  gst::Buffer buffer_obj(gst_buffer_ref(buffer));
 
   /* Check if there is a pending request waiting for a buffer */
   if (resource->pending_request_.has_value()) {

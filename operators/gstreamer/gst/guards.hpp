@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <gst/gst.h>
+#include <gst/cuda/gstcudacontext.h>
 
 namespace holoscan {
 namespace gst {
@@ -54,6 +55,16 @@ using GstElementGuard = GstObjectGuard<GstElement>;
  */
 using GstBusGuard = GstObjectGuard<GstBus>;
 
+/**
+ * @brief Convenience alias for GstCudaContext guard
+ */
+ using GstCudaContextGuard = GstObjectGuard<GstCudaContext>;
+
+ /**
+  * @brief Convenience alias for GstAllocator guard
+  */
+ using GstAllocatorGuard = GstObjectGuard<GstAllocator>;
+ 
 /**
  * @brief RAII wrapper for GstMessage with automatic cleanup
  */

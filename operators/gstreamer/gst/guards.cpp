@@ -36,6 +36,8 @@ GstObjectGuard<T> make_gst_object_guard(T* object) {
 // Explicit template instantiations for common types
 template GstObjectGuard<GstElement> make_gst_object_guard<GstElement>(GstElement* object);
 template GstObjectGuard<GstBus> make_gst_object_guard<GstBus>(GstBus* object);
+template GstObjectGuard<GstCudaContext> make_gst_object_guard<GstCudaContext>(GstCudaContext* object);
+template GstObjectGuard<GstAllocator> make_gst_object_guard<GstAllocator>(GstAllocator* object);
 
 GstMessageGuard make_gst_message_guard(GstMessage* message) {
   return std::shared_ptr<GstMessage>(message, [](GstMessage* msg) {

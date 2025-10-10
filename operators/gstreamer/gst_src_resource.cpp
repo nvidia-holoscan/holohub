@@ -29,7 +29,6 @@
 #include <cuda_runtime_api.h>
 #include <dlpack/dlpack.h>
 #include <holoscan/core/execution_context.hpp>
-#include <gxf/std/tensor.hpp>
 #include <cstring>
 #include <memory>
 
@@ -253,6 +252,169 @@ gst_holoscan_src_plugin_init(GstPlugin *plugin)
 
 namespace holoscan {
 
+  
+ /**
+  * Abstract base class for wrapping tensor memory into GStreamer memory objects
+  */
+  class GstSrcResource::MemoryWrapper {
+   public:
+     virtual ~MemoryWrapper() = default;
+     virtual ::GstMemory* wrap_memory(nvidia::gxf::Tensor* tensor, void* user_data, GDestroyNotify notify) = 0;
+   };
+
+  /**
+ * Host memory wrapper - wraps CPU-accessible memory using standard GStreamer memory
+ */
+class GstSrcResource::HostMemoryWrapper : public MemoryWrapper {
+public:
+  HostMemoryWrapper() = default;
+  ~HostMemoryWrapper() override = default;
+  
+  // Non-copyable and non-movable
+  HostMemoryWrapper(const HostMemoryWrapper&) = delete;
+  HostMemoryWrapper& operator=(const HostMemoryWrapper&) = delete;
+  HostMemoryWrapper(HostMemoryWrapper&&) = delete;
+  HostMemoryWrapper& operator=(HostMemoryWrapper&&) = delete;
+  
+  ::GstMemory* wrap_memory(
+      nvidia::gxf::Tensor* tensor,
+      void* user_data,
+      GDestroyNotify notify) override {
+    
+    void* tensor_data = tensor->pointer();
+    size_t tensor_size = tensor->size();
+    
+    if (!tensor_data || tensor_size == 0) {
+      HOLOSCAN_LOG_ERROR("Invalid tensor data or size for host memory wrapping");
+      return nullptr;
+    }
+    
+    HOLOSCAN_LOG_DEBUG("Wrapping as host memory (zero-copy): size={} bytes", tensor_size);
+    
+    return gst_memory_new_wrapped(
+        static_cast<GstMemoryFlags>(0),  // flags
+        tensor_data,                      // data pointer
+        tensor_size,                      // maxsize
+        0,                                // offset
+        tensor_size,                      // size
+        user_data,                        // user_data
+        notify);                          // notify callback
+  }
+};
+
+/**
+ * CUDA device memory wrapper - wraps GPU memory using GStreamer CUDA memory
+ * Initializes CUDA resources in constructor, throws on failure
+ */
+class GstSrcResource::CudaMemoryWrapper : public MemoryWrapper {
+public:
+  CudaMemoryWrapper() {
+    HOLOSCAN_LOG_INFO("Initializing CUDA resources for zero-copy device memory");
+    
+    // First, check if CUDA is available using CUDA runtime API
+    int device_count = 0;
+    cudaError_t cuda_err = cudaGetDeviceCount(&device_count);
+    if (cuda_err != cudaSuccess || device_count == 0) {
+      std::string error_msg = fmt::format(
+          "CUDA not available: {} (device count: {}). "
+          "Cannot initialize CUDA resources for zero-copy device memory.",
+          cudaGetErrorString(cuda_err), device_count);
+      HOLOSCAN_LOG_ERROR(error_msg);
+      throw std::runtime_error(error_msg);
+    }
+    
+    HOLOSCAN_LOG_INFO("CUDA detected: {} device(s) available", device_count);
+    
+    // For now, assume device 0 (can be enhanced to detect actual device from tensor)
+    gint cuda_device_id = 0;
+    
+    // Initialize CUDA memory system (must be called before any GStreamer CUDA operations)
+    gst_cuda_memory_init_once();
+    
+    // Create a CUDA context for this device - wrap in RAII guard
+    cuda_context_ = gst::make_gst_object_guard(gst_cuda_context_new(cuda_device_id));
+    if (!cuda_context_) {
+      std::string error_msg = fmt::format(
+          "Failed to create CUDA context for device {}. "
+          "GStreamer CUDA support may not be properly configured.", 
+          cuda_device_id);
+      HOLOSCAN_LOG_ERROR(error_msg);
+      throw std::runtime_error(error_msg);
+    }
+    
+    // Get or create a CUDA allocator - wrap in RAII guard
+    GstAllocator* allocator = gst_allocator_find(GST_CUDA_MEMORY_TYPE_NAME);
+    if (!allocator) {
+      // If not found, create one using g_object_new
+      allocator = GST_ALLOCATOR(g_object_new(GST_TYPE_CUDA_ALLOCATOR, nullptr));
+    }
+    cuda_allocator_ = gst::make_gst_object_guard(allocator);
+    if (!cuda_allocator_) {
+      std::string error_msg = "Failed to create CUDA allocator";
+      HOLOSCAN_LOG_ERROR(error_msg);
+      throw std::runtime_error(error_msg);
+    }
+    
+    HOLOSCAN_LOG_INFO("CUDA resources initialized successfully (device {})", cuda_device_id);
+  }
+  
+  // Non-copyable and non-movable
+  CudaMemoryWrapper(const CudaMemoryWrapper&) = delete;
+  CudaMemoryWrapper& operator=(const CudaMemoryWrapper&) = delete;
+  CudaMemoryWrapper(CudaMemoryWrapper&&) = delete;
+  CudaMemoryWrapper& operator=(CudaMemoryWrapper&&) = delete;
+  
+  ::GstMemory* wrap_memory(
+      nvidia::gxf::Tensor* tensor,
+      void* user_data,
+      GDestroyNotify notify) override {
+    
+    void* tensor_data = tensor->pointer();
+    size_t tensor_size = tensor->size();
+    
+    if (!tensor_data || tensor_size == 0) {
+      HOLOSCAN_LOG_ERROR("Invalid tensor data or size for CUDA memory wrapping");
+      return nullptr;
+    }
+    
+    // Get tensor shape to create GstVideoInfo
+    auto shape = tensor->shape();
+    if (shape.rank() < 2) {
+      HOLOSCAN_LOG_ERROR("Tensor has invalid rank {} for CUDA wrapping", shape.rank());
+      return nullptr;
+    }
+    
+    // Assume tensor is in format: [height, width, channels] or [height, width]
+    gint height = shape.dimension(0);
+    gint width = shape.dimension(1);
+    GstVideoFormat format = GST_VIDEO_FORMAT_RGBA;  // Assume RGBA for now
+    
+    // Create video info for the tensor
+    GstVideoInfo video_info;
+    gst_video_info_init(&video_info);
+    if (!gst_video_info_set_format(&video_info, format, width, height)) {
+      HOLOSCAN_LOG_ERROR("Failed to set video info for CUDA memory wrapping");
+      return nullptr;
+    }
+    
+    HOLOSCAN_LOG_DEBUG("Wrapping as CUDA device memory (zero-copy): size={} bytes", tensor_size);
+    
+    // Wrap the device memory pointer in GstCudaMemory
+    return gst_cuda_allocator_alloc_wrapped(
+        GST_CUDA_ALLOCATOR(cuda_allocator_.get()),
+        cuda_context_.get(),
+        nullptr,                         // CUDA stream (nullptr = default)
+        &video_info,                     // video info
+        reinterpret_cast<CUdeviceptr>(tensor_data),  // device pointer
+        user_data,                       // user_data
+        notify);                         // notify callback
+  }
+
+private:
+  gst::GstCudaContextGuard cuda_context_;
+  gst::GstAllocatorGuard cuda_allocator_;
+};
+
 // Push buffer into the pipeline
 bool GstSrcResource::push_buffer(gst::Buffer buffer) {
   if (!buffer.get()) {
@@ -305,6 +467,22 @@ void GstSrcResource::send_eos() {
   HOLOSCAN_LOG_DEBUG("EOS signal sent to source during shutdown");
 }
 
+// Initialize memory wrapper based on tensor storage type and caps
+void GstSrcResource::initialize_memory_wrapper(nvidia::gxf::Tensor* tensor) const {
+  // Check if CUDA memory is requested in caps
+  std::string caps_str = caps_.get();
+  bool cuda_requested = caps_str.find("(memory:CUDAMemory)") != std::string::npos;
+  
+  // Determine which wrapper to create based on tensor storage type and caps
+  if (tensor->storage_type() == nvidia::gxf::MemoryStorageType::kDevice && cuda_requested) {
+    HOLOSCAN_LOG_INFO("First CUDA tensor detected - creating CUDA memory wrapper");
+    memory_wrapper_.reset(new CudaMemoryWrapper());
+  } else {
+    HOLOSCAN_LOG_INFO("Creating host memory wrapper");
+    memory_wrapper_.reset(new HostMemoryWrapper());
+  }
+}
+
 // Wrapper to keep tensor alive while GStreamer uses its memory
 struct TensorWrapper {
   std::shared_ptr<nvidia::gxf::DLManagedTensorContext> dl_ctx;  // Keep tensor memory alive
@@ -320,16 +498,12 @@ static void free_tensor_wrapper(gpointer user_data) {
 }
 
 gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity) const {
+  // Create an empty GStreamer buffer at the start (constructor will throw if allocation fails)
+  gst::Buffer gst_buffer;
+
   if (!entity) {
     HOLOSCAN_LOG_ERROR("Invalid entity provided");
-    return gst::Buffer();
-  }
-
-  // Create an empty GStreamer buffer
-  ::GstBuffer* gst_buffer = gst_buffer_new();
-  if (!gst_buffer) {
-    HOLOSCAN_LOG_ERROR("Failed to create GStreamer buffer");
-    return gst::Buffer();
+    return gst_buffer;
   }
 
   // Find all tensor components in the entity
@@ -339,8 +513,7 @@ gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity)
                                             &num_components, component_ids);
   if (result != GXF_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to find components in entity");
-    gst_buffer_unref(gst_buffer);
-    return gst::Buffer();
+    return gst_buffer;
   }
 
   int tensor_count = 0;
@@ -385,6 +558,16 @@ gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity)
       continue;
     }
 
+    // Lazy initialization of memory wrapper on first tensor
+    if (!memory_wrapper_) {
+      try {
+        initialize_memory_wrapper(tensor);
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Failed to create memory wrapper: {}", e.what());
+        return gst_buffer;
+      }
+    }
+
     // Get the DLManagedTensorContext shared_ptr to keep tensor memory alive
     auto maybe_dl_ctx = tensor->toDLManagedTensorContext();
     if (!maybe_dl_ctx) {
@@ -393,92 +576,24 @@ gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity)
     }
 
     // Create a TensorWrapper with the shared_ptr to keep tensor alive
-    auto wrapper = std::make_unique<TensorWrapper>(maybe_dl_ctx.value());
+    auto tensor_wrapper = std::make_unique<TensorWrapper>(maybe_dl_ctx.value());
 
-    ::GstMemory* memory = nullptr;
-
-    // Handle device (CUDA) vs host memory differently
-    if (tensor->storage_type() == nvidia::gxf::MemoryStorageType::kDevice) {
-      // Device memory - create GstCudaMemory for zero-copy CUDA access
-      HOLOSCAN_LOG_DEBUG("Wrapping tensor {} as CUDA device memory (zero-copy): size={} bytes", 
-                        tensor_count, tensor_size);
-      
-      // Lazy initialization: initialize CUDA resources on first device tensor
-      if (use_cuda_memory_ && !cuda_context_) {
-        HOLOSCAN_LOG_INFO("First CUDA tensor detected - initializing CUDA resources now");
-        initialize_cuda_resources();
-      }
-      
-      // Check if CUDA resources were initialized successfully
-      if (!use_cuda_memory_ || !cuda_context_ || !cuda_allocator_) {
-        HOLOSCAN_LOG_ERROR("CUDA resources not initialized - cannot wrap device memory. "
-                          "Ensure caps include (memory:CUDAMemory)");
-        continue;
-      }
-      
-      // Use pre-initialized CUDA context and allocator
-      GstCudaContext* cuda_context = static_cast<GstCudaContext*>(cuda_context_);
-      GstAllocator* allocator = static_cast<GstAllocator*>(cuda_allocator_);
-      
-      // Get tensor shape to create GstVideoInfo
-      auto shape = tensor->shape();
-      if (shape.rank() < 2) {
-        HOLOSCAN_LOG_ERROR("Tensor {} has invalid rank {}", tensor_count, shape.rank());
-        continue;
-      }
-      
-      // Assume tensor is in format: [height, width, channels] or [height, width]
-      gint height = shape.dimension(0);
-      gint width = shape.dimension(1);
-      GstVideoFormat format = GST_VIDEO_FORMAT_RGBA;  // Assume RGBA for now
-      
-      // Create video info for the tensor
-      GstVideoInfo video_info;
-      gst_video_info_init(&video_info);
-      if (!gst_video_info_set_format(&video_info, format, width, height)) {
-        HOLOSCAN_LOG_ERROR("Failed to set video info for tensor {}", tensor_count);
-        continue;
-      }
-      
-      // Wrap the device memory pointer in GstCudaMemory
-      memory = gst_cuda_allocator_alloc_wrapped(
-          GST_CUDA_ALLOCATOR(allocator),
-          cuda_context,
-          nullptr,                         // CUDA stream (nullptr = default)
-          &video_info,                     // video info
-          reinterpret_cast<CUdeviceptr>(tensor_data),  // device pointer
-          wrapper.get(),                   // user_data (TensorWrapper pointer)
-          free_tensor_wrapper);            // notify callback
-      
-      if (!memory) {
-        HOLOSCAN_LOG_ERROR("Failed to wrap CUDA device memory for tensor {}", tensor_count);
-        continue;
-      }
-    } else {
-      // Host memory - wrap directly with standard GstMemory (zero-copy)
-      HOLOSCAN_LOG_DEBUG("Wrapping tensor {} as host memory (zero-copy): size={} bytes", 
-                        tensor_count, tensor_size);
-      
-      memory = gst_memory_new_wrapped(
-          static_cast<GstMemoryFlags>(0),  // flags
-          tensor_data,                      // data pointer
-          tensor_size,                      // maxsize
-          0,                                // offset
-          tensor_size,                      // size
-          wrapper.get(),                    // user_data (TensorWrapper pointer)
-          free_tensor_wrapper);             // notify callback
-      
-      if (!memory) {
-        HOLOSCAN_LOG_ERROR("Failed to wrap host memory for tensor {}", tensor_count);
-        continue;
-      }
+    // Use the memory wrapper to wrap the tensor
+    ::GstMemory* memory = memory_wrapper_->wrap_memory(
+        tensor,
+        tensor_wrapper.get(),
+        free_tensor_wrapper);
+    
+    if (!memory) {
+      HOLOSCAN_LOG_ERROR("Failed to wrap memory for tensor {}", tensor_count);
+      continue;
     }
 
     // Release ownership - GStreamer now manages the wrapper lifetime
-    wrapper.release();
+    tensor_wrapper.release();
 
     // Append wrapped memory to buffer
-    gst_buffer_append_memory(gst_buffer, memory);
+    gst_buffer_append_memory(gst_buffer.get(), memory);
     
     tensor_count++;
     total_size += tensor_size;
@@ -486,14 +601,12 @@ gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity)
 
   if (tensor_count == 0) {
     HOLOSCAN_LOG_ERROR("No valid tensors found in entity");
-    gst_buffer_unref(gst_buffer);
-    return gst::Buffer();
+  } else {
+    HOLOSCAN_LOG_DEBUG("Successfully created zero-copy GStreamer buffer from entity: {} tensors, {} total bytes",
+                       tensor_count, total_size);
   }
-
-  HOLOSCAN_LOG_DEBUG("Successfully created zero-copy GStreamer buffer from entity: {} tensors, {} total bytes",
-                     tensor_count, total_size);
   
-  return gst::Buffer(gst_buffer);
+  return gst_buffer;
 }
 
 // Static member function implementations for GStreamer callbacks
@@ -648,78 +761,11 @@ gboolean GstSrcResource::stop_callback(::GstBaseSrc *src) {
   return GST_FLOW_OK;
 }
 
-void GstSrcResource::initialize_cuda_resources() const {
-  HOLOSCAN_LOG_INFO("Initializing CUDA resources for zero-copy device memory");
-  
-  // First, check if CUDA is available using CUDA runtime API
-  int device_count = 0;
-  cudaError_t cuda_err = cudaGetDeviceCount(&device_count);
-  if (cuda_err != cudaSuccess || device_count == 0) {
-    HOLOSCAN_LOG_ERROR("CUDA not available: {} (device count: {}). "
-                      "Cannot initialize CUDA resources for zero-copy device memory. "
-                      "Will fall back to host memory if device tensors are provided.",
-                      cudaGetErrorString(cuda_err), device_count);
-    return;
-  }
-  
-  HOLOSCAN_LOG_INFO("CUDA detected: {} device(s) available", device_count);
-  
-  // For now, assume device 0 (can be enhanced to detect actual device from tensor)
-  gint cuda_device_id = 0;
-  
-  // Initialize CUDA memory system (must be called before any GStreamer CUDA operations)
-  // Note: This calls into GStreamer's CUDA loader which may assert/abort if CUDA driver
-  // is not properly loaded
-  gst_cuda_memory_init_once();
-  
-  // Create a CUDA context for this device
-  GstCudaContext* context = gst_cuda_context_new(cuda_device_id);
-  if (!context) {
-    HOLOSCAN_LOG_ERROR("Failed to create CUDA context for device {}. "
-                      "GStreamer CUDA support may not be properly configured.", 
-                      cuda_device_id);
-    return;
-  }
-  cuda_context_ = context;
-  
-  // Get or create a CUDA allocator
-  GstAllocator* allocator = gst_allocator_find(GST_CUDA_MEMORY_TYPE_NAME);
-  if (!allocator) {
-    // If not found, create one using g_object_new
-    allocator = GST_ALLOCATOR(g_object_new(GST_TYPE_CUDA_ALLOCATOR, nullptr));
-  }
-  if (!allocator) {
-    HOLOSCAN_LOG_ERROR("Failed to create CUDA allocator");
-    gst_object_unref(context);
-    cuda_context_ = nullptr;
-    return;
-  }
-  cuda_allocator_ = allocator;
-  
-  use_cuda_memory_ = true;
-  HOLOSCAN_LOG_INFO("CUDA resources initialized successfully (device {})", cuda_device_id);
-}
-
-void GstSrcResource::cleanup_cuda_resources() {
-  if (cuda_allocator_) {
-    gst_object_unref(static_cast<GstAllocator*>(cuda_allocator_));
-    cuda_allocator_ = nullptr;
-  }
-  if (cuda_context_) {
-    gst_object_unref(static_cast<GstCudaContext*>(cuda_context_));
-    cuda_context_ = nullptr;
-  }
-  use_cuda_memory_ = false;
-}
-
 GstSrcResource::~GstSrcResource() {
   HOLOSCAN_LOG_DEBUG("Destroying GstSrcResource");
   
   // Signal EOS to unblock any waiting GStreamer threads during shutdown
   send_eos();
-  
-  // Clean up CUDA resources if they were initialized
-  cleanup_cuda_resources();
   
   // Check if element was created and set it to NULL state
   if (valid()) {
@@ -758,13 +804,6 @@ void GstSrcResource::initialize() {
   
   HOLOSCAN_LOG_INFO("Initializing GstSrcResource for data bridging");
   HOLOSCAN_LOG_INFO("Configured capabilities: '{}'", caps_.get());
-  
-  // Check if CUDA memory is requested in caps
-  std::string caps_str = caps_.get();
-  if (caps_str.find("(memory:CUDAMemory)") != std::string::npos) {
-    HOLOSCAN_LOG_INFO("CUDA memory requested in caps - will initialize on first buffer");
-    use_cuda_memory_ = true;  // Flag to initialize lazily
-  }
   
   // Initialize GStreamer if not already done
   if (!gst_is_initialized()) {

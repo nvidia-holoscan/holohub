@@ -16,7 +16,9 @@
  */
 
 #include "buffer.hpp"
+#include <holoscan/logger/logger.hpp>
 #include <sstream>
+#include <stdexcept>
 
 namespace holoscan {
 namespace gst {
@@ -97,9 +99,17 @@ bool get_audio_info_from_caps(::GstCaps* caps, int* channels, int* rate, const c
 // Buffer Implementation - RAII for GstBuffer with member functions
 // ============================================================================
 
-Buffer::Buffer() : buffer_(gst_buffer_new()) {}
+Buffer::Buffer() : buffer_(gst_buffer_new()) {
+  if (!buffer_) {
+    throw std::runtime_error("Failed to create GStreamer buffer");
+  }
+}
 
-Buffer::Buffer(::GstBuffer* buffer) : buffer_(buffer ? gst_buffer_ref(buffer) : gst_buffer_new()) {}
+Buffer::Buffer(::GstBuffer* buffer) : buffer_(buffer) {
+  if (!buffer_) {
+    throw std::runtime_error("Failed to create GStreamer buffer");
+  }
+}
 
 Buffer::~Buffer() {
   gst_buffer_unref(buffer_);
@@ -123,6 +133,12 @@ Buffer& Buffer::operator=(const Buffer& other) {
 
 Buffer::Buffer(Buffer&& other) noexcept : buffer_(other.buffer_) {
   other.buffer_ = gst_buffer_new();
+  if (!other.buffer_) {
+    // This should never happen, but if it does, we need to handle it
+    // Can't throw in noexcept, so just log and terminate
+    HOLOSCAN_LOG_CRITICAL("Failed to create GStreamer buffer in move constructor");
+    std::terminate();
+  }
 }
 
 Buffer& Buffer::operator=(Buffer&& other) noexcept {
@@ -133,6 +149,12 @@ Buffer& Buffer::operator=(Buffer&& other) noexcept {
     // Move from other
     buffer_ = other.buffer_;
     other.buffer_ = gst_buffer_new();
+    if (!other.buffer_) {
+      // This should never happen, but if it does, we need to handle it
+      // Can't throw in noexcept, so just log and terminate
+      HOLOSCAN_LOG_CRITICAL("Failed to create GStreamer buffer in move assignment");
+      std::terminate();
+    }
   }
   return *this;
 }

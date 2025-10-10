@@ -47,13 +47,6 @@ class GstSrcResource : public holoscan::Resource {
   HOLOSCAN_RESOURCE_FORWARD_ARGS(GstSrcResource)
   using SharedPtr = std::shared_ptr<GstSrcResource>;
 
-  GstSrcResource(const GstSrcResource& other) = delete;
-  GstSrcResource& operator=(const GstSrcResource& other) = delete;
-
-  // Move semantics
-  GstSrcResource(GstSrcResource&& other) noexcept = default;
-  GstSrcResource& operator=(GstSrcResource&& other) noexcept = default;
-
   /**
    * @brief Destructor - cleans up GStreamer resources
    */
@@ -134,11 +127,8 @@ class GstSrcResource : public holoscan::Resource {
   // Send EOS signal (called by destructor to unblock waiting threads)
   void send_eos();
   
-  // Initialize CUDA resources if needed based on caps (const for lazy init)
-  void initialize_cuda_resources() const;
-  
-  // Clean up CUDA resources
-  void cleanup_cuda_resources();
+  // Initialize memory wrapper based on tensor storage type and caps
+  void initialize_memory_wrapper(nvidia::gxf::Tensor* tensor) const;
 
   // Promise/future for safe element access across threads
   std::promise<holoscan::gst::GstElementGuard> src_element_promise_;
@@ -154,10 +144,13 @@ class GstSrcResource : public holoscan::Resource {
   // EOS flag
   std::atomic<bool> eos_sent_{false};
   
-  // CUDA resources (initialized lazily on first device tensor, mutable for const methods)
-  mutable void* cuda_context_ = nullptr;     // GstCudaContext*
-  mutable void* cuda_allocator_ = nullptr;   // GstAllocator*
-  mutable bool use_cuda_memory_ = false;
+  // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
+  // Forward declarations for nested classes
+  class MemoryWrapper;
+  class HostMemoryWrapper;
+  class CudaMemoryWrapper;
+  
+  mutable std::shared_ptr<MemoryWrapper> memory_wrapper_;
 
   // Resource parameters
   holoscan::Parameter<std::string> caps_;

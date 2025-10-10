@@ -31,19 +31,22 @@ namespace gst {
  * automatic cleanup when destroyed. It also provides convenient member functions
  * for common GstBuffer operations.
  * 
- * The default constructor creates an empty but valid GstBuffer, ensuring that
- * all Buffer objects are always in a valid state.
+ * The constructors create a valid GstBuffer and throw std::runtime_error if
+ * allocation fails, ensuring that all successfully constructed Buffer objects
+ * are always in a valid state.
  */
 class Buffer {
 public:
   /**
    * @brief Default constructor (creates empty buffer)
+   * @throws std::runtime_error if buffer allocation fails
    */
   Buffer();
 
   /**
    * @brief Constructor from native GstBuffer
-   * @param buffer Native GstBuffer pointer (will be referenced)
+   * @param buffer Native GstBuffer pointer (will be referenced, or creates new if NULL)
+   * @throws std::runtime_error if buffer allocation fails
    */
   explicit Buffer(::GstBuffer* buffer);
 
@@ -59,12 +62,6 @@ public:
   // Allow move operations
   Buffer(Buffer&& other) noexcept;
   Buffer& operator=(Buffer&& other) noexcept;
-
-  /**
-   * @brief Check if buffer is valid
-   * @return true if buffer is valid (always true since we create a valid buffer)
-   */
-  bool is_valid() const { return true; }
 
   /**
    * @brief Get the underlying GstBuffer pointer
