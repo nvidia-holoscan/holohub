@@ -372,9 +372,53 @@ For manual testing and debugging:
 ./holohub run video_streaming_demo_client --language cpp --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1' --run-args='-c streaming_client_demo_replayer.yaml'
 ```
 
+### Running Integration Tests
+
+There are two ways to run the integration test, depending on your use case:
+
+#### Option 1: Development/Debugging (Wrapper Script) 🛠️
+
+**Use this for:** Local development, debugging, detailed output
+
+```bash
+# From holohub root
+./applications/video_streaming_demo_enhanced/integration_test.sh
+```
+
+**Advantages:**
+- ✅ Automatic environment setup (SDK version, directory handling)
+- ✅ Automatic Docker cache cleanup (ensures fresh builds)
+- ✅ Shows current git commit being tested
+- ✅ Detailed verification output with custom messages
+- ✅ Comprehensive log capture to `integration_test.log`
+- ✅ Single simple command
+
+**Best for:** Developers iterating on code changes who want detailed feedback.
+
+#### Option 2: CI/CD (Direct Command) 🚀
+
+**Use this for:** Continuous Integration, automated testing pipelines
+
+```bash
+# From holohub root - standard HoloHub test command
+./holohub test video_streaming_demo_enhanced \
+  --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu \
+  --ctest-options="-R video_streaming_integration_test"
+```
+
+**Advantages:**
+- ✅ Standard HoloHub testing interface
+- ✅ Consistent with other HoloHub applications
+- ✅ Clean exit codes for CI/CD systems
+- ✅ CTest integration for test reporting
+
+**Best for:** CI/CD pipelines, automated test suites, production testing.
+
+**Note:** Both methods run the same underlying integration test defined in `CMakeLists.txt`. The wrapper script (`integration_test.sh`) adds developer-friendly conveniences on top of the direct command.
+
 ### Integration Test Process
 
-The automated integration test (`integration_test.sh`) follows this sequence:
+The integration test (whether run via wrapper script or direct command) follows this sequence:
 
 #### 1. **Pre-Test Setup** (10-20 seconds)
 ```bash
