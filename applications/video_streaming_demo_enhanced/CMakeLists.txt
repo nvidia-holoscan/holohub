@@ -35,12 +35,16 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
 endif()
 
-# Build client and server applications using standard HoloHub infrastructure
-add_holohub_application(video_streaming_demo_client DEPENDS
-                        OPERATORS video_streaming)
+# Enable required operator
+set(OP_video_streaming ON CACHE BOOL "Build the video_streaming operator" FORCE)
 
-add_holohub_application(video_streaming_demo_server DEPENDS
-                        OPERATORS video_streaming)
+# Build client and server subdirectories directly
+# Note: We use add_subdirectory instead of add_holohub_application because:
+# 1. Both client and server are part of the same integration test
+# 2. The test infrastructure sets APP_video_streaming_demo_enhanced (parent name)
+# 3. Using add_holohub_application would create separate APP_*_client and APP_*_server options
+add_subdirectory(video_streaming_demo_client)
+add_subdirectory(video_streaming_demo_server)
 
 # Add integration testing
 if(BUILD_TESTING)
