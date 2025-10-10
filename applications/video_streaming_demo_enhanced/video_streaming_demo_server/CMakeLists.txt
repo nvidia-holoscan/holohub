@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(video_streaming_demo_server LANGUAGES NONE)
+project(video_streaming_demo_server LANGUAGES CXX)
 
 # Add C++ subdirectory
 add_subdirectory(cpp)
