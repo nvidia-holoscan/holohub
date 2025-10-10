@@ -1,0 +1,6 @@
+# Pinned for Python 3.12 wheels availability
+numpy==1.26.4
+aiohttp==3.9.5
+aiohttp-cors==0.7.0
+aiortc==1.6.0
+

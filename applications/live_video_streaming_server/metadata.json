@@ -1,0 +1,52 @@
+{
+	"application": {
+		"name": "Live Video Streaming Server",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Networking and Distributed Computing", "Video", "WebRTC", "Communications"],
+		"ranking": 1,
+		"requirements": {
+			"libraries": [
+				{
+					"name": "aiortc",
+					"version": "1.6.0"
+				},
+				{
+					"name": "aiohttp",
+					"version": "3.9.5"
+				},
+				{
+					"name": "numpy",
+					"version": "1.26.4"
+				},
+				{
+					"name": "aiohttp-cors",
+					"version": "0.7.0"
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/live_video_streaming_server.py",
+			"workdir": "holohub_bin"
+		}
+	}
+}
