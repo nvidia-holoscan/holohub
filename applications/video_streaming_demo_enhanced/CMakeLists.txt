@@ -16,11 +16,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(video_streaming_demo_enhanced LANGUAGES NONE)
 
-# Check if this application should be built
-if(NOT APP_video_streaming_demo_enhanced)
-  return()
-endif()
-
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 
@@ -40,14 +35,12 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
 endif()
 
-# Enable required operators manually
-set(OP_video_streaming ON CACHE BOOL "Build the video_streaming operator" FORCE)
-set(OP_streaming_client_enhanced ON CACHE BOOL "Build the streaming_client_enhanced operator" FORCE)
-set(OP_streaming_server_enhanced ON CACHE BOOL "Build the streaming_server_enhanced operator" FORCE)
+# Build client and server applications using standard HoloHub infrastructure
+add_holohub_application(video_streaming_demo_client DEPENDS
+                        OPERATORS video_streaming)
 
-# Build client and server subdirectories
-add_subdirectory(video_streaming_demo_client)
-add_subdirectory(video_streaming_demo_server)
+add_holohub_application(video_streaming_demo_server DEPENDS
+                        OPERATORS video_streaming)
 
 # Add integration testing
 if(BUILD_TESTING)
