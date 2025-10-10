@@ -8,49 +8,9 @@
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include "../../operators/gstreamer/gst_sink_resource.hpp"
+#include "../../operators/gstreamer/gst_sink_operator.hpp"
 
 namespace holoscan {
-
-/**
- * GstSinkOperator - Operator for bridging GStreamer data into Holoscan
- */
-class GstSinkOperator : public Operator {
- public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(GstSinkOperator)
-
-
-  void setup(OperatorSpec& spec) override {
-    /// Add output for video frames to Holoviz (Entity can contain multiple tensors/planes)
-    spec.output<holoscan::gxf::Entity>("output");
-
-    /// Add parameters to the operator spec
-    spec.param(gst_sink_resource_, "gst_sink_resource", "GStreamerSink", "GStreamer sink resource object");
-  }
-
-  void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
-    // Pop a buffer asynchronously from the GStreamer pipeline (blocks until available)
-    auto buffer_future = gst_sink_resource_.get()->pop_buffer();
-    // Wait for buffer with timeout to avoid hanging
-    if (buffer_future.wait_for(std::chrono::seconds(1)) == std::future_status::timeout) {
-      HOLOSCAN_LOG_ERROR("Timeout waiting for buffer - no data received in 1 seconds");
-      return;
-    }
-
-    /// Get the buffer
-    gst::Buffer buffer = buffer_future.get();
-
-    // Create entity with tensor(s) - supports both packed (RGBA) and planar (I420, NV12) formats
-    auto entity = gst_sink_resource_.get()->create_entity_from_buffer(context, buffer);
-    if (!entity) {
-      HOLOSCAN_LOG_ERROR("Failed to create entity from buffer data");
-      return;
-    }
-    output.emit(entity, "output");
-  }
-
- private:
-  Parameter<GstSinkResourcePtr> gst_sink_resource_;
-};
 
 /**
  * @brief Simple Holoscan application that uses GstSinkResource

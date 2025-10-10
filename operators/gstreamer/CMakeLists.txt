@@ -1,4 +1,19 @@
-cmake_minimum_required(VERSION 3.16)
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+cmake_minimum_required(VERSION 3.20)
 
 # Set C and C++ standards
 set(CMAKE_C_STANDARD 99)
@@ -19,12 +34,6 @@ pkg_check_modules(GSTREAMER_BASE REQUIRED gstreamer-base-1.0)
 pkg_check_modules(GSTREAMER_VIDEO REQUIRED gstreamer-video-1.0)
 pkg_check_modules(GSTREAMER_CUDA REQUIRED gstreamer-cuda-1.0)
 
-# Include directories
-include_directories(${GSTREAMER_INCLUDE_DIRS})
-include_directories(${GSTREAMER_BASE_INCLUDE_DIRS})
-include_directories(${GSTREAMER_VIDEO_INCLUDE_DIRS})
-include_directories(${GSTREAMER_CUDA_INCLUDE_DIRS})
-
 # Add compiler definitions
 add_definitions(${GSTREAMER_CFLAGS_OTHER})
 add_definitions(${GSTREAMER_BASE_CFLAGS_OTHER})
@@ -42,6 +51,7 @@ add_library(holoscan_gstreamer_sink SHARED
   gst/map_info.cpp
   gst/mapped_buffer.cpp
   gst_sink_resource.cpp
+  gst_sink_operator.cpp
   gst_src_resource.cpp
 )
 
@@ -51,8 +61,20 @@ link_directories(${GSTREAMER_BASE_LIBRARY_DIRS})
 link_directories(${GSTREAMER_VIDEO_LIBRARY_DIRS})
 link_directories(${GSTREAMER_CUDA_LIBRARY_DIRS})
 
+# Set include directories (PUBLIC so they propagate to applications)
+target_include_directories(holoscan_gstreamer_sink
+    PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
+    ${GSTREAMER_INCLUDE_DIRS}
+    ${GSTREAMER_BASE_INCLUDE_DIRS}
+    ${GSTREAMER_VIDEO_INCLUDE_DIRS}
+    ${GSTREAMER_CUDA_INCLUDE_DIRS}
+)
+
 # Link libraries for custom sink
 target_link_libraries(holoscan_gstreamer_sink 
+    PUBLIC
     ${GSTREAMER_LIBRARIES} 
     ${GSTREAMER_BASE_LIBRARIES} 
     ${GSTREAMER_VIDEO_LIBRARIES}
@@ -90,6 +112,7 @@ install(FILES
     gst/map_info.hpp
     gst/mapped_buffer.hpp
     gst_sink_resource.hpp
+    gst_sink_operator.hpp
     gst_src_resource.hpp
     core/initializer.hpp
     DESTINATION include/holoscan/operators/gstreamer)

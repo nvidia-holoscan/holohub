@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "GStreamer to Holoviz",
+		"name": "Holopattern to GStreamer",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -22,12 +22,13 @@
 			"aarch64",
 			"x86_64"
 		],
-		"tags": ["GStreamer", "Visualization", "Holoviz", "Video", "Streaming"],
+		"tags": ["GStreamer", "Video", "Streaming", "Source"],
 		"ranking": 5,
-		"description": "Bridge GStreamer pipelines into Holoscan for visualization with Holoviz. Supports various video formats including RGBA, I420, and NV12.",
+		"description": "Output Holoscan-generated video patterns to GStreamer pipelines. Demonstrates how to send data from Holoscan to GStreamer for encoding, streaming, or processing.",
 		"run": {
-			"command": "gst-to-holoviz --help",
-			"workdir": "install/bin/gst_to_holoviz"
+			"command": "holopattern-to-gst --help",
+			"workdir": "install/bin/holopattern_to_gst"
 		}
 	}
 }
+

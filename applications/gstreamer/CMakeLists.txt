@@ -13,22 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(gst_to_holoviz CXX)
+add_holohub_application(gst_to_holoviz)
 
-find_package(holoscan REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+add_holohub_application(holopattern_to_gst)
 
-add_executable(gst-to-holoviz
-  gst_to_holoviz.cpp
-)
-
-target_link_libraries(gst-to-holoviz
-  PRIVATE
-  holoscan::core
-  holoscan::ops::holoviz
-  holoscan_gstreamer_sink
-)
-
-# Install target
-install(TARGETS gst-to-holoviz DESTINATION bin/gst_to_holoviz)
