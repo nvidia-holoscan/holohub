@@ -124,7 +124,7 @@ class AJASourceOp : public holoscan::Operator {
   NTV2VideoFormat video_format_ = NTV2_FORMAT_UNKNOWN;
   NTV2PixelFormat pixel_format_ = NTV2_FBF_ABGR;
   bool use_tsi_ = false;
-  bool is_kona_hdmi_ = false;
+  uint8_t hdmi_in_count_ = 0;
 
   std::vector<void*> buffers_;
   std::vector<void*> overlay_buffers_;
