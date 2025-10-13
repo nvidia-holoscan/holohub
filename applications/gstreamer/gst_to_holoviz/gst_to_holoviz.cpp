@@ -7,8 +7,8 @@
 #include <gst/gst.h>
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
-#include "../../operators/gstreamer/gst_sink_resource.hpp"
-#include "../../operators/gstreamer/gst_sink_operator.hpp"
+#include <gst_sink_resource.hpp>
+#include <gst_sink_operator.hpp>
 
 namespace holoscan {
 
@@ -137,17 +137,20 @@ public:
   }
 
   ~GStreamerApp() {
+    HOLOSCAN_LOG_INFO("Stopping GStreamer pipeline");
     // Stop bus monitoring
     stop_bus_monitor_ = true;
     if (bus_monitor_thread_.joinable()) {
       bus_monitor_thread_.join();
     }
-    
+
     // Stop and cleanup pipeline
     if (pipeline_ && pipeline_.get() && GST_IS_ELEMENT(pipeline_.get())) {
       gst_element_set_state(pipeline_.get(), GST_STATE_NULL);
+      HOLOSCAN_LOG_DEBUG("GStreamer pipeline stopped");
       pipeline_.reset();
     }
+    HOLOSCAN_LOG_INFO("GStreamer pipeline cleanup completed");
   }
 
   // Delete copy constructor and assignment

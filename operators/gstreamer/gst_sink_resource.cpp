@@ -673,9 +673,9 @@ gboolean GstSinkResource::stop_callback(::GstBaseSink *sink) {
   /* Access the GstSinkResource instance from callback */
   if (!holoscan_sink->holoscan_resource) {
     /* Fallback if resource pointer not set */
-    HOLOSCAN_LOG_WARN("Buffer size: {} bytes (no resource bridge - this shouldn't happen)",
+    HOLOSCAN_LOG_WARN("Buffer size: {} bytes (no resource bridge - was resource destroyed?)",
         gst_buffer_get_size(buffer));
-    return GST_FLOW_OK;
+    return GST_FLOW_EOS;
   }
 
   /* Cast back to GstSinkResource* to access C++ methods and members */
@@ -689,27 +689,34 @@ gboolean GstSinkResource::stop_callback(::GstBaseSink *sink) {
   // Create Buffer object and take ownership of the buffer (no mapping yet - let the operator decide)
   gst::Buffer buffer_obj(gst_buffer_ref(buffer));
 
-  /* Check if there is a pending request waiting for a buffer */
+  // Check if there is a pending request waiting for a buffer
   if (resource->pending_request_.has_value()) {
-    /* Fulfill the pending request */
+    // Fulfill the pending request
     std::promise<gst::Buffer> promise = std::move(resource->pending_request_.value());
     resource->pending_request_.reset();
     promise.set_value(std::move(buffer_obj));
     HOLOSCAN_LOG_DEBUG("Fulfilled pending buffer request");
   } else {
-    /* No pending request, queue the buffer for future requests */
+    // No pending request, queue the buffer for future requests
     resource->buffer_queue_.push(std::move(buffer_obj));
     HOLOSCAN_LOG_DEBUG("Queued buffer, total in queue: {}", resource->buffer_queue_.size());
     
-    /* Wait until queue size is within limit */
+    // Wait until queue size is within limit
     size_t queue_limit = resource->queue_limit_.get();
     if (resource->buffer_queue_.size() > queue_limit) {
       HOLOSCAN_LOG_DEBUG("Buffer queue size ({}) exceeds limit ({}), waiting...", 
                         resource->buffer_queue_.size(), queue_limit);
     }
-    resource->queue_cv_.wait(lock, [resource, queue_limit]() {
-      return resource->buffer_queue_.size() <= queue_limit;
+    resource->queue_cv_.wait(lock, [holoscan_sink, queue_limit]() {
+      GstSinkResource* resource = static_cast<GstSinkResource*>(holoscan_sink->holoscan_resource);
+      return resource == nullptr ||resource->buffer_queue_.size() <= queue_limit;
     });
+
+    // Check if we woke up due to shutdown
+    if (holoscan_sink->holoscan_resource == nullptr) {
+      HOLOSCAN_LOG_INFO("Destroying GstSinkResource");
+      return GST_FLOW_EOS;
+    }
     HOLOSCAN_LOG_DEBUG("Buffer queue size now within limit: {}", resource->buffer_queue_.size());
   }
 
@@ -717,23 +724,19 @@ gboolean GstSinkResource::stop_callback(::GstBaseSink *sink) {
 }
 
 GstSinkResource::~GstSinkResource() {
-  HOLOSCAN_LOG_DEBUG("Destroying GstSinkResource");
-  
+  HOLOSCAN_LOG_INFO("Destroying GstSinkResource");
   // Check if element was created and set it to NULL state
   if (valid()) {
-    HOLOSCAN_LOG_INFO("Destroying GstSinkResource");
-    {
-      // Clear the buffer queue and notify any waiting render callbacks
-      // This is necessary to avoid a deadlock in the render callback
-      std::lock_guard<std::mutex> lock(mutex_);
-      std::queue<gst::Buffer> empty_queue;
-      std::swap(buffer_queue_, empty_queue);
-      pending_request_.reset();
-      queue_cv_.notify_all();
-    }
+    // Clear the buffer queue and notify any waiting render callbacks
+    // This is necessary to avoid a deadlock in the render callback
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::queue<gst::Buffer> empty_queue;
+    std::swap(buffer_queue_, empty_queue);
+    pending_request_.reset();
+    GST_HOLOSCAN_SINK(sink_element_future_.get().get())->holoscan_resource = nullptr;
+    queue_cv_.notify_all();
   }
-  
-  HOLOSCAN_LOG_DEBUG("GstSinkResource destroyed");
+  HOLOSCAN_LOG_INFO("GstSinkResource destroyed");
 }
 
 void GstSinkResource::setup(holoscan::ComponentSpec& spec) {

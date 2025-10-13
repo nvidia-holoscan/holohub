@@ -18,6 +18,7 @@
 #ifndef GST_SRC_RESOURCE_HPP
 #define GST_SRC_RESOURCE_HPP
 
+#include <chrono>
 #include <condition_variable>
 #include <future>
 #include <memory>
@@ -81,20 +82,57 @@ class GstSrcResource : public holoscan::Resource {
   }
 
   /**
+   * @brief Push a buffer into the GStreamer pipeline (template version)
+   * 
+   * Template function that accepts any std::chrono::duration type and converts
+   * it to milliseconds before calling the implementation.
+   * 
+   * @tparam Rep An arithmetic type representing the number of ticks
+   * @tparam Period A std::ratio representing the tick period
+   * @param buffer GStreamer buffer to push
+   * @param timeout Duration to wait (zero = try immediately and return, no waiting)
+   * @return true if buffer was successfully queued, false otherwise
+   * 
+   * @note For std::chrono::milliseconds, the non-template overload will be preferred
+   *       by overload resolution.
+   * 
+   * @example
+   *   resource->push_buffer(std::move(buffer), std::chrono::seconds(5));
+   *   resource->push_buffer(std::move(buffer), std::chrono::minutes(1));
+   *   resource->push_buffer(std::move(buffer), std::chrono::milliseconds(1000));  // calls non-template version
+   */
+  template<typename Rep, typename Period>
+  bool push_buffer(holoscan::gst::Buffer buffer, std::chrono::duration<Rep, Period> timeout) {
+    return push_buffer(std::move(buffer), std::chrono::duration_cast<std::chrono::milliseconds>(timeout));
+  }
+
+  /**
    * @brief Push a buffer into the GStreamer pipeline
    * 
-   * This function adds a buffer to the internal queue for consumption by GStreamer.
+   * Non-template overload for std::chrono::milliseconds. This is the actual implementation
+   * and will be preferred by overload resolution when called with milliseconds.
+   * 
    * If the queue is at capacity (controlled by queue_limit parameter), this function
-   * will block until space becomes available or until EOS is signaled.
+   * will block until space becomes available, the timeout expires, or EOS is signaled.
    * 
    * @param buffer GStreamer buffer to push
-   * @return true if buffer was successfully queued, false if buffer is invalid or EOS was signaled
+   * @param timeout Duration to wait in milliseconds (zero = try immediately and return, no waiting)
+   * @return true if buffer was successfully queued, false if buffer is invalid, 
+   *         timeout expired, or EOS was signaled
    * 
    * @note This function provides backpressure: when the queue is full, the caller will
-   *       block until GStreamer consumes a buffer, creating natural flow control.
+   *       block until GStreamer consumes a buffer or timeout expires, creating natural flow control.
    * @note If queue_limit is set to 0, the queue is unlimited and no blocking occurs.
+   * 
+   * @example
+   *   // Try immediately, don't wait (default)
+   *   resource->push_buffer(std::move(buffer));
+   *   
+   *   // Wait up to 1 second
+   *   resource->push_buffer(std::move(buffer), std::chrono::milliseconds(1000));
    */
-  bool push_buffer(holoscan::gst::Buffer buffer);
+  bool push_buffer(holoscan::gst::Buffer buffer, 
+                   std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
 
     /**
    * @brief Get the current negotiated caps from the source
@@ -133,11 +171,11 @@ class GstSrcResource : public holoscan::Resource {
 
   // Buffer queue for thread-safe async processing
   std::queue<holoscan::gst::Buffer> buffer_queue_;
+  // Single pending push buffer request (only one request at a time)
+  std::optional<std::promise<bool>> pending_request_;
 
-  ::GstBuffer** pending_buffer_ = nullptr;
   mutable std::mutex mutex_;
   std::condition_variable queue_cv_;
-  bool is_shutting_down_ = false;
 
   // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
   // Forward declarations for nested classes

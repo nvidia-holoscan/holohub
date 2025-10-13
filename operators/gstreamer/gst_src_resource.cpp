@@ -416,21 +416,29 @@ private:
 };
 
 // Push buffer into the pipeline
-bool GstSrcResource::push_buffer(gst::Buffer buffer) {
+bool GstSrcResource::push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout) {
   
   std::unique_lock<std::mutex> lock(mutex_);
   
   // Wait if queue is at capacity (only if queue_limit is not 0)
   size_t limit = queue_limit_.get();
-  queue_cv_.wait(lock, [this, limit]() {
-    return buffer_queue_.size() <= limit || is_shutting_down_;
-  });
   
-  // Check if we woke up due to shutdown
-  if (is_shutting_down_) {
-    return false;  // Don't touch buffer_queue_, just return
+  // Wait for space in queue with timeout (0 means try immediately and return)
+  if (!queue_cv_.wait_for(lock, timeout, [this, limit]() {
+    auto resource = GST_HOLOSCAN_SRC(src_element_future_.get().get())->holoscan_resource;
+    return resource == nullptr || buffer_queue_.size() <= limit;
+  })) {
+    HOLOSCAN_LOG_WARN("push_buffer failed: queue full (timeout: {} ms)", timeout.count());
+    return false;
   }
-
+  
+  auto resource = GST_HOLOSCAN_SRC(src_element_future_.get().get())->holoscan_resource;
+  // Check if we woke up due to shutdown
+  if (resource == nullptr) {
+    HOLOSCAN_LOG_INFO("GstSrcResource destroyed");
+    return false;
+  }
+  
   buffer_queue_.emplace(std::move(buffer));
   queue_cv_.notify_one();
   return true;
@@ -724,11 +732,13 @@ gboolean GstSrcResource::stop_callback(::GstBaseSrc *src) {
   if (resource->buffer_queue_.empty()) {
     HOLOSCAN_LOG_DEBUG("Waiting for buffer...");
   }
-  resource->queue_cv_.wait(lock, [resource]() {
-    return !resource->buffer_queue_.empty() || resource->is_shutting_down_;
+
+  resource->queue_cv_.wait(lock, [holoscan_src]() {
+    GstSrcResource* resource = static_cast<GstSrcResource*>(holoscan_src->holoscan_resource); 
+    return resource == nullptr || !resource->buffer_queue_.empty();
   });
   /* Check if EOS was signaled */
-  if (resource->is_shutting_down_) {
+  if (holoscan_src->holoscan_resource == nullptr) {
     HOLOSCAN_LOG_INFO("End of stream reached");
     return GST_FLOW_EOS;
   }
@@ -749,18 +759,15 @@ gboolean GstSrcResource::stop_callback(::GstBaseSrc *src) {
 }
 
 GstSrcResource::~GstSrcResource() {
-  HOLOSCAN_LOG_DEBUG("Destroying GstSrcResource");
+  HOLOSCAN_LOG_INFO("Destroying GstSrcResource");
 
   std::unique_lock<std::mutex> lock(mutex_);
   std::queue<gst::Buffer> empty_queue;
   std::swap(buffer_queue_, empty_queue);
-  is_shutting_down_ = true;
+  GST_HOLOSCAN_SRC(src_element_future_.get().get())->holoscan_resource = nullptr;
   queue_cv_.notify_all();
-  queue_cv_.wait(lock, [this]() {
-    return buffer_queue_.empty();
-  });
   
-  HOLOSCAN_LOG_DEBUG("GstSrcResource destroyed");
+  HOLOSCAN_LOG_INFO("GstSrcResource destroyed");
 }
 
 void GstSrcResource::setup(holoscan::ComponentSpec& spec) {

@@ -10,7 +10,8 @@
 #include <cuda_runtime.h>
 #include <gst/gst.h>
 #include <holoscan/holoscan.hpp>
-#include "../../operators/gstreamer/gst_src_resource.hpp"
+#include <gst_src_resource.hpp>
+#include <gst_src_operator.hpp>
 
 namespace {
 
@@ -242,47 +243,6 @@ class PatternGenOperator : public Operator {
 };
 
 /**
- * GstSrcOperator - Receives GXF entities and pushes them into GStreamer
- */
-class GstSrcOperator : public Operator {
- public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(GstSrcOperator)
-
-  void setup(OperatorSpec& spec) override {
-    spec.input<gxf::Entity>("input");
-    
-    spec.param(gst_src_resource_, "gst_src_resource", "GStreamerSource", "GStreamer source resource object");
-  }
-
-  void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
-    HOLOSCAN_LOG_DEBUG("GstSrcOperator::compute() - Receiving entity");
-    
-    // Receive the entity from the input port
-    auto entity = input.receive<gxf::Entity>("input").value();
-
-    // Convert entity to GStreamer buffer
-    auto buffer = gst_src_resource_.get()->create_buffer_from_entity(entity);
-    if (buffer.size() == 0) {
-      HOLOSCAN_LOG_ERROR("Failed to convert entity to buffer");
-      return;
-    }
-
-    HOLOSCAN_LOG_DEBUG("Generated buffer of size {} bytes", buffer.size());
-
-    // Push buffer into the GStreamer pipeline
-    if (!gst_src_resource_.get()->push_buffer(std::move(buffer))) {
-      HOLOSCAN_LOG_ERROR("Failed to push buffer to GstSrcResource");
-      return;
-    }
-    
-    HOLOSCAN_LOG_DEBUG("Buffer pushed to GstSrcResource");
-  }
-
- private:
-  Parameter<GstSrcResourcePtr> gst_src_resource_;
-};
-
-/**
  * @brief Holoscan application that pushes generated pattern data into GStreamer
  */
 class GstSrcApp : public Application {
@@ -332,7 +292,8 @@ class GstSrcApp : public Application {
     // Create the GStreamer source operator
     auto gst_src_op = make_operator<GstSrcOperator>(
         "gst_src_op",
-        Arg("gst_src_resource", holoscan_gst_src_)
+        Arg("gst_src_resource", holoscan_gst_src_),
+        Arg("timeout_ms", static_cast<uint64_t>(500))
     );
 
     // Connect the operators: pattern generator -> GStreamer source
