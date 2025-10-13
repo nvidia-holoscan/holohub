@@ -511,6 +511,17 @@ void print_stats();
  */
 uint16_t get_num_rx_queues(int port_id);
 
+/**
+ * @brief Flush all packets from a specific port/queue
+ *
+ * Drains and discards all packets currently in the specified queue on the specified port.
+ * This is useful for clearing stale packets from a queue before starting operations.
+ *
+ * @param port Port number of interface
+ * @param queue Queue ID on the port
+ */
+void flush_port_queue(int port, int queue);
+
 };  // namespace holoscan::advanced_network
 
 template <>

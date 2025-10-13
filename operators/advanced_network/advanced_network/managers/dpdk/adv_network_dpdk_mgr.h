@@ -205,6 +205,7 @@ class DpdkMgr : public Manager {
   BurstParams* create_tx_burst_params() override;
   bool validate_config() const override;
   uint16_t get_num_rx_queues(int port_id) const override;
+  void flush_port_queue(int port, int queue) override;
 
  private:
   static void PrintDpdkStats(int port);

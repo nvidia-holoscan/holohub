@@ -1701,6 +1701,12 @@ void DpdkMgr::flush_packets(int port) {
   while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
 }
 
+void DpdkMgr::flush_port_queue(int port, int queue) {
+  struct rte_mbuf* rx_mbuf;
+  HOLOSCAN_LOG_INFO("Flushing packets on port {} queue {}", port, queue);
+  while (rte_eth_rx_burst(port, queue, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
+}
+
 /*
   RX worker supporting multiple queues for a single core. This is useful when a user wants
   to segregate traffic by queues, but they don't want to waste extra CPU cores by mapping a

@@ -307,6 +307,11 @@ uint16_t get_num_rx_queues(int port_id) {
   return g_ano_mgr->get_num_rx_queues(port_id);
 }
 
+void flush_port_queue(int port, int queue) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  g_ano_mgr->flush_port_queue(port, queue);
+}
+
 void print_stats() {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->print_stats();
