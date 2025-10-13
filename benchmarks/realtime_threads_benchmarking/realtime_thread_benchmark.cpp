@@ -22,6 +22,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <getopt.h>
 
 #include <holoscan/holoscan.hpp>
 
@@ -200,7 +201,8 @@ class RealtimeThreadBenchmarkApp : public Application {
                          int bg_workload_size = 100,
                          int bm_load_intensity = 100,
                          int bm_workload_size = 100,
-                         int dummy_load_number = 2)
+                         int dummy_load_number = 2,
+                         unsigned int pin_cpu = 0)
       : target_fps_(target_fps),
         use_realtime_(use_realtime),
         scheduling_policy_(scheduling_policy),
@@ -208,7 +210,8 @@ class RealtimeThreadBenchmarkApp : public Application {
         bg_workload_size_(bg_workload_size),
         bm_load_intensity_(bm_load_intensity),
         bm_workload_size_(bm_workload_size),
-        dummy_load_number_(dummy_load_number) {}
+        dummy_load_number_(dummy_load_number),
+        pin_cpu_(pin_cpu) {}
 
   void compose() override {
     benchmark_op_ = make_operator<BenchmarkOp>("benchmark_op", target_fps_,
@@ -227,11 +230,11 @@ class RealtimeThreadBenchmarkApp : public Application {
         int64_t deadline_ns = period_ns;
         int64_t runtime_ns = static_cast<int64_t>(period_ns * 0.10);  // 10% of period
 
-        realtime_pool->add_realtime(benchmark_op_, scheduling_policy_, true, {0}, 0,
+        realtime_pool->add_realtime(benchmark_op_, scheduling_policy_, true, {pin_cpu_}, 0,
                                    runtime_ns, deadline_ns, period_ns);
       } else if (scheduling_policy_ == SchedulingPolicy::kFirstInFirstOut ||
                  scheduling_policy_ == SchedulingPolicy::kRoundRobin) {
-        realtime_pool->add_realtime(benchmark_op_, scheduling_policy_, true, {0}, 99);
+        realtime_pool->add_realtime(benchmark_op_, scheduling_policy_, true, {pin_cpu_}, 99);
         benchmark_op_->add_arg(periodic_condition);
       }
     } else {
@@ -263,6 +266,7 @@ class RealtimeThreadBenchmarkApp : public Application {
   int bm_load_intensity_;
   int bm_workload_size_;
   int dummy_load_number_;
+  unsigned int pin_cpu_;
   std::shared_ptr<BenchmarkOp> benchmark_op_;
 };
 
@@ -300,7 +304,7 @@ void print_benchmark_results(
   int target_fps,
   const std::string& context_type) {
   std::cout << "=== " << context_type << " ===" << std::endl;
-  std::cout << std::fixed << std::setprecision(3) << std::dec;
+  std::cout << std::fixed << std::setprecision(6) << std::dec;
 
   if (period_stats.sample_count > 0) {
     std::cout << "Frame period std: " << period_stats.std_dev << " ms" << std::endl;
@@ -308,6 +312,22 @@ void print_benchmark_results(
     std::cout << "Frame period min/max: " << period_stats.min_val << " ms / "
               << period_stats.max_val << " ms" << std::endl << std::endl;
   }
+}
+
+void write_stats_section(std::ofstream& file, const BenchmarkStats& stats) {
+  file << "      \"raw_data\": [";
+  for (size_t i = 0; i < stats.sorted_data.size(); ++i) {
+    if (i > 0) file << ", ";
+    file << stats.sorted_data[i];
+  }
+  file << "],\n";
+  file << "      \"statistics\": {\n";
+  file << "        \"sample_count\": " << stats.sample_count << ",\n";
+  file << "        \"average\": " << stats.avg << ",\n";
+  file << "        \"std_dev\": " << stats.std_dev << ",\n";
+  file << "        \"min\": " << stats.min_val << ",\n";
+  file << "        \"max\": " << stats.max_val << "\n";
+  file << "      }\n";
 }
 
 void write_json_results(const std::string& filename,
@@ -346,75 +366,51 @@ file << "  },\n";
 
 file << "  \"period_statistics\": {\n";
 file << "    \"non_realtime\": {\n";
-file << "      \"raw_data\": [";
-for (size_t i = 0; i < non_rt_period_stats.sorted_data.size(); ++i) {
-if (i > 0) file << ", ";
-file << non_rt_period_stats.sorted_data[i];
-}
-file << "],\n";
-file << "      \"statistics\": {\n";
-file << "        \"sample_count\": " << non_rt_period_stats.sample_count << ",\n";
-file << "        \"average\": " << non_rt_period_stats.avg << ",\n";
-file << "        \"std_dev\": " << non_rt_period_stats.std_dev << ",\n";
-file << "        \"min\": " << non_rt_period_stats.min_val << ",\n";
-file << "        \"max\": " << non_rt_period_stats.max_val << "\n";
-file << "      }\n";
+write_stats_section(file, non_rt_period_stats);
 file << "    },\n";
-
 file << "    \"realtime\": {\n";
-file << "      \"raw_data\": [";
-for (size_t i = 0; i < rt_period_stats.sorted_data.size(); ++i) {
-if (i > 0) file << ", ";
-file << rt_period_stats.sorted_data[i];
-}
-file << "],\n";
-file << "      \"statistics\": {\n";
-file << "        \"sample_count\": " << rt_period_stats.sample_count << ",\n";
-file << "        \"average\": " << rt_period_stats.avg << ",\n";
-file << "        \"std_dev\": " << rt_period_stats.std_dev << ",\n";
-file << "        \"min\": " << rt_period_stats.min_val << ",\n";
-file << "        \"max\": " << rt_period_stats.max_val << "\n";
-file << "      }\n";
+write_stats_section(file, rt_period_stats);
 file << "    }\n";
 file << "  },\n";
 
 file << "  \"execution_time_statistics\": {\n";
 file << "    \"non_realtime\": {\n";
-file << "      \"raw_data\": [";
-for (size_t i = 0; i < non_rt_execution_stats.sorted_data.size(); ++i) {
-if (i > 0) file << ", ";
-file << non_rt_execution_stats.sorted_data[i];
-}
-file << "],\n";
-file << "      \"statistics\": {\n";
-file << "        \"sample_count\": " << non_rt_execution_stats.sample_count << ",\n";
-file << "        \"average\": " << non_rt_execution_stats.avg << ",\n";
-file << "        \"std_dev\": " << non_rt_execution_stats.std_dev << ",\n";
-file << "        \"min\": " << non_rt_execution_stats.min_val << ",\n";
-file << "        \"max\": " << non_rt_execution_stats.max_val << "\n";
-file << "      }\n";
+write_stats_section(file, non_rt_execution_stats);
 file << "    },\n";
-
 file << "    \"realtime\": {\n";
-file << "      \"raw_data\": [";
-for (size_t i = 0; i < rt_execution_stats.sorted_data.size(); ++i) {
-if (i > 0) file << ", ";
-file << rt_execution_stats.sorted_data[i];
-}
-file << "],\n";
-file << "      \"statistics\": {\n";
-file << "        \"sample_count\": " << rt_execution_stats.sample_count << ",\n";
-file << "        \"average\": " << rt_execution_stats.avg << ",\n";
-file << "        \"std_dev\": " << rt_execution_stats.std_dev << ",\n";
-file << "        \"min\": " << rt_execution_stats.min_val << ",\n";
-file << "        \"max\": " << rt_execution_stats.max_val << "\n";
-file << "      }\n";
+write_stats_section(file, rt_execution_stats);
 file << "    }\n";
 file << "  }\n";
 file << "}\n";
 
 file.close();
 std::cout << "Raw measurement data written to: " << filename << std::endl;
+}
+
+void print_help(const char* program_name) {
+  std::cout << "Usage: " << program_name << " [options]" << std::endl;
+  std::cout << "\nOptions:" << std::endl;
+  std::cout << "  -f, --target-fps <fps>          Target FPS (default: 60)" << std::endl;
+  std::cout << "  -d, --duration <seconds>        Duration in seconds (default: 30)" << std::endl;
+  std::cout << "  -p, --scheduling-policy <pol>   SCHED_DEADLINE, SCHED_FIFO, "
+            << "or SCHED_RR (default: SCHED_DEADLINE)" << std::endl;
+  std::cout << "  -I, --bg-load-intensity <int>   Background load intensity "
+            << "(default: 1000)" << std::endl;
+  std::cout << "  -S, --bg-workload-size <size>   Background workload size "
+            << "(default: 100)" << std::endl;
+  std::cout << "  -i, --bm-load-intensity <int>   Benchmark load intensity "
+            << "(default: 100)" << std::endl;
+  std::cout << "  -s, --bm-workload-size <size>   Benchmark workload size "
+            << "(default: 100)" << std::endl;
+  std::cout << "  -t, --worker-thread-number <n>  Worker thread number "
+            << "(default: 2)" << std::endl;
+  std::cout << "  -D, --dummy-load-number <num>   Dummy load operators "
+            << "(default: 2)" << std::endl;
+  std::cout << "  -c, --pin-cpu <cpu>             CPU to pin RT thread "
+            << "(default: 0)" << std::endl;
+  std::cout << "  -o, --output <file>             Output JSON file "
+            << "(default: /tmp/benchmark_plots/...)" << std::endl;
+  std::cout << "  -h, --help                      Show help message" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -428,79 +424,107 @@ int main(int argc, char* argv[]) {
   int bm_workload_size = 100;
   int worker_thread_number = 2;
   int dummy_load_number = 2;
+  unsigned int pin_cpu = 0;
   std::string output_file = "/tmp/benchmark_plots/realtime_thread_benchmark_results.json";
-  // Parse command line arguments
-  for (int i = 1; i < argc; i++) {
-    std::string arg = argv[i];
-    if (arg == "--target-fps" && i + 1 < argc) {
-      target_fps = std::atoi(argv[++i]);
-    } else if (arg == "--duration" && i + 1 < argc) {
-      duration_seconds = std::atoi(argv[++i]);
-    } else if (arg == "--scheduling-policy" && i + 1 < argc) {
-      scheduling_policy_str = argv[++i];
-    } else if (arg == "--bg-load-intensity" && i + 1 < argc) {
-      bg_load_intensity = std::atoi(argv[++i]);
-      if (bg_load_intensity <= 0) {
-        std::cerr << "Error: bg-load-intensity must be positive\n";
-        return 1;
+
+  static struct option long_options[] = {
+    {"target-fps", required_argument, nullptr, 'f'},
+    {"duration", required_argument, nullptr, 'd'},
+    {"scheduling-policy", required_argument, nullptr, 'p'},
+    {"bg-load-intensity", required_argument, nullptr, 'I'},  // Background Intensity
+    {"bg-workload-size", required_argument, nullptr, 'S'},   // Background Size
+    {"bm-load-intensity", required_argument, nullptr, 'i'},  // benchmark intensity
+    {"bm-workload-size", required_argument, nullptr, 's'},   // benchmark size
+    {"worker-thread-number", required_argument, nullptr, 't'},
+    {"dummy-load-number", required_argument, nullptr, 'D'},
+    {"pin-cpu", required_argument, nullptr, 'c'},
+    {"output", required_argument, nullptr, 'o'},
+    {"help", no_argument, nullptr, 'h'},
+    {nullptr, 0, nullptr, 0}
+  };
+
+  // Get number of CPUs on the system
+  unsigned int num_cpus = std::thread::hardware_concurrency();
+  if (num_cpus == 0) {
+    num_cpus = 8;  // Fallback if detection fails
+    std::cerr << "Warning: Could not detect CPU count, assuming " << num_cpus << " CPUs\n";
+  }
+
+  int opt;
+  int option_index = 0;
+  while ((opt = getopt_long(argc, argv, "f:d:p:I:S:i:s:t:D:c:o:h",
+                            long_options, &option_index)) != -1) {
+    switch (opt) {
+      case 'f':
+        target_fps = std::atoi(optarg);
+        break;
+      case 'd':
+        duration_seconds = std::atoi(optarg);
+        break;
+      case 'p':
+        scheduling_policy_str = optarg;
+        break;
+      case 'I':
+        bg_load_intensity = std::atoi(optarg);
+        if (bg_load_intensity <= 0) {
+          std::cerr << "Error: bg-load-intensity must be positive\n";
+          return 1;
+        }
+        break;
+      case 'S':
+        bg_workload_size = std::atoi(optarg);
+        if (bg_workload_size <= 0) {
+          std::cerr << "Error: bg-workload-size must be positive\n";
+          return 1;
+        }
+        break;
+      case 'i':
+        bm_load_intensity = std::atoi(optarg);
+        if (bm_load_intensity <= 0) {
+          std::cerr << "Error: bm-load-intensity must be positive\n";
+          return 1;
+        }
+        break;
+      case 's':
+        bm_workload_size = std::atoi(optarg);
+        if (bm_workload_size <= 0) {
+          std::cerr << "Error: bm-workload-size must be positive\n";
+          return 1;
+        }
+        break;
+      case 't':
+        worker_thread_number = std::atoi(optarg);
+        if (worker_thread_number <= 1) {
+          std::cerr << "Error: worker-thread-number must be greater than 1\n";
+          return 1;
+        }
+        break;
+      case 'D':
+        dummy_load_number = std::atoi(optarg);
+        if (dummy_load_number <= 0) {
+          std::cerr << "Error: dummy-load-number must be positive\n";
+          return 1;
+        }
+        break;
+      case 'c': {
+        int cpu_value = std::atoi(optarg);
+        if (cpu_value < 0 || cpu_value >= static_cast<int>(num_cpus)) {
+          std::cerr << "Error: pin-cpu must be between 0-" << (num_cpus - 1)
+                    << " (system has " << num_cpus << " CPUs)\n";
+          return 1;
+        }
+        pin_cpu = static_cast<unsigned int>(cpu_value);
+        break;
       }
-    } else if (arg == "--bg-workload-size" && i + 1 < argc) {
-      bg_workload_size = std::atoi(argv[++i]);
-      if (bg_workload_size <= 0) {
-        std::cerr << "Error: bg-workload-size must be positive\n";
+      case 'o':
+        output_file = optarg;
+        break;
+      case 'h':
+        print_help(argv[0]);
+        return 0;
+      case '?':
+        print_help(argv[0]);
         return 1;
-      }
-    } else if (arg == "--bm-load-intensity" && i + 1 < argc) {
-      bm_load_intensity = std::atoi(argv[++i]);
-      if (bm_load_intensity <= 0) {
-        std::cerr << "Error: bm-load-intensity must be positive\n";
-        return 1;
-      }
-    } else if (arg == "--bm-workload-size" && i + 1 < argc) {
-      bm_workload_size = std::atoi(argv[++i]);
-      if (bm_workload_size <= 0) {
-        std::cerr << "Error: bm-workload-size must be positive\n";
-        return 1;
-      }
-    } else if (arg == "--worker-thread-number" && i + 1 < argc) {
-      worker_thread_number = std::atoi(argv[++i]);
-      if (worker_thread_number <= 1) {
-        std::cerr << "Error: worker-thread-number must be greater than 1\n";
-        return 1;
-      }
-    } else if (arg == "--dummy-load-number" && i + 1 < argc) {
-      dummy_load_number = std::atoi(argv[++i]);
-      if (dummy_load_number <= 0) {
-        std::cerr << "Error: dummy-load-number must be positive\n";
-        return 1;
-      }
-    } else if (arg == "--output" && i + 1 < argc) {
-      output_file = argv[++i];
-    } else if (arg == "--help") {
-      std::cout << "Usage: " << argv[0] << " [options]" << std::endl;
-      std::cout << "Options:" << std::endl;
-      std::cout << "  --target-fps <fps>           Target FPS (30 or 60, default: 60)" << std::endl;
-      std::cout << "  --duration <seconds>        Benchmark duration in seconds (default: 30)"
-                << std::endl;
-      std::cout << "  --scheduling-policy <policy> SCHED_DEADLINE, SCHED_FIFO, or SCHED_RR "
-                << "(default: SCHED_DEADLINE)" << std::endl;
-      std::cout << "  --bg-load-intensity <intensity> Background load intensity "
-                << "(default: 1000)" << std::endl;
-      std::cout << "  --bg-workload-size <size>   Background workload size "
-                << "(default: 100)" << std::endl;
-      std::cout << "  --bm-load-intensity <intensity> Benchmark target load intensity "
-                << "(default: 100)" << std::endl;
-      std::cout << "  --bm-workload-size <size>   Benchmark target workload size "
-                << "(default: 100)" << std::endl;
-      std::cout << "  --worker-thread-number <number> Worker thread number "
-                << "(default: 2)" << std::endl;
-      std::cout << "  --dummy-load-number <number> Number of dummy load operators "
-                << "(default: 2)" << std::endl;
-      std::cout << "  --output <file>            Output JSON file for raw data "
-                << "(default: /tmp/benchmark_plots/realtime_thread_benchmark_results.json)"
-                << std::endl;
-      std::cout << "  --help                      Show this help message" << std::endl;
-      return 0;
     }
   }
 
@@ -526,7 +550,7 @@ int main(int argc, char* argv[]) {
   print_title("Running benchmark for baseline\n(without real-time thread)");
   auto non_rt_app = std::make_unique<RealtimeThreadBenchmarkApp>(
     target_fps, false, scheduling_policy, bg_load_intensity, bg_workload_size,
-    bm_load_intensity, bm_workload_size, dummy_load_number);
+    bm_load_intensity, bm_workload_size, dummy_load_number, pin_cpu);
   non_rt_app->scheduler(non_rt_app->make_scheduler<EventBasedScheduler>(
     "event-based",
     Arg("worker_thread_number", static_cast<int64_t>(worker_thread_number)),
@@ -537,9 +561,10 @@ int main(int argc, char* argv[]) {
 
   // Run with real-time scheduling
   print_title("Running benchmark for real-time\n(with real-time scheduling)");
+  std::cout << "  Pinning RT thread to CPU: " << pin_cpu << std::endl;
   auto rt_app = std::make_unique<RealtimeThreadBenchmarkApp>(
     target_fps, true, scheduling_policy, bg_load_intensity, bg_workload_size,
-    bm_load_intensity, bm_workload_size, dummy_load_number);
+    bm_load_intensity, bm_workload_size, dummy_load_number, pin_cpu);
   rt_app->scheduler(rt_app->make_scheduler<EventBasedScheduler>(
     "event-based",
     Arg("worker_thread_number", static_cast<int64_t>(worker_thread_number)),
@@ -569,7 +594,7 @@ int main(int argc, char* argv[]) {
   double std_improvement = ((non_rt_period_stats.std_dev - rt_period_stats.std_dev) /
                             non_rt_period_stats.std_dev) * 100.0;
 
-  std::cout << std::fixed << std::setprecision(2) << std::dec;
+  std::cout << std::fixed << std::setprecision(6) << std::dec;
 
   std::cout << "Period std comparison: " << std::setw(8) << non_rt_period_stats.std_dev
             << " ms → " << std::setw(8) << rt_period_stats.std_dev << " ms  ("
@@ -610,8 +635,8 @@ int main(int argc, char* argv[]) {
   std::cout << "\nGenerating plots..." << std::endl;
   int plot_result = std::system(plot_command.c_str());
   if (plot_result != 0) {
-    std::cerr << "Warning: Failed to generate plots. Make sure Python3 and matplotlib are installed"
-              << std::endl;
+    std::cerr << "Warning: Failed to generate plots. "
+              << "Make sure Python3 and matplotlib are installed" << std::endl;
   }
 
   return 0;
