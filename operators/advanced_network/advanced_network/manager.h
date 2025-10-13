@@ -82,6 +82,7 @@ class Manager {
   virtual int get_port_id(const std::string& key) final;  // NOLINT(readability/inheritance)
   virtual bool validate_config() const;
   virtual uint16_t get_num_rx_queues(int port_id) const;
+  virtual void flush_port_queue(int port, int queue);
 
   virtual ~Manager() = default;
 

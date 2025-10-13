@@ -263,6 +263,10 @@ uint16_t Manager::get_num_rx_queues(int port_id) const {
   return cfg_.ifs_[port_id].rx_.queues_.size();
 }
 
+void Manager::flush_port_queue(int port, int queue) {
+  HOLOSCAN_LOG_ERROR("flush_port_queue not implemented for this manager type");
+}
+
 void* Manager::drop_all_traffic(int port) {
   HOLOSCAN_LOG_ERROR("drop_all_traffic not implemented for this manager type");
   return nullptr;
