@@ -387,6 +387,31 @@ int64_t get_q_id(BurstParams* burst);
 Status get_mac_addr(int port, char* mac);
 
 /**
+ * @brief Drop all traffic on a port
+ *
+ * Creates a high-priority flow rule that drops all incoming traffic on the specified port.
+ * This acts as a "kill switch" for traffic. Use allow_all_traffic() to remove the drop rule.
+ *
+ * @param port Port number of interface
+ *
+ * @returns Opaque flow handle pointer to be used with allow_all_traffic(), or nullptr on failure
+ */
+void* drop_all_traffic(int port);
+
+/**
+ * @brief Allow all traffic on a port
+ *
+ * Removes a previously installed drop rule created by drop_all_traffic(), restoring
+ * normal traffic flow on the port.
+ *
+ * @param port Port number of interface
+ * @param flow Flow handle returned by drop_all_traffic()
+ *
+ * @returns Status::SUCCESS on success, error status on failure
+ */
+Status allow_all_traffic(int port, void* flow);
+
+/**
  * @brief Get port number from interface name
  *
  * @param key PCIe address or config name of the interface to look up

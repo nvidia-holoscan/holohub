@@ -1320,13 +1320,100 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   }
 
   attr.ingress = 1;
-  attr.priority = 0;
+  attr.priority = 1;  // Lower priority to allow drop_traffic (priority 0) to take precedence
   attr.group = 3;
 
   pattern[3].type = RTE_FLOW_ITEM_TYPE_END;
 
   flow = rte_flow_create(port, &attr, pattern, action, &error);
   return flow;
+}
+
+void* DpdkMgr::drop_all_traffic(int port) {
+  /* Declaring structs being used. */
+  struct rte_flow_attr attr;
+  struct rte_flow_item pattern[MAX_PATTERN_NUM];
+  struct rte_flow_action action[MAX_ACTION_NUM];
+  struct rte_flow* flow = NULL;
+  struct rte_flow_error error;
+
+  // Initialize the jump rule to group 3 (required by HWS)
+  {
+    struct rte_flow_error jump_error;
+    struct rte_flow_attr jump_attr{.group = 0, .ingress = 1};
+    struct rte_flow_action_jump jump_v = {.group = 3};
+    struct rte_flow_action jump_actions[] = {
+      { .type = RTE_FLOW_ACTION_TYPE_JUMP, .conf = &jump_v},
+      { .type = RTE_FLOW_ACTION_TYPE_END}
+    };
+
+    struct rte_flow_item jump_pattern[] = {
+      { .type = RTE_FLOW_ITEM_TYPE_ETH, .spec = 0, .mask = 0},
+      { .type = RTE_FLOW_ITEM_TYPE_END},
+    };
+
+    auto res = rte_flow_validate(port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+    if (!res) {
+      struct rte_flow* flow = rte_flow_create(
+          port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+      if (flow == nullptr) {
+        HOLOSCAN_LOG_ERROR("rte_flow_create failed for jump rule in drop_all_traffic");
+      }
+    } else {
+      HOLOSCAN_LOG_ERROR("Failed flow validation for jump rule in drop_all_traffic: {}", res);
+    }
+  }
+
+  // Clear all structures
+  memset(pattern, 0, sizeof(pattern));
+  memset(action, 0, sizeof(action));
+  memset(&attr, 0, sizeof(struct rte_flow_attr));
+
+  // Set DROP action
+  action[0].type = RTE_FLOW_ACTION_TYPE_DROP;
+  action[1].type = RTE_FLOW_ACTION_TYPE_END;
+
+  // Match all ethernet packets
+  pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
+  pattern[1].type = RTE_FLOW_ITEM_TYPE_END;
+
+  // Set highest priority (0) and use group 3 (consistent with add_flow)
+  attr.ingress = 1;
+  attr.priority = 0;  // Highest priority - blocks all traffic
+  attr.group = 3;
+
+  HOLOSCAN_LOG_INFO("Creating drop all traffic rule on port {} with priority {}", port, attr.priority);
+
+  // Create the flow rule
+  flow = rte_flow_create(port, &attr, pattern, action, &error);
+  
+  if (flow == nullptr) {
+    HOLOSCAN_LOG_ERROR("Failed to create drop all traffic flow rule on port {}: {}", 
+                       port, error.message ? error.message : "unknown error");
+  } else {
+    HOLOSCAN_LOG_INFO("Successfully created drop all traffic rule on port {}", port);
+  }
+
+  return static_cast<void*>(flow);
+}
+
+Status DpdkMgr::allow_all_traffic(int port, void* flow) {
+  if (flow == nullptr) {
+    HOLOSCAN_LOG_ERROR("Cannot remove drop rule: flow pointer is null");
+    return Status::INVALID_PARAMETER;
+  }
+
+  struct rte_flow_error error;
+  int ret = rte_flow_destroy(port, static_cast<struct rte_flow*>(flow), &error);
+  
+  if (ret != 0) {
+    HOLOSCAN_LOG_ERROR("Failed to destroy drop all traffic flow rule on port {}: {}", 
+                       port, error.message ? error.message : "unknown error");
+    return Status::INTERNAL_ERROR;
+  }
+
+  HOLOSCAN_LOG_INFO("Successfully removed drop all traffic rule on port {}, traffic is now allowed", port);
+  return Status::SUCCESS;
 }
 
 struct rte_flow* DpdkMgr::add_modify_flow_set(int port, int queue, const char* buf, int len,
@@ -1391,7 +1478,7 @@ struct rte_flow* DpdkMgr::add_modify_flow_set(int port, int queue, const char* b
   pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
   pattern[0].spec = &eth;
   pattern[0].mask = &eth;
-  attr.priority = 0;
+  attr.priority = 1;
 
   pattern[1].type = RTE_FLOW_ITEM_TYPE_END;
 
