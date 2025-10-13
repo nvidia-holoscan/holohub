@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["LSTM", "TensorRT"],
+		"tags": ["Inference", "LSTM", "TensorRT"],
 		"ranking": 1,
 		"requirements": {}
 	}

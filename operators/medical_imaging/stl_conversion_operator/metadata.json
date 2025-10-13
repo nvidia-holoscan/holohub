@@ -18,7 +18,7 @@
 			"tested_versions": ["2.2.0", "3.2.0"]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Medical Imaging", "STL", "Conversion"],
+		"tags": ["Converter", "Medical Imaging", "STL"],
 		"ranking": 2,
 		"requirements": {}
 	}

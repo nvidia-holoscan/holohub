@@ -19,7 +19,7 @@
 			]
 		},
 		"platforms": ["x86_64"],
-		"tags": ["iio", "libiio"],
+		"tags": ["Signal Processing", "iio", "libiio"],
 		"ranking": 4,
 		"requirements": {
 			"libraries": [{

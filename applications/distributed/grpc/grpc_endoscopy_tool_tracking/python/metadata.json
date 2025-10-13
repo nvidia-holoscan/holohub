@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Distributed Endoscopy Tool Tracking with gRPC Streaming",
+		"name": "Distributed Endoscopy Tool Tracking with gRPC",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Distributed", "LSTM", "Asynchronous Queues", "gRPC", "Video", "Computer Vision and Perception", "Visualization"],
+		"tags": ["Streaming", "Distributed", "LSTM", "Asynchronous Queues", "gRPC", "Video", "Computer Vision and Perception", "Visualization"],
 		"ranking": 0,
 		"requirements": {
 			"data": [

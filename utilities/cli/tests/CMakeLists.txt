@@ -409,3 +409,30 @@ add_test(
 set_property(TEST test_holohub_test_ctest_options PROPERTY
     PASS_REGULAR_EXPRESSION "DMAKE2=2.*DTEST=2"
 )
+
+# Test that HOLOHUB_PATH_PREFIX is passed from host to container
+add_test(
+    NAME test_holohub_path_prefix_env
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_path_prefix_env PROPERTY
+    ENVIRONMENT "HOLOHUB_PATH_PREFIX=custom_prefix_"
+)
+set_property(TEST test_holohub_path_prefix_env PROPERTY
+    PASS_REGULAR_EXPRESSION "docker run"
+    PASS_REGULAR_EXPRESSION "-e HOLOHUB_PATH_PREFIX=custom_prefix_"
+)
+
+# Test that HOLOHUB_PATH_PREFIX is passed when running an application locally
+add_test(
+    NAME test_holohub_path_prefix_app_local
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --local --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_path_prefix_app_local PROPERTY
+    ENVIRONMENT "HOLOHUB_PATH_PREFIX=custom_prefix_"
+)
+set_property(TEST test_holohub_path_prefix_app_local PROPERTY
+    PASS_REGULAR_EXPRESSION "custom_prefix_root"
+)

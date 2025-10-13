@@ -1162,11 +1162,13 @@ class HoloHubCLI:
                         f"Project '{args.project}' does not have a run configuration"
                     )
 
+            prefix = holohub_cli_util.resolve_path_prefix(None)
             path_mapping = holohub_cli_util.build_holohub_path_mapping(
                 holohub_root=HoloHubCLI.HOLOHUB_ROOT,
                 project_data=project_data,
                 build_dir=build_dir,
                 data_dir=HoloHubCLI.DEFAULT_DATA_DIR,
+                prefix=prefix,
             )
             if path_mapping:
                 mapping_info = ";\n".join(
@@ -1195,10 +1197,9 @@ class HoloHubCLI:
                         f"Did you forget to '{self.script_name} build {args.project}'?"
                     )
 
-            # Handle workdir using the path mapping
-            workdir_spec = run_config.get("workdir", "holohub_app_bin")
+            workdir_spec = run_config.get("workdir", f"{prefix}app_bin")
             if not workdir_spec:
-                target_dir = Path(path_mapping.get("holohub_root", "."))
+                target_dir = Path(path_mapping.get(f"{prefix}root", "."))
             elif workdir_spec in path_mapping:
                 target_dir = Path(path_mapping[workdir_spec])
             else:

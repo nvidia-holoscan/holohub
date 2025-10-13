@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM squidfunk/mkdocs-material:latest
+FROM squidfunk/mkdocs-material:9.6.19
 
 # Install plugins.
 ADD --chmod=755 https://astral.sh/uv/install.sh /install.sh
