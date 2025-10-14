@@ -64,16 +64,6 @@ class GstSrcResource : public holoscan::Resource {
   void initialize() override;
 
   /**
-   * @brief Check if the source element is ready (non-blocking)
-   * @return true if the element has been initialized and is ready to use
-   */
-  bool valid() const {
-    return src_element_future_.valid() && 
-           src_element_future_.wait_for(std::chrono::seconds(0)) == std::future_status::ready && 
-           src_element_future_.get();
-  }
-
-  /**
    * @brief Get the underlying GStreamer element (waits for initialization if needed)
    * @return Shared future that will provide the GstElementGuard when ready
    */
@@ -156,7 +146,17 @@ class GstSrcResource : public holoscan::Resource {
   static gboolean stop_callback(::GstBaseSrc *src);
 
  private:
-    /**
+  /**
+   * @brief Check if the source element is ready (non-blocking)
+   * @return true if the element has been initialized and is ready to use
+   */
+   bool valid() const {
+    return src_element_future_.valid() && 
+           src_element_future_.wait_for(std::chrono::seconds(0)) == std::future_status::ready && 
+           src_element_future_.get();
+  }
+
+  /**
    * @brief Get the current negotiated caps from the source
    * @return Caps with automatic reference counting
    */

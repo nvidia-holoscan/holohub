@@ -63,16 +63,6 @@ class GstSinkResource : public holoscan::Resource {
   void initialize() override;
 
   /**
-   * @brief Check if the sink element is ready (non-blocking)
-   * @return true if the element has been initialized and is ready to use
-   */
-  bool valid() const {
-    return sink_element_future_.valid() && 
-           sink_element_future_.wait_for(std::chrono::seconds(0)) == std::future_status::ready && 
-           sink_element_future_.get();
-  }
-
-  /**
    * @brief Get the underlying GStreamer element (waits for initialization if needed)
    * @return Shared future that will provide the GstElementGuard when ready
    */
@@ -110,6 +100,16 @@ class GstSinkResource : public holoscan::Resource {
   static gboolean stop_callback(::GstBaseSink *sink);
 
  private:
+  /**
+   * @brief Check if the sink element is ready (non-blocking)
+   * @return true if the element has been initialized and is ready to use
+   */
+   bool valid() const {
+    return sink_element_future_.valid() && 
+           sink_element_future_.wait_for(std::chrono::seconds(0)) == std::future_status::ready && 
+           sink_element_future_.get();
+  }
+
   /**
    * @brief Get the current negotiated caps from the sink
    * @return Caps with automatic reference counting
