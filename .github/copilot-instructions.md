@@ -27,7 +27,6 @@ Below is the complete list of categories currently approved for use in `metadata
 - Healthcare AI
 - Image Processing
 - Inference
-- inference
 - Interoperability
 - Medical Imaging
 - Natural Language and Conversational AI
