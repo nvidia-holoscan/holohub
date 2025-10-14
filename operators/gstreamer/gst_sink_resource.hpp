@@ -87,12 +87,6 @@ class GstSinkResource : public holoscan::Resource {
   std::future<holoscan::gst::Buffer> pop_buffer();
 
   /**
-   * @brief Get the current negotiated caps from the sink
-   * @return Caps with automatic reference counting
-   */
-  holoscan::gst::Caps get_caps() const;
-
-  /**
    * @brief Create a GXF Entity with tensor(s) from GStreamer buffer with zero-copy
    * 
    * Supports both packed formats (RGBA, RGB) and planar formats (I420, NV12).
@@ -116,7 +110,13 @@ class GstSinkResource : public holoscan::Resource {
   static gboolean stop_callback(::GstBaseSink *sink);
 
  private:
-  // Promise/future for safe element access across threads
+  /**
+   * @brief Get the current negotiated caps from the sink
+   * @return Caps with automatic reference counting
+   */
+   holoscan::gst::Caps get_caps() const;
+
+ // Promise/future for safe element access across threads
   std::promise<holoscan::gst::GstElementGuard> sink_element_promise_;
   std::shared_future<holoscan::gst::GstElementGuard> sink_element_future_;
 

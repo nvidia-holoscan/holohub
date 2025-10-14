@@ -134,12 +134,6 @@ class GstSrcResource : public holoscan::Resource {
   bool push_buffer(holoscan::gst::Buffer buffer, 
                    std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
 
-    /**
-   * @brief Get the current negotiated caps from the source
-   * @return Caps with automatic reference counting
-   */
-   holoscan::gst::Caps get_caps() const;
-
   /**
    * @brief Create a GStreamer buffer from a GXF Entity containing tensor(s)
    * 
@@ -162,7 +156,13 @@ class GstSrcResource : public holoscan::Resource {
   static gboolean stop_callback(::GstBaseSrc *src);
 
  private:
-  // Initialize memory wrapper based on tensor storage type and caps
+    /**
+   * @brief Get the current negotiated caps from the source
+   * @return Caps with automatic reference counting
+   */
+   holoscan::gst::Caps get_caps() const;
+
+   // Initialize memory wrapper based on tensor storage type and caps
   void initialize_memory_wrapper(nvidia::gxf::Tensor* tensor) const;
 
   // Promise/future for safe element access across threads
