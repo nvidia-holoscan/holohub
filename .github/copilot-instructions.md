@@ -13,7 +13,7 @@ When reviewing Pull Requests that modify or add `metadata.json` files, verify th
    - Comment on the PR indicating which tags are not recognized
    - If there is any README.md file in the same directory as the `metadata.json` file, suggest an approved category based on the content of the README.md file.
    - Ask the contributor to either use an existing category or justify why a new category should be added
-   - Use "Example Review Comment" as a guidline on how to provide feedback.
+   - Use "Example Review Comment" as a guideline on how to provide feedback.
 
 ### Approved Category List
 
