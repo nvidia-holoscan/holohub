@@ -39,10 +39,11 @@ endif()
 set(OP_video_streaming ON CACHE BOOL "Build the video_streaming operator" FORCE)
 
 # Build client and server subdirectories directly
-# Note: We use add_subdirectory instead of add_holohub_application because both
-# client and server are tightly coupled components of the same application.
-# Using add_holohub_application would create separate APP_*_client and APP_*_server
-# options, but these components must always be built together for the integration test.
+# Note: The parent applications/CMakeLists.txt uses add_subdirectory() instead of
+# add_holohub_application(), so this application always builds unconditionally.
+# We use add_subdirectory (not add_holohub_application) for client/server because
+# they are tightly coupled components that must always be built together for the
+# integration test.
 add_subdirectory(video_streaming_demo_client)
 add_subdirectory(video_streaming_demo_server)
 
