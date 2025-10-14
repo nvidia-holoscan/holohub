@@ -119,7 +119,8 @@ add_holohub_application(psd_pipeline DEPENDS
                                   data_writer)
 
 # Unified streaming applications
-add_subdirectory(video_streaming_demo_enhanced)
+add_holohub_application(video_streaming_demo_enhanced DEPENDS
+                        OPERATORS video_streaming)
 
 add_holohub_application(ultrasound_segmentation DEPENDS
                         OPERATORS OPTIONAL aja_source)
