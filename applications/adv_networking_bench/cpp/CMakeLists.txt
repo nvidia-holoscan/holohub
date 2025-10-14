@@ -19,13 +19,6 @@ project(adv_networking_bench CXX CUDA)
 # Dependencies
 find_package(holoscan 2.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-include(FetchContent)
-FetchContent_Declare(
-  MatX
-  GIT_REPOSITORY https://github.com/NVIDIA/MatX.git
-  GIT_TAG v0.8.0
-)
-FetchContent_MakeAvailable(MatX)
 
 # Global variables
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
@@ -39,7 +32,6 @@ target_link_libraries(adv_networking_bench
   PRIVATE
   holoscan::core
   holoscan::advanced_network
-  matx::matx
 )
 
 # Configure manager support through compile definitions

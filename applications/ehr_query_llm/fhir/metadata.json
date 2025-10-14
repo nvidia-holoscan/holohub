@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "FHIR Client for Retrieving and Posting FHIR Resources",
+		"name": "FHIR Client",
+		"description": "This application demonstrates how to retrieve and post FHIR resources using the FHIR client library.",
 		"authors": [
 			{
 				"name": "Holoscan Team",

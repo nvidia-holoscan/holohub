@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["converter"],
+		"tags": ["Converter", "Format"],
 		"ranking": 3,
 		"requirements": {
 		}

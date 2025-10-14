@@ -586,7 +586,7 @@ class HoloHubContainer:
 
     def get_environment_args(self) -> List[str]:
         """Environment variable arguments"""
-        return [
+        args = [
             "-e",
             "NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display",
             "-e",
@@ -596,6 +596,15 @@ class HoloHubContainer:
             "-e",
             "HOLOHUB_BUILD_LOCAL=1",
         ]
+        # Pass CMAKE_BUILD_PARALLEL_LEVEL to container if set on host
+        cmake_parallel_level = os.environ.get("CMAKE_BUILD_PARALLEL_LEVEL")
+        if cmake_parallel_level:
+            args.extend(["-e", f"CMAKE_BUILD_PARALLEL_LEVEL={cmake_parallel_level}"])
+        # Pass HOLOHUB_PATH_PREFIX to container if set on host
+        holohub_path_prefix = os.environ.get("HOLOHUB_PATH_PREFIX")
+        if holohub_path_prefix:
+            args.extend(["-e", f"HOLOHUB_PATH_PREFIX={holohub_path_prefix}"])
+        return args
 
     def enable_x11_access(self) -> None:
         if (
