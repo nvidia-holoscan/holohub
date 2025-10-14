@@ -16,6 +16,12 @@
 cmake_minimum_required(VERSION 3.20)
 project(video_streaming_demo_enhanced LANGUAGES CXX)
 
+# Check if this application should be built
+# (APP_video_streaming_demo_enhanced is set by add_holohub_application in parent)
+if(NOT APP_video_streaming_demo_enhanced)
+  return()
+endif()
+
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 
@@ -35,15 +41,12 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
 endif()
 
-# Enable required operator
-set(OP_video_streaming ON CACHE BOOL "Build the video_streaming operator" FORCE)
-
 # Build client and server subdirectories directly
-# Note: The parent applications/CMakeLists.txt uses add_subdirectory() instead of
-# add_holohub_application(), so this application always builds unconditionally.
+# Note: The parent uses add_holohub_application(video_streaming_demo_enhanced) which:
+# - Defines APP_video_streaming_demo_enhanced option for conditional building
+# - Automatically enables the video_streaming operator dependency
 # We use add_subdirectory (not add_holohub_application) for client/server because
-# they are tightly coupled components that must always be built together for the
-# integration test.
+# they are tightly coupled components that must always be built together.
 add_subdirectory(video_streaming_demo_client)
 add_subdirectory(video_streaming_demo_server)
 
