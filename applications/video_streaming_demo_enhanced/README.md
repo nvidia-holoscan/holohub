@@ -567,20 +567,20 @@ Test project /workspace/holohub/build-video_streaming_demo_enhanced
 1: ✓ Server: Client connected
 1: ✓ Server: Upstream connection established
 1: ✓ Server: Downstream connection established
-1: ✓ Server: StreamingServerUpstreamOp processed 567 unique frames
-1: ✓ Server: StreamingServerDownstreamOp processed 567 tensors
+1: ✓ Server: StreamingServerUpstreamOp processed 568 unique frames
+1: ✓ Server: StreamingServerDownstreamOp processed 568 tensors
 1: ✓ Server: Frame processing statistics logged
 1: 
 1: === Verifying Client Logs ===
-1: ✓ Client: Sent 567 frames successfully
-1: ✓ Client: Received 567 frames from server
+1: ✓ Client: Sent 568 frames successfully
+1: ✓ Client: Received 534 frames from server
 1: ✓ Client: Frame validation passed
 1: ✓ Client: Streaming client started
 1: 
 1: === Test Results Summary ===
-1: Server checks passed: 6/6 (required: 6)
-1: Client checks passed: 4/4 (required: 4)
-1: ✓ STREAMING VERIFICATION PASSED - Frames actually transmitted!
+1: Server checks passed: 6
+1: Client checks passed: 4
+1: ✓ STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
 1: ✓ Integration test PASSED
 
 1/1 Test #1: video_streaming_integration_test ...   Passed   44.07 sec
@@ -625,15 +625,15 @@ Total Test time (real) = 44.07 sec
 
 **Performance Indicators:**
 ```
-# Server processed 567 frames in both directions
+# Server processed 568 frames in both directions
 [info] ✅ Processing UNIQUE frame: 854x480, 1639680 bytes, timestamp=29938
-[info] 📊 DOWNSTREAM: Processing tensor 567 - shape: 480x854x4, 1639680 bytes
+[info] 📊 DOWNSTREAM: Processing tensor 568 - shape: 480x854x4, 1639680 bytes
 
-# Client sent and received 567 frames
+# Client sent 568 frames and received 534 frames
 [info] ✅ Frame sent successfully on attempt 1
-[info] 📥 CLIENT: Received frame #567 from server: 854x480
+[info] 📥 CLIENT: Received frame #534 from server: 854x480
 
-# Frame rate: ~19 FPS (567 frames ÷ 30 seconds)
+# Frame rate: ~19 FPS (568 frames ÷ 30 seconds)
 # Bidirectional throughput: ~62 MB/s (1.64MB per frame × 19 FPS × 2 directions)
 ```
 
@@ -674,12 +674,18 @@ If you see output like:
 === Verifying Server Logs ===
 ✗ Server: Upstream connection not established
 ✗ Server: Downstream connection not established
-✓ Server: StreamingServerUpstreamOp processed 567 unique frames  # But frames work!
-✓ Server: StreamingServerDownstreamOp processed 567 tensors      # But frames work!
+✓ Server: StreamingServerUpstreamOp processed 568 unique frames  # But frames work!
+✓ Server: StreamingServerDownstreamOp processed 568 tensors      # But frames work!
 
 === Verifying Client Logs ===
-✓ Client: Sent 567 frames successfully
-✓ Client: Received 567 frames from server  # Bidirectional works!
+✓ Client: Sent 568 frames successfully
+✓ Client: Received 534 frames from server  # Bidirectional works!
+
+=== Test Results Summary ===
+Server checks passed: 4
+Client checks passed: 4
+✗ STREAMING VERIFICATION FAILED - One or more checks failed
+✗ Integration test FAILED
 ```
 
 **Root Cause:** Event callback overwriting in StreamingServerResource
