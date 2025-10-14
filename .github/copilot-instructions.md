@@ -11,8 +11,9 @@ When reviewing Pull Requests that modify or add `metadata.json` files, verify th
 3. **Compare against approved list**: Verify the category exists in the "Approved Category List" below
 4. **Flag discrepancies**: If the category is not in the approved list:
    - Comment on the PR indicating which tags are not recognized
+   - If the there is a similar category in the approved list, suggest that the contributor use that category instead.
    - If there is any README.md file in the same directory as the `metadata.json` file, suggest an approved category based on the content of the README.md file.
-   - Ask the contributor to either use an existing category or justify why a new category should be added
+   - Ask the contributor to either use an existing category or justify why a new category should be added.
    - Use "Example Review Comment" as a guideline on how to provide feedback.
 
 ### Approved Category List
