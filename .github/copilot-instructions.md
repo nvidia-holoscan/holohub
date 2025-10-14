@@ -11,7 +11,9 @@ When reviewing Pull Requests that modify or add `metadata.json` files, verify th
 3. **Compare against approved list**: Verify the category exists in the "Approved Category List" below
 4. **Flag discrepancies**: If the category is not in the approved list:
    - Comment on the PR indicating which tags are not recognized
+   - If there is any README.md file in the same directory as the `metadata.json` file, suggest an approved category based on the content of the README.md file.
    - Ask the contributor to either use an existing category or justify why a new category should be added
+   - Use "Example Review Comment" as a guidline on how to provide feedback.
 
 ### Approved Category List
 
@@ -52,6 +54,6 @@ If a PR contains invalid tags, provide feedback like:
 >
 > The following category in `path/to/metadata.json` is not in the approved category list: `NewCategory`
 >
-> Please replace it with an existing category from [the approved category list](.github/copilot-instructions.md#approved-category-list). Here are some existing categories that might be suitable alternatives:
+> Please replace it with an existing category from [the approved category list](https://github.com/nvidia-holoscan/holohub/tree/main/.github/copilot-instructions.md#approved-category-list). Here are some existing categories that might be suitable alternatives:
 >
 > - For `NewCategory`, consider: `Similar Category A`, `Similar Category B`
