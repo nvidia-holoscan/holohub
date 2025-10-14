@@ -129,6 +129,25 @@ class StreamingClientOp : public holoscan::Operator {
   int retry_count_ = 0;
   std::chrono::steady_clock::time_point last_retry_time_ = std::chrono::steady_clock::now();
   static constexpr int max_retries_ = 3;
+
+  // Helper methods to reduce compute() function size
+  bool handleConnectionRetry(int compute_call_count);
+  bool validateAndPrepareTensor(const std::shared_ptr<holoscan::Tensor>& tensor,
+                                 int& expected_width,
+                                 int& expected_height);
+  std::shared_ptr<std::vector<uint8_t>> convertBGRtoBGRA(
+      const std::shared_ptr<holoscan::Tensor>& tensor,
+      int expected_width,
+      int expected_height);
+  VideoFrame createVideoFrame(const std::shared_ptr<std::vector<uint8_t>>& bgra_buffer,
+                                int expected_width,
+                                int expected_height);
+  void emitBGRATensorForVisualization(holoscan::OutputContext& op_output,
+                                      holoscan::ExecutionContext& context,
+                                      const std::shared_ptr<std::vector<uint8_t>>& bgra_buffer,
+                                      int expected_width,
+                                      int expected_height);
+  bool sendFrameWithRetry(const VideoFrame& frame);
 };
 
 }  // namespace holoscan::ops

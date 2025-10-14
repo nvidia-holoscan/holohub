@@ -625,28 +625,8 @@ void StreamingClientOp::stop() {
   }
 }
 
-void StreamingClientOp::compute(holoscan::InputContext& op_input,
-                             holoscan::OutputContext& op_output,
-                             holoscan::ExecutionContext& context) {
-  // Add detailed connection state logging
-  static int compute_call_count = 0;
+bool StreamingClientOp::handleConnectionRetry(int compute_call_count) {
   static int connection_retry_interval = 0;
-  static int debug_frame_counter = 0;  // Add debug frame counter
-  compute_call_count++;
-
-  if (compute_call_count % 30 == 0) {  // Log every second at 30fps
-    HOLOSCAN_LOG_INFO("Compute called {} times, client streaming: {}",
-                       compute_call_count,
-                       client_ ? (client_->isStreaming() ? "true" : "false") : "null");
-  }
-
-  // Check if client exists
-  if (!client_) {
-    if (compute_call_count % 60 == 0) {
-      HOLOSCAN_LOG_ERROR("Client is null - this should not happen");
-    }
-    return;
-  }
 
   // If not streaming, try to reconnect periodically
   if (!client_->isStreaming()) {
@@ -658,7 +638,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
 
       HOLOSCAN_LOG_WARN("Client not streaming, attempting to reconnect...");
 
-      // SAFER APPROACH: Track reconnection attempts but avoid aggressive client recreation
+      // Track reconnection attempts but avoid aggressive client recreation
       static int reconnection_attempts = 0;
       static auto last_reconnect_time = std::chrono::steady_clock::now();
 
@@ -695,7 +675,6 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
               last_reconnect_time = now + std::chrono::seconds(30);  // Wait 30 more seconds
             }
           }
-        } else {
         }
       } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("❌ Reconnection failed: {}", e.what());
@@ -712,7 +691,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
         // Give it more time before next attempt if we get specific errors
         if (error_msg.find("STATE_ERROR") != std::string::npos ||
             error_msg.find("NVST_R_INVALID_OPERATION") != std::string::npos) {
-          last_reconnect_time = now + std::chrono::seconds(10);  // Wait 10 seconds for state errors
+          last_reconnect_time = now + std::chrono::seconds(10);
         }
       }
     }
@@ -720,7 +699,356 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     if (compute_call_count % 60 == 0) {
       HOLOSCAN_LOG_WARN("Client not streaming after {} compute calls", compute_call_count);
     }
+    return false;  // Not streaming
+  }
+
+  return true;  // Streaming
+}
+
+bool StreamingClientOp::validateAndPrepareTensor(const std::shared_ptr<holoscan::Tensor>& tensor,
+                                                   int& expected_width,
+                                                   int& expected_height) {
+  // Validate tensor before processing
+  if (!validateTensorData(tensor)) {
+    HOLOSCAN_LOG_ERROR("Tensor validation failed");
+    return false;
+  }
+
+  // Check tensor data type
+  if (tensor->dtype().code != kDLUInt || tensor->dtype().bits != 8) {
+    HOLOSCAN_LOG_WARN("Unsupported tensor data type");
+    return false;
+  }
+
+  // Expect 3D tensor: [height, width, channels]
+  if (tensor->ndim() != 3) {
+    HOLOSCAN_LOG_WARN("Unexpected tensor dimensions: {}, expected 3D [height, width, channels]",
+                      tensor->ndim());
+    return false;
+  }
+
+  auto shape = tensor->shape();
+  int tensor_height = static_cast<int>(shape[0]);
+  int tensor_width = static_cast<int>(shape[1]);
+  int channels = static_cast<int>(shape[2]);
+
+  // Get expected dimensions from client configuration
+  expected_width = static_cast<int>(width_.get());
+  expected_height = static_cast<int>(height_.get());
+
+  HOLOSCAN_LOG_DEBUG("Tensor validation passed: {}x{}x{}, {} bytes",
+                     tensor_height, tensor_width, channels, tensor->nbytes());
+  HOLOSCAN_LOG_DEBUG("Expected client dimensions: {}x{}", expected_width, expected_height);
+
+  // Check for dimension mismatch between tensor and client configuration
+  if (tensor_width != expected_width || tensor_height != expected_height) {
+    HOLOSCAN_LOG_ERROR("❌ DIMENSION MISMATCH: Tensor {}x{} does not match "
+                       "client configuration {}x{}",
+                       tensor_width, tensor_height, expected_width, expected_height);
+    return false;
+  }
+
+  // Check channels
+  if (channels != 3) {
+    HOLOSCAN_LOG_WARN("Unexpected number of channels: {}, expected 3 for BGR", channels);
+    return false;
+  }
+
+  return true;
+}
+
+std::shared_ptr<std::vector<uint8_t>> StreamingClientOp::convertBGRtoBGRA(
+    const std::shared_ptr<holoscan::Tensor>& tensor,
+    int expected_width,
+    int expected_height) {
+  HOLOSCAN_LOG_DEBUG("BGRA FRAME PROCESSING:");
+  HOLOSCAN_LOG_DEBUG("  - Converting BGR to BGRA format");
+  HOLOSCAN_LOG_DEBUG("  - Using client configured dimensions: {}x{}", expected_width,
+                     expected_height);
+
+  size_t bgra_frame_size = expected_width * expected_height * 4;
+  HOLOSCAN_LOG_DEBUG("  - Output BGRA frame size: {} bytes", bgra_frame_size);
+
+  // Use shared_ptr to ensure data persistence
+  auto bgra_buffer = std::make_shared<std::vector<uint8_t>>(bgra_frame_size);
+
+  if (tensor->device().device_type == kDLCUDA) {
+    // GPU tensor - copy to CPU first, then convert BGR to BGRA
+    HOLOSCAN_LOG_DEBUG("Copying from GPU tensor to local buffer and converting to BGRA");
+
+    std::vector<uint8_t> bgr_buffer(tensor->nbytes());
+
+    // Copy from GPU to CPU
+    CUDA_TRY(cudaMemcpy(bgr_buffer.data(), tensor->data(), tensor->nbytes(),
+                        cudaMemcpyDeviceToHost));
+
+    // Convert BGR to BGRA
+    const uint8_t* bgr_data = bgr_buffer.data();
+    for (int i = 0; i < expected_width * expected_height; ++i) {
+      (*bgra_buffer)[i * 4 + 0] = bgr_data[i * 3 + 0];  // Blue
+      (*bgra_buffer)[i * 4 + 1] = bgr_data[i * 3 + 1];  // Green
+      (*bgra_buffer)[i * 4 + 2] = bgr_data[i * 3 + 2];  // Red
+      (*bgra_buffer)[i * 4 + 3] = 255;                   // Alpha (opaque)
+    }
+  } else {
+    // CPU tensor - direct conversion BGR to BGRA
+    HOLOSCAN_LOG_DEBUG("Converting CPU BGR tensor to BGRA");
+
+    const uint8_t* bgr_data = static_cast<const uint8_t*>(tensor->data());
+    for (int i = 0; i < expected_width * expected_height; ++i) {
+      (*bgra_buffer)[i * 4 + 0] = bgr_data[i * 3 + 0];  // Blue
+      (*bgra_buffer)[i * 4 + 1] = bgr_data[i * 3 + 1];  // Green
+      (*bgra_buffer)[i * 4 + 2] = bgr_data[i * 3 + 2];  // Red
+      (*bgra_buffer)[i * 4 + 3] = 255;                   // Alpha (opaque)
+    }
+  }
+
+  // Add content validation
+  size_t non_zero_count = 0;
+  size_t check_bytes = std::min(bgra_buffer->size(), static_cast<size_t>(1000));
+  for (size_t i = 0; i < check_bytes; ++i) {
+    if ((*bgra_buffer)[i] != 0) non_zero_count++;
+  }
+
+  HOLOSCAN_LOG_DEBUG("Frame content analysis: {}/{} non-zero bytes in first {} bytes",
+                     non_zero_count, check_bytes, check_bytes);
+
+  // Check minimum content
+  if (non_zero_count < min_non_zero_bytes_.get()) {
+    HOLOSCAN_LOG_WARN("Insufficient frame content: {}/{} non-zero bytes",
+                      non_zero_count, min_non_zero_bytes_.get());
+    return nullptr;
+  }
+
+  HOLOSCAN_LOG_DEBUG("Successfully converted BGR to BGRA: {} bytes", bgra_frame_size);
+  return bgra_buffer;
+}
+
+VideoFrame StreamingClientOp::createVideoFrame(
+    const std::shared_ptr<std::vector<uint8_t>>& bgra_buffer,
+    int expected_width,
+    int expected_height) {
+  // Create VideoFrame with timestamp
+  uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::system_clock::now().time_since_epoch()).count();
+
+  VideoFrame frame(static_cast<uint32_t>(expected_width),
+                   static_cast<uint32_t>(expected_height),
+                   bgra_buffer->data(),
+                   bgra_buffer->size(),
+                   timestamp);
+
+  // Set format after construction
+  frame.setFormat(PixelFormat::BGRA);
+
+  // Validate frame before returning
+  if (frame.getWidth() == 0 || frame.getHeight() == 0) {
+    HOLOSCAN_LOG_ERROR("Frame has invalid dimensions after creation");
+    return VideoFrame();
+  }
+
+  if (!frame.isValid() || frame.getDataSize() == 0) {
+    HOLOSCAN_LOG_ERROR("Frame validation failed after construction");
+    return VideoFrame();
+  }
+
+  // Comprehensive pre-send frame validation
+  bool frame_validation_passed = true;
+  std::string validation_errors;
+
+  // Check frame data pointer and size
+  const uint8_t* frame_data_ptr = frame.getData();
+  if (!frame_data_ptr) {
+    validation_errors += "Null data pointer; ";
+    frame_validation_passed = false;
+  }
+
+  if (frame.getDataSize() == 0) {
+    validation_errors += "Zero data size; ";
+    frame_validation_passed = false;
+  }
+
+  // Check expected vs actual frame size
+  size_t expected_size = frame.getWidth() * frame.getHeight() * 4;  // BGRA = 4 bytes per pixel
+  if (frame.getDataSize() != expected_size) {
+    validation_errors += fmt::format("Size mismatch (expected {}, got {}); ", expected_size,
+                                      frame.getDataSize());
+    frame_validation_passed = false;
+  }
+
+  // Check frame format
+  if (frame.getFormat() != PixelFormat::BGRA) {
+    validation_errors += fmt::format("Wrong format (expected BGRA, got {}); ",
+                                      static_cast<int>(frame.getFormat()));
+    frame_validation_passed = false;
+  }
+
+  // Check if frame has actual content (not all zeros)
+  if (frame_data_ptr && frame.getDataSize() > 0) {
+    size_t non_zero_bytes = 0;
+    size_t check_bytes = std::min(frame.getDataSize(), static_cast<size_t>(1000));
+    for (size_t i = 0; i < check_bytes; ++i) {
+      if (frame_data_ptr[i] != 0) non_zero_bytes++;
+    }
+
+    if (non_zero_bytes < min_non_zero_bytes_.get()) {
+      validation_errors += fmt::format("Insufficient content ({}/{} non-zero bytes); ",
+                                        non_zero_bytes, min_non_zero_bytes_.get());
+      frame_validation_passed = false;
+    }
+  }
+
+  if (!frame_validation_passed) {
+    HOLOSCAN_LOG_ERROR("❌ FRAME VALIDATION FAILED: {}", validation_errors);
+    return VideoFrame();
+  }
+
+  // Periodic INFO log for frame validation (every 30 frames)
+  static int validation_log_counter = 0;
+  validation_log_counter++;
+  if (validation_log_counter % 30 == 0) {
+    HOLOSCAN_LOG_INFO("Frame validation passed - ready for transmission");
+  }
+  HOLOSCAN_LOG_DEBUG("Frame validation passed - ready for transmission");
+
+  return frame;
+}
+
+void StreamingClientOp::emitBGRATensorForVisualization(
+    holoscan::OutputContext& op_output,
+    holoscan::ExecutionContext& context,
+    const std::shared_ptr<std::vector<uint8_t>>& bgra_buffer,
+    int expected_width,
+    int expected_height) {
+  try {
+    auto maybe_bgra_entity = nvidia::gxf::Entity::New(context.context());
+    if (maybe_bgra_entity) {
+      auto bgra_tensor_handle = maybe_bgra_entity.value().add<nvidia::gxf::Tensor>("bgra_tensor");
+      if (bgra_tensor_handle) {
+        // Set up dimensions and shape for BGRA format [Height, Width, Channels]
+        nvidia::gxf::Shape bgra_shape = nvidia::gxf::Shape{
+          static_cast<int32_t>(expected_height),
+          static_cast<int32_t>(expected_width),
+          4
+        };
+
+        nvidia::gxf::PrimitiveType element_type = nvidia::gxf::PrimitiveType::kUnsigned8;
+        int element_size = nvidia::gxf::PrimitiveTypeSize(element_type);
+
+        size_t bgra_frame_size = expected_width * expected_height * 4;
+        auto bgra_tensor_data = std::shared_ptr<uint8_t[]>(new uint8_t[bgra_frame_size]);
+        if (bgra_tensor_data) {
+          std::memcpy(bgra_tensor_data.get(), bgra_buffer->data(), bgra_frame_size);
+
+          bgra_tensor_handle.value()->wrapMemory(
+              bgra_shape,
+              element_type,
+              element_size,
+              nvidia::gxf::ComputeTrivialStrides(bgra_shape, element_size),
+              nvidia::gxf::MemoryStorageType::kSystem,
+              bgra_tensor_data.get(),
+              [bgra_tensor_data](void*) mutable {
+                bgra_tensor_data.reset();
+                return nvidia::gxf::Success;
+              });
+
+          op_output.emit(maybe_bgra_entity.value(), "output_frames");
+          HOLOSCAN_LOG_DEBUG("Emitted BGRA tensor for HoloViz: [{}x{}x4], {} bytes",
+                           expected_height, expected_width, bgra_frame_size);
+        } else {
+          HOLOSCAN_LOG_ERROR("Failed to allocate memory for BGRA tensor");
+        }
+      } else {
+        HOLOSCAN_LOG_ERROR("Failed to add BGRA tensor to entity");
+      }
+    } else {
+      HOLOSCAN_LOG_ERROR("Failed to create BGRA entity for HoloViz");
+    }
+  } catch (const std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Exception creating BGRA tensor output: {}", e.what());
+  }
+}
+
+bool StreamingClientOp::sendFrameWithRetry(const VideoFrame& frame) {
+  bool send_success = false;
+  int send_attempts = 0;
+  const int max_send_attempts = 3;
+
+  while (!send_success && send_attempts < max_send_attempts) {
+    try {
+      // Check if client is ready to send frames
+      if (client_ && client_->isStreaming() && client_->isUpstreamReady()) {
+        HOLOSCAN_LOG_DEBUG("Attempting to send frame: {}x{}, {} bytes",
+                          frame.getWidth(), frame.getHeight(), frame.getDataSize());
+
+        send_success = client_->sendFrame(frame);
+        if (send_success) {
+          HOLOSCAN_LOG_INFO("✅ Frame sent successfully on attempt {}", send_attempts + 1);
+          retry_count_ = 0;
+        } else {
+          send_attempts++;
+          HOLOSCAN_LOG_ERROR("❌ Frame send failed, attempt {}/{}", send_attempts,
+                             max_send_attempts);
+
+          if (!client_->isStreaming()) {
+            HOLOSCAN_LOG_ERROR("  - ROOT CAUSE: Client lost streaming connection");
+            break;
+          } else if (!client_->isUpstreamReady()) {
+            HOLOSCAN_LOG_ERROR("  - ROOT CAUSE: Upstream connection not ready");
+          }
+
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+      } else if (client_ && client_->isStreaming() && !client_->isUpstreamReady()) {
+        HOLOSCAN_LOG_WARN("Cannot send frame: client streaming but upstream not ready");
+        send_attempts++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      } else {
+        HOLOSCAN_LOG_ERROR("Cannot send frame: client not ready");
+        break;
+      }
+    } catch (const std::exception& e) {
+      send_attempts++;
+      HOLOSCAN_LOG_ERROR("❌ Exception during frame send attempt {}: {}",
+                        send_attempts, e.what());
+      if (send_attempts < max_send_attempts) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      }
+    }
+  }
+
+  if (!send_success) {
+    HOLOSCAN_LOG_ERROR("❌ Failed to send frame after {} attempts", max_send_attempts);
+  }
+
+  return send_success;
+}
+
+void StreamingClientOp::compute(holoscan::InputContext& op_input,
+                             holoscan::OutputContext& op_output,
+                             holoscan::ExecutionContext& context) {
+  // Add detailed connection state logging
+  static int compute_call_count = 0;
+  static int debug_frame_counter = 0;  // Add debug frame counter
+  compute_call_count++;
+
+  if (compute_call_count % 30 == 0) {  // Log every second at 30fps
+    HOLOSCAN_LOG_INFO("Compute called {} times, client streaming: {}",
+                       compute_call_count,
+                       client_ ? (client_->isStreaming() ? "true" : "false") : "null");
+  }
+
+  // Check if client exists
+  if (!client_) {
+    if (compute_call_count % 60 == 0) {
+      HOLOSCAN_LOG_ERROR("Client is null - this should not happen");
+    }
     return;
+  }
+
+  // Handle connection retry (extracted to helper method)
+  if (!handleConnectionRetry(compute_call_count)) {
+    return;  // Not streaming, waiting for reconnection
   }
 
   // Add this check for upstream readiness
@@ -791,128 +1119,20 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     }
 #endif  // HOLOSCAN_DEBUG_FRAME_WRITING
 
-    // Validate tensor before processing
-    if (!validateTensorData(tensor)) {
-      HOLOSCAN_LOG_ERROR("Tensor validation failed, discarding entire message");
-      return;  // Exit compute method entirely - message fully consumed
+    // Validate and prepare tensor (extracted to helper method)
+    int expected_width, expected_height;
+    if (!validateAndPrepareTensor(tensor, expected_width, expected_height)) {
+      return;  // Validation failed, message consumed
     }
 
-    // Check tensor data type
-    if (tensor->dtype().code != kDLUInt || tensor->dtype().bits != 8) {
-      HOLOSCAN_LOG_WARN("Unsupported tensor data type, discarding entire message");
-      return;  // Exit compute method entirely - message fully consumed
+    // Convert BGR to BGRA (extracted to helper method)
+    auto bgra_buffer = convertBGRtoBGRA(tensor, expected_width, expected_height);
+    if (!bgra_buffer) {
+      return;  // Conversion failed, message consumed
     }
 
-    // Expect 3D tensor: [height, width, channels]
-    if (tensor->ndim() != 3) {
-      HOLOSCAN_LOG_WARN("Unexpected tensor dimensions: {}, expected 3D "
-                        "[height, width, channels], discarding entire message",
-                        tensor->ndim());
-      return;  // Exit compute method entirely - message fully consumed
-    }
-
-    int tensor_height = static_cast<int>(shape[0]);
-    int tensor_width = static_cast<int>(shape[1]);
-    int channels = static_cast<int>(shape[2]);
-
-    // CRITICAL: Validate tensor dimensions match client configuration
-    int expected_width = static_cast<int>(width_.get());
-    int expected_height = static_cast<int>(height_.get());
-
-    HOLOSCAN_LOG_DEBUG("Tensor validation passed: {}x{}x{}, {} bytes",
-                       tensor_height, tensor_width, channels, tensor->nbytes());
-    HOLOSCAN_LOG_DEBUG("Expected client dimensions: {}x{}", expected_width, expected_height);
-
-    // Check for dimension mismatch between tensor and client configuration
-    if (tensor_width != expected_width || tensor_height != expected_height) {
-      HOLOSCAN_LOG_ERROR("❌ DIMENSION MISMATCH: Tensor {}x{} does not match "
-                         "client configuration {}x{}",
-                         tensor_width, tensor_height, expected_width, expected_height);
-      HOLOSCAN_LOG_ERROR("   Holoscan Streaming Stack was negotiated for {}x{} "
-                         "but received {}x{}",
-                         expected_width, expected_height, tensor_width, tensor_height);
-      HOLOSCAN_LOG_ERROR("   This causes sendFrame() to fail silently in "
-                         "Holoscan Streaming Stack, discarding entire message");
-      return;  // Exit compute method entirely - message fully consumed
-    }
-
-    // Check channels
-    if (channels != 3) {
-      HOLOSCAN_LOG_WARN("Unexpected number of channels: {}, expected 3 for BGR, "
-                        "discarding entire message", channels);
-      return;  // Exit compute method entirely - message fully consumed
-    }
-
-    HOLOSCAN_LOG_DEBUG("BGRA FRAME PROCESSING:");
-    HOLOSCAN_LOG_DEBUG("  - Tensor data pointer: {}", tensor->data() ? "VALID" : "NULL");
-    HOLOSCAN_LOG_DEBUG("  - Input BGR frame size: {} bytes", tensor->nbytes());
-    HOLOSCAN_LOG_DEBUG("  - Tensor shape: [{}]", fmt::join(shape, "x"));
-    HOLOSCAN_LOG_DEBUG("  - Converting BGR to BGRA format");
-    HOLOSCAN_LOG_DEBUG("  - Using client configured dimensions: {}x{}",
-                       expected_width, expected_height);
-
-    // IMPORTANT: Use configured client dimensions, not tensor dimensions
+    // Calculate frame size for later use
     size_t bgra_frame_size = expected_width * expected_height * 4;
-    HOLOSCAN_LOG_DEBUG("  - Output BGRA frame size: {} bytes", bgra_frame_size);
-
-    // Use shared_ptr to ensure data persistence
-    auto bgra_buffer = std::make_shared<std::vector<uint8_t>>(bgra_frame_size);
-
-    if (tensor->device().device_type == kDLCUDA) {
-      // GPU tensor - copy to CPU first, then convert BGR to BGRA
-      HOLOSCAN_LOG_DEBUG("Copying from GPU tensor to local buffer and converting to BGRA");
-
-      std::vector<uint8_t> bgr_buffer(tensor->nbytes());
-
-      // Copy from GPU to CPU
-      CUDA_TRY(cudaMemcpy(bgr_buffer.data(),
-                         tensor->data(),
-                         tensor->nbytes(),
-                         cudaMemcpyDeviceToHost));
-
-      // Convert BGR to BGRA - use expected dimensions
-      const uint8_t* bgr_data = bgr_buffer.data();
-      for (int i = 0; i < expected_width * expected_height; ++i) {
-        (*bgra_buffer)[i * 4 + 0] = bgr_data[i * 3 + 0];  // Blue
-        (*bgra_buffer)[i * 4 + 1] = bgr_data[i * 3 + 1];  // Green
-        (*bgra_buffer)[i * 4 + 2] = bgr_data[i * 3 + 2];  // Red
-        (*bgra_buffer)[i * 4 + 3] = 255;                 // Alpha (opaque)
-      }
-    } else {
-      // CPU tensor - direct conversion BGR to BGRA
-      HOLOSCAN_LOG_DEBUG("Converting CPU BGR tensor to BGRA");
-
-      const uint8_t* bgr_data = static_cast<const uint8_t*>(tensor->data());
-      for (int i = 0; i < expected_width * expected_height; ++i) {
-        (*bgra_buffer)[i * 4 + 0] = bgr_data[i * 3 + 0];  // Blue
-        (*bgra_buffer)[i * 4 + 1] = bgr_data[i * 3 + 1];  // Green
-        (*bgra_buffer)[i * 4 + 2] = bgr_data[i * 3 + 2];  // Red
-        (*bgra_buffer)[i * 4 + 3] = 255;                 // Alpha (opaque)
-      }
-    }
-
-    // Add content validation before sending
-    size_t non_zero_count = 0;
-    size_t check_bytes = std::min(bgra_buffer->size(), static_cast<size_t>(1000));
-    for (size_t i = 0; i < check_bytes; ++i) {
-      if ((*bgra_buffer)[i] != 0) non_zero_count++;
-    }
-
-    HOLOSCAN_LOG_DEBUG("Frame content analysis: {}/{} non-zero bytes in first {} bytes",
-                       non_zero_count, check_bytes, check_bytes);
-
-    // Check minimum content
-    if (non_zero_count < min_non_zero_bytes_.get()) {
-      HOLOSCAN_LOG_WARN("Insufficient frame content: {}/{} non-zero bytes, "
-                        "discarding entire message",
-                        non_zero_count, min_non_zero_bytes_.get());
-      return;  // Exit compute method entirely - message fully consumed
-    }
-
-    HOLOSCAN_LOG_DEBUG("Successfully converted BGR to BGRA: {} bytes", bgra_frame_size);
-    HOLOSCAN_LOG_DEBUG("Frame data (first 5 BGRA pixels): {}, {}, {}, {}, {}",
-                       (*bgra_buffer)[0], (*bgra_buffer)[1], (*bgra_buffer)[2],
-                       (*bgra_buffer)[3], (*bgra_buffer)[4]);
 
     // Create VideoFrame using configured client dimensions
     uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -1120,151 +1340,12 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
     }
     HOLOSCAN_LOG_DEBUG("Frame validation passed - ready for transmission");
 
-    // Output BGRA tensor for HoloViz BEFORE network transmission
-    try {
-      // Create a GXF entity for BGRA tensor output
-      auto maybe_bgra_entity = nvidia::gxf::Entity::New(context.context());
-      if (maybe_bgra_entity) {
-        // Add a tensor to the entity
-        auto bgra_tensor_handle = maybe_bgra_entity.value().add<nvidia::gxf::Tensor>("bgra_tensor");
-        if (bgra_tensor_handle) {
-          // Set up dimensions and shape for BGRA format [Height, Width, Channels]
-          nvidia::gxf::Shape bgra_shape = nvidia::gxf::Shape{
-            static_cast<int32_t>(expected_height),  // 480
-            static_cast<int32_t>(expected_width),   // 854
-            4  // BGRA has 4 channels
-          };
+    // Emit BGRA tensor for visualization (extracted to helper method)
+    emitBGRATensorForVisualization(op_output, context, bgra_buffer, expected_width,
+                                    expected_height);
 
-          // Set up element type
-          nvidia::gxf::PrimitiveType element_type = nvidia::gxf::PrimitiveType::kUnsigned8;
-          int element_size = nvidia::gxf::PrimitiveTypeSize(element_type);
-
-          // Create a copy of the BGRA data in host memory for the tensor
-          auto bgra_tensor_data = std::shared_ptr<uint8_t[]>(new uint8_t[bgra_frame_size]);
-          if (bgra_tensor_data) {
-            // Copy the BGRA data
-            std::memcpy(bgra_tensor_data.get(), bgra_buffer->data(), bgra_frame_size);
-
-            // Wrap the memory in the tensor
-            bgra_tensor_handle.value()->wrapMemory(
-                bgra_shape,
-                element_type,
-                element_size,
-                nvidia::gxf::ComputeTrivialStrides(bgra_shape, element_size),
-                nvidia::gxf::MemoryStorageType::kSystem,
-                bgra_tensor_data.get(),
-                [bgra_tensor_data](void*) mutable {
-                  // The shared_ptr will automatically clean up when it goes out of scope
-                  bgra_tensor_data.reset();
-                  return nvidia::gxf::Success;
-                });
-
-            // Emit the BGRA tensor entity to HoloViz
-            op_output.emit(maybe_bgra_entity.value(), "output_frames");
-            HOLOSCAN_LOG_DEBUG("Emitted BGRA tensor for HoloViz: [{}x{}x4], {} bytes",
-                             expected_height, expected_width, bgra_frame_size);
-          } else {
-            HOLOSCAN_LOG_ERROR("Failed to allocate memory for BGRA tensor");
-          }
-        } else {
-          HOLOSCAN_LOG_ERROR("Failed to add BGRA tensor to entity");
-        }
-      } else {
-        HOLOSCAN_LOG_ERROR("Failed to create BGRA entity for HoloViz");
-      }
-    } catch (const std::exception& e) {
-      HOLOSCAN_LOG_ERROR("Exception creating BGRA tensor output: {}", e.what());
-    }
-
-    // Add retry logic for frame sending
-    bool send_success = false;
-    int send_attempts = 0;
-    const int max_send_attempts = 3;
-
-    while (!send_success && send_attempts < max_send_attempts) {
-      try {
-        // Check if client is ready to send frames (both streaming and upstream ready)
-        if (client_ && client_->isStreaming() && client_->isUpstreamReady()) {
-          HOLOSCAN_LOG_DEBUG("Attempting to send frame: {}x{}, {} bytes, "
-                            "streaming=active, upstream=ready",
-                            frame.getWidth(), frame.getHeight(), frame.getDataSize());
-
-          // Add detailed pre-send validation
-          HOLOSCAN_LOG_DEBUG("Pre-send validation:");
-          HOLOSCAN_LOG_DEBUG("  - Frame valid: {}", frame.isValid() ? "YES" : "NO");
-          HOLOSCAN_LOG_DEBUG("  - Frame data: {}", frame.getData() ? "VALID" : "NULL");
-          HOLOSCAN_LOG_DEBUG("  - Frame size: {} bytes", frame.getDataSize());
-          HOLOSCAN_LOG_DEBUG("  - Client streaming: {}", client_->isStreaming() ? "YES" : "NO");
-          HOLOSCAN_LOG_DEBUG("  - Upstream ready: {}", client_->isUpstreamReady() ? "YES" : "NO");
-
-          send_success = client_->sendFrame(frame);
-          if (send_success) {
-            HOLOSCAN_LOG_INFO("✅ Frame sent successfully on attempt {}",
-                             send_attempts + 1);
-            // Reset retry counter on successful send
-            retry_count_ = 0;
-            message_processed_successfully = true;
-          } else {
-            send_attempts++;
-
-            // CRITICAL: Add detailed error investigation
-            HOLOSCAN_LOG_ERROR("❌ Frame send failed, attempt {}/{} - INVESTIGATING CAUSE:",
-                             send_attempts, max_send_attempts);
-            HOLOSCAN_LOG_ERROR("  - Frame properties: {}x{}, format={}, {} bytes",
-                                frame.getWidth(), frame.getHeight(),
-                                static_cast<int>(frame.getFormat()), frame.getDataSize());
-            HOLOSCAN_LOG_ERROR("  - Frame validation: valid={}, data_ptr={}",
-                                frame.isValid() ? "YES" : "NO",
-                                frame.getData() ? "VALID" : "NULL");
-            HOLOSCAN_LOG_ERROR("  - Client state: streaming={}, upstream_ready={}",
-                                client_->isStreaming() ? "YES" : "NO",
-                                client_->isUpstreamReady() ? "YES" : "NO");
-
-            // Check if it's a connection issue
-            if (!client_->isStreaming()) {
-              HOLOSCAN_LOG_ERROR("  - ROOT CAUSE: Client lost streaming connection");
-              break;  // Exit retry loop for connection issues
-            } else if (!client_->isUpstreamReady()) {
-              HOLOSCAN_LOG_ERROR("  - ROOT CAUSE: Upstream connection not ready");
-              HOLOSCAN_LOG_ERROR("  - Client connected but upstream channel not established");
-            } else {
-              HOLOSCAN_LOG_ERROR("  - POSSIBLE CAUSE: Client reports streaming and upstream ready "
-                                  "but sendFrame fails");
-              HOLOSCAN_LOG_ERROR("  - This could be Holoscan Streaming Stack internal error or "
-                                  "frame format issue");
-            }
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-          }
-        } else if (client_ && client_->isStreaming() && !client_->isUpstreamReady()) {
-          HOLOSCAN_LOG_WARN("Cannot send frame: client is streaming but upstream not ready");
-          HOLOSCAN_LOG_WARN("  - Client streaming: YES");
-          HOLOSCAN_LOG_WARN("  - Upstream ready: NO");
-          send_attempts++;
-          std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Brief wait
-        } else {
-          HOLOSCAN_LOG_ERROR("Cannot send frame: client not ready");
-          HOLOSCAN_LOG_ERROR("  - Client exists: {}", client_ ? "YES" : "NO");
-          if (client_) {
-            HOLOSCAN_LOG_ERROR("  - Client streaming: {}", client_->isStreaming() ? "YES" : "NO");
-            HOLOSCAN_LOG_ERROR("  - Upstream ready: {}", client_->isUpstreamReady() ? "YES" : "NO");
-          }
-          break;  // Exit retry loop if client is fundamentally not ready
-        }
-      } catch (const std::exception& e) {
-        send_attempts++;
-        HOLOSCAN_LOG_ERROR("❌ Exception during frame send attempt {}: {}",
-                          send_attempts, e.what());
-        if (send_attempts < max_send_attempts) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-      }
-    }
-
-    if (!send_success) {
-      HOLOSCAN_LOG_ERROR("❌ Failed to send frame after {} attempts", max_send_attempts);
-      // Don't return here - we've still consumed the message successfully
-    }
+    // Send frame with retry logic (extracted to helper method)
+    sendFrameWithRetry(frame);
 
     // Small delay to control frame rate
     std::this_thread::sleep_for(std::chrono::microseconds(100));
