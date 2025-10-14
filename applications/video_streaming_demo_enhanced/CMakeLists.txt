@@ -71,9 +71,9 @@ if(BUILD_TESTING)
              echo 'Starting server and client with log capture...'
 
              # Initialize variables
-             SERVER_SUCCESS=0
-             CLIENT_SUCCESS=0
-             STREAMING_SUCCESS=0
+             TEST_FAILED=0
+             SERVER_CHECKS_PASSED=0
+             CLIENT_CHECKS_PASSED=0
 
              # Create log files
              SERVER_LOG=\$(mktemp /tmp/server_log.XXXXXX)
@@ -128,25 +128,28 @@ if(BUILD_TESTING)
              # Check for client connection
              if grep -q 'Client connected' \$SERVER_LOG; then
                echo '✓ Server: Client connected'
-               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+               SERVER_CHECKS_PASSED=\$((SERVER_CHECKS_PASSED + 1))
              else
                echo '✗ Server: No client connection detected'
+               TEST_FAILED=1
              fi
 
              # Check for upstream connection
              if grep -q 'Upstream connection established' \$SERVER_LOG; then
                echo '✓ Server: Upstream connection established'
-               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+               SERVER_CHECKS_PASSED=\$((SERVER_CHECKS_PASSED + 1))
              else
                echo '✗ Server: Upstream connection not established'
+               TEST_FAILED=1
              fi
 
              # Check for downstream connection
              if grep -q 'Downstream connection established' \$SERVER_LOG; then
                echo '✓ Server: Downstream connection established'
-               SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+               SERVER_CHECKS_PASSED=\$((SERVER_CHECKS_PASSED + 1))
              else
                echo '✗ Server: Downstream connection not established'
+               TEST_FAILED=1
              fi
 
             # Check for upstream frame processing (client -> server)
@@ -154,12 +157,14 @@ if(BUILD_TESTING)
               FRAME_COUNT=\$(grep -c 'Processing UNIQUE frame' \$SERVER_LOG)
               if [ \$FRAME_COUNT -ge 100 ]; then
                 echo \"✓ Server: StreamingServerUpstreamOp processed \$FRAME_COUNT unique frames\"
-                SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+                SERVER_CHECKS_PASSED=\$((SERVER_CHECKS_PASSED + 1))
               else
                 echo \"✗ Server: Only \$FRAME_COUNT frames processed (minimum: 100)\"
+                TEST_FAILED=1
               fi
             else
               echo '✗ Server: StreamingServerUpstreamOp - No frames processed'
+              TEST_FAILED=1
             fi
 
             # Check for downstream frame transmission (server -> client)
@@ -167,20 +172,23 @@ if(BUILD_TESTING)
               DOWNSTREAM_COUNT=\$(grep -c 'DOWNSTREAM: Processing tensor' \$SERVER_LOG)
               if [ \$DOWNSTREAM_COUNT -ge 100 ]; then
                 echo \"✓ Server: StreamingServerDownstreamOp processed \$DOWNSTREAM_COUNT tensors\"
-                SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+                SERVER_CHECKS_PASSED=\$((SERVER_CHECKS_PASSED + 1))
               else
                 echo \"✗ Server: Only \$DOWNSTREAM_COUNT tensors processed (minimum: 100)\"
+                TEST_FAILED=1
               fi
             else
               echo '✗ Server: StreamingServerDownstreamOp - No tensors processed'
+              TEST_FAILED=1
             fi
 
             # Check for frame processing statistics
             if grep -q 'Frame Processing Stats' \$SERVER_LOG; then
               echo '✓ Server: Frame processing statistics logged'
-              SERVER_SUCCESS=\$((SERVER_SUCCESS + 1))
+              SERVER_CHECKS_PASSED=\$((SERVER_CHECKS_PASSED + 1))
             else
               echo '✗ Server: No frame processing statistics logged'
+              TEST_FAILED=1
             fi
 
              echo ''
@@ -191,12 +199,14 @@ if(BUILD_TESTING)
               SENT_COUNT=\$(grep -c 'Frame sent successfully' \$CLIENT_LOG)
               if [ \$SENT_COUNT -ge 100 ]; then
                 echo \"✓ Client: Sent \$SENT_COUNT frames successfully\"
-                CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+                CLIENT_CHECKS_PASSED=\$((CLIENT_CHECKS_PASSED + 1))
               else
                 echo \"✗ Client: Only \$SENT_COUNT frames sent (minimum: 100)\"
+                TEST_FAILED=1
               fi
             else
               echo '✗ Client: No frames sent successfully'
+              TEST_FAILED=1
             fi
 
             # Check for client frame reception (bidirectional verification)
@@ -204,42 +214,45 @@ if(BUILD_TESTING)
               RECEIVED_COUNT=\$(grep -c 'CLIENT: Received frame' \$CLIENT_LOG)
               if [ \$RECEIVED_COUNT -ge 100 ]; then
                 echo \"✓ Client: Received \$RECEIVED_COUNT frames from server\"
-                CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+                CLIENT_CHECKS_PASSED=\$((CLIENT_CHECKS_PASSED + 1))
               else
                 echo \"✗ Client: Only \$RECEIVED_COUNT frames received (minimum: 100)\"
+                TEST_FAILED=1
               fi
             else
               echo '✗ Client: No frames received from server'
+              TEST_FAILED=1
             fi
 
             # Check for frame validation
              if grep -q 'Frame validation passed' \$CLIENT_LOG; then
                echo '✓ Client: Frame validation passed'
-               CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+               CLIENT_CHECKS_PASSED=\$((CLIENT_CHECKS_PASSED + 1))
              else
                echo '✗ Client: Frame validation issues'
+               TEST_FAILED=1
              fi
 
              # Check for client streaming start
              if grep -q 'STARTING STREAMING CLIENT' \$CLIENT_LOG; then
                echo '✓ Client: Streaming client started'
-               CLIENT_SUCCESS=\$((CLIENT_SUCCESS + 1))
+               CLIENT_CHECKS_PASSED=\$((CLIENT_CHECKS_PASSED + 1))
              else
                echo '✗ Client: Streaming client failed to start'
+               TEST_FAILED=1
              fi
 
             echo ''
             echo '=== Test Results Summary ==='
-            echo \"Server checks passed: \$SERVER_SUCCESS/6 (required: 6)\"
-            echo \"Client checks passed: \$CLIENT_SUCCESS/4 (required: 4)\"
+            echo \"Server checks passed: \$SERVER_CHECKS_PASSED\"
+            echo \"Client checks passed: \$CLIENT_CHECKS_PASSED\"
 
             # Determine overall success
-            # Require ALL checks to pass for proper integration test
-            if [ \$SERVER_SUCCESS -eq 6 ] && [ \$CLIENT_SUCCESS -eq 4 ]; then
-               STREAMING_SUCCESS=1
-               echo '✓ STREAMING VERIFICATION PASSED - Frames actually transmitted!'
+            # Use failure flag: ANY check failure causes overall test failure
+            if [ \$TEST_FAILED -eq 0 ]; then
+               echo '✓ STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!'
              else
-               echo '✗ STREAMING VERIFICATION FAILED - No actual frame transmission detected'
+               echo '✗ STREAMING VERIFICATION FAILED - One or more checks failed'
                echo ''
                echo '=== Server Log Excerpt ==='
                head -50 \$SERVER_LOG
@@ -255,8 +268,8 @@ if(BUILD_TESTING)
              # Clean up logs
              rm -f \$SERVER_LOG \$CLIENT_LOG
 
-             # Overall result
-             if [ \$STREAMING_SUCCESS -eq 1 ]; then
+             # Overall result based on failure flag
+             if [ \$TEST_FAILED -eq 0 ]; then
                echo '✓ Integration test PASSED'
                exit 0
              else
