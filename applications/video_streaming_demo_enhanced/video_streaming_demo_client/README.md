@@ -17,13 +17,13 @@ This is the enhanced video streaming client demo application that supports both 
 ### V4L2 Camera (Webcam)
 ```bash
 # From holohub root directory - with custom Dockerfile (includes OpenSSL 3.4.0)
-./holohub run video_streaming_demo_client --language cpp --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0'
+./holohub run video_streaming_demo_enhanced client_v4l2 --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile
 ```
 
 ### Video File Replay
 ```bash
 # From holohub root directory - with custom Dockerfile (includes OpenSSL 3.4.0)
-./holohub run video_streaming_demo_client --language cpp --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1' --run-args='-c streaming_client_demo_replayer.yaml'
+./holohub run video_streaming_demo_enhanced client_replayer --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile
 ```
 
 ## Configuration Files

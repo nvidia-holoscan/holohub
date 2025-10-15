@@ -64,7 +64,7 @@ The unified application provides both client and server as separate components:
 
 ```bash
 # From holohub root directory - with Holoscan 3.5.0 base image
-./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_server --language cpp
+./holohub run video_streaming_demo_enhanced --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
 ```
 
 ### 2. Start the Streaming Client (in another terminal)
@@ -72,13 +72,13 @@ The unified application provides both client and server as separate components:
 **Option A: V4L2 Camera (Webcam)**
 ```bash
 # From holohub root directory - captures live video from webcam
-./holohub run video_streaming_demo_client --language cpp --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0'
+./holohub run video_streaming_demo_enhanced client_v4l2 --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile
 ```
 
 **Option B: Video File Replay**
 ```bash
 # From holohub root directory - replays pre-recorded video file
-./holohub run video_streaming_demo_client --language cpp --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1' --run-args='-c streaming_client_demo_replayer.yaml'
+./holohub run video_streaming_demo_enhanced client_replayer --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile
 ```
 
 **Key Differences:**
@@ -245,8 +245,8 @@ To switch between V4L2 camera and video replayer:
 
 1. **Stop the current client** (Ctrl+C)
 2. **Use the appropriate command:**
-   - For camera: `./holohub run video_streaming_demo_client --language cpp --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1 -e device=/dev/video0'`
-   - For video replay: `./holohub run video_streaming_demo_client --language cpp --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1' --run-args='-c streaming_client_demo_replayer.yaml'`
+   - For camera: `./holohub run video_streaming_demo_enhanced client_v4l2 --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile`
+   - For video replay: `./holohub run video_streaming_demo_enhanced client_replayer --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile`
 
 **Important:** The server doesn't need to be restarted when switching client modes.
 
@@ -366,10 +366,10 @@ For manual testing and debugging:
 
 ```bash
 # Terminal 1: Start Server (uses base image)
-./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_server --language cpp
+./holohub run video_streaming_demo_enhanced --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
 
 # Terminal 2: Start Client (uses custom Dockerfile with OpenSSL 3.4.0)
-./holohub run video_streaming_demo_client --language cpp --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1' --run-args='-c streaming_client_demo_replayer.yaml'
+./holohub run video_streaming_demo_enhanced client_replayer --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile
 ```
 
 ### Running Integration Tests
