@@ -293,7 +293,7 @@ class GstSrcApp : public Application {
     auto gst_src_op = make_operator<GstSrcOperator>(
         "gst_src_op",
         Arg("gst_src_resource", holoscan_gst_src_),
-        Arg("timeout_ms", static_cast<uint64_t>(500))
+        Arg("timeout_ms", static_cast<uint64_t>(1000))
     );
 
     // Connect the operators: pattern generator -> GStreamer source
