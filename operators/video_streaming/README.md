@@ -79,8 +79,8 @@ add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
 ## Dependencies
 
 ### Required
-- **Holoscan SDK 3.5+**: Core framework
-- **CUDA**: GPU acceleration support
+- **Holoscan SDK 3.5.0**: Core framework
+- **CUDA 12.x**: GPU acceleration support
 
 ### Cloud Streaming Binaries
 Both client and server require their respective NGC binaries:

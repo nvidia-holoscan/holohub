@@ -16,8 +16,8 @@ The video streaming demo provides:
 ## Requirements
 
 - NVIDIA GPU
-- CUDA 12.1 or higher  
-- Holoscan SDK 3.5.0 or higher
+- CUDA 12.x
+- Holoscan SDK 3.5.0
 - V4L2 camera (optional, for live streaming)
 
 ## Dependencies

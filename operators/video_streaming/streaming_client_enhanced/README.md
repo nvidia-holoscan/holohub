@@ -88,6 +88,11 @@ The StreamingClient operator integrates with the Holoscan Client Cloud Streaming
 
 6. **Output Generation**: Processed frames are emitted as GXF entities for downstream operators (HoloViz, file writers, etc.)
 
+## Requirements
+
+- **Holoscan SDK 3.5.0**: Core framework
+- **CUDA 12.x**: GPU acceleration support
+
 ## Dependencies
 
 In order to build the client operator, you must first download the client binaries from NGC:
