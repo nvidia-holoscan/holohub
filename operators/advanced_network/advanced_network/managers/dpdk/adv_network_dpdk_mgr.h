@@ -192,6 +192,8 @@ class DpdkMgr : public Manager {
   Status get_tx_metadata_buffer(BurstParams** burst) override;
   Status send_tx_burst(BurstParams* burst) override;
   Status get_mac_addr(int port, char* mac) override;
+  void* drop_all_traffic(int port) override;
+  Status allow_all_traffic(int port, void* flow) override;
   void shutdown() override;
   void print_stats() override;
   void adjust_memory_regions() override;
@@ -199,6 +201,7 @@ class DpdkMgr : public Manager {
   BurstParams* create_tx_burst_params() override;
   bool validate_config() const override;
   uint16_t get_num_rx_queues(int port_id) const override;
+  void flush_port_queue(int port, int queue) override;
 
  private:
   static void PrintDpdkStats(int port);
