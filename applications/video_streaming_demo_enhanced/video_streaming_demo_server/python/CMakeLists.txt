@@ -40,7 +40,7 @@ if(BUILD_TESTING)
   add_test(NAME streaming_server_demo_python_test
            COMMAND python3 streaming_server_demo.py --help
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  
+
   set_tests_properties(streaming_server_demo_python_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Streaming Server Demo"
                        FAIL_REGULAR_EXPRESSION "Error;ERROR;Failed")
