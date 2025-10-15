@@ -49,12 +49,12 @@ Below is the complete list of categories currently approved for use in `metadata
 
 ### Example Review Comment
 
-If a PR contains invalid tags, provide feedback like:
+If a PR contains category tags that are not in the approved category list, first try to suggest an existing category that is similar to the new category.
+If that is not possible, try to infer the category based on the content of the README.md file in the same directory as the `metadata.json` file or the one in the parent directory, or the content of the PR description. Then, provide a review comment like the following example:
 
 > ❌ **Metadata Category Validation Failed**
 >
-> The following category in `path/to/metadata.json` is not in the approved category list: `NewCategory`
+> The following category in `path/to/metadata.json` is not in the approved category list: `NotAnApprovedCategory`
 >
-> Please replace it with an existing category from [the approved category list](https://github.com/nvidia-holoscan/holohub/tree/main/.github/copilot-instructions.md#approved-category-list). Here are some existing categories that might be suitable alternatives:
->
-> - For `NewCategory`, consider: `Similar Category A`, `Similar Category B`
+> Please replace it with an existing category from [the approved category list](https://github.com/nvidia-holoscan/holohub/tree/main/.github/copilot-instructions.md#approved-category-list).
+> You may want to consider the following existing categories: `AnExistingApprovedCategory`
