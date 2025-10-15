@@ -304,6 +304,10 @@ if(BUILD_TESTING)
                echo '=== Python Enhanced Integration Test with Log Verification ==='
                echo 'Starting Python server and client with log capture...'
 
+               # Set up PYTHONPATH to include built Python modules
+               export PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:\$PYTHONPATH
+               echo \"PYTHONPATH: \$PYTHONPATH\"
+
                # Initialize variables
                TEST_FAILED=0
                SERVER_CHECKS_PASSED=0
