@@ -3,27 +3,19 @@
 
 %YAML 1.2
 ---
-# Streaming Client Demo Configuration - V4L2 SOURCE (Camera)
-# This configuration is optimized for V4L2 camera capture
+# Streaming Client Demo Configuration - REPLAYER SOURCE (Video File)
+# This configuration is optimized for video file playback
 
 # Application configuration
 application:
-  title: Streaming Client Demo (V4L2)
+  title: Streaming Client Demo (Replayer)
   version: 1.0
   log_level: INFO
 
-# Source: v4l2 for camera capture
-source: "v4l2"
+# Source: replayer for video file playback
+source: "replayer"
 
-# V4L2 camera configuration
-v4l2:
-  device: "/dev/video0"
-  width: 640
-  height: 480
-  frame_rate: 30
-  pixel_format: "YUYV"
-
-# Video replayer configuration (not used but kept for reference)
+# Video replayer configuration
 replayer:
   directory: "/workspace/holohub/data/endoscopy"
   basename: "surgical_video"
@@ -33,10 +25,10 @@ replayer:
   count: 0
 
 # Format converter configuration
-# V4L2 outputs RGBA8888 (4 channels) after internal YUYV->RGBA conversion
+# Video replayer outputs RGB888 (3 channels)
 format_converter:
-  in_dtype: "rgba8888"         # V4L2 outputs RGBA (4 channels)
-  out_dtype: "rgb888"          # Convert to RGB (3 channels), dropping alpha
+  in_dtype: "rgb888"           # Replayer outputs RGB (3 channels)
+  out_dtype: "rgb888"          # Keep as RGB (3 channels)
   out_tensor_name: "tensor"
   scale_min: 0.0
   scale_max: 255.0
@@ -44,8 +36,8 @@ format_converter:
 
 # Streaming client settings
 streaming_client:
-  # Video/stream parameters - Match V4L2 camera resolution (640x480)
-  width: 640
+  # Video/stream parameters - Match video file resolution (854x480)
+  width: 854
   height: 480
   fps: 30
   
@@ -63,9 +55,9 @@ streaming_client:
 # Visualization options
 visualize_frames: true
 
-# HoloViz configuration (match camera resolution)
+# HoloViz configuration (match video resolution)
 holoviz:
-  width: 640
+  width: 854
   height: 480
   tensors:
     - name: "bgra_tensor"
@@ -81,3 +73,4 @@ allocator:
 
 # Scheduler configuration
 scheduler: "greedy"
+
