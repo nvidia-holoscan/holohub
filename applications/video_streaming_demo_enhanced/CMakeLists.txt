@@ -472,7 +472,7 @@ if(BUILD_TESTING)
                fi
 
                # Check for client streaming start
-               if grep -q 'STARTING STREAMING CLIENT\|Starting Streaming Client Demo' \$CLIENT_LOG; then
+               if grep -qE 'STARTING STREAMING CLIENT|Starting Streaming Client Demo' \$CLIENT_LOG; then
                  echo '✓ Python Client: Streaming client started'
                  CLIENT_CHECKS_PASSED=\$((CLIENT_CHECKS_PASSED + 1))
                else
