@@ -26,7 +26,7 @@
 #include <string>
 
 #include <gst/gst.h>
-#include <gst/base/gstbasesink.h>
+#include <gst/app/gstappsink.h>
 #include <holoscan/holoscan.hpp>
 
 #include "gst/guards.hpp"
@@ -36,11 +36,11 @@
 namespace holoscan {
 
 /**
- * @brief Holoscan Resource wrapper for GStreamer sink element
+ * @brief Holoscan Resource wrapper for GStreamer appsink element
  *
- * This class provides a clean bridge between GStreamer pipelines and Holoscan operators.
- * The primary purpose is to enable Holoscan operators to retrieve and process data
- * from GStreamer pipelines.
+ * This class provides a clean bridge between GStreamer pipelines and Holoscan operators
+ * using the standard GStreamer appsink element. The primary purpose is to enable 
+ * Holoscan operators to retrieve and process data from GStreamer pipelines.
  */
 class GstSinkResource : public holoscan::Resource {
  public:
@@ -92,14 +92,11 @@ class GstSinkResource : public holoscan::Resource {
   holoscan::gxf::Entity create_entity_from_buffer(holoscan::ExecutionContext& context,
                                                    const holoscan::gst::Buffer& buffer) const;
 
-  // Static member functions for GStreamer callbacks
-  static ::GstCaps* get_caps_callback(::GstBaseSink *sink, ::GstCaps *filter);
-  static gboolean set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps);
-  static ::GstFlowReturn render_callback(::GstBaseSink *sink, ::GstBuffer *buffer);
-  static gboolean start_callback(::GstBaseSink *sink);
-  static gboolean stop_callback(::GstBaseSink *sink);
-
  private:
+  // Friend declarations for appsink callback functions (static functions in holoscan namespace)
+  friend void appsink_eos_callback(::GstAppSink* appsink, gpointer user_data);
+  friend ::GstFlowReturn appsink_new_preroll_callback(::GstAppSink* appsink, gpointer user_data);
+  friend ::GstFlowReturn appsink_new_sample_callback(::GstAppSink* appsink, gpointer user_data);
   /**
    * @brief Check if the sink element is ready (non-blocking)
    * @return true if the element has been initialized and is ready to use
@@ -126,6 +123,7 @@ class GstSinkResource : public holoscan::Resource {
   std::optional<std::promise<holoscan::gst::Buffer>> pending_request_;
   mutable std::mutex mutex_;
   std::condition_variable queue_cv_;
+  bool is_shutting_down_ = false;
 
   // Resource parameters
   holoscan::Parameter<std::string> caps_;

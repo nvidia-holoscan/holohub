@@ -21,6 +21,7 @@
 #include "gst/caps.hpp"
 #include "gst/video_info.hpp"
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
 #include <gst/base/gstbasesink.h>
 #include <gst/video/video.h>
 #include <gst/cuda/gstcudamemory.h>
@@ -29,9 +30,6 @@
 #include <dlpack/dlpack.h>
 #include <holoscan/core/execution_context.hpp>
 #include <gxf/std/tensor.hpp>
-
-// Forward declaration of GstSinkResource for C code
-namespace holoscan { class GstSinkResource; }
 
 // Convenience constant for mapping CUDA memory for reading
 // GST_MAP_CUDA is provided by gst/cuda/gstcudamemory.h
@@ -101,215 +99,19 @@ bool map_gst_memory(::GstMemory* memory, ::GstMapInfo& map_info, ::GstMapFlags f
 
 }  // namespace
 
-extern "C" {
-
-// ============================================================================
-// GStreamer Custom Simple Sink Element Implementation (embedded in C++)
-// ============================================================================
-
-/* Standard macros for defining the GStreamer element */
-#define GST_TYPE_HOLOSCAN_SINK \
-  (gst_holoscan_sink_get_type())
-#define GST_HOLOSCAN_SINK(obj) \
-  (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_HOLOSCAN_SINK,GstHoloscanSink))
-#define GST_HOLOSCAN_SINK_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_HOLOSCAN_SINK,GstHoloscanSinkClass))
-#define GST_IS_HOLOSCAN_SINK(obj) \
-  (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_HOLOSCAN_SINK))
-#define GST_IS_HOLOSCAN_SINK_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_HOLOSCAN_SINK))
-
-typedef struct _GstHoloscanSink GstHoloscanSink;
-typedef struct _GstHoloscanSinkClass GstHoloscanSinkClass;
-
-/**
- * GstHoloscanSink:
- * @parent: the parent object
- * @caps_set: whether caps have been negotiated
- * @caps: the negotiated caps for this sink
- * @holoscan_resource: pointer back to the GstSinkResource instance
- *
- * The Holoscan sink object structure (internal GStreamer element for data bridging)
- */
-struct _GstHoloscanSink
-{
-  GstBaseSink parent;
-
-  /* Processing state */
-  gboolean caps_set;
-
-  /* Media information */
-  GstCaps *caps;          // Full caps information
-
-  /* Bridge to C++ Holoscan resource */
-  void* holoscan_resource;  // GstSinkResource* (stored as void* for C compatibility)
-};
-
-/**
- * GstHoloscanSinkClass:
- * @parent_class: the parent class
- *
- * The Holoscan sink class structure (internal GStreamer element class)
- */
-struct _GstHoloscanSinkClass
-{
-  GstBaseSinkClass parent_class;
-};
-
-GST_DEBUG_CATEGORY_STATIC(gst_holoscan_sink_debug);
-#define GST_CAT_DEFAULT gst_holoscan_sink_debug
-
-/* Pad templates - will be dynamically updated based on configured caps */
-static GstStaticPadTemplate sink_pad_template = GST_STATIC_PAD_TEMPLATE("sink",
-    GST_PAD_SINK,
-    GST_PAD_ALWAYS,
-    GST_STATIC_CAPS("ANY")  // Default fallback, will be overridden
-);
-
-/* Function prototypes */
-static void gst_holoscan_sink_set_property(GObject *object, guint prop_id,
-    const GValue *value, GParamSpec *pspec);
-static void gst_holoscan_sink_get_property(GObject *object, guint prop_id,
-    GValue *value, GParamSpec *pspec);
-static void gst_holoscan_sink_finalize(GObject *object);
-
-/* All GStreamer callbacks are now implemented as static member functions */
-
-/* Helper function to extract media type from caps */
-static const gchar* gst_holoscan_sink_get_media_type_string(GstCaps *caps);
-
-/* Helper function implementations */
-static const gchar*
-gst_holoscan_sink_get_media_type_string(GstCaps *caps)
-{
-  if (!caps || gst_caps_is_empty(caps)) {
-    return "unknown";
-  }
-
-  if (gst_caps_is_any(caps)) {
-    return "ANY";
-  }
-
-  GstStructure *structure = gst_caps_get_structure(caps, 0);
-  if (!structure) {
-    return "unknown";
-  }
-
-  return gst_structure_get_name(structure);
-}
-
-/* Class initialization */
-#define gst_holoscan_sink_parent_class parent_class
-G_DEFINE_TYPE(GstHoloscanSink, gst_holoscan_sink, GST_TYPE_BASE_SINK);
-
-static void
-gst_holoscan_sink_class_init(GstHoloscanSinkClass *klass)
-{
-  GObjectClass *gobject_class;
-  GstElementClass *gstelement_class;
-  GstBaseSinkClass *gstbasesink_class;
-
-  gobject_class = G_OBJECT_CLASS(klass);
-  gstelement_class = GST_ELEMENT_CLASS(klass);
-  gstbasesink_class = GST_BASE_SINK_CLASS(klass);
-
-  /* Set up object methods */
-  gobject_class->set_property = gst_holoscan_sink_set_property;
-  gobject_class->get_property = gst_holoscan_sink_get_property;
-  gobject_class->finalize = gst_holoscan_sink_finalize;
-
-  /* No properties needed for basic data bridging */
-
-  /* Set element metadata */
-  gst_element_class_set_static_metadata(gstelement_class,
-      "Holoscan Bridge Sink",
-      "Sink/Generic",
-      "A GStreamer sink element that bridges data to Holoscan operators",
-      "NVIDIA Corporation <holoscan@nvidia.com>");
-
-  /* Add pad template */
-  gst_element_class_add_static_pad_template(gstelement_class, &sink_pad_template);
-
-  /* Set up base sink methods using static member functions */
-  gstbasesink_class->get_caps = GST_DEBUG_FUNCPTR(holoscan::GstSinkResource::get_caps_callback);
-  gstbasesink_class->set_caps = GST_DEBUG_FUNCPTR(holoscan::GstSinkResource::set_caps_callback);
-  gstbasesink_class->render = GST_DEBUG_FUNCPTR(holoscan::GstSinkResource::render_callback);
-  gstbasesink_class->start = GST_DEBUG_FUNCPTR(holoscan::GstSinkResource::start_callback);
-  gstbasesink_class->stop = GST_DEBUG_FUNCPTR(holoscan::GstSinkResource::stop_callback);
-
-  /* Initialize debug category */
-  GST_DEBUG_CATEGORY_INIT(gst_holoscan_sink_debug, "holoscansink", 0,
-      "Holoscan Sink Element");
-}
-
-static void
-gst_holoscan_sink_init(GstHoloscanSink *sink)
-{
-  /* Initialize state */
-  sink->caps_set = FALSE;
-  sink->holoscan_resource = NULL;
-
-  /* Initialize caps */
-  sink->caps = NULL;
-}
-
-static void
-gst_holoscan_sink_finalize(GObject *object)
-{
-  GstHoloscanSink *sink = GST_HOLOSCAN_SINK(object);
-
-  /* Clean up caps information */
-  if (sink->caps) {
-    gst_caps_unref(sink->caps);
-  }
-
-  HOLOSCAN_LOG_DEBUG("Finalizing Holoscan sink");
-
-  G_OBJECT_CLASS(parent_class)->finalize(object);
-}
-
-static void
-gst_holoscan_sink_set_property(GObject *object, guint prop_id,
-    const GValue *value, GParamSpec *pspec)
-{
-  GstHoloscanSink *sink = GST_HOLOSCAN_SINK(object);
-
-  switch (prop_id) {
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
-      break;
-  }
-}
-
-static void
-gst_holoscan_sink_get_property(GObject *object, guint prop_id,
-    GValue *value, GParamSpec *pspec)
-{
-  GstHoloscanSink *sink = GST_HOLOSCAN_SINK(object);
-
-  switch (prop_id) {
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
-      break;
-  }
-}
-
-
-/* Element registration function for direct use */
-gboolean
-gst_holoscan_sink_plugin_init(GstPlugin *plugin)
-{
-  return gst_element_register(plugin, "holoscansink", GST_RANK_NONE,
-      GST_TYPE_HOLOSCAN_SINK);
-}
-
-}  // extern "C"
-
 // ============================================================================
 // Holoscan GstSinkResource Implementation (C++)
+// Using standard GStreamer appsink element instead of custom element
 // ============================================================================
 
 namespace holoscan {
+
+// Forward declare the callback functions (defined below, after the unnamed namespace)
+// Note: These cannot be static because they are friend functions
+void appsink_eos_callback(GstAppSink* appsink, gpointer user_data);
+GstFlowReturn appsink_new_preroll_callback(GstAppSink* appsink, gpointer user_data);
+GstFlowReturn appsink_new_sample_callback(GstAppSink* appsink, gpointer user_data);
+
 namespace {
 // Factory function implementations moved to common.cpp
 
@@ -328,6 +130,140 @@ const char* get_media_type_from_caps(::GstCaps* caps) {
 }
 
 } // unnamed namespace
+
+// Callback functions for appsink - must be outside anonymous namespace
+// These are friend functions of GstSinkResource for access to private members
+
+void appsink_eos_callback(GstAppSink* appsink, gpointer user_data) {
+  GstSinkResource* resource = static_cast<GstSinkResource*>(user_data);
+  HOLOSCAN_LOG_INFO("End of stream in appsink: {}", resource->name());
+}
+
+GstFlowReturn appsink_new_preroll_callback(GstAppSink* appsink, gpointer user_data) {
+  GstSinkResource* resource = static_cast<GstSinkResource*>(user_data);
+  
+  // Check if shutting down before pulling sample
+  {
+    std::unique_lock<std::mutex> lock(resource->mutex_);
+    if (resource->is_shutting_down_) {
+      return GST_FLOW_EOS;
+    }
+  }
+  
+  GstSample* sample = gst_app_sink_pull_preroll(appsink);
+  if (!sample) {
+    return GST_FLOW_ERROR;
+  }
+  
+  GstBuffer* buffer = gst_sample_get_buffer(sample);
+  if (!buffer) {
+    gst_sample_unref(sample);
+    return GST_FLOW_ERROR;
+  }
+  
+  HOLOSCAN_LOG_DEBUG("Received preroll buffer via appsink, size: {} bytes", 
+                     gst_buffer_get_size(buffer));
+  
+  std::unique_lock<std::mutex> lock(resource->mutex_);
+  
+  // Double-check shutdown flag after acquiring lock
+  if (resource->is_shutting_down_) {
+    gst_sample_unref(sample);
+    return GST_FLOW_EOS;
+  }
+  
+  gst::Buffer buffer_obj(gst_buffer_ref(buffer));
+  
+  if (resource->pending_request_.has_value()) {
+    std::promise<gst::Buffer> promise = std::move(resource->pending_request_.value());
+    resource->pending_request_.reset();
+    promise.set_value(std::move(buffer_obj));
+    HOLOSCAN_LOG_DEBUG("Fulfilled pending buffer request with preroll");
+  } else {
+    resource->buffer_queue_.push(std::move(buffer_obj));
+    HOLOSCAN_LOG_DEBUG("Queued preroll buffer, total in queue: {}", 
+                       resource->buffer_queue_.size());
+  }
+  
+  gst_sample_unref(sample);
+  return GST_FLOW_OK;
+}
+
+GstFlowReturn appsink_new_sample_callback(GstAppSink* appsink, gpointer user_data) {
+  GstSinkResource* resource = static_cast<GstSinkResource*>(user_data);
+  
+  // Check if shutting down before pulling sample
+  {
+    std::unique_lock<std::mutex> lock(resource->mutex_);
+    if (resource->is_shutting_down_) {
+      return GST_FLOW_EOS;
+    }
+  }
+  
+  // Pull the sample (contains buffer + caps)
+  GstSample* sample = gst_app_sink_pull_sample(appsink);
+  if (!sample) {
+    return GST_FLOW_ERROR;
+  }
+  
+  // Extract buffer from sample
+  GstBuffer* buffer = gst_sample_get_buffer(sample);
+  if (!buffer) {
+    gst_sample_unref(sample);
+    return GST_FLOW_ERROR;
+  }
+  
+  HOLOSCAN_LOG_DEBUG("Received buffer via appsink, size: {} bytes", 
+                     gst_buffer_get_size(buffer));
+  
+  // Lock for thread-safe queue access
+  std::unique_lock<std::mutex> lock(resource->mutex_);
+  
+  // Double-check shutdown flag after acquiring lock
+  if (resource->is_shutting_down_) {
+    gst_sample_unref(sample);
+    return GST_FLOW_EOS;
+  }
+  
+  // Create Buffer object (ref the buffer before unreffing sample)
+  gst::Buffer buffer_obj(gst_buffer_ref(buffer));
+  
+  // Check if there is a pending request waiting for a buffer
+  if (resource->pending_request_.has_value()) {
+    // Fulfill the pending request immediately
+    std::promise<gst::Buffer> promise = std::move(resource->pending_request_.value());
+    resource->pending_request_.reset();
+    promise.set_value(std::move(buffer_obj));
+    HOLOSCAN_LOG_DEBUG("Fulfilled pending buffer request");
+  } else {
+    // Queue the buffer for future requests
+    resource->buffer_queue_.push(std::move(buffer_obj));
+    HOLOSCAN_LOG_DEBUG("Queued buffer, total in queue: {}", resource->buffer_queue_.size());
+    
+    // Backpressure: wait if queue is full
+    size_t queue_limit = resource->queue_limit_.get();
+    if (resource->buffer_queue_.size() > queue_limit) {
+      HOLOSCAN_LOG_DEBUG("Buffer queue size ({}) exceeds limit ({}), waiting...", 
+                        resource->buffer_queue_.size(), queue_limit);
+      
+      resource->queue_cv_.wait(lock, [resource, queue_limit]() {
+        return resource->is_shutting_down_ || resource->buffer_queue_.size() <= queue_limit;
+      });
+      
+      // Check if we woke up due to shutdown
+      if (resource->is_shutting_down_) {
+        gst_sample_unref(sample);
+        return GST_FLOW_EOS;
+      }
+      
+      HOLOSCAN_LOG_DEBUG("Buffer queue size now within limit: {}", 
+                        resource->buffer_queue_.size());
+    }
+  }
+  
+  gst_sample_unref(sample);
+  return GST_FLOW_OK;
+}
 
 // Asynchronously pop next buffer using promise-based approach
 std::future<gst::Buffer> GstSinkResource::pop_buffer() {
@@ -554,186 +490,16 @@ gxf::Entity GstSinkResource::create_entity_from_buffer(
   return entity;
 }
 
-// Static member function implementations for GStreamer callbacks
-
-// Get caps callback - advertise what the sink wants
-::GstCaps* GstSinkResource::get_caps_callback(::GstBaseSink *sink, ::GstCaps *filter) {
-  GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
-  
-  /* Access the GstSinkResource instance to get the configured caps */
-  if (holoscan_sink->holoscan_resource) {
-    GstSinkResource* resource = static_cast<GstSinkResource*>(holoscan_sink->holoscan_resource);
-    std::string configured_caps = resource->caps_.get();
-    
-    if (configured_caps != "ANY") {
-      /* Create GstCaps from the configured caps string */
-      GstCaps *caps = gst_caps_from_string(configured_caps.c_str());
-      if (caps) {
-        HOLOSCAN_LOG_DEBUG("Advertising sink capabilities: {}", configured_caps);
-        
-        /* If there's a filter, intersect with it */
-        if (filter) {
-          GstCaps *filtered_caps = gst_caps_intersect_full(caps, filter, GST_CAPS_INTERSECT_FIRST);
-          gst_caps_unref(caps);
-          return filtered_caps;
-        }
-        
-        return caps;
-      } else {
-        HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", configured_caps);
-      }
-    }
-  }
-  
-  /* Fallback to template caps */
-  GstPad *pad = GST_BASE_SINK_PAD(sink);
-  GstCaps *template_caps = gst_pad_get_pad_template_caps(pad);
-  
-  if (filter) {
-    GstCaps *filtered_caps = gst_caps_intersect_full(template_caps, filter, GST_CAPS_INTERSECT_FIRST);
-    gst_caps_unref(template_caps);
-    return filtered_caps;
-  }
-  
-  return template_caps;
-}
-
-// Set caps callback
-gboolean GstSinkResource::set_caps_callback(::GstBaseSink *sink, ::GstCaps *caps) {
-  GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
-  const gchar *media_type;
-
-  /* Get media type using our helper function */
-  media_type = gst_holoscan_sink_get_media_type_string(caps);
-
-  /* Access the GstSinkResource instance to get the configured caps */
-  if (holoscan_sink->holoscan_resource) {
-    GstSinkResource* resource = static_cast<GstSinkResource*>(holoscan_sink->holoscan_resource);
-    std::string configured_caps = resource->caps_.get();
-    
-    HOLOSCAN_LOG_INFO("Setting caps: {} (configured: '{}', incoming: {})", 
-        gst_caps_to_string(caps), configured_caps, media_type);
-    
-    /* Accept the caps - let GStreamer handle conversion upstream */
-    if (configured_caps != "ANY") {
-      HOLOSCAN_LOG_INFO("Accepting caps: {} (sink configured for: '{}')", 
-          media_type, configured_caps);
-    } else {
-      HOLOSCAN_LOG_INFO("Accepting any caps: {} (configured: ANY)", media_type);
-    }
-  } else {
-    HOLOSCAN_LOG_WARN("No resource bridge available for caps validation");
-  }
-
-  /* Store caps information */
-  if (holoscan_sink->caps) {
-    gst_caps_unref(holoscan_sink->caps);
-  }
-  holoscan_sink->caps = gst_caps_ref(caps);
-
-  /* Mark caps as successfully negotiated */
-  holoscan_sink->caps_set = TRUE;
-  return TRUE;
-}
-
-// Start callback
-gboolean GstSinkResource::start_callback(::GstBaseSink *sink) {
-  GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
-
-  HOLOSCAN_LOG_INFO("Starting Holoscan bridge sink");
-
-  holoscan_sink->caps_set = FALSE;
-
-  return TRUE;
-}
-
-// Stop callback
-gboolean GstSinkResource::stop_callback(::GstBaseSink *sink) {
-  GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
-
-  HOLOSCAN_LOG_INFO("Stopping Holoscan bridge sink");
-
-  holoscan_sink->caps_set = FALSE;
-
-  return TRUE;
-}
-
-// Render callback implementation
-::GstFlowReturn GstSinkResource::render_callback(::GstBaseSink *sink, ::GstBuffer *buffer) {
-  GstHoloscanSink *holoscan_sink = GST_HOLOSCAN_SINK(sink);
-
-  if (!holoscan_sink->caps_set) {
-    HOLOSCAN_LOG_ERROR("Caps not negotiated");
-    return GST_FLOW_NOT_NEGOTIATED;
-  }
-
-  /* Log buffer information for monitoring */
-  HOLOSCAN_LOG_DEBUG("Bridging buffer, size: {} bytes", gst_buffer_get_size(buffer));
-
-  /* Access the GstSinkResource instance from callback */
-  if (!holoscan_sink->holoscan_resource) {
-    /* Fallback if resource pointer not set */
-    HOLOSCAN_LOG_WARN("Buffer size: {} bytes (no resource bridge - was resource destroyed?)",
-        gst_buffer_get_size(buffer));
-    return GST_FLOW_EOS;
-  }
-
-  /* Cast back to GstSinkResource* to access C++ methods and members */
-  GstSinkResource* resource = static_cast<GstSinkResource*>(holoscan_sink->holoscan_resource);
-  std::unique_lock<std::mutex> lock(resource->mutex_);
-
-  /* Simple logging for monitoring */
-  HOLOSCAN_LOG_DEBUG("Bridging buffer: size: {} bytes (sink: {})",
-      gst_buffer_get_size(buffer), resource->name());
-
-  // Create Buffer object and take ownership of the buffer (no mapping yet - let the operator decide)
-  gst::Buffer buffer_obj(gst_buffer_ref(buffer));
-
-  // Check if there is a pending request waiting for a buffer
-  if (resource->pending_request_.has_value()) {
-    // Fulfill the pending request
-    std::promise<gst::Buffer> promise = std::move(resource->pending_request_.value());
-    resource->pending_request_.reset();
-    promise.set_value(std::move(buffer_obj));
-    HOLOSCAN_LOG_DEBUG("Fulfilled pending buffer request");
-  } else {
-    // No pending request, queue the buffer for future requests
-    resource->buffer_queue_.push(std::move(buffer_obj));
-    HOLOSCAN_LOG_DEBUG("Queued buffer, total in queue: {}", resource->buffer_queue_.size());
-    
-    // Wait until queue size is within limit
-    size_t queue_limit = resource->queue_limit_.get();
-    if (resource->buffer_queue_.size() > queue_limit) {
-      HOLOSCAN_LOG_DEBUG("Buffer queue size ({}) exceeds limit ({}), waiting...", 
-                        resource->buffer_queue_.size(), queue_limit);
-    }
-    resource->queue_cv_.wait(lock, [holoscan_sink, queue_limit]() {
-      GstSinkResource* resource = static_cast<GstSinkResource*>(holoscan_sink->holoscan_resource);
-      return resource == nullptr ||resource->buffer_queue_.size() <= queue_limit;
-    });
-
-    // Check if we woke up due to shutdown
-    if (holoscan_sink->holoscan_resource == nullptr) {
-      HOLOSCAN_LOG_INFO("Destroying GstSinkResource");
-      return GST_FLOW_EOS;
-    }
-    HOLOSCAN_LOG_DEBUG("Buffer queue size now within limit: {}", resource->buffer_queue_.size());
-  }
-
-  return GST_FLOW_OK;
-}
 
 GstSinkResource::~GstSinkResource() {
   HOLOSCAN_LOG_INFO("Destroying GstSinkResource");
-  // Check if element was created and set it to NULL state
-  if (valid()) {
-    // Clear the buffer queue and notify any waiting render callbacks
-    // This is necessary to avoid a deadlock in the render callback
+  // Signal shutdown and wake up any waiting callbacks
+  {
     std::lock_guard<std::mutex> lock(mutex_);
+    is_shutting_down_ = true;
     std::queue<gst::Buffer> empty_queue;
     std::swap(buffer_queue_, empty_queue);
     pending_request_.reset();
-    GST_HOLOSCAN_SINK(sink_element_future_.get().get())->holoscan_resource = nullptr;
     queue_cv_.notify_all();
   }
   HOLOSCAN_LOG_INFO("GstSinkResource destroyed");
@@ -768,7 +534,10 @@ void GstSinkResource::initialize() {
   // Initialize the future from the promise (after any construction/moves are complete)
   sink_element_future_ = sink_element_promise_.get_future();
   
-  HOLOSCAN_LOG_INFO("Initializing GstSinkResource for data bridging");
+  // Initialize shutdown flag
+  is_shutting_down_ = false;
+  
+  HOLOSCAN_LOG_INFO("Initializing GstSinkResource with appsink for data bridging");
   HOLOSCAN_LOG_INFO("Configured capabilities: '{}'", caps_.get());
   
   // Initialize GStreamer if not already done
@@ -776,33 +545,65 @@ void GstSinkResource::initialize() {
     gst_init(nullptr, nullptr);
   }
 
-  // Register our bridge sink element type
-  gst_element_register(nullptr, "holoscansink", GST_RANK_NONE,
-                      gst_holoscan_sink_get_type());
+  // Create appsink element - standard GStreamer element, no custom registration needed!
+  auto element = gst::make_gst_object_guard(
+    gst_element_factory_make("appsink", name().empty() ? nullptr : name().c_str())
+  );
 
-  // Create the sink element
-  auto element = gst::make_gst_object_guard(gst_element_factory_make("holoscansink",
-                                         name().empty() ? nullptr : name().c_str()));
-
-  if (element) {
-    // Establish the bridge: set the C++ resource pointer in the C element
-    GstHoloscanSink *sink = GST_HOLOSCAN_SINK(element.get());
-    sink->holoscan_resource = this;
-    
-    // Configure QoS based on parameter
-    gst_base_sink_set_qos_enabled(GST_BASE_SINK(sink), static_cast<gboolean>(qos_enabled_.get()));
-    HOLOSCAN_LOG_INFO("GstSinkResource initialized successfully for data bridging (QoS: {})",
-                      qos_enabled_.get() ? "enabled" : "disabled");
-    
-    // Set the promise with the successfully created element
-    sink_element_promise_.set_value(std::move(element));
-  } else {
-    HOLOSCAN_LOG_ERROR("Failed to create Holoscan bridge sink element");
-    
-    // Set exception on the promise so waiting code will be notified of failure
+  if (!element) {
+    HOLOSCAN_LOG_ERROR("Failed to create appsink element");
     sink_element_promise_.set_exception(
-        std::make_exception_ptr(std::runtime_error("Failed to create holoscansink element")));
+      std::make_exception_ptr(std::runtime_error("Failed to create appsink element"))
+    );
+    return;
   }
+
+  GstAppSink* appsink = GST_APP_SINK(element.get());
+
+  // Configure appsink properties
+  g_object_set(appsink,
+    "emit-signals", FALSE,  // Use callbacks instead of signals (more efficient)
+    "sync", TRUE,           // Sync to clock for proper timing
+    "max-buffers", static_cast<guint>(queue_limit_.get() + 1),  // Buffer queue limit
+    "drop", FALSE,          // Don't drop buffers - we handle backpressure
+    NULL
+  );
+
+  // Set caps if not ANY
+  if (caps_.get() != "ANY") {
+    GstCaps* caps = gst_caps_from_string(caps_.get().c_str());
+    if (caps) {
+      gst_app_sink_set_caps(appsink, caps);
+      gst_caps_unref(caps);
+      HOLOSCAN_LOG_INFO("Set appsink caps: {}", caps_.get());
+    } else {
+      HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", caps_.get());
+      sink_element_promise_.set_exception(
+        std::make_exception_ptr(std::runtime_error("Failed to parse caps"))
+      );
+      return;
+    }
+  }
+
+  // Set up appsink callbacks - using static functions for proper ABI compatibility
+  // IMPORTANT: Must zero-initialize the entire structure to clear reserved padding fields
+  GstAppSinkCallbacks callbacks = {};  // Zero-initialize
+  callbacks.eos = appsink_eos_callback;
+  callbacks.new_preroll = appsink_new_preroll_callback;
+  callbacks.new_sample = appsink_new_sample_callback;
+
+  // Attach callbacks with 'this' as user_data
+  gst_app_sink_set_callbacks(appsink, &callbacks, this, NULL);
+
+  // Configure QoS on the base sink
+  gst_base_sink_set_qos_enabled(GST_BASE_SINK(appsink), 
+                                 static_cast<gboolean>(qos_enabled_.get()));
+  
+  HOLOSCAN_LOG_INFO("GstSinkResource initialized with appsink (QoS: {}, queue_limit: {})",
+                    qos_enabled_.get() ? "enabled" : "disabled", queue_limit_.get());
+  
+  // Set the promise with the successfully created element
+  sink_element_promise_.set_value(std::move(element));
 }
 
 

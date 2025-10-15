@@ -27,7 +27,7 @@
 #include <string>
 
 #include <gst/gst.h>
-#include <gst/base/gstpushsrc.h>
+#include <gst/app/gstappsrc.h>
 #include <holoscan/holoscan.hpp>
 
 #include "gst/guards.hpp"
@@ -37,11 +37,11 @@
 namespace holoscan {
 
 /**
- * @brief Holoscan Resource wrapper for GStreamer source element
+ * @brief Holoscan Resource wrapper for GStreamer appsrc element
  *
- * This class provides a clean bridge between Holoscan operators and GStreamer pipelines.
- * The primary purpose is to enable Holoscan operators to push data into GStreamer pipelines
- * for further processing or output.
+ * This class provides a clean bridge between Holoscan operators and GStreamer pipelines
+ * using the standard GStreamer appsrc element. The primary purpose is to enable Holoscan 
+ * operators to push data into GStreamer pipelines for further processing or output.
  */
 class GstSrcResource : public holoscan::Resource {
  public:
@@ -138,13 +138,6 @@ class GstSrcResource : public holoscan::Resource {
    */
   holoscan::gst::Buffer create_buffer_from_entity(const holoscan::gxf::Entity& entity) const;
 
-  // Static member functions for GStreamer callbacks
-  static ::GstCaps* get_caps_callback(::GstBaseSrc *src, ::GstCaps *filter);
-  static gboolean set_caps_callback(::GstBaseSrc *src, ::GstCaps *caps);
-  static ::GstFlowReturn create_callback(::GstPushSrc *src, ::GstBuffer **buffer);
-  static gboolean start_callback(::GstBaseSrc *src);
-  static gboolean stop_callback(::GstBaseSrc *src);
-
  private:
   /**
    * @brief Check if the source element is ready (non-blocking)
@@ -168,14 +161,6 @@ class GstSrcResource : public holoscan::Resource {
   // Promise/future for safe element access across threads
   std::promise<holoscan::gst::GstElementGuard> src_element_promise_;
   std::shared_future<holoscan::gst::GstElementGuard> src_element_future_;
-
-  // Buffer queue for thread-safe async processing
-  std::queue<holoscan::gst::Buffer> buffer_queue_;
-  // Single pending push buffer request (only one request at a time)
-  std::optional<std::promise<bool>> pending_request_;
-
-  mutable std::mutex mutex_;
-  std::condition_variable queue_cv_;
 
   // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
   // Forward declarations for nested classes
