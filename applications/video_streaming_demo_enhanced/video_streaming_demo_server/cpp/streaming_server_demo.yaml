@@ -29,7 +29,7 @@ streaming_server:
   fps: 30
 
   # Server connection settings
-  port: 48020
+  port: 48010
   multi_instance: false
   server_name: "StreamingServerTest"
 

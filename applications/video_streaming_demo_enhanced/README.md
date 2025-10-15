@@ -54,6 +54,14 @@ unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zi
 rm -rf holoscan_server_cloud_streaming_v0.2
 ```
 
+## Demo
+
+The video streaming application enables bidirectional video communication between client and server with real-time visualization:
+
+![Video Streaming Demo](screenshot_streaming_demo.png)
+
+*Example: Surgical video streaming with bidirectional communication showing the client receiving and displaying frames from the server.*
+
 ## Running the Applications
 
 The unified application provides both client and server as separate components:
@@ -107,8 +115,8 @@ The unified application provides both client and server as separate components:
 # Streaming server settings
 streaming_server:
   # Video/stream parameters
-  width: 1280          # Frame width in pixels
-  height: 720          # Frame height in pixels  
+  width: 854           # Frame width in pixels
+  height: 480          # Frame height in pixels  
   fps: 30              # Frame rate
   
   # Server connection settings
