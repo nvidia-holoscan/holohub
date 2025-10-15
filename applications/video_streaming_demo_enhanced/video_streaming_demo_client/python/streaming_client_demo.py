@@ -22,16 +22,14 @@ import os
 import sys
 from pathlib import Path
 
-import holoscan as hs
-from holoscan.conditions import CountCondition
-from holoscan.core import Application, Operator
+from holoscan.core import Application
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
     V4L2VideoCaptureOp,
     VideoStreamReplayerOp,
 )
-from holoscan.resources import UnboundedAllocator, CudaStreamPool
+from holoscan.resources import CudaStreamPool, UnboundedAllocator
 
 # Import our streaming client operator
 # The __init__.py automatically imports from _streaming_client_enhanced
@@ -40,15 +38,26 @@ try:
 except ImportError as e:
     print(f"Error: StreamingClientOp not found: {e}")
     print("Make sure the Python bindings are built and installed.")
-    print("Build with: ./holohub build streaming_client_enhanced --language cpp --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'")
+    print(
+        "Build with: ./holohub build streaming_client_enhanced --language cpp --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'"
+    )
     sys.exit(1)
 
 
 class StreamingClientApp(Application):
     """Streaming Client Demo Application using Python bindings."""
-    
-    def __init__(self, source="replayer", config_file=None, server_ip="127.0.0.1", 
-                 port=48010, width=854, height=480, fps=30, visualize=True):
+
+    def __init__(
+        self,
+        source="replayer",
+        config_file=None,
+        server_ip="127.0.0.1",
+        port=48010,
+        width=854,
+        height=480,
+        fps=30,
+        visualize=True,
+    ):
         super().__init__()
         self.source = source
         self.config_file = config_file
@@ -58,16 +67,13 @@ class StreamingClientApp(Application):
         self.height = height
         self.fps = fps
         self.visualize = visualize
-        
+
     def compose(self):
         """Compose the application pipeline."""
-        
+
         # Create allocator and CUDA stream pool
-        allocator = UnboundedAllocator(
-            self, 
-            name="allocator"
-        )
-        
+        allocator = UnboundedAllocator(self, name="allocator")
+
         cuda_stream_pool = CudaStreamPool(
             self,
             name="cuda_stream_pool",
@@ -75,9 +81,9 @@ class StreamingClientApp(Application):
             stream_flags=0,
             stream_priority=0,
             reserved_size=1,
-            max_size=5
+            max_size=5,
         )
-        
+
         # Create source operator based on configuration
         if self.source == "replayer":
             source_op = self._create_replayer_source(allocator)
@@ -89,7 +95,7 @@ class StreamingClientApp(Application):
             in_dtype = "rgba8888"
         else:
             raise ValueError(f"Unknown source type: {self.source}")
-        
+
         # Create format converter with correct input dtype based on source
         format_converter = FormatConverterOp(
             self,
@@ -101,9 +107,9 @@ class StreamingClientApp(Application):
             scale_max=255.0,
             out_channel_order=[2, 1, 0],  # Convert RGB to BGR
             pool=allocator,
-            cuda_stream_pool=cuda_stream_pool
+            cuda_stream_pool=cuda_stream_pool,
         )
-        
+
         # Create streaming client (allocator added via positional args if supported)
         streaming_client = StreamingClientOp(
             self,
@@ -116,9 +122,9 @@ class StreamingClientApp(Application):
             signaling_port=self.port,
             send_frames=True,
             receive_frames=True,
-            min_non_zero_bytes=10
+            min_non_zero_bytes=10,
         )
-        
+
         # Connect the pipeline: source -> format_converter -> streaming_client -> holoviz
         # Match C++ implementation
         if self.source == "v4l2":
@@ -127,10 +133,10 @@ class StreamingClientApp(Application):
         else:
             # VideoStreamReplayer outputs on "output" port
             self.add_flow(source_op, format_converter, {("output", "source_video")})
-        
+
         # Format converter output -> streaming client input
         self.add_flow(format_converter, streaming_client)
-        
+
         # Optional visualization
         if self.visualize:
             holoviz = HolovizOp(
@@ -146,26 +152,26 @@ class StreamingClientApp(Application):
                         "type": "color",
                         "image_format": "b8g8r8a8_unorm",  # BGRA format (4 channels)
                         "opacity": 1.0,
-                        "priority": 0
+                        "priority": 0,
                     }
-                ]
+                ],
             )
-            
+
             # Connect streaming client output -> holoviz (receives frames from server)
             # Explicitly map output_frames port to receivers port (matching C++ implementation)
             self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
-    
+
     def _create_replayer_source(self, allocator):
         """Create video stream replayer source."""
         # Default to endoscopy data if available
         data_path = os.environ.get("HOLOHUB_DATA_PATH", "/workspace/holohub/data")
         video_dir = os.path.join(data_path, "endoscopy")
-        
+
         if not os.path.exists(video_dir):
             print(f"Warning: Video directory not found at {video_dir}")
             print("Using current directory for video files")
             video_dir = "."
-        
+
         return VideoStreamReplayerOp(
             self,
             name="replayer",
@@ -175,9 +181,9 @@ class StreamingClientApp(Application):
             repeat=True,
             realtime=True,
             count=0,
-            allocator=allocator
+            allocator=allocator,
         )
-    
+
     def _create_v4l2_source(self, allocator):
         """Create V4L2 camera capture source."""
         return V4L2VideoCaptureOp(
@@ -188,7 +194,7 @@ class StreamingClientApp(Application):
             height=480,
             frame_rate=30,
             pixel_format="YUYV",
-            allocator=allocator
+            allocator=allocator,
         )
 
 
@@ -243,63 +249,33 @@ def main():
     """Main application entry point."""
     parser = argparse.ArgumentParser(description="Streaming Client Demo (Python)")
     parser.add_argument(
-        "--source", 
-        choices=["replayer", "v4l2"], 
+        "--source",
+        choices=["replayer", "v4l2"],
         default="replayer",
-        help="Video source type (default: replayer)"
+        help="Video source type (default: replayer)",
     )
+    parser.add_argument("--config", "-c", help="Path to YAML configuration file")
     parser.add_argument(
-        "--config", "-c",
-        help="Path to YAML configuration file"
+        "--server-ip", default="127.0.0.1", help="Server IP address (default: 127.0.0.1)"
     )
+    parser.add_argument("--port", type=int, default=48010, help="Server port (default: 48010)")
+    parser.add_argument("--width", type=int, default=854, help="Frame width (default: 854)")
+    parser.add_argument("--height", type=int, default=480, help="Frame height (default: 480)")
+    parser.add_argument("--fps", type=int, default=30, help="Frames per second (default: 30)")
+    parser.add_argument("--no-viz", action="store_true", help="Disable visualization")
     parser.add_argument(
-        "--server-ip",
-        default="127.0.0.1",
-        help="Server IP address (default: 127.0.0.1)"
+        "--create-config", help="Create a default configuration file at the specified path"
     )
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=48010,
-        help="Server port (default: 48010)"
-    )
-    parser.add_argument(
-        "--width",
-        type=int,
-        default=854,
-        help="Frame width (default: 854)"
-    )
-    parser.add_argument(
-        "--height",
-        type=int,
-        default=480,
-        help="Frame height (default: 480)"
-    )
-    parser.add_argument(
-        "--fps",
-        type=int,
-        default=30,
-        help="Frames per second (default: 30)"
-    )
-    parser.add_argument(
-        "--no-viz",
-        action="store_true",
-        help="Disable visualization"
-    )
-    parser.add_argument(
-        "--create-config",
-        help="Create a default configuration file at the specified path"
-    )
-    
+
     args = parser.parse_args()
-    
+
     # Handle config file creation
     if args.create_config:
         config_path = Path(args.create_config)
         config_path.write_text(create_default_config())
         print(f"Created default configuration file: {config_path}")
         return
-    
+
     # Auto-select config file based on source if not specified
     config_file = args.config
     if not config_file:
@@ -308,7 +284,7 @@ def main():
         else:  # v4l2
             config_file = "streaming_client_demo.yaml"
         print(f"Auto-selected config file for {args.source}: {config_file}")
-    
+
     # Create and run the application
     try:
         app = StreamingClientApp(
@@ -319,25 +295,27 @@ def main():
             width=args.width,
             height=args.height,
             fps=args.fps,
-            visualize=not args.no_viz
+            visualize=not args.no_viz,
         )
-        
+
         if config_file:
             app.config(config_file)
-        
-        print(f"Starting Streaming Client Demo (Python)")
+
+        print("Starting Streaming Client Demo (Python)")
         print(f"Source: {args.source}")
         print(f"Server: {args.server_ip}:{args.port}")
         print(f"Resolution: {args.width}x{args.height} @ {args.fps}fps")
         print(f"Visualization: {'enabled' if not args.no_viz else 'disabled'}")
-        
+
         # Show pipeline
         viz_part = " -> HolovizOp" if not args.no_viz else ""
-        print(f"Pipeline: {args.source.capitalize()}Op -> FormatConverterOp -> StreamingClientOp{viz_part}")
-        print(f"Press Ctrl+C to stop gracefully")
-        
+        print(
+            f"Pipeline: {args.source.capitalize()}Op -> FormatConverterOp -> StreamingClientOp{viz_part}"
+        )
+        print("Press Ctrl+C to stop gracefully")
+
         app.run()
-        
+
     except KeyboardInterrupt:
         print("\nApplication interrupted by user")
     except Exception as e:
