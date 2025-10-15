@@ -46,8 +46,10 @@ class PyStreamingServerUpstreamOp : public StreamingServerUpstreamOp {
                                        uint32_t height = 1080,
                                        uint32_t fps = 30,
                                        std::shared_ptr<Allocator> allocator = nullptr,
-                                       std::shared_ptr<StreamingServerResource> streaming_server_resource = nullptr,
-                                       const std::string& name = "streaming_server_upstream"s)
+                                       std::shared_ptr<StreamingServerResource>
+                                           streaming_server_resource = nullptr,
+                                       const std::string& name =
+                                           "streaming_server_upstream"s)
       : StreamingServerUpstreamOp(ArgList{Arg{"width", width},
                                           Arg{"height", height},
                                           Arg{"fps", fps}}) {
@@ -73,12 +75,15 @@ class PyStreamingServerDownstreamOp : public StreamingServerDownstreamOp {
                                          const py::args& args,
                                          uint32_t width = 1920,
                                          uint32_t height = 1080,
-                                         uint32_t fps = 30,
-                                         bool enable_processing = false,
-                                         const std::string& processing_type = "none"s,
-                                         std::shared_ptr<Allocator> allocator = nullptr,
-                                         std::shared_ptr<StreamingServerResource> streaming_server_resource = nullptr,
-                                         const std::string& name = "streaming_server_downstream"s)
+                                        uint32_t fps = 30,
+                                        bool enable_processing = false,
+                                        const std::string& processing_type =
+                                            "none"s,
+                                        std::shared_ptr<Allocator> allocator = nullptr,
+                                        std::shared_ptr<StreamingServerResource>
+                                            streaming_server_resource = nullptr,
+                                        const std::string& name =
+                                            "streaming_server_downstream"s)
       : StreamingServerDownstreamOp(ArgList{Arg{"width", width},
                                             Arg{"height", height},
                                             Arg{"fps", fps},
@@ -123,7 +128,7 @@ class PyStreamingServerResource : public StreamingServerResource {
                                         Arg{"is_multi_instance", is_multi_instance}}) {
     name_ = name;
     fragment_ = fragment;
-    
+
     // Create and setup the ResourceSpec to avoid "No component spec" warning
     spec_ = std::make_shared<ComponentSpec>(fragment);
     setup(*spec_);
@@ -138,7 +143,8 @@ PYBIND11_MODULE(_streaming_server_enhanced, m) {
   )pbdoc";
 
   // StreamingServerResource
-  py::class_<StreamingServerResource, PyStreamingServerResource, holoscan::Resource, std::shared_ptr<StreamingServerResource>>(
+  py::class_<StreamingServerResource, PyStreamingServerResource, holoscan::Resource,
+             std::shared_ptr<StreamingServerResource>>(
       m, "StreamingServerResource", R"doc(
 Resource that manages a streaming server for video streaming in Holoscan.
 
@@ -191,7 +197,8 @@ name : str, optional (constructor only)
            "name"_a = "streaming_server_resource"s);
 
   // StreamingServerUpstreamOp
-  py::class_<StreamingServerUpstreamOp, PyStreamingServerUpstreamOp, Operator, std::shared_ptr<StreamingServerUpstreamOp>>(
+  py::class_<StreamingServerUpstreamOp, PyStreamingServerUpstreamOp, Operator,
+             std::shared_ptr<StreamingServerUpstreamOp>>(
       m, "StreamingServerUpstreamOp", R"doc(
 Operator that handles upstream (receiving) video streaming from clients.
 
@@ -232,7 +239,8 @@ name : str, optional (constructor only)
            "name"_a = "streaming_server_upstream"s);
 
   // StreamingServerDownstreamOp
-  py::class_<StreamingServerDownstreamOp, PyStreamingServerDownstreamOp, Operator, std::shared_ptr<StreamingServerDownstreamOp>>(
+  py::class_<StreamingServerDownstreamOp, PyStreamingServerDownstreamOp, Operator,
+             std::shared_ptr<StreamingServerDownstreamOp>>(
       m, "StreamingServerDownstreamOp", R"doc(
 Operator that handles downstream (sending) video streaming to clients.
 

@@ -14,7 +14,7 @@ from holoscan.operators import StreamingClientOp
 
 class StreamingClientApp(hs.Application):
     """Example application using StreamingClientOp."""
-    
+
     def compose(self):
         # Create streaming client operator
         streaming_client = StreamingClientOp(
@@ -27,9 +27,9 @@ class StreamingClientApp(hs.Application):
             send_frames=True,
             receive_frames=False,
             min_non_zero_bytes=100,
-            name="streaming_client"
+            name="streaming_client",
         )
-        
+
         # Add to workflow (you would typically connect this to other operators)
         self.add_operator(streaming_client)
 
