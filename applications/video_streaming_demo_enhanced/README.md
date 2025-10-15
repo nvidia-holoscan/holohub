@@ -857,6 +857,155 @@ echo "Integration test exit code: $?"
 - `1`: Test failures detected
 - `124`: Test timeout (5 minutes)
 
+## Python Integration Testing
+
+### Overview
+
+The Python integration test validates the complete bidirectional video streaming pipeline using Python implementations of both the server and client applications. The test verifies frame transmission, reception, and processing statistics.
+
+### Running the Python Integration Test
+
+**Command:**
+```bash
+./run test video_streaming_demo_enhanced --test video_streaming_integration_test_python
+```
+
+Or using the holohub CLI directly:
+```bash
+holohub test video_streaming_demo_enhanced -R video_streaming_integration_test_python
+```
+
+**Test Duration:** ~44 seconds (30 seconds of streaming + setup/teardown)
+
+### Test Workflow
+
+1. **Server Startup**: Python streaming server starts with 854x480 resolution
+2. **Client Startup**: Python streaming client starts with replayer source (854x480)
+3. **Streaming Duration**: 30 seconds of bidirectional video streaming
+4. **Log Verification**: Comprehensive log analysis for both server and client
+5. **Graceful Shutdown**: Both processes are stopped and logs are analyzed
+
+### Expected Outcome
+
+**Successful Test Output:**
+```
+=== Python Enhanced Integration Test with Log Verification ===
+Starting Python server and client with log capture...
+PYTHONPATH: /workspace/holohub/build-video_streaming_demo_enhanced/python/lib:...
+Python Server log: /tmp/server_python_log.XXXXXX
+Python Client log: /tmp/client_python_log.XXXXXX
+Starting Python streaming server...
+Waiting for Python server to initialize...
+✓ Python Server process is running
+Starting Python streaming client...
+Letting Python streaming run for 30 seconds...
+Stopping Python client...
+Stopping Python server...
+
+=== Verifying Python Server Logs ===
+✓ Python Server: Client connected
+✓ Python Server: Upstream connection established
+✓ Python Server: Downstream connection established
+✓ Python Server: StreamingServerUpstreamOp processed 566 unique frames
+✓ Python Server: StreamingServerDownstreamOp processed 566 tensors
+✓ Python Server: Frame processing statistics logged
+
+=== Verifying Python Client Logs ===
+✓ Python Client: Sent 566 frames successfully
+✓ Python Client: Received 534 frames from server
+✓ Python Client: Frame validation passed
+✓ Python Client: Streaming client started
+
+=== Python Test Results Summary ===
+Python Server checks passed: 6
+Python Client checks passed: 4
+✓ PYTHON STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
+✓ Python Integration test PASSED
+```
+
+### Acceptance Criteria
+
+The Python integration test validates the following checks. **All checks must pass** for the test to succeed:
+
+#### Server Checks (6 required)
+
+| Check | Description | Success Criteria |
+|-------|-------------|------------------|
+| ✓ Client connected | Client successfully connects to server | `"Client connected"` in server logs |
+| ✓ Upstream connection | Upstream channel established (client → server) | `"Upstream connection established"` in server logs |
+| ✓ Downstream connection | Downstream channel established (server → client) | `"Downstream connection established"` in server logs |
+| ✓ Frame processing | Server processes frames from client | ≥100 `"Processing UNIQUE frame"` log entries |
+| ✓ Tensor transmission | Server sends tensors to client | ≥100 `"DOWNSTREAM: Processing tensor"` log entries |
+| ✓ Statistics logged | Frame processing statistics are logged | `"Frame Processing Stats"` in server logs |
+
+#### Client Checks (4 required)
+
+| Check | Description | Success Criteria |
+|-------|-------------|------------------|
+| ✓ Frames sent | Client successfully sends frames to server | ≥100 `"Frame sent successfully"` log entries |
+| ✓ Frames received | Client receives frames from server | ≥100 `"CLIENT: Received frame"` log entries |
+| ✓ Frame validation | Received frames pass validation | `"Frame validation passed"` in client logs |
+| ✓ Client startup | Client application starts successfully | `"STARTING STREAMING CLIENT"` or `"Starting Streaming Client Demo"` in client logs |
+
+### Frame Throughput Metrics
+
+**Minimum Requirements:**
+- **Server Frame Processing**: ≥100 frames in 30 seconds (~3.3 fps minimum)
+- **Client Frame Sending**: ≥100 frames in 30 seconds (~3.3 fps minimum)
+- **Client Frame Reception**: ≥100 frames in 30 seconds (~3.3 fps minimum)
+
+**Typical Performance:**
+- **Frames Processed**: 500-600 frames in 30 seconds (~16-20 fps)
+- **Bidirectional Verification**: Both upstream (client → server) and downstream (server → client) verified
+
+### Test Configuration
+
+**Server Configuration:**
+```bash
+python3 streaming_server_demo.py --width 854 --height 480
+```
+
+**Client Configuration:**
+```bash
+python3 streaming_client_demo.py --source replayer --width 854 --height 480
+```
+
+### Troubleshooting
+
+**Test Failure - Insufficient Frames:**
+```
+✗ Python Server: Only 50 frames processed (minimum: 100)
+```
+**Cause**: Insufficient streaming time or connection issues  
+**Solution**: Check network connectivity, verify logs for connection errors
+
+**Test Failure - Client Not Started:**
+```
+✗ Python Client: Streaming client failed to start
+```
+**Cause**: Missing dependencies or PYTHONPATH issues  
+**Solution**: Ensure `HOLOHUB_BUILD_PYTHON=ON` and rebuild with Python bindings
+
+**Test Failure - No Frames Received:**
+```
+✗ Python Client: No frames received from server
+```
+**Cause**: Downstream connection failure or server issues  
+**Solution**: Check server logs for downstream connection establishment
+
+### CI/CD Integration
+
+**Exit Codes:**
+- `0`: All tests passed (all 10 checks passed)
+- `1`: One or more checks failed
+- `124`: Test timeout (300 seconds)
+
+**CI-Friendly Command:**
+```bash
+timeout 300 ./run test video_streaming_demo_enhanced --test video_streaming_integration_test_python
+echo "Python integration test exit code: $?"
+```
+
 ## Operator Documentation
 
 For detailed information about the underlying video streaming operators used in this application, see:
