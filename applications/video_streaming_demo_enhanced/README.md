@@ -12,6 +12,8 @@ The video streaming demo provides:
   - **StreamingServerDownstreamOp**: Sends video frames back to clients (passthrough/echo mode)
 - **Bidirectional Communication**: Both sending and receiving video frames
 - **Multiple Source Support**: V4L2 cameras, video replay files
+- **Multiple Language Support**: Both C++ and Python implementations available
+- **Interoperability**: C++ and Python components can work together seamlessly
 
 ## Requirements
 
@@ -84,6 +86,56 @@ The unified application provides both client and server as separate components:
 **Key Differences:**
 - **V4L2 Mode**: Uses `streaming_client_demo.yaml` (default), captures from webcam, 640x480 resolution
 - **Replayer Mode**: Uses `streaming_client_demo_replayer.yaml` (custom), plays video file, 854x480 resolution
+
+### Python Applications
+
+The demo also provides Python implementations of both server and client components.
+
+#### 1. Start the Python Streaming Server
+
+```bash
+# From holohub root directory - Python server implementation (defaults to 854x480)
+./holohub run video_streaming_demo_enhanced server_python --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1' --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Note:** For V4L2 clients (640x480), manually run the server with matching resolution:
+```bash
+# Inside Docker container or after building locally
+python3 build/video_streaming_demo_enhanced/streaming_server_demo.py --width 640 --height 480
+```
+
+#### 2. Start the Python Streaming Client (in another terminal)
+
+**Option A: V4L2 Camera (Webcam) - 640x480**
+```bash
+# From holohub root directory - Python client with V4L2 camera
+./holohub run video_streaming_demo_enhanced client_python_v4l2 --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1' --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Option B: Video File Replay - 854x480**
+```bash
+# From holohub root directory - Python client with video replayer
+./holohub run video_streaming_demo_enhanced client_python --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1' --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Python Application Notes:**
+- Python implementations are located in:
+  - Server: `video_streaming_demo_server/python/streaming_server_demo.py`
+  - Client: `video_streaming_demo_client/python/streaming_client_demo.py`
+- Python client supports both V4L2 camera (640x480) and video replayer (854x480) modes
+- Both Python server and client require the custom Dockerfile with OpenSSL 3.4.0
+- Python bindings must be built with `--configure-args='-DHOLOHUB_BUILD_PYTHON=ON'`
+
+**Mixing C++ and Python:**
+You can run a C++ server with a Python client, or vice versa - they are fully compatible:
+
+```bash
+# Terminal 1: C++ Server
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_server --language cpp
+
+# Terminal 2: Python Client
+./holohub run video_streaming_demo_enhanced client_python --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1'
+```
 
 ## Command Line Options
 
@@ -360,15 +412,57 @@ cd applications/video_streaming_demo_enhanced
 2. If you have local C++ changes, **commit them first** before running the test
 3. The test uses cached Docker layers for faster builds (unless cache is cleared)
 
+#### Python Integration Test
+
+For testing Python implementations:
+
+```bash
+# From the video_streaming_demo_enhanced directory
+cd applications/video_streaming_demo_enhanced
+./integration_test_python.sh
+```
+
+**OR from holohub root:**
+```bash
+./applications/video_streaming_demo_enhanced/integration_test_python.sh
+```
+
+**Python Test Configuration:**
+- Tests Python server and client implementations
+- Uses the same 30-second streaming duration as C++ tests
+- Validates bidirectional frame transmission
+- Requires custom Dockerfile with OpenSSL 3.4.0
+
 #### Manual Integration Test
 
 For manual testing and debugging:
 
+**C++ Implementation:**
 ```bash
 # Terminal 1: Start Server (uses base image)
 ./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_server --language cpp
 
 # Terminal 2: Start Client (uses custom Dockerfile with OpenSSL 3.4.0)
+./holohub run video_streaming_demo_client --language cpp --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1' --run-args='-c streaming_client_demo_replayer.yaml'
+```
+
+**Python Implementation:**
+```bash
+# Terminal 1: Start Python Server
+./holohub run video_streaming_demo_enhanced server_python --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1'
+
+# Terminal 2: Start Python Client
+./holohub run video_streaming_demo_enhanced client_python --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1'
+```
+
+**Mixed C++ and Python:**
+```bash
+# Terminal 1: C++ Server + Python Client
+./holohub run --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu video_streaming_demo_server --language cpp
+./holohub run video_streaming_demo_enhanced client_python --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1'
+
+# OR: Python Server + C++ Client
+./holohub run video_streaming_demo_enhanced server_python --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1'
 ./holohub run video_streaming_demo_client --language cpp --docker-file applications/video_streaming_demo_enhanced/Dockerfile --docker-opts='-e EnableHybridMode=1' --run-args='-c streaming_client_demo_replayer.yaml'
 ```
 
