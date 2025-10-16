@@ -9,8 +9,17 @@ project(streaming_client_demo_enhanced CXX)
 find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# Detect system architecture
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
+  set(ARCH_DIR "x86_64")
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+  set(ARCH_DIR "aarch64")
+else()
+  message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+
 # Find the streaming client operator directory
-set(OPERATOR_CLIENT_DIR "${CMAKE_SOURCE_DIR}/operators/video_streaming/streaming_client_enhanced/holoscan_client_cloud_streaming/lib/x86_64")
+set(OPERATOR_CLIENT_DIR "${CMAKE_SOURCE_DIR}/operators/video_streaming/streaming_client_enhanced/holoscan_client_cloud_streaming/lib/${ARCH_DIR}")
 
 # Check if NGC binaries exist
 if(NOT EXISTS "${OPERATOR_CLIENT_DIR}/libStreamingClient.so")
