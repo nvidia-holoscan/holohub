@@ -1,10 +1,14 @@
 # Video Streaming Demo Enhanced
 
-This unified application demonstrates how to use the Holoscan SDK to create both streaming client and server applications for bidirectional video communication. The demo includes both client and server components that can work together to showcase real-time video streaming capabilities.
+This unified application demonstrates how to use the Holoscan SDK to create both streaming client and server applications for bidirectional video communication. This demo application demonstrates bidirectional video communication between client and server with real-time visualization.
+
+![Video Streaming Demo](screenshot_streaming_demo.png)  
+*Fig. 1: Example of surgical video streaming with bidirectional communication showing the client receiving and displaying frames from the server.*
 
 ## Overview
 
 The video streaming demo provides:
+
 - **Streaming Client**: Captures video from V4L2 cameras or video files and streams to a server
 - **Streaming Server**: Comprehensive server architecture with three main components:
   - **StreamingServerResource**: Manages server connections and client lifecycle
@@ -16,11 +20,9 @@ The video streaming demo provides:
 ## Requirements
 
 - NVIDIA GPU
-- CUDA 12.x
-- Holoscan SDK 3.5.0
+- CUDA 12.x (currently not working with CUDA 13.x)
+- Holoscan SDK 3.5.0+
 - V4L2 camera (optional, for live streaming)
-
-## Dependencies
 
 ### Client Dependencies
 
@@ -54,155 +56,54 @@ unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zi
 rm -rf holoscan_server_cloud_streaming_v0.2
 ```
 
-## Demo
-
-The video streaming application enables bidirectional video communication between client and server with real-time visualization:
-
-![Video Streaming Demo](screenshot_streaming_demo.png)
-
-*Example: Surgical video streaming with bidirectional communication showing the client receiving and displaying frames from the server.*
-
 ## Running the Applications
 
-The unified application provides both client and server as separate components:
+The unified application provides both client and server applications.
 
-**⚠️ Important: Enhanced applications require Holoscan SDK 3.5.0. The server uses the base image, while the client requires OpenSSL 3.4.0 and must use the custom Dockerfile.**
+> [!IMPORTANT] Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
+>
+> ```bash
+> # Set SDK version environment variable
+> export HOLOHUB_BASE_SDK_VERSION=3.5.0
+> ```
+
+> [!NOTE] The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
 ### 1. Start the Streaming Server
 
 ```bash
-# From holohub root directory - with Holoscan 3.5.0 base image
-./holohub run video_streaming_demo_enhanced --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
+./holohub run video_streaming_demo_enhanced
 ```
 
 ### 2. Start the Streaming Client (in another terminal)
 
-**Option A: V4L2 Camera (Webcam)**
-```bash
-# From holohub root directory - captures live video from webcam
-./holohub run video_streaming_demo_enhanced client_v4l2 --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile
-```
+- **Option A: V4L2 Camera (Webcam)**, which uses `streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
 
-**Option B: Video File Replay**
-```bash
-# From holohub root directory - replays pre-recorded video file
-./holohub run video_streaming_demo_enhanced client_replayer --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile
-```
+  ```bash
+  ./holohub run video_streaming_demo_enhanced client_v4l2
+  ```
 
-**Key Differences:**
-- **V4L2 Mode**: Uses `streaming_client_demo.yaml` (default), captures from webcam, 640x480 resolution
-- **Replayer Mode**: Uses `streaming_client_demo_replayer.yaml` (custom), plays video file, 854x480 resolution
+- **Option B: Video Replayer**, which uses `streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
+
+  ```bash
+  ./holohub run video_streaming_demo_enhanced client_replayer
+  ```
 
 ## Command Line Options
 
 ### Server Options
+
 - `-h, --help`: Show help message
 - `-c, --config <file>`: Configuration file path (default: streaming_server_demo.yaml)
 - `-d, --data <directory>`: Data directory for video files
 
 ### Client Options  
+
 - `-h, --help`: Show help message
 - `-c, --config <file>`: Configuration file path (default: streaming_client_demo.yaml)
 - `-d, --data <directory>`: Data directory for video files
 
 **Note:** Video source type (V4L2 vs replayer) is configured in the YAML file, not via command line arguments.
-
-## Configuration
-
-### Server Configuration (streaming_server_demo.yaml)
-
-```yaml
-# Streaming server settings
-streaming_server:
-  # Video/stream parameters
-  width: 854           # Frame width in pixels
-  height: 480          # Frame height in pixels  
-  fps: 30              # Frame rate
-  
-  # Server connection settings
-  server_ip: "127.0.0.1"
-  port: 48010          # Streaming port
-  multi_instance: false
-  server_name: "VideoStreamingServer"
-  
-  # Operation mode
-  receive_frames: true
-  send_frames: true
-  visualize_frames: false
-```
-
-### Client Configuration
-
-#### V4L2 Camera Configuration (streaming_client_demo.yaml)
-
-```yaml
-# Source configuration - V4L2 camera mode
-source: "v4l2"
-
-# Streaming client settings
-streaming_client:
-  width: 640           # V4L2 camera resolution
-  height: 480
-  fps: 30
-  server_ip: "127.0.0.1"
-  signaling_port: 48010
-  send_frames: true
-  receive_frames: true
-  visualize_frames: true
-
-# V4L2 camera configuration
-v4l2_source:
-  device: "/dev/video0"
-  width: 640
-  height: 480
-  frame_rate: 30
-  pixel_format: "YUYV"
-
-# Format converter - V4L2 outputs RGBA8888 (4 channels)
-format_converter:
-  in_dtype: "rgba8888"         # V4L2 always outputs RGBA8888
-  out_dtype: "rgb888"          # Convert to RGB888 (3 channels)
-  out_tensor_name: tensor
-  scale_min: 0.0
-  scale_max: 255.0
-  out_channel_order: [2, 1, 0] # Convert RGB to BGR
-```
-
-#### Video Replayer Configuration (streaming_client_demo_replayer.yaml)
-
-```yaml
-# Source configuration - Video file replay mode
-source: "replayer"
-
-# Streaming client settings
-streaming_client:
-  width: 854           # Video file resolution (matches surgical_video.gxf)
-  height: 480
-  fps: 30
-  server_ip: "127.0.0.1"
-  signaling_port: 48010
-  send_frames: true
-  receive_frames: true
-  visualize_frames: true
-
-# Video replayer configuration
-replayer:
-  directory: "/workspace/holohub/data/endoscopy"
-  basename: "surgical_video"
-  frame_rate: 30
-  repeat: true
-  realtime: true
-  count: 0
-
-# Format converter - Video replayer outputs RGB888 (3 channels)
-format_converter:
-  in_dtype: "rgb888"           # Video replayer outputs RGB888
-  out_dtype: "rgb888"          # Keep as RGB888 (3 channels)
-  out_tensor_name: tensor
-  scale_min: 0.0
-  scale_max: 255.0
-  out_channel_order: [2, 1, 0] # Convert RGB to BGR
-```
 
 ## Camera Setup and Testing
 
@@ -227,6 +128,7 @@ v4l2-ctl --device=/dev/video0 --list-formats-ext
 ### Recommended Resolution Settings
 
 **For V4L2 cameras (like Logitech C920):**
+
 - **1280x720 @ 30fps** - Best balance of quality and performance
 - **1920x1080 @ 30fps** - High quality streaming (if supported)
 - **854x480 @ 30fps** - Default, good for testing and lower bandwidth
@@ -261,25 +163,31 @@ To switch between V4L2 camera and video replayer:
 ## Troubleshooting
 
 ### Camera Issues
+
 - **Camera not detected:**
+
   ```bash
   sudo usermod -a -G video $USER
   # Log out and back in, then test again
   ```
 
 - **Permission denied:**
+
   ```bash
   sudo chmod 666 /dev/video0
   ```
 
 ### Performance Issues
+
 - **Poor streaming quality:**
   - Try lower resolution (854x480 or 640x480)
   - Reduce frame rate to 15 or 24 FPS
   - Ensure client and server resolutions match
 
 ### Connection Issues
+
 - **Server not starting:**
+
   ```bash
   # Check if port is already in use
   netstat -tlnp | grep 48010
@@ -296,6 +204,7 @@ To switch between V4L2 camera and video replayer:
 ### Video Replayer Issues
 
 - **Config file not found:**
+
   ```bash
   # Ensure the replayer config exists in build directory
   cp applications/streaming_client_demo_enhanced/cpp/streaming_client_demo_replayer.yaml build/streaming_client_demo_enhanced/
@@ -311,13 +220,14 @@ To switch between V4L2 camera and video replayer:
 
 ### Expected Behavior and Logs
 
-**Client Application:** 
+**Client Application:**
 The streaming client may show `GXF_EXCEEDING_PREALLOCATED_SIZE` errors during BGR→BGRA conversion. This is expected behavior as the operators handle dynamic buffer allocation internally.
 
 **Server Application:**
 The server should display connection status and frame processing information. Look for messages about client connections and frame throughput.
 
 **Successful Video Replayer Logs:**
+
 ```
 [info] Source set to: replayer
 [info] Using video replayer as source
@@ -328,11 +238,12 @@ The server should display connection status and frame processing information. Lo
 
 ## Integration Testing
 
-The video streaming demo includes comprehensive integration testing to verify end-to-end functionality between client and server components.
+The video streaming demo includes integration testing to verify end-to-end functionality between client and server components.
 
 ### Integration Test Overview
 
 The integration test validates:
+
 - **Server Startup**: Streaming server initializes and starts listening
 - **Client Connection**: Streaming client connects to server successfully  
 - **Video Streaming**: Bidirectional video frame transmission (client→server→client)
@@ -341,22 +252,16 @@ The integration test validates:
 
 ### Running Integration Tests
 
-#### Automated Integration Test (Recommended)
+#### Option 1: Using Integration Test Script
 
 The integration test script (`integration_test.sh`) runs the complete end-to-end test in a Docker container with proper SDK version and dependencies.
 
-```bash
-# From the video_streaming_demo_enhanced directory
-cd applications/video_streaming_demo_enhanced
-./integration_test.sh
-```
-
-**OR from holohub root:**
 ```bash
 ./applications/video_streaming_demo_enhanced/integration_test.sh
 ```
 
 **Test Configuration:**
+
 - **Duration**: 3-5 minutes total (includes Docker build and test execution)
 - **SDK Version**: Holoscan 3.5.0 (enforced via environment variable)
 - **Test Duration**: 30 seconds of active streaming
@@ -364,48 +269,12 @@ cd applications/video_streaming_demo_enhanced
 - **Output**: Detailed logs saved to `integration_test.log`
 
 **⚠️ Important Notes:**
+
 1. The test runs in Docker and builds from **committed source code**
 2. If you have local C++ changes, **commit them first** before running the test
 3. The test uses cached Docker layers for faster builds (unless cache is cleared)
 
-#### Manual Integration Test
-
-For manual testing and debugging:
-
-```bash
-# Terminal 1: Start Server (uses base image)
-./holohub run video_streaming_demo_enhanced --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
-
-# Terminal 2: Start Client (uses custom Dockerfile with OpenSSL 3.4.0)
-./holohub run video_streaming_demo_enhanced client_replayer --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile
-```
-
-### Running Integration Tests
-
-There are two ways to run the integration test, depending on your use case:
-
-#### Option 1: Development/Debugging (Wrapper Script) 🛠️
-
-**Use this for:** Local development, debugging, detailed output
-
-```bash
-# From holohub root
-./applications/video_streaming_demo_enhanced/integration_test.sh
-```
-
-**Advantages:**
-- ✅ Automatic environment setup (SDK version, directory handling)
-- ✅ Automatic Docker cache cleanup (ensures fresh builds)
-- ✅ Shows current git commit being tested
-- ✅ Detailed verification output with custom messages
-- ✅ Comprehensive log capture to `integration_test.log`
-- ✅ Single simple command
-
-**Best for:** Developers iterating on code changes who want detailed feedback.
-
-#### Option 2: CI/CD (Direct Command) 🚀
-
-**Use this for:** Continuous Integration, automated testing pipelines
+#### Option 2: Using HoloHub CLI
 
 ```bash
 # From holohub root - standard HoloHub test command
@@ -414,14 +283,6 @@ There are two ways to run the integration test, depending on your use case:
   --ctest-options="-R video_streaming_integration_test"
 ```
 
-**Advantages:**
-- ✅ Standard HoloHub testing interface
-- ✅ Consistent with other HoloHub applications
-- ✅ Clean exit codes for CI/CD systems
-- ✅ CTest integration for test reporting
-
-**Best for:** CI/CD pipelines, automated test suites, production testing.
-
 **Note:** Both methods run the same underlying integration test defined in `CMakeLists.txt`. The wrapper script (`integration_test.sh`) adds developer-friendly conveniences on top of the direct command.
 
 ### Integration Test Process
@@ -429,6 +290,7 @@ There are two ways to run the integration test, depending on your use case:
 The integration test (whether run via wrapper script or direct command) follows this sequence:
 
 #### 1. **Pre-Test Setup** (10-20 seconds)
+
 ```bash
 # Displays current git commit
 echo "Current commit: $(git log --oneline -1)"
@@ -441,6 +303,7 @@ export HOLOHUB_BASE_SDK_VERSION=3.5.0
 ```
 
 #### 2. **Docker Build & Test Execution** (2-4 minutes)
+
 ```bash
 # Builds Docker image and runs CTest
 ./holohub test video_streaming_demo_enhanced \
@@ -451,12 +314,14 @@ export HOLOHUB_BASE_SDK_VERSION=3.5.0
 ```
 
 **What happens internally:**
+
 - Builds Docker image with Holoscan SDK 3.5.0
 - Compiles server and client C++ applications
 - Copies configuration files to build directory
 - Runs CTest with the integration test
 
 #### 3. **Integration Test Execution** (44 seconds)
+
 The `video_streaming_integration_test` defined in CMakeLists.txt:
 
 1. **Server Startup** (10 seconds)
@@ -479,6 +344,7 @@ The `video_streaming_integration_test` defined in CMakeLists.txt:
    - Reports PASS/FAIL based on comprehensive log analysis
 
 #### 4. **Post-Test Analysis** (5 seconds)
+
 ```bash
 # Verifies test results from log file
 if grep -q "Test.*Passed\|100%.*tests passed" integration_test.log; then
@@ -534,11 +400,13 @@ The integration test **PASSES** when **ALL 10 checks** are met (6 server + 4 cli
 #### ✅ Overall Test Success
 
 **Test PASSES if:**
+
 - Server checks: **6/6 passed** (required: 6)
 - Client checks: **4/4 passed** (required: 4)
 - Total: **10/10 checks passed**
 
 **Test FAILS if:**
+
 - Any check fails (server < 6 or client < 4)
 - Process crashes during execution (segfault detected but test continues)
 - Test times out (> 300 seconds)
@@ -546,6 +414,7 @@ The integration test **PASSES** when **ALL 10 checks** are met (6 server + 4 cli
 ### Expected Output
 
 #### Console Output (Successful Test)
+
 ```bash
 === Video Streaming Demo Integration Test ===
 This test may take up to 10 minutes to complete...
@@ -594,7 +463,7 @@ Test project /workspace/holohub/build-video_streaming_demo_enhanced
 1/1 Test #1: video_streaming_integration_test ...   Passed   44.07 sec
 
 The following tests passed:
-	video_streaming_integration_test
+ video_streaming_integration_test
 
 100% tests passed, 0 tests failed out of 1
 
@@ -610,7 +479,8 @@ Total Test time (real) = 44.07 sec
 #### Key Log Patterns to Look For
 
 **Server Success Indicators:**
-```
+
+```console
 [info] StreamingServerResource starting...
 [info] StreamingServerUpstreamOp::start() called
 [info] StreamingServerDownstreamOp::start() called
@@ -620,7 +490,8 @@ Total Test time (real) = 44.07 sec
 ```
 
 **Client Success Indicators:**
-```
+
+```console
 [info] Source set to: replayer
 [info] Using video replayer as source
 [info] StreamingClient created successfully
@@ -632,7 +503,8 @@ Total Test time (real) = 44.07 sec
 ```
 
 **Performance Indicators:**
-```
+
+```console
 # Server processed 568 frames in both directions
 [info] ✅ Processing UNIQUE frame: 854x480, 1639680 bytes, timestamp=29938
 [info] 📊 DOWNSTREAM: Processing tensor 568 - shape: 480x854x4, 1639680 bytes
@@ -657,6 +529,7 @@ The complete test execution is saved to `integration_test.log` (typically 25,000
 6. **Test Summary**: Final PASS/FAIL status with verification details
 
 **Analyzing the log:**
+
 ```bash
 # Check test status
 grep "Integration test PASSED" integration_test.log
@@ -678,6 +551,7 @@ tail -100 integration_test.log
 **Test Failure: Connection Events Not Logged**
 
 If you see output like:
+
 ```bash
 === Verifying Server Logs ===
 ✗ Server: Upstream connection not established
@@ -697,17 +571,20 @@ Client checks passed: 4
 ```
 
 **Root Cause:** Event callback overwriting in StreamingServerResource
+
 - Both upstream and downstream operators call `set_event_callback()`
 - Second call overwrites first operator's callback
 - Only last operator receives connection events
 - **Frames still work** (567 processed) but events aren't logged to both operators
 
 **Solution:** Use `add_event_listener()` instead of `set_event_callback()`
+
 - Fixed in commit `0e8a9603`: "Fix integration test and event listener bug"
 - StreamingServerResource now supports multiple event listeners
 - Both operators receive all connection events
 
 **Build Failures:**
+
 ```bash
 # Clean build and retry
 rm -rf build/
@@ -715,6 +592,7 @@ rm -rf build/
 ```
 
 **Server Connection Issues:**
+
 ```bash
 # Check if port is in use
 netstat -tlnp | grep 48010
@@ -722,54 +600,29 @@ sudo lsof -ti:48010 | xargs sudo kill -9
 ```
 
 **Client Connection Timeout:**
+
 - Verify server started successfully (check server logs)
 - Ensure firewall allows port 48010
 - Check Docker network connectivity
 
 **Frame Transmission Issues:**
+
 - Verify video data files exist: `/workspace/holohub/data/endoscopy/`
 - Check format converter settings in config files
 - Monitor GPU memory usage
 
 **Segmentation Fault at Shutdown:**
+
 ```bash
 # Expected behavior - test still passes if streaming worked
 1: Segmentation fault (core dumped) ./streaming_server_demo_enhanced
 1: ✓ Server: StreamingServerUpstreamOp processed 567 unique frames
 1: ✓ STREAMING VERIFICATION PASSED - Frames actually transmitted!
 ```
+
 - Segfault occurs during cleanup after test completes
 - Test passes if all 9 checks passed before shutdown
 - Does not affect streaming functionality
-
-### Integration Test Files
-
-The integration test generates one comprehensive log file:
-
-- **`integration_test.log`**: Complete test execution log containing:
-  - Docker build output with all dependencies
-  - CMake configuration and build logs
-  - CTest execution with detailed timestamps
-  - Server application logs (initialization, frame processing, shutdown)
-  - Client application logs (connection, streaming, frame reception)
-  - Test summary with final PASS/FAIL status
-
-This file contains all information needed for debugging failed tests (~25,000-30,000 lines for a complete run).
-
-### Continuous Integration
-
-The integration test is designed for CI/CD pipelines:
-
-```bash
-# CI-friendly command with timeout and exit codes
-timeout 300 ./applications/video_streaming_demo_enhanced/integration_test.sh
-echo "Integration test exit code: $?"
-```
-
-**Exit Codes:**
-- `0`: All tests passed successfully
-- `1`: Test failures detected
-- `124`: Test timeout (5 minutes)
 
 ## Operator Documentation
 
@@ -778,6 +631,7 @@ For detailed information about the underlying video streaming operators used in 
 📋 **[Video Streaming Operators](../../operators/video_streaming/README.md)** - Complete operator documentation
 
 The operator documentation includes:
+
 - **Client Components**: StreamingClientOp, FrameSaverOp
 - **Server Components**: StreamingServerResource, StreamingServerUpstreamOp, StreamingServerDownstreamOp
 - **Parameters and Configuration**: Detailed parameter descriptions and usage examples
@@ -790,7 +644,3 @@ The operator documentation includes:
 - **Network Bandwidth**: Monitor bandwidth usage for remote streaming scenarios  
 - **Frame Rate**: Higher frame rates require more GPU/CPU resources
 - **Resolution**: Balance between quality and performance based on your hardware
-
-## License
-
-Apache-2.0 - See the LICENSE file for details.
