@@ -8,12 +8,14 @@ _CPack_Packages/
 
 # Data
 data/
+data-*/
 
 # Utilities and metadata
 aggregate_metadata.json
 
 # CI
 ci/
+*.log
 
 # Python
 **/__pycache__
@@ -56,18 +58,6 @@ tmp/
 # Licenses
 rti_license.dat
 
-# Streaming server binaries and libraries
-**/holoscan_server_cloud_streaming/
-**/holoscan_server_cloud_streaming_logs/
-**/holoscan_client_cloud_streaming/
-data-streaming_*/
-data-streaming_*/
-*.gxf_entities
-*.264
-Testing/
-*.log
-*_backup/
-
-# Exclude holoscan cloud streaming binaries
+# Holoscan streaming client and server binaries and libraries
 **/holoscan_client_cloud_streaming/
 **/holoscan_server_cloud_streaming/
