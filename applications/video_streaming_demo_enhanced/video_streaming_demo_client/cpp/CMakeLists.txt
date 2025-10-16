@@ -87,19 +87,6 @@ set_target_properties(streaming_client_demo_enhanced PROPERTIES
     SKIP_BUILD_RPATH FALSE
 )
 
-# Add testing
-# Note: Standalone client test disabled - use integration test instead
-# The client requires a server connection to function properly
-# if(BUILD_TESTING)
-#   add_test(NAME streaming_client_demo_enhanced_cpp_test
-#            COMMAND streaming_client_demo_enhanced
-#                    --config ${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_replayer.yaml
-#            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-#   set_tests_properties(streaming_client_demo_enhanced_cpp_test PROPERTIES
-#                        PASS_REGULAR_EXPRESSION "StreamingClient created successfully"
-#                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
-# endif()
-
 # Install application and dependencies into the install/ directory for packaging
 install(
   TARGETS streaming_client_demo_enhanced
