@@ -371,6 +371,23 @@ Note: If the test haproxy is still running, and you wish to test the executable 
 ./nvcf/stop_test_intermediate_haproxy.sh
 ```
 
+## Running the Python Application
+
+To run the Python streaming server application with Python bindings:
+
+```bash
+# From holohub root directory
+./holohub run video_streaming_demo_enhanced server_python \
+  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Note:** The `--configure-args='-DHOLOHUB_BUILD_PYTHON=ON'` flag is required to build the Python bindings for the streaming server operators.
+
+For more details on the Python application, see:
+- **[Python Server Application README](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/python/README.md)**
+
 ## Testing
 
 Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of the streaming server working with the client.

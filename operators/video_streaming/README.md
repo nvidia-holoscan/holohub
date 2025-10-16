@@ -75,6 +75,52 @@ add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
 #include "streaming_server_downstream_op.hpp"
 ```
 
+#### Python Applications
+
+Both client and server operators have Python bindings available. To use them in Python:
+
+```python
+# Client functionality
+from holohub.streaming_client_enhanced import StreamingClientOp
+
+# Server functionality
+from holohub.streaming_server_enhanced import (
+    StreamingServerResource,
+    StreamingServerUpstreamOp,
+    StreamingServerDownstreamOp,
+)
+```
+
+**Building with Python support:**
+```bash
+./holohub build video_streaming_demo_enhanced \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Running Python applications:**
+```bash
+# Python Server
+./holohub run video_streaming_demo_enhanced server_python \
+  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+
+# Python Client (Video Replayer)
+./holohub run video_streaming_demo_enhanced client_python \
+  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+
+# Python Client (V4L2 Camera)
+./holohub run video_streaming_demo_enhanced client_python_v4l2 \
+  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+For detailed Python application documentation, see:
+- **[Python Server Application](../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/python/README.md)**
+- **[Python Client Application](../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/python/README.md)**
 
 ## Dependencies
 

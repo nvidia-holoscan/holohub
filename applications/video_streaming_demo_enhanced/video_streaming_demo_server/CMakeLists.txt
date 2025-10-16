@@ -18,3 +18,6 @@ project(video_streaming_demo_server LANGUAGES CXX)
 
 # Add C++ subdirectory
 add_subdirectory(cpp)
+
+# Add Python subdirectory
+add_subdirectory(python)

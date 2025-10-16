@@ -287,6 +287,33 @@ target_link_libraries(frame_saver
 - **Testing**: Verify frame data integrity
 - **Development**: Visual inspection of processed frames
 
+## Running the Python Application
+
+To run the Python streaming client application with Python bindings:
+
+### Video Replayer Mode (854x480):
+```bash
+# From holohub root directory
+./holohub run video_streaming_demo_enhanced client_python \
+  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+### V4L2 Camera Mode (640x480):
+```bash
+# From holohub root directory
+./holohub run video_streaming_demo_enhanced client_python_v4l2 \
+  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Note:** The `--configure-args='-DHOLOHUB_BUILD_PYTHON=ON'` flag is required to build the Python bindings for the streaming client operators.
+
+For more details on the Python application, see:
+- **[Python Client Application README](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/python/README.md)**
+
 ## Testing
 
 Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of the streaming client working with the server.
