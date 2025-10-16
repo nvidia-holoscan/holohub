@@ -12,18 +12,25 @@ This is the enhanced video streaming client demo application that supports both 
 
 ## Running the Application
 
-**⚠️ Important: Enhanced applications require Holoscan SDK 3.5.0 with OpenSSL 3.4.0. Use the docker-file parameter to ensure compatibility.**
+> [!IMPORTANT] The client applications requires Holoscan SDK 3.5.0. Either set the SDK version environment variable before running the applications, or use the `--base-img` option to specify the base image.
+>
+> ```bash
+> # Set SDK version environment variable
+> export HOLOHUB_BASE_SDK_VERSION=3.5.0
+> ```
+
+> [!NOTE] The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
 ### V4L2 Camera (Webcam)
+
 ```bash
-# From holohub root directory - with custom Dockerfile (includes OpenSSL 3.4.0)
-./holohub run video_streaming_demo_enhanced client_v4l2 --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile
+./holohub run video_streaming_demo_enhanced client_v4l2
 ```
 
 ### Video File Replay
+
 ```bash
-# From holohub root directory - with custom Dockerfile (includes OpenSSL 3.4.0)
-./holohub run video_streaming_demo_enhanced client_replayer --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile
+./holohub run video_streaming_demo_enhanced client_replayer
 ```
 
 ## Configuration Files
@@ -36,4 +43,5 @@ This is the enhanced video streaming client demo application that supports both 
 - Holoscan SDK 3.5.0+
 - video_streaming operator
 - OpenCV
-- CUDA Toolkit
+- CUDA 12.x (currently not working with CUDA 13.x)
+- OpenSSL 3.4.0 (installed inside the custom Dockerfile)
