@@ -136,6 +136,16 @@ bool Caps::has_feature(const char* feature_name) const {
   return false;
 }
 
+std::string Caps::to_string() const {
+  gchar* caps_str = gst_caps_to_string(caps_);
+  if (!caps_str) {
+    return "";
+  }
+  std::string result(caps_str);
+  g_free(caps_str);
+  return result;
+}
+
 }  // namespace gst
 }  // namespace holoscan
 

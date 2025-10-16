@@ -315,6 +315,63 @@ gst::Caps GstSinkResource::get_caps() const {
   return gst::Caps(caps); // Automatic reference counting
 }
 
+GstSinkResource::TensorMetadata GstSinkResource::get_video_tensor_metadata(
+    const gst::VideoInfo& video_info,
+    guint plane_idx,
+    guint n_planes) const {
+  
+  // Get plane-specific dimensions
+  int plane_width = GST_VIDEO_INFO_COMP_WIDTH(video_info.get(), plane_idx);
+  int plane_height = GST_VIDEO_INFO_COMP_HEIGHT(video_info.get(), plane_idx);
+  int plane_stride = GST_VIDEO_INFO_PLANE_STRIDE(video_info.get(), plane_idx);
+  guint plane_components = (plane_idx == 0 && n_planes == 1) ? 
+                           GST_VIDEO_INFO_N_COMPONENTS(video_info.get()) : 1;
+  
+  // Create tensor name with appropriate suffix
+  static const char* plane_suffixes[] = {"", "_u", "_v", "_a"};
+  std::string tensor_name = "video_frame";
+  if (n_planes > 1) {
+    if (n_planes == 2 && plane_idx == 1) {
+      tensor_name += "_uv";  // NV12 format
+    } else if (plane_idx > 0) {
+      tensor_name += plane_suffixes[plane_idx];  // I420 format
+    }
+  }
+  
+  // Create shape: [height, width, components]
+  nvidia::gxf::Shape shape({static_cast<int32_t>(plane_height), 
+                            static_cast<int32_t>(plane_width),
+                            static_cast<int32_t>(plane_components)});
+  
+  // Calculate strides: [row_stride, bytes_per_pixel, bytes_per_component]
+  size_t bytes_per_pixel = plane_components;
+  std::array<size_t, 8> strides{{
+    static_cast<size_t>(plane_stride),
+    bytes_per_pixel,
+    1,  // uint8
+    0, 0, 0, 0, 0
+  }};
+  
+  return {tensor_name, shape, strides};
+}
+
+GstSinkResource::TensorMetadata GstSinkResource::get_generic_tensor_metadata(
+    guint mem_idx,
+    gsize size,
+    guint n_mem) const {
+  
+  // Create tensor name
+  std::string tensor_name = (n_mem == 1) ? "data" : fmt::format("data_{}", mem_idx);
+  
+  // Create shape: 1D byte array
+  nvidia::gxf::Shape shape({static_cast<int32_t>(size)});
+  
+  // Strides: just element size
+  std::array<size_t, 8> strides{{1, 0, 0, 0, 0, 0, 0, 0}};
+  
+  return {tensor_name, shape, strides};
+}
+
 gxf::Entity GstSinkResource::create_entity_from_buffer(
     ExecutionContext& context,
     const gst::Buffer& buffer) const {
@@ -331,57 +388,33 @@ gxf::Entity GstSinkResource::create_entity_from_buffer(
     return gxf::Entity();
   }
 
-  // Validate video info
+  // Check if this is video/x-raw data
   auto video_info_opt = caps.get_video_info();
-  if (!video_info_opt) {
-    HOLOSCAN_LOG_ERROR("Cannot get video info from caps");
-    return gxf::Entity();
-  }
-  const gst::VideoInfo& video_info = *video_info_opt;
-  
-  // Get dimensions and format info
-  int width = video_info->width;
-  int height = video_info->height;
-  auto format = video_info->finfo->format;
-  guint n_planes = video_info->finfo->n_planes;
   
   // Get number of memory blocks in the buffer
   guint n_mem = gst_buffer_n_memory(buffer.get());
   
-  HOLOSCAN_LOG_DEBUG("Buffer format: {}x{} {}, {} planes, {} memory blocks", 
-                    width, height, gst_video_format_to_string(format), n_planes, n_mem);
   
-  // Validate memory block count matches plane count (for proper zero-copy)
-  if (n_mem != n_planes) {
-    HOLOSCAN_LOG_WARN("Memory block count ({}) doesn't match plane count ({}). "
-                      "This may indicate non-standard buffer layout.", n_mem, n_planes);
-  }
-  
-  // Extract CUDA memory feature from caps (used for all planes)
-  bool caps_indicate_cuda_memory = caps.has_feature(GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY);
-  
-  // Tensor naming for multi-plane formats
-  static const char* plane_suffixes[] = {"", "_u", "_v", "_a"};
-  
-  // Process each memory block/plane
-  for (guint plane_idx = 0; plane_idx < n_mem; plane_idx++) {
-    ::GstMemory* memory = gst_buffer_peek_memory(buffer.get(), plane_idx);
+  // Process each memory block
+  for (guint mem_idx = 0; mem_idx < n_mem; mem_idx++) {
+    ::GstMemory* memory = gst_buffer_peek_memory(buffer.get(), mem_idx);
     if (!memory) {
-      HOLOSCAN_LOG_ERROR("No memory found for plane {}", plane_idx);
+      HOLOSCAN_LOG_ERROR("No memory found for block {}", mem_idx);
       return gxf::Entity();
     }
     
-    // Get plane-specific dimensions
-    int plane_width = GST_VIDEO_INFO_COMP_WIDTH(video_info.get(), plane_idx);
-    int plane_height = GST_VIDEO_INFO_COMP_HEIGHT(video_info.get(), plane_idx);
-    int plane_stride = GST_VIDEO_INFO_PLANE_STRIDE(video_info.get(), plane_idx);
-    guint plane_components = (plane_idx == 0 && n_planes == 1) ? 
-                             GST_VIDEO_INFO_N_COMPONENTS(video_info.get()) : 1;
+    // Get tensor metadata based on data type
+    TensorMetadata metadata;
+    if (video_info_opt.has_value()) {
+      const gst::VideoInfo& video_info = *video_info_opt;
+      guint n_planes = video_info->finfo->n_planes;
+      metadata = get_video_tensor_metadata(video_info, mem_idx, n_planes);
+    } else {
+      gsize size = gst_memory_get_sizes(memory, nullptr, nullptr);
+      metadata = get_generic_tensor_metadata(mem_idx, size, n_mem);
+    }
     
-    HOLOSCAN_LOG_DEBUG("Plane {}: {}x{}, stride={}, components={}", 
-                      plane_idx, plane_width, plane_height, plane_stride, plane_components);
-    
-    // Map memory for this plane
+    // Map memory (try CUDA first if requested, fallback to CPU)
     ::GstMapInfo map_info;
     void* data_ptr = nullptr;
     gsize size = 0;
@@ -389,107 +422,53 @@ gxf::Entity GstSinkResource::create_entity_from_buffer(
     nvidia::gxf::MemoryStorageType storage_type = nvidia::gxf::MemoryStorageType::kSystem;
     
     bool memory_mapped = false;
-    
-    // Try CUDA mapping first if caps indicate CUDA memory
-    if (caps_indicate_cuda_memory) {
+    // Check if caps indicate CUDA memory, if so, try CUDA mapping first if it fails, fallback to CPU mapping
+    if (caps.has_feature(GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY)) {
       if (map_gst_memory(memory, map_info, GST_MAP_READ_CUDA, mapped_device_type, 
                         storage_type, data_ptr, size)) {
         memory_mapped = true;
       }
     }
-    
-    // If CUDA mapping failed or we're dealing with CPU memory, use host mapping
     if (!memory_mapped) {
       if (!map_gst_memory(memory, map_info, GST_MAP_READ, mapped_device_type, 
                          storage_type, data_ptr, size)) {
-        HOLOSCAN_LOG_ERROR("Failed to map memory for plane {} with CPU flags", plane_idx);
+        HOLOSCAN_LOG_ERROR("Failed to map memory for block {}", mem_idx);
         return gxf::Entity();
       }
     }
     
-    HOLOSCAN_LOG_DEBUG("Plane {} mapped: device_type={}, pointer={}, size={} bytes", 
-                      plane_idx, static_cast<int>(mapped_device_type),
-                      static_cast<void*>(map_info.data), map_info.size);
-    
-    // Determine GXF primitive type (usually uint8 for video)
-    nvidia::gxf::PrimitiveType primitive_type = nvidia::gxf::PrimitiveType::kUnsigned8;
-    uint64_t element_size = nvidia::gxf::PrimitiveTypeSize(primitive_type);  // Size of a single uint8 element
-    
-    // Create tensor name with appropriate suffix
-    std::string tensor_name = "video_frame";
-    if (n_planes > 1) {
-      if (n_planes == 2 && plane_idx == 1) {
-        tensor_name += "_uv";  // NV12 format
-      } else if (plane_idx > 0) {
-        tensor_name += plane_suffixes[plane_idx];  // I420 format
-      }
-    }
-    
-    HOLOSCAN_LOG_DEBUG("Creating tensor '{}' for plane {}", tensor_name, plane_idx);
-    
     // Add tensor to entity
     auto gxf_tensor_result = static_cast<nvidia::gxf::Entity&>(entity)
-                               .add<nvidia::gxf::Tensor>(tensor_name.c_str());
+                               .add<nvidia::gxf::Tensor>(metadata.name.c_str());
     if (!gxf_tensor_result) {
-      HOLOSCAN_LOG_ERROR("Failed to add tensor '{}' to entity", tensor_name);
+      HOLOSCAN_LOG_ERROR("Failed to add tensor '{}'", metadata.name);
       gst_memory_unmap(memory, &map_info);
       return gxf::Entity();
     }
     auto gxf_tensor = gxf_tensor_result.value();
     
-    // Create shape for this plane
-    nvidia::gxf::Shape tensor_shape({static_cast<int32_t>(plane_height), 
-                                      static_cast<int32_t>(plane_width),
-                                      static_cast<int32_t>(plane_components)});
+    // Wrap memory as tensor with deleter for cleanup
+    nvidia::gxf::PrimitiveType primitive_type = nvidia::gxf::PrimitiveType::kUnsigned8;
+    uint64_t element_size = nvidia::gxf::PrimitiveTypeSize(primitive_type);
     
-    // Calculate actual stride from memory size if it differs from reported stride
-    // This handles cases where CUDA memory has different alignment than reported
-    size_t actual_stride = plane_stride;
-    if (plane_height > 0) {
-      size_t stride_from_size = map_info.size / plane_height;
-      if (stride_from_size != plane_stride) {
-        HOLOSCAN_LOG_DEBUG("Stride adjusted: GStreamer reports {} but buffer size indicates {}. Using actual stride {}",
-                           plane_stride, stride_from_size, stride_from_size);
-        actual_stride = stride_from_size;
-      }
-    }
-    
-    // For packed formats (RGBA), stride[1] is bytes per pixel (components * element_size)
-    // For planar formats (Y/U/V), stride[1] is just element_size
-    size_t bytes_per_pixel = plane_components * element_size;
-    std::array<size_t, 8> tensor_strides{{
-      actual_stride,       // Use actual stride from buffer
-      bytes_per_pixel,     // Bytes per pixel
-      element_size,        // Bytes per component
-      0, 0, 0, 0, 0
-    }};
-    
-    HOLOSCAN_LOG_DEBUG("Tensor shape: [{}x{}x{}], strides: [{}, {}, {}], element_size: {}, gst_stride: {}, actual_stride: {}", 
-                      plane_height, plane_width, plane_components,
-                      tensor_strides[0], tensor_strides[1], tensor_strides[2], element_size, plane_stride, actual_stride);
-    
-    // Create deleter that captures this plane's map_info and buffer
     std::function<nvidia::gxf::Expected<void>(void*)> deleter = 
         [buffer, memory, map_info](void*) mutable {
           gst_memory_unmap(memory, const_cast<::GstMapInfo*>(&map_info));
           return nvidia::gxf::Success;
         };
     
-    // Wrap memory for this plane
     gxf_tensor->wrapMemory(
-      tensor_shape,
+      metadata.shape,
       primitive_type,
       element_size,
-      tensor_strides,
+      metadata.strides,
       storage_type,
       static_cast<uint8_t*>(data_ptr),
       deleter);
   }
   
-  HOLOSCAN_LOG_DEBUG("Created entity with {} tensor(s) for {} plane(s)", n_mem, n_planes);
   return entity;
 }
-
 
 GstSinkResource::~GstSinkResource() {
   HOLOSCAN_LOG_INFO("Destroying GstSinkResource");

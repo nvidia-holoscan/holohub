@@ -118,6 +118,12 @@ public:
    */
   bool has_feature(const char* feature_name) const;
 
+  /**
+   * @brief Convert caps to human-readable string
+   * @return String representation of the caps
+   */
+  std::string to_string() const;
+
 private:
   ::GstCaps* caps_;
 };

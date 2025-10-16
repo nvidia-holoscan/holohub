@@ -266,12 +266,16 @@ void GstSrcResource::initialize_memory_wrapper(nvidia::gxf::Tensor* tensor) cons
   std::string caps_str = caps_.get();
   bool cuda_requested = caps_str.find("(memory:CUDAMemory)") != std::string::npos;
   
-  // Determine which wrapper to create based on tensor storage type and caps
+  const char* storage_type_str = (tensor->storage_type() == nvidia::gxf::MemoryStorageType::kDevice) 
+      ? "GPU" : "CPU";
+  
+  // Use CudaMemoryWrapper for GPU tensors when GStreamer requests CUDA memory
   if (tensor->storage_type() == nvidia::gxf::MemoryStorageType::kDevice && cuda_requested) {
-    HOLOSCAN_LOG_INFO("First CUDA tensor detected - creating CUDA memory wrapper");
+    HOLOSCAN_LOG_INFO("Creating CUDA memory wrapper ({} memory)", storage_type_str);
     memory_wrapper_.reset(new CudaMemoryWrapper());
   } else {
-    HOLOSCAN_LOG_INFO("Creating host memory wrapper");
+    // Use HostMemoryWrapper for CPU memory or when CUDA not requested
+    HOLOSCAN_LOG_INFO("Creating host memory wrapper ({} memory)", storage_type_str);
     memory_wrapper_.reset(new HostMemoryWrapper());
   }
 }

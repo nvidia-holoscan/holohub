@@ -113,7 +113,43 @@ class GstSinkResource : public holoscan::Resource {
    */
    holoscan::gst::Caps get_caps() const;
 
- // Promise/future for safe element access across threads
+ private:
+  /**
+   * @brief Tensor metadata (name, shape, strides)
+   */
+  struct TensorMetadata {
+    std::string name;
+    nvidia::gxf::Shape shape;
+    std::array<size_t, 8> strides;
+  };
+
+  /**
+   * @brief Get tensor metadata for video plane
+   * 
+   * @param video_info Video format information
+   * @param plane_idx Index of the plane
+   * @param n_planes Total number of planes
+   * @return Tensor metadata (name, shape, strides)
+   */
+  TensorMetadata get_video_tensor_metadata(
+      const holoscan::gst::VideoInfo& video_info,
+      guint plane_idx,
+      guint n_planes) const;
+
+  /**
+   * @brief Get tensor metadata for generic memory block
+   * 
+   * @param mem_idx Index of the memory block
+   * @param size Size of the memory block in bytes
+   * @param n_mem Total number of memory blocks
+   * @return Tensor metadata (name, shape, strides)
+   */
+  TensorMetadata get_generic_tensor_metadata(
+      guint mem_idx,
+      gsize size,
+      guint n_mem) const;
+
+  // Promise/future for safe element access across threads
   std::promise<holoscan::gst::GstElementGuard> sink_element_promise_;
   std::shared_future<holoscan::gst::GstElementGuard> sink_element_future_;
 
