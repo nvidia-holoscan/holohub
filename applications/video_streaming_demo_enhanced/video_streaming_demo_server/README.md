@@ -11,11 +11,15 @@ This is the enhanced video streaming server demo application that provides bidir
 
 ## Running the Application
 
-**⚠️ Important: Enhanced applications require Holoscan SDK 3.5.0. Use the base image parameter to ensure compatibility.**
+> [!IMPORTANT] The server applications requires Holoscan SDK 3.5.0. Either set the SDK version environment variable before running the applications, or use the `--base-img` option to specify the base image.
+>
+> ```bash
+> # Set SDK version environment variable
+> export HOLOHUB_BASE_SDK_VERSION=3.5.0
+> ```
 
 ```bash
-# From holohub root directory - with Holoscan 3.5.0 base image
-./holohub run video_streaming_demo_enhanced --docker-opts='-e EnableHybridMode=1' --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
+./holohub run video_streaming_demo_enhanced
 ```
 
 ## Configuration
@@ -28,7 +32,7 @@ This is the enhanced video streaming server demo application that provides bidir
 - Holoscan SDK 3.5.0
 - video_streaming operator
 - OpenCV
-- CUDA 12.x
+- CUDA 12.x (currently not working with CUDA 13.x)
 - OpenSSL 3.0+
 
 ## Usage with Client
