@@ -56,6 +56,20 @@ set(configure_options
 set(CTEST_NIGHTLY_START_TIME "06:00:00 UTC")
 
 ctest_start(Nightly)
+
+# Check for uncommitted git changes before updating
+execute_process(
+  COMMAND git status --porcelain
+  WORKING_DIRECTORY ${CTEST_SOURCE_DIRECTORY}
+  OUTPUT_VARIABLE git_status_output
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+
+if(git_status_output)
+  message(FATAL_ERROR "Git repository has uncommitted changes before ctest_update():\n${git_status_output}")
+endif()
+
 ctest_update()
 ctest_configure(OPTIONS "${configure_options}")
 ctest_build()
