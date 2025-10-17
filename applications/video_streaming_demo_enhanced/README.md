@@ -666,7 +666,7 @@ The Python integration test validates the complete bidirectional video streaming
 # From holohub root - run Python integration test
 ./holohub test video_streaming_demo_enhanced \
   --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
-  --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
   --ctest-options="-R video_streaming_integration_test_python"
 ```
 
@@ -674,6 +674,7 @@ The Python integration test validates the complete bidirectional video streaming
 
 **Requirements:**
 - Docker and NVIDIA GPU
+- Testing enabled via `--cmake-options='-DBUILD_TESTING=ON'`
 - Python bindings enabled via `--cmake-options='-DHOLOHUB_BUILD_PYTHON=ON'`
 - Custom Dockerfile for OpenSSL 3.4.0 dependencies
 
@@ -804,7 +805,7 @@ python3 streaming_client_demo.py --source replayer --width 854 --height 480
 ```bash
 timeout 300 ./holohub test video_streaming_demo_enhanced \
   --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
-  --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
   --ctest-options="-R video_streaming_integration_test_python"
 echo "Python integration test exit code: $?"
 ```
