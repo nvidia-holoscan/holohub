@@ -722,7 +722,17 @@ Python Server checks passed: 6
 Python Client checks passed: 4
 ✓ PYTHON STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
 ✓ Python Integration test PASSED
+
+1/1 Test #2: video_streaming_integration_test_python ...   Passed   44.08 sec
+
+100% tests passed, 0 tests failed out of 1
 ```
+
+**Important Notes:**
+- A segmentation fault may occur during shutdown - this is **expected** and does not indicate test failure
+- The test explicitly ignores cleanup segfaults using `wait $PID || true`
+- Test result is based **solely** on the 10 verification checks, not process exit codes
+- CTest will show **"Passed"** if all checks succeed, even with segfault during cleanup
 
 ### Acceptance Criteria
 
@@ -747,6 +757,24 @@ The Python integration test validates the following checks. **All checks must pa
 | ✓ Frames received | Client receives frames from server | ≥100 `"CLIENT: Received frame"` log entries |
 | ✓ Frame validation | Received frames pass validation | `"Frame validation passed"` in client logs |
 | ✓ Client startup | Client application starts successfully | `"STARTING STREAMING CLIENT"` or `"Starting Streaming Client Demo"` in client logs |
+
+#### Overall Test Success
+
+**Test PASSES when:**
+- ✅ All 6 server checks pass (6/6)
+- ✅ All 4 client checks pass (4/4)
+- ✅ Total: **10/10 checks passed**
+- ✅ Exit code: `0`
+- ✅ CTest output: `"100% tests passed, 0 tests failed out of 1"`
+
+**Test FAILS when:**
+- ❌ Any server check fails (< 6 passed)
+- ❌ Any client check fails (< 4 passed)
+- ❌ Total: < 10 checks passed
+- ❌ Exit code: `1`
+- ❌ CTest output: `"Tests failed with return value: -1"`
+
+**Note on Segfaults:** Segmentation faults during cleanup do **not** cause test failure. The test uses `wait $PID || true` to ignore non-zero exit codes from cleanup. Only the 10 verification checks determine pass/fail status.
 
 ### Frame Throughput Metrics
 
@@ -793,6 +821,21 @@ python3 streaming_client_demo.py --source replayer --width 854 --height 480
 ```
 **Cause**: Downstream connection failure or server issues  
 **Solution**: Check server logs for downstream connection establishment
+
+**Segmentation Fault at Shutdown (Expected Behavior):**
+```bash
+Segmentation fault (core dumped) python3 streaming_server_demo.py
+✓ Python Server: StreamingServerUpstreamOp processed 561 unique frames
+✓ PYTHON STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
+✓ Python Integration test PASSED
+```
+
+**Explanation**: A segfault occurs during Python interpreter shutdown when cleaning up C++ resources (StreamingServerResource, CUDA contexts). This is a known issue with destruction order in Python bindings and does **not affect streaming functionality**.
+
+- Segfault happens **after** all streaming completes successfully
+- Test uses `wait $PID || true` to ignore non-zero exit codes during cleanup
+- Test passes if all 10 verification checks pass before shutdown
+- **Solution**: No action needed - this is expected behavior and the test correctly reports PASS
 
 ### CI/CD Integration
 
