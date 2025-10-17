@@ -89,6 +89,384 @@ The unified application provides both client and server applications.
   ./holohub run video_streaming client_replayer
   ```
 
+## Python Applications
+
+Both server and client applications are available in Python using the Holoscan Python bindings. The Python implementations are fully compatible with their C++ counterparts and can be used interchangeably.
+
+### Requirements
+
+- Python 3.8 or higher
+- Holoscan SDK 3.5.0+ with Python bindings
+- Build with `-DHOLOHUB_BUILD_PYTHON=ON` flag
+- Custom Dockerfile with OpenSSL 3.4.0
+
+### Running Python Server
+
+```bash
+# From holohub root directory - runs with default settings (854x480 @ 30fps)
+./holohub run video_streaming server_python \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Default Configuration:**
+- Port: 48010
+- Resolution: 854x480
+- Frame Rate: 30 fps
+- Pipeline: StreamingServerUpstreamOp → StreamingServerDownstreamOp (passthrough/echo mode)
+
+### Running Python Client
+
+**Video Replayer Mode (Default - 854x480):**
+```bash
+# From holohub root directory - runs with video file playback
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**V4L2 Camera Mode (640x480):**
+```bash
+# From holohub root directory - runs with V4L2 camera (webcam)
+./holohub run video_streaming client_python_v4l2 \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Default Client Configurations:**
+
+**Video Replayer Mode:**
+- Source: Video file (surgical_video)
+- Resolution: 854x480
+- Frame Rate: 30 fps
+- Server: 127.0.0.1:48010
+
+**V4L2 Camera Mode:**
+- Source: /dev/video0 (webcam)
+- Resolution: 640x480
+- Frame Rate: 30 fps
+- Server: 127.0.0.1:48010
+
+**Important:** Ensure the server is configured to match the client's resolution for optimal performance.
+
+### Python Bindings
+
+The Python applications use these Holoscan operator bindings:
+
+**Server Components:**
+- `holohub.streaming_server_enhanced.StreamingServerResource` - Manages server connections and WebRTC
+- `holohub.streaming_server_enhanced.StreamingServerUpstreamOp` - Receives frames from clients
+- `holohub.streaming_server_enhanced.StreamingServerDownstreamOp` - Sends frames to clients
+
+**Client Components:**
+- `holohub.streaming_client_enhanced.StreamingClientOp` - Bidirectional client streaming
+
+**Holoscan Core Operators:**
+- `holoscan.operators.VideoStreamReplayerOp` - Video file playback
+- `holoscan.operators.V4L2VideoCaptureOp` - Webcam capture
+- `holoscan.operators.FormatConverterOp` - Format conversion (RGBA→RGB→BGR)
+- `holoscan.operators.HolovizOp` - Visualization
+
+### Python Server Example
+
+```python
+from holohub.streaming_server_enhanced import (
+    StreamingServerDownstreamOp,
+    StreamingServerResource,
+    StreamingServerUpstreamOp,
+)
+
+class StreamingServerApp(Application):
+    def compose(self):
+        # Create shared streaming server resource
+        streaming_resource = StreamingServerResource(
+            self,
+            name="streaming_server_resource",
+            port=48010,
+            width=854,
+            height=480,
+            fps=30,
+            enable_upstream=True,
+            enable_downstream=True,
+        )
+
+        # Upstream operator (receives from clients)
+        upstream_op = StreamingServerUpstreamOp(
+            self,
+            name="upstream_op",
+            streaming_server_resource=streaming_resource
+        )
+
+        # Downstream operator (sends to clients)
+        downstream_op = StreamingServerDownstreamOp(
+            self,
+            name="downstream_op",
+            streaming_server_resource=streaming_resource
+        )
+
+        # Connect: upstream -> downstream (passthrough/echo mode)
+        self.add_flow(upstream_op, downstream_op, {("output_frames", "input_frames")})
+```
+
+**Key Points:**
+- Both operators share the same `StreamingServerResource` to manage WebRTC connections
+- The upstream operator receives frames from clients on its `output_frames` port
+- The downstream operator receives those frames on its `input_frames` port and sends them back to clients
+- This creates a simple passthrough/echo streaming pipeline
+
+### Python Client Example
+
+**Video Replayer Mode:**
+```python
+from holohub.streaming_client_enhanced import StreamingClientOp
+from holoscan.operators import (
+    FormatConverterOp,
+    HolovizOp,
+    VideoStreamReplayerOp,
+)
+
+class StreamingClientApp(Application):
+    def compose(self):
+        # Create video source (replayer)
+        replayer = VideoStreamReplayerOp(
+            self,
+            name="replayer",
+            directory="/workspace/holohub/data/endoscopy",
+            basename="surgical_video",
+            frame_rate=30,
+        )
+
+        # Create format converter (RGB to BGR)
+        format_converter = FormatConverterOp(
+            self,
+            name="format_converter",
+            in_dtype="rgb888",
+            out_dtype="rgb888",
+            out_tensor_name="tensor",
+        )
+
+        # Create streaming client
+        streaming_client = StreamingClientOp(
+            self,
+            name="streaming_client",
+            server_ip="127.0.0.1",
+            port=48010,
+            width=854,
+            height=480,
+            fps=30,
+            send_frames=True,
+            receive_frames=True,
+        )
+
+        # Create visualization (optional)
+        holoviz = HolovizOp(
+            self,
+            name="holoviz",
+            width=854,
+            height=480,
+        )
+
+        # Connect the pipeline
+        self.add_flow(replayer, format_converter, {("output", "source_video")})
+        self.add_flow(format_converter, streaming_client)
+        self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
+```
+
+**V4L2 Camera Mode:**
+```python
+from holohub.streaming_client_enhanced import StreamingClientOp
+from holoscan.operators import (
+    FormatConverterOp,
+    HolovizOp,
+    V4L2VideoCaptureOp,
+)
+
+class StreamingClientApp(Application):
+    def compose(self):
+        # Create video source (V4L2 camera)
+        v4l2_source = V4L2VideoCaptureOp(
+            self,
+            name="v4l2_camera",
+            device="/dev/video0",
+            width=640,
+            height=480,
+            frame_rate=30,
+            pixel_format="YUYV",
+            allocator=allocator,
+        )
+
+        # Create format converter (RGBA to RGB/BGR)
+        format_converter = FormatConverterOp(
+            self,
+            name="format_converter",
+            in_dtype="rgba8888",  # V4L2 outputs RGBA
+            out_dtype="rgb888",   # Convert to RGB
+            out_tensor_name="tensor",
+            pool=allocator,
+        )
+
+        # Create streaming client
+        streaming_client = StreamingClientOp(
+            self,
+            name="streaming_client",
+            server_ip="127.0.0.1",
+            port=48010,
+            width=640,
+            height=480,
+            fps=30,
+            send_frames=True,
+            receive_frames=True,
+        )
+
+        # Create visualization (optional)
+        holoviz = HolovizOp(
+            self,
+            name="holoviz",
+            width=640,
+            height=480,
+        )
+
+        # Connect the pipeline
+        self.add_flow(v4l2_source, format_converter, {("output", "source_video")})
+        self.add_flow(format_converter, streaming_client)
+        self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
+```
+
+**Key Points:**
+- The `StreamingClientOp` handles bidirectional streaming (sends and receives frames)
+- Format conversion is necessary to convert source formats to BGR for streaming
+- V4L2 always outputs RGBA8888 (4 channels) regardless of input format
+- Video replayer outputs RGB888 (3 channels)
+- The `output_frames` port receives processed frames from the server
+- HoloViz displays the received frames using the `receivers` input port
+
+### Python Pipeline Architecture
+
+**Server Pipeline:**
+```
+Client Streams → StreamingServerUpstreamOp → StreamingServerDownstreamOp → Client Streams
+```
+
+**Client Pipeline:**
+```
+Video Source → FormatConverterOp → StreamingClientOp → HoloVizOp (optional)
+```
+
+### Command Line Options (Python)
+
+**Server Options:**
+- `--port PORT`: Server port (default: 48010)
+- `--width WIDTH`: Frame width (default: 854)
+- `--height HEIGHT`: Frame height (default: 480)
+- `--fps FPS`: Frames per second (default: 30)
+- `--config PATH` or `-c PATH`: Path to YAML configuration file
+- `--create-config PATH`: Create default configuration file at specified path
+- `--help`: Show help message
+
+**Client Options:**
+- `--source {replayer,v4l2}`: Video source type (default: replayer)
+- `--server-ip IP`: Server IP address (default: 127.0.0.1)
+- `--port PORT`: Server port (default: 48010)
+- `--width WIDTH`: Frame width (default: 854 for replayer, 640 for v4l2)
+- `--height HEIGHT`: Frame height (default: 480)
+- `--fps FPS`: Frames per second (default: 30)
+- `--config PATH` or `-c PATH`: Path to YAML configuration file
+- `--help`: Show help message
+
+### Compatibility
+
+- ✅ **Python server ↔ C++ client** - Fully compatible and tested
+- ✅ **Python client ↔ C++ server** - Fully compatible and tested
+- ✅ **Python server ↔ Python client** - Fully compatible and tested
+- ✅ **C++ server ↔ C++ client** - Fully compatible and tested
+- ✅ **All combinations are fully supported** - Mix and match as needed
+
+### Integration Testing
+
+Terminal 1 - Start Python Server:
+```bash
+./holohub run video_streaming server_python \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+Terminal 2 - Start Python Client (Video Replayer):
+```bash
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+Terminal 2 - Or start Python Client (V4L2 Camera):
+```bash
+./holohub run video_streaming client_python_v4l2 \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Testing with C++ Server:**
+
+You can also test Python clients with C++ servers (they are fully compatible):
+
+Terminal 1 - C++ Server:
+```bash
+./holohub run video_streaming server \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1'
+```
+
+Terminal 2 - Python Client:
+```bash
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Important:** Ensure client and server resolutions match for optimal performance.
+
+### Python Troubleshooting
+
+**Import Error:**
+- Ensure Holoscan SDK Python bindings are installed
+- Verify build with: `./holohub build video_streaming --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'`
+
+**Camera Not Found:**
+- Check V4L2 device path: `ls -l /dev/video*`
+- Test camera: `v4l2-ctl --device=/dev/video0 --info`
+
+**Connection Failed:**
+- Verify server is running and ports are correct
+- Check: `netstat -tlnp | grep 48010`
+
+**Video Files Not Found:**
+- Check data directory path: `/workspace/holohub/data/endoscopy/`
+- Ensure video files exist in the data directory
+
+**Resolution Mismatch:**
+- Replayer default: 854x480
+- V4L2 default: 640x480
+- Server default: 854x480
+- Ensure client and server resolutions match
+
+### Configuration Files
+
+**Python Server:** `python/streaming_server_demo.yaml`
+**Python Client (Replayer):** `python/streaming_client_demo_replayer.yaml`
+**Python Client (V4L2):** `python/streaming_client_demo.yaml`
+
+### Detailed Documentation
+
+For complete implementation details, see the component-specific READMEs:
+- **[Server README](video_streaming_server/README.md)** - Complete server documentation (C++ and Python)
+- **[Client README](video_streaming_client/README.md)** - Complete client documentation (C++ and Python)
+
 ## Command Line Options
 
 ### Server Options
