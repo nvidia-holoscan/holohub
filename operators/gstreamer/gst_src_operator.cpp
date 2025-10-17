@@ -64,5 +64,14 @@ void GstSrcOperator::compute(InputContext& input, OutputContext& output,
   HOLOSCAN_LOG_INFO("Frame #{} - Buffer successfully pushed to GstSrcResource", frame_count);
 }
 
+void GstSrcOperator::stop() {
+  HOLOSCAN_LOG_INFO("GstSrcOperator::stop() - Operator stopping, sending EOS to GStreamer pipeline");
+  
+  // Send EOS with 2 second wait time to allow encoding and muxing to complete
+  gst_src_resource_.get()->send_eos(1000);
+  
+  HOLOSCAN_LOG_INFO("GstSrcOperator::stop() - EOS sent and processing complete");
+}
+
 }  // namespace holoscan
 

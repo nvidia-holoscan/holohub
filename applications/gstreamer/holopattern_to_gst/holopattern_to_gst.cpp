@@ -592,11 +592,6 @@ int main(int argc, char** argv) {
     app_future.wait();
     HOLOSCAN_LOG_INFO("Holoscan frame generation complete");
     
-    // Send EOS to signal GStreamer pipeline to finalize
-    // Pass wait time in milliseconds - wait 2 seconds after EOS for encoding to complete
-    HOLOSCAN_LOG_INFO("Sending EOS to finalize GStreamer pipeline");
-    holoscan_app->get_src_resource()->send_eos(1000);
-    
     // Wait for GStreamer to finish processing (EOS message on bus)
     HOLOSCAN_LOG_INFO("Waiting for GStreamer pipeline to finish");
     gstreamer_app->get_bus_monitor_future().wait();

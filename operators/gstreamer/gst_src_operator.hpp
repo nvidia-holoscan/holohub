@@ -58,6 +58,14 @@ class GstSrcOperator : public Operator {
    */
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override;
 
+  /**
+   * @brief Stop function called when operator execution ends
+   * 
+   * Sends EOS (End-Of-Stream) to the GStreamer pipeline to signal completion
+   * and allow proper finalization of output files.
+   */
+  void stop() override;
+
  private:
   Parameter<GstSrcResourcePtr> gst_src_resource_;
   Parameter<uint64_t> timeout_ms_;
