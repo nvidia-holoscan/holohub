@@ -286,18 +286,6 @@ if(BUILD_TESTING)
 
   # Add Python integration test
   if(HOLOHUB_BUILD_PYTHON)
-    # Copy Python integration test script
-    configure_file(
-      "${CMAKE_CURRENT_SOURCE_DIR}/integration_test_python.sh"
-      "${CMAKE_BINARY_DIR}/integration_test_python.sh"
-      COPYONLY
-    )
-
-    # Make script executable
-    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/integration_test_python.sh"
-         DESTINATION "${CMAKE_BINARY_DIR}"
-         FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-
     # Add integration test for Python video streaming demo
     add_test(NAME video_streaming_integration_test_python
              COMMAND bash -c "
