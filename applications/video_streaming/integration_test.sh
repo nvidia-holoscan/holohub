@@ -22,7 +22,7 @@ rm -f streamingserver.log streamingclient.log
 echo "Creating custom integration test approach..."
 
 # Go to holohub root if we're in the app directory
-if [[ $(basename "$PWD") == "video_streaming_demo_enhanced" ]]; then
+if [[ $(basename "$PWD") == "video_streaming" ]]; then
     cd ../../
 fi
 
@@ -38,7 +38,7 @@ docker system prune -f --filter "label=holohub" 2>/dev/null || true
 echo "Running integration test with Docker (using committed fixes)..."
 # Set SDK version via environment variable to match base image version
 export HOLOHUB_BASE_SDK_VERSION=3.5.0
-./holohub test video_streaming_demo_enhanced --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test -V" --verbose 2>&1 | tee applications/video_streaming_demo_enhanced/integration_test.log
+./holohub test video_streaming --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu --cmake-options="-DBUILD_TESTING=ON" --ctest-options="-R video_streaming_integration_test -V" --verbose 2>&1 | tee applications/video_streaming/integration_test.log
 INTEGRATION_EXIT_CODE=$?
 
 # Check results
@@ -54,13 +54,13 @@ fi
 
 # Check the integration test log
 echo "=== INTEGRATION TEST LOG ==="
-cat applications/video_streaming_demo_enhanced/integration_test.log
+cat applications/video_streaming/integration_test.log
 
 # Verify success conditions
 echo "=== VERIFICATION ==="
 
 # Check integration test log for more detailed success indicators
-if [ $INTEGRATION_EXIT_CODE -eq 0 ] && grep -q "Test.*Passed\|100%.*tests passed" applications/video_streaming_demo_enhanced/integration_test.log; then
+if [ $INTEGRATION_EXIT_CODE -eq 0 ] && grep -q "Test.*Passed\|100%.*tests passed" applications/video_streaming/integration_test.log; then
     echo "✓ Integration test passed with detailed verification"
     SERVER_SUCCESS=1
     CLIENT_SUCCESS=1
@@ -70,11 +70,11 @@ elif [ $INTEGRATION_EXIT_CODE -eq 0 ]; then
     CLIENT_SUCCESS=1
 else
     echo "✗ Integration test failed - checking for specific errors..."
-    if grep -q "streaming.*server.*test" applications/video_streaming_demo_enhanced/integration_test.log; then
+    if grep -q "streaming.*server.*test" applications/video_streaming/integration_test.log; then
         echo "✗ Server test failed"
         SERVER_SUCCESS=0
     fi
-    if grep -q "streaming.*client.*test" applications/video_streaming_demo_enhanced/integration_test.log; then
+    if grep -q "streaming.*client.*test" applications/video_streaming/integration_test.log; then
         echo "✗ Client test failed" 
         CLIENT_SUCCESS=0
     fi

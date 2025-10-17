@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -14,65 +15,324 @@
 # limitations under the License.
 
 """
-Simple application to test the StreamingClientOp operator.
+Streaming Client Demo Application (Python)
+
+This application demonstrates how to use the StreamingClientOp Python bindings
+to create a video streaming client that can send and receive video frames.
+
+Features:
+- Video file playback using VideoStreamReplayer
+- V4L2 camera capture support
+- Format conversion (RGB to BGR)
+- Real-time video streaming to server
+- Optional visualization with HoloViz
+- Configurable via YAML or command-line arguments
 """
 
-from argparse import ArgumentParser
+import argparse
+import os
+import sys
+from pathlib import Path
 
 from holoscan.core import Application
+from holoscan.operators import (
+    FormatConverterOp,
+    HolovizOp,
+    V4L2VideoCaptureOp,
+    VideoStreamReplayerOp,
+)
+from holoscan.resources import CudaStreamPool, UnboundedAllocator
 
-from holohub.streaming_client_operator import StreamingClientOp
+# Import our streaming client operator
+# The __init__.py automatically imports from _streaming_client_enhanced
+try:
+    from holohub.streaming_client_enhanced import StreamingClientOp
+except ImportError as e:
+    print(f"Error: StreamingClientOp not found: {e}")
+    print("Make sure the Python bindings are built and installed.")
+    print(
+        "Build with: ./holohub build streaming_client_enhanced --language cpp --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'"
+    )
+    sys.exit(1)
 
 
-class StreamingClientTestApp(Application):
-    """Example application to test the StreamingClientOp operator."""
+class StreamingClientApp(Application):
+    """Streaming Client Demo Application using Python bindings."""
 
     def __init__(
-        self, server_ip="127.0.0.1", signaling_port=48010, width=1920, height=1080, fps=30
+        self,
+        source="replayer",
+        config_file=None,
+        server_ip="127.0.0.1",
+        port=48010,
+        width=854,
+        height=480,
+        fps=30,
+        visualize=True,
     ):
-        """Initialize the application."""
         super().__init__()
-
-        # Get the directory where this file is located
+        self.source = source
+        self.config_file = config_file
         self.server_ip = server_ip
-        self.signaling_port = signaling_port
+        self.port = port
         self.width = width
         self.height = height
         self.fps = fps
+        self.visualize = visualize
 
     def compose(self):
-        """Define the operators in the application and connect them."""
-        # Create the streaming client operator
-        streaming_client = StreamingClientOp(
+        """Compose the application pipeline."""
+
+        # Create allocator and CUDA stream pool
+        allocator = UnboundedAllocator(self, name="allocator")
+
+        cuda_stream_pool = CudaStreamPool(
             self,
-            name="streaming_client",
+            name="cuda_stream_pool",
+            dev_id=0,
+            stream_flags=0,
+            stream_priority=0,
+            reserved_size=1,
+            max_size=5,
         )
 
-        # Add the operators to the application
-        self.add_operator(streaming_client)
+        # Create source operator based on configuration
+        if self.source == "replayer":
+            source_op = self._create_replayer_source(allocator)
+            # VideoStreamReplayer outputs RGB (3 channels)
+            in_dtype = "rgb888"
+        elif self.source == "v4l2":
+            source_op = self._create_v4l2_source(allocator)
+            # V4L2 outputs RGBA (4 channels) after internal YUYV->RGBA conversion
+            in_dtype = "rgba8888"
+        else:
+            raise ValueError(f"Unknown source type: {self.source}")
+
+        # Create format converter with correct input dtype based on source
+        format_converter = FormatConverterOp(
+            self,
+            name="format_converter",
+            in_dtype=in_dtype,  # Conditional: rgba8888 for V4L2, rgb888 for replayer
+            out_dtype="rgb888",  # Always output RGB (3 channels), dropping alpha if present
+            out_tensor_name="tensor",
+            scale_min=0.0,
+            scale_max=255.0,
+            out_channel_order=[2, 1, 0],  # Convert RGB to BGR
+            pool=allocator,
+            cuda_stream_pool=cuda_stream_pool,
+        )
+
+        # Create streaming client (allocator added via positional args if supported)
+        streaming_client = StreamingClientOp(
+            self,
+            allocator,  # Add allocator for output buffer
+            name="streaming_client",
+            width=self.width,
+            height=self.height,
+            fps=self.fps,
+            server_ip=self.server_ip,
+            signaling_port=self.port,
+            send_frames=True,
+            receive_frames=True,
+            min_non_zero_bytes=10,
+        )
+
+        # Connect the pipeline: source -> format_converter -> streaming_client -> holoviz
+        # Match C++ implementation
+        if self.source == "v4l2":
+            # V4L2 outputs on "signal" port
+            self.add_flow(source_op, format_converter, {("signal", "source_video")})
+        else:
+            # VideoStreamReplayer outputs on "output" port
+            self.add_flow(source_op, format_converter, {("output", "source_video")})
+
+        # Format converter output -> streaming client input
+        self.add_flow(format_converter, streaming_client)
+
+        # Optional visualization
+        if self.visualize:
+            holoviz = HolovizOp(
+                self,
+                name="holoviz",
+                width=self.width,
+                height=self.height,
+                allocator=allocator,
+                cuda_stream_pool=cuda_stream_pool,
+                tensors=[
+                    {
+                        "name": "bgra_tensor",  # Tensor name to match streaming client output
+                        "type": "color",
+                        "image_format": "b8g8r8a8_unorm",  # BGRA format (4 channels)
+                        "opacity": 1.0,
+                        "priority": 0,
+                    }
+                ],
+            )
+
+            # Connect streaming client output -> holoviz (receives frames from server)
+            # Explicitly map output_frames port to receivers port (matching C++ implementation)
+            self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
+
+    def _create_replayer_source(self, allocator):
+        """Create video stream replayer source."""
+        # Default to endoscopy data if available
+        data_path = os.environ.get("HOLOHUB_DATA_PATH", "/workspace/holohub/data")
+        video_dir = os.path.join(data_path, "endoscopy")
+
+        if not os.path.exists(video_dir):
+            print(f"Warning: Video directory not found at {video_dir}")
+            print("Using current directory for video files")
+            video_dir = "."
+
+        return VideoStreamReplayerOp(
+            self,
+            name="replayer",
+            directory=video_dir,
+            basename="surgical_video",
+            frame_rate=30,
+            repeat=True,
+            realtime=True,
+            count=0,
+            allocator=allocator,
+        )
+
+    def _create_v4l2_source(self, allocator):
+        """Create V4L2 camera capture source."""
+        return V4L2VideoCaptureOp(
+            self,
+            name="v4l2_source",
+            device="/dev/video0",
+            width=640,
+            height=480,
+            frame_rate=30,
+            pixel_format="YUYV",
+            allocator=allocator,
+        )
+
+
+def create_default_config():
+    """Create a default YAML configuration file."""
+    config_content = """# Streaming Client Demo Configuration
+application:
+  title: "Streaming Client Python Demo"
+  version: "1.0"
+  log_level: "INFO"
+
+# Source configuration
+source: "replayer"  # Options: "replayer", "v4l2"
+
+# Video replayer settings
+replayer:
+  directory: "/workspace/holohub/data/endoscopy"
+  basename: "surgical_video"
+  frame_rate: 30
+  repeat: true
+  realtime: true
+
+# V4L2 camera settings
+v4l2:
+  device: "/dev/video0"
+  width: 640
+  height: 480
+  frame_rate: 30
+  pixel_format: "YUYV"
+
+# Streaming client settings
+streaming_client:
+  width: 854
+  height: 480
+  fps: 30
+  server_ip: "127.0.0.1"
+  port: 48010
+  send_frames: true
+  receive_frames: true
+  min_non_zero_bytes: 10
+
+# Visualization settings
+visualization:
+  enabled: true
+  width: 854
+  height: 480
+"""
+    return config_content
 
 
 def main():
-    """Main function to parse CLI arguments and run the application."""
-    parser = ArgumentParser(description="Streaming Client Test Application")
+    """Main application entry point."""
+    parser = argparse.ArgumentParser(description="Streaming Client Demo (Python)")
     parser.add_argument(
-        "--server_ip", type=str, default="127.0.0.1", help="IP address of the streaming server"
+        "--source",
+        choices=["replayer", "v4l2"],
+        default="replayer",
+        help="Video source type (default: replayer)",
     )
-    parser.add_argument("--signaling_port", type=int, default=48010, help="Port for signaling")
-    parser.add_argument("--width", type=int, default=1920, help="Frame width")
-    parser.add_argument("--height", type=int, default=1080, help="Frame height")
-    parser.add_argument("--fps", type=int, default=30, help="Frames per second")
+    parser.add_argument("--config", "-c", help="Path to YAML configuration file")
+    parser.add_argument(
+        "--server-ip", default="127.0.0.1", help="Server IP address (default: 127.0.0.1)"
+    )
+    parser.add_argument("--port", type=int, default=48010, help="Server port (default: 48010)")
+    parser.add_argument("--width", type=int, default=854, help="Frame width (default: 854)")
+    parser.add_argument("--height", type=int, default=480, help="Frame height (default: 480)")
+    parser.add_argument("--fps", type=int, default=30, help="Frames per second (default: 30)")
+    parser.add_argument("--no-viz", action="store_true", help="Disable visualization")
+    parser.add_argument(
+        "--create-config", help="Create a default configuration file at the specified path"
+    )
+
     args = parser.parse_args()
 
+    # Handle config file creation
+    if args.create_config:
+        config_path = Path(args.create_config)
+        config_path.write_text(create_default_config())
+        print(f"Created default configuration file: {config_path}")
+        return
+
+    # Auto-select config file based on source if not specified
+    config_file = args.config
+    if not config_file:
+        if args.source == "replayer":
+            config_file = "streaming_client_demo_replayer.yaml"
+        else:  # v4l2
+            config_file = "streaming_client_demo.yaml"
+        print(f"Auto-selected config file for {args.source}: {config_file}")
+
     # Create and run the application
-    app = StreamingClientTestApp(
-        server_ip=args.server_ip,
-        signaling_port=args.signaling_port,
-        width=args.width,
-        height=args.height,
-        fps=args.fps,
-    )
-    app.run()
+    try:
+        app = StreamingClientApp(
+            source=args.source,
+            config_file=config_file,
+            server_ip=args.server_ip,
+            port=args.port,
+            width=args.width,
+            height=args.height,
+            fps=args.fps,
+            visualize=not args.no_viz,
+        )
+
+        if config_file:
+            app.config(config_file)
+
+        print("Starting Streaming Client Demo (Python)")
+        print(f"Source: {args.source}")
+        print(f"Server: {args.server_ip}:{args.port}")
+        print(f"Resolution: {args.width}x{args.height} @ {args.fps}fps")
+        print(f"Visualization: {'enabled' if not args.no_viz else 'disabled'}")
+
+        # Show pipeline
+        viz_part = " -> HolovizOp" if not args.no_viz else ""
+        print(
+            f"Pipeline: {args.source.capitalize()}Op -> FormatConverterOp -> StreamingClientOp{viz_part}"
+        )
+        print("Press Ctrl+C to stop gracefully")
+
+        app.run()
+
+    except KeyboardInterrupt:
+        print("\nApplication interrupted by user")
+    except Exception as e:
+        print(f"Error running application: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

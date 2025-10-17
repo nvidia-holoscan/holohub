@@ -29,7 +29,9 @@
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 
-#include "streaming_server_op.hpp"
+#include "streaming_server_resource.hpp"
+#include "streaming_server_upstream_op.hpp"
+#include "streaming_server_downstream_op.hpp"
 
 
 namespace holoscan::ops {
@@ -131,13 +133,19 @@ class StreamingServerTestApp : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    // Create the streaming server operator with continuous execution
-    // Remove periodic condition - let it run continuously to process frames
-    auto streaming_server = make_operator<ops::StreamingServerOp>(
-        "streaming_server", from_config("streaming_server"));
+    // Create shared resource
+    auto streaming_server_resource =
+        make_resource<ops::StreamingServerResource>("streaming_server_resource");
 
-    // Add the operator to the pipeline
-    add_operator(streaming_server);
+    // Both operators use the same resource
+    auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>("upstream_op");
+    upstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
+
+    auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>("downstream_op");
+    downstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
+
+    // Connect them in pipeline
+    add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
 
     HOLOSCAN_LOG_INFO(
         "Application composed with streaming server using continuous execution");
@@ -149,24 +157,15 @@ class StreamingServerTestApp : public holoscan::Application {
   uint32_t height_ = 480;
   uint32_t fps_ = 30;
   std::string server_ip_ = "127.0.0.1";
-  uint16_t port_ = 48010;  // Changed to match YAML config and client
+  uint16_t port_ = 48010;
   bool receive_frames_ = true;
   bool send_frames_ = true;
   bool visualize_frames_ = false;
-  std::string source_ = "replayer";  // Added source_ member variable
   std::string datapath_ = "data/endoscopy";
-  bool gpu_tensor_ = false;
-  int64_t count_ = 10;
-  int32_t batch_size_ = 0;
-  int32_t rows_ = 32;
-  int32_t columns_ = 64;
-  int32_t channels_ = 0;
-  std::string data_type_{"uint8_t"};
-  // Added datapath_ member variable
 };
 
 void print_usage() {
-  std::cout << "Usage: streaming_server_demo [options]\n"
+  std::cout << "Usage: streaming_server_demo_enhanced [options]\n"
             << "Options:\n"
             << "  -c, --config <file>        Configuration file path (default: "
                "streaming_server_demo.yaml)\n"
@@ -280,7 +279,7 @@ int main(int argc, char** argv) {
     uint32_t height = get_config_value(app.get(), "streaming_server.height", 480u);
     uint32_t fps = get_config_value(app.get(), "streaming_server.fps", 30u);
     std::string server_ip = get_config_value(app.get(), "streaming_server.server_ip",
-                                           std::string("127.0.0.1"));
+                                             std::string("127.0.0.1"));
     uint16_t port = get_config_value(app.get(), "streaming_server.port", 48010);
     bool receive_frames = get_config_value(app.get(), "streaming_server.receive_frames", true);
     bool send_frames = get_config_value(app.get(), "streaming_server.send_frames", true);
@@ -295,6 +294,12 @@ int main(int argc, char** argv) {
     app->set_receive_frames(receive_frames);
     app->set_send_frames(send_frames);
     app->set_visualize_frames(visualize_frames);
+
+    // Set data directory if provided via command line
+    if (!data_directory.empty()) {
+      app->set_datapath(data_directory);
+      std::cout << "Using data directory: " << data_directory << std::endl;
+    }
 
     std::cout << "Configuration:\n"
               << "- Resolution: " << width << "x" << height << "\n"
@@ -335,7 +340,6 @@ int main(int argc, char** argv) {
     if (tracking && tracker) {
       tracker->print();
     }
-
     std::cout << "Server stopped successfully" << std::endl;
   } catch (const std::exception& e) {
     std::cerr << "Application error: " << e.what() << std::endl;

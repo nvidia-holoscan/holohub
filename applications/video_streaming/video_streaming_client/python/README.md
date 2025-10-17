@@ -27,8 +27,8 @@ Run the Python streaming client using the Holohub CLI:
 
 ```bash
 # From holohub root directory - runs with video file playback
-./holohub run video_streaming_demo_enhanced client_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
@@ -37,8 +37,8 @@ Run the Python streaming client using the Holohub CLI:
 
 ```bash
 # From holohub root directory - runs with V4L2 camera (webcam)
-./holohub run video_streaming_demo_enhanced client_python_v4l2 \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming client_python_v4l2 \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
@@ -230,8 +230,8 @@ See the included configuration files for complete examples:
 Terminal 1 - Start Python Server:
 ```bash
 # From holohub root directory
-./holohub run video_streaming_demo_enhanced server_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming server_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
@@ -239,8 +239,8 @@ Terminal 1 - Start Python Server:
 Terminal 2 - Start Python Client (Video Replayer):
 ```bash
 # From holohub root directory
-./holohub run video_streaming_demo_enhanced client_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
@@ -248,8 +248,8 @@ Terminal 2 - Start Python Client (Video Replayer):
 Terminal 2 - Or start Python Client (V4L2 Camera):
 ```bash
 # From holohub root directory
-./holohub run video_streaming_demo_enhanced client_python_v4l2 \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming client_python_v4l2 \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
@@ -260,15 +260,15 @@ You can also test the Python client with a C++ server (they are fully compatible
 
 Terminal 1 - C++ Server:
 ```bash
-./holohub run video_streaming_demo_enhanced server \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming server \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1'
 ```
 
 Terminal 2 - Python Client:
 ```bash
-./holohub run video_streaming_demo_enhanced client_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```

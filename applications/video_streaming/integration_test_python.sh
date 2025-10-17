@@ -15,10 +15,10 @@ echo "This test may take up to 10 minutes to complete..."
 echo "NOTE: Test runs in Docker and uses committed source code (not local build)"
 
 # Clean up any existing log files
-rm -f applications/video_streaming_demo_enhanced/integration_test_python.log
+rm -f applications/video_streaming/integration_test_python.log
 
 # Go to holohub root if we're in the app directory
-if [[ $(basename "$PWD") == "video_streaming_demo_enhanced" ]]; then
+if [[ $(basename "$PWD") == "video_streaming" ]]; then
     cd ../../
 fi
 
@@ -34,11 +34,11 @@ docker system prune -f --filter "label=holohub" 2>/dev/null || true
 echo "Running Python integration test with Docker (using committed fixes)..."
 # Set SDK version via environment variable to match base image version
 export HOLOHUB_BASE_SDK_VERSION=3.6.0
-./holohub test video_streaming_demo_enhanced \
+./holohub test video_streaming \
     --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.0-dgpu \
     --cmake-options="-DBUILD_TESTING=ON -DHOLOHUB_BUILD_PYTHON=ON" \
     --ctest-options="-R video_streaming_integration_test_python -V" \
-    --verbose 2>&1 | tee applications/video_streaming_demo_enhanced/integration_test_python.log
+    --verbose 2>&1 | tee applications/video_streaming/integration_test_python.log
 INTEGRATION_EXIT_CODE=$?
 
 # Check results
@@ -54,13 +54,13 @@ fi
 
 # Check the integration test log
 echo "=== PYTHON INTEGRATION TEST LOG ==="
-cat applications/video_streaming_demo_enhanced/integration_test_python.log
+cat applications/video_streaming/integration_test_python.log
 
 # Verify success conditions
 echo "=== VERIFICATION ==="
 
 # Check integration test log for more detailed success indicators
-if [ $INTEGRATION_EXIT_CODE -eq 0 ] && grep -q "Python Integration test PASSED\|100%.*tests passed" applications/video_streaming_demo_enhanced/integration_test_python.log; then
+if [ $INTEGRATION_EXIT_CODE -eq 0 ] && grep -q "Python Integration test PASSED\|100%.*tests passed" applications/video_streaming/integration_test_python.log; then
     echo "✓ Python integration test passed with detailed verification"
     SERVER_SUCCESS=1
     CLIENT_SUCCESS=1
@@ -70,11 +70,11 @@ elif [ $INTEGRATION_EXIT_CODE -eq 0 ]; then
     CLIENT_SUCCESS=1
 else
     echo "✗ Python integration test failed - checking for specific errors..."
-    if grep -q "Python server.*failed\|server_python.log" applications/video_streaming_demo_enhanced/integration_test_python.log; then
+    if grep -q "Python server.*failed\|server_python.log" applications/video_streaming/integration_test_python.log; then
         echo "✗ Python server test failed"
         SERVER_SUCCESS=0
     fi
-    if grep -q "Python client.*failed\|client_python.log" applications/video_streaming_demo_enhanced/integration_test_python.log; then
+    if grep -q "Python client.*failed\|client_python.log" applications/video_streaming/integration_test_python.log; then
         echo "✗ Python client test failed" 
         CLIENT_SUCCESS=0
     fi

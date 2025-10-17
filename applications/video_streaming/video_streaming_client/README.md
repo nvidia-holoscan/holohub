@@ -1,136 +1,47 @@
-# Video Streaming Client
+# Video Streaming Demo Client Enhanced
 
-This application demonstrates how to use the Holoscan SDK to create a streaming client application that can receive video streams from a streaming server.
+This is the enhanced video streaming client demo application that supports both V4L2 camera input and video file replay.
 
-## Application Architecture
+## Features
 
-```mermaid
-graph TD
-    A[Video Streaming Server] -->|H.264 Video Stream| B[Network]
-    B -->|TCP/UDP Connection| C[Video Streaming Client]
-    
-    subgraph "Holoscan Application"
-        C --> D[StreamingClient Operator]
-        D --> E[Frame Decoder]
-        E --> F[Format Converter]
-        F --> G[Holoviz Operator]
-        G --> H[Display Output]
-    end
-    
-    subgraph "Configuration"
-        I[YAML Config File]
-        I --> C
-    end
-    
-    subgraph "Data Flow"
-        J[Encoded Frames] --> K[GXF Entities]
-        K --> L[BGRA Tensors]
-        L --> M[Rendered Video]
-    end
-    
-    style A fill:#e1f5fe
-    style C fill:#f3e5f5
-    style H fill:#e8f5e8
-    style I fill:#fff3e0
-```
-
-## Key Features
-
-- 🎥 **Real-time Video Streaming**: Receives H.264 encoded video streams with ultra-low latency
-- 🔗 **Bidirectional Communication**: Supports both receiving and sending video frames
-- 🖥️ **GPU-Accelerated Processing**: Leverages CUDA for high-performance video decoding and rendering
-- ⚙️ **Configurable Parameters**: Customizable frame dimensions, frame rate, and server connection settings
-- 🎯 **Holoscan Integration**: Built using Holoscan operators for modular, high-performance streaming
-- 📊 **Memory Management**: Efficient memory handling with bounds checking and zero-padding
-
-## Requirements
-
-- NVIDIA GPU
-- CUDA 12.1 or higher
-- Holoscan SDK 3.2.0 or higher
-
-## Setup Instructions
-
-**⚠️ Important**: Before building this application, you must first download the required streaming client binaries from NGC.
-
-**📖 For detailed setup instructions, see**: [Streaming Client Operator Setup](/operators/streaming_client/README.md#dependencies)
-
-Quick summary:
-
-```bash
-# Download using NGC CLI
-cd <your_holohub_path>/operators/streaming_client
-ngc registry resource download-version nvidia/holoscan_client_cloud_streaming:0.1
-unzip -o holoscan_client_cloud_streaming_v0.1/holoscan_client_cloud_streaming.zip
-
-# Copy the appropriate architecture libraries to lib/ directory
-# For x86_64 systems:
-cp lib/x86_64/* lib/
-# For aarch64 systems:
-# cp lib/aarch64/* lib/
-
-# Clean up architecture-specific directories and NGC download directory
-rm -rf lib/x86_64 lib/aarch64
-rm -rf holoscan_client_cloud_streaming_v0.1
-```
-
-After successful extraction and setup, your `operators/streaming_client` directory structure should look like this:
-
-```
-├── CMakeLists.txt
-├── FindHoloscanStreaming.cmake
-├── include
-│   ├── StreamingClient.h
-│   └── VideoFrame.h
-├── lib
-│   ├── libcrypto.so.3
-│   ├── libcudart.so.12
-│   ├── libcudart.so.12.0.107
-│   ├── libNvStreamBase.so
-│   ├── libNvStreamingSession.so
-│   ├── libNvStreamServer.so
-│   ├── libPoco.so
-│   ├── libssl.so.3
-│   ├── libStreamClientShared.so
-│   └── libStreamingClient.so
-├── metadata.json
-├── NOTICE.txt
-├── python
-│   ├── CMakeLists.txt
-│   └── streaming_client.cpp
-├── README.md
-├── streaming_client.cpp
-├── streaming_client.hpp
-└── streaming_client_operator-config.cmake.in
-```
+- **V4L2 Camera Support**: Capture live video from webcam
+- **Video File Replay**: Play back pre-recorded video files
+- **Bidirectional Streaming**: Send and receive video frames
+- **HoloViz Visualization**: Real-time video display
+- **Configurable Resolution**: Support for different video resolutions
 
 ## Running the Application
 
-To run the application:
+> [!IMPORTANT] The client applications requires Holoscan SDK 3.5.0. Either set the SDK version environment variable before running the applications, or use the `--base-img` option to specify the base image.
+>
+> ```bash
+> # Set SDK version environment variable
+> export HOLOHUB_BASE_SDK_VERSION=3.5.0
+> ```
+
+> [!NOTE] The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
+
+### V4L2 Camera (Webcam)
 
 ```bash
-./holohub run video_streaming_client
+./holohub run video_streaming client_v4l2
 ```
 
-### Command Line Options
+### Video File Replay
 
-- `-h, --help`: Show help message
-- `-c, --config <file>`: Configuration file path (default: streaming_client_demo.yaml)
-- `-d, --data <directory>`: Data directory (default: environment variable HOLOSCAN_INPUT_PATH or current directory)
+```bash
+./holohub run video_streaming client_replayer
+```
 
-## Configuration
+## Configuration Files
 
-The application can be configured using a YAML file. By default, it looks for `streaming_client_demo.yaml` in the current directory.
+- `streaming_client_demo.yaml`: Default configuration for V4L2 camera (640x480)
+- `streaming_client_demo_replayer.yaml`: Configuration for video file replay (854x480)
 
-## Related Documentation
+## Dependencies
 
-### Applications
-
-Please note that , in order for the `streming_client` to be able to establish a bidirectional connection with the `streaming_server`, the video_streaming_server app must be build and run first and then the video_streaming_client app.
-
-- [Video Streaming Server Application](../video_streaming_server/README.md)
-
-### Operators  
-
-- [Streaming Client Operator](/operators/streaming_client/README.md) - Detailed setup, dependencies, and troubleshooting instructions
-- [Streaming Server Operator](/operators/streaming_server/README.md) - Server-side streaming operator documentation
+- Holoscan SDK 3.5.0+
+- video_streaming operator
+- OpenCV
+- CUDA 12.x (currently not working with CUDA 13.x)
+- OpenSSL 3.4.0 (installed inside the custom Dockerfile)
