@@ -19,29 +19,23 @@
 #define GST_SRC_RESOURCE_HPP
 
 #include <chrono>
-#include <condition_variable>
-#include <future>
 #include <memory>
-#include <mutex>
-#include <queue>
 #include <string>
 
-#include <gst/gst.h>
-#include <gst/app/gstappsrc.h>
 #include <holoscan/holoscan.hpp>
 
 #include "gst/guards.hpp"
 #include "gst/buffer.hpp"
-#include "gst/caps.hpp"
+#include "gst_src_bridge.hpp"
 
 namespace holoscan {
 
 /**
  * @brief Holoscan Resource wrapper for GStreamer appsrc element
  *
- * This class provides a clean bridge between Holoscan operators and GStreamer pipelines
- * using the standard GStreamer appsrc element. The primary purpose is to enable Holoscan 
- * operators to push data into GStreamer pipelines for further processing or output.
+ * This class provides a Holoscan-specific interface to GStreamer pipelines,
+ * integrating with Holoscan's entity system. It delegates actual GStreamer
+ * operations to GstSrcBridge.
  */
 class GstSrcResource : public holoscan::Resource {
  public:
@@ -49,9 +43,9 @@ class GstSrcResource : public holoscan::Resource {
   using SharedPtr = std::shared_ptr<GstSrcResource>;
 
   /**
-   * @brief Destructor - cleans up GStreamer resources
+   * @brief Destructor
    */
-  ~GstSrcResource();
+  ~GstSrcResource() = default;
 
   /**
    * @brief Setup the resource parameters
@@ -68,7 +62,7 @@ class GstSrcResource : public holoscan::Resource {
    * @return Shared future that will provide the GstElementGuard when ready
    */
   std::shared_future<holoscan::gst::GstElementGuard> get_gst_element() const {
-    return src_element_future_;
+    return bridge_ ? bridge_->get_gst_element() : std::shared_future<holoscan::gst::GstElementGuard>();
   }
 
   /**
@@ -80,7 +74,9 @@ class GstSrcResource : public holoscan::Resource {
    * @param wait_ms Optional time to wait (in milliseconds) after sending EOS
    *                for GStreamer to process it. Default is 500ms.
    */
-  void send_eos(int wait_ms = 500);
+  void send_eos(int wait_ms = 500) {
+    if (bridge_) { bridge_->send_eos(wait_ms); }
+  }
 
   /**
    * @brief Push a buffer into the GStreamer pipeline (template version)
@@ -133,7 +129,9 @@ class GstSrcResource : public holoscan::Resource {
    *   resource->push_buffer(std::move(buffer), std::chrono::milliseconds(1000));
    */
   bool push_buffer(holoscan::gst::Buffer buffer, 
-                   std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
+                   std::chrono::milliseconds timeout = std::chrono::milliseconds::zero()) {
+    return bridge_ ? bridge_->push_buffer(std::move(buffer), timeout) : false;
+  }
 
   /**
    * @brief Create a GStreamer buffer from a GXF Entity containing tensor(s)
@@ -150,43 +148,12 @@ class GstSrcResource : public holoscan::Resource {
   holoscan::gst::Buffer create_buffer_from_entity(const holoscan::gxf::Entity& entity) const;
 
  private:
-  /**
-   * @brief Check if the source element is ready (non-blocking)
-   * @return true if the element has been initialized and is ready to use
-   */
-   bool valid() const {
-    return src_element_future_.valid() && 
-           src_element_future_.wait_for(std::chrono::seconds(0)) == std::future_status::ready && 
-           src_element_future_.get();
-  }
-
-  /**
-   * @brief Get the current negotiated caps from the source
-   * @return Caps with automatic reference counting
-   */
-   holoscan::gst::Caps get_caps() const;
-
-   // Initialize memory wrapper based on tensor storage type and caps
-  void initialize_memory_wrapper(nvidia::gxf::Tensor* tensor) const;
-
-  // Promise/future for safe element access across threads
-  std::promise<holoscan::gst::GstElementGuard> src_element_promise_;
-  std::shared_future<holoscan::gst::GstElementGuard> src_element_future_;
-
-  // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
-  // Forward declarations for nested classes
-  class MemoryWrapper;
-  class HostMemoryWrapper;
-  class CudaMemoryWrapper;
-  
-  mutable std::shared_ptr<MemoryWrapper> memory_wrapper_;
+  // Bridge to GStreamer (does the actual work)
+  std::shared_ptr<holoscan::gst::GstSrcBridge> bridge_;
 
   // Resource parameters
   holoscan::Parameter<std::string> caps_;
   holoscan::Parameter<size_t> queue_limit_;
-  
-  // Track if EOS has been sent to avoid duplicate EOS signals
-  bool eos_sent_ = false;
 };
 
 using GstSrcResourcePtr = GstSrcResource::SharedPtr;

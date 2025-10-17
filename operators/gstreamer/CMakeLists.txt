@@ -54,6 +54,7 @@ add_library(holoscan_gstreamer_sink SHARED
   gst/mapped_buffer.cpp
   gst_sink_resource.cpp
   gst_sink_operator.cpp
+  gst_src_bridge.cpp
   gst_src_resource.cpp
   gst_src_operator.cpp
 )
@@ -120,6 +121,7 @@ install(FILES
     gst/mapped_buffer.hpp
     gst_sink_resource.hpp
     gst_sink_operator.hpp
+    gst_src_bridge.hpp
     gst_src_resource.hpp
     gst_src_operator.hpp
     core/initializer.hpp
