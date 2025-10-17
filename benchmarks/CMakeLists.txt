@@ -15,3 +15,4 @@
 
 add_holohub_application(model_benchmarking)
 add_holohub_application(realtime_threads_benchmarking)
+add_holohub_application(green_context_benchmarking)
