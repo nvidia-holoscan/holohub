@@ -657,7 +657,6 @@ The integration test script (`integration_test.sh`) runs the complete end-to-end
 ```bash
 # From holohub root - standard HoloHub test command
 ./holohub test video_streaming \
-  --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu \
   --ctest-options="-R video_streaming_integration_test"
 ```
 
@@ -685,7 +684,6 @@ export HOLOHUB_BASE_SDK_VERSION=3.5.0
 ```bash
 # Builds Docker image and runs CTest
 ./holohub test video_streaming \
-  --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu \
   --cmake-options="-DBUILD_TESTING=ON" \
   --ctest-options="-R video_streaming_integration_test -V" \
   --verbose
