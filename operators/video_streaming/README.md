@@ -93,34 +93,34 @@ from holohub.streaming_server_enhanced import (
 
 **Building with Python support:**
 ```bash
-./holohub build video_streaming_demo_enhanced \
+./holohub build video_streaming \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
 **Running Python applications:**
 ```bash
 # Python Server
-./holohub run video_streaming_demo_enhanced server_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming server_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 
 # Python Client (Video Replayer)
-./holohub run video_streaming_demo_enhanced client_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 
 # Python Client (V4L2 Camera)
-./holohub run video_streaming_demo_enhanced client_python_v4l2 \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming client_python_v4l2 \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
 For detailed Python application documentation, see:
-- **[Python Server Application](../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/python/README.md)**
-- **[Python Client Application](../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/python/README.md)**
+- **[Python Server Application](../../applications/video_streaming/video_streaming_server/python/README.md)**
+- **[Python Client Application](../../applications/video_streaming/video_streaming_client/python/README.md)**
 
 ## Dependencies
 
@@ -141,12 +141,12 @@ ngc registry resource download-version nvidia/holoscan_server_cloud_streaming:0.
 
 ## Testing
 
-Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides end-to-end validation of both client and server components working together.
+Testing is handled at the application level through the unified `video_streaming` integration test, which provides end-to-end validation of both client and server components working together.
 
 ## Related Applications
 
-- **[Streaming Client Demo Enhanced](../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/)**: Example client application
-- **[Streaming Server Demo Enhanced](../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/)**: Example server application
+- **[Streaming Client Demo](../../applications/video_streaming/video_streaming_client/)**: Example client application
+- **[Streaming Server Demo](../../applications/video_streaming/video_streaming_server/)**: Example server application
 
 
 ## Performance Notes
