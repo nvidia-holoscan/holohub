@@ -23,8 +23,8 @@ Run the Python streaming server using the Holohub CLI:
 
 ```bash
 # From holohub root directory - runs with default settings (854x480 @ 30fps)
-./holohub run video_streaming_demo_enhanced server_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming server_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
@@ -165,8 +165,8 @@ See the included `streaming_server_demo.yaml` for a complete configuration examp
 Terminal 1 - Start Python Server:
 ```bash
 # From holohub root directory
-./holohub run video_streaming_demo_enhanced server_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming server_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
@@ -174,25 +174,25 @@ Terminal 1 - Start Python Server:
 Terminal 2 - Start Python Client with Video Replayer (854x480):
 ```bash
 # From holohub root directory
-./holohub run video_streaming_demo_enhanced client_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
 **Option 2: Direct Python Execution (for custom resolutions)**
 
-After building with `./holohub build video_streaming_demo_enhanced --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'`:
+After building with `./holohub build video_streaming --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'`:
 
 Terminal 1 - Start server with 640x480 (for V4L2 clients):
 ```bash
-cd build-video_streaming_demo_enhanced
+cd build-video_streaming
 python3 streaming_server_demo.py --width 640 --height 480
 ```
 
 Terminal 2 - Start client with V4L2 camera:
 ```bash
-cd build-video_streaming_demo_enhanced
+cd build-video_streaming
 python3 streaming_client_demo.py --source v4l2 --width 640 --height 480
 ```
 
@@ -202,16 +202,16 @@ You can also test the Python server with a C++ client (they are fully compatible
 
 Terminal 1 - Python Server:
 ```bash
-./holohub run video_streaming_demo_enhanced server_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming server_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
 Terminal 2 - C++ Client:
 ```bash
-./holohub run video_streaming_demo_client --language cpp \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming_client --language cpp \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --run-args='-c streaming_client_demo_replayer.yaml'
 ```

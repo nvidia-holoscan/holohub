@@ -27,12 +27,12 @@ streaming_server:
   width: 854
   height: 480
   fps: 30
-  
+
   # Server connection settings
   port: 48010
   multi_instance: false
   server_name: "StreamingServerTest"
-  
+
   # Operation mode - Bidirectional streaming (receive from client, send back)
   receive_frames: true
   send_frames: true
@@ -61,4 +61,5 @@ greedy_scheduler:
 tracking: false
 
 # Logging configuration
-log_level: "INFO" 
+log_level: "INFO"
+ 

@@ -72,7 +72,7 @@ The unified application provides both client and server applications.
 ### 1. Start the Streaming Server
 
 ```bash
-./holohub run video_streaming_demo_enhanced
+./holohub run video_streaming
 ```
 
 ### 2. Start the Streaming Client (in another terminal)
@@ -80,13 +80,13 @@ The unified application provides both client and server applications.
 - **Option A: V4L2 Camera (Webcam)**, which uses `streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
 
   ```bash
-  ./holohub run video_streaming_demo_enhanced client_v4l2
+  ./holohub run video_streaming client_v4l2
   ```
 
 - **Option B: Video Replayer**, which uses `streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
 
   ```bash
-  ./holohub run video_streaming_demo_enhanced client_replayer
+  ./holohub run video_streaming client_replayer
   ```
 
 ## Command Line Options
@@ -155,8 +155,8 @@ To switch between V4L2 camera and video replayer:
 
 1. **Stop the current client** (Ctrl+C)
 2. **Use the appropriate command:**
-   - For camera: `./holohub run video_streaming_demo_enhanced client_v4l2 --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile`
-   - For video replay: `./holohub run video_streaming_demo_enhanced client_replayer --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming_demo_enhanced/Dockerfile`
+   - For camera: `./holohub run video_streaming client_v4l2 --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming/Dockerfile`
+   - For video replay: `./holohub run video_streaming client_replayer --docker-opts='-e EnableHybridMode=1' --docker-file applications/video_streaming/Dockerfile`
 
 **Important:** The server doesn't need to be restarted when switching client modes.
 
@@ -257,7 +257,7 @@ The integration test validates:
 The integration test script (`integration_test.sh`) runs the complete end-to-end test in a Docker container with proper SDK version and dependencies.
 
 ```bash
-./applications/video_streaming_demo_enhanced/integration_test.sh
+./applications/video_streaming/integration_test.sh
 ```
 
 **Test Configuration:**
@@ -278,7 +278,7 @@ The integration test script (`integration_test.sh`) runs the complete end-to-end
 
 ```bash
 # From holohub root - standard HoloHub test command
-./holohub test video_streaming_demo_enhanced \
+./holohub test video_streaming \
   --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu \
   --ctest-options="-R video_streaming_integration_test"
 ```
@@ -306,7 +306,7 @@ export HOLOHUB_BASE_SDK_VERSION=3.5.0
 
 ```bash
 # Builds Docker image and runs CTest
-./holohub test video_streaming_demo_enhanced \
+./holohub test video_streaming \
   --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu \
   --cmake-options="-DBUILD_TESTING=ON" \
   --ctest-options="-R video_streaming_integration_test -V" \
@@ -425,7 +425,7 @@ Step 1/15 : ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
 [...]
 
 [CTest output...]
-Test project /workspace/holohub/build-video_streaming_demo_enhanced
+Test project /workspace/holohub/build-video_streaming
     Start 1: video_streaming_integration_test
 
 1: === Enhanced Integration Test with Log Verification ===
@@ -588,7 +588,7 @@ Client checks passed: 4
 ```bash
 # Clean build and retry
 rm -rf build/
-./holohub build video_streaming_demo_enhanced --language cpp
+./holohub build video_streaming --language cpp
 ```
 
 **Server Connection Issues:**
@@ -644,7 +644,7 @@ The integration test is designed for CI/CD pipelines:
 
 ```bash
 # CI-friendly command with timeout and exit codes
-timeout 300 ./applications/video_streaming_demo_enhanced/integration_test.sh
+timeout 300 ./applications/video_streaming/integration_test.sh
 echo "Integration test exit code: $?"
 ```
 
@@ -664,8 +664,8 @@ The Python integration test validates the complete bidirectional video streaming
 **Command:**
 ```bash
 # From holohub root - run Python integration test
-./holohub test video_streaming_demo_enhanced \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub test video_streaming \
+  --docker-file applications/video_streaming/Dockerfile \
   --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
   --ctest-options="-R video_streaming_integration_test_python -V"
 ```
@@ -692,7 +692,7 @@ The Python integration test validates the complete bidirectional video streaming
 ```
 === Python Enhanced Integration Test with Log Verification ===
 Starting Python server and client with log capture...
-PYTHONPATH: /workspace/holohub/build-video_streaming_demo_enhanced/python/lib:...
+PYTHONPATH: /workspace/holohub/build-video_streaming/python/lib:...
 Python Server log: /tmp/server_python_log.XXXXXX
 Python Client log: /tmp/client_python_log.XXXXXX
 Starting Python streaming server...
@@ -846,8 +846,8 @@ Segmentation fault (core dumped) python3 streaming_server_demo.py
 
 **CI-Friendly Command:**
 ```bash
-timeout 300 ./holohub test video_streaming_demo_enhanced \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+timeout 300 ./holohub test video_streaming \
+  --docker-file applications/video_streaming/Dockerfile \
   --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
   --ctest-options="-R video_streaming_integration_test_python"
 echo "Python integration test exit code: $?"
