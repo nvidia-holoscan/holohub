@@ -10,6 +10,14 @@ The benchmark creates a controlled environment to test real-time scheduling by:
 - Measuring timing precision and consistency for the Holoscan operator
 - Comparing normal scheduling vs real-time scheduling policies for Holoscan operator performance
 
+## Implementation
+
+This benchmark is implemented in C++ for optimal performance and provides:
+- Low overhead and high precision timing measurements
+- Integrated automatic plot generation
+- Comprehensive real-time scheduling analysis
+- Configurable workload parameters for flexible testing
+
 ## Usage
 
 ### Basic Usage
@@ -32,15 +40,20 @@ The benchmark supports several configuration options:
 ```bash
 sudo ./holohub run realtime_threads_benchmarking \
   --docker-opts="--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots" \
-  --run-args="--target-fps 30 --duration 20 --scheduling-policy SCHED_DEADLINE --load-duration-ms 10.0"
+  --run-args="--target-fps 30 --duration 20 --scheduling-policy SCHED_DEADLINE --bg-load-intensity 2000"
 ```
 
 Available options:
 - `--target-fps`: Target FPS for the benchmark (30 or 60, default: 60)
 - `--duration`: Benchmark duration in seconds (default: 30)
 - `--scheduling-policy`: Real-time scheduling policy to test (SCHED_DEADLINE, SCHED_FIFO, SCHED_RR, default: SCHED_DEADLINE)
-- `--load-duration-ms`: CPU work duration per load operator call in milliseconds (default: 20.0)
-- `--plot-dir`: Directory to save benchmark plots (default: /tmp/benchmark_plots)
+- `--bg-load-intensity`: Background load intensity (iterations, default: 1000)
+- `--bg-workload-size`: Background workload size (data array size, default: 100)
+- `--bm-load-intensity`: Benchmark target load intensity (iterations, default: 100)
+- `--bm-workload-size`: Benchmark target workload size (data array size, default: 100)
+- `--worker-thread-number`: Worker thread number (default: 2)
+- `--dummy-load-number`: Number of dummy load operators (default: 2)
+- `--output`: Output JSON file for raw data (default: /tmp/benchmark_plots/realtime_thread_benchmark_results.json)
 
 ### Timing Analysis Plots
 
@@ -49,27 +62,29 @@ The benchmark automatically generates detailed timing analysis plots including:
 - Execution time distribution histograms
 - Time series plots showing frame periods and execution times over time
 
-To specify a custom output directory for the plots:
+To specify a custom output location:
 ```bash
 sudo ./holohub run realtime_threads_benchmarking \
-  --docker-opts="--privileged -v /path/to/host/output:/tmp/benchmark_plots" \
-  --run-args="--plot-dir /tmp/benchmark_plots"
+  --docker-opts="--privileged -v /path/to/host/output:/custom/output" \
+  --run-args="--output /custom/output/my_results.json"
 ```
 
-**Note**: When using custom paths, the container directory (`/tmp/benchmark_plots`) should match the `--plot-dir` argument.
+**Note**: Plots are automatically saved to the same directory as the JSON output file. Use volume mounting to access them on the host system.
 
 ## Architecture
 
 The benchmark application consists of:
 
-1. **TargetOperator**: Main operator that aims to run at the specified FPS and measures timing performance
+1. **Benchmark Operator**: Main operator that aims to run at the specified FPS and measures timing performance
    - Intentionally does NOT emit frame data to avoid framework overhead
-   - Large frame data transmission adds significant latency that would interfere with accurate timing measurements
    - Focuses purely on operator scheduling and execution timing
-2. **LoadOperator**: Creates CPU contention by performing computational work
-3. **DataSinkOperator**: Receives data from other operators
-4. **Thread Pools**:
-   - Real-time pool for the target operator (with Linux RT scheduling)
+   - Measures frame periods and execution times
+2. **Load Operators**: Create CPU contention by performing computational work
+   - Configurable number of operators (default: 2)
+   - Run independently to create background CPU load
+   - No data flow between operators (avoids framework overhead)
+3. **Thread Pools**:
+   - Real-time pool for the benchmark operator (with Linux RT scheduling)
    - Load pool for competing workloads (normal scheduling)
 
 ### Scheduling Mode Comparison
@@ -92,7 +107,6 @@ The benchmark measures and compares:
 
 ### Performance Metrics
 - **Frame Period Statistics**: Mean, standard deviation, min/max of frame periods
-- **Execution Time Statistics**: Mean, standard deviation, min/max of execution times (compute time in operator)
 
 ### Timing Analysis
 - **Frame Period Consistency**: How consistently the target FPS is maintained
@@ -138,55 +152,50 @@ This time-series plot demonstrates timing behavior throughout the benchmark dura
 - **Real-time Benefits**: Reduced standard deviation and more consistent timing with RT scheduling
 
 ### Good Real-time Performance Indicators
-- **Frame Period Standard Deviation Reduction** (★ key metric): Lower standard deviation in frame periods indicates more consistent timing
+- **Frame Period Standard Deviation Reduction** : Lower standard deviation in frame periods indicates more consistent timing
 - Better handling of CPU contention under load
-- Visual feedback indicates improvement level:
-  - 🚀 EXCELLENT: >50% reduction in frame period standard deviation
-  - ✅ Good: >20% reduction in frame period standard deviation
-  - 👍 Modest: >5% reduction in frame period standard deviation
-  - ⚠️ Limited: <5% improvement
 
 ### Example Output
 ```
+================================================================================
+Benchmark Configurations
+================================================================================
+  Target FPS: 60 (16.667 ms period)
+  Duration: 30s
+  Realtime: false
+  Background Load Intensity: 1000
+  Background Workload Size: 100
+  Benchmark Load Intensity: 100
+  Benchmark Workload Size: 100
+  Worker Thread Number: 2
+  Dummy Load Number: 2
+
+================================================================================
+Benchmark Results
+================================================================================
+=== Non-real-time Thread (Baseline) ===
+Frame period std: 0.257 ms
+Frame period mean: 16.667 ms
+Frame period min/max: 16.120 ms / 17.218 ms
+
+=== Real-time Thread ===
+Frame period std: 0.013 ms
+Frame period mean: 16.667 ms
+Frame period min/max: 16.569 ms / 16.753 ms
+
+================================================================================
+Non-real-time and Real-time Thread Benchmark Comparison
+================================================================================
+Period std comparison:     0.26 ms →     0.01 ms  (+94.77%)
+
+Raw measurement data written to: /tmp/benchmark_plots/realtime_thread_benchmark_results.json
+
+Generating plots...
+
 Timing plots saved to: /tmp/benchmark_plots
 Generated plots:
   - timing_over_time.png (raw data points over time)
   - simple_histograms.png (distribution without overlays)
-
-Benchmark Results:
-  Configuration: Normal (Normal)
-  Target FPS: 60.0
-  ★ Frame Period Std Dev: 0.297ms  ← KEY METRIC
-  Frame Period Mean: 16.667ms (Target: 16.7ms)
-  Execution Time Std Dev: 0.035ms
-  Execution Time Mean: 0.114ms
-  Frame Period Min/Max: 7.9ms / 25.5ms
-  Execution Range: 0.083ms - 0.348ms
-  Frame Count: 1956
-  Total Duration: 32.58s
-  Load Duration: 20.0ms per call
-
-Benchmark Results:
-  Configuration: SCHED_DEADLINE (RT)
-  Target FPS: 60.0
-  ★ Frame Period Std Dev: 0.049ms  ← KEY METRIC
-  Frame Period Mean: 16.666ms (Target: 16.7ms)
-  Execution Time Std Dev: 0.039ms
-  Execution Time Mean: 0.122ms
-  Frame Period Min/Max: 15.2ms / 16.9ms
-  Execution Range: 0.082ms - 0.276ms
-  Frame Count: 1956
-  Total Duration: 32.58s
-  Load Duration: 20.0ms per call
-
-=================================================================
-COMPARISON SUMMARY
-=================================================================
-                        Normal    Real-time    Improvement
------------------------------------------------------------------
-★ Frame Period Std Dev: 0.297        0.049      -83.6% ★
-🚀 EXCELLENT real-time improvement!
-  Exec Time Std Dev:     0.035        0.039      +11.0%
 ```
 
 ## Troubleshooting
@@ -218,9 +227,10 @@ This removes the kernel limit on real-time task runtime, which is often required
 ### Missing Plot Files
 
 If benchmark plots are not accessible on the host system, ensure proper volume mounting:
-- Both host and container use: `/tmp/benchmark_plots` (matches the default `--plot-dir`)
+- Plots are saved in the same directory as the JSON output file
+- Default: `/tmp/benchmark_plots/` (both JSON and plots)
 - Volume mount: `-v /tmp/benchmark_plots:/tmp/benchmark_plots`
-- For custom locations: `-v /your/custom/path:/tmp/benchmark_plots`
+- For custom locations: Mount the directory containing your `--output` file path
 
 ## Notes
 
