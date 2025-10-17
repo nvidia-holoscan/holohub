@@ -119,8 +119,8 @@ from holohub.streaming_server_enhanced import (
 ```
 
 For detailed Python application documentation, see:
-- **[Python Server Application](../../applications/video_streaming/video_streaming_server/python/README.md)**
-- **[Python Client Application](../../applications/video_streaming/video_streaming_client/python/README.md)**
+- **[Server Application (C++ and Python)](../../applications/video_streaming/video_streaming_server/README.md)**
+- **[Client Application (C++ and Python)](../../applications/video_streaming/video_streaming_client/README.md)**
 
 ## Dependencies
 

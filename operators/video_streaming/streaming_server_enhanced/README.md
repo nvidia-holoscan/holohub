@@ -386,7 +386,7 @@ To run the Python streaming server application with Python bindings:
 **Note:** The `--configure-args='-DHOLOHUB_BUILD_PYTHON=ON'` flag is required to build the Python bindings for the streaming server operators.
 
 For more details on the Python application, see:
-- **[Python Server Application README](../../../applications/video_streaming/video_streaming_server/python/README.md)**
+- **[Server Application README (C++ and Python)](../../../applications/video_streaming/video_streaming_server/README.md)**
 
 ## Testing
 
