@@ -348,16 +348,18 @@ if(BUILD_TESTING)
                echo 'Letting Python streaming run for 30 seconds...'
                sleep 30
 
-               # Stop client and server gracefully
-               echo 'Stopping Python client...'
-               kill -TERM \$CLIENT_PID 2>/dev/null || true
-               sleep 2
-               kill -KILL \$CLIENT_PID 2>/dev/null || true
+              # Stop client and server gracefully
+              echo 'Stopping Python client...'
+              kill -TERM \$CLIENT_PID 2>/dev/null || true
+              sleep 2
+              kill -KILL \$CLIENT_PID 2>/dev/null || true
+              wait \$CLIENT_PID 2>/dev/null || true
 
-               echo 'Stopping Python server...'
-               kill -TERM \$SERVER_PID 2>/dev/null || true
-               sleep 2
-               kill -KILL \$SERVER_PID 2>/dev/null || true
+              echo 'Stopping Python server...'
+              kill -TERM \$SERVER_PID 2>/dev/null || true
+              sleep 2
+              kill -KILL \$SERVER_PID 2>/dev/null || true
+              wait \$SERVER_PID 2>/dev/null || true
 
                # Now verify logs for actual streaming behavior
                echo ''
