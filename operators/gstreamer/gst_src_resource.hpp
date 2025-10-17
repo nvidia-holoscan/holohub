@@ -72,6 +72,17 @@ class GstSrcResource : public holoscan::Resource {
   }
 
   /**
+   * @brief Send End-Of-Stream signal to appsrc
+   * 
+   * Call this when you're done sending data to signal the downstream pipeline
+   * to finalize processing (e.g., write file headers/trailers).
+   * 
+   * @param wait_ms Optional time to wait (in milliseconds) after sending EOS
+   *                for GStreamer to process it. Default is 500ms.
+   */
+  void send_eos(int wait_ms = 500);
+
+  /**
    * @brief Push a buffer into the GStreamer pipeline (template version)
    * 
    * Template function that accepts any std::chrono::duration type and converts
@@ -173,6 +184,9 @@ class GstSrcResource : public holoscan::Resource {
   // Resource parameters
   holoscan::Parameter<std::string> caps_;
   holoscan::Parameter<size_t> queue_limit_;
+  
+  // Track if EOS has been sent to avoid duplicate EOS signals
+  bool eos_sent_ = false;
 };
 
 using GstSrcResourcePtr = GstSrcResource::SharedPtr;

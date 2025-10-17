@@ -28,6 +28,8 @@
 
 #include <cuda_runtime_api.h>
 #include <dlpack/dlpack.h>
+#include <chrono>
+#include <thread>
 #include <holoscan/core/execution_context.hpp>
 #include <cstring>
 #include <memory>
@@ -209,35 +211,61 @@ private:
 
 // Push buffer into the pipeline using appsrc
 bool GstSrcResource::push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout) {
+  static int push_count = 0;
+  push_count++;
+  
+  HOLOSCAN_LOG_INFO("GstSrcResource::push_buffer() - Push #{} - Starting", push_count);
+  
   if (!buffer.get()) {
-    HOLOSCAN_LOG_ERROR("Invalid buffer provided to push_buffer");
+    HOLOSCAN_LOG_ERROR("Push #{} - Invalid buffer provided to push_buffer", push_count);
     return false;
   }
 
   // Check if element is ready
   if (!valid()) {
-    HOLOSCAN_LOG_ERROR("Source element not initialized");
+    HOLOSCAN_LOG_ERROR("Push #{} - Source element not initialized", push_count);
     return false;
   }
 
   GstAppSrc* appsrc = GST_APP_SRC(src_element_future_.get().get());
   
+  // Check appsrc queue status
+  guint64 current_level_bytes = 0;
+  guint64 max_bytes = 0;
+  guint current_level_buffers = 0;
+  guint max_buffers = 0;
+  g_object_get(appsrc, 
+               "current-level-bytes", &current_level_bytes, 
+               "max-bytes", &max_bytes,
+               "current-level-buffers", &current_level_buffers,
+               "max-buffers", &max_buffers,
+               NULL);
+  HOLOSCAN_LOG_INFO("Push #{} - appsrc queue: {}/{} buffers, {}/{} bytes", 
+                    push_count, current_level_buffers, max_buffers,
+                    current_level_bytes, max_bytes);
+  
+  HOLOSCAN_LOG_INFO("Push #{} - Calling gst_app_src_push_buffer()", push_count);
+  
   // Push the buffer to appsrc (transfers ownership)
   // Note: gst_app_src_push_buffer takes ownership and will unref the buffer
   GstFlowReturn ret = gst_app_src_push_buffer(appsrc, gst_buffer_ref(buffer.get()));
   
+  HOLOSCAN_LOG_INFO("Push #{} - gst_app_src_push_buffer() returned: {} ({})", 
+                    push_count, gst_flow_get_name(ret), static_cast<int>(ret));
+  
   if (ret != GST_FLOW_OK) {
     if (ret == GST_FLOW_FLUSHING) {
-      HOLOSCAN_LOG_DEBUG("appsrc is flushing, buffer not pushed");
+      HOLOSCAN_LOG_WARN("Push #{} - appsrc is flushing, buffer not pushed", push_count);
     } else if (ret == GST_FLOW_EOS) {
-      HOLOSCAN_LOG_DEBUG("appsrc is in EOS state");
+      HOLOSCAN_LOG_WARN("Push #{} - appsrc is in EOS state", push_count);
     } else {
-      HOLOSCAN_LOG_WARN("Failed to push buffer to appsrc: {}", gst_flow_get_name(ret));
+      HOLOSCAN_LOG_ERROR("Push #{} - Failed to push buffer to appsrc: {}", 
+                         push_count, gst_flow_get_name(ret));
     }
     return false;
   }
   
-  HOLOSCAN_LOG_DEBUG("Successfully pushed buffer to appsrc");
+  HOLOSCAN_LOG_INFO("Push #{} - Successfully pushed buffer to appsrc", push_count);
   return true;
 }
 
@@ -399,20 +427,82 @@ gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity)
   if (tensor_count == 0) {
     HOLOSCAN_LOG_ERROR("No valid tensors found in entity");
   } else {
-    HOLOSCAN_LOG_DEBUG("Successfully created zero-copy GStreamer buffer from entity: {} tensors, {} total bytes",
-                       tensor_count, total_size);
+    // Set timestamps on the buffer based on frame count and framerate
+    // This is critical for proper encoding and muxing
+    static GstClockTime timestamp = 0;
+    static GstClockTime duration = GST_SECOND / 30;  // Assume 30fps, will be overridden by caps
+    
+    GST_BUFFER_PTS(gst_buffer.get()) = timestamp;
+    GST_BUFFER_DTS(gst_buffer.get()) = timestamp;
+    GST_BUFFER_DURATION(gst_buffer.get()) = duration;
+    
+    timestamp += duration;
+    
+    HOLOSCAN_LOG_DEBUG("Successfully created zero-copy GStreamer buffer from entity: {} tensors, {} total bytes, PTS={}",
+                       tensor_count, total_size, GST_BUFFER_PTS(gst_buffer.get()));
   }
   
   return gst_buffer;
 }
 
+void GstSrcResource::send_eos(int wait_ms) {
+  if (eos_sent_) {
+    HOLOSCAN_LOG_DEBUG("EOS already sent, ignoring duplicate call");
+    return;
+  }
+  
+  if (!valid()) {
+    HOLOSCAN_LOG_WARN("Cannot send EOS: source element not initialized");
+    return;
+  }
+  
+  GstAppSrc* appsrc = GST_APP_SRC(src_element_future_.get().get());
+  
+  // Wait for appsrc queue to drain before sending EOS
+  // This ensures all pushed frames are consumed by the downstream pipeline
+  HOLOSCAN_LOG_INFO("Waiting for appsrc queue to drain before sending EOS...");
+  guint current_level_buffers = 1;  // Initialize to non-zero
+  int retry_count = 0;
+  const int max_retries = 100;  // 10 seconds max (100 * 100ms)
+  
+  while (current_level_buffers > 0 && retry_count < max_retries) {
+    g_object_get(appsrc, "current-level-buffers", &current_level_buffers, NULL);
+    if (current_level_buffers > 0) {
+      HOLOSCAN_LOG_INFO("appsrc queue has {} buffers remaining, waiting...", 
+                        current_level_buffers);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      retry_count++;
+    }
+  }
+  
+  if (current_level_buffers > 0) {
+    HOLOSCAN_LOG_WARN("Timeout waiting for queue to drain ({} buffers remain), sending EOS anyway",
+                      current_level_buffers);
+  } else {
+    HOLOSCAN_LOG_INFO("appsrc queue drained completely, all frames consumed");
+  }
+  
+  HOLOSCAN_LOG_INFO("Sending EOS to appsrc to finalize stream");
+  gst_app_src_end_of_stream(appsrc);
+  eos_sent_ = true;
+  
+  if (wait_ms > 0) {
+    // Give GStreamer pipeline time to process EOS and finalize output files
+    // This is especially important for muxers (mp4mux, matroskamux) that need to
+    // write headers/trailers on receiving EOS
+    HOLOSCAN_LOG_INFO("Waiting {}ms for GStreamer to process EOS and finalize output...", wait_ms);
+    std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
+    HOLOSCAN_LOG_INFO("EOS processing complete");
+  }
+}
+
 GstSrcResource::~GstSrcResource() {
   HOLOSCAN_LOG_INFO("Destroying GstSrcResource");
   
-  // Signal EOS to appsrc if element is valid
-  if (valid()) {
-    GstAppSrc* appsrc = GST_APP_SRC(src_element_future_.get().get());
-    gst_app_src_end_of_stream(appsrc);
+  // Send EOS if not already sent
+  if (!eos_sent_ && valid()) {
+    HOLOSCAN_LOG_INFO("Sending EOS during destruction");
+    send_eos(500);
   }
   
   HOLOSCAN_LOG_INFO("GstSrcResource destroyed");
@@ -470,9 +560,13 @@ void GstSrcResource::initialize() {
     "format", GST_FORMAT_TIME,                    // Time-based format
     "is-live", TRUE,                              // Live source (don't wait for timestamps)
     "max-buffers", queue_limit_.get(),            // Buffer queue limit (0 = unlimited)
-    "block", FALSE,                               // Don't block push_buffer() when queue is full
+    "max-bytes", (guint64)0,                      // Byte limit (0 = unlimited, controlled by max-buffers)
+    "block", TRUE,                                // Block push_buffer() when queue is full for proper flow control
     NULL
   );
+  
+  HOLOSCAN_LOG_INFO("appsrc configured: max-buffers={}, max-bytes=unlimited, block=true", 
+                    queue_limit_.get());
 
   // Set caps if not ANY
   if (caps_.get() != "ANY") {

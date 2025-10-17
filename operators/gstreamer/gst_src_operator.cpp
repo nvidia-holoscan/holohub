@@ -31,29 +31,37 @@ void GstSrcOperator::setup(OperatorSpec& spec) {
 
 void GstSrcOperator::compute(InputContext& input, OutputContext& output, 
                               ExecutionContext& context) {
-  HOLOSCAN_LOG_DEBUG("GstSrcOperator::compute() - Receiving entity");
+  static int frame_count = 0;
+  frame_count++;
+  
+  HOLOSCAN_LOG_INFO("GstSrcOperator::compute() - Frame #{} - Receiving entity", frame_count);
   
   // Receive the entity from the input port
   auto entity = input.receive<gxf::Entity>("input").value();
+  HOLOSCAN_LOG_INFO("Frame #{} - Entity received, converting to GStreamer buffer", frame_count);
 
   // Convert entity to GStreamer buffer
   auto buffer = gst_src_resource_.get()->create_buffer_from_entity(entity);
   if (buffer.size() == 0) {
-    HOLOSCAN_LOG_ERROR("Failed to convert entity to buffer");
+    HOLOSCAN_LOG_ERROR("Frame #{} - Failed to convert entity to buffer", frame_count);
     return;
   }
 
-  HOLOSCAN_LOG_DEBUG("Generated buffer of size {} bytes", buffer.size());
+  HOLOSCAN_LOG_INFO("Frame #{} - Buffer created, size: {} bytes", frame_count, buffer.size());
 
   // Push buffer into the GStreamer pipeline
   // Convert uint64_t milliseconds to std::chrono::milliseconds
   auto timeout = std::chrono::milliseconds(timeout_ms_.get());
+  HOLOSCAN_LOG_INFO("Frame #{} - Pushing buffer to GstSrcResource (timeout: {}ms)", 
+                    frame_count, timeout_ms_.get());
+  
   if (!gst_src_resource_.get()->push_buffer(std::move(buffer), timeout)) {
-    HOLOSCAN_LOG_ERROR("Failed to push buffer to GstSrcResource (timeout or error)");
+    HOLOSCAN_LOG_ERROR("Frame #{} - Failed to push buffer to GstSrcResource (timeout or error)", 
+                       frame_count);
     return;
   }
   
-  HOLOSCAN_LOG_DEBUG("Buffer pushed to GstSrcResource");
+  HOLOSCAN_LOG_INFO("Frame #{} - Buffer successfully pushed to GstSrcResource", frame_count);
 }
 
 }  // namespace holoscan

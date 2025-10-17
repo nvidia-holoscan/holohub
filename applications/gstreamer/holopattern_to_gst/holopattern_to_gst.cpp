@@ -214,7 +214,7 @@ class PatternGenOperator : public Operator {
   }
 
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
-    HOLOSCAN_LOG_DEBUG("PatternGenOperator::compute() - Generating pattern");
+    HOLOSCAN_LOG_DEBUG("Generating pattern");
     
     // Convert storage_type parameter (0=host, 1=device) to MemoryStorageType enum
     nvidia::gxf::MemoryStorageType storage = (storage_type_.get() == 1) 
@@ -229,6 +229,8 @@ class PatternGenOperator : public Operator {
       return;
     }
 
+    HOLOSCAN_LOG_DEBUG("Pattern entity generated, emitting to output");
+    
     // Emit the entity to the output port
     output.emit(entity, "output");
     HOLOSCAN_LOG_DEBUG("Pattern entity emitted");
@@ -380,6 +382,15 @@ public:
     }
 
     HOLOSCAN_LOG_INFO("GStreamer pipeline started");
+    
+    // Wait for pipeline to reach PLAYING state and be ready to accept data
+    GstState state;
+    ret = gst_element_get_state(pipeline_.get(), &state, nullptr, 2 * GST_SECOND);
+    if (ret == GST_STATE_CHANGE_FAILURE || state != GST_STATE_PLAYING) {
+      HOLOSCAN_LOG_ERROR("Pipeline failed to reach PLAYING state");
+      throw std::runtime_error("Pipeline failed to reach PLAYING state");
+    }
+    HOLOSCAN_LOG_INFO("GStreamer pipeline is PLAYING and ready");
 
     // Start bus monitoring in a background thread
     bus_monitor_future_ = std::async(std::launch::async, [this]() { monitor_pipeline_bus(); });
@@ -577,12 +588,25 @@ int main(int argc, char** argv) {
     // Create the GStreamer application with the source element and start it
     auto gstreamer_app = std::make_shared<GStreamerApp>(pipeline_desc, src_element);
 
+    // Wait for Holoscan to finish generating frames
+    app_future.wait();
+    HOLOSCAN_LOG_INFO("Holoscan frame generation complete");
+    
+    // Send EOS to signal GStreamer pipeline to finalize
+    // Pass wait time in milliseconds - wait 2 seconds after EOS for encoding to complete
+    HOLOSCAN_LOG_INFO("Sending EOS to finalize GStreamer pipeline");
+    holoscan_app->get_src_resource()->send_eos(1000);
+    
+    // Wait for GStreamer to finish processing (EOS message on bus)
+    HOLOSCAN_LOG_INFO("Waiting for GStreamer pipeline to finish");
     gstreamer_app->get_bus_monitor_future().wait();
     
-    // Then destroy Holoscan app (destroy GXF context)
-    raise(SIGINT);
-    app_future.wait();
-
+    // Give the pipeline additional time to fully process EOS through all elements
+    // The bus monitor returns when EOS is seen on the bus, but the pipeline needs
+    // time to flush through encoder -> muxer -> filesink to finalize the output file
+    HOLOSCAN_LOG_INFO("Allowing pipeline to finalize output file...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    
     HOLOSCAN_LOG_INFO("Application finished");
 
   } catch (const std::exception& e) {
