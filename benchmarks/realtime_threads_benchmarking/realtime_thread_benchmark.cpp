@@ -23,6 +23,7 @@
 #include <string>
 #include <thread>
 #include <getopt.h>
+#include <unistd.h>
 
 #include <holoscan/holoscan.hpp>
 
@@ -443,11 +444,15 @@ int main(int argc, char* argv[]) {
     {nullptr, 0, nullptr, 0}
   };
 
-  // Get number of CPUs on the system
-  unsigned int num_cpus = std::thread::hardware_concurrency();
-  if (num_cpus == 0) {
+  // Get number of CPUs configured on the system (Linux-specific)
+  long num_cpus_long = sysconf(_SC_NPROCESSORS_CONF);
+  unsigned int num_cpus;
+  if (num_cpus_long <= 0) {
     num_cpus = 8;  // Fallback if detection fails
-    std::cerr << "Warning: Could not detect CPU count, assuming " << num_cpus << " CPUs\n";
+    std::cerr << "Warning: Could not detect CPU count, assuming "
+              << num_cpus << " CPUs\n";
+  } else {
+    num_cpus = static_cast<unsigned int>(num_cpus_long);
   }
 
   int opt;
