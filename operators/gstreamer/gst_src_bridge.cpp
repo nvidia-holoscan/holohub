@@ -544,6 +544,65 @@ Buffer GstSrcBridge::create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, s
   return gst_buffer;
 }
 
+Buffer GstSrcBridge::create_buffer_from_entity(const nvidia::gxf::Entity& entity) {
+  // Create an empty GStreamer buffer at the start
+  Buffer gst_buffer;
+
+  // Find all tensor components in the entity
+  gxf_uid_t component_ids[64];  // Max 64 components
+  uint64_t num_components = 64;
+  gxf_result_t result = GxfComponentFindAll(entity.context(), entity.eid(), 
+                                            &num_components, component_ids);
+  if (result != GXF_SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to find components in entity");
+    return gst_buffer;
+  }
+
+  // Collect all tensor pointers
+  std::vector<nvidia::gxf::Tensor*> tensors;
+
+  // Iterate through all components and collect tensors
+  for (uint64_t i = 0; i < num_components; i++) {
+    // Get component type info
+    gxf_tid_t tid;
+    result = GxfComponentType(entity.context(), component_ids[i], &tid);
+    if (result != GXF_SUCCESS) {
+      continue;
+    }
+
+    // Check if this is a Tensor component
+    const char* type_name = nullptr;
+    result = GxfComponentTypeName(entity.context(), tid, &type_name);
+    if (result != GXF_SUCCESS || !type_name) {
+      continue;
+    }
+
+    if (std::strcmp(type_name, "nvidia::gxf::Tensor") != 0) {
+      continue;  // Not a tensor, skip
+    }
+
+    // Get tensor pointer
+    void* tensor_ptr = nullptr;
+    result = GxfComponentPointer(entity.context(), component_ids[i], 
+                                  GxfTidNull(), &tensor_ptr);
+    if (result != GXF_SUCCESS) {
+      HOLOSCAN_LOG_WARN("Failed to get tensor pointer for component {}", i);
+      continue;
+    }
+
+    auto* tensor = static_cast<nvidia::gxf::Tensor*>(tensor_ptr);
+    tensors.push_back(tensor);
+  }
+
+  if (tensors.empty()) {
+    HOLOSCAN_LOG_ERROR("No tensors found in entity");
+    return gst_buffer;
+  }
+
+  // Delegate to create_buffer_from_tensors
+  return create_buffer_from_tensors(tensors.data(), tensors.size());
+}
+
 }  // namespace gst
 }  // namespace holoscan
 

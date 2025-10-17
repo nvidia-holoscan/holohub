@@ -107,6 +107,21 @@ class GstSrcBridge {
   Buffer create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, size_t num_tensors);
 
   /**
+   * @brief Create a GStreamer buffer from a GXF Entity containing tensor(s)
+   * 
+   * Extracts all tensors from the entity and wraps them in a GStreamer buffer.
+   * Supports both packed formats (RGBA, RGB) and planar formats (I420, NV12).
+   * For multi-plane formats, expects separate tensors with naming convention:
+   *   - "video_frame" for Y/luma plane
+   *   - "video_frame_u", "video_frame_v" for chroma planes (I420)
+   *   - "video_frame_uv" for interleaved chroma (NV12)
+   * 
+   * @param entity GXF Entity containing one or more tensors
+   * @return GStreamer Buffer with zero-copy wrapping, empty on failure
+   */
+  Buffer create_buffer_from_entity(const nvidia::gxf::Entity& entity);
+
+  /**
    * @brief Get the current negotiated caps from the source
    * @return Caps with automatic reference counting
    */

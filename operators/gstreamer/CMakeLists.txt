@@ -57,6 +57,7 @@ add_library(holoscan_gstreamer_sink SHARED
   gst_src_bridge.cpp
   gst_src_resource.cpp
   gst_src_operator.cpp
+  gst_video_recorder_operator.cpp
 )
 
 # Set library directories
@@ -124,6 +125,7 @@ install(FILES
     gst_src_bridge.hpp
     gst_src_resource.hpp
     gst_src_operator.hpp
+    gst_video_recorder_operator.hpp
     core/initializer.hpp
     DESTINATION include/holoscan/operators/gstreamer)
 

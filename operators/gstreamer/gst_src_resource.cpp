@@ -19,9 +19,6 @@
 #include "gst_src_bridge.hpp"
 
 #include <holoscan/core/execution_context.hpp>
-#include <cstring>
-#include <memory>
-#include <vector>
 
 // ============================================================================
 // Holoscan GstSrcResource Implementation
@@ -31,72 +28,13 @@
 namespace holoscan {
 
 holoscan::gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity) const {
-  // Create an empty GStreamer buffer at the start
-  holoscan::gst::Buffer gst_buffer;
-
-  if (!entity) {
-    HOLOSCAN_LOG_ERROR("Invalid entity provided");
-    return gst_buffer;
-  }
-
   if (!bridge_) {
     HOLOSCAN_LOG_ERROR("Bridge not initialized");
-    return gst_buffer;
+    return holoscan::gst::Buffer();
   }
-
-  // Find all tensor components in the entity
-  gxf_uid_t component_ids[64];  // Max 64 components
-  uint64_t num_components = 64;
-  gxf_result_t result = GxfComponentFindAll(entity.context(), entity.eid(), 
-                                            &num_components, component_ids);
-  if (result != GXF_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to find components in entity");
-    return gst_buffer;
-  }
-
-  // Collect all tensor pointers
-  std::vector<nvidia::gxf::Tensor*> tensors;
-
-  // Iterate through all components and collect tensors
-  for (uint64_t i = 0; i < num_components; i++) {
-    // Get component type info
-    gxf_tid_t tid;
-    result = GxfComponentType(entity.context(), component_ids[i], &tid);
-    if (result != GXF_SUCCESS) {
-      continue;
-    }
-
-    // Check if this is a Tensor component
-    const char* type_name = nullptr;
-    result = GxfComponentTypeName(entity.context(), tid, &type_name);
-    if (result != GXF_SUCCESS || !type_name) {
-      continue;
-    }
-
-    if (std::strcmp(type_name, "nvidia::gxf::Tensor") != 0) {
-      continue;  // Not a tensor, skip
-    }
-
-    // Get tensor pointer
-    void* tensor_ptr = nullptr;
-    result = GxfComponentPointer(entity.context(), component_ids[i], 
-                                  GxfTidNull(), &tensor_ptr);
-    if (result != GXF_SUCCESS) {
-      HOLOSCAN_LOG_WARN("Failed to get tensor pointer for component {}", i);
-      continue;
-    }
-
-    auto* tensor = static_cast<nvidia::gxf::Tensor*>(tensor_ptr);
-    tensors.push_back(tensor);
-  }
-
-  if (tensors.empty()) {
-    HOLOSCAN_LOG_ERROR("No tensors found in entity");
-  return gst_buffer;
-  }
-
-  // Delegate to bridge to create buffer from tensors
-  return bridge_->create_buffer_from_tensors(tensors.data(), tensors.size());
+  
+  // Delegate to bridge
+  return bridge_->create_buffer_from_entity(entity);
 }
 
 void GstSrcResource::setup(holoscan::ComponentSpec& spec) {

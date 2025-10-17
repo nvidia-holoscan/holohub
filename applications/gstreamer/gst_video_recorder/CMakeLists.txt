@@ -13,9 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_application(gst_to_holoviz)
+cmake_minimum_required(VERSION 3.20)
+project(gst_video_recorder CXX)
 
-add_holohub_application(holopattern_to_gst)
+find_package(holoscan REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_holohub_application(gst_video_recorder)
+add_executable(gst-video-recorder
+  gst_video_recorder.cpp
+)
+
+target_link_libraries(gst-video-recorder
+  PRIVATE
+  holoscan::core
+  holoscan_gstreamer_sink
+)
+
+# Install target
+install(TARGETS gst-video-recorder DESTINATION bin/gst_video_recorder)
+
 
