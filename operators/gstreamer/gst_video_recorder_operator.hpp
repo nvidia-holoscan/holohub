@@ -87,10 +87,10 @@ class GstVideoRecorderOperator : public Operator {
   /**
    * @brief Get the GStreamer element from the bridge
    * 
-   * @return Shared future for the GStreamer element
+   * @return Shared future that will provide the GStreamer element when initialization completes
    */
-  std::shared_future<holoscan::gst::GstElementGuard> get_gst_element() const {
-    return bridge_ ? bridge_->get_gst_element() : std::shared_future<holoscan::gst::GstElementGuard>();
+  std::shared_future<GstElement*> get_gst_element() const {
+    return element_future_;
   }
 
  private:
@@ -103,6 +103,10 @@ class GstVideoRecorderOperator : public Operator {
   Parameter<uint64_t> timeout_ms_;
   
   std::shared_ptr<holoscan::gst::GstSrcBridge> bridge_;
+  
+  // Promise/future for element access (resolves after initialize())
+  std::promise<GstElement*> element_promise_;
+  std::shared_future<GstElement*> element_future_;
 };
 
 }  // namespace holoscan

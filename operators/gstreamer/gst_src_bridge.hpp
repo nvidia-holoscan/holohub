@@ -64,11 +64,11 @@ class GstSrcBridge {
   GstSrcBridge& operator=(GstSrcBridge&&) = delete;
 
   /**
-   * @brief Get the underlying GStreamer element (waits for initialization if needed)
-   * @return Shared future that will provide the GstElementGuard when ready
+   * @brief Get the underlying GStreamer element
+   * @return The GStreamer element (appsrc)
    */
-  std::shared_future<GstElementGuard> get_gst_element() const {
-    return src_element_future_;
+  GstElement* get_gst_element() const {
+    return src_element_.get();
   }
 
   /**
@@ -133,9 +133,7 @@ class GstSrcBridge {
    * @return true if the element has been initialized and is ready to use
    */
   bool valid() const {
-    return src_element_future_.valid() && 
-           src_element_future_.wait_for(std::chrono::seconds(0)) == std::future_status::ready && 
-           src_element_future_.get();
+    return src_element_ && src_element_.get();
   }
 
   // Forward declarations for nested classes
@@ -153,9 +151,8 @@ class GstSrcBridge {
   std::string caps_;
   size_t queue_limit_;
 
-  // Promise/future for safe element access across threads
-  std::promise<GstElementGuard> src_element_promise_;
-  std::shared_future<GstElementGuard> src_element_future_;
+  // GStreamer element (appsrc)
+  GstElementGuard src_element_;
 
   // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
   std::shared_ptr<MemoryWrapper> memory_wrapper_;

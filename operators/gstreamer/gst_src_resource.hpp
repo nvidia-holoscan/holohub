@@ -58,11 +58,11 @@ class GstSrcResource : public holoscan::Resource {
   void initialize() override;
 
   /**
-   * @brief Get the underlying GStreamer element (waits for initialization if needed)
-   * @return Shared future that will provide the GstElementGuard when ready
+   * @brief Get the underlying GStreamer element
+   * @return Shared future that will provide the GStreamer element when initialization completes
    */
-  std::shared_future<holoscan::gst::GstElementGuard> get_gst_element() const {
-    return bridge_ ? bridge_->get_gst_element() : std::shared_future<holoscan::gst::GstElementGuard>();
+  std::shared_future<GstElement*> get_gst_element() const {
+    return element_future_;
   }
 
   /**
@@ -154,6 +154,10 @@ class GstSrcResource : public holoscan::Resource {
   // Resource parameters
   holoscan::Parameter<std::string> caps_;
   holoscan::Parameter<size_t> queue_limit_;
+  
+  // Promise/future for element access (resolves after initialize())
+  std::promise<GstElement*> element_promise_;
+  std::shared_future<GstElement*> element_future_;
 };
 
 using GstSrcResourcePtr = GstSrcResource::SharedPtr;

@@ -38,6 +38,11 @@ holoscan::gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entit
 }
 
 void GstSrcResource::setup(holoscan::ComponentSpec& spec) {
+  // Initialize the future from the promise on first setup
+  if (!element_future_.valid()) {
+    element_future_ = element_promise_.get_future();
+  }
+  
   spec.param(caps_,
       "capabilities",
       "GStreamer Capabilities",
@@ -68,8 +73,12 @@ void GstSrcResource::initialize() {
       caps_.get(), 
       queue_limit_.get()
     );
+    
+    // Set the promise with the GStreamer element so callers can wait for it
+    element_promise_.set_value(bridge_->get_gst_element());
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to create GstSrcBridge: {}", e.what());
+    element_promise_.set_exception(std::current_exception());
     throw;
   }
   

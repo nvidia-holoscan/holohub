@@ -20,6 +20,11 @@
 namespace holoscan {
 
 void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
+  // Initialize the future from the promise on first setup
+  if (!element_future_.valid()) {
+    element_future_ = element_promise_.get_future();
+  }
+  
   spec.input<gxf::Entity>("input");
   
   spec.param(width_, "width", "Width",
@@ -78,6 +83,9 @@ void GstVideoRecorderOperator::initialize() {
     capabilities,
     queue_limit_.get()
   );
+  
+  // Set the promise with the GStreamer element so callers can wait for it
+  element_promise_.set_value(bridge_->get_gst_element());
   
   HOLOSCAN_LOG_INFO("GstVideoRecorderOperator::initialize() - Bridge initialized successfully");
 }

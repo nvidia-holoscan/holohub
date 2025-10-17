@@ -235,9 +235,6 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, siz
   HOLOSCAN_LOG_INFO("Creating GstSrcBridge: name='{}', caps='{}', queue_limit={}",
                     name, caps, queue_limit);
   
-  // Initialize the future from the promise
-  src_element_future_ = src_element_promise_.get_future();
-  
   HOLOSCAN_LOG_INFO("Initializing GstSrcBridge with appsrc for data bridging");
   
   // Initialize GStreamer if not already done
@@ -246,19 +243,16 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, siz
   }
 
   // Create appsrc element - standard GStreamer element, no custom registration needed!
-  auto element = make_gst_object_guard(
+  src_element_ = make_gst_object_guard(
     gst_element_factory_make("appsrc", name_.empty() ? nullptr : name_.c_str())
   );
 
-  if (!element) {
+  if (!src_element_) {
     HOLOSCAN_LOG_ERROR("Failed to create appsrc element");
-    src_element_promise_.set_exception(
-      std::make_exception_ptr(std::runtime_error("Failed to create appsrc element"))
-    );
     throw std::runtime_error("Failed to create appsrc element");
   }
 
-  GstAppSrc* appsrc = GST_APP_SRC(element.get());
+  GstAppSrc* appsrc = GST_APP_SRC(src_element_.get());
 
   // Configure appsrc properties
   g_object_set(appsrc,
@@ -283,17 +277,11 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, siz
       HOLOSCAN_LOG_INFO("Set appsrc caps: {}", caps_);
     } else {
       HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", caps_);
-      src_element_promise_.set_exception(
-        std::make_exception_ptr(std::runtime_error("Failed to parse caps"))
-      );
       throw std::runtime_error("Failed to parse caps");
     }
   }
   
   HOLOSCAN_LOG_INFO("GstSrcBridge initialized with appsrc (queue_limit: {})", queue_limit_);
-  
-  // Set the promise with the successfully created element
-  src_element_promise_.set_value(std::move(element));
 }
 
 GstSrcBridge::~GstSrcBridge() {
@@ -325,7 +313,7 @@ bool GstSrcBridge::push_buffer(Buffer buffer, std::chrono::milliseconds timeout)
     return false;
   }
 
-  GstAppSrc* appsrc = GST_APP_SRC(src_element_future_.get().get());
+  GstAppSrc* appsrc = GST_APP_SRC(src_element_.get());
   
   // Check appsrc queue status
   guint64 current_level_bytes = 0;
@@ -378,7 +366,7 @@ void GstSrcBridge::send_eos(int wait_ms) {
     return;
   }
   
-  GstAppSrc* appsrc = GST_APP_SRC(src_element_future_.get().get());
+  GstAppSrc* appsrc = GST_APP_SRC(src_element_.get());
   
   // Wait for appsrc queue to drain before sending EOS
   // This ensures all pushed frames are consumed by the downstream pipeline
@@ -425,7 +413,7 @@ Caps GstSrcBridge::get_caps() const {
   }
 
   // Get the source pad and its current caps
-  ::GstPad* pad = gst_element_get_static_pad(src_element_future_.get().get(), "src");
+  ::GstPad* pad = gst_element_get_static_pad(src_element_.get(), "src");
   if (!pad) {
     return Caps(); // Return empty caps
   }

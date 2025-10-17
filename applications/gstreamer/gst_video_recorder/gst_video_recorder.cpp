@@ -556,10 +556,14 @@ int main(int argc, char** argv) {
       throw std::runtime_error("Timeout waiting for source element initialization");
     }
     
-    holoscan::gst::GstElementGuard src_element = src_element_future.get();
-    if (!src_element || !src_element.get()) {
+    GstElement* src_element_ptr = src_element_future.get();
+    if (!src_element_ptr) {
       throw std::runtime_error("Failed to get initialized source element");
     }
+
+    // Wrap in a guard for RAII management (ref-counted, doesn't take ownership)
+    gst_object_ref(src_element_ptr);  // Add a reference for our guard
+    holoscan::gst::GstElementGuard src_element = holoscan::gst::make_gst_object_guard(src_element_ptr);
 
     // Create the GStreamer application with the source element and start it
     auto gstreamer_app = std::make_shared<GStreamerApp>(pipeline_desc, src_element);
