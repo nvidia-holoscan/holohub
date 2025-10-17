@@ -384,7 +384,7 @@ Video Source → FormatConverterOp → StreamingClientOp → HoloVizOp (optional
 - ✅ **C++ server ↔ C++ client** - Fully compatible and tested
 - ✅ **All combinations are fully supported** - Mix and match as needed
 
-### Integration Testing
+### Running Server and Client Together
 
 Terminal 1 - Start Python Server:
 ```bash
