@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-# Integration Test for Video Streaming Demo Enhanced
+# Integration Test for Video Streaming Demo
 # 
 # IMPORTANT: This test runs in Docker and builds from committed source code.
 # If you have local C++ fixes, make sure they are committed before running this test.

@@ -1,4 +1,4 @@
-# Video Streaming Demo Enhanced
+# Video Streaming Demo
 
 This unified application demonstrates how to use the Holoscan SDK to create both streaming client and server applications for bidirectional video communication. This demo application demonstrates bidirectional video communication between client and server with real-time visualization.
 
@@ -207,7 +207,7 @@ To switch between V4L2 camera and video replayer:
 
   ```bash
   # Ensure the replayer config exists in build directory
-  cp applications/streaming_client_demo_enhanced/cpp/streaming_client_demo_replayer.yaml build/streaming_client_demo_enhanced/
+  cp applications/streaming_client_demo/cpp/streaming_client_demo_replayer.yaml build/streaming_client_demo/
   ```
 
 - **Format converter errors:**
@@ -325,12 +325,12 @@ export HOLOHUB_BASE_SDK_VERSION=3.5.0
 The `video_streaming_integration_test` defined in CMakeLists.txt:
 
 1. **Server Startup** (10 seconds)
-   - Launches streaming server in background: `streaming_server_demo_enhanced`
+   - Launches streaming server in background: `streaming_server_demo`
    - Uses config: `streaming_server_demo.yaml`
    - Waits for server to initialize and stabilize
 
 2. **Client Connection & Streaming** (30 seconds)
-   - Starts streaming client: `streaming_client_demo_enhanced`
+   - Starts streaming client: `streaming_client_demo`
    - Uses config: `streaming_client_demo_replayer.yaml` (video replay mode)
    - Establishes connection to server
    - Streams video frames bidirectionally for 30 seconds
@@ -615,7 +615,7 @@ sudo lsof -ti:48010 | xargs sudo kill -9
 
 ```bash
 # Expected behavior - test still passes if streaming worked
-1: Segmentation fault (core dumped) ./streaming_server_demo_enhanced
+1: Segmentation fault (core dumped) ./streaming_server_demo
 1: ✓ Server: StreamingServerUpstreamOp processed 567 unique frames
 1: ✓ STREAMING VERIFICATION PASSED - Frames actually transmitted!
 ```

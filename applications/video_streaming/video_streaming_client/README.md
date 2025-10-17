@@ -1,4 +1,4 @@
-# Video Streaming Demo Client Enhanced
+# Video Streaming Client Demo
 
 This is the enhanced video streaming client demo application that supports both V4L2 camera input and video file replay.
 

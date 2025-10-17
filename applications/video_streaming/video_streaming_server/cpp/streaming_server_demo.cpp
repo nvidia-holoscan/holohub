@@ -165,7 +165,7 @@ class StreamingServerTestApp : public holoscan::Application {
 };
 
 void print_usage() {
-  std::cout << "Usage: streaming_server_demo_enhanced [options]\n"
+  std::cout << "Usage: streaming_server_demo [options]\n"
             << "Options:\n"
             << "  -c, --config <file>        Configuration file path (default: "
                "streaming_server_demo.yaml)\n"

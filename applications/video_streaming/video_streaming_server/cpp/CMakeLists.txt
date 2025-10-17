@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(streaming_server_demo_enhanced CXX)
+project(streaming_server_demo CXX)
 
 # This application is built by the parent add_holohub_application macro
 
@@ -36,12 +36,12 @@ endif()
 set(OPERATOR_SSL_DIR "${CMAKE_SOURCE_DIR}/operators/video_streaming/streaming_server_enhanced/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
 
 # Add executable
-add_executable(streaming_server_demo_enhanced
+add_executable(streaming_server_demo
     streaming_server_demo.cpp
 )
 
 # Link libraries - include explicit SSL library paths from operator
-target_link_libraries(streaming_server_demo_enhanced
+target_link_libraries(streaming_server_demo
     PRIVATE
     holoscan::core
     holoscan::ops::streaming_server_enhanced
@@ -54,7 +54,7 @@ target_link_libraries(streaming_server_demo_enhanced
 )
 
 # Set compile definitions
-target_compile_definitions(streaming_server_demo_enhanced
+target_compile_definitions(streaming_server_demo
     PRIVATE
     HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR}
     HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR}
@@ -63,61 +63,61 @@ target_compile_definitions(streaming_server_demo_enhanced
 
 # Copy YAML file if it exists
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml")
-    add_custom_command(TARGET streaming_server_demo_enhanced POST_BUILD
+    add_custom_command(TARGET streaming_server_demo POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/streaming_server_demo.yaml"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/streaming_server_demo.yaml"
     )
 endif()
 
 # Copy ALL required libraries from operator to application directory
-add_custom_command(TARGET streaming_server_demo_enhanced POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib"
+add_custom_command(TARGET streaming_server_demo POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:streaming_server_demo>/lib"
     # Copy SSL libraries (newer versions)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libssl.so.3"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib/libssl.so.3"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libssl.so.3"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libcrypto.so.3"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib/libcrypto.so.3"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libcrypto.so.3"
     # Copy Holoscan Streaming Stack libraries (required at runtime)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libStreamingServer.so"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib/libStreamingServer.so"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libStreamingServer.so"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libNvStreamServer.so"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib/libNvStreamServer.so"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libNvStreamServer.so"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libNvStreamBase.so"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib/libNvStreamBase.so"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libNvStreamBase.so"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libNvStreamingSession.so"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib/libNvStreamingSession.so"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libNvStreamingSession.so"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libPoco.so"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib/libPoco.so"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libPoco.so"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libcudart.so.12"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib/libcudart.so.12"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libcudart.so.12"
     COMMENT "Bundling ALL required libraries from streaming_server_enhanced operator"
 )
 
 # Configure linking to use the bundled newer SSL libraries
-target_link_directories(streaming_server_demo_enhanced PRIVATE "${OPERATOR_SSL_DIR}")
+target_link_directories(streaming_server_demo PRIVATE "${OPERATOR_SSL_DIR}")
 
 # Copy wrapper script and make executable
-add_custom_command(TARGET streaming_server_demo_enhanced POST_BUILD
+add_custom_command(TARGET streaming_server_demo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_enhanced_wrapper.sh.in"
-        "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/streaming_server_demo_enhanced_wrapper.sh"
-    COMMAND chmod +x "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/streaming_server_demo_enhanced_wrapper.sh"
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_wrapper.sh.in"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/streaming_server_demo_wrapper.sh"
+    COMMAND chmod +x "$<TARGET_FILE_DIR:streaming_server_demo>/streaming_server_demo_wrapper.sh"
     COMMENT "Installing wrapper script with LD_LIBRARY_PATH"
 )
 
 # Set RPATH to prioritize bundled libraries over system libraries
 # Use BUILD_RPATH so it works during development/testing
-set_target_properties(streaming_server_demo_enhanced PROPERTIES
-    BUILD_RPATH "$<TARGET_FILE_DIR:streaming_server_demo_enhanced>/lib:$<TARGET_FILE_DIR:streaming_server_demo_enhanced>:${OPERATOR_SSL_DIR}"
+set_target_properties(streaming_server_demo PROPERTIES
+    BUILD_RPATH "$<TARGET_FILE_DIR:streaming_server_demo>/lib:$<TARGET_FILE_DIR:streaming_server_demo>:${OPERATOR_SSL_DIR}"
     INSTALL_RPATH "$ORIGIN/lib:$ORIGIN"
     BUILD_WITH_INSTALL_RPATH FALSE
     INSTALL_RPATH_USE_LINK_PATH FALSE
@@ -126,7 +126,7 @@ set_target_properties(streaming_server_demo_enhanced PROPERTIES
 
 # Install rules
 install(
-    TARGETS streaming_server_demo_enhanced
+    TARGETS streaming_server_demo
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
 )
@@ -138,16 +138,16 @@ install(
     DESTINATION bin
 )
 # Copy config dependencies for testing
-add_custom_target(streaming_server_demo_enhanced_deps
+add_custom_target(streaming_server_demo_deps
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "streaming_server_demo.yaml"
   BYPRODUCTS "streaming_server_demo.yaml"
 )
-add_dependencies(streaming_server_demo_enhanced streaming_server_demo_enhanced_deps)
+add_dependencies(streaming_server_demo streaming_server_demo_deps)
 
 # Install application and dependencies into the install/ directory for packaging
 install(
-  TARGETS streaming_server_demo_enhanced
+  TARGETS streaming_server_demo
   DESTINATION bin/video_streaming/cpp
 )
 
