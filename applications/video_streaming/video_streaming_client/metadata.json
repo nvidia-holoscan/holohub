@@ -1,6 +1,6 @@
 {
     "application": {
-        "name": "Video Streaming Demo Client Enhanced",
+        "name": "Video Streaming Client Demo",
         "authors": [
             {
                 "name": "Holoscan Team",
@@ -10,7 +10,7 @@
         "language": "C++",
         "version": "3.5.0",
         "changelog": {
-            "3.5.0": "Enhanced video streaming client demo with V4L2 and video replay support"
+            "3.5.0": "Video streaming client demo with V4L2 and video replay support"
         },
         "holoscan_sdk": {
             "minimum_required_version": "3.5.0",
@@ -40,7 +40,7 @@
             ]
         },
         "run": {
-            "command": "<holohub_app_bin>/cpp/streaming_client_demo_enhanced_wrapper.sh",
+            "command": "<holohub_app_bin>/cpp/streaming_client_demo_wrapper.sh",
             "workdir": "holohub_bin"
         }
     }

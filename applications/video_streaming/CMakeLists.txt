@@ -67,7 +67,7 @@ if(BUILD_TESTING)
   # Add integration test for video streaming demo
   add_test(NAME video_streaming_integration_test
            COMMAND bash -c "
-             echo '=== Enhanced Integration Test with Log Verification ==='
+             echo '=== Integration Test with Log Verification ==='
              echo 'Starting server and client with log capture...'
 
              # Initialize variables
@@ -84,7 +84,7 @@ if(BUILD_TESTING)
 
              # Start server in background with log capture
              echo 'Starting streaming server...'
-             ./applications/video_streaming/video_streaming_server/cpp/streaming_server_demo_enhanced --config applications/video_streaming/video_streaming_server/cpp/streaming_server_demo.yaml > \$SERVER_LOG 2>&1 &
+             ./applications/video_streaming/video_streaming_server/cpp/streaming_server_demo --config applications/video_streaming/video_streaming_server/cpp/streaming_server_demo.yaml > \$SERVER_LOG 2>&1 &
              SERVER_PID=\$!
 
              # Wait for server to start and check logs
@@ -103,7 +103,7 @@ if(BUILD_TESTING)
 
              # Start client in background with log capture
              echo 'Starting streaming client...'
-             ./applications/video_streaming/video_streaming_client/cpp/streaming_client_demo_enhanced --config applications/video_streaming/video_streaming_client/cpp/streaming_client_demo_replayer.yaml > \$CLIENT_LOG 2>&1 &
+             ./applications/video_streaming/video_streaming_client/cpp/streaming_client_demo --config applications/video_streaming/video_streaming_client/cpp/streaming_client_demo_replayer.yaml > \$CLIENT_LOG 2>&1 &
              CLIENT_PID=\$!
 
              # Let streaming run for 30 seconds
@@ -289,7 +289,7 @@ if(BUILD_TESTING)
     # Add integration test for Python video streaming demo
     add_test(NAME video_streaming_integration_test_python
              COMMAND bash -c "
-               echo '=== Python Enhanced Integration Test with Log Verification ==='
+               echo '=== Python Integration Test with Log Verification ==='
                echo 'Starting Python server and client with log capture...'
 
                # Set up PYTHONPATH to include built Python modules

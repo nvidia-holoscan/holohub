@@ -84,7 +84,7 @@ ENV PYTHONPATH=/opt/nvidia/holoscan/python/lib:${PYTHONPATH}
 WORKDIR /workspace/holohub
 
 # Create workspace directories
-RUN mkdir -p /workspace/holohub/applications/streaming_server_demo_enhanced
+RUN mkdir -p /workspace/holohub/applications/video_streaming
 
 # Copy the rest of the application files
 COPY . /workspace/holohub/

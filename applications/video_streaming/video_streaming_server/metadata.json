@@ -1,6 +1,6 @@
 {
     "application": {
-        "name": "Video Streaming Demo Server Enhanced",
+        "name": "Video Streaming Server Demo",
         "authors": [
             {
                 "name": "Holoscan Team",
@@ -10,7 +10,7 @@
         "language": "C++",
         "version": "3.5.0",
         "changelog": {
-            "3.5.0": "Enhanced video streaming server demo with bidirectional streaming support"
+            "3.5.0": "Video streaming server demo with bidirectional streaming support"
         },
         "holoscan_sdk": {
             "minimum_required_version": "3.5.0",
@@ -39,7 +39,7 @@
             ]
         },
         "run": {
-            "command": "<holohub_app_bin>/cpp/streaming_server_demo_enhanced_wrapper.sh",
+            "command": "<holohub_app_bin>/cpp/streaming_server_demo_wrapper.sh",
             "workdir": "holohub_bin"
         }
     }

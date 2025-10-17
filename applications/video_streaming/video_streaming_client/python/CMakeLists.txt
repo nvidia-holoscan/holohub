@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Copy streaming_client_demo application file to both locations
-add_custom_target(python_streaming_client_demo_enhanced ALL
+add_custom_target(python_streaming_client_demo ALL
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.py" ${CMAKE_CURRENT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.py" ${CMAKE_BINARY_DIR}
   DEPENDS "streaming_client_demo.py"

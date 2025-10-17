@@ -1,4 +1,4 @@
-# Video Streaming Demo Server Enhanced
+# Video Streaming Server Demo
 
 This is the enhanced video streaming server demo application that provides bidirectional streaming capabilities.
 
