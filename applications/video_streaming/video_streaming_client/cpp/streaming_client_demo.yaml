@@ -96,11 +96,11 @@ streaming_client:
 # Visualization options 
 visualize_frames: true
 
-# HoloViz configuration (used only if visualize_frames is true)
+# Holoviz configuration (used only if visualize_frames is true)
 holoviz:
   width: 640  # Match V4L2 source resolution
   height: 480
-  # Allocator configuration specifically for HoloViz
+  # Allocator configuration specifically for Holoviz
   allocator:
     block_size: 4194304  # 4MB blocks to handle BGRA frames
     num_blocks: 8

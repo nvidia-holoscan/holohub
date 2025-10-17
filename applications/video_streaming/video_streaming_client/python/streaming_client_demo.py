@@ -25,7 +25,7 @@ Features:
 - V4L2 camera capture support
 - Format conversion (RGB to BGR)
 - Real-time video streaming to server
-- Optional visualization with HoloViz
+- Optional visualization with Holoviz
 - Configurable via YAML or command-line arguments
 """
 

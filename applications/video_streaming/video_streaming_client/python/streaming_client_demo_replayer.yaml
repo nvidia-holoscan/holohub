@@ -55,7 +55,7 @@ streaming_client:
 # Visualization options
 visualize_frames: true
 
-# HoloViz configuration (match video resolution)
+# Holoviz configuration (match video resolution)
 holoviz:
   width: 854
   height: 480

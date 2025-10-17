@@ -341,7 +341,7 @@ class StreamingClientApp(Application):
 - V4L2 always outputs RGBA8888 (4 channels) regardless of input format
 - Video replayer outputs RGB888 (3 channels)
 - The `output_frames` port receives processed frames from the server
-- HoloViz displays the received frames using the `receivers` input port
+- Holoviz displays the received frames using the `receivers` input port
 
 ### Python Pipeline Architecture
 
