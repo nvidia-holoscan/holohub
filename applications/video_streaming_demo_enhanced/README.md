@@ -667,7 +667,7 @@ The Python integration test validates the complete bidirectional video streaming
 ./holohub test video_streaming_demo_enhanced \
   --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
   --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
-  --ctest-options="-R video_streaming_integration_test_python"
+  --ctest-options="-R video_streaming_integration_test_python -V"
 ```
 
 **Test Duration:** ~44 seconds (30 seconds of streaming + setup/teardown)
