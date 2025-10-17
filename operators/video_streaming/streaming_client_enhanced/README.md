@@ -141,8 +141,8 @@ v4l2-ctl --device=/dev/video0 --set-fmt-video=width=1280,height=720,pixelformat=
 
 The streaming client applications use YAML configuration files to set camera parameters. Edit the appropriate config file:
 
-#### For video_streaming_demo_client:
-Edit `../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo.yaml`:
+#### For video_streaming_client:
+Edit `../../../applications/video_streaming/video_streaming_client/cpp/streaming_client_demo.yaml`:
 
 ```yaml
 # V4L2 camera configuration
@@ -294,8 +294,8 @@ To run the Python streaming client application with Python bindings:
 ### Video Replayer Mode (854x480):
 ```bash
 # From holohub root directory
-./holohub run video_streaming_demo_enhanced client_python \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
@@ -303,8 +303,8 @@ To run the Python streaming client application with Python bindings:
 ### V4L2 Camera Mode (640x480):
 ```bash
 # From holohub root directory
-./holohub run video_streaming_demo_enhanced client_python_v4l2 \
-  --docker-file applications/video_streaming_demo_enhanced/Dockerfile \
+./holohub run video_streaming client_python_v4l2 \
+  --docker-file applications/video_streaming/Dockerfile \
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
@@ -312,16 +312,16 @@ To run the Python streaming client application with Python bindings:
 **Note:** The `--configure-args='-DHOLOHUB_BUILD_PYTHON=ON'` flag is required to build the Python bindings for the streaming client operators.
 
 For more details on the Python application, see:
-- **[Python Client Application README](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/python/README.md)**
+- **[Python Client Application README](../../../applications/video_streaming/video_streaming_client/python/README.md)**
 
 ## Testing
 
-Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of the streaming client working with the server.
+Testing is handled at the application level through the unified `video_streaming` integration test, which provides comprehensive end-to-end validation of the streaming client working with the server.
 
 ## Related Applications
 
-- **[Streaming Client Demo Enhanced](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/README.md)** - Complete application demonstrating the streaming client operator
-- **[Streaming Server Demo Enhanced](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/README.md)** - Companion server application for bidirectional streaming
+- **[Streaming Client Demo](../../../applications/video_streaming/video_streaming_client/README.md)** - Complete application demonstrating the streaming client operator
+- **[Streaming Server Demo](../../../applications/video_streaming/video_streaming_server/README.md)** - Companion server application for bidirectional streaming
 
 ## Supported Platforms
 
