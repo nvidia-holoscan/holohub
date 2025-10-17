@@ -89,7 +89,7 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "# Visualization options\n";
   out_file << "visualize_frames: false\n\n";  // Changed from true to false
 
-  out_file << "# HoloViz configuration (used only if visualize_frames is true)\n";
+  out_file << "# Holoviz configuration (used only if visualize_frames is true)\n";
   out_file << "holoviz:\n";
   out_file << "  # Window size and title\n";
   out_file << "  width: 854\n";
