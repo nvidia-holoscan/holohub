@@ -69,3 +69,8 @@ except ImportError as e:
 
 # Write the custom __init__.py after the module is built
 file(WRITE "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_server_enhanced/__init__.py" "${INIT_PY_CONTENT}")
+
+# Add pytest tests if testing is enabled
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

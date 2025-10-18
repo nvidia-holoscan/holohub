@@ -75,3 +75,8 @@ except ImportError as e:
     pass
 "
 )
+
+# Add pytest tests if testing is enabled
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
