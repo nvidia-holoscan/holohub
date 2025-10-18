@@ -78,3 +78,8 @@ file(GENERATE
     OUTPUT "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_client_enhanced/__init__.py"
     CONTENT "${CLIENT_INIT_PY_CONTENT}"
 )
+
+# Add pytest tests if testing is enabled
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
