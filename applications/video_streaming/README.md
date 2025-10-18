@@ -157,7 +157,7 @@ Both server and client applications are available in Python using the Holoscan P
 The Python applications use these Holoscan operator bindings:
 
 **Server Components:**
-- `holohub.streaming_server_enhanced.StreamingServerResource` - Manages server connections and WebRTC
+- `holohub.streaming_server_enhanced.StreamingServerResource` - Manages server connections
 - `holohub.streaming_server_enhanced.StreamingServerUpstreamOp` - Receives frames from clients
 - `holohub.streaming_server_enhanced.StreamingServerDownstreamOp` - Sends frames to clients
 
@@ -173,7 +173,7 @@ The Python applications use these Holoscan operator bindings:
 ### Python Implementation Overview
 
 **Server Architecture:**
-- `StreamingServerResource` manages WebRTC connections and client lifecycle
+- `StreamingServerResource` manages streaming connections and client lifecycle
 - `StreamingServerUpstreamOp` receives frames from clients (output port: `output_frames`)
 - `StreamingServerDownstreamOp` sends frames to clients (input port: `input_frames`)
 - Simple pipeline: `upstream_op → downstream_op` (passthrough/echo mode)
