@@ -123,7 +123,7 @@ Client Streams → StreamingServerUpstreamOp → StreamingServerDownstreamOp →
 
 1. **StreamingServerUpstreamOp**: Receives video frames from connected streaming clients
 2. **StreamingServerDownstreamOp**: Sends frames back to all connected streaming clients
-3. Both operators share a **StreamingServerResource** that manages the WebRTC connections
+3. Both operators share a **StreamingServerResource** that manages the streaming connections
 
 ## C++ Implementation
 
@@ -203,7 +203,7 @@ self.add_flow(upstream_op, downstream_op, {("output_frames", "input_frames")})
 ```
 
 **Key Points:**
-- Both operators share the same `StreamingServerResource` to manage WebRTC connections
+- Both operators share the same `StreamingServerResource` to manage streaming connections
 - The upstream operator receives frames from clients on its `output_frames` port
 - The downstream operator receives those frames on its `input_frames` port and sends them back to clients
 - This creates a simple passthrough/echo streaming pipeline
