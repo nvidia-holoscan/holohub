@@ -576,9 +576,12 @@ TEST_F(StreamingServerUpstreamOpTest, MultipleOperatorsSharedResource) {
   ASSERT_NE(upstream2, nullptr);
   ASSERT_NE(downstream1, nullptr);
 
+  // Verify different upstream instances are distinct
   EXPECT_NE(upstream1, upstream2);
-  EXPECT_NE(upstream1, downstream1);
-  EXPECT_NE(upstream2, downstream1);
+  // Note: Cannot directly compare different operator types (upstream vs downstream)
+  // but we can verify they're all valid pointers
+  EXPECT_NE(upstream1.get(), downstream1.get());
+  EXPECT_NE(upstream2.get(), downstream1.get());
 }
 
 }  // namespace holoscan::ops
