@@ -384,35 +384,9 @@ Video Source → FormatConverterOp → StreamingClientOp → HoloVizOp (optional
 - ✅ **C++ server ↔ C++ client** - Fully compatible and tested
 - ✅ **All combinations are fully supported** - Mix and match as needed
 
-### Running Server and Client Together
+### Cross-Language Compatibility Testing
 
-Terminal 1 - Start Python Server:
-```bash
-./holohub run video_streaming server_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
-```
-
-Terminal 2 - Start Python Client (Video Replayer):
-```bash
-./holohub run video_streaming client_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
-```
-
-Terminal 2 - Or start Python Client (V4L2 Camera):
-```bash
-./holohub run video_streaming client_python_v4l2 \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
-```
-
-**Testing with C++ Server:**
-
-You can also test Python clients with C++ servers (they are fully compatible):
+Python clients are fully compatible with C++ servers and vice versa:
 
 Terminal 1 - C++ Server:
 ```bash
@@ -428,8 +402,6 @@ Terminal 2 - Python Client:
   --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
-
-**Important:** Ensure client and server resolutions match for optimal performance.
 
 ### Python Troubleshooting
 
@@ -1163,17 +1135,6 @@ The Python integration test validates the following checks. **All checks must pa
 - **Frames Processed**: 500-600 frames in 30 seconds (~16-20 fps)
 - **Bidirectional Verification**: Both upstream (client → server) and downstream (server → client) verified
 
-### Test Configuration
-
-**Server Configuration:**
-```bash
-python3 streaming_server_demo.py --width 854 --height 480
-```
-
-**Client Configuration:**
-```bash
-python3 streaming_client_demo.py --source replayer --width 854 --height 480
-```
 
 ### Troubleshooting
 
