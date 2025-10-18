@@ -33,7 +33,7 @@ class StreamingClientOpTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Create a minimal fragment for testing
-    fragment_ = holoscan::make_fragment<holoscan::Fragment>();
+    fragment_ = std::make_shared<holoscan::Fragment>();
   }
 
   void TearDown() override {

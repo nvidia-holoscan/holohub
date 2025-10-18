@@ -62,6 +62,7 @@ target_link_libraries(test_streaming_server_ops
 target_include_directories(test_streaming_server_ops
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../holoscan_server_cloud_streaming/include
 )
 
 # Add test to CTest
