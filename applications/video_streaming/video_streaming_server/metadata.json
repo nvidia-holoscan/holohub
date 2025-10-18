@@ -34,7 +34,7 @@
             "operators": [
                 {
                     "name": "video_streaming",
-                    "version": "3.5.0"
+                    "version": "1.1.0"
                 }
             ]
         },
