@@ -51,7 +51,7 @@ The StreamingClient operator integrates with the Holoscan Client Cloud Streaming
 │  └─────────────────┘    │  │  ┌─────────────────┐    ┌─────────────────────┐ │ │ │
 │                         │  │  │ StreamingClient │    │   Network Protocol  │ │ │ │
 │                         │  │  │                 │    │                     │ │ │ │
-│                         │  │  │ • sendFrame()   │───▶│  • WebRTC/NVST     │ │ │ │
+│                         │  │  │ • sendFrame()   │───▶│  • Cloud Streaming │ │ │ │
 │                         │  │  │ • Callbacks     │    │  • Signaling       │ │ │ │
 │                         │  │  │ • Connection    │    │  • Media Transport  │ │ │ │
 │                         │  │  │   Management    │    │  • Encryption       │ │ │ │
@@ -85,7 +85,7 @@ The StreamingClient operator integrates with the Holoscan Client Cloud Streaming
 3. **Cloud Streaming Integration**: The VideoFrame is passed to the Holoscan Client Cloud Streaming library via `StreamingClient::sendFrame()`
 
 4. **Network Transport**: The cloud streaming library handles:
-   - WebRTC/NVST protocol implementation
+   - Protocol implementation
    - Signaling and connection establishment
    - Media encoding and transport
    - Security and encryption
