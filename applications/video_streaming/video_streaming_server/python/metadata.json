@@ -24,11 +24,10 @@
       "aarch64"
     ],
     "tags": [
-      "streaming",
+      "Streaming",
       "video",
       "server",
       "python",
-      "webrtc",
       "real-time",
       "bidirectional"
     ],
