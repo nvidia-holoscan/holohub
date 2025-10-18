@@ -2,6 +2,11 @@
 
 This application demonstrates how to create a bidirectional video streaming client that sends video frames to a server and receives frames back. Both C++ and Python implementations are available with support for V4L2 cameras and video file replay.
 
+> **📚 Related Documentation:**
+> - **[Main README](../README.md)** - Application overview, quick start, and common configuration
+> - **[Server README](../video_streaming_server/README.md)** - Server setup and configuration
+> - **[Testing Documentation](../TESTING.md)** - Integration testing and verification
+
 ## Features
 
 - **Bidirectional Streaming**: Sends video frames to server and receives frames back
