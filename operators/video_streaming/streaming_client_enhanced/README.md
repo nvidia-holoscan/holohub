@@ -19,6 +19,12 @@ Streaming Protocol Implementation:
 - Frame source system for sending frames
 - Connection management with server including timeout handling
 
+> **📚 Related Documentation:**
+> - **[Main Operators README](../README.md)** - Setup, dependencies, NGC downloads, and Python examples
+> - **[Client Application README](../../../applications/video_streaming/video_streaming_client/README.md)** - Complete client application with usage examples
+> - **[Server Operator README](../streaming_server_enhanced/README.md)** - Companion server operator documentation
+> - **[Testing Documentation](../../../applications/video_streaming/TESTING.md)** - Integration testing and verification
+
 ## Architecture Overview
 
 The StreamingClient operator integrates with the Holoscan Client Cloud Streaming library to provide seamless video streaming capabilities:
@@ -45,7 +51,7 @@ The StreamingClient operator integrates with the Holoscan Client Cloud Streaming
 │  └─────────────────┘    │  │  ┌─────────────────┐    ┌─────────────────────┐ │ │ │
 │                         │  │  │ StreamingClient │    │   Network Protocol  │ │ │ │
 │                         │  │  │                 │    │                     │ │ │ │
-│                         │  │  │ • sendFrame()   │───▶│  • WebRTC/NVST     │ │ │ │
+│                         │  │  │ • sendFrame()   │───▶│  • Cloud Streaming │ │ │ │
 │                         │  │  │ • Callbacks     │    │  • Signaling       │ │ │ │
 │                         │  │  │ • Connection    │    │  • Media Transport  │ │ │ │
 │                         │  │  │   Management    │    │  • Encryption       │ │ │ │
@@ -79,7 +85,7 @@ The StreamingClient operator integrates with the Holoscan Client Cloud Streaming
 3. **Cloud Streaming Integration**: The VideoFrame is passed to the Holoscan Client Cloud Streaming library via `StreamingClient::sendFrame()`
 
 4. **Network Transport**: The cloud streaming library handles:
-   - WebRTC/NVST protocol implementation
+   - Protocol implementation
    - Signaling and connection establishment
    - Media encoding and transport
    - Security and encryption
@@ -88,36 +94,18 @@ The StreamingClient operator integrates with the Holoscan Client Cloud Streaming
 
 6. **Output Generation**: Processed frames are emitted as GXF entities for downstream operators (HoloViz, file writers, etc.)
 
-## Requirements
+## Requirements & Setup
 
-- **Holoscan SDK 3.5.0**: Core framework
-- **CUDA 12.x**: GPU acceleration support
+For complete setup instructions including:
+- Holoscan SDK 3.5.0 and CUDA 12.x requirements
+- NGC binary downloads (client streaming binaries)
+- Build troubleshooting
 
-## Dependencies
-
-In order to build the client operator, you must first download the client binaries from NGC:
-
-```bash
-# Download using NGC CLI
-
-cd <your_holohub_path>/operators/video_streaming/streaming_client_enhanced
-ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
-unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
-
-# Clean up extraction directory and NGC download directory
-rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v0.2
-```
-
-All dependencies need to be properly installed in the operator directory structure.
-
-## Troubleshooting
-
-If you encounter build errors:
-- Make sure all required files are copied to the correct locations
-- Check that the libraries have appropriate permissions (644)
-- Ensure the directories exist inside the container environment 
+**See the [Main Operators README](../README.md) for detailed setup instructions.** 
 
 ## Camera Setup and Testing
+
+This section provides detailed technical camera configuration for the StreamingClient operator. For application-level camera setup and quick start instructions, see the [Application README](../../../applications/video_streaming/README.md#camera-setup-and-testing).
 
 ### Testing Your V4L2 Camera
 
@@ -141,8 +129,8 @@ v4l2-ctl --device=/dev/video0 --set-fmt-video=width=1280,height=720,pixelformat=
 
 The streaming client applications use YAML configuration files to set camera parameters. Edit the appropriate config file:
 
-#### For video_streaming_demo_client:
-Edit `../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/cpp/streaming_client_demo.yaml`:
+#### For video_streaming_client:
+Edit `../../../applications/video_streaming/video_streaming_client/cpp/streaming_client_demo.yaml`:
 
 ```yaml
 # V4L2 camera configuration
@@ -287,16 +275,9 @@ target_link_libraries(frame_saver
 - **Testing**: Verify frame data integrity
 - **Development**: Visual inspection of processed frames
 
-## Testing
+## Python Bindings & Applications
 
-Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of the streaming client working with the server.
-
-## Related Applications
-
-- **[Streaming Client Demo Enhanced](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/README.md)** - Complete application demonstrating the streaming client operator
-- **[Streaming Server Demo Enhanced](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/README.md)** - Companion server application for bidirectional streaming
-
-## Supported Platforms
-
-- Linux x86_64
-- Linux aarch64
+For Python usage, application examples, and testing:
+- **[Main Operators README](../README.md)** - Python bindings overview and setup
+- **[Client Application README](../../../applications/video_streaming/video_streaming_client/README.md)** - Complete Python client implementation
+- **[Testing Documentation](../../../applications/video_streaming/TESTING.md)** - Integration testing guide
