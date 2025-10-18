@@ -2,6 +2,11 @@
 
 This application demonstrates how to create a bidirectional video streaming server that receives frames from clients and sends them back. Both C++ and Python implementations are available.
 
+> **📚 Related Documentation:**
+> - **[Main README](../README.md)** - Application overview, quick start, and common configuration
+> - **[Client README](../video_streaming_client/README.md)** - Client setup and configuration
+> - **[Testing Documentation](../TESTING.md)** - Integration testing and verification
+
 ## Features
 
 - **Bidirectional Streaming**: Receives frames from clients (upstream) and sends frames back (downstream)
