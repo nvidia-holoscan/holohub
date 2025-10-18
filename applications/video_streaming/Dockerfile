@@ -33,8 +33,12 @@ RUN apt-get update && apt-get install -y \
     unzip \
     software-properties-common \
     xvfb \
+    python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Python testing dependencies
+RUN pip3 install --no-cache-dir pytest pytest-timeout
 
 # Install build dependencies for OpenSSL
 RUN apt-get update && apt-get install -y \
