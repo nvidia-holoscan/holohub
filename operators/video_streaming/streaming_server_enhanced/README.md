@@ -2,6 +2,12 @@
 
 The `streaming_server_enhanced` operator provides a modular streaming server implementation with separate upstream, downstream, and resource components. This split architecture allows for better separation of concerns and more flexible streaming pipeline configurations.
 
+> **📚 Related Documentation:**
+> - **[Main Operators README](../README.md)** - Setup, dependencies, NGC downloads, and Python examples
+> - **[Server Application README](../../../applications/video_streaming/video_streaming_server/README.md)** - Complete server application with usage examples
+> - **[Client Operator README](../streaming_client_enhanced/README.md)** - Companion client operator documentation
+> - **[Testing Documentation](../../../applications/video_streaming/TESTING.md)** - Integration testing and verification
+
 ## Architecture Overview
 
 The Streaming Server operators integrate with the Holoscan Server Cloud Streaming library to provide comprehensive multi-client streaming capabilities:
@@ -274,20 +280,14 @@ auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>(
 ```
                                                  
 
-## Building the operator
+## Requirements & Setup
 
-In order to build the server operator, you must first download the server binaries from NGC:
+For complete setup instructions including:
+- Holoscan SDK 3.5.0 and CUDA 12.x requirements
+- NGC binary downloads (server streaming binaries)
+- Build troubleshooting
 
-```bash
-# Download using NGC CLI
-
-cd <your_holohub_path>/operators/video_streaming/streaming_server_enhanced
-ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
-unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
-
-# Clean up extraction directory and NGC download directory
-rm -rf streaming_server_enhanced holoscan_server_cloud_streaming_v0.2
-```
+**See the [Main Operators README](../README.md) for detailed setup instructions.**
 
 ### Deployment on NVCF
 
@@ -370,36 +370,14 @@ Note: If the test haproxy is still running, and you wish to test the executable 
 ./nvcf/stop_test_intermediate_haproxy.sh
 ```
 
-## Running the Python Application
+## Python Bindings & Applications
 
-To run the Python streaming server application with Python bindings:
+For Python usage, application examples, and testing:
+- **[Main Operators README](../README.md)** - Python bindings overview and setup
+- **[Server Application README](../../../applications/video_streaming/video_streaming_server/README.md)** - Complete Python server implementation
+- **[Testing Documentation](../../../applications/video_streaming/TESTING.md)** - Integration testing guide
 
-```bash
-# From holohub root directory
-./holohub run video_streaming server_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
-```
-
-**Note:** The `--configure-args='-DHOLOHUB_BUILD_PYTHON=ON'` flag is required to build the Python bindings for the streaming server operators.
-
-For more details on the Python application, see:
-- **[Server Application README (C++ and Python)](../../../applications/video_streaming/video_streaming_server/README.md)**
-
-## Testing
-
-Testing is handled at the application level through the unified `video_streaming` integration test, which provides comprehensive end-to-end validation of the streaming server working with the client.
-
-## Related Applications
-
-- **[Streaming Server Demo](../../../applications/video_streaming/video_streaming_server/README.md)** - Complete application demonstrating the streaming server operators
-- **[Streaming Client Demo](../../../applications/video_streaming/video_streaming_client/README.md)** - Companion client application for bidirectional streaming
-
-## Supported Platforms
-
-- Linux x86_64
-- NVCF Cloud instances 
+## Additional Resources
 
 For more information on NVCF Cloud functions, please refer to [NVIDIA Cloud Functions documentation](https://docs.nvidia.com/cloud-functions/user-guide/latest/cloud-function/function-creation.html#function-creation).
 
