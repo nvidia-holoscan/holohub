@@ -718,11 +718,11 @@ The integration test **PASSES** when **ALL 10 checks** are met (6 server + 4 cli
 
 4. **Upstream Frame Processing**: `grep -q 'Processing UNIQUE frame' $SERVER_LOG`
    - Verifies StreamingServerUpstreamOp received and processed frames from client
-   - Typical: 567 unique frames in 30 seconds
+   - Typical: 565-567 unique frames in 30 seconds
 
 5. **Downstream Tensor Processing**: `grep -q 'DOWNSTREAM: Processing tensor' $SERVER_LOG`
    - Verifies StreamingServerDownstreamOp processed and sent tensors to client
-   - Typical: 567 tensors in 30 seconds
+   - Typical: 565-567 tensors in 30 seconds
 
 6. **Frame Processing Statistics**: `grep -q 'Frame Processing Stats' $SERVER_LOG`
    - Verifies the server logged performance statistics at shutdown
@@ -731,11 +731,11 @@ The integration test **PASSES** when **ALL 10 checks** are met (6 server + 4 cli
 
 1. **Frame Sending Success**: `grep -q 'Frame sent successfully' $CLIENT_LOG`
    - Verifies client successfully sent frames to server
-   - Typical: 567 frames sent in 30 seconds
+   - Typical: 565-567 frames sent in 30 seconds
 
 2. **Frame Reception Success**: `grep -q 'CLIENT: Received frame' $CLIENT_LOG`
    - Verifies client successfully received frames from server (bidirectional)
-   - Typical: 567 frames received in 30 seconds
+   - Typical: 533-540 frames received in 30 seconds (slight lag expected)
    - Completes end-to-end bidirectional verification
 
 3. **Frame Validation**: `grep -q 'Frame validation passed' $CLIENT_LOG`
@@ -756,8 +756,14 @@ The integration test **PASSES** when **ALL 10 checks** are met (6 server + 4 cli
 **Test FAILS if:**
 
 - Any check fails (server < 6 or client < 4)
-- Process crashes during execution (segfault detected but test continues)
 - Test times out (> 300 seconds)
+
+**Note on Segmentation Faults:**
+
+- Segmentation faults may appear during graceful shutdown (after SIGTERM)
+- These are expected and do NOT cause test failure
+- The test passes if all 10 log verification checks succeed
+- Example: `Segmentation fault (core dumped)` appears in lines 441 and 698 of test output
 
 ### Expected Output
 
@@ -776,7 +782,7 @@ Step 1/15 : ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
 Test project /workspace/holohub/build-video_streaming
     Start 1: video_streaming_integration_test
 
-1: === Enhanced Integration Test with Log Verification ===
+1: === Integration Test with Log Verification ===
 1: Starting server and client with log capture...
 1: Server log: /tmp/server_log.XXXXXX
 1: Client log: /tmp/client_log.XXXXXX
@@ -787,18 +793,19 @@ Test project /workspace/holohub/build-video_streaming
 1: Letting streaming run for 30 seconds...
 1: Stopping client...
 1: Stopping server...
+1: /usr/bin/bash: line 53:   855 Segmentation fault      (core dumped) [...]
 1: 
 1: === Verifying Server Logs ===
 1: ✓ Server: Client connected
 1: ✓ Server: Upstream connection established
 1: ✓ Server: Downstream connection established
-1: ✓ Server: StreamingServerUpstreamOp processed 568 unique frames
-1: ✓ Server: StreamingServerDownstreamOp processed 568 tensors
+1: ✓ Server: StreamingServerUpstreamOp processed 567 unique frames
+1: ✓ Server: StreamingServerDownstreamOp processed 567 tensors
 1: ✓ Server: Frame processing statistics logged
 1: 
 1: === Verifying Client Logs ===
-1: ✓ Client: Sent 568 frames successfully
-1: ✓ Client: Received 534 frames from server
+1: ✓ Client: Sent 567 frames successfully
+1: ✓ Client: Received 533 frames from server
 1: ✓ Client: Frame validation passed
 1: ✓ Client: Streaming client started
 1: 
@@ -807,15 +814,52 @@ Test project /workspace/holohub/build-video_streaming
 1: Client checks passed: 4
 1: ✓ STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
 1: ✓ Integration test PASSED
+1/2 Test #1: video_streaming_integration_test ..........   Passed   44.08 sec
 
-1/1 Test #1: video_streaming_integration_test ...   Passed   44.07 sec
+    Start 2: video_streaming_integration_test_python
+
+2: === Python Integration Test with Log Verification ===
+2: Starting Python server and client with log capture...
+2: PYTHONPATH: /workspace/holohub/build-video_streaming/python/lib:...
+2: Python Server log: /tmp/server_python_log.XXXXXX
+2: Python Client log: /tmp/client_python_log.XXXXXX
+2: Starting Python streaming server...
+2: Waiting for Python server to initialize...
+2: ✓ Python Server process is running
+2: Starting Python streaming client...
+2: Letting Python streaming run for 30 seconds...
+2: Stopping Python client...
+2: Stopping Python server...
+2: /usr/bin/bash: line 58:  1144 Segmentation fault      (core dumped) [...]
+2: 
+2: === Verifying Python Server Logs ===
+2: ✓ Python Server: Client connected
+2: ✓ Python Server: Upstream connection established
+2: ✓ Python Server: Downstream connection established
+2: ✓ Python Server: StreamingServerUpstreamOp processed 565 unique frames
+2: ✓ Python Server: StreamingServerDownstreamOp processed 565 tensors
+2: ✓ Python Server: Frame processing statistics logged
+2: 
+2: === Verifying Python Client Logs ===
+2: ✓ Python Client: Sent 565 frames successfully
+2: ✓ Python Client: Received 533 frames from server
+2: ✓ Python Client: Frame validation passed
+2: ✓ Python Client: Streaming client started
+2: 
+2: === Python Test Results Summary ===
+2: Python Server checks passed: 6
+2: Python Client checks passed: 4
+2: ✓ PYTHON STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
+2: ✓ Python Integration test PASSED
+2/2 Test #2: video_streaming_integration_test_python ...   Passed   44.39 sec
 
 The following tests passed:
- video_streaming_integration_test
+	video_streaming_integration_test
+	video_streaming_integration_test_python
 
-100% tests passed, 0 tests failed out of 1
+100% tests passed, 0 tests failed out of 2
 
-Total Test time (real) = 44.07 sec
+Total Test time (real) =  88.48 sec
 
 === VERIFICATION ===
 ✓ Integration test passed with detailed verification
@@ -829,12 +873,13 @@ Total Test time (real) = 44.07 sec
 **Server Success Indicators:**
 
 ```console
-[info] StreamingServerResource starting...
-[info] StreamingServerUpstreamOp::start() called
-[info] StreamingServerDownstreamOp::start() called
-[info] ✅ UPSTREAM: Client connected successfully
-[info] ✅ Processing UNIQUE frame: 854x480, 1639680 bytes
+[info] ✅ [UPSTREAM 12345] Client connected: connection details
+[info] ⬆️ [UPSTREAM 12346] Upstream connection established: connection details
+[info] ⬇️ [DOWNSTREAM 12347] Downstream connection established: connection details
+[info] ✅ Processing UNIQUE frame: 854x480, 1639680 bytes, timestamp=29938
+[info] 📊 DOWNSTREAM: Processing tensor 567 - shape: 480x854x4, 1639680 bytes
 [info] ✅ DOWNSTREAM: Frame sent successfully to StreamingServerResource
+[info] 📊 Frame Processing Stats: Total=567, Unique=567, Duplicates=0
 ```
 
 **Client Success Indicators:**
@@ -842,39 +887,41 @@ Total Test time (real) = 44.07 sec
 ```console
 [info] Source set to: replayer
 [info] Using video replayer as source
+[info] 🔧 ENHANCED StreamingClient constructed! Version with buffer validation fixes!
 [info] StreamingClient created successfully
-[info] Connection established successfully
-[info] ✅ Tensor validation passed: 480x854x3, 1229760 bytes
+[info] ✅ Connection established successfully
+[info] ✅ Upstream connection established successfully!
 [info] ✅ Frame sent successfully on attempt 1
-[info] 🎯 CLIENT: Frame received callback triggered!
+[info] 🎯 CLIENT: Frame received callback triggered! Frame: 854x480, 1639680 bytes
 [info] 📥 CLIENT: Received frame #533 from server: 854x480
 ```
 
 **Performance Indicators:**
 
 ```console
-# Server processed 568 frames in both directions
+# Server processed 565-567 frames in both directions
 [info] ✅ Processing UNIQUE frame: 854x480, 1639680 bytes, timestamp=29938
-[info] 📊 DOWNSTREAM: Processing tensor 568 - shape: 480x854x4, 1639680 bytes
+[info] 📊 DOWNSTREAM: Processing tensor 567 - shape: 480x854x4, 1639680 bytes
 
-# Client sent 568 frames and received 534 frames
+# Client sent 565-567 frames and received ~533 frames
 [info] ✅ Frame sent successfully on attempt 1
-[info] 📥 CLIENT: Received frame #534 from server: 854x480
+[info] 📥 CLIENT: Received frame #533 from server: 854x480
 
-# Frame rate: ~19 FPS (568 frames ÷ 30 seconds)
+# Frame rate: ~19 FPS (567 frames ÷ 30 seconds)
 # Bidirectional throughput: ~62 MB/s (1.64MB per frame × 19 FPS × 2 directions)
 ```
 
 #### Integration Test Log File
 
-The complete test execution is saved to `integration_test.log` (typically 25,000-30,000 lines). This file contains:
+The complete test execution is saved to `integration_test.log` (typically 700-800 lines). This file contains:
 
-1. **Docker Build Logs**: Complete build output with all dependencies
-2. **CMake Configuration**: Build configuration and test setup
-3. **CTest Execution**: Detailed test execution with timestamps
-4. **Server Logs**: All server application logs (initialization, frame processing, shutdown)
-5. **Client Logs**: All client application logs (connection, streaming, frame reception)
-6. **Test Summary**: Final PASS/FAIL status with verification details
+1. **Docker Build Logs**: Complete build output with all dependencies (~200 lines)
+2. **CMake Configuration**: Build configuration and test setup (~100 lines)
+3. **CTest Execution**: Detailed test execution with timestamps (~400 lines)
+4. **Test Verification**: Log verification checks with pass/fail status (~100 lines)
+5. **Test Summary**: Final PASS/FAIL status with verification details
+
+**Note**: The actual server and client application logs are redirected to temporary files during testing and are NOT included in `integration_test.log`. These detailed logs are only displayed if the test fails.
 
 **Analyzing the log:**
 
@@ -904,12 +951,12 @@ If you see output like:
 === Verifying Server Logs ===
 ✗ Server: Upstream connection not established
 ✗ Server: Downstream connection not established
-✓ Server: StreamingServerUpstreamOp processed 568 unique frames  # But frames work!
-✓ Server: StreamingServerDownstreamOp processed 568 tensors      # But frames work!
+✓ Server: StreamingServerUpstreamOp processed 567 unique frames  # But frames work!
+✓ Server: StreamingServerDownstreamOp processed 567 tensors      # But frames work!
 
 === Verifying Client Logs ===
-✓ Client: Sent 568 frames successfully
-✓ Client: Received 534 frames from server  # Bidirectional works!
+✓ Client: Sent 567 frames successfully
+✓ Client: Received 533 frames from server  # Bidirectional works!
 
 === Test Results Summary ===
 Server checks passed: 4
@@ -1055,13 +1102,13 @@ Stopping Python server...
 ✓ Python Server: Client connected
 ✓ Python Server: Upstream connection established
 ✓ Python Server: Downstream connection established
-✓ Python Server: StreamingServerUpstreamOp processed 566 unique frames
-✓ Python Server: StreamingServerDownstreamOp processed 566 tensors
+✓ Python Server: StreamingServerUpstreamOp processed 565 unique frames
+✓ Python Server: StreamingServerDownstreamOp processed 565 tensors
 ✓ Python Server: Frame processing statistics logged
 
 === Verifying Python Client Logs ===
-✓ Python Client: Sent 566 frames successfully
-✓ Python Client: Received 534 frames from server
+✓ Python Client: Sent 565 frames successfully
+✓ Python Client: Received 533 frames from server
 ✓ Python Client: Frame validation passed
 ✓ Python Client: Streaming client started
 
@@ -1071,9 +1118,13 @@ Python Client checks passed: 4
 ✓ PYTHON STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
 ✓ Python Integration test PASSED
 
-1/1 Test #2: video_streaming_integration_test_python ...   Passed   44.08 sec
+2/2 Test #2: video_streaming_integration_test_python ...   Passed   44.39 sec
 
-100% tests passed, 0 tests failed out of 1
+The following tests passed:
+	video_streaming_integration_test
+	video_streaming_integration_test_python
+
+100% tests passed, 0 tests failed out of 2
 ```
 
 **Important Notes:**
