@@ -4,7 +4,7 @@
     "description": "Python implementation of video streaming client using Holoscan SDK streaming operators",
     "authors": [
       {
-        "name": "NVIDIA",
+        "name": "Holoscan Team",
         "affiliation": "NVIDIA"
       }
     ],
@@ -25,21 +25,17 @@
     ],
     "tags": [
       "Streaming",
-      "video",
-      "client",
-      "python",
-      "real-time"
+      "Video",
+      "Client",
+      "Python",
+      "Real-time"
     ],
     "ranking": 1,
     "requirements": {
       "operators": [
         {
-          "name": "streaming_server_enhanced",
-          "version": "1.0.0"
-        },
-        {
-          "name": "streaming_client_enhanced",
-          "version": "1.0.0"
+          "name": "video_streaming",
+          "version": "1.1.0"
         }
       ]
     },
