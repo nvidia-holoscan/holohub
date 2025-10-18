@@ -24,11 +24,10 @@
       "aarch64"
     ],
     "tags": [
-      "streaming",
+      "Streaming",
       "video",
       "client",
       "python",
-      "webrtc",
       "real-time"
     ],
     "ranking": 1,
