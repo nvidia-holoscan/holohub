@@ -52,7 +52,7 @@ add_executable(test_streaming_server_ops
 # Link against the streaming server libraries and GTest
 target_link_libraries(test_streaming_server_ops
   PRIVATE
-    streaming_server
+    streaming_server_enhanced
     holoscan::core
     GTest::gtest
     GTest::gtest_main
