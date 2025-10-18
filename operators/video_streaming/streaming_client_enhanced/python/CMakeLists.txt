@@ -33,7 +33,7 @@ set_target_properties(streaming_client_python PROPERTIES
 # Also update the __init__.py location
 file(REMOVE "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_client/__init__.py")
 file(WRITE "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_client_enhanced/__init__.py"
-"# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+"# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 import holoscan.core
