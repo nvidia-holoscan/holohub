@@ -21,8 +21,7 @@ pybind11_add_holohub_module(
 )
 
 # Custom __init__.py with all three classes explicitly listed
-# This overrides the auto-generated one to ensure all classes are imported
-set(INIT_PY_CONTENT "# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+set(INIT_PY_CONTENT "# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 import holoscan.core
