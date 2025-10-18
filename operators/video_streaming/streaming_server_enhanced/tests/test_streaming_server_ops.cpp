@@ -34,7 +34,7 @@ namespace holoscan::ops {
 class StreamingServerResourceTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    fragment_ = holoscan::make_fragment<holoscan::Fragment>();
+    fragment_ = std::make_shared<holoscan::Fragment>();
   }
 
   void TearDown() override {
@@ -52,7 +52,7 @@ class StreamingServerResourceTest : public ::testing::Test {
 class StreamingServerUpstreamOpTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    fragment_ = holoscan::make_fragment<holoscan::Fragment>();
+    fragment_ = std::make_shared<holoscan::Fragment>();
   }
 
   void TearDown() override {
@@ -72,7 +72,7 @@ class StreamingServerUpstreamOpTest : public ::testing::Test {
 class StreamingServerDownstreamOpTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    fragment_ = holoscan::make_fragment<holoscan::Fragment>();
+    fragment_ = std::make_shared<holoscan::Fragment>();
   }
 
   void TearDown() override {
