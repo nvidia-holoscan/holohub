@@ -763,7 +763,7 @@ The integration test **PASSES** when **ALL 10 checks** are met (6 server + 4 cli
 - Segmentation faults may appear during graceful shutdown (after SIGTERM)
 - These are expected and do NOT cause test failure
 - The test passes if all 10 log verification checks succeed
-- Example: `Segmentation fault (core dumped)` appears in lines 441 and 698 of test output
+- Example: `Segmentation fault (core dumped)` appears in lines 423 and 680 of test output
 
 ### Expected Output
 
@@ -805,7 +805,7 @@ Test project /workspace/holohub/build-video_streaming
 1: 
 1: === Verifying Client Logs ===
 1: ✓ Client: Sent 567 frames successfully
-1: ✓ Client: Received 533 frames from server
+1: ✓ Client: Received 535 frames from server
 1: ✓ Client: Frame validation passed
 1: ✓ Client: Streaming client started
 1: 
@@ -956,7 +956,7 @@ If you see output like:
 
 === Verifying Client Logs ===
 ✓ Client: Sent 567 frames successfully
-✓ Client: Received 533 frames from server  # Bidirectional works!
+✓ Client: Received 535 frames from server  # Bidirectional works!
 
 === Test Results Summary ===
 Server checks passed: 4
@@ -1083,9 +1083,9 @@ The Python integration test validates the complete bidirectional video streaming
 
 ### Expected Outcome
 
-**Successful Test Output:**
+**Successful Test Output (Standalone Python Test):**
 ```
-=== Python Enhanced Integration Test with Log Verification ===
+=== Python Integration Test with Log Verification ===
 Starting Python server and client with log capture...
 PYTHONPATH: /workspace/holohub/build-video_streaming/python/lib:...
 Python Server log: /tmp/server_python_log.XXXXXX
@@ -1097,18 +1097,19 @@ Starting Python streaming client...
 Letting Python streaming run for 30 seconds...
 Stopping Python client...
 Stopping Python server...
+/usr/bin/bash: line 58:  530 Segmentation fault      (core dumped) python3 streaming_server_demo.py ...
 
 === Verifying Python Server Logs ===
 ✓ Python Server: Client connected
 ✓ Python Server: Upstream connection established
 ✓ Python Server: Downstream connection established
-✓ Python Server: StreamingServerUpstreamOp processed 565 unique frames
-✓ Python Server: StreamingServerDownstreamOp processed 565 tensors
+✓ Python Server: StreamingServerUpstreamOp processed 564 unique frames
+✓ Python Server: StreamingServerDownstreamOp processed 564 tensors
 ✓ Python Server: Frame processing statistics logged
 
 === Verifying Python Client Logs ===
-✓ Python Client: Sent 565 frames successfully
-✓ Python Client: Received 533 frames from server
+✓ Python Client: Sent 564 frames successfully
+✓ Python Client: Received 531 frames from server
 ✓ Python Client: Frame validation passed
 ✓ Python Client: Streaming client started
 
@@ -1118,14 +1119,21 @@ Python Client checks passed: 4
 ✓ PYTHON STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
 ✓ Python Integration test PASSED
 
-2/2 Test #2: video_streaming_integration_test_python ...   Passed   44.39 sec
+1/1 Test #2: video_streaming_integration_test_python ...   Passed   44.41 sec
 
 The following tests passed:
-	video_streaming_integration_test
-	video_streaming_integration_test_python
+        video_streaming_integration_test_python
 
-100% tests passed, 0 tests failed out of 2
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) = 44.42 sec
 ```
+
+**Note:** When running the full integration test suite (both C++ and Python tests together), you'll see:
+- Test counter: `2/2 Test #2` (instead of `1/1`)
+- Both tests listed: `video_streaming_integration_test` and `video_streaming_integration_test_python`
+- Total: `0 tests failed out of 2`
+- Total time: ~88 seconds (both tests combined)
 
 **Important Notes:**
 - A segmentation fault may occur during shutdown - this is **expected** and does not indicate test failure
