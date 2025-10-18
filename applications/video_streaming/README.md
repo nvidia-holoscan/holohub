@@ -290,6 +290,8 @@ For complete implementation details, see the component-specific READMEs:
 
 ## Camera Setup and Testing
 
+> **📖 For detailed camera configuration and troubleshooting**, see the [Client Operator README](../../operators/video_streaming/streaming_client_enhanced/README.md#camera-setup-and-testing) which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.
+
 ### Testing Your V4L2 Camera
 
 Before starting the streaming client with camera input:
