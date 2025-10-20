@@ -66,21 +66,21 @@ function(fetch_holohub_operator OPERATOR_NAME)
         && git sparse-checkout set --no-cone
             operators/${ARGS_PATH}
             cmake/pybind11_add_holohub_module.cmake
+            cmake/nvidia_video_codec.cmake
             cmake/pybind11/
             cmake/pydoc/
             operators/operator_util.hpp
         && git checkout ${ARGS_BRANCH}
         # Write a CMakeLists.txt in the operators directory to set CMAKE_MODULE_PATH and add the operator subdirectory
-        && echo "list(APPEND CMAKE_MODULE_PATH \\$\\{CMAKE_CURRENT_LIST_DIR\\}/cmake)
-if(HOLOHUB_BUILD_PYTHON)
-  if(NOT CMAKE_INSTALL_LIBDIR)
-    set(CMAKE_INSTALL_LIBDIR lib)
-  endif()
-  set(HOLOHUB_PYTHON_MODULE_OUT_DIR \\$\\{CMAKE_BINARY_DIR\\}/python/\\$\\{CMAKE_INSTALL_LIBDIR\\}/holohub)
-  file(MAKE_DIRECTORY \\$\\{HOLOHUB_PYTHON_MODULE_OUT_DIR\\})
-endif()
-add_subdirectory(operators/${ARGS_PATH})
-" > "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "list(APPEND CMAKE_MODULE_PATH \\$\\{CMAKE_CURRENT_LIST_DIR\\}/cmake)" > "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "if(HOLOHUB_BUILD_PYTHON)" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "  if(NOT CMAKE_INSTALL_LIBDIR)" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "    set(CMAKE_INSTALL_LIBDIR lib)" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "  endif()" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "  set(HOLOHUB_PYTHON_MODULE_OUT_DIR \\$\\{CMAKE_BINARY_DIR\\}/python/\\$\\{CMAKE_INSTALL_LIBDIR\\}/holohub)" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "  file(MAKE_DIRECTORY \\$\\{HOLOHUB_PYTHON_MODULE_OUT_DIR\\})" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "endif()" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+        && echo "add_subdirectory(operators/${ARGS_PATH})" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
   )
 
   FetchContent_MakeAvailable(holohub_${OPERATOR_NAME})

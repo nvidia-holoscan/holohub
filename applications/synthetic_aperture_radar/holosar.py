@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -478,10 +478,14 @@ class SAR_ImagingApp(Application):
         self.add_flow(printer, visualizer, {("outputs", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     set_log_level(LogLevel.WARN)
 
     app = SAR_ImagingApp()
     config_file = os.path.join(os.path.dirname(__file__), "app_config.yaml")
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

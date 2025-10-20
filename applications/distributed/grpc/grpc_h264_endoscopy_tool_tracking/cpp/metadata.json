@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "Distributed H.264 Endoscopy Tool Tracking with gRPC Streaming",
+		"name": "Distributed H.264 gRPC Streaming",
+		"description": "Distributed H.264 Endoscopy Tool Tracking with gRPC Streaming",
 		"authors": [
 			{
 				"name": "Holoscan Team",

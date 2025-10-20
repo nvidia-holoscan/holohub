@@ -81,12 +81,13 @@ This workflow utilizes the following three AI models:
 
 This single command will create and launch Holohub container, build the workflow, and run the workflow with the default arguments set in the [config.yaml](./python/config.yaml) file and a replayer source.
 
-
 ### Using AJA Card as I/O
 
 ```sh
 ./holohub run ai_surgical_video --run-args "--source aja"
 ```
+
+> Note: the AJA video buffer dtype is set to `rgba8888` by default. If your camera is not providing alpha channel, you can change it to `rgb888` by modifying `in_dtype` in the `aja_format_converter` section of the [config.yaml](./python/config.yaml) file.
 
 ### Using Holoscan Sensor Bridge as I/O
 

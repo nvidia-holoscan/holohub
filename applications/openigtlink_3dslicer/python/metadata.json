@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "OpenIGTLink 3D Slicer: Bidirectional Video Streaming with AI Segmentation",
+		"name": "OpenIGTLink 3D Slicer",
+		"description": "Bidirectional video streaming with AI segmentation",
 		"authors": [
 			{
 				"name": "Holoscan Team",

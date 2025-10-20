@@ -25,9 +25,9 @@
 			"aarch64"
 		],
 		"tags": [
+			"Rendering",
 			"Slang",
 			"shading",
-			"rendering",
 			"shader",
 			"shadertoy",
 			"compute",

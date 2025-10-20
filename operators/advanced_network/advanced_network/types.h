@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,6 +60,7 @@ struct BurstHeaderParams {
   uint32_t max_pkt_size;
   uint32_t gpu_pkt0_idx;
   uintptr_t gpu_pkt0_addr;
+  uint32_t burst_flags;
 };
 
 struct BurstHeader {
@@ -83,6 +84,7 @@ struct BurstParams {
   std::array<void**, MAX_NUM_SEGS> pkts;
   std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;
   void** pkt_extra_info;
+  std::shared_ptr<void> custom_pkt_data;
   cudaEvent_t event;
 };
 
@@ -168,6 +170,14 @@ enum class Direction : uint8_t {
   RX = 0,
   TX = 1,
   TX_RX = 2,
+};
+
+/**
+ * @brief Loopback type
+ */
+enum class LoopbackType : uint8_t {
+  DISABLED = 0,
+  LOOPBACK_TYPE_SW = 1,
 };
 
 /**
@@ -365,6 +375,7 @@ struct CommonConfig {
   int master_core_;
   Direction dir;
   ManagerType manager_type;
+  LoopbackType loopback_;
 };
 
 struct RxConfig {

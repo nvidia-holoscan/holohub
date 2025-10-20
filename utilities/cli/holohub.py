@@ -42,17 +42,23 @@ from typing import List, Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
-from utilities.cli.container import HoloHubContainer, base_sdk_version
+from utilities.cli.container import HoloHubContainer
 from utilities.cli.util import Color
 
 
 class HoloHubCLI:
     """Command-line interface for HoloHub"""
 
-    HOLOHUB_ROOT = Path(__file__).parent.parent.parent
-    DEFAULT_BUILD_PARENT_DIR = HOLOHUB_ROOT / "build"
-    DEFAULT_DATA_DIR = HOLOHUB_ROOT / "data"
-    DEFAULT_SDK_DIR = "/opt/nvidia/holoscan/lib"
+    HOLOHUB_ROOT = holohub_cli_util.get_holohub_root()
+    DEFAULT_BUILD_PARENT_DIR = Path(
+        os.environ.get("HOLOHUB_BUILD_PARENT_DIR", HOLOHUB_ROOT / "build")
+    )
+    DEFAULT_DATA_DIR = Path(os.environ.get("HOLOHUB_DATA_DIR", HOLOHUB_ROOT / "data"))
+    DEFAULT_SDK_DIR = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan/lib")
+    # Allow overriding the default CTest script path via environment variable
+    DEFAULT_CTEST_SCRIPT = os.environ.get(
+        "HOLOHUB_CTEST_SCRIPT", "utilities/testing/holohub.container.ctest"
+    )
 
     def __init__(self):
         self.script_name = os.environ.get("HOLOHUB_CMD_NAME", "./holohub")
@@ -175,8 +181,8 @@ class HoloHubCLI:
         build.add_argument("--verbose", action="store_true", help="Print extra output")
         build.add_argument(
             "--build-type",
-            choices=["debug", "release", "rel-debug"],
-            help="Build type (debug, release, rel-debug)",
+            help="Build type (debug, release, rel-debug). "
+            "If not specified, uses CMAKE_BUILD_TYPE environment variable or defaults to 'release'",
         )
         build.add_argument(
             "--build-with",
@@ -230,8 +236,8 @@ class HoloHubCLI:
         )
         run.add_argument(
             "--build-type",
-            choices=["debug", "release", "rel-debug"],
-            help="Build type (debug, release, rel-debug)",
+            help="Build type (debug, release, rel-debug). "
+            "If not specified, uses CMAKE_BUILD_TYPE environment variable or defaults to 'release'",
         )
         run.add_argument(
             "--run-args",
@@ -331,8 +337,8 @@ class HoloHubCLI:
         )
         install.add_argument(
             "--build-type",
-            choices=["debug", "release", "rel-debug"],
-            help="Build type (debug, release, rel-debug)",
+            help="Build type (debug, release, rel-debug). "
+            "If not specified, uses CMAKE_BUILD_TYPE environment variable or defaults to 'release'",
         )
         install.add_argument(
             "--language", choices=["cpp", "python"], help="Specify language implementation"
@@ -612,7 +618,7 @@ class HoloHubCLI:
             holohub_cli_util.fatal(
                 f"Cannot specify CLI parameters {params_str} when using explicit mode '{mode_name}'. "
                 f"All configuration must be provided through the mode definition.\n"
-                f"See https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/README.md"
+                f"See {os.environ.get('HOLOHUB_CLI_DOCS_URL', 'https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/README.md')}"
             )
 
     def get_effective_build_config(
@@ -773,6 +779,7 @@ class HoloHubCLI:
             img=args.img,
             no_cache=args.no_cache,
             build_args=args.build_args,
+            cuda_version=getattr(args, "cuda", None),
         )
 
     def handle_run_container(self, args: argparse.Namespace) -> None:
@@ -790,6 +797,7 @@ class HoloHubCLI:
                 img=args.img,
                 no_cache=args.no_cache,
                 build_args=args.build_args,
+                cuda_version=getattr(args, "cuda", None),
             )
 
         trailing_args = getattr(args, "_trailing_args", [])
@@ -838,11 +846,12 @@ class HoloHubCLI:
                 img=args.img,
                 no_cache=args.no_cache,
                 build_args=args.build_args,
+                cuda_version=getattr(args, "cuda", None),
             )
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
 
-        # TAG is used in utilities/testing/holohub.container.ctest by default
+        # TAG is used in CTest scripts by default
         if getattr(args, "build_name_suffix", None):
             tag = args.build_name_suffix
         else:
@@ -851,7 +860,11 @@ class HoloHubCLI:
             else:
                 image_name = args.base_img or container.default_base_image()
             tag = image_name.split(":")[-1]
-        ctest_cmd = f"{xvfb} ctest -DAPP={args.project} -DTAG={tag} "
+
+        ctest_cmd = f"{xvfb} ctest "
+        if args.project:
+            ctest_cmd += f"-DAPP={args.project} "
+        ctest_cmd += f"-DTAG={tag} "
 
         if args.cmake_options:
             cmake_opts = ";".join(args.cmake_options)
@@ -872,7 +885,7 @@ class HoloHubCLI:
         if args.ctest_script:
             ctest_cmd += f"-S {args.ctest_script} "
         else:
-            ctest_cmd += "-S utilities/testing/holohub.container.ctest "
+            ctest_cmd += f"-S {self.DEFAULT_CTEST_SCRIPT} "
 
         if args.verbose:
             ctest_cmd += "-VV "
@@ -956,10 +969,12 @@ class HoloHubCLI:
 
         # Build the project with optional parallel jobs
         build_cmd = ["cmake", "--build", str(build_dir), "--config", build_type]
-        if parallel:
-            build_cmd.extend(["-j", parallel])
+        # Determine the number of parallel jobs (user input > env var > CPU count):
+        if parallel is not None:
+            build_njobs = str(parallel)
         else:
-            build_cmd.append("-j")  # Use default number of jobs
+            build_njobs = os.environ.get("CMAKE_BUILD_PARALLEL_LEVEL", str(os.cpu_count()))
+        build_cmd.extend(["-j", build_njobs])
 
         holohub_cli_util.run_command(build_cmd, dry_run=dryrun)
 
@@ -1034,6 +1049,7 @@ class HoloHubCLI:
                     img=args.img,
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
+                    cuda_version=getattr(args, "cuda", None),
                 )
 
             # Build command with all necessary arguments
@@ -1125,7 +1141,7 @@ class HoloHubCLI:
                 build_dir, project_data = self.build_project_locally(
                     project_name=args.project,
                     language=args.language if hasattr(args, "language") else None,
-                    build_type=args.build_type or "Release",  # Default to Release for run
+                    build_type=args.build_type,
                     with_operators=build_args.get("with_operators"),
                     dryrun=args.dryrun,
                     pkg_generator=getattr(args, "pkg_generator", "DEB"),
@@ -1146,11 +1162,13 @@ class HoloHubCLI:
                         f"Project '{args.project}' does not have a run configuration"
                     )
 
+            prefix = holohub_cli_util.resolve_path_prefix(None)
             path_mapping = holohub_cli_util.build_holohub_path_mapping(
                 holohub_root=HoloHubCLI.HOLOHUB_ROOT,
                 project_data=project_data,
                 build_dir=build_dir,
                 data_dir=HoloHubCLI.DEFAULT_DATA_DIR,
+                prefix=prefix,
             )
             if path_mapping:
                 mapping_info = ";\n".join(
@@ -1179,10 +1197,9 @@ class HoloHubCLI:
                         f"Did you forget to '{self.script_name} build {args.project}'?"
                     )
 
-            # Handle workdir using the path mapping
-            workdir_spec = run_config.get("workdir", "holohub_app_bin")
+            workdir_spec = run_config.get("workdir", f"{prefix}app_bin")
             if not workdir_spec:
-                target_dir = Path(path_mapping.get("holohub_root", "."))
+                target_dir = Path(path_mapping.get(f"{prefix}root", "."))
             elif workdir_spec in path_mapping:
                 target_dir = Path(path_mapping[workdir_spec])
             else:
@@ -1200,6 +1217,9 @@ class HoloHubCLI:
             env["HOLOSCAN_INPUT_PATH"] = os.environ.get(
                 "HOLOSCAN_INPUT_PATH", str(HoloHubCLI.DEFAULT_DATA_DIR)
             )
+
+            if run_config.get("env", None) is not None:
+                env.update(run_config["env"])
 
             # Print environment setup
             if args.verbose or args.dryrun:
@@ -1262,6 +1282,7 @@ class HoloHubCLI:
                     img=args.img,
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
+                    cuda_version=getattr(args, "cuda", None),
                 )
             language = holohub_cli_util.normalize_language(
                 container.project_metadata.get("metadata", {}).get("language", None)
@@ -1748,6 +1769,7 @@ class HoloHubCLI:
                     img=args.img,
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
+                    cuda_version=getattr(args, "cuda", None),
                 )
 
             # Install command with all necessary arguments
@@ -1795,14 +1817,22 @@ class HoloHubCLI:
             print(Color.blue("Would clear cache folders:"))
         else:
             print(Color.blue("Clearing cache..."))
+
+        cache_dirs = [
+            self.DEFAULT_BUILD_PARENT_DIR,
+            self.DEFAULT_DATA_DIR,
+        ]
         for pattern in ["build", "build-*", "data", "data-*", "install"]:
             for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                if path.is_dir():
-                    if args.dryrun:
-                        print(f"  {Color.yellow('Would remove:')} {path}")
-                    else:
-                        print(f"  {Color.red('Removing:')} {path}")
-                        shutil.rmtree(path)
+                if path.is_dir() and path not in cache_dirs:
+                    cache_dirs.append(path)
+        for path in set(cache_dirs):
+            if path.exists() and path.is_dir():
+                if args.dryrun:
+                    print(f"  {Color.yellow('Would remove:')} {path}")
+                else:
+                    print(f"  {Color.red('Removing:')} {path}")
+                    shutil.rmtree(path)
 
     def _add_to_cmakelists(self, project_name: str) -> None:
         """Add a new application to applications/CMakeLists.txt if it doesn't exist"""
@@ -1848,6 +1878,7 @@ class HoloHubCLI:
                 img=dev_container_tag,
                 no_cache=args.no_cache,
                 build_args=args.build_args,
+                cuda_version=getattr(args, "cuda", None),
             )
         else:
             print(f"Skipping build, using existing Dev Container {dev_container_tag}...")
@@ -1898,7 +1929,7 @@ class HoloHubCLI:
             "project_name": args.project,
             "project_slug": args.project.lower().replace(" ", "_"),
             "language": args.language.lower() if args.language else None,  # Only set if provided
-            "holoscan_version": base_sdk_version,
+            "holoscan_version": HoloHubContainer.BASE_SDK_VERSION,
             "year": datetime.datetime.now().year,
         }
 

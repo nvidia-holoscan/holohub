@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -206,6 +206,8 @@ class DpdkMgr : public Manager {
   static int rx_core_worker(void* arg);
   static int rx_core_multi_q_worker(void* arg);
   static int tx_core_worker(void* arg);
+  static int rx_lb_worker(void* arg);
+  static int tx_lb_worker(void* arg);
   static void flush_packets(int port);
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
@@ -238,6 +240,8 @@ class DpdkMgr : public Manager {
   uint64_t timestamp_offset_{0};
   std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
   DpdkStats stats_;
+  struct rte_ring* loopback_ring;
+  LoopbackType loopback_;
   std::thread stats_thread_;
   int num_init = 0;
 };
