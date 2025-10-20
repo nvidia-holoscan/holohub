@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,41 @@ project(object_detection_torch CXX)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+if(holoscan_VERSION GREATER 3.5)
+  # Torchvision is required for loading FRCNN ResNet 50 and similar models
+  # with the Holoinfer Libtorch backend.
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+
+  execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c "import torch; print(torch.__path__[0])"
+    OUTPUT_VARIABLE TORCH_ROOT_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  find_package(Torch PATHS ${TORCH_ROOT_DIR} REQUIRED)
+
+  execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c "import torchvision; print(';'.join(torchvision.__path__))"
+    OUTPUT_VARIABLE TORCHVISION_SEARCH_DIRS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  find_library(TORCHVISION_LIBRARY
+    NAMES libtorchvision.so _C.so
+    PATHS ${TORCHVISION_SEARCH_DIRS}
+    PATH_SUFFIXES lib lib64
+    REQUIRED
+  )
+  message(STATUS "Found Torchvision: ${TORCHVISION_LIBRARY}")
+  add_library(torchvision SHARED IMPORTED)
+  set_target_properties(torchvision PROPERTIES
+      IMPORTED_LOCATION "${TORCHVISION_LIBRARY}"
+  )
+  target_link_libraries(torchvision INTERFACE
+    torch
+    Python3::Python
+  )
+  add_library(torchvision::torchvision ALIAS torchvision)
+endif()
+
 add_executable(object_detection_torch
     main.cpp
 )
@@ -26,23 +61,39 @@ add_executable(object_detection_torch
 target_link_libraries(object_detection_torch
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::video_stream_replayer
     holoscan::ops::video_stream_recorder
     holoscan::ops::format_converter
     holoscan::ops::inference
     holoscan::ops::inference_processor
     holoscan::ops::holoviz
+    $<TARGET_NAME_IF_EXISTS:holoscan::aja>
 )
+
+if(holoscan_VERSION GREATER 3.5)
+  # Forcibly link torchvision and its required Python symbols to prevent ResNet runtime import failure
+  target_link_libraries(object_detection_torch
+    PRIVATE
+    torchvision::torchvision
+    "-Wl,--no-as-needed $<TARGET_PROPERTY:Python3::Python,IMPORTED_LOCATION> $<TARGET_PROPERTY:torchvision::torchvision,IMPORTED_LOCATION> -Wl,--as-needed"
+  )
+endif()
+
+if("${holoscan_VERSION}" VERSION_GREATER_EQUAL "3.7")
+  # holoscan::holoinfer_utils is directly available in Holoscan SDK 3.7 and later
+  target_link_libraries(object_detection_torch PRIVATE holoscan::holoinfer_utils)
+else()
+  # "holoscan_utils.hpp" is exposed through holoscan::infer in Holoscan SDK 3.6 and earlier
+  target_link_libraries(object_detection_torch PRIVATE holoscan::infer)
+endif()
 
 # Download the cars sample data
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(object_detection_torch
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_cars_video/versions/20230725/zip
+    URL nvidia/clara-holoscan/holoscan_cars_video:20230725
     DOWNLOAD_NAME holoscan_cars_video_20230725.zip
-    URL_MD5 a0a510bc01cee0580a280d792da9ac5f
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 1080
@@ -55,6 +106,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   # Download the model
   add_custom_target(download_model
     COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/generate_resnet_model.py"  "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
+    DEPENDS object_detection_torch_data
     BYPRODUCTS "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
   )
   add_dependencies(object_detection_torch download_model)
@@ -70,7 +122,9 @@ add_custom_target(object_detection_torch_yaml
                                                   "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/labels.txt"
                                                   "${HOLOHUB_DATA_DIR}/object_detection_torch/labels.txt"
-    DEPENDS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
+    DEPENDS
+      "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
+      object_detection_torch_data  # download after NGC data is downloaded to avoid directory overwrite
     BYPRODUCTS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
 )
 add_dependencies(object_detection_torch object_detection_torch_yaml)

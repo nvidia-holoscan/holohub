@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "webrtc_client",
+		"name": "WebRTCClientOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -11,8 +11,9 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["WebRTC", "Client", "Browser", "Video"],
+		"language": ["Python"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Networking and Distributed Computing", "WebRTC", "Video"],
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [
@@ -20,7 +21,7 @@
 			]
 		},
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "aiortc",

@@ -1,13 +1,13 @@
 {
 	"operator": {
-		"name": "prohawk_video_processing",
+		"name": "ProhawkOp",
 		"authors": [
 			{
 				"name": "Tim Wooldridge",
 				"affiliation": "Prohawk Technology Group"
 			}
 		],
-		"language": "C++",
+		"language": ["C++"],
 		"version": "1.0.0",
 		"changelog": {
 			"1.0": "Added watermark to the prohawk restoration engine"
@@ -20,14 +20,11 @@
 			]
 		},
 		"platforms": [
-			"arm64"
+			"aarch64"
 		],
-		"tags": [
-			"Video processing",
-			"Prohawk"
-		],
+		"tags": ["Video"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"SDK": "Prohawk runtime"
 		}
 	}

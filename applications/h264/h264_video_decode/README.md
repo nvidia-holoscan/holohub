@@ -1,4 +1,4 @@
-# H.264 Video Decode Reference Application
+# H.264 Video Decode
 
 This is a minimal reference application demonstrating usage of H.264 video
 decode operators. This application makes use of H.264 elementary stream reader
@@ -22,17 +22,26 @@ input file can be specified in the 'h264_video_decode.yaml' file.
 
 The data is automatically downloaded when building the application.
 
-## Building and Running H.264 Endoscopy Tool Tracking Application
+## Build and Run the H.264 Endoscopy Tool Tracking Application
 
-* Building and running the application from the top level Holohub directory:
+### C++
+
+```bash
+./holohub run h264_video_decode --language cpp
+```
+
+### Python
+
+Separate build and run commands are required to address the known [symbol loading issue](../README.md#symbol-error-at-load).
 
 ```bash
 # C++ version
-./dev_container build_and_run h264_video_decode --docker_file applications/h264/Dockerfile --language cpp
+./holohub build h264_video_decode --language python
 
 # Python version
-./dev_container build_and_run h264_video_decode --docker_file applications/h264/Dockerfile --language python
-
+# Note: LD_PRELOAD required to address symbol issue
+./holohub run h264_video_decode --language python \
+    --docker-opts="-e LD_PRELOAD=/opt/nvidia/holoscan/lib/libgxf_core.so"
 ```
 
 Important: on aarch64, applications also need tegra folder mounted inside the container and
@@ -52,7 +61,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode h264
+./holohub vscode h264
 ```
 
 ### VS Code Launch Profiles

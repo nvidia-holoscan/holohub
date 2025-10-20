@@ -1,0 +1,49 @@
+{
+	"application": {
+		"name": "XR + Holoviz",
+		"authors": [
+			{
+				"name": "Connor Smith",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Rafael Wiltz",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Mimi Liao",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.1.0",
+		"changelog": {
+			"1.0": "Initial release",
+			"1.1": "Add depth buffer support"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.3.0",
+			"tested_versions": [
+				"3.3.0",
+				"3.4.0"
+			]
+		},
+		"platforms": [
+			"x86_64"
+		],
+		"tags": ["Extended Reality", "Visualization", "Rendering", "Stereo Vision"],
+		"ranking": 4,
+		"requirements": {
+			"operators": [
+				{
+					"name": "xr",
+					"version": "1.0.0"
+				}
+			]
+		},
+		"run": {
+			"command": "<holohub_app_bin>/xr_holoviz",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}

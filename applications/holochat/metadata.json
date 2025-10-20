@@ -18,24 +18,62 @@
 					"2.0.0"
 				]
 			},
-			"platforms": ["amd64", "arm64"],
-			"tags": ["LLM", "Vector Database", "AI-Assistant"],
+			"platforms": ["x86_64", "aarch64"],
+			"tags": ["Natural Language and Conversational AI", "RAG", "Vector Database", "LLM"],
 			"ranking": 4,
-			"dependencies": {
-				"OSS": [
-					{
-						"name": "Llama.cpp",
-						"version": "cf9b08485c4c2d4d945c6e74fe20f273a38b6104"
-					},
-					{
-						"name": "LangChain",
-						"version": "0.1.11"
-					}
-			   ]
+			"requirements": {
+				"vector_database": {
+					"type": "data",
+					"name": "Vector Database",
+					"description": "ChromaDB vector database for RAG document storage and retrieval, will be created if not present"
+				},
+				"llm_model": {
+					"type": "model",
+					"name": "Local LLM Model",
+					"description": "Local language model files for offline inference"
+				},
+				"gpu": {
+					"type": "hardware",
+					"name": "gpu",
+					"description": "NVIDIA GPU required for local LLM inference"
+				},
+				"openai_api": {
+					"type": "software",
+					"name": "OpenAI API or similar LLM service",
+					"description": "External API service for cloud-based LLM inference"
+				},
+				"NIM": {
+					"type": "software",
+					"name": "NVIDIA API",
+					"description": "NVIDIA API for cloud-based LLM inference"
+				}
 			},
-			"run": {
-				"command": "<holohub_app_source>/holochat.sh",
-				"workdir": "holohub_app_source"
+			"default_mode": "cloud",
+			"modes": {
+				"cloud": {
+					"description": "Remote LLM mode using NVIDIA NIM API with Llama-3-70b-Instruct for cloud-based inference and production deployment",
+					"requirements": ["vector_database", "NIM"],
+					"run": {
+						"command": "<holohub_app_source>/holochat.sh",
+						"workdir": "holohub_app_source"
+					}
+				},
+				"standalone": {
+					"description": "Local LLM mode using Phind-CodeLlama-34B-v2 with Llama.cpp for offline usage, privacy-sensitive deployments, and development",
+					"requirements": ["gpu", "vector_database", "llm_model"],
+					"run": {
+						"command": "<holohub_app_source>/holochat.sh --local",
+						"workdir": "holohub_app_source"
+					}
+				},
+				"mcp": {
+					"description": "Model Context Protocol server mode that provides Holoscan documentation and code context to upstream",
+					"requirements": ["vector_database"],
+					"run": {
+						"command": "<holohub_app_source>/holochat.sh --mcp",
+						"workdir": "holohub_app_source"
+					}
+				}
 			}
 		}
 	}

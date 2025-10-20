@@ -1,0 +1,309 @@
+# SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+# Number of PSDs to produce before exiting
+# -1: run indefinitely
+num_psds: -1
+
+scheduler:
+  worker_thread_number: 4
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+
+advanced_network:
+  cfg:
+    version: 1
+    manager: "dpdk"
+    master_core: 0  # Master CPU core
+    debug: false
+    log_level: "info"
+
+    memory_regions:
+      # Memory pool for channel 1 frame headers
+      - name: "Headers_RX_CPU"
+        kind: "huge"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 51200
+        # Size of the Ethernet header + IP header + UDP header
+        buf_size: 42
+      # Memory pool for VRT context packets
+      - name: "Context_RX_CPU"
+        kind: "huge"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 10240
+        # Size of the VRT context packet
+        buf_size: 64
+      # Memory pool for channel 1 VRT signal data packets
+      - name: "CH1_Data_RX_GPU"
+        kind: "device"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 51200
+        # Size of the VRT signal data packet
+        buf_size: 4100
+      # Memory pool for channel 1 VRT packet headers
+      - name: "CH1_VRT_Headers_RX_CPU"
+        kind: "huge"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 51200
+        # Size of the Ethernet header + IP header + UDP header
+        buf_size: 20
+      # Memory pool for channel 2 VRT signal data packets
+      - name: "CH2_Data_RX_GPU"
+        kind: "device"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 51200
+        # Size of the VRT signal data packet
+        buf_size: 4100
+      # Memory pool for channel 2 VRT packet headers
+      - name: "CH2_VRT_Headers_RX_CPU"
+        kind: "huge"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 51200
+        # Size of the Ethernet header + IP header + UDP header
+        buf_size: 20
+      # Memory pool for channel 2 VRT signal data packets
+      - name: "CH3_Data_RX_GPU"
+        kind: "device"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 51200
+        # Size of the VRT signal data packet
+        buf_size: 4100
+      # Memory pool for channel 2 VRT packet headers
+      - name: "CH3_VRT_Headers_RX_CPU"
+        kind: "huge"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 51200
+        # Size of the Ethernet header + IP header + UDP header
+        buf_size: 20
+      # Memory pool for channel 2 VRT signal data packets
+      - name: "CH4_Data_RX_GPU"
+        kind: "device"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 51200
+        # Size of the VRT signal data packet
+        buf_size: 4100
+      # Memory pool for channel 2 VRT packet headers
+      - name: "CH4_VRT_Headers_RX_CPU"
+        kind: "huge"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 51200
+        # Size of the Ethernet header + IP header + UDP header
+        buf_size: 20
+    interfaces:
+      - name: sdr_data
+        # Set to the PCIe address of your ingest NIC.
+        #  - See list with: sudo lshw -c network -businfo
+        # address: 0000:51:00.1  # A4500
+        address: 0000:17:00.0  # A4500E
+        rx:
+          flow_isolation: true
+          queues:
+            - name: "Context"
+              id: 0
+              cpu_core: 4
+              batch_size: 1
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "Context_RX_CPU"
+            - name: "Channel 1 data"
+              id: 1
+              cpu_core: 5
+              # How many data packets do you want before
+              # invoking the VRT connector operator?
+              # 20 data packets is 20480 samples and
+              # we want 625 of them, so 12,500
+              batch_size: 12500
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "CH1_VRT_Headers_RX_CPU"
+                - "CH1_Data_RX_GPU"
+            - name: "Channel 2 data"
+              id: 2
+              cpu_core: 6
+              # How many data packets do you want before
+              # invoking the VRT connector operator?
+              # 20 data packets is 20480 samples and
+              # we want 625 of them, so 12,500
+              batch_size: 12500
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "CH2_VRT_Headers_RX_CPU"
+                - "CH2_Data_RX_GPU"
+            - name: "Channel 3 data"
+              id: 3
+              cpu_core: 7
+              # How many data packets do you want before
+              # invoking the VRT connector operator?
+              # 20 data packets is 20480 samples and
+              # we want 625 of them, so 12,500
+              batch_size: 12500
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "CH3_VRT_Headers_RX_CPU"
+                - "CH3_Data_RX_GPU"
+            - name: "Channel 4 data"
+              id: 4
+              cpu_core: 8
+              # How many data packets do you want before
+              # invoking the VRT connector operator?
+              # 20 data packets is 20480 samples and
+              # we want 625 of them, so 12,500
+              batch_size: 12500
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "CH4_VRT_Headers_RX_CPU"
+                - "CH4_Data_RX_GPU"
+          flows:
+            - name: "Channel 1 context packets"
+              id: 0
+              action:
+                type: queue
+                id: 0
+              match:
+                # Match with the port your SDR is sending to/from and the
+                # length of the context packets
+                udp_src: 4991
+                udp_dst: 4991
+                ipv4_len: 92
+            - name: "Channel 2 context packets"
+              id: 1
+              action:
+                type: queue
+                id: 0
+              match:
+                # Match with the port your SDR is sending to/from and the
+                # length of the context packets
+                udp_src: 4992
+                udp_dst: 4992
+                ipv4_len: 92
+            - name: "Channel 3 context packets"
+              id: 2
+              action:
+                type: queue
+                id: 0
+              match:
+                # Match with the port your SDR is sending to/from and the
+                # length of the context packets
+                udp_src: 4993
+                udp_dst: 4993
+                ipv4_len: 92
+            - name: "Channel 4 context packets"
+              id: 3
+              action:
+                type: queue
+                id: 0
+              match:
+                # Match with the port your SDR is sending to/from and the
+                # length of the context packets
+                udp_src: 4994
+                udp_dst: 4994
+                ipv4_len: 92
+            - name: "Channel 1 data packets"
+              id: 4
+              action:
+                type: queue
+                id: 1
+              match:
+                # Match with the port your SDR is sending to and the
+                # length of the signal data packets
+                udp_src: 4991
+                udp_dst: 4991
+                ipv4_len: 4148
+            - name: "Channel 2 data packets"
+              id: 5
+              action:
+                type: queue
+                id: 2
+              match:
+                # Match with the port your SDR is sending to and the
+                # length of the signal data packets
+                udp_src: 4992
+                udp_dst: 4992
+                ipv4_len: 4148
+            - name: "Channel 3 data packets"
+              id: 6
+              action:
+                type: queue
+                id: 3
+              match:
+                # Match with the port your SDR is sending to and the
+                # length of the signal data packets
+                udp_src: 4993
+                udp_dst: 4993
+                ipv4_len: 4148
+            - name: "Channel 4 data packets"
+              id: 7
+              action:
+                type: queue
+                id: 4
+              match:
+                # Match with the port your SDR is sending to and the
+                # length of the signal data packets
+                udp_src: 4994
+                udp_dst: 4994
+                ipv4_len: 4148
+
+vita_connector:
+  interface_name: sdr_data
+  num_complex_samples_per_packet: 1024
+  num_packets_per_fft: 20
+  num_ffts_per_batch: 625
+  num_simul_batches: 2
+  num_channels: 4
+
+fft:
+  burst_size: 20480
+  num_bursts: 625
+  num_channels: 4
+  spectrum_type: 1
+  averaging_type: 1
+  window_time: 0
+  window_type: 0
+  transform_points: 20480
+  window_points: 20480
+  resolution: 6250
+  span: 128000000
+  weighting_factor: 0
+  f1_index: -10240
+  f2_index: 10239
+  window_time_delta: 0
+
+high_rate_psd:
+  burst_size: 20480
+  num_bursts: 625
+  num_channels: 4
+
+low_rate_psd:
+  burst_size: 20480
+  num_averages: 625
+  num_channels: 4
+
+vita49_psd_packetizer:
+  burst_size: 20480
+  dest_host: 127.0.0.1
+  base_dest_port: 5991
+  num_channels: 4
+
+data_writer:
+  burst_size: 20480
+  num_bursts: 625

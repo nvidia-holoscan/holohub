@@ -19,14 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Holoviz HDR","BT.2020","ST.2084","EOTF"
-		],
+		"tags": ["Computer Vision and Perception", "Visualization", "color space conversion", "ST2084", "Holoviz"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/holoviz_hdr",
 			"workdir": "holohub_bin"

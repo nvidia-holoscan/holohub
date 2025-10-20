@@ -11,7 +11,7 @@ real-time, low-latency processing.
 ## Contents
 
 - [Background](#background)
-- [Previous Holoscan Release Benchmark Reports](#previous-release-reports)
+- [Previous Holoscan Release Benchmark Reports](#previous-holoscan-release-benchmark-reports)
 - Running the Tutorial
   - [Running Benchmarks](#running-benchmarks-getting-started)
   - [Summarizing Data](#summarizing-data)
@@ -46,49 +46,49 @@ definitions and background
 ## Previous Holoscan Release Benchmark Reports
 
 - [Holoscan SDK v2.3.0](./release/v2.3.0/v2.3.0.md)
+- [Holoscan SDK v2.6.0](./release/v2.6.0/v2.6.0.md)
+- [Holoscan SDK v3.0.0](./release/v3.0.0/v3.0.0.md)
+- [Holoscan SDK v3.3.0](./release/v3.3.0/v3.3.0.md)
 
 ## Running Benchmarks: Getting Started
 
 Data collection can be run in the HoloHub base container for both the Endoscopy Tool Tracking and the Multi-AI Ultrasound applications. We've provided a custom Dockerfile with tools to process collected data into a benchmark report.
 
 ```bash
-# Build the container
-./dev_container build \
+# Build and launch the container
+./holohub run-container \
     --img holohub:release_benchmarking \
-    --docker_file benchmarks/release_benchmarking/Dockerfile \
-    --base_img nvcr.io/nvidia/clara-holoscan/holoscan:<holoscan-sdk-version>-$(./dev_container get_host_gpu)
-
-# Launch the dev environment
-./dev_container launch --img holohub:release_benchmarking
+    --docker-file benchmarks/release_benchmarking/Dockerfile \
+    --base-img nvcr.io/nvidia/clara-holoscan/holoscan:<holoscan-sdk-version-gpu>
 
 # Inside the container, build the applications in benchmarking mode
-./run build endoscopy_tool_tracking --benchmark
-./run build multiai_ultrasound --benchmark
+./holohub build endoscopy_tool_tracking --benchmark --language=cpp
+./holohub build multiai_ultrasound --benchmark --language=cpp
 
-./run build release_benchmarking
+./holohub build release_benchmarking
 ```
 
 Run the benchmarking script with no arguments to collect performance logs in the `./output` directory.
 ```bash
-./run launch release_benchmarking
+./holohub run release_benchmarking --no-local-build
 ```
 
 ## Summarizing Data
 
-After running benchmarks, inside the dev environment, use `run launch` to process data statistics and create bar plot PNGs: 
+After running benchmarks, inside the dev environment, use `./holohub run` to process data statistics and create bar plot PNGs:
 ```bash
-./dev_container launch --img holohub:release_benchmarking
-./run launch release_benchmarking --extra_args "--process benchmarks/release_benchmarking"
+./holohub run-container --img holohub:release_benchmarking --no-docker-build
+./holohub run release_benchmarking --no-local-build --run-args "--process benchmarks/release_benchmarking"
 ```
 
 Alternatively, collect results across platforms. On each machine:
 1. Run benchmarks:
 ```bash
-./run launch release_benchmarking
+./holohub run release_benchmarking --no-local-build
 ```
 2. Add platform configuration information:
 ```bash
-./run launch release_benchmarking --extra_args "--print" > benchmarks/release_benchmarking/output/platform.txt
+./holohub run release_benchmarking --no-local-build --run-args "--print" > benchmarks/release_benchmarking/output/platform.txt
 ```
 3. Transfer output contents from each platform to a single machine:
 ```bash
@@ -105,7 +105,7 @@ tar xvf benchmarks-<platform-name>
 ```
 4. Use multiple `--process` flags to generate a batch of bar plots for multiple platform results:
 ```bash
-./run launch release_benchmarking --extra_args "\
+./holohub run release_benchmarking --no-local-build --run-args "\
     --process benchmarks/release_benchmarking/2.4/x86_64 \
     --process benchmarks/release_benchmarking/2.4/IGX_iGPU \
     --process benchmarks/release/benchmarking/2.4/IGX_dGPU"
@@ -118,10 +118,10 @@ or PDF report with benchmark data with `pandoc` and `Jinja2`.
 
 1. Copy and edit `template/release.json` with information about the benchmarking configuration, including
 the release version, platform configurations, and local paths to processed data. Run
-`./run launch` to print JSON-formatted platform details to the console about the current system:
+`./holohub run` to print JSON-formatted platform details to the console about the current system:
 ```bash
-./dev_container launch --img holohub:release_benchmarking
-./run launch release_benchmarking --extra_args "--print"
+./holohub run-container --img holohub:release_benchmarking --no-docker-build
+./holohub run release_benchmarking --no-local-build --run-args="--print"
 ```
 2. Render the document with the Jinja CLI tool:
 ```bash
@@ -170,11 +170,11 @@ __Benchmark applications are failing silently without writing log files.__
 
 Silent failures may indicate an issue with the underlying applications undergoing benchmarking.
 Try running the applications directly and verify execution is as expected:
-- `./run launch endoscopy_tool_tracking cpp`
-- `./run launch multiai_ultrasound cpp`
+- `./holohub run endoscopy_tool_tracking --language=cpp`
+- `./holohub run multiai_ultrasound --language=cpp`
 
 In some cases you may need to clear your HoloHub build or data folders to address errors:
-- `./run clear_cache`
+- `./holohub clear-cache`
 - `rm -rf ./data`
 
 ## Developer References

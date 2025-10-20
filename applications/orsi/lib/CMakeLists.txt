@@ -28,9 +28,10 @@ target_link_libraries(orsi_app_lib
    PUBLIC
    holoscan::core
    holoscan::ops::video_stream_replayer
-   holoscan::ops::aja
    holoscan::orsi::format_converter
 )
+
+target_link_libraries(orsi_app_lib PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::aja>)
 
 set(VIDEOMASTER_OPERATOR "")
 if(ORSI_VIDEO_MASTER_SDK_FOUND)

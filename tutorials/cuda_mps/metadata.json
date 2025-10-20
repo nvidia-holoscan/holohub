@@ -19,17 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Acceleration",
-			"Benchmarking",
-			"CUDA",
-			"MPS"
-		],
+		"tags": ["Optimization", "CUDA", "MPS"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "CUDA Multi-Process Service (MPS)",

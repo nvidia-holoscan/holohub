@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+/* SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,8 @@
 #include <gxf/multimedia/camera.hpp>
 #include <gxf/multimedia/video.hpp>
 
+#include <holoscan/utils/cuda_stream_handler.hpp>
+
 #include <ClaraVizRenderer.h>
 
 #include <claraviz/interface/CameraInterface.h>
@@ -45,7 +47,7 @@
 #include <memory>
 #include <vector>
 
-static clara::viz::Matrix4x4 toMatrix(const nvidia::gxf::Pose3D& pose) {
+static clara::viz::Matrix4x4 to_matrix(const nvidia::gxf::Pose3D& pose) {
   return clara::viz::Matrix4x4(
       {{{{pose.rotation[0], pose.rotation[1], pose.rotation[2], pose.translation[0]}},
         {{pose.rotation[3], pose.rotation[4], pose.rotation[5], pose.translation[1]}},
@@ -53,16 +55,113 @@ static clara::viz::Matrix4x4 toMatrix(const nvidia::gxf::Pose3D& pose) {
         {{0.f, 0.f, 0.f, 1.f}}}});
 }
 
-static clara::viz::Vector2f toTangentX(const nvidia::gxf::CameraModel& camera_model) {
+static clara::viz::Matrix4x4 to_matrix(const std::array<float, 16>& array) {
+  clara::viz::Matrix4x4 mat;
+  for (uint32_t row = 0; row < 4; ++row) {
+    for (uint32_t col = 0; col < 4; ++col) { mat(row, col) = array[row * 4 + col]; }
+  }
+  return mat;
+}
+
+static clara::viz::Vector2f to_tangent_x(const nvidia::gxf::CameraModel& camera_model) {
   return clara::viz::Vector2f(
       -camera_model.principal_point.x / camera_model.focal_length.x,
       (camera_model.dimensions.x - camera_model.principal_point.x) / camera_model.focal_length.x);
 }
 
-static clara::viz::Vector2f toTangentY(const nvidia::gxf::CameraModel& camera_model) {
+static clara::viz::Vector2f to_tangent_y(const nvidia::gxf::CameraModel& camera_model) {
   return clara::viz::Vector2f(
       camera_model.principal_point.y / camera_model.focal_length.y,
       -(camera_model.dimensions.y - camera_model.principal_point.y) / camera_model.focal_length.y);
+}
+
+static void normalize(clara::viz::Vector3f& v) {
+  float norm = std::sqrt(v(0) * v(0) + v(1) * v(1) + v(2) * v(2));
+  if (norm <= 0.f) {
+    norm = 0.f;
+  } else {
+    norm = 1.f / norm;
+  }
+  v(0) *= norm;
+  v(1) *= norm;
+  v(2) *= norm;
+}
+
+static clara::viz::Vector3f cross(const clara::viz::Vector3f& v, const clara::viz::Vector3f& w) {
+  clara::viz::Vector3f u;
+  u(0) = v(1) * w(2) - v(2) * w(1);
+  u(1) = v(2) * w(0) - v(0) * w(2);
+  u(2) = v(0) * w(1) - v(1) * w(0);
+  return u;
+}
+
+static nvidia::gxf::Pose3D to_pose_3d(const clara::viz::Vector3f& eye,
+                                      const clara::viz::Vector3f& look_at,
+                                      const clara::viz::Vector3f& up) {
+  nvidia::gxf::Pose3D pose;
+
+  pose.translation[0] = eye(0);
+  pose.translation[1] = eye(1);
+  pose.translation[2] = eye(2);
+
+  clara::viz::Vector3f z = eye - look_at;
+  normalize(z);
+
+  pose.rotation[2] = z(0);
+  pose.rotation[5] = z(1);
+  pose.rotation[8] = z(2);
+
+  clara::viz::Vector3f x = cross(up, z);
+  normalize(x);
+
+  pose.rotation[0] = x(0);
+  pose.rotation[3] = x(1);
+  pose.rotation[6] = x(2);
+
+  clara::viz::Vector3f y = cross(z, x);
+  normalize(y);
+
+  pose.rotation[1] = -y(0);
+  pose.rotation[4] = -y(1);
+  pose.rotation[7] = -y(2);
+
+  return pose;
+}
+
+static clara::viz::Matrix4x4 perspective(float fovy, float aspect, float nearPlane,
+                                         float farPlane) {
+  clara::viz::Matrix4x4 M;
+  float r, l, b, t;
+  float f = farPlane;
+  float n = nearPlane;
+
+  t = n * tanf(fovy * (3.1416 / 180.f) * float(0.5));
+  b = -t;
+
+  l = b * aspect;
+  r = t * aspect;
+
+  M(0, 0) = (2 * n) / (r - l);
+  M(1, 0) = 0;
+  M(2, 0) = 0;
+  M(3, 0) = 0;
+
+  M(0, 1) = 0;
+  M(1, 1) = -(2 * n) / (t - b);
+  M(2, 1) = 0;
+  M(3, 1) = 0;
+
+  M(0, 2) = (r + l) / (r - l);
+  M(1, 2) = (t + b) / (t - b);
+  M(2, 2) = -(f) / (f - n);
+  M(3, 2) = -1;
+
+  M(0, 3) = 0;
+  M(1, 3) = 0;
+  M(2, 3) = (f * n) / (n - f);
+  M(3, 3) = 0;
+
+  return M;
 }
 
 namespace holoscan::ops {
@@ -124,7 +223,10 @@ class ImageService : public clara::viz::MessageReceiver, public clara::viz::Mess
   }
 };
 
-struct VolumeRendererOp::Impl {
+class VolumeRendererOp::Impl {
+ public:
+  bool receive_volume(InputContext& input, Dataset::Types type);
+
   Parameter<std::vector<IOSpec*>> settings_;
   Parameter<std::vector<IOSpec*>> merge_settings_;
   Parameter<std::string> config_file_;
@@ -132,9 +234,16 @@ struct VolumeRendererOp::Impl {
   Parameter<std::shared_ptr<Allocator>> allocator_;
   Parameter<uint32_t> alloc_width_;
   Parameter<uint32_t> alloc_height_;
+  Parameter<float> density_min_;
+  Parameter<float> density_max_;
 
-  cudaStream_t stream_ = nullptr;
+  CudaStreamHandler cuda_stream_handler_;
   std::vector<clara::viz::Vector2f> limits_;
+  // The extrinsic camera matrix as set by the configuration file
+  nvidia::gxf::Pose3D config_pose_;
+  // The inverse of the initial camera matrix
+  bool initial_inv_matrix_set_ = false;
+  clara::viz::Matrix4x4 initial_inv_matrix_;
 
   std::shared_ptr<ImageService> image_service_;
 
@@ -174,7 +283,7 @@ struct VolumeRendererOp::Impl {
   float default_warp_resolution_scale_ = 1.f;
 };
 
-bool receive_volume(InputContext& input, Dataset& dataset, Dataset::Types type) {
+bool VolumeRendererOp::Impl::receive_volume(InputContext& input, Dataset::Types type) {
   std::string name(type == Dataset::Types::Density ? "density" : "mask");
 
   auto volume = input.receive<holoscan::gxf::Entity>((name + "_volume").c_str());
@@ -195,7 +304,24 @@ bool receive_volume(InputContext& input, Dataset& dataset, Dataset::Types type) 
     if (permute_axis_input) { permute_axis = *permute_axis_input; }
     if (flip_axes_input) { flip_axes = *flip_axes_input; }
 
-    dataset.SetVolume(type, spacing, permute_axis, flip_axes, volume_tensor);
+    std::vector<clara::viz::Vector2f> element_range;
+
+    // set the element range if this is a density volume
+    if (type == Dataset::Types::Density) {
+      clara::viz::Vector2f range(-1024.f, 3071.f);
+      bool has_range = false;
+      if (density_min_.has_value()) {
+        range(0) = density_min_.get();
+        has_range = true;
+      }
+      if (density_max_.has_value()) {
+        range(1) = density_max_.get();
+        has_range = true;
+      }
+      if (has_range) { element_range.push_back(range); }
+    }
+
+    dataset_.SetVolume(type, spacing, permute_axis, flip_axes, element_range, volume_tensor);
 
     return true;
   }
@@ -294,10 +420,6 @@ void VolumeRendererOp::initialize() {
 }
 
 void VolumeRendererOp::start() {
-  if (cudaStreamCreate(&impl_->stream_) != cudaSuccess) {
-    throw std::runtime_error("cudaStreamCreate failed");
-  }
-
   if (!impl_->config_file_.get().empty()) {
     // setup renderer by reading settings from the configuration file
     std::ifstream input_file_stream(impl_->config_file_.get());
@@ -315,14 +437,6 @@ void VolumeRendererOp::start() {
       auto& dataset_settings = settings.at("dataset");
       impl_->dataset_.SetFrameDuration(std::chrono::duration<float, std::chrono::seconds::period>(
           dataset_settings.value("frameDuration", 1.f)));
-    }
-  }
-}
-
-void VolumeRendererOp::stop() {
-  if (impl_->stream_) {
-    if (cudaStreamDestroy(impl_->stream_) != cudaSuccess) {
-      throw std::runtime_error("cudaStreamDestroy failed");
     }
   }
 }
@@ -368,6 +482,18 @@ void VolumeRendererOp::setup(OperatorSpec& spec) {
              "Alloc Height",
              "Height of the render buffer to allocate when no pre-allocated buffers are provided.",
              768u);
+  spec.param(impl_->density_min_,
+             "density_min",
+             "Density volume element minimum",
+             "Minimum density volume element value. If not set this is calculated from the volume "
+             "data. In practice CT volumes have a minimum value of -1024 which corresponds to the "
+             "lower value of the Hounsfield scale range usually used.");
+  spec.param(impl_->density_max_,
+             "density_max",
+             "Density volume element maximum",
+             "Maximum density volume element value. If not set this is calculated from the volume "
+             "data. In practice CT volumes have a maximum value of 3071 which corresponds to the "
+             "upper value of the Hounsfield scale range usually used.");
 
   spec.input<nvidia::gxf::Pose3D>("volume_pose").condition(ConditionType::kNone);
   spec.input<std::array<nvidia::gxf::Vector2f, 3>>("crop_box").condition(ConditionType::kNone);
@@ -380,7 +506,7 @@ void VolumeRendererOp::setup(OperatorSpec& spec) {
 
   spec.input<nvidia::gxf::Pose3D>("eye_gaze_pose").condition(ConditionType::kNone);
 
-  spec.input<std::array<float, 16>>("camera_matrix").condition(ConditionType::kNone);
+  spec.input<std::any>("camera_pose").condition(ConditionType::kNone);
 
   spec.input<holoscan::gxf::Entity>("color_buffer_in").condition(ConditionType::kNone);
   spec.input<holoscan::gxf::Entity>("depth_buffer_in").condition(ConditionType::kNone);
@@ -397,13 +523,15 @@ void VolumeRendererOp::setup(OperatorSpec& spec) {
 
   spec.output<holoscan::gxf::Entity>("color_buffer_out");
   spec.output<holoscan::gxf::Entity>("depth_buffer_out").condition(ConditionType::kNone);
+
+  impl_->cuda_stream_handler_.defineParams(spec);
 }
 
 void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
                                ExecutionContext& context) {
   // get the density volumes
-  bool new_volume = receive_volume(input, impl_->dataset_, Dataset::Types::Density);
-  if (!receive_volume(input, impl_->dataset_, Dataset::Types::Segmentation)) {
+  bool new_volume = impl_->receive_volume(input, Dataset::Types::Density);
+  if (!impl_->receive_volume(input, Dataset::Types::Segmentation)) {
     // there are datasets without segmentation volume, if we receive a density volume
     // only, reset the segmentation volume
     impl_->dataset_.ResetVolume(Dataset::Types::Segmentation);
@@ -430,7 +558,7 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
     }
 
     {
-      clara::viz::DataCropInterface::AccessGuard access(impl_->data_crop_interface_);
+      clara::viz::DataCropInterface::AccessGuardConst access(&impl_->data_crop_interface_);
       impl_->limits_ = access->limits.Get();
       if (impl_->limits_.empty()) {
         impl_->limits_ = {clara::viz::Vector2f(0.f, 1.f),
@@ -445,15 +573,31 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
       impl_->default_warp_resolution_scale_ = access->warp_resolution_scale.Get();
       impl_->default_warp_full_resolution_size_ = access->warp_full_resolution_size.Get();
     }
+
+    // get the initial camera pose
+    {
+      std::string camera_name;
+      {
+        clara::viz::ViewInterface::AccessGuardConst access(&impl_->view_interface_);
+        camera_name = access->GetView()->camera_name;
+      }
+
+      clara::viz::CameraInterface::AccessGuardConst access(&impl_->camera_interface_);
+      auto camera = access->GetCamera(camera_name);
+
+      impl_->config_pose_ = to_pose_3d(camera->eye.Get(), camera->look_at.Get(), camera->up.Get());
+    }
   }
+
+  std::vector<nvidia::gxf::Entity> messages;
 
   // get the input buffers
   auto color_message = input.receive<holoscan::gxf::Entity>("color_buffer_in");
   nvidia::gxf::Handle<nvidia::gxf::VideoBuffer> color_buffer;
   if (color_message) {
-    color_buffer = static_cast<nvidia::gxf::Entity&>(color_message.value())
-                       .get<nvidia::gxf::VideoBuffer>()
-                       .value();
+    auto entity = static_cast<nvidia::gxf::Entity&>(color_message.value());
+    color_buffer = entity.get<nvidia::gxf::VideoBuffer>().value();
+    messages.push_back(entity);
   } else {
     color_message = holoscan::gxf::Entity::New(&context);
     if (!color_message) { throw std::runtime_error("Failed to allocate entity; terminating."); }
@@ -479,17 +623,24 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
   auto depth_message = input.receive<holoscan::gxf::Entity>("depth_buffer_in");
   nvidia::gxf::Handle<nvidia::gxf::VideoBuffer> depth_buffer;
   if (depth_message) {
-    depth_buffer = static_cast<nvidia::gxf::Entity&>(depth_message.value())
-                       .get<nvidia::gxf::VideoBuffer>()
-                       .value();
+    auto entity = static_cast<nvidia::gxf::Entity&>(depth_message.value());
+    depth_buffer = entity.get<nvidia::gxf::VideoBuffer>().value();
+    messages.push_back(entity);
   }
+
+  // get the CUDA stream
+  const gxf_result_t result = impl_->cuda_stream_handler_.fromMessages(context.context(), messages);
+  if (result != GXF_SUCCESS) {
+    throw std::runtime_error("Failed to get the CUDA stream from incoming messages");
+  }
+  const cudaStream_t cuda_stream = impl_->cuda_stream_handler_.getCudaStream(context.context());
 
   // apply new JSON settings
   auto settings = input.receive<std::vector<nlohmann::json>>("settings");
-  auto merge_settings = input.receive<std::vector<nlohmann::json>>("merge_settings");
   if (settings) {
     for (const auto& setting : settings.value()) { impl_->json_interface_->SetSettings(setting); }
   }
+  auto merge_settings = input.receive<std::vector<nlohmann::json>>("merge_settings");
   if (merge_settings) {
     for (const auto& setting : merge_settings.value()) {
       impl_->json_interface_->MergeSettings(setting);
@@ -498,23 +649,29 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
 
   // update cameras
   {
+    std::string camera_name;
+    {
+      clara::viz::ViewInterface::AccessGuard access(impl_->view_interface_);
+      camera_name = access->GetView()->camera_name;
+    }
+
     clara::viz::CameraInterface::AccessGuard access(impl_->camera_interface_);
-    auto camera = access->GetCamera();
+    auto camera = access->GetCamera(camera_name);
 
     auto left_pose = input.receive<nvidia::gxf::Pose3D>("left_camera_pose");
-    if (left_pose) { camera->left_eye_pose = toMatrix(*left_pose); }
+    if (left_pose) { camera->left_eye_pose = to_matrix(*left_pose); }
     auto left_model = input.receive<nvidia::gxf::CameraModel>("left_camera_model");
     if (left_model) {
-      camera->left_tangent_x = toTangentX(*left_model);
-      camera->left_tangent_y = toTangentY(*left_model);
+      camera->left_tangent_x = to_tangent_x(*left_model);
+      camera->left_tangent_y = to_tangent_y(*left_model);
     }
 
     auto right_pose = input.receive<nvidia::gxf::Pose3D>("right_camera_pose");
-    if (right_pose) { camera->right_eye_pose = toMatrix(*right_pose); }
+    if (right_pose) { camera->right_eye_pose = to_matrix(*right_pose); }
     auto right_model = input.receive<nvidia::gxf::CameraModel>("right_camera_model");
     if (right_model) {
-      camera->right_tangent_x = toTangentX(*right_model);
-      camera->right_tangent_y = toTangentY(*right_model);
+      camera->right_tangent_x = to_tangent_x(*right_model);
+      camera->right_tangent_y = to_tangent_y(*right_model);
     }
 
     auto eye_gaze_pose = input.receive<nvidia::gxf::Pose3D>("eye_gaze_pose");
@@ -556,35 +713,45 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
       }
     }
 
-    auto camera_matrix = input.receive<std::shared_ptr<std::array<float, 16>>>("camera_matrix");
-    if (camera_matrix && camera_matrix.value()) {
-      // convert the camera matrix to eye, up and look_at vectors
-      clara::viz::Vector3f eye(camera_matrix.value()->at(3 + 0 * 4),
-                               camera_matrix.value()->at(3 + 1 * 4),
-                               camera_matrix.value()->at(3 + 2 * 4));
-      // we can't yet initialize the camera used by Holoviz, therefore we have to adapt the vectors
-      // a bit
-      eye(0) *= 4.f;
-      eye(1) *= 4.f;
-      eye(2) *= 4.f;
-      camera->eye.Set(eye);
+    // Two types for the camera pose are supported, either a 4x4 matrix, or a nvidia::gxf::Pose3D
+    // object
+    clara::viz::Matrix4x4 pose;
+    auto camera_pose_input = input.receive<std::any>("camera_pose");
+    if (camera_pose_input) {
+      const auto input_type_index = std::type_index(camera_pose_input.value().type());
+      if (input_type_index == std::type_index(typeid(std::shared_ptr<std::array<float, 16>>))) {
+        pose = to_matrix(
+            *std::any_cast<std::shared_ptr<std::array<float, 16>>>(camera_pose_input.value())
+                 .get());
+        // Holoviz is giving us the whole view matrix, but we need the extrinsic parameters only
+        auto persp = perspective(60.f, 1.f, 0.1f, 1000.0f);
+        pose = persp.Inverse() * pose;
+      } else if (input_type_index ==
+                 std::type_index(typeid(std::shared_ptr<nvidia::gxf::Pose3D>))) {
+        pose = to_matrix(
+            *std::any_cast<std::shared_ptr<nvidia::gxf::Pose3D>>(camera_pose_input.value()).get());
+      } else {
+        throw std::runtime_error(fmt::format("Unsupported `camera_pose` input type `{}`",
+                                             camera_pose_input.value().type().name()));
+      }
 
-      clara::viz::Vector3f up(camera_matrix.value()->at(1 + 0 * 4),
-                              camera_matrix.value()->at(1 + 1 * 4),
-                              camera_matrix.value()->at(1 + 2 * 4));
-      // normalize
-      const float inv_length = 1.f / std::sqrt(up(0) * up(0) + up(1) * up(1) + up(2) * up(2));
-      up(0) *= inv_length;
-      up(1) *= inv_length;
-      up(2) *= inv_length;
-      up(1) = -up(1);
-      camera->up.Set(up);
+      // coordinate system of ClaraViz is flipped in Y direction
+      pose(1, 3) = -pose(1, 3);
 
-      clara::viz::Vector3f look_at(camera_matrix.value()->at(2 + 0 * 4),
-                                   camera_matrix.value()->at(2 + 1 * 4),
-                                   camera_matrix.value()->at(2 + 2 * 4));
-      camera->look_at.Set(look_at);
+      // we only want changes to the view matrix
+      if (!impl_->initial_inv_matrix_set_) {
+        impl_->initial_inv_matrix_ = pose.Inverse();
+        impl_->initial_inv_matrix_set_ = true;
+      }
+      pose = impl_->initial_inv_matrix_ * pose;
     }
+
+    // apply the initial pose from the configuration file
+    pose = pose * to_matrix(impl_->config_pose_);
+
+    // write the final pose to the camera
+    camera->enable_pose = true;
+    camera->pose = pose;
 
     auto depth_range = input.receive<nvidia::gxf::Vector2f>("depth_range");
     if (depth_range) {
@@ -598,7 +765,7 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
   auto volume_pose = input.receive<nvidia::gxf::Pose3D>("volume_pose");
   if (volume_pose) {
     clara::viz::DataTransformInterface::AccessGuard access(impl_->data_transform_interface_);
-    access->matrix = toMatrix(volume_pose.value());
+    access->matrix = to_matrix(volume_pose.value());
   }
 
   // set volume cropping limits
@@ -662,31 +829,46 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
   // then wait for the message with the encoded data
   const auto image = impl_->image_service_->WaitForRenderedImage();
 
+  // Add both a CUDA event and the CUDA stream to the outgoing message,
+  // some operators expect an event and some a stream to synchronize with
+
   {
-    color_buffer_blob->AccessConst(impl_->stream_);
+    color_buffer_blob->AccessConst(cuda_stream);
+
+    nvidia::gxf::Expected<nvidia::gxf::Entity> message(color_message.value());
 
     nvidia::gxf::Handle<nvidia::gxf::CudaEvent> cuda_event =
-        static_cast<nvidia::gxf::Entity&>(color_message.value())
-            .add<nvidia::gxf::CudaEvent>()
-            .value();
-    cuda_event->init();
-    if (cudaEventRecord(cuda_event->event().value(), impl_->stream_) != cudaSuccess) {
+        message->add<nvidia::gxf::CudaEvent>().value();
+    if (!cuda_event->init()) { throw std::runtime_error("Failed to initialize gxf::CudaEvent."); }
+    if (cudaEventRecord(cuda_event->event().value(), cuda_stream) != cudaSuccess) {
       throw std::runtime_error("cudaEventRecord failed");
     }
+
+    gxf_result_t stream_handler_result = impl_->cuda_stream_handler_.toMessage(message);
+    if (stream_handler_result != GXF_SUCCESS) {
+      throw std::runtime_error("Failed to add the CUDA stream to the outgoing messages");
+    }
+
     output.emit(color_message.value(), "color_buffer_out");
   }
 
   if (depth_buffer_blob) {
-    depth_buffer_blob->AccessConst(impl_->stream_);
+    depth_buffer_blob->AccessConst(cuda_stream);
+
+    nvidia::gxf::Expected<nvidia::gxf::Entity> message(depth_message.value());
 
     nvidia::gxf::Handle<nvidia::gxf::CudaEvent> cuda_event =
-        static_cast<nvidia::gxf::Entity&>(depth_message.value())
-            .add<nvidia::gxf::CudaEvent>()
-            .value();
-    cuda_event->init();
-    if (cudaEventRecord(cuda_event->event().value(), impl_->stream_) != cudaSuccess) {
+        message->add<nvidia::gxf::CudaEvent>().value();
+    if (!cuda_event->init()) { throw std::runtime_error("Failed to initialize gxf::CudaEvent."); }
+    if (cudaEventRecord(cuda_event->event().value(), cuda_stream) != cudaSuccess) {
       throw std::runtime_error("cudaEventRecord failed");
     }
+
+    gxf_result_t stream_handler_result = impl_->cuda_stream_handler_.toMessage(message);
+    if (stream_handler_result != GXF_SUCCESS) {
+      throw std::runtime_error("Failed to add the CUDA stream to the outgoing messages");
+    }
+
     output.emit(depth_message.value(), "depth_buffer_out");
   }
 }

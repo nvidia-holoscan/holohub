@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,13 +26,13 @@ add_executable(multiai_ultrasound
 target_link_libraries(multiai_ultrasound
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::video_stream_recorder
     holoscan::ops::video_stream_replayer
     holoscan::ops::format_converter
     holoscan::ops::holoviz
     holoscan::ops::inference
     holoscan::ops::inference_processor
+    $<TARGET_NAME_IF_EXISTS:holoscan::aja>
     visualizer_icardio
 )
 

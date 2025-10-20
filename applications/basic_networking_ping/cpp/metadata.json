@@ -19,17 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Networking",
-			"Network",
-			"UDP",
-			"IP"
-		],
+		"tags": ["Networking and Distributed Computing", "Distributed", "UDP", "Communications"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [
 				{
 					"name": "basic_network",

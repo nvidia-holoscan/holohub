@@ -1,4 +1,4 @@
-# 📷🤖 Florence-2
+# Florence-2: Advancing a Unified Representation for a Variety of Vision Tasks
 
 This application demonstrates how to run the [Florence-2](https://arxiv.org/abs/2311.06242) models on a live video feed with the possibility of changing the task and optional prompt via a QT UI.
 
@@ -43,7 +43,7 @@ Determine your desired video device and edit the source device in [config.yaml](
 ## 🚀 Build and Run Instructions
 From the Holohub main directory run the following command:
 ```bash
-./dev_container build_and_run florence-2
+./holohub run florence-2-vision
 ```
 Note: The first build will take **~1.5 hours** if you're on ARM64. This is largely due to building [Flash Attention 2](https://github.com/Dao-AILab/flash-attention) since pre-built wheels are not distributed for ARM64 platforms.
 
@@ -67,7 +67,7 @@ Note: The first build will take **~1.5 hours** if you're on ARM64. This is large
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode florence-2-vision
+./holohub vscode florence-2-vision
 ```
 
 This command will build and configure a Dev Container using a [Dockerfile](./Dockerfile) that is ready to run the application.

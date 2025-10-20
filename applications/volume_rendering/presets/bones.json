@@ -1,0 +1,54 @@
+{
+    "TransferFunction": {
+        "components": [
+            {
+                "activeRegions": [
+                    0
+                ],
+                "diffuseEnd": {
+                    "x": 1,
+                    "y": 0.8588235294117647,
+                    "z": 0.6666666666666666
+                },
+                "diffuseStart": {
+                    "x": 1,
+                    "y": 0.8588235294117647,
+                    "z": 0.6666666666666666
+                },
+                "specularEnd": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                },
+                "specularStart": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                },
+                "emissiveEnd": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveStart": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "emissiveStrength": 0,
+                "opacity": 1,
+                "opacityProfile": "SQUARE",
+                "range": {
+                    "min": 0.311,
+                    "max": 0.738
+                },
+                "roughness": 15.7
+            }
+        ],
+        "densityScale": 999.9999999999998,
+        "globalOpacity": 1,
+        "gradientScale": 10,
+        "shadingProfile": "BRDF ONLY",
+        "blendingProfile": "MAXIMUM_OPACITY"
+    }
+}

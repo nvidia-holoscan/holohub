@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,8 +60,9 @@ void QtHoloscanVideo::processBuffer(void* pointer,
   // wait for the renderer
   {
     std::unique_lock lock(shared_data_->mutex_);
-    shared_data_->condition_variable_.wait(
-        lock, [this] { return shared_data_->state_ == QtHoloscanSharedData::State::Processed; });
+    shared_data_->condition_variable_.wait_until(
+        lock, std::chrono::steady_clock::now() + std::chrono::seconds(5),
+        [this] { return shared_data_->state_ == QtHoloscanSharedData::State::Processed; });
   }
 }
 

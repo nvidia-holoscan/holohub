@@ -48,9 +48,8 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(ultrasound_segmentation
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_ultrasound_sample_data/versions/20240801/zip
+    URL nvidia/clara-holoscan/holoscan_ultrasound_sample_data:20240801
     DOWNLOAD_NAME holoscan_ultrasound_sample_data_20240801.zip
-    URL_MD5 9ac3ba657cfbf104ae515a31f3b5af61
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 256

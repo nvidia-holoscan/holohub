@@ -12,12 +12,12 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"holoscan_sdk": { "minimum_required_version": "0.5.0", 
+		"holoscan_sdk": { "minimum_required_version": "0.5.0",
 						"tested_versions": [ "0.5.0" ] },
-		"platforms": ["amd64"],
-		"tags": ["Life Sciences, Aerospace, Defense, Communications"],
+		"platforms": ["x86_64"],
+		"tags": ["Signal Processing", "Distributed", "PSD"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"libraries": [{
 				"name": "numpy",
 				"version": "1.24.2"

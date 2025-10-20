@@ -19,14 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Holoviz sRGB"
-		],
+		"tags": ["Computer Vision and Perception", "Visualization", "Benchmarking", "Holoviz", "Rendering"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/holoviz_srgb",
 			"workdir": "holohub_bin"

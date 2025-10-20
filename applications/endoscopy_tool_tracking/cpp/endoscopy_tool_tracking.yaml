@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,7 @@ extensions:
 #  - lib/gxf_extensions/libgxf_qcap_source.so
 
 source: "replayer"    # "replayer" or "aja" or "deltacast" or "yuan"
+postprocessor: "tool_tracking_postprocessor" # "slang_shader" or "tool_tracking_postprocessor"
 visualizer: "holoviz"  # "holoviz" or "vtk"
 record_type: "none"   # or "input" if you want to record input video stream, or "visualizer" if you want
                       # to record the visualizer output.

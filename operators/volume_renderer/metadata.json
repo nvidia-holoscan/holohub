@@ -1,13 +1,13 @@
 {
     "operator": {
-        "name": "volume_renderer",
+        "name": "VolumeRendererOp",
         "authors": [
             {
                 "name": "Holoscan Team",
                 "affiliation": "NVIDIA"
             }
         ],
-        "language": "C++",
+        "language": ["C++"],
         "version": "2.0.0",
         "changelog": {
             "1.0": "Initial Release",
@@ -18,19 +18,16 @@
             "tested_versions": [
                 "1.0.3",
                 "2.0.0",
-                "2.1.0"
+                "2.1.0",
+                "3.1.0"
             ]
         },
         "platforms": [
-            "amd64",
-            "arm64"
+            "x86_64",
+            "aarch64"
         ],
-        "tags": [
-            "Volume",
-            "Render",
-            "ClaraViz"
-        ],
+        "tags": ["Visualization", "Volume", "Rendering"],
         "ranking": 1,
-        "dependencies": {}
+        "requirements": {}
     }
 }

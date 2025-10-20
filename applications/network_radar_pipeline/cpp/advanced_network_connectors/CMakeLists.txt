@@ -31,8 +31,7 @@ add_library(advanced_network_connectors
 target_link_libraries(advanced_network_connectors PRIVATE
   matx::matx
   holoscan::core
-  holoscan::advanced_network_rx
-  holoscan::advanced_network_tx
+  holoscan::advanced_network
 )
 
 target_include_directories(advanced_network_connectors PRIVATE

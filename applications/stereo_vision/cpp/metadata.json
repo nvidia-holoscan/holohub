@@ -1,0 +1,33 @@
+{
+	"application": {
+		"name": "Stereo Vision",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.4.0",
+			"tested_versions": [
+				"2.4.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Computer Vision and Perception", "Video", "Stereo Vision", "Depth", "Camera", "Visualization", "Image Processing"],
+		"ranking": 1,
+		"requirements": {},
+		"run": {
+			"command": "<holohub_app_bin>/stereo_depth",
+			"workdir": "holohub_bin"
+		}
+	}
+}

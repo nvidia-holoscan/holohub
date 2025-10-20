@@ -13,22 +13,18 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "0.6.0",
+			"minimum_required_version": "3.3.0",
 			"tested_versions": [
-				"0.6.0"
+				"3.5.0"
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Depth",
-			"AJA"
-		],
+		"tags": ["Healthcare AI", "Endoscopy", "Monocular Depth Estimation", "CV CUDA", "Video", "Rendering"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_depth_estimation_sample_data",
 			"opencv": "^4.8.0"
 		},

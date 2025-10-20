@@ -1,4 +1,4 @@
-# NVIDIA NIM Imaging with Vista-3D
+# Medical Imaging Segmentation with NVIDIA Vista-3D NIM
 
 [Vista-3D](https://build.nvidia.com/nvidia/vista-3d) is a specialized interactive foundation model for segmenting and annotating human anatomies.
 This sample application demonstrates using the Vista-3D NVIDIA Inference Microservice (NIM) in a Holoscan pipeline.
@@ -10,7 +10,7 @@ Visit [build.nvidia.com](https://build.nvidia.com) to learn more about Vista-3D 
 ### Quick Start
 
 1. Add API key in `nvidia_nim.yaml`
-2. `./dev_container build_and_run nvidia_nim_imaging`
+2. `./holohub run nvidia_nim_imaging`
 
 ## Configuring the sample application
 
@@ -27,12 +27,11 @@ nim:
 - `base_url`: The URL of your NIM instance. Defaults to NVIDIA-hosted NIMs.
 - `api_key`: Your API key to access NVIDIA-hosted NIMs.
 
-
 ## Build and Run the sample application
 
-```
-# Build the Docker images from the root directory of Holohub
-./dev_container build_and_run nvidia_nim_imaging
+```bash
+# This first builds and runs the Docker images, then builds and runs the application.
+./holohub run nvidia_nim_imaging
 ```
 
 ## Display the Results

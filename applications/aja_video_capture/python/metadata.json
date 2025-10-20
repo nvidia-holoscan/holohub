@@ -1,0 +1,36 @@
+{
+	"application": {
+		"name": "AJA Video Capture",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "3.0",
+		"changelog": {
+			"1.0": "Initial Release",
+			"2.0": "Update to support Holoscan SDK 2.1.0",
+			"3.0": "Moved examples to Holohub Application"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"1.0.3",
+				"2.0.0",
+				"2.1.0",
+				"2.2.0"
+			]
+		},
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Streaming", "Video", "format conversion", "AJA"],
+		"ranking": 0,
+		"requirements": {
+		},
+		"run": {
+			"command": "python3 <holohub_app_bin>/aja_capture.py",
+			"workdir": "holohub_bin"
+		}
+	}
+}

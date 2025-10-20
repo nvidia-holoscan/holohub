@@ -15,21 +15,16 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "2.3.0",
 			"tested_versions": [
-				"2.3.0"
+				"2.3.0", "2.6.0", "3.0.0", "3.3.0"
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Benchmarking",
-			"Performance",
-			"Reporting",
-			"Release"
-		],
+		"tags": ["Benchmarking", "Performance"],
 		"ranking": 3,
-		"dependencies": {
+		"requirements": {
 			"applications": [
 				{
 					"name": "Endoscopy Tool Tracking"
@@ -44,7 +39,8 @@
 		},
 		"run": {
 			"command": "bash <holohub_app_source>/run_benchmarks.sh",
-			"workdir": "<app_source_dir>"
+			"workdir": "holohub_root"
 		}
 	}
 }
+

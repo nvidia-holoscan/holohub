@@ -1,0 +1,63 @@
+{
+	"workflow": {
+		"name": "Real-Time AI End-to-End Surgical Video Workflow",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.0.0",
+			"tested_versions": [
+				"3.1.0"
+			]
+		},
+		"holoscan_sensor_bridge": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": [
+				"2.0.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Healthcare AI", "SSD", "Detection", "MONAI", "Segmentation"],
+		"ranking": 1,
+		"requirements": {
+			"data": [
+				{
+					"name": "Orsi Academy Sample Applications",
+					"description": "This resource contains a binary tool segmentation model [1], a binary out-of-body classification model and sample surgical videos as accompanying assets for the Orsi Academy holohub applications.",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_orsi_academy_sample_data",
+					"version": "20240206"
+				},
+				{
+					"name": "A SSD Detection model for Endoscopy Surgical Tools",
+					"description": "This resource contains a SSD Detection model for the identification of surgical tools",
+					"url": "https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/ssd_surgical_tool_detection_model"
+				},
+				{
+					"name": "Model for HoloHub Sample App for MONAI Endoscopic Tool Segmentation",
+					"url": "https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/monai_endoscopic_tool_segmentation_model"
+				}
+			],
+			"libraries": [
+				{
+					"name": "cupy",
+					"version": "13.3.0"
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/ai_surgical_video.py --source replayer --config <holohub_app_source>/config.yaml --data <holohub_data_dir>",
+			"workdir": "holohub_bin"
+		}
+	}
+}

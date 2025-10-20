@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "High Speed Endoscopy",
+		"name": "High-Speed Endoscopy",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -19,15 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Camera",
-			"Emergent"
-		],
+		"tags": ["Healthcare AI", "Video", "Bayer RGB Pipeline Optimization", "Endoscopy", "RDMA", "Holoviz"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [
 				{
 					"name": "emergent_source",

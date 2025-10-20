@@ -1,0 +1,37 @@
+{
+  "tutorial": {
+    "name": "Holoscan SDK Response Time Analysis",
+    "description": "A tutorial demonstrating how to analyze and optimize real-time performance in Holoscan applications",
+    "authors": [
+      {
+        "name": "Philip Schowitz",
+        "affiliation": "The University of British Columbia"
+      },
+       {
+        "name": "Arpan Gujarati",
+        "affiliation": "The University of British Columbia"
+      },
+      {
+        "name": "Soham Sinha",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "version": "1.0.0",
+    "changelog": {
+      "1.0.0": "Initial release"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "2.2.0",
+      "tested_versions": [
+        "2.2.0"
+      ]
+    },
+   "platforms": [
+			"x86_64",
+			"aarch64"
+		],
+    "tags": ["Optimization", "Performance"],
+    "ranking": 2,
+    "requirements": {}
+  }
+}

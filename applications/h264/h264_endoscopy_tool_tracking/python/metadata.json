@@ -14,29 +14,29 @@
     },
     "dockerfile": "applications/h264/Dockerfile",
     "holoscan_sdk": {
-      "minimum_required_version": "2.6.0",
-      "tested_versions": ["2.6.0"]
+      "minimum_required_version": "3.6.1",
+      "tested_versions": ["3.6.1"]
     },
-    "platforms": ["amd64", "arm64"],
-    "tags": ["Endoscopy", "Video Decoding", "Video Encoding"],
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["Healthcare AI", "Video", "Surgical AI", "Endoscopy", "Visualization"],
     "ranking": 1,
-    "dependencies": {
+    "requirements": {
       "operators": [
         {
           "name": "videodecoder",
-          "version": "1.2.0"
+          "version": "1.5.0"
         },
         {
           "name": "videodecoderio",
-          "version": "1.2.0"
+          "version": "1.5.0"
         },
         {
           "name": "videoencoder",
-          "version": "1.2.0"
+          "version": "1.5.0"
         },
         {
           "name": "videoencoderio",
-          "version": "1.2.0"
+          "version": "1.5.0"
         }
       ],
       "data": [
@@ -50,7 +50,10 @@
     },
     "run": {
       "command": "python3 <holohub_app_source>/h264_endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy",
-      "workdir": "holohub_bin"
+      "workdir": "holohub_bin",
+      "env": {
+        "LD_PRELOAD": "/opt/nvidia/holoscan/lib/libgxf_core.so"
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Simple Classical Radar Pipeline",
+		"name": "Simple Radar Pipeline",
 		"authors": [
 			{
 				"name": "Cliff Burdick",
@@ -18,10 +18,10 @@
 				"0.4.0"
 			]
 		},
-		"platforms": ["amd64"],
-		"tags": ["Aerospace, Defense, Communications"],
+		"platforms": ["x86_64"],
+		"tags": ["Signal Processing", "Detection"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"libraries": [{
 				"name": "numpy",
 				"version": "1.23.2"

@@ -1,35 +1,63 @@
+# Build and installation
 build/
 build-*/
 install/
+install-*/
+dist/
+_CPack_Packages/
+
+# Data
 data/
-ci/
-CTestConfig.cmake
-*__pycache__
+data-*/
 
-# GXF Extensions
-*.so
-
-# Utilities
+# Utilities and metadata
 aggregate_metadata.json
-/dist/
-/install/
 
+# CI
+ci/
+*.log
 
-# Dev
+# Python
+**/__pycache__
+*.pyc
+
+# Binaries and packages
+*.so
+*.deb
+*.rpm
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+*.tar.7z
+
+# Development environment
 .venv/
+.vscode-server/
 ngc-cli/
-.bash_history
-.python_history
-.wget-hsts
-.viminfo
-.lesshst
-.vscode-server
+CTestConfig.cmake
+.ngc
 
+# Cache and temporary directories
 .cache/
+.cargo/
 .cupy/
 .cmake/
 .docker/
 .config/
 .local/
+.ros/
 tmp/
 
+# History and user files
+.bash_history
+.python_history
+.wget-hsts
+.viminfo
+.lesshst
+
+# Licenses
+rti_license.dat
+
+# Holoscan streaming client and server binaries and libraries
+**/holoscan_client_cloud_streaming/
+**/holoscan_server_cloud_streaming/

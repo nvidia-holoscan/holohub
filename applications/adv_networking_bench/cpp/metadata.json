@@ -14,8 +14,9 @@
 			"1.2": "GPUDirect TX",
 			"1.1": "GPUDirect mode without header data split"
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Network", "Networking", "DPDK", "UDP", "Ethernet", "IP", "GPUDirect", "RDMA"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Networking and Distributed Computing", "Distributed", "UDP", "GPUDirect", "DPDK"],
+		"dockerfile": "operators/advanced_network/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [
@@ -23,7 +24,7 @@
 			]
 		},
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [{
 				"name": "advanced_networking_benchmark",
 				"version": "1.2"

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +18,15 @@
 #include <getopt.h>
 
 #include "holoscan/holoscan.hpp"
-#include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
+#ifdef AJA_SOURCE
+#include <aja_source.hpp>
+#endif
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) {
@@ -42,7 +44,12 @@ class App : public holoscan::Application {
     std::shared_ptr<Operator> drop_alpha_channel;
 
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
+#else
+      throw std::runtime_error(
+          "AJA is requested but not available. Please enable AJA at build time.");
+#endif
     } else {
       source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
                                                                      Arg("directory", datapath));
@@ -56,6 +63,7 @@ class App : public holoscan::Application {
     const int n_channels = 4;
     const int bpp = 4;
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       uint64_t drop_alpha_block_size = width * height * n_channels * bpp;
       uint64_t drop_alpha_num_blocks = 2;
       drop_alpha_channel = make_operator<ops::FormatConverterOp>(
@@ -64,6 +72,10 @@ class App : public holoscan::Application {
           Arg("pool") = make_resource<BlockMemoryPool>(
               "pool", 1, drop_alpha_block_size, drop_alpha_num_blocks),
           Arg("cuda_stream_pool") = cuda_stream_pool);
+#else
+      throw std::runtime_error(
+          "AJA is requested but not available. Please enable AJA at build time.");
+#endif
     }
 
     int width_preprocessor = 1264;
@@ -112,9 +124,14 @@ class App : public holoscan::Application {
     // Flow definition
 
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       add_flow(source, segmentation_visualizer, {{"video_buffer_output", "receivers"}});
       add_flow(source, drop_alpha_channel, {{"video_buffer_output", ""}});
       add_flow(drop_alpha_channel, segmentation_preprocessor);
+#else
+      throw std::runtime_error(
+          "AJA is requested but not available. Please enable AJA at build time.");
+#endif
     } else {
       add_flow(source, segmentation_visualizer, {{"", "receivers"}});
       add_flow(source, segmentation_preprocessor);

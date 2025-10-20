@@ -35,5 +35,5 @@ By default, the frame buffer is using linear color space. To use the sRGB color 
 To build and start the application:
 
 ```bash
-./dev_container build_and_run holoviz_srgb
+./holohub run holoviz_srgb
 ```

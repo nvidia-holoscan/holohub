@@ -1,6 +1,7 @@
-# Holoscan SAR
+# Streaming Synthetic Aperture Radar
 
 ## Description
+
 This application is a demonstration of using Holoscan to construct Synthetic Aperture Radar (SAR) imagery from a data collection.  In current form, the data is assumed to be precollected and contained in a particular binary format.  It has been tested with 2 versions of the publicly available GOTCHA volumetric SAR data collection.  Python-based converters are included to manipulate the public datasets into the binary format expected by the application.  The application implements Backprojection for image formation.
 <!-- , in both Python and C++.  The Python implementation is accelerated via CuPy, and is backwardly compatible with Numpy.  The C++ implementation is accelerated with MatX.
 -->

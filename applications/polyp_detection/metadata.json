@@ -1,0 +1,47 @@
+{
+	"application": {
+		"name": "Polyp Detection",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.3.0",
+			"tested_versions": [
+				"3.3.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Healthcare AI",
+			"Colonoscopy",
+			"Detection",
+			"RT-DETR",
+			"bounding box"
+		],
+		"ranking": 2,
+		"requirements": {
+			"data": [
+				{
+					"name": "Holoscan Sample App Data for AI Polyp Detection",
+					"description": "This resource includes a polyp detection model designed for colonoscopy images, along with a sample video.",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/models/polyp_detection_rt_detr_model"
+				}
+			]
+		},
+		"run": {
+			"command": "python3 polyp_detection.py --source=replayer --data <holohub_data_dir>/polyp_detection --video_dir <holohub_data_dir>/colonoscopy_segmentation",
+			"workdir": "holohub_app_source"
+		}
+	}
+}

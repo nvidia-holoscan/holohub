@@ -120,7 +120,7 @@ cd <HOLOHUB_SOURCE_DIR>
 #### Build and run the application using the development container
 
 ```bash
-./dev_container build_and_run endoscopy_depth_estimation
+./holohub run endoscopy_depth_estimation
 ```
 
 
@@ -129,7 +129,7 @@ cd <HOLOHUB_SOURCE_DIR>
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode endoscopy_depth_estimation
+./holohub vscode endoscopy_depth_estimation
 ```
 
 This command will build and configure a Dev Container using a [Dockerfile](./Dockerfile) that is ready to run the application.

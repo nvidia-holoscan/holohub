@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,15 @@
 
 #include <getopt.h>
 
+#include <filesystem>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/aja_source/aja_source.hpp>
+#include <holoinfer_utils.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/inference/inference.hpp>
@@ -26,11 +33,19 @@
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 
+#ifdef AJA_SOURCE
+#include <aja_source.hpp>
+#endif
+
 class App : public holoscan::Application {
  public:
   void set_source(const std::string &source) {
     if (source == "aja") {
+#ifdef AJA_SOURCE
       is_aja_source_ = true;
+#else
+    throw std::runtime_error("AJA source not enabled, please rebuild with AJA support");
+#endif
     }
   }
 
@@ -58,7 +73,11 @@ class App : public holoscan::Application {
 
     std::shared_ptr<Resource> pool_resource = make_resource<UnboundedAllocator>("pool");
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
+#else
+      throw std::runtime_error("AJA source not enabled, please rebuild with AJA support");
+#endif
     } else {
       source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
                                                          Arg("directory", datapath));
@@ -120,12 +139,19 @@ class App : public holoscan::Application {
     }
 
     if (configuration.find("color") != configuration.end()) {
+      auto string_split = [](const std::string& line, std::vector<std::string>& tokens, char c) {
+        std::string token;
+        std::istringstream tokenStream(line);
+        while (std::getline(tokenStream, token, c)) {
+          tokens.push_back(token);
+        }
+      };
       for (const auto &[current_object, current_color] : configuration["color"]) {
         std::vector<std::string> tokens;
         std::vector<float> col;
 
         if (current_color.length() != 0) {
-          holoscan::inference::string_split(current_color, tokens, ' ');
+          string_split(current_color, tokens, ' ');
           if (tokens.size() == 4) {
             for (const auto &t : tokens) {
               col.push_back(std::stof(t));
@@ -201,9 +227,13 @@ class App : public holoscan::Application {
 
     // Flow definition
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       const std::set<std::pair<std::string, std::string>> aja_ports =
                                           {{"video_buffer_output", ""}};
       add_flow(source, detect_preprocessor, aja_ports);
+#else
+      throw std::runtime_error("AJA source not enabled, please rebuild with AJA support");
+#endif
     } else {
       add_flow(source, detect_preprocessor);
       add_flow(source, holoviz, {{"", "receivers"}});

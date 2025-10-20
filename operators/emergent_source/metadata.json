@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "emergent_source",
+		"name": "EmergentSourceOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -11,6 +11,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"language": ["C++", "Python"],
 		"holoscan_sdk": {
 			"minimum_required_version": "0.5.0",
 			"tested_versions": [
@@ -18,15 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Camera",
-			"Emergent"
-		],
+		"tags": ["Camera"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [
 				{
 					"name": "emergent_source",

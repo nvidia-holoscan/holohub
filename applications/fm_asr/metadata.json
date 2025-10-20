@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "FM-ASR",
+		"name": "FM Radio Automatic Speech Recognition",
 		"authors": [
 			{
 				"name": "Joshua Martinez",
@@ -20,16 +20,11 @@
 			]
 		},
 		"platforms": [
-			"amd64"
+			"x86_64"
 		],
-		"tags": [
-			"Signal Processing",
-			"NLP",
-			"ASR",
-			"Automatic Speech Recognition"
-		],
+		"tags": ["Signal Processing", "Audio", "FM demodulation", "Polyphase Resampling", "ASR", "gRPC"],
 		"ranking": 3,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "cusignal",

@@ -1,0 +1,48 @@
+{
+    "operator": {
+        "name": "FFT",
+        "authors": [
+            {
+                "name": "John Moon <john.moon@vts-i.com>",
+                "affiliation": "Valley Tech Systems, Inc."
+            },
+            {
+                "name": "Eric Ferrara <eric.ferrara@vts-i.com>",
+                "affiliation": "Valley Tech Systems, Inc."
+            },
+            {
+                "name": "Matthew Luckenbihl <matthew.luckenbihl@vts-i.com>",
+                "affiliation": "Valley Tech Systems, Inc."
+            }
+        ],
+        "language": ["C++"],
+        "version": "1.0.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "2.5.0",
+            "tested_versions": [
+                "2.5.0",
+                "2.6.0",
+                "2.7.0",
+                "2.8.0",
+                "2.9.0",
+                "3.0.0",
+                "3.1.0"
+            ]
+        },
+        "platforms": [
+            "x86_64"
+        ],
+        "tags": ["Signal Processing"],
+        "ranking": 3,
+        "requirements": {
+            "libraries": [{
+              "name": "MatX",
+              "version": "0.9.0",
+              "url": "https://github.com/NVIDIA/MatX.git"
+            }]
+        }
+    }
+}

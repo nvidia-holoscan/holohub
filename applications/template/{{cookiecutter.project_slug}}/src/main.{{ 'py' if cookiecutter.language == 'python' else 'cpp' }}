@@ -1,0 +1,42 @@
+{% if cookiecutter.language == 'python' %}
+#
+# Place the license header here
+#
+
+import holoscan as hs
+
+
+class App(hs.core.Application):
+    def compose(self):
+        # Add your operators here
+        print("Hello, Holoscan!")
+
+
+def main():
+    app = App()
+    app.run()
+
+
+if __name__ == "__main__":
+    main()
+{% else %}
+/*
+ * Place the license header here
+ */
+
+#include <holoscan/holoscan.hpp>
+
+class App : public holoscan::Application {
+ public:
+  void compose() override {
+    // Add your operators here
+    std::cout << "Hello, Holoscan!" << std::endl;
+  }
+};
+
+int main(int argc, char** argv) {
+  auto app = holoscan::make_application<App>();
+  app->run();
+  return 0;
+}
+{% endif %}

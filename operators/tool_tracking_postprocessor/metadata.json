@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "tool_tracking_postprocessor",
+		"name": "ToolTrackingPostprocessorOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -11,6 +11,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"language": ["C++", "Python"],
 		"holoscan_sdk": {
 			"minimum_required_version": "0.5.0",
 			"tested_versions": [
@@ -18,14 +19,11 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"visualization",
-			"tool tracking"
-		],
+		"tags": ["Visualization"],
 		"ranking": 1,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

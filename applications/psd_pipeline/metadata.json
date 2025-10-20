@@ -1,0 +1,61 @@
+{
+    "application": {
+        "name": "VITA 49 Power Spectral Density",
+        "authors": [
+            {
+                "name": "John Moon <john.moon@vts-i.com>",
+                "affiliation": "Valley Tech Systems, Inc."
+            },
+            {
+                "name": "Eric Ferrara <eric.ferrara@vts-i.com>",
+                "affiliation": "Valley Tech Systems, Inc."
+            },
+            {
+                "name": "Matthew Luckenbihl <matthew.luckenbihl@vts-i.com>",
+                "affiliation": "Valley Tech Systems, Inc."
+            }
+        ],
+        "language": "C++",
+        "version": "1.0.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "2.5.0",
+            "tested_versions": [
+                "2.5.0",
+                "2.6.0",
+                "2.7.0",
+                "2.8.0",
+                "2.9.0",
+                "3.0.0",
+                "3.1.0"
+            ]
+        },
+        "platforms": ["x86_64"],
+        "tags": ["Signal Processing", "Networking and Distributed Computing", "PSD", "GPUDirect", "UDP"],
+        "ranking": 3,
+        "requirements": {
+            "operators": [
+                "fft",
+                "high_rate_psd",
+                "low_rate_psd",
+                "vita49_psd_packetizer"
+            ],
+            "libraries": [{
+              "name": "MatX",
+              "version": "0.9.0",
+              "url": "https://github.com/NVIDIA/MatX.git"
+            },
+            {
+              "name": "vita49-rs",
+              "version": "0.0.3",
+              "url": "https://github.com/voyager-tech-inc/vita49-rs"
+            }]
+        },
+        "run": {
+            "command": "<holohub_app_bin>/psd_pipeline",
+            "workdir": "holohub_bin"
+        }
+    }
+}

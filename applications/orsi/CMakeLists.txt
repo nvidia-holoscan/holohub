@@ -33,7 +33,7 @@ set(HOLOSCAN_OPERATORS
 )
 
 if(ORSI_VIDEO_MASTER_SDK_FOUND)
-    list(APPEND HOLOSCAN_OPERATORS  deltacast_videomaster)
+    list(APPEND HOLOSCAN_OPERATORS deltacast_videomaster)
 endif()
 
 # Download datasets
@@ -43,9 +43,8 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(orsi
-    URL  https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_orsi_academy_sample_data/versions/20240206/zip
+    URL  nvidia/clara-holoscan/holoscan_orsi_academy_sample_data:20240206
     DOWNLOAD_NAME orsi.zip
-    URL_MD5 5cf78e64bd9696f9e04796cb1e04d2ad
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 1080
@@ -61,10 +60,13 @@ if(APP_orsi_multi_ai_ar OR APP_orsi_in_out_body OR APP_orsi_segmentation_ar)
 endif()
 
 add_holohub_application(orsi_multi_ai_ar DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS})
+                        OPERATORS ${HOLOSCAN_OPERATORS}
+                        OPTIONAL aja_source)
 
 add_holohub_application(orsi_in_out_body DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS})
+                        OPERATORS ${HOLOSCAN_OPERATORS}
+                        OPTIONAL aja_source)
 
 add_holohub_application(orsi_segmentation_ar DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS})
+                        OPERATORS ${HOLOSCAN_OPERATORS}
+                        OPTIONAL aja_source)

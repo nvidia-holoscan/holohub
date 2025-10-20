@@ -1,0 +1,12 @@
+# Copyright check exclude patterns
+# One pattern per line, comments start with #
+#
+# Usage:
+#   In CI: python3 .github/workflows/scripts/check_copyright.py --exclude-config .github/workflows/scripts/copyright_excludes.txt .
+#   Locally: python3 .github/workflows/scripts/check_copyright.py --exclude-config .github/workflows/scripts/copyright_excludes.txt --git-modified-only .
+#
+# You can also combine with additional excludes:
+#   python3 .github/workflows/scripts/check_copyright.py --exclude-config .github/workflows/scripts/copyright_excludes.txt --exclude "my_temp_file.py" .
+operators/medical_imaging/_version.py
+applications/template
+build

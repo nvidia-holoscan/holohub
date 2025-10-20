@@ -1,4 +1,4 @@
-# SDR FM Demodulation Application
+# Software Defined Radio FM Demodulation
 
 As the "Hello World" application of software defined radio developers, this demonstration highlights real-time FM demodulation, resampling, and playback on GPU with NVIDIA's Holoscan SDK. In this example, we are using an inexpensive USB-based [RTL-SDR](https://www.rtl-sdr.com/) dongle to feed complex valued Radio Frequency (RF) samples into GPU memory and use [cuSignal](https://github.com/rapidsai/cusignal) functions to perform the relevant signal processing. The main objectives of this demonstration are to:
 - Highlight developer productivity in building an end-to-end streaming application with Holoscan and existing GPU-Accelerated Python libraries

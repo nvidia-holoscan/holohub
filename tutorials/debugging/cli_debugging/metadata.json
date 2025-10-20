@@ -21,18 +21,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Container",
-			"Debugging",
-			"Interactive",
-			"Logging",
-			"Tools"
-		],
+		"tags": ["Development", "Debugging"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"applications": [
 				{
 					"name": "endoscopy_tool_tracking",

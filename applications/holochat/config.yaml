@@ -29,6 +29,20 @@ local_model: "phind/phind-codellama-34b-v2"
 server_timeout: 60
 
 #=================================================================
+# MCP Server Configuration
+
+# Server settings
+mcp_server_name: "holoscan-context-provider"
+mcp_server_port: 8090  # Different from local_llm_url port to avoid conflicts
+mcp_server_host: "0.0.0.0"
+
+# Number of documents to return from the vector db by default when using MCP
+default_num_docs: 10
+
+# Maximum number of documents to return (if requested)
+max_num_docs: 30
+
+#=================================================================
 # RAG Configuration
 
 # Empirically found to be the cutoff of a specific questions vs. generic comments about previous answer

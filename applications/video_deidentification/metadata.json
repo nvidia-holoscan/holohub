@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Real-Time Face and Text Deidentification App",
+		"name": "Real-Time Face and Text Deidentification",
 		"authors": [
 			{
 				"name": "Wendell Hom",
@@ -23,15 +23,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Detection"
-		],
+		"tags": ["Computer Vision and Perception", "Video", "Deidentification", "Detection", "Image Processing"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet",
 			"libraries": [{
 				"name": "easyocr",

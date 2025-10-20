@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "matlab_beamform",
+		"name": "Ultrasound Beamforming with MATLAB",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -23,17 +23,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"MATLAB",
-			"Ultrasound",
-			"Beamforming",
-			"CUDA"
-		],
+		"tags": ["Healthcare AI", "Visualization", "Synthetic Aperture Beamforming", "Signal Processing", "Beamforming", "Ultrasound"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"operators": [
 				{
 					"name": "MATLAB",

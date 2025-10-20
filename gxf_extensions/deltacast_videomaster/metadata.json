@@ -19,15 +19,15 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
 		"tags": [
 			"Camera",
 			"Deltacast"
 		],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"packages": [
 				{
 					"name": "VideoMaster SDK",

@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "gRPC-streaming H.264 Endoscopy Tool Tracking Distributed",
+		"name": "Distributed H.264 gRPC Streaming",
+		"description": "Distributed H.264 Endoscopy Tool Tracking with gRPC Streaming",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -20,18 +21,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Endoscopy",
-			"Tracking",
-			"AJA",
-			"Video Decoding",
-			"Video Encoding"
-		],
+		"tags": ["Healthcare AI", "Distributed", "Asynchronous Queues", "gRPC", "Video"],
 		"ranking": 0,
-		"dependencies": {
+		"requirements": {
 			"operators": [
 				{
 					"name": "videodecoder",

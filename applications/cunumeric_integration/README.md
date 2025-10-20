@@ -1,4 +1,4 @@
-# Calculate Power Spectral Density with Holoscan and cuNumeric
+#  Power Spectral Density with cuNumeric
 
 [cuNumeric](https://github.com/nv-legate/cunumeric) is an drop-in replacement for NumPy that aims to provide a distributed and accelerated drop-in replacement for the NumPy API on top of the [Legion](https://legion.stanford.edu/) runtime. It works best for programs that have very large arrays of data that can't fit in the the memory of a single GPU or node.
 

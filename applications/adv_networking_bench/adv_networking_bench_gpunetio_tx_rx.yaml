@@ -1,0 +1,90 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+scheduler:
+  check_recession_period_ms: 0
+  worker_thread_number: 5
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+
+advanced_network:
+  cfg:
+    version: 1
+    manager: "gpunetio"
+    master_core: 0 # Master CPU core
+    log_level: "warn"
+    loopback: ""
+
+    memory_regions:
+    - name: "Data_TX_GPU"
+      kind: "device"
+      affinity: 0
+      num_bufs: 51200
+      buf_size: 1064
+    - name: "Data_RX_GPU"
+      kind: "device"
+      affinity: 0
+      num_bufs: 51200
+      buf_size: 1064
+
+    interfaces:
+    - name: "single_port"
+      address: 0000:ca:00.0
+      tx:
+        queues:
+        - name: "tx_q_0"
+          id: 0
+          batch_size: 10240
+          cpu_core: 8
+          memory_regions:
+            - "Data_TX_GPU"
+          offloads:
+            - "tx_eth_src"
+      rx:
+        flow_isolation: true
+        queues:
+        - name: "rx_q_0"
+          id: 0
+          cpu_core: 10
+          batch_size: 10240
+          memory_regions:
+            - "Data_RX_GPU"
+        flows:
+          - name: "flow_0"
+            id: 0
+            action:
+              type: queue
+              id: 0
+            match:
+              udp_src: 4096
+              udp_dst: 4096
+
+bench_rx:
+  interface_name: "single_port" # Name of the RX port from the advanced_network config
+  batch_size: 10240
+  max_packet_size: 1064
+  header_size: 64
+
+bench_tx:
+  interface_name: "single_port" # Name of the TX port from the advanced_network config
+  batch_size: 10240
+  payload_size: 1000
+  header_size: 64
+  eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true
+  ip_src_addr: <1.2.3.4>    # Source IP address - required on layer 3 network
+  ip_dst_addr: <5.6.7.8>    # Destination IP address - required on layer 3 network
+  udp_src_port: 4096        # UDP source port
+  udp_dst_port: 4096        # UDP destination port

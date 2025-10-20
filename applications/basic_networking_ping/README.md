@@ -26,29 +26,10 @@ Use the following to build and run the application:
 
 ```bash
 # Start the receiver
-./dev_container build_and_run basic_networking_ping --base_img holoscan-dev-container:main --language <cpp|python> --run_args basic_networking_ping_rx.yaml
+./holohub run basic_networking_ping --language <cpp|python> --run-args basic_networking_ping_rx.yaml
 # Start the transmitter
-./dev_container build_and_run basic_networking_ping --base_img holoscan-dev-container:main --language <cpp|python> --run_args basic_networking_ping_tx.yaml
+./holohub run basic_networking_ping --language <cpp|python> --run-args basic_networking_ping_tx.yaml
 ```
-
-
-### Build Instructions
-
-Please refer to the top level Holohub README.md file for information on how to build this application.
-
-### Run Instructions
-
-Running the sample uses the standard HoloHub `run` script:
-
-
-```bash
-# Start the receiver
-./run launch basic_networking_ping <language> --extra_args basic_networking_ping_rx.yaml
-# Start the transmitter
-./run launch basic_networking_ping <language> --extra_args basic_networking_ping_tx.yaml
-```
-
-Language can be either C++ or Python.
 
 
 ## Dev Container
@@ -56,7 +37,7 @@ Language can be either C++ or Python.
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode
+./holohub vscode
 ```
 
 ### VS Code Launch Profiles

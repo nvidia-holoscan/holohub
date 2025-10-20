@@ -1,13 +1,13 @@
 {
 	"operator": {
-		"name": "Intel RealSense Camera Operator",
+		"name": "RealsenseCameraOp",
 		"authors": [
 			{
 				"name": "Holoscan Team",
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "C++",
+		"language": ["C++"],
 		"version": "0.1.0",
 		"changelog": {
 			"0.1.0": "Initial Release"
@@ -16,9 +16,9 @@
 			"minimum_required_version": "2.1.0",
 			"tested_versions": ["2.1.0"]
 		},
-		"platforms": ["amd64", "arm64"],
+		"platforms": ["x86_64", "aarch64"],
 		"tags": [],
 		"ranking": 1,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

@@ -5,7 +5,7 @@ This is a sample application that shows how to use the OpenAI SDK with NVIDIA In
 ### Quick Start
 
 1. Add API key in `nvidia_nim.yaml`
-2. `./dev_container build_and_run nvidia_nim_chat`
+2. `./holohub run nvidia_nim_chat`
 
 ## Configuring the sample application
 
@@ -35,17 +35,11 @@ There are a couple of options to run the sample application:
 
 ### Run using Docker
 
-To run the sample application with Docker, you must first build a Docker image that includes the sample application and its dependencies:
-
-```
-# Build the Docker images from the root directory of Holohub
-./dev_container build --docker_file applications/nvidia_nim/Dockerfile
-```
-
-Then, run the Docker image:
+To run the sample application with Docker, you must first build and run a Docker image that includes the sample application and its dependencies:
 
 ```bash
-./dev_container  launch
+# Build and run the Docker images from the root directory of Holohub
+./holohub run-container nvidia_nim
 ```
 
 Continue to the [Start the Application](#start-the-application) section once inside the Docker container.
@@ -74,11 +68,10 @@ E.g., `export API_KEY=...`
 # To use NVIDIA hosted NIMs available on build.nvidia.com, export your API key first
 export API_KEY=[enter your api key here]
 
-./run launch nvidia_nim_chat
+./holohub run nvidia_nim_chat
 ```
 
 Have fun!
-
 
 ## Connecting with Locally Hosted NIMs
 

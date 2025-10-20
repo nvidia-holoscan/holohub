@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,12 +57,20 @@ class PyVolumeRendererOp : public VolumeRendererOp {
 
   // Define a constructor that fully initializes the object.
   PyVolumeRendererOp(Fragment* fragment, const py::args& args, const std::string& config_file,
+                     const std::string& write_config_file,
                      const std::shared_ptr<Allocator>& allocator, uint32_t alloc_width,
-                     uint32_t alloc_height, const std::string& name = "volume_renderer")
+                     uint32_t alloc_height, std::optional<float> density_min,
+                     std::optional<float> density_max,
+                     const std::shared_ptr<holoscan::CudaStreamPool>& cuda_stream_pool,
+                     const std::string& name = "volume_renderer")
       : VolumeRendererOp(ArgList{Arg{"config_file", config_file},
+                                 Arg{"write_config_file", write_config_file},
                                  Arg{"allocator", allocator},
                                  Arg{"alloc_width", alloc_width},
                                  Arg{"alloc_height", alloc_height}}) {
+    if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
+    if (density_min.has_value()) { this->add_arg(Arg{"density_min", density_min.value()}); }
+    if (density_max.has_value()) { this->add_arg(Arg{"density_max", density_max.value()}); }
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -92,15 +100,23 @@ PYBIND11_MODULE(_volume_renderer, m) {
       .def(py::init<Fragment*,
                     const py::args&,
                     const std::string&,
+                    const std::string&,
                     const std::shared_ptr<Allocator>&,
                     uint32_t,
                     uint32_t,
+                    std::optional<float>,
+                    std::optional<float>,
+                    const std::shared_ptr<holoscan::CudaStreamPool>&,
                     const std::string&>(),
            "fragment"_a,
            "config_file"_a = "",
+           "write_config_file"_a = "",
            "allocator"_a = std::shared_ptr<Allocator>(),
            "alloc_width"_a = 1024u,
            "alloc_height"_a = 768u,
+           "density_min"_a = py::none(),
+           "density_max"_a = py::none(),
+           "cuda_stream_pool"_a = py::none(),
            "name"_a = "volume_renderer"s,
            doc::VolumeRendererOp::doc_VolumeRendererOp_python)
       .def("setup", &VolumeRendererOp::setup, "spec"_a, doc::VolumeRendererOp::doc_setup);

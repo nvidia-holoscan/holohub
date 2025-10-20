@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -201,7 +201,7 @@ class HSApp(Application):
         self.add_flow(inference, viz, {("segmentation", "segmentation"), ("image", "rgb")})
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser(description="Hyperspectral segmentation application.")
 
     parser.add_argument(
@@ -238,3 +238,7 @@ if __name__ == "__main__":
     app.run()
 
     print("Application finished successfully.")
+
+
+if __name__ == "__main__":
+    main()

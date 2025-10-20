@@ -17,7 +17,7 @@
 profile = "black"
 line_length = 100
 known_first_party = "holohub"
-skip_glob = ["build*/*", "install*/*", ".cache/*"]
+skip_glob = ["build*/*", "install*/*", ".cache/*", ".ruff_cache/*", ".local/*"]
 
 [tool.black]
 line-length = 100
@@ -31,6 +31,8 @@ extend-exclude = '''
   | ^build*/*  # exclude build folders
   | ^install*/*  # exclude install folders
   | cmake/pybind11/*  # exclude the files under cmake/pybind11/
+  | .local/*  # exclude the files under .local/
+  | .ipynb  # mute warning 'Skipping .ipynb files as Jupyter dependencies are not installed.'
 )
 '''
 
@@ -52,7 +54,9 @@ exclude = [
   "install*",
   ".git",
   "xml",
-  "cmake/pybind11"
+  "cmake/pybind11",
+  ".ruff_cache",
+  ".local"
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -61,3 +65,8 @@ exclude = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["holohub"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["operators"]

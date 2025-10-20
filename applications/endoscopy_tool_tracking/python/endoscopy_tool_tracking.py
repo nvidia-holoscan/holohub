@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,31 +13,59 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import importlib.util
 import os
+import sys
 from argparse import ArgumentParser
 
 from holoscan.core import Application
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     HolovizOp,
     VideoStreamRecorderOp,
     VideoStreamReplayerOp,
 )
-from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
+from holoscan.resources import (
+    BlockMemoryPool,
+    CudaStreamPool,
+    MemoryStorageType,
+    UnboundedAllocator,
+)
 
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
-
-# Enable this line for Yuam capture card
-# from holohub.qcap_source import QCAPSourceOp
 from holohub.tool_tracking_postprocessor import ToolTrackingPostprocessorOp
 
-# Enable this line for vtk rendering
-# from holohub.vtk_renderer import VtkRendererOp
+
+def lazy_import(module_name):
+    """Lazily import a module by name.
+
+    This function provides a way to import modules only when they are first accessed,
+    which can help reduce startup time and memory usage. It uses Python's importlib
+    to handle the lazy loading.
+
+    Args:
+        module_name (str): The name of the module to import
+
+    Returns:
+        module: The imported module object
+
+    Raises:
+        ImportError: If the specified module cannot be found
+    """
+    spec = importlib.util.find_spec(module_name)
+    if spec is None:
+        raise ImportError(f"Module {module_name} not found")
+    module = importlib.util.module_from_spec(spec)
+    loader = importlib.util.LazyLoader(spec.loader)
+    loader.exec_module(module)
+    sys.modules[module_name] = module
+    return module
 
 
 class EndoscopyApp(Application):
-    def __init__(self, data, record_type=None, source="replayer"):
+    def __init__(
+        self, data, record_type=None, source="replayer", postprocessor="tool_tracking_postprocessor"
+    ):
         """Initialize the endoscopy tool tracking application
 
         Parameters
@@ -49,6 +77,8 @@ class EndoscopyApp(Application):
             When set to "replayer" (the default), pre-recorded sample video data is
             used as the application input. Otherwise, the video stream from an AJA or Yuan
             capture card is used.
+        postprocessor : {"slang_shader", "tool_tracking_postprocessor"}
+            The postprocessor to use for tool tracking
         """
         super().__init__()
 
@@ -61,7 +91,7 @@ class EndoscopyApp(Application):
             if record_type not in ("input", "visualizer"):
                 raise ValueError("record_type must be either ('input' or 'visualizer')")
         self.source = source
-
+        self.postprocessor = postprocessor
         if data == "none":
             data = os.environ.get("HOLOHUB_DATA_PATH", "../data")
 
@@ -74,10 +104,12 @@ class EndoscopyApp(Application):
         renderer = self.kwargs("visualizer")["visualizer"]
         input_video_signal = "receivers" if renderer == "holoviz" else "videostream"
         input_annotations_signal = "receivers" if renderer == "holoviz" else "annotations"
+        source_name = self.source.lower()
 
-        if self.source.lower() == "aja":
+        if source_name == "aja":
             aja_kwargs = self.kwargs("aja")
-            source = AJASourceOp(self, name="aja", **aja_kwargs)
+            aja_source = lazy_import("holohub.aja_source")
+            source = aja_source.AJASourceOp(self, name="aja", **aja_kwargs)
 
             # 4 bytes/channel, 4 channels
             width = aja_kwargs["width"]
@@ -86,10 +118,34 @@ class EndoscopyApp(Application):
             is_overlay_enabled = aja_kwargs["enable_overlay"]
             source_block_size = width * height * 4 * 4
             source_num_blocks = 3 if rdma else 4
-        elif self.source.lower() == "yuan":
+        elif source_name == "deltacast":
+            deltacast_kwargs = self.kwargs("deltacast")
+
+            width = deltacast_kwargs["width"]
+            height = deltacast_kwargs["height"]
+            rdma = deltacast_kwargs["rdma"]
+            is_overlay_enabled = deltacast_kwargs["enable_overlay"]
+
+            source_block_size = width * height * 4 * 4
+            source_num_blocks = 3 if rdma else 4
+
+            videomaster = lazy_import("holohub.videomaster")
+            source = videomaster.VideoMasterSourceOp(
+                self,
+                name="deltacast",
+                pool=UnboundedAllocator(self, name="pool"),
+                rdma=rdma,
+                board=deltacast_kwargs["board"],
+                input=deltacast_kwargs["input"],
+                width=width,
+                height=height,
+                progressive=deltacast_kwargs.get("progressive", True),
+                framerate=deltacast_kwargs.get("framerate", 60),
+            )
+        elif source_name == "yuan":
             yuan_kwargs = self.kwargs("yuan")
-            # Uncomment to enable QCap
-            # source = QCAPSourceOp(self, name="yuan", **yuan_kwargs)
+            qcap_source = lazy_import("holohub.qcap_source")
+            source = qcap_source.QCAPSourceOp(self, name="yuan", **yuan_kwargs)
 
             # 4 bytes/channel, 4 channels
             width = yuan_kwargs["width"]
@@ -139,7 +195,7 @@ class EndoscopyApp(Application):
                 name="recorder", fragment=self, **self.kwargs("recorder")
             )
 
-        config_key_name = "format_converter_" + self.source.lower()
+        config_key_name = "format_converter_" + source_name
 
         cuda_stream_pool = CudaStreamPool(
             self,
@@ -187,22 +243,37 @@ class EndoscopyApp(Application):
             107 * 60 * 7 * 4 * bytes_per_float32, 7 * 3 * bytes_per_float32
         )
         tool_tracking_postprocessor_num_blocks = 2 * 2
-        tool_tracking_postprocessor = ToolTrackingPostprocessorOp(
+        postprocessor_allocator = BlockMemoryPool(
             self,
-            name="tool_tracking_postprocessor",
-            device_allocator=BlockMemoryPool(
-                self,
-                name="device_allocator",
-                storage_type=MemoryStorageType.DEVICE,
-                block_size=tool_tracking_postprocessor_block_size,
-                num_blocks=tool_tracking_postprocessor_num_blocks,
-            ),
+            name="device_allocator",
+            storage_type=MemoryStorageType.DEVICE,
+            block_size=tool_tracking_postprocessor_block_size,
+            num_blocks=tool_tracking_postprocessor_num_blocks,
         )
-
-        if (record_type == "visualizer") and (self.source == "replayer"):
-            visualizer_allocator = BlockMemoryPool(self, name="allocator", **source_pool_kwargs)
+        if self.postprocessor == "slang_shader":
+            slang_shader = lazy_import("holohub.slang_shader")
+            tool_tracking_postprocessor = slang_shader.SlangShaderOp(
+                self,
+                name="slang_postprocessor",
+                shader_source_file=os.path.join(os.path.dirname(__file__), "postprocessor.slang"),
+                allocator=postprocessor_allocator,
+            )
+        elif self.postprocessor == "tool_tracking_postprocessor":
+            tool_tracking_postprocessor = ToolTrackingPostprocessorOp(
+                self,
+                name="tool_tracking_postprocessor",
+                device_allocator=postprocessor_allocator,
+            )
         else:
-            visualizer_allocator = None
+            raise ValueError(f"Invalid postprocessor: {self.postprocessor}")
+
+        visualizer_allocator = None
+        should_use_allocator = record_type == "visualizer" and self.source == "replayer"
+        if source_name == "deltacast":
+            should_use_allocator = should_use_allocator or is_overlay_enabled
+
+        if should_use_allocator:
+            visualizer_allocator = BlockMemoryPool(self, name="allocator", **source_pool_kwargs)
 
         if renderer == "holoviz":
             visualizer = HolovizOp(
@@ -210,22 +281,24 @@ class EndoscopyApp(Application):
                 name="holoviz",
                 width=width,
                 height=height,
-                enable_render_buffer_input=is_overlay_enabled,
+                enable_render_buffer_input=(
+                    is_overlay_enabled if source_name != "deltacast" else None
+                ),
                 enable_render_buffer_output=is_overlay_enabled or record_type == "visualizer",
                 allocator=visualizer_allocator,
                 cuda_stream_pool=cuda_stream_pool,
                 **self.kwargs("holoviz_overlay" if is_overlay_enabled else "holoviz"),
             )
-        # Uncomment the following lines to use VTK renderer
-        # else:
-        #     visualizer = VtkRendererOp(
-        #         self,
-        #         name="vtk",
-        #         width=width,
-        #         height=height,
-        #         window_name="VTK (Kitware) Python",
-        #         **self.kwargs("vtk_op"),
-        #     )
+        else:
+            vtk_renderer = lazy_import("holohub.vtk_renderer")
+            visualizer = vtk_renderer.VtkRendererOp(
+                self,
+                name="vtk",
+                width=width,
+                height=height,
+                window_name="VTK (Kitware) Python",
+                **self.kwargs("vtk_op"),
+            )
 
         # Flow definition
         self.add_flow(lstm_inferer, tool_tracking_postprocessor, {("tensor", "in")})
@@ -236,27 +309,80 @@ class EndoscopyApp(Application):
             {("out", input_annotations_signal)},
         )
 
+        output_signal = "output" if self.source == "replayer" else "video_buffer_output"
+        if source_name == "deltacast":
+            output_signal = "signal"
+
         self.add_flow(
             source,
             format_converter,
-            {("video_buffer_output" if self.source != "replayer" else "output", "source_video")},
+            {(output_signal, "source_video")},
         )
         self.add_flow(format_converter, lstm_inferer)
-        if is_overlay_enabled:
-            # Overlay buffer flow between AJA source and visualizer
-            self.add_flow(source, visualizer, {("overlay_buffer_output", "render_buffer_input")})
-            self.add_flow(visualizer, source, {("render_buffer_output", "overlay_buffer_input")})
+
+        if source_name == "deltacast":
+            if is_overlay_enabled:
+                # Uncomment to enable DELTACAST capture card (linter issue)
+                # overlayer = VideoMasterTransmitterOp(
+                #     self,
+                #     name="videomaster",
+                #     pool=UnboundedAllocator(self, name="pool"),
+                #     rdma=deltacast_kwargs.get("rdma", False),
+                #     board=deltacast_kwargs.get("board", 0),
+                #     width=width,
+                #     height=height,
+                #     output=deltacast_kwargs.get("output", 0),
+                #     progressive=deltacast_kwargs.get("progressive", True),
+                #     framerate=deltacast_kwargs.get("framerate", 60),
+                #     enable_overlay=deltacast_kwargs.get("enable_overlay", False),
+                # )
+                overlay_format_converter = FormatConverterOp(
+                    self,
+                    name="overlay_format_converter",
+                    pool=BlockMemoryPool(self, name="pool", **source_pool_kwargs),
+                    **self.kwargs("deltacast_overlay_format_converter"),
+                )
+                self.add_flow(visualizer, overlay_format_converter, {("render_buffer_output", "")})
+                # Uncomment to enable DELTACAST capture card (linter issue)
+                # self.add_flow(overlay_format_converter, overlayer)
+            else:
+                visualizer_format_converter_videomaster = FormatConverterOp(
+                    self,
+                    name="visualizer_format_converter",
+                    pool=BlockMemoryPool(self, name="pool", **source_pool_kwargs),
+                    **self.kwargs("deltacast_visualizer_format_converter"),
+                )
+                drop_alpha_channel_converter = FormatConverterOp(
+                    self,
+                    name="drop_alpha_channel_converter",
+                    pool=BlockMemoryPool(self, name="pool", **source_pool_kwargs),
+                    **self.kwargs("deltacast_drop_alpha_channel_converter"),
+                )
+                self.add_flow(source, drop_alpha_channel_converter)
+                self.add_flow(drop_alpha_channel_converter, visualizer_format_converter_videomaster)
+                self.add_flow(
+                    visualizer_format_converter_videomaster, visualizer, {("", "receivers")}
+                )
         else:
-            self.add_flow(
-                source,
-                visualizer,
-                {
-                    (
-                        "video_buffer_output" if self.source != "replayer" else "output",
-                        input_video_signal,
-                    )
-                },
-            )
+            if is_overlay_enabled:
+                # Overlay buffer flow between AJA source and visualizer
+                self.add_flow(
+                    source, visualizer, {("overlay_buffer_output", "render_buffer_input")}
+                )
+                self.add_flow(
+                    visualizer, source, {("render_buffer_output", "overlay_buffer_input")}
+                )
+            else:
+                self.add_flow(
+                    source,
+                    visualizer,
+                    {
+                        (
+                            "video_buffer_output" if self.source != "replayer" else "output",
+                            input_video_signal,
+                        )
+                    },
+                )
         if record_type == "input":
             if self.source != "replayer":
                 self.add_flow(
@@ -276,7 +402,7 @@ class EndoscopyApp(Application):
             self.add_flow(recorder_format_converter, recorder)
 
 
-if __name__ == "__main__":
+def main():
     default_data_path = f"{os.getcwd()}/data/endoscopy"
     # Parse args
     parser = ArgumentParser(description="Endoscopy tool tracking demo application.")
@@ -290,12 +416,24 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--source",
-        choices=["replayer", "aja", "yuan"],
+        choices=[
+            "replayer",
+            "aja",
+            "deltacast",
+            "yuan",
+        ],
         default="replayer",
         help=(
             "If 'replayer', replay a prerecorded video. Otherwise use a "
             "capture card as the source (default: %(default)s)."
         ),
+    )
+    parser.add_argument(
+        "-p",
+        "--postprocessor",
+        choices=["slang_shader", "tool_tracking_postprocessor"],
+        default="tool_tracking_postprocessor",
+        help=("The postprocessor to use for tool tracking (default: %(default)s)."),
     )
     parser.add_argument(
         "-c",
@@ -328,6 +466,15 @@ if __name__ == "__main__":
             f"Data path '{args.data}' does not exist. Use --data or set HOLOSCAN_INPUT_PATH environment variable."
         )
 
-    app = EndoscopyApp(record_type=record_type, source=args.source, data=args.data)
+    app = EndoscopyApp(
+        record_type=record_type,
+        source=args.source,
+        data=args.data,
+        postprocessor=args.postprocessor,
+    )
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

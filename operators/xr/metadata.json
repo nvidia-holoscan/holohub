@@ -1,0 +1,49 @@
+{
+    "operator": {
+        "name": "XR Operators",
+        "authors": [
+            {
+				"name": "Connor Smith",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Rafael Wiltz",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Mimi Liao",
+				"affiliation": "NVIDIA"
+			}
+        ],
+        "language": ["C++", "Python"],
+        "version": "1.0.0",
+        "changelog": {
+            "0.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.1.0",
+			"tested_versions": [
+				"3.1.0"
+			]
+        },
+        "platforms": [
+            "x86_64"
+        ],
+        "tags": ["Extended Reality", "Vulkan", "Visualization"],
+        "ranking": 4,
+        "requirements": {
+            "libraries": [
+            {
+                "name": "glm",
+                "version": "1.0.1",
+                "url": "https://github.com/g-truc/glm.git"
+            },
+            {
+                "name": "OpenXR-SDK",
+                "version": "1.0.26",
+                "url": "https://github.com/KhronosGroup/OpenXR-SDK-Source.git"
+            }
+            ]
+        }
+    }
+}

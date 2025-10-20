@@ -13,7 +13,7 @@
           "$ref": "holohub/project/v1#/$defs/description"
         },
         "authors": {
-          "$refs": "holohub/project/v1#/$defs/authors"
+          "$ref": "holohub/project/v1#/$defs/authors"
         },
         "version": {
           "$ref": "holohub/project/v1#/$defs/version"
@@ -33,14 +33,11 @@
         "ranking": {
           "$ref": "holohub/project/v1#/$defs/ranking"
         },
-        "dependencies": {
-          "$ref": "holohub/project/v1#/$defs/dependencies"
+        "requirements": {
+          "$ref": "holohub/project/v1#/$defs/requirements"
         },
         "dockerfile": {
           "type": "string"
-        },
-        "run": {
-          "$ref": "holohub/project/v1#/$defs/run_command"
         }
       },
       "required": [
@@ -52,7 +49,87 @@
         "tags",
         "holoscan_sdk",
         "ranking",
-        "dependencies"
+        "requirements"
+      ],
+      "oneOf": [
+        {
+          "properties": {
+            "run": {
+              "$ref": "holohub/project/v1#/$defs/run_command"
+            }
+          },
+          "required": ["run"],
+          "not": {
+            "properties": {
+              "modes": {
+                "type": "object"
+              }
+            },
+            "required": ["modes"]
+          }
+        },
+        {
+          "properties": {
+            "modes": {
+              "$ref": "holohub/project/v1#/$defs/modes"
+            },
+            "default_mode": {
+              "type": "string",
+              "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+              "description": "Name of the default mode to use when none is specified. Only needed when there are multiple modes."
+            }
+          },
+          "required": ["modes"],
+          "anyOf": [
+            {
+              "properties": {
+                "modes": {
+                  "type": "object",
+                  "maxProperties": 1
+                }
+              }
+            },
+            {
+              "properties": {
+                "modes": {
+                  "type": "object",
+                  "minProperties": 2
+                }
+              },
+              "required": ["default_mode"]
+            }
+          ],
+          "not": {
+            "properties": {
+              "run": {
+                "type": "object"
+              }
+            },
+            "required": ["run"]
+          }
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "properties": {
+                  "run": {
+                    "type": "object"
+                  }
+                },
+                "required": ["run"]
+              },
+              {
+                "properties": {
+                  "modes": {
+                    "type": "object"
+                  }
+                },
+                "required": ["modes"]
+              }
+            ]
+          }
+        }
       ]
     },
     "$ref": "holohub/operator/v1#/properties/operator",

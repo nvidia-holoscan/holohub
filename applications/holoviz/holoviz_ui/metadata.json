@@ -19,14 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Holoviz UI"
-		],
+		"tags": ["Rendering", "Visualization", "Holoviz"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/holoviz_ui",
 			"workdir": "holohub_bin"

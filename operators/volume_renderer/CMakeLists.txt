@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,12 +41,12 @@ if(POLICY CMP0146)
   set(CMAKE_POLICY_DEFAULT_CMP0146 OLD)
 endif()
 
-set(_clara_viz_version "0.4.0")
+set(_clara_viz_version "v0.4.2")
 include(FetchContent)
 FetchContent_Declare(
     ClaraViz
     URL https://github.com/NVIDIA/clara-viz/archive/refs/tags/${_clara_viz_version}.tar.gz
-    URL_MD5 de6fe03b13384fd3c0921db0f2aa17a4
+    URL_MD5 79cff506c896eb9d1a0d5b742782e06b
     )
 
 # enable CMP0077 to allow overwriting option() statements in FetchContent sub-projects

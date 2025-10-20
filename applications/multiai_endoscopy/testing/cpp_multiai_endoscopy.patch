@@ -1,14 +1,13 @@
 --- applications/multiai_endoscopy/cpp/post-proc-cpu/multi_ai.cpp	2024-01-10 18:43:58.365526539 +0000
 +++ applications/multiai_endoscopy/cpp/post-proc-cpu/multi_ai_test.cpp	2024-02-28 09:17:11.116207162 +0000
-@@ -20,6 +20,7 @@
+@@ -20,5 +20,6 @@
  #include <holoscan/holoscan.hpp>
- #include <holoscan/operators/aja_source/aja_source.hpp>
  #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 +#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
  #include <holoscan/operators/format_converter/format_converter.hpp>
  #include <holoscan/operators/inference/inference.hpp>
  #include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.hpp>
-@@ -344,6 +345,24 @@
+@@ -367,6 +368,24 @@
      add_flow(segmentation_preprocessor, inference, {{"", "receivers"}});
      add_flow(inference, segmentation_postprocessor, {{"transmitter", ""}});
      add_flow(segmentation_postprocessor, holoviz, {{"", "receivers"}});

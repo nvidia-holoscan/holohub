@@ -1,11 +1,11 @@
-# Object Detection Application
+# Object Detection using PyTorch Faster R-CNN
 
 This application performs object detection using frcnn resnet50 model from torchvision.
 The inference is executed using `torch` backend in `holoinfer` module in Holoscan SDK.
 
 `object_detection_torch.yaml` is the configuration file. Input video file is converted into GXF tensors and the name and location of the GXF tensors are updated in the `basename` and the `directory` field in `replayer`.
 
-This application need `Libtorch` for inferencing. Ensure that the Holoscan SDK is build with `build_libtorch` flag as true. If not, then rebuild the SDK with following: `./run build --build_libtorch true` before running this application.
+This application need `Libtorch` for inferencing. Ensure that the Holoscan SDK is build with `build_libtorch` flag as true. If not, then rebuild the SDK with following: `./holohub build --build_libtorch true` before running this application.
 
 ## Data
 
@@ -34,21 +34,28 @@ If resolution is updated in entity generation, it must be updated in the followi
 <data_dir>/object_detection_torch/frcnn_resnet50_t.yaml
 <data_dir>/object_detection_torch/postprocessing.yaml
 
+## Quick start
+If you want to quickly run this application, you can use the `./holohub run` command.
+
+```sh
+./holohub run object_detection_torch
+```
+
+Otherwise, you can build and run the application using the commands below.
+
 ## Building the application
 
 The best way to run this application is inside the container, as it would provide all the required third-party packages:
 
 ```bash
-# Create the container image for this application
-./dev_container build --docker_file applications/object_detection_torch/Dockerfile --img object_detection_torch
-# Launch the container
-./dev_container launch --img object_detection_torch
-# Build the application. Note that this downloads the video data as well
-./run build object_detection_torch
+# Create and launch the container image for this application
+./holohub run-container object_detection_torch
+# Build the application inside the container. Note that this downloads the video data as well
+./holohub build object_detection_torch
 # Generate the pytorch model
 python3 applications/object_detection_torch/generate_resnet_model.py  data/object_detection_torch/frcnn_resnet50_t.pt
 # Run the application
-./run launch object_detection_torch
+./holohub run object_detection_torch
 ```
 
 Please refer to the top level Holohub README.md file for more information on how to build this application.
@@ -74,6 +81,6 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/hpcx/ompi/lib"
 
 ## Containerize the application
 
-To containerize the application using [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html), first build the application using `./dev_container build_and_install object_detection_torch`, run the `package-app.sh` script and then follow the generated output to package and run the application.
+To containerize the application using [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html), first build the application using `./holohub install object_detection_torch`, run the `package-app.sh` script and then follow the generated output to package and run the application.
 
 Refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/) to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.

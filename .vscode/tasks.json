@@ -28,9 +28,9 @@
         {
             "type": "shell",
             "label": "Clear Build Cache",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
-                "clear_cache"
+                "clear-cache"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -41,12 +41,13 @@
         {
             "type": "shell",
             "label": "Build basic_networking_ping",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "basic_networking_ping",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -88,12 +89,13 @@
         {
             "type": "shell",
             "label": "Build asr_to_llm",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "asr_to_llm",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -105,12 +107,13 @@
         {
             "type": "shell",
             "label": "Build sam2",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "sam2",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -122,12 +125,13 @@
         {
             "type": "shell",
             "label": "Build colonoscopy_segmentation",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "colonoscopy_segmentation",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -139,12 +143,13 @@
         {
             "type": "shell",
             "label": "Build cuda_quantum",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "cuda_quantum",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -156,12 +161,13 @@
         {
             "type": "shell",
             "label": "Build cvcuda_basic",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "cvcuda_basic",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -173,12 +179,13 @@
         {
             "type": "shell",
             "label": "Build endoscopy_depth_estimation",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "endoscopy_depth_estimation",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -190,12 +197,13 @@
         {
             "type": "shell",
             "label": "Build endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "endoscopy_tool_tracking",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -207,12 +215,13 @@
         {
             "type": "shell",
             "label": "Build ucx_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "ucx_endoscopy_tool_tracking",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -274,32 +283,6 @@
         },
         {
             "type": "shell",
-            "label": "Build grpc_endoscopy_tool_tracking",
-            "command": "./run",
-            "args": [
-                "build",
-                "grpc_endoscopy_tool_tracking",
-                "--type",
-                "debug"
-            ],
-            "options": {
-                "cwd": "${env:WORKSPACE_DIR}"
-            },
-            "group": "build",
-            "problemMatcher": [],
-            "detail": "CMake template build task",
-            "presentation": {
-                "echo": true,
-                "reveal": "silent",
-                "focus": true,
-                "panel": "dedicated",
-                "showReuseMessage": false,
-                "clear": true,
-                "group": "grpc_endoscopy_tool_tracking"
-            }
-        },
-        {
-            "type": "shell",
             "label": "Build grpc_endoscopy_tool_tracking (delay 3s)",
             "command": "sleep 3",
             "dependsOn": "Build grpc_endoscopy_tool_tracking",
@@ -322,12 +305,13 @@
         {
             "type": "shell",
             "label": "Build h264_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "h264_endoscopy_tool_tracking",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -339,12 +323,13 @@
         {
             "type": "shell",
             "label": "Build ucx_h264_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "ucx_h264_endoscopy_tool_tracking",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -365,12 +350,13 @@
         {
             "type": "shell",
             "label": "Build h264_video_decode",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "h264_video_decode",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -382,12 +368,13 @@
         {
             "type": "shell",
             "label": "Build grpc_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "grpc_endoscopy_tool_tracking",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -429,12 +416,13 @@
         {
             "type": "shell",
             "label": "Build grpc_h264_endoscopy_tool_tracking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "grpc_h264_endoscopy_tool_tracking",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -476,12 +464,13 @@
         {
             "type": "shell",
             "label": "Build Holoviz examples",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "${input:remember_holoviz_example_name}",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -493,12 +482,13 @@
         {
             "type": "shell",
             "label": "Build multiai_ultrasound",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "multiai_ultrasound",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -510,12 +500,49 @@
         {
             "type": "shell",
             "label": "Build nvidia_nim_nvclip",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "nvidia_nim_nvclip",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build slang_simple",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "slang_simple",
+                "--build-type",
+                "debug",
+                "--local"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build slang_gamma_correction",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "slang_gamma_correction",
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -527,12 +554,13 @@
         {
             "type": "shell",
             "label": "Build volume_rendering",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "volume_rendering",
-                "--type",
-                "debug"
+                "--build-type",
+                "debug",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -545,11 +573,12 @@
             "type": "shell",
             "hide": true,
             "label": "Build for Holoscan Flow Benchmarking",
-            "command": "./run",
+            "command": "./holohub",
             "args": [
                 "build",
                 "${input:app_name}",
-                "--benchmark"
+                "--benchmark",
+                "--local"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"

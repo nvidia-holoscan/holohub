@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "MultiAI Ultrasound",
+		"name": "Multi-AI Ultrasound",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -19,15 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Ultrasound",
-			"MultiAI"
-		],
+		"tags": ["Healthcare AI", "Visualization", "Cardiac Keypoints Detection", "Ultrasound", "Video", "Classification"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/multiai_ultrasound.py  --data <holohub_data_dir>/multiai_ultrasound",
 			"workdir": "holohub_app_bin"

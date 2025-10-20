@@ -21,6 +21,7 @@ import os
 import re
 import subprocess
 import sys
+from ctypes import CDLL, byref, c_int, create_string_buffer
 
 
 def setup_logging():
@@ -39,7 +40,7 @@ def parse_args():
     Parses command-line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="Check system tuning for ANO performance",
+        description="Check system tuning for Advanced Network performance",
         epilog=(
             "Examples:\n"
             f"  python {sys.argv[0]} --check cpu-freq    # Check CPU frequency governor\n"
@@ -56,6 +57,8 @@ def parse_args():
         "--check",
         choices=[
             "all",
+            "gpudirect",
+            "peermem",
             "cpu-freq",
             "mrrs",
             "mps",
@@ -69,6 +72,8 @@ def parse_args():
         help=(
             "Specify the property to check:\n"
             "  all        - Perform all checks\n"
+            "  gpudirect  - Check if NVIDIA GPUs support GPUDirect.\n"
+            "  peermem    - Check if the nvidia-peermem module is loaded.\n"
             "  cpu-freq   - Check if the CPU frequency governor is set to 'performance'.\n"
             "  mrrs       - Check if the Maximum Read Request Size (MRRS) of NVIDIA NICs is set to 4096.\n"
             "  mps        - Check if the Maximum Payload Size is set to 256B.\n"
@@ -89,6 +94,61 @@ def parse_args():
         sys.exit(1)
 
     return parser.parse_args()
+
+
+def check_peermem_kernel():
+    """
+    Check if the nvidia-peermem module for GPUDirect is loaded in the kernel.
+
+    Returns:
+        bool: True if nvidia-peermem is loaded, False otherwise
+    """
+    try:
+        # Also check for nvidia_peermem (with underscore)
+        result = subprocess.run(
+            ["lsmod | grep peermem"], shell=True, capture_output=True, text=True
+        )
+
+        if bool(result.stdout.strip()):
+            logging.info("nvidia-peermem module is loaded.")
+        else:
+            logging.warning("nvidia-peermem module is not loaded. GPUDirect may not work.")
+
+    except Exception as e:
+        print(f"Error checking for nvidia-peermem module: {e}")
+        return False
+
+
+def check_gpudirect_support():
+    """
+    Checks if NVIDIA GPUs have access to GPUDirect.
+    """
+    # Load CUDA Runtime API
+    libcuda = CDLL("libcuda.so")
+
+    cudaDevAttrGPUDirectRDMASupported = 116
+
+    result = libcuda.cuInit(0)
+    if result != 0:
+        logging.error(f"CUDA initialization failed with error code: {result}")
+        return
+    count = c_int()
+    libcuda.cuDeviceGetCount(byref(count))
+
+    for i in range(count.value):
+        device = c_int()
+        libcuda.cuDeviceGet(byref(device), i)
+
+        name = create_string_buffer(100)
+        libcuda.cuDeviceGetName(name, 100, device)
+
+        supported = c_int()
+        libcuda.cuDeviceGetAttribute(byref(supported), cudaDevAttrGPUDirectRDMASupported, device)
+
+        if bool(supported.value):
+            logging.info(f"GPU {i}: {name.value.decode()} has GPUDirect support.")
+        else:
+            logging.warning(f"GPU {i}: {name.value.decode()} does not have GPUDirect support.")
 
 
 def get_nic_info():
@@ -347,19 +407,36 @@ def check_nvidia_gpu_clocks():
 
             logging.debug(f"GPU {idx}: Checking clocks...")
 
-            if sm_current != sm_max:
+            # Some GPUs have a boost clock that appears as the "max clock", but when you set the
+            # GPU to that frequency it will not report as that with nvidia-smi. For example:
+            # nvidia-smi --lock-gpu-clocks 3105 --mode 1
+            # GPU clocks set to "(gpuClkMin 3105, gpuClkMax 3105)" for GPU 00000005:09:00.0
+            #
+            # Clocks
+            #  SM                                : 2730 MHz
+            #
+            # Anecdotally if a user has not set their clocks at all the value will be very low,
+            # around 100-300MHz. Having a check within 500MHz should be sufficient to catch this.
+            sm_margin = 500
+            if abs(sm_current - sm_max) > sm_margin:
                 logging.warning(
-                    f"GPU {idx}: SM Clock is set to {sm_current} MHz, but should be {sm_max} MHz."
+                    f"GPU {idx}: SM Clock is set to {sm_current} MHz, but should be within {sm_margin} MHz of the {sm_max} MHz theoretical Max."
+                )
+            elif sm_current < sm_max:
+                logging.info(
+                    f"GPU {idx}: SM Clock is correctly set to {sm_current} MHz (within {sm_margin} of the {sm_max} MHz theoretical Max)."
                 )
             else:
-                logging.info(f"GPU {idx}: SM Clock is correctly set to {sm_max} MHz.")
+                logging.info(f"GPU {idx}: SM Clock is correctly set to {sm_current} MHz.")
 
-            if mem_current != mem_max:
+            # nvidia-smi has a bug where the memory clock is reported as 1 MHz less than the max in
+            # some cases
+            if abs(mem_current - mem_max) > 1:
                 logging.warning(
                     f"GPU {idx}: Memory Clock is set to {mem_current} MHz, but should be {mem_max} MHz."
                 )
             else:
-                logging.info(f"GPU {idx}: Memory Clock is correctly set to {mem_max} MHz.")
+                logging.info(f"GPU {idx}: Memory Clock is correctly set to {mem_current} MHz.")
 
     except FileNotFoundError:
         logging.error("nvidia-smi command not found. Ensure NVIDIA drivers are installed.")
@@ -444,11 +521,15 @@ def check_topology_connections():
             return
 
         # Extract labels (e.g., GPU0, NIC0, etc.)
-        labels = topo_output[header_index].split()
+        header = topo_output[header_index].strip()
+        labels = []
+        for label in header.split():
+            if label.startswith("GPU") or label.startswith("NIC"):
+                labels.append(label)
 
         # Parse the topology table rows
         gpu_to_nic_connections = {}
-        for row in topo_output[header_index + 1 :]:
+        for row_idx, row in enumerate(topo_output[header_index + 1 :]):
             row = row.strip()
             if not row:
                 continue  # Skip empty lines
@@ -459,28 +540,30 @@ def check_topology_connections():
 
             # Check connections for GPUs only
             if "GPU" in device_label:
-                for col_index, connection_type in enumerate(columns[1:], start=1):
-                    target_label = labels[col_index]
+                # We need to align the columns with the labels
+                # The first column after the device label corresponds to the first label
+                for label_idx, label in enumerate(labels):
+                    if "NIC" in label:
+                        # label_idx + 1 because columns[0] is the device label
+                        connection_type = columns[label_idx + 1]
 
-                    # Check if it's a GPU-NIC pair
-                    if "NIC" in target_label:
                         if device_label not in gpu_to_nic_connections:
                             gpu_to_nic_connections[device_label] = []
-                        gpu_to_nic_connections[device_label].append((target_label, connection_type))
+                        gpu_to_nic_connections[device_label].append((label, connection_type))
 
         # Verify that each GPU has at least one PIX or PXB connection to a NIC
         for gpu, connections in gpu_to_nic_connections.items():
             has_valid_connection = False
             for nic, connection_type in connections:
                 if connection_type in {"PIX", "PXB"}:
-                    logging.info(f"GPU {gpu} has at least one PIX/PXB connection to a NIC")
+                    logging.info(f"{gpu} has a {connection_type} connection to {nic}")
                     has_valid_connection = True
                     break
 
             if not has_valid_connection:
                 for nic, connection_type in connections:
-                    logging.error(
-                        f"GPU {gpu} does not have a PIX or PXB connection to NIC {nic}. "
+                    logging.warning(
+                        f"{gpu} does not have a PIX or PXB connection to {nic}. "
                         f"Current connection type: {connection_type}."
                     )
 
@@ -622,6 +705,10 @@ def main():
             check_kernel_cmdline()
         if args.check == "all" or args.check == "mtu":
             check_mtu_size()
+        if args.check == "all" or args.check == "gpudirect":
+            check_gpudirect_support()
+        if args.check == "all" or args.check == "peermem":
+            check_peermem_kernel()
     elif args.set is not None:
         if args.set == "mrrs":
             update_mrrs_for_nvidia_devices()

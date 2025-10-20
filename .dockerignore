@@ -1,0 +1,47 @@
+# Build and installation
+build/
+build-*/
+install/
+install-*/
+dist/
+_CPack_Packages/
+
+# Data
+data/
+
+# Utilities and metadata
+aggregate_metadata.json
+
+# CI
+ci/
+
+# Python
+**/__pycache__
+*.pyc
+
+# Development environment
+.venv/
+.vscode-server/
+ngc-cli/
+CTestConfig.cmake
+
+# Cache and temporary directories
+.cache/
+.cupy/
+.cmake/
+.docker/
+.config/
+.local/
+tmp/
+
+# History and user files
+.bash_history
+.python_history
+.wget-hsts
+.viminfo
+.lesshst
+
+# Version control
+.git/
+.gitignore
+.github/

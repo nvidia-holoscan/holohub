@@ -1,4 +1,4 @@
-# Orsi Non Organic Structure Segmentation and AR sample app
+# Surgical Tool Segmentation and AR Overlay
 
 
 <center> <img src="./docs/orsi_segmentation.png" ></center>
@@ -42,22 +42,16 @@ Towards realtime segmentation and AR overlay, a binary segmentation model for no
 | Toggle stent | 2 |
 
 
-## Build app
+## Build and Launch app
 
 ```bash
-./run build orsi_segmentation_ar
-```
-
-## Launch app
-
-```bash
-./run launch orsi_segmentation_ar cpp
+./holohub run orsi_segmentation_ar --language cpp
 ```
 
 or
 
 ```bash
-./run launch orsi_segmentation_ar python
+./holohub run orsi_segmentation_ar --language python
 ```
 
 <center> <img src="./docs/orsi_logo.png" width="400"></center>

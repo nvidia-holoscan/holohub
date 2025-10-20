@@ -12,8 +12,9 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Network", "Networking", "UDP", "Ethernet", "IP", "TCP"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Networking and Distributed Computing", "Distributed", "UDP", "GPUDirect", "DPDK"],
+		"dockerfile": "operators/advanced_network/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [
@@ -21,7 +22,7 @@
 			]
 		},
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"operators": [{
 				"name": "adv_network_rx",
 				"version": "1.0"

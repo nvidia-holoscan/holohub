@@ -1,0 +1,30 @@
+{
+	"operator": {
+		"name": "Convert Depth to Screen Space",
+		"authors": [
+			{
+				"name": "Magic Leap team",
+				"affiliation": "Magic Leap"
+			}
+		],
+		"language": "C++",
+		"version": "0.0",
+		"changelog": {
+			"0.0": "Initial release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6",
+			"tested_versions": [
+				"0.6",
+				"2.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Rendering", "Convert", "Depth"],
+		"ranking": 2,
+		"requirements": {}
+	}
+}

@@ -1,0 +1,30 @@
+{
+	"operator": {
+		"name": "Orsi Academy Operators",
+		"authors": [
+			{
+				"name": "Jasper Hofman",
+				"affiliation": "Orsi Academy"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"language": ["C++", "Python"],
+		"holoscan_sdk": {
+			"minimum_required_version": "0.6.0",
+			"tested_versions": [
+				"0.6.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [],
+		"ranking": 3,
+		"requirements": {
+		}
+	}
+}

@@ -18,7 +18,7 @@
 # NVIDIA-hosted NIMs running on build.nvidia.com.
 nim:
   base_url: https://integrate.api.nvidia.com/v1
-  api_key: aa
+  api_key: 
   model: nvidia/nvclip
   encoding_format: float
 

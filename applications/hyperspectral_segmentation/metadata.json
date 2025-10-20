@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Hyperspectral image segmentation",
+		"name": "Hyperspectral Image Segmentation",
 		"authors": [
 			{
 				"name": "Lars Doorenbos",
@@ -19,15 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Segmentation",
-			"Hyperspectral"
-		],
+		"tags": ["Healthcare AI", "Visualization", "Hyperspectral Imaging", "Segmentation", "Endoscopy", "Image Processing"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"blosc": "^1.11.1",
 			"torch": "^2.1.0",
 			"onnx": "^1.15.0",

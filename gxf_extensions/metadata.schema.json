@@ -13,13 +13,16 @@
           "$ref": "holohub/project/v1#/$defs/description"
         },
         "authors": {
-          "$refs": "holohub/project/v1#/$defs/authors"
+          "$ref": "holohub/project/v1#/$defs/authors"
         },
         "version": {
           "$ref": "holohub/project/v1#/$defs/version"
         },
         "changelog": {
           "$ref": "holohub/project/v1#/$defs/changelog"
+        },
+        "language": {
+          "$ref": "holohub/project/v1#/$defs/language"
         },
         "platforms": {
           "$ref": "holohub/project/v1#/$defs/platforms"
@@ -33,8 +36,8 @@
         "ranking": {
           "$ref": "holohub/project/v1#/$defs/ranking"
         },
-        "dependencies": {
-          "$ref": "holohub/project/v1#/$defs/dependencies"
+        "requirements": {
+          "$ref": "holohub/project/v1#/$defs/requirements"
         }
       },
       "required": [
@@ -46,7 +49,7 @@
         "tags",
         "gxf_version",
         "ranking",
-        "dependencies"
+        "requirements"
       ]
     }
   },

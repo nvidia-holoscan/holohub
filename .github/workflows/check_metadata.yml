@@ -8,7 +8,7 @@ on:
 
 jobs:
   check-metadata:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Repository
@@ -24,4 +24,4 @@ jobs:
           python -m pip install -r ./utilities/requirements.txt
 
       - name: Run metadata_validator.py
-        run: python utilities/metadata_validator.py
+        run: python utilities/metadata/metadata_validator.py

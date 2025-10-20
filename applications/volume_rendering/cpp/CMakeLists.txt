@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@ find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(volume_rendering
+  json_loader.cpp
   volume_rendering.cpp
 )
 
@@ -27,6 +28,7 @@ target_link_libraries(volume_rendering
   holoscan::ops::volume_loader
   holoscan::ops::volume_renderer
   holoscan::ops::holoviz
+  nlohmann_json::nlohmann_json
 )
 
 # Download the volume rendering sample data
@@ -34,9 +36,8 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(volume_rendering
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_volume_rendering_sample_data/versions/20230628/zip
+    URL nvidia/clara-holoscan/holoscan_volume_rendering_sample_data:20230628
     DOWNLOAD_NAME holoscan_volume_rendering_sample_data_20230628.zip
-    URL_MD5 129a15d848b83c8f54988d1ee985edca
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
   )
   add_dependencies(volume_rendering volume_rendering_data)

@@ -27,7 +27,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install required apt packages and python modules
 #
 RUN apt-get update \
-    && apt-get install -y libgl1
+    && apt-get install -y libgl1 curl
 
 RUN pip3 install \
     ultralytics \
@@ -35,15 +35,14 @@ RUN pip3 install \
 
 # --------------------------------------------------------------------------
 #
-# Holohub run setup
+# Holohub dev setup
 #
-
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc

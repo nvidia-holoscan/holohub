@@ -19,14 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Holoviz YUV","YCbCr"
-		],
+		"tags": ["Computer Vision and Perception", "Visualization", "Video", "Holoviz", "Image Processing"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/holoviz_yuv",
 			"workdir": "holohub_bin"

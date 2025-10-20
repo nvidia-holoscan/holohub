@@ -26,13 +26,13 @@ ARG DEBIAN_FRONTEND=noninteractive
 #
 # Install required python modules
 RUN pip3 install \
-    numpy==1.24.4 \
-    blosc==1.11.1 \
-    torch==2.1.0 \
-    onnx==1.15.0 \
-    onnxruntime==1.16.1 \
-    Pillow==10.1.0 \
-    matplotlib==3.7.4
+    numpy>=1.24.4 \
+    blosc>=1.11.1 \
+    torch>=2.1.0 \
+    onnx>=1.15.0 \
+    onnxruntime>=1.16.1 \
+    Pillow>=10.1.0 \
+    matplotlib>=3.7.4
 
 # --------------------------------------------------------------------------
 #
@@ -40,11 +40,11 @@ RUN pip3 install \
 #
 
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc

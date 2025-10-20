@@ -1,0 +1,43 @@
+{
+	"application": {
+		"name": "Endoscopy Out of Body Detection",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release",
+			"1.1": "Update directory structure and CMakeLists"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "1.0.3",
+			"tested_versions": [
+				"2.9.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Healthcare AI", "Video", "AJA", "Endoscopy", "Classification", "Computer Vision and Perception"],
+		"ranking": 1,
+		"requirements": {
+			"data": [
+				{
+					"name": "Holoscan Sample App Data for AI Endoscopy Out Of Body Detection",
+					"description": "This resource contains a detection model which classifies if the input frame of an endoscopy video is inside the body or out of the body, as well as a sample surgical video.",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/endoscopy_out_of_body_detection",
+					"license": "https://developer.nvidia.com/clara-holoscan-EULA"
+				}
+			]
+		},
+		"run": {
+			"command": "./endoscopy_out_of_body_detection --config endoscopy_out_of_body_detection.yaml --data <holohub_data_dir>/endoscopy_out_of_body_detection",
+			"workdir": "holohub_app_bin"
+		}
+	}
+}

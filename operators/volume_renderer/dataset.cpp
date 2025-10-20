@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+/* SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ class DataArray {
   std::vector<uint32_t> permute_axis_{0, 1, 2};
   /// axis flip
   std::vector<bool> flip_axes_{false, false, false};
-  /// value range of the elements, used for anmated volumes
+  /// value range of the elements, used for animated volumes
   std::vector<clara::viz::Vector2f> element_range_;
 
   /// Memory blob
@@ -54,6 +54,7 @@ class DataArray {
 void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
                         const std::array<uint32_t, 3>& permute_axis,
                         const std::array<bool, 3>& flip_axes,
+                        const std::vector<clara::viz::Vector2f>& element_range,
                         const nvidia::gxf::Handle<nvidia::gxf::Tensor>& tensor) {
   DataArray data_array;
 
@@ -91,6 +92,7 @@ void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
   data_array.spacing_ = clara::viz::Vector3f(spacing[0], spacing[1], spacing[2]);
   data_array.permute_axis_ = {permute_axis[0], permute_axis[1], permute_axis[2]};
   data_array.flip_axes_ = {flip_axes[0], flip_axes[1], flip_axes[2]};
+  data_array.element_range_ = element_range;
 
   int32_t frames = 1;
   if (shape.rank() == 4) { frames = shape.dimension(0); }
@@ -198,7 +200,7 @@ void Dataset::Configure(clara::viz::DataConfigInterface& data_config_interface) 
     level->size.Set({1, density_[0]->dims_(0), density_[0]->dims_(1), density_[0]->dims_(2)});
     level->element_size.Set(
         {1.0f, density_[0]->spacing_(0), density_[0]->spacing_(1), density_[0]->spacing_(2)});
-    level->element_range.Set({density_[0]->element_range_});
+    level->element_range.Set(density_[0]->element_range_);
   }
   if (!segmentation_.empty()) {
     access->arrays.emplace_back();
@@ -223,8 +225,7 @@ void Dataset::Configure(clara::viz::DataConfigInterface& data_config_interface) 
                              segmentation_[0]->spacing_(0),
                              segmentation_[0]->spacing_(1),
                              segmentation_[0]->spacing_(2)});
-    // use a fixed element range for multi-frame data
-    level->element_range.Set({segmentation_[0]->element_range_});
+    level->element_range.Set(segmentation_[0]->element_range_);
   }
 }
 

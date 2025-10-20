@@ -23,15 +23,15 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(multiai_ultrasound
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_multi_ai_ultrasound_sample_data/versions/20230222/zip
+    URL nvidia/clara-holoscan/holoscan_multi_ai_ultrasound_sample_data:20230222
     DOWNLOAD_NAME holoscan_multi_ai_ultrasound_sample_data_20230222.zip
-    URL_MD5 59e7b9043fa867a5d45077a91d0ef835
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 320
     GXF_ENTITIES_WIDTH 320
     GXF_ENTITIES_CHANNELS 3
     GXF_ENTITIES_FRAMERATE 30
+    ALL
   )
 endif()
 

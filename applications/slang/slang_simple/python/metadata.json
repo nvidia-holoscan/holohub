@@ -1,0 +1,44 @@
+{
+	"application": {
+		"name": "Slang Simple Compute Kernel Example",
+		"description": "Example for using the Slang shading language operator for simple compute kernels",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.3.0",
+			"tested_versions": [
+				"3.3.0",
+				"3.4.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Rendering",
+			"Slang",
+			"shading",
+			"shader",
+			"shadertoy",
+			"compute",
+			"raytracing",
+			"cuda"
+		],
+		"ranking": 1,
+		"requirements": {},
+		"run": {
+			"command": "python3 <holohub_app_source>/slang_simple.py",
+			"workdir": "holohub_app_source"
+		}
+	}
+}

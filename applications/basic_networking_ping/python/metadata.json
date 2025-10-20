@@ -1,19 +1,19 @@
 {
 	"application": {
-		"name": "Basic Networking Benchmark",
+		"name": "Basic Networking Ping",
 		"authors": [
 			{
 				"name": "Cliff Burdick",
 				"affiliation": "NVIDIA"
 			}
 		],
-		"language": "C++",
+		"language": "Python",
 		"version": "1.0",
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Network", "Networking", "UDP", "Ethernet", "IP", "TCP"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Networking and Distributed Computing", "Distributed", "UDP", "Communications"],
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [
@@ -23,7 +23,7 @@
 			]
 		},
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"operators": [{
 				"name": "basic_network",
 				"version": "1.0"

@@ -1,0 +1,4 @@
+fhir.resources~=7.1.0  # No conflict after Holoscan relaxed pinning dependency versions
+holoscan>=3.0
+pyzmq~=26.0
+requests~=2.32.3

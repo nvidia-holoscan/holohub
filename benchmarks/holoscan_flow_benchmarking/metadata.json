@@ -19,15 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Benchmarking",
-			"Flow"
-		],
+		"tags": ["Benchmarking"],
 		"ranking": 3,
-		"dependencies": {
+		"requirements": {
 			"python-requirements": [
 				{
 					"filepath": "requirements.txt"

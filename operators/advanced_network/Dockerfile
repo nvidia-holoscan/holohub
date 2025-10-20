@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,59 +14,156 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-ARG GPU_TYPE=dgpu
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.7.0-${GPU_TYPE}
 
-FROM ${BASE_IMAGE} AS base
-ARG UBUNTU_VERSION=22.04
-ARG OFED_VERSION=24.07-0.6.1.0
-ARG CACHEBUST=1
+# Define arguments for holoscan installation
+ARG HOLOSCAN_DEB_SRC="remote" # or "local"
+ARG HOLOSCAN_DEB_REMOTE_VERSION=3.4.0 # only used if HOLOSCAN_DEB_SRC is "remote"
+ARG HOLOSCAN_DEB_LOCAL_PATH="./holoscan.deb" # only used if HOLOSCAN_DEB_SRC is "local"
+
+# ============================================================
+# base: Base layer
+# ============================================================
+FROM nvcr.io/nvidia/cuda:12.6.3-base-ubuntu22.04 AS base
+SHELL ["/bin/bash", "-eou", "pipefail", "-c"]
+
+# Basic system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        gnupg \
+        python3-pip \
+        git \
+        build-essential \
+    && OS_CODENAME=$(. /etc/os-release && echo "$VERSION_CODENAME") \
+    && KW_KEYRING="/usr/share/keyrings/kitware-archive-keyring.gpg" \
+    && curl -fsSL "https://apt.kitware.com/keys/kitware-archive-latest.asc" \
+        | gpg --dearmor -o "$KW_KEYRING" \
+    && echo "deb [signed-by=$KW_KEYRING] https://apt.kitware.com/ubuntu/ $OS_CODENAME main" \
+        > /etc/apt/sources.list.d/kitware.list \
+    && apt-get update \
+    && rm "$KW_KEYRING" \
+    && apt-get install --no-install-recommends -y \
+        kitware-archive-keyring \
+        cmake="3.*" \
+        cmake-data="3.*" \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================
+# hsdk-remote: Install holoscan from remote apt repository
+# ============================================================
+FROM base AS hsdk-remote
+
+ARG HOLOSCAN_DEB_REMOTE_VERSION
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        holoscan="${HOLOSCAN_DEB_REMOTE_VERSION}*" \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================
+# hsdk-local: Install holoscan from local deb package
+# ============================================================
+FROM base AS hsdk-local
+
+ARG HOLOSCAN_DEB_LOCAL_PATH
+RUN --mount=type=bind,source=${HOLOSCAN_DEB_LOCAL_PATH},target=/tmp/holoscan.deb \
+    apt-get update && apt-get install -y --no-install-recommends \
+        /tmp/holoscan.deb \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================
+# hsdk: join hsdk-remote and hsdk-local
+# ============================================================
+FROM hsdk-${HOLOSCAN_DEB_SRC} AS hsdk-installed
+
+# ==============================================================
+# common-deps: common dependencies for the advanced network lib
+# ==============================================================
+FROM hsdk-installed AS common-deps
+
 ARG TARGETARCH
-RUN echo "Using architecture ${TARGETARCH}"
-
-RUN apt update && apt install -y python3-pyelftools ninja-build meson libyaml-cpp-dev
-RUN pip3 install scipy loguru attrs
-WORKDIR /opt
-
+ARG DOCA_VERSION=2.8.0
+ARG CACHEBUST=1
 ARG DEBIAN_FRONTEND=noninteractive
 
+WORKDIR /opt
+
+# Configure the DOCA APT repository
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
-        DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/x86_64; \
+        DOCA_ARCH="x86_64"; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
-        DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/2.8.0/ubuntu22.04/arm64-sbsa; \
+        DOCA_ARCH="arm64-sbsa"; \
     else \
         echo "Unknown architecture: $TARGETARCH"; \
         exit 1; \
     fi \
+    && DISTRO=$(. /etc/os-release && echo ${ID}${VERSION_ID}) \
+    && DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/${DOCA_VERSION}/${DISTRO}/${DOCA_ARCH} \
     && echo "Using DOCA_REPO_LINK=${DOCA_REPO_LINK}" \
     && LOCAL_GPG_KEY_PATH="/usr/share/keyrings/mellanox-archive-keyring.gpg" \
-    && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} \
-    && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list \
-    && apt update -y \
-    && apt install -y --no-install-recommends doca-sdk-aes-gcm doca-sdk-apsh doca-sdk-argp doca-sdk-comch doca-sdk-comm-channel doca-sdk-common doca-sdk-compress doca-sdk-devemu doca-sdk-dma doca-sdk-dpa doca-sdk-dpdk-bridge doca-sdk-erasure-coding doca-sdk-eth doca-sdk-flow doca-sdk-pcc doca-sdk-rdma doca-sdk-sha doca-sdk-telemetry-exporter doca-sdk-urom doca-apsh-config doca-bench doca-caps doca-comm-channel-admin doca-pcc-counters doca-sha-offload-engine doca-socket-relay doca-all doca-sdk-gpunetio libdoca-sdk-gpunetio-dev rdma-core flexio libyara8
+    && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} > /dev/null \
+    && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list
+
+# APT installs
+# - cublas, cufft, cusolver, curand dev libs: for matx
+# - ninja-build: for cmake build
+# - pkgconf: to import dpdk and doca in CMake
+# - mlnx-dpdk-dev: for dpdk and gpunetio backends
+# - libdoca-sdk-dma-dev: for gpunetio backend (dependency of doca-gpunetio module)
+# - libdoca-sdk-gpunetio-dev: for gpunetio backend (doca-gpunetio module)
+# - libdoca-sdk-eth-dev: for gpunetio backend (doca-eth module)
+# - libdoca-sdk-flow-dev: for gpunetio backend (doca-flow module)
+# - mlnx-ofed-kernel-utils: utilities, including ibdev2netdev used by tune_system.py
+# - ibverbs-utils: utilities
+# - python3-pyelftools: used by some mlnx tools
+# - python3-dev: for building python bindings
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libcublas-dev-12-6 \
+        libcufft-dev-12-6 \
+        libcusolver-dev-12-6 \
+        libcurand-dev-12-6 \
+        ninja-build \
+        pkgconf \
+        mlnx-dpdk-dev \
+        libdoca-sdk-dma-dev \
+        libdoca-sdk-gpunetio-dev \
+        libdoca-sdk-eth-dev \
+        libdoca-sdk-flow-dev \
+        mlnx-ofed-kernel-utils \
+        ibverbs-utils \
+        python3-pyelftools \
+        python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# PIP installs
+# - pytest: test harness
+# - pyyaml: to parse yaml configs in tests
+# - scapy: for debugging and mocking network packets for tests
+RUN python3 -m pip install --no-cache-dir \
+        pytest \
+        pyyaml \
+        scapy
 
 # ==============================
-# DOCA Target (inherits from base)
+# DOCA Target
 # This stage is only built when --target doca is specified. It contains any DOCA-specific configurations.
 # ==============================
-FROM base AS doca
+FROM common-deps AS doca
 # DOCA-specific installation or steps (if needed)
 
 # ==============================
-# DPDK Target (inherits from base)
+# DPDK Target
 # This stage is only built when --target dpdk is specified. It contains any DPDK-specific configurations.
 # ==============================
-FROM base AS dpdk
+FROM common-deps AS dpdk
 # DPDK-specific installation or steps (if needed)
 
 # ==============================
-# Rivermax Target (inherits from base)
+# Rivermax Target
 # This stage is only built when --target rivermax is specified. It installs and configures Rivermax SDK.
 # ==============================
-FROM base AS rivermax
+FROM common-deps AS rivermax
 
 # Define Rivermax-specific build arguments and environment variables
-ARG RIVERMAX_VERSION=1.60.6
+ARG RIVERMAX_VERSION=1.70.32
 ARG RIVERMAX_SDK_ZIP_PATH=./rivermax_ubuntu2204_${RIVERMAX_VERSION}.tar.gz
 ARG MAXPROC=8
 
@@ -78,8 +175,24 @@ ARG RMAX_TEGRA=OFF
 ENV RMAX_TEGRA=${RMAX_TEGRA}
 
 # Install additional dependencies required for Rivermax
-RUN apt install -y iproute2 libcap-dev gdb ethtool iputils-ping net-tools \
-    libfmt-dev libnl-3-dev libnl-genl-3-dev libcap-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libglew-dev
+# Update package cache and install additional dependencies required for Rivermax
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    iproute2 \
+    libcap-dev \
+    gdb \
+    ethtool \
+    iputils-ping \
+    net-tools \
+    libfmt-dev \
+    libnl-3-dev \
+    libnl-genl-3-dev \
+    libglu1-mesa-dev \
+    freeglut3-dev \
+    mesa-common-dev \
+    libglew-dev \
+    cuda-nvml-dev-12-6 \
+    cuda-nvtx-12-6 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy and extract the Rivermax SDK
 COPY ${RIVERMAX_SDK_ZIP_PATH} /tmp/rivermax_sdk.tar.gz
@@ -108,23 +221,13 @@ RUN cd apps && \
     cmake -B build -DRMAX_CUDA=ON -DRMAX_TEGRA=${RMAX_TEGRA} -DRMAX_BUILD_VIEWER=ON && \
     cmake --build build -j $(nproc)
 
-# Temporarily add missing definitions for rmax_apps_lib build until added to the SDK
-RUN echo '\
-    target_compile_definitions(rmax-apps-util-reduced PUBLIC \
-            \$<\$<BOOL:\${RMAX_CUDA}>:CUDA_ENABLED> \
-            \$<\$<BOOL:\${RMAX_TEGRA}>:TEGRA_ENABLED> \
-    )' >> rmax_apps_lib/util/CMakeLists.txt
-
 # Build rmax_apps_lib sample applications
-RUN cd rmax_apps_lib && \
+RUN cd rivermax-dev-kit && \
     cmake -B build -DRMAX_CUDA=ON -DRMAX_TEGRA=${RMAX_TEGRA} -DRMAX_BUILD_VIEWER=ON && \
     cmake --build build -j $(nproc)
 
-# Temporarily exclude apps from rmax_apps_lib build until added to the SDK
-RUN sed -i 's/\"apps\"//' rmax_apps_lib/CMakeLists.txt
-
 # ==============================
-# Default stage: Base
-# If no target is specified, the base stage will be built by default.
+# Default stage: common-deps
+# If no target is specified, the common-deps stage will be built by default.
 # ==============================
-FROM base
+FROM common-deps

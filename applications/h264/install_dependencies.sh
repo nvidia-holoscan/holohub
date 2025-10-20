@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,10 +17,10 @@
 
 # This scripts installs gxf multimedia libraries and corresponding dependencies
 # required for H264 Encode / Decode applications.
+set -e
 
 # URL of the DeepStream dependencies required for gxf-mm extensions above
-DS_DEPS_URL="https://api.ngc.nvidia.com/v2/resources/org/nvidia/gxf_and_gc/4.0.0/files?redirect=true&path=nvv4l2_x86_ds-7.0.deb"
-
+DS_DEPS_URL="https://api.ngc.nvidia.com/v2/resources/org/nvidia/gxf_and_gc/5.1.0/files?redirect=true&path=nvv4l2_x86_ds-8.0.deb"
 ARCH=$(arch)
 HOLOSCAN_LIBS_DIR=/opt/nvidia/holoscan/lib/
 
@@ -38,19 +38,23 @@ gxf_mm_extensions=(["decoderio"]="45081ccb-982e-4946-96f9-0d684f2cfbd0" \
                    ["encoder"]="ea5c44e4-15db-4448-a3a6-f32004303338")
 mkdir -p gxf-mm
 mkdir -p ${HOLOSCAN_LIBS_DIR}
-CUDA_VERSION=12.6
+MM_VERSION=1.5.0
+CUDA_VERSION=13.0
+UBUNTU_VERSION=24.04
 for extension in "${!gxf_mm_extensions[@]}"; do
   if [[ $extension == "decoderio" ]] || [[ $extension == "encoderio" ]]; then
-    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/1.3.0-linux-${ARCH}-ubuntu_22.04/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
+    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/${MM_VERSION}-linux-${ARCH}-ubuntu_${UBUNTU_VERSION}/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
   else
-    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/1.3.0-linux-${ARCH}-ubuntu_22.04-cuda-${CUDA_VERSION}/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
+    extension_url="https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/graph-composer/video${extension}extension/${MM_VERSION}-linux-${ARCH}-ubuntu_${UBUNTU_VERSION}-cuda-${CUDA_VERSION}/files?redirect=true&path=${gxf_mm_extensions[${extension}]}.tar.gz"
   fi
   extension_tar=${gxf_mm_extensions[$extension]}.tar.gz
+  set -x
   wget --content-disposition ${extension_url} -O ${extension_tar}
   tar -xvf ${extension_tar} -C gxf-mm/
   rm ${extension_tar}
   extensions_lib="libgxf_video${extension}.so"
   cp ./gxf-mm/${extensions_lib} ${HOLOSCAN_LIBS_DIR}/
+  set +x
 done
 rm -rf gxf-mm
 

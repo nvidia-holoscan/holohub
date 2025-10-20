@@ -17,20 +17,18 @@
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG BASE_IMAGE
-FROM ${BASE_IMAGE} as base
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu as base
 
 
 ############################################################
 # HoloHub run + dev dependencies setup
 ############################################################
-
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 ############################################################
 # Magic Leap base setup
@@ -64,6 +62,9 @@ RUN apt update \
         mesa-common-dev \
         libvulkan-dev="1.3.204.1-*" \
     && rm -rf /var/lib/apt/lists/*
+
+# Install specific version of markupsafe for OpenXR build
+RUN pip install markupsafe==2.0.1
 
 ############################################################
 # Windrunner configuration

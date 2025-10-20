@@ -1,9 +1,9 @@
 {
 	"application": {
-		"name": "Yolo Detection Application",
+		"name": "Yolo Object Detection",
 		"authors": [
 			{
-				"name": "Meiran Peng",
+				"name": "Holoscan Team",
 				"affiliation": "NVIDIA"
 			}
 		],
@@ -13,29 +13,35 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "0.6.0",
+			"minimum_required_version": "1.0.3",
 			"tested_versions": [
-				"0.6.0"
+				"1.0.3"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Yolo", "bounding box"],
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Computer Vision and Perception", "Video", "Tensor Optimization", "YOLO Detection", "Visualization", "Camera"],
 		"ranking": 2,
-		"dependencies": {
-			"libraries": [{
-				"name": "numpy",
-				"version": "1.22.3"
-			},
-            {
-				"name": "cupy",
-				"version": "11.3"
-			}
-            ]
+		"requirements": {
+			"data": [
+				{
+					"model": "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt",
+					"video": "https://www.pexels.com/download/video/3252919/?fps=25.0&h=720&w=1280"
+				}
+			],
+			"hardware": [
+				{
+					"name": "camera",
+					"description": "This application requires a Video4Linux (V4L2) compatible device as input.",
+					"required": true
+				}
+			]
 		},
 		"run": {
-			"command": "python3 yolo_detection --data=./ --source=replayer --video_dir=./example_video",
-			"workdir": "holohub_app_source"
+			"command": "python3 <holohub_app_source>/yolo_detection.py",
+			"workdir": "holohub_bin"
 		}
-
 	}
 }

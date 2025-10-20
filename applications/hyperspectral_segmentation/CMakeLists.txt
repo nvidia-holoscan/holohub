@@ -25,7 +25,7 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(hyperspectral
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/hyperspectral_segmentation/versions/20231109/zip
+    URL nvidia/clara-holoscan/hyperspectral_segmentation:20231109
     DOWNLOAD_NAME hyperspectral_segmentation_20231109.zip
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     ALL

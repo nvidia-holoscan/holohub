@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 DELTACAST.TV. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 DELTACAST.TV. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,30 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 cmake_minimum_required(VERSION 3.20)
-project(deltacast_transmitter)
+project(deltacast_transmitter_apps LANGUAGES NONE)
 
-find_package(holoscan 0.4 REQUIRED CONFIG
-             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+add_subdirectory(cpp)
 
-
-# CPP Applications
-add_executable(deltacast_transmitter
-  main.cpp
-)
-
-target_link_libraries(deltacast_transmitter
-  PRIVATE
-  holoscan::core
-  holoscan::ops::video_stream_replayer
-  holoscan::ops::format_converter
-  holoscan::videomaster
-)
-
-# Copy config file
-add_custom_target(deltacast_transmitter_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/deltacast_transmitter.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "deltacast_transmitter.yaml"
-  BYPRODUCTS "deltacast_transmitter.yaml"
-)
-add_dependencies(deltacast_transmitter deltacast_transmitter_yaml)
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

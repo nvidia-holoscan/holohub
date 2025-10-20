@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "matlab_image_processing",
+		"name": "Image Processing with MATLAB GPU Coder",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -23,18 +23,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"MATLAB",
-			"Image Processing",
-			"Signal Processing",
-			"Computer Vision",
-			"CUDA"
-		],
+		"tags": ["Computer Vision and Perception", "Visualization", "Optimization", "Image Processing", "Video", "Holoviz"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"operators": [
 				{
 					"name": "MATLAB",

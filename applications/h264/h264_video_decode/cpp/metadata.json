@@ -1,6 +1,6 @@
 {
   "application": {
-    "name": "H.264 Video Decode Reference Application",
+    "name": "H.264 Video Decode",
     "authors": [
       {
         "name": "Holoscan Team",
@@ -16,21 +16,21 @@
     },
     "dockerfile": "applications/h264/Dockerfile",
     "holoscan_sdk": {
-      "minimum_required_version": "2.6.0",
-      "tested_versions": ["2.6.0"]
+      "minimum_required_version": "3.6.1",
+      "tested_versions": ["3.6.1"]
     },
-    "platforms": ["amd64", "arm64"],
-    "tags": ["H.264", "Video Decoding"],
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["Healthcare AI", "Video", "Hardware Accelerated Decode", "Endoscopy"],
     "ranking": 1,
-    "dependencies": {
+    "requirements": {
       "operators": [
         {
           "name": "videodecoder",
-          "version": "1.2.0"
+          "version": "1.5.0"
         },
         {
           "name": "videodecoderio",
-          "version": "1.2.0"
+          "version": "1.5.0"
         }
       ]
     },

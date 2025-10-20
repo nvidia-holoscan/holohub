@@ -1,4 +1,4 @@
-# Endoscopy Tool Tracking Application with gRPC
+# Distributed Endoscopy Tool Tracking with gRPC Streaming
 
 This application demonstrates how to offload heavy workloads to a remote Holoscan application using gRPC.
 
@@ -22,7 +22,6 @@ The App Cloud (the server) application consists of a gRPC server and a few compo
 
 Under the hood, the Endoscopy Tool Tracking application here inherits a custom base class (`HoloscanGrpcApplication`) which manages the `Request Queue` and the `Response Queue` as well as the `GrpcServerRequestOp` and `GrpcServerResponseOp` operators for receiving requests and serving results, respectively. When the RPC is complete, the instance of the Endoscopy Tool Tracking application is destroyed and ready to serve the subsequent request.
 
-
 ## Requirements
 
 ### Data
@@ -33,23 +32,42 @@ The data is automatically downloaded when building the application.
 
 ## Building and Running gRPC Endoscopy Tool Tracking Application
 
-* Building and running the application from the top level Holohub directory:
+### C++
 
+```bash
+# Start the gRPC Server
+./holohub run grpc_endoscopy_tool_tracking --run-args="cloud" [--language=cpp]
 
-### Configuration
+# Start the gRPC Client
+./holohub run grpc_endoscopy_tool_tracking --run-args="edge" [--language=cpp]
+```
 
-The Edge application runs in a single-fragment mode by default. However, it can be configured to run in a mult-fragment mode, as in the picture above.
+### Python
 
-To switch to multi-fragment mode, edit the [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml) YAML file and change `multifragment` to `true`.
+```bash
+# Start the gRPC Server
+./holohub run grpc_endoscopy_tool_tracking --language python --run-args="cloud"
+
+# Start the gRPC Client
+./holohub run grpc_endoscopy_tool_tracking --language python --run-args="edge"
+```
+
+### Configurations
+
+The Edge application runs in a single-fragment mode by default. However, it can be configured to run in a multi-fragment mode, as in the picture above.
+
+To switch to multi-fragment mode, edit the [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml) YAML file and change `multifragment` to `true`:
 
 ```yaml
-
 application:
   multifragment: false
   benchmarking: false
 ```
 
-[Data Flow Tracking](https://docs.nvidia.com/holoscan/sdk-user-guide/flow_tracking.html) can also be enabled by editing the [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml) YAML file and change `benchmarking` to `true`. This enables the built-in mechanism to profile the application and analyze the fine-grained timing properties and data flow between operators.
+> [!NOTE]
+> The Python version of this application is only available in single-fragment mode with benchmarking turned on.
+
+[Data Flow Tracking](https://docs.nvidia.com/holoscan/sdk-user-guide/flow_tracking.html) can also be enabled by editing the [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml) YAML file and changing `benchmarking` to `true`. This enables the built-in mechanism to profile the application and analyze the fine-grained timing properties and data flow between operators.
 
 For example, on the server side, when a client disconnects, it will output the results for that session:
 
@@ -104,24 +122,14 @@ incoming_responses->output: 683
 replayer->output: 683
 ```
 
+## Development Environment
 
-### C++
+### Dev Container
 
-```bash
-# Start the gRPC Server
-./dev_container build_and_run grpc_endoscopy_tool_tracking --run_args cloud [--language cpp]
-
-# Start the gRPC Client
-./dev_container build_and_run grpc_endoscopy_tool_tracking --run_args edge [--language cpp]
-```
-
-
-## Dev Container
-
-To start the the Dev Container, run the following command from the root directory of Holohub:
+To start the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode
+./holohub vscode
 ```
 
 ### VS Code Launch Profiles
@@ -134,20 +142,58 @@ The following launch profiles are available:
 - **(gdb) grpc_endoscopy_tool_tracking/cpp (cloud)**: Launch the gRPC server.
 - **(gdb) grpc_endoscopy_tool_tracking/cpp (edge)**: Launch the gRPC client.
 
+#### Python
+
+The following launch profiles are available:
+
+- **(compound) grpc_endoscopy_tool_tracking/python (cloud & edge)**: Launch both the gRPC server and the client.
+- **(pythoncpp) grpc_endoscopy_tool_tracking/python (cloud)**: Launch the gRPC server with `pythoncpp`.
+- **(pythoncpp) grpc_endoscopy_tool_tracking/python (edge)**: Launch the gRPC client with `pythoncpp`.
+- **(debugpy) grpc_endoscopy_tool_tracking/python (cloud)**: Launch the gRPC server with `debugpy`.
+- **(debugpy) grpc_endoscopy_tool_tracking/python (edge)**:Launch the gRPC client with `debugpy`.
+
+> [!NOTE]
+> The `compound` profile uses the `debugpy` extension due to a limitation that prevents launching
+> the cloud and the edge apps together using `pythoncpp`.
+
 
 ## Limitations & Known Issues
 
-- The connection between the server and the client is controlled by `rpc_timeout`. If no data is received or sent within the configured time, it assumes the call has been completed and hangs up. The `rpc_timeout` value can be configured in the [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml) file with a default of 5 seconds. Increasing this value may help on a slow network.
-- The server can serve one request at any given time. Any subsequent call receives a `grpc::StatusCode::RESOURCE_EXHAUSTED` status.
-- When debugging using the compound profile, the server may not be ready to serve, resulting in errors with the client application. When this happens, open [tasks.json](../../../.vscode/tasks.json), find `Build grpc_endoscopy_tool_tracking (delay 3s)`, and adjust the `command` field with a higher sleep value.
-- The client is expected to exit with the following error. It is how the client application terminates when it completes streaming and displays the entire video.
-  ```bash
-  [error] [program.cpp:614] Event notification 2 for entity [video_in__outgoing_requests] with id [33] received in an unexpected state [Origin]
-  ```
+### C++
+1. Connection Timeout:
+   - The connection between the server and client is controlled by `rpc_timeout`
+   - Default timeout is 5 seconds, configurable in [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml)
+   - Consider increasing this value on slower networks
 
+2. Server Limitations:
+   - Can only serve one request at a time
+   - Subsequent calls receive `grpc::StatusCode::RESOURCE_EXHAUSTED` status
 
-## Containerize the application
+3. Debugging Issues:
+   - When using the compound profile, the server may need additional startup time
+   - If needed, adjust the sleep value in [tasks.json](../../../../.vscode/tasks.json) under `Build grpc_endoscopy_tool_tracking (delay 3s)`
 
-To containerize the application, first install [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html), build the application using `./dev_container build_and_install grpc_endoscopy_tool_tracking`, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) directory and then follow the generated output to package and run the application.
+4. Expected Exit Behavior:
+   - The client will exit with the following expected error when the video completes:
+     ```bash
+     [error] [program.cpp:614] Event notification 2 for entity [video_in__outgoing_requests] with id [33] received in an unexpected state [Origin]
+     ```
 
-Refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/) to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.
+### Python
+- The client may require manual termination (CTRL+C) if errors occur during execution
+
+## Containerization
+
+To containerize the application:
+
+1. Install [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html)
+2. Build the application:
+   ```bash
+   ./holohub install grpc_endoscopy_tool_tracking
+   ```
+3. Run the appropriate packaging script:
+   - C++: [cpp/package-app.sh](./cpp/package-app.sh)
+   - Python: [python/package-app.sh](./python/package-app.sh)
+4. Follow the generated output instructions to package and run the application
+
+For more information about packaging Holoscan applications, refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) section in the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/).

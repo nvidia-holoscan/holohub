@@ -16,22 +16,15 @@
 ---
 replayer:  # VideoStreamReplayer
   # directory: "../data/ultrasound/video"
-  basename: "cars"
+  basename: "meeting"
   frame_rate: 0 # as specified in timestamps
   repeat: true # default: false
   realtime: true # default: true
   count: 0 # default: 0 (no frame count restriction)
 
-aja:  # AJASourceOp
-  width: 1920
-  height: 1080
-  rdma: true
-  enable_overlay: false
-
-drop_alpha_channel:  # FormatConverter
-  in_dtype: "rgba8888"
-  in_tensor_name: source_video
-  out_dtype: "rgb888"
+v4l2_source:
+  device: "/dev/video0"
+  pixel_format: "YUYV"
 
 detection_preprocessor:  # FormatConverter
     out_tensor_name: source_video
@@ -48,6 +41,8 @@ detection_inference:  # TensorRtInference
                  "inference_output_detection_boxes",
                  "inference_output_detection_scores",
                  "inference_output_detection_classes"]
+  model_path_map:
+    "yolo_det": "yolov8s.onnx" # model file in data dir
 
 detection_postprocessor:  # Postprocessor
   label_text_size: 0.04

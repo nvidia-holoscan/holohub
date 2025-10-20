@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2025 Valley Tech Systems, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+[package]
+name = "packet_sender"
+version = "0.1.0"
+authors = ["John Moon <john.moon@vts-i.com>"]
+edition = "2021"
+rust-version = "1.73.0"
+description = """
+Interface that takes raw spectral data from a C++ app,
+packages it a a VRT spectral data packet, then sends
+it out to a UDP port.
+"""
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+vita49 = "0.0.3"
+cxx = "1.0"
+
+[build-dependencies]
+cxx-build = "1.0"
+
+[lib]
+path = "src/packet_sender.rs"
+crate-type = ["staticlib"]

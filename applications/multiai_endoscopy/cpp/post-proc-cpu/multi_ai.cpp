@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +18,17 @@
 
 #include <cuda_runtime.h>
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/inference/inference.hpp>
 #include <holoscan/operators/segmentation_postprocessor/segmentation_postprocessor.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <gxf/std/tensor.hpp>
+
+#ifdef AJA_SOURCE
+#include <aja_source.hpp>
+#endif
+
 #if __has_include("gxf/std/dlpack_utils.hpp")
   #define GXF_HAS_DLPACK_SUPPORT 1
 #else
@@ -295,7 +299,12 @@ class App : public holoscan::Application {
     /* Source */
     std::shared_ptr<Operator> source;
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
+#else
+      throw std::runtime_error(
+          "AJA is requested but not available. Please enable AJA at build time.");
+#endif
     } else {
       source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
                                                   Arg("directory", datapath + "/endoscopy"));
@@ -345,9 +354,14 @@ class App : public holoscan::Application {
 
     // Source
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       add_flow(source, holoviz, {{"video_buffer_output", "receivers"}});
       add_flow(source, detection_preprocessor, {{"video_buffer_output", ""}});
       add_flow(source, segmentation_preprocessor, {{"video_buffer_output", ""}});
+#else
+      throw std::runtime_error(
+          "AJA is requested but not available. Please enable AJA at build time.");
+#endif
     } else {
       add_flow(source, holoviz, {{"", "receivers"}});
       add_flow(source, detection_preprocessor);

@@ -19,16 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"WebRTC",
-			"Client",
-			"Video"
-		],
+		"tags": ["Networking and Distributed Computing", "Video", "SDP Exchange", "WebRTC", "Camera", "Visualization"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "aiortc",

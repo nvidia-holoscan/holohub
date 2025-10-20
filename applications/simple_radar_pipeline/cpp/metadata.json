@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Simple Radar Pipeline in C++",
+		"name": "Simple Radar Pipeline",
 		"authors": [
 			{
 				"name": "Cliff Burdick",
@@ -19,10 +19,10 @@
 				"2.6.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Signal Processing", "RADAR"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Signal Processing", "Detection"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"libraries": [{
 			  "name": "MatX",
 			  "version": "0.9.0",

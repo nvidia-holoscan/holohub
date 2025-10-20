@@ -1,0 +1,26 @@
+{
+	"operator": {
+		"name": "Holoscan ROS2 Bridge",
+		"authors": [
+			{
+				"name": "NVIDIA",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"language": ["C++", "Python"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Robotics", "ROS2", "Bridge", "Interface"],
+		"holoscan_sdk": {
+			"minimum_required_version": "3.0.0",
+			"tested_versions": [
+				"3.0.0"
+			]
+		},
+		"ranking": 1,
+		"requirements": {}
+	}
+}

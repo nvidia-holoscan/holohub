@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
-#include "adv_network_rx.h"
-#include "adv_network_kernels.h"
+#include "advanced_network/common.h"
+#include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
+
+using namespace holoscan::advanced_network;
 
 namespace holoscan::ops {
 
@@ -35,7 +37,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     HOLOSCAN_LOG_INFO(
         "Finished receiver with {}/{} bytes/packets received", ttl_bytes_recv_, ttl_pkts_recv_);
 
-    HOLOSCAN_LOG_INFO("ANO benchmark RX op shutting down");
+    HOLOSCAN_LOG_INFO("Advanced Networking Benchmark RX op shutting down");
   }
 
   void initialize() override {
@@ -43,6 +45,12 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     holoscan::Operator::initialize();
 
     HOLOSCAN_LOG_INFO("holoscan::Operator::initialize() complete");
+
+    port_id_ = get_port_id(interface_name_.get());
+    if (port_id_ == -1) {
+      HOLOSCAN_LOG_ERROR("Invalid RX port {} specified in the config", interface_name_.get());
+      exit(1);
+    }
 
     // For this example assume all packets are the same size, specified in the config
     nom_payload_size_ = max_packet_size_.get() - header_size_.get();
@@ -64,7 +72,11 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   }
 
   void setup(OperatorSpec& spec) override {
-    spec.input<std::shared_ptr<AdvNetBurstParams>>("burst_in");
+    spec.param<std::string>(interface_name_,
+                            "interface_name",
+                            "Port name",
+                            "Name of the port to poll on from the advanced_network config",
+                            "rx_port");
     spec.param<uint32_t>(batch_size_,
                          "batch_size",
                          "Batch size",
@@ -107,34 +119,26 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
     // to keep it simple, we do that check right here on the next epoch of the operator.
     free_batch_queue();
 
-    // Get new input burst (ANO batch of packets)
-    auto burst_opt = op_input.receive<std::shared_ptr<AdvNetBurstParams>>("burst_in");
-    if (!burst_opt) {
-      HOLOSCAN_LOG_ERROR("No burst input");
-      return;
-    }
-    auto burst = burst_opt.value();
-
-    // If packets are coming in from our default (non-data) queue, free them and move on. This is
-    // hardcoded to match the YAML config files in this sample app.
-    // NOTE: we can't actually ignore all standard linux packets on a real network (with a switch),
-    //       at least ARP packets should be processed, or delegate to linux for standard traffic.
-    if (adv_net_get_q_id(burst) == 0) {
-      HOLOSCAN_LOG_DEBUG("Ignoring packets on queue 0");
+    // Get new input burst (advanced_network batch of packets)
+    // This example is limited to polling queue 0 of the rx interface
+    BurstParams *burst;
+    auto status = get_rx_burst(&burst, port_id_, 0);
+    if (status != Status::SUCCESS) {
+      HOLOSCAN_LOG_DEBUG("No RX burst available");
       return;
     }
 
     // Count packets received
-    ttl_pkts_recv_ += adv_net_get_num_pkts(burst);
+    ttl_pkts_recv_ += get_num_packets(burst);
 
     // Iterate over packets on GPU
-    for (int pkt_idx = 0; pkt_idx < adv_net_get_num_pkts(burst); pkt_idx++) {
-      /* For each ANO batch (named burst), we might not want to right away send the packets to the
-      * next operator, but maybe wait for more packets to come in, to make up what we call an
-      * "App batch". While that increases the latency by needing more data to come in to continue,
+    for (int pkt_idx = 0; pkt_idx < get_num_packets(burst); pkt_idx++) {
+      /* For each incoming burst, we might not want to right away send the packets to the next
+      * operator, but maybe wait for more packets to come in, to make up what we call a batch.
+      * While that increases the latency by needing more data to come in to continue,
       * it would allow collecting enough packets for reordering (not done here) to trigger the
       * downstream pipeline as soon as we have enough packets to do a full "message".
-      * Increasing the burst size instead (ANO batch) would ensure the same, but allowing smaller
+      * Increasing the burst size instead would ensure the same, but allowing smaller
       * burst size will improve latency.
       *
       * Below, we check if we should wait to receive more packets from
@@ -200,26 +204,27 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
       // NOTE: currently ordering pointers in the order packets come in. If headers had segment
       //       ID, the index in h_dev_ptrs_ should use that (instead of aggr_pkts_recv_ + p).
       h_dev_ptrs_[cur_batch_idx_][aggr_pkts_recv_++] =
-          reinterpret_cast<uint8_t*>(adv_net_get_pkt_ptr(burst, pkt_idx)) + header_size_.get();
+          reinterpret_cast<uint8_t*>(get_packet_ptr(burst, pkt_idx)) + header_size_.get();
     }
 
     // Count bytes received
-    ttl_bytes_recv_ += adv_net_get_burst_tot_byte(burst);
+    ttl_bytes_recv_ += get_burst_tot_byte(burst);
   }
 
  private:
   // TODO: make configurable?
   static constexpr int num_concurrent = 4;    // Number of concurrent batches processing
   // TODO: could infer with (batch_size / burst size)
-  static constexpr int MAX_ANO_BURSTS = 10;   // Batches from ANO for one app batch
+  static constexpr int MAX_BURSTS_PER_BATCH = 10;
 
   // Holds burst buffers that cannot be freed yet and CUDA event indicating when they can be freed
   struct BatchAggregationParams {
-    std::array<std::shared_ptr<AdvNetBurstParams>, MAX_ANO_BURSTS> bursts;
+    std::array<BurstParams*, MAX_BURSTS_PER_BATCH> bursts;
     int num_bursts;
     cudaEvent_t evt;
   };
 
+  int port_id_;                                    // Port ID to poll on
   BatchAggregationParams cur_batch_{};             // Parameters of current batch to process
   int cur_batch_idx_ = 0;                          // Current batch ID
   std::queue<BatchAggregationParams> batch_q_;     // Queue of batches being processed
@@ -229,6 +234,7 @@ class AdvNetworkingBenchDocaRxOp : public Operator {
   uint16_t nom_payload_size_;                      // Nominal payload size (no headers)
   std::array<void**, num_concurrent> h_dev_ptrs_;  // Host-pinned list of device pointers
   std::array<void*, num_concurrent> full_batch_data_d_;  // Device aggregated batch
+  Parameter<std::string> interface_name_;                // Port name from advanced_network config
   Parameter<uint32_t> batch_size_;                       // Batch size for one processing block
   Parameter<uint16_t> max_packet_size_;                  // Maximum size of a single packet
   Parameter<uint16_t> header_size_;                      // Header size of packet

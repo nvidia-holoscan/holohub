@@ -10,6 +10,13 @@ Please review the [CONTRIBUTING.md file](https://github.com/nvidia-holoscan/holo
 
 # HoloHub Application Organization Conventions
 
+## Starting a New Project with HoloHub CLI (Recommended)
+
+Use the HoloHub CLI tool when starting a new project to generate a project folder with files in compliance with HoloHub conventions out of the box.
+```bash
+./holohub create
+```
+
 ## Required Conventions
 
 We expect that an application contributed to HoloHub conforms to the following organization:
@@ -23,9 +30,7 @@ See the [HoloHub application template](./template/) for example `README` and `me
 
 ## Recommended Conventions
 
-Contributors may additionally opt to lay out their project structure in a way that conforms to HoloHub conventions in order to enable common infrastructure for their project, including streamlined build and run support in the [`dev_container`](../dev_container) and [`run`](../run) scripts and search support on the HoloHub landing page.
-
-If your code does not adhere to these conventions, please set the field `manual_setup` to `true` in your project `metadata.json` file to opt out and indicate that your project is not eligible for streamlined infrastructure support.
+Contributors may additionally opt to lay out their project structure in a way that conforms to HoloHub conventions in order to enable common infrastructure for their project, including streamlined build and run support in the [`holohub`](../holohub) script and search support on the HoloHub landing page.
 
 HoloHub recommended application convention is as follows:
 - Languages
@@ -48,11 +53,10 @@ applications/
     - Default project environment must be named `Dockerfile`
     - Project `Dockerfile` must be located at either:
       - The same directory as `metadata.json`, or
-      - If the project defines a language directory (`cpp`, `python`), may provide at the project folder one level above, or
       - The project may provide an alternative default Dockerfile path in `metadata.json`
   - If the project does not specify a `Dockerfile` then the [default HoloHub `Dockerfile`](../Dockerfile) will be used
 
 - Build and Run Instructions
-  - Must provide a run command in `metadata.json` for `./run launch` to reference
-  - Must otherwise comply with `./dev_container build_and_run` command options for the default use case
+  - Must provide a run command in `metadata.json` for `./holohub run` to reference
+  - Must otherwise comply with `./holohub run` command options for the default use case
   - Advanced instructions may also be specified in the project README

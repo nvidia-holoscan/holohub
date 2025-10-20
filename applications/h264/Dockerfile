@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,17 +25,26 @@ FROM ${BASE_IMAGE} as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+# Starting from Holoscan SDK 3.6.0, only CUDA 13 is supported.
+# To run H.264 application with CUDA 12, please use tags with holoscan-sdk-3.5.0 or earlier.
+RUN CUDA_VERSION_MAJOR=$(echo $CUDA_VERSION | cut -d '.' -f 1) \
+    && if [ "$CUDA_VERSION_MAJOR" != "13" ]; then \
+        echo "CUDA version $CUDA_VERSION is not supported."; \
+        echo "Starting from Holoscan SDK 3.6.0, H.264 applications only support CUDA 13 or higher."; \
+        echo "To run H.264 application with CUDA 12, please use tags with holoscan-sdk-3.5.0 or earlier."; \
+        exit 1; \
+    fi
+
 # --------------------------------------------------------------------------
 #
-# Holohub run setup
+# Holohub dev setup 
 #
-
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
@@ -66,3 +75,4 @@ WORKDIR /
 #ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 
 RUN /install_dependencies.sh
+

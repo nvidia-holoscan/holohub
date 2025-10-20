@@ -19,22 +19,19 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Large Multimodal Model",
-			"Large Vision Model"
-		],
+		"tags": ["Computer Vision and Perception", "LLM", "Large Vision Model", "Multimodal Model", "Video"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"Bootstrap": {
 				"source": "https://getbootstrap.com/docs/4.0/getting-started/contents/",
 				"version": "5.3.1"
 			}
 		},
 		"run": {
-			"command": "bash -c '<holohub_app_source>/run_vila_live.sh'",
+			"command": "<holohub_app_source>/run_vila_live.sh",
 			"workdir": "holohub_bin"
 		}
 	}

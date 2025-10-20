@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 DELTACAST.TV. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 DELTACAST.TV. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 cmake_minimum_required(VERSION 3.20)
 project(videomaster)
 
@@ -29,3 +30,7 @@ add_library(holoscan::videomaster ALIAS videomaster)
 target_include_directories(videomaster INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(videomaster INTERFACE DELTACAST_VIDEOMASTER)
 target_link_libraries(videomaster holoscan::core)
+
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()

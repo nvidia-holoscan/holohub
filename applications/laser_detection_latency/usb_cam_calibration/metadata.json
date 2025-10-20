@@ -19,11 +19,11 @@
 			]
 		},
 		"platforms": [
-			"arm64"
+			"aarch64"
 		],
-		"tags": [],
+		"tags": ["Computer Vision and Perception", "Visualization", "Camera", "Detection", "Image Processing", "Holoviz"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/usb_cam_calibration.py",
 			"workdir": "holohub_app_bin"

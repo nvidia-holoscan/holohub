@@ -19,14 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Holoviz vsync"
-		],
+		"tags": ["Computer Vision and Perception", "Visualization", "frame rate synchronization", "Image Processing", "Holoviz", "Rendering"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "<holohub_app_bin>/holoviz_vsync",
 			"workdir": "holohub_bin"

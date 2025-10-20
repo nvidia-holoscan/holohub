@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Volume Rendering",
+		"name": "Volume rendering using ClaraViz",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -17,20 +17,17 @@
 			"tested_versions": [
 				"1.0.3",
 				"2.0.0",
-				"2.1.0"
+				"2.1.0",
+				"3.1.0"
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Volume",
-			"Render",
-			"ClaraViz"
-		],
+		"tags": ["Healthcare AI", "Visualization", "Hounsfield Scale Transfer Functions", "Volume", "Segmentation", "TotalSegmentator"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 volume_rendering.py",
 			"workdir": "holohub_app_source"

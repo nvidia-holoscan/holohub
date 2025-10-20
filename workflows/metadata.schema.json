@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "holohub/workflow/v1",
+  "type": "object",
+  "properties": {
+    "workflow": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "holohub/project/v1#/$defs/name"
+        },
+        "description": {
+          "$ref": "holohub/project/v1#/$defs/description"
+        },
+        "authors": {
+          "$refs": "holohub/project/v1#/$defs/authors"
+        },
+        "version": {
+          "$ref": "holohub/project/v1#/$defs/version"
+        },
+        "changelog": {
+          "$ref": "holohub/project/v1#/$defs/changelog"
+        },
+        "language": {
+          "$ref": "holohub/project/v1#/$defs/language"
+        },
+        "platforms": {
+          "$ref": "holohub/project/v1#/$defs/platforms"
+        },
+        "tags": {
+          "$ref": "holohub/project/v1#/$defs/tags"
+        },
+        "holoscan_sdk": {
+          "$ref": "holohub/project/v1#/$defs/sdk_version"
+        },
+        "holoscan_sensor_bridge": {
+          "$ref": "holohub/project/v1#/$defs/sdk_version"
+        },
+        "ranking": {
+          "$ref": "holohub/project/v1#/$defs/ranking"
+        },
+        "requirements": {
+          "$ref": "holohub/project/v1#/$defs/requirements"
+        },
+        "dockerfile": {
+          "type": "string"
+        },
+        "run": {
+          "$ref": "holohub/project/v1#/$defs/run_command"
+        }
+      },
+      "required": [
+        "name",
+        "authors",
+        "version",
+        "changelog",
+        "platforms",
+        "tags",
+        "holoscan_sdk",
+        "ranking",
+        "requirements"
+      ]
+    },
+    "$ref": "holohub/operator/v1#/properties/operator",
+    "$ref": "holohub/gxf_extension/v1#/properties/gxf_extension"
+  },
+  "oneOf": [
+    {
+        "required": [
+            "application"
+        ]
+    },
+    {
+        "required": [
+            "operator"
+        ]
+    },
+    {
+      "required": [
+          "gxf_extension"
+      ]
+    },
+    {
+      "required": [
+          "workflow"
+      ]
+    }
+  ]
+}

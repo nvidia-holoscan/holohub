@@ -14,7 +14,13 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20.1)
-project(Holohub CXX)
+# Check if we can find a CXX compiler before enabling it
+find_program(CXX_COMPILER_FOUND NAMES g++ clang++ c++)
+if(CXX_COMPILER_FOUND)
+  project(Holohub CXX)
+else()
+  project(Holohub NONE)
+endif()
 
 # set CMAKE_MODULE_PATH
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -29,12 +35,18 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install" CACHE PATH "Installation directory" FORCE)
 endif()
 
+# Set default build type to Release if not specified
+if(NOT CMAKE_BUILD_TYPE)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+endif()
+
 # Enable Testing
 include(CTest)
 
 # Options
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
-option(HOLOHUB_BUILD_PYTHON "Build Holoscan SDK Python Bindings" ON)
+option(HOLOHUB_BUILD_PYTHON "Build support for Python" ON)
 
 # Enable flow benchmarking
 option(FLOW_BENCHMARKING "Enable Flow Benchmarking" OFF)
@@ -57,6 +69,17 @@ set(HOLOHUB_DATA_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Data Download direct
 set(CMAKE_INSTALL_RPATH
     "\$ORIGIN:\$ORIGIN/../../../lib:\$ORIGIN/../../lib:/opt/nvidia/holoscan/lib/")
 
+# Set the default CUDA target platforms
+if(NOT CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES "native")
+endif()
+
+# Build packaging
+add_subdirectory(pkg)
+
+# Build the workflows
+add_subdirectory(workflows)
+
 # Build the applications
 add_subdirectory(applications)
 
@@ -68,3 +91,9 @@ add_subdirectory(operators)
 
 # Build the extensions
 add_subdirectory(gxf_extensions)
+
+option(BUILD_HOLOHUB_TESTING OFF)
+if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)
+  enable_testing()
+  add_subdirectory(utilities/cli/tests)
+endif()

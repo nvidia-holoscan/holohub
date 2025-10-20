@@ -1,6 +1,6 @@
 {
     "application": {
-        "name": "cuda_quantum",
+        "name": "CUDA Quantum Variational Quantum Eigensolver (VQE)",
         "authors": [
             {
                 "name": "Sean Huver",
@@ -19,16 +19,12 @@
             ]
         },
         "platforms": [
-            "amd64",
-            "arm64"
+            "x86_64",
+            "aarch64"
         ],
-        "tags": [
-            "Quantum Computing",
-            "CUDA",
-            "VQE"
-        ],
+        "tags": ["Quantum Computing"],
         "ranking": 4,
-        "dependencies": {
+        "requirements": {
             "cuda_quantum": "^0.4.0"
         },
         "run": {

@@ -18,15 +18,15 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
 		"tags": [
 			"Camera",
 			"Emergent"
 		],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"packages": [
 				{
 					"name": "Emergent SDK",

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,21 @@ add_library(visualizer_icardio SHARED
   visualizer_icardio.cu
   visualizer_icardio.cuh
   visualizer_icardio.hpp
-  )
+)
 
 target_link_libraries(visualizer_icardio
+  PUBLIC
     holoscan::core
-    holoscan::infer
+  PRIVATE
     holoscan::infer_utils
-    CUDA::cudart)
+    CUDA::cudart
+)
+
+if("${holoscan_VERSION}" VERSION_GREATER_EQUAL "3.7")
+  target_link_libraries(visualizer_icardio PRIVATE holoscan::holoinfer_utils)
+else()
+  target_link_libraries(visualizer_icardio PRIVATE holoscan::infer)
+endif()
 
 target_include_directories(visualizer_icardio INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(visualizer_icardio PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR})

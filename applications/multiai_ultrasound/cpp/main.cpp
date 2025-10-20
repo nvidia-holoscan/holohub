@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,6 @@
 #include <getopt.h>
 
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/inference/inference.hpp>
@@ -27,6 +26,10 @@
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 
 #include <holoscan/version_config.hpp>
+
+#ifdef AJA_SOURCE
+#include <aja_source.hpp>
+#endif
 
 #include <visualizer_icardio.hpp>
 
@@ -62,7 +65,12 @@ class App : public holoscan::Application {
         make_resource<CudaStreamPool>("cuda_stream");
 
     if (is_aja_source_) {
+#ifdef AJA_SOURCE
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
+#else
+      throw std::runtime_error(
+          "AJA is requested but not available. Please enable AJA at build time.");
+#endif
     } else {
       source = make_operator<ops::VideoStreamReplayerOp>(
           "replayer", from_config("replayer"), Arg("directory", datapath));

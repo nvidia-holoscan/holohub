@@ -35,7 +35,7 @@ pip install aiohttp aiortc
 Run the command:
 
 ```bash
-./run launch webrtc_video_server
+./holohub run webrtc_video_server --local --no-local-build
 ```
 
 On the same machine open a browser and connect to `127.0.0.1:8080`. You can also connect from a different machine by connecting to the IP address the app is running on.

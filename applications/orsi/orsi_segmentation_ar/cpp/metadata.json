@@ -1,6 +1,6 @@
 {
     "application": {
-        "name": "ORSI Academy Surgical Tool Segmentation and AR Overlay",
+        "name": "Surgical Tool Segmentation and AR Overlay",
         "authors": [
             {
                 "name": "Jasper Hofman",
@@ -12,6 +12,7 @@
         "changelog": {
             "1.0": "Initial Release"
         },
+        "dockerfile": "applications/orsi/Dockerfile",
         "holoscan_sdk": {
             "minimum_required_version": "0.6.0",
             "tested_versions": [
@@ -19,19 +20,12 @@
             ]
         },
         "platforms": [
-            "amd64",
-            "arm64"
+            "x86_64",
+            "aarch64"
         ],
-        "tags": [
-            "DeltaCast",
-            "VideoMaster",
-            "Endoscopy",
-            "Segmentation",
-            "Augmented Reality", 
-            "VTK"
-        ],
+        "tags": ["Healthcare AI", "Extended Reality", "Surgical AI", "VTK", "Segmentation", "Endoscopy"],
         "ranking": 3,
-        "dependencies": {
+        "requirements": {
             "data": [
                 {
                     "name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",

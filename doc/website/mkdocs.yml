@@ -1,0 +1,143 @@
+site_name: NVIDIA Holoscan Reference Applications
+site_url: https://nvidia-holoscan.github.io/holohub
+repo_url: https://github.com/nvidia-holoscan/holohub
+repo_name: nvidia-holoscan/holohub
+
+theme:
+  name: "material"
+  custom_dir: overrides
+  features:
+    - content.code.annotate
+    - navigation.tabs
+    - navigation.indexes
+    # - navigation.instant  # Disabled due to JavaScript timing issues with filterByTag
+    - navigation.path
+    # - navigation.instant.prefetch  # Disabled to fix JavaScript initialization issues
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  font:
+    code: Roboto Mono
+  favicon: assets/images/favicon.png
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: light
+      primary: custom
+      accent: lime
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: dark
+      primary: custom
+      accent: lime
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    logo: nvidia/nvidia-logo
+    repo: fontawesome/brands/github
+
+extra_css:
+  - assets/css/color-schemes.css
+  - assets/css/fonts.css
+  - assets/css/custom-material.css
+  - assets/css/jupyter-themes.css
+
+plugins:
+  - search
+#  - git-revision-date-localized:
+#      fallback_to_build_date: true
+  - gen-files:
+      scripts:
+        - scripts/generate_featured_apps.py
+        - scripts/generate_pages.py
+  - macros
+  - tags
+  - mermaid2:
+      arguments:
+        theme: default
+  - mike:
+      # These fields are all optional; the defaults are as below...
+      alias_type: copy
+      redirect_template: null
+      deploy_prefix: ""
+      canonical_version: "latest"
+      version_selector: true
+      css_dir: "assets/css"
+      javascript_dir: "assets/js"
+  - awesome-nav
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - ../sub-packages/*/src
+  - include_dir_to_nav:
+      file_pattern: '.*\.(md|ipynb)$'
+  - site-urls
+
+not_in_nav: |
+  tags.md
+
+watch:
+  - ../../applications
+  - ../../operators
+  - ../../tutorials
+  - ../../benchmarks
+  - ../../workflows
+  - overrides/assets
+  - overrides/pages
+  - scripts
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      check_paths: true
+      restrict_base_path: False
+      base_path: "."
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      title: On this page
+      permalink: "#"
+      toc_depth: '1-4'
+  - def_list
+  - admonition
+  - footnotes
+  - tables
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/nvidia-holoscan/holohub
+  version:
+    provider: mike
+    default: latest
+    alias: true
+  github_url: https://github.com/nvidia-holoscan/holohub
+  generator: false
+  analytics:
+    provider: google
+    property: G-S5CCWVS2B6
+
+copyright: |
+  &copy; Copyright 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.

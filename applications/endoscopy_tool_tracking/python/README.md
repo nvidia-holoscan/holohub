@@ -5,7 +5,7 @@ Based on a LSTM (long-short term memory) stateful model, these applications demo
 ### Requirements
 
 - Python 3.8+
-- The provided applications are configured to either use the AJA or Yuan capture cards for input stream, or a pre-recorded endoscopy video (replayer). 
+- The provided applications are configured to either use the AJA, DELTACAST or Yuan capture cards for input stream, or a pre-recorded endoscopy video (replayer).
 Follow the [setup instructions from the user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
 ### Data
@@ -31,11 +31,11 @@ If your Holoscan SDK installation type is:
   ```
 
 * otherwise:
- 
+
   ```bash
   export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
   ```
- 
+
 Next, run the commands of your choice:
 
 This application should **be run in the build directory of Holohub** in order to load the GXF extensions.
@@ -50,12 +50,21 @@ the working directory.
 
 * Using an AJA card
     ```bash
-    cd <HOLOHUB_BUILD_DIR>
-    python3  <HOLOHUB_SOURCE_DIR>/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py --source=aja
+    ./holohub run endoscopy_tool_tracking python --run-args=-s=aja
     ```
 
 * Using a YUAN card
     ```bash
     cd <HOLOHUB_BUILD_DIR>
     python3  <HOLOHUB_SOURCE_DIR>/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py --source=yuan
+    ```
+
+* Using an AJA card with hardware keying overlay (Only specific cards support this feature)
+    ```bash
+    ./holohub run endoscopy_tool_tracking --language python --run-args="-c=applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking_aja_overlay.yaml -s=aja"
+    ```
+
+* Using the Slang shader operator for post-processing
+    ```bash
+    ./holohub run endoscopy_tool_tracking --language python --run-args="-p=slang_shader"
     ```

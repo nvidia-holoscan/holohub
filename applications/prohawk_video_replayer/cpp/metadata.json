@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "prohawk_video_replayer",
+		"name": "ProHawk Video Replayer",
 		"authors": [
 			{
 				"name": "Tim Wooldridge",
@@ -20,14 +20,11 @@
 			]
 		},
 		"platforms": [
-			"arm64"
+			"aarch64"
 		],
-		"tags": [
-			"Video Processing",
-			"Prohawk"
-		],
+		"tags": ["Healthcare AI", "Video", "filter presets", "Endoscopy", "Holoviz"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"operators": [
 				{
 					"name": "prohawk",

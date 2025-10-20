@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Ultrasound Segmentation",
+		"name": "Ultrasound Bone Scoliosis Segmentation",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -19,15 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Ultrasound",
-			"Segmentation"
-		],
+		"tags": ["Healthcare AI", "Video", "Ultrasound", "Segmentation", "AJA", "Visualization"],
 		"ranking": 1,
-		"dependencies": {},
+		"requirements": {},
 		"run": {
 			"command": "python3 <holohub_app_source>/ultrasound_segmentation.py  --data <holohub_data_dir>/ultrasound_segmentation",
 			"workdir": "holohub_bin"

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,6 @@ add_executable(endoscopy_tool_tracking
 target_link_libraries(endoscopy_tool_tracking
   PRIVATE
   holoscan::core
-  holoscan::ops::aja
   holoscan::ops::video_stream_replayer
   holoscan::ops::video_stream_recorder
   holoscan::ops::format_converter
@@ -35,8 +34,10 @@ target_link_libraries(endoscopy_tool_tracking
   tool_tracking_postprocessor
 )
 
-target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::videomaster>)
+target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::aja>)
 target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::qcap_source>)
+target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::ops::slang_shader>)
+target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::videomaster>)
 target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::vtk_renderer>)
 
 # Download the associated dataset if needed
@@ -48,8 +49,10 @@ endif()
 # Copy the config to the binary directory
 add_custom_target(endoscopy_tool_tracking_deps
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "endoscopy_tool_tracking.yaml"
-  BYPRODUCTS "endoscopy_tool_tracking.yaml"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking_aja_overlay.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/postprocessor.slang" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "endoscopy_tool_tracking.yaml" "endoscopy_tool_tracking_aja_overlay.yaml" "postprocessor.slang"
+  BYPRODUCTS "endoscopy_tool_tracking.yaml" "endoscopy_tool_tracking_aja_overlay.yaml" "postprocessor.slang"
 )
 add_dependencies(endoscopy_tool_tracking endoscopy_tool_tracking_deps)
 
@@ -161,5 +164,15 @@ install(
 
 install(
   FILES endoscopy_tool_tracking.yaml
+  DESTINATION bin/endoscopy_tool_tracking/cpp
+)
+
+install(
+  FILES endoscopy_tool_tracking_aja_overlay.yaml
+  DESTINATION bin/endoscopy_tool_tracking/cpp
+)
+
+install(
+  FILES postprocessor.slang
   DESTINATION bin/endoscopy_tool_tracking/cpp
 )

@@ -36,18 +36,27 @@ install(
   DIRECTORY ${CMAKE_HOME_DIRECTORY}/operators/medical_imaging
   DESTINATION imaging_ai_segmentator/operators)
 
-# Download the associated dataset if needed
+# Download the associated datasets and models if needed
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
+  include(holoscan_download_data)
   set(DOWNLOAD_DATA_DIR ${HOLOHUB_DATA_DIR}/imaging_ai_segmentator)
 
+  # Download the MONAI model
   file(MAKE_DIRECTORY ${DOWNLOAD_DATA_DIR}/models)
-  file(MAKE_DIRECTORY ${DOWNLOAD_DATA_DIR}/dicom)
   add_custom_command(
-    OUTPUT imaging_ai_segmentator_data
-    COMMAND gdown -q https://drive.google.com/uc?id=1PHpFWboimEXmMSe2vBra6T8SaCMC2SHT -O ${DOWNLOAD_DATA_DIR}/models/model.pt
-    COMMENT "Downloading imaging_ai_segmentator model using gdown..."
+    OUTPUT imaging_ai_segmentator_model
+    COMMAND  wget https://developer.download.nvidia.com/assets/Clara/monai/tutorials/model_zoo/model_wholebody_ct_segmentation.pt -O ${DOWNLOAD_DATA_DIR}/models/model.pt
+    COMMENT "Downloading imaging_ai_segmentator model from MONAI Model Zoo (hosted by NVIDIA)..."
   )
+
+  # Download a sample CT DICOM Image
+  holoscan_download_data(imaging_ai_segmentator
+      URL https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/CT_DICOM_SINGLE.zip
+      DOWNLOAD_DIR ${DOWNLOAD_DATA_DIR}/dicom
+      ALL
+  )
+
   add_custom_target(run ALL
-      DEPENDS imaging_ai_segmentator_data)
+      DEPENDS imaging_ai_segmentator_model imaging_ai_segmentator_data)
 endif()

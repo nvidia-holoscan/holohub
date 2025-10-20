@@ -18,10 +18,10 @@
 				"0.4.0"
 			]
 		},
-		"platforms": ["amd64"],
-		"tags": ["Communications", "Aerospace", "Defence", "Lifesciences"],
+		"platforms": ["x86_64"],
+		"tags": ["Signal Processing", "Audio"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"libraries": [{
 				"name": "numpy",
 				"version": "1.23.2"

@@ -1,4 +1,4 @@
-# Simple CV-CUDA application
+# Simple CV-CUDA
 
 This application demonstrates seamless interoperability between Holoscan tensors and CV-CUDA tensors. The image processing pipeline is just a simple flip of the video orientation.
 
@@ -9,59 +9,69 @@ specification](https://dmlc.github.io/dlpack/latest/python_spec.html) in both CV
 We provide two [operators](../../operators/cvcuda_holoscan_interop/README.md) to handle the
 interoperability between CVCUDA and Holoscan tensors.
 
-# Using the docker file
+# Quick Start with HoloHub CLI Container
+
+Run the following command to build and run the CV-CUDA sample application in a Docker container:
+
+```bash
+./holohub run cvcuda_basic
+```
+
+# Advanced Build Steps
+
+## Using the docker file
 
 This application requires a compiled version of [CV-CUDA](https://github.com/CVCUDA/CV-CUDA).
 For simplicity a DockerFile is available. To generate the container run:
 
 ```bash
-./dev_container build --docker_file ./applications/cvcuda_basic/Dockerfile
+./holohub build-container cvcuda_basic
 ```
 
-The C++ version of the application can then be built by launching this container and using the provided `run` script.
+The C++ version of the application can then be built by launching this container and using the provided `holohub` CLI.
 
 ```bash
-./dev_container launch
-./run build cvcuda_basic
+./holohub run-container cvcuda_basic
+./holohub build cvcuda_basic
 ```
 
-# Running the Application
+## Running the Application
 
-This application uses the endoscopy dataset as an example. The `run build` command above will automatically download it. This application is then run inside the container.
+This application uses the endoscopy dataset as an example. The build command above will automatically download it. This application is then run inside the container.
 
 ```bash
-./dev_container launch
+./holohub run-container cvcuda_basic
 ```
 
 The Python version of the simple CV-CUDA pipeline example can be run via
-```
+```bash
 python applications/cvcuda_basic/python/cvcuda_basic.py --data=/workspace/holohub/data/endoscopy
 ```
 
-or using the run script
+or using the HoloHub CLI entrypoint:
 
 ```bash
-./run launch cvcuda_basic python
+./holohub run cvcuda_basic --language=python --local
 ```
 
 The C++ version of the simple CV-CUDA pipeline example can then be run via
-```
+```bash
 ./build/applications/cvcuda_basic/cpp/cvcuda_basic --data=/workspace/holohub/data/endoscopy
 ```
 
 or using the run script
 
 ```bash
-./run launch cvcuda_basic cpp
+./holohub run cvcuda_basic --language=cpp --local
 ```
 
 
-## Dev Container
+## VS Code Dev Container
 
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode cvcuda_basic
+./holohub vscode cvcuda_basic
 ```
 
 ### VS Code Launch Profiles

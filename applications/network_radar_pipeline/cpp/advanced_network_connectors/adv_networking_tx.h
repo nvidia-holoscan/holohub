@@ -17,11 +17,13 @@
 #pragma once
 
 #include "common.h"
-#include "adv_network_tx.h"
+#include "advanced_network/common.h"
 
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdint.h>
+
+using namespace holoscan::advanced_network;
 
 namespace holoscan::ops {
 
@@ -49,7 +51,7 @@ class AdvConnectorOpTx : public Operator {
   static constexpr int MAX_ANO_BATCHES = 10;  // Batches from ANO for one app batch
   static constexpr uint16_t queue_id   = 0;
 
-  AdvNetStatus set_cpu_hdr(AdvNetBurstParams *msg, const int pkt_idx);
+  Status set_cpu_hdr(holoscan::advanced_network::BurstParams *msg, const int pkt_idx);
   void populate_packets(uint8_t **out_ptr,
                         complex_t *rf_data,
                         uint16_t waveform_id,
@@ -58,14 +60,14 @@ class AdvConnectorOpTx : public Operator {
                         cudaStream_t stream);
 
   struct TxMsg {
-    AdvNetBurstParams *msg;
+    holoscan::advanced_network::BurstParams *msg;
     uint16_t waveform_id;
     uint16_t channel_id;
     cudaEvent_t evt;
   };
   std::queue<TxMsg> out_q;
 
-  Parameter<AdvNetConfigYaml> cfg_;
+  Parameter<holoscan::advanced_network::NetworkConfig> cfg_;
 
   // Radar settings
   Parameter<uint16_t> num_pulses_;
@@ -81,7 +83,8 @@ class AdvConnectorOpTx : public Operator {
   Parameter<std::string> ip_src_addr_;
   Parameter<std::string> ip_dst_addr_;
   Parameter<std::string> eth_dst_addr_;
-  Parameter<uint16_t> port_id_;
+  Parameter<std::string> interface_name_;  // Port name from advanced_network config to poll on
+  int port_id_;                            // Port ID to poll on
   uint16_t payload_size_;
   uint32_t batch_size_;
   int hds_;

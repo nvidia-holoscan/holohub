@@ -1,0 +1,37 @@
+{
+    "application": {
+        "name": "Video Streaming Server",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "Python",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.2.0",
+            "tested_versions": [
+                "3.2.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [
+            "Streaming",
+            "Server",
+            "Demo"
+        ],
+        "ranking": 1,
+        "requirements": {},
+        "run": {
+            "command": "python3 streaming_server_demo.py",
+            "workdir": "holohub_bin"
+        }
+    }
+} 

@@ -20,17 +20,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"CV-CUDA",
-			"OpenCV",
-			"cuCIM",
-			"Holoscan"
-		],
+		"tags": ["Interoperability", "CV CUDA", "OpenCV"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "RAPIDS cuCIM",

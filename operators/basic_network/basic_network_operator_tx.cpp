@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved. * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved. ..* SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ void BasicNetworkOpTx::setup(OperatorSpec& spec) {
                        "Re-connect() interval",
                        "Interval to retry connecting to server in seconds",
                        1);
+  spec.param<bool>(
+      delete_payload_, "delete_payload", "Delete payload", "Delete payload after sending", true);
 }
 void BasicNetworkOpTx::initialize() {
   HOLOSCAN_LOG_INFO("BasicNetworkOpTx::initialize()");
@@ -104,16 +106,18 @@ void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCo
     HOLOSCAN_LOG_INFO("Successfully connected to server at {}:{}", ip_addr_.get(), port_.get());
   }
 
-
+  int packets_sent = 0;
   while (msg->len > 0) {
-    auto pkt_size = std::min(msg->len, static_cast<uint32_t>(max_payload_size_.get()));
+    auto pkt_size = msg->packet_sizes.empty()
+                  ? std::min(msg->len, static_cast<uint32_t>(max_payload_size_.get()))
+                  : msg->packet_sizes[packets_sent];
     if (l4_proto_ == L4Proto::UDP) {
       sent = sendto(sockfd_,
-                        msg->data + byte_cnt_,
-                        static_cast<size_t>(pkt_size),
-                        MSG_DONTWAIT,
-                        reinterpret_cast<const struct sockaddr*>(&server_addr_),
-                        sizeof(server_addr_));
+                    msg->data + byte_cnt_,
+                    static_cast<size_t>(pkt_size),
+                    MSG_DONTWAIT,
+                    reinterpret_cast<const struct sockaddr*>(&server_addr_),
+                    sizeof(server_addr_));
 
       if (sent == -1) {
         HOLOSCAN_LOG_ERROR("Error while sending UDP packet: {}", errno);
@@ -121,9 +125,9 @@ void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCo
       }
     } else if (l4_proto_ == L4Proto::TCP) {
       sent = send(sockfd_,
-                        msg->data + byte_cnt_,
-                        static_cast<size_t>(pkt_size),
-                        MSG_DONTWAIT);
+                  msg->data + byte_cnt_,
+                  static_cast<size_t>(pkt_size),
+                  MSG_DONTWAIT);
 
       if (sent == -1) {
         HOLOSCAN_LOG_ERROR("Error while sending TCP packet: {}", errno);
@@ -131,6 +135,7 @@ void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCo
       }
     }
 
+    packets_sent++;
     msg->len -= sent;
     byte_cnt_ += sent;
 
@@ -139,7 +144,9 @@ void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCo
 
   byte_cnt_ = 0;
 
-  delete[] msg->data;
+  if (delete_payload_.get()) {
+    delete[] msg->data;
+  }
 
   HOLOSCAN_LOG_DEBUG("BasicNetworkOpTx::compute done");
 }

@@ -1,0 +1,47 @@
+{
+	"application": {
+		"name": "Depth Anything V2",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.5.0",
+			"tested_versions": [
+				"2.8.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Computer Vision and Perception", "Visualization", "Edge Accelerated Inference", "Monocular Depth Estimation", "Holoviz", "Video"],
+		"ranking": 2,
+		"requirements": {
+			"data": [
+				{
+					"model": "https://huggingface.co/depth-anything/Depth-Anything-V2-Base/resolve/main/depth_anything_v2_vitb.pth",
+					"video": "https://www.pexels.com/video/a-woman-running-on-a-pathway-5823544"
+				}
+			],
+			"hardware": [
+				{
+					"name": "camera",
+					"description": "This application requires a Video4Linux (V4L2) compatible device as input.",
+					"required": true
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/depth_anything_v2.py",
+			"workdir": "holohub_bin"
+		}
+	}
+}

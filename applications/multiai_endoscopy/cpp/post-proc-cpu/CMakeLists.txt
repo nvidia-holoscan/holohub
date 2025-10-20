@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,12 +27,12 @@ add_executable(multiai_endoscopy
 target_link_libraries(multiai_endoscopy
   PRIVATE
   holoscan::core
-  holoscan::ops::aja
   holoscan::ops::video_stream_replayer
   holoscan::ops::format_converter
   holoscan::ops::inference
   holoscan::ops::segmentation_postprocessor
   holoscan::ops::holoviz
+  $<TARGET_NAME_IF_EXISTS:holoscan::aja>
 )
 
 # Download the associated dataset if needed
@@ -66,7 +66,6 @@ if(BUILD_TESTING)
 
     # Patch the current example to enable recording the rendering window
     add_custom_command(OUTPUT multiai_endoscopy_test.cpp
-    PRE_LINK
     COMMAND patch -u -o multiai_endoscopy_test.cpp ${CMAKE_CURRENT_SOURCE_DIR}/multi_ai.cpp
         ${CMAKE_SOURCE_DIR}/applications/multiai_endoscopy/testing/cpp_multiai_endoscopy.patch
     COMMAND sed -i "s#RECORDING_DIR#${RECORDING_DIR}#g" multiai_endoscopy_test.cpp
@@ -81,13 +80,13 @@ if(BUILD_TESTING)
   target_link_libraries(multiai_endoscopy_cpp_test
     PRIVATE
     holoscan::core
-    holoscan::ops::aja
     holoscan::ops::video_stream_replayer
     holoscan::ops::video_stream_recorder
     holoscan::ops::format_converter
     holoscan::ops::inference
     holoscan::ops::segmentation_postprocessor
     holoscan::ops::holoviz
+    $<TARGET_NAME_IF_EXISTS:holoscan::aja>
   )
 
   # Add the test and make sure it runs

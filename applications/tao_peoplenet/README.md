@@ -1,4 +1,5 @@
 # TAO PeopleNet Detection Model on V4L2 Video Stream
+
 <center> <img src="./docs/meeting.gif" ></center>
 
 Use the TAO PeopleNet available on [NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet) to detect faces and people in a V4L2 supported video stream. HoloViz is used to draw bounding boxes around the detections.
@@ -16,10 +17,22 @@ This application downloads a pre-recorded video from [Pexels](https://www.pexels
 
 ## Input
 
-This app currently supports three different input options:
+This app supports two different input options.  If you have a v4l2 compatible device plugged into your machine such as a webcam, you can run this application with option 1.  Otherwise you can run this application using a pre-recorded video with option 2.
 
 1. v4l2 compatible input device (default, see V4L2 Support below)
 2. pre-recorded video (see Video Replayer Support below)
+
+To see the list of v4l2 devices connected to your machine, install `v4l-utils` if it's not already installed:
+
+```
+sudo apt-get install v4l-utils
+```
+
+Then run:
+
+```
+v4l2-ctl --list-devices
+```
 
 ## Run Instructions
 
@@ -28,14 +41,14 @@ This app currently supports three different input options:
 This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
 ```sh
-./dev_container build_and_run tao_peoplenet
+./holohub run tao_peoplenet
 ```
 
 By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, please update
 `applications/tao_peoplenet/tao_peoplenet.yaml` and set it to use the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
 ```sh
-./dev_container build_and_run tao_peoplenet --run_args "--video_device /dev/video0"
+./holohub run tao_peoplenet --run-args="--video_device /dev/video0"
 ```
 
 ## Video Replayer Support
@@ -44,7 +57,7 @@ If you don't have a v4l2 compatible device plugged in, you may also run this app
 To launch the application using the Video Stream Replayer as the input source, run:
 
 ```sh
-./dev_container build_and_run tao_peopelnet --run_args "--source replayer"
+./holohub run tao_peoplenet --run-args="--source replayer"
 ```
 
 ### Known Issues

@@ -1,0 +1,47 @@
+{
+	"application": {
+		"name": "ROS2 Publisher/Subscriber",
+		"authors": [
+			{
+				"name": "Holoscan SDK Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.0",
+			"tested_versions": [
+				"3.0"
+			]
+		},
+		"dockerfile": "applications/holoscan_ros2/Dockerfile",
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Robotics", "ROS2", "Publisher", "Subscriber", "Python"],
+		"ranking": 1,
+		"requirements": {},
+		"default_mode": "publisher",
+		"modes": {
+			"publisher": {
+				"description": "ROS2 publisher that sends simple string messages (Python)",
+				"run": {
+					"command": "bash -c 'source /opt/ros/jazzy/setup.bash && PYTHONPATH=<holohub_bin>/python/lib:$PYTHONPATH python3 <holohub_app_source>/talker.py'",
+					"workdir": "holohub_bin"
+				}
+			},
+			"subscriber": {
+				"description": "ROS2 subscriber that receives simple string messages (Python)",
+				"run": {
+					"command": "bash -c 'source /opt/ros/jazzy/setup.bash && PYTHONPATH=<holohub_bin>/python/lib:$PYTHONPATH python3 <holohub_app_source>/listener.py'",
+					"workdir": "holohub_bin"
+				}
+			}
+		}
+	}
+}

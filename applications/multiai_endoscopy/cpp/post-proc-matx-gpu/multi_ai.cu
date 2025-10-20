@@ -18,7 +18,6 @@
 
 #include <cuda_runtime.h>
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/aja_source/aja_source.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/inference/inference.hpp>
@@ -27,6 +26,9 @@
 #include "gxf/std/tensor.hpp"
 #include "matx.h"
 
+#ifdef AJA_SOURCE
+#include <aja_source.hpp>
+#endif
 
 #define CUDA_TRY(stmt)                                                                  \
   {                                                                                     \

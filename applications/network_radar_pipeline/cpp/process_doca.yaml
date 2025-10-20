@@ -43,7 +43,7 @@ basic_network:
 advanced_network:
   cfg:
     version: 1
-    manager: "doca"
+    manager: "gpunetio"
     master_core: 0                 # Master CPU core
     memory_regions:
     - name: "Default_RX_GPU"
@@ -71,16 +71,14 @@ advanced_network:
             cpu_core: 10
             max_packet_size: 16384          # Maximum payload size
             batch_size: 1                   # Number of packets in a batch
-            output_port: "bench_rx_out"
-            memory_regions: 
+            memory_regions:
               - "Default_RX_GPU"
           - name: "ADC Samples"
             id: 1
             cpu_core: 11
             max_packet_size: 16384       # Maximum payload size
             batch_size: 8192            # Number of packets in a batch
-            output_port: "bench_rx_out"
-            memory_regions: 
+            memory_regions:
               - "Data_RX_GPU"
           flows:
             - name: "ADC Samples"

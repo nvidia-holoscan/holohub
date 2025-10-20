@@ -1,6 +1,7 @@
 {
 	"tutorial": {
-		"name": "DICOM to OpenUSD mesh segmentation with MONAI Deploy and Holoscan",
+		"name": "DICOM to OpenUSD mesh segmentation",
+		"description": "In this tutorial we demonstrate a method leveraging a combined MONAI Deploy and Holoscan pipeline to process DICOM input data and write a resulting mesh to disk in the OpenUSD file format.",
 		"authors": [
 			{
 				"name": "Rahul Choudhury",
@@ -35,7 +36,7 @@
 				"affiliation": "NVIDIA"
 			}
 		],
-	
+
 		"language": "Python",
 		"version": "1.0",
 		"changelog": {
@@ -48,20 +49,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"DICOM",
-			"mesh",
-			"MONAI",
-			"MONAI Deploy",
-			"Omniverse",
-			"OpenUSD",
-			"STL"
-		],
+		"tags": ["Interoperability", "Medical Imaging", "MONAI", "OpenUSD", "STL"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"libraries": [
 				{
 					"name": "MONAI Deploy",

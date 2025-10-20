@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "grpc_operators",
+		"name": "GRPC Operators",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -11,6 +11,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"language": ["C++", "Python"],
 		"holoscan_sdk": {
 			"minimum_required_version": "2.6.0",
 			"tested_versions": [
@@ -18,15 +19,11 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"grpc",
-			"visualization",
-			"tool tracking"
-		],
+		"tags": ["Networking and Distributed Computing", "gRPC", "Visualization"],
 		"ranking": 1,
-		"dependencies": {}
+		"requirements": {}
 	}
 }

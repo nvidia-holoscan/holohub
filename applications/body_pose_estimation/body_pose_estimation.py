@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -416,7 +416,7 @@ class BodyPoseEstimationApp(Application):
 
         inference_args = self.kwargs("inference")
         inference_args["model_path_map"] = {
-            "yolo_pose": os.path.join(self.sample_data_path, "yolov8l-pose.onnx")
+            "yolo_pose": os.path.join(self.sample_data_path, "yolo11l-pose.onnx")
         }
 
         inference = InferenceOp(
@@ -467,7 +467,7 @@ class BodyPoseEstimationApp(Application):
             self.add_flow(holoviz, dds_publisher, {("render_buffer_output", "input")})
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = ArgumentParser(description="Body Pose Estimation Application.")
     parser.add_argument(
@@ -510,4 +510,9 @@ if __name__ == "__main__":
 
     app = BodyPoseEstimationApp(args.data, args.source, args.video_device)
     app.config(config_file)
+    app.enable_metadata(False)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "Orthorectification with OptiX",
+		"name": "Orthorectification with NVIDIA OptiX",
+		"description": "GPU-Accelerated Orthorectification with NVIDIA OptiX",
 		"authors": [
 			{
 				"name": "Brent Bartlett",
@@ -19,15 +20,11 @@
 			]
 		},
 		"platforms": [
-			"amd64"
+			"x86_64"
 		],
-		"tags": [
-			"Orthorectification",
-			"Drone",
-			"OptiX"
-		],
+		"tags": ["Computer Vision and Perception", "Visualization", "Optix", "Drone", "Image Processing"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"OptiX-SDK": {
 				"version": "4.7.0"
 			},

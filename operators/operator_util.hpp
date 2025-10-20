@@ -29,7 +29,7 @@ namespace py = pybind11;
 
 namespace holoscan {
 
-void add_positional_condition_and_resource_args(Operator* op, const py::args& args) {
+inline void add_positional_condition_and_resource_args(Operator* op, const py::args& args) {
   for (auto it = args.begin(); it != args.end(); ++it) {
     if (py::isinstance<Condition>(*it)) {
       op->add_arg(it->cast<std::shared_ptr<Condition>>());

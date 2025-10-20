@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Basic PDW Pipeline",
+		"name": "Basic Pulse Description Word (PDW) Generator",
 		"authors": [
 			{
 				"name": "Joshua Anderson",
@@ -22,10 +22,10 @@
 				"0.5.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Network", "UDP", "Radar", "Electronic Support"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Signal Processing", "UDP"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
 			"gxf_extensions": [{
 				"name": "basic_network",
 				"version": "1.0"

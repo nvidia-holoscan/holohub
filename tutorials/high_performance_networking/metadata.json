@@ -1,0 +1,42 @@
+{
+	"tutorial": {
+		"name": "High Performance Networking with Holoscan",
+		"description": "How to use the Advanced Network library (ANO) for low latency and high throughput communication through NVIDIA SmartNICs.",
+		"authors": [
+			{
+				"name": "Alexis Girault",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "0.1.0",
+		"changelog": {
+			"0.0.1": "Initial Release",
+			"0.0.3": "Updated for Holoscan 3.0",
+			"0.1.0": "Holoscan-networking 0.1 release"
+		},
+		"archives": {
+			"0.1": "07656224"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.0.0",
+			"tested_versions": [
+				"3.0.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Networking and Distributed Computing", "DPDK", "RDMA", "GPUNetIO", "GPUDirect", "HPC"],
+		"ranking": 1,
+		"requirements": {
+			"applications": [
+				"adv_networking_bench"
+			],
+			"operators": [
+				"advanced_network"
+			]
+		}
+	}
+}

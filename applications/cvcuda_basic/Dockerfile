@@ -26,65 +26,52 @@ ARG GPU_TYPE
 ############################################################
 # CV-CUDA Downloader
 ############################################################
-FROM ${BASE_IMAGE} as cvcuda-downloader
+FROM ${BASE_IMAGE} as cvcuda-install
 
-ARG GCC_VERSION=11
-ARG CVCUDA_TAG=v0.7.0-beta
 ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /opt/nvidia
 
-# install gcc-11, g++-11
-# proper checkout of CV-CUDA stubs also requires git-lfs
-RUN apt update \
-    && apt install --no-install-recommends -y \
-      software-properties-common="0.99.*" \
-      git-lfs
-
-RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
-RUN apt install -y gcc-${GCC_VERSION} g++-${GCC_VERSION}
-
-# download CV-CUDA
-RUN git clone --branch ${CVCUDA_TAG} --depth 1 https://github.com/CVCUDA/CV-CUDA \
-    && cd CV-CUDA \
-    && git submodule update --init
-
-############################################################
-# CV-CUDA Builder
-############################################################
-
-FROM cvcuda-downloader as cvcuda-builder
-WORKDIR /opt/nvidia/CV-CUDA
-
-# compile CV-CUDA
-RUN bash ./ci/build.sh
-
-# create and install the Debian packages
-# (skip cvcuda-tests as it requires an additional python3-pytest dependency)
-RUN cd build-rel \
-    && cpack -G DEB . \
-    && rm cvcuda-tests*.deb \
-    && dpkg -i cvcuda*.deb \
-    && find . -name "*.whl" -exec pip install {} \;
+# Detect architecture and install appropriate CV-CUDA wheel
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        # install Python package for x86_64
+        pip install cvcuda-cu12==0.15.0 && \
+        # Download and install C++ library for x86_64
+        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-lib-0.15.0-cuda12-x86_64-linux.deb && curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-dev-0.15.0-cuda12-x86_64-linux.deb && \
+        dpkg -i cvcuda-lib-0.15.0-cuda12-x86_64-linux.deb && \
+        dpkg -i cvcuda-dev-0.15.0-cuda12-x86_64-linux.deb && \
+        rm cvcuda-lib-0.15.0-cuda12-x86_64-linux.deb && \
+        rm cvcuda-dev-0.15.0-cuda12-x86_64-linux.deb; \
+    else \
+        # install Python package for aarch64
+        pip install cvcuda-cu12==0.15.0 && \
+        # Download and install C++ library for aarch64
+        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-lib-0.15.0-cuda12-aarch64-linux.deb && \
+        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-dev-0.15.0-cuda12-aarch64-linux.deb && \
+        dpkg -i cvcuda-lib-0.15.0-cuda12-aarch64-linux.deb && \
+        dpkg -i cvcuda-dev-0.15.0-cuda12-aarch64-linux.deb && \
+        rm cvcuda-lib-0.15.0-cuda12-aarch64-linux.deb && \
+        rm cvcuda-dev-0.15.0-cuda12-aarch64-linux.deb; \
+    fi
 
 ############################################################
 # Base (final)
 ############################################################
-FROM cvcuda-builder as base
+FROM cvcuda-install
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 # --------------------------------------------------------------------------
 #
-# Holohub run setup 
+# Holohub dev setup 
 #
-
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc

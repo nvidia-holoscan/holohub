@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef VOLUME_LOADER_VOLUME_LOADER
-#define VOLUME_LOADER_VOLUME_LOADER
+#ifndef OPERATORS_VOLUME_LOADER_VOLUME_LOADER
+#define OPERATORS_VOLUME_LOADER_VOLUME_LOADER
 
 #include <holoscan/holoscan.hpp>
 
@@ -37,4 +37,4 @@ class VolumeLoaderOp : public Operator {
 
 }  // namespace holoscan::ops
 
-#endif /* VOLUME_LOADER_VOLUME_LOADER */
+#endif /* OPERATORS_VOLUME_LOADER_VOLUME_LOADER */

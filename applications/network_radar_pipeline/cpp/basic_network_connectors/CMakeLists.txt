@@ -30,7 +30,7 @@ add_library(basic_network_connectors
 target_link_libraries(basic_network_connectors PRIVATE
   matx::matx
   holoscan::core
-  holoscan::basic_network
+  holoscan::ops::basic_network
 )
 
 target_include_directories(basic_network_connectors PRIVATE

@@ -1,5 +1,5 @@
 """
- SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  SPDX-License-Identifier: Apache-2.0
 
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ from PIL import Image
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-def check_frames(src_dir, val_dir):
+def check_frames(src_dir, val_dir, threshold=0.005):
     is_valid = True
     count = 0
 
@@ -43,7 +43,7 @@ def check_frames(src_dir, val_dir):
         src_img_arr = np.asarray(Image.open(src_img_path)).astype(int)
         val_img_arr = np.asarray(Image.open(val_img_path)).astype(int)
 
-        if src_img_arr.shape != src_img_arr.shape:
+        if src_img_arr.shape != val_img_arr.shape:
             print("Frames are a different size")
             is_valid = False
             break
@@ -52,13 +52,13 @@ def check_frames(src_dir, val_dir):
 
         max_diff = 255 * len(src_img_arr) * len(src_img_arr[0]) * len(src_img_arr[0][0])
 
-        threshold = (
-            max_diff * 0.05
-        )  # creates a 5% pixel difference threshold for the frames to match
+        threshold_value = (
+            max_diff * threshold
+        )  # creates a configurable pixel difference threshold for the frames to match
 
         print(f"Checking frame({count}) difference: {100 * img_diff / max_diff:.3f}%")
 
-        if img_diff > threshold:
+        if img_diff > threshold_value:
             print("Frames exceed threshold for difference")
             is_valid = False
 
@@ -92,6 +92,12 @@ def main():
         default="./",
         help="Directory for the validation frames to compare",
     )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.05,
+        help="Threshold for pixel difference between 0 and 1 (default: 0.05)",
+    )
     args = parser.parse_args()
 
     # clean existing frames from output dir
@@ -105,7 +111,9 @@ def main():
         args.source_video_dir, args.source_video_basename, args.output_dir, "source"
     )
 
-    valid_output = check_frames(args.output_dir + "/source", args.validation_frames_dir)
+    valid_output = check_frames(
+        args.output_dir + "/source", args.validation_frames_dir, args.threshold
+    )
 
     if valid_output:
         print("Valid video output!")

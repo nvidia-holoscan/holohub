@@ -18,11 +18,10 @@ find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Download the yolov8 pose model if it doesn't exist
-add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolov8l-pose.onnx"
-    COMMAND "PATH=${PATH}:/workspace/holohub/.local/bin" /usr/local/bin/yolo export model=yolov8l-pose.pt format=onnx
+add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolov11l-pose.onnx"
+    COMMAND "PATH=${PATH}:/workspace/holohub/.local/bin" /usr/local/bin/yolo export model=yolo11l-pose.pt format=onnx
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/body_pose_estimation"
-    COMMAND mv yolov8l-pose.onnx "${HOLOHUB_DATA_DIR}/body_pose_estimation"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolov8l-pose.onnx"
+    COMMAND mv yolo11l-pose.onnx "${HOLOHUB_DATA_DIR}/body_pose_estimation/"
     )
 
 # Download the testing video
@@ -30,7 +29,6 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.mp4"
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/body_pose_estimation"
     COMMAND curl -S -o "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.mp4"
               -L "https://www.pexels.com/download/video/5385885/?fps=25.0&h=1920&w=1080"
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.mp4"
     VERBATIM
     )
 
@@ -40,14 +38,12 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.gxf_in
     COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
             python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
             --directory "${HOLOHUB_DATA_DIR}/body_pose_estimation" --basename twirl --width 1080 --height 1920 --framerate 25
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.gxf_index"
-               "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.gxf_entities"
     DEPENDS "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.mp4"
     )
 
 add_custom_target(body_pose_estimation_data ALL
                   DEPENDS
-                  "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolov8l-pose.onnx"
+                  "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolov11l-pose.onnx"
                   "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.gxf_index")
 
 

@@ -1,0 +1,29 @@
+{
+	"tutorial": {
+		"name": "Holoscan & Windows Application",
+		"description": "Demonstrates interoperability between a Holoscan on Linux and a Windows VM application on a single machine",
+		"authors": [
+			{
+				"name": "NVIDIA",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "bash",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "First Tutorial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.6.0",
+			"tested_versions": [
+				"2.6.0"
+			]
+		},
+		"platforms": [
+			"x86_64"
+		],
+		"tags": ["Interoperability","VM","Deployment"],
+		"ranking": 1,
+		"requirements": {}
+	}
+}

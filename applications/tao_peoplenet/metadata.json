@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "TAO PeopleNet Detection Model on Video Stream",
+		"name": "TAO PeopleNet Detection Model",
+		"description": "TAO PeopleNet Detection Model on V4L2 Video Stream",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -22,15 +23,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Detection"
-		],
+		"tags": ["Computer Vision and Perception", "Video", "Detection", "Holoviz"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"model": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet"
 		},
 		"run": {

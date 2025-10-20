@@ -23,9 +23,8 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(endoscopy
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_endoscopy_sample_data/versions/20230222/zip
+    URL nvidia/clara-holoscan/holoscan_endoscopy_sample_data:20230222
     DOWNLOAD_NAME holoscan_endoscopy_sample_data_20230222.zip
-    URL_MD5 d54f84a562d29ed560a87d2607eba973
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     GENERATE_GXF_ENTITIES
     GXF_ENTITIES_HEIGHT 480
@@ -35,19 +34,20 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
 
   holoscan_download_data(ssd_model
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/ssd_surgical_tool_detection_model/versions/v0.1/zip
+    URL nvidia/clara-holoscan/ssd_surgical_tool_detection_model:v0.1
     DOWNLOAD_NAME ssd_surgical_tool_detection_model_v0.1.zip
-    URL_MD5 daf3663b4bc56de1cb324b0e58aed450
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
   )
 
   holoscan_download_data(monai_tool_seg_model
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/monai_endoscopic_tool_segmentation_model/versions/v0.1/zip
+    URL nvidia/clara-holoscan/monai_endoscopic_tool_segmentation_model:v0.1
     DOWNLOAD_NAME monai_endoscopic_tool_segmentation_model_v0.1.zip
-    URL_MD5 222d924c5b2b0f196a4ef605c9977764
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
   )
 endif()
 
 add_subdirectory(cpp)
-add_subdirectory(python)
+
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(h264_video_decode CXX)
 
-find_package(holoscan 2.1.0 REQUIRED CONFIG
+find_package(holoscan 3.6.1 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(h264_video_decode
@@ -43,9 +43,8 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 if(HOLOHUB_DOWNLOAD_DATASETS)
   include(holoscan_download_data)
   holoscan_download_data(endoscopy
-    URL https://api.ngc.nvidia.com/v2/resources/nvidia/clara-holoscan/holoscan_endoscopy_sample_data/versions/20230222/zip
+    URL nvidia/clara-holoscan/holoscan_endoscopy_sample_data:20230222
     DOWNLOAD_NAME holoscan_endoscopy_sample_data_20230222.zip
-    URL_MD5 d54f84a562d29ed560a87d2607eba973
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
   )
   add_dependencies(h264_video_decode endoscopy_data)

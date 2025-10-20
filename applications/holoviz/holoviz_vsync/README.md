@@ -19,5 +19,5 @@ By default, the Holoviz operator is not syncing to the vertical blank of the dis
 To build and start the application:
 
 ```bash
-./dev_container build_and_run holoviz_vsync
+./holohub run holoviz_vsync
 ```

@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Colonoscopy segmentation",
+		"name": "Colonoscopy Polyp Segmentation",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -19,15 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Colonoscopy",
-			"Classification"
-		],
+		"tags": ["Healthcare AI", "Visualization", "AJA", "Endoscopy", "Segmentation", "Holoviz", "Video"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"data": [
 				{
 					"name": "Holoscan Sample App Data for AI Colonoscopy Segmentation of Polyps",
@@ -36,9 +33,29 @@
 				}
 			]
 		},
-		"run": {
-			"command": "python3 colonoscopy_segmentation.py --data <holohub_data_dir>/colonoscopy_segmentation",
-			"workdir": "holohub_app_source"
-		}
+		"modes": {
+			"replayer": {
+				"description": "Use a pre-recorded video as input",
+				"build": {
+					"docker_build_args": ["--target", "base"]
+				},
+				"run": {
+					"command": "python3 colonoscopy_segmentation.py --data <holohub_data_dir>/colonoscopy_segmentation --no-contours",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"aja": {
+				"description": "Use an AJA device for video input",
+				"build": {
+					"depends": ["aja_source"],
+					"docker_build_args": ["--target", "aja_build"]
+				},
+				"run": {
+					"command": "python3 colonoscopy_segmentation.py --source=aja --no-contours",
+					"workdir": "holohub_app_source"
+				}
+			}
+		},
+		"default_mode": "replayer"
 	}
 }

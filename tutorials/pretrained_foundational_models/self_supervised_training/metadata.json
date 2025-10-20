@@ -1,6 +1,6 @@
 {
 	"tutorial": {
-		"name": "Self-Supervised Contrastive Learning for Surgical videos",
+		"name": "Self-Supervised Learning for Surgical videos",
 		"description": "The focus of this repo is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data.",
 		"authors": [
 			{
@@ -20,19 +20,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Computer Vision",
-			"Learning",
-			"Medical",
-			"Self-Supervised",
-			"Surgical",
-			"Video"
-		],
+		"tags": ["Interoperability", "MONAI", "Learning", "Healthcare AI", "Surgical AI", "Video"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"data": [
 				{
 					"name": "Cholec80",

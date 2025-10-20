@@ -22,10 +22,10 @@
 				"2.2.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["Endoscopy", "Tracking", "AJA"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Healthcare AI", "Distributed", "LSTM", "Asynchronous Queues", "gRPC", "Video", "Computer Vision and Perception", "Visualization"],
 		"ranking": 0,
-		"dependencies": {
+		"requirements": {
 			"data": [
 					{
 							"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
@@ -40,4 +40,4 @@
 			"workdir": "holohub_bin"
 		}
 	}
-} 
+}

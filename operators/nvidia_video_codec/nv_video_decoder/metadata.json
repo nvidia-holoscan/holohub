@@ -1,0 +1,47 @@
+{
+	"operator": {
+		"name": "NVIDIA Video Codec SDK: Decoder",
+		"description": "This operator decodes a video stream from a compressed format using the NVIDIA Video Codec SDK.",
+		"authors": [
+			{
+                "name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": ["C++", "Python"],
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.3.0",
+			"tested_versions": [
+				"3.3.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Streaming",
+			"NVIDIA Video Codec SDK",
+			"H.264",
+			"H.265",
+			"HEVC",
+			"Video Decoding"
+		],
+		"ranking": 2,
+		"requirements": {
+			"packages": [
+				{
+					"name": "NVIDIA Video Codec SDK",
+					"author": "NVIDIA",
+					"license": "Closed",
+					"version": "13.0.0",
+					"url": "https://developer.nvidia.com/video-codec-sdk"
+				}
+			]
+		}
+	}
+}

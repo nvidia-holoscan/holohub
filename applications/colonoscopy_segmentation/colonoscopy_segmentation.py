@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import os
-from argparse import ArgumentParser
 
-from holoscan.core import Application
+import cupy as cp
+from cupyx.scipy import ndimage
+from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     HolovizOp,
     InferenceOp,
@@ -28,8 +29,49 @@ from holoscan.operators import (
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
 
 
+class ContourOp(Operator):
+    """Operator to format input image for inference"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.structure = cp.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=cp.bool_)
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+        spec.output("out")
+
+    def gpu_contour_categorical(self, mask):
+        """GPU-accelerated contour detection for categorical masks"""
+        num_classes = 1 if mask.size == 0 else int(cp.max(mask)) + 1
+        contours = cp.zeros_like(mask)
+        class_counter = cp.uint8(1)
+
+        for class_id in range(1, num_classes):
+            class_mask = mask == class_id
+            eroded = cp.zeros_like(class_mask)
+
+            ndimage.binary_erosion(
+                class_mask, structure=self.structure, output=eroded, border_value=0
+            )
+
+            contours += (class_mask ^ eroded) * class_counter
+            class_counter += 1
+
+        return contours
+
+    def compute(self, op_input, op_output, context):
+        # Get input message
+        in_message = op_input.receive("in")
+
+        # To cupy array
+        tensor = cp.asarray(in_message.get("out_tensor"), cp.uint8)
+        tensor[:, :, 0] = self.gpu_contour_categorical(tensor[:, :, 0])
+
+        op_output.emit({"out_tensor": tensor}, "out")
+
+
 class ColonoscopyApp(Application):
-    def __init__(self, data, source="replayer"):
+    def __init__(self, data, source="replayer", contours=False):
         """Initialize the colonoscopy segmentation application
 
         Parameters
@@ -38,12 +80,15 @@ class ColonoscopyApp(Application):
             When set to "replayer" (the default), pre-recorded sample video data is
             used as the application input. Otherwise, the video stream from an AJA
             capture card is used.
+        contours : bool
+            Show segmentation contours instead of mask (default: False).
         """
 
         super().__init__()
 
         # set name
         self.name = "Colonoscopy App"
+        self.contours = contours
 
         # Optional parameters affecting the graph created by compose.
         self.source = source
@@ -73,6 +118,8 @@ class ColonoscopyApp(Application):
 
         is_aja = self.source.lower() == "aja"
         if is_aja:
+            from holohub.aja_source import AJASourceOp
+
             source = AJASourceOp(self, name="aja", **self.kwargs("aja"))
             drop_alpha_block_size = 1920 * 1080 * n_channels * bpp
             drop_alpha_num_blocks = 2
@@ -142,6 +189,13 @@ class ColonoscopyApp(Application):
             transmit_on_cuda=True,
         )
 
+        if self.contours:
+            contour_op = ContourOp(
+                self,
+                name="contour_op",
+                pool=cuda_stream_pool,
+            )
+
         postprocessor_block_size = width_inference * height_inference
         postprocessor_num_blocks = 2
         segmentation_postprocessor = SegmentationPostprocessorOp(
@@ -172,16 +226,20 @@ class ColonoscopyApp(Application):
             self.add_flow(source, segmentation_preprocessor)
         self.add_flow(segmentation_preprocessor, segmentation_inference, {("", "receivers")})
         self.add_flow(segmentation_inference, segmentation_postprocessor, {("transmitter", "")})
-        self.add_flow(
-            segmentation_postprocessor,
-            segmentation_visualizer,
-            {("", "receivers")},
-        )
+        if self.contours:
+            self.add_flow(segmentation_postprocessor, contour_op, {("", "in")})
+            self.add_flow(contour_op, segmentation_visualizer, {("out", "receivers")})
+        else:
+            self.add_flow(
+                segmentation_postprocessor,
+                segmentation_visualizer,
+                {("", "receivers")},
+            )
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
-    parser = ArgumentParser(description="Colonoscopy segmentation demo application.")
+    parser = argparse.ArgumentParser(description="Colonoscopy segmentation demo application.")
     parser.add_argument(
         "-s",
         "--source",
@@ -204,6 +262,12 @@ if __name__ == "__main__":
         default="none",
         help=("Set the data path"),
     )
+    parser.add_argument(
+        "--contours",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help=("Show segmentation contours instead of mask (default: False)"),
+    )
     args = parser.parse_args()
 
     if args.config == "none":
@@ -211,6 +275,10 @@ if __name__ == "__main__":
     else:
         config_file = args.config
 
-    app = ColonoscopyApp(source=args.source, data=args.data)
+    app = ColonoscopyApp(source=args.source, data=args.data, contours=args.contours)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

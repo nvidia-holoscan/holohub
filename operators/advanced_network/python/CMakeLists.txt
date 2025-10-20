@@ -13,18 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include(pybind11_add_holohub_module)
-pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET advanced_network_rx
-    CLASS_NAME "AdvNetworkOpRx"
-    SOURCES adv_network_rx_pybind.cpp
-)
+# BINDINGS
 
-pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET advanced_network_tx
-    CLASS_NAME "AdvNetworkOpTx"
-    SOURCES adv_network_tx_pybind.cpp
-)
+include(pybind11_add_holohub_module)
+find_package(holoscan 2.6 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install") # Remove if holoscan logger dependency removed
 
 set(MODULE_NAME advanced_network_common)
 set(MODULE_CLASS_NAME "*")
@@ -49,4 +42,12 @@ set_target_properties(${MODULE_NAME}_python PROPERTIES
 configure_file(
     ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/pybind11/__init__.py
     ${CMAKE_PYBIND11_HOLOHUB_MODULE_OUT_DIR}/advanced_network_common/__init__.py
+)
+
+# UTILS
+
+install(FILES tune_system.py
+  DESTINATION bin
+  PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+  COMPONENT advanced_network-utils
 )

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,13 +21,13 @@ from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 
 from holohub.advanced_network_common import (
-    AdvNetStatus,
-    adv_net_create_burst_params,
-    adv_net_get_num_pkts,
-    adv_net_get_tx_pkt_burst,
-    adv_net_set_cpu_udp_payload,
-    adv_net_set_hdr,
-    adv_net_tx_burst_available,
+    Status,
+    create_burst_params,
+    get_num_packets,
+    get_tx_packet_burst,
+    is_tx_burst_available,
+    set_cpu_udp_payload,
+    set_header,
 )
 from holohub.advanced_network_tx import AdvNetworkOpTx
 
@@ -51,25 +51,24 @@ class AdvancedNetworkingBenchTxOp(Operator):
         spec.output("msg_out")
 
     def compute(self, op_input, op_output, context):
-        while not adv_net_tx_burst_available(self.batch_size):
+        while not is_tx_burst_available(self.batch_size):
             continue
 
-        msg = adv_net_create_burst_params()
-        adv_net_set_hdr(msg, 0, 0, self.batch_size)
+        msg = create_burst_params()
+        set_header(msg, 0, 0, self.batch_size)
 
-        ret = adv_net_get_tx_pkt_burst(msg)
-        if ret != AdvNetStatus.SUCCESS:
-            logger.error(f"Error returned from adv_net_get_tx_pkt_burst: {ret}")
+        ret = get_tx_packet_burst(msg)
+        if ret != Status.SUCCESS:
+            logger.error(f"Error returned from get_tx_packet_burst: {ret}")
             return
 
-        for num_pkt in range(adv_net_get_num_pkts(msg)):
-            ret = adv_net_set_cpu_udp_payload(
+        for num_pkt in range(get_num_packets(msg)):
+            ret = set_cpu_udp_payload(
                 msg, num_pkt, self.buf.ptr + num_pkt * self.payload_size, self.payload_size
             )
-            if ret != AdvNetStatus.SUCCESS:
+            if ret != Status.SUCCESS:
                 logger.error(
-                    f"Error returned from adv_net_set_cpu_udp_payload: "
-                    f"{ret} != {AdvNetStatus.SUCCESS}"
+                    f"Error returned from set_cpu_udp_payload: " f"{ret} != {Status.SUCCESS}"
                 )
                 return
         print(type(msg))
@@ -88,11 +87,11 @@ class App(Application):
             "cfg" in self.kwargs("advanced_network")
             and "tx" in self.kwargs("advanced_network")["cfg"]
         ):
-            tx = AdvancedNetworkingBenchTxOp(
-                self, CountCondition(self, NUM_MSGS), name="tx", **self.kwargs("bench_tx")
+            bench_tx = AdvancedNetworkingBenchTxOp(
+                self, CountCondition(self, NUM_MSGS), name="bench_tx", **self.kwargs("bench_tx")
             )
             adv_net_tx = AdvNetworkOpTx(self, name="adv_net_tx")
-            self.add_flow(tx, adv_net_tx, {("msg_out", "burst_in")})
+            self.add_flow(bench_tx, adv_net_tx, {("msg_out", "burst_in")})
         else:
             logger.info("No TX config found")
 
@@ -104,8 +103,12 @@ class App(Application):
         #     logger.info("No RX config found")
 
 
-if __name__ == "__main__":
+def main():
     config_path = sys.argv[1]
     app = App()
     app.config(config_path)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

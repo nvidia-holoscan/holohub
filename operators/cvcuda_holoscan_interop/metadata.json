@@ -1,13 +1,13 @@
 {
     "operator": {
-        "name": "cvcuda_holoscan_interop",
+        "name": "Holoscan CvCuda Interop Ops",
         "authors": [
             {
                 "name": "Holoscan Team",
                 "affiliation": "NVIDIA"
             }
         ],
-        "language": "C++",
+        "language": ["C++"],
         "version": "1.0",
         "changelog": {
             "1.0": "Initial Release"
@@ -19,16 +19,12 @@
             ]
         },
         "platforms": [
-            "amd64",
-            "arm64"
+            "x86_64",
+            "aarch64"
         ],
-        "tags": [
-            "CV-CUDA",
-            "Computer Vision",
-            "CV"
-        ],
+        "tags": ["Image Processing", "CV CUDA", "Computer Vision and Perception"],
         "ranking": 1,
-        "dependencies": {
+        "requirements": {
             "data": [
                 {
                     "name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",

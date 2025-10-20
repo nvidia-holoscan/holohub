@@ -1,7 +1,7 @@
 
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,19 +83,14 @@ bool is_nrrd(const std::string& file_name) {
   return false;
 }
 
-bool load_nrrd_data_file(const bool compressed, const std::string& data_file_name,
-                         const size_t& data_size, std::unique_ptr<uint8_t>& data) {
-  std::ifstream file;
-
-  file.open(data_file_name, std::ios::in | std::ios::binary | std::ios::ate);
-  if (!file.is_open()) {
-    holoscan::log_error("NRRD could not open {}", data_file_name);
-    return false;
-  }
-  const std::streampos file_size = file.tellg();
-  file.seekg(0, std::ios_base::beg);
+bool load_nrrd_data(bool compressed, std::ifstream& file, const size_t data_size,
+                    const std::unique_ptr<uint8_t>& data) {
   if (compressed) {
     // need to uncompress, first read to 'compressed_data' vector and then uncompress to 'data'
+    const std::streampos data_start = file.tellg();
+    file.seekg(0, std::ios_base::end);
+    const std::streampos file_size = file.tellg() - data_start;
+    file.seekg(data_start);
     std::vector<uint8_t> compressed_data(file_size);
 
     // read
@@ -105,8 +100,7 @@ bool load_nrrd_data_file(const bool compressed, const std::string& data_file_nam
     z_stream strm{};
     int result = inflateInit2(&strm, 32 + MAX_WBITS);
     if (result != Z_OK) {
-      holoscan::log_error("NRRD failed to uncompress {}, inflateInit2 failed with error code {}",
-                          data_file_name,
+      holoscan::log_error("NRRD failed to uncompress, inflateInit2 failed with error code {}",
                           result);
       return false;
     }
@@ -119,9 +113,7 @@ bool load_nrrd_data_file(const bool compressed, const std::string& data_file_nam
     result = inflate(&strm, Z_FINISH);
     inflateEnd(&strm);
     if (result != Z_STREAM_END) {
-      holoscan::log_error("NRRD failed to uncompress {}, inflate failed with error code {}",
-                          data_file_name,
-                          result);
+      holoscan::log_error("NRRD failed to uncompress, inflate failed with error code {}", result);
       return false;
     }
 
@@ -142,7 +134,7 @@ bool parse_headers(const std::string& file_name, const std::string& key, const s
       return false;
     }
   } else if (key == "encoding") {
-    if (value == "gz") {
+    if ((value == "gz") || (value == "gzip")) {
       compressed = true;
     } else if (value == "raw") {
       compressed = false;
@@ -190,24 +182,31 @@ bool parse_headers(const std::string& file_name, const std::string& key, const s
     const std::string path = file_name.substr(0, file_name.find_last_of("/\\") + 1);
     data_file_name = path + value;
   } else if (key == "space") {
-    std::stringstream values(value);
-    std::string orientation, space;
-    while (std::getline(values, space, '-')) {
-      if (space == "left") {
-        orientation += "L";
-      } else if (space == "right") {
-        orientation += "R";
-      } else if (space == "anterior") {
-        orientation += "A";
-      } else if (space == "posterior") {
-        orientation += "P";
-      } else if (space == "superior") {
-        orientation += "S";
-      } else if (space == "inferior") {
-        orientation += "I";
-      } else {
-        holoscan::log_error("NRRD unexpected space string {}", space);
-        return false;
+    std::string orientation;
+    if (value == "3D-right-handed") {
+      orientation = "RAS";
+    } else if (value == "3D-left-handed") {
+      orientation = "LAS";
+    } else {
+      std::stringstream values(value);
+      std::string space;
+      while (std::getline(values, space, '-')) {
+        if (space == "left") {
+          orientation += "L";
+        } else if (space == "right") {
+          orientation += "R";
+        } else if (space == "anterior") {
+          orientation += "A";
+        } else if (space == "posterior") {
+          orientation += "P";
+        } else if (space == "superior") {
+          orientation += "S";
+        } else if (space == "inferior") {
+          orientation += "I";
+        } else {
+          holoscan::log_error("NRRD unexpected space string {}", space);
+          return false;
+        }
       }
     }
     volume.SetOrientation(orientation);
@@ -216,11 +215,11 @@ bool parse_headers(const std::string& file_name, const std::string& key, const s
     std::copy_n(space_origin.begin(), 3, volume.space_origin_.begin());
   } else if (key == "spacedirections") {
     auto values = split_string_by_space(value);
-    for (const auto& value : values) {
-      auto space_directions = parse_vector(value);
-      std::array<double, 3> space_direction = {0.0, 0.0, 0.0};
-      std::copy_n(space_directions.begin(), 3, space_direction.begin());
-      volume.space_directions_.push_back(space_direction);
+    for (int index = 0; (index < values.size()) && (index < 3); ++index) {
+      auto space_directions = parse_vector(values[index]);
+      volume.spacing_[index] = std::sqrt(space_directions[0] * space_directions[0] +
+                                         space_directions[1] * space_directions[1] +
+                                         space_directions[2] * space_directions[2]);
     }
   }
   return true;
@@ -244,6 +243,13 @@ bool load_nrrd(const std::string& file_name, Volume& volume) {
   while (std::getline(file, line)) {
     if (file.tellg() != -1) { byte_skip = file.tellg(); }
 
+    // After the header, there is a single blank line containing zero characters. This separates the
+    // header from the data, which follows
+    if (line.empty()) { break; }
+
+    // Comment lines start with a pound, "#", with no proceeding whitespace, ignore.
+    if (line.substr(0, 1) == "#") { continue; }
+
     size_t delimiterPos = line.find(':');
     if (delimiterPos == std::string::npos) { continue; }
     std::string key = remove_all_spaces(line.substr(0, delimiterPos));
@@ -259,29 +265,18 @@ bool load_nrrd(const std::string& file_name, Volume& volume) {
   const size_t data_size =
       dims[0] * dims[1] * dims[2] * nvidia::gxf::PrimitiveTypeSize(primitive_type);
   std::unique_ptr<uint8_t> data(new uint8_t[data_size]);
-  if (is_nrrd(file_name) && data_file_name.size() == 0) {
-    if (compressed) {
-      holoscan::log_error("NRRD attached-header with compressed data is not supported.");
-      return false;
-    }
-    std::ifstream file;
-    file.open(file_name, std::ios::in | std::ios::binary);
-    if (!file.is_open()) {
-      holoscan::log_error("NRRD could not open {}", data_file_name);
-      return false;
-    }
 
+  if (data_file_name.empty()) {
+    // seek to start of data
     file.seekg(byte_skip, std::ios_base::beg);
-
-    file.read(reinterpret_cast<char*>(data.get()), data_size);
-    file.close();
-  } else if (data_file_name.size() != 0) {
-    if (!load_nrrd_data_file(compressed, data_file_name, data_size, data)) {
-      holoscan::log_error("NRRD failed to process detached data file {}", data_file_name);
-      return false;
-    }
   } else {
-    holoscan::log_error("NRRD unsupported file format");
+    // if there is a separate data file, open that
+    file.open(data_file_name, std::ios::in);
+  }
+
+  if (!load_nrrd_data(compressed, file, data_size, data)) {
+    holoscan::log_error("NRRD failed to load data {}",
+                        data_file_name.empty() ? file_name : data_file_name);
     return false;
   }
 

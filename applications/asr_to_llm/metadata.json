@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Riva ASR to local-LLM",
+		"name": "Real-time Riva ASR to local-LLM",
 		"authors": [
 			{
 				"name": "Nigel Nelson",
@@ -19,17 +19,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-            "arm64"
+			"x86_64",
+            "aarch64"
 		],
-		"tags": [
-			"Speech-to-text",
-			"Large Language Model",
-            "ASR",
-            "Local-LLM"
-		],
+		"tags": ["Healthcare AI", "Audio", "ASR", "Quantized Model Inference", "LLM", "Medical Imaging"],
 		"ranking": 4,
-		"dependencies": {
+		"requirements": {
             "python-packages": {
                 "requests": {
                     "version": "2.31.0",

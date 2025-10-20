@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Medical Image viewer in XR",
+		"name": "Medical Image Viewer in XR",
 		"authors": [
 			{
 				"name": "Andreas Heumann",
@@ -54,19 +54,12 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"Volume",
-			"Rendering",
-			"OpenXR",
-			"Mixed",
-			"Reality",
-			"XR"
-		],
+		"tags": ["Extended Reality", "Visualization", "Depth Conversion", "Detection", "Holoviz", "Volume"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"hardware": [
 				{
 					"name": "Magic Leap 2",
@@ -91,8 +84,8 @@
 			]
 		},
 		"run": {
-			"command": "if [ -v ML_START_OPTIONS ]; then ml_start.sh ${ML_START_OPTIONS}; else ml_start.sh debug; fi && ml_pair.sh && <holohub_app_bin>/volume_rendering_xr --config <holohub_app_source>/configs/ctnv_bb_er.json --density <holohub_data_dir>/volume_rendering_xr/highResCT.mhd --mask <holohub_data_dir>/volume_rendering_xr/smoothmasks.seg.mhd",
-			"workdir": "<holohub_app_bin>"
+			"command": "<holohub_app_source>/scripts/run.sh volume_rendering_xr --config <holohub_app_source>/configs/ctnv_bb_er.json --density <holohub_data_dir>/volume_rendering_xr/highResCT.mhd --mask <holohub_data_dir>/volume_rendering_xr/smoothmasks.seg.mhd",
+			"workdir": "holohub_app_bin"
 		}
 	}
 }

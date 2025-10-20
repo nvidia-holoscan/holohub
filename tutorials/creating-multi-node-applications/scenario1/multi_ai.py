@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,6 @@ import cupy as cp
 import numpy as np
 from holoscan.core import Application, Fragment, Operator, OperatorSpec
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     HolovizOp,
     InferenceOp,
@@ -30,6 +29,8 @@ from holoscan.operators import (
     VideoStreamReplayerOp,
 )
 from holoscan.resources import UnboundedAllocator
+
+from holohub.aja_source import AJASourceOp
 
 
 class DetectionPostprocessorOp(Operator):
@@ -319,8 +320,7 @@ class MultiAIDetectionSegmentation(Application):
         return label_dict
 
 
-if __name__ == "__main__":
-
+def main():
     parser = ArgumentParser(description="Multi-AI Detection Segmentation application.")
     parser.add_argument(
         "-s",
@@ -380,3 +380,7 @@ if __name__ == "__main__":
     print("sys.argv:", sys.argv)
     print("app.argv:", app.argv)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

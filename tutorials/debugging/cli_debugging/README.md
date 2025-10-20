@@ -77,7 +77,7 @@ Review the [HoloHub Prerequisites](/README.md#prerequisites) along with the Endo
 
 If you have previously built the Endoscopy Tool Tracking application, you should clear your build directory before proceeding.
 ```bash
-./run clear-cache
+./holohub clear-cache
 ```
 
 ## Debugging a C++ Application with `gdb`
@@ -104,7 +104,7 @@ The script runs through the following steps:
   Note that this does _not_ regenerate build symbols for Holoscan SDK, which are already packaged in
   Holoscan SDK binaries in `rel-debug` mode.
 3. Launches the Endoscopy Tool Tracking application with `gdb`. This step prefixes the launch command
-  given by `./run launch endoscopy_tool_tracking` to run with `gdb`. The command sets a few actions for `gdb` to take on startup:
+  given by `./holohub run endoscopy_tool_tracking` to run with `gdb`. The command sets a few actions for `gdb` to take on startup:
     - Sets a breakpoint in the `main` function of Endoscopy Tool Tracking;
     - Runs the program with custom arguments until the breakpoint is hit;
     - Sets a breakpoint in Holoscan SDK's `add_flow` function.
@@ -189,10 +189,10 @@ Do the following to attach to a HoloHub application (C++ or Python):
 
 1. Launch the container with root permissions and start the process in the background:
 ```bash
-./dev_container launch --img holohub:debugging --as_root
+./holohub run-container --img holohub:debugging --docker-opts="-u root"
 
 # Run inside the container
->>> ./run launch endoscopy_tool_tracking &
+>>> ./holohub run endoscopy_tool_tracking &
 ```
 
 2. Press `Ctrl+C` to return to your interactive shell
@@ -319,7 +319,7 @@ applications.
 #### How can I use a custom container path for my Holoscan SDK debugging build other than `/opt/nvidia/holoscan`?
 
 You can choose to mount your custom Holoscan SDK debugging build at another path in the container with
-the Docker `-v` option or the HoloHub `dev_container` script `--local_sdk_root` or `--mount-volume` options. If you
+the Docker `-v` option or the `holohub` script `--local-sdk-root` or `--mount-volume` options. If you
 are mounting your build at a custom path in the Holoscan SDK container for general development, consider the following
 details when building and debugging:
 - `LD_LIBRARY_PATH` is an environment variable with a list of locations to look up for dynamic loading. By default
@@ -344,7 +344,7 @@ Alternatively, run the following to relaunch the application in the debugging co
 INSTALL_DIR=$(realpath $(find ./tutorials/cli_debugging/tmp -type d -name "install-*"))
 
 # Launch the debugging container
-./dev_container launch --docker_opts "-v $INSTALL_DIR:/opt/nvidia/holoscan --security-opt seccomp=unconfined" --img holohub:debugging
+./holohub run --docker-opts="-v $INSTALL_DIR:/opt/nvidia/holoscan --security-opt seccomp=unconfined" --img holohub:debugging
 
 # Inside the container
 >>> gdb -q \
@@ -373,7 +373,7 @@ according to the current logging level of detail.
 
 ```
 export HOLOSCAN_LOG_LEVEL="Debug"
-./run launch endoscopy_tool_tracking
+./holohub run --local endoscopy_tool_tracking
 ```
 
 ### Logging from a Python application

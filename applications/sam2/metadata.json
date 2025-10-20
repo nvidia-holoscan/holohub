@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "sam2",
+		"name": "SAM 2: Segment Anything in Images and Videos",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -19,21 +19,19 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
-		"tags": [
-			"SAM2 Model"
-		],
+		"tags": ["Computer Vision and Perception", "Video", "Segmentation", "Visualization", "Camera"],
 		"ranking": 1,
-		"dependencies": {
+		"requirements": {
 			"SAM2": {
 				"source": "https://github.com/facebookresearch/segment-anything-2",
 				"version": "1.0",
 				"license": "Apache-2.0"
 			}
 		},
-	
+
 		"run": {
 			"command": "<holohub_app_source>/start.sh",
 			"workdir": "holohub_bin"

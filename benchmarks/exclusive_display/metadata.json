@@ -19,14 +19,11 @@
             ]
         },
         "platforms": [
-            "arm64"
+            "aarch64"
         ],
-        "tags": [
-            "Benchmarking",
-            "Exclusive Display"
-        ],
+        "tags": ["Visualization", "Benchmarking"],
         "ranking": 1,
-        "dependencies": {
+        "requirements": {
             "holoscan_sdk": "^2.1.0"
         }
     }

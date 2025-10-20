@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,6 @@ from argparse import ArgumentParser
 
 from holoscan.core import Application, Fragment
 from holoscan.operators import (
-    AJASourceOp,
     FormatConverterOp,
     HolovizOp,
     InferenceOp,
@@ -33,6 +32,7 @@ from holoscan.resources import (
     UnboundedAllocator,
 )
 
+from holohub.aja_source import AJASourceOp
 from holohub.lstm_tensor_rt_inference import LSTMTensorRTInferenceOp
 
 # Enable this line for Yuam capture card
@@ -337,7 +337,7 @@ class EndoscopyDistributedApp(Application):
         )
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = ArgumentParser(description="Endoscopy tool tracking demo application.")
     parser.add_argument(
@@ -383,3 +383,7 @@ if __name__ == "__main__":
     app = EndoscopyDistributedApp(record_type=record_type, source=args.source, data=args.data)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

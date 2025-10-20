@@ -1,4 +1,4 @@
-# H.264 Endoscopy Tool Tracking Application
+# H.264 Endoscopy Tool Tracking
 
 The application showcases how to use H.264 video source as input to and output
 from the Holoscan pipeline. This application is a modified version of Endoscopy
@@ -25,16 +25,25 @@ can be specified in the 'h264_endoscopy_tool_tracking.yaml' file.
 
 The data is automatically downloaded when building the application.
 
-## Building and Running H.264 Endoscopy Tool Tracking Application
+## Build and Run the H.264 Endoscopy Tool Tracking Application
 
-* Building and running the application from the top level Holohub directory:
+### C++
 
 ```bash
-# C++ version
-./dev_container build_and_run h264_endoscopy_tool_tracking --language cpp
+./holohub run h264_endoscopy_tool_tracking --language cpp
+```
+
+### Python
+
+Separate build and run commands are required to address the known [symbol loading issue](../README.md#symbol-error-at-load).
+
+```bash
+./holohub build h264_endoscopy_tool_tracking --language python
 
 # Python version
-./dev_container build_and_run h264_endoscopy_tool_tracking --language python
+# Note: LD_PRELOAD required to address symbol issue
+./holohub run h264_endoscopy_tool_tracking --language python \
+    --docker-opts="-e LD_PRELOAD=/opt/nvidia/holoscan/lib/libgxf_core.so"
 ```
 
 Important: on aarch64, applications also need tegra folder mounted inside the container and
@@ -62,7 +71,7 @@ to `true`.
 To start the the Dev Container, run the following command from the root directory of Holohub:
 
 ```bash
-./dev_container vscode h264
+./holohub vscode h264
 ```
 
 ### VS Code Launch Profiles

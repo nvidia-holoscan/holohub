@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "dds_video_subscriber",
+		"name": "DDSVideoSubscriberOp",
 		"description": "This operator subscribes to a DDS topic that contains video data.",
 		"authors": [
 			{
@@ -12,16 +12,17 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"language": ["C++", "Python"],
 		"holoscan_sdk": {
 			"minimum_required_version": "2.0.0",
 			"tested_versions": [
 				"2.0.0"
 			]
 		},
-		"platforms": ["amd64", "arm64"],
-		"tags": ["DDS", "RTI Connext", "Video"],
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Networking and Distributed Computing", "DDS", "RTI Connext", "Video"],
 		"ranking": 2,
-		"dependencies": {
+		"requirements": {
 			"packages": [
 				{
 					"name": "RTI Connext",

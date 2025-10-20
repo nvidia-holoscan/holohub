@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,14 +24,10 @@ import torch
 import torch.nn.functional as F
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.operators import (
-    AJASourceOp,
-    FormatConverterOp,
-    HolovizOp,
-    InferenceOp,
-    VideoStreamReplayerOp,
-)
+from holoscan.operators import FormatConverterOp, HolovizOp, InferenceOp, VideoStreamReplayerOp
 from holoscan.resources import BlockMemoryPool, MemoryStorageType, UnboundedAllocator
+
+from holohub.aja_source import AJASourceOp
 
 try:
     import cupy as cp
@@ -455,7 +451,7 @@ class SSDDetectionApp(Application):
         self.add_flow(detection_postprocessor, detection_visualizer, {("out", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = ArgumentParser(description="SSD Detection demo application.")
     parser.add_argument(
@@ -476,3 +472,7 @@ if __name__ == "__main__":
     app = SSDDetectionApp(source=args.source)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

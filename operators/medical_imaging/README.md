@@ -1,4 +1,8 @@
-### Medical Imaging Processing and Inference Operators
+# Medical Imaging Operators
+
+Medical image processing and inference operators.
+
+## Overview
 
 This set of operators accelerate the development of medical imaging AI inference application with DICOM imaging network integration by providing the following,
 
@@ -13,9 +17,10 @@ This set of operators accelerate the development of medical imaging AI inference
 - Surface mesh generation and storage in STL format
 - Visualization with [Clara-Viz](https://pypi.org/project/clara-viz/) integration, as needed
 
-#### Requirements
+## Requirements
 
 This set of operators depends on [Holoscan SDK Python package](https://pypi.org/project/holoscan/), as well as directly on the following,
+
 - [highdicom](https://pypi.org/project/highdicom/)
 - [monai](https://pypi.org/project/monai/)
 - [nibabel](https://pypi.org/project/nibabel/)
@@ -30,7 +35,7 @@ This set of operators depends on [Holoscan SDK Python package](https://pypi.org/
 - [trimesh](https://pypi.org/project/trimesh/)
 - [typeguard](https://pypi.org/project/typeguard/)
 
-#### Notices
+## Notices
 
 Many of this set of operators are `Derivative Works` of [MONAI Deploy App SDK](https://github.com/Project-MONAI/monai-deploy) under its [Apache-2.0 license](https://github.com/Project-MONAI/monai-deploy/blob/main/LICENSE), and Nvidia employees have been the main contributors to MONAI Deploy App SDK.
 

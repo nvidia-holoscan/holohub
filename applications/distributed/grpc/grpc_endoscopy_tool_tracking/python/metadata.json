@@ -1,0 +1,43 @@
+{
+	"application": {
+		"name": "Distributed Endoscopy Tool Tracking with gRPC",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"dockerfile": "applications/distributed/grpc/grpc_endoscopy_tool_tracking/Dockerfile",
+		"holoscan_sdk": {
+			"minimum_required_version": "2.7.0",
+			"tested_versions": [
+				"2.7.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Streaming", "Distributed", "LSTM", "Asynchronous Queues", "gRPC", "Video", "Computer Vision and Perception", "Visualization"],
+		"ranking": 0,
+		"requirements": {
+			"data": [
+				{
+					"name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
+					"description": "This resource contains the convolutional LSTM model for tool tracking in laparoscopic videos by Nwoye et. al [1], and a sample surgical video.",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+					"version": "20230222"
+				}
+			]
+		},
+		"run": {
+			"command": "<holohub_app_source>/launch.sh --data <holohub_data_dir>/endoscopy",
+			"workdir": "holohub_bin"
+		}
+	}
+}
