@@ -123,11 +123,14 @@ def create_histogram_plots(json_data, output_dir="/tmp/benchmark_plots"):
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 6))
 
     # Frame period histogram
-    bins_period = np.linspace(
-        min(min(normal_periods), min(realtime_periods)) * 0.9,
-        max(max(normal_periods), max(realtime_periods)) * 1.1,
-        150,  # Finer resolution
-    )
+    if len(normal_periods) > 0 and len(realtime_periods) > 0:
+        bins_period = np.linspace(
+            min(min(normal_periods), min(realtime_periods)) * 0.9,
+            max(max(normal_periods), max(realtime_periods)) * 1.1,
+            150,  # Finer resolution
+        )
+    else:
+        bins_period = np.linspace(target_period_ms * 0.95, target_period_ms * 1.05, 150)
 
     ax1.hist(
         normal_periods,
@@ -196,11 +199,14 @@ def create_histogram_plots(json_data, output_dir="/tmp/benchmark_plots"):
     ax2.grid(True, alpha=0.3)
 
     # Execution time histogram (ax3)
-    bins_exec = np.linspace(
-        min(min(normal_exec), min(realtime_exec)) * 0.9,
-        max(max(normal_exec), max(realtime_exec)) * 1.1,
-        150,  # Finer resolution
-    )
+    if len(normal_exec) > 0 and len(realtime_exec) > 0:
+        bins_exec = np.linspace(
+            min(min(normal_exec), min(realtime_exec)) * 0.9,
+            max(max(normal_exec), max(realtime_exec)) * 1.1,
+            150,  # Finer resolution
+        )
+    else:
+        bins_exec = np.linspace(0, 0.01, 150)
 
     ax3.hist(
         normal_exec,
@@ -258,6 +264,9 @@ def main():
         sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"Error: Could not parse JSON file {args.input}: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: Unexpected error reading file {args.input}: {e}")
         sys.exit(1)
 
     # Generate plots

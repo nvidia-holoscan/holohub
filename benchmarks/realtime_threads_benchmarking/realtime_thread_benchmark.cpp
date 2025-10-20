@@ -596,8 +596,11 @@ int main(int argc, char* argv[]) {
   print_title("Non-real-time and Real-time Thread Benchmark Comparison");
 
   // Calculate improvement in standard deviation
-  double std_improvement = ((non_rt_period_stats.std_dev - rt_period_stats.std_dev) /
-                            non_rt_period_stats.std_dev) * 100.0;
+  double std_improvement = 0.0;
+  if (non_rt_period_stats.std_dev > 0.0) {
+    std_improvement = ((non_rt_period_stats.std_dev - rt_period_stats.std_dev) /
+                       non_rt_period_stats.std_dev) * 100.0;
+  }
 
   std::cout << std::fixed << std::setprecision(6) << std::dec;
 
@@ -626,6 +629,14 @@ int main(int argc, char* argv[]) {
   // Generate plots using Python plotting script
   std::string plot_script = std::string(__FILE__);
   plot_script = plot_script.substr(0, plot_script.find_last_of("/\\")) + "/plot_results.py";
+
+  // Check if plot script exists
+  std::ifstream script_file(plot_script);
+  if (!script_file.good()) {
+    std::cerr << "Error: Could not find plot script: " << plot_script << std::endl;
+    std::cerr << "Skipping plot generation." << std::endl;
+    return 0;
+  }
 
   // Extract directory from JSON output file path for plots
   std::string output_dir = output_file.substr(0, output_file.find_last_of("/\\"));
