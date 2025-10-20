@@ -185,6 +185,17 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 		type: `list`
 	- **`timeout_us`**: Timeout value that a batch will be sent on even if not enough packets to fill a batch were received
   		- type: `integer`
+- **`flex_items`**: Flexible parser flow items
+	type: `list`
+	full path: `cfg\interfaces\rx\flex_items`
+	- **`name`**: Name of flow item
+  		- type: `string`	
+	- **`id`**: ID of the flow item
+  		- type: `integer`	
+	- **`offset`**: Offset in bytes of where to match after the UDP header. Must be a multiple of 4 and < 28
+  		- type: `integer`
+	- **`udp_dst_port`**: UDP destination port for flex item match
+			- type: `integer`
 
 - **`flows`**: List of flows - rules to apply to packets, mostly to divert to the right queue. (<mark>Not in use for Rivermax manager</mark>)
   type: `list`
@@ -207,6 +218,13 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 	  	- type: `integer`
 		- **`ipv4_len`**: IPv4 payload length
 	  	- type: `integer`
+		- **`flex_item_id`**: Flex item ID from RX section. Flex items cannot be applied if UDP or IP matching above are used
+	  	- type: `integer`
+		- **`val`**: 32b value to match on
+	  	- type: `integer`
+		- **`mask`**: 32b mask to apply before the match
+	  	- type: `integer`	
+			
 
 ##### Extended Receive Configuration for Rivermax manager
 

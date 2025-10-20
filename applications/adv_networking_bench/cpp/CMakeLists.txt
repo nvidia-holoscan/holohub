@@ -101,6 +101,12 @@ add_custom_target(adv_networking_bench_rivermax_tx_rx_yaml
 )
 add_dependencies(adv_networking_bench adv_networking_bench_rivermax_tx_rx_yaml)
 
+add_custom_target(adv_networking_bench_rx_arb_match_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx_arb_match.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx_arb_match.yaml"
+)
+add_dependencies(adv_networking_bench adv_networking_bench_rx_arb_match_yaml)
+
 # Installation
 install(TARGETS adv_networking_bench
         DESTINATION examples/adv_networking_bench
