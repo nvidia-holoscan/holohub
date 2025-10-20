@@ -60,6 +60,7 @@ struct BurstHeaderParams {
   uint32_t max_pkt_size;
   uint32_t gpu_pkt0_idx;
   uintptr_t gpu_pkt0_addr;
+  uint32_t burst_flags;
 };
 
 struct BurstHeader {
@@ -83,6 +84,7 @@ struct BurstParams {
   std::array<void**, MAX_NUM_SEGS> pkts;
   std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;
   void** pkt_extra_info;
+  std::shared_ptr<void> custom_pkt_data;
   cudaEvent_t event;
 };
 

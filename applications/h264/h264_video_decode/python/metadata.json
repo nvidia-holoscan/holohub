@@ -14,8 +14,8 @@
     },
     "dockerfile": "applications/h264/Dockerfile",
     "holoscan_sdk": {
-      "minimum_required_version": "3.3.0",
-      "tested_versions": ["3.4.0"]
+      "minimum_required_version": "3.6.1",
+      "tested_versions": ["3.6.1"]
     },
     "platforms": ["x86_64", "aarch64"],
     "tags": ["Healthcare AI", "Video", "Hardware Accelerated Decode", "Endoscopy"],
@@ -24,17 +24,20 @@
       "operators": [
         {
           "name": "videodecoder",
-          "version": "1.4.1"
+          "version": "1.5.0"
         },
         {
           "name": "videodecoderio",
-          "version": "1.4.1"
+          "version": "1.5.0"
         }
       ]
     },
     "run": {
       "command": "python3 <holohub_app_source>/h264_video_decode.py --data <holohub_data_dir>/endoscopy",
-      "workdir": "holohub_bin"
+      "workdir": "holohub_bin",
+      "env": {
+        "LD_PRELOAD": "/opt/nvidia/holoscan/lib/libgxf_core.so"
+      }
     }
   }
 }

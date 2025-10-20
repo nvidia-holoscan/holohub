@@ -42,6 +42,7 @@ if(holoscan_VERSION GREATER 3.5)
     PATH_SUFFIXES lib lib64
     REQUIRED
   )
+  message(STATUS "Found Torchvision: ${TORCHVISION_LIBRARY}")
   add_library(torchvision SHARED IMPORTED)
   set_target_properties(torchvision PROPERTIES
       IMPORTED_LOCATION "${TORCHVISION_LIBRARY}"
@@ -66,8 +67,9 @@ target_link_libraries(object_detection_torch
     holoscan::ops::inference
     holoscan::ops::inference_processor
     holoscan::ops::holoviz
-    $<$<TARGET_EXISTS:holoscan::aja>:holoscan::aja>
+    $<TARGET_NAME_IF_EXISTS:holoscan::aja>
 )
+
 if(holoscan_VERSION GREATER 3.5)
   # Forcibly link torchvision and its required Python symbols to prevent ResNet runtime import failure
   target_link_libraries(object_detection_torch
@@ -75,6 +77,14 @@ if(holoscan_VERSION GREATER 3.5)
     torchvision::torchvision
     "-Wl,--no-as-needed $<TARGET_PROPERTY:Python3::Python,IMPORTED_LOCATION> $<TARGET_PROPERTY:torchvision::torchvision,IMPORTED_LOCATION> -Wl,--as-needed"
   )
+endif()
+
+if("${holoscan_VERSION}" VERSION_GREATER_EQUAL "3.7")
+  # holoscan::holoinfer_utils is directly available in Holoscan SDK 3.7 and later
+  target_link_libraries(object_detection_torch PRIVATE holoscan::holoinfer_utils)
+else()
+  # "holoscan_utils.hpp" is exposed through holoscan::infer in Holoscan SDK 3.6 and earlier
+  target_link_libraries(object_detection_torch PRIVATE holoscan::infer)
 endif()
 
 # Download the cars sample data

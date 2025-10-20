@@ -36,7 +36,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Video", "Deltacast", "Endoscopy", "RDMA", "GPUDirect"],
+		"tags": ["Streaming", "Healthcare AI", "Video", "Deltacast", "Endoscopy", "RDMA", "GPUDirect"],
 		"ranking": 2,
 		"requirements": {},
 		"run": {

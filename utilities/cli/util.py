@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 import grp
 import json
 import os
@@ -27,6 +28,8 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
+
+DEFAULT_BASE_SDK_VERSION = "3.7.0"
 
 PROJECT_PREFIXES = {
     "application": "APP",
@@ -314,25 +317,107 @@ def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.
         fatal(f"Could not determine nvidia-ctk version. Version {min_version}+ required.")
 
 
+def get_gpu_name() -> Optional[str]:
+    """
+    Helper function to get GPU name from nvidia-smi.  Returns None if nvidia-smi is not available.
+    """
+    if not shutil.which("nvidia-smi"):
+        return None
+    try:
+        output = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+        return output.strip() if output else None
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
 def get_host_gpu() -> str:
     """Determine if running on dGPU or iGPU"""
-    if not shutil.which("nvidia-smi"):
+    gpu_name = get_gpu_name()
+    if gpu_name is None:
         print(
             "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack.",
             file=sys.stderr,
         )
         return "dgpu"
 
-    try:
-        output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"]
-        )
-        if not output or "Orin (nvgpu)" in output.decode():
-            return "igpu"
-    except subprocess.CalledProcessError:
-        return "dgpu"
-
+    # Check for iGPU (Orin integrated GPU)
+    if "Orin (nvgpu)" in gpu_name:
+        return "igpu"
     return "dgpu"
+
+
+def get_default_cuda_version() -> str:
+    """
+    Get default CUDA version based on NVIDIA driver version.
+
+    Returns:
+        - "13" if driver version >= 580 or if nvidia-smi is not available
+        - "12" if driver version < 580
+    """
+    # Default to CUDA 13 if nvidia-smi is not available
+    if not shutil.which("nvidia-smi"):
+        warn("nvidia-smi not found, default CUDA version is 13")
+        return "13"
+
+    # Check the driver version using nvidia-smi
+    driver_version = run_info_command(
+        ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"]
+    )
+
+    if not driver_version:
+        warn("Unable to detect NVIDIA driver version, default CUDA version is 13")
+        return "13"
+
+    try:
+        driver_major_version = int(driver_version.split(".")[0])
+        if driver_major_version >= 580:
+            return "13"
+        else:
+            return "12"
+    except (ValueError, IndexError):
+        warn(f"Unable to parse driver version '{driver_version}', default CUDA version is 13")
+        return "13"
+
+
+def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: str = "3.6.1") -> str:
+    """
+    Determine the CUDA container tag based on CUDA version and GPU type.
+
+    SDK version support:
+    - SDK < 3.6.1: Old format (dgpu/igpu)
+    - SDK == 3.6.1: only cuda13-dgpu available
+    - SDK >= 3.7.0: Full CUDA support
+      - cuda13: CUDA 13 (x86_64, Jetson Thor)
+      - cuda12-dgpu: CUDA 12 dGPU (x86_64, IGX Orin dGPU, Clara AGX dGPU, GH200)
+      - cuda12-igpu: CUDA 12 iGPU (Jetson Orin, IGX Orin iGPU, Clara AGX iGPU)
+
+    Args:
+        cuda_version: CUDA major version (e.g., 12, 13). If None, uses platform default.
+        sdk_version: SDK version string (e.g., "3.6.0", "3.6.1", "3.7.0").
+
+    Returns:
+        The appropriate container tag string
+    """
+    try:
+        sdk_ver = parse_semantic_version(sdk_version)
+    except (ValueError, IndexError):
+        sdk_ver = parse_semantic_version(DEFAULT_BASE_SDK_VERSION)
+    if sdk_ver < (3, 6, 1):
+        return get_host_gpu()
+    if sdk_ver == (3, 6, 1):
+        return "cuda13-dgpu"
+    if cuda_version is None:
+        cuda_version = get_default_cuda_version()
+    cuda_str = str(cuda_version)
+    if cuda_str == "13":
+        return "cuda13"
+    if cuda_str == "12":
+        return f"cuda12-{get_host_gpu()}"
+    return f"cuda{cuda_str}-{get_host_gpu()}"
 
 
 def get_host_arch() -> str:
@@ -759,46 +844,71 @@ def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
     return sorted(results)
 
 
+@functools.lru_cache(maxsize=32)
+def resolve_path_prefix(prefix: Optional[str] = None) -> str:
+    """Resolve the path prefix for HoloHub placeholders"""
+    if prefix is None:
+        prefix = os.environ.get("HOLOHUB_PATH_PREFIX", "holohub_")
+    if not prefix.endswith("_"):
+        prefix = prefix + "_"
+    return prefix
+
+
 def build_holohub_path_mapping(
     holohub_root: Path,
     project_data: Optional[dict] = None,
     build_dir: Optional[Path] = None,
     data_dir: Optional[Path] = None,
+    prefix: Optional[str] = None,
 ) -> dict[str, str]:
-    """Build a mapping of HoloHub placeholders to their resolved paths"""
+    """Build a mapping of HoloHub placeholders to their resolved paths
+
+    Args:
+        holohub_root: Root directory of HoloHub
+        project_data: Optional project metadata dictionary
+        build_dir: Optional build directory path
+        data_dir: Optional data directory path
+        prefix: Prefix for placeholder keys. If None, reads from HOLOHUB_PATH_PREFIX
+                environment variable (default: "holohub_")
+
+    Returns:
+        Dictionary mapping placeholder names to their resolved paths
+    """
+    prefix = resolve_path_prefix(prefix)
+
     if data_dir is None:
         data_dir = holohub_root / "data"
 
     path_mapping = {
-        "holohub_root": str(holohub_root),
-        "holohub_data_dir": str(data_dir),
+        f"{prefix}root": str(holohub_root),
+        f"{prefix}data_dir": str(data_dir),
     }
     if not project_data:
         return path_mapping
     # Add project-specific mappings if project_data is provided
     app_source_path = project_data.get("source_folder", "")
     if app_source_path:
-        path_mapping["holohub_app_source"] = str(app_source_path)
+        path_mapping[f"{prefix}app_source"] = str(app_source_path)
     if build_dir:
-        path_mapping["holohub_bin"] = str(build_dir)
+        path_mapping[f"{prefix}bin"] = str(build_dir)
         if app_source_path:
             try:
                 app_build_dir = build_dir / Path(app_source_path).relative_to(holohub_root)
-                path_mapping["holohub_app_bin"] = str(app_build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(app_build_dir)
             except ValueError:
                 # Handle case where app_source_path is not relative to holohub_root
-                path_mapping["holohub_app_bin"] = str(build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(build_dir)
     elif project_data.get("project_name"):
         # If no build_dir provided but we have project name, try to infer it
         project_name = project_data["project_name"]
         inferred_build_dir = holohub_root / "build" / project_name
-        path_mapping["holohub_bin"] = str(inferred_build_dir)
+        path_mapping[f"{prefix}bin"] = str(inferred_build_dir)
         if app_source_path:
             try:
                 app_build_dir = inferred_build_dir / Path(app_source_path).relative_to(holohub_root)
-                path_mapping["holohub_app_bin"] = str(app_build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(app_build_dir)
             except ValueError:
-                path_mapping["holohub_app_bin"] = str(inferred_build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(inferred_build_dir)
     return path_mapping
 
 
@@ -871,8 +981,9 @@ def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[s
         return None
 
     try:
+        docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
         result = run_command(
-            ["docker", "inspect", "--format={{json .Config.Entrypoint}}", img],
+            [docker_exe, "inspect", "--format={{json .Config.Entrypoint}}", img],
             capture_output=True,
             check=False,
             dry_run=dry_run,
@@ -902,8 +1013,9 @@ def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
         )
         return ""
     try:
+        docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
         result = run_command(
-            ["docker", "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
+            [docker_exe, "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
             check=False,
             capture_output=True,
             dry_run=dry_run,
@@ -1060,8 +1172,9 @@ def collect_git_info(holohub_root: Path) -> None:
 def collect_docker_info() -> None:
     """Collect and display Docker information"""
     print(f"\n{Color.blue('Docker Information:')}")
-    docker_version = run_info_command(["docker", "--version"])
-    docker_info = run_info_command(["docker", "info", "--format", "{{.ServerVersion}}"])
+    docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
+    docker_version = run_info_command([docker_exe, "--version"])
+    docker_info = run_info_command([docker_exe, "info", "--format", "{{.ServerVersion}}"])
     if docker_version is None or docker_info is None:
         print("  Docker not available")
         return
@@ -1108,10 +1221,32 @@ def collect_environment_variables() -> None:
     holohub_env_vars = [
         "HOLOHUB_CMD_NAME",
         "HOLOHUB_BUILD_LOCAL",
+        "HOLOHUB_ALWAYS_BUILD",
+        "HOLOHUB_BUILD_PARENT_DIR",
+        "HOLOHUB_DATA_DIR",
+        "HOLOHUB_DEFAULT_HSDK_DIR",
+        "HOLOHUB_CTEST_SCRIPT",
+        "HOLOHUB_REPO_PREFIX",
+        "HOLOHUB_CONTAINER_PREFIX",
+        "HOLOHUB_WORKSPACE_NAME",
+        "HOLOHUB_HOSTNAME_PREFIX",
         "HOLOHUB_BASE_IMAGE",
+        "HOLOHUB_DOCKER_EXE",
+        "HOLOHUB_SDK_PATH",
+        "HOLOHUB_BASE_SDK_VERSION",
+        "HOLOHUB_BENCHMARKING_SUBDIR",
+        "HOLOHUB_DEFAULT_DOCKERFILE",
+        "HOLOHUB_BASE_IMAGE_FORMAT",
+        "HOLOHUB_DEFAULT_IMAGE_FORMAT",
+        "HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS",
+        "HOLOHUB_DEFAULT_DOCKER_RUN_ARGS",
+        "HOLOHUB_DOCS_URL",
+        "HOLOHUB_CLI_DOCS_URL",
+        "HOLOHUB_DATA_PATH",
+        # Legacy variables
         "HOLOHUB_APP_NAME",
         "HOLOHUB_CONTAINER_BASE_NAME",
-        "HOLOHUB_ALWAYS_BUILD",
+        "HOLOHUB_PATH_PREFIX",
     ]
     for var in sorted(holohub_env_vars):
         print(f"  {var}: {os.environ.get(var) or '(not set)'}")
