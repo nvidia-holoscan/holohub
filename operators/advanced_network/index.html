@@ -15335,11 +15335,9 @@ full path: <code>cfg\interfaces\[rx|tx]</code></li>
 </ul>
 <h5 id="receive-configuration-rx">Receive Configuration (rx)<a class="headerlink" href="#receive-configuration-rx" title="Permanent link">#</a></h5>
 <ul>
-<li>
-<p><strong><code>queues</code></strong>: List of queues on NIC
+<li><strong><code>queues</code></strong>: List of queues on NIC
     type: <code>list</code>
-    full path: <code>cfg\interfaces\rx\queues</code></p>
-<ul>
+    full path: <code>cfg\interfaces\rx\queues</code><ul>
 <li><strong><code>name</code></strong>: Name of queue<ul>
 <li>type: <code>string</code></li>
 </ul>
@@ -15365,6 +15363,27 @@ buffer. A smaller number reduces end-to-end latency but can also reduce throughp
 <li>type: <code>integer</code></li>
 </ul>
 </li>
+</ul>
+</li>
+<li>
+<p><strong><code>flex_items</code></strong>: Flexible parser flow items
+    type: <code>list</code>
+    full path: <code>cfg\interfaces\rx\flex_items</code></p>
+<ul>
+<li><strong><code>name</code></strong>: Name of flow item<ul>
+<li>type: <code>string</code>    </li>
+</ul>
+</li>
+<li><strong><code>id</code></strong>: ID of the flow item<ul>
+<li>type: <code>integer</code>   </li>
+</ul>
+</li>
+<li><strong><code>offset</code></strong>: Offset in bytes of where to match after the UDP header. Must be a multiple of 4 and &lt; 28<ul>
+<li>type: <code>integer</code></li>
+</ul>
+</li>
+<li><strong><code>udp_dst_port</code></strong>: UDP destination port for flex item match
+        - type: <code>integer</code></li>
 </ul>
 </li>
 <li>
@@ -15394,6 +15413,12 @@ buffer. A smaller number reduces end-to-end latency but can also reduce throughp
 <li>type: <code>integer</code></li>
 <li><strong><code>ipv4_len</code></strong>: IPv4 payload length</li>
 <li>type: <code>integer</code></li>
+<li><strong><code>flex_item_id</code></strong>: Flex item ID from RX section. Flex items cannot be applied if UDP or IP matching above are used</li>
+<li>type: <code>integer</code></li>
+<li><strong><code>val</code></strong>: 32b value to match on</li>
+<li>type: <code>integer</code></li>
+<li><strong><code>mask</code></strong>: 32b mask to apply before the match</li>
+<li>type: <code>integer</code>   </li>
 </ul>
 </li>
 </ul>
