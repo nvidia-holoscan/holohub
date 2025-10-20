@@ -1,0 +1,71 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+dual_window: false
+
+replayer:
+  directory: "/workspace/holohub/data/rgb_uncompressed_2"
+  basename: "rgb_uncompressed_2"
+  frame_rate: 0   # as specified in timestamps
+  repeat: true    # default: false
+  realtime: true  # default: true 
+  count: 0        # default: 0 (no frame count restriction)
+
+drop_alpha:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+
+
+inference_preprocessor:
+  in_dtype: "rgb888"
+  out_tensor_name: INPUT__0
+  out_dtype: "float32"
+  resize_width: 960
+  resize_height: 544
+  scale_min: -1
+  scale_max: 1
+  out_channel_order: [2,0,1]
+
+sr_inference:
+  model_path_map:
+    "sr": "/workspace/holohub/data/sr_upsampling/model.NVIDIARTXA6000.8.6.84.trt.8.6.1.6.engine.fp16"
+  backend: "trt"
+  pre_processor_map:
+    "sr": ["INPUT__0"]
+  inference_map:
+    "sr": ["OUTPUT__0"]
+  device_map:
+    "sr": "0"
+  input_on_cuda: true
+  is_engine_path: true
+  enable_fp16: true
+
+inference_postprocessor:
+  in_dtype: "float32"
+  in_tensor_name: OUTPUT__0
+  out_tensor_name: ""
+  out_dtype: "rgb888"
+  scale_min: -1
+  scale_max: 1
+
+holoviz:
+  width: 1920
+  height: 1088
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0
