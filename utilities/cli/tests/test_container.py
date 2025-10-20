@@ -24,6 +24,7 @@ from unittest.mock import patch
 sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
 from utilities.cli.container import HoloHubContainer
+from utilities.cli.util import get_cuda_tag, get_default_cuda_version
 
 
 class TestHoloHubContainer(unittest.TestCase):
@@ -126,6 +127,46 @@ class TestHoloHubContainer(unittest.TestCase):
         expected_pythonpath = "/docker/lib1:/docker/lib2:/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
         self.assertEqual(result, ["-e", f"PYTHONPATH={expected_pythonpath}"])
         self.container.dryrun = False
+
+    @patch("utilities.cli.util.get_host_gpu")
+    def test_get_cuda_tag_sdk(self, mock_get_host_gpu):
+        """Test CUDA tag with different SDK versions"""
+        mock_get_host_gpu.return_value = "dgpu"
+
+        # Test SDK 3.6.0 (old format) - returns gpu_type only
+        self.assertEqual(get_cuda_tag("12", "3.6.0"), "dgpu")
+        self.assertEqual(get_cuda_tag("13", "3.6.0"), "dgpu")
+
+        # Test SDK > 3.6.1 (new format) - returns cuda{version}-{gpu_type}
+        self.assertEqual(get_cuda_tag("12", "3.7.0"), "cuda12-dgpu")
+        self.assertEqual(get_cuda_tag("13", "3.7.0"), "cuda13")
+        self.assertEqual(get_cuda_tag("11", "3.7.0"), "cuda11-dgpu")
+
+        # Test with iGPU
+        mock_get_host_gpu.return_value = "igpu"
+        self.assertEqual(get_cuda_tag("12", "3.7.0"), "cuda12-igpu")
+        self.assertEqual(get_cuda_tag("12", "3.6.0"), "igpu")
+
+    @patch("utilities.cli.util.run_info_command")
+    @patch("utilities.cli.util.shutil.which")
+    def test_get_default_cuda_version(self, mock_which, mock_run_info_command):
+        """Test default CUDA version detection based on NVIDIA driver version"""
+        # nvidia-smi not available -> default to 13
+        mock_which.return_value = None
+        self.assertEqual(get_default_cuda_version(), "13")
+        # nvidia-smi available but driver version unknown -> default to 13
+        mock_which.return_value = "/usr/bin/nvidia-smi"
+        mock_run_info_command.return_value = None
+        self.assertEqual(get_default_cuda_version(), "13")
+        # Driver version < 580 -> CUDA 12
+        mock_run_info_command.return_value = "550.54.14"
+        self.assertEqual(get_default_cuda_version(), "12")
+        # Driver version >= 580 -> CUDA 13
+        mock_run_info_command.return_value = "580.1"
+        self.assertEqual(get_default_cuda_version(), "13")
+        # Unparsable driver version -> default to 13
+        mock_run_info_command.return_value = "not.a.version"
+        self.assertEqual(get_default_cuda_version(), "13")
 
 
 if __name__ == "__main__":

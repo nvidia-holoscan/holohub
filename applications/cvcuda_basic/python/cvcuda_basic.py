@@ -1,5 +1,5 @@
 """
-SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -122,7 +122,7 @@ class MyVideoProcessingApp(Application):
         self.add_flow(image_processing, visualizer, {("output_tensor", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = ArgumentParser(description="CV-CUDA demo application.")
     parser.add_argument(
@@ -141,3 +141,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     app = MyVideoProcessingApp(data=args.data, count=args.count)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

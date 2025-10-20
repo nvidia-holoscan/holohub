@@ -1,4 +1,4 @@
-# Orsi Academy In-Out Body Detection and Surgical Video Anonymization
+# In-Out Body Detection and Surgical Video Anonymization
 
 <center> <img src="./docs/anonymization.png" ></center>
 <center> Fig. 1: Example of anonymized result after inference </center><br>

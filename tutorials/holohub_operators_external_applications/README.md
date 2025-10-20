@@ -329,9 +329,12 @@ class App(Application):
         # Add the operator to your application
         self.add_operator(aja_source)
 
-if __name__ == "__main__":
+def main():
     app = App()
     app.run()
+
+if __name__ == "__main__":
+    main()
 ```
 
 #### Python Bindings Location

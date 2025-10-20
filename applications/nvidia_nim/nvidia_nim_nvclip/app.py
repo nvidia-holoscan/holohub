@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -194,7 +194,7 @@ class NVClipNIMApp(Application):
         self.add_flow(input_op, chat_op)
 
 
-if __name__ == "__main__":
+def main():
     config_file = os.path.join(os.path.dirname(__file__), "nvidia_nim.yaml")
     app = NVClipNIMApp()
     app.config(config_file)
@@ -203,3 +203,7 @@ if __name__ == "__main__":
         app.run()
     except Exception as e:
         logger.error("Error:", str(e))
+
+
+if __name__ == "__main__":
+    main()

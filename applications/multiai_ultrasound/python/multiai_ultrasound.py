@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,6 @@ from holoscan.operators import (
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
 from packaging.version import Version
 
-from holohub.aja_source import AJASourceOp
 from holohub.visualizer_icardio import VisualizerICardioOp
 
 
@@ -61,6 +60,8 @@ class MultiAIICardio(Application):
 
         record_type = self.record_type
         is_aja = self.source.lower() == "aja"
+        if is_aja:
+            from holohub.aja_source import AJASourceOp
 
         SourceClass = AJASourceOp if is_aja else VideoStreamReplayerOp
         source_kwargs = self.kwargs(self.source)
@@ -287,7 +288,7 @@ class MultiAIICardio(Application):
             self.add_flow(recorder_format_converter, recorder)
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser(description="Multi-AI demo application.")
     parser.add_argument(
         "-s",
@@ -332,3 +333,7 @@ if __name__ == "__main__":
     app = MultiAIICardio(record_type=record_type, source=args.source, data=args.data)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

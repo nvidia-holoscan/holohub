@@ -1,0 +1,47 @@
+{
+    "application": {
+        "name": "Video Streaming Demo Client Enhanced",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "C++",
+        "version": "3.5.0",
+        "changelog": {
+            "3.5.0": "Enhanced video streaming client demo with V4L2 and video replay support"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.5.0",
+            "tested_versions": [
+                "3.5.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [
+            "Video",
+            "Streaming",
+            "Client",
+            "Demo",
+            "V4L2",
+            "Replayer"
+        ],
+        "ranking": 1,
+        "requirements": {
+            "operators": [
+                {
+                    "name": "video_streaming",
+                    "version": "3.5.0"
+                }
+            ]
+        },
+        "run": {
+            "command": "<holohub_app_bin>/cpp/streaming_client_demo_enhanced_wrapper.sh",
+            "workdir": "holohub_bin"
+        }
+    }
+}
