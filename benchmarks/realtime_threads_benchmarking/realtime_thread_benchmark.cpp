@@ -15,13 +15,20 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <chrono>
+#include <cmath>
+#include <cstdint>
 #include <cstdlib>
+#include <filesystem>  // NOLINT
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
+#include <numeric>
 #include <string>
 #include <thread>
+#include <vector>
 #include <getopt.h>
 #include <unistd.h>
 
@@ -35,6 +42,7 @@ struct BenchmarkStats {
   double min_val = 0.0;
   double max_val = 0.0;
   size_t sample_count = 0;
+  std::vector<double> raw_data;
   std::vector<double> sorted_data;
 };
 
@@ -61,13 +69,14 @@ BenchmarkStats calculate_benchmark_stats(
   // Extract values
   for (const auto& value : raw_values) {
     if (value >= 0.0 || !skip_negative_values) {
-      stats.sorted_data.push_back(value);
+      stats.raw_data.push_back(value);
     }
   }
 
-  if (stats.sorted_data.empty())
+  if (stats.raw_data.empty())
     return stats;
 
+  stats.sorted_data = stats.raw_data;
   std::sort(stats.sorted_data.begin(), stats.sorted_data.end());
   stats.sample_count = stats.sorted_data.size();
 
@@ -84,7 +93,7 @@ BenchmarkStats calculate_benchmark_stats(
 }
 
 
-void run_dummy_cpu_workload(int workload_size = 100, int load_intensity = 100) {
+static double run_dummy_cpu_workload(int workload_size = 100, int load_intensity = 100) {
   std::vector<double> data(workload_size);
   double work_result = 0.0;
   for (int i = 0; i < load_intensity; ++i) {
@@ -95,6 +104,7 @@ void run_dummy_cpu_workload(int workload_size = 100, int load_intensity = 100) {
       work_result += std::sqrt(std::abs(x) + 1.0);
     }
   }
+  return work_result;
 }
 
 class DummyLoadOp : public Operator {
@@ -106,12 +116,13 @@ class DummyLoadOp : public Operator {
 
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override {
-    run_dummy_cpu_workload(workload_size_, load_intensity_);
+    sink_ += run_dummy_cpu_workload(workload_size_, load_intensity_);
   };
 
  private:
   int workload_size_;
   int load_intensity_;
+  double sink_ = 0.0;  // prevents optimization
 };
 
 class BenchmarkOp : public Operator {
@@ -139,7 +150,7 @@ class BenchmarkOp : public Operator {
       last_start_time_ = start_time;
     }
 
-    run_dummy_cpu_workload(workload_size_, load_intensity_);
+    work_result_ += run_dummy_cpu_workload(workload_size_, load_intensity_);
     auto end_time = std::chrono::steady_clock::now();
 
     auto execution_time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -190,7 +201,7 @@ class BenchmarkOp : public Operator {
   std::vector<double> execution_times_ns_;
   std::chrono::steady_clock::time_point last_start_time_{};
   mutable std::mutex lock_;
-  double work_result_;
+  double work_result_ = 0.0;
 };
 
 class RealtimeThreadBenchmarkApp : public Application {
@@ -317,9 +328,9 @@ void print_benchmark_results(
 
 void write_stats_section(std::ofstream& file, const BenchmarkStats& stats) {
   file << "      \"raw_data\": [";
-  for (size_t i = 0; i < stats.sorted_data.size(); ++i) {
+  for (size_t i = 0; i < stats.raw_data.size(); ++i) {
     if (i > 0) file << ", ";
-    file << stats.sorted_data[i];
+    file << stats.raw_data[i];
   }
   file << "],\n";
   file << "      \"statistics\": {\n";
@@ -345,47 +356,58 @@ void write_json_results(const std::string& filename,
   int bm_workload_size,
   int worker_thread_number,
   int dummy_load_number) {
-std::ofstream file(filename);
-if (!file.is_open()) {
-std::cerr << "Error: Could not open file " << filename << " for writing" << std::endl;
-return;
-}
+  try {
+    std::filesystem::path p{filename};
+    if (p.has_parent_path()) {
+      std::filesystem::create_directories(p.parent_path());
+    }
+  } catch (const std::exception& e) {
+    std::cerr << "Error: Could not create output directory for " << filename << ": " << e.what()
+              << std::endl;
+    return;
+  }
 
-file << std::fixed << std::setprecision(6);
-file << "{\n";
-file << "  \"benchmark_config\": {\n";
-file << "    \"target_fps\": " << target_fps << ",\n";
-file << "    \"duration_seconds\": " << duration_seconds << ",\n";
-file << "    \"scheduling_policy\": \"" << scheduling_policy_str << "\",\n";
-file << "    \"bg_load_intensity\": " << bg_load_intensity << ",\n";
-file << "    \"bg_workload_size\": " << bg_workload_size << ",\n";
-file << "    \"bm_load_intensity\": " << bm_load_intensity << ",\n";
-file << "    \"bm_workload_size\": " << bm_workload_size << ",\n";
-file << "    \"worker_thread_number\": " << worker_thread_number << ",\n";
-file << "    \"dummy_load_number\": " << dummy_load_number << "\n";
-file << "  },\n";
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    std::cerr << "Error: Could not open file " << filename << " for writing" << std::endl;
+    return;
+  }
 
-file << "  \"period_statistics\": {\n";
-file << "    \"non_realtime\": {\n";
-write_stats_section(file, non_rt_period_stats);
-file << "    },\n";
-file << "    \"realtime\": {\n";
-write_stats_section(file, rt_period_stats);
-file << "    }\n";
-file << "  },\n";
+  file << std::fixed << std::setprecision(6);
+  file << "{\n";
+  file << "  \"benchmark_config\": {\n";
+  file << "    \"target_fps\": " << target_fps << ",\n";
+  file << "    \"duration_seconds\": " << duration_seconds << ",\n";
+  file << "    \"scheduling_policy\": \"" << scheduling_policy_str << "\",\n";
+  file << "    \"bg_load_intensity\": " << bg_load_intensity << ",\n";
+  file << "    \"bg_workload_size\": " << bg_workload_size << ",\n";
+  file << "    \"bm_load_intensity\": " << bm_load_intensity << ",\n";
+  file << "    \"bm_workload_size\": " << bm_workload_size << ",\n";
+  file << "    \"worker_thread_number\": " << worker_thread_number << ",\n";
+  file << "    \"dummy_load_number\": " << dummy_load_number << "\n";
+  file << "  },\n";
 
-file << "  \"execution_time_statistics\": {\n";
-file << "    \"non_realtime\": {\n";
-write_stats_section(file, non_rt_execution_stats);
-file << "    },\n";
-file << "    \"realtime\": {\n";
-write_stats_section(file, rt_execution_stats);
-file << "    }\n";
-file << "  }\n";
-file << "}\n";
+  file << "  \"period_statistics\": {\n";
+  file << "    \"non_realtime\": {\n";
+  write_stats_section(file, non_rt_period_stats);
+  file << "    },\n";
+  file << "    \"realtime\": {\n";
+  write_stats_section(file, rt_period_stats);
+  file << "    }\n";
+  file << "  },\n";
 
-file.close();
-std::cout << "Raw measurement data written to: " << filename << std::endl;
+  file << "  \"execution_time_statistics\": {\n";
+  file << "    \"non_realtime\": {\n";
+  write_stats_section(file, non_rt_execution_stats);
+  file << "    },\n";
+  file << "    \"realtime\": {\n";
+  write_stats_section(file, rt_execution_stats);
+  file << "    }\n";
+  file << "  }\n";
+  file << "}\n";
+
+  file.close();
+  std::cout << "Raw measurement data written to: " << filename << std::endl;
 }
 
 void print_help(const char* program_name) {
