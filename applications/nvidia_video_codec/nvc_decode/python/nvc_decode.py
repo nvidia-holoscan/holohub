@@ -93,7 +93,7 @@ class NVIDIAVideoCodecApp(Application):
         fps = self.kwargs("holoviz")["framerate"]
         h264_file_reader = NvVideoReaderOp(
             self,
-            CountCondition(self, 683),
+            CountCondition(self, 683),  # number of frames to read
             PeriodicCondition(self, name="periodic_condition", recess_period=1 / fps),
             name="h264_file_reader",
             directory=self.sample_data_path,
@@ -130,7 +130,7 @@ class NVIDIAVideoCodecApp(Application):
         self.add_flow(decoder, stats, {("output", "input")})
 
 
-if __name__ == "__main__":
+def main():
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
@@ -172,3 +172,7 @@ if __name__ == "__main__":
     with Tracker(app) as tracker:
         app.run()
         tracker.print()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -369,7 +369,7 @@ class LaserDetectionApp(Application):
         self.add_flow(view_operator, visualizer, {("output_specs", "input_specs")})
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser(description="EVT and USB cameras detecting laser pointer")
     parser.add_argument(
         "--threshold-usb",
@@ -404,3 +404,7 @@ if __name__ == "__main__":
     app.scheduler(scheduler)
     app.run()
     nvcv.clear_cache()
+
+
+if __name__ == "__main__":
+    main()

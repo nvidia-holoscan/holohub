@@ -1,11 +1,11 @@
-name: Check links
+name: Check URLs
 
 on:
   push:
     branches: [main]
   pull_request:
 jobs:
-  link-check:
+  check-urls:
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -14,12 +14,12 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Get changed files for PR
+    - name: Get changed files in the PR
       if: github.event_name == 'pull_request'
       id: changed-files
       run: |
         # Get changed files using git diff
-        if git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -E '\.(md|html|rst)$' > changed_files.txt; then
+        if git diff --name-only --diff-filter=d origin/${{ github.base_ref }}..HEAD | grep -E '\.(md|html|rst)$' > changed_files.txt; then
           if [ -s changed_files.txt ]; then
             echo "any_changed=true" >> $GITHUB_OUTPUT
             echo "changed_files_list=$(cat changed_files.txt | sed 's|^|'"'"'${{ github.workspace }}/|; s|$|'"'"'|' | tr '\n' ' ')" >> $GITHUB_OUTPUT
@@ -30,12 +30,12 @@ jobs:
           echo "any_changed=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Echo changed files
+    - name: Echo changed files in the PR
       if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
       run: |
         echo "Files being checked: ${{ steps.changed-files.outputs.changed_files_list }}"
 
-    - name: Link checker (PR - changed files only)
+    - name: URL checker (PR - changed files only)
       if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
       id: lychee-pr
       uses: lycheeverse/lychee-action@v2
@@ -45,11 +45,15 @@ jobs:
           --accept=200,403,429
           --verbose
           --no-progress
+          --root-dir=${{ github.workspace }}
+          --exclude='${{ github.workspace }}/doc/website/overrides/'
+          --remap='(file://.*)/holoscan-sdk/(.*) https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/$2'
           ${{ steps.changed-files.outputs.changed_files_list }}
         fail: true
+        failIfEmpty: false
         jobSummary: true
 
-    - name: Link checker (all files)
+    - name: URL checker (all files)
       if: github.event_name == 'push'
       id: lychee-main
       uses: lycheeverse/lychee-action@v2
@@ -59,6 +63,9 @@ jobs:
           --accept=200,403,429
           --verbose
           --no-progress
+          --root-dir=${{ github.workspace }}
+          --exclude='${{ github.workspace }}/doc/website/overrides/'
+          --remap='(file://.*)/holoscan-sdk/(.*) https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/$2'
           '${{ github.workspace }}/**/*.md'
           '${{ github.workspace }}/**/*.html'
           '${{ github.workspace }}/**/*.rst'

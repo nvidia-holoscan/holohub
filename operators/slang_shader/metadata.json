@@ -1,6 +1,6 @@
 {
 	"operator": {
-		"name": "Slang shading language operator",
+		"name": "SlangShaderOp",
 		"description": "Operator for executing Slang shaders.",
 		"authors": [
 			{
@@ -28,6 +28,7 @@
 			"aarch64"
 		],
 		"tags": [
+			"Visualization",
 			"Slang",
 			"shading",
 			"rendering",

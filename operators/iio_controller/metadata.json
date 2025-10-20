@@ -1,0 +1,32 @@
+{
+	"operator": {
+		"name": "IIO Controller Operators",
+		"authors": [
+			{
+				"name": "Andrei-Fabian Pop",
+				"affiliation": "Analog Devices Inc."
+			}
+		],
+		"language": ["C++", "Python"],
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.2.0",
+			"tested_versions": [
+				"3.2.0"
+			]
+		},
+		"platforms": ["x86_64"],
+		"tags": ["Signal Processing", "iio", "libiio"],
+		"ranking": 4,
+		"requirements": {
+			"libraries": [{
+				"name": "libiio",
+				"version": "0.26",
+				"url": "https://github.com/analogdevicesinc/libiio.git"
+			}]
+		}
+	}
+}

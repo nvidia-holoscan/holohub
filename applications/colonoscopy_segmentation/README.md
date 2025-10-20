@@ -2,63 +2,76 @@
 
 Full workflow including a generic visualization of segmentation results from a polyp segmentation models.
 
-### Requirements
+## Quick Start
+
+```bash
+./holohub run colonoscopy_segmentation
+```
+
+## Requirements
 
 - Python 3.8+
 - The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded video of the colonoscopy data (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
-### Data
+## Data
 
 [📦️ (NGC) Sample App Data for AI Colonoscopy Segmentation of Polyps](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_colonoscopy_sample_data)
 
 The data is automatically downloaded and converted to the correct format when building the application.
 If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
 
-### Run Instructions
+## Build Instructions
 
-To run this application, you'll need to configure your PYTHONPATH environment variable to locate the
-necessary python libraries based on your Holoscan SDK installation type.
+To build the application in a runtime container:
+```bash
+./holohub build colonoscopy_segmentation
+```
 
-You should refer to the [glossary](../../README.md#Glossary) for the terms defining specific locations within HoloHub.
+Or, to build the application in the host environment, install the application dependencies and then run:
+```bash
+./holohub build --local colonoscopy_segmentation
+```
 
-If your Holoscan SDK installation type is:
+## Run Instructions
 
-* python wheels:
+### Application Presets
 
-  ```bash
-  export PYTHONPATH=$PYTHONPATH:<HOLOHUB_BUILD_DIR>/python/lib
-  ```
+To run the application with the pre-recorded colonoscopy sample video
+```bash
+./holohub run colonoscopy_segmentation replayer
+```
 
-* otherwise:
+To run the application with input from an AJA video capture card:
+```bash
+./holohub run colonoscopy_segmentation aja
+```
 
-  ```bash
-  export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
-  ```
+### Application Configurations
 
-Next, run the commands of your choice:
+To pass runtime arguments to the application:
+```bash
+./holohub run colonoscopy_segmentation --run-args="--contours --source=\"replayer\""
+```
 
-* Using a pre-recorded video
-    ```bash
-    cd <HOLOHUB_SOURCE_DIR>/applications/colonoscopy_segmentation
-    python3 colonoscopy_segmentation.py --source=replayer --data=<DATA_DIR>/colonoscopy_segmentation --no-contours
-    ```
+### CLI Parameters
 
-* Using an AJA card
-    ```bash
-    cd <HOLOHUB_SOURCE_DIR>/applications/colonoscopy_segmentation
-    python3 colonoscopy_segmentation.py --source=aja --no-contours
-    ```
-Note that segmentation contours can be shown (instead of segmentation masks) by changing `--no-contours` to `--contours`.
+```bash
+usage: colonoscopy_segmentation.py [-h] [-s {replayer,aja}] [-c CONFIG] [-d DATA] [--contours | --no-contours]
 
-### Holoscan SDK version
+Colonoscopy segmentation demo application.
 
-Colonoscopy segmentation application in HoloHub requires version 0.6+ of the Holoscan SDK.
-If the Holoscan SDK version is 0.5 or lower, following code changes must be made in the application:
+options:
+  -h, --help            show this help message and exit
+  -s {replayer,aja}, --source {replayer,aja}
+                        If 'replayer', replay a prerecorded video. If 'aja' use an AJA capture card as the source (default: replayer).
+  -c CONFIG, --config CONFIG
+                        Set config path to override the default config file location
+  -d DATA, --data DATA  Set the data path
+  --contours, --no-contours
+                        Show segmentation contours instead of mask (default: False)
+```
 
-* In python/CMakeLists.txt: update the holoscan SDK version from `0.6` to `0.5`
-* In python/multiai_ultrasound.py: `InferenceOp` is replaced with `MultiAIInferenceOp`
-
-## Dev Container
+## VS Code Dev Container
 
 To start the the Dev Container, run the following command from the root directory of Holohub:
 

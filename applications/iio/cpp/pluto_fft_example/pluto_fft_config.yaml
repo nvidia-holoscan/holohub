@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Analog Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+cfg:
+  uri: "ip:192.168.2.1"
+  setup:
+    devices:
+      # If you want to use DDS (Direct Digital Synthesis) for signal generation,
+      # uncomment the following configuration block and the signal will be
+      # automatically generated:
+      # - cf-ad9361-dds-core-lpc:
+      #     attrs:
+      #       # Enable DDS sync start
+      #       - sync_start_enable: "arm"
+      #     channels:
+      #       output:
+      #         # TX1_I_F1 - First I component tone
+      #         - altvoltage0:
+      #             attrs:
+      #               - raw: 1  # Enable the DDS
+      #               - frequency: 500163
+      #               - scale: 1.000000
+      #               - phase: 0
+      - ad9361-phy:
+          attrs:
+            # Set FDD mode for continuous operation
+            - ensm_mode: "fdd"
+            # Ensure proper calibration mode
+            - calib_mode: "auto"
+          debug-attrs:
+            # Enable loopback for testing without noise
+            - loopback: 1
+          channels:
+            output:
+              - altvoltage0:
+                  # Set RX LO frequency (2.4 GHz)
+                  attrs:
+                    - frequency: 2400000000
+              - altvoltage1:
+                  # Set TX LO frequency (2.40 GHz)
+                  attrs:
+                    - frequency: 2400000000
+            input:
+              # Configure RX channel 0
+              - voltage0:
+                  attrs:
+                    - gain_control_mode: "slow_attack"
+                    - rf_bandwidth: 18000000
+                    - bb_dc_offset_tracking_en: 1
+                    - quadrature_tracking_en: 1
+                    - rf_dc_offset_tracking_en: 1
+              # Configure RX channel 1
+              - voltage1:
+                  attrs:
+                    - gain_control_mode: "slow_attack"
+                    - rf_bandwidth: 18000000
+                    - bb_dc_offset_tracking_en: 1
+                    - quadrature_tracking_en: 1
+                    - rf_dc_offset_tracking_en: 1
+      - cf-ad9361-lpc:
+          attrs:
+            # Prepare for data streaming
+            - sync_start_enable: "arm"
+          channels:
+            input:
+              - voltage0:
+                  attrs:
+                    # Set sampling frequency to 30.72 MHz
+                    - sampling_frequency: 30719999
+              - voltage1:
+                  attrs:
+                    - sampling_frequency: 30719999

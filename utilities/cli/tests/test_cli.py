@@ -128,7 +128,12 @@ class TestHoloHubCLI(unittest.TestCase):
         )
         build_args.func(build_args)
         mock_container.build.assert_called_with(
-            docker_file=None, base_img="test_image", img=None, no_cache=True, build_args=None
+            docker_file=None,
+            base_img="test_image",
+            img=None,
+            no_cache=True,
+            build_args=None,
+            cuda_version=None,
         )
         # Test run command
         run_args = self.cli.parser.parse_args("run test_project --local".split())

@@ -31,7 +31,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [],
+		"tags": ["Development"],
 		"ranking": 1,
 		"requirements": {}
 	}

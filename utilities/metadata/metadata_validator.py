@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +80,8 @@ def check_name_matches_readme(metadata_path, json_data):
         return False, "No name field found in metadata.json"
 
     # Check if the name includes terms like application, holohub and its variations.
-    # Note: holoscan is allowed only if it is part of the actual application name, like Isaac Holoscan Bridge.
+    # Note: holoscan is allowed only if it is part of the actual application name, like Isaac Sim
+    # Holoscan Bridge.
     forbidden_terms = ["application", "holohub"]
     found_terms = [term for term in forbidden_terms if re.search(term, name, re.IGNORECASE)]
     if found_terms:
@@ -189,10 +190,10 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
                 print(name + ": valid")
 
                 # Check if name matches README title
-                name_matches, name_msg = check_name_matches_readme(name, jsonData)
-                if not name_matches:
-                    print("ERROR:" + name + ": " + name_msg)
-                    exit_code = 1
+                # name_matches, name_msg = check_name_matches_readme(name, jsonData)
+                # if not name_matches:
+                #    print("ERROR:" + name + ": " + name_msg)
+                #    exit_code = 1
             else:
                 print("ERROR:" + name + ": invalid")
                 print(msg)

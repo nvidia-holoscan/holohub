@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -364,10 +364,14 @@ class BasicOrthoFlow(Application):
         self.add_flow(ortho_proc, sink, {("outputs", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     app = BasicOrthoFlow()
     app.config("")
     app.run()
     pbar.close()
 
     print("done with app")
+
+
+if __name__ == "__main__":
+    main()

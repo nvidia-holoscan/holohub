@@ -25,6 +25,16 @@ FROM ${BASE_IMAGE} as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+# Starting from Holoscan SDK 3.6.0, only CUDA 13 is supported.
+# To run H.264 application with CUDA 12, please use tags with holoscan-sdk-3.5.0 or earlier.
+RUN CUDA_VERSION_MAJOR=$(echo $CUDA_VERSION | cut -d '.' -f 1) \
+    && if [ "$CUDA_VERSION_MAJOR" != "13" ]; then \
+        echo "CUDA version $CUDA_VERSION is not supported."; \
+        echo "Starting from Holoscan SDK 3.6.0, H.264 applications only support CUDA 13 or higher."; \
+        echo "To run H.264 application with CUDA 12, please use tags with holoscan-sdk-3.5.0 or earlier."; \
+        exit 1; \
+    fi
+
 # --------------------------------------------------------------------------
 #
 # Holohub dev setup 
@@ -66,13 +76,3 @@ WORKDIR /
 
 RUN /install_dependencies.sh
 
-# Workaround for reported issue when running Python H264 applications:
-# 2: [warning] [gxf_extension_manager.cpp:174] Unable to load extension from 'libgxf_videodecoder.so' \
-#   (error: /opt/nvidia/holoscan/lib/libgxf_videodecoder.so: undefined symbol: _ZN6nvidia6logger15GlobalGxfLogger8instanceEv)
-# 2: [warning] [gxf_extension_manager.cpp:174] Unable to load extension from 'libgxf_videodecoderio.so' \
-#   (error: /opt/nvidia/holoscan/lib/libgxf_videodecoderio.so: undefined symbol: _ZN6nvidia6logger15GlobalGxfLogger8instanceEv)
-# 2: [info] [fragment.cpp:778] Loading extensions from configs...
-# 2: [warning] [type_registry.cpp:57] Unknown type: nvidia::gxf::VideoReadBitStream
-#
-# This is a workaround to load the libgxf_core.so library before running the application.
-ENV LD_PRELOAD=/opt/nvidia/holoscan/lib/libgxf_core.so

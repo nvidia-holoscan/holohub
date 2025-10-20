@@ -153,26 +153,42 @@ Examples:
 ./holohub modes body_pose_estimation
 
 # Run an application in a specific mode
-./holohub run body_pose_estimation dds                    # DDS video streaming mode
-./holohub run endoscopy_tool_tracking aja                 # AJA capture card mode
+./holohub run body_pose_estimation replayer               # Replayer mode
 ./holohub run holochat standalone                         # Local LLM inference mode
-
-# Build for a specific mode (if mode has special build requirements)
-./holohub build endoscopy_tool_tracking aja_overlay
 
 # Default behavior (no mode specified uses default_mode)
 ./holohub run body_pose_estimation                        # Uses 'default_mode' if specified
 ```
 
 #### **Mode vs. CLI Arguments**
-**Important**: When a mode defines specific options, you cannot override them with CLI arguments.
-This ensures mode integrity and prevents conflicting configurations.
 
-**Conflict Rules:**
-- If mode defines `run.docker_run_args` → Cannot use `--docker-opts`
-- If mode defines `build.depends` → Cannot use `--build-with`
-- If mode defines `build.docker_build_args` → Cannot use `--build-args`
-- If mode defines `build.cmake_options` → Cannot use `--configure-args`
+**Implicit Default Mode Overrides:**
+When a mode is auto-selected (no mode name specified), CLI parameters are allowed and will override mode settings with warnings:
+
+```bash
+# These work - mode auto-selected, CLI parameters override with warnings
+./holohub run holochat --run-args="--debug"
+./holohub run myapp --build-with="ops" --docker-opts="--net=host"
+```
+
+**Explicit Mode Configuration:**
+When a mode is explicitly specified, the CLI ensures consistent configuration by using the mode's predefined settings.
+CLI parameters override mode settings is not supported:
+
+```bash
+# with the mode specified, CLI parameters are not supported
+./holohub build myapp standard --build-with="ops"      # not supported mode + CLI args if 'standard' mode has 'build.depends'
+./holohub run holochat cloud --run-args="--test=case"  # not supported mode + CLI args
+```
+
+In this case, please either (1) modify the mode settings in `metadata.json` to match the CLI parameters, or (2) use the default mode implicitly with additional CLI parameters (e.g. `./holohub run myapp --language=cpp --local --build-type=debug`).
+
+**Mode Priority Rules (Explicit Modes Only):**
+When using explicit modes, the following mode settings take priority over CLI parameters:
+- If mode defines `run.docker_run_args` → Mode's docker options are used instead of `--docker-opts`
+- If mode defines `build.depends` → Mode's dependencies are used instead of `--build-with`
+- If mode defines `build.docker_build_args` → Mode's build args are used instead of `--build-args`
+- If mode defines `build.cmake_options` → Mode's cmake options are used instead of `--configure-args`
 
 #### **For Application Developers**
 Applications can define modes in their `metadata.json`. Here's the complete field reference:
@@ -320,7 +336,7 @@ For cases where build and run containers need different Docker configurations, y
 Both modes automatically share the same Docker image name (`holohub:myapp`), so the run mode can use the image built by the build mode.
 
 ##### **Key Points for Mode Development**
-- **`default_mode`** is only needed when you have multiple modes (2 or more). With a single mode, it will be used automatically.
+- **`default_mode`** is required only if your project defines two or more modes; with a single mode, it is selected automatically. The default mode is designed to allow additional CLI parameter overrides, so it is best to keep it general to maximize flexibility.
 - **Mode names** must match pattern `^[a-zA-Z_][a-zA-Z0-9_]*$` (alphanumeric + underscore, can't start with number)
 - **Docker arguments** can be specified in two places for different purposes:
   - `build.docker_build_args`: Docker **build** arguments for container image building (equivalent to CLI `--build-args`)
@@ -328,8 +344,9 @@ Both modes automatically share the same Docker image name (`holohub:myapp`), so 
   - `run.docker_run_args` apply to both build containers (during compilation) and application containers (during execution)
   - if `no-docker-build` is specified, `build.docker_build_args` is ignored
 - **Path placeholders** like `<holohub_app_source>`, `<holohub_data_dir>` are supported in commands
-- **CLI arguments cannot override** mode-specific configurations - modes are self-contained
-- **CLI arguments are allowed** only for options not defined by the selected mode
+- **CLI parameter behavior**:
+  - **Implicit default modes**: CLI parameters override mode settings (with warnings)
+  - **Explicit modes**: CLI parameters are blocked to maintain mode integrity
 - **Requirements** reference dependency IDs defined elsewhere in the metadata
 - **Modes provide complete control** over both build and runtime behavior for different deployment scenarios
 
@@ -356,6 +373,7 @@ This container-first approach ensures consistency and reproducibility across dif
 - **`HOLOHUB_ALWAYS_BUILD`**: Controls whether builds should be executed (defaults to `true`)
   - Set to `false` to skip both local and container builds
   - Useful for development iterations where you only want to run existing builds
+- Additionally, please see [container.py](container.py) for a list of project-specific configuration environment variables.
 
 
 ## Getting Help

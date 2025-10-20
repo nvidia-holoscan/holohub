@@ -1,7 +1,7 @@
 {
 	"tutorial": {
-		"name": "Achieving High Performance Networking with Holoscan",
-		"description": "TODO",
+		"name": "High Performance Networking with Holoscan",
+		"description": "How to use the Advanced Network library (ANO) for low latency and high throughput communication through NVIDIA SmartNICs.",
 		"authors": [
 			{
 				"name": "Alexis Girault",
@@ -28,7 +28,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["DPDK", "RDMA", "GPUNetIO", "GPUDirect", "Networking and Distributed Computing", "HPC"],
+		"tags": ["Networking and Distributed Computing", "DPDK", "RDMA", "GPUNetIO", "GPUDirect", "HPC"],
 		"ranking": 1,
 		"requirements": {
 			"applications": [

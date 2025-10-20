@@ -24,7 +24,11 @@ Holohub provides a collection of pre-built operators that you can easily integra
 your_external_app/
 ├── CMakeLists.txt
 ├── main.cpp
+├── main.py (optional - for Python applications)
 └── build/
+    └── python/
+        └── lib/
+            └── holohub/ (Python modules)
 ```
 
 ## Step-by-Step Guide
@@ -186,7 +190,7 @@ The `FetchHolohubOperator.cmake` file provides a convenient way to fetch specifi
 
 #### Function Signature
 ```cmake
-fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch])
+fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch] [DISABLE_PYTHON])
 ```
 
 #### Parameters
@@ -194,6 +198,7 @@ fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch])
 - `PATH` (optional): The path to the operator within the Holohub repository (defaults to OPERATOR_NAME)
 - `REPO_URL` (optional): The URL of the Holohub repository (defaults to the official Holohub repo)
 - `BRANCH` (optional): The branch to checkout (defaults to "main")
+- `DISABLE_PYTHON` (optional): Flag to disable Python bindings build (Python bindings are enabled by default)
 
 #### Examples
 ```cmake
@@ -208,6 +213,9 @@ fetch_holohub_operator(custom_operator REPO_URL "https://github.com/custom/holoh
 
 # Fetch from a specific branch
 fetch_holohub_operator(custom_operator BRANCH "dev")
+
+# Fetch an operator without Python bindings
+fetch_holohub_operator(aja_source DISABLE_PYTHON)
 ```
 
 ### 4. Choosing the Right Approach
@@ -276,6 +284,77 @@ cmake ..
 # Build the project
 make -j$(nproc)
 ```
+
+### 7. Using Python Bindings
+
+Many Holohub operators provide Python bindings, allowing you to use them in Python applications. Here's how to work with Python bindings:
+
+#### Building with Python Bindings
+
+By default, Python bindings are automatically built when you fetch an operator. If you want to disable Python bindings, you can use the `DISABLE_PYTHON` flag:
+
+```cmake
+# Disable Python bindings for this operator
+fetch_holohub_operator(aja_source DISABLE_PYTHON)
+```
+
+#### Running Python Applications
+
+After building your project, Python modules are typically installed in the `python/lib` directory within your build directory. To run Python applications that use the Holohub operators:
+
+```bash
+# Navigate to your build directory
+cd build
+
+# Set the PYTHONPATH to include the built Python modules
+export PYTHONPATH=$PYTHONPATH:$(pwd)/python/lib
+
+# Run your Python application
+python3 ../main.py
+```
+
+#### Python Example
+
+Create a `main.py` file that uses the fetched operator:
+
+```python
+from holoscan.core import Application
+from holohub.aja_source import AJASourceOp
+
+class App(Application):
+    def compose(self):
+        # Create an instance of the AJA source operator
+        aja_source = AJASourceOp(self, name="aja")
+
+        # Add the operator to your application
+        self.add_operator(aja_source)
+
+def main():
+    app = App()
+    app.run()
+
+if __name__ == "__main__":
+    main()
+```
+
+#### Python Bindings Location
+
+The Python modules are built and installed in the following structure:
+```
+build/
+├── python/
+│   └── lib/
+│       └── holohub/
+│           ├── __init__.py
+│           ├── aja_source.py
+│           └── ... (other operator modules)
+```
+
+#### Troubleshooting Python Bindings
+
+1. **Module not found errors**: Ensure `PYTHONPATH` is set correctly
+2. **Import errors**: Verify that Python bindings were built (check the `python/lib` directory)
+3. **Version compatibility**: Make sure your Python version is compatible with the Holoscan SDK
 
 ## Available Operators
 
@@ -361,14 +440,91 @@ cmake -DCMAKE_VERBOSE_MAKEFILE=ON ..
 
 ## Example Complete Project
 
-See the `main.cpp` and `CMakeLists.txt` files in this directory for a complete working example that demonstrates how to use the AJA source operator from Holohub.
+See the `main.cpp`, `main.py`, and `CMakeLists.txt` files in this directory for complete working examples that demonstrate how to use the AJA source operator from Holohub in both C++ and Python applications.
+
+## Using Holohub CLI in External Projects
+
+The Holohub CLI provides convenient command-line tools for managing Holohub applications, including building, running, and testing operators and applications. You can easily integrate the CLI into your external projects to leverage these functionalities.
+
+### Adding holohubCLI_wrapper to Your Project
+
+To use the Holohub CLI in your external project, simply copy the `holohubCLI_wrapper` script from this tutorial to the root of your project.:
+
+```bash
+# Download the CLI script to your project root
+wget -O /path/to/your/project/proj_cli https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/tutorials/holohub_operators_external_applications/holohubCLI_wrapper
+
+# Make it executable
+chmod +x /path/to/your/project/proj_cli
+```
+
+Add the following to your `.gitignore` file to exclude the downloaded Holohub CLI utilities:
+
+```bash
+# Holohub CLI
+utilities
+cmake
+.local
+```
+
+### Project Structure with CLI
+
+Your project structure will look like this:
+
+```
+your_external_app/
+├── myprojectCLI           # Holohub CLI script
+├── CMakeLists.txt
+├── main.cpp
+├── main.py (optional)
+└── build/
+```
+
+### Using the CLI
+
+Once you have the `proj_cli` script in your project, you can use it to access various Holohub CLI commands:
+
+```bash
+# Run your application
+./proj_cli run <application>
+
+# List available commands
+./proj_cli --help
+```
+
+> **Note:** The first time you run the script, it will automatically download the Holohub CLI scripts locally from the Holohub repository. Therefore, an internet connection is required for the initial run.
+
+Please refer to the Holohub CLI help command for more information.
+
+### CLI Features
+
+The Holohub CLI provides several useful features for external projects:
+
+- **Build Management**: Automated building of C++ and Python applications
+- **Docker Integration**: Run applications in Docker containers with proper environment setup
+- **Testing**: Run tests and validation for your operators
+- **Development Tools**: Various utilities for Holohub development
+
+### Environment Setup
+
+The CLI script automatically handles:
+- Setting up the correct Python path
+- Managing Docker options (if using Docker)
+- Configuring environment variables
+- Fetching necessary utilities from the Holohub repository
+
+### Benefits for External Projects
+
+Using the Holohub CLI in your external project provides:
+
+1. **Consistency**: Same build and run processes as Holohub applications
+2. **Automation**: Automated setup and configuration
+3. **Docker Support**: Easy containerization of your applications
+4. **Testing**: Built-in testing capabilities
+5. **Documentation**: Access to Holohub's documentation and examples
 
 ## Additional Resources
 
 - [Holohub Repository](https://github.com/nvidia-holoscan/holohub)
 - [Holoscan Documentation](https://docs.nvidia.com/holoscan/)
 - [Holohub Operators Documentation](https://github.com/nvidia-holoscan/holohub/tree/main/operators)
-
-## License
-
-This tutorial is part of Holohub and is licensed under the Apache 2.0 License. 

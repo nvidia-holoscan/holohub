@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -226,7 +226,7 @@ class BasicRadarFlow(Application):
         self.add_flow(cfar, sink)
 
 
-if __name__ == "__main__":
+def main():
     app = BasicRadarFlow()
     app.config("")
 
@@ -237,3 +237,7 @@ if __name__ == "__main__":
     duration = (iterations * num_pulses * num_channels) / (tstop - tstart)
 
     print(f"{duration:0.3f} pulses/sec")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ def find_metadata_files(repo_paths):
             if "metadata.json" in files:
                 metadata_files.append(os.path.join(root, "metadata.json"))
 
-    return metadata_files
+    return sorted(metadata_files)
 
 
 def extract_readme(file_path):
@@ -69,7 +69,7 @@ def extract_project_name(metadata_filepath: str) -> str:
 
     """
     parts = metadata_filepath.split(os.sep)
-    if parts[-2] in ["cpp", "python"]:
+    if parts[-2] in ["cpp", "python", "py"]:
         return parts[-3]
     return parts[-2]
 
