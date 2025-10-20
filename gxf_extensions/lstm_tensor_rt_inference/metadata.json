@@ -22,7 +22,7 @@
 			"aarch64"
 		],
 		"tags": [
-			"inference",
+			"Inference",
 			"TensorRT"
 		],
 		"ranking": 1,

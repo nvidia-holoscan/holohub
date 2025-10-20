@@ -118,6 +118,10 @@ add_holohub_application(psd_pipeline DEPENDS
                                   vita49_psd_packetizer
                                   data_writer)
 
+# Unified streaming applications
+add_holohub_application(video_streaming_demo_enhanced DEPENDS
+                        OPERATORS video_streaming)
+
 add_holohub_application(ultrasound_segmentation DEPENDS
                         OPERATORS OPTIONAL aja_source)
 

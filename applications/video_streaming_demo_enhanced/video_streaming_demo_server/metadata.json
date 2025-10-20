@@ -1,0 +1,46 @@
+{
+    "application": {
+        "name": "Video Streaming Demo Server Enhanced",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "C++",
+        "version": "3.5.0",
+        "changelog": {
+            "3.5.0": "Enhanced video streaming server demo with bidirectional streaming support"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.5.0",
+            "tested_versions": [
+                "3.5.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [
+            "Video",
+            "Streaming",
+            "Server",
+            "Demo",
+            "Bidirectional"
+        ],
+        "ranking": 1,
+        "requirements": {
+            "operators": [
+                {
+                    "name": "video_streaming",
+                    "version": "3.5.0"
+                }
+            ]
+        },
+        "run": {
+            "command": "<holohub_app_bin>/cpp/streaming_server_demo_enhanced_wrapper.sh",
+            "workdir": "holohub_bin"
+        }
+    }
+}
