@@ -35,6 +35,7 @@ GstObjectGuard<T> make_gst_object_guard(T* object) {
 
 // Explicit template instantiations for common types
 template GstObjectGuard<GstElement> make_gst_object_guard<GstElement>(GstElement* object);
+template GstObjectGuard<GstElementFactory> make_gst_object_guard<GstElementFactory>(GstElementFactory* object);
 template GstObjectGuard<GstBus> make_gst_object_guard<GstBus>(GstBus* object);
 template GstObjectGuard<GstCudaContext> make_gst_object_guard<GstCudaContext>(GstCudaContext* object);
 template GstObjectGuard<GstAllocator> make_gst_object_guard<GstAllocator>(GstAllocator* object);

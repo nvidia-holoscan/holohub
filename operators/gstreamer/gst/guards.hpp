@@ -51,6 +51,11 @@ GstObjectGuard<T> make_gst_object_guard(T* object);
 using GstElementGuard = GstObjectGuard<GstElement>;
 
 /**
+ * @brief Convenience alias for GstElementFactory guard
+ */
+using GstElementFactoryGuard = GstObjectGuard<GstElementFactory>;
+
+/**
  * @brief Convenience alias for GstBus guard
  */
 using GstBusGuard = GstObjectGuard<GstBus>;

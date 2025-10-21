@@ -247,10 +247,10 @@ class GstVideoRecorderApp : public Application {
  public:
   GstVideoRecorderApp(int64_t iteration_count, int width, int height, 
             int framerate, int pattern, int storage_type, 
-            const std::string& pipeline_desc)
+            const std::string& filename, const std::string& encoder)
     : iteration_count_(iteration_count), width_(width), height_(height), 
       framerate_(framerate), pattern_(pattern), storage_type_(storage_type),
-      pipeline_desc_(pipeline_desc) {}
+      filename_(filename), encoder_(encoder) {}
 
   void compose() override {
     // Create an allocator for tensor memory
@@ -268,16 +268,14 @@ class GstVideoRecorderApp : public Application {
     );
 
     // Create the GStreamer video recorder operator - it manages the pipeline internally
+    // Note: width, height, format, and storage type are automatically detected from incoming frames
     auto recorder_op = make_operator<GstVideoRecorderOperator>(
         "gst_recorder_op",
-        Arg("width", width_),
-        Arg("height", height_),
+        Arg("encoder", encoder_),
         Arg("framerate", framerate_),
-        Arg("format", std::string("RGBA")),
-        Arg("storage_type", storage_type_),
         Arg("queue_limit", size_t(10)),
         Arg("timeout_ms", static_cast<uint64_t>(1000)),
-        Arg("pipeline_desc", pipeline_desc_)
+        Arg("filename", filename_)
     );
 
     // Connect the operators: pattern generator -> GStreamer recorder
@@ -291,7 +289,8 @@ class GstVideoRecorderApp : public Application {
   int framerate_;
   int pattern_;
   int storage_type_;
-  std::string pipeline_desc_;
+  std::string filename_;
+  std::string encoder_;
 };
 
 }  // namespace holoscan
@@ -304,38 +303,37 @@ void print_usage(const char* program_name) {
     std::cout << "  -h, --height <pixels>    Frame height (default: 1080)\n";
     std::cout << "  -f, --framerate <fps>    Frame rate in frames per second (default: 30)\n";
     std::cout << "  --pattern <type>         Pattern type: 0=gradient, 1=checkerboard, 2=color bars (default: 0)\n";
-    std::cout << "  --storage <type>         Memory storage type: 0=host, 1=device/CUDA (default: 0)\n";
-    std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description (default: videoconvert ! autovideosink)\n";
-    std::cout << "                            IMPORTANT: Your pipeline MUST name the first element as 'first'\n";
+    std::cout << "  --storage <type>         Memory storage type: 0=host, 1=device/CUDA (default: 1)\n";
+    std::cout << "  -o, --output <filename>  Output video filename (default: output.mp4)\n";
+    std::cout << "  -e, --encoder <name>     Encoder base name (default: nvh264)\n";
+    std::cout << "                            Examples: nvh264, nvh265, x264, x265\n";
+    std::cout << "                            Note: 'enc' suffix is automatically appended\n";
     std::cout << "  --help                   Show this help message\n\n";
-    std::cout << "Pipeline Requirements:\n";
-    std::cout << "  - The first element in your pipeline MUST be named 'first'\n";
-    std::cout << "  - GStreamer automatically handles dynamic linking within the pipeline\n\n";
+    std::cout << "Pipeline:\n";
+    std::cout << "  The application automatically detects video parameters and selects the appropriate converter.\n";
+    std::cout << "  Parser element is automatically determined from the encoder.\n\n";
     std::cout << "Examples:\n";
-    std::cout << "  Display animated gradient (default):\n";
-    std::cout << "    " << program_name << "\n\n";
-    std::cout << "  Display checkerboard pattern:\n";
-    std::cout << "    " << program_name << " --pattern 1\n\n";
-    std::cout << "  Display color bars:\n";
-    std::cout << "    " << program_name << " --pattern 2\n\n";
-    std::cout << "  Generate pattern in CUDA device memory:\n";
-    std::cout << "    " << program_name << " --storage 1\n\n";
+    std::cout << "  Record animated gradient with H.264:\n";
+    std::cout << "    " << program_name << " --count 300 --output gradient.mp4\n\n";
+    std::cout << "  Record with H.265/HEVC:\n";
+    std::cout << "    " << program_name << " --count 300 --encoder nvh265 --output video.mp4\n\n";
+    std::cout << "  Record checkerboard pattern:\n";
+    std::cout << "    " << program_name << " --count 300 --pattern 1 --output checkerboard.mp4\n\n";
     std::cout << "  Custom resolution and framerate:\n";
-    std::cout << "    " << program_name << " --width 1280 --height 720 --framerate 60\n\n";
-    std::cout << "  Save to file:\n";
-    std::cout << "    " << program_name << " --count 300 --pipeline \"videoconvert name=first ! x264enc ! mp4mux ! filesink location=output.mp4\"\n\n";
-    std::cout << "  Stream over network:\n";
-    std::cout << "    " << program_name << " --pipeline \"videoconvert name=first ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000\"\n";
+    std::cout << "    " << program_name << " --count 300 --width 1280 --height 720 --framerate 60 --output hd.mp4\n\n";
+    std::cout << "  Use CPU encoder (x264) with host memory:\n";
+    std::cout << "    " << program_name << " --count 300 --storage 0 --encoder x264 --output cpu.mp4\n";
 }
 
 int main(int argc, char** argv) {
   int64_t iteration_count = INT64_MAX;  // Default: run forever
-  std::string pipeline_desc = "videoconvert name=first ! autovideosink";  // Default value
+  std::string filename = "output.mp4";  // Default output file
+  std::string encoder = "nvh264";        // Default encoder base name (enc suffix added by operator)
   int width = 1920;
   int height = 1080;
   int framerate = 30;
   int pattern = 0;  // 0=gradient, 1=checkerboard, 2=color bars
-  int storage_type = 0;  // 0=host, 1=device
+  int storage_type = 1;  // 0=host, 1=device (default to device for CUDA pipeline)
 
   // Parse command line arguments
   for (int i = 1; i < argc; i++) {
@@ -363,8 +361,11 @@ int main(int argc, char** argv) {
     else if (arg == "--storage" && i + 1 < argc) {
       storage_type = std::stoi(argv[++i]);
     }
-    else if ((arg == "-p" || arg == "--pipeline") && i + 1 < argc) {
-      pipeline_desc = argv[++i];
+    else if ((arg == "-o" || arg == "--output") && i + 1 < argc) {
+      filename = argv[++i];
+    }
+    else if ((arg == "-e" || arg == "--encoder") && i + 1 < argc) {
+      encoder = argv[++i];
     }
     else {
       std::cerr << "Unknown argument: " << arg << std::endl;
@@ -379,13 +380,13 @@ int main(int argc, char** argv) {
 
     // Create the Holoscan application with parsed parameters
     auto holoscan_app = std::make_shared<holoscan::GstVideoRecorderApp>(
-        iteration_count, width, height, framerate, pattern, storage_type, pipeline_desc);
+        iteration_count, width, height, framerate, pattern, storage_type, filename, encoder);
 
     HOLOSCAN_LOG_INFO("Starting Holoscan Pattern to GStreamer Video Recorder");
-    HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, storage: {}, pipeline: '{}'", 
+    HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, storage: {}, encoder: {}, output: '{}'", 
                       iteration_count, width, height, framerate, get_pattern_name(pattern), 
-                      storage_type == 1 ? "device" : "host", pipeline_desc);
-    HOLOSCAN_LOG_INFO("This will generate pattern data from Holoscan and push it into GStreamer");
+                      storage_type == 1 ? "device" : "host", encoder, filename);
+    HOLOSCAN_LOG_INFO("Video parameters (width, height, format, storage) will be auto-detected from frames");
 
     // Run the Holoscan application - the operator manages the GStreamer pipeline internally
     holoscan_app->run();

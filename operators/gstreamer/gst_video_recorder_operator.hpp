@@ -46,23 +46,17 @@ class GstVideoRecorderOperator : public Operator {
    * 
    * Defines the operator's inputs and parameters:
    * - input: GXF Entity containing video frame tensor(s)
-   * - width: Video frame width in pixels
-   * - height: Video frame height in pixels
-   * - framerate: Video framerate (fps)
-   * - format: Video format (default: RGBA)
-   * - storage_type: Memory storage type (0=host, 1=device/CUDA)
-   * - queue_limit: Maximum number of buffers to queue (0 = unlimited)
-   * - timeout_ms: Timeout in milliseconds for buffer push (default: 1000ms)
-   * - pipeline_desc: GStreamer pipeline description (default: "videoconvert name=first ! autovideosink")
+   * - encoder: Encoder base name (e.g., "nvh264", "nvh265", "x264", "x265") - default: "nvh264"
+   *            Note: "enc" suffix is automatically appended to form the element name
+   * - framerate: Video framerate (fps) - default: 30
+   * - queue_limit: Maximum number of buffers to queue (0 = unlimited) - default: 10
+   * - timeout_ms: Timeout in milliseconds for buffer push - default: 1000ms
+   * - filename: Output video filename - default: "output.mp4"
+   * 
+   * Note: Width, height, format, and storage type are automatically detected from the first frame
+   * Note: Parser element is automatically determined from the encoder name
    */
   void setup(OperatorSpec& spec) override;
-
-  /**
-   * @brief Initialize function called during operator initialization
-   * 
-   * Builds the GStreamer capabilities string and initializes the GstSrcBridge.
-   */
-  void initialize() override;
 
   /**
    * @brief Start function called after initialization but before first compute
@@ -98,18 +92,17 @@ class GstVideoRecorderOperator : public Operator {
  private:
 
   // Parameters
-  Parameter<int> width_;
-  Parameter<int> height_;
+  Parameter<std::string> encoder_name_;
   Parameter<int> framerate_;
-  Parameter<std::string> format_;
-  Parameter<int> storage_type_;
   Parameter<size_t> queue_limit_;
   Parameter<uint64_t> timeout_ms_;
-  Parameter<std::string> pipeline_desc_;
+  Parameter<std::string> filename_;
   
   // Bridge and pipeline management
   std::shared_ptr<holoscan::gst::GstSrcBridge> bridge_;
   holoscan::gst::GstElementGuard pipeline_;
+  holoscan::gst::GstElementGuard encoder_;  // Keep reference to link dynamically created converter to it
+  bool bridge_initialized_{false};
   
   // Bus monitoring
   std::future<void> bus_monitor_future_;
