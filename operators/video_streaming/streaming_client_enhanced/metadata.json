@@ -11,7 +11,7 @@
         "changelog": {
             "1.1.0": "Updated release with Python bindings support"
         },
-        "language": ["C++"],
+        "language": ["C++", "Python"],
         "platforms": ["x86_64", "aarch64"],
         "tags": ["Streaming", "Client", "Networking", "Cloud", "Video"],
         "holoscan_sdk": {
