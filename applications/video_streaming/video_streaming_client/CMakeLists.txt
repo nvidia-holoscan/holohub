@@ -20,4 +20,6 @@ project(video_streaming_client LANGUAGES CXX)
 add_subdirectory(cpp)
 
 # Add Python subdirectory
-add_subdirectory(python)
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
