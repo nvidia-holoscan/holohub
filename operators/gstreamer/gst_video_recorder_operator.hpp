@@ -48,13 +48,20 @@ class GstVideoRecorderOperator : public Operator {
    * - input: GXF Entity containing video frame tensor(s)
    * - encoder: Encoder base name (e.g., "nvh264", "nvh265", "x264", "x265") - default: "nvh264"
    *            Note: "enc" suffix is automatically appended to form the element name
-   * - framerate: Video framerate (fps) - default: 30
+   * - framerate: Video framerate as fraction or decimal - default: "30/1"
+   *              Formats: "30/1", "30000/1001", "29.97", "60"
+   *              Special: "0/1" for live mode (no framerate control, process frames as fast as they come)
+   *              Note: In live mode, timestamps reflect actual frame arrival times (real-time)
    * - queue_limit: Maximum number of buffers to queue (0 = unlimited) - default: 10
    * - timeout_ms: Timeout in milliseconds for buffer push - default: 1000ms
    * - filename: Output video filename - default: "output.mp4"
+   *              Note: If no extension is provided, ".mp4" is automatically appended
    * 
    * Note: Width, height, format, and storage type are automatically detected from the first frame
    * Note: Parser element is automatically determined from the encoder name
+   * Note: Muxer element is automatically determined from the file extension:
+   *       .mp4 -> mp4mux, .mkv -> matroskamux
+   *       Unsupported extensions default to mp4mux
    */
   void setup(OperatorSpec& spec) override;
 
@@ -93,7 +100,7 @@ class GstVideoRecorderOperator : public Operator {
 
   // Parameters
   Parameter<std::string> encoder_name_;
-  Parameter<int> framerate_;
+  Parameter<std::string> framerate_;
   Parameter<size_t> queue_limit_;
   Parameter<uint64_t> timeout_ms_;
   Parameter<std::string> filename_;

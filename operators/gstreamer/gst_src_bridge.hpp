@@ -145,11 +145,19 @@ class GstSrcBridge {
   std::string caps_;
   size_t queue_limit_;
 
+  // Framerate from caps (numerator/denominator)
+  // Default to 0/1 (live mode - no framerate control)
+  int framerate_num_ = 0;
+  int framerate_den_ = 1;
+
   // GStreamer element (appsrc)
   GstElementGuard src_element_;
 
   // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
   std::shared_ptr<MemoryWrapper> memory_wrapper_;
+  
+  // Frame timing
+  uint64_t frame_count_ = 0;  // Frame counter for accurate timestamp calculation (avoids rounding error accumulation)
 };
 
 }  // namespace gst

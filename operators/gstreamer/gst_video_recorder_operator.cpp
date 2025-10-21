@@ -19,9 +19,99 @@
 
 #include <algorithm>
 #include <cstring>
+#include <filesystem>
+#include <regex>
 #include <gxf/core/gxf.h>
 
 namespace {
+
+/**
+ * @brief Normalize framerate string to GStreamer fraction format
+ * 
+ * Accepts and normalizes:
+ * - Integer: "30" -> "30/1", "0" -> "0/1" (live mode)
+ * - Fraction: "30000/1001" -> "30000/1001" (no change)
+ * - Decimal (converted to fraction): "29.97" -> "2997/100"
+ * 
+ * @param framerate Framerate string to normalize
+ * @return Normalized framerate as fraction string
+ * @throws std::runtime_error if framerate format is invalid
+ */
+std::string normalize_framerate(const std::string& framerate) {
+  // Regex for integer (e.g., "30") or fraction (e.g., "30000/1001")
+  std::regex fraction_regex(R"(^\s*(\d+)\s*(/\s*(\d+)\s*)?$)");
+  std::smatch match;
+  
+  if (std::regex_match(framerate, match, fraction_regex)) {
+    // If no denominator, add "/1"
+    if (match[2].str().empty()) {
+      return framerate + "/1";
+    }
+    return framerate;
+  }
+  
+  // Also accept decimal format (e.g., "29.97") and convert to fraction
+  std::regex decimal_regex(R"(^\s*(\d+)\.(\d+)\s*$)");
+  if (std::regex_match(framerate, match, decimal_regex)) {
+    int whole = std::stoi(match[1].str());
+    std::string decimal_part = match[2].str();
+    int decimal_places = decimal_part.length();
+    int fractional = std::stoi(decimal_part);
+    
+    // Convert to fraction: 29.97 = 2997/100
+    int denominator = 1;
+    for (int i = 0; i < decimal_places; ++i) {
+      denominator *= 10;
+    }
+    int numerator = whole * denominator + fractional;
+    
+    std::string result = std::to_string(numerator) + "/" + std::to_string(denominator);
+    HOLOSCAN_LOG_DEBUG("Converted decimal framerate to fraction: {}", result);
+    return result;
+  }
+  
+  throw std::runtime_error("Invalid framerate format: '" + framerate + 
+                           "'. Expected formats: '30', '30/1', '30000/1001', or '29.97'");
+}
+
+/**
+ * @brief Get the muxer element name and potentially update filename based on file extension
+ * 
+ * Maps file extensions to appropriate GStreamer muxer elements:
+ * - .mp4 → mp4mux
+ * - .mkv → matroskamux
+ * 
+ * If no extension is provided, defaults to mp4mux and appends .mp4 to filename.
+ * 
+ * @param filename Reference to filename (may be modified to add .mp4 extension)
+ * @return The muxer element name
+ */
+std::string get_muxer_from_extension(std::string& filename) {
+  std::filesystem::path filepath(filename);
+  std::string extension = filepath.extension().string();
+  
+  // Convert to lowercase for case-insensitive comparison
+  std::transform(extension.begin(), extension.end(), extension.begin(), 
+                 [](unsigned char c){ return std::tolower(c); });
+  
+  // If no extension, append .mp4 and set extension
+  if (extension.empty()) {
+    extension = ".mp4";
+    filename += extension;
+    HOLOSCAN_LOG_INFO("No file extension provided, defaulting to mp4: {}", filename);
+  }
+  
+  // Map extension to muxer (extension includes the dot)
+  if (extension == ".mp4") {
+    return "mp4mux";
+  } else if (extension == ".mkv") {
+    return "matroskamux";
+  }
+  
+  // Unsupported extension - default to mp4mux
+  HOLOSCAN_LOG_WARN("Unsupported file extension '{}', defaulting to mp4mux", extension);
+  return "mp4mux";
+}
 
 /**
  * @brief Determine the parser element name from the encoder element using GStreamer introspection
@@ -162,8 +252,8 @@ void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
              "Encoder base name (e.g., nvh264, nvh265, x264, x265). 'enc' suffix is appended automatically.",
              std::string("nvh264"));
   spec.param(framerate_, "framerate", "Framerate",
-             "Video framerate (fps)",
-             30);
+             "Video framerate as fraction (e.g., '30/1', '30000/1001', '29.97')",
+             std::string("30/1"));
   spec.param(queue_limit_, "queue_limit", "Queue Limit",
              "Maximum number of buffers to queue (0 = unlimited)",
              size_t(10));
@@ -181,7 +271,11 @@ void GstVideoRecorderOperator::start() {
   HOLOSCAN_LOG_INFO("GstVideoRecorderOperator - Starting");
   HOLOSCAN_LOG_INFO("Output filename: '{}'", filename_.get());
   HOLOSCAN_LOG_INFO("Encoder: {}enc", encoder_name_.get());
-  HOLOSCAN_LOG_INFO("Framerate: {}fps", framerate_.get());
+  
+  // Normalize framerate format and update the parameter
+  framerate_ = normalize_framerate(framerate_.get());
+  HOLOSCAN_LOG_INFO("Framerate: {} fps", framerate_.get());
+  
   HOLOSCAN_LOG_INFO("Queue limit: {}", queue_limit_.get());
   HOLOSCAN_LOG_INFO("Timeout: {}ms", timeout_ms_.get());
   HOLOSCAN_LOG_INFO("Video parameters (width, height, format, storage) will be detected from first frame");
@@ -206,22 +300,35 @@ void GstVideoRecorderOperator::start() {
   std::string parser_name = get_parser_from_encoder(encoder_.get());
   HOLOSCAN_LOG_INFO("Auto-detected parser: {}", parser_name);
   
+  // Determine muxer from file extension (may modify filename to add .mp4 if no extension)
+  std::string output_filename = filename_.get();
+  std::string muxer_name = get_muxer_from_extension(output_filename);
+  HOLOSCAN_LOG_INFO("Auto-detected muxer: {} for extension in '{}'", muxer_name, output_filename);
+  
   // Create remaining pipeline elements (without source and converter - those will be added on first frame)
   auto parser = holoscan::gst::make_gst_object_guard(
       gst_element_factory_make(parser_name.c_str(), "parser"));
   auto muxer = holoscan::gst::make_gst_object_guard(
-      gst_element_factory_make("mp4mux", "muxer"));
+      gst_element_factory_make(muxer_name.c_str(), "muxer"));
   auto filesink = holoscan::gst::make_gst_object_guard(
       gst_element_factory_make("filesink", "filesink"));
   
-  if (!parser || !muxer || !filesink) {
-    HOLOSCAN_LOG_ERROR("Failed to create one or more GStreamer elements");
-    throw std::runtime_error("Failed to create GStreamer pipeline elements");
+  if (!parser) {
+    HOLOSCAN_LOG_ERROR("Failed to create parser element '{}'", parser_name);
+    throw std::runtime_error("Failed to create parser element: " + parser_name);
+  }
+  if (!muxer) {
+    HOLOSCAN_LOG_ERROR("Failed to create muxer element '{}'", muxer_name);
+    throw std::runtime_error("Failed to create muxer element: " + muxer_name);
+  }
+  if (!filesink) {
+    HOLOSCAN_LOG_ERROR("Failed to create filesink element");
+    throw std::runtime_error("Failed to create filesink element");
   }
   
-  // Configure filesink with output filename
-  g_object_set(filesink.get(), "location", filename_.get().c_str(), nullptr);
-  HOLOSCAN_LOG_INFO("Output file: {}", filename_.get());
+  // Configure filesink with output filename (potentially modified with .mp4 extension)
+  g_object_set(filesink.get(), "location", output_filename.c_str(), nullptr);
+  HOLOSCAN_LOG_INFO("Output file: {}", output_filename);
   
   // Add all elements to pipeline (this sinks their floating references)
   // We need to add refs since our guards will unref them
@@ -242,8 +349,8 @@ void GstVideoRecorderOperator::start() {
     throw std::runtime_error("Failed to link pipeline elements");
   }
   
-  HOLOSCAN_LOG_INFO("Pipeline created: {}enc -> {} -> mp4mux -> filesink", 
-                    encoder_name_.get(), parser_name);
+  HOLOSCAN_LOG_INFO("Pipeline created: {}enc -> {} -> {} -> filesink", 
+                    encoder_name_.get(), parser_name, muxer_name);
   HOLOSCAN_LOG_INFO("Source and converter will be added on first frame based on detected storage type");
   
   // Start the GStreamer pipeline
@@ -358,7 +465,7 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
     
     capabilities += ",width=" + std::to_string(width) + 
                     ",height=" + std::to_string(height) + 
-                    ",framerate=" + std::to_string(framerate_.get()) + "/1";
+                    ",framerate=" + framerate_.get();
     
     HOLOSCAN_LOG_INFO("Capabilities: '{}'", capabilities);
     
@@ -421,7 +528,7 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
       throw std::runtime_error("Failed to link converter to encoder");
     }
     
-    HOLOSCAN_LOG_INFO("Pipeline complete: source -> {} -> {}enc -> parser -> mp4mux -> filesink",
+    HOLOSCAN_LOG_INFO("Pipeline complete: source -> {} -> {}enc -> parser -> muxer -> filesink",
                       converter_name, encoder_name_.get());
     bridge_initialized_ = true;
   }

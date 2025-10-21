@@ -255,19 +255,53 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, siz
 
   GstAppSrc* appsrc = GST_APP_SRC(src_element_.get());
 
+  // Parse framerate from caps first to determine is-live mode
+  bool is_live = false;
+  if (caps_ != "ANY") {
+    GstCaps* gst_caps = gst_caps_from_string(caps_.c_str());
+    if (gst_caps) {
+      // Extract framerate from caps
+      if (gst_caps_get_size(gst_caps) > 0) {
+        GstStructure* structure = gst_caps_get_structure(gst_caps, 0);
+        const GValue* framerate_value = gst_structure_get_value(structure, "framerate");
+        
+        if (framerate_value && GST_VALUE_HOLDS_FRACTION(framerate_value)) {
+          framerate_num_ = gst_value_get_fraction_numerator(framerate_value);
+          framerate_den_ = gst_value_get_fraction_denominator(framerate_value);
+          
+          // If framerate is 0, treat as live source (process frames as fast as they come)
+          if (framerate_num_ == 0) {
+            is_live = true;
+            HOLOSCAN_LOG_INFO("Framerate is 0/1 - using live mode (no framerate control)");
+          } else {
+            HOLOSCAN_LOG_INFO("Parsed framerate from caps: {}/{} fps", 
+                              framerate_num_, framerate_den_);
+          }
+        } else {
+          // No framerate specified - use live mode
+          is_live = true;
+          framerate_num_ = 0;
+          framerate_den_ = 1;
+          HOLOSCAN_LOG_INFO("Framerate not found in caps - using live mode (no framerate control)");
+        }
+      }
+      gst_caps_unref(gst_caps);
+    }
+  }
+
   // Configure appsrc properties
   g_object_set(appsrc,
     "stream-type", GST_APP_STREAM_TYPE_STREAM,  // Continuous stream
     "format", GST_FORMAT_TIME,                    // Time-based format
-    "is-live", TRUE,                              // Live source (don't wait for timestamps)
+    "is-live", is_live ? TRUE : FALSE,            // Live mode if framerate is 0 or not specified
     "max-buffers", queue_limit_,                  // Buffer queue limit (0 = unlimited)
     "max-bytes", (guint64)0,                      // Byte limit (0 = unlimited, controlled by max-buffers)
     "block", TRUE,                                // Block push_buffer() when queue is full for proper flow control
     NULL
   );
   
-  HOLOSCAN_LOG_INFO("appsrc configured: max-buffers={}, max-bytes=unlimited, block=true", 
-                    queue_limit_);
+  HOLOSCAN_LOG_INFO("appsrc configured: max-buffers={}, is-live={}, block=true", 
+                    queue_limit_, is_live ? "true" : "false");
 
   // Set caps if not ANY
   if (caps_ != "ANY") {
@@ -282,7 +316,8 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, siz
     }
   }
   
-  HOLOSCAN_LOG_INFO("GstSrcBridge initialized with appsrc (queue_limit: {})", queue_limit_);
+  HOLOSCAN_LOG_INFO("GstSrcBridge initialized with appsrc (queue_limit: {}, framerate: {}/{})", 
+                    queue_limit_, framerate_num_, framerate_den_);
 }
 
 GstSrcBridge::~GstSrcBridge() {
@@ -474,18 +509,38 @@ Buffer GstSrcBridge::create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, s
     HOLOSCAN_LOG_ERROR("No valid tensors found");
   } else {
     // Set timestamps on the buffer based on frame count and framerate
-    // This is critical for proper encoding and muxing
-    static GstClockTime timestamp = 0;
-    static GstClockTime duration = GST_SECOND / 30;  // Assume 30fps, will be overridden by caps
+    GstClockTime timestamp;
+    GstClockTime duration;
+    
+    if (framerate_num_ == 0) {
+      // Live mode: use real-time timestamps (current monotonic time)
+      // This reflects actual frame arrival times rather than synthetic framerate
+      timestamp = g_get_monotonic_time() * 1000;  // Convert microseconds to nanoseconds
+      duration = GST_CLOCK_TIME_NONE;  // Duration unknown in live mode
+    } else {
+      // Calculate timestamp directly from frame count to avoid accumulating rounding errors
+      // timestamp = (frame_count * denom * GST_SECOND) / num
+      timestamp = gst_util_uint64_scale(frame_count_, 
+                                        framerate_den_ * GST_SECOND, 
+                                        framerate_num_);
+      
+      // Calculate duration as difference between next and current timestamp
+      // duration = timestamp(frame_count + 1) - timestamp(frame_count)
+      GstClockTime next_timestamp = gst_util_uint64_scale(frame_count_ + 1, 
+                                                           framerate_den_ * GST_SECOND, 
+                                                           framerate_num_);
+      duration = next_timestamp - timestamp;
+    }
     
     GST_BUFFER_PTS(gst_buffer.get()) = timestamp;
     GST_BUFFER_DTS(gst_buffer.get()) = timestamp;
     GST_BUFFER_DURATION(gst_buffer.get()) = duration;
     
-    timestamp += duration;
+    frame_count_++;
     
-    HOLOSCAN_LOG_DEBUG("Successfully created zero-copy GStreamer buffer: {} tensors, {} total bytes, PTS={}",
-                       tensor_count, total_size, GST_BUFFER_PTS(gst_buffer.get()));
+    HOLOSCAN_LOG_DEBUG("Successfully created zero-copy GStreamer buffer: {} tensors, {} total bytes, frame={}, PTS={}",
+                       tensor_count, total_size, frame_count_ - 1, 
+                       (timestamp == GST_CLOCK_TIME_NONE) ? "NONE" : std::to_string(timestamp) + " ns");
   }
   
   return gst_buffer;

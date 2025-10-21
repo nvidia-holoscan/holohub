@@ -246,7 +246,7 @@ class PatternGenOperator : public Operator {
 class GstVideoRecorderApp : public Application {
  public:
   GstVideoRecorderApp(int64_t iteration_count, int width, int height, 
-            int framerate, int pattern, int storage_type, 
+            const std::string& framerate, int pattern, int storage_type, 
             const std::string& filename, const std::string& encoder)
     : iteration_count_(iteration_count), width_(width), height_(height), 
       framerate_(framerate), pattern_(pattern), storage_type_(storage_type),
@@ -286,7 +286,7 @@ class GstVideoRecorderApp : public Application {
   int64_t iteration_count_;
   int width_;
   int height_;
-  int framerate_;
+  std::string framerate_;
   int pattern_;
   int storage_type_;
   std::string filename_;
@@ -301,26 +301,37 @@ void print_usage(const char* program_name) {
     std::cout << "  -c, --count <number>     Number of frames to generate (default: unlimited)\n";
     std::cout << "  -w, --width <pixels>     Frame width (default: 1920)\n";
     std::cout << "  -h, --height <pixels>    Frame height (default: 1080)\n";
-    std::cout << "  -f, --framerate <fps>    Frame rate in frames per second (default: 30)\n";
+    std::cout << "  -f, --framerate <rate>   Frame rate as fraction or decimal (default: 30/1)\n";
+    std::cout << "                            Examples: '30/1', '30000/1001', '29.97', '60'\n";
+    std::cout << "                            Use '0/1' for live mode (no throttling, real-time timestamps)\n";
     std::cout << "  --pattern <type>         Pattern type: 0=gradient, 1=checkerboard, 2=color bars (default: 0)\n";
     std::cout << "  --storage <type>         Memory storage type: 0=host, 1=device/CUDA (default: 1)\n";
     std::cout << "  -o, --output <filename>  Output video filename (default: output.mp4)\n";
+    std::cout << "                            Supported formats: .mp4, .mkv\n";
+    std::cout << "                            If no extension, defaults to .mp4\n";
     std::cout << "  -e, --encoder <name>     Encoder base name (default: nvh264)\n";
     std::cout << "                            Examples: nvh264, nvh265, x264, x265\n";
     std::cout << "                            Note: 'enc' suffix is automatically appended\n";
     std::cout << "  --help                   Show this help message\n\n";
     std::cout << "Pipeline:\n";
     std::cout << "  The application automatically detects video parameters and selects the appropriate converter.\n";
-    std::cout << "  Parser element is automatically determined from the encoder.\n\n";
+    std::cout << "  Parser element is automatically determined from the encoder.\n";
+    std::cout << "  Muxer element is automatically determined from the file extension.\n\n";
     std::cout << "Examples:\n";
     std::cout << "  Record animated gradient with H.264:\n";
     std::cout << "    " << program_name << " --count 300 --output gradient.mp4\n\n";
     std::cout << "  Record with H.265/HEVC:\n";
     std::cout << "    " << program_name << " --count 300 --encoder nvh265 --output video.mp4\n\n";
+    std::cout << "  Record to MKV container:\n";
+    std::cout << "    " << program_name << " --count 300 --encoder nvh265 --output video.mkv\n\n";
     std::cout << "  Record checkerboard pattern:\n";
     std::cout << "    " << program_name << " --count 300 --pattern 1 --output checkerboard.mp4\n\n";
     std::cout << "  Custom resolution and framerate:\n";
     std::cout << "    " << program_name << " --count 300 --width 1280 --height 720 --framerate 60 --output hd.mp4\n\n";
+    std::cout << "  Record with NTSC framerate (exact 30000/1001):\n";
+    std::cout << "    " << program_name << " --count 300 --framerate 30000/1001 --output ntsc.mp4\n\n";
+    std::cout << "  Live mode (no throttling, real-time timestamps):\n";
+    std::cout << "    " << program_name << " --count 300 --framerate 0/1 --output live.mp4\n\n";
     std::cout << "  Use CPU encoder (x264) with host memory:\n";
     std::cout << "    " << program_name << " --count 300 --storage 0 --encoder x264 --output cpu.mp4\n";
 }
@@ -331,7 +342,7 @@ int main(int argc, char** argv) {
   std::string encoder = "nvh264";        // Default encoder base name (enc suffix added by operator)
   int width = 1920;
   int height = 1080;
-  int framerate = 30;
+  std::string framerate = "30/1";
   int pattern = 0;  // 0=gradient, 1=checkerboard, 2=color bars
   int storage_type = 1;  // 0=host, 1=device (default to device for CUDA pipeline)
 
@@ -353,7 +364,7 @@ int main(int argc, char** argv) {
       height = std::stoi(argv[++i]);
     }
     else if ((arg == "-f" || arg == "--framerate") && i + 1 < argc) {
-      framerate = std::stoi(argv[++i]);
+      framerate = argv[++i];
     }
     else if (arg == "--pattern" && i + 1 < argc) {
       pattern = std::stoi(argv[++i]);
