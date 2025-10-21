@@ -173,7 +173,7 @@ void StreamingServerUpstreamOp::compute(holoscan::InputContext& op_input,
       return;    // Skip processing this duplicate frame
     }
 
-    // add loggign to check if we received the frame
+    // add logging to check if we received the frame
     HOLOSCAN_LOG_INFO("✅ Processing UNIQUE frame: {}x{}, {} bytes, timestamp={}",
                       received_frame.getWidth(),
                       received_frame.getHeight(),
