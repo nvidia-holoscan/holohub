@@ -128,14 +128,6 @@ class GstSrcBridge {
   Caps get_caps() const;
 
  private:
-  /**
-   * @brief Check if the source element is ready (non-blocking)
-   * @return true if the element has been initialized and is ready to use
-   */
-  bool valid() const {
-    return src_element_ && src_element_.get();
-  }
-
   // Forward declarations for nested classes
   class MemoryWrapper;
   class HostMemoryWrapper;

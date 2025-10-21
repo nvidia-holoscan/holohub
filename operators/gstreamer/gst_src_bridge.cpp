@@ -42,6 +42,14 @@
 namespace holoscan {
 namespace gst {
 
+static bool gst_initialized = [](){
+  // Initialize GStreamer if not already done
+  if (!gst_is_initialized()) {
+    gst_init(nullptr, nullptr);
+  }
+  return true;
+}();
+
 // ============================================================================
 // Memory Wrapper Classes
 // ============================================================================
@@ -231,22 +239,15 @@ static void free_tensor_wrapper(gpointer user_data) {
 // ============================================================================
 
 GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, size_t queue_limit)
-    : name_(name), caps_(caps), queue_limit_(queue_limit) {
+    : name_(name), 
+      caps_(caps), 
+      queue_limit_(queue_limit),
+      src_element_(make_gst_object_guard(
+        gst_element_factory_make("appsrc", name_.empty() ? nullptr : name_.c_str())
+      )) {
   HOLOSCAN_LOG_INFO("Creating GstSrcBridge: name='{}', caps='{}', queue_limit={}",
                     name, caps, queue_limit);
   
-  HOLOSCAN_LOG_INFO("Initializing GstSrcBridge with appsrc for data bridging");
-  
-  // Initialize GStreamer if not already done
-  if (!gst_is_initialized()) {
-    gst_init(nullptr, nullptr);
-  }
-
-  // Create appsrc element - standard GStreamer element, no custom registration needed!
-  src_element_ = make_gst_object_guard(
-    gst_element_factory_make("appsrc", name_.empty() ? nullptr : name_.c_str())
-  );
-
   if (!src_element_) {
     HOLOSCAN_LOG_ERROR("Failed to create appsrc element");
     throw std::runtime_error("Failed to create appsrc element");
@@ -288,7 +289,7 @@ GstSrcBridge::~GstSrcBridge() {
   HOLOSCAN_LOG_INFO("Destroying GstSrcBridge");
   
   // Send EOS if not already sent
-  if (!eos_sent_ && valid()) {
+  if (!eos_sent_) {
     HOLOSCAN_LOG_INFO("Sending EOS during destruction");
     send_eos(500);
   }
@@ -297,19 +298,10 @@ GstSrcBridge::~GstSrcBridge() {
 }
 
 bool GstSrcBridge::push_buffer(Buffer buffer, std::chrono::milliseconds timeout) {
-  static int push_count = 0;
-  push_count++;
-  
-  HOLOSCAN_LOG_INFO("GstSrcBridge::push_buffer() - Push #{} - Starting", push_count);
+  HOLOSCAN_LOG_DEBUG("GstSrcBridge::push_buffer() - Starting");
   
   if (!buffer.get()) {
-    HOLOSCAN_LOG_ERROR("Push #{} - Invalid buffer provided to push_buffer", push_count);
-    return false;
-  }
-
-  // Check if element is ready
-  if (!valid()) {
-    HOLOSCAN_LOG_ERROR("Push #{} - Source element not initialized", push_count);
+    HOLOSCAN_LOG_ERROR("Invalid buffer provided to push_buffer");
     return false;
   }
 
@@ -326,43 +318,37 @@ bool GstSrcBridge::push_buffer(Buffer buffer, std::chrono::milliseconds timeout)
                "current-level-buffers", &current_level_buffers,
                "max-buffers", &max_buffers,
                NULL);
-  HOLOSCAN_LOG_INFO("Push #{} - appsrc queue: {}/{} buffers, {}/{} bytes", 
-                    push_count, current_level_buffers, max_buffers,
+  HOLOSCAN_LOG_DEBUG("appsrc queue: {}/{} buffers, {}/{} bytes", 
+                    current_level_buffers, max_buffers,
                     current_level_bytes, max_bytes);
   
-  HOLOSCAN_LOG_INFO("Push #{} - Calling gst_app_src_push_buffer()", push_count);
+  HOLOSCAN_LOG_DEBUG("Calling gst_app_src_push_buffer()");
   
   // Push the buffer to appsrc (transfers ownership)
   // Note: gst_app_src_push_buffer takes ownership and will unref the buffer
   GstFlowReturn ret = gst_app_src_push_buffer(appsrc, gst_buffer_ref(buffer.get()));
   
-  HOLOSCAN_LOG_INFO("Push #{} - gst_app_src_push_buffer() returned: {} ({})", 
-                    push_count, gst_flow_get_name(ret), static_cast<int>(ret));
+  HOLOSCAN_LOG_DEBUG("gst_app_src_push_buffer() returned: {} ({})", 
+                    gst_flow_get_name(ret), static_cast<int>(ret));
   
   if (ret != GST_FLOW_OK) {
     if (ret == GST_FLOW_FLUSHING) {
-      HOLOSCAN_LOG_WARN("Push #{} - appsrc is flushing, buffer not pushed", push_count);
+      HOLOSCAN_LOG_WARN("appsrc is flushing, buffer not pushed");
     } else if (ret == GST_FLOW_EOS) {
-      HOLOSCAN_LOG_WARN("Push #{} - appsrc is in EOS state", push_count);
+      HOLOSCAN_LOG_WARN("appsrc is in EOS state");
     } else {
-      HOLOSCAN_LOG_ERROR("Push #{} - Failed to push buffer to appsrc: {}", 
-                         push_count, gst_flow_get_name(ret));
+      HOLOSCAN_LOG_ERROR("Failed to push buffer to appsrc: {}", gst_flow_get_name(ret));
     }
     return false;
   }
   
-  HOLOSCAN_LOG_INFO("Push #{} - Successfully pushed buffer to appsrc", push_count);
+  HOLOSCAN_LOG_DEBUG("Successfully pushed buffer to appsrc");
   return true;
 }
 
 void GstSrcBridge::send_eos(int wait_ms) {
   if (eos_sent_) {
     HOLOSCAN_LOG_DEBUG("EOS already sent, ignoring duplicate call");
-    return;
-  }
-  
-  if (!valid()) {
-    HOLOSCAN_LOG_WARN("Cannot send EOS: source element not initialized");
     return;
   }
   
@@ -407,11 +393,6 @@ void GstSrcBridge::send_eos(int wait_ms) {
 }
 
 Caps GstSrcBridge::get_caps() const {
-  // Check if element is ready and valid
-  if (!valid()) {
-    return Caps(); // Return empty caps if not ready
-  }
-
   // Get the source pad and its current caps
   ::GstPad* pad = gst_element_get_static_pad(src_element_.get(), "src");
   if (!pad) {
