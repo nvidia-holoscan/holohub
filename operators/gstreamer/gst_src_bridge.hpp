@@ -77,10 +77,12 @@ class GstSrcBridge {
    * Call this when you're done sending data to signal the downstream pipeline
    * to finalize processing (e.g., write file headers/trailers).
    * 
-   * @param wait_ms Optional time to wait (in milliseconds) after sending EOS
-   *                for GStreamer to process it. Default is 500ms.
+   * Note: This function returns immediately after sending EOS. The caller should
+   * wait for the EOS message on the pipeline bus to know when processing is complete.
+   * 
+   * @return true if EOS was successfully sent, false if already sent or error occurred
    */
-  void send_eos(int wait_ms = 500);
+  bool send_eos();
 
   /**
    * @brief Push a buffer into the GStreamer pipeline
@@ -148,9 +150,6 @@ class GstSrcBridge {
 
   // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
   std::shared_ptr<MemoryWrapper> memory_wrapper_;
-
-  // Track if EOS has been sent to avoid duplicate EOS signals
-  bool eos_sent_ = false;
 };
 
 }  // namespace gst

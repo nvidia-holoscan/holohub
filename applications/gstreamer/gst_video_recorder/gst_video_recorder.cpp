@@ -1,11 +1,8 @@
 #include <iostream>
 #include <memory>
-#include <thread>
-#include <chrono>
 #include <cstdint>
 #include <vector>
 #include <cmath>
-#include <csignal>
 
 #include <cuda_runtime.h>
 #include <gst/gst.h>
@@ -249,9 +246,11 @@ class PatternGenOperator : public Operator {
 class GstVideoRecorderApp : public Application {
  public:
   GstVideoRecorderApp(int64_t iteration_count, int width, int height, 
-            int framerate, int pattern, int storage_type)
+            int framerate, int pattern, int storage_type, 
+            const std::string& pipeline_desc)
     : iteration_count_(iteration_count), width_(width), height_(height), 
-      framerate_(framerate), pattern_(pattern), storage_type_(storage_type) {}
+      framerate_(framerate), pattern_(pattern), storage_type_(storage_type),
+      pipeline_desc_(pipeline_desc) {}
 
   void compose() override {
     // Create an allocator for tensor memory
@@ -268,8 +267,8 @@ class GstVideoRecorderApp : public Application {
         Arg("storage_type", storage_type_)
     );
 
-    // Create the GStreamer video recorder operator - it builds its own caps string
-    recorder_op_ = make_operator<GstVideoRecorderOperator>(
+    // Create the GStreamer video recorder operator - it manages the pipeline internally
+    auto recorder_op = make_operator<GstVideoRecorderOperator>(
         "gst_recorder_op",
         Arg("width", width_),
         Arg("height", height_),
@@ -277,15 +276,12 @@ class GstVideoRecorderApp : public Application {
         Arg("format", std::string("RGBA")),
         Arg("storage_type", storage_type_),
         Arg("queue_limit", size_t(10)),
-        Arg("timeout_ms", static_cast<uint64_t>(1000))
+        Arg("timeout_ms", static_cast<uint64_t>(1000)),
+        Arg("pipeline_desc", pipeline_desc_)
     );
 
     // Connect the operators: pattern generator -> GStreamer recorder
-    add_flow(pattern_gen_op, recorder_op_);
-  }
-
-  std::shared_ptr<GstVideoRecorderOperator> get_recorder_operator() const {
-    return recorder_op_;
+    add_flow(pattern_gen_op, recorder_op);
   }
 
  private:
@@ -295,161 +291,10 @@ class GstVideoRecorderApp : public Application {
   int framerate_;
   int pattern_;
   int storage_type_;
-  std::shared_ptr<GstVideoRecorderOperator> recorder_op_;
+  std::string pipeline_desc_;
 };
 
 }  // namespace holoscan
-
-/**
- * @brief GStreamerApp - Manages GStreamer pipeline lifecycle
- * 
- * Encapsulates all GStreamer pipeline operations for consuming from holoscansrc
- */
-class GStreamerApp {
-public:
-  GStreamerApp(const std::string& pipeline_desc, 
-               holoscan::gst::GstElementGuard src_element)
-    : pipeline_desc_(pipeline_desc), 
-      src_element_(src_element),
-      stop_bus_monitor_(false) {
-    HOLOSCAN_LOG_INFO("Setting up GStreamer pipeline");
-
-    // Validate source element
-    if (!src_element_ || !src_element_.get()) {
-      throw std::runtime_error("Invalid source element");
-    }
-    
-    // Parse the sink pipeline
-    GError* error = nullptr;
-    pipeline_ = holoscan::gst::make_gst_object_guard(gst_parse_launch(pipeline_desc_.c_str(), &error));
-    if (error) {
-      auto error_guard = holoscan::gst::make_gst_error_guard(error);
-      HOLOSCAN_LOG_ERROR("Failed to parse pipeline: {}", error_guard->message);
-      throw std::runtime_error("Failed to parse GStreamer pipeline description");
-    }
-    
-    // Add sink element to pipeline
-    // Note: gst_bin_add() takes ownership by sinking the floating reference (doesn't add a new ref).
-    // Since our shared_ptr in GstSinkResource will call gst_object_unref() when destroyed,
-    // we need to manually add a ref here so both the bin and our shared_ptr have their own references.
-    // Without this: bin sinks the only ref → bin destroyed unrefs to 0 → GstSinkResource tries to unref freed memory.
-    gst_object_ref(src_element_.get());
-    gst_bin_add(GST_BIN(pipeline_.get()), src_element_.get());
-    
-    // Find and link the "first" element
-    // Note: gst_bin_get_by_name returns a new reference, so wrap it in a guard
-    auto first_element = holoscan::gst::make_gst_object_guard(
-        gst_bin_get_by_name(GST_BIN(pipeline_.get()), "first"));
-    if (!first_element) {
-      HOLOSCAN_LOG_ERROR("Could not find element named 'first' in pipeline");
-      HOLOSCAN_LOG_ERROR("Please name your first pipeline element as 'first', e.g.: 'videoconvert name=first'");
-      throw std::runtime_error("Could not find element named 'first' to connect from source");
-    }
-    
-    HOLOSCAN_LOG_INFO("Linking source to {}", gst_element_get_name(first_element.get()));
-    
-    if (!gst_element_link(src_element_.get(), first_element.get())) {
-      HOLOSCAN_LOG_ERROR("Failed to link source to {}", gst_element_get_name(first_element.get()));
-      throw std::runtime_error("Failed to link source to pipeline");
-    }
-    
-    HOLOSCAN_LOG_INFO("Pipeline setup complete");
-
-    // Start the GStreamer pipeline
-    GstStateChangeReturn ret = gst_element_set_state(pipeline_.get(), GST_STATE_PLAYING);
-    if (ret == GST_STATE_CHANGE_FAILURE) {
-      HOLOSCAN_LOG_ERROR("Failed to start GStreamer pipeline");
-      throw std::runtime_error("Failed to start GStreamer pipeline");
-    }
-
-    HOLOSCAN_LOG_INFO("GStreamer pipeline started");
-    
-    // Wait for pipeline to reach PLAYING state and be ready to accept data
-    GstState state;
-    ret = gst_element_get_state(pipeline_.get(), &state, nullptr, 2 * GST_SECOND);
-    if (ret == GST_STATE_CHANGE_FAILURE || state != GST_STATE_PLAYING) {
-      HOLOSCAN_LOG_ERROR("Pipeline failed to reach PLAYING state");
-      throw std::runtime_error("Pipeline failed to reach PLAYING state");
-    }
-    HOLOSCAN_LOG_INFO("GStreamer pipeline is PLAYING and ready");
-
-    // Start bus monitoring in a background thread
-    bus_monitor_future_ = std::async(std::launch::async, [this]() { monitor_pipeline_bus(); });
-  }
-
-  ~GStreamerApp() {
-    // Stop bus monitoring
-    stop_bus_monitor_ = true;
-    bus_monitor_future_.wait();
-    
-    // Stop and cleanup pipeline
-    if (pipeline_ && pipeline_.get() && GST_IS_ELEMENT(pipeline_.get())) {
-      gst_element_set_state(pipeline_.get(), GST_STATE_NULL);
-      pipeline_.reset();
-    }
-  }
-
-  // Delete copy constructor and assignment
-  GStreamerApp(const GStreamerApp&) = delete;
-  GStreamerApp& operator=(const GStreamerApp&) = delete;
-
-  std::shared_future<void> get_bus_monitor_future() {
-    return bus_monitor_future_;
-  }
-
-private:
-  void monitor_pipeline_bus() {
-    auto bus = holoscan::gst::make_gst_object_guard(gst_element_get_bus(pipeline_.get()));
-    
-    while (!stop_bus_monitor_) {
-      auto msg = holoscan::gst::make_gst_message_guard(
-          gst_bus_timed_pop_filtered(bus.get(), 100 * GST_MSECOND,
-              static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS | GST_MESSAGE_STATE_CHANGED)));
-      
-      if (msg) {
-        switch (GST_MESSAGE_TYPE(msg.get())) {
-          case GST_MESSAGE_ERROR: {
-            GError* error;
-            gchar* debug_info;
-            gst_message_parse_error(msg.get(), &error, &debug_info);
-            auto error_guard = holoscan::gst::make_gst_error_guard(error);
-            HOLOSCAN_LOG_ERROR("GStreamer error: {}", error_guard->message);
-            if (debug_info) {
-              HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
-              g_free(debug_info);
-            }
-            return;
-          }
-          case GST_MESSAGE_EOS:
-            HOLOSCAN_LOG_INFO("End of stream reached");
-            return;
-          case GST_MESSAGE_STATE_CHANGED: {
-            // Only check state changes from the pipeline (not individual elements)
-            if (GST_MESSAGE_SRC(msg.get()) == GST_OBJECT(pipeline_.get())) {
-              GstState old_state, new_state, pending_state;
-              gst_message_parse_state_changed(msg.get(), &old_state, &new_state, &pending_state);
-              
-              // If pipeline transitions to NULL unexpectedly, stop monitoring
-              if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
-                HOLOSCAN_LOG_INFO("GStreamer window closed");
-                return;
-              }
-            }
-            break;
-          }
-          default:
-            break;
-        }
-      }
-    }
-  }
-
-  std::string pipeline_desc_;
-  holoscan::gst::GstElementGuard src_element_;
-  holoscan::gst::GstElementGuard pipeline_;
-  std::atomic<bool> stop_bus_monitor_;
-  std::shared_future<void> bus_monitor_future_;
-};
 
 void print_usage(const char* program_name) {
     std::cout << "Usage: " << program_name << " [OPTIONS]\n\n";
@@ -534,7 +379,7 @@ int main(int argc, char** argv) {
 
     // Create the Holoscan application with parsed parameters
     auto holoscan_app = std::make_shared<holoscan::GstVideoRecorderApp>(
-        iteration_count, width, height, framerate, pattern, storage_type);
+        iteration_count, width, height, framerate, pattern, storage_type, pipeline_desc);
 
     HOLOSCAN_LOG_INFO("Starting Holoscan Pattern to GStreamer Video Recorder");
     HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, storage: {}, pipeline: '{}'", 
@@ -542,45 +387,8 @@ int main(int argc, char** argv) {
                       storage_type == 1 ? "device" : "host", pipeline_desc);
     HOLOSCAN_LOG_INFO("This will generate pattern data from Holoscan and push it into GStreamer");
 
-    // Run the Holoscan application asynchronously
-    auto app_future = holoscan_app->run_async();
-
-    // Wait for the source element to be initialized
-    auto src_element_future = holoscan_app->get_recorder_operator()->get_gst_element();
-    if (!src_element_future.valid()) {
-      throw std::runtime_error("Source element future is invalid");
-    }
-    
-    // Wait for the element to be ready with timeout
-    if (src_element_future.wait_for(std::chrono::seconds(1)) != std::future_status::ready) {
-      throw std::runtime_error("Timeout waiting for source element initialization");
-    }
-    
-    GstElement* src_element_ptr = src_element_future.get();
-    if (!src_element_ptr) {
-      throw std::runtime_error("Failed to get initialized source element");
-    }
-
-    // Wrap in a guard for RAII management (ref-counted, doesn't take ownership)
-    gst_object_ref(src_element_ptr);  // Add a reference for our guard
-    holoscan::gst::GstElementGuard src_element = holoscan::gst::make_gst_object_guard(src_element_ptr);
-
-    // Create the GStreamer application with the source element and start it
-    auto gstreamer_app = std::make_shared<GStreamerApp>(pipeline_desc, src_element);
-
-    // Wait for Holoscan to finish generating frames
-    app_future.wait();
-    HOLOSCAN_LOG_INFO("Holoscan frame generation complete");
-    
-    // Wait for GStreamer to finish processing (EOS message on bus)
-    HOLOSCAN_LOG_INFO("Waiting for GStreamer pipeline to finish");
-    gstreamer_app->get_bus_monitor_future().wait();
-    
-    // Give the pipeline additional time to fully process EOS through all elements
-    // The bus monitor returns when EOS is seen on the bus, but the pipeline needs
-    // time to flush through encoder -> muxer -> filesink to finalize the output file
-    HOLOSCAN_LOG_INFO("Allowing pipeline to finalize output file...");
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    // Run the Holoscan application - the operator manages the GStreamer pipeline internally
+    holoscan_app->run();
     
     HOLOSCAN_LOG_INFO("Application finished");
 

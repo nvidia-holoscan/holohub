@@ -288,10 +288,9 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, siz
 GstSrcBridge::~GstSrcBridge() {
   HOLOSCAN_LOG_INFO("Destroying GstSrcBridge");
   
-  // Send EOS if not already sent
-  if (!eos_sent_) {
-    HOLOSCAN_LOG_INFO("Sending EOS during destruction");
-    send_eos(500);
+  // Attempt to send EOS during destruction
+  if (send_eos()) {
+    HOLOSCAN_LOG_INFO("Sent EOS during destruction");
   }
   
   HOLOSCAN_LOG_INFO("GstSrcBridge destroyed");
@@ -346,50 +345,29 @@ bool GstSrcBridge::push_buffer(Buffer buffer, std::chrono::milliseconds timeout)
   return true;
 }
 
-void GstSrcBridge::send_eos(int wait_ms) {
-  if (eos_sent_) {
-    HOLOSCAN_LOG_DEBUG("EOS already sent, ignoring duplicate call");
-    return;
-  }
-  
+bool GstSrcBridge::send_eos() {
   GstAppSrc* appsrc = GST_APP_SRC(src_element_.get());
   
-  // Wait for appsrc queue to drain before sending EOS
-  // This ensures all pushed frames are consumed by the downstream pipeline
-  HOLOSCAN_LOG_INFO("Waiting for appsrc queue to drain before sending EOS...");
-  guint current_level_buffers = 1;  // Initialize to non-zero
-  int retry_count = 0;
-  const int max_retries = 100;  // 10 seconds max (100 * 100ms)
-  
-  while (current_level_buffers > 0 && retry_count < max_retries) {
-    g_object_get(appsrc, "current-level-buffers", &current_level_buffers, NULL);
-    if (current_level_buffers > 0) {
-      HOLOSCAN_LOG_INFO("appsrc queue has {} buffers remaining, waiting...", 
-                        current_level_buffers);
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      retry_count++;
-    }
-  }
-  
-  if (current_level_buffers > 0) {
-    HOLOSCAN_LOG_WARN("Timeout waiting for queue to drain ({} buffers remain), sending EOS anyway",
-                      current_level_buffers);
-  } else {
-    HOLOSCAN_LOG_INFO("appsrc queue drained completely, all frames consumed");
-  }
-  
+  // Send EOS to appsrc
+  // gst_app_src_end_of_stream() handles draining internally - it ensures all queued
+  // buffers are processed before sending EOS downstream
+  // The caller should wait for the EOS message on the pipeline bus for proper synchronization
   HOLOSCAN_LOG_INFO("Sending EOS to appsrc to finalize stream");
-  gst_app_src_end_of_stream(appsrc);
-  eos_sent_ = true;
+  GstFlowReturn ret = gst_app_src_end_of_stream(appsrc);
   
-  if (wait_ms > 0) {
-    // Give GStreamer pipeline time to process EOS and finalize output files
-    // This is especially important for muxers (mp4mux, matroskamux) that need to
-    // write headers/trailers on receiving EOS
-    HOLOSCAN_LOG_INFO("Waiting {}ms for GStreamer to process EOS and finalize output...", wait_ms);
-    std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
-    HOLOSCAN_LOG_INFO("EOS processing complete");
+  switch (ret) {
+    case GST_FLOW_OK:
+      HOLOSCAN_LOG_INFO("Successfully sent EOS to appsrc");
+      break;
+    case GST_FLOW_EOS:
+      HOLOSCAN_LOG_DEBUG("EOS already sent, ignoring duplicate call");
+      break;
+    default:
+      HOLOSCAN_LOG_WARN("Failed to send EOS: {}", gst_flow_get_name(ret));
+      break;
   }
+  
+  return ret == GST_FLOW_OK;
 }
 
 Caps GstSrcBridge::get_caps() const {

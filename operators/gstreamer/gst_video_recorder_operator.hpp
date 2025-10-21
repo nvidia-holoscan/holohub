@@ -20,7 +20,9 @@
 
 #include <memory>
 #include <string>
+#include <future>
 #include <holoscan/holoscan.hpp>
+#include <gst/gst.h>
 #include "gst_src_bridge.hpp"
 
 namespace holoscan {
@@ -51,6 +53,7 @@ class GstVideoRecorderOperator : public Operator {
    * - storage_type: Memory storage type (0=host, 1=device/CUDA)
    * - queue_limit: Maximum number of buffers to queue (0 = unlimited)
    * - timeout_ms: Timeout in milliseconds for buffer push (default: 1000ms)
+   * - pipeline_desc: GStreamer pipeline description (default: "videoconvert name=first ! autovideosink")
    */
   void setup(OperatorSpec& spec) override;
 
@@ -60,6 +63,13 @@ class GstVideoRecorderOperator : public Operator {
    * Builds the GStreamer capabilities string and initializes the GstSrcBridge.
    */
   void initialize() override;
+
+  /**
+   * @brief Start function called after initialization but before first compute
+   * 
+   * Creates and starts the GStreamer pipeline, and begins bus monitoring.
+   */
+  void start() override;
 
   /**
    * @brief Compute function that processes video frames
@@ -78,22 +88,16 @@ class GstVideoRecorderOperator : public Operator {
   /**
    * @brief Stop function called when recording ends
    * 
-   * Sends EOS (End-Of-Stream) to the GStreamer pipeline to signal completion.
+   * Sends EOS (End-Of-Stream) to the GStreamer pipeline to signal completion,
+   * waits for pipeline to finish processing, and cleans up resources.
    * This ensures proper finalization of the output file, including writing
    * headers/trailers for container formats.
    */
   void stop() override;
 
-  /**
-   * @brief Get the GStreamer element from the bridge
-   * 
-   * @return Shared future that will provide the GStreamer element when initialization completes
-   */
-  std::shared_future<GstElement*> get_gst_element() const {
-    return element_future_;
-  }
-
  private:
+
+  // Parameters
   Parameter<int> width_;
   Parameter<int> height_;
   Parameter<int> framerate_;
@@ -101,12 +105,14 @@ class GstVideoRecorderOperator : public Operator {
   Parameter<int> storage_type_;
   Parameter<size_t> queue_limit_;
   Parameter<uint64_t> timeout_ms_;
+  Parameter<std::string> pipeline_desc_;
   
+  // Bridge and pipeline management
   std::shared_ptr<holoscan::gst::GstSrcBridge> bridge_;
+  holoscan::gst::GstElementGuard pipeline_;
   
-  // Promise/future for element access (resolves after initialize())
-  std::promise<GstElement*> element_promise_;
-  std::shared_future<GstElement*> element_future_;
+  // Bus monitoring
+  std::future<void> bus_monitor_future_;
 };
 
 }  // namespace holoscan

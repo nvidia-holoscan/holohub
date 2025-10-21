@@ -71,11 +71,11 @@ class GstSrcResource : public holoscan::Resource {
    * Call this when you're done sending data to signal the downstream pipeline
    * to finalize processing (e.g., write file headers/trailers).
    * 
-   * @param wait_ms Optional time to wait (in milliseconds) after sending EOS
-   *                for GStreamer to process it. Default is 500ms.
+   * Note: This function returns immediately after sending EOS. The caller should
+   * wait for the EOS message on the pipeline bus to know when processing is complete.
    */
-  void send_eos(int wait_ms = 500) {
-    if (bridge_) { bridge_->send_eos(wait_ms); }
+  void send_eos() {
+    if (bridge_) { bridge_->send_eos(); }
   }
 
   /**

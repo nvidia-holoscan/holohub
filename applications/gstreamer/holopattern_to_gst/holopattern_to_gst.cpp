@@ -437,6 +437,9 @@ private:
               HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
               g_free(debug_info);
             }
+            // Send SIGINT to interrupt the application
+            HOLOSCAN_LOG_INFO("Sending interrupt signal due to GStreamer error");
+            std::raise(SIGINT);
             return;
           }
           case GST_MESSAGE_EOS:
@@ -451,6 +454,9 @@ private:
               // If pipeline transitions to NULL unexpectedly, stop monitoring
               if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
                 HOLOSCAN_LOG_INFO("GStreamer window closed");
+                // Send SIGINT to interrupt the application
+                HOLOSCAN_LOG_INFO("Sending interrupt signal due to window closure");
+                std::raise(SIGINT);
                 return;
               }
             }
@@ -580,10 +586,14 @@ int main(int argc, char** argv) {
       throw std::runtime_error("Timeout waiting for source element initialization");
     }
     
-    holoscan::gst::GstElementGuard src_element = src_element_future.get();
-    if (!src_element || !src_element.get()) {
+    GstElement* src_element_ptr = src_element_future.get();
+    if (!src_element_ptr) {
       throw std::runtime_error("Failed to get initialized source element");
     }
+    
+    // Wrap in a guard - add ref since we're creating a new shared_ptr
+    gst_object_ref(src_element_ptr);
+    holoscan::gst::GstElementGuard src_element = holoscan::gst::make_gst_object_guard(src_element_ptr);
 
     // Create the GStreamer application with the source element and start it
     auto gstreamer_app = std::make_shared<GStreamerApp>(pipeline_desc, src_element);
