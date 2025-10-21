@@ -25,7 +25,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["Volume"],
+        "tags": ["Visualization", "Volume"],
         "ranking": 1,
         "requirements": { }
     }

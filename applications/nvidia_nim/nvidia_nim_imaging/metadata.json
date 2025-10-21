@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Medical Imaging Segmentation with NVIDIA Vista-3D NIM",
+		"name": "Medical Imaging Segmentation with Vista-3D",
 		"authors": [
 			{
 				"name": "Holoscan Team",

@@ -1,7 +1,7 @@
 {
   "tutorial": {
-    "name": "A Study using Asynchronous Lock-free Buffer with SCHED_DEADLINE",
-    "description": "This tutorial demonstrates the impact of using an asynchronous lock-free buffer with SCHED_DEADLINE scheduling policy in Linux on the message latency in a Holoscan SDK application and compares it with the default buffer.",
+    "name": "Asynchronous Lock-free Buffer",
+    "description": "This tutorial demonstrates the impact of using an asynchronous lock-free buffer with SCHED_DEADLINE scheduling policy in Linux on the message latency.",
     "authors": [
       {
         "name": "Holoscan Team",
@@ -22,7 +22,7 @@
       "x86_64",
       "aarch64"
     ],
-    "tags": ["Real-Time", "Performance", "SCHED_DEADLINE", "Buffer", "Latency", "Linux"],
+    "tags": ["Optimization", "Real-Time", "Performance", "SCHED_DEADLINE", "Buffer", "Latency", "Linux"],
     "ranking": 3,
     "requirements": {
       "libraries": [

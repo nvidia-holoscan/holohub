@@ -30,7 +30,7 @@
 			"x86_64",
 			"aarch64"
 		],
-    "tags": ["Real-Time", "Performance", "Optimization"],
+    "tags": ["Optimization", "Performance"],
     "ranking": 2,
     "requirements": {}
   }

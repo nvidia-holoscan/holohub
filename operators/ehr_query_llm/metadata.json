@@ -24,7 +24,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["LLM", "Healthcare Interop"],
+		"tags": ["Networking and Distributed Computing", "LLM", "Healthcare Interop"],
 		"ranking": 2,
 		"requirements": {
 			"python-packages": {

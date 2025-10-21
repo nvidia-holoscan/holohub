@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "Florence-2: Advancing a Unified Representation for a Variety of Vision Tasks",
+		"name": "Florence-2",
+		"description": "Florence-2 is a unified vision model that can perform a variety of vision tasks, including detection, segmentation, and tracking.",
 		"authors": [
 			{
 				"name": "Holoscan Team",

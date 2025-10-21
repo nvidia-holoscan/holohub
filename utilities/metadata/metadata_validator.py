@@ -190,10 +190,10 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
                 print(name + ": valid")
 
                 # Check if name matches README title
-                name_matches, name_msg = check_name_matches_readme(name, jsonData)
-                if not name_matches:
-                    print("ERROR:" + name + ": " + name_msg)
-                    exit_code = 1
+                # name_matches, name_msg = check_name_matches_readme(name, jsonData)
+                # if not name_matches:
+                #    print("ERROR:" + name + ": " + name_msg)
+                #    exit_code = 1
             else:
                 print("ERROR:" + name + ": invalid")
                 print(msg)

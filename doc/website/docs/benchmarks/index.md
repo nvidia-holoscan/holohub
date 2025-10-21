@@ -1,5 +1,4 @@
-# [Benchmarks](https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks)
-
-The HoloHub benchmark resources are a critical resource for developers aiming to optimize and validate the performance of their AI sensor processing applications built with the Holoscan SDK. 
-
-Holohub provides a collection of benchmarking tools and reference implementations designed to measure and compare the efficiency, speed, and scalability of various Holoscan workflows. By offering detailed performance metrics and best practices, these benchmarks help developers identify bottlenecks and optimize their applications for high performance and low latency. Whether you are focusing on real-time data processing, model inference, or end-to-end workflow performance, the benchmarks on this page provide valuable insights and guidelines to ensure your applications meet the highest standards.
+---
+template: pages/benchmarks.html
+title: Benchmarks
+---

@@ -25,6 +25,7 @@
 			"aarch64"
 		],
 		"tags": [
+			"Converter",
 			"Tensor",
 			"File",
 			"Writer"

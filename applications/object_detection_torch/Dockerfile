@@ -51,12 +51,14 @@ RUN TORCHVISION_WHEEL_VERSION="0.23.0"; \
         if [ "$CUDA_MAJOR" = "13" ]; then \
             # Reflect observed Torchvision nightly wheel dependencies for CUDA 13
             if [ $(uname -m) = "aarch64" ]; then \
-                PYTORCH_WHEEL_VERSION="2.9.0.dev20250828+cu130"; \
+                PYTORCH_WHEEL_VERSION="2.9.0"; \
+                TORCHVISION_WHEEL_VERSION="0.24.0"; \
+                INDEX_URL="https://download.pytorch.org/whl/test/cu130"; \
             else \
                 PYTORCH_WHEEL_VERSION="2.9.0.dev20250829+cu130"; \
-            fi; \
-            TORCHVISION_WHEEL_VERSION="0.24.0.dev20250829"; \
-            INDEX_URL="https://download.pytorch.org/whl/nightly/cu130"; \
+                TORCHVISION_WHEEL_VERSION="0.24.0.dev20250829"; \
+                INDEX_URL="https://download.pytorch.org/whl/nightly/cu130"; \
+                fi; \
         else \
             PYTORCH_WHEEL_VERSION="2.8.0+cu129"; \
             INDEX_URL="https://download.pytorch.org/whl/"; \
@@ -68,6 +70,12 @@ RUN TORCHVISION_WHEEL_VERSION="0.23.0"; \
         echo "libtorch_cuda.so not found, torch installation failed"; \
         exit 1; \
     fi
+
+RUN rm -rf /opt/libtorch/* && \
+    mkdir -p /opt/libtorch && \
+    LIBTORCH_PATH=$(python3 -c "import torch; print(torch.__path__[0])") && \
+    ln -sf "${LIBTORCH_PATH}/lib" /opt/libtorch/lib
+
 
 # Set up Holoscan SDK container libtorch to be found with ldconfig for app C++ build and runtime
 RUN echo $(python3 -c "import torch; print(torch.__path__[0])")/lib > /etc/ld.so.conf.d/libtorch.conf \

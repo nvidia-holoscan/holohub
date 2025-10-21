@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Endoscopy Tool Segmentation from MONAI Model Zoo",
+		"name": "Endoscopy Tool Segmentation using MONAI",
 		"authors": [
 			{
 				"name": "Jin Li",

@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Holoscan ROS2 VB1940 (Eagle) Camera",
+		"name": "ROS2 VB1940 (Eagle) Camera",
 		"authors": [
 			{
 				"name": "Holoscan SDK Team",
@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["ROS2", "VB1940", "Publisher", "Subscriber"],
+		"tags": ["Robotics", "ROS2", "VB1940", "Publisher", "Subscriber"],
 		"ranking": 1,
 		"requirements": {},
 		"dependencies": {

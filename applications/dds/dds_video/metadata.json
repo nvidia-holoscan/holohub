@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "DDS Video: Real-time Video Streaming with RTI Connext",
+		"name": "Real-time Video Streaming with DDS",
+		"description": "Real-time video streaming with RTI Connext",
 		"authors": [
 			{
 				"name": "Ian Stewart",

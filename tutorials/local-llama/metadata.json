@@ -1,6 +1,6 @@
 {
 	"tutorial": {
-		"name": "Deploying Llama-2 70b model on the edge with IGX Orin",
+		"name": "Deploying Llama-2 70b model on the edge",
 		"description": "This tutorial will walk you through how to run a quantized version of Meta's Llama-2 70b model as the backend LLM for a Gradio chatbot app, all running on an NVIDIA IGX Orin.",
 		"authors": [
 			{
@@ -22,7 +22,7 @@
 		"platforms": [
 			"aarch64"
 		],
-		"tags": ["Natural Language and Conversational AI", "CUDA", "Huggingface", "LLM"],
+		"tags": ["Deployment","NLP", "CUDA", "Huggingface", "LLM"],
 		"ranking": 1,
 		"requirements": {
 			"data": [

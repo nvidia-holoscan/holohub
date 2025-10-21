@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["gRPC", "Visualization"],
+		"tags": ["Networking and Distributed Computing", "gRPC", "Visualization"],
 		"ranking": 1,
 		"requirements": {}
 	}

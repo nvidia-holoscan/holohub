@@ -1,6 +1,6 @@
 {
 	"tutorial": {
-		"name": "Interoperability between Holoscan and a Windows Application on a Single Machine",
+		"name": "Holoscan & Windows Application",
 		"description": "Demonstrates interoperability between a Holoscan on Linux and a Windows VM application on a single machine",
 		"authors": [
 			{
@@ -22,7 +22,7 @@
 		"platforms": [
 			"x86_64"
 		],
-		"tags": [],
+		"tags": ["Interoperability","VM","Deployment"],
 		"ranking": 1,
 		"requirements": {}
 	}

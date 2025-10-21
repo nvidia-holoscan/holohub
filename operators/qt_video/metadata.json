@@ -22,7 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["Qt", "Video", "UI"],
+        "tags": ["Visualization", "Qt", "Video", "UI"],
         "ranking": 1,
         "requirements": { }
     }

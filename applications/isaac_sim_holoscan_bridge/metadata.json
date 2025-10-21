@@ -22,11 +22,10 @@
 			"x86_64"
 		],
 		"tags": [
-			"Sensor",
+			"Robotics",
 			"Processing",
 			"Isaac Sim",
-			"Bridge",
-			"Robotics"
+			"Bridge"
 		],
 		"ranking": 3,
 		"requirements": {

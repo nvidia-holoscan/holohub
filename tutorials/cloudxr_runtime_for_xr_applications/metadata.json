@@ -1,6 +1,6 @@
 {
 	"tutorial": {
-		"name": "Setting up NVIDIA CloudXR Runtime for XR Applications",
+		"name": "NVIDIA CloudXR Runtime for XR Applications",
 		"description": "In this tutorial, we will walk through the process of setting up the NVIDIA CloudXR OpenXR Runtime for XR Applications.",
 		"authors": [
 			{

@@ -22,7 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["CV CUDA", "Computer Vision and Perception"],
+        "tags": ["Image Processing", "CV CUDA", "Computer Vision and Perception"],
         "ranking": 1,
         "requirements": {
             "data": [

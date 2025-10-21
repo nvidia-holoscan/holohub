@@ -858,7 +858,11 @@ void DpdkMgr::initialize() {
       int flow_num = 0;
       for (const auto& flow : rx.flows_) {
         HOLOSCAN_LOG_INFO("Adding RX flow {}", flow.name_);
-        add_flow(intf.port_id_, flow);
+        if (flow.match_.type_ == FlowMatchType::FLEX_ITEM) {
+          add_flex_item_flow(intf.port_id_, flow.match_.flex_item_match_, flow.action_.id_);
+        } else {
+          add_flow(intf.port_id_, flow);
+        }
       }
 
       apply_tx_offloads(intf.port_id_);
@@ -1025,8 +1029,204 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   return 0;
 }
 
-#define MAX_PATTERN_NUM 4
-#define MAX_ACTION_NUM 3
+#define MAX_PATTERN_NUM 5
+#define MAX_ACTION_NUM 4
+
+struct rte_flow_item_flex_handle *DpdkMgr::create_flex_flow_rule(
+    int port, int offset, struct rte_flow_item *udp_item, struct rte_flow_item *end_pattern) {
+  static struct rte_flow_item_flex_handle *item_handle = NULL;
+  struct rte_flow_error error;
+
+  if (item_handle != NULL) {
+    return item_handle;
+  }
+
+  {
+    struct rte_flow_error jump_error;
+    struct rte_flow_attr jump_attr;
+    jump_attr.group = 0;
+    jump_attr.ingress = 1;
+    struct rte_flow_action_jump jump_v;
+    jump_v.group = 1;
+    struct rte_flow_action jump_actions[2];
+    jump_actions[0].type = RTE_FLOW_ACTION_TYPE_JUMP;
+    jump_actions[0].conf = &jump_v;
+    jump_actions[1].type = RTE_FLOW_ACTION_TYPE_END;
+
+    struct rte_flow_item jump_pattern[2];
+    jump_pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
+    jump_pattern[0].spec = 0;
+    jump_pattern[0].mask = 0;
+    jump_pattern[1].type = RTE_FLOW_ITEM_TYPE_END;
+
+    int res = rte_flow_validate(port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+    if (!res) {
+      struct rte_flow* flow = rte_flow_create(
+          port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+      if (flow == NULL) {
+        printf("rte_flow_create failed");
+      }
+    } else {
+      printf("Failed flow validation: %d\n", res);
+    }
+  }
+
+  struct rte_flow_item_flex_conf flex_conf;
+  flex_conf.tunnel = FLEX_TUNNEL_MODE_SINGLE;
+  memset(&flex_conf.next_header, 0, sizeof(flex_conf.next_header));
+  flex_conf.next_header.field_mode = FIELD_MODE_FIXED;
+  flex_conf.next_header.field_base = 32 * 8;  // Always sample 8 32-bit words for now
+
+  memset(&flex_conf.next_protocol, 0, sizeof(flex_conf.next_protocol));
+
+  struct rte_flow_item_flex_field sample_data[1];
+  memset(&sample_data[0], 0, sizeof(sample_data));
+  sample_data[0].field_mode = FIELD_MODE_FIXED;
+  sample_data[0].field_size = 32;
+  sample_data[0].field_base = offset * 8;  // Offset is in bytes while DPDK wants bits
+  flex_conf.sample_data = &sample_data[0];
+  flex_conf.nb_samples = 1;
+
+  struct rte_flow_item_flex_link input_link;
+  memset(&input_link, 0, sizeof(input_link));
+  input_link.item = *udp_item;
+  flex_conf.input_link = &input_link;
+  flex_conf.nb_inputs = 1;
+
+  struct rte_flow_item_flex_link output_link;
+  memset(&output_link, 0, sizeof(output_link));
+  output_link.item = *end_pattern;
+  flex_conf.output_link = &output_link;
+  flex_conf.nb_outputs = 0;
+
+  item_handle = rte_flow_flex_item_create(port, &flex_conf, &error);
+  if (item_handle == NULL) {
+    printf("Failed to create flex item: %s\n", error.message);
+    return NULL;
+  }
+
+  return item_handle;
+}
+
+struct rte_flow* DpdkMgr::add_flex_item_flow(
+    int port, const FlexItemMatch& match_info, uint16_t queue_id) {
+  /* Declaring structs being used. 8< */
+  struct rte_flow_attr attr;
+  struct rte_flow_item pattern[MAX_PATTERN_NUM];
+  struct rte_flow_action action[MAX_ACTION_NUM];
+  struct rte_flow* flow = NULL;
+  struct rte_flow_action_queue queue = {.index = queue_id};
+  struct rte_flow_error error;
+  struct rte_flow_item_udp udp_spec;
+  struct rte_flow_item_udp udp_mask;
+  struct rte_flow_item_ipv4  ip_spec;
+  struct rte_flow_item_ipv4  ip_mask;
+  int res;
+  const auto& flex_item_config = cfg_.ifs_[port].rx_.flex_items_[match_info.flex_item_id_];
+
+  memset(pattern, 0, sizeof(pattern));
+  memset(action, 0, sizeof(action));
+  memset(&attr, 0, sizeof(struct rte_flow_attr));
+  memset(&ip_spec, 0, sizeof(struct rte_flow_item_ipv4));
+  memset(&ip_mask, 0, sizeof(struct rte_flow_item_ipv4));
+  memset(&udp_spec, 0, sizeof(struct rte_flow_item_udp));
+  memset(&udp_mask, 0, sizeof(struct rte_flow_item_udp));
+
+  // struct rte_flow_action_mark mark;
+  // mark.id = 0x40 + queue_id;
+
+  action[0].type = RTE_FLOW_ACTION_TYPE_QUEUE;
+  action[0].conf = &queue;
+  action[1].type = RTE_FLOW_ACTION_TYPE_END;
+  //  action[1].type = RTE_FLOW_ACTION_TYPE_MARK;
+  //  action[1].conf = &mark;
+  //  action[2].type = RTE_FLOW_ACTION_TYPE_END;
+
+  pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
+  pattern[1].type = RTE_FLOW_ITEM_TYPE_IPV4;
+  //  pattern[3].type = RTE_FLOW_ITEM_TYPE_FLEX; // defined later
+  pattern[4].type = RTE_FLOW_ITEM_TYPE_END;
+
+  struct rte_flow_item udp_item;
+  udp_spec.hdr.src_port = 0;
+  udp_spec.hdr.dst_port = htons(flex_item_config.udp_dst_port_);
+  udp_spec.hdr.dgram_len = 0;
+  udp_spec.hdr.dgram_cksum = 0;
+
+  udp_mask.hdr.src_port = 0;
+  udp_mask.hdr.dst_port = 0xffff;
+  udp_mask.hdr.dgram_len = 0;
+  udp_mask.hdr.dgram_cksum = 0;
+
+  udp_item.type = RTE_FLOW_ITEM_TYPE_UDP;
+  udp_item.spec = &udp_spec;
+  udp_item.mask = &udp_mask;
+  udp_item.last = NULL;
+
+  pattern[2] = udp_item;
+
+  if (flex_item_handles_.find(match_info.flex_item_id_) == flex_item_handles_.end()) {
+    struct rte_flow_item_flex_handle *item_handle =
+      create_flex_flow_rule(port, flex_item_config.offset_, &udp_item, &pattern[4]);
+    flex_item_handles_[match_info.flex_item_id_] = item_handle;
+  }
+
+  struct rte_flow_item_flex_handle *item_handle = flex_item_handles_[match_info.flex_item_id_];
+
+  /* Define the new protocol header structure */
+  struct rte_udp_flex_hdr {
+    rte_be32_t my_header;    /* my header */
+  } __rte_packed;
+
+  struct rte_udp_flex_hdr flex_spec;
+  flex_spec.my_header = match_info.val_;
+
+  struct rte_udp_flex_hdr flex_mask;
+  flex_mask.my_header = match_info.mask_;
+
+  /* Initialize spec and mask accessing the structure fields */
+  struct rte_flow_item_flex spec = {
+    .handle = item_handle,   /* opaque item handle */
+    .length = sizeof(struct rte_udp_flex_hdr),
+    .pattern = (const uint8_t *)&flex_spec
+  };
+
+  struct rte_flow_item_flex mask = {
+    .handle = item_handle,   /* opaque item handle */
+    .length = sizeof(struct rte_udp_flex_hdr),
+    .pattern = (const uint8_t *)&flex_mask
+  };
+
+  /* Initialize RTE Flow item itself */
+  struct rte_flow_item item = {
+    .type = RTE_FLOW_ITEM_TYPE_FLEX,
+    .spec = (const void *)&spec,
+    .mask = (const void *)&mask
+  };
+  pattern[3] = item;
+
+  attr.ingress = 1;
+  attr.priority = 0;
+  attr.group = 1;
+
+    /* Validate the rule and create it */
+     res = rte_flow_validate(port, &attr, pattern, action, &error);
+    if (!res) {
+        flow = rte_flow_create(port, &attr, pattern, action, &error);
+        if (!flow) {
+            printf("Flow creation failed for match %08x: %s\n",
+                   match_info.val_, error.message);
+        } else {
+            printf("Created flow rule: match %08x -> Queue %u\n",
+                   match_info.val_, queue_id);
+        }
+    } else {
+        printf("Flow validation failed for match %08x: %s\n",
+               match_info.val_, error.message);
+    }
+
+    return flow;
+}
 
 
 // Taken from flow_block.c DPDK example */

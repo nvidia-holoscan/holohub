@@ -28,7 +28,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["SSD", "Detection", "MONAI", "Segmentation"],
+		"tags": ["Healthcare AI", "SSD", "Detection", "MONAI", "Segmentation"],
 		"ranking": 1,
 		"requirements": {
 			"data": [

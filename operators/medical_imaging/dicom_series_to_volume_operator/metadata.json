@@ -18,7 +18,7 @@
 			"tested_versions": ["2.2.0", "3.2.0"]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Medical Imaging", "DICOM", "Volume"],
+		"tags": ["Converter", "Medical Imaging", "DICOM", "Volume"],
 		"ranking": 2,
 		"requirements": {}
 	}

@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Camera"],
+		"tags": ["Image Processing", "Camera"],
 		"ranking": 1,
 		"requirements": {}
 	}

@@ -27,11 +27,9 @@
 			"aarch64"
 		],
 		"tags": [
+			"Image Processing",
 			"gamma",
-			"correction",
-			"image",
-			"processing",
-			"gamma"
+			"correction"
 		],
 		"ranking": 1,
 		"requirements": {}

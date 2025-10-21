@@ -23,7 +23,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["CV CUDA", "OpenCV", "Holoscan"],
+		"tags": ["Interoperability", "CV CUDA", "OpenCV"],
 		"ranking": 1,
 		"requirements": {
 			"libraries": [

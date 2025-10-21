@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Ultrasound Beamforming with MATLAB GPU Coder",
+		"name": "Ultrasound Beamforming with MATLAB",
 		"authors": [
 			{
 				"name": "Holoscan Team",

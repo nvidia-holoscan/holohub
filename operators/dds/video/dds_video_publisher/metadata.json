@@ -1,7 +1,7 @@
 {
 	"operator": {
 		"name": "DDSVideoPublisherOp",
-		"description": "Publishes video frames as a DDS topic",
+		"description": "Publishes video frames as a Data Distribution Service (DDS) topic",
 		"authors": [
 			{
 				"name": "Ian Stewart",
@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["DDS", "RTI Connext", "Video"],
+		"tags": ["Networking and Distributed Computing", "DDS", "RTI Connext", "Video"],
 		"ranking": 2,
 		"requirements": {
 			"packages": [

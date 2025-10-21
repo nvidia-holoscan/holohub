@@ -22,7 +22,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["Benchmarking", "Real-time", "Threading", "Performance"],
+        "tags": ["Threading", "Benchmarking", "Real-time", "Performance"],
         "ranking": 1,
         "requirements": {},
         "run": {

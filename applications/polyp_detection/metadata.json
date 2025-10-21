@@ -23,6 +23,7 @@
 			"aarch64"
 		],
 		"tags": [
+			"Healthcare AI",
 			"Colonoscopy",
 			"Detection",
 			"RT-DETR",

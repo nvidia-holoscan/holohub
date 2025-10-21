@@ -24,6 +24,7 @@
 			"aarch64"
 		],
 		"tags": [
+			"Streaming",
 			"NVIDIA Video Codec SDK",
 			"H.264",
 			"H.265",

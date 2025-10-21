@@ -42,6 +42,7 @@ if(holoscan_VERSION GREATER 3.5)
     PATH_SUFFIXES lib lib64
     REQUIRED
   )
+  message(STATUS "Found Torchvision: ${TORCHVISION_LIBRARY}")
   add_library(torchvision SHARED IMPORTED)
   set_target_properties(torchvision PROPERTIES
       IMPORTED_LOCATION "${TORCHVISION_LIBRARY}"

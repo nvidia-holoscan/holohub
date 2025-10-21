@@ -1,4 +1,4 @@
-# Orsi Academy Surgical Tool Segmentation and AR Overlay
+# Surgical Tool Segmentation and AR Overlay
 
 
 <center> <img src="./docs/orsi_segmentation.png" ></center>

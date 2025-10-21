@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Acceleration", "Benchmarking", "CUDA", "MPS"],
+		"tags": ["Optimization", "CUDA", "MPS"],
 		"ranking": 1,
 		"requirements": {
 			"libraries": [

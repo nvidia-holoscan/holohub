@@ -1,9 +1,9 @@
 # Self-Supervised Contrastive Learning for Surgical videos
-The focus of this repo is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data. 
+The focus of this tutorial is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data. 
 As part of the walk-through we will guide through the steps needed to pre-process and extract the frames from the public *Cholec80 Dataset*. This will be required to run the tutorial.
 
 
-The repo is organized as follows - 
+The repository is organized as follows - 
 * `Contrastive_learning_Notebook.ipynb` walks through the process of SSL in a tutorial style
 * `train_simclr_multiGPU.py` enables running of "pre-training" on surgical data across multiple GPUs through the CLI
 * `downstream_task_tool_segmentation.py` shows the process of "fine-tuning" for a downstream task starting from a pretrained checkpoint using [MONAI](https://github.com/Project-MONAI/MONAI)
