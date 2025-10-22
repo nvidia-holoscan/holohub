@@ -170,8 +170,6 @@ void print_usage() {
             << "Options:\n"
             << "  -c, --config <file>        Configuration file path (default: "
                "streaming_server_demo.yaml)\n"
-            << "  -d, --data <directory>     Data directory (default: environment variable "
-               "HOLOSCAN_INPUT_PATH or current directory)\n"
             << "  -?, --help                 Show this help message\n"
             << std::endl;
 }
@@ -224,23 +222,18 @@ uint16_t get_config_value<uint16_t>(holoscan::Application* app, const std::strin
 int main(int argc, char** argv) {
   // Default config file path
   std::string config_path = "streaming_server_demo.yaml";
-  std::string data_directory = "";
 
   // Parse command line arguments
   static struct option long_options[] = {{"config", required_argument, 0, 'c'},
-                                         {"data", required_argument, 0, 'd'},
                                          {"help", no_argument, 0, '?'},
                                          {0, 0, 0, 0}};
 
   int option_index = 0;
   int c;
-  while ((c = getopt_long(argc, argv, "c:d:?", long_options, &option_index)) != -1) {
+  while ((c = getopt_long(argc, argv, "c:?", long_options, &option_index)) != -1) {
     switch (c) {
       case 'c':
         config_path = optarg;
-        break;
-      case 'd':
-        data_directory = optarg;
         break;
       case '?':
         print_usage();
