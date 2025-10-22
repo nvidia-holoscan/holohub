@@ -252,7 +252,8 @@ int main(int argc, char** argv) {
     // The application does not need to handle these parameters explicitly.
 
     std::cout << "Configuration loaded from: " << config_path << std::endl;
-    std::cout << "Operators will use parameters from StreamingServerResource (defined in YAML)" << std::endl;
+    std::cout << "Operators will use parameters from StreamingServerResource "
+              << "(defined in YAML)" << std::endl;
 
     // Configure scheduler
     std::string scheduler = get_config_value(app.get(), "scheduler", std::string("greedy"));
