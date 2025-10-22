@@ -45,7 +45,7 @@ try:
     from ._streaming_client_enhanced import StreamingClientOp
 except ImportError as e:
     pybind11_hsdk_err = 'unknown base type \"holoscan::'
-    if not pybind11_hsdk_err in str(e):
+    if pybind11_hsdk_err not in str(e):
         raise e
     note = '''
 - Holoscan SDK >= 3.3.0: make sure to link your bindings against \\'holoscan::pybind11\\'.
