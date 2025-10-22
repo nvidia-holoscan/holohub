@@ -212,9 +212,9 @@ fragment : holoscan.core.Fragment (constructor only)
 streaming_server_resource : holoscan.resources.StreamingServerResource
     The shared StreamingServerResource for managing server connection.
 width : int, optional
-    Frame width. Default value is ``1920``.
+    Frame width. Default value is ``854``.
 height : int, optional
-    Frame height. Default value is ``1080``.
+    Frame height. Default value is ``480``.
 fps : int, optional
     Frames per second. Default value is ``30``.
 allocator : holoscan.resources.Allocator, optional
@@ -231,8 +231,8 @@ name : str, optional (constructor only)
                     std::shared_ptr<StreamingServerResource>,
                     const std::string&>(),
            "fragment"_a,
-           "width"_a = 1920,
-           "height"_a = 1080,
+           "width"_a = 854,
+           "height"_a = 480,
            "fps"_a = 30,
            "allocator"_a = py::none(),
            "streaming_server_resource"_a = py::none(),
@@ -254,9 +254,9 @@ fragment : holoscan.core.Fragment (constructor only)
 streaming_server_resource : holoscan.resources.StreamingServerResource
     The shared StreamingServerResource for managing server connection.
 width : int, optional
-    Frame width. Default value is ``1920``.
+    Frame width. Default value is ``854``.
 height : int, optional
-    Frame height. Default value is ``1080``.
+    Frame height. Default value is ``480``.
 fps : int, optional
     Frames per second. Default value is ``30``.
 enable_processing : bool, optional
@@ -279,8 +279,8 @@ name : str, optional (constructor only)
                     std::shared_ptr<StreamingServerResource>,
                     const std::string&>(),
            "fragment"_a,
-           "width"_a = 1920,
-           "height"_a = 1080,
+           "width"_a = 854,
+           "height"_a = 480,
            "fps"_a = 30,
            "enable_processing"_a = false,
            "processing_type"_a = "none"s,
