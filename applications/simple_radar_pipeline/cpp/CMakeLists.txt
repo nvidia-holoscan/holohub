@@ -19,7 +19,7 @@ find_package(holoscan 2.6.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Enable cuda language
-set(CMAKE_CUDA_ARCHITECTURES "70;80")
+set(CMAKE_CUDA_ARCHITECTURES "75;80")
 enable_language(CUDA)
 
 # Download MatX
