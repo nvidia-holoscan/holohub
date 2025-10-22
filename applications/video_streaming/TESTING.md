@@ -357,7 +357,7 @@ tail -100 integration_test.log
 
 ### Common Issues and Solutions
 
-**Test Failure: Connection Events Not Logged**
+#### Test Failure: Connection Events Not Logged
 
 If you see output like:
 
@@ -392,7 +392,7 @@ Client checks passed: 4
 - StreamingServerResource now supports multiple event listeners
 - Both operators receive all connection events
 
-**Build Failures:**
+#### Build Failures
 
 ```bash
 # Clean build and retry
@@ -400,7 +400,7 @@ rm -rf build/
 ./holohub build video_streaming --language cpp
 ```
 
-**Server Connection Issues:**
+#### Server Connection Issues
 
 ```bash
 # Check if port is in use
@@ -408,19 +408,19 @@ netstat -tlnp | grep 48010
 sudo lsof -ti:48010 | xargs sudo kill -9
 ```
 
-**Client Connection Timeout:**
+#### Client Connection Timeout
 
 - Verify server started successfully (check server logs)
 - Ensure firewall allows port 48010
 - Check Docker network connectivity
 
-**Frame Transmission Issues:**
+#### Frame Transmission Issues
 
 - Verify video data files exist: `/workspace/holohub/data/endoscopy/`
 - Check format converter settings in config files
 - Monitor GPU memory usage
 
-**Segmentation Fault at Shutdown:**
+#### Segmentation Fault at Shutdown
 
 ```bash
 # Expected behavior - test still passes if streaming worked
@@ -613,28 +613,28 @@ The Python integration test validates the following checks. **All checks must pa
 
 ### Troubleshooting
 
-**Test Failure - Insufficient Frames:**
+#### Test Failure - Insufficient Frames
 ```
 ✗ Python Server: Only 50 frames processed (minimum: 100)
 ```
 **Cause**: Insufficient streaming time or connection issues  
 **Solution**: Check network connectivity, verify logs for connection errors
 
-**Test Failure - Client Not Started:**
+#### Test Failure - Client Not Started
 ```
 ✗ Python Client: Streaming client failed to start
 ```
 **Cause**: Missing dependencies or PYTHONPATH issues  
 **Solution**: Ensure `HOLOHUB_BUILD_PYTHON=ON` and rebuild with Python bindings
 
-**Test Failure - No Frames Received:**
+#### Test Failure - No Frames Received
 ```
 ✗ Python Client: No frames received from server
 ```
 **Cause**: Downstream connection failure or server issues  
 **Solution**: Check server logs for downstream connection establishment
 
-**Segmentation Fault at Shutdown (Expected Behavior):**
+#### Segmentation Fault at Shutdown (Expected Behavior)
 ```bash
 Segmentation fault (core dumped) python3 streaming_server_demo.py
 ✓ Python Server: StreamingServerUpstreamOp processed 561 unique frames
