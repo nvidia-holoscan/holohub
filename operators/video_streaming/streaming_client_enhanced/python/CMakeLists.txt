@@ -30,10 +30,8 @@ set_target_properties(streaming_client_python PROPERTIES
     OUTPUT_NAME "_streaming_client_enhanced"
 )
 
-# Also update the __init__.py location
-file(REMOVE "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_client/__init__.py")
-
 # Use file(GENERATE) to create __init__.py at generation time
+# Note: file(GENERATE) will overwrite any existing __init__.py, so no manual removal needed
 set(CLIENT_INIT_PY_CONTENT "# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
