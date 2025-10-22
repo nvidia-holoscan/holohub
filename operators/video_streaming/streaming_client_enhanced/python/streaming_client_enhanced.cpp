@@ -44,7 +44,7 @@ class PyStreamingClientOp : public StreamingClientOp {
   /* Constructor for Python with proper fragment setup */
   explicit PyStreamingClientOp(Fragment* fragment,
                                const py::args& args,
-                               uint32_t width = 640,
+                               uint32_t width = 854,
                                uint32_t height = 480,
                                uint32_t fps = 30,
                                const std::string& server_ip = "127.0.0.1",
