@@ -93,7 +93,7 @@ Parameters
 fragment : holoscan.core.Fragment (constructor only)
     The fragment that the operator belongs to.
 width : int, optional
-    Width of the video stream. Default value is ``640``.
+    Width of the video stream. Default value is ``854``.
 height : int, optional
     Height of the video stream. Default value is ``480``.
 fps : int, optional
