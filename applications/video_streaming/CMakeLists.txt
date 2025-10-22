@@ -500,9 +500,9 @@ if(BUILD_TESTING)
              "
              WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-    set_tests_properties(video_streaming_integration_test_python PROPERTIES
-                         TIMEOUT 300
-                         PASS_REGULAR_EXPRESSION "Python Integration test PASSED"
-                         FAIL_REGULAR_EXPRESSION "Python Integration test FAILED")
+   set_tests_properties(video_streaming_integration_test_python PROPERTIES
+                        TIMEOUT 300
+                        PASS_REGULAR_EXPRESSION "Python Integration test PASSED"
+                        FAIL_REGULAR_EXPRESSION "Python Integration test FAILED")
   endif()
 endif()
