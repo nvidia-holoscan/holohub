@@ -18,6 +18,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <string>
+
 #include "../streaming_client.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>

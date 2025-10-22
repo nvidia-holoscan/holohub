@@ -18,6 +18,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <string>
+
 #include "../streaming_server_resource.hpp"
 #include "../streaming_server_upstream_op.hpp"
 #include "../streaming_server_downstream_op.hpp"
