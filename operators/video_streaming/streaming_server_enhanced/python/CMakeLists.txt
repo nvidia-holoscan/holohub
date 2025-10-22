@@ -67,5 +67,9 @@ except ImportError as e:
     pass
 ")
 
-# Write the custom __init__.py after the module is built
-file(WRITE "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_server_enhanced/__init__.py" "${INIT_PY_CONTENT}")
+# Write the custom __init__.py at generation time (after configure, before build)
+# Use file(GENERATE) which runs after all configure-time processing
+file(GENERATE
+    OUTPUT "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_server_enhanced/__init__.py"
+    CONTENT "${INIT_PY_CONTENT}"
+)

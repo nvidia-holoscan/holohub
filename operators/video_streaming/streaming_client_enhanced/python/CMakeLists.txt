@@ -32,8 +32,9 @@ set_target_properties(streaming_client_python PROPERTIES
 
 # Also update the __init__.py location
 file(REMOVE "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_client/__init__.py")
-file(WRITE "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_client_enhanced/__init__.py"
-"# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+# Use file(GENERATE) to create __init__.py at generation time
+set(CLIENT_INIT_PY_CONTENT "# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 import holoscan.core
@@ -73,5 +74,9 @@ try:
     _register_types(io_type_registry)
 except ImportError as e:
     pass
-"
+")
+
+file(GENERATE
+    OUTPUT "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_client_enhanced/__init__.py"
+    CONTENT "${CLIENT_INIT_PY_CONTENT}"
 )
