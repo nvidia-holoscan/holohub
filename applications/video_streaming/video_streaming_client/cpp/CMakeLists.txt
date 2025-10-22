@@ -85,16 +85,16 @@ set_target_properties(streaming_client_demo PROPERTIES
 # Install application and dependencies into the install/ directory for packaging
 install(
   TARGETS streaming_client_demo
-  DESTINATION bin/video_streaming/cpp
+  DESTINATION bin/video_streaming_client/cpp
 )
 
 install(
   FILES streaming_client_demo.yaml streaming_client_demo_replayer.yaml
-  DESTINATION bin/video_streaming/cpp
+  DESTINATION bin/video_streaming_client/cpp
 )
 
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_wrapper.sh"
-  DESTINATION bin/video_streaming/cpp
+  DESTINATION bin/video_streaming_client/cpp
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )

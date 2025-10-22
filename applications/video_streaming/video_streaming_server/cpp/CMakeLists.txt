@@ -137,24 +137,24 @@ add_dependencies(streaming_server_demo streaming_server_demo_deps)
 # Install application and dependencies into the install/ directory for packaging
 install(
   TARGETS streaming_server_demo
-  DESTINATION bin/video_streaming/cpp
+  DESTINATION bin/video_streaming_server/cpp
 )
 
 install(
   FILES streaming_server_demo.yaml
-  DESTINATION bin/video_streaming/cpp
+  DESTINATION bin/video_streaming_server/cpp
 )
 
 # Install wrapper script
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_wrapper.sh"
-  DESTINATION bin/video_streaming/cpp
+  DESTINATION bin/video_streaming_server/cpp
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
 
 # Install bundled libraries (OpenSSL 3.x and NGC streaming libraries)
 install(
   DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib/"
-  DESTINATION bin/video_streaming/cpp/lib
+  DESTINATION bin/video_streaming_server/cpp/lib
   FILES_MATCHING PATTERN "*.so*"
 )
