@@ -268,8 +268,8 @@ Test project /workspace/holohub/build-video_streaming
 2/2 Test #2: video_streaming_integration_test_python ...   Passed   44.39 sec
 
 The following tests passed:
-	video_streaming_integration_test
-	video_streaming_integration_test_python
+    video_streaming_integration_test
+    video_streaming_integration_test_python
 
 100% tests passed, 0 tests failed out of 2
 
