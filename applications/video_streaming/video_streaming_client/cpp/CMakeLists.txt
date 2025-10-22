@@ -9,6 +9,9 @@ project(streaming_client_demo CXX)
 find_package(holoscan 3.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# Find required packages
+find_package(CUDAToolkit REQUIRED)
+
 # Detect system architecture
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
   set(ARCH_DIR "x86_64")
