@@ -500,7 +500,7 @@ The Python integration test validates the complete bidirectional video streaming
 ### Expected Outcome
 
 **Successful Test Output (Standalone Python Test):**
-```
+```console
 === Python Integration Test with Log Verification ===
 Starting Python server and client with log capture...
 PYTHONPATH: /workspace/holohub/build-video_streaming/python/lib:...
@@ -614,21 +614,21 @@ The Python integration test validates the following checks. **All checks must pa
 ### Troubleshooting
 
 #### Test Failure - Insufficient Frames
-```
+```text
 ✗ Python Server: Only 50 frames processed (minimum: 100)
 ```
 **Cause**: Insufficient streaming time or connection issues  
 **Solution**: Check network connectivity, verify logs for connection errors
 
 #### Test Failure - Client Not Started
-```
+```text
 ✗ Python Client: Streaming client failed to start
 ```
 **Cause**: Missing dependencies or PYTHONPATH issues  
 **Solution**: Ensure `HOLOHUB_BUILD_PYTHON=ON` and rebuild with Python bindings
 
 #### Test Failure - No Frames Received
-```
+```text
 ✗ Python Client: No frames received from server
 ```
 **Cause**: Downstream connection failure or server issues  
