@@ -241,7 +241,7 @@ streaming_client:
   height: 480
   fps: 30
   server_ip: "127.0.0.1"
-  port: 48010
+  signaling_port: 48010
   send_frames: true
   receive_frames: true
   min_non_zero_bytes: 10

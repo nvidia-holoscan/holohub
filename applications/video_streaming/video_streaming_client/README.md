@@ -125,7 +125,7 @@ source: "replayer"  # or "v4l2"
 # Client configuration
 streaming_client:
   server_ip: "127.0.0.1"
-  port: 48010
+  signaling_port: 48010
   width: 854
   height: 480
   fps: 30
