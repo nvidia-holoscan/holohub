@@ -35,6 +35,15 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml")
   )
 endif()
 
+# Copy replayer config
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml")
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml"
+    "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_replayer.yaml"
+    COPYONLY
+  )
+endif()
+
 # Add testing for Python application
 if(BUILD_TESTING)
   add_test(NAME streaming_client_demo_python_test
@@ -57,6 +66,14 @@ install(
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml")
   install(
     FILES streaming_client_demo.yaml
+    DESTINATION bin/video_streaming/python
+  )
+endif()
+
+# Install replayer config
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml")
+  install(
+    FILES streaming_client_demo_replayer.yaml
     DESTINATION bin/video_streaming/python
   )
 endif()
