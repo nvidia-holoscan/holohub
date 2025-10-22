@@ -116,10 +116,11 @@ add_custom_command(TARGET streaming_server_demo POST_BUILD
 )
 
 # Set RPATH to prioritize bundled libraries over system libraries
-# Use BUILD_RPATH so it works during development/testing
+# BUILD_RPATH: Uses absolute path to NGC binaries in source tree (for development)
+# INSTALL_RPATH: Uses relative paths to find NGC binaries installed at <prefix>/lib
 set_target_properties(streaming_server_demo PROPERTIES
     BUILD_RPATH "$<TARGET_FILE_DIR:streaming_server_demo>/lib:$<TARGET_FILE_DIR:streaming_server_demo>:${OPERATOR_SSL_DIR}"
-    INSTALL_RPATH "$ORIGIN/lib:$ORIGIN"
+    INSTALL_RPATH "$ORIGIN/lib:$ORIGIN:$ORIGIN/../../../lib"
     BUILD_WITH_INSTALL_RPATH FALSE
     INSTALL_RPATH_USE_LINK_PATH FALSE
     SKIP_BUILD_RPATH FALSE
