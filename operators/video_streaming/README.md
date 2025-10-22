@@ -141,8 +141,8 @@ cd <your_holohub_path>/operators/video_streaming/streaming_client_enhanced
 ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
 unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
 
-# Clean up extraction directory and NGC download directory
-rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v0.2
+# Clean up NGC download directory
+rm -rf holoscan_client_cloud_streaming_v0.2
 ```
 
 #### Server Binary
@@ -156,8 +156,8 @@ cd <your_holohub_path>/operators/video_streaming/streaming_server_enhanced
 ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
 unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
 
-# Clean up extraction directory and NGC download directory
-rm -rf streaming_server_enhanced holoscan_server_cloud_streaming_v0.2
+# Clean up NGC download directory
+rm -rf holoscan_server_cloud_streaming_v0.2
 ```
 
 All dependencies need to be properly installed in the operator directory structure.
