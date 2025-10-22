@@ -306,7 +306,7 @@ Terminal 2 - Start C++ Client:
 - video_streaming operator
 - OpenCV
 - CUDA 12.x
-- OpenSSL 3.0+
+- OpenSSL 3.4.0
 
 ## See Also
 
