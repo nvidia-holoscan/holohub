@@ -42,8 +42,8 @@ class PyStreamingServerUpstreamOp : public StreamingServerUpstreamOp {
 
   explicit PyStreamingServerUpstreamOp(Fragment* fragment,
                                        const py::args& args,
-                                       uint32_t width = 1920,
-                                       uint32_t height = 1080,
+                                       uint32_t width = 854,
+                                       uint32_t height = 480,
                                        uint32_t fps = 30,
                                        std::shared_ptr<Allocator> allocator = nullptr,
                                        std::shared_ptr<StreamingServerResource>
@@ -73,8 +73,8 @@ class PyStreamingServerDownstreamOp : public StreamingServerDownstreamOp {
 
   explicit PyStreamingServerDownstreamOp(Fragment* fragment,
                                          const py::args& args,
-                                         uint32_t width = 1920,
-                                         uint32_t height = 1080,
+                                         uint32_t width = 854,
+                                         uint32_t height = 480,
                                         uint32_t fps = 30,
                                         bool enable_processing = false,
                                         const std::string& processing_type =
