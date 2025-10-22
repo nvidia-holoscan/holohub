@@ -108,7 +108,6 @@ class PyStreamingServerResource : public StreamingServerResource {
   using StreamingServerResource::StreamingServerResource;
 
   explicit PyStreamingServerResource(Fragment* fragment,
-                                     const py::args& args,
                                      uint16_t port = 48010,
                                      uint32_t width = 854,
                                      uint32_t height = 480,
@@ -175,7 +174,6 @@ name : str, optional (constructor only)
     The name of the resource. Default value is ``"streaming_server_resource"``.
 )doc")
       .def(py::init<Fragment*,
-                    const py::args&,
                     uint16_t,
                     uint32_t,
                     uint32_t,
