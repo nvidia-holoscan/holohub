@@ -142,7 +142,7 @@ ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0
 unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
 
 # Clean up NGC download directory
-rm -rf holoscan_client_cloud_streaming_v0.2
+rm -rf ./holoscan_client_cloud_streaming_v0.2/
 ```
 
 #### Server Binary
@@ -157,7 +157,7 @@ ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0
 unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
 
 # Clean up NGC download directory
-rm -rf holoscan_server_cloud_streaming_v0.2
+rm -rf ./holoscan_server_cloud_streaming_v0.2/
 ```
 
 All dependencies need to be properly installed in the operator directory structure.
