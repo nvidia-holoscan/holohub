@@ -18,7 +18,7 @@ project(streaming_server_demo CXX)
 
 # This application is built by the parent add_holohub_application macro
 
-find_package(holoscan REQUIRED CONFIG
+find_package(holoscan 3.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Find required packages
