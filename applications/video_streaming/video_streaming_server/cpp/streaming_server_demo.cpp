@@ -256,7 +256,7 @@ int main(int argc, char** argv) {
   // Create a default configuration file if it doesn't exist
   if (!ensure_config_file_exists(config_path)) {
     std::cerr << "WARNING: Failed to create default configuration file." << std::endl;
-    std::cerr << "Will try to run with built-in defaults." << std::endl;
+    std::cerr << "The application will exit if the config cannot be loaded." << std::endl;
   }
 
   // Create the application with error handling
