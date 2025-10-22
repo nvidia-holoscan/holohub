@@ -36,6 +36,15 @@ endif()
 # Find the streaming server operator directory using relative path
 set(OPERATOR_SSL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../operators/video_streaming/streaming_server_enhanced/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
 
+# Validate operator bundle exists - fail early with clear error message
+if(NOT EXISTS "${OPERATOR_SSL_DIR}")
+  message(FATAL_ERROR "Operator SSL directory not found: ${OPERATOR_SSL_DIR}\n"
+                      "Please ensure NGC assets are installed per README:\n"
+                      "  cd operators/video_streaming/streaming_server_enhanced\n"
+                      "  ngc registry resource download-version \"nvidia/holoscan_server_cloud_streaming:0.2\"\n"
+                      "  unzip holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming")
+endif()
+
 # Add executable
 add_executable(streaming_server_demo
     streaming_server_demo.cpp

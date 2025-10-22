@@ -24,9 +24,13 @@ endif()
 # Find the streaming client operator directory using relative path
 set(OPERATOR_CLIENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../operators/video_streaming/streaming_client_enhanced/holoscan_client_cloud_streaming/lib/${ARCH_DIR}")
 
-# Check if NGC binaries exist
-if(NOT EXISTS "${OPERATOR_CLIENT_DIR}/libStreamingClient.so")
-    message(WARNING "StreamingClient NGC binaries not found at ${OPERATOR_CLIENT_DIR}. Please download them using NGC CLI.")
+# Validate operator bundle exists - fail early with clear error message
+if(NOT EXISTS "${OPERATOR_CLIENT_DIR}")
+  message(FATAL_ERROR "Operator client directory not found: ${OPERATOR_CLIENT_DIR}\n"
+                      "Please ensure NGC assets are installed per README:\n"
+                      "  cd operators/video_streaming/streaming_client_enhanced\n"
+                      "  ngc registry resource download-version \"nvidia/holoscan_client_cloud_streaming:0.2\"\n"
+                      "  unzip holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming")
 endif()
 
 add_executable(streaming_client_demo
