@@ -139,7 +139,7 @@ PYBIND11_MODULE(_streaming_server_enhanced, m) {
   m.doc() = R"pbdoc(
       Holoscan SDK Streaming Server Enhanced Python Bindings
       ---------------------------------------------------
-      .. currentmodule:: _streaming_server_enhanced
+      .. currentmodule:: holohub.streaming_server_enhanced
   )pbdoc";
 
   // StreamingServerResource

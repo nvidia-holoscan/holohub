@@ -75,7 +75,7 @@ PYBIND11_MODULE(_streaming_client_enhanced, m) {
   m.doc() = R"pbdoc(
       Holoscan SDK Streaming Client Enhanced Python Bindings
       ---------------------------------------------------
-      .. currentmodule:: _streaming_client_enhanced
+      .. currentmodule:: holohub.streaming_client_enhanced
   )pbdoc";
 
   py::class_<StreamingClientOp, PyStreamingClientOp, Operator, std::shared_ptr<StreamingClientOp>>(
