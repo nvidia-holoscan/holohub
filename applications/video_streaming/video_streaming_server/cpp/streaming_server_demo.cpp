@@ -117,15 +117,18 @@ class StreamingServerTestApp : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    // Create shared resource
+    // Create shared resource with configuration from YAML
     auto streaming_server_resource =
-        make_resource<ops::StreamingServerResource>("streaming_server_resource");
+        make_resource<ops::StreamingServerResource>("streaming_server_resource",
+                                                     from_config("streaming_server"));
 
-    // Both operators use the same resource
-    auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>("upstream_op");
+    // Both operators use the same resource and load their config
+    auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>("upstream_op",
+                                                                      from_config("upstream_op"));
     upstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
-    auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>("downstream_op");
+    auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>("downstream_op",
+                                                                          from_config("downstream_op"));
     downstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
     // Connect them in pipeline
@@ -246,14 +249,13 @@ int main(int argc, char** argv) {
       std::cerr << "Will continue with default values" << std::endl;
     }
 
-    // Load parameters from config with safe defaults
-    // Note: Configuration parameters (width, height, fps, port, etc.) are read
-    // directly by StreamingServerResource from the YAML file and passed to operators.
-    // The application does not need to handle these parameters explicitly.
+    // Configuration parameters are loaded from YAML via from_config()
+    // The streaming_server section configures StreamingServerResource
+    // The upstream_op and downstream_op sections configure the operators
+    // All parameters (width, height, fps, port, etc.) are loaded from YAML
 
     std::cout << "Configuration loaded from: " << config_path << std::endl;
-    std::cout << "Operators will use parameters from StreamingServerResource "
-              << "(defined in YAML)" << std::endl;
+    std::cout << "Resource and operators configured from YAML sections" << std::endl;
 
     // Configure scheduler
     std::string scheduler = get_config_value(app.get(), "scheduler", std::string("greedy"));

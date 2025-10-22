@@ -38,6 +38,18 @@ streaming_server:
   send_frames: true
   allocator: !ref "allocator"
 
+# Upstream operator configuration (receives frames from clients)
+upstream_op:
+  width: 854
+  height: 480
+  fps: 30
+
+# Downstream operator configuration (sends frames to clients)  
+downstream_op:
+  width: 854
+  height: 480
+  fps: 30
+
 # Memory allocator configuration
 allocator:
   type: "holoscan::UnboundedAllocator"
