@@ -146,19 +146,32 @@ def main():
 
     # Create and run the application
     try:
+        # Start with default parameters
         app = StreamingServerApp(
-            port=args.port,
-            width=args.width,
-            height=args.height,
-            fps=args.fps,
+            port=48010,
+            width=854,
+            height=480,
+            fps=30,
         )
 
+        # Load config file if provided (overrides defaults)
         if args.config:
             app.config(args.config)
 
+        # Apply command-line arguments (overrides config file)
+        # Only override if explicitly provided
+        if args.port != 48010:
+            app.port = args.port
+        if args.width != 854:
+            app.width = args.width
+        if args.height != 480:
+            app.height = args.height
+        if args.fps != 30:
+            app.fps = args.fps
+
         print("Starting Streaming Server Demo (Python)")
-        print(f"Server Port: {args.port}")
-        print(f"Resolution: {args.width}x{args.height} @ {args.fps}fps")
+        print(f"Server Port: {app.port}")
+        print(f"Resolution: {app.width}x{app.height} @ {app.fps}fps")
         print("Pipeline: StreamingServerUpstreamOp -> StreamingServerDownstreamOp")
         print("Press Ctrl+C to stop gracefully")
 

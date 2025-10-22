@@ -297,29 +297,48 @@ def main():
 
     # Create and run the application
     try:
+        # Start with default parameters
         app = StreamingClientApp(
-            source=args.source,
-            server_ip=args.server_ip,
-            port=args.port,
-            width=args.width,
-            height=args.height,
-            fps=args.fps,
-            visualize=not args.no_viz,
+            source="replayer",
+            server_ip="127.0.0.1",
+            port=48010,
+            width=854,
+            height=480,
+            fps=30,
+            visualize=True,
         )
 
+        # Load config file if provided (overrides defaults)
         if config_file:
             app.config(config_file)
 
+        # Apply command-line arguments (overrides config file)
+        # Only override if explicitly provided
+        if args.source != "replayer":
+            app.source = args.source
+        if args.server_ip != "127.0.0.1":
+            app.server_ip = args.server_ip
+        if args.port != 48010:
+            app.port = args.port
+        if args.width != 854:
+            app.width = args.width
+        if args.height != 480:
+            app.height = args.height
+        if args.fps != 30:
+            app.fps = args.fps
+        if args.no_viz:
+            app.visualize = False
+
         print("Starting Streaming Client Demo (Python)")
-        print(f"Source: {args.source}")
-        print(f"Server: {args.server_ip}:{args.port}")
-        print(f"Resolution: {args.width}x{args.height} @ {args.fps}fps")
-        print(f"Visualization: {'enabled' if not args.no_viz else 'disabled'}")
+        print(f"Source: {app.source}")
+        print(f"Server: {app.server_ip}:{app.port}")
+        print(f"Resolution: {app.width}x{app.height} @ {app.fps}fps")
+        print(f"Visualization: {'enabled' if app.visualize else 'disabled'}")
 
         # Show pipeline
-        viz_part = " -> HolovizOp" if not args.no_viz else ""
+        viz_part = " -> HolovizOp" if app.visualize else ""
         print(
-            f"Pipeline: {args.source.capitalize()}Op -> FormatConverterOp -> StreamingClientOp{viz_part}"
+            f"Pipeline: {app.source.capitalize()}Op -> FormatConverterOp -> StreamingClientOp{viz_part}"
         )
         print("Press Ctrl+C to stop gracefully")
 
