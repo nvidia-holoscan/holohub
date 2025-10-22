@@ -126,19 +126,6 @@ set_target_properties(streaming_server_demo PROPERTIES
     SKIP_BUILD_RPATH FALSE
 )
 
-# Install rules
-install(
-    TARGETS streaming_server_demo
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-)
-
-# Install config files
-install(
-    FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml"
-    DESTINATION bin
-)
 # Copy config dependencies for testing
 add_custom_target(streaming_server_demo_deps
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml" ${CMAKE_CURRENT_BINARY_DIR}
@@ -156,6 +143,13 @@ install(
 install(
   FILES streaming_server_demo.yaml
   DESTINATION bin/video_streaming/cpp
+)
+
+# Install wrapper script
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo_wrapper.sh"
+  DESTINATION bin/video_streaming/cpp
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
 
 # Install bundled libraries (OpenSSL 3.x and NGC streaming libraries)
