@@ -118,7 +118,7 @@ target_link_directories(streaming_server_demo PRIVATE "${OPERATOR_SSL_DIR}")
 # Copy wrapper script and make executable
 add_custom_command(TARGET streaming_server_demo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_wrapper.sh.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_wrapper.sh"
         "$<TARGET_FILE_DIR:streaming_server_demo>/streaming_server_demo_wrapper.sh"
     COMMAND chmod +x "$<TARGET_FILE_DIR:streaming_server_demo>/streaming_server_demo_wrapper.sh"
     COMMENT "Installing wrapper script with LD_LIBRARY_PATH"
@@ -156,9 +156,8 @@ install(
 
 # Install wrapper script
 install(
-  FILES "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_wrapper.sh.in"
+  FILES "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_wrapper.sh"
   DESTINATION bin/video_streaming_server/cpp
-  RENAME streaming_server_demo_wrapper.sh
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
 
