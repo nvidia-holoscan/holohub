@@ -22,6 +22,7 @@
 #include <filesystem>
 #include <regex>
 #include <gxf/core/gxf.h>
+#include <gst/cuda/gstcudamemory.h>
 
 namespace {
 
@@ -39,10 +40,10 @@ namespace {
  */
 std::string normalize_framerate(const std::string& framerate) {
   // Regex for integer (e.g., "30") or fraction (e.g., "30000/1001")
-  std::regex fraction_regex(R"(^\s*(\d+)\s*(/\s*(\d+)\s*)?$)");
+  std::regex rational_regex(R"(^\s*(\d+)\s*(/\s*(\d+)\s*)?$)");
   std::smatch match;
   
-  if (std::regex_match(framerate, match, fraction_regex)) {
+  if (std::regex_match(framerate, match, rational_regex)) {
     // If no denominator, add "/1"
     if (match[2].str().empty()) {
       return framerate + "/1";
@@ -58,7 +59,7 @@ std::string normalize_framerate(const std::string& framerate) {
     int decimal_places = decimal_part.length();
     int fractional = std::stoi(decimal_part);
     
-    // Convert to fraction: 29.97 = 2997/100
+    // Convert to rational: 29.97 = 2997/100
     int denominator = 1;
     for (int i = 0; i < decimal_places; ++i) {
       denominator *= 10;
@@ -91,8 +92,8 @@ std::string get_muxer_from_extension(std::string& filename) {
   std::string extension = filepath.extension().string();
   
   // Convert to lowercase for case-insensitive comparison
-  std::transform(extension.begin(), extension.end(), extension.begin(), 
-                 [](unsigned char c){ return std::tolower(c); });
+  std::transform(extension.begin(), extension.end(), extension.begin(),
+                 static_cast<int(*)(int)>(std::tolower));
   
   // If no extension, append .mp4 and set extension
   if (extension.empty()) {
@@ -145,40 +146,29 @@ std::string get_parser_from_encoder(GstElement* encoder) {
       continue;
     }
     
-    // Get caps from template
-    GstCaps* caps = gst_static_caps_get(&templ->static_caps);
-    if (!caps) {
-      continue;
-    }
+    // Get caps from template (RAII wrapper handles cleanup automatically)
+    holoscan::gst::Caps caps(gst_static_caps_get(&templ->static_caps));
     
     // Get the first structure (media type)
-    std::string parser_name;
-    if (gst_caps_get_size(caps) > 0) {
-      GstStructure* structure = gst_caps_get_structure(caps, 0);
+    if (caps.get_size() > 0) {
+      GstStructure* structure = gst_caps_get_structure(caps.get(), 0);
       const char* media_type = gst_structure_get_name(structure);
       
       if (media_type) {
-        std::string media_type_str(media_type);
+        std::string_view media_type_str(media_type);
         HOLOSCAN_LOG_DEBUG("Encoder '{}' outputs media type: {}", encoder_name, media_type_str);
         
         // Extract codec name from media type: "video/x-{codec}" -> "{codec}parse"
         // This works for all codecs following GStreamer's naming convention:
-        // x-h264 -> h264parse, x-h265 -> h265parse, x-vp8 -> vp8parse, etc.
-        size_t pos = media_type_str.find("x-");
-        if (pos != std::string::npos && pos + 2 < media_type_str.length()) {
-          std::string codec = media_type_str.substr(pos + 2);
-          parser_name = codec + "parse";
+        // video/x-h264 -> h264parse, video/x-h265 -> h265parse, video/x-vp8 -> vp8parse, etc.
+        size_t pos = media_type_str.find("video/x-");
+        if (pos != std::string_view::npos && pos + 8 < media_type_str.length()) {
+          auto codec = media_type_str.substr(pos + 8);
+          auto parser_name = std::string(codec) + "parse";
           HOLOSCAN_LOG_DEBUG("Derived parser '{}' from media type '{}'", parser_name, media_type_str);
+          return parser_name;
         }
       }
-    }
-    
-    // Cleanup caps
-    gst_caps_unref(caps);
-    
-    // Return parser name if we found one
-    if (!parser_name.empty()) {
-      return parser_name;
     }
   }
   
@@ -241,6 +231,168 @@ void monitor_pipeline_bus(GstElement* pipeline) {
   }
 }
 
+/**
+ * @brief Create GstSrcBridge from entity by detecting video parameters
+ * 
+ * Inspects the incoming entity to extract video parameters from the tensor
+ * and creates a GstSrcBridge with appropriate capabilities.
+ * 
+ * @param entity The entity containing the tensor
+ * @param operator_name Name for the bridge
+ * @param format Pixel format (e.g., "RGBA", "RGB", "BGRA", "GRAY8")
+ * @param framerate Framerate string (e.g., "30/1")
+ * @param queue_limit Maximum queue size
+ * @return Shared pointer to the created GstSrcBridge
+ */
+std::shared_ptr<holoscan::gst::GstSrcBridge> create_bridge_from_entity(
+    const holoscan::gxf::Entity& entity,
+    const std::string& operator_name,
+    const std::string& format,
+    const std::string& framerate,
+    size_t queue_limit) {
+  // Get the first tensor from the entity using GXF C API
+  gxf_uid_t component_ids[64];
+  uint64_t num_components = 64;
+  gxf_result_t result = GxfComponentFindAll(entity.context(), entity.eid(), 
+                                            &num_components, component_ids);
+  if (result != GXF_SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to find components in entity");
+    throw std::runtime_error("Failed to find components in entity");
+  }
+  
+  nvidia::gxf::Tensor* tensor = nullptr;
+  
+  // Find the first tensor component
+  for (uint64_t i = 0; i < num_components; i++) {
+    gxf_tid_t tid;
+    result = GxfComponentType(entity.context(), component_ids[i], &tid);
+    if (result != GXF_SUCCESS) continue;
+    
+    const char* type_name = nullptr;
+    result = GxfComponentTypeName(entity.context(), tid, &type_name);
+    if (result != GXF_SUCCESS || !type_name) continue;
+    
+    if (std::strcmp(type_name, "nvidia::gxf::Tensor") == 0) {
+      void* tensor_ptr = nullptr;
+      result = GxfComponentPointer(entity.context(), component_ids[i], 
+                                    GxfTidNull(), &tensor_ptr);
+      if (result == GXF_SUCCESS) {
+        tensor = static_cast<nvidia::gxf::Tensor*>(tensor_ptr);
+        break;
+      }
+    }
+  }
+  
+  if (!tensor) {
+    HOLOSCAN_LOG_ERROR("No tensor found in entity");
+    throw std::runtime_error("No tensor found in entity");
+  }
+  
+  // Extract video parameters from tensor
+  auto shape = tensor->shape();
+  if (shape.rank() < 2) {
+    HOLOSCAN_LOG_ERROR("Tensor rank is {}, expected at least 2 (height, width)", shape.rank());
+    throw std::runtime_error("Invalid tensor shape for video data");
+  }
+  
+  int height = shape.dimension(0);
+  int width = shape.dimension(1);
+  
+  // Determine storage type from tensor memory location
+  bool is_device_memory = (tensor->storage_type() == nvidia::gxf::MemoryStorageType::kDevice);
+  std::string storage_str = is_device_memory ? "device" : "host";
+  
+  HOLOSCAN_LOG_INFO("Detected video parameters: {}x{}@{}fps, format={}, storage={}",
+                    width, height, framerate, format, storage_str);
+  
+  // Build caps string with detected parameters
+  std::string capabilities = "video/x-raw";
+  if (is_device_memory) {
+    capabilities += "(memory:CUDAMemory)";
+  }
+  capabilities += ",format=" + format +
+                  ",width=" + std::to_string(width) + 
+                  ",height=" + std::to_string(height) + 
+                  ",framerate=" + framerate;
+  
+  HOLOSCAN_LOG_INFO("Capabilities: '{}'", capabilities);
+  
+  // Create and return the GstSrcBridge
+  return std::make_shared<holoscan::gst::GstSrcBridge>(
+    operator_name,
+    capabilities,
+    queue_limit
+  );
+}
+
+/**
+ * @brief Create appropriate converter element based on memory type
+ * 
+ * Creates cudaconvert for device (CUDA) memory or videoconvert for host memory.
+ * 
+ * @param is_device_memory True if using CUDA memory, false for host memory
+ * @return GstElementGuard wrapping the created converter element
+ * @throws std::runtime_error if element creation fails
+ */
+holoscan::gst::GstElementGuard create_converter_element(bool is_device_memory) {
+  const char* converter_name = is_device_memory ? "cudaconvert" : "videoconvert";
+  std::string storage_str = is_device_memory ? "device" : "host";
+  HOLOSCAN_LOG_INFO("Creating {} for {} memory", converter_name, storage_str);
+  
+  auto converter = holoscan::gst::make_gst_object_guard(
+      gst_element_factory_make(converter_name, "converter"));
+  if (!converter) {
+    HOLOSCAN_LOG_ERROR("Failed to create {} element", converter_name);
+    throw std::runtime_error(std::string("Failed to create ") + converter_name + " element");
+  }
+  
+  return converter;
+}
+
+/**
+ * @brief Add source and converter elements to pipeline and link them to encoder
+ * 
+ * @param pipeline The pipeline to add elements to
+ * @param src_element Source element (appsrc from bridge)
+ * @param converter Converter element (cudaconvert or videoconvert)
+ * @param encoder Encoder element to link to
+ */
+void add_and_link_source_converter(GstElement* pipeline, 
+                                    GstElement* src_element,
+                                    const holoscan::gst::GstElementGuard& converter,
+                                    const holoscan::gst::GstElementGuard& encoder) {
+  // Add source and converter elements to pipeline
+  // Note: gst_bin_add() takes ownership by sinking the floating reference.
+  // Since our guards will call gst_object_unref() when destroyed,
+  // we need to manually add a ref here so both the bin and the guards have their own references.
+  gst_object_ref(src_element);
+  gst_object_ref(converter.get());
+  
+  gst_bin_add_many(GST_BIN(pipeline), src_element, converter.get(), nullptr);
+  
+  // Set elements to PLAYING state to match the pipeline
+  GstStateChangeReturn ret = gst_element_set_state(src_element, GST_STATE_PLAYING);
+  if (ret == GST_STATE_CHANGE_FAILURE) {
+    throw std::runtime_error("Failed to set source element to PLAYING state");
+  }
+  
+  ret = gst_element_set_state(converter.get(), GST_STATE_PLAYING);
+  if (ret == GST_STATE_CHANGE_FAILURE) {
+    throw std::runtime_error("Failed to set converter element to PLAYING state");
+  }
+  
+  // Link elements: source -> converter -> encoder
+  if (!gst_element_link(src_element, converter.get())) {
+    throw std::runtime_error("Failed to link source to converter");
+  }
+  
+  if (!gst_element_link(converter.get(), encoder.get())) {
+    throw std::runtime_error("Failed to link converter to encoder");
+  }
+  
+  HOLOSCAN_LOG_INFO("Pipeline complete: source -> converter -> encoder -> parser -> muxer -> filesink");
+}
+
 }  // namespace
 
 namespace holoscan {
@@ -251,6 +403,9 @@ void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
   spec.param(encoder_name_, "encoder", "Encoder",
              "Encoder base name (e.g., nvh264, nvh265, x264, x265). 'enc' suffix is appended automatically.",
              std::string("nvh264"));
+  spec.param(format_, "format", "Pixel Format",
+             "Video pixel format (e.g., RGBA, RGB, BGRA, BGR, GRAY8)",
+             std::string("RGBA"));
   spec.param(framerate_, "framerate", "Framerate",
              "Video framerate as fraction (e.g., '30/1', '30000/1001', '29.97')",
              std::string("30/1"));
@@ -381,156 +536,18 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
   HOLOSCAN_LOG_INFO("Frame #{} - Entity received", frame_count);
 
   // Initialize bridge on first frame
-  if (!bridge_initialized_) {
+  // Only upon receiving the first frame, we know the frame parameters
+  if (!bridge_) {
     HOLOSCAN_LOG_INFO("Frame #{} - First frame, detecting video parameters from tensor", frame_count);
-    
-    // Get the first tensor from the entity using GXF C API
-    gxf_uid_t component_ids[64];
-    uint64_t num_components = 64;
-    gxf_result_t result = GxfComponentFindAll(entity.context(), entity.eid(), 
-                                              &num_components, component_ids);
-    if (result != GXF_SUCCESS) {
-      HOLOSCAN_LOG_ERROR("Failed to find components in entity");
-      throw std::runtime_error("Failed to find components in entity");
-    }
-    
-    nvidia::gxf::Tensor* tensor = nullptr;
-    
-    // Find the first tensor component
-    for (uint64_t i = 0; i < num_components; i++) {
-      gxf_tid_t tid;
-      result = GxfComponentType(entity.context(), component_ids[i], &tid);
-      if (result != GXF_SUCCESS) continue;
-      
-      const char* type_name = nullptr;
-      result = GxfComponentTypeName(entity.context(), tid, &type_name);
-      if (result != GXF_SUCCESS || !type_name) continue;
-      
-      if (std::strcmp(type_name, "nvidia::gxf::Tensor") == 0) {
-        void* tensor_ptr = nullptr;
-        result = GxfComponentPointer(entity.context(), component_ids[i], 
-                                      GxfTidNull(), &tensor_ptr);
-        if (result == GXF_SUCCESS) {
-          tensor = static_cast<nvidia::gxf::Tensor*>(tensor_ptr);
-          break;
-        }
-      }
-    }
-    
-    if (!tensor) {
-      HOLOSCAN_LOG_ERROR("No tensor found in entity");
-      throw std::runtime_error("No tensor found in entity");
-    }
-    
-    // Extract video parameters from tensor
-    auto shape = tensor->shape();
-    if (shape.rank() < 3) {
-      HOLOSCAN_LOG_ERROR("Tensor rank is {}, expected at least 3 (height, width, channels)", shape.rank());
-      throw std::runtime_error("Invalid tensor shape for video data");
-    }
-    
-    int height = shape.dimension(0);
-    int width = shape.dimension(1);
-    int channels = shape.dimension(2);
-    
-    // Determine format based on number of channels
-    std::string format;
-    if (channels == 4) {
-      format = "RGBA";
-    } else if (channels == 3) {
-      format = "RGB";
-    } else if (channels == 1) {
-      format = "GRAY8";
-    } else {
-      HOLOSCAN_LOG_ERROR("Unsupported number of channels: {}", channels);
-      throw std::runtime_error("Unsupported number of channels");
-    }
-    
-    // Determine storage type from tensor memory location
-    bool is_device_memory = (tensor->storage_type() == nvidia::gxf::MemoryStorageType::kDevice);
-    std::string storage_str = is_device_memory ? "device" : "host";
-    
-    HOLOSCAN_LOG_INFO("Detected video parameters: {}x{}@{}fps, format={}, channels={}, storage={}",
-                      width, height, framerate_.get(), format, channels, storage_str);
-    
-    // Build caps string with detected parameters
-    std::string capabilities;
-    if (is_device_memory) {
-      // CUDA memory: insert memory feature after media type
-      capabilities = "video/x-raw(memory:CUDAMemory),format=" + format;
-    } else {
-      // Host memory: use default caps
-      capabilities = "video/x-raw,format=" + format;
-    }
-    
-    capabilities += ",width=" + std::to_string(width) + 
-                    ",height=" + std::to_string(height) + 
-                    ",framerate=" + framerate_.get();
-    
-    HOLOSCAN_LOG_INFO("Capabilities: '{}'", capabilities);
-    
-    // Create the GstSrcBridge
-    bridge_ = std::make_shared<holoscan::gst::GstSrcBridge>(
-      name(),           // Use operator name as bridge name
-      capabilities,
-      queue_limit_.get()
-    );
-    
+    // Create bridge from entity (detects video parameters automatically)
+    bridge_ = create_bridge_from_entity(entity, name(), format_.get(), framerate_.get(), queue_limit_.get());
     HOLOSCAN_LOG_INFO("Bridge created");
     
-    // Get the source element from the bridge
-    GstElement* src_element_ptr = bridge_->get_gst_element();
-    if (!src_element_ptr) {
-      throw std::runtime_error("Failed to get source element from bridge");
-    }
-    
-    // Create appropriate converter based on storage type
-    const char* converter_name = is_device_memory ? "cudaconvert" : "videoconvert";
-    HOLOSCAN_LOG_INFO("Creating {} for {} memory", converter_name, storage_str);
-    
-    auto converter = holoscan::gst::make_gst_object_guard(
-        gst_element_factory_make(converter_name, "converter"));
-    if (!converter) {
-      HOLOSCAN_LOG_ERROR("Failed to create {} element", converter_name);
-      throw std::runtime_error(std::string("Failed to create ") + converter_name + " element");
-    }
-    
-    // Add source and converter elements to pipeline
-    // Note: gst_bin_add() takes ownership by sinking the floating reference (doesn't add a new ref).
-    // Since our bridge will call gst_object_unref() when destroyed,
-    // we need to manually add a ref here so both the bin and the bridge have their own references.
-    gst_object_ref(src_element_ptr);
-    gst_object_ref(converter.get());
-    
-    gst_bin_add_many(GST_BIN(pipeline_.get()), src_element_ptr, converter.get(), nullptr);
-    
-    // Set elements to PLAYING state to match the pipeline
-    GstStateChangeReturn ret = gst_element_set_state(src_element_ptr, GST_STATE_PLAYING);
-    if (ret == GST_STATE_CHANGE_FAILURE) {
-      HOLOSCAN_LOG_ERROR("Failed to set source element to PLAYING state");
-      throw std::runtime_error("Failed to set source element to PLAYING state");
-    }
-    
-    ret = gst_element_set_state(converter.get(), GST_STATE_PLAYING);
-    if (ret == GST_STATE_CHANGE_FAILURE) {
-      HOLOSCAN_LOG_ERROR("Failed to set converter element to PLAYING state");
-      throw std::runtime_error("Failed to set converter element to PLAYING state");
-    }
-    
-    // Link elements: source -> converter -> encoder
-    if (!gst_element_link(src_element_ptr, converter.get())) {
-      HOLOSCAN_LOG_ERROR("Failed to link source to converter");
-      throw std::runtime_error("Failed to link source to converter");
-    }
-    
-    if (!gst_element_link(converter.get(), encoder_.get())) {
-      HOLOSCAN_LOG_ERROR("Failed to link converter to encoder");
-      throw std::runtime_error("Failed to link converter to encoder");
-    }
-    
-    HOLOSCAN_LOG_INFO("Pipeline complete: source -> {} -> {}enc -> parser -> muxer -> filesink",
-                      converter_name, encoder_name_.get());
-    bridge_initialized_ = true;
+    // Create appropriate converter based on storage type and add to pipeline
+    auto converter = create_converter_element(
+        bridge_->get_caps().has_feature(GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY));
+    // Add source and converter to pipeline and link them to encoder
+    add_and_link_source_converter(pipeline_.get(), bridge_->get_gst_element(), converter, encoder_);
   }
 
   HOLOSCAN_LOG_INFO("Frame #{} - Converting entity to GStreamer buffer", frame_count);
@@ -562,7 +579,7 @@ void GstVideoRecorderOperator::stop() {
   HOLOSCAN_LOG_INFO("GstVideoRecorderOperator::stop() - Recording stopping");
   
   // Send EOS to signal end of stream (only if bridge was initialized)
-  if (bridge_initialized_ && bridge_) {
+  if (bridge_) {
     HOLOSCAN_LOG_INFO("Sending EOS to bridge");
     bridge_->send_eos();
     

@@ -100,7 +100,8 @@ class GstVideoRecorderOperator : public Operator {
 
   // Parameters
   Parameter<std::string> encoder_name_;
-  Parameter<std::string> framerate_;
+  Parameter<std::string> format_;
+  Parameter<std::string> framerate_;  // Fraction string: "30/1", "30000/1001", "29.97", or "0/1" for live mode (real-time timestamps)
   Parameter<size_t> queue_limit_;
   Parameter<uint64_t> timeout_ms_;
   Parameter<std::string> filename_;
@@ -109,7 +110,6 @@ class GstVideoRecorderOperator : public Operator {
   std::shared_ptr<holoscan::gst::GstSrcBridge> bridge_;
   holoscan::gst::GstElementGuard pipeline_;
   holoscan::gst::GstElementGuard encoder_;  // Keep reference to link dynamically created converter to it
-  bool bridge_initialized_{false};
   
   // Bus monitoring
   std::future<void> bus_monitor_future_;
