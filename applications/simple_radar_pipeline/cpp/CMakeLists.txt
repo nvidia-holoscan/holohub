@@ -27,7 +27,7 @@ include(FetchContent)
 FetchContent_Declare(
   MatX
   GIT_REPOSITORY https://github.com/NVIDIA/MatX.git
-  GIT_TAG v0.9.0
+  GIT_TAG v0.9.3
 )
 FetchContent_MakeAvailable(MatX)
 
