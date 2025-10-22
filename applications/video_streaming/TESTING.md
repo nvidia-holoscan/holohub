@@ -430,7 +430,7 @@ sudo lsof -ti:48010 | xargs sudo kill -9
 ```
 
 - Segfault occurs during cleanup after test completes
-- Test passes if all 9 checks passed before shutdown
+- Test passes if all 10 checks passed before shutdown
 - Does not affect streaming functionality
 
 ### Integration Test Files
