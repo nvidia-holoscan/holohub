@@ -25,9 +25,6 @@
 #include <string>
 
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/format_converter/format_converter.hpp>
-#include <holoscan/operators/holoviz/holoviz.hpp>
-#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 
 #include "streaming_server_resource.hpp"
 #include "streaming_server_upstream_op.hpp"
