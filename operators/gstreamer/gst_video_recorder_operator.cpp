@@ -350,6 +350,119 @@ holoscan::gst::GstElementGuard create_converter_element(bool is_device_memory) {
 }
 
 /**
+ * @brief Set a single encoder property from string value
+ * 
+ * This function uses GStreamer introspection to determine the property type
+ * and automatically converts the string value to the appropriate type.
+ * 
+ * @param encoder The encoder element to set the property on
+ * @param key Property name
+ * @param value Property value as string
+ * @return true if property was set successfully, false otherwise
+ */
+bool set_encoder_property(GstElement* encoder, 
+                          const std::string& key, 
+                          const std::string& value) {
+  // Find the property specification
+  GParamSpec* pspec = g_object_class_find_property(
+      G_OBJECT_GET_CLASS(encoder), key.c_str());
+  
+  if (!pspec) {
+    return false;
+  }
+  
+  // Set property based on its type
+  GType ptype = G_PARAM_SPEC_VALUE_TYPE(pspec);
+  
+  switch (ptype) {
+    case G_TYPE_STRING:
+      g_object_set(encoder, key.c_str(), value.c_str(), nullptr);
+      return true;
+      break;
+    
+    case G_TYPE_INT:
+      try {
+        int int_val = std::stoi(value);
+        g_object_set(encoder, key.c_str(), int_val, nullptr);
+        return true;
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to int for property '{}': {}", 
+                           value, key, e.what());
+      }
+      break;
+    
+    case G_TYPE_UINT:
+      try {
+        unsigned int uint_val = std::stoul(value);
+        g_object_set(encoder, key.c_str(), uint_val, nullptr);
+        return true;
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to uint for property '{}': {}", 
+                           value, key, e.what());
+      }
+      break;
+    
+    case G_TYPE_INT64:
+      try {
+        int64_t int64_val = std::stoll(value);
+        g_object_set(encoder, key.c_str(), int64_val, nullptr);
+        return true;
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to int64 for property '{}': {}", 
+                           value, key, e.what());
+      }
+      break;
+    
+    case G_TYPE_UINT64:
+      try {
+        uint64_t uint64_val = std::stoull(value);
+        g_object_set(encoder, key.c_str(), uint64_val, nullptr);
+        return true;
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to uint64 for property '{}': {}", 
+                           value, key, e.what());
+      }
+      break;
+    
+    case G_TYPE_BOOLEAN: {
+      bool bool_val = (value == "true" || value == "1" || value == "TRUE" || value == "True");
+      g_object_set(encoder, key.c_str(), bool_val, nullptr);
+      return true;
+      break;
+    }
+    
+    case G_TYPE_FLOAT:
+      try {
+        float float_val = std::stof(value);
+        g_object_set(encoder, key.c_str(), float_val, nullptr);
+        return true;
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to float for property '{}': {}", 
+                           value, key, e.what());
+      }
+      break;
+    
+    case G_TYPE_DOUBLE:
+      try {
+        double double_val = std::stod(value);
+        g_object_set(encoder, key.c_str(), double_val, nullptr);
+        return true;
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to double for property '{}': {}", 
+                           value, key, e.what());
+      }
+      break;
+    
+    default:
+      HOLOSCAN_LOG_WARN("Unsupported property type for '{}' (type: {}), skipping", 
+                        key, g_type_name(ptype));
+      break;
+  }
+  
+  return false;
+}
+
+/**
  * @brief Add source and converter elements to pipeline and link them to encoder
  * 
  * @param pipeline The pipeline to add elements to
@@ -418,6 +531,9 @@ void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
   spec.param(filename_, "filename", "Output Filename",
              "Output video filename",
              std::string("output.mp4"));
+  spec.param(properties_, "properties", "Encoder Properties",
+             "Map of encoder-specific properties (e.g., bitrate, preset, gop-size)",
+             std::map<std::string, std::string>());
 }
 
 void GstVideoRecorderOperator::start() {
@@ -449,6 +565,20 @@ void GstVideoRecorderOperator::start() {
   if (!encoder_) {
     HOLOSCAN_LOG_ERROR("Failed to create encoder element '{}'", encoder_element);
     throw std::runtime_error("Failed to create encoder element: " + encoder_element);
+  }
+  
+  // Apply encoder properties from the properties map
+  const auto& props = properties_.get();
+  if (!props.empty()) {
+    HOLOSCAN_LOG_INFO("Applying {} encoder properties:", props.size());
+    for (const auto& [key, value] : props) {
+      if (set_encoder_property(encoder_.get(), key, value)) {
+        HOLOSCAN_LOG_INFO("  {} = {}", key, value);
+      } else {
+        HOLOSCAN_LOG_WARN("  {} = {} (failed to set property on encoder '{}')", 
+                          key, value, encoder_element);
+      }
+    }
   }
   
   // Determine parser from encoder element
@@ -529,11 +659,11 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
   static int frame_count = 0;
   frame_count++;
   
-  HOLOSCAN_LOG_INFO("GstVideoRecorderOperator::compute() - Frame #{} - Receiving entity", frame_count);
+  HOLOSCAN_LOG_DEBUG("GstVideoRecorderOperator::compute() - Frame #{} - Receiving entity", frame_count);
   
   // Receive the video frame entity from the input port
   auto entity = input.receive<gxf::Entity>("input").value();
-  HOLOSCAN_LOG_INFO("Frame #{} - Entity received", frame_count);
+  HOLOSCAN_LOG_DEBUG("Frame #{} - Entity received", frame_count);
 
   // Initialize bridge on first frame
   // Only upon receiving the first frame, we know the frame parameters
@@ -550,7 +680,7 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
     add_and_link_source_converter(pipeline_.get(), bridge_->get_gst_element(), converter, encoder_);
   }
 
-  HOLOSCAN_LOG_INFO("Frame #{} - Converting entity to GStreamer buffer", frame_count);
+  HOLOSCAN_LOG_DEBUG("Frame #{} - Converting entity to GStreamer buffer", frame_count);
 
   // Convert entity to GStreamer buffer using the bridge
   auto buffer = bridge_->create_buffer_from_entity(entity);
@@ -559,11 +689,11 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
     return;
   }
 
-  HOLOSCAN_LOG_INFO("Frame #{} - Buffer created, size: {} bytes", frame_count, buffer.size());
+  HOLOSCAN_LOG_DEBUG("Frame #{} - Buffer created, size: {} bytes", frame_count, buffer.size());
 
   // Push buffer into the GStreamer encoding pipeline
   auto timeout = std::chrono::milliseconds(timeout_ms_.get());
-  HOLOSCAN_LOG_INFO("Frame #{} - Pushing buffer to encoding pipeline (timeout: {}ms)", 
+  HOLOSCAN_LOG_DEBUG("Frame #{} - Pushing buffer to encoding pipeline (timeout: {}ms)", 
                     frame_count, timeout_ms_.get());
   
   if (!bridge_->push_buffer(std::move(buffer), timeout)) {
@@ -572,7 +702,7 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
     return;
   }
   
-  HOLOSCAN_LOG_INFO("Frame #{} - Buffer successfully pushed to encoding pipeline", frame_count);
+  HOLOSCAN_LOG_DEBUG("Frame #{} - Buffer successfully pushed to encoding pipeline", frame_count);
 }
 
 void GstVideoRecorderOperator::stop() {
@@ -581,7 +711,7 @@ void GstVideoRecorderOperator::stop() {
   // Send EOS to signal end of stream (only if bridge was initialized)
   if (bridge_) {
     HOLOSCAN_LOG_INFO("Sending EOS to bridge");
-    bridge_->send_eos();
+  bridge_->send_eos();
     
     HOLOSCAN_LOG_INFO("GstVideoRecorderOperator::stop() - EOS sent, waiting for pipeline to finish");
     

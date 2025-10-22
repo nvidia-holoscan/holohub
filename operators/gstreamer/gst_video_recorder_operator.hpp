@@ -56,6 +56,9 @@ class GstVideoRecorderOperator : public Operator {
    * - timeout_ms: Timeout in milliseconds for buffer push - default: 1000ms
    * - filename: Output video filename - default: "output.mp4"
    *              Note: If no extension is provided, ".mp4" is automatically appended
+   * - properties: Map of encoder-specific properties - default: empty map
+   *              Examples: {"bitrate": "8000", "preset": "1", "gop-size": "30"}
+   *              Property types are automatically detected and converted (int, uint, bool, float, etc.)
    * 
    * Note: Width, height, format, and storage type are automatically detected from the first frame
    * Note: Parser element is automatically determined from the encoder name
@@ -105,6 +108,7 @@ class GstVideoRecorderOperator : public Operator {
   Parameter<size_t> queue_limit_;
   Parameter<uint64_t> timeout_ms_;
   Parameter<std::string> filename_;
+  Parameter<std::map<std::string, std::string>> properties_;  // Encoder-specific properties (e.g., {"bitrate": "8000", "preset": "1"})
   
   // Bridge and pipeline management
   std::shared_ptr<holoscan::gst::GstSrcBridge> bridge_;

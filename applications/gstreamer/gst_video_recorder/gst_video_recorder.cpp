@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 #include <memory>
 #include <cstdint>
 #include <vector>
@@ -247,10 +248,11 @@ class GstVideoRecorderApp : public Application {
  public:
   GstVideoRecorderApp(int64_t iteration_count, int width, int height, 
             const std::string& framerate, int pattern, int storage_type, 
-            const std::string& filename, const std::string& encoder)
+            const std::string& filename, const std::string& encoder,
+            const std::map<std::string, std::string>& properties)
     : iteration_count_(iteration_count), width_(width), height_(height), 
       framerate_(framerate), pattern_(pattern), storage_type_(storage_type),
-      filename_(filename), encoder_(encoder) {}
+      filename_(filename), encoder_(encoder), properties_(properties) {}
 
   void compose() override {
     // Create an allocator for tensor memory
@@ -273,6 +275,7 @@ class GstVideoRecorderApp : public Application {
         "gst_recorder_op",
         Arg("encoder", encoder_),
         Arg("framerate", framerate_),
+        Arg("properties", properties_),
         Arg("queue_limit", size_t(10)),
         Arg("timeout_ms", static_cast<uint64_t>(1000)),
         Arg("filename", filename_)
@@ -291,6 +294,7 @@ class GstVideoRecorderApp : public Application {
   int storage_type_;
   std::string filename_;
   std::string encoder_;
+  std::map<std::string, std::string> properties_;
 };
 
 }  // namespace holoscan
@@ -312,6 +316,9 @@ void print_usage(const char* program_name) {
     std::cout << "  -e, --encoder <name>     Encoder base name (default: nvh264)\n";
     std::cout << "                            Examples: nvh264, nvh265, x264, x265\n";
     std::cout << "                            Note: 'enc' suffix is automatically appended\n";
+    std::cout << "  --property <key=value>   Set encoder property (can be used multiple times)\n";
+    std::cout << "                            Examples: --property bitrate=8000 --property preset=1\n";
+    std::cout << "                            Property types are automatically detected and converted\n";
     std::cout << "  --help                   Show this help message\n\n";
     std::cout << "Pipeline:\n";
     std::cout << "  The application automatically detects video parameters and selects the appropriate converter.\n";
@@ -333,7 +340,9 @@ void print_usage(const char* program_name) {
     std::cout << "  Live mode (no throttling, real-time timestamps):\n";
     std::cout << "    " << program_name << " --count 300 --framerate 0/1 --output live.mp4\n\n";
     std::cout << "  Use CPU encoder (x264) with host memory:\n";
-    std::cout << "    " << program_name << " --count 300 --storage 0 --encoder x264 --output cpu.mp4\n";
+    std::cout << "    " << program_name << " --count 300 --storage 0 --encoder x264 --output cpu.mp4\n\n";
+    std::cout << "  Custom encoder properties (bitrate, preset, GOP size):\n";
+    std::cout << "    " << program_name << " --count 300 --property bitrate=8000 --property preset=1 --property gop-size=30 --output custom.mp4\n";
 }
 
 int main(int argc, char** argv) {
@@ -345,6 +354,7 @@ int main(int argc, char** argv) {
   std::string framerate = "30/1";
   int pattern = 0;  // 0=gradient, 1=checkerboard, 2=color bars
   int storage_type = 1;  // 0=host, 1=device (default to device for CUDA pipeline)
+  std::map<std::string, std::string> properties;  // Encoder properties
 
   // Parse command line arguments
   for (int i = 1; i < argc; i++) {
@@ -378,6 +388,19 @@ int main(int argc, char** argv) {
     else if ((arg == "-e" || arg == "--encoder") && i + 1 < argc) {
       encoder = argv[++i];
     }
+    else if (arg == "--property" && i + 1 < argc) {
+      std::string prop = argv[++i];
+      size_t eq_pos = prop.find('=');
+      if (eq_pos != std::string::npos) {
+        std::string key = prop.substr(0, eq_pos);
+        std::string value = prop.substr(eq_pos + 1);
+        properties[key] = value;
+      } else {
+        std::cerr << "Invalid property format (expected key=value): " << prop << std::endl;
+        print_usage(argv[0]);
+        return 1;
+      }
+    }
     else {
       std::cerr << "Unknown argument: " << arg << std::endl;
       print_usage(argv[0]);
@@ -391,12 +414,18 @@ int main(int argc, char** argv) {
 
     // Create the Holoscan application with parsed parameters
     auto holoscan_app = std::make_shared<holoscan::GstVideoRecorderApp>(
-        iteration_count, width, height, framerate, pattern, storage_type, filename, encoder);
+        iteration_count, width, height, framerate, pattern, storage_type, filename, encoder, properties);
 
     HOLOSCAN_LOG_INFO("Starting Holoscan Pattern to GStreamer Video Recorder");
     HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, storage: {}, encoder: {}, output: '{}'", 
                       iteration_count, width, height, framerate, get_pattern_name(pattern), 
                       storage_type == 1 ? "device" : "host", encoder, filename);
+    if (!properties.empty()) {
+      HOLOSCAN_LOG_INFO("Encoder properties: {} properties configured", properties.size());
+      for (const auto& [key, value] : properties) {
+        HOLOSCAN_LOG_INFO("  {} = {}", key, value);
+      }
+    }
     HOLOSCAN_LOG_INFO("Video parameters (width, height, format, storage) will be auto-detected from frames");
 
     // Run the Holoscan application - the operator manages the GStreamer pipeline internally
