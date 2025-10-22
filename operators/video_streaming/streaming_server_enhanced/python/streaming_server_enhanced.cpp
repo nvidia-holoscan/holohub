@@ -129,7 +129,7 @@ class PyStreamingServerResource : public StreamingServerResource {
     name_ = name;
     fragment_ = fragment;
 
-    // Create and setup the ResourceSpec to avoid "No component spec" warning
+    // Create and setup the ComponentSpec to avoid "No component spec" warning
     spec_ = std::make_shared<ComponentSpec>(fragment);
     setup(*spec_);
   }
