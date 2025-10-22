@@ -157,3 +157,10 @@ install(
   FILES streaming_server_demo.yaml
   DESTINATION bin/video_streaming/cpp
 )
+
+# Install bundled libraries (OpenSSL 3.x and NGC streaming libraries)
+install(
+  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib/"
+  DESTINATION bin/video_streaming/cpp/lib
+  FILES_MATCHING PATTERN "*.so*"
+)
