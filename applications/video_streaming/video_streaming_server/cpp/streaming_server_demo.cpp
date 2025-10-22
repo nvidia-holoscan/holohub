@@ -34,12 +34,6 @@
 #include "streaming_server_downstream_op.hpp"
 
 
-namespace holoscan::ops {
-
-
-
-}  // namespace holoscan::ops
-
 // Create a default YAML configuration file if it doesn't exist
 bool ensure_config_file_exists(const std::string& config_path) {
   std::ifstream file(config_path);
