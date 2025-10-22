@@ -52,6 +52,7 @@ class PyStreamingClientOp : public StreamingClientOp {
                                bool receive_frames = true,
                                bool send_frames = true,
                                uint32_t min_non_zero_bytes = 10,
+                               std::shared_ptr<Allocator> allocator = nullptr,
                                const std::string& name = "streaming_client_enhanced"s)
       : StreamingClientOp(ArgList{Arg{"width", width},
                                   Arg{"height", height},
@@ -62,6 +63,9 @@ class PyStreamingClientOp : public StreamingClientOp {
                                   Arg{"send_frames", send_frames},
                                   Arg{"min_non_zero_bytes", min_non_zero_bytes}}) {
     add_positional_condition_and_resource_args(this, args);
+    if (allocator) {
+      this->add_arg(Arg("allocator", allocator));
+    }
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -104,6 +108,8 @@ send_frames : bool, optional
     Boolean indicating whether to send frames to the server. Default value is ``True``.
 min_non_zero_bytes : int, optional
     Minimum non-zero bytes required in frame data to consider the frame valid. Default value is ``10``.
+allocator : holoscan.resources.Allocator, optional
+    Memory allocator for output buffer allocation. Default value is ``None``.
 name : str, optional (constructor only)
     The name of the operator. Default value is ``"streaming_client_enhanced"``.
 )doc")
@@ -117,9 +123,10 @@ name : str, optional (constructor only)
                     bool,
                     bool,
                     uint32_t,
+                    std::shared_ptr<Allocator>,
                     const std::string&>(),
            "fragment"_a,
-           "width"_a = 640,
+           "width"_a = 854,
            "height"_a = 480,
            "fps"_a = 30,
            "server_ip"_a = "127.0.0.1"s,
@@ -127,6 +134,7 @@ name : str, optional (constructor only)
            "receive_frames"_a = true,
            "send_frames"_a = true,
            "min_non_zero_bytes"_a = 10,
+           "allocator"_a = py::none(),
            "name"_a = "streaming_client_enhanced"s,
            R"doc(
 Constructor for StreamingClientOp.
