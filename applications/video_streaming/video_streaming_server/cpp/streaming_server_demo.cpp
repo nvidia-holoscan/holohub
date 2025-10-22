@@ -252,13 +252,16 @@ int main(int argc, char** argv) {
     std::cout << "Streaming Server Test Application\n"
               << "Using config file: " << config_path << std::endl;
 
-    // Try to load configuration from YAML (but continue even if it fails)
+    bool config_loaded = false;
+    // Try to load configuration from YAML
     try {
       app->config(config_path);
       std::cout << "Successfully loaded configuration from: " << config_path << std::endl;
+      config_loaded = true;
     } catch (const std::exception& e) {
       std::cerr << "Warning: Failed to load config file: " << e.what() << std::endl;
-      std::cerr << "Will continue with default values" << std::endl;
+      std::cerr << "Cannot proceed without a valid configuration." << std::endl;
+      return 1;
     }
 
     // Configuration parameters are loaded from YAML via from_config()
@@ -266,8 +269,10 @@ int main(int argc, char** argv) {
     // The upstream_op and downstream_op sections configure the operators
     // All parameters (width, height, fps, port, etc.) are loaded from YAML
 
-    std::cout << "Configuration loaded from: " << config_path << std::endl;
-    std::cout << "Resource and operators configured from YAML sections" << std::endl;
+    if (config_loaded) {
+      std::cout << "Configuration loaded from: " << config_path << std::endl;
+      std::cout << "Resource and operators configured from YAML sections" << std::endl;
+    }
 
     // Configure scheduler
     std::string scheduler = get_config_value(app.get(), "scheduler", std::string("greedy"));
