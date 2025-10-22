@@ -74,12 +74,21 @@ class calcDets : public BaseOp<calcDets<O, I1, I2, I3, I4>> {
     calcDets(O out, I1 xpow, I2 ba, I3 norm, I4 pfa)
         : out_(out), xpow_(xpow), ba_(ba), norm_(norm), pfa_(pfa)  { }
 
+    template <matx::detail::ElementsPerThread EPT>
     __device__ inline void operator()(index_t idz, index_t idy, index_t idx) {
       typename I1::type xpow = xpow_(idz, idy, idx);
       typename I2::type ba = ba_(idz, idy, idx);
       typename I2::type norm = norm_(idz, idy, idx);
       typename I2::type alpha = norm * (cuda::std::powf(pfa_, -1.0f / norm) - 1.f);
       out_(idz, idy, idx) = (xpow > alpha * ba) ? 1 : 0;
+    }
+
+    template <matx::detail::OperatorCapability Cap>
+    constexpr auto get_capability() const {
+      if constexpr (Cap == matx::detail::OperatorCapability::ELEMENTS_PER_THREAD) {
+        return matx::detail::ElementsPerThread::ONE;
+      }
+      return matx::detail::capability_attributes<Cap>::default_value;
     }
 
     __host__ __device__ inline index_t Size(uint32_t i) const {
