@@ -24,40 +24,40 @@ The Streaming Server operators integrate with the Holoscan Server Cloud Streamin
 │  │  │              Holoscan Server Cloud Streaming                            │ │ │
 │  │  │                                                                         │ │ │
 │  │  │  ┌─────────────────┐    ┌─────────────────────────────────────────────┐ │ │ │
-│  │  │  │ StreamingServer │    │         Network Protocol Stack              ││││
-│  │  │  │                 │    │                                             ││││
-│  │  │  │ • Multi-client  │───▶│  • Media Transport & Encoding               ││││
-│  │  │  │   Management    │    │  • Connection Management                    ││││
-│  │  │  │ • Frame Routing │    │  • Security & Authentication                ││││
-│  │  │  │ • Callbacks     │    │                                             ││││
+│  │  │  │ StreamingServer │    │         Network Protocol Stack              │ │ │ │
+│  │  │  │                 │    │                                             │ │ │ │
+│  │  │  │ • Multi-client  │───▶│  • Media Transport & Encoding               │ │ │ │
+│  │  │  │   Management    │    │  • Connection Management                    │ │ │ │
+│  │  │  │ • Frame Routing │    │  • Security & Authentication                │ │ │ │
+│  │  │  │ • Callbacks     │    │                                             │ │ │ │
 │  │  │  └─────────────────┘    └─────────────────────────────────────────────┘ │ │ │
-│  │  └─────────────────────────────────────────────────────────────────────────┘││
-│  │                                      │                                      ││
-│  └──────────────────────────────────────┼──────────────────────────────────────┘│
+│  │  └─────────────────────────────────────────────────────────────────────────┘ │ │
+│  │                                      │                                      │ │
+│  └──────────────────────────────────────┼──────────────────────────────────────┘ │
 │                                         │                                        │
-│  ┌─────────────────────────────────────────────────────────────────────────────┐│
-│  │                        Processing Pipeline                                  ││
-│  │                                                                             ││
-│  │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐││
-│  │  │StreamingServer  │    │   Processing    │    │StreamingServer          │││
-│  │  │UpstreamOp       │    │   Operators     │    │DownstreamOp             │││
-│  │  │                 │    │                 │    │                         │││
-│  │  │ • Frame Receive │───▶│ • Format Conv   │───▶│ • Frame Processing      │││
-│  │  │ • Client Frames │    │ • AI/ML Ops     │    │ • Tensor → VideoFrame   │││
-│  │  │ • Tensor Output │    │ • Filtering     │    │ • Multi-client Send     │││
-│  │  │ • Validation    │    │ • Enhancement   │    │ • Optional Processing   │││
-│  │  └─────────────────┘    └─────────────────┘    └─────────────────────────┘││
-│  │           │                       │                            │            ││
-│  └───────────┼───────────────────────┼────────────────────────────┼────────────┘│
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │                        Processing Pipeline                                  │ │
+│  │                                                                             │ │
+│  │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐ │ │
+│  │  │StreamingServer  │    │   Processing    │    │StreamingServer          │ │ │
+│  │  │UpstreamOp       │    │   Operators     │    │DownstreamOp             │ │ │
+│  │  │                 │    │                 │    │                         │ │ │
+│  │  │ • Frame Receive │───▶│ • Format Conv   │───▶│ • Frame Processing      │ │ │
+│  │  │ • Client Frames │    │ • AI/ML Ops     │    │ • Tensor → VideoFrame   │ │ │
+│  │  │ • Tensor Output │    │ • Filtering     │    │ • Multi-client Send     │ │ │
+│  │  │ • Validation    │    │ • Enhancement   │    │ • Optional Processing   │ │ │
+│  │  └─────────────────┘    └─────────────────┘    └─────────────────────────┘ │ │
+│  │           │                       │                            │            │ │
+│  └───────────┼───────────────────────┼────────────────────────────┼────────────┘ │
 │              │                       │                            │              │
 │              ▼                       │                            ▲              │
-│  ┌─────────────────┐                 │                ┌─────────────────────────┐│
-│  │  Input Sources  │                 │                │     Output Sinks        ││
-│  │                 │                 │                │                         ││
-│  │ • Client Frames │                 │                │ • Client Connections    ││
-│  │ • Network Data  │                 │                │ • Processed Frames      ││
-│  │ • Remote Cams   │                 │                │ • Multi-cast Streams    ││
-│  └─────────────────┘                 │                └─────────────────────────┘│
+│  ┌─────────────────┐                 │                ┌─────────────────────────┐ │
+│  │  Input Sources  │                 │                │     Output Sinks        │ │
+│  │                 │                 │                │                         │ │
+│  │ • Client Frames │                 │                │ • Client Connections    │ │
+│  │ • Network Data  │                 │                │ • Processed Frames      │ │
+│  │ • Remote Cams   │                 │                │ • Multi-cast Streams    │ │
+│  └─────────────────┘                 │                └─────────────────────────┘ │
 │                                      │                                           │
 │                                      ▼                                           │
 │                          ┌─────────────────────────┐                            │
