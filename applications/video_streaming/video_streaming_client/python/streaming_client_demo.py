@@ -261,17 +261,17 @@ def main():
     parser.add_argument(
         "--source",
         choices=["replayer", "v4l2"],
-        default="replayer",
+        default=None,
         help="Video source type (default: replayer)",
     )
     parser.add_argument("--config", "-c", help="Path to YAML configuration file")
     parser.add_argument(
-        "--server-ip", default="127.0.0.1", help="Server IP address (default: 127.0.0.1)"
+        "--server-ip", default=None, help="Server IP address (default: 127.0.0.1)"
     )
-    parser.add_argument("--port", type=int, default=48010, help="Server port (default: 48010)")
-    parser.add_argument("--width", type=int, default=854, help="Frame width (default: 854)")
-    parser.add_argument("--height", type=int, default=480, help="Frame height (default: 480)")
-    parser.add_argument("--fps", type=int, default=30, help="Frames per second (default: 30)")
+    parser.add_argument("--port", type=int, default=None, help="Server port (default: 48010)")
+    parser.add_argument("--width", type=int, default=None, help="Frame width (default: 854)")
+    parser.add_argument("--height", type=int, default=None, help="Frame height (default: 480)")
+    parser.add_argument("--fps", type=int, default=None, help="Frames per second (default: 30)")
     parser.add_argument("--no-viz", action="store_true", help="Disable visualization")
     parser.add_argument(
         "--create-config", help="Create a default configuration file at the specified path"
@@ -289,11 +289,13 @@ def main():
     # Auto-select config file based on source if not specified
     config_file = args.config
     if not config_file:
-        if args.source == "replayer":
+        # Use source if provided, otherwise default to replayer
+        source = args.source if args.source is not None else "replayer"
+        if source == "replayer":
             config_file = "streaming_client_demo_replayer.yaml"
         else:  # v4l2
             config_file = "streaming_client_demo.yaml"
-        print(f"Auto-selected config file for {args.source}: {config_file}")
+        print(f"Auto-selected config file for {source}: {config_file}")
 
     # Create and run the application
     try:
@@ -313,18 +315,18 @@ def main():
             app.config(config_file)
 
         # Apply command-line arguments (overrides config file)
-        # Only override if explicitly provided
-        if args.source != "replayer":
+        # Only override if explicitly provided (None means not provided)
+        if args.source is not None:
             app.source = args.source
-        if args.server_ip != "127.0.0.1":
+        if args.server_ip is not None:
             app.server_ip = args.server_ip
-        if args.port != 48010:
+        if args.port is not None:
             app.port = args.port
-        if args.width != 854:
+        if args.width is not None:
             app.width = args.width
-        if args.height != 480:
+        if args.height is not None:
             app.height = args.height
-        if args.fps != 30:
+        if args.fps is not None:
             app.fps = args.fps
         if args.no_viz:
             app.visualize = False

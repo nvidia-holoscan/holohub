@@ -126,10 +126,10 @@ scheduler: "greedy"
 def main():
     """Main application entry point."""
     parser = argparse.ArgumentParser(description="Streaming Server Demo (Python)")
-    parser.add_argument("--port", type=int, default=48010, help="Server port (default: 48010)")
-    parser.add_argument("--width", type=int, default=854, help="Frame width (default: 854)")
-    parser.add_argument("--height", type=int, default=480, help="Frame height (default: 480)")
-    parser.add_argument("--fps", type=int, default=30, help="Frames per second (default: 30)")
+    parser.add_argument("--port", type=int, default=None, help="Server port (default: 48010)")
+    parser.add_argument("--width", type=int, default=None, help="Frame width (default: 854)")
+    parser.add_argument("--height", type=int, default=None, help="Frame height (default: 480)")
+    parser.add_argument("--fps", type=int, default=None, help="Frames per second (default: 30)")
     parser.add_argument("--config", "-c", help="Path to YAML configuration file")
     parser.add_argument(
         "--create-config", help="Create a default configuration file at the specified path"
@@ -159,14 +159,14 @@ def main():
             app.config(args.config)
 
         # Apply command-line arguments (overrides config file)
-        # Only override if explicitly provided
-        if args.port != 48010:
+        # Only override if explicitly provided (None means not provided)
+        if args.port is not None:
             app.port = args.port
-        if args.width != 854:
+        if args.width is not None:
             app.width = args.width
-        if args.height != 480:
+        if args.height is not None:
             app.height = args.height
-        if args.fps != 30:
+        if args.fps is not None:
             app.fps = args.fps
 
         print("Starting Streaming Server Demo (Python)")
