@@ -18,8 +18,8 @@ else()
   message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
-# Find the streaming client operator directory
-set(OPERATOR_CLIENT_DIR "${CMAKE_SOURCE_DIR}/operators/video_streaming/streaming_client_enhanced/holoscan_client_cloud_streaming/lib/${ARCH_DIR}")
+# Find the streaming client operator directory using relative path
+set(OPERATOR_CLIENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../operators/video_streaming/streaming_client_enhanced/holoscan_client_cloud_streaming/lib/${ARCH_DIR}")
 
 # Check if NGC binaries exist
 if(NOT EXISTS "${OPERATOR_CLIENT_DIR}/libStreamingClient.so")

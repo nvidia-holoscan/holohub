@@ -33,7 +33,8 @@ elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQ
 else()
   message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
-set(OPERATOR_SSL_DIR "${CMAKE_SOURCE_DIR}/operators/video_streaming/streaming_server_enhanced/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
+# Find the streaming server operator directory using relative path
+set(OPERATOR_SSL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../operators/video_streaming/streaming_server_enhanced/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
 
 # Add executable
 add_executable(streaming_server_demo
