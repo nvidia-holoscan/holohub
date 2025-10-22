@@ -123,12 +123,12 @@ class StreamingServerTestApp : public holoscan::Application {
                                                      from_config("streaming_server"));
 
     // Both operators use the same resource and load their config
-    auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>("upstream_op",
-                                                                      from_config("upstream_op"));
+    auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>(
+        "upstream_op", from_config("upstream_op"));
     upstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
-    auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>("downstream_op",
-                                                                          from_config("downstream_op"));
+    auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>(
+        "downstream_op", from_config("downstream_op"));
     downstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
     // Connect them in pipeline

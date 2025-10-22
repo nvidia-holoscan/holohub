@@ -265,9 +265,7 @@ def main():
         help="Video source type (default: replayer)",
     )
     parser.add_argument("--config", "-c", help="Path to YAML configuration file")
-    parser.add_argument(
-        "--server-ip", default=None, help="Server IP address (default: 127.0.0.1)"
-    )
+    parser.add_argument("--server-ip", default=None, help="Server IP address (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=None, help="Server port (default: 48010)")
     parser.add_argument("--width", type=int, default=None, help="Frame width (default: 854)")
     parser.add_argument("--height", type=int, default=None, help="Frame height (default: 480)")
