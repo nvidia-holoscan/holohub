@@ -209,7 +209,7 @@ Parameters
 ----------
 fragment : holoscan.core.Fragment (constructor only)
     The fragment that the operator belongs to.
-streaming_server_resource : holoscan.resources.StreamingServerResource
+streaming_server_resource : holohub.streaming_server_enhanced.StreamingServerResource
     The shared StreamingServerResource for managing server connection.
 width : int, optional
     Frame width. Default value is ``854``.
@@ -251,7 +251,7 @@ Parameters
 ----------
 fragment : holoscan.core.Fragment (constructor only)
     The fragment that the operator belongs to.
-streaming_server_resource : holoscan.resources.StreamingServerResource
+streaming_server_resource : holohub.streaming_server_enhanced.StreamingServerResource
     The shared StreamingServerResource for managing server connection.
 width : int, optional
     Frame width. Default value is ``854``.
