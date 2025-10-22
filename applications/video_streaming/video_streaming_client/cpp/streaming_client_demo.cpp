@@ -487,7 +487,7 @@ int main(int argc, char** argv) {
   // enable logging of message contents to console if requested
   auto enable_data_logging = get_config_value(app.get(), "data_logging", false);
   if (enable_data_logging) {
-    HOLOSCAN_LOG_INFO("Enabled data logging!!!!!!!!!!!!!!!!!!!!!!!");
+    HOLOSCAN_LOG_INFO("Enabled data logging");
     // custom text serializer to limit the number of data elements printed for each tensor
     auto text_serializer = app->make_resource<holoscan::data_loggers::SimpleTextSerializer>(
         "simple_text_serializer", app->from_config("simple_text_serializer"));
