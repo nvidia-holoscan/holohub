@@ -54,13 +54,17 @@ fi
 
 # Check the integration test log
 echo "=== INTEGRATION TEST LOG ==="
-cat applications/video_streaming/integration_test.log
+if [ -f applications/video_streaming/integration_test.log ]; then
+    cat applications/video_streaming/integration_test.log
+else
+    echo "Warning: Log file not found (test may have failed before logging)"
+fi
 
 # Verify success conditions
 echo "=== VERIFICATION ==="
 
 # Check integration test log for more detailed success indicators
-if [ $INTEGRATION_EXIT_CODE -eq 0 ] && grep -q "Test.*Passed\|100%.*tests passed" applications/video_streaming/integration_test.log; then
+if [ $INTEGRATION_EXIT_CODE -eq 0 ] && [ -f applications/video_streaming/integration_test.log ] && grep -q "Test.*Passed\|100%.*tests passed" applications/video_streaming/integration_test.log; then
     echo "✓ Integration test passed with detailed verification"
     SERVER_SUCCESS=1
     CLIENT_SUCCESS=1
@@ -70,13 +74,17 @@ elif [ $INTEGRATION_EXIT_CODE -eq 0 ]; then
     CLIENT_SUCCESS=1
 else
     echo "✗ Integration test failed - checking for specific errors..."
-    if grep -q "streaming.*server.*test" applications/video_streaming/integration_test.log; then
-        echo "✗ Server test failed"
-        SERVER_SUCCESS=0
-    fi
-    if grep -q "streaming.*client.*test" applications/video_streaming/integration_test.log; then
-        echo "✗ Client test failed" 
-        CLIENT_SUCCESS=0
+    if [ -f applications/video_streaming/integration_test.log ]; then
+        if grep -q "streaming.*server.*test" applications/video_streaming/integration_test.log; then
+            echo "✗ Server test failed"
+            SERVER_SUCCESS=0
+        fi
+        if grep -q "streaming.*client.*test" applications/video_streaming/integration_test.log; then
+            echo "✗ Client test failed" 
+            CLIENT_SUCCESS=0
+        fi
+    else
+        echo "✗ Cannot check specific errors - log file not found"
     fi
 fi
 

@@ -54,13 +54,17 @@ fi
 
 # Check the integration test log
 echo "=== PYTHON INTEGRATION TEST LOG ==="
-cat applications/video_streaming/integration_test_python.log
+if [ -f applications/video_streaming/integration_test_python.log ]; then
+    cat applications/video_streaming/integration_test_python.log
+else
+    echo "Warning: Log file not found (test may have failed before logging)"
+fi
 
 # Verify success conditions
 echo "=== VERIFICATION ==="
 
 # Check integration test log for more detailed success indicators
-if [ $INTEGRATION_EXIT_CODE -eq 0 ] && grep -q "Python Integration test PASSED\|100%.*tests passed" applications/video_streaming/integration_test_python.log; then
+if [ $INTEGRATION_EXIT_CODE -eq 0 ] && [ -f applications/video_streaming/integration_test_python.log ] && grep -q "Python Integration test PASSED\|100%.*tests passed" applications/video_streaming/integration_test_python.log; then
     echo "✓ Python integration test passed with detailed verification"
     SERVER_SUCCESS=1
     CLIENT_SUCCESS=1
@@ -70,13 +74,17 @@ elif [ $INTEGRATION_EXIT_CODE -eq 0 ]; then
     CLIENT_SUCCESS=1
 else
     echo "✗ Python integration test failed - checking for specific errors..."
-    if grep -q "Python server.*failed\|server_python.log" applications/video_streaming/integration_test_python.log; then
-        echo "✗ Python server test failed"
-        SERVER_SUCCESS=0
-    fi
-    if grep -q "Python client.*failed\|client_python.log" applications/video_streaming/integration_test_python.log; then
-        echo "✗ Python client test failed" 
-        CLIENT_SUCCESS=0
+    if [ -f applications/video_streaming/integration_test_python.log ]; then
+        if grep -q "Python server.*failed\|server_python.log" applications/video_streaming/integration_test_python.log; then
+            echo "✗ Python server test failed"
+            SERVER_SUCCESS=0
+        fi
+        if grep -q "Python client.*failed\|client_python.log" applications/video_streaming/integration_test_python.log; then
+            echo "✗ Python client test failed" 
+            CLIENT_SUCCESS=0
+        fi
+    else
+        echo "✗ Cannot check specific errors - log file not found"
     fi
 fi
 
