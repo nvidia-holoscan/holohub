@@ -109,7 +109,7 @@ The `video_streaming_integration_test` defined in CMakeLists.txt:
 
 ```bash
 # Verifies test results from log file
-if grep -q "Test.*Passed\|100%.*tests passed" integration_test.log; then
+if grep -q "Test.*Passed\|100% tests passed, 0 tests failed" integration_test.log; then
   echo "✓ Integration test PASSED"
   exit 0
 fi
