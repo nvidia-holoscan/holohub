@@ -47,7 +47,7 @@ See https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator_pyt
     if hasattr(e, \"add_note\"):
         e.add_note(note)
         raise e
-    e = ImportError(e.msg + \"\\n\" + note).with_traceback(e.__traceback__)
+    e = ImportError(str(e) + \"\\n\" + note).with_traceback(e.__traceback__)
     raise e from None
 
 # Register types with the SDK
