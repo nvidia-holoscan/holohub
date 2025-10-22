@@ -80,7 +80,9 @@ The unified application provides both client and server applications.
 - **Option A: V4L2 Camera (Webcam)**, which uses `streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
 
   ```bash
-  ./holohub run video_streaming client_v4l2
+  ./holohub run video_streaming client_v4l2 \
+    --docker-file applications/video_streaming/Dockerfile \
+    --docker-opts='-e EnableHybridMode=1'
   ```
 
 - **Option B: Video Replayer**, which uses `streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
