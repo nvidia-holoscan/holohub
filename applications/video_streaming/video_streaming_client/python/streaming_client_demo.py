@@ -62,7 +62,6 @@ class StreamingClientApp(Application):
     def __init__(
         self,
         source="replayer",
-        config_file=None,
         server_ip="127.0.0.1",
         port=48010,
         width=854,
@@ -72,7 +71,6 @@ class StreamingClientApp(Application):
     ):
         super().__init__()
         self.source = source
-        self.config_file = config_file
         self.server_ip = server_ip
         self.port = port
         self.width = width
@@ -301,7 +299,6 @@ def main():
     try:
         app = StreamingClientApp(
             source=args.source,
-            config_file=config_file,
             server_ip=args.server_ip,
             port=args.port,
             width=args.width,

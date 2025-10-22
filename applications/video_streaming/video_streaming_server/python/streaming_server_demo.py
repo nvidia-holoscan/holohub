@@ -58,9 +58,8 @@ class StreamingServerApp(Application):
     StreamingServerUpstreamOp -> StreamingServerDownstreamOp
     """
 
-    def __init__(self, config_file=None, port=48010, width=854, height=480, fps=30):
+    def __init__(self, port=48010, width=854, height=480, fps=30):
         super().__init__()
-        self.config_file = config_file
         self.port = port
         self.width = width
         self.height = height
@@ -148,7 +147,6 @@ def main():
     # Create and run the application
     try:
         app = StreamingServerApp(
-            config_file=args.config,
             port=args.port,
             width=args.width,
             height=args.height,
