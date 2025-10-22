@@ -52,30 +52,23 @@ add_custom_command(TARGET streaming_client_demo POST_BUILD
     COMMENT "Installing wrapper script with LD_LIBRARY_PATH"
 )
 
-# Copy config files to multiple locations where they might be needed
+# Copy config files to necessary locations
 add_custom_command(TARGET streaming_client_demo POST_BUILD
-    # Copy to the binary directory
+    # Copy to the binary directory (for local testing)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml"
         "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml"
         "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_replayer.yaml"
-    # Copy to the build root directory (where the application runs)
+    # Copy to the build root directory (where holohub run executes)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml"
         "${CMAKE_BINARY_DIR}/streaming_client_demo.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml"
         "${CMAKE_BINARY_DIR}/streaming_client_demo_replayer.yaml"
-    # Copy to the target file directory
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml"
-        "$<TARGET_FILE_DIR:streaming_client_demo>/streaming_client_demo.yaml"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml"
-        "$<TARGET_FILE_DIR:streaming_client_demo>/streaming_client_demo_replayer.yaml"
-    COMMENT "Copying config files to all necessary locations"
+    COMMENT "Copying config files"
 )
 
 # Set RPATH to prioritize bundled libraries over system libraries
