@@ -51,7 +51,7 @@ class PyStreamingClientOp : public StreamingClientOp {
                                uint16_t signaling_port = 48010,
                                bool receive_frames = true,
                                bool send_frames = true,
-                               uint32_t min_non_zero_bytes = 10,
+                               uint32_t min_non_zero_bytes = 100,
                                std::shared_ptr<Allocator> allocator = nullptr,
                                const std::string& name = "streaming_client_enhanced"s)
       : StreamingClientOp(ArgList{Arg{"width", width},
@@ -107,7 +107,7 @@ receive_frames : bool, optional
 send_frames : bool, optional
     Boolean indicating whether to send frames to the server. Default value is ``True``.
 min_non_zero_bytes : int, optional
-    Minimum non-zero bytes required in frame data to consider the frame valid. Default value is ``10``.
+    Minimum non-zero bytes required in frame data to consider the frame valid. Default value is ``100``.
 allocator : holoscan.resources.Allocator, optional
     Memory allocator for output buffer allocation. Default value is ``None``.
 name : str, optional (constructor only)
@@ -133,7 +133,7 @@ name : str, optional (constructor only)
            "signaling_port"_a = 48010,
            "receive_frames"_a = true,
            "send_frames"_a = true,
-           "min_non_zero_bytes"_a = 10,
+           "min_non_zero_bytes"_a = 100,
            "allocator"_a = py::none(),
            "name"_a = "streaming_client_enhanced"s,
            R"doc(
