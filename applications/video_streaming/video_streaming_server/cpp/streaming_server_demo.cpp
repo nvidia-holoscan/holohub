@@ -129,18 +129,34 @@ class StreamingServerTestApp : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    // Create shared resource with configuration from YAML
+    // Create shared resource with configuration from YAML (with backward compatibility)
+    holoscan::ArgList streaming_server_args;
+    try {
+      streaming_server_args = from_config("streaming_server");
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_WARN("Missing streaming_server config section, using defaults ({})", e.what());
+    }
     auto streaming_server_resource =
         make_resource<ops::StreamingServerResource>("streaming_server_resource",
-                                                     from_config("streaming_server"));
+                                                     streaming_server_args);
 
-    // Both operators use the same resource and load their config
-    auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>(
-        "upstream_op", from_config("upstream_op"));
+    // Both operators use the same resource and load their config (with backward compatibility)
+    holoscan::ArgList upstream_args;
+    try {
+      upstream_args = from_config("upstream_op");
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_WARN("Missing upstream_op config section, using defaults ({})", e.what());
+    }
+    auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>("upstream_op", upstream_args);
     upstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
-    auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>(
-        "downstream_op", from_config("downstream_op"));
+    holoscan::ArgList downstream_args;
+    try {
+      downstream_args = from_config("downstream_op");
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_WARN("Missing downstream_op config section, using defaults ({})", e.what());
+    }
+    auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>("downstream_op", downstream_args);
     downstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
     // Connect them in pipeline
