@@ -156,7 +156,8 @@ class StreamingServerTestApp : public holoscan::Application {
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_WARN("Missing downstream_op config section, using defaults ({})", e.what());
     }
-    auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>("downstream_op", downstream_args);
+    auto downstream_op =
+        make_operator<ops::StreamingServerDownstreamOp>("downstream_op", downstream_args);
     downstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
     // Connect them in pipeline
