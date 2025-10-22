@@ -38,9 +38,7 @@ This application demonstrates how to create a bidirectional video streaming serv
 
 ```bash
 # From holohub root directory - runs with default settings (854x480 @ 30fps)
-./holohub run video_streaming server \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1'
+./holohub run video_streaming
 ```
 
 ### Python Server
@@ -277,9 +275,7 @@ Terminal 2 - Start Python Client with Video Replayer (854x480):
 Terminal 1 - Start Server (C++ or Python):
 ```bash
 # C++ Server
-./holohub run video_streaming server \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1'
+./holohub run video_streaming
 
 # OR Python Server
 ./holohub run video_streaming server_python \
@@ -290,9 +286,11 @@ Terminal 1 - Start Server (C++ or Python):
 
 Terminal 2 - Start C++ Client:
 ```bash
-./holohub run video_streaming client \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1'
+# Video Replayer Mode
+./holohub run video_streaming client_replayer
+
+# OR V4L2 Camera Mode
+./holohub run video_streaming client_v4l2
 ```
 
 **Important:** 

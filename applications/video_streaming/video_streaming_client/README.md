@@ -44,17 +44,13 @@ This application demonstrates how to create a bidirectional video streaming clie
 **Video Replayer Mode (Default - 854x480):**
 ```bash
 # From holohub root directory - runs with video file playback
-./holohub run video_streaming client_replayer \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1'
+./holohub run video_streaming client_replayer
 ```
 
 **V4L2 Camera Mode (640x480):**
 ```bash
 # From holohub root directory - runs with V4L2 camera (webcam)
-./holohub run video_streaming client_v4l2 \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1'
+./holohub run video_streaming client_v4l2
 ```
 
 ### Python Client
@@ -536,9 +532,7 @@ Terminal 2 - Or Start Python Client with V4L2 Camera (640x480):
 Terminal 1 - Start Server (C++ or Python):
 ```bash
 # C++ Server
-./holohub run video_streaming server \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1'
+./holohub run video_streaming
 
 # OR Python Server
 ./holohub run video_streaming server_python \
@@ -550,14 +544,10 @@ Terminal 1 - Start Server (C++ or Python):
 Terminal 2 - Start C++ Client:
 ```bash
 # Video Replayer Mode
-./holohub run video_streaming client_replayer \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1'
+./holohub run video_streaming client_replayer
 
 # OR V4L2 Camera Mode
-./holohub run video_streaming client_v4l2 \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1'
+./holohub run video_streaming client_v4l2
 ```
 
 **Important:** 
@@ -585,8 +575,8 @@ To switch between V4L2 camera and video replayer:
 
 1. **Stop the current client** (Ctrl+C)
 2. **Use the appropriate command:**
-   - For camera: `./holohub run video_streaming client_v4l2 --docker-file applications/video_streaming/Dockerfile --docker-opts='-e EnableHybridMode=1'` (or `client_python_v4l2`)
-   - For video replay: `./holohub run video_streaming client_replayer --docker-file applications/video_streaming/Dockerfile --docker-opts='-e EnableHybridMode=1'` (or `client_python`)
+   - For camera: `./holohub run video_streaming client_v4l2` (or `client_python_v4l2`)
+   - For video replay: `./holohub run video_streaming client_replayer` (or `client_python`)
 
 **Important:** The server doesn't need to be restarted when switching client modes.
 
