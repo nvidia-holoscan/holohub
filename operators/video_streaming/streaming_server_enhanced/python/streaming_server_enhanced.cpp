@@ -53,6 +53,9 @@ class PyStreamingServerUpstreamOp : public StreamingServerUpstreamOp {
       : StreamingServerUpstreamOp(ArgList{Arg{"width", width},
                                           Arg{"height", height},
                                           Arg{"fps", fps}}) {
+    name_ = name;
+    fragment_ = fragment;
+    spec_ = std::make_shared<OperatorSpec>(fragment);
     add_positional_condition_and_resource_args(this, args);
     if (allocator) {
       this->add_arg(Arg("allocator", allocator));
@@ -60,9 +63,6 @@ class PyStreamingServerUpstreamOp : public StreamingServerUpstreamOp {
     if (streaming_server_resource) {
       this->add_arg(Arg("streaming_server_resource", streaming_server_resource));
     }
-    name_ = name;
-    fragment_ = fragment;
-    spec_ = std::make_shared<OperatorSpec>(fragment);
     setup(*spec_);
   }
 };
@@ -89,6 +89,9 @@ class PyStreamingServerDownstreamOp : public StreamingServerDownstreamOp {
                                             Arg{"fps", fps},
                                             Arg{"enable_processing", enable_processing},
                                             Arg{"processing_type", processing_type}}) {
+    name_ = name;
+    fragment_ = fragment;
+    spec_ = std::make_shared<OperatorSpec>(fragment);
     add_positional_condition_and_resource_args(this, args);
     if (allocator) {
       this->add_arg(Arg("allocator", allocator));
@@ -96,9 +99,6 @@ class PyStreamingServerDownstreamOp : public StreamingServerDownstreamOp {
     if (streaming_server_resource) {
       this->add_arg(Arg("streaming_server_resource", streaming_server_resource));
     }
-    name_ = name;
-    fragment_ = fragment;
-    spec_ = std::make_shared<OperatorSpec>(fragment);
     setup(*spec_);
   }
 };

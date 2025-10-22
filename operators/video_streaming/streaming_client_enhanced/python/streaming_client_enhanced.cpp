@@ -62,13 +62,13 @@ class PyStreamingClientOp : public StreamingClientOp {
                                   Arg{"receive_frames", receive_frames},
                                   Arg{"send_frames", send_frames},
                                   Arg{"min_non_zero_bytes", min_non_zero_bytes}}) {
+    name_ = name;
+    fragment_ = fragment;
+    spec_ = std::make_shared<OperatorSpec>(fragment);
     add_positional_condition_and_resource_args(this, args);
     if (allocator) {
       this->add_arg(Arg("allocator", allocator));
     }
-    name_ = name;
-    fragment_ = fragment;
-    spec_ = std::make_shared<OperatorSpec>(fragment);
     setup(*spec_);
   }
 };
