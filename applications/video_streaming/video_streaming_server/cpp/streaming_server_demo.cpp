@@ -114,16 +114,6 @@ bool ensure_config_file_exists(const std::string& config_path) {
 
 class StreamingServerTestApp : public holoscan::Application {
  public:
-  void set_width(uint32_t width) { width_ = width; }
-  void set_height(uint32_t height) { height_ = height; }
-  void set_fps(uint32_t fps) { fps_ = fps; }
-  void set_server_ip(const std::string& server_ip) { server_ip_ = server_ip; }
-  void set_port(uint16_t port) { port_ = port; }
-  void set_receive_frames(bool receive_frames) { receive_frames_ = receive_frames; }
-  void set_send_frames(bool send_frames) { send_frames_ = send_frames; }
-  void set_visualize_frames(bool visualize_frames) { visualize_frames_ = visualize_frames; }
-  void set_datapath(const std::string& datapath) { datapath_ = datapath; }
-
   void compose() override {
     using namespace holoscan;
 
@@ -144,18 +134,6 @@ class StreamingServerTestApp : public holoscan::Application {
     HOLOSCAN_LOG_INFO(
         "Application composed with streaming server using continuous execution");
   }
-
- private:
-  // Default parameters (will be overridden from config if available)
-  uint32_t width_ = 854;
-  uint32_t height_ = 480;
-  uint32_t fps_ = 30;
-  std::string server_ip_ = "127.0.0.1";
-  uint16_t port_ = 48010;
-  bool receive_frames_ = true;
-  bool send_frames_ = true;
-  bool visualize_frames_ = false;
-  std::string datapath_ = "data/endoscopy";
 };
 
 void print_usage() {
@@ -269,39 +247,12 @@ int main(int argc, char** argv) {
     }
 
     // Load parameters from config with safe defaults
-    uint32_t width = get_config_value(app.get(), "streaming_server.width", 854u);
-    uint32_t height = get_config_value(app.get(), "streaming_server.height", 480u);
-    uint32_t fps = get_config_value(app.get(), "streaming_server.fps", 30u);
-    std::string server_ip = get_config_value(app.get(), "streaming_server.server_ip",
-                                             std::string("127.0.0.1"));
-    uint16_t port = get_config_value(app.get(), "streaming_server.port", 48010);
-    bool receive_frames = get_config_value(app.get(), "streaming_server.receive_frames", true);
-    bool send_frames = get_config_value(app.get(), "streaming_server.send_frames", true);
-    bool visualize_frames = get_config_value(app.get(), "streaming_server.visualize_frames", false);
+    // Note: Configuration parameters (width, height, fps, port, etc.) are read
+    // directly by StreamingServerResource from the YAML file and passed to operators.
+    // The application does not need to handle these parameters explicitly.
 
-    // Set application parameters from config
-    app->set_width(width);
-    app->set_height(height);
-    app->set_fps(fps);
-    app->set_server_ip(server_ip);
-    app->set_port(port);
-    app->set_receive_frames(receive_frames);
-    app->set_send_frames(send_frames);
-    app->set_visualize_frames(visualize_frames);
-
-    // Set data directory if provided via command line
-    if (!data_directory.empty()) {
-      app->set_datapath(data_directory);
-      std::cout << "Using data directory: " << data_directory << std::endl;
-    }
-
-    std::cout << "Configuration:\n"
-              << "- Resolution: " << width << "x" << height << "\n"
-              << "- FPS: " << fps << "\n"
-              << "- Server: " << server_ip << ":" << port << "\n"
-              << "- Receive frames: " << (receive_frames ? "yes" : "no") << "\n"
-              << "- Send frames: " << (send_frames ? "yes" : "no") << "\n"
-              << "- Visualize frames: " << (visualize_frames ? "yes" : "no") << std::endl;
+    std::cout << "Configuration loaded from: " << config_path << std::endl;
+    std::cout << "Operators will use parameters from StreamingServerResource (defined in YAML)" << std::endl;
 
     // Configure scheduler
     std::string scheduler = get_config_value(app.get(), "scheduler", std::string("greedy"));
