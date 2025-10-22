@@ -133,7 +133,6 @@ class BenchmarkOp : public Operator {
               int load_intensity = 100,
               int workload_size = 100)
             : target_fps_(target_fps),
-              target_period_ns_(static_cast<int64_t>(1e9 / target_fps)),
               load_intensity_(load_intensity),
               workload_size_(workload_size) {}
 
@@ -194,7 +193,6 @@ class BenchmarkOp : public Operator {
 
  private:
   int target_fps_;
-  int64_t target_period_ns_;
   int load_intensity_;
   int workload_size_;
   std::vector<double> periods_ns_;
@@ -484,9 +482,17 @@ int main(int argc, char* argv[]) {
     switch (opt) {
       case 'f':
         target_fps = std::atoi(optarg);
+        if (target_fps <= 0) {
+          std::cerr << "Error: target-fps must be positive\n";
+          return 1;
+        }
         break;
       case 'd':
         duration_seconds = std::atoi(optarg);
+        if (duration_seconds <= 0) {
+          std::cerr << "Error: duration must be positive\n";
+          return 1;
+        }
         break;
       case 'p':
         scheduling_policy_str = optarg;
