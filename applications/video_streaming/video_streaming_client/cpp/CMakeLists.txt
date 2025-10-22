@@ -97,7 +97,8 @@ install(
 )
 
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_wrapper.sh"
+  FILES "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_wrapper.sh.in"
   DESTINATION bin/video_streaming_client/cpp
+  RENAME streaming_client_demo_wrapper.sh
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
