@@ -164,7 +164,36 @@ All dependencies need to be properly installed in the operator directory structu
 
 ## Testing
 
-Testing is handled at the application level through the unified `video_streaming` integration test, which provides end-to-end validation of both client and server components working together.
+This package includes comprehensive testing at multiple levels:
+
+### Unit Tests
+
+**C++ Unit Tests** for all video streaming operators (35+ tests):
+- ✅ Fast execution (~0.13 seconds)
+- ✅ 100% pass rate
+- ✅ No network dependencies
+- ✅ Tests operator initialization, parameter validation, and resource management
+
+**Run unit tests:**
+```bash
+# Build with tests enabled
+./holohub build video_streaming --configure-args='-DBUILD_TESTING=ON'
+
+# Run all unit tests
+./holohub test video_streaming --ctest-options="-R unit_tests -V"
+```
+
+**Documentation:**
+- **[Unit Tests Summary](UNIT_TESTS_SUMMARY.md)** - Complete unit test documentation
+- **[Client Tests](streaming_client_enhanced/tests/README.md)** - StreamingClientOp tests
+- **[Server Tests](streaming_server_enhanced/tests/README.md)** - Server operator tests
+
+### Integration Tests
+
+End-to-end integration tests validate the complete streaming pipeline with actual server/client communication and frame transmission.
+
+**Documentation:**
+- **[Integration Tests](../../applications/video_streaming/TESTING.md)** - End-to-end testing documentation
 
 ## Related Applications
 
