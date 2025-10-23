@@ -280,3 +280,13 @@ install(FILES
 
 # Print status message
 message(STATUS "StreamingClient operator configuration complete with imported targets.")
+
+# Add Python bindings if requested
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
+
+# Add unit tests if testing is enabled
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
