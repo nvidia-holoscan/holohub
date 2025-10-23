@@ -43,7 +43,6 @@ class PyStreamingServerUpstreamOp : public StreamingServerUpstreamOp {
   using StreamingServerUpstreamOp::StreamingServerUpstreamOp;
 
   explicit PyStreamingServerUpstreamOp(Fragment* fragment,
-                                       const py::args& args,
                                        uint32_t width = 854,
                                        uint32_t height = 480,
                                        uint32_t fps = 30,
@@ -51,7 +50,8 @@ class PyStreamingServerUpstreamOp : public StreamingServerUpstreamOp {
                                        std::shared_ptr<StreamingServerResource>
                                            streaming_server_resource = nullptr,
                                        const std::string& name =
-                                           "streaming_server_upstream"s)
+                                           "streaming_server_upstream"s,
+                                       const py::args& args = py::args())
       : StreamingServerUpstreamOp(ArgList{Arg{"width", width},
                                           Arg{"height", height},
                                           Arg{"fps", fps}}) {
@@ -74,7 +74,6 @@ class PyStreamingServerDownstreamOp : public StreamingServerDownstreamOp {
   using StreamingServerDownstreamOp::StreamingServerDownstreamOp;
 
   explicit PyStreamingServerDownstreamOp(Fragment* fragment,
-                                         const py::args& args,
                                          uint32_t width = 854,
                                          uint32_t height = 480,
                                         uint32_t fps = 30,
@@ -85,7 +84,8 @@ class PyStreamingServerDownstreamOp : public StreamingServerDownstreamOp {
                                         std::shared_ptr<StreamingServerResource>
                                             streaming_server_resource = nullptr,
                                         const std::string& name =
-                                            "streaming_server_downstream"s)
+                                            "streaming_server_downstream"s,
+                                        const py::args& args = py::args())
       : StreamingServerDownstreamOp(ArgList{Arg{"width", width},
                                             Arg{"height", height},
                                             Arg{"fps", fps},
@@ -223,13 +223,13 @@ name : str, optional (constructor only)
     The name of the operator. Default value is ``"streaming_server_upstream"``.
 )doc")
       .def(py::init<Fragment*,
-                    const py::args&,
                     uint32_t,
                     uint32_t,
                     uint32_t,
                     std::shared_ptr<Allocator>,
                     std::shared_ptr<StreamingServerResource>,
-                    const std::string&>(),
+                    const std::string&,
+                    const py::args&>(),
            "fragment"_a,
            "width"_a = 854,
            "height"_a = 480,
@@ -269,7 +269,6 @@ name : str, optional (constructor only)
     The name of the operator. Default value is ``"streaming_server_downstream"``.
 )doc")
       .def(py::init<Fragment*,
-                    const py::args&,
                     uint32_t,
                     uint32_t,
                     uint32_t,
@@ -277,7 +276,8 @@ name : str, optional (constructor only)
                     const std::string&,
                     std::shared_ptr<Allocator>,
                     std::shared_ptr<StreamingServerResource>,
-                    const std::string&>(),
+                    const std::string&,
+                    const py::args&>(),
            "fragment"_a,
            "width"_a = 854,
            "height"_a = 480,
