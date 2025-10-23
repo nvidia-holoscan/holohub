@@ -24,7 +24,6 @@
 
 #include <holoscan/holoscan.hpp>
 
-#include "gst/guards.hpp"
 #include "gst/buffer.hpp"
 #include "gst_src_bridge.hpp"
 
@@ -40,7 +39,6 @@ namespace holoscan {
 class GstSrcResource : public holoscan::Resource {
  public:
   HOLOSCAN_RESOURCE_FORWARD_ARGS(GstSrcResource)
-  using SharedPtr = std::shared_ptr<GstSrcResource>;
 
   /**
    * @brief Destructor
@@ -159,8 +157,6 @@ class GstSrcResource : public holoscan::Resource {
   std::promise<gst::Element> element_promise_;
   std::shared_future<gst::Element> element_future_;
 };
-
-using GstSrcResourcePtr = GstSrcResource::SharedPtr;
 
 }  // namespace holoscan
 

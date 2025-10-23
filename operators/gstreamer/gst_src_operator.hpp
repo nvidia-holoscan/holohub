@@ -67,7 +67,7 @@ class GstSrcOperator : public Operator {
   void stop() override;
 
  private:
-  Parameter<GstSrcResourcePtr> gst_src_resource_;
+  Parameter<std::shared_ptr<GstSrcResource>> gst_src_resource_;
   Parameter<uint64_t> timeout_ms_;
 };
 

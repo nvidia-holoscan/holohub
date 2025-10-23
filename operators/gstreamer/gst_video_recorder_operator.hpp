@@ -22,8 +22,11 @@
 #include <memory>
 #include <string>
 #include <future>
-#include <holoscan/holoscan.hpp>
+
 #include <gst/gst.h>
+
+#include <holoscan/holoscan.hpp>
+
 #include "gst/object.hpp"
 #include "gst_src_bridge.hpp"
 
@@ -113,9 +116,9 @@ class GstVideoRecorderOperator : public Operator {
   Parameter<std::map<std::string, std::string>> properties_;  // Encoder-specific properties (e.g., {"bitrate": "8000", "preset": "1"})
   
   // Bridge and pipeline management
-  std::shared_ptr<holoscan::gst::GstSrcBridge> bridge_;
-  holoscan::gst::Element pipeline_;
-  holoscan::gst::Element encoder_;  // Keep reference to link dynamically created converter to it
+  std::shared_ptr<gst::GstSrcBridge> bridge_;
+  gst::Element pipeline_;
+  gst::Element encoder_;  // Keep reference to link dynamically created converter to it
   
   // Bus monitoring
   std::future<void> bus_monitor_future_;

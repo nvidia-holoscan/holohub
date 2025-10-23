@@ -27,17 +27,17 @@
 
 namespace holoscan {
 
-holoscan::gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity) const {
+gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity) const {
   if (!bridge_) {
     HOLOSCAN_LOG_ERROR("Bridge not initialized");
-    return holoscan::gst::Buffer();
+    return gst::Buffer();
   }
   
   // Delegate to bridge
   return bridge_->create_buffer_from_entity(entity);
 }
 
-void GstSrcResource::setup(holoscan::ComponentSpec& spec) {
+void GstSrcResource::setup(ComponentSpec& spec) {
   // Initialize the future from the promise on first setup
   if (!element_future_.valid()) {
     element_future_ = element_promise_.get_future();
@@ -68,7 +68,7 @@ void GstSrcResource::initialize() {
   
   // Create the bridge (constructor initializes it)
   try {
-    bridge_ = std::make_shared<holoscan::gst::GstSrcBridge>(
+    bridge_ = std::make_shared<gst::GstSrcBridge>(
       name(), 
       caps_.get(), 
       queue_limit_.get()

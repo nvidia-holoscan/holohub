@@ -553,14 +553,14 @@ void GstVideoRecorderOperator::start() {
   HOLOSCAN_LOG_INFO("Setting up GStreamer pipeline (without source)");
   
   // Create pipeline
-  pipeline_ = holoscan::gst::Element(gst_pipeline_new("video-recorder-pipeline"));
+  pipeline_ = gst::Element(gst_pipeline_new("video-recorder-pipeline"));
   if (!pipeline_) {
     throw std::runtime_error("Failed to create GStreamer pipeline");
   }
   
   // Create encoder element first (append "enc" suffix to encoder base name)
   std::string encoder_element = encoder_name_.get() + "enc";
-  encoder_ = holoscan::gst::Element(
+  encoder_ = gst::Element(
       gst_element_factory_make(encoder_element.c_str(), "encoder"));
   if (!encoder_) {
     HOLOSCAN_LOG_ERROR("Failed to create encoder element '{}'", encoder_element);
@@ -591,11 +591,11 @@ void GstVideoRecorderOperator::start() {
   HOLOSCAN_LOG_INFO("Auto-detected muxer: {} for extension in '{}'", muxer_name, output_filename);
   
   // Create remaining pipeline elements (without source and converter - those will be added on first frame)
-  auto parser = holoscan::gst::Element(
+  auto parser = gst::Element(
       gst_element_factory_make(parser_name.c_str(), "parser"));
-  auto muxer = holoscan::gst::Element(
+  auto muxer = gst::Element(
       gst_element_factory_make(muxer_name.c_str(), "muxer"));
-  auto filesink = holoscan::gst::Element(
+  auto filesink = gst::Element(
       gst_element_factory_make("filesink", "filesink"));
   
   if (!parser) {
