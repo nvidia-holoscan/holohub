@@ -25,7 +25,7 @@ namespace holoscan::ops {
 
 /**
  * @brief Test fixture for StreamingClientOp unit tests
- * 
+ *
  * This test fixture provides a Holoscan Fragment context for testing
  * the StreamingClientOp operator in isolation.
  */
@@ -51,7 +51,7 @@ class StreamingClientOpTest : public ::testing::Test {
 
 /**
  * @brief Test basic operator creation with minimal required parameters
- * 
+ *
  * Verifies that the StreamingClientOp can be instantiated with standard parameters
  * and that the operator has the expected name and type.
  */
@@ -64,8 +64,7 @@ TEST_F(StreamingClientOpTest, BasicInitialization) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,  // Disable for unit testing
-      holoscan::Arg("receive_frames") = false  // Disable for unit testing
-  );
+      holoscan::Arg("receive_frames") = false  // Disable for unit testing);
 
   ASSERT_NE(streaming_client_op_, nullptr);
   EXPECT_EQ(streaming_client_op_->name(), "test_streaming_client");
@@ -74,7 +73,7 @@ TEST_F(StreamingClientOpTest, BasicInitialization) {
 
 /**
  * @brief Test operator creation with default streaming mode (disabled)
- * 
+ *
  * Verifies that the operator can be created with streaming disabled,
  * useful for testing without requiring an actual server connection.
  */
@@ -87,8 +86,7 @@ TEST_F(StreamingClientOpTest, InitializationWithStreamingDisabled) {
       holoscan::Arg("server_ip") = std::string("192.168.1.100"),
       holoscan::Arg("signaling_port") = uint16_t{8080},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
 
   ASSERT_NE(streaming_client_op_, nullptr);
   EXPECT_EQ(streaming_client_op_->name(), "disabled_client");
@@ -100,7 +98,7 @@ TEST_F(StreamingClientOpTest, InitializationWithStreamingDisabled) {
 
 /**
  * @brief Test operator with various video resolutions
- * 
+ *
  * Verifies that the operator accepts different video resolutions
  * commonly used in streaming applications.
  */
@@ -114,8 +112,7 @@ TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // HD (1280x720)
@@ -127,8 +124,7 @@ TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // Full HD (1920x1080)
@@ -140,8 +136,7 @@ TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // 4K (3840x2160)
@@ -153,14 +148,13 @@ TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 }
 
 /**
  * @brief Test operator with various frame rates
- * 
+ *
  * Verifies that the operator accepts different frame rates
  * from low-latency to high-performance scenarios.
  */
@@ -174,8 +168,7 @@ TEST_F(StreamingClientOpTest, FrameRateParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // Standard frame rate (30 FPS)
@@ -187,8 +180,7 @@ TEST_F(StreamingClientOpTest, FrameRateParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // High frame rate (60 FPS)
@@ -200,8 +192,7 @@ TEST_F(StreamingClientOpTest, FrameRateParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // Very high frame rate (120 FPS)
@@ -213,14 +204,13 @@ TEST_F(StreamingClientOpTest, FrameRateParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 }
 
 /**
  * @brief Test operator with various network configurations
- * 
+ *
  * Verifies that the operator accepts different server IPs and ports.
  */
 TEST_F(StreamingClientOpTest, NetworkParameters) {
@@ -233,8 +223,7 @@ TEST_F(StreamingClientOpTest, NetworkParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // LAN address
@@ -246,8 +235,7 @@ TEST_F(StreamingClientOpTest, NetworkParameters) {
       holoscan::Arg("server_ip") = std::string("192.168.1.100"),
       holoscan::Arg("signaling_port") = uint16_t{8080},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // Different port
@@ -259,14 +247,13 @@ TEST_F(StreamingClientOpTest, NetworkParameters) {
       holoscan::Arg("server_ip") = std::string("10.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{9999},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 }
 
 /**
  * @brief Test operator with streaming mode configurations
- * 
+ *
  * Verifies different combinations of send_frames and receive_frames parameters.
  */
 TEST_F(StreamingClientOpTest, StreamingModeParameters) {
@@ -279,8 +266,7 @@ TEST_F(StreamingClientOpTest, StreamingModeParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = true,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // Receive only
@@ -292,8 +278,7 @@ TEST_F(StreamingClientOpTest, StreamingModeParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = true
-  );
+      holoscan::Arg("receive_frames") = true);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // Bidirectional
@@ -305,8 +290,7 @@ TEST_F(StreamingClientOpTest, StreamingModeParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = true,
-      holoscan::Arg("receive_frames") = true
-  );
+      holoscan::Arg("receive_frames") = true);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // Both disabled (configuration only)
@@ -318,14 +302,13 @@ TEST_F(StreamingClientOpTest, StreamingModeParameters) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 }
 
 /**
  * @brief Test operator with frame validation parameter
- * 
+ *
  * Verifies that the min_non_zero_bytes parameter is accepted and that
  * operators can be created with various validation thresholds.
  */
@@ -340,8 +323,7 @@ TEST_F(StreamingClientOpTest, FrameValidationParameter) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false,
-      holoscan::Arg("min_non_zero_bytes") = 100u
-  );
+      holoscan::Arg("min_non_zero_bytes") = 100u);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // Low validation threshold
@@ -354,8 +336,7 @@ TEST_F(StreamingClientOpTest, FrameValidationParameter) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false,
-      holoscan::Arg("min_non_zero_bytes") = 10u
-  );
+      holoscan::Arg("min_non_zero_bytes") = 10u);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // High validation threshold
@@ -368,8 +349,7 @@ TEST_F(StreamingClientOpTest, FrameValidationParameter) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false,
-      holoscan::Arg("min_non_zero_bytes") = 500u
-  );
+      holoscan::Arg("min_non_zero_bytes") = 500u);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // No validation (0 bytes)
@@ -382,8 +362,7 @@ TEST_F(StreamingClientOpTest, FrameValidationParameter) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false,
-      holoscan::Arg("min_non_zero_bytes") = 0u
-  );
+      holoscan::Arg("min_non_zero_bytes") = 0u);
   ASSERT_NE(streaming_client_op_, nullptr);
 }
 
@@ -393,7 +372,7 @@ TEST_F(StreamingClientOpTest, FrameValidationParameter) {
 
 /**
  * @brief Test operator setup method
- * 
+ *
  * Verifies that the setup() method can be called without crashing
  * and properly configures the operator's input/output ports.
  */
@@ -406,14 +385,13 @@ TEST_F(StreamingClientOpTest, OperatorSetup) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
 
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // Create an operator spec for setup testing
   auto spec = std::make_shared<holoscan::OperatorSpec>(fragment_.get());
-  
+
   // Test that setup doesn't crash (basic smoke test)
   EXPECT_NO_THROW(streaming_client_op_->setup(*spec));
 }
@@ -424,7 +402,7 @@ TEST_F(StreamingClientOpTest, OperatorSetup) {
 
 /**
  * @brief Test operator with minimum resolution
- * 
+ *
  * Verifies that the operator accepts very small resolutions.
  */
 TEST_F(StreamingClientOpTest, MinimumResolution) {
@@ -436,8 +414,7 @@ TEST_F(StreamingClientOpTest, MinimumResolution) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
 
   ASSERT_NE(streaming_client_op_, nullptr);
   EXPECT_EQ(streaming_client_op_->name(), "min_resolution_client");
@@ -445,7 +422,7 @@ TEST_F(StreamingClientOpTest, MinimumResolution) {
 
 /**
  * @brief Test operator with maximum reasonable resolution
- * 
+ *
  * Verifies that the operator accepts 8K resolution parameters.
  */
 TEST_F(StreamingClientOpTest, MaximumResolution) {
@@ -457,8 +434,7 @@ TEST_F(StreamingClientOpTest, MaximumResolution) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
 
   ASSERT_NE(streaming_client_op_, nullptr);
   EXPECT_EQ(streaming_client_op_->name(), "max_resolution_client");
@@ -466,7 +442,7 @@ TEST_F(StreamingClientOpTest, MaximumResolution) {
 
 /**
  * @brief Test operator with edge case port numbers
- * 
+ *
  * Verifies that the operator accepts valid port numbers including
  * low and high port ranges.
  */
@@ -480,8 +456,7 @@ TEST_F(StreamingClientOpTest, PortNumberEdgeCases) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{1024},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 
   // High port number (65535 - maximum port)
@@ -493,8 +468,7 @@ TEST_F(StreamingClientOpTest, PortNumberEdgeCases) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{65535},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
   ASSERT_NE(streaming_client_op_, nullptr);
 }
 
@@ -504,7 +478,7 @@ TEST_F(StreamingClientOpTest, PortNumberEdgeCases) {
 
 /**
  * @brief Test operator cleanup and destruction
- * 
+ *
  * Verifies that the operator can be properly destroyed without crashing
  * or leaking resources.
  */
@@ -517,22 +491,21 @@ TEST_F(StreamingClientOpTest, OperatorCleanup) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
 
   ASSERT_NE(streaming_client_op_, nullptr);
-  
+
   // Test that cleanup doesn't crash
   EXPECT_NO_THROW({
     streaming_client_op_.reset();
   });
-  
+
   EXPECT_EQ(streaming_client_op_, nullptr);
 }
 
 /**
  * @brief Test multiple operator instances
- * 
+ *
  * Verifies that multiple StreamingClientOp instances can be created
  * and managed simultaneously without conflicts.
  */
@@ -545,8 +518,7 @@ TEST_F(StreamingClientOpTest, MultipleInstances) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
 
   auto client2 = fragment_->make_operator<StreamingClientOp>(
       "client_2",
@@ -556,8 +528,7 @@ TEST_F(StreamingClientOpTest, MultipleInstances) {
       holoscan::Arg("server_ip") = std::string("192.168.1.100"),
       holoscan::Arg("signaling_port") = uint16_t{8080},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
 
   auto client3 = fragment_->make_operator<StreamingClientOp>(
       "client_3",
@@ -567,8 +538,7 @@ TEST_F(StreamingClientOpTest, MultipleInstances) {
       holoscan::Arg("server_ip") = std::string("10.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{9999},
       holoscan::Arg("send_frames") = false,
-      holoscan::Arg("receive_frames") = false
-  );
+      holoscan::Arg("receive_frames") = false);
 
   ASSERT_NE(client1, nullptr);
   ASSERT_NE(client2, nullptr);
