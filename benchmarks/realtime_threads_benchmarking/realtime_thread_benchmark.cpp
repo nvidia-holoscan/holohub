@@ -24,13 +24,16 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <mutex>
 #include <numeric>
 #include <string>
 #include <thread>
 #include <vector>
 #include <getopt.h>
+#include <spawn.h>
+#include <sys/wait.h>
 #include <unistd.h>
+
+extern char** environ;
 
 #include <holoscan/holoscan.hpp>
 
@@ -198,7 +201,6 @@ class BenchmarkOp : public Operator {
   std::vector<double> periods_ns_;
   std::vector<double> execution_times_ns_;
   std::chrono::steady_clock::time_point last_start_time_{};
-  mutable std::mutex lock_;
   double work_result_ = 0.0;
 };
 
@@ -673,14 +675,26 @@ int main(int argc, char* argv[]) {
     output_dir = ".";
   }
 
-  std::string plot_command = "python3 " + plot_script + " --input " + output_file +
-                             " --output-dir " + output_dir;
-
   std::cout << "\nGenerating plots..." << std::endl;
-  int plot_result = std::system(plot_command.c_str());
-  if (plot_result != 0) {
-    std::cerr << "Warning: Failed to generate plots. "
-              << "Make sure Python3 and matplotlib are installed" << std::endl;
+  pid_t pid{};
+  char* const argv_spawn[] = {
+      const_cast<char*>("python3"),
+      const_cast<char*>(plot_script.c_str()),
+      const_cast<char*>("--input"),
+      const_cast<char*>(output_file.c_str()),
+      const_cast<char*>("--output-dir"),
+      const_cast<char*>(output_dir.c_str()),
+      nullptr};
+  int rc = posix_spawnp(&pid, "python3", nullptr, nullptr, argv_spawn, environ);
+  if (rc != 0) {
+    std::cerr << "Warning: Failed to launch Python (posix_spawnp rc=" << rc << ")\n";
+  } else {
+    int status{};
+    (void)waitpid(pid, &status, 0);
+    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+      std::cerr << "Warning: Failed to generate plots. "
+                << "Make sure Python3 and matplotlib are installed" << std::endl;
+    }
   }
 
   return 0;
