@@ -18,6 +18,7 @@
 #ifndef GST_VIDEO_RECORDER_OPERATOR_HPP
 #define GST_VIDEO_RECORDER_OPERATOR_HPP
 
+#include <map>
 #include <memory>
 #include <string>
 #include <future>

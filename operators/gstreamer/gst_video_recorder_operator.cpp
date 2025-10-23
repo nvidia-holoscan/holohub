@@ -512,7 +512,10 @@ namespace holoscan {
 
 void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
   spec.input<gxf::Entity>("input");
-  
+
+  // Register converter for std::map<std::string, std::string> to enable Arg() support
+  register_converter<std::map<std::string, std::string>>();
+
   spec.param(encoder_name_, "encoder", "Encoder",
              "Encoder base name (e.g., nvh264, nvh265, x264, x265). 'enc' suffix is appended automatically.",
              std::string("nvh264"));
