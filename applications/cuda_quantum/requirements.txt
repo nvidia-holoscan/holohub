@@ -1,2 +1,1 @@
-cuda_quantum
-holoscan
+cudaq

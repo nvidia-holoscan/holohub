@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -176,7 +176,7 @@ class SSDDetectionApp(Application):
         self.add_flow(detection_postprocessor, detection_visualizer, {("out", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     # Parse args
     parser = ArgumentParser(description="SSD Detection demo application.")
     parser.add_argument(
@@ -196,3 +196,7 @@ if __name__ == "__main__":
     app = SSDDetectionApp(source=args.source)
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

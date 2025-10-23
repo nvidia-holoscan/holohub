@@ -43,7 +43,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Lidar", "Point Cloud"],
+		"tags": ["Robotics", "Lidar", "Point Cloud"],
 		"ranking": 4,
 		"requirements": {}
 	}

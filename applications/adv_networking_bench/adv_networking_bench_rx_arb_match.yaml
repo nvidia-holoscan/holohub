@@ -1,0 +1,133 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+scheduler:
+  check_recession_period_ms: 0
+  worker_thread_number: 5
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+  # max_duration_ms: 20000
+
+advanced_network:
+  cfg:
+    version: 1
+    manager: "dpdk"
+    master_core: 3
+    debug: false
+    log_level: "info"
+
+    memory_regions:
+    - name: "Data_RX_GPU0"
+      kind: "device"
+      affinity: 0
+      num_bufs: 51200
+      buf_size: 1064
+    - name: "Data_RX_GPU1"
+      kind: "device"
+      affinity: 0
+      num_bufs: 51200
+      buf_size: 1064   
+    - name: "Data_RX_GPU2"
+      kind: "device"
+      affinity: 0
+      num_bufs: 51200
+      buf_size: 1064   
+    - name: "Data_RX_GPU3"
+      kind: "device"
+      affinity: 0
+      num_bufs: 51200
+      buf_size: 1064   
+
+    interfaces:
+    - name: "rx_port"
+      address: 0005:03:00.0       # The BUS address of the interface doing Rx
+      rx:
+        flow_isolation: true
+        queues:
+        - name: "rq_q_0"
+          id: 0
+          cpu_core: 8
+          batch_size: 10240
+          memory_regions:
+            - "Data_RX_GPU0"
+        - name: "rq_q_1"
+          id: 1
+          cpu_core: 9
+          batch_size: 10240
+          memory_regions:
+            - "Data_RX_GPU1"            
+        - name: "rq_q_2"
+          id: 2
+          cpu_core: 10
+          batch_size: 10240
+          memory_regions:
+            - "Data_RX_GPU2"            
+        - name: "rq_q_3"
+          id: 3
+          cpu_core: 11
+          batch_size: 10240
+          memory_regions:
+            - "Data_RX_GPU3"            
+        flex_items:
+        - name: "flex_item_0"
+          id: 0
+          offset: 16
+          udp_dst_port: 4096
+        flows:
+        - name: "flow_0"
+          id: 0
+          action:
+            type: queue
+            id: 0
+          match:
+            flex_item_id: 0
+            val: 0x00000000
+            mask: 0x03000000
+        - name: "flow_1"
+          id: 1
+          action:
+            type: queue
+            id: 1
+          match:
+            flex_item_id: 0
+            val: 0x01000000
+            mask: 0x03000000
+        - name: "flow_2"
+          id: 2
+          action:
+            type: queue
+            id: 2
+          match:
+            flex_item_id: 0
+            val: 0x02000000
+            mask: 0x03000000  
+        - name: "flow_3"
+          id: 3
+          action:
+            type: queue
+            id: 3
+          match:
+            flex_item_id: 0
+            val: 0x03000000
+            mask: 0x03000000  
+
+bench_rx:
+  interface_name: "rx_port" # Name of the RX port from the advanced_network config
+  gpu_direct: true          # Set to true if using a GPU region for the Rx queues.
+  split_boundary: false     # Whether header and data is split (Header to CPU)
+  batch_size: 10240
+  max_packet_size: 1064
+  header_size: 64

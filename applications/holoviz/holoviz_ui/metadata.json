@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Computer Vision and Perception", "Visualization", "Holoviz", "Rendering"],
+		"tags": ["Rendering", "Visualization", "Holoviz"],
 		"ranking": 1,
 		"requirements": {},
 		"run": {

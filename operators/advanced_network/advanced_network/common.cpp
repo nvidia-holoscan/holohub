@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@
 #include <rte_ethdev.h>
 #endif
 #if ANO_MGR_RIVERMAX
-#include "advanced_network/managers/rivermax/adv_network_rmax_mgr.h"
+#include "advanced_network/managers/rivermax/adv_network_rivermax_mgr.h"
 #endif
 
 #define ASSERT_ANO_MGR_INITIALIZED() \
@@ -345,6 +345,8 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     return false;
   }
 
+  flow.match_.type_ = holoscan::advanced_network::FlowMatchType::NORMAL;
+
   try {
     flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
     flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
@@ -357,6 +359,44 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     flow.match_.ipv4_len_ = flow_item["match"]["ipv4_len"].as<uint16_t>();
   } catch (const std::exception& e) {
     flow.match_.ipv4_len_ = 0;
+  }
+
+  if (flow.match_.udp_src_ == 0 && flow.match_.udp_dst_ == 0 && flow.match_.ipv4_len_ == 0) {
+    // No match criteria defined, use flex item match
+    flow.match_.flex_item_match_.flex_item_id_ = flow_item["match"]["flex_item_id"].as<uint16_t>();
+    flow.match_.flex_item_match_.val_ = flow_item["match"]["val"].as<uint32_t>();
+    flow.match_.flex_item_match_.mask_ = flow_item["match"]["mask"].as<uint32_t>();
+    flow.match_.type_ = holoscan::advanced_network::FlowMatchType::FLEX_ITEM;
+    HOLOSCAN_LOG_INFO("Using flex item match: flex_item_id={}, val={}, mask={}",
+                       flow.match_.flex_item_match_.flex_item_id_,
+                       flow.match_.flex_item_match_.val_,
+                       flow.match_.flex_item_match_.mask_);
+  }
+
+  return true;
+}
+
+/**
+ * @brief Parse flex item configuration from a YAML node.
+ *
+ * @param flex_item The YAML node containing the flex item configuration.
+ * @param flex_item_config The FlexItemConfig object to populate.
+ * @return true if parsing was successful, false otherwise.
+ */
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flex_item_config(
+    const YAML::Node& flex_item, holoscan::advanced_network::FlexItemConfig& flex_item_config) {
+  try {
+    flex_item_config.name_ = flex_item["name"].as<std::string>();
+    flex_item_config.id_ = flex_item["id"].as<uint16_t>();
+    flex_item_config.udp_dst_port_ = flex_item["udp_dst_port"].as<uint16_t>();
+    flex_item_config.offset_ = flex_item["offset"].as<uint16_t>();
+    if ((flex_item_config.offset_ % 4) != 0 || flex_item_config.offset_ > 28) {
+      HOLOSCAN_LOG_CRITICAL("Flex item offset (in bytes) must be a multiple of 4 and less than 28");
+      return false;
+    }
+  } catch (const std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Error parsing FlexItemConfig: {}", e.what());
+    return false;
   }
   return true;
 }
@@ -456,7 +496,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {
       holoscan::advanced_network::Status status =
-          holoscan::advanced_network::RmaxMgr::parse_rx_queue_rivermax_config(q_item, q);
+          holoscan::advanced_network::RivermaxMgr::parse_rx_queue_rivermax_config(q_item, q);
       if (status != holoscan::advanced_network::Status::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse RX Queue config for Rivermax");
         return false;
@@ -480,6 +520,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_common_config(
     const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q) {
   if (!parse_common_queue_config(q_item, q.common_)) { return false; }
+#if !ANO_MGR_RIVERMAX
   try {
     const auto& offload = q_item["offloads"];
     q.common_.offloads_.reserve(offload.size());
@@ -488,6 +529,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
     HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
     return false;
   }
+#endif
   return true;
 }
 
@@ -514,7 +556,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {
       holoscan::advanced_network::Status status =
-          holoscan::advanced_network::RmaxMgr::parse_tx_queue_rivermax_config(q_item, q);
+          holoscan::advanced_network::RivermaxMgr::parse_tx_queue_rivermax_config(q_item, q);
       if (status != holoscan::advanced_network::Status::SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to parse TX Queue config for Rivermax");
         return false;

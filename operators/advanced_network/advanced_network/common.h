@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+=======
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+>>>>>>> 332dabe5 (Arbitrary byte matching with flex parser)
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -511,6 +515,16 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
                                 holoscan::advanced_network::FlowConfig& flow);
 
   /**
+   * @brief Parse flex item configuration from a YAML node.
+   *
+   * @param flex_item The YAML node containing the flex item configuration.
+   * @param flex_item_config The FlexItemConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_flex_item_config(const YAML::Node& flex_item,
+                                     holoscan::advanced_network::FlexItemConfig& flex_item_config);
+
+  /**
    * @brief Parse memory region configuration from a YAML node.
    *
    * @param mr The YAML node containing the memory region configuration.
@@ -687,6 +701,17 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
               }
               rx_cfg.flows_.emplace_back(std::move(flow));
             }
+
+            try {
+              for (const auto& flex_item : rx["flex_items"]) {
+                holoscan::advanced_network::FlexItemConfig flex_item_config;
+                if (!parse_flex_item_config(flex_item, flex_item_config)) {
+                  HOLOSCAN_LOG_ERROR("Failed to parse FlexItemConfig");
+                  return false;
+                }
+                rx_cfg.flex_items_.emplace_back(std::move(flex_item_config));
+              }
+            } catch (const std::exception& e) {}  // No flex_items defined for this interface.
 
             ifcfg.rx_ = rx_cfg;
           } catch (const std::exception& e) {}  // No RX queues defined for this interface.

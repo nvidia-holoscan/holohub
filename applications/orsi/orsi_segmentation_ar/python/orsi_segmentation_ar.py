@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,9 +86,13 @@ class OrsiSegmentationARApp(Application):
         self.add_flow(segmentation_postprocessor, orsi_visualizer, {("", "receivers")})
 
 
-if __name__ == "__main__":
+def main():
     set_log_level(LogLevel.WARN)
     app = OrsiSegmentationARApp()
     config_file = os.path.join(os.path.dirname(__file__), "orsi_segmentation_ar.yaml")
     app.config(config_file)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

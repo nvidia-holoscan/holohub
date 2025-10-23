@@ -1,0 +1,64 @@
+<!-- Custom HTML site displayed as the Operators chapter -->
+{% extends "main.html" %}
+{% block extrahead %}
+  <script src="https://kit.fontawesome.com/1512963100.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{{ 'assets/shared-cards.css' | url }}">
+  <script src="{{ 'assets/shared-filter.js' | url }}"></script>
+  {{ super() }}
+{% endblock %}
+
+<!-- Announcement bar -->
+{# block announce #}
+  <style>
+    .md-announce a { color: #76b900; text-decoration: underline;}
+    .md-announce a:focus { color: hsl(82, 100%, 72%);  text-decoration: underline; }
+    .md-announce a:hover { color: hsl(82, 100%, 72%); text-decoration: underline;}
+  </style>
+    <!--<div class="md-announce">New website for Holoscan Reference Applications" target="_blank"></a> for the latest updates&nbsp;<i class="bi bi-nvidia" style="color: #76B900;"></i></span></div>-->
+    
+{# endblock #}
+
+{% block tabs %}
+{{ super() }}
+
+<!-- feature-box -->
+<section class="section">
+    <div class="top-hr" style="display: flex; max-width: 100%;">
+        <div style="display: flex; flex-direction: row; width: 100%; gap: 1rem; align-items: flex-start;">
+            <!-- Side Navigation -->
+            <div style="flex: 0 0 250px; min-width: 250px; background: var(--md-default-bg-color); border-right: 1px solid var(--md-default-fg-color--lightest); align-self: flex-start;">
+                <div style="position: sticky; top: 80px; max-height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; padding-bottom: 1rem; will-change: transform;">
+                    <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Operators</h4>
+                    <nav class="sidebar-nav" data-page-type="operators" style="display: flex; flex-direction: column; gap: 0;">
+                        {% include '_pages/operators_nav.html' %}
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div style="flex: 1; min-width: 0;">
+                <div class="row justify-content-center">
+                    <div class="col-12" style="text-align: left; padding-left: 2rem; padding-right: 2rem;">
+                        <h3 class="section-title" id="category-title" style="font-size: 0.9rem; text-align: left;">All Operators</h3>
+                        <p style="margin-bottom: 1.5rem; line-height: 1.6; color: var(--md-default-fg-color); font-size: 0.7rem;">
+                            Operators are the fundamental building blocks of Holoscan applications, representing individual processing units 
+                            that can be composed into complex data processing pipelines. Browse this collection of custom operators that extend 
+                            Holoscan's capabilities for specialized data ingestion, transformation, visualization, AI inference, and output operations. 
+                            Each operator can be integrated into your workflows to accelerate development of sensor processing applications.
+                        </p>
+                    </div>
+                    {% include '_pages/operators.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- /feature-box -->
+<!-- Filters are auto-initialized by shared-filter.js based on data-page-type attribute -->
+
+{% endblock %}
+
+{% block content %}
+{% endblock %}
+

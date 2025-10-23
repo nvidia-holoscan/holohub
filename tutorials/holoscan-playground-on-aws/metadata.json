@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Cloud"],
+		"tags": ["Deployment", "Cloud", "AWS"],
 		"ranking": 1,
 		"requirements": {
 			"services": [

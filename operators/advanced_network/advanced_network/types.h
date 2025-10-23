@@ -60,6 +60,7 @@ struct BurstHeaderParams {
   uint32_t max_pkt_size;
   uint32_t gpu_pkt0_idx;
   uintptr_t gpu_pkt0_addr;
+  uint32_t burst_flags;
 };
 
 struct BurstHeader {
@@ -83,6 +84,7 @@ struct BurstParams {
   std::array<void**, MAX_NUM_SEGS> pkts;
   std::array<uint32_t*, MAX_NUM_SEGS> pkt_lens;
   void** pkt_extra_info;
+  std::shared_ptr<void> custom_pkt_data;
   cudaEvent_t event;
 };
 
@@ -355,10 +357,23 @@ struct FlowAction {
   uint16_t id_;
 };
 
+struct FlexItemMatch {
+  uint16_t flex_item_id_;
+  uint32_t val_;
+  uint32_t mask_;
+};
+
+enum class FlowMatchType {
+  NORMAL,
+  FLEX_ITEM,
+};
+
 struct FlowMatch {
+  FlowMatchType type_;
   uint16_t udp_src_;
   uint16_t udp_dst_;
   uint16_t ipv4_len_;
+  FlexItemMatch flex_item_match_;
 };
 struct FlowConfig {
   std::string name_;
@@ -376,10 +391,18 @@ struct CommonConfig {
   LoopbackType loopback_;
 };
 
+struct FlexItemConfig {
+  std::string name_;
+  uint16_t id_;
+  uint16_t udp_dst_port_;
+  uint16_t offset_;
+};
+
 struct RxConfig {
   bool flow_isolation_;
   std::vector<RxQueueConfig> queues_;
   std::vector<FlowConfig> flows_;
+  std::vector<FlexItemConfig> flex_items_;
 };
 
 struct TxConfig {
