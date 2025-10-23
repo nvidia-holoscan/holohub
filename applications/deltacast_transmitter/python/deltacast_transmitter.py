@@ -18,7 +18,7 @@ from argparse import ArgumentParser
 
 from holoscan.core import Application
 from holoscan.operators import FormatConverterOp, VideoStreamReplayerOp
-from holoscan.resources import BlockMemoryPool, MemoryStorageType, UnboundedAllocator
+from holoscan.resources import BlockMemoryPool, MemoryStorageType
 
 from holohub.videomaster import VideoMasterTransmitterOp
 
@@ -68,7 +68,6 @@ class DeltacastTransmitterApp(Application):
         visualizer = VideoMasterTransmitterOp(
             self,
             name="videomaster",
-            pool=UnboundedAllocator(self, name="pool"),
             rdma=videomaster_kwargs.get("rdma", False),
             board=videomaster_kwargs.get("board", 0),
             width=width,

@@ -51,20 +51,9 @@ PYDOC(VideoMasterSourceOp_python, R"doc(
         Whether or not the video is an interlaced format. Default value is ``True``.
     framerate : int, optional
         Frame rate of the video stream. Default value is ``60``.
-    pool : Allocator of type UnboundedAllocator
-        The pool to use for memory allocation.
     name : str, optional
         The name of the operator.
     )doc")
-
-PYDOC(gxf_typename, R"doc(
-The GXF type name of the resource.
-
-Returns
--------
-str
-    The GXF type name of the resource
-)doc")
 
 PYDOC(setup, R"doc(
 Define the operator specification.
@@ -111,22 +100,11 @@ PYDOC(VideoMasterTransmitterOp_python, R"doc(
         Whether or not the video is an interlaced format. Default value is ``True``.
     framerate : int, optional
         Frame rate of the video stream. Default value is ``60``.
-    pool : Allocator of type UnboundedAllocator
-        The pool to use for memory allocation.
     enable_overlay : bool, optional
         Boolean indicating whether a overlay processing is done by the board or not. Default value is ``False``.
     name : str, optional
         The name of the operator.
  )doc")
-
-PYDOC(gxf_typename, R"doc(
-The GXF type name of the resource.
-
-Returns
--------
-str
-    The GXF type name of the resource
-)doc")
 
 PYDOC(setup, R"doc(
 Define the operator specification.

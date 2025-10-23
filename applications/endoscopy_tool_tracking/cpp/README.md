@@ -23,7 +23,7 @@ If you want to manually convert the video data, please refer to the instructions
 ### Build Instructions
 
 Please refer to the top level Holohub README.md file for information on how to build this application.
-In order to build with the Deltacast VideoMaster operator use ```./holohub build --build-with deltacast_videomaster```
+In order to build with the Deltacast VideoMaster operator use ```./holohub build endoscopy_tool_tracking --build-with deltacast_videomaster```
 
 ### Run Instructions
 
