@@ -8,9 +8,9 @@
             }
         ],
         "language": "C++",
-        "version": "3.5.0",
+        "version": "1.0.0",
         "changelog": {
-            "3.5.0": "Unified video streaming demo with both client and server components"
+            "1.0.0": "Initial release of unified video streaming demo with both client and server components"
         },
         "holoscan_sdk": {
             "minimum_required_version": "3.5.0",
