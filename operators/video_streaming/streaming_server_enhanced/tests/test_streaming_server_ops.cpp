@@ -27,7 +27,7 @@ namespace holoscan::ops {
 
 /**
  * @brief Test fixture for StreamingServerResource unit tests
- * 
+ *
  * This test fixture provides a Holoscan Fragment context for testing
  * the StreamingServerResource in isolation.
  */
@@ -92,13 +92,12 @@ class StreamingServerDownstreamOpTest : public ::testing::Test {
 
 /**
  * @brief Test basic resource creation
- * 
+ *
  * Verifies that the StreamingServerResource can be created with default parameters.
  */
 TEST_F(StreamingServerResourceTest, BasicInitialization) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
-      "test_server_resource"
-  );
+      "test_server_resource");
 
   ASSERT_NE(resource_, nullptr);
   EXPECT_EQ(resource_->name(), "test_server_resource");
@@ -106,7 +105,7 @@ TEST_F(StreamingServerResourceTest, BasicInitialization) {
 
 /**
  * @brief Test resource creation with custom configuration
- * 
+ *
  * Verifies that the resource accepts custom port, resolution, and FPS parameters.
  */
 TEST_F(StreamingServerResourceTest, CustomConfiguration) {
@@ -115,8 +114,7 @@ TEST_F(StreamingServerResourceTest, CustomConfiguration) {
       holoscan::Arg("port") = uint16_t{8080},
       holoscan::Arg("width") = 1280u,
       holoscan::Arg("height") = 720u,
-      holoscan::Arg("fps") = uint16_t{60}
-  );
+      holoscan::Arg("fps") = uint16_t{60});
 
   ASSERT_NE(resource_, nullptr);
   EXPECT_EQ(resource_->name(), "custom_server_resource");
@@ -124,7 +122,7 @@ TEST_F(StreamingServerResourceTest, CustomConfiguration) {
 
 /**
  * @brief Test resource with upstream/downstream configuration
- * 
+ *
  * Verifies that the resource can be configured to enable/disable
  * upstream and downstream streaming.
  */
@@ -133,53 +131,48 @@ TEST_F(StreamingServerResourceTest, StreamingDirectionConfiguration) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "upstream_only_resource",
       holoscan::Arg("enable_upstream") = true,
-      holoscan::Arg("enable_downstream") = false
-  );
+      holoscan::Arg("enable_downstream") = false);
   ASSERT_NE(resource_, nullptr);
 
   // Downstream only
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "downstream_only_resource",
       holoscan::Arg("enable_upstream") = false,
-      holoscan::Arg("enable_downstream") = true
-  );
+      holoscan::Arg("enable_downstream") = true);
   ASSERT_NE(resource_, nullptr);
 
   // Both directions (default)
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "bidirectional_resource",
       holoscan::Arg("enable_upstream") = true,
-      holoscan::Arg("enable_downstream") = true
-  );
+      holoscan::Arg("enable_downstream") = true);
   ASSERT_NE(resource_, nullptr);
 
   // Both disabled
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "disabled_resource",
       holoscan::Arg("enable_upstream") = false,
-      holoscan::Arg("enable_downstream") = false
-  );
+      holoscan::Arg("enable_downstream") = false);
   ASSERT_NE(resource_, nullptr);
 }
 
 /**
  * @brief Test resource with multi-instance configuration
- * 
+ *
  * Verifies that the resource can be configured for multi-instance mode.
  */
 TEST_F(StreamingServerResourceTest, MultiInstanceConfiguration) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "multi_instance_resource",
       holoscan::Arg("is_multi_instance") = true,
-      holoscan::Arg("server_name") = std::string("MultiInstanceServer")
-  );
+      holoscan::Arg("server_name") = std::string("MultiInstanceServer"));
 
   ASSERT_NE(resource_, nullptr);
 }
 
 /**
  * @brief Test resource with different resolutions
- * 
+ *
  * Verifies that the resource accepts various video resolutions.
  */
 TEST_F(StreamingServerResourceTest, VariousResolutions) {
@@ -187,115 +180,103 @@ TEST_F(StreamingServerResourceTest, VariousResolutions) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "sd_resource",
       holoscan::Arg("width") = 640u,
-      holoscan::Arg("height") = 480u
-  );
+      holoscan::Arg("height") = 480u);
   ASSERT_NE(resource_, nullptr);
 
   // HD
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "hd_resource",
       holoscan::Arg("width") = 1280u,
-      holoscan::Arg("height") = 720u
-  );
+      holoscan::Arg("height") = 720u);
   ASSERT_NE(resource_, nullptr);
 
   // Full HD
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "fhd_resource",
       holoscan::Arg("width") = 1920u,
-      holoscan::Arg("height") = 1080u
-  );
+      holoscan::Arg("height") = 1080u);
   ASSERT_NE(resource_, nullptr);
 
   // 4K
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "4k_resource",
       holoscan::Arg("width") = 3840u,
-      holoscan::Arg("height") = 2160u
-  );
+      holoscan::Arg("height") = 2160u);
   ASSERT_NE(resource_, nullptr);
 }
 
 /**
  * @brief Test resource with different frame rates
- * 
+ *
  * Verifies that the resource accepts various frame rates.
  */
 TEST_F(StreamingServerResourceTest, VariousFrameRates) {
   // Low FPS
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "low_fps_resource",
-      holoscan::Arg("fps") = uint16_t{15}
-  );
+      holoscan::Arg("fps") = uint16_t{15});
   ASSERT_NE(resource_, nullptr);
 
   // Standard FPS
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "standard_fps_resource",
-      holoscan::Arg("fps") = uint16_t{30}
-  );
+      holoscan::Arg("fps") = uint16_t{30});
   ASSERT_NE(resource_, nullptr);
 
   // High FPS
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "high_fps_resource",
-      holoscan::Arg("fps") = uint16_t{60}
-  );
+      holoscan::Arg("fps") = uint16_t{60});
   ASSERT_NE(resource_, nullptr);
 
   // Very high FPS
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "very_high_fps_resource",
-      holoscan::Arg("fps") = uint16_t{120}
-  );
+      holoscan::Arg("fps") = uint16_t{120});
   ASSERT_NE(resource_, nullptr);
 }
 
 /**
  * @brief Test resource with different port numbers
- * 
+ *
  * Verifies that the resource accepts various port configurations.
  */
 TEST_F(StreamingServerResourceTest, VariousPortNumbers) {
   // Default port
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "default_port_resource",
-      holoscan::Arg("port") = uint16_t{48010}
-  );
+      holoscan::Arg("port") = uint16_t{48010});
   ASSERT_NE(resource_, nullptr);
 
   // Custom port
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "custom_port_resource",
-      holoscan::Arg("port") = uint16_t{8080}
-  );
+      holoscan::Arg("port") = uint16_t{8080});
   ASSERT_NE(resource_, nullptr);
 
   // High port
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "high_port_resource",
-      holoscan::Arg("port") = uint16_t{65535}
-  );
+      holoscan::Arg("port") = uint16_t{65535});
   ASSERT_NE(resource_, nullptr);
 }
 
 /**
  * @brief Test resource cleanup
- * 
+ *
  * Verifies that the resource can be properly destroyed without crashing.
  */
 TEST_F(StreamingServerResourceTest, ResourceCleanup) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "cleanup_test_resource",
-      holoscan::Arg("port") = uint16_t{48010}
-  );
+      holoscan::Arg("port") = uint16_t{48010});
 
   ASSERT_NE(resource_, nullptr);
-  
+
   EXPECT_NO_THROW({
     resource_.reset();
   });
-  
+
   EXPECT_EQ(resource_, nullptr);
 }
 
@@ -305,7 +286,7 @@ TEST_F(StreamingServerResourceTest, ResourceCleanup) {
 
 /**
  * @brief Test basic upstream operator creation
- * 
+ *
  * Verifies that the StreamingServerUpstreamOp can be created with a
  * StreamingServerResource.
  */
@@ -313,15 +294,13 @@ TEST_F(StreamingServerUpstreamOpTest, BasicInitialization) {
   // Create resource first
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "test_resource",
-      holoscan::Arg("port") = uint16_t{48010}
-  );
+      holoscan::Arg("port") = uint16_t{48010});
   ASSERT_NE(resource_, nullptr);
 
   // Create upstream operator
   upstream_op_ = fragment_->make_operator<StreamingServerUpstreamOp>(
       "test_upstream_op",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
 
   ASSERT_NE(upstream_op_, nullptr);
   EXPECT_EQ(upstream_op_->name(), "test_upstream_op");
@@ -330,7 +309,7 @@ TEST_F(StreamingServerUpstreamOpTest, BasicInitialization) {
 
 /**
  * @brief Test upstream operator with custom video parameters
- * 
+ *
  * Verifies that the upstream operator can override the resource's
  * default video parameters.
  */
@@ -338,8 +317,7 @@ TEST_F(StreamingServerUpstreamOpTest, CustomVideoParameters) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "test_resource",
       holoscan::Arg("width") = 640u,
-      holoscan::Arg("height") = 480u
-  );
+      holoscan::Arg("height") = 480u);
   ASSERT_NE(resource_, nullptr);
 
   upstream_op_ = fragment_->make_operator<StreamingServerUpstreamOp>(
@@ -347,8 +325,7 @@ TEST_F(StreamingServerUpstreamOpTest, CustomVideoParameters) {
       holoscan::Arg("streaming_server_resource") = resource_,
       holoscan::Arg("width") = 1280u,
       holoscan::Arg("height") = 720u,
-      holoscan::Arg("fps") = 60u
-  );
+      holoscan::Arg("fps") = 60u);
 
   ASSERT_NE(upstream_op_, nullptr);
   EXPECT_EQ(upstream_op_->name(), "custom_params_upstream_op");
@@ -356,20 +333,18 @@ TEST_F(StreamingServerUpstreamOpTest, CustomVideoParameters) {
 
 /**
  * @brief Test upstream operator setup
- * 
+ *
  * Verifies that the setup() method can be called without crashing.
  */
 TEST_F(StreamingServerUpstreamOpTest, OperatorSetup) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "test_resource",
-      holoscan::Arg("port") = uint16_t{48010}
-  );
+      holoscan::Arg("port") = uint16_t{48010});
   ASSERT_NE(resource_, nullptr);
 
   upstream_op_ = fragment_->make_operator<StreamingServerUpstreamOp>(
       "setup_test_upstream_op",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
   ASSERT_NE(upstream_op_, nullptr);
 
   auto spec = std::make_shared<holoscan::OperatorSpec>(fragment_.get());
@@ -378,26 +353,24 @@ TEST_F(StreamingServerUpstreamOpTest, OperatorSetup) {
 
 /**
  * @brief Test upstream operator cleanup
- * 
+ *
  * Verifies that the upstream operator can be properly destroyed.
  */
 TEST_F(StreamingServerUpstreamOpTest, OperatorCleanup) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "test_resource",
-      holoscan::Arg("port") = uint16_t{48010}
-  );
+      holoscan::Arg("port") = uint16_t{48010});
   ASSERT_NE(resource_, nullptr);
 
   upstream_op_ = fragment_->make_operator<StreamingServerUpstreamOp>(
       "cleanup_test_upstream_op",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
   ASSERT_NE(upstream_op_, nullptr);
 
   EXPECT_NO_THROW({
     upstream_op_.reset();
   });
-  
+
   EXPECT_EQ(upstream_op_, nullptr);
 }
 
@@ -407,7 +380,7 @@ TEST_F(StreamingServerUpstreamOpTest, OperatorCleanup) {
 
 /**
  * @brief Test basic downstream operator creation
- * 
+ *
  * Verifies that the StreamingServerDownstreamOp can be created with a
  * StreamingServerResource.
  */
@@ -415,15 +388,13 @@ TEST_F(StreamingServerDownstreamOpTest, BasicInitialization) {
   // Create resource first
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "test_resource",
-      holoscan::Arg("port") = uint16_t{48010}
-  );
+      holoscan::Arg("port") = uint16_t{48010});
   ASSERT_NE(resource_, nullptr);
 
   // Create downstream operator
   downstream_op_ = fragment_->make_operator<StreamingServerDownstreamOp>(
       "test_downstream_op",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
 
   ASSERT_NE(downstream_op_, nullptr);
   EXPECT_EQ(downstream_op_->name(), "test_downstream_op");
@@ -432,7 +403,7 @@ TEST_F(StreamingServerDownstreamOpTest, BasicInitialization) {
 
 /**
  * @brief Test downstream operator with custom video parameters
- * 
+ *
  * Verifies that the downstream operator can override the resource's
  * default video parameters.
  */
@@ -440,8 +411,7 @@ TEST_F(StreamingServerDownstreamOpTest, CustomVideoParameters) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "test_resource",
       holoscan::Arg("width") = 640u,
-      holoscan::Arg("height") = 480u
-  );
+      holoscan::Arg("height") = 480u);
   ASSERT_NE(resource_, nullptr);
 
   downstream_op_ = fragment_->make_operator<StreamingServerDownstreamOp>(
@@ -449,8 +419,7 @@ TEST_F(StreamingServerDownstreamOpTest, CustomVideoParameters) {
       holoscan::Arg("streaming_server_resource") = resource_,
       holoscan::Arg("width") = 1920u,
       holoscan::Arg("height") = 1080u,
-      holoscan::Arg("fps") = 30u
-  );
+      holoscan::Arg("fps") = 30u);
 
   ASSERT_NE(downstream_op_, nullptr);
   EXPECT_EQ(downstream_op_->name(), "custom_params_downstream_op");
@@ -458,20 +427,18 @@ TEST_F(StreamingServerDownstreamOpTest, CustomVideoParameters) {
 
 /**
  * @brief Test downstream operator setup
- * 
+ *
  * Verifies that the setup() method can be called without crashing.
  */
 TEST_F(StreamingServerDownstreamOpTest, OperatorSetup) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "test_resource",
-      holoscan::Arg("port") = uint16_t{48010}
-  );
+      holoscan::Arg("port") = uint16_t{48010});
   ASSERT_NE(resource_, nullptr);
 
   downstream_op_ = fragment_->make_operator<StreamingServerDownstreamOp>(
       "setup_test_downstream_op",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
   ASSERT_NE(downstream_op_, nullptr);
 
   auto spec = std::make_shared<holoscan::OperatorSpec>(fragment_.get());
@@ -480,26 +447,24 @@ TEST_F(StreamingServerDownstreamOpTest, OperatorSetup) {
 
 /**
  * @brief Test downstream operator cleanup
- * 
+ *
  * Verifies that the downstream operator can be properly destroyed.
  */
 TEST_F(StreamingServerDownstreamOpTest, OperatorCleanup) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "test_resource",
-      holoscan::Arg("port") = uint16_t{48010}
-  );
+      holoscan::Arg("port") = uint16_t{48010});
   ASSERT_NE(resource_, nullptr);
 
   downstream_op_ = fragment_->make_operator<StreamingServerDownstreamOp>(
       "cleanup_test_downstream_op",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
   ASSERT_NE(downstream_op_, nullptr);
 
   EXPECT_NO_THROW({
     downstream_op_.reset();
   });
-  
+
   EXPECT_EQ(downstream_op_, nullptr);
 }
 
@@ -509,7 +474,7 @@ TEST_F(StreamingServerDownstreamOpTest, OperatorCleanup) {
 
 /**
  * @brief Test complete server setup with both upstream and downstream operators
- * 
+ *
  * Verifies that a resource can be shared between upstream and downstream operators.
  */
 TEST_F(StreamingServerUpstreamOpTest, SharedResourceConfiguration) {
@@ -521,22 +486,19 @@ TEST_F(StreamingServerUpstreamOpTest, SharedResourceConfiguration) {
       holoscan::Arg("height") = 480u,
       holoscan::Arg("fps") = uint16_t{30},
       holoscan::Arg("enable_upstream") = true,
-      holoscan::Arg("enable_downstream") = true
-  );
+      holoscan::Arg("enable_downstream") = true);
   ASSERT_NE(resource_, nullptr);
 
   // Create upstream operator with shared resource
   auto upstream = fragment_->make_operator<StreamingServerUpstreamOp>(
       "upstream_op",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
   ASSERT_NE(upstream, nullptr);
 
   // Create downstream operator with shared resource
   auto downstream = fragment_->make_operator<StreamingServerDownstreamOp>(
       "downstream_op",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
   ASSERT_NE(downstream, nullptr);
 
   // Verify both operators were created successfully
@@ -546,31 +508,27 @@ TEST_F(StreamingServerUpstreamOpTest, SharedResourceConfiguration) {
 
 /**
  * @brief Test multiple operator instances with same resource
- * 
+ *
  * Verifies that multiple operators can share the same resource
  * without conflicts.
  */
 TEST_F(StreamingServerUpstreamOpTest, MultipleOperatorsSharedResource) {
   resource_ = fragment_->make_resource<StreamingServerResource>(
       "shared_resource",
-      holoscan::Arg("port") = uint16_t{48010}
-  );
+      holoscan::Arg("port") = uint16_t{48010});
   ASSERT_NE(resource_, nullptr);
 
   auto upstream1 = fragment_->make_operator<StreamingServerUpstreamOp>(
       "upstream_op_1",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
 
   auto upstream2 = fragment_->make_operator<StreamingServerUpstreamOp>(
       "upstream_op_2",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
 
   auto downstream1 = fragment_->make_operator<StreamingServerDownstreamOp>(
       "downstream_op_1",
-      holoscan::Arg("streaming_server_resource") = resource_
-  );
+      holoscan::Arg("streaming_server_resource") = resource_);
 
   // Verify all operators were created successfully
   ASSERT_NE(upstream1, nullptr);
@@ -579,7 +537,7 @@ TEST_F(StreamingServerUpstreamOpTest, MultipleOperatorsSharedResource) {
 
   // Verify different upstream instances are distinct
   EXPECT_NE(upstream1, upstream2);
-  
+
   // All operators share the same resource and are distinct instances
   // (We cannot directly compare different operator types with EXPECT_NE)
 }
