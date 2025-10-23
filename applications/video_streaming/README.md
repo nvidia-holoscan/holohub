@@ -411,7 +411,7 @@ The server should display connection status and frame processing information. Lo
 
 **Successful Video Replayer Logs:**
 
-```
+```console
 [info] Source set to: replayer
 [info] Using video replayer as source
 [info] Connection established successfully
