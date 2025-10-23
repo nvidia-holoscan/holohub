@@ -201,7 +201,7 @@ The C++ implementation (`cpp/streaming_client_demo.cpp`) demonstrates usage of t
 
 **Video Replayer Mode:**
 ```cpp
-#include "streaming_client_op.hpp"
+#include "streaming_client.hpp"
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
@@ -223,15 +223,16 @@ auto format_converter = make_operator<ops::FormatConverterOp>(
 );
 
 // Create streaming client
-auto streaming_client = make_operator<StreamingClientOp>(
+auto streaming_client = make_operator<ops::StreamingClientOp>(
     "streaming_client",
     Arg("server_ip", std::string("127.0.0.1")),
-    Arg("port", uint16_t{48010}),
+    Arg("signaling_port", uint16_t{48010}),
     Arg("width", 854U),
     Arg("height", 480U),
     Arg("fps", uint16_t{30}),
     Arg("send_frames", true),
-    Arg("receive_frames", true)
+    Arg("receive_frames", true),
+    Arg("min_non_zero_bytes", static_cast<uint32_t>(10))
 );
 
 // Create visualization
@@ -249,7 +250,7 @@ add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
 
 **V4L2 Camera Mode:**
 ```cpp
-#include "streaming_client_op.hpp"
+#include "streaming_client.hpp"
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
@@ -273,15 +274,16 @@ auto format_converter = make_operator<ops::FormatConverterOp>(
 );
 
 // Create streaming client
-auto streaming_client = make_operator<StreamingClientOp>(
+auto streaming_client = make_operator<ops::StreamingClientOp>(
     "streaming_client",
     Arg("server_ip", std::string("127.0.0.1")),
-    Arg("port", uint16_t{48010}),
+    Arg("signaling_port", uint16_t{48010}),
     Arg("width", 640U),
     Arg("height", 480U),
     Arg("fps", uint16_t{30}),
     Arg("send_frames", true),
-    Arg("receive_frames", true)
+    Arg("receive_frames", true),
+    Arg("min_non_zero_bytes", static_cast<uint32_t>(10))
 );
 
 // Create visualization
@@ -309,9 +311,13 @@ from holoscan.operators import (
     HolovizOp,
     VideoStreamReplayerOp,
 )
+from holoscan.resources import UnboundedAllocator
 
 class StreamingClientApp(Application):
     def compose(self):
+        # Create allocator
+        allocator = UnboundedAllocator(self, name="allocator")
+
         # Create video source (replayer)
         replayer = VideoStreamReplayerOp(
             self,
@@ -333,14 +339,16 @@ class StreamingClientApp(Application):
         # Create streaming client
         streaming_client = StreamingClientOp(
             self,
+            allocator,  # Allocator for output buffer
             name="streaming_client",
             server_ip="127.0.0.1",
-            port=48010,
+            signaling_port=48010,
             width=854,
             height=480,
             fps=30,
             send_frames=True,
             receive_frames=True,
+            min_non_zero_bytes=10,
         )
 
         # Create visualization (optional)
@@ -365,9 +373,13 @@ from holoscan.operators import (
     HolovizOp,
     V4L2VideoCaptureOp,
 )
+from holoscan.resources import UnboundedAllocator
 
 class StreamingClientApp(Application):
     def compose(self):
+        # Create allocator
+        allocator = UnboundedAllocator(self, name="allocator")
+
         # Create video source (V4L2 camera)
         v4l2_source = V4L2VideoCaptureOp(
             self,
@@ -393,14 +405,16 @@ class StreamingClientApp(Application):
         # Create streaming client
         streaming_client = StreamingClientOp(
             self,
+            allocator,  # Allocator for output buffer
             name="streaming_client",
             server_ip="127.0.0.1",
-            port=48010,
+            signaling_port=48010,
             width=640,
             height=480,
             fps=30,
             send_frames=True,
             receive_frames=True,
+            min_non_zero_bytes=10,
         )
 
         # Create visualization (optional)
@@ -412,16 +426,18 @@ class StreamingClientApp(Application):
         )
 
         # Connect the pipeline
-        self.add_flow(v4l2_source, format_converter, {("output", "source_video")})
+        self.add_flow(v4l2_source, format_converter, {("signal", "source_video")})
         self.add_flow(format_converter, streaming_client)
         self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
 ```
 
 **Key Points:**
+- The `StreamingClientOp` requires an allocator (passed as a positional argument) for output buffer allocation
 - The `StreamingClientOp` handles bidirectional streaming (sends and receives frames)
 - Format conversion is necessary to convert source formats to RGB for streaming
-- V4L2 always outputs RGBA8888 (4 channels) regardless of input format
-- Video replayer outputs RGB888 (3 channels)
+- V4L2 always outputs RGBA8888 (4 channels) regardless of input format and uses "signal" output port
+- Video replayer outputs RGB888 (3 channels) and uses "output" output port
+- The `min_non_zero_bytes` parameter prevents sending empty frames during startup
 - The `output_frames` port receives processed frames from the server
 - Holoviz displays the received frames using the `receivers` input port
 

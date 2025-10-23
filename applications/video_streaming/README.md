@@ -430,10 +430,24 @@ The video streaming demo includes comprehensive integration testing for both C++
 ./applications/video_streaming/integration_test.sh
 
 # Run Python integration test
+./applications/video_streaming/integration_test_python.sh
+
+# Or use direct HoloHub CLI commands:
+# C++ test
+./holohub test video_streaming \
+  --ctest-options="-R video_streaming_integration_test"
+
+# Python test
 ./holohub test video_streaming \
   --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
   --ctest-options="-R video_streaming_integration_test_python"
 ```
+
+**Test Scripts:**
+- `integration_test.sh` - C++ server and client test (SDK 3.5.0)
+- `integration_test_python.sh` - Python server and client test (SDK 3.6.0)
+
+**⚠️ Important:** Both scripts run in Docker and build from **committed source code**. Commit your changes before running tests.
 
 **For complete testing documentation**, including expected outputs, verification criteria, and troubleshooting, see **[TESTING.md](TESTING.md)**.
 

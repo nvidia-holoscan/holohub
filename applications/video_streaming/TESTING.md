@@ -472,7 +472,31 @@ The Python integration test validates the complete bidirectional video streaming
 
 ### Running the Python Integration Test
 
-**Command:**
+### Option 1: Using Integration Test Script (Recommended)
+
+The integration test script (`integration_test_python.sh`) runs the complete end-to-end Python test in a Docker container with proper SDK version and dependencies.
+
+```bash
+./applications/video_streaming/integration_test_python.sh
+```
+
+**Test Configuration:**
+
+- **Duration**: 3-5 minutes total (includes Docker build and test execution)
+- **SDK Version**: Holoscan 3.6.0 (enforced via environment variable)
+- **Test Duration**: 30 seconds of active streaming
+- **Requirements**: Docker, NVIDIA GPU, committed Python/C++ source code
+- **Output**: Detailed logs saved to `integration_test_python.log`
+
+**⚠️ Important Notes:**
+
+1. The test runs in Docker and builds from **committed source code**
+2. If you have local Python or C++ changes, **commit them first** before running the test
+3. The test uses cached Docker layers for faster builds (unless cache is cleared)
+4. This script specifically tests the Python implementations of server and client
+
+### Option 2: Using HoloHub CLI
+
 ```bash
 # From holohub root - run Python integration test
 ./holohub test video_streaming \
@@ -481,6 +505,8 @@ The Python integration test validates the complete bidirectional video streaming
   --ctest-options="-R video_streaming_integration_test_python -VV"
 ```
 
+**Note:** Both methods run the same underlying integration test defined in `CMakeLists.txt`. The wrapper script (`integration_test_python.sh`) adds developer-friendly conveniences on top of the direct command.
+
 **Test Duration:** ~44 seconds (30 seconds of streaming + setup/teardown)
 
 **Requirements:**
@@ -488,6 +514,75 @@ The Python integration test validates the complete bidirectional video streaming
 - Testing enabled via `--cmake-options='-DBUILD_TESTING=ON'`
 - Python bindings enabled via `--cmake-options='-DHOLOHUB_BUILD_PYTHON=ON'`
 - Custom Dockerfile for OpenSSL 3.4.0 dependencies
+
+### Python Integration Test Process
+
+The Python integration test (whether run via wrapper script or direct command) follows this sequence:
+
+#### 1. Pre-Test Setup (10-20 seconds)
+
+```bash
+# Displays current git commit
+echo "Current commit: $(git log --oneline -1)"
+
+# Cleans Docker build cache (optional, for fresh builds)
+docker system prune -f --filter "label=holohub"
+
+# Sets SDK version environment variable
+export HOLOHUB_BASE_SDK_VERSION=3.6.0
+```
+
+#### 2. Docker Build & Test Execution (2-4 minutes)
+
+```bash
+# Builds Docker image and runs CTest with Python bindings
+./holohub test video_streaming \
+  --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.0-dgpu \
+  --cmake-options="-DBUILD_TESTING=ON -DHOLOHUB_BUILD_PYTHON=ON" \
+  --ctest-options="-R video_streaming_integration_test_python -V" \
+  --verbose
+```
+
+**What happens internally:**
+
+- Builds Docker image with Holoscan SDK 3.6.0
+- Compiles C++ operators with Python bindings enabled
+- Installs Python packages and dependencies
+- Copies configuration files to build directory
+- Runs CTest with the Python integration test
+
+#### 3. Python Integration Test Execution (44 seconds)
+
+The `video_streaming_integration_test_python` defined in CMakeLists.txt:
+
+1. **Server Startup** (10 seconds)
+   - Launches Python streaming server in background: `python3 streaming_server_demo.py`
+   - Uses config: `streaming_server_demo.yaml`
+   - Waits for server to initialize and stabilize
+
+2. **Client Connection & Streaming** (30 seconds)
+   - Starts Python streaming client: `python3 streaming_client_demo.py`
+   - Uses config: `streaming_client_demo_replayer.yaml` (video replay mode)
+   - Establishes connection to server
+   - Streams video frames bidirectionally for 30 seconds
+   - Typically processes ~565 frames in both directions
+
+3. **Log Verification & Cleanup** (4 seconds)
+   - Gracefully terminates client (SIGTERM/SIGKILL)
+   - Gracefully terminates server (SIGTERM/SIGKILL)
+   - Verifies server logs for all required events and frame processing
+   - Verifies client logs for successful streaming and frame transmission
+   - Reports PASS/FAIL based on comprehensive log analysis
+
+#### 4. Post-Test Analysis (5 seconds)
+
+```bash
+# Verifies test results from log file
+if grep -q "Python Integration test PASSED\|100% tests passed, 0 tests failed" integration_test_python.log; then
+  echo "✓ Python Integration test PASSED"
+  exit 0
+fi
+```
 
 ### Test Workflow
 
@@ -656,13 +751,50 @@ Segmentation fault (core dumped) python3 streaming_server_demo.py
 - `1`: One or more checks failed
 - `124`: Test timeout (300 seconds)
 
-**CI-Friendly Command:**
+**CI-Friendly Commands:**
+
+**Using Wrapper Script:**
+```bash
+# Recommended for CI/CD pipelines
+timeout 300 ./applications/video_streaming/integration_test_python.sh
+echo "Python integration test exit code: $?"
+```
+
+**Using Direct Command:**
 ```bash
 timeout 300 ./holohub test video_streaming \
   --docker-file applications/video_streaming/Dockerfile \
   --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
   --ctest-options="-R video_streaming_integration_test_python"
 echo "Python integration test exit code: $?"
+```
+
+### Python Integration Test Log File
+
+The complete test execution is saved to `integration_test_python.log` (typically 700-800 lines). This file contains:
+
+1. **Docker Build Logs**: Complete build output with all dependencies including Python (~250 lines)
+2. **CMake Configuration**: Build configuration with Python bindings setup (~120 lines)
+3. **CTest Execution**: Detailed test execution with timestamps (~400 lines)
+4. **Test Verification**: Log verification checks with pass/fail status (~100 lines)
+5. **Test Summary**: Final PASS/FAIL status with verification details
+
+**Note**: The actual Python server and client application logs are redirected to temporary files during testing and are NOT included in `integration_test_python.log`. These detailed logs are only displayed if the test fails.
+
+**Analyzing the log:**
+
+```bash
+# Check test status
+grep "Python Integration test PASSED" integration_test_python.log
+
+# Check frame counts
+grep "Python Client: Received.*frames from server" integration_test_python.log
+
+# Check for errors
+grep -i "error\|fail\|crash" integration_test_python.log
+
+# View test summary
+tail -100 integration_test_python.log
 ```
 
 ## See Also

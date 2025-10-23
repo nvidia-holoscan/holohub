@@ -132,32 +132,53 @@ The C++ implementation (`cpp/streaming_server_demo.cpp`) demonstrates usage of t
 #include "streaming_server_resource.hpp"
 #include "streaming_server_upstream_op.hpp"
 
-// Create shared streaming server resource
-auto streaming_resource = make_resource<StreamingServerResource>(
-    "streaming_server_resource",
-    Arg("port", 48010),
-    Arg("width", 854U),
-    Arg("height", 480U),
-    Arg("fps", uint16_t{30}),
-    Arg("enable_upstream", true),
-    Arg("enable_downstream", true)
-);
+// Create shared streaming server resource from config
+// Configuration loaded from YAML 'streaming_server' section
+holoscan::ArgList streaming_server_args;
+try {
+    streaming_server_args = from_config("streaming_server");
+} catch (const std::exception& e) {
+    HOLOSCAN_LOG_WARN("Missing streaming_server config section, using defaults");
+}
+auto streaming_server_resource =
+    make_resource<ops::StreamingServerResource>("streaming_server_resource",
+                                                 streaming_server_args);
 
 // Upstream operator (receives from clients)
-auto upstream_op = make_operator<StreamingServerUpstreamOp>(
-    "upstream_op",
-    Arg("streaming_server_resource", streaming_resource)
-);
+// Configuration loaded from YAML 'upstream_op' section
+holoscan::ArgList upstream_args;
+try {
+    upstream_args = from_config("upstream_op");
+} catch (const std::exception& e) {
+    HOLOSCAN_LOG_WARN("Missing upstream_op config section, using defaults");
+}
+auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>("upstream_op", upstream_args);
+upstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
 // Downstream operator (sends to clients)
-auto downstream_op = make_operator<StreamingServerDownstreamOp>(
-    "downstream_op",
-    Arg("streaming_server_resource", streaming_resource)
-);
+// Configuration loaded from YAML 'downstream_op' section
+holoscan::ArgList downstream_args;
+try {
+    downstream_args = from_config("downstream_op");
+} catch (const std::exception& e) {
+    HOLOSCAN_LOG_WARN("Missing downstream_op config section, using defaults");
+}
+auto downstream_op =
+    make_operator<ops::StreamingServerDownstreamOp>("downstream_op", downstream_args);
+downstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
 
 // Connect: upstream -> downstream (passthrough/echo mode)
 add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
 ```
+
+**Key Points:**
+- All operators use the `ops::` namespace prefix
+- Configuration is loaded from YAML using `from_config()` for flexibility
+- The `StreamingServerResource` is created first and passed to operators using `add_arg()`
+- The resource is configured from the `streaming_server` YAML section
+- Upstream and downstream operators are configured from their respective YAML sections (`upstream_op`, `downstream_op`)
+- Both operators must reference the same shared `streaming_server_resource`
+- This pattern allows for dynamic configuration without recompiling
 
 ## Python Implementation
 
@@ -170,41 +191,54 @@ from holohub.streaming_server_enhanced import (
     StreamingServerUpstreamOp,
 )
 
-# Create shared streaming server resource
-streaming_resource = StreamingServerResource(
-    self,
-    name="streaming_server_resource",
-    port=48010,
-    width=854,
-    height=480,
-    fps=30,
-    enable_upstream=True,
-    enable_downstream=True,
-)
+class StreamingServerApp(Application):
+    def __init__(self, port=48010, width=854, height=480, fps=30):
+        super().__init__()
+        self.port = port
+        self.width = width
+        self.height = height
+        self.fps = fps
 
-# Upstream operator (receives from clients)
-upstream_op = StreamingServerUpstreamOp(
-    self,
-    name="upstream_op",
-    streaming_server_resource=streaming_resource
-)
+    def compose(self):
+        """Compose the application pipeline.
+        
+        Simple bidirectional streaming:
+        upstream_op (receives from clients) -> downstream_op (sends back to clients)
+        """
+        
+        # Create shared streaming server resource
+        streaming_resource = StreamingServerResource(
+            self,
+            name="streaming_server_resource",
+            port=self.port,
+            width=self.width,
+            height=self.height,
+            fps=self.fps,
+            enable_upstream=True,
+            enable_downstream=True,
+        )
 
-# Downstream operator (sends to clients)
-downstream_op = StreamingServerDownstreamOp(
-    self,
-    name="downstream_op",
-    streaming_server_resource=streaming_resource
-)
+        # Upstream operator (receives from clients)
+        upstream_op = StreamingServerUpstreamOp(
+            self, name="upstream_op", streaming_server_resource=streaming_resource
+        )
 
-# Connect: upstream -> downstream (passthrough/echo mode)
-self.add_flow(upstream_op, downstream_op, {("output_frames", "input_frames")})
+        # Downstream operator (sends to clients)
+        downstream_op = StreamingServerDownstreamOp(
+            self, name="downstream_op", streaming_server_resource=streaming_resource
+        )
+
+        # Connect: upstream -> downstream (passthrough/echo mode)
+        self.add_flow(upstream_op, downstream_op, {("output_frames", "input_frames")})
 ```
 
 **Key Points:**
 - Both operators share the same `StreamingServerResource` to manage streaming connections
+- The resource is configured with `port`, `width`, `height`, `fps`, and enables both upstream and downstream
 - The upstream operator receives frames from clients on its `output_frames` port
 - The downstream operator receives those frames on its `input_frames` port and sends them back to clients
 - This creates a simple passthrough/echo streaming pipeline
+- Parameters can be set via constructor arguments or loaded from YAML configuration
 
 ## Troubleshooting
 
