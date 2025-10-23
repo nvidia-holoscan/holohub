@@ -391,10 +391,10 @@
 <!-- feature-box -->
 <section class="section">
     <div class="top-hr" style="display: flex; max-width: 100%;">
-        <div style="display: flex; flex-direction: row; width: 100%; gap: 1rem;">
+        <div style="display: flex; flex-direction: row; width: 100%; gap: 1rem; align-items: flex-start;">
             <!-- Side Navigation -->
-            <div style="flex: 0 0 250px; min-width: 250px; background: var(--md-default-bg-color); border-right: 1px solid var(--md-default-fg-color--lightest);">
-                <div style="position: sticky; top: 80px;">
+            <div style="flex: 0 0 250px; min-width: 250px; background: var(--md-default-bg-color); border-right: 1px solid var(--md-default-fg-color--lightest); align-self: flex-start;">
+                <div style="position: sticky; top: 80px; max-height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; padding-bottom: 1rem; will-change: transform;">
                     <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Tutorials</h4>
                     <nav class="sidebar-nav" data-page-type="tutorials" style="display: flex; flex-direction: column; gap: 0;">
                         <a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('all'); return true;">All (18)</a>
