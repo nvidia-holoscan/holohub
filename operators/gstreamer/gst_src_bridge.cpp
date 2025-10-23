@@ -133,7 +133,7 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
     gst_cuda_memory_init_once();
     
     // Create a CUDA context for this device - wrap in RAII guard
-    cuda_context_ = make_gst_object_guard(gst_cuda_context_new(cuda_device_id));
+    cuda_context_ = CudaContext(gst_cuda_context_new(cuda_device_id));
     if (!cuda_context_) {
       std::string error_msg = fmt::format(
           "Failed to create CUDA context for device {}. "
@@ -144,12 +144,12 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
     }
     
     // Get or create a CUDA allocator - wrap in RAII guard
-    GstAllocator* allocator = gst_allocator_find(GST_CUDA_MEMORY_TYPE_NAME);
+    ::GstAllocator* allocator = gst_allocator_find(GST_CUDA_MEMORY_TYPE_NAME);
     if (!allocator) {
       // If not found, create one using g_object_new
       allocator = GST_ALLOCATOR(g_object_new(GST_TYPE_CUDA_ALLOCATOR, nullptr));
     }
-    cuda_allocator_ = make_gst_object_guard(allocator);
+    cuda_allocator_ = Allocator(allocator);
     if (!cuda_allocator_) {
       std::string error_msg = "Failed to create CUDA allocator";
       HOLOSCAN_LOG_ERROR(error_msg);
@@ -212,8 +212,8 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
   }
 
  private:
-  GstCudaContextGuard cuda_context_;
-  GstAllocatorGuard cuda_allocator_;
+  CudaContext cuda_context_;
+  Allocator cuda_allocator_;
 };
 
 // ============================================================================
@@ -242,7 +242,7 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, siz
     : name_(name), 
       caps_(caps), 
       queue_limit_(queue_limit),
-      src_element_(make_gst_object_guard(
+      src_element_(Element(
         gst_element_factory_make("appsrc", name_.empty() ? nullptr : name_.c_str())
       )) {
   HOLOSCAN_LOG_INFO("Creating GstSrcBridge: name='{}', caps='{}', queue_limit={}",

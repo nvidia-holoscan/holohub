@@ -29,6 +29,7 @@
 #include <gst/app/gstappsink.h>
 #include <holoscan/holoscan.hpp>
 
+#include "gst/object.hpp"
 #include "gst/guards.hpp"
 #include "gst/buffer.hpp"
 #include "gst/caps.hpp"
@@ -64,9 +65,9 @@ class GstSinkResource : public holoscan::Resource {
 
   /**
    * @brief Get the underlying GStreamer element (waits for initialization if needed)
-   * @return Shared future that will provide the GstElementGuard when ready
+   * @return Shared future that will provide the GstElement when ready
    */
-  std::shared_future<holoscan::gst::GstElementGuard> get_gst_element() const {
+  std::shared_future<holoscan::gst::Element> get_gst_element() const {
     return sink_element_future_;
   }
 
@@ -150,8 +151,8 @@ class GstSinkResource : public holoscan::Resource {
       guint n_mem) const;
 
   // Promise/future for safe element access across threads
-  std::promise<holoscan::gst::GstElementGuard> sink_element_promise_;
-  std::shared_future<holoscan::gst::GstElementGuard> sink_element_future_;
+  std::promise<holoscan::gst::Element> sink_element_promise_;
+  std::shared_future<holoscan::gst::Element> sink_element_future_;
 
   // Buffer queue for thread-safe async processing
   std::queue<holoscan::gst::Buffer> buffer_queue_;

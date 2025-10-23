@@ -20,7 +20,6 @@
 
 #include <memory>
 #include <gst/gst.h>
-#include <gst/cuda/gstcudacontext.h>
 
 namespace holoscan {
 namespace gst {
@@ -29,47 +28,6 @@ namespace gst {
 // RAII Guards for GStreamer Objects
 // ============================================================================
 
-/**
- * @brief RAII wrapper for GStreamer objects with automatic cleanup
- * @tparam T The GStreamer object type (GstElement, GstBus, etc.)
- */
-template<typename T>
-using GstObjectGuard = std::shared_ptr<T>;
-
-/**
- * @brief Create a RAII guard for any GStreamer object that automatically calls gst_object_unref
- * @tparam T The GStreamer object type
- * @param object The GStreamer object to wrap (takes ownership)
- * @return Shared pointer that will automatically unref the object when destroyed
- */
-template<typename T>
-GstObjectGuard<T> make_gst_object_guard(T* object);
-
-/**
- * @brief Convenience alias for GstElement guard
- */
-using GstElementGuard = GstObjectGuard<GstElement>;
-
-/**
- * @brief Convenience alias for GstElementFactory guard
- */
-using GstElementFactoryGuard = GstObjectGuard<GstElementFactory>;
-
-/**
- * @brief Convenience alias for GstBus guard
- */
-using GstBusGuard = GstObjectGuard<GstBus>;
-
-/**
- * @brief Convenience alias for GstCudaContext guard
- */
- using GstCudaContextGuard = GstObjectGuard<GstCudaContext>;
-
- /**
-  * @brief Convenience alias for GstAllocator guard
-  */
- using GstAllocatorGuard = GstObjectGuard<GstAllocator>;
- 
 /**
  * @brief RAII wrapper for GstMessage with automatic cleanup
  */

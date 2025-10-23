@@ -327,7 +327,7 @@ class GstSrcApp : public Application {
 class GStreamerApp {
 public:
   GStreamerApp(const std::string& pipeline_desc, 
-               holoscan::gst::GstElementGuard src_element)
+               holoscan::gst::Element src_element)
     : pipeline_desc_(pipeline_desc), 
       src_element_(src_element),
       stop_bus_monitor_(false) {
@@ -340,7 +340,7 @@ public:
     
     // Parse the sink pipeline
     GError* error = nullptr;
-    pipeline_ = holoscan::gst::make_gst_object_guard(gst_parse_launch(pipeline_desc_.c_str(), &error));
+    pipeline_ = holoscan::gst::Element(gst_parse_launch(pipeline_desc_.c_str(), &error));
     if (error) {
       auto error_guard = holoscan::gst::make_gst_error_guard(error);
       HOLOSCAN_LOG_ERROR("Failed to parse pipeline: {}", error_guard->message);
@@ -352,12 +352,11 @@ public:
     // Since our shared_ptr in GstSinkResource will call gst_object_unref() when destroyed,
     // we need to manually add a ref here so both the bin and our shared_ptr have their own references.
     // Without this: bin sinks the only ref → bin destroyed unrefs to 0 → GstSinkResource tries to unref freed memory.
-    gst_object_ref(src_element_.get());
-    gst_bin_add(GST_BIN(pipeline_.get()), src_element_.get());
+    gst_bin_add(GST_BIN(pipeline_.get()), src_element_.ref());
     
     // Find and link the "first" element
     // Note: gst_bin_get_by_name returns a new reference, so wrap it in a guard
-    auto first_element = holoscan::gst::make_gst_object_guard(
+    auto first_element = holoscan::gst::Element(
         gst_bin_get_by_name(GST_BIN(pipeline_.get()), "first"));
     if (!first_element) {
       HOLOSCAN_LOG_ERROR("Could not find element named 'first' in pipeline");
@@ -418,7 +417,7 @@ public:
 
 private:
   void monitor_pipeline_bus() {
-    auto bus = holoscan::gst::make_gst_object_guard(gst_element_get_bus(pipeline_.get()));
+    auto bus = holoscan::gst::Bus(gst_element_get_bus(pipeline_.get()));
     
     while (!stop_bus_monitor_) {
       auto msg = holoscan::gst::make_gst_message_guard(
@@ -470,8 +469,8 @@ private:
   }
 
   std::string pipeline_desc_;
-  holoscan::gst::GstElementGuard src_element_;
-  holoscan::gst::GstElementGuard pipeline_;
+  holoscan::gst::Element src_element_;
+  holoscan::gst::Element pipeline_;
   std::atomic<bool> stop_bus_monitor_;
   std::shared_future<void> bus_monitor_future_;
 };
@@ -586,14 +585,10 @@ int main(int argc, char** argv) {
       throw std::runtime_error("Timeout waiting for source element initialization");
     }
     
-    GstElement* src_element_ptr = src_element_future.get();
-    if (!src_element_ptr) {
+    holoscan::gst::Element src_element = src_element_future.get();
+    if (!src_element) {
       throw std::runtime_error("Failed to get initialized source element");
     }
-    
-    // Wrap in a guard - add ref since we're creating a new shared_ptr
-    gst_object_ref(src_element_ptr);
-    holoscan::gst::GstElementGuard src_element = holoscan::gst::make_gst_object_guard(src_element_ptr);
 
     // Create the GStreamer application with the source element and start it
     auto gstreamer_app = std::make_shared<GStreamerApp>(pipeline_desc, src_element);

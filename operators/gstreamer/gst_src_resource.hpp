@@ -61,7 +61,7 @@ class GstSrcResource : public holoscan::Resource {
    * @brief Get the underlying GStreamer element
    * @return Shared future that will provide the GStreamer element when initialization completes
    */
-  std::shared_future<GstElement*> get_gst_element() const {
+  std::shared_future<gst::Element> get_gst_element() const {
     return element_future_;
   }
 
@@ -156,8 +156,8 @@ class GstSrcResource : public holoscan::Resource {
   holoscan::Parameter<size_t> queue_limit_;
   
   // Promise/future for element access (resolves after initialize())
-  std::promise<GstElement*> element_promise_;
-  std::shared_future<GstElement*> element_future_;
+  std::promise<gst::Element> element_promise_;
+  std::shared_future<gst::Element> element_future_;
 };
 
 using GstSrcResourcePtr = GstSrcResource::SharedPtr;

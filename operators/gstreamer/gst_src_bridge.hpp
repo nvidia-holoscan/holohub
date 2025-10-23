@@ -27,6 +27,7 @@
 #include <gst/app/gstappsrc.h>
 #include <gxf/std/tensor.hpp>
 
+#include "gst/object.hpp"
 #include "gst/guards.hpp"
 #include "gst/buffer.hpp"
 #include "gst/caps.hpp"
@@ -65,10 +66,10 @@ class GstSrcBridge {
 
   /**
    * @brief Get the underlying GStreamer element
-   * @return The GStreamer element (appsrc)
+   * @return Reference to the GStreamer element wrapper (appsrc)
    */
-  GstElement* get_gst_element() const {
-    return src_element_.get();
+  const Element& get_gst_element() const {
+    return src_element_;
   }
 
   /**
@@ -151,7 +152,7 @@ class GstSrcBridge {
   int framerate_den_ = 1;
 
   // GStreamer element (appsrc)
-  GstElementGuard src_element_;
+  Element src_element_;
 
   // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
   std::shared_ptr<MemoryWrapper> memory_wrapper_;

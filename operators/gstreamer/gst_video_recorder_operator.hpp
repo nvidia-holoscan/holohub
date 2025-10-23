@@ -24,6 +24,7 @@
 #include <future>
 #include <holoscan/holoscan.hpp>
 #include <gst/gst.h>
+#include "gst/object.hpp"
 #include "gst_src_bridge.hpp"
 
 namespace holoscan {
@@ -113,8 +114,8 @@ class GstVideoRecorderOperator : public Operator {
   
   // Bridge and pipeline management
   std::shared_ptr<holoscan::gst::GstSrcBridge> bridge_;
-  holoscan::gst::GstElementGuard pipeline_;
-  holoscan::gst::GstElementGuard encoder_;  // Keep reference to link dynamically created converter to it
+  holoscan::gst::Element pipeline_;
+  holoscan::gst::Element encoder_;  // Keep reference to link dynamically created converter to it
   
   // Bus monitoring
   std::future<void> bus_monitor_future_;

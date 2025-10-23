@@ -525,7 +525,7 @@ void GstSinkResource::initialize() {
   }
 
   // Create appsink element - standard GStreamer element, no custom registration needed!
-  auto element = gst::make_gst_object_guard(
+  auto element = gst::Element(
     gst_element_factory_make("appsink", name().empty() ? nullptr : name().c_str())
   );
 

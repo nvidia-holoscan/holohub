@@ -75,7 +75,7 @@ class GstSinkApp : public Application {
 class GStreamerApp {
 public:
   GStreamerApp(const std::string& pipeline_desc, 
-               holoscan::gst::GstElementGuard sink_element)
+               holoscan::gst::Element sink_element)
     : pipeline_desc_(pipeline_desc), 
       sink_element_(sink_element),
       stop_bus_monitor_(false) {
@@ -88,7 +88,7 @@ public:
     
     // Parse the source pipeline
     GError* error = nullptr;
-    pipeline_ = holoscan::gst::make_gst_object_guard(gst_parse_launch(pipeline_desc_.c_str(), &error));
+    pipeline_ = holoscan::gst::Element(gst_parse_launch(pipeline_desc_.c_str(), &error));
     if (error) {
       auto error_guard = holoscan::gst::make_gst_error_guard(error);
       HOLOSCAN_LOG_ERROR("Failed to parse pipeline: {}", error_guard->message);
@@ -100,12 +100,11 @@ public:
     // Since our shared_ptr in GstSinkResource will call gst_object_unref() when destroyed,
     // we need to manually add a ref here so both the bin and our shared_ptr have their own references.
     // Without this: bin sinks the only ref → bin destroyed unrefs to 0 → GstSinkResource tries to unref freed memory.
-    gst_object_ref(sink_element_.get());
-    gst_bin_add(GST_BIN(pipeline_.get()), sink_element_.get());
+    gst_bin_add(GST_BIN(pipeline_.get()), sink_element_.ref());
     
     // Find and link the "last" element
     // Note: gst_bin_get_by_name returns a new reference, so wrap it in a guard
-    auto last_element = holoscan::gst::make_gst_object_guard(
+    auto last_element = holoscan::gst::Element(
         gst_bin_get_by_name(GST_BIN(pipeline_.get()), "last"));
     if (!last_element) {
       HOLOSCAN_LOG_ERROR("Could not find element named 'last' in pipeline");
@@ -159,7 +158,7 @@ public:
 
 private:
   void monitor_pipeline_bus() {
-    auto bus = holoscan::gst::make_gst_object_guard(gst_element_get_bus(pipeline_.get()));
+    auto bus = holoscan::gst::Bus(gst_element_get_bus(pipeline_.get()));
     
     while (!stop_bus_monitor_) {
       auto msg = holoscan::gst::make_gst_message_guard(
@@ -192,8 +191,8 @@ private:
   }
 
   std::string pipeline_desc_;
-  holoscan::gst::GstElementGuard sink_element_;
-  holoscan::gst::GstElementGuard pipeline_;
+  holoscan::gst::Element sink_element_;
+  holoscan::gst::Element pipeline_;
   std::thread bus_monitor_thread_;
   std::atomic<bool> stop_bus_monitor_;
 };
@@ -275,7 +274,7 @@ int main(int argc, char** argv) {
       throw std::runtime_error("Timeout waiting for sink element initialization");
     }
     
-    holoscan::gst::GstElementGuard sink_element = sink_element_future.get();
+    holoscan::gst::Element sink_element = sink_element_future.get();
     if (!sink_element || !sink_element.get()) {
       throw std::runtime_error("Failed to get initialized sink element");
     }

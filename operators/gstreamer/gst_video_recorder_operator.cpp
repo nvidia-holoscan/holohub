@@ -186,7 +186,7 @@ std::string get_parser_from_encoder(GstElement* encoder) {
  * @param pipeline The GStreamer pipeline to monitor
  */
 void monitor_pipeline_bus(GstElement* pipeline) {
-  auto bus = holoscan::gst::make_gst_object_guard(gst_element_get_bus(pipeline));
+  auto bus = holoscan::gst::Bus(gst_element_get_bus(pipeline));
   
   while (true) {
     auto msg = holoscan::gst::make_gst_message_guard(
@@ -331,15 +331,15 @@ std::shared_ptr<holoscan::gst::GstSrcBridge> create_bridge_from_entity(
  * Creates cudaconvert for device (CUDA) memory or videoconvert for host memory.
  * 
  * @param is_device_memory True if using CUDA memory, false for host memory
- * @return GstElementGuard wrapping the created converter element
+ * @return GstElement wrapping the created converter element
  * @throws std::runtime_error if element creation fails
  */
-holoscan::gst::GstElementGuard create_converter_element(bool is_device_memory) {
+holoscan::gst::Element create_converter_element(bool is_device_memory) {
   const char* converter_name = is_device_memory ? "cudaconvert" : "videoconvert";
   std::string storage_str = is_device_memory ? "device" : "host";
   HOLOSCAN_LOG_INFO("Creating {} for {} memory", converter_name, storage_str);
   
-  auto converter = holoscan::gst::make_gst_object_guard(
+  auto converter = holoscan::gst::Element(
       gst_element_factory_make(converter_name, "converter"));
   if (!converter) {
     HOLOSCAN_LOG_ERROR("Failed to create {} element", converter_name);
@@ -471,20 +471,17 @@ bool set_encoder_property(GstElement* encoder,
  * @param encoder Encoder element to link to
  */
 void add_and_link_source_converter(GstElement* pipeline, 
-                                    GstElement* src_element,
-                                    const holoscan::gst::GstElementGuard& converter,
-                                    const holoscan::gst::GstElementGuard& encoder) {
+                                    const holoscan::gst::Element& src_element,
+                                    const holoscan::gst::Element& converter,
+                                    const holoscan::gst::Element& encoder) {
   // Add source and converter elements to pipeline
   // Note: gst_bin_add() takes ownership by sinking the floating reference.
   // Since our guards will call gst_object_unref() when destroyed,
   // we need to manually add a ref here so both the bin and the guards have their own references.
-  gst_object_ref(src_element);
-  gst_object_ref(converter.get());
-  
-  gst_bin_add_many(GST_BIN(pipeline), src_element, converter.get(), nullptr);
+  gst_bin_add_many(GST_BIN(pipeline), src_element.ref(), converter.ref(), nullptr);
   
   // Set elements to PLAYING state to match the pipeline
-  GstStateChangeReturn ret = gst_element_set_state(src_element, GST_STATE_PLAYING);
+  GstStateChangeReturn ret = gst_element_set_state(src_element.get(), GST_STATE_PLAYING);
   if (ret == GST_STATE_CHANGE_FAILURE) {
     throw std::runtime_error("Failed to set source element to PLAYING state");
   }
@@ -495,7 +492,7 @@ void add_and_link_source_converter(GstElement* pipeline,
   }
   
   // Link elements: source -> converter -> encoder
-  if (!gst_element_link(src_element, converter.get())) {
+  if (!gst_element_link(src_element.get(), converter.get())) {
     throw std::runtime_error("Failed to link source to converter");
   }
   
@@ -556,14 +553,14 @@ void GstVideoRecorderOperator::start() {
   HOLOSCAN_LOG_INFO("Setting up GStreamer pipeline (without source)");
   
   // Create pipeline
-  pipeline_ = holoscan::gst::make_gst_object_guard(gst_pipeline_new("video-recorder-pipeline"));
+  pipeline_ = holoscan::gst::Element(gst_pipeline_new("video-recorder-pipeline"));
   if (!pipeline_) {
     throw std::runtime_error("Failed to create GStreamer pipeline");
   }
   
   // Create encoder element first (append "enc" suffix to encoder base name)
   std::string encoder_element = encoder_name_.get() + "enc";
-  encoder_ = holoscan::gst::make_gst_object_guard(
+  encoder_ = holoscan::gst::Element(
       gst_element_factory_make(encoder_element.c_str(), "encoder"));
   if (!encoder_) {
     HOLOSCAN_LOG_ERROR("Failed to create encoder element '{}'", encoder_element);
@@ -594,11 +591,11 @@ void GstVideoRecorderOperator::start() {
   HOLOSCAN_LOG_INFO("Auto-detected muxer: {} for extension in '{}'", muxer_name, output_filename);
   
   // Create remaining pipeline elements (without source and converter - those will be added on first frame)
-  auto parser = holoscan::gst::make_gst_object_guard(
+  auto parser = holoscan::gst::Element(
       gst_element_factory_make(parser_name.c_str(), "parser"));
-  auto muxer = holoscan::gst::make_gst_object_guard(
+  auto muxer = holoscan::gst::Element(
       gst_element_factory_make(muxer_name.c_str(), "muxer"));
-  auto filesink = holoscan::gst::make_gst_object_guard(
+  auto filesink = holoscan::gst::Element(
       gst_element_factory_make("filesink", "filesink"));
   
   if (!parser) {
@@ -620,14 +617,9 @@ void GstVideoRecorderOperator::start() {
   
   // Add all elements to pipeline (this sinks their floating references)
   // We need to add refs since our guards will unref them
-  gst_object_ref(encoder_.get());
-  gst_object_ref(parser.get());
-  gst_object_ref(muxer.get());
-  gst_object_ref(filesink.get());
-  
   gst_bin_add_many(GST_BIN(pipeline_.get()), 
-                   encoder_.get(), parser.get(), 
-                   muxer.get(), filesink.get(), nullptr);
+                   encoder_.ref(), parser.ref(), 
+                   muxer.ref(), filesink.ref(), nullptr);
   
   // Link elements: encoder -> parser -> muxer -> filesink
   // Source and converter will be added and linked on first frame
