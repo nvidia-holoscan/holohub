@@ -380,7 +380,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     struct in_addr addr;
     auto ipv4_dst = flow_item["match"]["ipv4_dst"].as<std::string>();
     if (inet_pton(AF_INET, ipv4_dst.c_str(), &addr) != 1) {
-      HOLOSCAN_LOG_ERROR("Failed to convert source IP address: {}", ipv4_dst);
+      HOLOSCAN_LOG_ERROR("Failed to convert destination IP address: {}", ipv4_dst);
     }
     flow.match_.ipv4_dst_ = addr.s_addr;
   } catch (const std::exception& e) {
