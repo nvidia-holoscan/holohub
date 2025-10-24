@@ -25,12 +25,20 @@
 
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
-#include <gxf/std/tensor.hpp>
 
 #include "gst/object.hpp"
 #include "gst/guards.hpp"
 #include "gst/buffer.hpp"
 #include "gst/caps.hpp"
+
+#include <holoscan/core/gxf/entity.hpp>
+
+// Forward declarations for types only used as pointers
+namespace nvidia {
+namespace gxf {
+class Tensor;
+}
+}
 
 namespace holoscan {
 
@@ -97,18 +105,6 @@ class GstSrcBridge {
   bool push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
 
   /**
-   * @brief Create a GStreamer buffer from raw tensor data
-   * 
-   * Wraps tensors in GStreamer memory using zero-copy when possible.
-   * Automatically selects between host and CUDA memory based on tensor storage type and caps.
-   * 
-   * @param tensors Array of tensor pointers
-   * @param num_tensors Number of tensors in the array
-   * @return GStreamer Buffer with zero-copy wrapping, empty on failure
-   */
-  gst::Buffer create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, size_t num_tensors);
-
-  /**
    * @brief Create a GStreamer buffer from a GXF Entity containing tensor(s)
    * 
    * Extracts all tensors from the entity and wraps them in a GStreamer buffer.
@@ -121,7 +117,7 @@ class GstSrcBridge {
    * @param entity GXF Entity containing one or more tensors
    * @return GStreamer Buffer with zero-copy wrapping, empty on failure
    */
-  gst::Buffer create_buffer_from_entity(const nvidia::gxf::Entity& entity);
+  gst::Buffer create_buffer_from_entity(const gxf::Entity& entity);
 
   /**
    * @brief Get the current negotiated caps from the source
@@ -134,6 +130,18 @@ class GstSrcBridge {
   class MemoryWrapper;
   class HostMemoryWrapper;
   class CudaMemoryWrapper;
+
+  /**
+   * @brief Create a GStreamer buffer from raw tensor data (internal helper)
+   * 
+   * Wraps tensors in GStreamer memory using zero-copy when possible.
+   * Automatically selects between host and CUDA memory based on tensor storage type and caps.
+   * 
+   * @param tensors Array of tensor pointers
+   * @param num_tensors Number of tensors in the array
+   * @return GStreamer Buffer with zero-copy wrapping, empty on failure
+   */
+  gst::Buffer create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, size_t num_tensors);
 
   /**
    * @brief Initialize memory wrapper based on tensor storage type and caps

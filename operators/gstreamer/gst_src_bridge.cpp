@@ -28,6 +28,8 @@
 #include <dlpack/dlpack.h>
 #include <chrono>
 #include <thread>
+
+#include <holoscan/core/gxf/entity.hpp>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
@@ -543,7 +545,7 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensors(nvidia::gxf::Tensor** tenso
   return gst_buffer;
 }
 
-gst::Buffer GstSrcBridge::create_buffer_from_entity(const nvidia::gxf::Entity& entity) {
+gst::Buffer GstSrcBridge::create_buffer_from_entity(const gxf::Entity& entity) {
   // Create an empty GStreamer buffer at the start
   gst::Buffer gst_buffer;
 

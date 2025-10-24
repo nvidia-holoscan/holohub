@@ -52,6 +52,7 @@ add_library(holoscan_gstreamer_sink SHARED
   gst/audio_info.cpp
   gst/map_info.cpp
   gst/mapped_buffer.cpp
+  gst_sink_bridge.cpp
   gst_sink_resource.cpp
   gst_sink_operator.cpp
   gst_src_bridge.cpp

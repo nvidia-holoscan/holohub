@@ -12,6 +12,7 @@
 #include <holoscan/holoscan.hpp>
 #include <gst_src_resource.hpp>
 #include <gst_src_operator.hpp>
+#include <gst/guards.hpp>
 
 namespace {
 

@@ -9,6 +9,7 @@
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <gst_sink_resource.hpp>
 #include <gst_sink_operator.hpp>
+#include <gst/guards.hpp>
 
 namespace holoscan {
 

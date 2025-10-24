@@ -18,44 +18,32 @@
 #ifndef GST_SINK_RESOURCE_HPP
 #define GST_SINK_RESOURCE_HPP
 
-#include <condition_variable>
 #include <future>
 #include <memory>
-#include <mutex>
-#include <queue>
 #include <string>
 
-#include <gst/gst.h>
-#include <gst/app/gstappsink.h>
 #include <holoscan/holoscan.hpp>
 
-#include "gst/object.hpp"
-#include "gst/guards.hpp"
 #include "gst/buffer.hpp"
-#include "gst/caps.hpp"
+#include "gst_sink_bridge.hpp"
 
 namespace holoscan {
 
 /**
  * @brief Holoscan Resource wrapper for GStreamer appsink element
  *
- * This class provides a clean bridge between GStreamer pipelines and Holoscan operators
- * using the standard GStreamer appsink element. The primary purpose is to enable 
- * Holoscan operators to retrieve and process data from GStreamer pipelines.
+ * This class provides a Holoscan-specific interface to GStreamer pipelines,
+ * integrating with Holoscan's entity system. It delegates actual GStreamer
+ * operations to GstSinkBridge.
  */
-class GstSinkResource : public holoscan::Resource {
+class GstSinkResource : public Resource {
  public:
   HOLOSCAN_RESOURCE_FORWARD_ARGS(GstSinkResource)
 
   /**
-   * @brief Destructor - cleans up GStreamer resources
-   */
-  ~GstSinkResource();
-
-  /**
    * @brief Setup the resource parameters
    */
-  void setup(holoscan::ComponentSpec& spec) override;
+  void setup(ComponentSpec& spec) override;
 
   /**
    * @brief Initialize the GStreamer sink resource
@@ -63,16 +51,16 @@ class GstSinkResource : public holoscan::Resource {
   void initialize() override;
 
   /**
-   * @brief Get the underlying GStreamer element (waits for initialization if needed)
-   * @return Shared future that will provide the GstElement when ready
+   * @brief Get the underlying GStreamer element
+   * @return Shared future that will provide the GStreamer element when initialization completes
    */
-  std::shared_future<holoscan::gst::Element> get_gst_element() const;
+  std::shared_future<gst::Element> get_gst_element() const;
 
   /**
    * @brief Asynchronously pop the next buffer from the GStreamer pipeline
    * @return Future that will be fulfilled when a buffer becomes available
    */
-  std::future<holoscan::gst::Buffer> pop_buffer();
+  std::future<gst::Buffer> pop_buffer();
 
   /**
    * @brief Create a GXF Entity with tensor(s) from GStreamer buffer with zero-copy
@@ -87,78 +75,21 @@ class GstSinkResource : public holoscan::Resource {
    * @param buffer GStreamer buffer containing the data
    * @return GXF Entity containing one or more tensors, empty entity on failure
    */
-  holoscan::gxf::Entity create_entity_from_buffer(holoscan::ExecutionContext& context,
-                                                   const holoscan::gst::Buffer& buffer) const;
+  gxf::Entity create_entity_from_buffer(ExecutionContext& context,
+                                         const gst::Buffer& buffer) const;
 
  private:
-  // Friend declarations for appsink callback functions (static functions in holoscan namespace)
-  friend void appsink_eos_callback(::GstAppSink* appsink, gpointer user_data);
-  friend ::GstFlowReturn appsink_new_preroll_callback(::GstAppSink* appsink, gpointer user_data);
-  friend ::GstFlowReturn appsink_new_sample_callback(::GstAppSink* appsink, gpointer user_data);
-  /**
-   * @brief Check if the sink element is ready (non-blocking)
-   * @return true if the element has been initialized and is ready to use
-   */
-   bool valid() const;
-
-  /**
-   * @brief Get the current negotiated caps from the sink
-   * @return Caps with automatic reference counting
-   */
-   holoscan::gst::Caps get_caps() const;
-
- private:
-  /**
-   * @brief Tensor metadata (name, shape, strides)
-   */
-  struct TensorMetadata {
-    std::string name;
-    nvidia::gxf::Shape shape;
-    std::array<size_t, 8> strides;
-  };
-
-  /**
-   * @brief Get tensor metadata for video plane
-   * 
-   * @param video_info Video format information
-   * @param plane_idx Index of the plane
-   * @param n_planes Total number of planes
-   * @return Tensor metadata (name, shape, strides)
-   */
-  TensorMetadata get_video_tensor_metadata(
-      const holoscan::gst::VideoInfo& video_info,
-      guint plane_idx,
-      guint n_planes) const;
-
-  /**
-   * @brief Get tensor metadata for generic memory block
-   * 
-   * @param mem_idx Index of the memory block
-   * @param size Size of the memory block in bytes
-   * @param n_mem Total number of memory blocks
-   * @return Tensor metadata (name, shape, strides)
-   */
-  TensorMetadata get_generic_tensor_metadata(
-      guint mem_idx,
-      gsize size,
-      guint n_mem) const;
-
-  // Promise/future for safe element access across threads
-  std::promise<holoscan::gst::Element> sink_element_promise_;
-  std::shared_future<holoscan::gst::Element> sink_element_future_;
-
-  // Buffer queue for thread-safe async processing
-  std::queue<holoscan::gst::Buffer> buffer_queue_;
-  // Single pending buffer pop request (only one request at a time)
-  std::optional<std::promise<holoscan::gst::Buffer>> pending_request_;
-  mutable std::mutex mutex_;
-  std::condition_variable queue_cv_;
-  bool is_shutting_down_ = false;
+  // Bridge to GStreamer (does the actual work)
+  std::shared_ptr<GstSinkBridge> bridge_;
 
   // Resource parameters
-  holoscan::Parameter<std::string> caps_;
-  holoscan::Parameter<bool> qos_enabled_;
-  holoscan::Parameter<size_t> max_buffers_;
+  Parameter<std::string> caps_;
+  Parameter<size_t> max_buffers_;
+  Parameter<bool> qos_enabled_;
+  
+  // Promise/future for element access (resolves after initialize())
+  std::promise<gst::Element> element_promise_;
+  std::shared_future<gst::Element> element_future_ = element_promise_.get_future();
 };
 
 }  // namespace holoscan

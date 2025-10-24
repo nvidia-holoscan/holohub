@@ -57,17 +57,6 @@ class GstSrcResource : public Resource {
   std::shared_future<gst::Element> get_gst_element() const;
 
   /**
-   * @brief Send End-Of-Stream signal to appsrc
-   * 
-   * Call this when you're done sending data to signal the downstream pipeline
-   * to finalize processing (e.g., write file headers/trailers).
-   * 
-   * Note: This function returns immediately after sending EOS. The caller should
-   * wait for the EOS message on the pipeline bus to know when processing is complete.
-   */
-  void send_eos();
-
-  /**
    * @brief Push a buffer into the GStreamer pipeline (template version)
    * 
    * Template function that accepts any std::chrono::duration type and converts
@@ -121,6 +110,17 @@ class GstSrcResource : public Resource {
                    std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
 
   /**
+   * @brief Send End-Of-Stream signal to appsrc
+   * 
+   * Call this when you're done sending data to signal the downstream pipeline
+   * to finalize processing (e.g., write file headers/trailers).
+   * 
+   * Note: This function returns immediately after sending EOS. The caller should
+   * wait for the EOS message on the pipeline bus to know when processing is complete.
+   */
+   void send_eos();
+
+   /**
    * @brief Create a GStreamer buffer from a GXF Entity containing tensor(s)
    * 
    * Supports both packed formats (RGBA, RGB) and planar formats (I420, NV12).

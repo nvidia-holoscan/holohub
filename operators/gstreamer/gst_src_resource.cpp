@@ -27,16 +27,6 @@
 
 namespace holoscan {
 
-gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity) const {
-  if (!bridge_) {
-    HOLOSCAN_LOG_ERROR("Bridge not initialized");
-    return gst::Buffer();
-  }
-  
-  // Delegate to bridge
-  return bridge_->create_buffer_from_entity(entity);
-}
-
 void GstSrcResource::setup(ComponentSpec& spec) {
   spec.param(caps_,
       "caps",
@@ -84,14 +74,24 @@ std::shared_future<gst::Element> GstSrcResource::get_gst_element() const {
   return element_future_;
 }
 
+bool GstSrcResource::push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout) {
+  return bridge_ ? bridge_->push_buffer(std::move(buffer), timeout) : false;
+}
+
 void GstSrcResource::send_eos() {
   if (bridge_) {
     bridge_->send_eos();
   }
 }
 
-bool GstSrcResource::push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout) {
-  return bridge_ ? bridge_->push_buffer(std::move(buffer), timeout) : false;
+gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity) const {
+  if (!bridge_) {
+    HOLOSCAN_LOG_ERROR("Bridge not initialized");
+    return gst::Buffer();
+  }
+  
+  // Delegate to bridge
+  return bridge_->create_buffer_from_entity(entity);
 }
 
 }  // namespace holoscan
