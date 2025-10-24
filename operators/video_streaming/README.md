@@ -132,7 +132,7 @@ For detailed Python application documentation, see:
 
 #### Client Binary
 
-In order to build the client operator, you must first download the client binaries from NGC:
+To build the client operator, first download the client binaries from NGC:
 
 ```bash
 # Download using NGC CLI
@@ -147,7 +147,7 @@ rm -rf ./holoscan_client_cloud_streaming_v0.2/
 
 #### Server Binary
 
-In order to build the server operator, you must first download the server binaries from NGC:
+To build the server operator, first download the server binaries from NGC:
 
 ```bash
 # Download using NGC CLI
