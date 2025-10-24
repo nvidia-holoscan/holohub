@@ -1243,7 +1243,6 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   struct rte_flow_item_udp udp_mask;
   struct rte_flow_item_ipv4  ip_spec;
   struct rte_flow_item_ipv4  ip_mask;
-  struct rte_flow_item udp_item;
   int res;
 
   // HWS requires using a non-zero group, so we make a jump event to group 3 for all ethernet
@@ -1279,6 +1278,8 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   memset(&attr, 0, sizeof(struct rte_flow_attr));
   memset(&ip_spec, 0, sizeof(struct rte_flow_item_ipv4));
   memset(&ip_mask, 0, sizeof(struct rte_flow_item_ipv4));
+  memset(&udp_spec, 0, sizeof(struct rte_flow_item_udp));
+  memset(&udp_mask, 0, sizeof(struct rte_flow_item_udp));
 
   action[0].type = RTE_FLOW_ACTION_TYPE_MARK;
   action[0].conf = &mark;
@@ -1290,34 +1291,64 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   pattern[1].type = RTE_FLOW_ITEM_TYPE_IPV4;
   pattern[2].type = RTE_FLOW_ITEM_TYPE_UDP;
 
+  bool has_ip_match = false;
+
   if (cfg.match_.ipv4_len_ > 0) {
     ip_spec.hdr.total_length = htons(cfg.match_.ipv4_len_);
     ip_mask.hdr.total_length = 0xffff;
-    pattern[1].spec = &ip_spec;
-    pattern[1].mask = &ip_mask;
+    has_ip_match = true;
     HOLOSCAN_LOG_INFO("Adding IPv4 length match for {}", cfg.match_.ipv4_len_);
   }
 
+  if (cfg.match_.ipv4_src_ > 0) {
+    ip_spec.hdr.src_addr = cfg.match_.ipv4_src_;
+    ip_mask.hdr.src_addr = 0xffffffff;
+    has_ip_match = true;
+    char str_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &ip_spec.hdr.src_addr, str_ip, INET_ADDRSTRLEN);
+    HOLOSCAN_LOG_INFO("Adding IPv4 source IP match for {}", str_ip);
+  }
+
+  if (cfg.match_.ipv4_dst_ > 0) {
+    ip_spec.hdr.dst_addr = cfg.match_.ipv4_dst_;
+    ip_mask.hdr.dst_addr = 0xffffffff;
+    has_ip_match = true;
+    char str_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &ip_spec.hdr.dst_addr, str_ip, INET_ADDRSTRLEN);
+    HOLOSCAN_LOG_INFO("Adding IPv4 destination IP match for {}", str_ip);
+  }
+
+  if (has_ip_match == true) {
+    pattern[1].spec = &ip_spec;
+    pattern[1].mask = &ip_mask;
+  }
+
+  bool has_udp_match = false;
+
   if (cfg.match_.udp_src_ > 0) {
     udp_spec.hdr.src_port = htons(cfg.match_.udp_src_);
+    udp_mask.hdr.src_port = 0xffff;
+    has_udp_match = true;
+    HOLOSCAN_LOG_INFO("Adding UDP port match for src {}", cfg.match_.udp_src_);
+  }
+
+  if (cfg.match_.udp_dst_ > 0) {
     udp_spec.hdr.dst_port = htons(cfg.match_.udp_dst_);
+    udp_mask.hdr.dst_port = 0xffff;
+    has_udp_match = true;
+    HOLOSCAN_LOG_INFO("Adding UDP port match for dst {}", cfg.match_.udp_dst_);
+  }
+    
+  if (has_udp_match == true) {
     udp_spec.hdr.dgram_len = 0;
     udp_spec.hdr.dgram_cksum = 0;
-
-    udp_mask.hdr.src_port = 0xffff;
-    udp_mask.hdr.dst_port = 0xffff;
     udp_mask.hdr.dgram_len = 0;
     udp_mask.hdr.dgram_cksum = 0;
 
-    udp_item.type = RTE_FLOW_ITEM_TYPE_UDP;
-    udp_item.spec = &udp_spec;
-    udp_item.mask = &udp_mask;
-    udp_item.last = NULL;
-
-    pattern[2] = udp_item;
-    HOLOSCAN_LOG_INFO("Adding UDP port match for src/dst {}/{}",
-      cfg.match_.udp_src_, cfg.match_.udp_dst_);
+    pattern[2].spec = &udp_spec;
+    pattern[2].mask = &udp_mask;
   }
+
 
   attr.ingress = 1;
   attr.priority = 0;

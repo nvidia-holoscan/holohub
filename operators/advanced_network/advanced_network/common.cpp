@@ -349,9 +349,13 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
 
   try {
     flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
-    flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
   } catch (const std::exception& e) {
     flow.match_.udp_src_ = 0;
+  }
+
+  try {
+    flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
+  } catch (const std::exception& e) {
     flow.match_.udp_dst_ = 0;
   }
 
@@ -361,7 +365,34 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     flow.match_.ipv4_len_ = 0;
   }
 
-  if (flow.match_.udp_src_ == 0 && flow.match_.udp_dst_ == 0 && flow.match_.ipv4_len_ == 0) {
+  try {
+    struct in_addr addr;
+    auto ipv4_src = flow_item["match"]["ipv4_src"].as<std::string>();
+    if (inet_pton(AF_INET, ipv4_src.c_str(), &addr) != 1) {
+      HOLOSCAN_LOG_ERROR("Failed to convert source IP address: {}", ipv4_src);
+    }
+    flow.match_.ipv4_src_ = addr.s_addr;
+  } catch (const std::exception& e) {
+    flow.match_.ipv4_src_ = in_addr_t(0x00000000);
+  }
+ 
+  try {
+    struct in_addr addr;
+    auto ipv4_dst = flow_item["match"]["ipv4_dst"].as<std::string>();
+    if (inet_pton(AF_INET, ipv4_dst.c_str(), &addr) != 1) {
+      HOLOSCAN_LOG_ERROR("Failed to convert source IP address: {}", ipv4_dst);
+    }
+    flow.match_.ipv4_dst_ = addr.s_addr;
+  } catch (const std::exception& e) {
+    flow.match_.ipv4_dst_ = in_addr_t(0x00000000);
+  }
+
+  if (   flow.match_.udp_src_  == 0
+      && flow.match_.udp_dst_  == 0
+      && flow.match_.ipv4_len_ == 0
+      && flow.match_.ipv4_src_ == in_addr_t(0x00000000)
+      && flow.match_.ipv4_dst_ == in_addr_t(0x00000000)
+    ) {
     // No match criteria defined, use flex item match
     flow.match_.flex_item_match_.flex_item_id_ = flow_item["match"]["flex_item_id"].as<uint16_t>();
     flow.match_.flex_item_match_.val_ = flow_item["match"]["val"].as<uint32_t>();
