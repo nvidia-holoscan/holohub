@@ -106,7 +106,6 @@ Both server and client applications are available in Python using the Holoscan P
 # From holohub root directory - runs with default settings (854x480 @ 30fps)
 ./holohub run video_streaming server_python \
   --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
@@ -123,7 +122,6 @@ Both server and client applications are available in Python using the Holoscan P
 # From holohub root directory - runs with video file playback
 ./holohub run video_streaming client_python \
   --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
@@ -132,7 +130,6 @@ Both server and client applications are available in Python using the Holoscan P
 # From holohub root directory - runs with V4L2 camera (webcam)
 ./holohub run video_streaming client_python_v4l2 \
   --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
@@ -230,7 +227,6 @@ Terminal 2 - Python Client:
 ```bash
 ./holohub run video_streaming client_python \
   --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
