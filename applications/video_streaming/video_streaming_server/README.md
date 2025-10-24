@@ -22,7 +22,6 @@ This application demonstrates how to create a bidirectional video streaming serv
 - Custom Dockerfile with OpenSSL 3.4.0 (for running via holohub CLI)
 - For Python: Python 3.8+ and bindings built with `-DHOLOHUB_BUILD_PYTHON=ON`
 - CUDA 12.x (currently not working with CUDA 13.x)
-- OpenCV
 - video_streaming operator
 
 ## Usage
@@ -47,6 +46,11 @@ This application demonstrates how to create a bidirectional video streaming serv
 # From holohub root directory - runs with default settings (854x480 @ 30fps)
 ./holohub run video_streaming server_python \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+
+# With custom parameters via command-line arguments
+./holohub run video_streaming server_python \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+  --extra-args '--port 48010 --width 854 --height 480 --fps 30'
 ```
 
 **Default Configuration:**
@@ -57,8 +61,9 @@ This application demonstrates how to create a bidirectional video streaming serv
 
 **Note:** The server defaults to 854x480 resolution. For V4L2 clients that use 640x480, ensure the client is configured to match the server's resolution.
 
-### Command Line Options (Python)
+### Command Line Options
 
+**Python Server**:
 - `--port PORT`: Server port (default: 48010)
 - `--width WIDTH`: Frame width (default: 854)
 - `--height HEIGHT`: Frame height (default: 480)
@@ -67,32 +72,97 @@ This application demonstrates how to create a bidirectional video streaming serv
 - `--create-config PATH`: Create default configuration file at specified path
 - `--help`: Show help message
 
-### Command Line Options (C++)
-
+**C++ Server**:
 - `-c PATH` or `--config PATH`: Path to YAML configuration file
+- `-?` or `--help`: Show help message
 
 ## Configuration
 
-The application can be configured via YAML file or command-line arguments. Example configuration file structure:
+### C++ Configuration
+
+The C++ application is configured via YAML file. Example configuration file structure:
 
 ```yaml
+%YAML 1.2
+---
 # Application metadata
 application:
-  title: "Streaming Server Demo"
+  title: Streaming Server Test App
+  version: 1.0
+  log_level: INFO
+
+# Streaming server settings
+streaming_server:
+  # Video/stream parameters
+  width: 854
+  height: 480
+  fps: 30
+  
+  # Server connection settings
+  port: 48010
+  multi_instance: false
+  server_name: "StreamingServerTest"
+  
+  # Operation mode - Bidirectional streaming
+  receive_frames: true
+  send_frames: true
+  allocator: !ref "allocator"
+
+# Upstream operator configuration (receives frames from clients)
+upstream_op: {}
+
+# Downstream operator configuration (sends frames to clients)
+downstream_op: {}
+
+# Memory allocator configuration
+allocator:
+  type: "holoscan::UnboundedAllocator"
+
+# Scheduler configuration
+scheduler: "multi_thread"
+
+multi_thread_scheduler:
+  worker_thread_number: 2
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 5000
+
+# Enable data flow tracking for debugging/profiling
+tracking: false
+```
+
+**C++ Configuration File**: `cpp/streaming_server_demo.yaml`
+
+### Python Configuration
+
+The Python application is primarily configured via **command-line arguments**, with optional YAML support for advanced settings:
+
+**Command-Line Parameters** (recommended):
+- `--port PORT`: Server port (default: 48010)
+- `--width WIDTH`: Frame width (default: 854)
+- `--height HEIGHT`: Frame height (default: 480)
+- `--fps FPS`: Frames per second (default: 30)
+- `--config PATH` or `-c PATH`: Path to YAML configuration file
+- `--create-config PATH`: Create default configuration file
+
+**Python YAML Structure** (optional, different from C++):
+
+```yaml
+application:
+  title: "Streaming Server Python Demo"
   version: "1.0"
   log_level: "INFO"
 
-# Server configuration
-streaming_server:
-  port: 48010           # Server port
-  width: 854            # Frame width
-  height: 480           # Frame height
-  fps: 30               # Frames per second
-  server_ip: "127.0.0.1"
-  receive_frames: true
-  send_frames: true
-  multi_instance: false
-  server_name: "StreamingServerTest"
+# Server configuration (if using YAML)
+server:
+  signaling_port: 48010
+  streaming_port: 48020
+  standalone_mode: false
+
+# Stream settings
+stream:
+  width: 854
+  height: 480
+  fps: 30
 
 # Scheduler configuration
 scheduler: "multi_thread"
@@ -103,9 +173,9 @@ multi_thread_scheduler:
   stop_on_deadlock_timeout: 5000
 ```
 
-Configuration files are located in:
-- C++: `cpp/streaming_server_demo.yaml`
-- Python: `python/streaming_server_demo.yaml`
+**Python Configuration File**: `python/streaming_server_demo.yaml`
+
+**Note**: Python parameters set via command-line take precedence over YAML configuration. For most use cases, command-line arguments are sufficient.
 
 ## Pipeline Architecture
 
@@ -191,6 +261,14 @@ from holohub.streaming_server_enhanced import (
 
 class StreamingServerApp(Application):
     def __init__(self, port=48010, width=854, height=480, fps=30):
+        """Initialize the streaming server application.
+        
+        Args:
+            port: Server port (set via --port command-line argument)
+            width: Frame width (set via --width command-line argument)
+            height: Frame height (set via --height command-line argument)
+            fps: Frames per second (set via --fps command-line argument)
+        """
         super().__init__()
         self.port = port
         self.width = width
@@ -204,7 +282,7 @@ class StreamingServerApp(Application):
         upstream_op (receives from clients) -> downstream_op (sends back to clients)
         """
         
-        # Create shared streaming server resource
+        # Create shared streaming server resource with parameters from constructor
         streaming_resource = StreamingServerResource(
             self,
             name="streaming_server_resource",
@@ -236,7 +314,8 @@ class StreamingServerApp(Application):
 - The upstream operator receives frames from clients on its `output_frames` port
 - The downstream operator receives those frames on its `input_frames` port and sends them back to clients
 - This creates a simple passthrough/echo streaming pipeline
-- Parameters can be set via constructor arguments or loaded from YAML configuration
+- **Parameters are set via constructor arguments** (from command-line or defaults), not from YAML
+- The constructor parameters (`port`, `width`, `height`, `fps`) are passed directly to `StreamingServerResource`
 
 ## Troubleshooting
 
@@ -272,11 +351,13 @@ application:
   log_level: "DEBUG"
 ```
 
-## Examples
+## Configuration Examples
 
 See the included configuration files for complete examples:
-- `cpp/streaming_server_demo.yaml` - C++ server configuration
-- `python/streaming_server_demo.yaml` - Python server configuration
+- `cpp/streaming_server_demo.yaml` - C++ server configuration (used by C++ application)
+- `python/streaming_server_demo.yaml` - Python server configuration (optional, Python primarily uses command-line args)
+
+**Note**: C++ and Python use different YAML structures. The C++ version uses `streaming_server` section with direct parameters, while Python uses `server` and `stream` sections. For Python, command-line arguments are the recommended configuration method.
 
 ## Integration with Client
 
