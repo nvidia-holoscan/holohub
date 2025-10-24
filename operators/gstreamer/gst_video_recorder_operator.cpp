@@ -241,15 +241,15 @@ void monitor_pipeline_bus(GstElement* pipeline) {
  * @param operator_name Name for the bridge
  * @param format Pixel format (e.g., "RGBA", "RGB", "BGRA", "GRAY8")
  * @param framerate Framerate string (e.g., "30/1")
- * @param queue_limit Maximum queue size
+ * @param max_buffers Maximum queue size
  * @return Shared pointer to the created GstSrcBridge
  */
-std::shared_ptr<holoscan::gst::GstSrcBridge> create_bridge_from_entity(
+std::shared_ptr<holoscan::GstSrcBridge> create_bridge_from_entity(
     const holoscan::gxf::Entity& entity,
     const std::string& operator_name,
     const std::string& format,
     const std::string& framerate,
-    size_t queue_limit) {
+    size_t max_buffers) {
   // Get the first tensor from the entity using GXF C API
   gxf_uid_t component_ids[64];
   uint64_t num_components = 64;
@@ -318,10 +318,10 @@ std::shared_ptr<holoscan::gst::GstSrcBridge> create_bridge_from_entity(
   HOLOSCAN_LOG_INFO("Capabilities: '{}'", capabilities);
   
   // Create and return the GstSrcBridge
-  return std::make_shared<holoscan::gst::GstSrcBridge>(
+  return std::make_shared<holoscan::GstSrcBridge>(
     operator_name,
     capabilities,
-    queue_limit
+    max_buffers
   );
 }
 
@@ -522,7 +522,7 @@ void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
   spec.param(framerate_, "framerate", "Framerate",
              "Video framerate as fraction (e.g., '30/1', '30000/1001', '29.97')",
              std::string("30/1"));
-  spec.param(queue_limit_, "queue_limit", "Queue Limit",
+  spec.param(max_buffers_, "max-buffers", "Max Buffers",
              "Maximum number of buffers to queue (0 = unlimited)",
              size_t(10));
   spec.param(timeout_ms_, "timeout_ms", "Timeout (ms)", 
@@ -547,7 +547,7 @@ void GstVideoRecorderOperator::start() {
   framerate_ = normalize_framerate(framerate_.get());
   HOLOSCAN_LOG_INFO("Framerate: {} fps", framerate_.get());
   
-  HOLOSCAN_LOG_INFO("Queue limit: {}", queue_limit_.get());
+  HOLOSCAN_LOG_INFO("Max buffers: {}", max_buffers_.get());
   HOLOSCAN_LOG_INFO("Timeout: {}ms", timeout_ms_.get());
   HOLOSCAN_LOG_INFO("Video parameters (width, height, format, storage) will be detected from first frame");
   HOLOSCAN_LOG_INFO("Setting up GStreamer pipeline (without source)");
@@ -665,7 +665,7 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
   if (!bridge_) {
     HOLOSCAN_LOG_INFO("Frame #{} - First frame, detecting video parameters from tensor", frame_count);
     // Create bridge from entity (detects video parameters automatically)
-    bridge_ = create_bridge_from_entity(entity, name(), format_.get(), framerate_.get(), queue_limit_.get());
+    bridge_ = create_bridge_from_entity(entity, name(), format_.get(), framerate_.get(), max_buffers_.get());
     HOLOSCAN_LOG_INFO("Bridge created");
     
     // Create appropriate converter based on storage type and add to pipeline

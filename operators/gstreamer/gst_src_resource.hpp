@@ -36,19 +36,14 @@ namespace holoscan {
  * integrating with Holoscan's entity system. It delegates actual GStreamer
  * operations to GstSrcBridge.
  */
-class GstSrcResource : public holoscan::Resource {
+class GstSrcResource : public Resource {
  public:
   HOLOSCAN_RESOURCE_FORWARD_ARGS(GstSrcResource)
 
   /**
-   * @brief Destructor
-   */
-  ~GstSrcResource() = default;
-
-  /**
    * @brief Setup the resource parameters
    */
-  void setup(holoscan::ComponentSpec& spec) override;
+  void setup(ComponentSpec& spec) override;
 
   /**
    * @brief Initialize the GStreamer source resource
@@ -97,7 +92,7 @@ class GstSrcResource : public holoscan::Resource {
    *   resource->push_buffer(std::move(buffer), std::chrono::milliseconds(1000));  // calls non-template version
    */
   template<typename Rep, typename Period>
-  bool push_buffer(holoscan::gst::Buffer buffer, std::chrono::duration<Rep, Period> timeout) {
+  bool push_buffer(gst::Buffer buffer, std::chrono::duration<Rep, Period> timeout) {
     return push_buffer(std::move(buffer), std::chrono::duration_cast<std::chrono::milliseconds>(timeout));
   }
 
@@ -107,7 +102,7 @@ class GstSrcResource : public holoscan::Resource {
    * Non-template overload for std::chrono::milliseconds. This is the actual implementation
    * and will be preferred by overload resolution when called with milliseconds.
    * 
-   * If the queue is at capacity (controlled by queue_limit parameter), this function
+   * If the queue is at capacity (controlled by max_buffers parameter), this function
    * will block until space becomes available, the timeout expires, or EOS is signaled.
    * 
    * @param buffer GStreamer buffer to push
@@ -117,7 +112,7 @@ class GstSrcResource : public holoscan::Resource {
    * 
    * @note This function provides backpressure: when the queue is full, the caller will
    *       block until GStreamer consumes a buffer or timeout expires, creating natural flow control.
-   * @note If queue_limit is set to 0, the queue is unlimited and no blocking occurs.
+   * @note If max_buffers is set to 0, the queue is unlimited and no blocking occurs.
    * 
    * @example
    *   // Try immediately, don't wait (default)
@@ -126,7 +121,7 @@ class GstSrcResource : public holoscan::Resource {
    *   // Wait up to 1 second
    *   resource->push_buffer(std::move(buffer), std::chrono::milliseconds(1000));
    */
-  bool push_buffer(holoscan::gst::Buffer buffer, 
+  bool push_buffer(gst::Buffer buffer, 
                    std::chrono::milliseconds timeout = std::chrono::milliseconds::zero()) {
     return bridge_ ? bridge_->push_buffer(std::move(buffer), timeout) : false;
   }
@@ -143,19 +138,19 @@ class GstSrcResource : public holoscan::Resource {
    * @param entity GXF Entity containing one or more tensors
    * @return GStreamer Buffer with zero-copy wrapping, empty on failure
    */
-  holoscan::gst::Buffer create_buffer_from_entity(const holoscan::gxf::Entity& entity) const;
+  gst::Buffer create_buffer_from_entity(const gxf::Entity& entity) const;
 
  private:
   // Bridge to GStreamer (does the actual work)
-  std::shared_ptr<holoscan::gst::GstSrcBridge> bridge_;
+  std::shared_ptr<GstSrcBridge> bridge_;
 
   // Resource parameters
-  holoscan::Parameter<std::string> caps_;
-  holoscan::Parameter<size_t> queue_limit_;
+  Parameter<std::string> caps_;
+  Parameter<size_t> max_buffers_;
   
   // Promise/future for element access (resolves after initialize())
   std::promise<gst::Element> element_promise_;
-  std::shared_future<gst::Element> element_future_;
+  std::shared_future<gst::Element> element_future_ = element_promise_.get_future();
 };
 
 }  // namespace holoscan

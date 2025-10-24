@@ -33,7 +33,6 @@
 #include "gst/caps.hpp"
 
 namespace holoscan {
-namespace gst {
 
 /**
  * @brief Bridge between GStreamer and external data sources
@@ -48,10 +47,10 @@ class GstSrcBridge {
    * @brief Constructor - creates and initializes the GStreamer appsrc element
    * @param name Optional name for the appsrc element
    * @param caps Capabilities string (e.g., "video/x-raw,format=RGBA,width=1920,height=1080")
-   * @param queue_limit Maximum number of buffers in queue (0 = unlimited)
+   * @param max_buffers Maximum number of buffers in queue (0 = unlimited)
    * @throws std::runtime_error if initialization fails
    */
-  GstSrcBridge(const std::string& name, const std::string& caps, size_t queue_limit);
+  GstSrcBridge(const std::string& name, const std::string& caps, size_t max_buffers);
 
   /**
    * @brief Destructor - cleans up GStreamer resources
@@ -68,7 +67,7 @@ class GstSrcBridge {
    * @brief Get the underlying GStreamer element
    * @return Reference to the GStreamer element wrapper (appsrc)
    */
-  const Element& get_gst_element() const {
+  const gst::Element& get_gst_element() const {
     return src_element_;
   }
 
@@ -88,14 +87,14 @@ class GstSrcBridge {
   /**
    * @brief Push a buffer into the GStreamer pipeline
    * 
-   * If the queue is at capacity (controlled by queue_limit), this function
+   * If the queue is at capacity (controlled by max_buffers), this function
    * will block until space becomes available, the timeout expires, or EOS is signaled.
    * 
    * @param buffer GStreamer buffer to push
    * @param timeout Duration to wait in milliseconds (zero = try immediately and return, no waiting)
    * @return true if buffer was successfully queued, false otherwise
    */
-  bool push_buffer(Buffer buffer, std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
+  bool push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
 
   /**
    * @brief Create a GStreamer buffer from raw tensor data
@@ -107,7 +106,7 @@ class GstSrcBridge {
    * @param num_tensors Number of tensors in the array
    * @return GStreamer Buffer with zero-copy wrapping, empty on failure
    */
-  Buffer create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, size_t num_tensors);
+  gst::Buffer create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, size_t num_tensors);
 
   /**
    * @brief Create a GStreamer buffer from a GXF Entity containing tensor(s)
@@ -122,13 +121,13 @@ class GstSrcBridge {
    * @param entity GXF Entity containing one or more tensors
    * @return GStreamer Buffer with zero-copy wrapping, empty on failure
    */
-  Buffer create_buffer_from_entity(const nvidia::gxf::Entity& entity);
+  gst::Buffer create_buffer_from_entity(const nvidia::gxf::Entity& entity);
 
   /**
    * @brief Get the current negotiated caps from the source
    * @return Caps with automatic reference counting
    */
-  Caps get_caps() const;
+  gst::Caps get_caps() const;
 
  private:
   // Forward declarations for nested classes
@@ -144,7 +143,7 @@ class GstSrcBridge {
   // Configuration
   std::string name_;
   std::string caps_;
-  size_t queue_limit_;
+  size_t max_buffers_;
 
   // Framerate from caps (numerator/denominator)
   // Default to 0/1 (live mode - no framerate control)
@@ -152,7 +151,7 @@ class GstSrcBridge {
   int framerate_den_ = 1;
 
   // GStreamer element (appsrc)
-  Element src_element_;
+  gst::Element src_element_;
 
   // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
   std::shared_ptr<MemoryWrapper> memory_wrapper_;
@@ -161,7 +160,6 @@ class GstSrcBridge {
   uint64_t frame_count_ = 0;  // Frame counter for accurate timestamp calculation (avoids rounding error accumulation)
 };
 
-}  // namespace gst
 }  // namespace holoscan
 
 #endif /* GST_SRC_BRIDGE_HPP */

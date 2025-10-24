@@ -57,7 +57,7 @@ class GstVideoRecorderOperator : public Operator {
    *              Formats: "30/1", "30000/1001", "29.97", "60"
    *              Special: "0/1" for live mode (no framerate control, process frames as fast as they come)
    *              Note: In live mode, timestamps reflect actual frame arrival times (real-time)
-   * - queue_limit: Maximum number of buffers to queue (0 = unlimited) - default: 10
+   * - max_buffers: Maximum number of buffers to queue (0 = unlimited) - default: 10
    * - timeout_ms: Timeout in milliseconds for buffer push - default: 1000ms
    * - filename: Output video filename - default: "output.mp4"
    *              Note: If no extension is provided, ".mp4" is automatically appended
@@ -110,13 +110,13 @@ class GstVideoRecorderOperator : public Operator {
   Parameter<std::string> encoder_name_;
   Parameter<std::string> format_;
   Parameter<std::string> framerate_;  // Fraction string: "30/1", "30000/1001", "29.97", or "0/1" for live mode (real-time timestamps)
-  Parameter<size_t> queue_limit_;
+  Parameter<size_t> max_buffers_;
   Parameter<uint64_t> timeout_ms_;
   Parameter<std::string> filename_;
   Parameter<std::map<std::string, std::string>> properties_;  // Encoder-specific properties (e.g., {"bitrate": "8000", "preset": "1"})
   
   // Bridge and pipeline management
-  std::shared_ptr<gst::GstSrcBridge> bridge_;
+  std::shared_ptr<GstSrcBridge> bridge_;
   gst::Element pipeline_;
   gst::Element encoder_;  // Keep reference to link dynamically created converter to it
   

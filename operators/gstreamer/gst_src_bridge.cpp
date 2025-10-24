@@ -40,7 +40,6 @@
 #endif
 
 namespace holoscan {
-namespace gst {
 
 static bool gst_initialized = [](){
   // Initialize GStreamer if not already done
@@ -133,7 +132,7 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
     gst_cuda_memory_init_once();
     
     // Create a CUDA context for this device - wrap in RAII guard
-    cuda_context_ = CudaContext(gst_cuda_context_new(cuda_device_id));
+    cuda_context_ = gst::CudaContext(gst_cuda_context_new(cuda_device_id));
     if (!cuda_context_) {
       std::string error_msg = fmt::format(
           "Failed to create CUDA context for device {}. "
@@ -149,7 +148,7 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
       // If not found, create one using g_object_new
       allocator = GST_ALLOCATOR(g_object_new(GST_TYPE_CUDA_ALLOCATOR, nullptr));
     }
-    cuda_allocator_ = Allocator(allocator);
+    cuda_allocator_ = gst::Allocator(allocator);
     if (!cuda_allocator_) {
       std::string error_msg = "Failed to create CUDA allocator";
       HOLOSCAN_LOG_ERROR(error_msg);
@@ -212,8 +211,8 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
   }
 
  private:
-  CudaContext cuda_context_;
-  Allocator cuda_allocator_;
+  gst::CudaContext cuda_context_;
+  gst::Allocator cuda_allocator_;
 };
 
 // ============================================================================
@@ -238,15 +237,13 @@ static void free_tensor_wrapper(gpointer user_data) {
 // GstSrcBridge Implementation
 // ============================================================================
 
-GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, size_t queue_limit)
+GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, size_t max_buffers)
     : name_(name), 
       caps_(caps), 
-      queue_limit_(queue_limit),
-      src_element_(Element(
-        gst_element_factory_make("appsrc", name_.empty() ? nullptr : name_.c_str())
-      )) {
-  HOLOSCAN_LOG_INFO("Creating GstSrcBridge: name='{}', caps='{}', queue_limit={}",
-                    name, caps, queue_limit);
+      max_buffers_(max_buffers),
+      src_element_{gst_element_factory_make("appsrc", name_.empty() ? nullptr : name_.c_str())} {
+  HOLOSCAN_LOG_INFO("Creating GstSrcBridge: name='{}', caps='{}', max_buffers={}",
+                    name, caps, max_buffers);
   
   if (!src_element_) {
     HOLOSCAN_LOG_ERROR("Failed to create appsrc element");
@@ -294,14 +291,14 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, siz
     "stream-type", GST_APP_STREAM_TYPE_STREAM,  // Continuous stream
     "format", GST_FORMAT_TIME,                    // Time-based format
     "is-live", is_live ? TRUE : FALSE,            // Live mode if framerate is 0 or not specified
-    "max-buffers", queue_limit_,                  // Buffer queue limit (0 = unlimited)
+    "max-buffers", max_buffers_,                  // Buffer queue limit (0 = unlimited)
     "max-bytes", (guint64)0,                      // Byte limit (0 = unlimited, controlled by max-buffers)
     "block", TRUE,                                // Block push_buffer() when queue is full for proper flow control
     NULL
   );
   
   HOLOSCAN_LOG_INFO("appsrc configured: max-buffers={}, is-live={}, block=true", 
-                    queue_limit_, is_live ? "true" : "false");
+                    max_buffers_, is_live ? "true" : "false");
 
   // Set caps if not ANY
   if (caps_ != "ANY") {
@@ -316,8 +313,8 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, siz
     }
   }
   
-  HOLOSCAN_LOG_INFO("GstSrcBridge initialized with appsrc (queue_limit: {}, framerate: {}/{})", 
-                    queue_limit_, framerate_num_, framerate_den_);
+  HOLOSCAN_LOG_INFO("GstSrcBridge initialized with appsrc (max_buffers: {}, framerate: {}/{})", 
+                    max_buffers_, framerate_num_, framerate_den_);
 }
 
 GstSrcBridge::~GstSrcBridge() {
@@ -331,7 +328,7 @@ GstSrcBridge::~GstSrcBridge() {
   HOLOSCAN_LOG_INFO("GstSrcBridge destroyed");
 }
 
-bool GstSrcBridge::push_buffer(Buffer buffer, std::chrono::milliseconds timeout) {
+bool GstSrcBridge::push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout) {
   HOLOSCAN_LOG_DEBUG("GstSrcBridge::push_buffer() - Starting");
   
   if (!buffer.get()) {
@@ -405,17 +402,17 @@ bool GstSrcBridge::send_eos() {
   return ret == GST_FLOW_OK;
 }
 
-Caps GstSrcBridge::get_caps() const {
+gst::Caps GstSrcBridge::get_caps() const {
   // Get the source pad and its current caps
   ::GstPad* pad = gst_element_get_static_pad(src_element_.get(), "src");
   if (!pad) {
-    return Caps(); // Return empty caps
+    return gst::Caps(); // Return empty caps
   }
 
   ::GstCaps* caps = gst_pad_get_current_caps(pad);
   gst_object_unref(pad);
 
-  return Caps(caps); // Automatic reference counting
+  return gst::Caps(caps); // Automatic reference counting
 }
 
 void GstSrcBridge::initialize_memory_wrapper(nvidia::gxf::Tensor* tensor) {
@@ -436,9 +433,9 @@ void GstSrcBridge::initialize_memory_wrapper(nvidia::gxf::Tensor* tensor) {
   }
 }
 
-Buffer GstSrcBridge::create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, size_t num_tensors) {
+gst::Buffer GstSrcBridge::create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, size_t num_tensors) {
   // Create an empty GStreamer buffer at the start (constructor will throw if allocation fails)
-  Buffer gst_buffer;
+  gst::Buffer gst_buffer;
 
   if (!tensors || num_tensors == 0) {
     HOLOSCAN_LOG_ERROR("Invalid tensors array or count");
@@ -546,9 +543,9 @@ Buffer GstSrcBridge::create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, s
   return gst_buffer;
 }
 
-Buffer GstSrcBridge::create_buffer_from_entity(const nvidia::gxf::Entity& entity) {
+gst::Buffer GstSrcBridge::create_buffer_from_entity(const nvidia::gxf::Entity& entity) {
   // Create an empty GStreamer buffer at the start
-  Buffer gst_buffer;
+  gst::Buffer gst_buffer;
 
   // Find all tensor components in the entity
   gxf_uid_t component_ids[64];  // Max 64 components
@@ -605,6 +602,5 @@ Buffer GstSrcBridge::create_buffer_from_entity(const nvidia::gxf::Entity& entity
   return create_buffer_from_tensors(tensors.data(), tensors.size());
 }
 
-}  // namespace gst
 }  // namespace holoscan
 

@@ -165,7 +165,7 @@ class GstSinkResource : public holoscan::Resource {
   // Resource parameters
   holoscan::Parameter<std::string> caps_;
   holoscan::Parameter<bool> qos_enabled_;
-  holoscan::Parameter<size_t> queue_limit_;
+  holoscan::Parameter<size_t> max_buffers_;
 };
 
 using GstSinkResourcePtr = GstSinkResource::SharedPtr;

@@ -241,13 +241,13 @@ GstFlowReturn appsink_new_sample_callback(GstAppSink* appsink, gpointer user_dat
     HOLOSCAN_LOG_DEBUG("Queued buffer, total in queue: {}", resource->buffer_queue_.size());
     
     // Backpressure: wait if queue is full
-    size_t queue_limit = resource->queue_limit_.get();
-    if (resource->buffer_queue_.size() > queue_limit) {
+    size_t max_buffers = resource->max_buffers_.get();
+    if (resource->buffer_queue_.size() > max_buffers) {
       HOLOSCAN_LOG_DEBUG("Buffer queue size ({}) exceeds limit ({}), waiting...", 
-                        resource->buffer_queue_.size(), queue_limit);
+                        resource->buffer_queue_.size(), max_buffers);
       
-      resource->queue_cv_.wait(lock, [resource, queue_limit]() {
-        return resource->is_shutting_down_ || resource->buffer_queue_.size() <= queue_limit;
+      resource->queue_cv_.wait(lock, [resource, max_buffers]() {
+        return resource->is_shutting_down_ || resource->buffer_queue_.size() <= max_buffers;
       });
       
       // Check if we woke up due to shutdown
@@ -486,21 +486,21 @@ GstSinkResource::~GstSinkResource() {
 
 void GstSinkResource::setup(holoscan::ComponentSpec& spec) {
   spec.param(caps_,
-      "capabilities",
+      "caps",
       "GStreamer Capabilities",
       "GStreamer caps string defining what data formats this sink can accept. "
       "Use 'ANY' for maximum flexibility, or specify specific formats like "
       "'video/x-raw,format=RGBA' for video or 'audio/x-raw' for audio.",
       std::string("ANY"));
   spec.param(qos_enabled_,
-      "qos_enabled",
+      "qos-enabled",
       "QoS Enabled",
       "Enable Quality of Service (QoS) in the sink. When enabled, frames may be dropped "
       "to maintain real-time performance. When disabled, all frames are processed.",
       false);
-  spec.param(queue_limit_,
-      "queue_limit",
-      "Queue Limit",
+  spec.param(max_buffers_,
+      "max-buffers",
+      "Max Buffers",
       "Maximum number of buffers to keep in queue. The render callback will block when "
       "queue size exceeds this limit. 0 means one buffer at a time (blocks until consumed).",
       size_t(1));
@@ -543,7 +543,7 @@ void GstSinkResource::initialize() {
   g_object_set(appsink,
     "emit-signals", FALSE,  // Use callbacks instead of signals (more efficient)
     "sync", TRUE,           // Sync to clock for proper timing
-    "max-buffers", static_cast<guint>(queue_limit_.get() + 1),  // Buffer queue limit
+    "max-buffers", static_cast<guint>(max_buffers_.get() + 1),  // Buffer queue limit
     "drop", FALSE,          // Don't drop buffers - we handle backpressure
     NULL
   );
@@ -578,8 +578,8 @@ void GstSinkResource::initialize() {
   gst_base_sink_set_qos_enabled(GST_BASE_SINK(appsink), 
                                  static_cast<gboolean>(qos_enabled_.get()));
   
-  HOLOSCAN_LOG_INFO("GstSinkResource initialized with appsink (QoS: {}, queue_limit: {})",
-                    qos_enabled_.get() ? "enabled" : "disabled", queue_limit_.get());
+  HOLOSCAN_LOG_INFO("GstSinkResource initialized with appsink (QoS: {}, max_buffers: {})",
+                    qos_enabled_.get() ? "enabled" : "disabled", max_buffers_.get());
   
   // Set the promise with the successfully created element
   sink_element_promise_.set_value(std::move(element));

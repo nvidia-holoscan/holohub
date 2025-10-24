@@ -24,7 +24,7 @@ class GstSinkApp : public Application {
     // Create the GStreamer sink resource for data bridging
     // Use the caps parameter from command line arguments
     holoscan_gst_sink_ = make_resource<GstSinkResource>("holoscan_sink", 
-        Arg("capabilities", caps_));
+        Arg("caps", caps_));
 
     // Create the operator that uses the sink
     auto gst_op = make_operator<GstSinkOperator>(

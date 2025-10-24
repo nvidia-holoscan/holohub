@@ -275,7 +275,7 @@ class GstSrcApp : public Application {
     
     // Create the GStreamer source resource for data bridging
     holoscan_gst_src_ = make_resource<GstSrcResource>("holoscan_src", 
-        Arg("capabilities", full_caps));
+        Arg("caps", full_caps));
 
     // Create an allocator for tensor memory
     auto allocator = make_resource<UnboundedAllocator>("allocator");

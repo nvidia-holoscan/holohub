@@ -20,6 +20,9 @@
 
 #include <memory>
 #include <gst/gst.h>
+#include <gst/cuda/gstcudacontext.h>
+
+#include "gst/object.hpp"
 
 namespace holoscan {
 namespace gst {

@@ -38,21 +38,16 @@ gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity)
 }
 
 void GstSrcResource::setup(ComponentSpec& spec) {
-  // Initialize the future from the promise on first setup
-  if (!element_future_.valid()) {
-    element_future_ = element_promise_.get_future();
-  }
-  
   spec.param(caps_,
-      "capabilities",
+      "caps",
       "GStreamer Capabilities",
       "GStreamer caps string defining what data formats this source will provide. "
       "Use 'ANY' for maximum flexibility, or specify specific formats like "
       "'video/x-raw,format=RGBA,width=1920,height=1080' for video.",
       std::string("ANY"));
-  spec.param(queue_limit_,
-      "queue_limit",
-      "Queue Limit",
+  spec.param(max_buffers_,
+      "max-buffers",
+      "Max Buffers",
       "Maximum number of buffers to keep in queue. When exceeded, push_buffer() will block. "
       "0 means unlimited queue size.",
       size_t(10));
@@ -64,14 +59,14 @@ void GstSrcResource::initialize() {
   
   HOLOSCAN_LOG_INFO("Initializing GstSrcResource");
   HOLOSCAN_LOG_INFO("Configured capabilities: '{}'", caps_.get());
-  HOLOSCAN_LOG_INFO("Queue limit: {}", queue_limit_.get());
+  HOLOSCAN_LOG_INFO("Max buffers: {}", max_buffers_.get());
   
   // Create the bridge (constructor initializes it)
   try {
-    bridge_ = std::make_shared<gst::GstSrcBridge>(
+    bridge_ = std::make_shared<GstSrcBridge>(
       name(), 
       caps_.get(), 
-      queue_limit_.get()
+      max_buffers_.get()
     );
     
     // Set the promise with the GStreamer element so callers can wait for it
