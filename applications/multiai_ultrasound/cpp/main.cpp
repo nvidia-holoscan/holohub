@@ -58,8 +58,6 @@ class App : public holoscan::Application {
     std::shared_ptr<Operator> recorder;
     std::shared_ptr<Operator> recorder_format_converter;
 
-// operators already have a stream pool by default in Holoscan >= 2.9
-
     if (is_aja_source_) {
 #ifdef AJA_SOURCE
       source = make_operator<ops::AJASourceOp>("aja", from_config("aja"));
