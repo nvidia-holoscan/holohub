@@ -167,7 +167,7 @@ Configuration files are located in:
 The client implements a bidirectional streaming pipeline with format conversion:
 
 **Video Replayer Pipeline:**
-```
+```text
 VideoStreamReplayerOp → FormatConverterOp → StreamingClientOp → HoloVizOp
                                                     ↓
                                             (sends to server)
@@ -178,7 +178,7 @@ VideoStreamReplayerOp → FormatConverterOp → StreamingClientOp → HoloVizOp
 ```
 
 **V4L2 Camera Pipeline:**
-```
+```text
 V4L2VideoCaptureOp → FormatConverterOp → StreamingClientOp → HoloVizOp
                                                  ↓
                                          (sends to server)
