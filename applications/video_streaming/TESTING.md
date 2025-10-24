@@ -500,7 +500,6 @@ The integration test script (`integration_test_python.sh`) runs the complete end
 ```bash
 # From holohub root - run Python integration test
 ./holohub test video_streaming \
-  --docker-file applications/video_streaming/Dockerfile \
   --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
   --ctest-options="-R video_streaming_integration_test_python -VV"
 ```
@@ -763,7 +762,6 @@ echo "Python integration test exit code: $?"
 **Using Direct Command:**
 ```bash
 timeout 300 ./holohub test video_streaming \
-  --docker-file applications/video_streaming/Dockerfile \
   --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
   --ctest-options="-R video_streaming_integration_test_python"
 echo "Python integration test exit code: $?"

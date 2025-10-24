@@ -39,6 +39,7 @@
                 }
             ]
         },
+        "dockerfile": "<holohub_app_source>/Dockerfile",
         "default_mode": "server",
         "modes": {
             "server": {
