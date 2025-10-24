@@ -3,6 +3,7 @@
 This application demonstrates how to create a bidirectional video streaming server that receives frames from clients and sends them back. Both C++ and Python implementations are available.
 
 > **📚 Related Documentation:**
+>
 > - **[Main README](../README.md)** - Application overview, quick start, and common configuration
 > - **[Client README](../video_streaming_client/README.md)** - Client setup and configuration
 > - **[Testing Documentation](../TESTING.md)** - Integration testing and verification
@@ -26,7 +27,7 @@ This application demonstrates how to create a bidirectional video streaming serv
 
 ## Usage
 
-> [!IMPORTANT] The server applications requires Holoscan SDK 3.5.0. Either set the SDK version environment variable before running the applications, or use the `--base-img` option to specify the base image.
+> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
 >
 > ```bash
 > # Set SDK version environment variable
@@ -54,6 +55,7 @@ This application demonstrates how to create a bidirectional video streaming serv
 ```
 
 **Default Configuration:**
+
 - **Port**: 48010
 - **Resolution**: 854x480
 - **Frame Rate**: 30 fps
@@ -64,6 +66,7 @@ This application demonstrates how to create a bidirectional video streaming serv
 ### Command Line Options
 
 **Python Server**:
+
 - `--port PORT`: Server port (default: 48010)
 - `--width WIDTH`: Frame width (default: 854)
 - `--height HEIGHT`: Frame height (default: 480)
@@ -73,6 +76,7 @@ This application demonstrates how to create a bidirectional video streaming serv
 - `--help`: Show help message
 
 **C++ Server**:
+
 - `-c PATH` or `--config PATH`: Path to YAML configuration file
 - `-?` or `--help`: Show help message
 
@@ -137,6 +141,7 @@ tracking: false
 The Python application is primarily configured via **command-line arguments**, with optional YAML support for advanced settings:
 
 **Command-Line Parameters** (recommended):
+
 - `--port PORT`: Server port (default: 48010)
 - `--width WIDTH`: Frame width (default: 854)
 - `--height HEIGHT`: Frame height (default: 480)
@@ -240,6 +245,7 @@ add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
 ```
 
 **Key Points:**
+
 - All operators use the `ops::` namespace prefix
 - Configuration is loaded from YAML using `from_config()` for flexibility
 - The `StreamingServerResource` is created first and passed to operators using `add_arg()`
@@ -309,6 +315,7 @@ class StreamingServerApp(Application):
 ```
 
 **Key Points:**
+
 - Both operators share the same `StreamingServerResource` to manage streaming connections
 - The resource is configured with `port`, `width`, `height`, `fps`, and enables both upstream and downstream
 - The upstream operator receives frames from clients on its `output_frames` port
@@ -322,6 +329,7 @@ class StreamingServerApp(Application):
 ### Common Issues
 
 1. **Port Already in Use**: Check if ports are available or use different ports
+
    ```bash
    # Check if port is in use
    netstat -tlnp | grep 48010
@@ -335,6 +343,7 @@ class StreamingServerApp(Application):
 4. **Video Files Not Found**: Check data directory path (standalone mode)
 
 5. **Build Failures**: Clean build and retry
+
    ```bash
    rm -rf build/
    ./holohub build video_streaming --language cpp
@@ -354,6 +363,7 @@ application:
 ## Configuration Examples
 
 See the included configuration files for complete examples:
+
 - `cpp/streaming_server_demo.yaml` - C++ server configuration (used by C++ application)
 - `python/streaming_server_demo.yaml` - Python server configuration (optional, Python primarily uses command-line args)
 
@@ -366,6 +376,7 @@ See the included configuration files for complete examples:
 #### Option 1: Using Holohub CLI (Recommended)
 
 Terminal 1 - Start Python Server:
+
 ```bash
 # From holohub root directory
 ./holohub run video_streaming server_python \
@@ -373,6 +384,7 @@ Terminal 1 - Start Python Server:
 ```
 
 Terminal 2 - Start Python Client with Video Replayer (854x480):
+
 ```bash
 # From holohub root directory
 ./holohub run video_streaming client_python \
@@ -382,6 +394,7 @@ Terminal 2 - Start Python Client with Video Replayer (854x480):
 ### Testing with C++ Client
 
 Terminal 1 - Start Server (C++ or Python):
+
 ```bash
 # C++ Server
 ./holohub run video_streaming
@@ -392,6 +405,7 @@ Terminal 1 - Start Server (C++ or Python):
 ```
 
 Terminal 2 - Start C++ Client:
+
 ```bash
 # Video Replayer Mode
 ./holohub run video_streaming client_replayer
@@ -400,7 +414,8 @@ Terminal 2 - Start C++ Client:
 ./holohub run video_streaming client_v4l2
 ```
 
-**Important:** 
+**Important:**
+
 - C++ and Python implementations are fully compatible - you can mix and match (C++ server with Python client, etc.)
 - Ensure client and server resolutions match for optimal performance
 - The server must be started before the client
