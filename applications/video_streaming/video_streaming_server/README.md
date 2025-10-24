@@ -46,8 +46,6 @@ This application demonstrates how to create a bidirectional video streaming serv
 ```bash
 # From holohub root directory - runs with default settings (854x480 @ 30fps)
 ./holohub run video_streaming server_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
@@ -113,7 +111,7 @@ Configuration files are located in:
 
 The server implements a simple bidirectional streaming pipeline:
 
-```
+```text
 Client Streams → StreamingServerUpstreamOp → StreamingServerDownstreamOp → Client Streams
 ```
 
@@ -284,14 +282,12 @@ See the included configuration files for complete examples:
 
 ### Testing with Python Client
 
-**Option 1: Using Holohub CLI (Recommended)**
+#### Option 1: Using Holohub CLI (Recommended)
 
 Terminal 1 - Start Python Server:
 ```bash
 # From holohub root directory
 ./holohub run video_streaming server_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
@@ -299,8 +295,6 @@ Terminal 2 - Start Python Client with Video Replayer (854x480):
 ```bash
 # From holohub root directory
 ./holohub run video_streaming client_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
@@ -313,8 +307,6 @@ Terminal 1 - Start Server (C++ or Python):
 
 # OR Python Server
 ./holohub run video_streaming server_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
