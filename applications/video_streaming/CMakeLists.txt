@@ -52,11 +52,6 @@ add_subdirectory(video_streaming_server)
 
 # Add integration testing
 if(BUILD_TESTING)
-  # Copy integration test script and make it executable
-  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/integration_test.sh"
-       DESTINATION "${CMAKE_BINARY_DIR}"
-       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-
   # Add integration test for video streaming demo
   add_test(NAME video_streaming_integration_test
            COMMAND bash -c "
