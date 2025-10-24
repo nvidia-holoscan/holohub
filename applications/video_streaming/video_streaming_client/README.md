@@ -36,7 +36,7 @@ This application demonstrates how to create a bidirectional video streaming clie
 > # Set SDK version environment variable
 > export HOLOHUB_BASE_SDK_VERSION=3.5.0
 > ```
-
+>
 > [!NOTE] The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
 ### C++ Client
