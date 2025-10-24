@@ -24,7 +24,9 @@
 #include <vector>
 
 #include "holoscan/core/gxf/gxf_operator.hpp"
+#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
 #include "holoscan/utils/cuda_stream_handler.hpp"
+#endif
 
 namespace holoscan::ops {
 /**
@@ -48,7 +50,11 @@ class VisualizerICardioOp : public holoscan::Operator {
   Parameter<std::vector<std::string>> in_tensor_names_;
   Parameter<std::vector<std::string>> out_tensor_names_;
   Parameter<std::shared_ptr<Allocator>> allocator_;
+#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 3)
+  // Holoscan < 2.3 required a special "receivers" parameter for input ports supporting
+  // N:1 connections
   Parameter<std::vector<IOSpec*>> receivers_;
+#endif
   Parameter<std::vector<IOSpec*>> transmitters_;
   Parameter<std::string> data_dir_;
   Parameter<bool> input_on_cuda_;
@@ -72,7 +78,9 @@ class VisualizerICardioOp : public holoscan::Operator {
 
   const std::string logo_file_ = "logo.txt";
   void* logo_image_ = nullptr;
+#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
   CudaStreamHandler cuda_stream_handler_;
+#endif
 };
 
 }  // namespace holoscan::ops

@@ -48,6 +48,14 @@ void VisualizerICardioOp::setup(OperatorSpec& spec) {
   auto& out_tensor_7 = spec.output<gxf::Entity>("lines");
   auto& out_tensor_8 = spec.output<gxf::Entity>("logo");
 
+#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_VERSION_MINOR < 3)
+  // old-style multi-receiver parameter (Holoscan v2.2 and earlier)
+  spec.param(receivers_, "receivers", "Receivers", "List of receivers", {});
+#else
+  // new-style multi-receiver input (kAnySize) (available in Holoscan v2.3+)
+  spec.input<std::vector<gxf::Entity>>("receivers", IOSpec::kAnySize);
+#endif
+
   spec.param(
       in_tensor_names_, "in_tensor_names", "Input Tensors", "Input tensors", {std::string("")});
   spec.param(
@@ -59,7 +67,6 @@ void VisualizerICardioOp::setup(OperatorSpec& spec) {
              {std::string("../data/multiai_ultrasound")});
   spec.param(input_on_cuda_, "input_on_cuda", "Input buffer on CUDA", "", true);
   spec.param(allocator_, "allocator", "Allocator", "Output Allocator");
-  spec.param(receivers_, "receivers", "Receivers", "List of receivers", {});
   spec.param(transmitters_,
              "transmitters",
              "Transmitters",
@@ -72,7 +79,9 @@ void VisualizerICardioOp::setup(OperatorSpec& spec) {
               &out_tensor_6,
               &out_tensor_7,
               &out_tensor_8});
+#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_VERSION_MINOR < 9)
   cuda_stream_handler_.define_params(spec);
+#endif
 }
 
 void VisualizerICardioOp::start() {
@@ -120,14 +129,15 @@ void VisualizerICardioOp::compute(InputContext& op_input, OutputContext& op_outp
 
   try {
     HoloInfer::DataMap data_per_tensor;
-#if HOLOSCAN_MAJOR_VERSION == 0 && HOLOSCAN_MINOR_VERSION < 6
+    cudaStream_t cuda_stream{};
+#if HOLOSCAN_MAJOR_VERSION == 0 && HOLOSCAN_VERSION_MINOR < 6
     gxf_result_t stat = holoscan::utils::multiai_get_data_per_model(op_input,
                                                                     in_tensor_names_.get(),
                                                                     data_per_tensor,
                                                                     tensor_size_map_,
                                                                     input_on_cuda_.get(),
                                                                     module_);
-#else
+#elif (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_VERSION_MINOR < 9)
     gxf_result_t stat = holoscan::utils::get_data_per_model(op_input,
                                                             in_tensor_names_.get(),
                                                             data_per_tensor,
@@ -136,6 +146,16 @@ void VisualizerICardioOp::compute(InputContext& op_input, OutputContext& op_outp
                                                             module_,
                                                             cont,
                                                             cuda_stream_handler_);
+#else
+    // Extract relevant data from input GXF Receivers, and update inference specifications
+    // (cuda_stream will be set by get_data_per_model)
+    gxf_result_t stat = holoscan::utils::get_data_per_model(op_input,
+                                                            in_tensor_names_.get(),
+                                                            data_per_tensor,
+                                                            tensor_size_map_,
+                                                            input_on_cuda_.get(),
+                                                            module_,
+                                                            cuda_stream);
 #endif
     if (stat != GXF_SUCCESS) { HoloInfer::raise_error(module_, "Tick, Data extraction"); }
 
@@ -145,7 +165,9 @@ void VisualizerICardioOp::compute(InputContext& op_input, OutputContext& op_outp
     if (data_per_tensor.find(pc_tensor_name_) == data_per_tensor.end()) {
       HoloInfer::report_error(module_, "Data not found for tensor " + pc_tensor_name_);
     }
-    const cudaStream_t cuda_stream = cuda_stream_handler_.get_cuda_stream(cont);
+#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_VERSION_MINOR < 9)
+    cuda_stream = cuda_stream_handler_.get_cuda_stream(cont);
+#endif
     auto coords = static_cast<float*>(data_per_tensor.at(pc_tensor_name_)->device_buffer->data());
     auto datasize = tensor_size_map_[pc_tensor_name_];
 
@@ -210,7 +232,9 @@ void VisualizerICardioOp::compute(InputContext& op_input, OutputContext& op_outp
             }
           }
         }
+#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_VERSION_MINOR < 9)
         cuda_stream_handler_.to_message(out_message);
+#endif
         auto result = gxf::Entity(std::move(out_message.value()));
         op_output.emit(result, current_tensor_name.c_str());
       }
