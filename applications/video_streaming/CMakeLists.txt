@@ -63,6 +63,26 @@ if(BUILD_TESTING)
              echo '=== Integration Test with Log Verification ==='
              echo 'Starting server and client with log capture...'
 
+             # Determine data directory path - use HOLOHUB_DATA_DIR if set, otherwise fall back to standard path
+             DATA_DIR=\${HOLOHUB_DATA_DIR:-${HOLOHUB_DATA_DIR}}
+             if [ -z \"\$DATA_DIR\" ]; then
+               DATA_DIR=\"${CMAKE_SOURCE_DIR}/data\"
+             fi
+             
+             # Find the actual endoscopy data directory
+             if [ -d \"\$DATA_DIR/endoscopy\" ]; then
+               DATA_PATH=\"\$DATA_DIR/endoscopy\"
+             elif [ -d \"\$DATA_DIR\" ]; then
+               DATA_PATH=\"\$DATA_DIR\"
+             else
+               echo \"✗ Error: Could not find data directory. Tried:\"
+               echo \"  - \$DATA_DIR/endoscopy\"
+               echo \"  - \$DATA_DIR\"
+               exit 1
+             fi
+             
+             echo \"Using data directory: \$DATA_PATH\"
+
              # Initialize variables
              TEST_FAILED=0
              SERVER_CHECKS_PASSED=0
@@ -96,7 +116,7 @@ if(BUILD_TESTING)
 
              # Start client in background with log capture
              echo 'Starting streaming client...'
-             ./applications/video_streaming/video_streaming_client/cpp/streaming_client_demo --config applications/video_streaming/video_streaming_client/cpp/streaming_client_demo_replayer.yaml > \$CLIENT_LOG 2>&1 &
+             ./applications/video_streaming/video_streaming_client/cpp/streaming_client_demo --config applications/video_streaming/video_streaming_client/cpp/streaming_client_demo_replayer.yaml --data \"\$DATA_PATH\" > \$CLIENT_LOG 2>&1 &
              CLIENT_PID=\$!
 
              # Let streaming run for 30 seconds
@@ -288,6 +308,29 @@ if(BUILD_TESTING)
                # Set up PYTHONPATH to include built Python modules
                export PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:\$PYTHONPATH
                echo \"PYTHONPATH: \$PYTHONPATH\"
+
+               # Determine data directory path - use HOLOHUB_DATA_DIR if set, otherwise fall back to standard path
+               DATA_DIR=\${HOLOHUB_DATA_DIR:-${HOLOHUB_DATA_DIR}}
+               if [ -z \"\$DATA_DIR\" ]; then
+                 DATA_DIR=\"${CMAKE_SOURCE_DIR}/data\"
+               fi
+               
+               # Find the actual endoscopy data directory
+               if [ -d \"\$DATA_DIR/endoscopy\" ]; then
+                 DATA_PATH=\"\$DATA_DIR/endoscopy\"
+               elif [ -d \"\$DATA_DIR\" ]; then
+                 DATA_PATH=\"\$DATA_DIR\"
+               else
+                 echo \"✗ Error: Could not find data directory. Tried:\"
+                 echo \"  - \$DATA_DIR/endoscopy\"
+                 echo \"  - \$DATA_DIR\"
+                 exit 1
+               fi
+               
+               echo \"Using data directory: \$DATA_PATH\"
+               
+               # Set HOLOSCAN_INPUT_PATH for Python applications
+               export HOLOSCAN_INPUT_PATH=\"\$DATA_PATH\"
 
                # Initialize variables
                TEST_FAILED=0
