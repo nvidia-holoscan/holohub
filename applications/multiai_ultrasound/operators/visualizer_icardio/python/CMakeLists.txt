@@ -21,5 +21,3 @@ pybind11_add_holohub_module(
 )
 
 target_include_directories(visualizer_icardio_python PRIVATE ${Holohub_SOURCE_DIR}/operators)
-target_compile_definitions(visualizer_icardio_python PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR})
-target_compile_definitions(visualizer_icardio_python PRIVATE HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR})

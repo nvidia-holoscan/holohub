@@ -35,8 +35,6 @@ target_link_libraries(multiai_ultrasound
     $<TARGET_NAME_IF_EXISTS:holoscan::aja>
     visualizer_icardio
 )
-target_compile_definitions(multiai_ultrasound PRIVATE HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR})
-target_compile_definitions(multiai_ultrasound PRIVATE HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR})
 
 # Download the associated dataset if needed
 if(HOLOHUB_DOWNLOAD_DATASETS)

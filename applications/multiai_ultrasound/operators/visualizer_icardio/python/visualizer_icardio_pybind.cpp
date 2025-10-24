@@ -63,18 +63,12 @@ class PyVisualizerICardioOp : public VisualizerICardioOp {
                         const std::vector<std::string>& out_tensor_names = {std::string("")},
                         bool input_on_cuda = true,
                         std::string data_dir = "../data/multiai_ultrasound",
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-                        std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
-#endif
                         const std::string& name = "visualizer_icardio")
       : VisualizerICardioOp(ArgList{Arg{"allocator", allocator},
                                     Arg{"in_tensor_names", in_tensor_names},
                                     Arg{"out_tensor_names", out_tensor_names},
                                     Arg{"input_on_cuda", input_on_cuda},
                                     Arg{"data_dir", data_dir}}) {
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-    if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
-#endif
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -112,9 +106,6 @@ PYBIND11_MODULE(_visualizer_icardio, m) {
                     const std::vector<std::string>&,
                     bool,
                     std::string,
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-                    std::shared_ptr<holoscan::CudaStreamPool>,
-#endif
                     const std::string&>(),
            "fragment"_a,
            "allocator"_a,
@@ -122,9 +113,6 @@ PYBIND11_MODULE(_visualizer_icardio, m) {
            "out_tensor_names"_a,  // = {std::string("")},
            "input_on_cuda"_a = true,
            "data_dir"_a,
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-           "cuda_stream_pool"_a = py::none(),
-#endif
            "name"_a = "visualizer_icardio"s,
            doc::VisualizerICardioOp::doc_VisualizerICardioOp_python)
       .def("initialize", &VisualizerICardioOp::initialize, doc::VisualizerICardioOp::doc_initialize)

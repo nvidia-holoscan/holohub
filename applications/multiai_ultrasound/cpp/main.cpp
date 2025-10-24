@@ -33,9 +33,6 @@
 
 #include <visualizer_icardio.hpp>
 
-#define HOLOSCAN_VERSION \
-  (HOLOSCAN_VERSION_MAJOR * 10000 + HOLOSCAN_VERSION_MINOR * 100 + HOLOSCAN_VERSION_PATCH)
-
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) {
@@ -62,10 +59,6 @@ class App : public holoscan::Application {
     std::shared_ptr<Operator> recorder_format_converter;
 
 // operators already have a stream pool by default in Holoscan >= 2.9
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-    const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
-        make_resource<CudaStreamPool>("cuda_stream");
-#endif
 
     if (is_aja_source_) {
 #ifdef AJA_SOURCE
@@ -77,10 +70,8 @@ class App : public holoscan::Application {
     } else {
       source = make_operator<ops::VideoStreamReplayerOp>(
           "replayer", from_config("replayer"), Arg("directory", datapath));
-#if HOLOSCAN_VERSION >= 20600
       // the RMMAllocator supported since v2.6 is much faster than the default UnboundAllocator
       source->add_arg(Arg("allocator", make_resource<RMMAllocator>("video_replayer_allocator")));
-#endif
     }
 
     auto in_dtype = is_aja_source_ ? std::string("rgba8888") : std::string("rgb888");
@@ -96,9 +87,6 @@ class App : public holoscan::Application {
                                                   (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
                                                   320 * 320 * sizeof(float) * in_components,
                                                   format_convert_pool_blocks));
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-    plax_cham_pre->add_arg(Arg("cuda_stream_pool") = cuda_stream_pool);
-#endif
 
     auto aortic_ste_pre =
         make_operator<ops::FormatConverterOp>("aortic_ste_pre",
@@ -109,9 +97,6 @@ class App : public holoscan::Application {
                                                   (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
                                                   300 * 300 * sizeof(float) * in_components,
                                                   format_convert_pool_blocks));
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-    aortic_ste_pre->add_arg(Arg("cuda_stream_pool") = cuda_stream_pool);
-#endif
 
     auto b_mode_pers_pre =
         make_operator<ops::FormatConverterOp>("b_mode_pers_pre",
@@ -122,9 +107,6 @@ class App : public holoscan::Application {
                                                   (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
                                                   320 * 240 * sizeof(float) * in_components,
                                                   format_convert_pool_blocks));
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-    b_mode_pers_pre->add_arg(Arg("cuda_stream_pool") = cuda_stream_pool);
-#endif
 
     ops::InferenceOp::DataMap model_path_map;
     model_path_map.insert("plax_chamber", datapath + "/plax_chamber.onnx");
@@ -146,17 +128,9 @@ class App : public holoscan::Application {
                                             (int32_t)nvidia::gxf::MemoryStorageType::kDevice,
                                             block_size,
                                             2 * 3));
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-    multiai_inference->add_arg(Arg("cuda_stream_pool") = cuda_stream_pool);
-#endif
 
     //  version 2.6 supports the CUDA version of `max_per_channel_scaled`
-    const bool supports_cuda_processing =
-#if HOLOSCAN_VERSION >= 20600
-        true;
-#else
-        false;
-#endif
+    const bool supports_cuda_processing = true;
     auto multiai_postprocessor = make_operator<ops::InferenceProcessorOp>(
         "multiai_postprocessor",
         from_config("multiai_postprocessor"),
@@ -168,9 +142,6 @@ class App : public holoscan::Application {
                                            // 2 float coordinates, 6 categories
                                            2 * sizeof(float) * 6,
                                            1));
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-    multiai_postprocessor->add_arg(Arg("cuda_stream_pool") = cuda_stream_pool);
-#endif
 
     auto visualizer_icardio = make_operator<ops::VisualizerICardioOp>(
         "visualizer_icardio",
@@ -182,9 +153,6 @@ class App : public holoscan::Application {
                                            // max from VisualizerICardioOp::tensor_to_shape_
                                            320 * 320 * 4 * sizeof(uint8_t),
                                            1 * 8));
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-    visualizer_icardio->add_arg(Arg("cuda_stream_pool") = cuda_stream_pool);
-#endif
 
     auto holoviz = make_operator<ops::HolovizOp>(
         "holoviz",
@@ -196,9 +164,6 @@ class App : public holoscan::Application {
                                            // max from VisualizerICardioOp::tensor_to_shape_
                                            320 * 320 * 4 * sizeof(uint8_t),
                                            1 * 8));
-#if (HOLOSCAN_MAJOR_VERSION < 2) || (HOLOSCAN_MAJOR_VERSION == 2 && HOLOSCAN_MINOR_VERSION < 9)
-    holoviz->add_arg(Arg("cuda_stream_pool") = cuda_stream_pool);
-#endif
 
     // Add recording operators
     if (record_type_ != Record::NONE) {
