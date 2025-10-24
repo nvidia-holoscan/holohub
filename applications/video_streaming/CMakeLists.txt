@@ -68,7 +68,7 @@ if(BUILD_TESTING)
              if [ -z \"\$DATA_DIR\" ]; then
                DATA_DIR=\"${CMAKE_SOURCE_DIR}/data\"
              fi
-             
+
              # Find the actual endoscopy data directory
              if [ -d \"\$DATA_DIR/endoscopy\" ]; then
                DATA_PATH=\"\$DATA_DIR/endoscopy\"
@@ -80,7 +80,7 @@ if(BUILD_TESTING)
                echo \"  - \$DATA_DIR\"
                exit 1
              fi
-             
+
              echo \"Using data directory: \$DATA_PATH\"
 
              # Initialize variables
@@ -314,7 +314,7 @@ if(BUILD_TESTING)
                if [ -z \"\$DATA_DIR\" ]; then
                  DATA_DIR=\"${CMAKE_SOURCE_DIR}/data\"
                fi
-               
+
                # Find the actual endoscopy data directory
                if [ -d \"\$DATA_DIR/endoscopy\" ]; then
                  DATA_PATH=\"\$DATA_DIR/endoscopy\"
@@ -326,9 +326,9 @@ if(BUILD_TESTING)
                  echo \"  - \$DATA_DIR\"
                  exit 1
                fi
-               
+
                echo \"Using data directory: \$DATA_PATH\"
-               
+
                # Set environment variables for Python applications
                export HOLOSCAN_INPUT_PATH=\"\$DATA_PATH\"
                export HOLOHUB_DATA_PATH=\"\$DATA_DIR\"
