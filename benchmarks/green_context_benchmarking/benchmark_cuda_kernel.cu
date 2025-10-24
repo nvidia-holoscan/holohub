@@ -20,7 +20,7 @@
 #include "benchmark_cuda_kernel.cu.hpp"
 
 // CUDA kernels for benchmarking
-__global__ void simple_benchmark_kernel(float* data, int size) {
+__global__ void simple_benchmark_kernel(float* data, const int size) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= size)
@@ -34,7 +34,7 @@ __global__ void simple_benchmark_kernel(float* data, int size) {
   data[idx] = value;
 }
 
-__global__ void background_load_kernel(float* data, int size, int intensity) {
+__global__ void background_load_kernel(float* data, const int size, const int intensity) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (idx >= size || size == 0)
     return;

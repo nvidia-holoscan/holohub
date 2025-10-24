@@ -28,8 +28,6 @@ namespace cupti_timing {
 // Structure to hold kernel launch timing data
 struct KernelLaunchData {
   uint64_t launch_timestamp;
-  const char* kernel_name;
-  cudaStream_t stream;
 };
 
 // Global state for CUPTI measurements
@@ -44,7 +42,6 @@ class CuptiSchedulingProfiler {
   std::unordered_map<uint32_t, double> execution_durations_;  // correlationId -> execution duration
   std::mutex data_mutex_;
   bool initialized_;
-  int successful_measurements_ = 0;  // Count successful measurements
 
  public:
   static CuptiSchedulingProfiler* getInstance() {
@@ -202,13 +199,10 @@ class CuptiSchedulingProfiler {
         uint64_t timestamp;
         cuptiGetTimestamp(&timestamp);
 
-        // Store all launch data - we'll filter by kernel name later in activity processing
-        // This is safe because we don't access cbdata->symbolName here
+        // Store launch data - kernel filtering happens later in activity processing
         std::lock_guard<std::mutex> lock(profiler->data_mutex_);
         KernelLaunchData data;
         data.launch_timestamp = timestamp;
-        data.kernel_name = nullptr;  // Don't store the name to avoid crashes
-        data.stream = 0;
 
         profiler->launch_map_[cbdata->correlationId] = data;
       }
@@ -281,7 +275,9 @@ class CuptiSchedulingProfiler {
             if (latency_us >= 0.1 && latency_us <= 10000.0) {
               scheduling_latencies_[kernelRecord->correlationId] = latency_us;
               execution_durations_[kernelRecord->correlationId] = execution_duration_us;
-              successful_measurements_++;  // Count successful measurements
+            } else {
+              std::cout << "[CUPTI] WARNING: Rejected latency " << latency_us
+                        << " μs (expected 0.1-10000 μs)" << std::endl;
             }
 
             // Remove from launch_map to save memory

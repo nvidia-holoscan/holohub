@@ -18,9 +18,9 @@
 #pragma once
 
 // CUDA kernel declarations for benchmarking
-__global__ void simple_benchmark_kernel(float* data, int size);
+__global__ void simple_benchmark_kernel(float* data, const int size);
 
-__global__ void background_load_kernel(float* data, int size, int intensity);
+__global__ void background_load_kernel(float* data, const int size, const int intensity);
 
 void async_run_simple_benchmark_kernel(
     float* data, int workload_size, int threads_per_block, cudaStream_t cuda_stream);

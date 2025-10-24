@@ -439,7 +439,7 @@ class GreenContextBenchmarkApp : public holoscan::Application {
         // Check GPU properties first
         cudaDeviceProp prop;
         cudaGetDeviceProperties(&prop, 0);
-        HOLOSCAN_LOG_INFO("GPU: {}, SMs: {}, Compute: {}", prop.name, prop.multiProcessorCount,
+        HOLOSCAN_LOG_INFO("GPU: {}, SMs: {}, Compute: {}.{}", prop.name, prop.multiProcessorCount,
           prop.major, prop.minor);
 
         // Create separate Green Context partitions for proper isolation testing
@@ -456,8 +456,8 @@ class GreenContextBenchmarkApp : public holoscan::Application {
                                             static_cast<uint32_t>(sms_per_partition)};
 
         HOLOSCAN_LOG_INFO("Configuring green context with {} partitions, {} SMs each "
-                          "(total: {} SMs)", partitions.size(), sms_per_partition,
-                          sms_per_partition * 2, total_sms);
+                          "(total: {} SMs, available: {} SMs)", partitions.size(),
+                          sms_per_partition, sms_per_partition * 2, total_sms);
 
         auto cuda_green_context_pool = make_resource<CudaGreenContextPool>(
             "cuda_green_context_pool",
