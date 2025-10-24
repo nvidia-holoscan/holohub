@@ -329,8 +329,9 @@ if(BUILD_TESTING)
                
                echo \"Using data directory: \$DATA_PATH\"
                
-               # Set HOLOSCAN_INPUT_PATH for Python applications
+               # Set environment variables for Python applications
                export HOLOSCAN_INPUT_PATH=\"\$DATA_PATH\"
+               export HOLOHUB_DATA_PATH=\"\$DATA_DIR\"
 
                # Initialize variables
                TEST_FAILED=0
