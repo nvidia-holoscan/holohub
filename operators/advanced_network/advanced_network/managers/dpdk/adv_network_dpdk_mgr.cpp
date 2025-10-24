@@ -63,6 +63,7 @@ static inline int get_queue_from_key(uint32_t key) {
 
 
 std::atomic<bool> force_quit = false;
+std::atomic<bool> flush_rx_queues = false;
 
 struct TxWorkerParams {
   int port;
@@ -877,6 +878,11 @@ void DpdkMgr::initialize() {
     return;
   }
 
+  // Initialize all drop_all_traffic_flow pointers to nullptr
+  for (auto& flow_ptr : drop_all_traffic_flow) {
+    flow_ptr = nullptr;
+  }
+
   this->initialized_ = true;
 }
 
@@ -1329,7 +1335,7 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   return flow;
 }
 
-void* DpdkMgr::drop_all_traffic(int port) {
+Status DpdkMgr::drop_all_traffic(int port) {
   /* Declaring structs being used. */
   struct rte_flow_attr attr;
   struct rte_flow_item pattern[MAX_PATTERN_NUM];
@@ -1385,32 +1391,40 @@ void* DpdkMgr::drop_all_traffic(int port) {
   HOLOSCAN_LOG_INFO("Creating drop all traffic rule on port {} with priority {}", port, attr.priority);
 
   // Create the flow rule
-  flow = rte_flow_create(port, &attr, pattern, action, &error);
+  drop_all_traffic_flow[port] = rte_flow_create(port, &attr, pattern, action, &error);
   
-  if (flow == nullptr) {
+  if (drop_all_traffic_flow[port] == nullptr) {
     HOLOSCAN_LOG_ERROR("Failed to create drop all traffic flow rule on port {}: {}", 
                        port, error.message ? error.message : "unknown error");
+    return Status::INTERNAL_ERROR;
   } else {
     HOLOSCAN_LOG_INFO("Successfully created drop all traffic rule on port {}", port);
   }
 
-  return static_cast<void*>(flow);
+  flush_rx_queues.store(true);
+
+  return Status::SUCCESS;
 }
 
-Status DpdkMgr::allow_all_traffic(int port, void* flow) {
-  if (flow == nullptr) {
+Status DpdkMgr::allow_all_traffic(int port) {
+  if (drop_all_traffic_flow[port] == nullptr) {
     HOLOSCAN_LOG_ERROR("Cannot remove drop rule: flow pointer is null");
     return Status::INVALID_PARAMETER;
   }
 
+  // Tell the RX threads they can keep processing packets
+  flush_rx_queues.store(false);
+
   struct rte_flow_error error;
-  int ret = rte_flow_destroy(port, static_cast<struct rte_flow*>(flow), &error);
+  int ret = rte_flow_destroy(port, drop_all_traffic_flow[port], &error);
   
   if (ret != 0) {
     HOLOSCAN_LOG_ERROR("Failed to destroy drop all traffic flow rule on port {}: {}", 
                        port, error.message ? error.message : "unknown error");
     return Status::INTERNAL_ERROR;
   }
+
+  drop_all_traffic_flow[port] = nullptr;
 
   HOLOSCAN_LOG_INFO("Successfully removed drop all traffic rule on port {}, traffic is now allowed", port);
   return Status::SUCCESS;
@@ -1760,6 +1774,44 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
+    const bool should_flush = flush_rx_queues.load();
+
+    if (should_flush) {
+      // Free any packets we have stored in temporary arrays that are not pushed to the ring
+      for (int i = 0; i < num_queues; i++) {
+        // Free any unprocessed packets in mbuf_arr
+        if (nb_rx[i] > 0) {
+          for (int p = cur_pkt_in_batch[i]; p < cur_pkt_in_batch[i] + nb_rx[i]; p++) {
+            rte_pktmbuf_free(mbuf_arr[i][p]);
+          }
+          nb_rx[i] = 0;
+          cur_pkt_in_batch[i] = 0;
+        }
+
+        // Free any packets already stored in bursts that haven't been pushed to ring yet
+        if (bursts[i] != nullptr) {
+          // Free all packet mbufs stored in the burst
+          for (int p = 0; p < bursts[i]->hdr.hdr.num_pkts; p++) {
+            rte_pktmbuf_free(reinterpret_cast<rte_mbuf**>(bursts[i]->pkts[0])[p]);
+          }
+
+          // Free the pkt_extra_info buffer back to the pool
+          if (bursts[i]->pkt_extra_info != nullptr) {
+            rte_mempool_put(tparams->flowid_pool, bursts[i]->pkt_extra_info);
+          }
+
+          // Free the segment buffers back to the burst pool
+          for (int seg = 0; seg < bursts[i]->hdr.hdr.num_segs; seg++) {
+            rte_mempool_put(tparams->rx_burst_pool, (void*)bursts[i]->pkts[seg]);
+          }
+
+          // Free the burst metadata back to the meta pool
+          rte_mempool_put(tparams->rx_meta_pool, bursts[i]);
+          bursts[i] = nullptr;
+        }
+      }
+    }
+
     if (bursts[cur_idx] == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&bursts[cur_idx])) < 0) {
         HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\
@@ -1910,6 +1962,42 @@ int DpdkMgr::rx_core_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
+    const bool should_flush = flush_rx_queues.load();
+
+    if (should_flush) {
+      // Free any packets we have stored in temporary arrays that are not pushed to the ring
+      // Free any unprocessed packets in mbuf_arr
+      if (nb_rx > 0) {
+        for (int p = cur_pkt_in_batch; p < cur_pkt_in_batch + nb_rx; p++) {
+          rte_pktmbuf_free(mbuf_arr[p]);
+        }
+        nb_rx = 0;
+        cur_pkt_in_batch = 0;
+      }
+
+      // Free any packets already stored in burst that haven't been pushed to ring yet
+      if (burst != nullptr) {
+        // Free all packet mbufs stored in the burst
+        for (int p = 0; p < burst->hdr.hdr.num_pkts; p++) {
+          rte_pktmbuf_free(reinterpret_cast<rte_mbuf**>(burst->pkts[0])[p]);
+        }
+
+        // Free the pkt_extra_info buffer back to the pool
+        if (burst->pkt_extra_info != nullptr) {
+          rte_mempool_put(tparams->flowid_pool, burst->pkt_extra_info);
+        }
+
+        // Free the segment buffers back to the burst pool
+        for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
+          rte_mempool_put(tparams->rx_burst_pool, (void*)burst->pkts[seg]);
+        }
+
+        // Free the burst metadata back to the meta pool
+        rte_mempool_put(tparams->rx_meta_pool, burst);
+        burst = nullptr;
+      }
+    }
+
     if (burst == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
         HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\

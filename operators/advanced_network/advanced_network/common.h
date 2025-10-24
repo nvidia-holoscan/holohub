@@ -394,9 +394,9 @@ Status get_mac_addr(int port, char* mac);
  *
  * @param port Port number of interface
  *
- * @returns Opaque flow handle pointer to be used with allow_all_traffic(), or nullptr on failure
+ * @returns Status::SUCCESS on success, error status on failure
  */
-void* drop_all_traffic(int port);
+Status drop_all_traffic(int port);
 
 /**
  * @brief Allow all traffic on a port
@@ -405,11 +405,10 @@ void* drop_all_traffic(int port);
  * normal traffic flow on the port.
  *
  * @param port Port number of interface
- * @param flow Flow handle returned by drop_all_traffic()
  *
  * @returns Status::SUCCESS on success, error status on failure
  */
-Status allow_all_traffic(int port, void* flow);
+Status allow_all_traffic(int port);
 
 /**
  * @brief Get port number from interface name
