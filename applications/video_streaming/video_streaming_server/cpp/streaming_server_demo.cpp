@@ -79,16 +79,20 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  buffer_size: 10\n\n";
 
   out_file << "# Upstream operator configuration (receives frames from clients)\n";
-  out_file << "upstream_op:\n";
-  out_file << "  width: 854\n";
-  out_file << "  height: 480\n";
-  out_file << "  fps: 30\n\n";
+  out_file << "# Note: width, height, fps are inherited from streaming_server resource\n";
+  out_file << "# Uncomment below to override resource defaults per-operator\n";
+  out_file << "upstream_op: {}\n";
+  out_file << "  # width: 854\n";
+  out_file << "  # height: 480\n";
+  out_file << "  # fps: 30\n\n";
 
   out_file << "# Downstream operator configuration (sends frames to clients)\n";
-  out_file << "downstream_op:\n";
-  out_file << "  width: 854\n";
-  out_file << "  height: 480\n";
-  out_file << "  fps: 30\n\n";
+  out_file << "# Note: width, height, fps are inherited from streaming_server resource\n";
+  out_file << "# Uncomment below to override resource defaults per-operator\n";
+  out_file << "downstream_op: {}\n";
+  out_file << "  # width: 854\n";
+  out_file << "  # height: 480\n";
+  out_file << "  # fps: 30\n\n";
 
   out_file << "# Visualization options (disabled by default for server mode)\n";
   out_file << "visualize_frames: false\n\n";
