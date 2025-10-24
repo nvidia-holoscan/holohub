@@ -365,8 +365,8 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     flow.match_.ipv4_len_ = 0;
   }
 
+  struct in_addr addr;
   try {
-    struct in_addr addr;
     auto ipv4_src = flow_item["match"]["ipv4_src"].as<std::string>();
     if (inet_pton(AF_INET, ipv4_src.c_str(), &addr) != 1) {
       HOLOSCAN_LOG_ERROR("Failed to convert source IP address: {}", ipv4_src);
@@ -377,7 +377,6 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
   }
  
   try {
-    struct in_addr addr;
     auto ipv4_dst = flow_item["match"]["ipv4_dst"].as<std::string>();
     if (inet_pton(AF_INET, ipv4_dst.c_str(), &addr) != 1) {
       HOLOSCAN_LOG_ERROR("Failed to convert destination IP address: {}", ipv4_dst);
