@@ -59,7 +59,7 @@ class GstSinkOperator : public Operator {
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override;
 
  private:
-  Parameter<GstSinkResourcePtr> gst_sink_resource_;
+  Parameter<std::shared_ptr<GstSinkResource>> gst_sink_resource_;
   Parameter<uint64_t> timeout_ms_;
 };
 

@@ -80,5 +80,19 @@ void GstSrcResource::initialize() {
   HOLOSCAN_LOG_INFO("GstSrcResource initialized successfully");
 }
 
+std::shared_future<gst::Element> GstSrcResource::get_gst_element() const {
+  return element_future_;
+}
+
+void GstSrcResource::send_eos() {
+  if (bridge_) {
+    bridge_->send_eos();
+  }
+}
+
+bool GstSrcResource::push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout) {
+  return bridge_ ? bridge_->push_buffer(std::move(buffer), timeout) : false;
+}
+
 }  // namespace holoscan
 

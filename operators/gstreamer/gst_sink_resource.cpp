@@ -585,8 +585,15 @@ void GstSinkResource::initialize() {
   sink_element_promise_.set_value(std::move(element));
 }
 
+std::shared_future<holoscan::gst::Element> GstSinkResource::get_gst_element() const {
+  return sink_element_future_;
+}
 
-
+bool GstSinkResource::valid() const {
+  return sink_element_future_.valid() && 
+         sink_element_future_.wait_for(std::chrono::seconds(0)) == std::future_status::ready && 
+         sink_element_future_.get();
+}
 
 // Helper functions are now in gst_common.cpp
 

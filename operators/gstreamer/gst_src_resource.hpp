@@ -54,9 +54,7 @@ class GstSrcResource : public Resource {
    * @brief Get the underlying GStreamer element
    * @return Shared future that will provide the GStreamer element when initialization completes
    */
-  std::shared_future<gst::Element> get_gst_element() const {
-    return element_future_;
-  }
+  std::shared_future<gst::Element> get_gst_element() const;
 
   /**
    * @brief Send End-Of-Stream signal to appsrc
@@ -67,9 +65,7 @@ class GstSrcResource : public Resource {
    * Note: This function returns immediately after sending EOS. The caller should
    * wait for the EOS message on the pipeline bus to know when processing is complete.
    */
-  void send_eos() {
-    if (bridge_) { bridge_->send_eos(); }
-  }
+  void send_eos();
 
   /**
    * @brief Push a buffer into the GStreamer pipeline (template version)
@@ -122,9 +118,7 @@ class GstSrcResource : public Resource {
    *   resource->push_buffer(std::move(buffer), std::chrono::milliseconds(1000));
    */
   bool push_buffer(gst::Buffer buffer, 
-                   std::chrono::milliseconds timeout = std::chrono::milliseconds::zero()) {
-    return bridge_ ? bridge_->push_buffer(std::move(buffer), timeout) : false;
-  }
+                   std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
 
   /**
    * @brief Create a GStreamer buffer from a GXF Entity containing tensor(s)

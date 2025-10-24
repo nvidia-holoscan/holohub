@@ -46,7 +46,6 @@ namespace holoscan {
 class GstSinkResource : public holoscan::Resource {
  public:
   HOLOSCAN_RESOURCE_FORWARD_ARGS(GstSinkResource)
-  using SharedPtr = std::shared_ptr<GstSinkResource>;
 
   /**
    * @brief Destructor - cleans up GStreamer resources
@@ -67,9 +66,7 @@ class GstSinkResource : public holoscan::Resource {
    * @brief Get the underlying GStreamer element (waits for initialization if needed)
    * @return Shared future that will provide the GstElement when ready
    */
-  std::shared_future<holoscan::gst::Element> get_gst_element() const {
-    return sink_element_future_;
-  }
+  std::shared_future<holoscan::gst::Element> get_gst_element() const;
 
   /**
    * @brief Asynchronously pop the next buffer from the GStreamer pipeline
@@ -102,11 +99,7 @@ class GstSinkResource : public holoscan::Resource {
    * @brief Check if the sink element is ready (non-blocking)
    * @return true if the element has been initialized and is ready to use
    */
-   bool valid() const {
-    return sink_element_future_.valid() && 
-           sink_element_future_.wait_for(std::chrono::seconds(0)) == std::future_status::ready && 
-           sink_element_future_.get();
-  }
+   bool valid() const;
 
   /**
    * @brief Get the current negotiated caps from the sink
@@ -167,8 +160,6 @@ class GstSinkResource : public holoscan::Resource {
   holoscan::Parameter<bool> qos_enabled_;
   holoscan::Parameter<size_t> max_buffers_;
 };
-
-using GstSinkResourcePtr = GstSinkResource::SharedPtr;
 
 }  // namespace holoscan
 
