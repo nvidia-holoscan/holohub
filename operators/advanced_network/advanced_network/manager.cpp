@@ -267,12 +267,12 @@ void Manager::flush_port_queue(int port, int queue) {
   HOLOSCAN_LOG_ERROR("flush_port_queue not implemented for this manager type");
 }
 
-void* Manager::drop_all_traffic(int port) {
+Status Manager::drop_all_traffic(int port) {
   HOLOSCAN_LOG_ERROR("drop_all_traffic not implemented for this manager type");
-  return nullptr;
+  return Status::NOT_SUPPORTED;
 }
 
-Status Manager::allow_all_traffic(int port, void* flow) {
+Status Manager::allow_all_traffic(int port) {
   HOLOSCAN_LOG_ERROR("allow_all_traffic not implemented for this manager type");
   return Status::NOT_SUPPORTED;
 }

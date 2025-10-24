@@ -167,14 +167,14 @@ Status get_mac_addr(int port, char* mac) {
   return g_ano_mgr->get_mac_addr(port, mac);
 }
 
-void* drop_all_traffic(int port) {
+Status drop_all_traffic(int port) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->drop_all_traffic(port);
 }
 
-Status allow_all_traffic(int port, void* flow) {
+Status allow_all_traffic(int port) {
   ASSERT_ANO_MGR_INITIALIZED();
-  return g_ano_mgr->allow_all_traffic(port, flow);
+  return g_ano_mgr->allow_all_traffic(port);
 }
 
 bool is_tx_burst_available(BurstParams* burst) {
