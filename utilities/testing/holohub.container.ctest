@@ -56,7 +56,6 @@ set(configure_options
 set(CTEST_NIGHTLY_START_TIME "06:00:00 UTC")
 
 ctest_start(Nightly)
-ctest_update()
 ctest_configure(OPTIONS "${configure_options}")
 ctest_build()
 ctest_test(RETURN_VALUE test_result)
