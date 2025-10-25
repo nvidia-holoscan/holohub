@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,22 +14,54 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(video_streaming_server CXX)
+project(streaming_server_demo CXX)
+
+# This application is built by the parent add_holohub_application macro
+
+find_package(holoscan 3.5 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Find required packages
+find_package(CUDAToolkit REQUIRED)
+
+# Bundle NEWER SSL libraries from streaming_server_enhanced operator (supports OpenSSL 3.0-3.5)
+# Detect system architecture
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
+  set(ARCH_DIR "x86_64")
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+  set(ARCH_DIR "aarch64")
+else()
+  message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+# Find the streaming server operator directory using relative path
+set(OPERATOR_SSL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../operators/video_streaming/streaming_server_enhanced/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
+
+# Validate operator bundle exists - fail early with clear error message
+if(NOT EXISTS "${OPERATOR_SSL_DIR}")
+  message(FATAL_ERROR "Operator SSL directory not found: ${OPERATOR_SSL_DIR}\n"
+                      "Please ensure NGC assets are installed per README:\n"
+                      "  cd operators/video_streaming/streaming_server_enhanced\n"
+                      "  ngc registry resource download-version \"nvidia/holoscan_server_cloud_streaming:0.2\"\n"
+                      "  unzip holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming")
+endif()
 
 # Add executable
 add_executable(streaming_server_demo
     streaming_server_demo.cpp
 )
 
-# Print success message
-message(STATUS "✓ Executable target 'streaming_server_demo' created")
-
-# Set build directory
-message(STATUS "Build streaming_server_demo directory: ${CMAKE_BINARY_DIR}/streaming_server_demo")
-
-# Find required packages
-find_package(CUDAToolkit REQUIRED)
-find_package(holoscan REQUIRED)
+# Link libraries - include explicit SSL library paths from operator
+target_link_libraries(streaming_server_demo
+    PRIVATE
+    holoscan::core
+    holoscan::ops::streaming_server_enhanced
+    CUDA::cudart
+    "${OPERATOR_SSL_DIR}/libssl.so.3"
+    "${OPERATOR_SSL_DIR}/libcrypto.so.3"
+    pthread
+    dl
+    rt
+)
 
 # Set compile definitions
 target_compile_definitions(streaming_server_demo
@@ -37,44 +69,6 @@ target_compile_definitions(streaming_server_demo
     HOLOSCAN_MAJOR_VERSION=${holoscan_VERSION_MAJOR}
     HOLOSCAN_MINOR_VERSION=${holoscan_VERSION_MINOR}
     HOLOSCAN_PATCH_VERSION=${holoscan_VERSION_PATCH}
-)
-
-# Set compile options
-target_compile_options(streaming_server_demo
-    PRIVATE
-    $<$<COMPILE_LANGUAGE:CXX>:-Wall>
-    $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
-    $<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder>
-    $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>
-    $<$<COMPILE_LANGUAGE:CXX>:-Wno-sign-compare>
-)
-
-# Add dependency on streaming_server operator
-add_dependencies(streaming_server_demo streaming_server)
-
-# Link libraries
-target_link_libraries(streaming_server_demo
-    PUBLIC
-    holoscan::core
-    holoscan::streaming_server
-    CUDA::cudart
-    CUDA::cuda_driver
-)
-
-
-
-# Set target properties
-set_target_properties(streaming_server_demo PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-    BUILD_WITH_INSTALL_RPATH TRUE
-    INSTALL_RPATH_USE_LINK_PATH TRUE
-    SKIP_BUILD_RPATH FALSE
-)
-
-# Add include directories
-target_include_directories(streaming_server_demo
-    PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # Copy YAML file if it exists
@@ -86,22 +80,90 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml")
     )
 endif()
 
-# Create lib directory
+# Copy ALL required libraries from operator to application directory
 add_custom_command(TARGET streaming_server_demo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:streaming_server_demo>/lib"
+    # Copy SSL libraries (newer versions)
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${OPERATOR_SSL_DIR}/libssl.so.3"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libssl.so.3"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${OPERATOR_SSL_DIR}/libcrypto.so.3"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libcrypto.so.3"
+    # Copy Holoscan Streaming Stack libraries (required at runtime)
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${OPERATOR_SSL_DIR}/libStreamingServer.so"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libStreamingServer.so"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${OPERATOR_SSL_DIR}/libNvStreamServer.so"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libNvStreamServer.so"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${OPERATOR_SSL_DIR}/libNvStreamBase.so"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libNvStreamBase.so"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${OPERATOR_SSL_DIR}/libNvStreamingSession.so"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libNvStreamingSession.so"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${OPERATOR_SSL_DIR}/libPoco.so"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libPoco.so"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${OPERATOR_SSL_DIR}/libcudart.so.12"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libcudart.so.12"
+    COMMENT "Bundling ALL required libraries from streaming_server_enhanced operator"
 )
 
-# Install rules
+# Configure linking to use the bundled newer SSL libraries
+target_link_directories(streaming_server_demo PRIVATE "${OPERATOR_SSL_DIR}")
+
+# Copy wrapper script and make executable
+add_custom_command(TARGET streaming_server_demo POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_wrapper.sh"
+        "$<TARGET_FILE_DIR:streaming_server_demo>/streaming_server_demo_wrapper.sh"
+    COMMAND chmod +x "$<TARGET_FILE_DIR:streaming_server_demo>/streaming_server_demo_wrapper.sh"
+    COMMENT "Installing wrapper script with LD_LIBRARY_PATH"
+)
+
+# Set RPATH to prioritize bundled libraries over system libraries
+# BUILD_RPATH: Uses absolute path to NGC binaries in source tree (for development)
+# INSTALL_RPATH: Uses relative paths to find NGC binaries installed at <prefix>/lib
+set_target_properties(streaming_server_demo PROPERTIES
+    BUILD_RPATH "$<TARGET_FILE_DIR:streaming_server_demo>/lib:$<TARGET_FILE_DIR:streaming_server_demo>:${OPERATOR_SSL_DIR}"
+    INSTALL_RPATH "$ORIGIN/lib:$ORIGIN:$ORIGIN/../../../lib"
+    BUILD_WITH_INSTALL_RPATH FALSE
+    INSTALL_RPATH_USE_LINK_PATH FALSE
+    SKIP_BUILD_RPATH FALSE
+)
+
+# Copy config dependencies for testing
+add_custom_target(streaming_server_demo_deps
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "streaming_server_demo.yaml"
+  BYPRODUCTS "streaming_server_demo.yaml"
+)
+add_dependencies(streaming_server_demo streaming_server_demo_deps)
+
+# Install application and dependencies into the install/ directory for packaging
 install(
-    TARGETS streaming_server_demo
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
+  TARGETS streaming_server_demo
+  DESTINATION bin/video_streaming_server/cpp
 )
 
-# Install config files
 install(
-    FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml"
-    DESTINATION bin
+  FILES streaming_server_demo.yaml
+  DESTINATION bin/video_streaming_server/cpp
 )
 
+# Install wrapper script
+install(
+  FILES "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo_wrapper.sh"
+  DESTINATION bin/video_streaming_server/cpp
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+)
+
+# Install bundled libraries (OpenSSL 3.x and NGC streaming libraries)
+install(
+  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib/"
+  DESTINATION bin/video_streaming_server/cpp/lib
+  FILES_MATCHING PATTERN "*.so*"
+)

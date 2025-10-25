@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+#!/bin/bash
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(video_streaming_demo_client LANGUAGES CXX)
-
-# Add C++ subdirectory
-add_subdirectory(cpp)
+# Set library path to prioritize bundled libraries
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+export LD_LIBRARY_PATH="${SCRIPT_DIR}/lib:${SCRIPT_DIR}:${LD_LIBRARY_PATH}"
+exec "${SCRIPT_DIR}/streaming_client_demo" "$@"
