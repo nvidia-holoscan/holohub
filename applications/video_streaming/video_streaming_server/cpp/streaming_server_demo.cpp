@@ -25,18 +25,11 @@
 #include <string>
 
 #include <holoscan/holoscan.hpp>
-#include <holoscan/operators/format_converter/format_converter.hpp>
-#include <holoscan/operators/holoviz/holoviz.hpp>
-#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 
-#include "streaming_server_op.hpp"
+#include "streaming_server_resource.hpp"
+#include "streaming_server_upstream_op.hpp"
+#include "streaming_server_downstream_op.hpp"
 
-
-namespace holoscan::ops {
-
-
-
-}  // namespace holoscan::ops
 
 // Create a default YAML configuration file if it doesn't exist
 bool ensure_config_file_exists(const std::string& config_path) {
@@ -85,10 +78,26 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  reconnect_attempts: 3\n";
   out_file << "  buffer_size: 10\n\n";
 
+  out_file << "# Upstream operator configuration (receives frames from clients)\n";
+  out_file << "# Note: width, height, fps are inherited from streaming_server resource\n";
+  out_file << "# Uncomment below to override resource defaults per-operator\n";
+  out_file << "upstream_op: {}\n";
+  out_file << "  # width: 854\n";
+  out_file << "  # height: 480\n";
+  out_file << "  # fps: 30\n\n";
+
+  out_file << "# Downstream operator configuration (sends frames to clients)\n";
+  out_file << "# Note: width, height, fps are inherited from streaming_server resource\n";
+  out_file << "# Uncomment below to override resource defaults per-operator\n";
+  out_file << "downstream_op: {}\n";
+  out_file << "  # width: 854\n";
+  out_file << "  # height: 480\n";
+  out_file << "  # fps: 30\n\n";
+
   out_file << "# Visualization options (disabled by default for server mode)\n";
   out_file << "visualize_frames: false\n\n";
 
-  out_file << "# HoloViz configuration (used only if visualize_frames is true)\n";
+  out_file << "# Holoviz configuration (used only if visualize_frames is true)\n";
   out_file << "holoviz:\n";
   out_file << "  # Window size and title\n";
   out_file << "  width: 854\n";
@@ -118,51 +127,46 @@ bool ensure_config_file_exists(const std::string& config_path) {
 
 class StreamingServerTestApp : public holoscan::Application {
  public:
-  void set_width(uint32_t width) { width_ = width; }
-  void set_height(uint32_t height) { height_ = height; }
-  void set_fps(uint32_t fps) { fps_ = fps; }
-  void set_server_ip(const std::string& server_ip) { server_ip_ = server_ip; }
-  void set_port(uint16_t port) { port_ = port; }
-  void set_receive_frames(bool receive_frames) { receive_frames_ = receive_frames; }
-  void set_send_frames(bool send_frames) { send_frames_ = send_frames; }
-  void set_visualize_frames(bool visualize_frames) { visualize_frames_ = visualize_frames; }
-  void set_datapath(const std::string& datapath) { datapath_ = datapath; }
-
   void compose() override {
     using namespace holoscan;
 
-    // Create the streaming server operator with continuous execution
-    // Remove periodic condition - let it run continuously to process frames
-    auto streaming_server = make_operator<ops::StreamingServerOp>(
-        "streaming_server", from_config("streaming_server"));
+    // Create shared resource with configuration from YAML (with backward compatibility)
+    holoscan::ArgList streaming_server_args;
+    try {
+      streaming_server_args = from_config("streaming_server");
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_WARN("Missing streaming_server config section, using defaults ({})", e.what());
+    }
+    auto streaming_server_resource =
+        make_resource<ops::StreamingServerResource>("streaming_server_resource",
+                                                     streaming_server_args);
 
-    // Add the operator to the pipeline
-    add_operator(streaming_server);
+    // Both operators use the same resource and load their config (with backward compatibility)
+    holoscan::ArgList upstream_args;
+    try {
+      upstream_args = from_config("upstream_op");
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_WARN("Missing upstream_op config section, using defaults ({})", e.what());
+    }
+    auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>("upstream_op", upstream_args);
+    upstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
+
+    holoscan::ArgList downstream_args;
+    try {
+      downstream_args = from_config("downstream_op");
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_WARN("Missing downstream_op config section, using defaults ({})", e.what());
+    }
+    auto downstream_op =
+        make_operator<ops::StreamingServerDownstreamOp>("downstream_op", downstream_args);
+    downstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
+
+    // Connect them in pipeline
+    add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
 
     HOLOSCAN_LOG_INFO(
         "Application composed with streaming server using continuous execution");
   }
-
- private:
-  // Default parameters (will be overridden from config if available)
-  uint32_t width_ = 854;
-  uint32_t height_ = 480;
-  uint32_t fps_ = 30;
-  std::string server_ip_ = "127.0.0.1";
-  uint16_t port_ = 48010;  // Changed to match YAML config and client
-  bool receive_frames_ = true;
-  bool send_frames_ = true;
-  bool visualize_frames_ = false;
-  std::string source_ = "replayer";  // Added source_ member variable
-  std::string datapath_ = "data/endoscopy";
-  bool gpu_tensor_ = false;
-  int64_t count_ = 10;
-  int32_t batch_size_ = 0;
-  int32_t rows_ = 32;
-  int32_t columns_ = 64;
-  int32_t channels_ = 0;
-  std::string data_type_{"uint8_t"};
-  // Added datapath_ member variable
 };
 
 void print_usage() {
@@ -170,8 +174,6 @@ void print_usage() {
             << "Options:\n"
             << "  -c, --config <file>        Configuration file path (default: "
                "streaming_server_demo.yaml)\n"
-            << "  -d, --data <directory>     Data directory (default: environment variable "
-               "HOLOSCAN_INPUT_PATH or current directory)\n"
             << "  -?, --help                 Show this help message\n"
             << std::endl;
 }
@@ -224,23 +226,18 @@ uint16_t get_config_value<uint16_t>(holoscan::Application* app, const std::strin
 int main(int argc, char** argv) {
   // Default config file path
   std::string config_path = "streaming_server_demo.yaml";
-  std::string data_directory = "";
 
   // Parse command line arguments
   static struct option long_options[] = {{"config", required_argument, 0, 'c'},
-                                         {"data", required_argument, 0, 'd'},
                                          {"help", no_argument, 0, '?'},
                                          {0, 0, 0, 0}};
 
   int option_index = 0;
   int c;
-  while ((c = getopt_long(argc, argv, "c:d:?", long_options, &option_index)) != -1) {
+  while ((c = getopt_long(argc, argv, "c:?", long_options, &option_index)) != -1) {
     switch (c) {
       case 'c':
         config_path = optarg;
-        break;
-      case 'd':
-        data_directory = optarg;
         break;
       case '?':
         print_usage();
@@ -254,7 +251,7 @@ int main(int argc, char** argv) {
   // Create a default configuration file if it doesn't exist
   if (!ensure_config_file_exists(config_path)) {
     std::cerr << "WARNING: Failed to create default configuration file." << std::endl;
-    std::cerr << "Will try to run with built-in defaults." << std::endl;
+    std::cerr << "The application will exit if the config cannot be loaded." << std::endl;
   }
 
   // Create the application with error handling
@@ -266,43 +263,27 @@ int main(int argc, char** argv) {
     std::cout << "Streaming Server Test Application\n"
               << "Using config file: " << config_path << std::endl;
 
-    // Try to load configuration from YAML (but continue even if it fails)
+    bool config_loaded = false;
+    // Try to load configuration from YAML
     try {
       app->config(config_path);
       std::cout << "Successfully loaded configuration from: " << config_path << std::endl;
+      config_loaded = true;
     } catch (const std::exception& e) {
       std::cerr << "Warning: Failed to load config file: " << e.what() << std::endl;
-      std::cerr << "Will continue with default values" << std::endl;
+      std::cerr << "Cannot proceed without a valid configuration." << std::endl;
+      return 1;
     }
 
-    // Load parameters from config with safe defaults
-    uint32_t width = get_config_value(app.get(), "streaming_server.width", 854u);
-    uint32_t height = get_config_value(app.get(), "streaming_server.height", 480u);
-    uint32_t fps = get_config_value(app.get(), "streaming_server.fps", 30u);
-    std::string server_ip = get_config_value(app.get(), "streaming_server.server_ip",
-                                           std::string("127.0.0.1"));
-    uint16_t port = get_config_value(app.get(), "streaming_server.port", 48010);
-    bool receive_frames = get_config_value(app.get(), "streaming_server.receive_frames", true);
-    bool send_frames = get_config_value(app.get(), "streaming_server.send_frames", true);
-    bool visualize_frames = get_config_value(app.get(), "streaming_server.visualize_frames", false);
+    // Configuration parameters are loaded from YAML via from_config()
+    // The streaming_server section configures StreamingServerResource
+    // The upstream_op and downstream_op sections configure the operators
+    // All parameters (width, height, fps, port, etc.) are loaded from YAML
 
-    // Set application parameters from config
-    app->set_width(width);
-    app->set_height(height);
-    app->set_fps(fps);
-    app->set_server_ip(server_ip);
-    app->set_port(port);
-    app->set_receive_frames(receive_frames);
-    app->set_send_frames(send_frames);
-    app->set_visualize_frames(visualize_frames);
-
-    std::cout << "Configuration:\n"
-              << "- Resolution: " << width << "x" << height << "\n"
-              << "- FPS: " << fps << "\n"
-              << "- Server: " << server_ip << ":" << port << "\n"
-              << "- Receive frames: " << (receive_frames ? "yes" : "no") << "\n"
-              << "- Send frames: " << (send_frames ? "yes" : "no") << "\n"
-              << "- Visualize frames: " << (visualize_frames ? "yes" : "no") << std::endl;
+    if (config_loaded) {
+      std::cout << "Configuration loaded from: " << config_path << std::endl;
+      std::cout << "Resource and operators configured from YAML sections" << std::endl;
+    }
 
     // Configure scheduler
     std::string scheduler = get_config_value(app.get(), "scheduler", std::string("greedy"));
@@ -335,7 +316,6 @@ int main(int argc, char** argv) {
     if (tracking && tracker) {
       tracker->print();
     }
-
     std::cout << "Server stopped successfully" << std::endl;
   } catch (const std::exception& e) {
     std::cerr << "Application error: " << e.what() << std::endl;
