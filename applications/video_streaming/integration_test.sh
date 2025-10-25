@@ -64,7 +64,7 @@ fi
 echo "=== VERIFICATION ==="
 
 # Check integration test log for more detailed success indicators
-if [ $INTEGRATION_EXIT_CODE -eq 0 ] && [ -f applications/video_streaming/integration_test.log ] && grep -qE "Test.*Passed|100% tests passed, 0 tests failed" applications/video_streaming/integration_test.log; then
+if [ $INTEGRATION_EXIT_CODE -eq 0 ] && [ -f applications/video_streaming/integration_test.log ] && grep -q "Test.*Passed\|100% tests passed, 0 tests failed" applications/video_streaming/integration_test.log; then
     echo "✓ Integration test passed with detailed verification"
     SERVER_SUCCESS=1
     CLIENT_SUCCESS=1
