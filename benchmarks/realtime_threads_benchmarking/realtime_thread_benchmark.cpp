@@ -100,8 +100,8 @@ static double run_dummy_cpu_workload(int workload_size = 100, int load_intensity
   std::vector<double> data(workload_size);
   double work_result = 0.0;
   for (int i = 0; i < load_intensity; ++i) {
-    for (size_t i = 0; i < data.size(); ++i) {
-      data[i] = std::sin(i * 0.01) * std::cos(i * 0.02);
+    for (size_t j = 0; j < data.size(); ++j) {
+      data[j] = std::sin(j * 0.01) * std::cos(j * 0.02);
     }
     for (double x : data) {
       work_result += std::sqrt(std::abs(x) + 1.0);
