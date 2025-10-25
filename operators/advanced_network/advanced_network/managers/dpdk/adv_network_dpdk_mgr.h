@@ -196,6 +196,8 @@ class DpdkMgr : public Manager {
   Status get_tx_metadata_buffer(BurstParams** burst) override;
   Status send_tx_burst(BurstParams* burst) override;
   Status get_mac_addr(int port, char* mac) override;
+  Status drop_all_traffic(int port) override;
+  Status allow_all_traffic(int port) override;
   void shutdown() override;
   void print_stats() override;
   void adjust_memory_regions() override;
@@ -203,6 +205,7 @@ class DpdkMgr : public Manager {
   BurstParams* create_tx_burst_params() override;
   bool validate_config() const override;
   uint16_t get_num_rx_queues(int port_id) const override;
+  void flush_port_queue(int port, int queue) override;
 
  private:
   static void PrintDpdkStats(int port);
@@ -245,6 +248,7 @@ class DpdkMgr : public Manager {
   struct rte_mempool* rx_flow_id_buffer;
   struct rte_mempool* rx_metadata;
   struct rte_mempool* tx_metadata;
+  std::array<struct rte_flow*, RTE_MAX_ETHPORTS> drop_all_traffic_flow;
   uint64_t timestamp_mask_{0};
   uint64_t timestamp_offset_{0};
   std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;

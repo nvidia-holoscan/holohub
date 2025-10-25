@@ -263,6 +263,20 @@ uint16_t Manager::get_num_rx_queues(int port_id) const {
   return cfg_.ifs_[port_id].rx_.queues_.size();
 }
 
+void Manager::flush_port_queue(int port, int queue) {
+  HOLOSCAN_LOG_ERROR("flush_port_queue not implemented for this manager type");
+}
+
+Status Manager::drop_all_traffic(int port) {
+  HOLOSCAN_LOG_ERROR("drop_all_traffic not implemented for this manager type");
+  return Status::NOT_SUPPORTED;
+}
+
+Status Manager::allow_all_traffic(int port) {
+  HOLOSCAN_LOG_ERROR("allow_all_traffic not implemented for this manager type");
+  return Status::NOT_SUPPORTED;
+}
+
 Status Manager::get_rx_burst(BurstParams** burst, int port_id) {
   // Check if the port_id is valid
   if (port_id < 0 || port_id >= static_cast<int>(cfg_.ifs_.size())) {
