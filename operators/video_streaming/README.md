@@ -75,6 +75,52 @@ add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
 #include "streaming_server_downstream_op.hpp"
 ```
 
+#### Python Applications
+
+Both client and server operators have Python bindings available. To use them in Python:
+
+```python
+# Client functionality
+from holohub.streaming_client_enhanced import StreamingClientOp
+
+# Server functionality
+from holohub.streaming_server_enhanced import (
+    StreamingServerResource,
+    StreamingServerUpstreamOp,
+    StreamingServerDownstreamOp,
+)
+```
+
+**Building with Python support:**
+```bash
+./holohub build video_streaming \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+**Running Python applications:**
+```bash
+# Python Server
+./holohub run video_streaming server_python \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+
+# Python Client (Video Replayer)
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+
+# Python Client (V4L2 Camera)
+./holohub run video_streaming client_python_v4l2 \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+```
+
+For detailed Python application documentation, see:
+- **[Server Application (C++ and Python)](../../applications/video_streaming/video_streaming_server/README.md)**
+- **[Client Application (C++ and Python)](../../applications/video_streaming/video_streaming_client/README.md)**
 
 ## Dependencies
 
@@ -83,24 +129,76 @@ add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
 - **CUDA 12.x**: GPU acceleration support
 
 ### Cloud Streaming Binaries
-Both client and server require their respective NGC binaries:
+
+#### Client Binary
+
+In order to build the client operator, you must first download the client binaries from NGC:
 
 ```bash
-# Client binary
-ngc registry resource download-version nvidia/holoscan_client_cloud_streaming:0.2
+# Download using NGC CLI
 
-# Server binary  
-ngc registry resource download-version nvidia/holoscan_server_cloud_streaming:0.2
+cd <your_holohub_path>/operators/video_streaming/streaming_client_enhanced
+ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
+unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
+
+# Clean up extraction directory and NGC download directory
+rm -rf streaming_client_enhanced holoscan_client_cloud_streaming_v0.2
 ```
+
+#### Server Binary
+
+In order to build the server operator, you must first download the server binaries from NGC:
+
+```bash
+# Download using NGC CLI
+
+cd <your_holohub_path>/operators/video_streaming/streaming_server_enhanced
+ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
+unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
+
+# Clean up extraction directory and NGC download directory
+rm -rf streaming_server_enhanced holoscan_server_cloud_streaming_v0.2
+```
+
+All dependencies need to be properly installed in the operator directory structure.
 
 ## Testing
 
-Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides end-to-end validation of both client and server components working together.
+This package includes comprehensive testing at multiple levels:
+
+### Unit Tests
+
+**C++ Unit Tests** for all video streaming operators (35+ tests):
+- ✅ Fast execution (~0.13 seconds)
+- ✅ 100% pass rate
+- ✅ No network dependencies
+- ✅ Tests operator initialization, parameter validation, and resource management
+
+**Run unit tests:**
+```bash
+# Build with tests enabled
+./holohub build video_streaming --configure-args='-DBUILD_TESTING=ON'
+
+# Run all unit tests
+./holohub test video_streaming --ctest-options="-R unit_tests -V"
+```
+
+**Documentation:**
+- **[Unit Tests Summary](UNIT_TESTS_SUMMARY.md)** - Complete unit test documentation
+- **[Client Tests](streaming_client_enhanced/tests/README.md)** - StreamingClientOp tests
+- **[Server Tests](streaming_server_enhanced/tests/README.md)** - Server operator tests
+
+### Integration Tests
+
+End-to-end integration tests validate the complete streaming pipeline with actual server/client communication and frame transmission.
+
+**Documentation:**
+- **[Integration Tests](../../applications/video_streaming/TESTING.md)** - End-to-end testing documentation
 
 ## Related Applications
 
-- **[Streaming Client Demo Enhanced](../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/)**: Example client application
-- **[Streaming Server Demo Enhanced](../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/)**: Example server application
+- **[Streaming Client Demo](../../applications/video_streaming/video_streaming_client/)**: Example client application
+- **[Streaming Server Demo](../../applications/video_streaming/video_streaming_server/)**: Example server application
 
 
 ## Performance Notes

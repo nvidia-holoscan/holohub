@@ -2,6 +2,12 @@
 
 The `streaming_server_enhanced` operator provides a modular streaming server implementation with separate upstream, downstream, and resource components. This split architecture allows for better separation of concerns and more flexible streaming pipeline configurations.
 
+> **📚 Related Documentation:**
+> - **[Main Operators README](../README.md)** - Setup, dependencies, NGC downloads, and Python examples
+> - **[Server Application README](../../../applications/video_streaming/video_streaming_server/README.md)** - Complete server application with usage examples
+> - **[Client Operator README](../streaming_client_enhanced/README.md)** - Companion client operator documentation
+> - **[Testing Documentation](../../../applications/video_streaming/TESTING.md)** - Integration testing and verification
+
 ## Architecture Overview
 
 The Streaming Server operators integrate with the Holoscan Server Cloud Streaming library to provide comprehensive multi-client streaming capabilities:
@@ -18,66 +24,66 @@ The Streaming Server operators integrate with the Holoscan Server Cloud Streamin
 │  │  │              Holoscan Server Cloud Streaming                            │ │ │
 │  │  │                                                                         │ │ │
 │  │  │  ┌─────────────────┐    ┌─────────────────────────────────────────────┐ │ │ │
-│  │  │  │ StreamingServer │    │         Network Protocol Stack             │ │ │ │
-│  │  │  │                 │    │                                             │ │ │ │
-│  │  │  │ • Multi-client  │───▶│  • WebRTC/NVST Signaling                  │ │ │ │
-│  │  │  │   Management    │    │  • Media Transport & Encoding              │ │ │ │
-│  │  │  │ • Frame Routing │    │  • Connection Management                   │ │ │ │
-│  │  │  │ • Callbacks     │    │  • Security & Authentication               │ │ │ │
+│  │  │  │ StreamingServer │    │         Network Protocol Stack              ││││
+│  │  │  │                 │    │                                             ││││
+│  │  │  │ • Multi-client  │───▶│  • Media Transport & Encoding               ││││
+│  │  │  │   Management    │    │  • Connection Management                    ││││
+│  │  │  │ • Frame Routing │    │  • Security & Authentication                ││││
+│  │  │  │ • Callbacks     │    │                                             ││││
 │  │  │  └─────────────────┘    └─────────────────────────────────────────────┘ │ │ │
-│  │  └─────────────────────────────────────────────────────────────────────────┘ │ │
-│  │                                      │                                       │ │
-│  └──────────────────────────────────────┼───────────────────────────────────────┘ │
-│                                         │                                         │
-│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
-│  │                        Processing Pipeline                                  │ │
-│  │                                                                             │ │
-│  │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐ │ │
-│  │  │StreamingServer  │    │   Processing    │    │StreamingServer          │ │ │
-│  │  │UpstreamOp       │    │   Operators     │    │DownstreamOp             │ │ │
-│  │  │                 │    │                 │    │                         │ │ │
-│  │  │ • Frame Receive │───▶│ • Format Conv   │───▶│ • Frame Processing      │ │ │
-│  │  │ • Client Frames │    │ • AI/ML Ops     │    │ • Tensor → VideoFrame   │ │ │
-│  │  │ • Tensor Output │    │ • Filtering     │    │ • Multi-client Send     │ │ │
-│  │  │ • Validation    │    │ • Enhancement   │    │ • Optional Processing   │ │ │
-│  │  └─────────────────┘    └─────────────────┘    └─────────────────────────┘ │ │
-│  │           │                       │                            │            │ │
-│  └───────────┼───────────────────────┼────────────────────────────┼────────────┘ │
+│  │  └─────────────────────────────────────────────────────────────────────────┘││
+│  │                                      │                                      ││
+│  └──────────────────────────────────────┼──────────────────────────────────────┘│
+│                                         │                                        │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐│
+│  │                        Processing Pipeline                                  ││
+│  │                                                                             ││
+│  │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐││
+│  │  │StreamingServer  │    │   Processing    │    │StreamingServer          │││
+│  │  │UpstreamOp       │    │   Operators     │    │DownstreamOp             │││
+│  │  │                 │    │                 │    │                         │││
+│  │  │ • Frame Receive │───▶│ • Format Conv   │───▶│ • Frame Processing      │││
+│  │  │ • Client Frames │    │ • AI/ML Ops     │    │ • Tensor → VideoFrame   │││
+│  │  │ • Tensor Output │    │ • Filtering     │    │ • Multi-client Send     │││
+│  │  │ • Validation    │    │ • Enhancement   │    │ • Optional Processing   │││
+│  │  └─────────────────┘    └─────────────────┘    └─────────────────────────┘││
+│  │           │                       │                            │            ││
+│  └───────────┼───────────────────────┼────────────────────────────┼────────────┘│
 │              │                       │                            │              │
 │              ▼                       │                            ▲              │
-│  ┌─────────────────┐                 │                ┌─────────────────────────┐ │
-│  │  Input Sources  │                 │                │     Output Sinks        │ │
-│  │                 │                 │                │                         │ │
-│  │ • Client Frames │                 │                │ • Client Connections    │ │
-│  │ • Network Data  │                 │                │ • Processed Frames      │ │
-│  │ • Remote Cams   │                 │                │ • Multi-cast Streams    │ │
-│  └─────────────────┘                 │                └─────────────────────────┘ │
-│                                      │                                            │
-│                                      ▼                                            │
-│                          ┌─────────────────────────┐                             │
-│                          │   Optional Processing   │                             │
-│                          │                         │                             │
-│                          │ • AI/ML Inference       │                             │
-│                          │ • Computer Vision       │                             │
-│                          │ • Frame Enhancement     │                             │
-│                          │ • Analytics             │                             │
-│                          └─────────────────────────┘                             │
+│  ┌─────────────────┐                 │                ┌─────────────────────────┐│
+│  │  Input Sources  │                 │                │     Output Sinks        ││
+│  │                 │                 │                │                         ││
+│  │ • Client Frames │                 │                │ • Client Connections    ││
+│  │ • Network Data  │                 │                │ • Processed Frames      ││
+│  │ • Remote Cams   │                 │                │ • Multi-cast Streams    ││
+│  └─────────────────┘                 │                └─────────────────────────┘│
+│                                      │                                           │
+│                                      ▼                                           │
+│                          ┌─────────────────────────┐                            │
+│                          │   Optional Processing   │                            │
+│                          │                         │                            │
+│                          │ • AI/ML Inference       │                            │
+│                          │ • Computer Vision       │                            │
+│                          │ • Frame Enhancement     │                            │
+│                          │ • Analytics             │                            │
+│                          └─────────────────────────┘                            │
 └─────────────────────────────────────────────────────────────────────────────────┘
                                          │
                           ┌──────────────┼──────────────┐
-                          │             Network                                     │
-                          │                                                        │
-                          │  ┌─────────────────────────────────────────────────┐   │
-                          │  │                Multiple Clients                 │   │
-                          │  │                                                 │   │
-                          │  │  ┌─────────────┐  ┌─────────────┐  ┌──────────┐ │   │
-                          │  │  │   Client 1  │  │   Client 2  │  │ Client N │ │   │
-                          │  │  │             │  │             │  │          │ │   │
-                          │  │  │ • Holoscan  │  │ • Web App   │  │ • Mobile │ │   │
-                          │  │  │   Client    │  │ • Browser   │  │   App    │ │   │
-                          │  │  │ • Streaming │  │ • WebRTC    │  │ • Custom │ │   │
-                          │  │  └─────────────┘  └─────────────┘  └──────────┘ │   │
-                          │  └─────────────────────────────────────────────────┘   │
+                          │             Network         │
+                          │                             │
+                          │  ┌──────────────────────────┴──────────────────────┐  │
+                          │  │                Multiple Clients                 │  │
+                          │  │                                                 │  │
+                          │  │  ┌─────────────┐  ┌─────────────┐  ┌──────────┐│  │
+                          │  │  │   Client 1  │  │   Client 2  │  │ Client N ││  │
+                          │  │  │             │  │             │  │          ││  │
+                          │  │  │ • Holoscan  │  │ • Holoscan  │  │• Holoscan││  │
+                          │  │  │   Client    │  │   Client    │  │  Client  ││  │
+                          │  │  │   Streaming │  │   Streaming │  │ Streaming││  │
+                          │  │  └─────────────┘  └─────────────┘  └──────────┘│  │
+                          │  └─────────────────────────────────────────────────┘  │
                           └────────────────────────────────────────────────────────┘
 ```
 
@@ -92,7 +98,6 @@ The Streaming Server operators integrate with the Holoscan Server Cloud Streamin
 4. **Downstream Distribution**: StreamingServerDownstreamOp takes processed tensors and distributes them to all connected clients
 
 5. **Network Protocol Handling**: The cloud streaming library manages:
-   - WebRTC/NVST protocol implementation
    - Multi-client signaling and negotiation
    - Media encoding/decoding and transport
    - Load balancing and connection management
@@ -275,20 +280,14 @@ auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>(
 ```
                                                  
 
-## Building the operator
+## Requirements & Setup
 
-In order to build the server operator, you must first download the server binaries from NGC:
+For complete setup instructions including:
+- Holoscan SDK 3.5.0 and CUDA 12.x requirements
+- NGC binary downloads (server streaming binaries)
+- Build troubleshooting
 
-```bash
-# Download using NGC CLI
-
-cd <your_holohub_path>/operators/video_streaming/streaming_server_enhanced
-ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
-unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
-
-# Clean up extraction directory and NGC download directory
-rm -rf streaming_server_enhanced holoscan_server_cloud_streaming_v0.2
-```
+**See the [Main Operators README](../README.md) for detailed setup instructions.**
 
 ### Deployment on NVCF
 
@@ -371,19 +370,14 @@ Note: If the test haproxy is still running, and you wish to test the executable 
 ./nvcf/stop_test_intermediate_haproxy.sh
 ```
 
-## Testing
+## Python Bindings & Applications
 
-Testing is handled at the application level through the unified `video_streaming_demo_enhanced` integration test, which provides comprehensive end-to-end validation of the streaming server working with the client.
+For Python usage, application examples, and testing:
+- **[Main Operators README](../README.md)** - Python bindings overview and setup
+- **[Server Application README](../../../applications/video_streaming/video_streaming_server/README.md)** - Complete Python server implementation
+- **[Testing Documentation](../../../applications/video_streaming/TESTING.md)** - Integration testing guide
 
-## Related Applications
-
-- **[Streaming Server Demo Enhanced](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_server/README.md)** - Complete application demonstrating the streaming server operators
-- **[Streaming Client Demo Enhanced](../../../applications/video_streaming_demo_enhanced/video_streaming_demo_client/README.md)** - Companion client application for bidirectional streaming
-
-## Supported Platforms
-
-- Linux x86_64
-- NVCF Cloud instances 
+## Additional Resources
 
 For more information on NVCF Cloud functions, please refer to [NVIDIA Cloud Functions documentation](https://docs.nvidia.com/cloud-functions/user-guide/latest/cloud-function/function-creation.html#function-creation).
 

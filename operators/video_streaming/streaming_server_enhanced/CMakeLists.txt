@@ -204,3 +204,13 @@ install(EXPORT streaming_server_enhanced_targets
     NAMESPACE holoscan::ops::
     DESTINATION lib/cmake/holoscan
 )
+
+# Add Python bindings if requested
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
+
+# Add unit tests if testing is enabled
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
