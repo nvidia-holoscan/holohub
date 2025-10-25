@@ -24,15 +24,29 @@ SCRIPTDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 mkdir -p $1/source/ess
 cd $1/source/ess
 
+wget --content-disposition 'https://api.ngc.nvidia.com/v2/models/org/nvidia/team/isaac/dnn_stereo_disparity/4.1.0_onnx/files?redirect=true&path=dnn_stereo_disparity_v4.1.0_onnx.tar.gz' --output-document 'dnn_stereo_disparity_v4.1.0_onnx.tar.gz'
+tar -xvzf 'dnn_stereo_disparity_v4.1.0_onnx.tar.gz'
 # Check the architecture
 arch=$(uname -m)
 if [ "$arch" == "x86_64" ]; then
-    wget --content-disposition 'https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/tao/tao-converter/v5.1.0_8.6.3.1_x86/files?redirect=true&path=tao-converter' -O tao-converter
-elif [ "$arch" == "aarch64" ]; then
-    wget --content-disposition 'https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/tao/tao-converter/v5.1.0_jp6.0_aarch64/files?redirect=true&path=tao-converter' -O tao-converter
+    trtexec --onnx="dnn_stereo_disparity_v4.1.0_onnx/ess.onnx" --saveEngine="../../ess.engine" --plugins="dnn_stereo_disparity_v4.1.0_onnx/plugins/x86_64/ess_plugins.so" --fp16
+    cp "dnn_stereo_disparity_v4.1.0_onnx/plugins/x86_64/ess_plugins.so" "../../ess_plugins.so" 
+    #wget --content-disposition 'https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/tao/tao-converter/v5.1.0_8.6.3.1_x86/files?redirect=true&path=tao-converter' -O tao-converter
+#elif [ "$arch" == "aarch64" ]; then
+#    wget --content-disposition 'https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/tao/tao-converter/v5.1.0_jp6.0_aarch64/files?redirect=true&path=tao-converter' -O tao-converter
 else
     echo "Error: Unknown architecture: $arch"
 fi
-wget --content-disposition 'https://api.ngc.nvidia.com/v2/models/org/nvidia/team/isaac/dnn_stereo_disparity/3.0.0/files?redirect=true&path=ess.etlt' -O ess.etlt
-chmod +x tao-converter
-./tao-converter ess.etlt -k ess -t fp32 -o output_left,output_conf -e "../../ess.engine"
+
+# Check the architecture
+#arch=$(uname -m)
+#if [ "$arch" == "x86_64" ]; then
+#    wget --content-disposition 'https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/tao/tao-converter/v5.1.0_8.6.3.1_x86/files?redirect=true&path=tao-converter' -O tao-converter
+#elif [ "$arch" == "aarch64" ]; then
+#    wget --content-disposition 'https://api.ngc.nvidia.com/v2/resources/org/nvidia/team/tao/tao-converter/v5.1.0_jp6.0_aarch64/files?redirect=true&path=tao-converter' -O tao-converter
+#else
+#    echo "Error: Unknown architecture: $arch"
+#fi
+#wget --content-disposition 'https://api.ngc.nvidia.com/v2/models/org/nvidia/team/isaac/dnn_stereo_disparity/3.0.0/files?redirect=true&path=ess.etlt' -O ess.etlt
+#chmod +x tao-converter
+#./tao-converter ess.etlt -k ess -t fp32 -o output_left,output_conf -e "../../ess.engine"
