@@ -58,8 +58,8 @@ try:
     except ImportError as e:
         import warnings
         warnings.warn(
-            \"`holoscan.core.io_type_registry` is unavailable in Holoscan SDK < 2.1.0. \"
-            \"To use a user-defined `register_types` function, you must upgrade Holoscan SDK.\"
+            \"\`holoscan.core.io_type_registry\` is unavailable in Holoscan SDK < 2.1.0. \"
+            \"To use a user-defined \`register_types\` function, you must upgrade Holoscan SDK.\"
         )
         raise e
     _register_types(io_type_registry)

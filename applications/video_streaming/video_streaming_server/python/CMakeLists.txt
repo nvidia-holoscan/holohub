@@ -28,6 +28,9 @@ add_custom_target(python_streaming_server_demo ALL
              "${CMAKE_BINARY_DIR}/streaming_server_demo.py"
 )
 
+# Also add a specific build target that the application can depend on
+add_custom_target(copy_server_python_files ALL DEPENDS python_streaming_server_demo)
+
 # Copy YAML configuration files if they exist
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml")
   configure_file(
@@ -51,7 +54,7 @@ endif()
 # Install Python application
 install(
   FILES streaming_server_demo.py
-  DESTINATION bin/video_streaming/python
+  DESTINATION bin/video_streaming_server/python
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
 
@@ -59,6 +62,6 @@ install(
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml")
   install(
     FILES streaming_server_demo.yaml
-    DESTINATION bin/video_streaming/python
+    DESTINATION bin/video_streaming_server/python
   )
 endif()

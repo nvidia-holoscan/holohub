@@ -137,9 +137,6 @@ add_holohub_application(vpi_stereo)
 
 add_holohub_application(video_deidentification)
 
-add_holohub_application(video_streaming DEPENDS
-                        OPERATORS video_streaming)
-
 add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)
@@ -151,3 +148,7 @@ add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)
 add_subdirectory(slang)
+
+
+add_holohub_application(video_streaming DEPENDS
+                        OPERATORS video_streaming)

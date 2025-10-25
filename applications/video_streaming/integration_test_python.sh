@@ -64,7 +64,7 @@ fi
 echo "=== VERIFICATION ==="
 
 # Check integration test log for more detailed success indicators
-if [ $INTEGRATION_EXIT_CODE -eq 0 ] && [ -f applications/video_streaming/integration_test_python.log ] && grep -qE "Python Integration test PASSED|100% tests passed, 0 tests failed" applications/video_streaming/integration_test_python.log; then
+if [ $INTEGRATION_EXIT_CODE -eq 0 ] && [ -f applications/video_streaming/integration_test_python.log ] && grep -q "Python Integration test PASSED\|100% tests passed, 0 tests failed" applications/video_streaming/integration_test_python.log; then
     echo "✓ Python integration test passed with detailed verification"
     SERVER_SUCCESS=1
     CLIENT_SUCCESS=1
@@ -75,11 +75,11 @@ elif [ $INTEGRATION_EXIT_CODE -eq 0 ]; then
 else
     echo "✗ Python integration test failed - checking for specific errors..."
     if [ -f applications/video_streaming/integration_test_python.log ]; then
-        if grep -qE "Python server.*failed|server_python.log" applications/video_streaming/integration_test_python.log; then
+        if grep -q "Python server.*failed\|server_python.log" applications/video_streaming/integration_test_python.log; then
             echo "✗ Python server test failed"
             SERVER_SUCCESS=0
         fi
-        if grep -qE "Python client.*failed|client_python.log" applications/video_streaming/integration_test_python.log; then
+        if grep -q "Python client.*failed\|client_python.log" applications/video_streaming/integration_test_python.log; then
             echo "✗ Python client test failed" 
             CLIENT_SUCCESS=0
         fi
