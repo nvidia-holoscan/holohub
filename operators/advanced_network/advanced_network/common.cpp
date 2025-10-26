@@ -346,11 +346,11 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
   }
 
   flow.match_.type_ = holoscan::advanced_network::FlowMatchType::NORMAL;
-  flow.match_.udp_src_  == 0
-  flow.match_.udp_dst_  == 0
-  flow.match_.ipv4_len_ == 0
-  flow.match_.ipv4_src_ == in_addr_t(0x00000000)
-  flow.match_.ipv4_dst_ == in_addr_t(0x00000000)
+  flow.match_.udp_src_  = 0;
+  flow.match_.udp_dst_  = 0;
+  flow.match_.ipv4_len_ = 0;
+  flow.match_.ipv4_src_ = in_addr_t(0x00000000);
+  flow.match_.ipv4_dst_ = in_addr_t(0x00000000);
 
   try {
     flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
