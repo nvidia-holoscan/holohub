@@ -346,6 +346,11 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
   }
 
   flow.match_.type_ = holoscan::advanced_network::FlowMatchType::NORMAL;
+  flow.match_.udp_src_  == 0
+  flow.match_.udp_dst_  == 0
+  flow.match_.ipv4_len_ == 0
+  flow.match_.ipv4_src_ == in_addr_t(0x00000000)
+  flow.match_.ipv4_dst_ == in_addr_t(0x00000000)
 
   try {
     flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
@@ -370,7 +375,6 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     auto ipv4_src = flow_item["match"]["ipv4_src"].as<std::string>();
     if (inet_pton(AF_INET, ipv4_src.c_str(), &addr) != 1) {
       HOLOSCAN_LOG_ERROR("Failed to convert source IP address: {}", ipv4_src);
-      flow.match_.ipv4_src_ = in_addr_t(0x00000000);
     } else {
       flow.match_.ipv4_src_ = addr.s_addr;
     }
@@ -382,7 +386,6 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     auto ipv4_dst = flow_item["match"]["ipv4_dst"].as<std::string>();
     if (inet_pton(AF_INET, ipv4_dst.c_str(), &addr) != 1) {
       HOLOSCAN_LOG_ERROR("Failed to convert destination IP address: {}", ipv4_dst);
-      flow.match_.ipv4_dst_ = in_addr_t(0x00000000);
     } else {
       flow.match_.ipv4_dst_ = addr.s_addr;
     }
