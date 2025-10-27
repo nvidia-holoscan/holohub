@@ -6,35 +6,34 @@ This document summarizes the C++ unit tests for the `video_streaming` operators,
 
 ## Test Suites
 
-This package includes **35+ unit tests** across all video streaming operators:
+This package includes **31 unit tests** across all video streaming operators:
 
-### 1. **StreamingClientOp Tests** (16+ tests)
+### 1. **StreamingClientOp Tests** (13 tests)
    - Basic initialization
    - Parameter validation (video, network, streaming modes)
    - Frame validation parameters
    - Edge cases and boundaries
    - Resource management
 
-### 2. **StreamingServerResource Tests** (9+ tests)
+### 2. **StreamingServerResource Tests** (8 tests)
    - Resource creation and configuration
    - Various resolutions and frame rates
    - Port configurations
    - Streaming direction settings
    - Multi-instance mode
 
-### 3. **StreamingServerUpstreamOp Tests** (4+ tests)
+### 3. **StreamingServerUpstreamOp Tests** (6 tests)
    - Operator initialization
    - Custom video parameters
    - Setup and cleanup
+   - Shared resource configuration
+   - Multiple operators with shared resource
 
-### 4. **StreamingServerDownstreamOp Tests** (4+ tests)
+### 4. **StreamingServerDownstreamOp Tests** (4 tests)
    - Operator initialization
    - Custom video parameters
    - Setup and cleanup
-
-### 5. **Integrated Server Tests** (2+ tests)
-   - Shared resource patterns
-   - Multiple operators with single resource
+   - Resource cleanup
 
 ## File Structure
 
@@ -42,16 +41,16 @@ This package includes **35+ unit tests** across all video streaming operators:
 operators/video_streaming/
 ├── streaming_client_enhanced/
 │   ├── tests/
-│   │   ├── test_streaming_client_op.cpp      # Client unit tests (NEW)
-│   │   ├── CMakeLists.txt                     # Build config (NEW)
-│   │   └── README.md                          # Documentation (NEW)
+│   │   ├── test_streaming_client_op.cpp      # Client unit tests (13 tests)
+│   │   ├── CMakeLists.txt                     # Build config
+│   │   └── README.md                          # Documentation
 │   └── CMakeLists.txt                         # Updated to include tests
 │
 └── streaming_server_enhanced/
     ├── tests/
-    │   ├── test_streaming_server_ops.cpp      # Server unit tests (NEW)
-    │   ├── CMakeLists.txt                     # Build config (NEW)
-    │   └── README.md                          # Documentation (NEW)
+    │   ├── test_streaming_server_ops.cpp      # Server unit tests (18 tests)
+    │   ├── CMakeLists.txt                     # Build config
+    │   └── README.md                          # Documentation
     └── CMakeLists.txt                         # Updated to include tests
 ```
 
@@ -59,14 +58,13 @@ operators/video_streaming/
 
 | Component | Tests | Lines of Code | Coverage | Execution Time |
 |-----------|-------|---------------|----------|----------------|
-| StreamingClientOp | 16+ | ~700 | Initialization, parameters, setup, edge cases | ~0.06 sec |
-| StreamingServerResource | 9+ | ~400 | Resource creation, configuration, various settings | ~0.06 sec |
-| StreamingServerUpstreamOp | 4+ | ~200 | Initialization, setup, cleanup | (included above) |
-| StreamingServerDownstreamOp | 4+ | ~200 | Initialization, setup, cleanup | (included above) |
-| Integrated Tests | 2+ | ~150 | Shared resources, multiple operators | (included above) |
-| **Total** | **35+** | **~1,650** | **Comprehensive** | **~0.13 sec** |
+| StreamingClientOp | 13 | ~700 | Initialization, parameters, setup, edge cases | ~0.06 sec |
+| StreamingServerResource | 8 | ~300 | Resource creation, configuration, various settings | (included below) |
+| StreamingServerUpstreamOp | 6 | ~250 | Initialization, setup, cleanup, shared resources | (included below) |
+| StreamingServerDownstreamOp | 4 | ~150 | Initialization, setup, cleanup | (included below) |
+| **Total** | **31** | **~1,400** | **Comprehensive** | **~0.12 sec** |
 
-**Test Success Rate: 100% ✅** (2/2 test suites passed, 35+ individual tests passed)
+**Test Success Rate: 100% ✅** (2/2 test suites passed, 31 individual tests passed)
 
 ## Building and Running Tests
 
@@ -103,14 +101,14 @@ unit                =   0.12 sec*proc (2 tests)
 Total Test time (real) =   0.13 sec
 ```
 
-✅ **All 35+ tests pass successfully in ~0.13 seconds!**
+✅ **All 31 tests pass successfully in ~0.13 seconds!**
 
 ### Run Specific Test Suites
 ```bash
-# Client tests only
+# Client tests only (13 tests)
 ctest -R streaming_client_op_unit_tests -V
 
-# Server tests only
+# Server tests only (18 tests across 3 suites)
 ctest -R streaming_server_ops_unit_tests -V
 ```
 
@@ -257,7 +255,9 @@ This implementation provides:
 5. ✅ **CI/CD ready** with fast (0.13 sec), reliable tests
 
 **Proven Results:**
-- **35+ tests** across 2 test suites
+- **31 tests** across 2 test suites
+  - 13 StreamingClientOp tests
+  - 18 Server operator tests (8 Resource + 6 Upstream + 4 Downstream)
 - **100% success rate** - All tests pass
 - **Lightning fast** - Complete in 0.13 seconds
 - **Zero dependencies** - No network or external services required
@@ -277,7 +277,7 @@ git checkout cd/add-video-streaming-unit-tests
 ./holohub test video_streaming --ctest-options="-R unit_tests -V"
 
 # 4. View results
-# ✅ All 35+ tests pass in ~0.13 seconds!
+# ✅ All 31 tests pass in ~0.13 seconds!
 #    100% tests passed, 0 tests failed out of 2
 ```
 
