@@ -26,7 +26,7 @@
 		"ranking": 1,
 		"requirements": {},
 		"run": {
-			"command": "bash -c 'LD_PRELOAD=/workspace/holohub/data/stereo_vision/ess_plugins.so <holohub_app_bin>/stereo_depth'",
+			"command": "<holohub_app_bin>/stereo_depth",
 			"workdir": "holohub_bin"
 		}
 	}
