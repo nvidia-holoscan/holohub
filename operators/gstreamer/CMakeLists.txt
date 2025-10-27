@@ -42,22 +42,13 @@ add_definitions(${GSTREAMER_VIDEO_CFLAGS_OTHER})
 add_definitions(${GSTREAMER_CUDA_CFLAGS_OTHER})
 add_definitions(${GSTREAMER_APP_CFLAGS_OTHER})
 
-# Create custom sink library
-add_library(holoscan_gstreamer_sink SHARED
-  gst/guards.cpp
-  gst/iterator.cpp
+# Create the Holoscan GStreamer Bridge library
+add_library(holoscan_gstreamer_bridge SHARED
   gst/buffer.cpp
   gst/caps.cpp
+  gst/guards.cpp
   gst/video_info.cpp
-  gst/audio_info.cpp
-  gst/map_info.cpp
-  gst/mapped_buffer.cpp
-  gst_sink_bridge.cpp
-  gst_sink_resource.cpp
-  gst_sink_operator.cpp
   gst_src_bridge.cpp
-  gst_src_resource.cpp
-  gst_src_operator.cpp
   gst_video_recorder_operator.cpp
 )
 
@@ -69,7 +60,7 @@ link_directories(${GSTREAMER_CUDA_LIBRARY_DIRS})
 link_directories(${GSTREAMER_APP_LIBRARY_DIRS})
 
 # Set include directories (PUBLIC so they propagate to applications)
-target_include_directories(holoscan_gstreamer_sink
+target_include_directories(holoscan_gstreamer_bridge
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
@@ -81,7 +72,7 @@ target_include_directories(holoscan_gstreamer_sink
 )
 
 # Link libraries for custom sink
-target_link_libraries(holoscan_gstreamer_sink 
+target_link_libraries(holoscan_gstreamer_bridge 
     PUBLIC
     ${GSTREAMER_LIBRARIES} 
     ${GSTREAMER_BASE_LIBRARIES} 
@@ -91,7 +82,7 @@ target_link_libraries(holoscan_gstreamer_sink
     holoscan::core)
 
 # Set compile flags for custom sink
-target_compile_options(holoscan_gstreamer_sink PRIVATE 
+target_compile_options(holoscan_gstreamer_bridge PRIVATE 
     ${GSTREAMER_CFLAGS_OTHER} 
     ${GSTREAMER_BASE_CFLAGS_OTHER} 
     ${GSTREAMER_VIDEO_CFLAGS_OTHER}
@@ -104,35 +95,28 @@ if(APPLE)
     find_library(FOUNDATION_FRAMEWORK Foundation)
     find_library(COCOA_FRAMEWORK Cocoa)
     if(FOUNDATION_FRAMEWORK AND COCOA_FRAMEWORK)
-        target_link_libraries(holoscan_gstreamer_sink ${FOUNDATION_FRAMEWORK} ${COCOA_FRAMEWORK})
+        target_link_libraries(holoscan_gstreamer_bridge ${FOUNDATION_FRAMEWORK} ${COCOA_FRAMEWORK})
     endif()
 endif()
 
 # Install library
-install(TARGETS holoscan_gstreamer_sink DESTINATION lib)
+install(TARGETS holoscan_gstreamer_bridge DESTINATION lib)
 
 # Install headers
 install(FILES 
-    gst/guards.hpp
-    gst/iterator.hpp
-    gst/buffer.hpp
-    gst/caps.hpp
-    gst/video_info.hpp
-    gst/audio_info.hpp
-    gst/map_info.hpp
-    gst/mapped_buffer.hpp
-    gst_sink_resource.hpp
-    gst_sink_operator.hpp
+  gst/buffer.hpp
+  gst/caps.hpp
+  gst/guards.hpp
+  gst/object.hpp
+  gst/video_info.hpp
     gst_src_bridge.hpp
-    gst_src_resource.hpp
-    gst_src_operator.hpp
     gst_video_recorder_operator.hpp
     core/initializer.hpp
     DESTINATION include/holoscan/operators/gstreamer)
 
 # Export the library for use by other CMake projects
-export(TARGETS holoscan_gstreamer_sink 
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/holoscan_gstreamer_sink-targets.cmake")
+export(TARGETS holoscan_gstreamer_bridge 
+       FILE "${CMAKE_CURRENT_BINARY_DIR}/holoscan_gstreamer_bridge-targets.cmake")
 
 # Print some information
 message(STATUS "Holoscan GStreamer Sink Library")

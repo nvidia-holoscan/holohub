@@ -27,7 +27,6 @@ namespace gst {
 
 // Forward declarations
 class VideoInfo;
-class AudioInfo;
 
 /**
  * @brief RAII wrapper for GstCaps with automatic reference counting and member functions
@@ -92,12 +91,6 @@ public:
    * @return std::optional<VideoInfo> containing video information, or std::nullopt if not video caps
    */
   std::optional<VideoInfo> get_video_info() const;
-
-  /**
-   * @brief Extract audio format information from caps
-   * @return std::optional<AudioInfo> containing audio information, or std::nullopt if not audio caps
-   */
-  std::optional<AudioInfo> get_audio_info() const;
 
   /**
    * @brief Check if caps are empty

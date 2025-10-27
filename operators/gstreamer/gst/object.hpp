@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_OBJECT_HPP
-#define GST_OBJECT_HPP
+#ifndef GSTREAMER_GST_OBJECT_HPP
+#define GSTREAMER_GST_OBJECT_HPP
 
 #include <memory>
 #include <gst/gst.h>
@@ -120,5 +120,5 @@ using Allocator = Object<::GstAllocator>;
 }  // namespace gst
 }  // namespace holoscan
 
-#endif /* GST_OBJECT_HPP */
+#endif /* GSTREAMER_GST_OBJECT_HPP */
 

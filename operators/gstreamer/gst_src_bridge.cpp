@@ -16,7 +16,14 @@
  */
 
 #include "gst_src_bridge.hpp"
-#include "gst/video_info.hpp"
+
+#include <chrono>
+#include <thread>
+#include <cstring>
+#include <memory>
+#include <stdexcept>
+
+#include <cuda_runtime_api.h>
 
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
@@ -24,22 +31,17 @@
 #include <gst/cuda/gstcudamemory.h>
 #include <gst/cuda/gstcudacontext.h>
 
-#include <cuda_runtime_api.h>
 #include <dlpack/dlpack.h>
-#include <chrono>
-#include <thread>
 
 #include <gxf/std/tensor.hpp>
 #include <gxf/core/handle.hpp>
+
 #include <holoscan/core/domain/tensor.hpp>
 #include <holoscan/core/gxf/entity.hpp>
-#include <cstring>
-#include <memory>
-#include <stdexcept>
 
 #include <holoscan/logger/logger.hpp>
 
-#include "gst/guards.hpp"
+#include "gst/video_info.hpp"
 
 // Convenience constant for mapping CUDA memory for reading
 #ifndef GST_MAP_READ_CUDA

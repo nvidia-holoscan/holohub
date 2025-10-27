@@ -26,7 +26,7 @@ add_executable(gst-video-recorder
 target_link_libraries(gst-video-recorder
   PRIVATE
   holoscan::core
-  holoscan_gstreamer_sink
+  holoscan_gstreamer_bridge
 )
 
 # Install target

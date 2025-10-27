@@ -17,7 +17,6 @@
 
 #include "caps.hpp"
 #include "video_info.hpp"
-#include "audio_info.hpp"
 #include <stdexcept>
 
 namespace holoscan {
@@ -101,15 +100,6 @@ std::optional<VideoInfo> Caps::get_video_info() const {
   }
 
   return VideoInfo(*this);
-}
-
-std::optional<AudioInfo> Caps::get_audio_info() const {
-  const char* media_type = get_media_type_from_caps(caps_);
-  if (!media_type || !g_str_has_prefix(media_type, "audio/")) {
-    return std::nullopt; // Not audio caps
-  }
-
-  return AudioInfo(*this);
 }
 
 bool Caps::is_empty() const {

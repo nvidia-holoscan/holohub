@@ -13,9 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_application(gst_to_holoviz)
-
-add_holohub_application(holopattern_to_gst)
-
 add_holohub_application(gst_video_recorder)
 
