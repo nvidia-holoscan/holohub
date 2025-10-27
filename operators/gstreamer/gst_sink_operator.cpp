@@ -25,7 +25,7 @@
 namespace holoscan {
 
 void GstSinkOperator::setup(OperatorSpec& spec) {
-  spec.output<holoscan::gxf::Entity>("output");
+  spec.output<TensorMap>("output");
 
   // Add parameters to the operator spec
   spec.param(gst_sink_resource_, "gst_sink_resource", "GStreamerSink", 
@@ -50,14 +50,14 @@ void GstSinkOperator::compute(InputContext& input, OutputContext& output,
   // Get the buffer
   gst::Buffer buffer = buffer_future.get();
 
-  // Create entity with tensor(s) - supports both packed (RGBA) and planar (I420, NV12) formats
-  auto entity = gst_sink_resource_.get()->create_entity_from_buffer(context, buffer);
-  if (!entity) {
-    HOLOSCAN_LOG_ERROR("Failed to create entity from buffer data");
+  // Create TensorMap - supports both packed (RGBA) and planar (I420, NV12) formats
+  auto tensor_map = gst_sink_resource_.get()->create_tensor_map_from_buffer(buffer);
+  if (tensor_map.empty()) {
+    HOLOSCAN_LOG_ERROR("Failed to create tensor map from buffer data");
     return;
   }
   
-  output.emit(entity, "output");
+  output.emit(tensor_map, "output");
 }
 
 }  // namespace holoscan

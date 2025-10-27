@@ -86,16 +86,15 @@ std::future<gst::Buffer> GstSinkResource::pop_buffer() {
   return bridge_ ? bridge_->pop_buffer() : std::future<gst::Buffer>();
 }
 
-gxf::Entity GstSinkResource::create_entity_from_buffer(
-    ExecutionContext& context,
+TensorMap GstSinkResource::create_tensor_map_from_buffer(
     const gst::Buffer& buffer) const {
   if (!bridge_) {
     HOLOSCAN_LOG_ERROR("Bridge not initialized");
-    return gxf::Entity();
+    return TensorMap();
   }
   
   // Delegate to bridge
-  return bridge_->create_entity_from_buffer(context, buffer);
+  return bridge_->create_tensor_map_from_buffer(buffer);
 }
 
 }  // namespace holoscan

@@ -86,7 +86,7 @@ class GstSinkBridge {
   std::future<gst::Buffer> pop_buffer();
 
   /**
-   * @brief Create a GXF Entity with tensor(s) from GStreamer buffer with zero-copy
+   * @brief Create a TensorMap from GStreamer buffer with zero-copy
    * 
    * Supports both packed formats (RGBA, RGB) and planar formats (I420, NV12).
    * For multi-plane formats, creates separate tensors with naming convention:
@@ -94,12 +94,10 @@ class GstSinkBridge {
    *   - "video_frame_u", "video_frame_v" for chroma planes (I420)
    *   - "video_frame_uv" for interleaved chroma (NV12)
    * 
-   * @param context Execution context for GXF operations
    * @param buffer GStreamer buffer containing the data
-   * @return GXF Entity containing one or more tensors, empty entity on failure
+   * @return TensorMap containing one or more named tensors, empty map on failure
    */
-  gxf::Entity create_entity_from_buffer(ExecutionContext& context,
-                                         const gst::Buffer& buffer) const;
+  TensorMap create_tensor_map_from_buffer(const gst::Buffer& buffer) const;
 
   /**
    * @brief Get the current negotiated caps from the sink

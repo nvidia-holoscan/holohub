@@ -240,6 +240,7 @@ void appsink_eos_callback(::GstAppSink* appsink, gpointer user_data) {
   {
     std::unique_lock<std::mutex> lock(bridge->mutex_);
     if (bridge->is_shutting_down_) {
+      HOLOSCAN_LOG_INFO("Shutting down, returning EOS");
       return GST_FLOW_EOS;
     }
   }
@@ -247,12 +248,14 @@ void appsink_eos_callback(::GstAppSink* appsink, gpointer user_data) {
   // Pull the sample (contains buffer + caps)
   ::GstSample* sample = gst_app_sink_pull_sample(appsink);
   if (!sample) {
+    HOLOSCAN_LOG_ERROR("Failed to pull sample from appsink");
     return GST_FLOW_ERROR;
   }
   
   // Extract buffer from sample
   ::GstBuffer* buffer = gst_sample_get_buffer(sample);
   if (!buffer) {
+    HOLOSCAN_LOG_ERROR("No buffer in sample");
     gst_sample_unref(sample);
     return GST_FLOW_ERROR;
   }
@@ -262,13 +265,13 @@ void appsink_eos_callback(::GstAppSink* appsink, gpointer user_data) {
   
   // Lock for thread-safe queue access
   std::unique_lock<std::mutex> lock(bridge->mutex_);
-  
+
   // Double-check shutdown flag after acquiring lock
   if (bridge->is_shutting_down_) {
     gst_sample_unref(sample);
     return GST_FLOW_EOS;
   }
-  
+
   // Create Buffer object (ref the buffer before unreffing sample)
   gst::Buffer buffer_obj(gst_buffer_ref(buffer));
   
@@ -431,28 +434,19 @@ gst::Caps GstSinkBridge::get_caps() const {
   return gst::Caps(caps); // Automatic reference counting
 }
 
-gxf::Entity GstSinkBridge::create_entity_from_buffer(
-    ExecutionContext& context,
+TensorMap GstSinkBridge::create_tensor_map_from_buffer(
     const gst::Buffer& buffer) const {
   
   // Get current caps
   gst::Caps caps = get_caps();
   
-  // Get the GXF context
-  gxf_context_t gxf_context = context.context();
-  
-  // Create entity to hold tensor(s)
-  auto entity_result = nvidia::gxf::Entity::New(gxf_context);
-  if (!entity_result) {
-    HOLOSCAN_LOG_ERROR("Failed to create entity");
-    return gxf::Entity();
-  }
-  auto entity = entity_result.value();
+  // Create TensorMap to hold tensor(s)
+  TensorMap tensor_map;
 
   // Validate caps
   if (caps.is_empty()) {
     HOLOSCAN_LOG_ERROR("No caps available for buffer");
-    return gxf::Entity();
+    return tensor_map;
   }
 
   // Check if this is video/x-raw data
@@ -466,9 +460,9 @@ gxf::Entity GstSinkBridge::create_entity_from_buffer(
     ::GstMemory* memory = gst_buffer_peek_memory(buffer.get(), mem_idx);
     if (!memory) {
       HOLOSCAN_LOG_ERROR("No memory found for block {}", mem_idx);
-      return gxf::Entity();
+      return TensorMap();
     }
-    
+
     // Get tensor metadata based on data type
     TensorMetadata metadata;
     if (video_info_opt.has_value()) {
@@ -499,20 +493,15 @@ gxf::Entity GstSinkBridge::create_entity_from_buffer(
       if (!map_gst_memory(memory, map_info, GST_MAP_READ, mapped_device_type, 
                          storage_type, data_ptr, size)) {
         HOLOSCAN_LOG_ERROR("Failed to map memory for block {}", mem_idx);
-        return gxf::Entity();
+        return TensorMap();
       }
     }
     
-    // Add tensor to entity
-    auto gxf_tensor_result = entity.add<nvidia::gxf::Tensor>(metadata.name.c_str());
-    if (!gxf_tensor_result) {
-      HOLOSCAN_LOG_ERROR("Failed to add tensor '{}'", metadata.name);
-      gst_memory_unmap(memory, &map_info);
-      return gxf::Entity();
-    }
-    auto gxf_tensor = gxf_tensor_result.value();
+    // Create GXF tensor and wrap GStreamer memory with custom deleter
+    // Capture buffer, memory, and map_info to keep them alive until tensor is destroyed
+    auto gxf_tensor = std::make_shared<nvidia::gxf::Tensor>();
     
-    // Wrap memory as tensor with deleter for cleanup
+    // Wrap memory with GXF tensor (handles lifetime management)
     nvidia::gxf::PrimitiveType primitive_type = nvidia::gxf::PrimitiveType::kUnsigned8;
     uint64_t element_size = nvidia::gxf::PrimitiveTypeSize(primitive_type);
     
@@ -530,9 +519,18 @@ gxf::Entity GstSinkBridge::create_entity_from_buffer(
       storage_type,
       static_cast<uint8_t*>(data_ptr),
       deleter);
+    
+    // Convert GXF tensor to Holoscan tensor via DLPack
+    auto maybe_dl_ctx = gxf_tensor->toDLManagedTensorContext();
+    if (!maybe_dl_ctx) {
+      HOLOSCAN_LOG_ERROR("Failed to convert GXF tensor to Holoscan tensor for '{}'", metadata.name);
+      return TensorMap();
+    }
+    
+    // Add tensor to map
+    tensor_map[metadata.name] = std::make_shared<holoscan::Tensor>(maybe_dl_ctx.value());
   }
-  
-  return gxf::Entity(std::move(entity));
+  return tensor_map;
 }
 
 }  // namespace holoscan
