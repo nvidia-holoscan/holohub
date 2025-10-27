@@ -168,25 +168,189 @@ This package includes comprehensive testing at multiple levels:
 
 ### Unit Tests
 
-**C++ Unit Tests** for all video streaming operators (35+ tests):
-- ✅ Fast execution (~0.13 seconds)
+**C++ Unit Tests** for all video streaming operators (31 tests total):
+- ✅ **13 tests** for `StreamingClientOp`
+- ✅ **8 tests** for `StreamingServerResource`
+- ✅ **6 tests** for `StreamingServerUpstreamOp`
+- ✅ **4 tests** for `StreamingServerDownstreamOp`
+- ✅ Fast execution (~0.13 seconds total)
 - ✅ 100% pass rate
 - ✅ No network dependencies
 - ✅ Tests operator initialization, parameter validation, and resource management
 
-**Run unit tests:**
-```bash
-# Build with tests enabled
-./holohub build video_streaming --configure-args='-DBUILD_TESTING=ON'
+#### Build Instructions
 
-# Run all unit tests
+Build the video streaming operators with unit tests enabled:
+
+```bash
+# From the holohub root directory
+./holohub build video_streaming --configure-args='-DBUILD_TESTING=ON'
+```
+
+**Expected Output:**
+```
+[...build output...]
+[11/12] Building CXX object operators/video_streaming/streaming_client_enhanced/tests/...
+[12/12] Linking CXX executable operators/video_streaming/streaming_client_enhanced/tests/test_streaming_client_op
+```
+
+**Build Acceptance Criteria:**
+- ✅ Build completes without errors
+- ✅ Both test executables are created:
+  - `build/video_streaming/operators/video_streaming/streaming_client_enhanced/tests/test_streaming_client_op`
+  - `build/video_streaming/operators/video_streaming/streaming_server_enhanced/tests/test_streaming_server_ops`
+
+#### Run Instructions
+
+Run all unit tests from the holohub root directory:
+
+```bash
+# Run all unit tests with verbose output
 ./holohub test video_streaming --ctest-options="-R unit_tests -V"
 ```
 
+**Alternatively, run tests directly from the build directory:**
+
+```bash
+# From the holohub root directory
+cd build/video_streaming
+
+# Run client tests only
+ctest -R streaming_client_op_unit_tests -V
+
+# Run server tests only
+ctest -R streaming_server_ops_unit_tests -V
+
+# Run all tests
+ctest -R "streaming_.*_unit_tests" -V
+```
+
+#### Expected Output
+
+**Client Tests (13 tests):**
+```
+[==========] Running 13 tests from 1 test suite.
+[ RUN      ] StreamingClientOpTest.BasicInitialization
+[       OK ] StreamingClientOpTest.BasicInitialization (0 ms)
+[ RUN      ] StreamingClientOpTest.InitializationWithStreamingDisabled
+[       OK ] StreamingClientOpTest.InitializationWithStreamingDisabled (0 ms)
+[ RUN      ] StreamingClientOpTest.VideoResolutionParameters
+[       OK ] StreamingClientOpTest.VideoResolutionParameters (0 ms)
+[ RUN      ] StreamingClientOpTest.FrameRateParameters
+[       OK ] StreamingClientOpTest.FrameRateParameters (0 ms)
+[ RUN      ] StreamingClientOpTest.NetworkParameters
+[       OK ] StreamingClientOpTest.NetworkParameters (0 ms)
+[ RUN      ] StreamingClientOpTest.StreamingModeParameters
+[       OK ] StreamingClientOpTest.StreamingModeParameters (0 ms)
+[ RUN      ] StreamingClientOpTest.FrameValidationParameter
+[       OK ] StreamingClientOpTest.FrameValidationParameter (0 ms)
+[ RUN      ] StreamingClientOpTest.OperatorSetup
+[       OK ] StreamingClientOpTest.OperatorSetup (0 ms)
+[ RUN      ] StreamingClientOpTest.MinimumResolution
+[       OK ] StreamingClientOpTest.MinimumResolution (0 ms)
+[ RUN      ] StreamingClientOpTest.MaximumResolution
+[       OK ] StreamingClientOpTest.MaximumResolution (0 ms)
+[ RUN      ] StreamingClientOpTest.PortNumberEdgeCases
+[       OK ] StreamingClientOpTest.PortNumberEdgeCases (0 ms)
+[ RUN      ] StreamingClientOpTest.OperatorCleanup
+[       OK ] StreamingClientOpTest.OperatorCleanup (0 ms)
+[ RUN      ] StreamingClientOpTest.MultipleInstances
+[       OK ] StreamingClientOpTest.MultipleInstances (0 ms)
+[==========] 13 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 13 tests.
+```
+
+**Server Tests (18 tests across 3 suites):**
+```
+[==========] Running 18 tests from 3 test suites.
+
+[----------] 8 tests from StreamingServerResourceTest
+[ RUN      ] StreamingServerResourceTest.BasicInitialization
+[       OK ] StreamingServerResourceTest.BasicInitialization (0 ms)
+[ RUN      ] StreamingServerResourceTest.CustomConfiguration
+[       OK ] StreamingServerResourceTest.CustomConfiguration (0 ms)
+[ RUN      ] StreamingServerResourceTest.StreamingDirectionConfiguration
+[       OK ] StreamingServerResourceTest.StreamingDirectionConfiguration (0 ms)
+[ RUN      ] StreamingServerResourceTest.MultiInstanceConfiguration
+[       OK ] StreamingServerResourceTest.MultiInstanceConfiguration (0 ms)
+[ RUN      ] StreamingServerResourceTest.VariousResolutions
+[       OK ] StreamingServerResourceTest.VariousResolutions (0 ms)
+[ RUN      ] StreamingServerResourceTest.VariousFrameRates
+[       OK ] StreamingServerResourceTest.VariousFrameRates (0 ms)
+[ RUN      ] StreamingServerResourceTest.VariousPortNumbers
+[       OK ] StreamingServerResourceTest.VariousPortNumbers (0 ms)
+[ RUN      ] StreamingServerResourceTest.ResourceCleanup
+[       OK ] StreamingServerResourceTest.ResourceCleanup (0 ms)
+
+[----------] 6 tests from StreamingServerUpstreamOpTest
+[ RUN      ] StreamingServerUpstreamOpTest.BasicInitialization
+[       OK ] StreamingServerUpstreamOpTest.BasicInitialization (0 ms)
+[ RUN      ] StreamingServerUpstreamOpTest.CustomVideoParameters
+[       OK ] StreamingServerUpstreamOpTest.CustomVideoParameters (0 ms)
+[ RUN      ] StreamingServerUpstreamOpTest.OperatorSetup
+[       OK ] StreamingServerUpstreamOpTest.OperatorSetup (0 ms)
+[ RUN      ] StreamingServerUpstreamOpTest.OperatorCleanup
+[       OK ] StreamingServerUpstreamOpTest.OperatorCleanup (0 ms)
+[ RUN      ] StreamingServerUpstreamOpTest.SharedResourceConfiguration
+[       OK ] StreamingServerUpstreamOpTest.SharedResourceConfiguration (0 ms)
+[ RUN      ] StreamingServerUpstreamOpTest.MultipleOperatorsSharedResource
+[       OK ] StreamingServerUpstreamOpTest.MultipleOperatorsSharedResource (0 ms)
+
+[----------] 4 tests from StreamingServerDownstreamOpTest
+[ RUN      ] StreamingServerDownstreamOpTest.BasicInitialization
+[       OK ] StreamingServerDownstreamOpTest.BasicInitialization (0 ms)
+[ RUN      ] StreamingServerDownstreamOpTest.CustomVideoParameters
+[       OK ] StreamingServerDownstreamOpTest.CustomVideoParameters (0 ms)
+[ RUN      ] StreamingServerDownstreamOpTest.OperatorSetup
+[       OK ] StreamingServerDownstreamOpTest.OperatorSetup (0 ms)
+[ RUN      ] StreamingServerDownstreamOpTest.OperatorCleanup
+[       OK ] StreamingServerDownstreamOpTest.OperatorCleanup (0 ms)
+
+[==========] 18 tests from 3 test suites ran. (0 ms total)
+[  PASSED  ] 18 tests.
+```
+
+**Summary Output:**
+```
+100% tests passed, 0 tests failed out of 2
+
+Label Time Summary:
+streaming_client    =   0.06 sec*proc (1 test)
+streaming_server    =   0.06 sec*proc (1 test)
+unit                =   0.12 sec*proc (2 tests)
+
+Total Test time (real) =   0.13 sec
+```
+
+#### Acceptance Criteria
+
+**Build Acceptance:**
+- ✅ CMake configuration succeeds
+- ✅ All source files compile without errors
+- ✅ Both test executables link successfully
+- ✅ No compiler warnings in test code
+
+**Test Execution Acceptance:**
+- ✅ All 31 unit tests pass (13 client + 18 server)
+- ✅ 100% test pass rate
+- ✅ Total execution time ≤ 1 second
+- ✅ No test failures or skipped tests
+- ✅ No memory leaks (as detected by GTest framework)
+
+**Functional Acceptance:**
+- ✅ StreamingClientOp initialization with various parameters
+- ✅ StreamingClientOp parameter validation (resolution, fps, network settings)
+- ✅ StreamingClientOp setup/cleanup lifecycle
+- ✅ StreamingServerResource creation and configuration
+- ✅ StreamingServerUpstreamOp and DownstreamOp initialization
+- ✅ Shared resource patterns between multiple operators
+- ✅ Edge case handling (minimum/maximum resolutions, port numbers)
+- ✅ Multiple operator instances can coexist
+
 **Documentation:**
-- **[Unit Tests Summary](UNIT_TESTS_SUMMARY.md)** - Complete unit test documentation
-- **[Client Tests](streaming_client_enhanced/tests/README.md)** - StreamingClientOp tests
-- **[Server Tests](streaming_server_enhanced/tests/README.md)** - Server operator tests
+- **[Unit Tests Summary](UNIT_TESTS_SUMMARY.md)** - Comprehensive unit test documentation
+- **[Client Tests](streaming_client_enhanced/tests/README.md)** - StreamingClientOp test details
+- **[Server Tests](streaming_server_enhanced/tests/README.md)** - Server operator test details
 
 ### Integration Tests
 
