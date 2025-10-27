@@ -42,9 +42,9 @@ FROM base as torch
 
 # Install libraries
 ARG GPU_TYPE
-RUN TORCHVISION_WHEEL_VERSION="0.23.0"; \
-    if [ "${GPU_TYPE}" = "igpu" ]; then \
+RUN if [ "${GPU_TYPE}" = "igpu" ]; then \
         PYTORCH_WHEEL_VERSION="2.8.0"; \
+        TORCHVISION_WHEEL_VERSION="0.23.0"; \
         INDEX_URL="https://pypi.jetson-ai-lab.io/jp6/cu129"; \
     else \
         CUDA_MAJOR=$(nvcc --version | grep -o "release [0-9]*" | awk '{print $2}'); \
@@ -61,6 +61,7 @@ RUN TORCHVISION_WHEEL_VERSION="0.23.0"; \
                 fi; \
         else \
             PYTORCH_WHEEL_VERSION="2.8.0+cu129"; \
+            TORCHVISION_WHEEL_VERSION="0.23.0+cu129"; \
             INDEX_URL="https://download.pytorch.org/whl/"; \
         fi; \
     fi; \
