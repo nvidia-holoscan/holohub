@@ -26,12 +26,11 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 
-#include "gst/object.hpp"
-#include "gst/guards.hpp"
+#include <holoscan/core/domain/tensor_map.hpp>
+
 #include "gst/buffer.hpp"
 #include "gst/caps.hpp"
-
-#include <holoscan/core/gxf/entity.hpp>
+#include "gst/object.hpp"
 
 namespace holoscan {
 
@@ -136,7 +135,10 @@ class GstSrcBridge {
   // GStreamer element (appsrc)
   gst::Element src_element_;
 
-  // Memory wrapper for tensor to GstMemory conversion (lazy initialization)
+  // Memory wrapper factory for zero-copy tensor to GstMemory conversion.
+  // Lazily initialized on first buffer creation based on tensor memory type (host/CUDA).
+  // Handles wrapping tensor data pointers as GstMemory objects without copying data.
+  // Reused for all subsequent buffers for efficient memory management.
   std::shared_ptr<MemoryWrapper> memory_wrapper_;
   
   // Frame timing

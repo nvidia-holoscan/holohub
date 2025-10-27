@@ -32,13 +32,14 @@
 #include <gxf/std/tensor.hpp>
 #include <gxf/core/handle.hpp>
 #include <holoscan/core/domain/tensor.hpp>
-#include <holoscan/core/domain/tensor_map.hpp>
 #include <holoscan/core/gxf/entity.hpp>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
 
 #include <holoscan/logger/logger.hpp>
+
+#include "gst/guards.hpp"
 
 // Convenience constant for mapping CUDA memory for reading
 #ifndef GST_MAP_READ_CUDA

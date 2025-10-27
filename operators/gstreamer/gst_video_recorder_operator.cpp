@@ -25,6 +25,8 @@
 #include <gst/cuda/gstcudamemory.h>
 #include <holoscan/core/domain/tensor_map.hpp>
 
+#include "gst/guards.hpp"
+
 namespace {
 
 /**
