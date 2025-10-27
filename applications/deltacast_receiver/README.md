@@ -18,8 +18,18 @@ This can be done with the following command, from the top level Holohub source d
 
 ## Run Instructions
 
+### C++ Application
+
 From the build directory, run the command:
 
 ```bash
 ./applications/deltacast_receiver/cpp/deltacast_receiver
+```
+
+### Python Application
+
+From the build directory, run the command:
+
+```bash
+python3 applications/deltacast_receiver/python/deltacast_receiver.py
 ```

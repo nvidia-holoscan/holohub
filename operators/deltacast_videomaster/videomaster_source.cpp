@@ -34,6 +34,13 @@
 
 #include "VideoMasterAPIHelper/VideoInformation/core.hpp"
 
+using holoscan::OperatorSpec;
+using holoscan::InputContext;
+using holoscan::OutputContext;
+using holoscan::ExecutionContext;
+using holoscan::Arg;
+using holoscan::ArgList;
+
 namespace holoscan::ops {
 
 void VideoMasterSourceOp::setup(OperatorSpec& spec) {
@@ -163,10 +170,15 @@ void VideoMasterSourceOp::transmit_buffer_data(void* buffer, uint32_t buffer_siz
     void* gpu_buffer = _video_master_base->gpu_buffers()[
         _slot_count % VideoMasterBase::NB_SLOTS][
         _video_master_base->video_information()->get_buffer_type()];
+    cudaError_t cuda_status;
     if (_video_master_base->is_igpu())
-      cudaMemcpy(gpu_buffer, buffer, buffer_size, cudaMemcpyHostToHost);
+      cuda_status = cudaMemcpy(gpu_buffer, buffer, buffer_size, cudaMemcpyHostToHost);
     else
-      cudaMemcpy(gpu_buffer, buffer, buffer_size, cudaMemcpyHostToDevice);
+      cuda_status = cudaMemcpy(gpu_buffer, buffer, buffer_size, cudaMemcpyHostToDevice);
+    if (cuda_status != cudaSuccess) {
+      throw std::runtime_error(std::string("cudaMemcpy failed: ") +
+                               cudaGetErrorString(cuda_status));
+    }
     buffer = gpu_buffer;
   }
   auto video_output = nvidia::gxf::Entity::New(context.context());
