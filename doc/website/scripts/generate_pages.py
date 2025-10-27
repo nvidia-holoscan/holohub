@@ -41,6 +41,10 @@ RANKING_LEVELS = {
     5: "Level 5 - Obsolete",
 }
 
+# SVG icons for copy button
+COPY_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="display: block;"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path></svg>'
+CHECK_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="display: block;"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path></svg>'
+
 
 def get_git_root() -> Path:
     """Get the absolute path to the Git repository root."""
@@ -141,7 +145,11 @@ tags:{tags_str}
 
 
 def create_metadata_header(
-    metadata: dict, last_modified: str, archive_version: str = None, version_selector_html: str = ""
+    metadata: dict,
+    last_modified: str,
+    archive_version: str = None,
+    version_selector_html: str = "",
+    component_folder_name: str = "",
 ) -> str:
     """Create the metadata header for the documentation page.
 
@@ -154,6 +162,7 @@ def create_metadata_header(
         last_modified (str): String representing the last modification date
         archive_version (str, optional): Version string for archived documentation. Default: None.
         version_selector_html (str, optional): HTML for version selector dropdown. Default: "".
+        component_folder_name (str, optional): Folder name of the component for run command. Default: "".
 
     Returns:
         str: Formatted HTML-like string containing the metadata header with icons and labels
@@ -177,6 +186,43 @@ def create_metadata_header(
     tested_sdk_versions_str = ", ".join(tested_sdk_versions) if tested_sdk_versions else None
     ranking = metadata.get("ranking")
     ranking_str = RANKING_LEVELS.get(ranking)
+
+    # Create copy run command button with the component folder name
+    # Use folder name if provided, otherwise fall back to metadata name
+    component_name = component_folder_name if component_folder_name else metadata.get("name", "")
+    run_command = f"./holohub run {component_name}"
+
+    # Escape the check icon for use in JavaScript string
+    check_icon_for_js = CHECK_ICON_SVG.replace('"', '\\"')
+
+    copy_button_html = f"""<div style="margin-bottom: 18px;">
+<button id="copy-run-cmd-btn" data-command="{run_command}" style="background-color: var(--md-accent-fg-color); color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--md-text-font); transition: opacity 0.2s; display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">{COPY_ICON_SVG}</button>
+<code style="margin-left: 6px; padding: 4px 8px; background-color: var(--md-code-bg-color); border-radius: 3px; font-size: 13px;">{run_command}</code>
+</div>
+
+<script>
+(function() {{
+    var btn = document.getElementById('copy-run-cmd-btn');
+    if (btn) {{
+        btn.addEventListener('click', function() {{
+            var cmd = this.getAttribute('data-command');
+            var checkIcon = "{check_icon_for_js}";
+            var originalHTML = this.innerHTML;
+
+            navigator.clipboard.writeText(cmd).then(function() {{
+                btn.innerHTML = checkIcon + 'Copied!';
+                setTimeout(function() {{
+                    btn.innerHTML = originalHTML;
+                }}, 2000);
+            }}).catch(function(err) {{
+                console.error('Failed to copy:', err);
+                alert('Failed to copy to clipboard');
+            }});
+        }});
+    }}
+}})();
+</script>
+"""
 
     # List inputs for creating metadata header lines
     line_str_inputs = [
@@ -215,8 +261,8 @@ def create_metadata_header(
 
         output_lines.append(f":octicons-{icon}-24: **{label}:** {value}<br>")
 
-    # Join the valid lines and add a line break
-    return "".join(output_lines) + "<br>"
+    # Join the valid lines and add a line break, prepend with copy button
+    return copy_button_html + "".join(output_lines) + "<br>"
 
 
 def _get_path_relative_to_repo(
@@ -558,9 +604,20 @@ def create_page(
             current_version, archives, relative_dir, latest_version
         )
 
+    # Extract the component folder name for the run command
+    # For paths like "applications/video_streaming_server" -> "video_streaming_server"
+    # For paths like "applications/ultrasound_segmentation/python" -> "ultrasound_segmentation"
+    component_folder_name = ""
+    if relative_dir.parts:
+        # Use parent folder if the last part is a language subdirectory (cpp/python)
+        is_lang_subdir = (
+            relative_dir.parts[-1] in ["cpp", "python"] and len(relative_dir.parts) >= 2
+        )
+        component_folder_name = relative_dir.parts[-2] if is_lang_subdir else relative_dir.parts[-1]
+
     # Patch the header (finds header, links it, inserts metadata with version selector)
     metadata_header = create_metadata_header(
-        metadata, last_modified, archive_version, version_selector_html
+        metadata, last_modified, archive_version, version_selector_html, component_folder_name
     )
     encoded_rel_dir = _encode_path_for_url(relative_dir)
     url = f"{base_url}/{encoded_rel_dir}"
