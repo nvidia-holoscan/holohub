@@ -23,6 +23,7 @@
 #include <regex>
 #include <gxf/core/gxf.h>
 #include <gst/cuda/gstcudamemory.h>
+#include <holoscan/core/domain/tensor_map.hpp>
 
 namespace {
 
@@ -232,74 +233,52 @@ void monitor_pipeline_bus(GstElement* pipeline) {
 }
 
 /**
- * @brief Create GstSrcBridge from entity by detecting video parameters
+ * @brief Create GstSrcBridge from tensor map by detecting video parameters
  * 
- * Inspects the incoming entity to extract video parameters from the tensor
+ * Inspects the tensor map to extract video parameters from the first tensor
  * and creates a GstSrcBridge with appropriate capabilities.
  * 
- * @param entity The entity containing the tensor
+ * @param tensor_map The TensorMap containing one or more tensors
  * @param operator_name Name for the bridge
  * @param format Pixel format (e.g., "RGBA", "RGB", "BGRA", "GRAY8")
  * @param framerate Framerate string (e.g., "30/1")
  * @param max_buffers Maximum queue size
  * @return Shared pointer to the created GstSrcBridge
  */
-std::shared_ptr<holoscan::GstSrcBridge> create_bridge_from_entity(
-    const holoscan::gxf::Entity& entity,
+std::shared_ptr<holoscan::GstSrcBridge> create_bridge_from_tensor_map(
+    const holoscan::TensorMap& tensor_map,
     const std::string& operator_name,
     const std::string& format,
     const std::string& framerate,
     size_t max_buffers) {
-  // Get the first tensor from the entity using GXF C API
-  gxf_uid_t component_ids[64];
-  uint64_t num_components = 64;
-  gxf_result_t result = GxfComponentFindAll(entity.context(), entity.eid(), 
-                                            &num_components, component_ids);
-  if (result != GXF_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to find components in entity");
-    throw std::runtime_error("Failed to find components in entity");
+  // Get the first tensor from the map
+  if (tensor_map.empty()) {
+    HOLOSCAN_LOG_ERROR("TensorMap is empty");
+    throw std::runtime_error("TensorMap is empty");
   }
   
-  nvidia::gxf::Tensor* tensor = nullptr;
-  
-  // Find the first tensor component
-  for (uint64_t i = 0; i < num_components; i++) {
-    gxf_tid_t tid;
-    result = GxfComponentType(entity.context(), component_ids[i], &tid);
-    if (result != GXF_SUCCESS) continue;
-    
-    const char* type_name = nullptr;
-    result = GxfComponentTypeName(entity.context(), tid, &type_name);
-    if (result != GXF_SUCCESS || !type_name) continue;
-    
-    if (std::strcmp(type_name, "nvidia::gxf::Tensor") == 0) {
-      void* tensor_ptr = nullptr;
-      result = GxfComponentPointer(entity.context(), component_ids[i], 
-                                    GxfTidNull(), &tensor_ptr);
-      if (result == GXF_SUCCESS) {
-        tensor = static_cast<nvidia::gxf::Tensor*>(tensor_ptr);
-        break;
-      }
-    }
-  }
-  
-  if (!tensor) {
-    HOLOSCAN_LOG_ERROR("No tensor found in entity");
-    throw std::runtime_error("No tensor found in entity");
+  const auto& first_tensor_ptr = tensor_map.begin()->second;
+  if (!first_tensor_ptr) {
+    HOLOSCAN_LOG_ERROR("First tensor in TensorMap is null");
+    throw std::runtime_error("First tensor in TensorMap is null");
   }
   
   // Extract video parameters from tensor
-  auto shape = tensor->shape();
-  if (shape.rank() < 2) {
-    HOLOSCAN_LOG_ERROR("Tensor rank is {}, expected at least 2 (height, width)", shape.rank());
+  auto shape = first_tensor_ptr->shape();
+  if (shape.size() < 2) {
+    HOLOSCAN_LOG_ERROR("Tensor rank is {}, expected at least 2 (height, width)", shape.size());
     throw std::runtime_error("Invalid tensor shape for video data");
   }
   
-  int height = shape.dimension(0);
-  int width = shape.dimension(1);
+  int height = shape[0];
+  int width = shape[1];
   
   // Determine storage type from tensor memory location
-  bool is_device_memory = (tensor->storage_type() == nvidia::gxf::MemoryStorageType::kDevice);
+  auto device = first_tensor_ptr->device();
+  // Only kDLCUDA and kDLCUDAManaged map to nvidia::gxf::MemoryStorageType::kDevice
+  // kDLCUDAHost is pinned host memory (kHost), not device memory
+  bool is_device_memory = (device.device_type == kDLCUDA || 
+                            device.device_type == kDLCUDAManaged);
   std::string storage_str = is_device_memory ? "device" : "host";
   
   HOLOSCAN_LOG_INFO("Detected video parameters: {}x{}@{}fps, format={}, storage={}",
@@ -508,7 +487,7 @@ void add_and_link_source_converter(GstElement* pipeline,
 namespace holoscan {
 
 void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
-  spec.input<gxf::Entity>("input");
+  spec.input<TensorMap>("input");
 
   // Register converter for std::map<std::string, std::string> to enable Arg() support
   register_converter<std::map<std::string, std::string>>();
@@ -654,18 +633,18 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
   static int frame_count = 0;
   frame_count++;
   
-  HOLOSCAN_LOG_DEBUG("GstVideoRecorderOperator::compute() - Frame #{} - Receiving entity", frame_count);
+  HOLOSCAN_LOG_DEBUG("GstVideoRecorderOperator::compute() - Frame #{} - Receiving tensor map", frame_count);
   
-  // Receive the video frame entity from the input port
-  auto entity = input.receive<gxf::Entity>("input").value();
-  HOLOSCAN_LOG_DEBUG("Frame #{} - Entity received", frame_count);
+  // Receive the video frame tensor map from the input port
+  auto tensor_map = input.receive<TensorMap>("input").value();
+  HOLOSCAN_LOG_DEBUG("Frame #{} - TensorMap received", frame_count);
 
   // Initialize bridge on first frame
   // Only upon receiving the first frame, we know the frame parameters
   if (!bridge_) {
     HOLOSCAN_LOG_INFO("Frame #{} - First frame, detecting video parameters from tensor", frame_count);
-    // Create bridge from entity (detects video parameters automatically)
-    bridge_ = create_bridge_from_entity(entity, name(), format_.get(), framerate_.get(), max_buffers_.get());
+    // Create bridge from tensor map (detects video parameters automatically)
+    bridge_ = create_bridge_from_tensor_map(tensor_map, name(), format_.get(), framerate_.get(), max_buffers_.get());
     HOLOSCAN_LOG_INFO("Bridge created");
     
     // Create appropriate converter based on storage type and add to pipeline
@@ -675,10 +654,10 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
     add_and_link_source_converter(pipeline_.get(), bridge_->get_gst_element(), converter, encoder_);
   }
 
-  HOLOSCAN_LOG_DEBUG("Frame #{} - Converting entity to GStreamer buffer", frame_count);
+  HOLOSCAN_LOG_DEBUG("Frame #{} - Converting tensor map to GStreamer buffer", frame_count);
 
-  // Convert entity to GStreamer buffer using the bridge
-  auto buffer = bridge_->create_buffer_from_entity(entity);
+  // Convert tensor map to GStreamer buffer using the bridge
+  auto buffer = bridge_->create_buffer_from_tensor_map(tensor_map);
   if (buffer.size() == 0) {
     HOLOSCAN_LOG_ERROR("Frame #{} - Failed to convert entity to buffer", frame_count);
     return;

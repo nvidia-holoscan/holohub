@@ -29,6 +29,10 @@
 #include <chrono>
 #include <thread>
 
+#include <gxf/std/tensor.hpp>
+#include <gxf/core/handle.hpp>
+#include <holoscan/core/domain/tensor.hpp>
+#include <holoscan/core/domain/tensor_map.hpp>
 #include <holoscan/core/gxf/entity.hpp>
 #include <cstring>
 #include <memory>
@@ -61,7 +65,7 @@ static bool gst_initialized = [](){
 class GstSrcBridge::MemoryWrapper {
  public:
   virtual ~MemoryWrapper() = default;
-  virtual ::GstMemory* wrap_memory(nvidia::gxf::Tensor* tensor, void* user_data, GDestroyNotify notify) = 0;
+  virtual ::GstMemory* wrap_memory(const holoscan::Tensor* tensor, void* user_data, GDestroyNotify notify) = 0;
 };
 
 /**
@@ -79,12 +83,12 @@ class GstSrcBridge::HostMemoryWrapper : public MemoryWrapper {
   HostMemoryWrapper& operator=(HostMemoryWrapper&&) = delete;
   
   ::GstMemory* wrap_memory(
-      nvidia::gxf::Tensor* tensor,
+      const holoscan::Tensor* tensor,
       void* user_data,
       GDestroyNotify notify) override {
     
-    void* tensor_data = tensor->pointer();
-    size_t tensor_size = tensor->size();
+    void* tensor_data = tensor->data();
+    size_t tensor_size = tensor->nbytes();
     
     if (!tensor_data || tensor_size == 0) {
       HOLOSCAN_LOG_ERROR("Invalid tensor data or size for host memory wrapping");
@@ -167,12 +171,12 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
   CudaMemoryWrapper& operator=(CudaMemoryWrapper&&) = delete;
   
   ::GstMemory* wrap_memory(
-      nvidia::gxf::Tensor* tensor,
+      const holoscan::Tensor* tensor,
       void* user_data,
       GDestroyNotify notify) override {
     
-    void* tensor_data = tensor->pointer();
-    size_t tensor_size = tensor->size();
+    void* tensor_data = tensor->data();
+    size_t tensor_size = tensor->nbytes();
     
     if (!tensor_data || tensor_size == 0) {
       HOLOSCAN_LOG_ERROR("Invalid tensor data or size for CUDA memory wrapping");
@@ -181,14 +185,14 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
     
     // Get tensor shape to create GstVideoInfo
     auto shape = tensor->shape();
-    if (shape.rank() < 2) {
-      HOLOSCAN_LOG_ERROR("Tensor has invalid rank {} for CUDA wrapping", shape.rank());
+    if (shape.size() < 2) {
+      HOLOSCAN_LOG_ERROR("Tensor has invalid rank {} for CUDA wrapping", shape.size());
       return nullptr;
     }
     
     // Assume tensor is in format: [height, width, channels] or [height, width]
-    gint height = shape.dimension(0);
-    gint width = shape.dimension(1);
+    gint height = shape[0];
+    gint width = shape[1];
     GstVideoFormat format = GST_VIDEO_FORMAT_RGBA;  // Assume RGBA for now
     
     // Create video info for the tensor
@@ -223,9 +227,9 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
 
 // Wrapper to keep tensor alive while GStreamer uses its memory
 struct TensorWrapper {
-  std::shared_ptr<nvidia::gxf::DLManagedTensorContext> dl_ctx;  // Keep tensor memory alive
+  std::shared_ptr<holoscan::DLManagedTensorContext> dl_ctx;  // Keep tensor memory alive
   
-  explicit TensorWrapper(std::shared_ptr<nvidia::gxf::DLManagedTensorContext> ctx) 
+  explicit TensorWrapper(std::shared_ptr<holoscan::DLManagedTensorContext> ctx) 
     : dl_ctx(std::move(ctx)) {}
 };
 
@@ -234,6 +238,39 @@ static void free_tensor_wrapper(gpointer user_data) {
   auto* wrapper = static_cast<TensorWrapper*>(user_data);
   delete wrapper;
 }
+
+namespace {
+
+/**
+ * @brief Create memory wrapper based on tensor storage type and caps
+ * @param tensor Tensor to inspect for storage type
+ * @param caps Capabilities string to check for CUDA memory request
+ * @return Shared pointer to the appropriate memory wrapper
+ */
+std::shared_ptr<GstSrcBridge::MemoryWrapper> create_memory_wrapper(
+    const holoscan::Tensor* tensor,
+    const std::string& caps) {
+  // Check if CUDA memory is requested in caps
+  bool cuda_requested = caps.find("(memory:CUDAMemory)") != std::string::npos;
+  
+  // Check device type from DLPack
+  DLDevice device = tensor->device();
+  bool is_device_memory = (device.device_type == kDLCUDA || device.device_type == kDLCUDAManaged);
+  
+  const char* storage_type_str = is_device_memory ? "GPU" : "CPU";
+  
+  // Use CudaMemoryWrapper for GPU tensors when GStreamer requests CUDA memory
+  if (is_device_memory && cuda_requested) {
+    HOLOSCAN_LOG_INFO("Creating CUDA memory wrapper ({} memory)", storage_type_str);
+    return std::make_shared<GstSrcBridge::CudaMemoryWrapper>();
+  } else {
+    // Use HostMemoryWrapper for CPU memory or when CUDA not requested
+    HOLOSCAN_LOG_INFO("Creating host memory wrapper ({} memory)", storage_type_str);
+    return std::make_shared<GstSrcBridge::HostMemoryWrapper>();
+  }
+}
+
+}  // anonymous namespace
 
 // ============================================================================
 // GstSrcBridge Implementation
@@ -417,80 +454,55 @@ gst::Caps GstSrcBridge::get_caps() const {
   return gst::Caps(caps); // Automatic reference counting
 }
 
-void GstSrcBridge::initialize_memory_wrapper(nvidia::gxf::Tensor* tensor) {
-  // Check if CUDA memory is requested in caps
-  bool cuda_requested = caps_.find("(memory:CUDAMemory)") != std::string::npos;
-  
-  const char* storage_type_str = (tensor->storage_type() == nvidia::gxf::MemoryStorageType::kDevice) 
-      ? "GPU" : "CPU";
-  
-  // Use CudaMemoryWrapper for GPU tensors when GStreamer requests CUDA memory
-  if (tensor->storage_type() == nvidia::gxf::MemoryStorageType::kDevice && cuda_requested) {
-    HOLOSCAN_LOG_INFO("Creating CUDA memory wrapper ({} memory)", storage_type_str);
-    memory_wrapper_.reset(new CudaMemoryWrapper());
-  } else {
-    // Use HostMemoryWrapper for CPU memory or when CUDA not requested
-    HOLOSCAN_LOG_INFO("Creating host memory wrapper ({} memory)", storage_type_str);
-    memory_wrapper_.reset(new HostMemoryWrapper());
-  }
-}
-
-gst::Buffer GstSrcBridge::create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, size_t num_tensors) {
-  // Create an empty GStreamer buffer at the start (constructor will throw if allocation fails)
+gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_map) {
+  // Create an empty GStreamer buffer at the start
   gst::Buffer gst_buffer;
 
-  if (!tensors || num_tensors == 0) {
-    HOLOSCAN_LOG_ERROR("Invalid tensors array or count");
+  if (tensor_map.empty()) {
+    HOLOSCAN_LOG_ERROR("TensorMap is empty");
     return gst_buffer;
   }
 
   int tensor_count = 0;
   size_t total_size = 0;
 
-  // Iterate through all tensors
-  for (size_t i = 0; i < num_tensors; i++) {
-    auto* tensor = tensors[i];
-    if (!tensor) {
-      HOLOSCAN_LOG_WARN("Skipping null tensor at index {}", i);
+  // Iterate through all tensors in the map
+  for (const auto& [name, tensor_ptr] : tensor_map) {
+    if (!tensor_ptr) {
+      HOLOSCAN_LOG_WARN("Skipping null tensor '{}'", name);
       continue;
     }
     
-    size_t tensor_size = tensor->size();
-    void* tensor_data = tensor->pointer();
+    // Get tensor data
+    size_t tensor_size = tensor_ptr->nbytes();
+    void* tensor_data = tensor_ptr->data();
     
     if (!tensor_data || tensor_size == 0) {
-      HOLOSCAN_LOG_WARN("Skipping tensor {} - invalid data or size", i);
+      HOLOSCAN_LOG_WARN("Skipping tensor '{}' - invalid data or size", name);
       continue;
     }
 
     // Lazy initialization of memory wrapper on first tensor
     if (!memory_wrapper_) {
       try {
-        initialize_memory_wrapper(tensor);
+        memory_wrapper_ = create_memory_wrapper(tensor_ptr.get(), caps_);
       } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("Failed to create memory wrapper: {}", e.what());
         return gst_buffer;
       }
     }
 
-    // Get the DLManagedTensorContext shared_ptr to keep tensor memory alive
-    auto maybe_dl_ctx = tensor->toDLManagedTensorContext();
-    if (!maybe_dl_ctx) {
-      HOLOSCAN_LOG_ERROR("Failed to get DLManagedTensorContext for tensor {}", i);
-      continue;
-    }
-
-    // Create a TensorWrapper with the shared_ptr to keep tensor alive
-    auto tensor_wrapper = std::make_unique<TensorWrapper>(maybe_dl_ctx.value());
+    // Create a TensorWrapper with the shared_ptr to keep tensor memory alive
+    auto tensor_wrapper = std::make_unique<TensorWrapper>(tensor_ptr->dl_ctx());
 
     // Use the memory wrapper to wrap the tensor
     ::GstMemory* memory = memory_wrapper_->wrap_memory(
-        tensor,
+        tensor_ptr.get(),
         tensor_wrapper.get(),
         free_tensor_wrapper);
     
     if (!memory) {
-      HOLOSCAN_LOG_ERROR("Failed to wrap memory for tensor {}", i);
+      HOLOSCAN_LOG_ERROR("Failed to wrap memory for tensor '{}'", name);
       continue;
     }
 
@@ -513,18 +525,15 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensors(nvidia::gxf::Tensor** tenso
     
     if (framerate_num_ == 0) {
       // Live mode: use real-time timestamps (current monotonic time)
-      // This reflects actual frame arrival times rather than synthetic framerate
       timestamp = g_get_monotonic_time() * 1000;  // Convert microseconds to nanoseconds
       duration = GST_CLOCK_TIME_NONE;  // Duration unknown in live mode
     } else {
       // Calculate timestamp directly from frame count to avoid accumulating rounding errors
-      // timestamp = (frame_count * denom * GST_SECOND) / num
       timestamp = gst_util_uint64_scale(frame_count_, 
                                         framerate_den_ * GST_SECOND, 
                                         framerate_num_);
       
       // Calculate duration as difference between next and current timestamp
-      // duration = timestamp(frame_count + 1) - timestamp(frame_count)
       GstClockTime next_timestamp = gst_util_uint64_scale(frame_count_ + 1, 
                                                            framerate_den_ * GST_SECOND, 
                                                            framerate_num_);
@@ -543,65 +552,6 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensors(nvidia::gxf::Tensor** tenso
   }
   
   return gst_buffer;
-}
-
-gst::Buffer GstSrcBridge::create_buffer_from_entity(const gxf::Entity& entity) {
-  // Create an empty GStreamer buffer at the start
-  gst::Buffer gst_buffer;
-
-  // Find all tensor components in the entity
-  gxf_uid_t component_ids[64];  // Max 64 components
-  uint64_t num_components = 64;
-  gxf_result_t result = GxfComponentFindAll(entity.context(), entity.eid(), 
-                                            &num_components, component_ids);
-  if (result != GXF_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to find components in entity");
-    return gst_buffer;
-  }
-
-  // Collect all tensor pointers
-  std::vector<nvidia::gxf::Tensor*> tensors;
-
-  // Iterate through all components and collect tensors
-  for (uint64_t i = 0; i < num_components; i++) {
-    // Get component type info
-    gxf_tid_t tid;
-    result = GxfComponentType(entity.context(), component_ids[i], &tid);
-    if (result != GXF_SUCCESS) {
-      continue;
-    }
-
-    // Check if this is a Tensor component
-    const char* type_name = nullptr;
-    result = GxfComponentTypeName(entity.context(), tid, &type_name);
-    if (result != GXF_SUCCESS || !type_name) {
-      continue;
-    }
-
-    if (std::strcmp(type_name, "nvidia::gxf::Tensor") != 0) {
-      continue;  // Not a tensor, skip
-    }
-
-    // Get tensor pointer
-    void* tensor_ptr = nullptr;
-    result = GxfComponentPointer(entity.context(), component_ids[i], 
-                                  GxfTidNull(), &tensor_ptr);
-    if (result != GXF_SUCCESS) {
-      HOLOSCAN_LOG_WARN("Failed to get tensor pointer for component {}", i);
-      continue;
-    }
-
-    auto* tensor = static_cast<nvidia::gxf::Tensor*>(tensor_ptr);
-    tensors.push_back(tensor);
-  }
-
-  if (tensors.empty()) {
-    HOLOSCAN_LOG_ERROR("No tensors found in entity");
-    return gst_buffer;
-  }
-
-  // Delegate to create_buffer_from_tensors
-  return create_buffer_from_tensors(tensors.data(), tensors.size());
 }
 
 }  // namespace holoscan

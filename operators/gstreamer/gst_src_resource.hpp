@@ -121,7 +121,7 @@ class GstSrcResource : public Resource {
    void send_eos();
 
    /**
-   * @brief Create a GStreamer buffer from a GXF Entity containing tensor(s)
+   * @brief Create a GStreamer buffer from a TensorMap
    * 
    * Supports both packed formats (RGBA, RGB) and planar formats (I420, NV12).
    * For multi-plane formats, expects separate tensors with naming convention:
@@ -129,10 +129,10 @@ class GstSrcResource : public Resource {
    *   - "video_frame_u", "video_frame_v" for chroma planes (I420)
    *   - "video_frame_uv" for interleaved chroma (NV12)
    * 
-   * @param entity GXF Entity containing one or more tensors
+   * @param tensor_map TensorMap containing one or more tensors
    * @return GStreamer Buffer with zero-copy wrapping, empty on failure
    */
-  gst::Buffer create_buffer_from_entity(const gxf::Entity& entity) const;
+  gst::Buffer create_buffer_from_tensor_map(const TensorMap& tensor_map) const;
 
  private:
   // Bridge to GStreamer (does the actual work)

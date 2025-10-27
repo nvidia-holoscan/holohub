@@ -19,6 +19,7 @@
 #include "gst_src_bridge.hpp"
 
 #include <holoscan/core/execution_context.hpp>
+#include <holoscan/core/domain/tensor_map.hpp>
 
 // ============================================================================
 // Holoscan GstSrcResource Implementation
@@ -84,14 +85,14 @@ void GstSrcResource::send_eos() {
   }
 }
 
-gst::Buffer GstSrcResource::create_buffer_from_entity(const gxf::Entity& entity) const {
+gst::Buffer GstSrcResource::create_buffer_from_tensor_map(const TensorMap& tensor_map) const {
   if (!bridge_) {
     HOLOSCAN_LOG_ERROR("Bridge not initialized");
     return gst::Buffer();
   }
   
   // Delegate to bridge
-  return bridge_->create_buffer_from_entity(entity);
+  return bridge_->create_buffer_from_tensor_map(tensor_map);
 }
 
 }  // namespace holoscan

@@ -16,11 +16,12 @@
  */
 
 #include "gst_src_operator.hpp"
+#include <holoscan/core/domain/tensor_map.hpp>
 
 namespace holoscan {
 
 void GstSrcOperator::setup(OperatorSpec& spec) {
-  spec.input<gxf::Entity>("input");
+  spec.input<TensorMap>("input");
   
   spec.param(gst_src_resource_, "gst_src_resource", "GStreamerSource", 
              "GStreamer source resource object");
@@ -34,14 +35,14 @@ void GstSrcOperator::compute(InputContext& input, OutputContext& output,
   static int frame_count = 0;
   frame_count++;
   
-  HOLOSCAN_LOG_INFO("GstSrcOperator::compute() - Frame #{} - Receiving entity", frame_count);
+  HOLOSCAN_LOG_INFO("GstSrcOperator::compute() - Frame #{} - Receiving tensor map", frame_count);
   
-  // Receive the entity from the input port
-  auto entity = input.receive<gxf::Entity>("input").value();
-  HOLOSCAN_LOG_INFO("Frame #{} - Entity received, converting to GStreamer buffer", frame_count);
+  // Receive the tensor map from the input port
+  auto tensor_map = input.receive<TensorMap>("input").value();
+  HOLOSCAN_LOG_INFO("Frame #{} - TensorMap received, converting to GStreamer buffer", frame_count);
 
-  // Convert entity to GStreamer buffer
-  auto buffer = gst_src_resource_.get()->create_buffer_from_entity(entity);
+  // Convert tensor map to GStreamer buffer
+  auto buffer = gst_src_resource_.get()->create_buffer_from_tensor_map(tensor_map);
   if (buffer.size() == 0) {
     HOLOSCAN_LOG_ERROR("Frame #{} - Failed to convert entity to buffer", frame_count);
     return;

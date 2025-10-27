@@ -33,13 +33,6 @@
 
 #include <holoscan/core/gxf/entity.hpp>
 
-// Forward declarations for types only used as pointers
-namespace nvidia {
-namespace gxf {
-class Tensor;
-}
-}
-
 namespace holoscan {
 
 /**
@@ -105,19 +98,19 @@ class GstSrcBridge {
   bool push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
 
   /**
-   * @brief Create a GStreamer buffer from a GXF Entity containing tensor(s)
+   * @brief Create a GStreamer buffer from a TensorMap
    * 
-   * Extracts all tensors from the entity and wraps them in a GStreamer buffer.
+   * Wraps all tensors in the map as GStreamer memory blocks with zero-copy.
    * Supports both packed formats (RGBA, RGB) and planar formats (I420, NV12).
    * For multi-plane formats, expects separate tensors with naming convention:
    *   - "video_frame" for Y/luma plane
    *   - "video_frame_u", "video_frame_v" for chroma planes (I420)
    *   - "video_frame_uv" for interleaved chroma (NV12)
    * 
-   * @param entity GXF Entity containing one or more tensors
+   * @param tensor_map TensorMap containing one or more tensors
    * @return GStreamer Buffer with zero-copy wrapping, empty on failure
    */
-  gst::Buffer create_buffer_from_entity(const gxf::Entity& entity);
+  gst::Buffer create_buffer_from_tensor_map(const TensorMap& tensor_map);
 
   /**
    * @brief Get the current negotiated caps from the source
@@ -125,29 +118,11 @@ class GstSrcBridge {
    */
   gst::Caps get_caps() const;
 
- private:
   // Forward declarations for nested classes
   class MemoryWrapper;
   class HostMemoryWrapper;
   class CudaMemoryWrapper;
-
-  /**
-   * @brief Create a GStreamer buffer from raw tensor data (internal helper)
-   * 
-   * Wraps tensors in GStreamer memory using zero-copy when possible.
-   * Automatically selects between host and CUDA memory based on tensor storage type and caps.
-   * 
-   * @param tensors Array of tensor pointers
-   * @param num_tensors Number of tensors in the array
-   * @return GStreamer Buffer with zero-copy wrapping, empty on failure
-   */
-  gst::Buffer create_buffer_from_tensors(nvidia::gxf::Tensor** tensors, size_t num_tensors);
-
-  /**
-   * @brief Initialize memory wrapper based on tensor storage type and caps
-   */
-  void initialize_memory_wrapper(nvidia::gxf::Tensor* tensor);
-
+ private:
   // Configuration
   std::string name_;
   std::string caps_;
