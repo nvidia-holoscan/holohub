@@ -39,7 +39,7 @@
 			]
 		},
 		"default_mode": "replayer",
-        "modes": {
+		"modes": {
 			"replayer": {
 				"description": "Run the application in replayer mode",
 				"build": {
