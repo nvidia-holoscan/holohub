@@ -45,6 +45,12 @@ class App : public holoscan::Application {
         Arg("progressive") = from_config("deltacast.progressive").as<bool>(),
         Arg("framerate") = from_config("deltacast.framerate").as<uint32_t>());
 
+    auto drop_alpha_channel_converter = make_operator<ops::FormatConverterOp>(
+            "drop_alpha_channel_converter",
+            from_config("drop_alpha_channel_converter"),
+            Arg("pool") =
+                make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
+
     // Format converter to prepare for visualization
     auto format_converter =
         make_operator<ops::FormatConverterOp>("format_converter",
@@ -53,11 +59,6 @@ class App : public holoscan::Application {
                                                   "converter_pool", 1, source_block_size,
                                                   source_num_blocks));
 
-    auto drop_alpha_channel_converter = make_operator<ops::FormatConverterOp>(
-            "drop_alpha_channel_converter",
-            from_config("drop_alpha_channel_converter"),
-            Arg("pool") =
-                make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
     auto visualizer = make_operator<ops::HolovizOp>(
         "holoviz",
         from_config("holoviz"),
@@ -78,10 +79,8 @@ bool parse_arguments(int argc, char** argv, std::string& config_name) {
       {0,         0,                 0,  0 }
   };
 
-  while (int c = getopt_long(argc, argv, "c:h",
-                   long_options, NULL))  {
-    if (c == -1 || c == '?') break;
-
+  int c;
+  while ((c = getopt_long(argc, argv, "c:h", long_options, NULL)) != -1 && c != '?') {
     switch (c) {
       case 'c':
         config_name = optarg;
@@ -118,7 +117,7 @@ int main(int argc, char** argv) {
   if (config_name != "") {
     app->config(config_name);
   } else {
-    auto config_path = std::filesystem::canonical(argv[0]).parent_path();
+    auto config_path = std::filesystem::weakly_canonical(argv[0]).parent_path();
     config_path += "/deltacast_receiver.yaml";
     app->config(config_path);
   }

@@ -239,8 +239,15 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
                      tensor->nbytes(), buffer_size,
                      (_use_rdma ? "DeviceToDevice" : "DeviceToHost"));
 
+  // Validate that tensor size does not exceed buffer size before copying
+  if (tensor->nbytes() > buffer_size) {
+    HOLOSCAN_LOG_ERROR("Tensor size ({}) exceeds buffer size ({}); aborting copy.",
+                       tensor->nbytes(), buffer_size);
+    return;
+  }
+
   cudaError_t cuda_result = cudaMemcpy(
-      buffer, tensor->data(), buffer_size,
+      buffer, tensor->data(), tensor->nbytes(),
       (_use_rdma ? cudaMemcpyDeviceToDevice : cudaMemcpyDeviceToHost));
   if (cuda_result != cudaSuccess) {
     HOLOSCAN_LOG_ERROR("CUDA memcpy failed: {}", cudaGetErrorString(cuda_result));
@@ -267,34 +274,41 @@ void VideoMasterTransmitterOp::stop() {
 bool VideoMasterTransmitterOp::configure_board_for_overlay() {
   HOLOSCAN_LOG_INFO("Configuring board for overlay with keyer on channel {}",
                      _channel_index);
-  bool success_b = true;
 
-  success_b = _video_master_base->video_information()->configure_sync(
-      _video_master_base->board_handle(), _channel_index);
+  if (!_video_master_base->video_information()->configure_sync(
+      _video_master_base->board_handle(), _channel_index)) {
+    return false;
+  }
 
   auto keyer_props = _video_master_base->video_information()->get_keyer_properties(
       _video_master_base->board_handle());
 
-  success_b = success_b & _video_master_base->holoscan_log_on_error(
+  if (!_video_master_base->holoscan_log_on_error(
       Deltacast::Helper::ApiSuccess{
           VHD_SetBoardProperty(*_video_master_base->board_handle(),
                                keyer_props.at(VHD_KEYER_BP_INPUT_A),
                                id_to_rx_keyer_input.at(_channel_index))},
-      "Could not configure keyer input A");
+      "Could not configure keyer input A")) {
+    return false;
+  }
 
-  success_b = success_b & _video_master_base->holoscan_log_on_error(
+  if (!_video_master_base->holoscan_log_on_error(
       Deltacast::Helper::ApiSuccess{
           VHD_SetBoardProperty(*_video_master_base->board_handle(),
                                keyer_props.at(VHD_KEYER_BP_INPUT_B),
                                id_to_tx_keyer_input.at(_channel_index))},
-      "Could not configure keyer input B");
+      "Could not configure keyer input B")) {
+    return false;
+  }
 
-  success_b = success_b & _video_master_base->holoscan_log_on_error(
+  if (!_video_master_base->holoscan_log_on_error(
       Deltacast::Helper::ApiSuccess{
           VHD_SetBoardProperty(*_video_master_base->board_handle(),
                                keyer_props.at(VHD_KEYER_BP_INPUT_K),
                                id_to_tx_keyer_input.at(_channel_index))},
-      "Could not configure keyer input K");
+      "Could not configure keyer input K")) {
+    return false;
+  }
 
   if (!_video_master_base->holoscan_log_on_error(
       Deltacast::Helper::ApiSuccess{
@@ -341,8 +355,6 @@ bool VideoMasterTransmitterOp::configure_board_for_overlay() {
 }
 
 bool VideoMasterTransmitterOp::configure_stream_for_overlay() {
-  bool success_b = true;
-
   if (!_video_master_base->holoscan_log_on_error(
       Deltacast::Helper::ApiSuccess{
           VHD_SetStreamProperty(*_video_master_base->stream_handle(),
