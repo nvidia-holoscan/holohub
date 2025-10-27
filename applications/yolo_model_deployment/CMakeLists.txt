@@ -24,6 +24,8 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/yolo_model_deployment/yolov8s.onn
     COMMAND git clone https://github.com/triple-Mu/YOLOv8-TensorRT.git || true
     COMMAND wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
     COMMAND mv yolov8s.pt YOLOv8-TensorRT
+    # Patch export-det.py to use dynamo=False for ONNX export
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/patch_export.py
     COMMAND python3 YOLOv8-TensorRT/export-det.py --weights yolov8s.pt --iou-thres 0.65 --conf-thres 0.25 --topk 100 --opset 11 --sim --input-shape 1 3 640 640 --device cuda:0
     COMMAND wget https://raw.githubusercontent.com/nvidia-holoscan/holoscan-sdk/refs/heads/main/scripts/graph_surgeon.py
     COMMAND python ./graph_surgeon.py yolov8s.onnx yolov8s.onnx
