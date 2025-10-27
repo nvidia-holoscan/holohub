@@ -17,6 +17,13 @@ If you want to manually convert the video data, please refer to the instructions
 
 Please refer to the top level Holohub README.md file for information on how to build this application.
 
+```bash
+    ./holohub run ultrasound_segmentation [--local] \
+      --language=cpp \
+      --source=[replayer/aja] \
+      [--configure-args="-DOP_aja_source:BOOL=ON"]
+```
+
 
 ### Run Instructions
 

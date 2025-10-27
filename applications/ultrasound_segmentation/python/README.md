@@ -4,7 +4,7 @@ Full workflow including a generic visualization of segmentation results from a s
 
 ### Requirements
 
-- Python 3.8+
+- Python 3.9+
 - The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded video of the ultrasound data (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
 ### Data
@@ -40,12 +40,16 @@ Next, run the commands of your choice:
 
 * Using a pre-recorded video
     ```bash
-    cd <HOLOHUB_SOURCE_DIR>/applications/ultrasound_segmentation/python
-    python3 ultrasound_segmentation.py --source=replayer --data <DATA_DIR>/ultrasound_segmentation
+      ./holohub run ultrasound_segmentation [--local] \
+        --language=python \
+        --configure-args="-DOP_aja_source:BOOL=ON" \
+        --run-args="--source=replayer --data=<DATA_DIR>/ultrasound_segmentation"
     ```
 
 * Using an AJA card
     ```bash
-    cd <HOLOHUB_SOURCE_DIR>/applications/ultrasound_segmentation/python
-    python3 ultrasound_segmentation.py --source=aja
+    ./holohub run ultrasound_segmentation [--local] \
+      --language=python \
+      --configure-args="-DOP_aja_source:BOOL=ON" \
+      --run-args="--source=aja"
     ```
