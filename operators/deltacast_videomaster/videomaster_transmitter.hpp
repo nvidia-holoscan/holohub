@@ -30,7 +30,7 @@
 namespace holoscan::ops {
 
 /**
- * @brief Operator class to get the video stream from Deltacast capture card.
+ * @brief Operator class to transmit video stream to Deltacast capture card.
  */
 class VideoMasterTransmitterOp : public holoscan::Operator {
  public:
@@ -59,8 +59,8 @@ class VideoMasterTransmitterOp : public holoscan::Operator {
   Parameter<uint32_t> _framerate;
   Parameter<bool> _overlay;
 
-  bool _has_lost_signal;
-  uint64_t _slot_count;
+  bool _has_lost_signal = false;
+  uint64_t _slot_count = 0;
 
   std::unique_ptr<VideoMasterBase> _video_master_base;
 };

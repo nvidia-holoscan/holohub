@@ -383,13 +383,23 @@ void VideoMasterBase::free_buffers() {
          buffer_type_index++) {
       if (_gpu_buffers[slot_index][buffer_type_index] != nullptr) {
         if (_is_igpu) {
-          cudaFreeHost(_gpu_buffers[slot_index][buffer_type_index]);
-          HOLOSCAN_LOG_DEBUG("Freed CUDA host buffer for slot {}, buffer type {}",
-                             slot_index, buffer_type_index);
+          cudaError_t cuda_error = cudaFreeHost(_gpu_buffers[slot_index][buffer_type_index]);
+          if (cuda_error != cudaSuccess) {
+            HOLOSCAN_LOG_ERROR("CUDA host free failed for slot {}, buffer type {}: {}",
+                               slot_index, buffer_type_index, cudaGetErrorString(cuda_error));
+          } else {
+            HOLOSCAN_LOG_DEBUG("Freed CUDA host buffer for slot {}, buffer type {}",
+                               slot_index, buffer_type_index);
+          }
         } else {
-          cudaFree(_gpu_buffers[slot_index][buffer_type_index]);
-          HOLOSCAN_LOG_DEBUG("Freed CUDA device buffer for slot {}, buffer type {}",
-                             slot_index, buffer_type_index);
+          cudaError_t cuda_error = cudaFree(_gpu_buffers[slot_index][buffer_type_index]);
+          if (cuda_error != cudaSuccess) {
+            HOLOSCAN_LOG_ERROR("CUDA device free failed for slot {}, buffer type {}: {}",
+                               slot_index, buffer_type_index, cudaGetErrorString(cuda_error));
+          } else {
+            HOLOSCAN_LOG_DEBUG("Freed CUDA device buffer for slot {}, buffer type {}",
+                               slot_index, buffer_type_index);
+          }
         }
         _gpu_buffers[slot_index][buffer_type_index] = nullptr;
       }

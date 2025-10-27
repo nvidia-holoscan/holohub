@@ -17,7 +17,7 @@
 			"1.0": "Initial Release - Simplified receiver application for video display without AI processing"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "0.5.0",
+			"minimum_required_version": "3.0.0",
 			"tested_versions": [
 				"3.6.0"
 			]
@@ -32,7 +32,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Video", "Deltacast", "Receiver", "Display", "Holoviz", "RDMA", "GPUDirect"],
+		"tags": ["Video", "Deltacast", "Receiver", "Display", "Holoviz", "RDMA", "GPUDirect"],
 		"ranking": 2,
 		"requirements": {},
 		"run": {

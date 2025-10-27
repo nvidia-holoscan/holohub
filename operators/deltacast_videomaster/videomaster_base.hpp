@@ -24,13 +24,15 @@
 #include "holoscan/holoscan.hpp"
 
 #include "VideoMasterHD_Core.h"
-#include "gxf/std/memory_buffer.hpp"
 #include "VideoMasterAPIHelper/handle_manager.hpp"
 #include "VideoMasterAPIHelper/VideoInformation/core.hpp"
 
 #include <chrono>
 #include <thread>
-#define sleep_ms(value) std::this_thread::sleep_for(std::chrono::milliseconds(value))
+
+inline void sleep_ms(uint32_t value) {
+  std::this_thread::sleep_for(std::chrono::milliseconds(value));
+}
 
 namespace holoscan::ops {
 

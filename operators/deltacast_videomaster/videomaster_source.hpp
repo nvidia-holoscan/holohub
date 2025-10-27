@@ -24,16 +24,6 @@
 
 #include "holoscan/holoscan.hpp"
 
-using holoscan::OperatorSpec;
-using holoscan::InputContext;
-using holoscan::OutputContext;
-using holoscan::ExecutionContext;
-using holoscan::Arg;
-using holoscan::ArgList;
-
-#include "holoscan/core/operator.hpp"
-#include "holoscan/core/operator_spec.hpp"
-
 #include "videomaster_base.hpp"
 
 namespace holoscan::ops {
@@ -69,8 +59,8 @@ class VideoMasterSourceOp : public holoscan::Operator {
   Parameter<bool> _progressive;
   Parameter<uint32_t> _framerate;
 
-  bool _has_lost_signal;
-  uint64_t _slot_count;
+  bool _has_lost_signal = false;
+  uint64_t _slot_count = 0;
 
   std::unique_ptr<VideoMasterBase> _video_master_base;
 };
