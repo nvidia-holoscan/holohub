@@ -11,6 +11,7 @@ with open("YOLOv8-TensorRT/export-det.py", "r") as f:
 # Adds `dynamo=False` to the `torch.onnx.export` call to force the legacy
 # TorchScript exporter, as the default Dynamo backend produces incorrect
 # results or fails with YOLOv8 models.
+# Refer to: https://github.com/triple-Mu/YOLOv8-TensorRT/issues/309
 content = re.sub(
     r"(output_names=\['num_dets', 'bboxes', 'scores', 'labels'\])\)",
     r"\1,\n            dynamo=False)",
