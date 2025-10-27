@@ -22,79 +22,102 @@
 namespace holoscan {
 namespace gst {
 
-namespace {
-// Helper function to extract media type from caps (internal use only)
-const char* get_media_type_from_caps(::GstCaps* caps) {
-  if (!caps || gst_caps_is_empty(caps) || gst_caps_get_size(caps) == 0) {
-    return nullptr;
-  }
-
-  ::GstStructure* structure = gst_caps_get_structure(caps, 0);
-  if (!structure) {
-    return nullptr;
-  }
-
-  return gst_structure_get_name(structure);
-}
-}  // namespace
-
 // ============================================================================
 // Caps Implementation - RAII for caps with member functions
 // ============================================================================
 
-Caps::Caps() : caps_(gst_caps_new_empty()) {}
+Caps::Caps(::GstCaps* caps) : caps_(caps) {}
 
-Caps::Caps(::GstCaps* caps) : caps_(caps ? gst_caps_ref(caps) : gst_caps_new_empty()) {}
-
-Caps::Caps(const std::string& caps_string) {
-  caps_ = gst_caps_from_string(caps_string.c_str());
+Caps::Caps(const std::string& caps_string) :
+  caps_(gst_caps_from_string(caps_string.c_str())) {
   if (!caps_) {
     throw std::runtime_error("Invalid caps string: '" + caps_string + "'");
   }
-}
+} 
 
 Caps::~Caps() {
-  gst_caps_unref(caps_);
+  if (caps_)
+    gst_caps_unref(caps_);
 }
 
 Caps::Caps(const Caps& other) : caps_(other.caps_) {
-  gst_caps_ref(caps_);
+  if (caps_)
+    gst_caps_ref(caps_);
 }
 
 Caps& Caps::operator=(const Caps& other) {
   if (this != &other) {
     // Clean up current caps
-    gst_caps_unref(caps_);
+    if (caps_)
+      gst_caps_unref(caps_);
 
     // Copy from other
     caps_ = other.caps_;
-    gst_caps_ref(caps_);
+    if (caps_)
+      gst_caps_ref(caps_);
   }
   return *this;
 }
 
 Caps::Caps(Caps&& other) noexcept : caps_(other.caps_) {
-  other.caps_ = gst_caps_new_empty();
+  other.caps_ = nullptr;
 }
 
 Caps& Caps::operator=(Caps&& other) noexcept {
   if (this != &other) {
     // Clean up current caps
-    gst_caps_unref(caps_);
+    if (caps_)
+      gst_caps_unref(caps_);
 
     // Move from other
     caps_ = other.caps_;
-    other.caps_ = gst_caps_new_empty();
+    other.caps_ = nullptr;
   }
   return *this;
 }
 
-const char* Caps::get_media_type() const {
-  return get_media_type_from_caps(caps_);
+::GstCaps* Caps::get() const {
+  return caps_;
+}
+
+Caps::operator bool() const {
+  return caps_ != nullptr;
+}
+
+::GstCaps* Caps::ref() const {
+  if (caps_) {
+    gst_caps_ref(caps_);
+    return caps_;
+  }
+  return nullptr;
+}
+
+::GstCaps* Caps::release() {
+  auto result = caps_;
+  caps_ = nullptr;
+  return result;
+}
+
+void Caps::reset() {
+  if (caps_) {
+    gst_caps_unref(caps_);
+    caps_ = nullptr;
+  }
+}
+
+const char* Caps::get_structure_name() const {
+  if (caps_ == nullptr || get_size() == 0)
+    return nullptr;
+
+  ::GstStructure* structure = gst_caps_get_structure(caps_, 0);
+  if (!structure)
+    return nullptr;
+
+  return gst_structure_get_name(structure);
 }
 
 std::optional<VideoInfo> Caps::get_video_info() const {
-  const char* media_type = get_media_type_from_caps(caps_);
+  const char* media_type = get_structure_name();
   if (!media_type || !g_str_has_prefix(media_type, "video/")) {
     return std::nullopt; // Not video caps
   }
@@ -103,6 +126,8 @@ std::optional<VideoInfo> Caps::get_video_info() const {
 }
 
 bool Caps::is_empty() const {
+  // Note: GStreamer semantics - nullptr returns FALSE (not empty)
+  // Empty caps is created with gst_caps_new_empty()
   return gst_caps_is_empty(caps_);
 }
 
@@ -111,16 +136,14 @@ guint Caps::get_size() const {
 }
 
 bool Caps::has_feature(const char* feature_name) const {
-  if (!feature_name || is_empty()) {
+  if (!feature_name || caps_ == nullptr || get_size() == 0)
     return false;
-  }
 
-  guint caps_size = gst_caps_get_size(caps_);
-  for (guint i = 0; i < caps_size; i++) {
+  // Check if the caps contain the specified feature
+  for (guint i = 0; i < get_size(); i++) {
     GstCapsFeatures* features = gst_caps_get_features(caps_, i);
-    if (features && gst_caps_features_contains(features, feature_name)) {
+    if (features && gst_caps_features_contains(features, feature_name))
       return true;
-    }
   }
   
   return false;
@@ -129,7 +152,7 @@ bool Caps::has_feature(const char* feature_name) const {
 std::string Caps::to_string() const {
   gchar* caps_str = gst_caps_to_string(caps_);
   if (!caps_str) {
-    return "";
+    return std::string();
   }
   std::string result(caps_str);
   g_free(caps_str);
