@@ -436,3 +436,12 @@ set_property(TEST test_holohub_path_prefix_app_local PROPERTY
 set_property(TEST test_holohub_path_prefix_app_local PROPERTY
     PASS_REGULAR_EXPRESSION "custom_prefix_root"
 )
+
+add_test(  # Test that Python projects automatically get -DHOLOHUB_BUILD_PYTHON=ON flag
+    NAME test_holohub_build_python_auto_flag
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub build volume_rendering --language python --local --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_build_python_auto_flag PROPERTY
+    PASS_REGULAR_EXPRESSION "-DHOLOHUB_BUILD_PYTHON=ON"
+)
