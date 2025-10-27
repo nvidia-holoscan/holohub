@@ -1,6 +1,6 @@
 {
     "application": {
-        "name": "Video Streaming Demo Server Enhanced",
+        "name": "Video Streaming Client Demo",
         "authors": [
             {
                 "name": "Holoscan Team",
@@ -8,9 +8,9 @@
             }
         ],
         "language": "C++",
-        "version": "3.5.0",
+        "version": "1.0.0",
         "changelog": {
-            "3.5.0": "Enhanced video streaming server demo with bidirectional streaming support"
+            "1.0.0": "Initial release of video streaming client with V4L2 and video replay support"
         },
         "holoscan_sdk": {
             "minimum_required_version": "3.5.0",
@@ -25,21 +25,22 @@
         "tags": [
             "Video",
             "Streaming",
-            "Server",
+            "Client",
             "Demo",
-            "Bidirectional"
+            "V4L2",
+            "Replayer"
         ],
         "ranking": 1,
         "requirements": {
             "operators": [
                 {
                     "name": "video_streaming",
-                    "version": "3.5.0"
+                    "version": "1.1.0"
                 }
             ]
         },
         "run": {
-            "command": "<holohub_app_bin>/cpp/streaming_server_demo_enhanced_wrapper.sh",
+            "command": "<holohub_app_bin>/cpp/streaming_client_demo_wrapper.sh",
             "workdir": "holohub_bin"
         }
     }

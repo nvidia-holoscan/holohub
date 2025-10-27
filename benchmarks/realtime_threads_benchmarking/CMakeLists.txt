@@ -13,10 +13,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(RELATIVE_PATH app_relative_dest_path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+cmake_minimum_required(VERSION 3.20)
+project(realtime_thread_benchmarking CXX)
 
-add_custom_target(python_realtime_threads_benchmark ALL
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/realtime_thread_benchmark.py" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "realtime_thread_benchmark.py"
-  BYPRODUCTS "realtime_thread_benchmark.py"
+find_package(holoscan 3.5 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Create the benchmark executable
+add_executable(realtime_thread_benchmark
+  realtime_thread_benchmark.cpp
+)
+
+# Link against Holoscan
+target_link_libraries(realtime_thread_benchmark
+  holoscan::core
+)
+
+# Set C++ standard
+target_compile_features(realtime_thread_benchmark PRIVATE cxx_std_17)
+
+# Copy plotting script to build directory
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plot_results.py
+               ${CMAKE_CURRENT_BINARY_DIR}/plot_results.py
+               COPYONLY)
+
+# Install the executable
+install(TARGETS realtime_thread_benchmark
+  RUNTIME DESTINATION bin
 )
