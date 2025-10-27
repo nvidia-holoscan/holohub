@@ -64,7 +64,7 @@ TEST_F(StreamingClientOpTest, BasicInitialization) {
       holoscan::Arg("server_ip") = std::string("127.0.0.1"),
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,  // Disable for unit testing
-      holoscan::Arg("receive_frames") = false  // Disable for unit testing);
+      holoscan::Arg("receive_frames") = false);  // Disable for unit testing
 
   ASSERT_NE(streaming_client_op_, nullptr);
   EXPECT_EQ(streaming_client_op_->name(), "test_streaming_client");
