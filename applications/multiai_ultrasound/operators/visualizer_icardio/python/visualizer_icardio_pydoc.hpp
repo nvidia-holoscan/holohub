@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,8 +48,6 @@ input_on_cuda : bool, optional
     Boolean indicating whether the input tensors are on the GPU.
 data_dir: string
     Path to the data for the iCardio logo.
-cuda_stream_pool : holoscan.resources.CudaStreamPool, optional
-    CudaStreamPool instance to allocate CUDA streams.
 name : str, optional
     The name of the operator.
 )doc")
