@@ -341,6 +341,8 @@ void StreamingClientOp::setup(holoscan::OperatorSpec& spec) {
              "Minimum number of non-zero bytes required to consider a frame valid "
              "(prevents sending empty frames)",
              100u);
+  spec.param(allocator_, "allocator", "Memory Allocator",
+             "Memory allocator for output buffer allocation");
 
   // Print the parameters for debugging with correct values
   HOLOSCAN_LOG_INFO("StreamingClientOp setup with defaults: width={}, height={}, fps={}, "
