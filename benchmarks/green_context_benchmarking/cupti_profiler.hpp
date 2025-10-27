@@ -18,9 +18,11 @@
 #ifndef CUPTI_PROFILER_HPP
 #define CUPTI_PROFILER_HPP
 
+#include <cstring>
 #include <cupti.h>
-#include <unordered_map>
+#include <iostream>
 #include <mutex>
+#include <unordered_map>
 
 // CUPTI Scheduling Latency Measurement Infrastructure
 namespace cupti_timing {
@@ -244,6 +246,8 @@ class CuptiSchedulingProfiler {
     int timing_kernels_found = 0;
     int matches_found = 0;
 
+    std::lock_guard<std::mutex> lock(data_mutex_);
+
     while (cuptiActivityGetNextRecord(buffer, validSize, &record) == CUPTI_SUCCESS) {
       if (record->kind == CUPTI_ACTIVITY_KIND_CONCURRENT_KERNEL) {
         CUpti_ActivityKernel9* kernelRecord = (CUpti_ActivityKernel9*)record;
@@ -258,7 +262,6 @@ class CuptiSchedulingProfiler {
         if (is_timing_kernel) {
           timing_kernels_found++;
 
-          std::lock_guard<std::mutex> lock(data_mutex_);
           auto it = launch_map_.find(kernelRecord->correlationId);
           if (it != launch_map_.end()) {
             matches_found++;
@@ -285,7 +288,6 @@ class CuptiSchedulingProfiler {
           }
         } else {
           // This was a background kernel, remove from launch_map if present
-          std::lock_guard<std::mutex> lock(data_mutex_);
           auto it = launch_map_.find(kernelRecord->correlationId);
           if (it != launch_map_.end()) {
             launch_map_.erase(it);  // Clean up background kernel launch data

@@ -242,7 +242,8 @@ class DummyLoadOp : public Operator {
     // Launch background load to create GPU contention
     async_run_background_load_kernel(d_load_data_, workload_size, load_intensity,
       threads_per_block, cached_stream_);
-    cudaStreamSynchronize(cached_stream_);
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaStreamSynchronize(cached_stream_),
+                                   "Failed to synchronize background load stream");
   }
 };
 
@@ -312,7 +313,8 @@ class TimingBenchmarkOp : public Operator {
     // Launch kernel - CUPTI will capture launch and execution timestamps
     async_run_simple_benchmark_kernel(d_benchmark_data_, workload_size_.get(),
                                        threads_per_block_, cached_stream_);
-    cudaStreamSynchronize(cached_stream_);
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaStreamSynchronize(cached_stream_),
+                                   "Failed to synchronize timing stream");
 
     double cuda_kernel_launch_start_time = -1.0;
     double cuda_kernel_execution_time = -1.0;
@@ -438,7 +440,8 @@ class GreenContextBenchmarkApp : public holoscan::Application {
       try {
         // Check GPU properties first
         cudaDeviceProp prop;
-        cudaGetDeviceProperties(&prop, 0);
+        HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDeviceProperties(&prop, 0),
+                                       "Failed to get device properties");
         HOLOSCAN_LOG_INFO("GPU: {}, SMs: {}, Compute: {}.{}", prop.name, prop.multiProcessorCount,
           prop.major, prop.minor);
 

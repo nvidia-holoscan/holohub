@@ -22,9 +22,6 @@ find_package(holoscan 3.6 REQUIRED CONFIG
 # Find CUDA and CUPTI
 find_package(CUDAToolkit REQUIRED)
 
-# Enable CUDA language
-enable_language(CUDA)
-
 add_executable(green_context_benchmarking
     green_context_benchmark.cpp
     benchmark_cuda_kernel.cu
