@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,14 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 ############################################################
 # Base image
 ############################################################
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
 FROM ${BASE_IMAGE}
 
-# Install system dependencies
+# Install system dependencies including updated OpenSSL and testing tools
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libcairo2-dev \
@@ -27,17 +27,42 @@ RUN apt-get update && apt-get install -y \
     gir1.2-girepository-2.0 \
     gobject-introspection \
     python3-gi \
+    libopencv-dev \
     ffmpeg \
     wget \
     unzip \
+    software-properties-common \
+    xvfb \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# OpenCV removed - now optional in CMake configuration
+# Install build dependencies for OpenSSL
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    ca-certificates \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and install OpenSSL 3.4.0 to match bundled library requirements
+RUN cd /tmp && \
+    wget https://github.com/openssl/openssl/releases/download/openssl-3.4.0/openssl-3.4.0.tar.gz && \
+    tar -xzf openssl-3.4.0.tar.gz && \
+    cd openssl-3.4.0 && \
+    ./Configure --prefix=/usr/local/ssl --openssldir=/usr/local/ssl shared zlib && \
+    make -j$(nproc) && \
+    make install && \
+    echo "/usr/local/ssl/lib64" > /etc/ld.so.conf.d/openssl.conf && \
+    ldconfig && \
+    cd / && rm -rf /tmp/openssl-3.4.0*
+
+# Set library path for OpenSSL
+ENV LD_LIBRARY_PATH="/usr/local/ssl/lib64:${LD_LIBRARY_PATH}"
+ENV PKG_CONFIG_PATH="/usr/local/ssl/lib64/pkgconfig:${PKG_CONFIG_PATH}"
 
 # Install NGC CLI following official instructions
 WORKDIR /tmp/ngc-install
-RUN wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.151.0/files/ngccli_linux.zip -O ngccli_linux.zip && \
+RUN wget --no-check-certificate --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.151.0/files/ngccli_linux.zip -O ngccli_linux.zip && \
     unzip ngccli_linux.zip && \
     # Verify SHA256
     echo "834aeebcdfee2f6db61744dbae5f976c4e3a7a4a9aa99d23dd1ed2928a2abd60 ngccli_linux.zip" | sha256sum --check && \
@@ -53,18 +78,15 @@ RUN wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ng
 # Add NGC to PATH
 ENV PATH="/usr/local/ngc/ngc-cli:${PATH}"
 
-# Enable autocomplete
-RUN echo "source /etc/bash_completion" >> ~/.bashrc
+# Setup holohub run environment
+ENV PYTHONPATH=/opt/nvidia/holoscan/python/lib:${PYTHONPATH}
 
-# Install Python packages
-RUN python3 -m pip install --no-cache-dir setuptools && \
-    python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
+WORKDIR /workspace/holohub
 
-# Set CMake build type for docker build time only
-ARG CMAKE_BUILD_TYPE=Release
+# Create workspace directories
+RUN mkdir -p /workspace/holohub/applications/video_streaming
 
-# Create workspace directories and copy application files
-RUN mkdir -p /workspace/holohub/applications/video_streaming/video_streaming_client
+# Copy the rest of the application files
 COPY . /workspace/holohub/
 
 # Create data directory
@@ -75,9 +97,7 @@ WORKDIR /workspace/holohub
 
 # Set environment variables
 ENV HOLOSCAN_INPUT_PATH=/workspace/data/endoscopy
-
-# Enable autocomplete
-RUN echo "source /etc/bash_completion" >> ~/.bashrc
+ENV EnableHybridMode=1
 
 # Default command
 CMD ["/bin/bash"]
