@@ -1457,6 +1457,7 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
                 f"libnvinfer-dispatch10={installed_libnvinferversion}",
                 f"libnvonnxparsers10={installed_libnvinferversion}",
             ],
+            apt_options=["--no-install-recommends", "-y", "--allow-downgrades"],
             dry_run=dry_run,
         )
 

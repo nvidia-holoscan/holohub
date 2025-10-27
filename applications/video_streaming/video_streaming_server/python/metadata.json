@@ -1,37 +1,48 @@
 {
-    "application": {
-        "name": "Video Streaming Server",
-        "authors": [
-            {
-                "name": "Holoscan Team",
-                "affiliation": "NVIDIA"
-            }
-        ],
-        "language": "Python",
-        "version": "1.0",
-        "changelog": {
-            "1.0": "Initial Release"
-        },
-        "holoscan_sdk": {
-            "minimum_required_version": "3.2.0",
-            "tested_versions": [
-                "3.2.0"
-            ]
-        },
-        "platforms": [
-            "x86_64",
-            "aarch64"
-        ],
-        "tags": [
-            "Streaming",
-            "Server",
-            "Demo"
-        ],
-        "ranking": 1,
-        "requirements": {},
-        "run": {
-            "command": "python3 streaming_server_demo.py",
-            "workdir": "holohub_bin"
+  "application": {
+    "name": "Video Streaming Server Demo (Python)",
+    "description": "Python implementation of video streaming server using Holoscan SDK streaming operators",
+    "authors": [
+      {
+        "name": "Holoscan Team",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "language": "python",
+    "version": "1.0.0",
+    "changelog": {
+      "1.0.0": "Initial release of Python video streaming server"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "3.5.0",
+      "tested_versions": [
+        "3.5.0"
+      ]
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": [
+      "Streaming",
+      "Video",
+      "Server",
+      "Python",
+      "Real-time",
+      "Bidirectional"
+    ],
+    "ranking": 1,
+    "requirements": {
+      "operators": [
+        {
+          "name": "video_streaming",
+          "version": "1.1.0"
         }
+      ]
+    },
+    "run": {
+      "command": "python3 streaming_server_demo.py",
+      "workdir": "holohub_bin"
     }
-} 
+  }
+}
