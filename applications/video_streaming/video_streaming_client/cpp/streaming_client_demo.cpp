@@ -27,8 +27,10 @@
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
+#include "holoscan/data_loggers/basic_console_logger/basic_console_logger.hpp"
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
+#include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
 
 #include "streaming_client.hpp"
 
@@ -80,10 +82,14 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  reconnect_attempts: 3\n";
   out_file << "  buffer_size: 10\n\n";
 
-  out_file << "# Visualization options\n";
-  out_file << "visualize_frames: true\n\n";
+  out_file << "# Source configuration: \"replayer\" for video file playback, "
+              "\"v4l2\" for camera capture\n";
+  out_file << "source: \"replayer\"\n\n";
 
-  out_file << "# HoloViz configuration (used only if visualize_frames is true)\n";
+  out_file << "# Visualization options\n";
+  out_file << "visualize_frames: false\n\n";  // Changed from true to false
+
+  out_file << "# Holoviz configuration (used only if visualize_frames is true)\n";
   out_file << "holoviz:\n";
   out_file << "  # Window size and title\n";
   out_file << "  width: 854\n";
@@ -101,6 +107,16 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  repeat: true\n";
   out_file << "  realtime: true\n";
   out_file << "  count: 0\n\n";
+
+  out_file << "# V4L2 camera configuration\n";
+  out_file << "v4l2_source:\n";
+  out_file << "  device: \"/dev/video0\"\n";
+  out_file << "  width: 854\n";
+  out_file << "  height: 480\n";
+  out_file << "  frame_rate: 30\n";
+  out_file << "  pixel_format: \"auto\"\n";
+  out_file << "  # Optional: exposure_time: 100  # in multiples of 100μs\n";
+  out_file << "  # Optional: gain: 10\n\n";
 
   out_file << "# Scheduler configuration (optional)\n";
   out_file << "scheduler: \"default\"\n";
@@ -120,10 +136,19 @@ class StreamingClientTestApp : public holoscan::Application {
   void set_receive_frames(bool receive_frames) { receive_frames_ = receive_frames; }
   void set_send_frames(bool send_frames) { send_frames_ = send_frames; }
   void set_visualize_frames(bool visualize_frames) { visualize_frames_ = visualize_frames; }
+  void set_source(const std::string& source) { source_ = source; }
   void set_datapath(const std::string& datapath) { datapath_ = datapath; }
 
   void compose() override {
     using namespace holoscan;
+
+    // Read source configuration parameter
+    try {
+      source_ = from_config("source").as<std::string>();
+      HOLOSCAN_LOG_INFO("Source set to: {}", source_);
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_WARN("Could not read 'source' from config, using default: {}", source_);
+    }
 
     auto allocator = make_resource<UnboundedAllocator>("allocator");
 
@@ -143,9 +168,8 @@ class StreamingClientTestApp : public holoscan::Application {
         data_path = "data";
         HOLOSCAN_LOG_INFO("Using local data path: {}", data_path);
       } else {
-        HOLOSCAN_LOG_ERROR(
-            "No valid data directory found! Please set HOLOSCAN_INPUT_PATH or provide a "
-            "valid data directory.");
+        HOLOSCAN_LOG_ERROR("No valid data directory found! Please set HOLOSCAN_INPUT_PATH "
+                           "or provide a valid data directory.");
         return;
       }
     }
@@ -154,15 +178,31 @@ class StreamingClientTestApp : public holoscan::Application {
     std::string full_video_path = data_path + "/surgical_video";
     HOLOSCAN_LOG_INFO("Attempting to load video from: {}", full_video_path);
 
-    // Fixed memory pool sizing for uint8 BGR data
-    uint64_t source_block_size = width_ * height_ * 3;  // 3 channels for BGR
+    // Fixed memory pool sizing - V4L2 outputs RGBA (4 channels), replayer outputs BGR (3 channels)
+    uint64_t source_block_size;
+    if (source_ == "v4l2") {
+      source_block_size = width_ * height_ * 4;  // 4 channels for RGBA from V4L2
+    } else {
+      source_block_size = width_ * height_ * 3;  // 3 channels for BGR from replayer
+    }
     uint64_t source_num_blocks = 4;  // Keep multiple blocks for pipeline stability
 
-    auto source = make_operator<ops::VideoStreamReplayerOp>(
-        "replayer",
-        from_config("replayer"),
-        Arg("directory", data_path),  // Use the resolved data_path
-        Arg("count", static_cast<int64_t>(0)));
+    // Create source operator based on configuration
+    std::shared_ptr<holoscan::Operator> source;
+    if (source_ == "v4l2") {
+      HOLOSCAN_LOG_INFO("Using V4L2 camera as source");
+      source = make_operator<ops::V4L2VideoCaptureOp>(
+          "v4l2_source",
+          from_config("v4l2_source"),
+          Arg("allocator", allocator));
+    } else {
+      HOLOSCAN_LOG_INFO("Using video replayer as source");
+      source = make_operator<ops::VideoStreamReplayerOp>(
+          "replayer",
+          from_config("replayer"),
+          Arg("directory", data_path),  // Use the resolved data_path
+          Arg("count", static_cast<int64_t>(0)));
+    }
 
     const std::shared_ptr<CudaStreamPool> cuda_stream_pool =
         make_resource<CudaStreamPool>("cuda_stream", 0, 0, 0, 1, 5);
@@ -182,9 +222,15 @@ class StreamingClientTestApp : public holoscan::Application {
         Arg("server_ip", server_ip_),
         Arg("signaling_port", signaling_port_),
         Arg("receive_frames", receive_frames_),
-        Arg("send_frames", send_frames_));
+        Arg("send_frames", send_frames_),
+        Arg("min_non_zero_bytes", static_cast<uint32_t>(10)));  // Reduced from 100
 
-    add_flow(source, format_converter, {{"output", "source_video"}});
+    // Connect source to format converter - V4L2 outputs "signal", replayer outputs "output"
+    if (source_ == "v4l2") {
+      add_flow(source, format_converter, {{"signal", "source_video"}});
+    } else {
+      add_flow(source, format_converter, {{"output", "source_video"}});
+    }
     add_flow(format_converter, streaming_client);
 
     if (visualize_frames_) {
@@ -196,13 +242,13 @@ class StreamingClientTestApp : public holoscan::Application {
             Arg("allocator", allocator),
             Arg("cuda_stream_pool", cuda_stream_pool));
 
-        add_flow(streaming_client, holoviz, {{"output", "render"}});
+        add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
     }
   }
 
  private:
   // Default parameters (will be overridden from config if available)
-  uint32_t width_ = 854;
+  uint32_t width_ = 640;  // 854 for replayer
   uint32_t height_ = 480;
   uint32_t fps_ = 30;
   std::string server_ip_ = "127.0.0.1";
@@ -225,16 +271,15 @@ void print_usage() {
   std::cout << "Usage: streaming_client_demo [options]\n"
             << "  -h, --help                Show this help message\n"
             << "  -c, --config <file>        Configuration file path "
-            << "(default: streaming_client_demo.yaml)\n"
+               "(default: streaming_client_demo.yaml)\n"
             << "  -d, --data <directory>     Data directory (default: environment "
-            << "variable HOLOSCAN_INPUT_PATH or current directory)\n"
+               "variable HOLOSCAN_INPUT_PATH or current directory)\n"
             << std::endl;
 }
 
 // Helper function to safely get config values with defaults
 template<typename T>
-T get_config_value(holoscan::Application* app, const std::string& key,
-                   const T& default_value) {
+T get_config_value(holoscan::Application* app, const std::string& key, const T& default_value) {
   try {
     return app->from_config(key).as<T>();
   } catch (const std::exception& e) {
@@ -246,14 +291,12 @@ T get_config_value(holoscan::Application* app, const std::string& key,
 
 // Specialization for std::string to avoid printing issues
 template<>
-std::string get_config_value<std::string>(holoscan::Application* app,
-                                           const std::string& key,
-                                           const std::string& default_value) {
+std::string get_config_value<std::string>(holoscan::Application* app, const std::string& key,
+                                          const std::string& default_value) {
   try {
     return app->from_config(key).as<std::string>();
   } catch (const std::exception& e) {
-    std::cerr << "Warning: Failed to read config value '" << key << "': " << e.what()
-              << std::endl;
+    std::cerr << "Warning: Failed to read config value '" << key << "': " << e.what() << std::endl;
     std::cerr << "Using default value: " << default_value << std::endl;
     return default_value;
   }
@@ -319,15 +362,14 @@ int main(int argc, char** argv) {
                     << std::endl;
           break;
         } else {
-          std::cout << "Directory exists but no video file found at: " << video_path
-                    << std::endl;
+          std::cout << "Directory exists but no video file found at: " << video_path << std::endl;
         }
       }
     }
 
     if (data_directory.empty()) {
-      std::cerr << "ERROR: Could not find surgical_video.gxf_index in any of the "
-                << "standard locations." << std::endl;
+      std::cerr << "ERROR: Could not find surgical_video.gxf_index in any of the standard "
+                   "locations." << std::endl;
       std::cerr << "Please ensure the video file is present in one of these locations:"
                 << std::endl;
       for (const auto& path : possible_paths) {
@@ -382,16 +424,14 @@ int main(int argc, char** argv) {
     std::cerr << "Will continue with default values" << std::endl;
   }
 
-  // Load parameters from config with safe defaults
-  uint32_t width = get_config_value(app.get(), "streaming_client.width", 854U);
+  // Load parameters from config with safe defaults (640x480 for V4L2 compatibility)
+  uint32_t width = get_config_value(app.get(), "streaming_client.width", 640U);
   uint32_t height = get_config_value(app.get(), "streaming_client.height", 480U);
   uint32_t fps = get_config_value(app.get(), "streaming_client.fps", 30U);
   std::string server_ip = get_config_value(app.get(), "streaming_client.server_ip",
                                            std::string("127.0.0.1"));
-  uint16_t signaling_port = get_config_value(app.get(),
-                                             "streaming_client.signaling_port", 48010);
-  bool receive_frames = get_config_value(app.get(), "streaming_client.receive_frames",
-                                         true);
+  uint16_t signaling_port = get_config_value(app.get(), "streaming_client.signaling_port", 48010);
+  bool receive_frames = get_config_value(app.get(), "streaming_client.receive_frames", true);
   bool send_frames = get_config_value(app.get(), "streaming_client.send_frames", true);
   bool visualize_frames = get_config_value(app.get(), "visualize_frames", true);
 
@@ -442,6 +482,24 @@ int main(int argc, char** argv) {
   if (tracking) {
     std::cout << "Enabling data flow tracking" << std::endl;
     tracker = &app->track(0, 0, 0);
+  }
+
+  // enable logging of message contents to console if requested
+  auto enable_data_logging = get_config_value(app.get(), "data_logging", false);
+  if (enable_data_logging) {
+    HOLOSCAN_LOG_INFO("Enabled data logging");
+    // custom text serializer to limit the number of data elements printed for each tensor
+    auto text_serializer = app->make_resource<holoscan::data_loggers::SimpleTextSerializer>(
+        "simple_text_serializer", app->from_config("simple_text_serializer"));
+
+    // configure the console logger to use the custom text serializer
+    auto console_logger = app->make_resource<holoscan::data_loggers::BasicConsoleLogger>(
+        "console_logger",
+        holoscan::Arg("serializer", text_serializer),
+        app->from_config("basic_console_logger"));
+
+    // add the console logger to the application
+    app->add_data_logger(console_logger);
   }
 
   // Run the application

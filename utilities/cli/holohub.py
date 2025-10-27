@@ -962,6 +962,13 @@ class HoloHubCLI:
         # Add optional operators if specified
         if with_operators:
             cmake_args.append(f'-DHOLOHUB_BUILD_OPERATORS="{with_operators}"')
+
+        normalized_language = holohub_cli_util.normalize_language(
+            project_data.get("metadata", {}).get("language", None)
+        )
+        if normalized_language == "python":
+            cmake_args.append("-DHOLOHUB_BUILD_PYTHON=ON")
+
         if configure_args:
             cmake_args.extend(configure_args)
 

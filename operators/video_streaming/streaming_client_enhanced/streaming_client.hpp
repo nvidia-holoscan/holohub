@@ -106,6 +106,7 @@ class StreamingClientOp : public holoscan::Operator {
    * while higher values ensure more substantial frame content before transmission.
    */
   Parameter<uint32_t> min_non_zero_bytes_;
+  Parameter<std::shared_ptr<Allocator>> allocator_;  ///< Memory allocator for output buffers
 
   // Streaming client
   std::unique_ptr<StreamingClient> client_;

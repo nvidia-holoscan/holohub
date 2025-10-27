@@ -27,16 +27,32 @@ streaming_server:
   width: 854
   height: 480
   fps: 30
-  
+
   # Server connection settings
   port: 48010
   multi_instance: false
   server_name: "StreamingServerTest"
-  
+
   # Operation mode - Bidirectional streaming (receive from client, send back)
   receive_frames: true
   send_frames: true
   allocator: !ref "allocator"
+
+# Upstream operator configuration (receives frames from clients)
+# Note: width, height, fps are inherited from streaming_server resource
+# Uncomment below to override resource defaults per-operator
+upstream_op: {}
+  # width: 854
+  # height: 480
+  # fps: 30
+
+# Downstream operator configuration (sends frames to clients)
+# Note: width, height, fps are inherited from streaming_server resource
+# Uncomment below to override resource defaults per-operator
+downstream_op: {}
+  # width: 854
+  # height: 480
+  # fps: 30
 
 # Memory allocator configuration
 allocator:
@@ -61,4 +77,5 @@ greedy_scheduler:
 tracking: false
 
 # Logging configuration
-log_level: "INFO" 
+log_level: "INFO"
+
