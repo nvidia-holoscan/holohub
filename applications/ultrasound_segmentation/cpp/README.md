@@ -27,6 +27,6 @@ Please refer to the top level Holohub README.md for more information about the H
 
 ```bash
 ./holohub run ultrasound_segmentation --language=cpp [--local] \
-    --build-args="-DOP_aja_source:BOOL=ON" \
+    --configure-args="-DOP_aja_source:BOOL=ON" \
     --run-args="--source=aja"
 ```
