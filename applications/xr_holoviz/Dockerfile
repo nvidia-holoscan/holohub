@@ -27,13 +27,15 @@ RUN wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list \
 RUN apt update \
     && apt install --no-install-recommends -y \
         vulkan-icd \
-        vulkan-sdk 
+        vulkan-sdk \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install OpenXR SDK Dependencies.
 RUN apt update \
     && apt install --no-install-recommends -y \
         build-essential \
-        cmake \
+        cmake=3.31.* \
+        cmake-data=3.31.* \
         libeigen3-dev \
         libgl1-mesa-dev \
         libvulkan-dev \
@@ -49,7 +51,9 @@ RUN apt update \
         mesa-common-dev \
         libopenxr-loader1 \
         libopenxr-dev \
-        libopenxr1-monado
+        libopenxr1-monado \
+        clang-format \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install specific version of markupsafe for OpenXR build
 RUN pip install markupsafe==2.0.1
