@@ -99,15 +99,6 @@ Total Test time (real) =   0.13 sec
 
 ✅ **All 31 tests pass successfully in ~0.13 seconds!**
 
-### Run Specific Test Suites
-```bash
-# Client tests only (13 tests)
-ctest -R streaming_client_op_unit_tests -V
-
-# Server tests only (18 tests across 3 suites)
-ctest -R streaming_server_ops_unit_tests -V
-```
-
 ## Test Categories
 
 ### 1. Initialization Tests
