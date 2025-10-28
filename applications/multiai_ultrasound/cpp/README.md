@@ -22,28 +22,27 @@ The provided applications are configured to either use the AJA capture card for 
 The data is automatically downloaded and converted to the correct format when building the application.
 If you want to manually convert the video data, please refer to the instructions for using the [convert_video_to_gxf_entities](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy) script.
 
-### Build Instructions
+### Build and Run Instructions
 
-Please refer to the top level Holohub README.md file for information on how to build this application.
+Please refer to the top level Holohub README.md file for more information on the HoloHub CLI
 
-### Run Instructions
+### Pre-Recorded Video Replay
 
-In your `build` directory, run the commands of your choice:
+```bash
+sed -i -e 's#^source:.*#source: replayer#' applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
+./holohub run multiai_ultrasound --language=cpp [--local]
+```
 
-* Using a pre-recorded video
-    ```bash
-    sed -i -e 's#^source:.*#source: replayer#' applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
-    applications/multiai_ultrasound/cpp/multiai_ultrasound --data <DATA_DIR>/multiai_ultrasound
-    ```
+### Using a pre-recorded video on multi-GPU system
+```bash
+sed -i -e 's#^source:.*#source: replayer#' applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml
+./holohub run multiai_ultrasound --language=cpp [--local] \
+    --run-args="--config applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml"
+```
 
-* Using a pre-recorded video on multi-GPU system
-    ```bash
-    sed -i -e 's#^source:.*#source: replayer#' applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml
-    applications/multiai_ultrasound/cpp/multiai_ultrasound applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml --data <DATA_DIR>/multiai_ultrasound
-    ```
-
-* Using an AJA card
-    ```bash
-    sed -i -e 's#^source:.*#source: aja#' applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
-    applications/multiai_ultrasound/cpp/multiai_ultrasound
-    ```
+### Using an AJA capture card
+```bash
+sed -i -e 's#^source:.*#source: aja#' applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
+./holohub run multiai_ultrasound --language=cpp [--local] \
+    --configure-args="-DOP_aja_source:BOOL=ON"
+```
