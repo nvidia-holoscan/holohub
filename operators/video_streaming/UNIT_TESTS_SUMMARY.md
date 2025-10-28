@@ -71,7 +71,7 @@ operators/video_streaming/
 ### Run All Unit Tests
 ```bash
 # Run all unit tests
-./holohub test video_streaming --ctest-options="-R unit_tests -V"
+./holohub test video_streaming --ctest-options="-R unit_tests -VV"
 ```
 
 **Note:** `./holohub test` automatically builds the operator with `-DBUILD_TESTING=ON`, so no separate build step is needed.
