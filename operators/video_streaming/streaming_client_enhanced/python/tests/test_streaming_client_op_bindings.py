@@ -44,7 +44,7 @@ class TestStreamingClientOpBinding:
         custom_name = "my_streaming_client"
         op = operator_factory(name=custom_name)
         assert op is not None
-        assert op.name() == custom_name
+        assert op.name == custom_name
 
     @pytest.mark.parametrize("width,height,fps", [
         (640, 480, 30),
@@ -209,9 +209,9 @@ class TestStreamingClientOpBinding:
         
         assert op1 is not None
         assert op2 is not None
-        assert op1.name() == "client1"
-        assert op2.name() == "client2"
-        assert op1.name() != op2.name()
+        assert op1.name == "client1"
+        assert op2.name == "client2"
+        assert op1.name != op2.name
 
 
 class TestStreamingClientOpIntegration:
@@ -252,5 +252,5 @@ class TestStreamingClientOpIntegration:
             receive_frames=False
         )
         assert op is not None
-        assert op.name() == "fragment_client"
+        assert op.name == "fragment_client"
 

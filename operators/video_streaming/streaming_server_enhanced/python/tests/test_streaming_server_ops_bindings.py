@@ -43,7 +43,7 @@ class TestStreamingServerResourceBinding:
         custom_name = "my_server_resource"
         resource = resource_factory(name=custom_name)
         assert resource is not None
-        assert resource.name() == custom_name
+        assert resource.name == custom_name
 
     @pytest.mark.parametrize("width,height,fps", [
         (640, 480, 30),
@@ -121,8 +121,8 @@ class TestStreamingServerResourceBinding:
         
         assert resource1 is not None
         assert resource2 is not None
-        assert resource1.name() == "server1"
-        assert resource2.name() == "server2"
+        assert resource1.name == "server1"
+        assert resource2.name == "server2"
 
 
 class TestStreamingServerUpstreamOpBinding:
@@ -139,7 +139,7 @@ class TestStreamingServerUpstreamOpBinding:
         custom_name = "my_upstream_op"
         op = upstream_operator_factory(name=custom_name, resource=default_resource)
         assert op is not None
-        assert op.name() == custom_name
+        assert op.name == custom_name
 
     def test_operator_with_custom_resource(self, upstream_operator_factory, resource_factory):
         """Test operator creation with custom resource configuration."""
@@ -175,8 +175,8 @@ class TestStreamingServerUpstreamOpBinding:
         
         assert op1 is not None
         assert op2 is not None
-        assert op1.name() == "upstream1"
-        assert op2.name() == "upstream2"
+        assert op1.name == "upstream1"
+        assert op2.name == "upstream2"
         assert op1 is not op2
 
 
@@ -194,7 +194,7 @@ class TestStreamingServerDownstreamOpBinding:
         custom_name = "my_downstream_op"
         op = downstream_operator_factory(name=custom_name, resource=default_resource)
         assert op is not None
-        assert op.name() == custom_name
+        assert op.name == custom_name
 
     def test_operator_with_custom_resource(self, downstream_operator_factory, resource_factory):
         """Test operator creation with custom resource configuration."""
@@ -230,8 +230,8 @@ class TestStreamingServerDownstreamOpBinding:
         
         assert op1 is not None
         assert op2 is not None
-        assert op1.name() == "downstream1"
-        assert op2.name() == "downstream2"
+        assert op1.name == "downstream1"
+        assert op2.name == "downstream2"
         assert op1 is not op2
 
 
@@ -258,8 +258,8 @@ class TestStreamingServerIntegration:
         
         assert upstream_op is not None
         assert downstream_op is not None
-        assert upstream_op.name() == "upstream"
-        assert downstream_op.name() == "downstream"
+        assert upstream_op.name == "upstream"
+        assert downstream_op.name == "downstream"
 
     def test_multiple_servers_different_ports(
         self,
