@@ -71,33 +71,15 @@ Tests focus on:
 
 ## Building and Running Tests
 
-### Option 1: Via HoloHub Build System
+### Option 1: Via HoloHub Test 
 
 ```bash
 # From holohub root directory
-./holohub build video_streaming --cmake-options='-DBUILD_TESTING=ON'
-
-# Run tests
-./holohub test video_streaming --ctest-options="-R streaming_server_ops_unit_tests"
+# ./holohub test automatically builds with -DBUILD_TESTING=ON
+./holohub test video_streaming --ctest-options="-R streaming_server_ops_unit_tests -V"
 ```
 
-### Option 2: Via CMake/CTest Directly
-
-```bash
-# From holohub root directory
-cd build
-
-# Configure with testing enabled
-cmake .. -DBUILD_TESTING=ON
-
-# Build
-make test_streaming_server_ops
-
-# Run tests
-ctest -R streaming_server_ops_unit_tests -V
-```
-
-### Option 3: Run Test Executable Directly
+### Option 2: Run Test Executable Directly
 
 ```bash
 # From holohub root directory

@@ -53,29 +53,11 @@ The unit tests verify the correct behavior of the StreamingClientOp operator in 
 
 ```bash
 # From holohub root directory
-./holohub build video_streaming --cmake-options='-DBUILD_TESTING=ON'
-
-# Run tests
-./holohub test video_streaming --ctest-options="-R streaming_client_op_unit_tests"
+# ./holohub test automatically builds with -DBUILD_TESTING=ON
+./holohub test video_streaming --ctest-options="-R streaming_client_op_unit_tests -V"
 ```
 
-### Option 2: Via CMake/CTest Directly
-
-```bash
-# From holohub root directory
-cd build
-
-# Configure with testing enabled
-cmake .. -DBUILD_TESTING=ON
-
-# Build
-make test_streaming_client_op
-
-# Run tests
-ctest -R streaming_client_op_unit_tests -V
-```
-
-### Option 3: Run Test Executable Directly
+### Option 2: Run Test Executable Directly
 
 ```bash
 # From holohub root directory
@@ -175,20 +157,6 @@ gdb --args ./test_streaming_client_op --gtest_filter=StreamingClientOpTest.Basic
 
 ⚠️ **Integration Tests**: For end-to-end testing with actual streaming, see the integration tests in `applications/video_streaming/TESTING.md`.
 
-## Differences from PR #1134
-
-**Current Implementation** (This Branch):
-- ✅ **C++ Unit Tests**: Full GTest-based unit tests
-- ✅ **Integrated with Build System**: Tests automatically built with `-DBUILD_TESTING=ON`
-- ✅ **CTest Integration**: Run via `ctest` or `./holohub test`
-- ✅ **Comprehensive Coverage**: 16+ tests covering initialization, parameters, setup, edge cases
-- ✅ **Well-Documented**: README with examples and troubleshooting
-
-**PR #1134 Implementation**:
-- ✅ Had C++ unit tests with similar structure
-- ✅ Had pytest tests for Python bindings
-- ❌ Tests were later removed (commit `173b6ee0`)
-- ℹ️ Focused more on Python binding validation
 
 **Key Improvements**:
 1. Tests focus on operator functionality, not just binding validation
