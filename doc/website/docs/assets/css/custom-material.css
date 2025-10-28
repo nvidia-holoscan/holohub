@@ -226,3 +226,277 @@
   background-color: var(--md-default-bg-color);
   color: var(--md-default-fg-color);
 }
+
+/* Run Locally Button */
+.run-locally-button {
+  display: inline-block;
+  background-color: var(--md-accent-fg-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4em 0.9em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  margin: 0;
+  font-family: var(--md-text-font);
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  float: right;
+  clear: right;
+}
+
+.run-locally-button:hover {
+  background-color: var(--md-primary-fg-color--dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.run-locally-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal/Popup for Run Locally Command */
+.run-locally-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.run-locally-modal-content {
+  background-color: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 8px;
+  margin: 10% auto;
+  padding: 2em;
+  width: 90%;
+  max-width: 650px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.run-locally-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5em;
+}
+
+.run-locally-modal-header h3 {
+  margin: 0;
+  color: var(--md-default-fg-color);
+  font-size: 1.3rem;
+}
+
+.run-locally-close {
+  color: var(--md-default-fg-color--light);
+  font-size: 2em;
+  font-weight: 300;
+  line-height: 0.8;
+  cursor: pointer;
+  transition: color 0.2s;
+  border: none;
+  background: none;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.run-locally-close:hover,
+.run-locally-close:focus {
+  color: var(--md-accent-fg-color);
+}
+
+.run-locally-copy-all-btn {
+  background-color: var(--md-accent-fg-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5em 1em;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: var(--md-text-font);
+  margin-bottom: 1em;
+  display: block;
+  width: 100%;
+}
+
+.run-locally-copy-all-btn:hover {
+  background-color: var(--md-primary-fg-color--dark);
+}
+
+.run-locally-copy-all-btn.copied {
+  background-color: #4caf50;
+}
+
+.run-locally-commands-section {
+  margin-bottom: 1em;
+}
+
+.run-locally-command-container {
+  background-color: var(--md-code-bg-color);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 6px;
+  padding: 1em;
+  margin-bottom: 1em;
+  position: relative;
+}
+
+.run-locally-command-container:last-child {
+  margin-bottom: 0;
+}
+
+.run-locally-command-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--md-default-fg-color);
+  margin-bottom: 0.5em;
+  font-family: var(--md-text-font);
+}
+
+.run-locally-command {
+  font-family: var(--md-code-font);
+  font-size: 0.7rem;
+  color: var(--md-code-fg-color);
+  word-wrap: break-word;
+  word-break: break-all;
+  white-space: pre-wrap;
+  margin: 0;
+  padding-right: 3.5em;
+  line-height: 1.5;
+}
+
+/* Larger screens: make font even smaller for better fit */
+@media (min-width: 1024px) {
+  .run-locally-command {
+    font-size: 0.65rem;
+  }
+}
+
+.copy-icon {
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.3em;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.run-locally-copy-btn,
+.run-locally-copy-all-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3em;
+}
+
+.run-locally-copy-btn {
+  position: absolute;
+  top: 2.5em;
+  right: 0.8em;
+  background-color: var(--md-accent-fg-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.35em 0.7em;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: var(--md-text-font);
+}
+
+.run-locally-copy-btn:hover {
+  background-color: var(--md-primary-fg-color--dark);
+}
+
+.run-locally-copy-btn.copied {
+  background-color: #4caf50;
+}
+
+.run-locally-description {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.75rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .run-locally-button {
+    float: none;
+    display: block;
+    width: 100%;
+    margin: 1em 0;
+    text-align: center;
+  }
+
+  .run-locally-modal-content {
+    width: 95%;
+    padding: 1.5em;
+    margin: 20% auto;
+  }
+
+  .run-locally-command {
+    font-size: 0.65rem;
+    padding-right: 0;
+  }
+  
+  .run-locally-description {
+    font-size: 0.7rem;
+  }
+
+  .run-locally-copy-btn {
+    position: static;
+    display: inline-flex;
+    margin-top: 0.8em;
+    width: 100%;
+    font-size: 0.75rem;
+  }
+  
+  .run-locally-copy-all-btn {
+    font-size: 0.8rem;
+  }
+  
+  .run-locally-command-label {
+    font-size: 0.75rem;
+  }
+  
+  .copy-icon {
+    width: 0.85em;
+    height: 0.85em;
+  }
+}
