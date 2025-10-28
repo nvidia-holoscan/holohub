@@ -42,10 +42,16 @@ def holoscan_modules():
 def streaming_client_module():
     """Import the streaming_client_enhanced Python module."""
     try:
-        # Add the build directory to path if needed
-        build_path = os.path.join(os.path.dirname(__file__), '../../build')
-        if os.path.exists(build_path) and build_path not in sys.path:
-            sys.path.insert(0, build_path)
+        # Try multiple possible paths for the Python module
+        possible_paths = [
+            '/workspace/holohub/build-video_streaming/python/lib',
+            os.path.join(os.path.dirname(__file__), '../../../..', 'build-video_streaming', 'python', 'lib'),
+            os.path.join(os.path.dirname(__file__), '../../build/python/lib'),
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(path) and path not in sys.path:
+                sys.path.insert(0, path)
         
         import holohub.streaming_client_enhanced as sc_module
         return sc_module
