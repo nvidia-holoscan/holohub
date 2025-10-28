@@ -81,17 +81,14 @@ file(GENERATE
 
 # Add pytest tests for Python bindings
 # Tests are registered at parent level to ensure proper CTest discovery
-# Following PR #1134 pattern for video_streaming operator tests
 if(BUILD_TESTING)
-    find_package(Python3 REQUIRED COMPONENTS Interpreter)
-    
     # Register pytest tests for streaming_client_enhanced Python bindings
     add_test(
         NAME streaming_client_enhanced_pytest
-        COMMAND ${Python3_EXECUTABLE} -m pytest 
+        COMMAND python3 -m pytest 
                 -v 
                 --tb=short
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests
+                tests
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests
     )
     
