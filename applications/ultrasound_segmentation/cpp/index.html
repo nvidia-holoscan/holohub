@@ -15066,9 +15066,9 @@ If you want to manually convert the video data, please refer to the instructions
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ultrasound_segmentation<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="o">[</span>--local<span class="o">]</span>
 </code></pre></div>
 <h3 id="aja-capture-card-input">AJA Capture Card Input<a class="headerlink" href="#aja-capture-card-input" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ultrasound_segmentation<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="o">[</span>--local<span class="o">]</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DOP_aja_source:BOOL=ON&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--run-args<span class="o">=</span><span class="s2">&quot;--source=aja&quot;</span>
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: aja#&#39;</span><span class="w"> </span>applications/ultrasound_segmentation/cpp/ultrasound_segmentation.yaml
+./holohub<span class="w"> </span>run<span class="w"> </span>ultrasound_segmentation<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="o">[</span>--local<span class="o">]</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DOP_aja_source:BOOL=ON&quot;</span>
 </code></pre></div>
 
 

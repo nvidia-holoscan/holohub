@@ -14963,18 +14963,36 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#build-instructions" class="md-nav__link">
+  <a href="#build-and-run-instructions" class="md-nav__link">
     <span class="md-ellipsis">
-      Build Instructions
+      Build and Run Instructions
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#run-instructions" class="md-nav__link">
+  <a href="#pre-recorded-video-replay" class="md-nav__link">
     <span class="md-ellipsis">
-      Run Instructions
+      Pre-Recorded Video Replay
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-a-pre-recorded-video-on-multi-gpu-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using a pre-recorded video on multi-GPU system
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-an-aja-capture-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using an AJA capture card
     </span>
   </a>
   
@@ -15051,30 +15069,22 @@
 <p><a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_multi_ai_ultrasound_sample_data">📦️ (NGC) Sample App Data for Multi-AI Ultrasound Pipeline</a></p>
 <p>The data is automatically downloaded and converted to the correct format when building the application.
 If you want to manually convert the video data, please refer to the instructions for using the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy">convert_video_to_gxf_entities</a> script.</p>
-<h3 id="build-instructions">Build Instructions<a class="headerlink" href="#build-instructions" title="Permanent link">#</a></h3>
-<p>Please refer to the top level Holohub README.md file for information on how to build this application.</p>
-<h3 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h3>
-<p>In your <code>build</code> directory, run the commands of your choice:</p>
-<ul>
-<li>
-<p>Using a pre-recorded video
-    <div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: replayer#&#39;</span><span class="w"> </span>applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
-applications/multiai_ultrasound/cpp/multiai_ultrasound<span class="w"> </span>--data<span class="w"> </span>&lt;DATA_DIR&gt;/multiai_ultrasound
-</code></pre></div></p>
-</li>
-<li>
-<p>Using a pre-recorded video on multi-GPU system
-    <div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: replayer#&#39;</span><span class="w"> </span>applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml
-applications/multiai_ultrasound/cpp/multiai_ultrasound<span class="w"> </span>applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml<span class="w"> </span>--data<span class="w"> </span>&lt;DATA_DIR&gt;/multiai_ultrasound
-</code></pre></div></p>
-</li>
-<li>
-<p>Using an AJA card
-    <div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: aja#&#39;</span><span class="w"> </span>applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
-applications/multiai_ultrasound/cpp/multiai_ultrasound
-</code></pre></div></p>
-</li>
-</ul>
+<h3 id="build-and-run-instructions">Build and Run Instructions<a class="headerlink" href="#build-and-run-instructions" title="Permanent link">#</a></h3>
+<p>Please refer to the top level Holohub README.md file for more information on the HoloHub CLI</p>
+<h3 id="pre-recorded-video-replay">Pre-Recorded Video Replay<a class="headerlink" href="#pre-recorded-video-replay" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: replayer#&#39;</span><span class="w"> </span>applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
+./holohub<span class="w"> </span>run<span class="w"> </span>multiai_ultrasound<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="o">[</span>--local<span class="o">]</span>
+</code></pre></div>
+<h3 id="using-a-pre-recorded-video-on-multi-gpu-system">Using a pre-recorded video on multi-GPU system<a class="headerlink" href="#using-a-pre-recorded-video-on-multi-gpu-system" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: replayer#&#39;</span><span class="w"> </span>applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml
+./holohub<span class="w"> </span>run<span class="w"> </span>multiai_ultrasound<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="o">[</span>--local<span class="o">]</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--run-args<span class="o">=</span><span class="s2">&quot;--config applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml&quot;</span>
+</code></pre></div>
+<h3 id="using-an-aja-capture-card">Using an AJA capture card<a class="headerlink" href="#using-an-aja-capture-card" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: aja#&#39;</span><span class="w"> </span>applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
+./holohub<span class="w"> </span>run<span class="w"> </span>multiai_ultrasound<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="o">[</span>--local<span class="o">]</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DOP_aja_source:BOOL=ON&quot;</span>
+</code></pre></div>
 
 
 
