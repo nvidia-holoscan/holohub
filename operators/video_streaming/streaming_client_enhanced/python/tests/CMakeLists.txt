@@ -15,11 +15,13 @@
 
 # CMakeLists.txt for Streaming Client Enhanced Python Binding Tests
 
-cmake_minimum_required(VERSION 3.20)
-
 if(NOT BUILD_TESTING)
   return()
 endif()
+
+message(DEBUG "Configuring pytest tests for StreamingClientOp Python bindings")
+message(DEBUG "CMAKE_CURRENT_SOURCE_DIR = ${CMAKE_CURRENT_SOURCE_DIR}")
+message(DEBUG "CMAKE_BINARY_DIR = ${CMAKE_BINARY_DIR}")
 
 # Find Python for pytest execution
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
