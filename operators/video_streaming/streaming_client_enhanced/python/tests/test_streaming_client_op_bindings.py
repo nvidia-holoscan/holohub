@@ -225,7 +225,7 @@ class TestStreamingClientOpIntegration:
         class TestApp(Application):
             def compose(self):
                 # Create the streaming client operator
-                streaming_client = streaming_client_op_class(
+                streaming_client_op_class(
                     self,
                     name="test_client",
                     width=640,

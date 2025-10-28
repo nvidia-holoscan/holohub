@@ -18,9 +18,10 @@
 Pytest fixtures for StreamingServer operators Python binding tests.
 """
 
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 
 @pytest.fixture(scope="session")

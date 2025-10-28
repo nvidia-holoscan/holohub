@@ -312,12 +312,12 @@ class TestStreamingServerIntegration:
                 )
                 
                 # Create operators
-                upstream = UpstreamClass(
+                UpstreamClass(
                     self,
                     name="app_upstream",
                     streaming_server_resource=resource
                 )
-                downstream = DownstreamClass(
+                DownstreamClass(
                     self,
                     name="app_downstream",
                     streaming_server_resource=resource

@@ -18,9 +18,10 @@
 Pytest fixtures for StreamingClientOp Python binding tests.
 """
 
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 
 @pytest.fixture(scope="session")
