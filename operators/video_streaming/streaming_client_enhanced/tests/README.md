@@ -54,7 +54,7 @@ The unit tests verify the correct behavior of the StreamingClientOp operator in 
 ```bash
 # From holohub root directory
 # ./holohub test automatically builds with -DBUILD_TESTING=ON
-./holohub test video_streaming --ctest-options="-R streaming_client_op_unit_tests -V"
+./holohub test video_streaming --ctest-options="-R streaming_client_op_unit_tests -VV"
 ```
 
 ## Test Output Example
@@ -62,16 +62,33 @@ The unit tests verify the correct behavior of the StreamingClientOp operator in 
 ```
 [==========] Running 16 tests from 1 test suite.
 [----------] Global test environment set-up.
-[----------] 16 tests from StreamingClientOpTest
+[----------] 13 tests from StreamingClientOpTest
 [ RUN      ] StreamingClientOpTest.BasicInitialization
-[       OK ] StreamingClientOpTest.BasicInitialization (12 ms)
+[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[       OK ] StreamingClientOpTest.BasicInitialization (0 ms)
+[ RUN      ] StreamingClientOpTest.InitializationWithStreamingDisabled
+[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[       OK ] StreamingClientOpTest.InitializationWithStreamingDisabled (0 ms)
 [ RUN      ] StreamingClientOpTest.VideoResolutionParameters
-[       OK ] StreamingClientOpTest.VideoResolutionParameters (45 ms)
+[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[       OK ] StreamingClientOpTest.VideoResolutionParameters (0 ms)
 ...
-[----------] 16 tests from StreamingClientOpTest (234 ms total)
+[----------] 13 tests from StreamingClientOpTest (0 ms total)
 
-[==========] 16 tests from 1 test suite ran. (234 ms total)
-[  PASSED  ] 16 tests.
+[----------] Global test environment tear-down
+[==========] 13 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 13 tests.
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+streaming_client    =   0.06 sec*proc (1 test)
+unit                =   0.06 sec*proc (1 test)
+
+Total Test time (real) =   0.07 sec
 ```
 
 ## Test Structure
@@ -97,27 +114,6 @@ TEST_F(StreamingClientOpTest, TestName) {
 }
 ```
 
-## Adding New Tests
-
-To add new tests:
-
-1. Add test function in `test_streaming_client_op.cpp`:
-```cpp
-TEST_F(StreamingClientOpTest, MyNewTest) {
-  // Test implementation
-}
-```
-
-2. Rebuild:
-```bash
-make test_streaming_client_op
-```
-
-3. Run the new test:
-```bash
-./test_streaming_client_op --gtest_filter=StreamingClientOpTest.MyNewTest
-```
-
 ## Important Notes
 
 ⚠️ **Network-Free Testing**: These tests do NOT require an actual streaming server. All tests use `send_frames=false` and `receive_frames=false` to test operator creation and configuration without network operations.
@@ -138,28 +134,3 @@ make test_streaming_client_op
 - **[Streaming Server Tests](../../streaming_server_enhanced/tests/README.md)** - Server operator tests  
 - **[Integration Tests](../../../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../../../applications/video_streaming/README.md)** - Application overview
-
-## CI/CD Integration
-
-These tests are designed to run in CI/CD pipelines:
-
-```bash
-# CI-friendly command
-timeout 120 ctest -R streaming_client_op_unit_tests --output-on-failure
-echo "Test exit code: $?"
-```
-
-**Exit Codes:**
-- `0`: All tests passed
-- `1`: One or more tests failed
-- `124`: Test timeout (2 minutes)
-
-## Contributing
-
-When adding new tests:
-1. Follow the existing test naming pattern
-2. Use descriptive test names
-3. Add documentation comments
-4. Update this README if adding new test categories
-5. Ensure tests pass before committing
-
