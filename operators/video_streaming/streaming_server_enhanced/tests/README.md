@@ -79,25 +79,6 @@ Tests focus on:
 ./holohub test video_streaming --ctest-options="-R streaming_server_ops_unit_tests -V"
 ```
 
-### Option 2: Run Test Executable Directly
-
-```bash
-# From holohub root directory
-cd build/operators/video_streaming/streaming_server_enhanced/tests
-
-# Run all tests
-./test_streaming_server_ops
-
-# Run specific test suite
-./test_streaming_server_ops --gtest_filter=StreamingServerResourceTest.*
-
-# Run specific test
-./test_streaming_server_ops --gtest_filter=StreamingServerResourceTest.BasicInitialization
-
-# Run with verbose output
-./test_streaming_server_ops --gtest_verbose
-```
-
 ## Test Output Example
 
 ```
@@ -183,36 +164,6 @@ make test_streaming_server_ops
 3. Run the new test:
 ```bash
 ./test_streaming_server_ops --gtest_filter=StreamingServerResourceTest.MyNewTest
-```
-
-## Debugging Tests
-
-### Run with GDB
-```bash
-gdb --args ./test_streaming_server_ops \
-  --gtest_filter=StreamingServerResourceTest.BasicInitialization
-```
-
-### Enable Verbose Output
-```bash
-./test_streaming_server_ops --gtest_verbose
-```
-
-### List All Tests
-```bash
-./test_streaming_server_ops --gtest_list_tests
-```
-
-### Run Specific Test Suite
-```bash
-# Run all resource tests
-./test_streaming_server_ops --gtest_filter=StreamingServerResourceTest.*
-
-# Run all upstream tests
-./test_streaming_server_ops --gtest_filter=StreamingServerUpstreamOpTest.*
-
-# Run all downstream tests
-./test_streaming_server_ops --gtest_filter=StreamingServerDownstreamOpTest.*
 ```
 
 ## Important Notes

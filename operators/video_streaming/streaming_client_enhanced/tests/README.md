@@ -57,22 +57,6 @@ The unit tests verify the correct behavior of the StreamingClientOp operator in 
 ./holohub test video_streaming --ctest-options="-R streaming_client_op_unit_tests -V"
 ```
 
-### Option 2: Run Test Executable Directly
-
-```bash
-# From holohub root directory
-cd build/operators/video_streaming/streaming_client_enhanced/tests
-
-# Run all tests
-./test_streaming_client_op
-
-# Run specific test
-./test_streaming_client_op --gtest_filter=StreamingClientOpTest.BasicInitialization
-
-# Run with verbose output
-./test_streaming_client_op --gtest_verbose
-```
-
 ## Test Output Example
 
 ```
@@ -132,23 +116,6 @@ make test_streaming_client_op
 3. Run the new test:
 ```bash
 ./test_streaming_client_op --gtest_filter=StreamingClientOpTest.MyNewTest
-```
-
-## Debugging Tests
-
-### Run with GDB
-```bash
-gdb --args ./test_streaming_client_op --gtest_filter=StreamingClientOpTest.BasicInitialization
-```
-
-### Enable Verbose Output
-```bash
-./test_streaming_client_op --gtest_verbose
-```
-
-### List All Tests
-```bash
-./test_streaming_client_op --gtest_list_tests
 ```
 
 ## Important Notes
