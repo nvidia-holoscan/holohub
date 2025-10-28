@@ -76,36 +76,85 @@ Tests focus on:
 ```bash
 # From holohub root directory
 # ./holohub test automatically builds with -DBUILD_TESTING=ON
-./holohub test video_streaming --ctest-options="-R streaming_server_ops_unit_tests -V"
+./holohub test video_streaming --ctest-options="-R streaming_server_ops_unit_tests -VV"
 ```
 
 ## Test Output Example
 
-```
+```text
 [==========] Running 18 tests from 3 test suites.
 [----------] Global test environment set-up.
 [----------] 8 tests from StreamingServerResourceTest
 [ RUN      ] StreamingServerResourceTest.BasicInitialization
-[       OK ] StreamingServerResourceTest.BasicInitialization (10 ms)
+[       OK ] StreamingServerResourceTest.BasicInitialization (0 ms)
 [ RUN      ] StreamingServerResourceTest.CustomConfiguration
-[       OK ] StreamingServerResourceTest.CustomConfiguration (12 ms)
-...
-[----------] 8 tests from StreamingServerResourceTest (98 ms total)
+[       OK ] StreamingServerResourceTest.CustomConfiguration (0 ms)
+[ RUN      ] StreamingServerResourceTest.StreamingDirectionConfiguration
+[       OK ] StreamingServerResourceTest.StreamingDirectionConfiguration (0 ms)
+[ RUN      ] StreamingServerResourceTest.MultiInstanceConfiguration
+[       OK ] StreamingServerResourceTest.MultiInstanceConfiguration (0 ms)
+[ RUN      ] StreamingServerResourceTest.VariousResolutions
+[       OK ] StreamingServerResourceTest.VariousResolutions (0 ms)
+[ RUN      ] StreamingServerResourceTest.VariousFrameRates
+[       OK ] StreamingServerResourceTest.VariousFrameRates (0 ms)
+[ RUN      ] StreamingServerResourceTest.VariousPortNumbers
+[       OK ] StreamingServerResourceTest.VariousPortNumbers (0 ms)
+[ RUN      ] StreamingServerResourceTest.ResourceCleanup
+[       OK ] StreamingServerResourceTest.ResourceCleanup (0 ms)
+[----------] 8 tests from StreamingServerResourceTest (0 ms total)
 
 [----------] 6 tests from StreamingServerUpstreamOpTest
 [ RUN      ] StreamingServerUpstreamOpTest.BasicInitialization
-[       OK ] StreamingServerUpstreamOpTest.BasicInitialization (15 ms)
-...
-[----------] 6 tests from StreamingServerUpstreamOpTest (58 ms total)
+[info] [streaming_server_upstream_op.cpp:72] StreamingServerUpstreamOp setup completed - receives frames from clients
+[info] [streaming_server_upstream_op.cpp:46] StreamingServerUpstreamOp destructor: beginning cleanup...
+[info] [streaming_server_upstream_op.cpp:51] StreamingServerUpstreamOp destructor: cleanup completed
+[       OK ] StreamingServerUpstreamOpTest.BasicInitialization (0 ms)
+[ RUN      ] StreamingServerUpstreamOpTest.CustomVideoParameters
+[info] [streaming_server_upstream_op.cpp:72] StreamingServerUpstreamOp setup completed - receives frames from clients
+[info] [streaming_server_upstream_op.cpp:46] StreamingServerUpstreamOp destructor: beginning cleanup...
+[info] [streaming_server_upstream_op.cpp:51] StreamingServerUpstreamOp destructor: cleanup completed
+[       OK ] StreamingServerUpstreamOpTest.CustomVideoParameters (0 ms)
+[ RUN      ] StreamingServerUpstreamOpTest.OperatorSetup
+[ RUN      ] StreamingServerUpstreamOpTest.OperatorCleanup
+[ RUN      ] StreamingServerUpstreamOpTest.SharedResourceConfiguration
+[info] [streaming_server_downstream_op.cpp:69] StreamingServerDownstreamOp setup completed - sends frames to clients
+[info] [streaming_server_downstream_op.cpp:43] StreamingServerDownstreamOp destructor: beginning cleanup...
+[info] [streaming_server_downstream_op.cpp:48] StreamingServerDownstreamOp destructor: cleanup completed
+[       OK ] StreamingServerUpstreamOpTest.SharedResourceConfiguration (0 ms)
+[ RUN      ] StreamingServerUpstreamOpTest.MultipleOperatorsSharedResource
+[info] [streaming_server_upstream_op.cpp:72] StreamingServerUpstreamOp setup completed - receives frames from clients
+[info] [streaming_server_downstream_op.cpp:69] StreamingServerDownstreamOp setup completed - sends frames to clients
+[info] [streaming_server_downstream_op.cpp:43] StreamingServerDownstreamOp destructor: beginning cleanup...
+[info] [streaming_server_downstream_op.cpp:48] StreamingServerDownstreamOp destructor: cleanup completed
+[       OK ] StreamingServerUpstreamOpTest.MultipleOperatorsSharedResource (0 ms)
+[----------] 6 tests from StreamingServerUpstreamOpTest (0 ms total)
 
 [----------] 4 tests from StreamingServerDownstreamOpTest
 [ RUN      ] StreamingServerDownstreamOpTest.BasicInitialization
-[       OK ] StreamingServerDownstreamOpTest.BasicInitialization (14 ms)
-...
-[----------] 4 tests from StreamingServerDownstreamOpTest (62 ms total)
+[info] [streaming_server_downstream_op.cpp:69] StreamingServerDownstreamOp setup completed - sends frames to clients
+[info] [streaming_server_downstream_op.cpp:43] StreamingServerDownstreamOp destructor: beginning cleanup...
+[info] [streaming_server_downstream_op.cpp:48] StreamingServerDownstreamOp destructor: cleanup completed
+[       OK ] StreamingServerDownstreamOpTest.BasicInitialization (0 ms)
+[ RUN      ] StreamingServerDownstreamOpTest.CustomVideoParameters
+[info] [streaming_server_downstream_op.cpp:69] StreamingServerDownstreamOp setup completed - sends frames to clients
+[info] [streaming_server_downstream_op.cpp:43] StreamingServerDownstreamOp destructor: beginning cleanup...
+[info] [streaming_server_downstream_op.cpp:48] StreamingServerDownstreamOp destructor: cleanup completed
+[       OK ] StreamingServerDownstreamOpTest.CustomVideoParameters (0 ms)
+[ RUN      ] StreamingServerDownstreamOpTest.OperatorSetup
+[ RUN      ] StreamingServerDownstreamOpTest.OperatorCleanup
+[----------] 4 tests from StreamingServerDownstreamOpTest (0 ms total)
 
-[==========] 18 tests from 3 test suites ran. (218 ms total)
+[----------] Global test environment tear-down
+[==========] 18 tests from 3 test suites ran. (0 ms total)
 [  PASSED  ] 18 tests.
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+streaming_server    =   0.06 sec*proc (1 test)
+unit                =   0.06 sec*proc (1 test)
+
+Total Test time (real) =   0.06 sec
 ```
 
 ## Test Structure
