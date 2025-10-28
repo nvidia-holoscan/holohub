@@ -84,25 +84,25 @@ Tests focus on:
 ```
 [==========] Running 18 tests from 3 test suites.
 [----------] Global test environment set-up.
-[----------] 9 tests from StreamingServerResourceTest
+[----------] 8 tests from StreamingServerResourceTest
 [ RUN      ] StreamingServerResourceTest.BasicInitialization
 [       OK ] StreamingServerResourceTest.BasicInitialization (10 ms)
 [ RUN      ] StreamingServerResourceTest.CustomConfiguration
 [       OK ] StreamingServerResourceTest.CustomConfiguration (12 ms)
 ...
-[----------] 9 tests from StreamingServerResourceTest (98 ms total)
+[----------] 8 tests from StreamingServerResourceTest (98 ms total)
 
-[----------] 4 tests from StreamingServerUpstreamOpTest
+[----------] 6 tests from StreamingServerUpstreamOpTest
 [ RUN      ] StreamingServerUpstreamOpTest.BasicInitialization
 [       OK ] StreamingServerUpstreamOpTest.BasicInitialization (15 ms)
 ...
-[----------] 4 tests from StreamingServerUpstreamOpTest (58 ms total)
+[----------] 6 tests from StreamingServerUpstreamOpTest (58 ms total)
 
-[----------] 5 tests from StreamingServerDownstreamOpTest
+[----------] 4 tests from StreamingServerDownstreamOpTest
 [ RUN      ] StreamingServerDownstreamOpTest.BasicInitialization
 [       OK ] StreamingServerDownstreamOpTest.BasicInitialization (14 ms)
 ...
-[----------] 5 tests from StreamingServerDownstreamOpTest (62 ms total)
+[----------] 4 tests from StreamingServerDownstreamOpTest (62 ms total)
 
 [==========] 18 tests from 3 test suites ran. (218 ms total)
 [  PASSED  ] 18 tests.
