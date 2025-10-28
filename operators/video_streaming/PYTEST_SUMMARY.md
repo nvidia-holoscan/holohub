@@ -333,21 +333,6 @@ This is expected and intentional behavior.
 - **[Server pytest README](./streaming_server_enhanced/python/tests/README.md)** - Server test details
 - **[Integration Tests](../../applications/video_streaming/TESTING.md)** - End-to-end testing
 
-## Branch Information
-
-- **Branch:** `cd/add-video-streaming-pytest-tests`
-- **Based on:** `cd/add-video-streaming-unit-tests`
-- **GitHub:** `https://github.com/cdinea/holohub/tree/cd/add-video-streaming-pytest-tests`
-
-## Next Steps
-
-To create a Pull Request:
-
-```bash
-# Visit the GitHub link provided after push:
-https://github.com/cdinea/holohub/pull/new/cd/add-video-streaming-pytest-tests
-```
-
 ## Summary
 
 This pytest implementation provides:
