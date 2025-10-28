@@ -16,6 +16,7 @@
 			"minimum_required_version": "2.1.0",
 			"tested_versions": ["2.1.0"]
 		},
+		"dockerfile": "applications/realsense_visualizer/Dockerfile",
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Computer Vision and Perception", "Visualization", "Camera", "Depth", "Holoviz"],
 		"ranking": 0,
