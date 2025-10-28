@@ -56,9 +56,9 @@ operators/video_streaming/
 - Operator in Application context
 - Operator in Fragment context
 
-### StreamingServerOps Python Bindings (35+ tests)
+### StreamingServerOps Python Bindings (34 tests)
 
-#### TestStreamingServerResourceBinding (10+ tests)
+#### TestStreamingServerResourceBinding (18 tests)
 - **Basic Tests:**
   - Resource creation and initialization
   - Name property validation
@@ -181,7 +181,7 @@ The following tests passed:
     ... (all 61 tests listed)
 
 100% tests passed, 0 tests failed out of 61
-Total Test time (real) = 17.63 sec
+Total Test time (real) = 16.88 sec
 ```
 
 ### 📝 Redirecting Output to a File
@@ -240,9 +240,9 @@ All tests must pass with the following criteria:
 |----------|----------|--------|
 | **Total Tests** | 61 tests discovered and run | ✅ PASS |
 | **Client Tests** | 30 tests | ✅ PASS (30/30) |
-| **Server Tests** | 30 tests (Resource + Upstream + Downstream + Integration) | ✅ PASS (30/30) |
+| **Server Tests** | 31 tests (18 Resource + 6 Upstream + 6 Downstream + 4 Integration) | ✅ PASS (31/31) |
 | **Pass Rate** | 100% of tests passing | ✅ PASS (61/61 = 100%) |
-| **Execution Time** | < 20 seconds | ✅ PASS (17.63 sec) |
+| **Execution Time** | < 20 seconds | ✅ PASS (16.88 sec) |
 | **Test Output** | Tests organized with proper naming (`.py::TestClass::test_method[params]`) | ✅ PASS |
 | **Integration** | Tests properly registered with CTest via `add_python_tests()` | ✅ PASS |
 | **Coverage** | Both client and server operators comprehensively tested | ✅ PASS |
