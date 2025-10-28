@@ -29,11 +29,12 @@ def holoscan_modules():
     """Import and provide Holoscan SDK modules."""
     try:
         from holoscan.core import Application, Fragment, Operator, OperatorSpec
+
         return {
-            'Application': Application,
-            'Fragment': Fragment,
-            'Operator': Operator,
-            'OperatorSpec': OperatorSpec,
+            "Application": Application,
+            "Fragment": Fragment,
+            "Operator": Operator,
+            "OperatorSpec": OperatorSpec,
         }
     except ImportError as e:
         pytest.skip(f"Holoscan SDK not available: {e}")
@@ -45,16 +46,19 @@ def streaming_client_module():
     try:
         # Try multiple possible paths for the Python module
         possible_paths = [
-            '/workspace/holohub/build-video_streaming/python/lib',
-            os.path.join(os.path.dirname(__file__), '../../../..', 'build-video_streaming', 'python', 'lib'),
-            os.path.join(os.path.dirname(__file__), '../../build/python/lib'),
+            "/workspace/holohub/build-video_streaming/python/lib",
+            os.path.join(
+                os.path.dirname(__file__), "../../../..", "build-video_streaming", "python", "lib"
+            ),
+            os.path.join(os.path.dirname(__file__), "../../build/python/lib"),
         ]
-        
+
         for path in possible_paths:
             if os.path.exists(path) and path not in sys.path:
                 sys.path.insert(0, path)
-        
+
         import holohub.streaming_client_enhanced as sc_module
+
         return sc_module
     except ImportError as e:
         pytest.skip(f"streaming_client_enhanced module not available: {e}")
@@ -72,13 +76,14 @@ def streaming_client_op_class(streaming_client_module):
 @pytest.fixture
 def fragment(holoscan_modules):
     """Create a Holoscan Fragment for testing."""
-    Fragment = holoscan_modules['Fragment']
+    Fragment = holoscan_modules["Fragment"]
     return Fragment()
 
 
 @pytest.fixture
 def operator_factory(streaming_client_op_class, fragment):
     """Factory fixture for creating StreamingClientOp instances."""
+
     def _create_operator(
         name="test_client",
         width=640,
@@ -88,7 +93,7 @@ def operator_factory(streaming_client_op_class, fragment):
         signaling_port=48010,
         send_frames=False,  # Disabled for unit testing
         receive_frames=False,  # Disabled for unit testing
-        min_non_zero_bytes=100
+        min_non_zero_bytes=100,
     ):
         return streaming_client_op_class(
             fragment,
@@ -100,9 +105,9 @@ def operator_factory(streaming_client_op_class, fragment):
             signaling_port=signaling_port,
             send_frames=send_frames,
             receive_frames=receive_frames,
-            min_non_zero_bytes=min_non_zero_bytes
+            min_non_zero_bytes=min_non_zero_bytes,
         )
-    
+
     return _create_operator
 
 
@@ -110,4 +115,3 @@ def operator_factory(streaming_client_op_class, fragment):
 def default_operator(operator_factory):
     """Create a StreamingClientOp with default parameters."""
     return operator_factory()
-

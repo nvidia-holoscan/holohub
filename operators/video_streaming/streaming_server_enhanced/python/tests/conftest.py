@@ -30,13 +30,14 @@ def holoscan_modules():
     try:
         from holoscan.core import Application, Fragment, Operator, OperatorSpec, Resource
         from holoscan.resources import Allocator
+
         return {
-            'Application': Application,
-            'Fragment': Fragment,
-            'Operator': Operator,
-            'OperatorSpec': OperatorSpec,
-            'Resource': Resource,
-            'Allocator': Allocator,
+            "Application": Application,
+            "Fragment": Fragment,
+            "Operator": Operator,
+            "OperatorSpec": OperatorSpec,
+            "Resource": Resource,
+            "Allocator": Allocator,
         }
     except ImportError as e:
         pytest.skip(f"Holoscan SDK not available: {e}")
@@ -48,16 +49,19 @@ def streaming_server_module():
     try:
         # Try multiple possible paths for the Python module
         possible_paths = [
-            '/workspace/holohub/build-video_streaming/python/lib',
-            os.path.join(os.path.dirname(__file__), '../../../..', 'build-video_streaming', 'python', 'lib'),
-            os.path.join(os.path.dirname(__file__), '../../build/python/lib'),
+            "/workspace/holohub/build-video_streaming/python/lib",
+            os.path.join(
+                os.path.dirname(__file__), "../../../..", "build-video_streaming", "python", "lib"
+            ),
+            os.path.join(os.path.dirname(__file__), "../../build/python/lib"),
         ]
-        
+
         for path in possible_paths:
             if os.path.exists(path) and path not in sys.path:
                 sys.path.insert(0, path)
-        
+
         import holohub.streaming_server_enhanced as ss_module
+
         return ss_module
     except ImportError as e:
         pytest.skip(f"streaming_server_enhanced module not available: {e}")
@@ -68,9 +72,9 @@ def streaming_server_classes(streaming_server_module):
     """Provide the StreamingServer operator classes."""
     try:
         return {
-            'Resource': streaming_server_module.StreamingServerResource,
-            'Upstream': streaming_server_module.StreamingServerUpstreamOp,
-            'Downstream': streaming_server_module.StreamingServerDownstreamOp,
+            "Resource": streaming_server_module.StreamingServerResource,
+            "Upstream": streaming_server_module.StreamingServerUpstreamOp,
+            "Downstream": streaming_server_module.StreamingServerDownstreamOp,
         }
     except AttributeError as e:
         pytest.skip(f"StreamingServer classes not found: {e}")
@@ -79,15 +83,15 @@ def streaming_server_classes(streaming_server_module):
 @pytest.fixture
 def fragment(holoscan_modules):
     """Create a Holoscan Fragment for testing."""
-    Fragment = holoscan_modules['Fragment']
+    Fragment = holoscan_modules["Fragment"]
     return Fragment()
 
 
 @pytest.fixture
 def resource_factory(streaming_server_classes, fragment):
     """Factory fixture for creating StreamingServerResource instances."""
-    ResourceClass = streaming_server_classes['Resource']
-    
+    ResourceClass = streaming_server_classes["Resource"]
+
     def _create_resource(
         name="test_server_resource",
         port=48010,
@@ -96,7 +100,7 @@ def resource_factory(streaming_server_classes, fragment):
         fps=30,
         enable_upstream=True,
         enable_downstream=True,
-        server_name="TestServer"
+        server_name="TestServer",
     ):
         return ResourceClass(
             fragment,
@@ -107,9 +111,9 @@ def resource_factory(streaming_server_classes, fragment):
             fps=fps,
             enable_upstream=enable_upstream,
             enable_downstream=enable_downstream,
-            server_name=server_name
+            server_name=server_name,
         )
-    
+
     return _create_resource
 
 
@@ -122,25 +126,24 @@ def default_resource(resource_factory):
 @pytest.fixture
 def upstream_operator_factory(streaming_server_classes, fragment):
     """Factory fixture for creating StreamingServerUpstreamOp instances."""
-    UpstreamClass = streaming_server_classes['Upstream']
-    
+    UpstreamClass = streaming_server_classes["Upstream"]
+
     def _create_operator(name="test_upstream", resource=None):
         if resource is None:
             pytest.skip("Resource required for operator creation")
         return UpstreamClass(fragment, name=name, streaming_server_resource=resource)
-    
+
     return _create_operator
 
 
 @pytest.fixture
 def downstream_operator_factory(streaming_server_classes, fragment):
     """Factory fixture for creating StreamingServerDownstreamOp instances."""
-    DownstreamClass = streaming_server_classes['Downstream']
-    
+    DownstreamClass = streaming_server_classes["Downstream"]
+
     def _create_operator(name="test_downstream", resource=None):
         if resource is None:
             pytest.skip("Resource required for operator creation")
         return DownstreamClass(fragment, name=name, streaming_server_resource=resource)
-    
-    return _create_operator
 
+    return _create_operator
