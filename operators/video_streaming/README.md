@@ -264,6 +264,63 @@ Run all unit tests from the holohub root directory:
 - **[Client Tests](streaming_client_enhanced/tests/README.md)** - StreamingClientOp test details
 - **[Server Tests](streaming_server_enhanced/tests/README.md)** - Server operator test details
 
+### Python Binding Tests (pytest)
+
+**Python Unit Tests** for Python bindings of all video streaming operators (61 tests total):
+- ✅ **30 tests** for `StreamingClientOp` Python bindings
+- ✅ **31 tests** for server operators (18 Resource + 6 Upstream + 6 Downstream + 4 Integration)
+- ✅ Fast execution (~16.88 seconds total)
+- ✅ 100% pass rate
+- ✅ Tests operator creation, parameter handling, inheritance, and memory management
+- ✅ Comprehensive coverage of Python/C++ binding correctness
+
+#### Run Instructions
+
+Run all pytest tests from the holohub root directory:
+
+```bash
+# Run all streaming pytest tests via CTest
+./holohub test video_streaming --ctest-options="-R streaming.*pytest -VV"
+
+# Run only client pytest tests
+./holohub test video_streaming --ctest-options="-R streaming_client_enhanced_pytest -VV"
+
+# Run only server pytest tests
+./holohub test video_streaming --ctest-options="-R streaming_server_enhanced_pytest -VV"
+
+# Redirect output to file
+./holohub test video_streaming --ctest-options="-R streaming.*pytest -VV" > test_results.log 2>&1
+```
+
+**For comprehensive test output examples, expected results, and detailed test information, see [PYTEST_SUMMARY.md](PYTEST_SUMMARY.md).**
+
+#### Acceptance Criteria
+
+**Build Acceptance:**
+- ✅ CMake configuration with pytest tests enabled succeeds
+- ✅ Python bindings are properly built
+- ✅ pytest and conftest fixtures are available
+
+**Test Execution Acceptance:**
+- ✅ All 61 pytest tests pass
+- ✅ 100% test pass rate (61/61)
+- ✅ Total execution time ≤ 20 seconds
+- ✅ No test failures or skipped tests
+- ✅ Proper test naming format: `operator::TestClass::test_method[params]`
+
+**Functional Acceptance:**
+- ✅ Python bindings correctly expose C++ classes
+- ✅ Parameter passing across Python/C++ boundary works correctly
+- ✅ Inheritance relationships maintained in bindings
+- ✅ Memory management handles Python/C++ interactions properly
+- ✅ Operators work within Application and Fragment contexts
+- ✅ Resource sharing between operators functions correctly
+
+**Documentation:**
+- **[pytest Summary](PYTEST_SUMMARY.md)** - Comprehensive pytest documentation
+- **[Client pytest Tests](streaming_client_enhanced/python/tests/README.md)** - Client binding test details
+- **[Server pytest Tests](streaming_server_enhanced/python/tests/README.md)** - Server binding test details
+
 ### Integration Tests
 
 End-to-end integration tests validate the complete streaming pipeline with actual server/client communication and frame transmission.
