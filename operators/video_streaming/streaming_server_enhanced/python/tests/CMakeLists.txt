@@ -53,9 +53,30 @@ if(pytest_available EQUAL 0)
         LABELS "pytest;python;bindings;streaming_server"
     )
     
-    message(STATUS "StreamingServer Python binding tests (pytest) configured.")
+    message(STATUS "StreamingServerOps Python binding tests (pytest) configured.")
 else()
     message(WARNING "pytest not found. Python binding tests will be skipped.")
     message(STATUS "To install pytest: pip install pytest")
 endif()
+
+# Add pytest-based unit tests for Python bindings
+# Note: Always add the test, even if pytest check fails at CMake time
+# pytest should be available at test runtime
+add_test(
+    NAME streaming_server_enhanced_pytest
+    COMMAND ${Python3_EXECUTABLE} -m pytest 
+            -v 
+            --tb=short
+            ${CMAKE_CURRENT_SOURCE_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# Set test environment with PYTHONPATH
+set_tests_properties(streaming_server_enhanced_pytest PROPERTIES
+    ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+    TIMEOUT 120
+    LABELS "pytest;python;bindings;streaming_server"
+)
+
+message(STATUS "StreamingServerOps Python binding tests (pytest) configured.")
 
