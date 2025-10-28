@@ -194,7 +194,9 @@ def create_metadata_header(
     copy_button_html = ""
     if component_type not in ["tutorials", "operators"]:
         # Use folder name if provided, otherwise fall back to metadata name
-        component_name = component_folder_name if component_folder_name else metadata.get("name", "")
+        component_name = (
+            component_folder_name if component_folder_name else metadata.get("name", "")
+        )
         run_command = f"./holohub run {component_name}"
 
         # Escape the check icon for use in JavaScript string
@@ -624,7 +626,12 @@ def create_page(
 
     # Patch the header (finds header, links it, inserts metadata with version selector)
     metadata_header = create_metadata_header(
-        metadata, last_modified, archive_version, version_selector_html, component_folder_name, component_type
+        metadata,
+        last_modified,
+        archive_version,
+        version_selector_html,
+        component_folder_name,
+        component_type,
     )
     encoded_rel_dir = _encode_path_for_url(relative_dir)
     url = f"{base_url}/{encoded_rel_dir}"
@@ -850,7 +857,15 @@ def parse_metadata_path(
     last_modified = get_last_modified_date(metadata_path, git_repo_path)
     # Check for archives in metadata for version selector
     archives = metadata["archives"] if "archives" in metadata else None
-    create_page(metadata, readme_text, dest_path, last_modified, git_repo_path, archives=archives, component_type=component_type)
+    create_page(
+        metadata,
+        readme_text,
+        dest_path,
+        last_modified,
+        git_repo_path,
+        archives=archives,
+        component_type=component_type,
+    )
 
     # Initialize nav file content to set title
     nav_path = dest_dir / ".nav.yml"
@@ -862,7 +877,14 @@ title: "{title}"
     archives = metadata["archives"] if "archives" in metadata else None
     if archives:
         nav_content += process_archived_versions(
-            archives, metadata, metadata_path, readme_path, dest_dir, project_type, git_repo_path, component_type
+            archives,
+            metadata,
+            metadata_path,
+            readme_path,
+            dest_dir,
+            project_type,
+            git_repo_path,
+            component_type,
         )
 
     # Write nav file
