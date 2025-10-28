@@ -97,26 +97,71 @@ from holohub.streaming_server_enhanced import (
   --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
-**Running Python applications:**
+## Running the Applications
+
+The video streaming demo provides both client and server applications. For complete documentation and setup instructions, see the **[Applications README](../../applications/video_streaming/README.md)**.
+
+### C++ Applications
+
+**Start the Streaming Server:**
 ```bash
-# Python Server
-./holohub run video_streaming server_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
-
-# Python Client (Video Replayer)
-./holohub run video_streaming client_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
-
-# Python Client (V4L2 Camera)
-./holohub run video_streaming client_python_v4l2 \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+./holohub run video_streaming server
 ```
+
+**Start the Streaming Client (in another terminal):**
+
+- **Option A: V4L2 Camera (Webcam)**
+```bash
+./holohub run video_streaming client_v4l2
+```
+
+- **Option B: Video Replayer**
+```bash
+./holohub run video_streaming client_replayer
+```
+
+### Python Applications
+
+**Running Python Server:**
+```bash
+./holohub run video_streaming server_python
+```
+
+**Running Python Client - Video Replayer Mode (Default - 854x480):**
+```bash
+./holohub run video_streaming client_python
+```
+
+**Running Python Client - V4L2 Camera Mode (640x480):**
+```bash
+./holohub run video_streaming client_python_v4l2
+```
+
+### Environment Setup
+
+> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications, or use the Docker-based commands above.
+>
+> ```bash
+> # Set SDK version environment variable
+> export HOLOHUB_BASE_SDK_VERSION=3.5.0
+> ```
+
+### Default Configurations
+
+**Server:**
+- Port: 48010
+- Resolution: 854x480
+- Frame Rate: 30 fps
+
+**Client (Video Replayer):**
+- Resolution: 854x480
+- Frame Rate: 30 fps
+- Server: 127.0.0.1:48010
+
+**Client (V4L2 Camera):**
+- Resolution: 640x480
+- Frame Rate: 30 fps
+- Server: 127.0.0.1:48010
 
 For detailed Python application documentation, see:
 - **[Server Application (C++ and Python)](../../applications/video_streaming/video_streaming_server/README.md)**
