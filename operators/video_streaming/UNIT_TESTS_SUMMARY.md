@@ -268,7 +268,7 @@ The unit tests provide comprehensive coverage of all video streaming components 
 
 ```bash
 # 1. Checkout the branch
-git checkout cd/add-video-streaming-unit-tests
+git checkout cd/unit-tests-minimal
 
 # 2. Build with tests enabled
 ./holohub build video_streaming --configure-args='-DBUILD_TESTING=ON'
