@@ -182,16 +182,9 @@ The unit tests complement the existing integration tests:
 - ✅ **Focus**: Actual streaming, frame transmission, bidirectional communication
 - ✅ **Run When**: Before merge, in CI/CD
 
-**Together, they provide comprehensive test coverage!**
-
 ## CI/CD Integration
 
 The unit tests are designed for CI/CD pipelines:
-
-```bash
-# Example CI command
-timeout 120 ctest -R "streaming.*unit_tests" --output-on-failure
-```
 
 **Benefits:**
 - ✅ **Ultra-fast feedback** - Complete in ~0.13 seconds (well under 2 minutes)
@@ -200,25 +193,6 @@ timeout 120 ctest -R "streaming.*unit_tests" --output-on-failure
 - ✅ **Detailed error output** - GTest provides clear failure messages
 - ✅ **Reliable** - No flaky network-dependent failures
 
-## Future Enhancements
-
-Possible future additions:
-
-1. **Mock Data Flow Tests**
-   - Test compute() methods with mock tensors
-   - Verify data transformations
-
-2. **Error Handling Tests**
-   - Test invalid parameter combinations
-   - Test exception handling
-
-3. **Performance Tests**
-   - Benchmark operator creation time
-   - Memory usage validation
-
-4. **Python Unit Tests**
-   - Add pytest tests for Python bindings
-   - Validate Python/C++ interface
 
 ## Documentation
 
@@ -230,45 +204,4 @@ Each test suite has detailed documentation:
 Additional documentation:
 - **[Integration Tests](../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../applications/video_streaming/README.md)** - Application overview
-
-## Conclusion
-
-This implementation provides:
-
-1. ✅ **Comprehensive C++ unit test coverage** for ALL video streaming operators
-2. ✅ **Production-ready tests** integrated into the current codebase - **100% pass rate**
-3. ✅ **Better organization** with clear directory structure
-4. ✅ **Excellent documentation** with examples and troubleshooting
-5. ✅ **CI/CD ready** with fast (0.13 sec), reliable tests
-
-**Proven Results:**
-- **31 tests** across 2 test suites
-  - 13 StreamingClientOp tests
-  - 18 Server operator tests (8 Resource + 6 Upstream + 4 Downstream)
-- **100% success rate** - All tests pass
-- **Lightning fast** - Complete in 0.13 seconds
-- **Zero dependencies** - No network or external services required
-
-The unit tests provide comprehensive coverage of all video streaming components and integrate seamlessly with the current build system.
-
-## Getting Started
-
-```bash
-# 1. Checkout the branch
-git checkout cd/unit-tests-minimal
-
-# 2. Run the tests (automatically builds with -DBUILD_TESTING=ON)
-./holohub test video_streaming --ctest-options="-R unit_tests -V"
-
-# 3. View results
-# ✅ All 31 tests pass in ~0.13 seconds!
-#    100% tests passed, 0 tests failed out of 2
-```
-
-## Contact
-
-For questions or issues with the unit tests:
-- See the README files in each test directory
-- Check the main TESTING.md for integration test documentation
-- Review the operator README files for API documentation
 
