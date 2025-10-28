@@ -152,20 +152,35 @@ def create_run_locally_button_and_modal(app_path: str, app_name: str, metadata: 
     Returns:
         str: HTML string containing only the button with data attributes
     """
-    # Determine language from metadata
-    language = metadata.get("language", "")
-    if isinstance(language, list):
-        language = ", ".join(language)
-    
-    # Detect language from path if not in metadata or if both languages exist
+    # Detect language from path
     path_parts = app_path.split('/')
     detected_lang = ""
+    
+    # Check if we're in a language-specific subdirectory
     if 'python' in path_parts:
         detected_lang = 'Python'
     elif 'cpp' in path_parts:
         detected_lang = 'C++'
-    elif language:
-        detected_lang = language
+    else:
+        # We're at parent level - check which languages exist
+        app_full_path = git_repo_path / app_path
+        python_exists = (app_full_path / 'python' / 'metadata.json').exists()
+        cpp_exists = (app_full_path / 'cpp' / 'metadata.json').exists()
+        
+        if python_exists and cpp_exists:
+            # Both exist - default is Python (as per holohub CLI default behavior)
+            detected_lang = 'Python'
+        elif python_exists:
+            detected_lang = 'Python'
+        elif cpp_exists:
+            detected_lang = 'C++'
+        else:
+            # No language-specific subdirectories, use metadata
+            language = metadata.get("language", "")
+            if isinstance(language, list):
+                detected_lang = language[0] if language else ""
+            else:
+                detected_lang = language
     
     # Extract just the application name from the path (last meaningful part)
     path_parts_list = app_path.split('/')
@@ -179,18 +194,35 @@ def create_run_locally_button_and_modal(app_path: str, app_name: str, metadata: 
     if detected_lang == 'C++':
         # Check if there's a sibling python directory or parent with python version
         app_full_path = git_repo_path / app_path
-        parent_dir = app_full_path.parent
         
-        # Check for sibling python directory
-        python_sibling = parent_dir / 'python'
-        if python_sibling.exists() and (python_sibling / 'metadata.json').exists():
-            needs_language_flag = "true"
+        # If we're in cpp subdirectory, check for python sibling
+        if 'cpp' in path_parts:
+            parent_dir = app_full_path.parent
+            python_sibling = parent_dir / 'python'
+            if python_sibling.exists() and (python_sibling / 'metadata.json').exists():
+                needs_language_flag = "true"
         else:
-            # Check if we're in a cpp directory and there's a python sibling at same level
-            if app_full_path.name == 'cpp':
-                python_alt = app_full_path.parent / 'python'
-                if python_alt.exists() and (python_alt / 'metadata.json').exists():
-                    needs_language_flag = "true"
+            # We're at parent level, check for python subdirectory
+            python_subdir = app_full_path / 'python'
+            if python_subdir.exists() and (python_subdir / 'metadata.json').exists():
+                needs_language_flag = "true"
+    
+    # Extract modes (excluding default mode)
+    modes = metadata.get("modes", {})
+    default_mode = metadata.get("default_mode", "")
+    
+    # Create a list of non-default modes with their info
+    modes_list = []
+    for mode_name, mode_config in modes.items():
+        if mode_name != default_mode:  # Exclude default mode
+            modes_list.append({
+                "name": mode_name,
+                "description": mode_config.get("description", "")
+            })
+    
+    # Convert modes to JSON and escape for HTML attribute
+    modes_json = json.dumps(modes_list)
+    modes_json_escaped = modes_json.replace('"', '&quot;')
     
     # Escape for JSON/HTML attributes
     app_name_escaped = app_name.replace('"', '&quot;').replace("'", '&#39;')
@@ -202,7 +234,8 @@ def create_run_locally_button_and_modal(app_path: str, app_name: str, metadata: 
     data-app-name="{app_name_escaped}" 
     data-app-short-name="{app_short_name_escaped}"
     data-app-language="{detected_lang_escaped}"
-    data-needs-language-flag="{needs_language_flag}">
+    data-needs-language-flag="{needs_language_flag}"
+    data-modes="{modes_json_escaped}">
     ▶ Run Locally
 </button>'''
     
@@ -249,8 +282,43 @@ def create_alt_language_link(app_path: str, git_repo_path: Path) -> str:
     return ""
 
 
+def detect_all_languages(app_path: str, git_repo_path: Path) -> str:
+    """Detect all available languages for an application by checking for metadata.json files.
+    
+    Args:
+        app_path (str): Path to the application (e.g., "applications/endoscopy_tool_tracking/python")
+        git_repo_path (Path): Path to the Git repository root
+    
+    Returns:
+        str: Comma-separated string of available languages (e.g., "Python, C++")
+    """
+    path_parts = app_path.split('/')
+    
+    # Check if this is in a language-specific subdirectory (cpp/python)
+    app_full_path = git_repo_path / app_path
+    parent_dir = app_full_path.parent if app_full_path.name in ["cpp", "python"] else app_full_path
+    
+    available_languages = []
+    
+    # Check for Python version
+    python_metadata = parent_dir / "python" / "metadata.json"
+    if python_metadata.exists():
+        available_languages.append("Python")
+    
+    # Check for C++ version
+    cpp_metadata = parent_dir / "cpp" / "metadata.json"
+    if cpp_metadata.exists():
+        available_languages.append("C++")
+    
+    # If no language-specific subdirectories found, return empty string
+    if not available_languages:
+        return ""
+    
+    return ", ".join(available_languages)
+
+
 def create_metadata_header(
-    metadata: dict, last_modified: str, archive_version: str = None, version_selector_html: str = "", run_locally_html: str = "", alt_language_link: str = ""
+    metadata: dict, last_modified: str, archive_version: str = None, version_selector_html: str = "", run_locally_html: str = "", alt_language_link: str = "", all_languages: str = ""
 ) -> str:
     """Create the metadata header for the documentation page.
 
@@ -265,6 +333,7 @@ def create_metadata_header(
         version_selector_html (str, optional): HTML for version selector dropdown. Default: "".
         run_locally_html (str, optional): HTML for the run locally button. Default: "".
         alt_language_link (str, optional): HTML link to alternative language version if exists. Default: "".
+        all_languages (str, optional): All available languages detected from metadata.json files. Default: "".
 
     Returns:
         str: Formatted HTML-like string containing the metadata header with icons and labels
@@ -278,7 +347,9 @@ def create_metadata_header(
         )
     platforms = metadata.get("platforms")
     platforms_str = ", ".join(platforms) if platforms else None
-    language = metadata.get("language")
+    
+    # Use all detected languages if provided, otherwise fall back to metadata language
+    language = all_languages if all_languages else metadata.get("language")
     if isinstance(language, list):
         language = ", ".join(language)
     
@@ -684,16 +755,19 @@ def create_page(
     # Generate Run Locally button for applications only (only for latest, non-archived versions)
     run_locally_html = ""
     alt_language_link = ""
+    all_languages = ""
     if not archive_version and len(relative_dir.parts) > 0 and relative_dir.parts[0] == "applications":
         app_path = str(relative_dir)
         app_name = metadata.get("name", "Application")
         run_locally_html = create_run_locally_button_and_modal(app_path, app_name, metadata, git_repo_path)
         # Generate alternative language link
         alt_language_link = create_alt_language_link(app_path, git_repo_path)
+        # Detect all available languages
+        all_languages = detect_all_languages(app_path, git_repo_path)
     
     # Patch the header (finds header, links it, inserts metadata with version selector, run locally button, and alt language link)
     metadata_header = create_metadata_header(
-        metadata, last_modified, archive_version, version_selector_html, run_locally_html, alt_language_link
+        metadata, last_modified, archive_version, version_selector_html, run_locally_html, alt_language_link, all_languages
     )
     
     encoded_rel_dir = _encode_path_for_url(relative_dir)

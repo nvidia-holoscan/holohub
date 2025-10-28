@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const COPY_ICON_SVG = '<svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
     
     // Function to create modal HTML
-    function createModal(appName, appShortName, appLanguage, needsLanguageFlag) {
+    function createModal(appName, appShortName, appLanguage, needsLanguageFlag, modes) {
         // Create commands - add --language cpp only if both Python and C++ versions exist
         const cmd1 = 'git clone https://github.com/nvidia-holoscan/holohub.git';
         const languageFlag = (needsLanguageFlag === 'true') ? ' --language cpp' : '';
@@ -20,6 +20,34 @@ document.addEventListener('DOMContentLoaded', function() {
             ? `Step 2: Run the ${appLanguage} application` 
             : 'Step 2: Run the application';
         
+        // Generate modes section HTML if modes exist
+        let modesHTML = '';
+        if (modes && modes.length > 0) {
+            modesHTML = `
+                <div class="run-locally-modes-section">
+                    <h4 class="run-locally-modes-title">Available Modes</h4>
+                    <p class="run-locally-description">This application supports multiple modes. Use these commands to run in a specific mode:</p>
+                    <div class="run-locally-modes-list">`;
+            
+            modes.forEach(mode => {
+                const modeCmd = `./holohub run ${appShortName} ${mode.name}${languageFlag}`;
+                modesHTML += `
+                    <div class="run-locally-command-container run-locally-mode-container">
+                        <div class="run-locally-command-label">${escapeHtml(mode.name)}</div>
+                        <p class="run-locally-mode-description">${escapeHtml(mode.description)}</p>
+                        <pre class="run-locally-command">${escapeHtml(modeCmd)}</pre>
+                        <button class="run-locally-copy-btn run-locally-mode-copy-btn" data-command="${escapeHtml(modeCmd)}">
+                            ${COPY_ICON_SVG}
+                            Copy
+                        </button>
+                    </div>`;
+            });
+            
+            modesHTML += `
+                    </div>
+                </div>`;
+        }
+        
         // Create modal element
         const modal = document.createElement('div');
         modal.className = 'run-locally-modal';
@@ -30,26 +58,26 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.innerHTML = `
             <div class="run-locally-modal-content">
                 <div class="run-locally-modal-header">
-                    <h3 id="run-locally-title">Run ${appName} Locally</h3>
+                    <h3 id="run-locally-title">Run ${escapeHtml(appName)} Locally</h3>
                     <button class="run-locally-close" aria-label="Close">&times;</button>
                 </div>
-                <button class="run-locally-copy-all-btn" data-command="${allCommands}">
+                <button class="run-locally-copy-all-btn" data-command="${escapeHtml(allCommands)}">
                     ${COPY_ICON_SVG}
                     Copy All
                 </button>
                 <div class="run-locally-commands-section">
                     <div class="run-locally-command-container">
                         <div class="run-locally-command-label">Step 1: Clone the repository</div>
-                        <pre class="run-locally-command">${cmd1}</pre>
-                        <button class="run-locally-copy-btn" data-command="${cmd1}">
+                        <pre class="run-locally-command">${escapeHtml(cmd1)}</pre>
+                        <button class="run-locally-copy-btn" data-command="${escapeHtml(cmd1)}">
                             ${COPY_ICON_SVG}
                             Copy
                         </button>
                     </div>
                     <div class="run-locally-command-container">
                         <div class="run-locally-command-label">${step2Label}</div>
-                        <pre class="run-locally-command">${cmd2}</pre>
-                        <button class="run-locally-copy-btn" data-command="${cmd2}">
+                        <pre class="run-locally-command">${escapeHtml(cmd2)}</pre>
+                        <button class="run-locally-copy-btn" data-command="${escapeHtml(cmd2)}">
                             ${COPY_ICON_SVG}
                             Copy
                         </button>
@@ -58,10 +86,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p class="run-locally-description">
                     These commands will clone the HoloHub repository and run the application using the <code>holohub</code> CLI tool.
                 </p>
+                ${modesHTML}
             </div>
         `;
         
         return modal;
+    }
+    
+    // Helper function to escape HTML
+    function escapeHtml(unsafe) {
+        if (typeof unsafe !== 'string') return '';
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
     
     // Function to show modal
@@ -182,8 +222,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const appLanguage = this.getAttribute('data-app-language');
             const needsLanguageFlag = this.getAttribute('data-needs-language-flag');
             
+            // Parse modes from data attribute
+            let modes = [];
+            const modesData = this.getAttribute('data-modes');
+            if (modesData) {
+                try {
+                    modes = JSON.parse(modesData);
+                } catch (e) {
+                    console.error('Failed to parse modes data:', e);
+                }
+            }
+            
             // Create and show modal
-            const modal = createModal(appName, appShortName, appLanguage, needsLanguageFlag);
+            const modal = createModal(appName, appShortName, appLanguage, needsLanguageFlag, modes);
             showModal(modal);
         });
     });

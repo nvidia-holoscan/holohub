@@ -454,6 +454,45 @@
   line-height: 1.5;
 }
 
+/* Modes section */
+.run-locally-modes-section {
+  margin-top: 2em;
+  padding-top: 1.5em;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.run-locally-modes-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--md-default-fg-color);
+  margin: 0 0 0.5em 0;
+  font-family: var(--md-text-font);
+}
+
+.run-locally-modes-section .run-locally-description {
+  margin-bottom: 1em;
+}
+
+.run-locally-modes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.run-locally-mode-description {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.75rem;
+  margin: 0 0 0.5em 0;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* Mode copy button - position at bottom right instead of top right */
+.run-locally-mode-copy-btn {
+  top: auto;
+  bottom: 0.8em;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .run-locally-button {
@@ -485,6 +524,11 @@
     margin-top: 0.8em;
     width: 100%;
     font-size: 0.75rem;
+  }
+  
+  .run-locally-mode-copy-btn {
+    position: static;
+    bottom: auto;
   }
   
   .run-locally-copy-all-btn {
