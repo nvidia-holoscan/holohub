@@ -79,7 +79,26 @@ file(GENERATE
     CONTENT "${CLIENT_INIT_PY_CONTENT}"
 )
 
-# Add pytest tests if testing is enabled
+# Add pytest tests for Python bindings
+# Tests are registered at parent level to ensure proper CTest discovery
+# Following PR #1134 pattern for video_streaming operator tests
 if(BUILD_TESTING)
-    add_subdirectory(tests)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    
+    # Register pytest tests for streaming_client_enhanced Python bindings
+    add_test(
+        NAME streaming_client_enhanced_pytest
+        COMMAND ${Python3_EXECUTABLE} -m pytest 
+                -v 
+                --tb=short
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    )
+    
+    # Set test properties with PYTHONPATH
+    set_tests_properties(streaming_client_enhanced_pytest PROPERTIES
+        ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+        TIMEOUT 300
+        LABELS "pytest;python;bindings;streaming_client"
+    )
 endif()
