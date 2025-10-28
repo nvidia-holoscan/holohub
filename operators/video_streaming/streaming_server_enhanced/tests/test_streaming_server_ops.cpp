@@ -325,7 +325,7 @@ TEST_F(StreamingServerUpstreamOpTest, CustomVideoParameters) {
       holoscan::Arg("streaming_server_resource") = resource_,
       holoscan::Arg("width") = 1280u,
       holoscan::Arg("height") = 720u,
-      holoscan::Arg("fps") = 60u);
+      holoscan::Arg("fps") = uint16_t{60});
 
   ASSERT_NE(upstream_op_, nullptr);
   EXPECT_EQ(upstream_op_->name(), "custom_params_upstream_op");
@@ -419,7 +419,7 @@ TEST_F(StreamingServerDownstreamOpTest, CustomVideoParameters) {
       holoscan::Arg("streaming_server_resource") = resource_,
       holoscan::Arg("width") = 1920u,
       holoscan::Arg("height") = 1080u,
-      holoscan::Arg("fps") = 30u);
+      holoscan::Arg("fps") = uint16_t{30});
 
   ASSERT_NE(downstream_op_, nullptr);
   EXPECT_EQ(downstream_op_->name(), "custom_params_downstream_op");
