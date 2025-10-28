@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,7 @@ RUN git clone --depth 1 https://github.com/DepthAnything/Depth-Anything-V2.git \
     && mv depth-anything-tensorrt/depth_anything_v2/dpt.py Depth-Anything-V2/depth_anything_v2 \
     && mv depth-anything-tensorrt/depth_anything_v2/export_v2.py Depth-Anything-V2
 
-RUN pip install onnx onnx-graphsurgeon \
+RUN pip install onnx onnx-graphsurgeon onnxscript \
     && pip install -r Depth-Anything-V2/requirements.txt
 
 # Change to the repository directory
