@@ -182,7 +182,7 @@ The unit tests complement the existing integration tests:
 
 ### Unit Tests (This Branch)
 - ✅ **Scope**: Individual operator components
-- ✅ **Speed**: Fast (0.13 seconds total for 35+ tests, ~0.004 sec per test)
+- ✅ **Speed**: Fast (0.13 seconds total for 31 tests, ~0.004 sec per test)
 - ✅ **Dependencies**: None (network-free)
 - ✅ **Focus**: API validation, parameter handling, resource management
 - ✅ **Run When**: During development, before commit
@@ -209,7 +209,7 @@ timeout 120 ctest -R "streaming.*unit_tests" --output-on-failure
 **Benefits:**
 - ✅ **Ultra-fast feedback** - Complete in ~0.13 seconds (well under 2 minutes)
 - ✅ **No network dependencies** - Tests run in isolation
-- ✅ **Clear pass/fail status** - 100% pass rate (2/2 suites, 35+ tests)
+- ✅ **Clear pass/fail status** - 100% pass rate (2/2 suites, 31 tests)
 - ✅ **Detailed error output** - GTest provides clear failure messages
 - ✅ **Reliable** - No flaky network-dependent failures
 
