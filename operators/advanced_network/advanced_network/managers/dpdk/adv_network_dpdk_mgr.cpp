@@ -63,6 +63,8 @@ static inline int get_queue_from_key(uint32_t key) {
 
 
 std::atomic<bool> force_quit = false;
+
+// Used to signal to RX threads to flush all existing packets. Defaults to seq_cst, so no fences needed.
 std::atomic<bool> flush_rx_queues = false;
 
 struct TxWorkerParams {
