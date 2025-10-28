@@ -882,8 +882,9 @@ void DpdkMgr::initialize() {
   }
 
   // Initialize all drop_all_traffic_flow pointers to nullptr
-  for (auto& flow_ptr : drop_all_traffic_flow) {
-    flow_ptr = nullptr;
+  for (auto& config : drop_all_traffic_flow) {
+    config.jump = nullptr;
+    config.drop = nullptr;
   }
 
   this->initialized_ = true;
@@ -1345,6 +1346,7 @@ Status DpdkMgr::drop_all_traffic(int port) {
   struct rte_flow_action action[MAX_ACTION_NUM];
   struct rte_flow* flow = NULL;
   struct rte_flow_error error;
+  DropTrafficConfig config;
 
   // Initialize the jump rule to group 3 (required by HWS)
   {
@@ -1363,9 +1365,9 @@ Status DpdkMgr::drop_all_traffic(int port) {
 
     auto res = rte_flow_validate(port, &jump_attr, jump_pattern, jump_actions, &jump_error);
     if (!res) {
-      struct rte_flow* flow = rte_flow_create(
+      config.jump = rte_flow_create(
           port, &jump_attr, jump_pattern, jump_actions, &jump_error);
-      if (flow == nullptr) {
+      if (config.jump == nullptr) {
         HOLOSCAN_LOG_ERROR("rte_flow_create failed for jump rule in drop_all_traffic");
       }
     } else {
@@ -1395,23 +1397,25 @@ Status DpdkMgr::drop_all_traffic(int port) {
     port, attr.priority);
 
   // Create the flow rule
-  drop_all_traffic_flow[port] = rte_flow_create(port, &attr, pattern, action, &error);
+  config.drop = rte_flow_create(port, &attr, pattern, action, &error);
 
-  if (drop_all_traffic_flow[port] == nullptr) {
+  if (config.drop == nullptr) {
     HOLOSCAN_LOG_ERROR("Failed to create drop all traffic flow rule on port {}: {}",
                        port, error.message ? error.message : "unknown error");
+    rte_flow_destroy(port, config.jump, &error);
     return Status::INTERNAL_ERROR;
   } else {
     HOLOSCAN_LOG_INFO("Successfully created drop all traffic rule on port {}", port);
   }
 
+  drop_all_traffic_flow[port] = config;
   flush_rx_queues.store(true);
 
   return Status::SUCCESS;
 }
 
 Status DpdkMgr::allow_all_traffic(int port) {
-  if (drop_all_traffic_flow[port] == nullptr) {
+  if (drop_all_traffic_flow[port].drop == nullptr) {
     HOLOSCAN_LOG_ERROR("Cannot remove drop rule: flow pointer is null");
     return Status::INVALID_PARAMETER;
   }
@@ -1419,16 +1423,27 @@ Status DpdkMgr::allow_all_traffic(int port) {
   // Tell the RX threads they can keep processing packets
   flush_rx_queues.store(false);
 
-  struct rte_flow_error error;
-  int ret = rte_flow_destroy(port, drop_all_traffic_flow[port], &error);
+  struct rte_flow_error jump_error;
+  struct rte_flow_error drop_error;
+  int drop_ret = rte_flow_destroy(port, drop_all_traffic_flow[port].drop, &drop_error);
+  int jump_ret = rte_flow_destroy(port, drop_all_traffic_flow[port].jump, &jump_error);
 
-  if (ret != 0) {
+  if (drop_ret != 0) {
     HOLOSCAN_LOG_ERROR("Failed to destroy drop all traffic flow rule on port {}: {}",
-                       port, error.message ? error.message : "unknown error");
+                       port, drop_error.message ? drop_error.message : "unknown error");
+  }
+
+  if (jump_ret != 0) {
+    HOLOSCAN_LOG_ERROR("Failed to destroy jump all traffic flow rule on port {}: {}",
+                       port, jump_error.message ? jump_error.message : "unknown error");
+  }
+
+  if (drop_ret != 0 || jump_ret != 0) {
     return Status::INTERNAL_ERROR;
   }
 
-  drop_all_traffic_flow[port] = nullptr;
+  drop_all_traffic_flow[port].drop = nullptr;
+  drop_all_traffic_flow[port].jump = nullptr;
 
   HOLOSCAN_LOG_INFO(
     "Successfully removed drop all traffic rule on port {}, traffic is now allowed", port);

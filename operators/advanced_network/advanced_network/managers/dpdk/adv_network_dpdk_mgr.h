@@ -59,6 +59,11 @@ struct DPDKQueueConfig {
   std::vector<union rte_eth_rxseg> rx_useg;
 };
 
+struct DropTrafficConfig {
+  struct rte_flow *jump;
+  struct rte_flow *drop;
+};
+
 class DpdkLogLevel {
  public:
   enum Level {
@@ -244,7 +249,7 @@ class DpdkMgr : public Manager {
   struct rte_mempool* rx_flow_id_buffer;
   struct rte_mempool* rx_metadata;
   struct rte_mempool* tx_metadata;
-  std::array<struct rte_flow*, RTE_MAX_ETHPORTS> drop_all_traffic_flow;
+  std::array<DropTrafficConfig, RTE_MAX_ETHPORTS> drop_all_traffic_flow;
   uint64_t timestamp_mask_{0};
   uint64_t timestamp_offset_{0};
   std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
