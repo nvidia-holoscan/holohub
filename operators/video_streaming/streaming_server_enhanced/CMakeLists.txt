@@ -219,7 +219,7 @@ if(BUILD_TESTING)
     # Use the official add_python_tests() function from holohub cmake modules
     include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/modules/add_python_tests.cmake)
     add_python_tests(
-        INPUT "python/tests"
+        INPUT "${CMAKE_CURRENT_SOURCE_DIR}/python/tests"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         PREFIX "streaming_server_enhanced_pytest"
         PYTEST_ARGS "-v" "--tb=short"
