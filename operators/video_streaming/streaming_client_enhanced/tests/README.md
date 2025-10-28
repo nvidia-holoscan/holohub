@@ -175,15 +175,6 @@ gdb --args ./test_streaming_client_op --gtest_filter=StreamingClientOpTest.Basic
 
 ⚠️ **Integration Tests**: For end-to-end testing with actual streaming, see the integration tests in `applications/video_streaming/TESTING.md`.
 
-## Test Categories
-
-Tests are organized into logical categories:
-- **Basic Initialization**: Core operator creation
-- **Parameter Validation**: Various configuration options
-- **Operator Setup**: Setup method testing
-- **Edge Cases**: Boundary conditions
-- **Resource Management**: Cleanup and multiple instances
-
 ## Differences from PR #1134
 
 **Current Implementation** (This Branch):
