@@ -26,7 +26,7 @@ Please refer to the top level Holohub README.md for more information about the H
 ### AJA Capture Card Input
 
 ```bash
+sed -i -e 's#^source:.*#source: aja#' applications/ultrasound_segmentation/cpp/ultrasound_segmentation.yaml
 ./holohub run ultrasound_segmentation --language=cpp [--local] \
-    --configure-args="-DOP_aja_source:BOOL=ON" \
-    --run-args="--source=aja"
+    --configure-args="-DOP_aja_source:BOOL=ON"
 ```
