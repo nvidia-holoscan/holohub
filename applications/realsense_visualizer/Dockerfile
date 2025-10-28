@@ -41,7 +41,9 @@ RUN apt update \
     && apt install --no-install-recommends -y \
         librealsense2-dev \
         libudev-dev \
-        libusb-1.0-0-dev
+        libusb-1.0-0-dev \
+        libfastcdr-dev \
+        libfastrtps-dev
 
 # --------------------------------------------------------------------------
 #

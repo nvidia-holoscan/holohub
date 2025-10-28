@@ -18,6 +18,10 @@ project(realsense_camera)
 find_package(holoscan 2.1 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# Required for RealSense2 package
+find_package(fastrtps REQUIRED)
+find_package(fastcdr REQUIRED)
+
 find_package(realsense2 REQUIRED)
 
 add_library(realsense_camera SHARED
