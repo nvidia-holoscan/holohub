@@ -60,7 +60,7 @@ The unit tests verify the correct behavior of the StreamingClientOp operator in 
 ## Test Output Example
 
 ```
-[==========] Running 16 tests from 1 test suite.
+[==========] Running 13 tests from 1 test suite.
 [----------] Global test environment set-up.
 [----------] 13 tests from StreamingClientOpTest
 [ RUN      ] StreamingClientOpTest.BasicInitialization
