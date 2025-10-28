@@ -4,6 +4,15 @@
 
 This document summarizes the C++ unit tests for the `video_streaming` operators, providing comprehensive coverage of all client and server components.
 
+## ℹ️ Related Testing Documentation
+
+This document covers **C++ unit tests** only. For **Python binding tests (pytest)**, see:
+- **[PYTEST_SUMMARY.md](PYTEST_SUMMARY.md)** - Comprehensive Python binding test documentation (61 pytest tests)
+
+Together, these test suites provide **92+ total tests** for complete video streaming operator validation:
+- **31 C++ unit tests** (this document) - Fast, isolated testing of C++ components
+- **61 Python pytest tests** - Validation of Python/C++ bindings
+
 ## Test Suites
 
 This package includes **31 unit tests** across all video streaming operators:
@@ -198,10 +207,11 @@ The unit tests are designed for CI/CD pipelines:
 
 Each test suite has detailed documentation:
 
-- **[Client Tests README](streaming_client_enhanced/tests/README.md)** - StreamingClientOp tests
-- **[Server Tests README](streaming_server_enhanced/tests/README.md)** - Server operator tests
+- **[Client Tests README](streaming_client_enhanced/tests/README.md)** - StreamingClientOp C++ unit tests
+- **[Server Tests README](streaming_server_enhanced/tests/README.md)** - Server operator C++ unit tests
 
 Additional documentation:
+- **[Python Binding Tests (pytest)](PYTEST_SUMMARY.md)** - Python binding tests for all operators (61 tests)
 - **[Integration Tests](../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../applications/video_streaming/README.md)** - Application overview
 
