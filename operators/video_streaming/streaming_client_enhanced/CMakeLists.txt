@@ -288,5 +288,24 @@ endif()
 
 # Add unit tests if testing is enabled
 if(BUILD_TESTING)
+    # C++ unit tests
     add_subdirectory(tests)
+    
+    # Python binding tests (pytest)
+    # Run pytest on the python bindings tests directory
+    add_test(
+        NAME streaming_client_enhanced_pytest
+        COMMAND python3 -m pytest 
+                -v 
+                --tb=short
+                python/tests
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    
+    # Set test properties with PYTHONPATH
+    set_tests_properties(streaming_client_enhanced_pytest PROPERTIES
+        ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
+        TIMEOUT 300
+        LABELS "pytest;python;bindings;streaming_client"
+    )
 endif()

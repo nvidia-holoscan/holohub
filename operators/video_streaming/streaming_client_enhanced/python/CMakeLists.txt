@@ -78,24 +78,3 @@ file(GENERATE
     OUTPUT "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_client_enhanced/__init__.py"
     CONTENT "${CLIENT_INIT_PY_CONTENT}"
 )
-
-# Add pytest tests for Python bindings
-# Tests are registered at parent level to ensure proper CTest discovery
-if(BUILD_TESTING)
-    # Register pytest tests for streaming_client_enhanced Python bindings
-    add_test(
-        NAME streaming_client_enhanced_pytest
-        COMMAND python3 -m pytest 
-                -v 
-                --tb=short
-                tests
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests
-    )
-    
-    # Set test properties with PYTHONPATH
-    set_tests_properties(streaming_client_enhanced_pytest PROPERTIES
-        ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python/lib:$ENV{PYTHONPATH}"
-        TIMEOUT 300
-        LABELS "pytest;python;bindings;streaming_client"
-    )
-endif()
