@@ -150,6 +150,7 @@ def create_metadata_header(
     archive_version: str = None,
     version_selector_html: str = "",
     component_folder_name: str = "",
+    component_type: str = "",
 ) -> str:
     """Create the metadata header for the documentation page.
 
@@ -163,6 +164,7 @@ def create_metadata_header(
         archive_version (str, optional): Version string for archived documentation. Default: None.
         version_selector_html (str, optional): HTML for version selector dropdown. Default: "".
         component_folder_name (str, optional): Folder name of the component for run command. Default: "".
+        component_type (str, optional): Type of component (e.g., "operators", "tutorials"). Default: "".
 
     Returns:
         str: Formatted HTML-like string containing the metadata header with icons and labels
@@ -188,14 +190,17 @@ def create_metadata_header(
     ranking_str = RANKING_LEVELS.get(ranking)
 
     # Create copy run command button with the component folder name
-    # Use folder name if provided, otherwise fall back to metadata name
-    component_name = component_folder_name if component_folder_name else metadata.get("name", "")
-    run_command = f"./holohub run {component_name}"
+    # Skip for tutorials and operators
+    copy_button_html = ""
+    if component_type not in ["tutorials", "operators"]:
+        # Use folder name if provided, otherwise fall back to metadata name
+        component_name = component_folder_name if component_folder_name else metadata.get("name", "")
+        run_command = f"./holohub run {component_name}"
 
-    # Escape the check icon for use in JavaScript string
-    check_icon_for_js = CHECK_ICON_SVG.replace('"', '\\"')
+        # Escape the check icon for use in JavaScript string
+        check_icon_for_js = CHECK_ICON_SVG.replace('"', '\\"')
 
-    copy_button_html = f"""<div style="margin-bottom: 18px;">
+        copy_button_html = f"""<div style="margin-bottom: 18px;">
 <button id="copy-run-cmd-btn" data-command="{run_command}" style="background-color: var(--md-accent-fg-color); color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--md-text-font); transition: opacity 0.2s; display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">{COPY_ICON_SVG}</button>
 <code style="margin-left: 6px; padding: 4px 8px; background-color: var(--md-code-bg-color); border-radius: 3px; font-size: 13px;">{run_command}</code>
 </div>
@@ -563,6 +568,7 @@ def create_page(
     git_repo_path: Path,
     archive: dict = {"version": None, "git_ref": "main"},
     archives: dict = None,
+    component_type: str = "",
 ):
     """Create a documentation page, handling both versioned and non-versioned cases.
 
@@ -575,6 +581,7 @@ def create_page(
         archive: Dictionary of version label and git reference strings
           - if provided, links are versioned accordingly
         archives: Dictionary of all archives (for version selector dropdown)
+        component_type: Type of component (e.g., "operators", "tutorials")
     Returns:
         Generated page content as string
     """
@@ -617,7 +624,7 @@ def create_page(
 
     # Patch the header (finds header, links it, inserts metadata with version selector)
     metadata_header = create_metadata_header(
-        metadata, last_modified, archive_version, version_selector_html, component_folder_name
+        metadata, last_modified, archive_version, version_selector_html, component_folder_name, component_type
     )
     encoded_rel_dir = _encode_path_for_url(relative_dir)
     url = f"{base_url}/{encoded_rel_dir}"
@@ -662,6 +669,7 @@ def process_archived_versions(
     dest_dir: Path,
     project_type: str,
     git_repo_path: Path,
+    component_type: str = "",
 ) -> str:
     """Process archived versions of documentation and return nav content.
 
@@ -673,6 +681,7 @@ def process_archived_versions(
         dest_dir: Destination directory for generated pages
         project_type: Type of project (operator, application, etc.)
         git_repo_path: Path to the Git repository root
+        component_type: Type of component (e.g., "operators", "tutorials")
 
     Returns:
         Navigation content string for archived versions
@@ -729,6 +738,7 @@ nav:
             git_repo_path,
             archive={"version": version, "git_ref": git_ref},
             archives=archives,
+            component_type=component_type,
         )
 
         # Add archives to nav file
@@ -840,7 +850,7 @@ def parse_metadata_path(
     last_modified = get_last_modified_date(metadata_path, git_repo_path)
     # Check for archives in metadata for version selector
     archives = metadata["archives"] if "archives" in metadata else None
-    create_page(metadata, readme_text, dest_path, last_modified, git_repo_path, archives=archives)
+    create_page(metadata, readme_text, dest_path, last_modified, git_repo_path, archives=archives, component_type=component_type)
 
     # Initialize nav file content to set title
     nav_path = dest_dir / ".nav.yml"
@@ -852,7 +862,7 @@ title: "{title}"
     archives = metadata["archives"] if "archives" in metadata else None
     if archives:
         nav_content += process_archived_versions(
-            archives, metadata, metadata_path, readme_path, dest_dir, project_type, git_repo_path
+            archives, metadata, metadata_path, readme_path, dest_dir, project_type, git_repo_path, component_type
         )
 
     # Write nav file
@@ -898,6 +908,7 @@ title: "{title}"
                 parent_last_modified,
                 git_repo_path,
                 archives=archives,
+                component_type=component_type,
             )
 
             # Write parent nav file
@@ -916,6 +927,7 @@ title: "{parent_title}"
                     parent_dest_dir,
                     project_type,
                     git_repo_path,
+                    component_type,
                 )
 
             # Write parent nav file
