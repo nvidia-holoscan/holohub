@@ -64,7 +64,8 @@ static inline int get_queue_from_key(uint32_t key) {
 
 std::atomic<bool> force_quit = false;
 
-// Used to signal to RX threads to flush all existing packets. Defaults to seq_cst, so no fences needed.
+// Used to signal to RX threads to flush all existing packets.
+// Defaults to seq_cst, so no fences needed.
 std::atomic<bool> flush_rx_queues = false;
 
 struct TxWorkerParams {
@@ -1390,13 +1391,14 @@ Status DpdkMgr::drop_all_traffic(int port) {
   attr.priority = 0;  // Highest priority - blocks all traffic
   attr.group = 3;
 
-  HOLOSCAN_LOG_INFO("Creating drop all traffic rule on port {} with priority {}", port, attr.priority);
+  HOLOSCAN_LOG_INFO("Creating drop all traffic rule on port {} with priority {}",
+    port, attr.priority);
 
   // Create the flow rule
   drop_all_traffic_flow[port] = rte_flow_create(port, &attr, pattern, action, &error);
-  
+
   if (drop_all_traffic_flow[port] == nullptr) {
-    HOLOSCAN_LOG_ERROR("Failed to create drop all traffic flow rule on port {}: {}", 
+    HOLOSCAN_LOG_ERROR("Failed to create drop all traffic flow rule on port {}: {}",
                        port, error.message ? error.message : "unknown error");
     return Status::INTERNAL_ERROR;
   } else {
@@ -1419,16 +1421,17 @@ Status DpdkMgr::allow_all_traffic(int port) {
 
   struct rte_flow_error error;
   int ret = rte_flow_destroy(port, drop_all_traffic_flow[port], &error);
-  
+
   if (ret != 0) {
-    HOLOSCAN_LOG_ERROR("Failed to destroy drop all traffic flow rule on port {}: {}", 
+    HOLOSCAN_LOG_ERROR("Failed to destroy drop all traffic flow rule on port {}: {}",
                        port, error.message ? error.message : "unknown error");
     return Status::INTERNAL_ERROR;
   }
 
   drop_all_traffic_flow[port] = nullptr;
 
-  HOLOSCAN_LOG_INFO("Successfully removed drop all traffic rule on port {}, traffic is now allowed", port);
+  HOLOSCAN_LOG_INFO(
+    "Successfully removed drop all traffic rule on port {}, traffic is now allowed", port);
   return Status::SUCCESS;
 }
 
