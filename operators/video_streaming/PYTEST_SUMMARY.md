@@ -184,6 +184,54 @@ The following tests passed:
 Total Test time (real) = 17.63 sec
 ```
 
+### 📝 Redirecting Output to a File
+
+You can save test output to a file for documentation or debugging purposes:
+
+#### With CTest
+```bash
+# Redirect all output to a file
+./holohub test video_streaming --ctest-options="-R streaming.*pytest -VV" > test_results.log 2>&1
+
+# Append to existing file
+./holohub test video_streaming --ctest-options="-R streaming.*pytest -VV" >> test_results.log 2>&1
+
+# Save stdout and stderr separately
+./holohub test video_streaming --ctest-options="-R streaming.*pytest -VV" > stdout.log 2> stderr.log
+```
+
+#### With Direct pytest
+```bash
+# Redirect all output to a file
+pytest operators/video_streaming/*/python/tests/ -v > test_results.log 2>&1
+
+# With coverage and redirected output
+pytest operators/video_streaming/*/python/tests/ -v \
+  --cov=streaming_client_enhanced \
+  --cov=streaming_server_enhanced \
+  --cov-report=html \
+  > test_results.log 2>&1
+
+# Append to existing log file
+pytest operators/video_streaming/*/python/tests/ -v >> test_results.log 2>&1
+```
+
+#### Log File Interpretation
+```bash
+# View the log file
+cat test_results.log
+
+# View last 50 lines of log
+tail -50 test_results.log
+
+# Search for failures in log
+grep -i "failed\|error" test_results.log
+
+# Count passed vs failed
+grep "passed" test_results.log
+grep "failed" test_results.log
+```
+
 ## ✅ Acceptance Criteria
 
 All tests must pass with the following criteria:
