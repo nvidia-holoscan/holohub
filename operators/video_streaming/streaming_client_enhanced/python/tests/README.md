@@ -179,7 +179,7 @@ This is expected behavior - tests will skip gracefully.
 
 - [C++ Unit Tests](../../tests/README.md) - C++ operator unit tests
 - [StreamingClientOp Documentation](../../README.md) - Operator documentation
-- [Integration Tests](../../../../applications/video_streaming/TESTING.md) - End-to-end tests
+- [Integration Tests](../../../../../applications/video_streaming/TESTING.md) - End-to-end tests
 
 ## Contributing
 

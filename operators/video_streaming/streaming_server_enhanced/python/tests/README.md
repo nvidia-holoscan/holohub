@@ -236,8 +236,8 @@ python/tests/
 ## Related Documentation
 
 - [C++ Unit Tests](../../tests/README.md) - C++ operator unit tests
-- [StreamingServer Documentation](../../README.md) - Operator documentation
-- [Integration Tests](../../../../applications/video_streaming/TESTING.md) - End-to-end tests
+- [StreamingServerOps Documentation](../../README.md) - Server operator documentation
+- [Integration Tests](../../../../../applications/video_streaming/TESTING.md) - End-to-end tests
 
 ## Contributing
 
