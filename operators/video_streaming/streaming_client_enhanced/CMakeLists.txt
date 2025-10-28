@@ -293,7 +293,7 @@ if(BUILD_TESTING)
     
     # Python binding tests (pytest)
     # Use the official add_python_tests() function from holohub cmake modules
-    include(${HOLOHUB_CMAKE_DIR}/modules/add_python_tests.cmake)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/modules/add_python_tests.cmake)
     add_python_tests(
         INPUT "python/tests"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
