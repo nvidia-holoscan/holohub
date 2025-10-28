@@ -80,7 +80,7 @@ operators/video_streaming/
 
 When running the unit tests, you should see output similar to:
 
-```
+```text
 Test project /workspace/holohub/build-video_streaming
     Start 5: streaming_client_op_unit_tests
 1/2 Test #5: streaming_client_op_unit_tests ....   Passed    0.06 sec
