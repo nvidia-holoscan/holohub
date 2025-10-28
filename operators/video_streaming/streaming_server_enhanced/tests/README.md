@@ -194,27 +194,6 @@ TEST_F(StreamingServerUpstreamOpTest, TestName) {
 }
 ```
 
-## Adding New Tests
-
-To add new tests:
-
-1. Add test function in `test_streaming_server_ops.cpp`:
-```cpp
-TEST_F(StreamingServerResourceTest, MyNewTest) {
-  // Test implementation
-}
-```
-
-2. Rebuild:
-```bash
-make test_streaming_server_ops
-```
-
-3. Run the new test:
-```bash
-./test_streaming_server_ops --gtest_filter=StreamingServerResourceTest.MyNewTest
-```
-
 ## Important Notes
 
 ⚠️ **Network-Free Testing**: These tests do NOT start actual streaming servers or require network connections. Tests focus on operator creation and configuration.
@@ -272,74 +251,9 @@ downstream_op = make_operator<StreamingServerDownstreamOp>(
 add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
 ```
 
-## Differences from PR #1134
-
-**Current Implementation** (This Branch):
-- ✅ **C++ Unit Tests**: Full GTest-based tests for all three components
-- ✅ **Comprehensive Coverage**: Resource, upstream, downstream, integration tests
-- ✅ **Resource Sharing Tests**: Verify shared resource patterns
-- ✅ **Well-Documented**: Detailed README with examples
-- ✅ **Integrated Build**: Automatic compilation with `-DBUILD_TESTING=ON`
-
-**PR #1134 Implementation**:
-- ✅ Had similar C++ unit test structure
-- ✅ Had pytest tests for Python bindings
-- ❌ Tests were later removed (commit `173b6ee0`)
-- ℹ️ Focused on application-level testing
-
-**Key Improvements**:
-1. Tests all three server components systematically
-2. Tests resource sharing patterns
-3. Better organized test suites
-4. More comprehensive parameter validation
-5. Clearer documentation and examples
-
 ## See Also
 
 - **[Streaming Server Operators README](../README.md)** - Operator documentation
 - **[Streaming Client Tests](../../streaming_client_enhanced/tests/README.md)** - Client operator tests
 - **[Integration Tests](../../../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../../../applications/video_streaming/README.md)** - Application overview
-
-## CI/CD Integration
-
-These tests are designed to run in CI/CD pipelines:
-
-```bash
-# CI-friendly command
-timeout 120 ctest -R streaming_server_ops_unit_tests --output-on-failure
-echo "Test exit code: $?"
-```
-
-**Exit Codes:**
-- `0`: All tests passed
-- `1`: One or more tests failed
-- `124`: Test timeout (2 minutes)
-
-## Contributing
-
-When adding new tests:
-1. Use appropriate test fixture (`StreamingServerResourceTest`, `StreamingServerUpstreamOpTest`, or `StreamingServerDownstreamOpTest`)
-2. Follow the existing test naming pattern
-3. Use descriptive test names
-4. Add documentation comments
-5. Update this README if adding new test categories
-6. Ensure tests pass before committing
-
-## Running All Video Streaming Tests
-
-To run all video streaming tests (client + server + integration):
-
-```bash
-# From holohub root directory
-./holohub test video_streaming \
-  --cmake-options='-DBUILD_TESTING=ON' \
-  --ctest-options="-V"
-```
-
-This will run:
-- ✅ `streaming_client_op_unit_tests` - Client unit tests
-- ✅ `streaming_server_ops_unit_tests` - Server unit tests  
-- ✅ `video_streaming_integration_test` - C++ integration test
-- ✅ `video_streaming_integration_test_python` - Python integration test (if Python enabled)
-
