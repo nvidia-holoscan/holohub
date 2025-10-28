@@ -68,17 +68,13 @@ operators/video_streaming/
 
 ## Building and Running Tests
 
-### Build
-```bash
-# From holohub root directory
-./holohub build video_streaming --configure-args='-DBUILD_TESTING=ON'
-```
-
 ### Run All Unit Tests
 ```bash
 # Run all unit tests
 ./holohub test video_streaming --ctest-options="-R unit_tests -V"
 ```
+
+**Note:** `./holohub test` automatically builds the operator with `-DBUILD_TESTING=ON`, so no separate build step is needed.
 
 ### Test Results
 
@@ -270,13 +266,10 @@ The unit tests provide comprehensive coverage of all video streaming components 
 # 1. Checkout the branch
 git checkout cd/unit-tests-minimal
 
-# 2. Build with tests enabled
-./holohub build video_streaming --configure-args='-DBUILD_TESTING=ON'
-
-# 3. Run the tests
+# 2. Run the tests (automatically builds with -DBUILD_TESTING=ON)
 ./holohub test video_streaming --ctest-options="-R unit_tests -V"
 
-# 4. View results
+# 3. View results
 # ✅ All 31 tests pass in ~0.13 seconds!
 #    100% tests passed, 0 tests failed out of 2
 ```
