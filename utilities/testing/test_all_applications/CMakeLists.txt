@@ -102,8 +102,16 @@ foreach(METADATA_FILE ${METADATA_FILES})
     COMMAND ${TEST_COMMAND}
     WORKING_DIRECTORY ${HOLOHUB_ROOT}
   )
+  
+  # Set timeout based on application name
+  if(APP_NAME STREQUAL "sam2" OR APP_NAME MATCHES "prohawk")
+    set(TEST_TIMEOUT 1000)
+  else()
+    set(TEST_TIMEOUT 600)
+  endif()
+  
   set_tests_properties(${TEST_NAME} PROPERTIES
-    TIMEOUT 600
+    TIMEOUT ${TEST_TIMEOUT}
     FIXTURES_REQUIRED ${TEST_NAME}_fixture
   )
   
