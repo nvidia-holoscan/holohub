@@ -292,7 +292,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/modules/add_python_tests.cmak
 if(BUILD_TESTING)
     # C++ unit tests
     add_subdirectory(tests)
-    
+
     # Python binding tests (pytest) - only if Python bindings are built
     if(HOLOHUB_BUILD_PYTHON)
         add_python_tests(
