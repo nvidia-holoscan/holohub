@@ -1,6 +1,6 @@
 {
     "operator": {
-        "name": "StreamingClientOp",
+        "name": "VideoStreamingClientOp",
         "authors": [
             {
                 "name": "Holoscan Team",

@@ -1,6 +1,6 @@
 # StreamingClient Operator
 
-The StreamingClientOp class implements a Holoscan operator that provides bidirectional video streaming capabilities with the following key components:
+The VideoStreamingClientOp class implements a Holoscan operator that provides bidirectional video streaming capabilities with the following key components:
 
 - Configuration and Initialization:
 - Configurable parameters for frame dimensions (width, height), frame rate (fps), server connection (IP, port)
@@ -34,7 +34,7 @@ The StreamingClient operator integrates with the Holoscan Client Cloud Streaming
 │                           Holoscan Application                                  │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐    ┌─────────────────────────────────────────────────────┐ │
-│  │   Input Source  │    │              StreamingClientOp                      │ │
+│  │   Input Source  │    │              VideoStreamingClientOp                      │ │
 │  │                 │    │                                                     │ │
 │  │  • V4L2 Camera  │───▶│  ┌─────────────────┐    ┌─────────────────────────┐ │ │
 │  │  • Video File   │    │  │  Frame Convert  │    │    VideoFrame Object   │ │ │

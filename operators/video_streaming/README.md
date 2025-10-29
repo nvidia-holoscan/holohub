@@ -29,7 +29,7 @@ video_streaming/
 
 The client component provides bidirectional video streaming capabilities:
 
-- **StreamingClientOp**: Main operator for video streaming client functionality
+- **VideoStreamingClientOp**: Main operator for video streaming client functionality
 - **FrameSaverOp**: Utility operator for saving frames to disk
 - **Features**: 
   - Send and receive video frames
@@ -81,7 +81,7 @@ Both client and server operators have Python bindings available. To use them in 
 
 ```python
 # Client functionality
-from holohub.video_streaming_client import StreamingClientOp
+from holohub.video_streaming_client import VideoStreamingClientOp
 
 # Server functionality
 from holohub.video_streaming_server import (
