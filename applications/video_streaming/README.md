@@ -45,7 +45,7 @@ Download the server streaming binaries from NGC:
 
 ```bash
 # Navigate to the server operator directory  
-cd <your_holohub_path>/operators/video_streaming/streaming_server_enhanced
+cd <your_holohub_path>/operators/video_streaming/video_streaming_server
 
 # Download using NGC CLI
 ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
@@ -143,9 +143,9 @@ The Python applications use these Holoscan operator bindings:
 
 **Server Components:**
 
-- `holohub.streaming_server_enhanced.StreamingServerResource` - Manages server connections
-- `holohub.streaming_server_enhanced.StreamingServerUpstreamOp` - Receives frames from clients
-- `holohub.streaming_server_enhanced.StreamingServerDownstreamOp` - Sends frames to clients
+- `holohub.video_streaming_server.StreamingServerResource` - Manages server connections
+- `holohub.video_streaming_server.StreamingServerUpstreamOp` - Receives frames from clients
+- `holohub.video_streaming_server.StreamingServerDownstreamOp` - Sends frames to clients
 
 **Client Components:**
 

@@ -17,4 +17,4 @@
 # This builds both streaming client and server components in their original structure
 
 add_holohub_operator(video_streaming_client)
-add_holohub_operator(streaming_server_enhanced)
+add_holohub_operator(video_streaming_server)

@@ -4,7 +4,7 @@ A unified package containing both streaming client and server operators for real
 
 ## Overview
 
-This operator package combines `video_streaming_client` and `streaming_server_enhanced` into a single, cohesive video streaming solution.
+This operator package combines `video_streaming_client` and `video_streaming_server` into a single, cohesive video streaming solution.
 
 ## Structure
 
@@ -14,7 +14,7 @@ video_streaming/
 │   ├── streaming_client.cpp     # Main client implementation
 │   ├── frame_saver.cpp          # Frame saving utility
 │   └── holoscan_client_cloud_streaming/  # Client streaming binary once NGC download is complete
-├── streaming_server_enhanced/    # Complete streaming server operator
+├── video_streaming_server/    # Complete streaming server operator
 │   ├── streaming_server_*.cpp   # Server implementations
 │   ├── frame_debug_utils.cpp    # Debug utilities
 │   └── holoscan_server_cloud_streaming/  # Server streaming binary once NGC download is complete 
@@ -38,7 +38,7 @@ The client component provides bidirectional video streaming capabilities:
 
 **Documentation**: See `video_streaming_client/README.md` for detailed information.
 
-### Streaming Server Enhanced (`streaming_server_enhanced/`)
+### Streaming Server Enhanced (`video_streaming_server/`)
 
 The server component provides comprehensive streaming server functionality:
 
@@ -51,7 +51,7 @@ The server component provides comprehensive streaming server functionality:
   - Frame processing and validation
   - Debug utilities for troubleshooting
 
-**Documentation**: See `streaming_server_enhanced/README.md` for detailed information.
+**Documentation**: See `video_streaming_server/README.md` for detailed information.
 
 ## Usage
 
@@ -84,7 +84,7 @@ Both client and server operators have Python bindings available. To use them in 
 from holohub.video_streaming_client import StreamingClientOp
 
 # Server functionality
-from holohub.streaming_server_enhanced import (
+from holohub.video_streaming_server import (
     StreamingServerResource,
     StreamingServerUpstreamOp,
     StreamingServerDownstreamOp,
@@ -152,7 +152,7 @@ To build the server operator, first download the server binaries from NGC:
 ```bash
 # Download using NGC CLI
 
-cd <your_holohub_path>/operators/video_streaming/streaming_server_enhanced
+cd <your_holohub_path>/operators/video_streaming/video_streaming_server
 ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
 unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
 

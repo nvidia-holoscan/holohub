@@ -15,9 +15,9 @@
 
 include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET streaming_server_enhanced
+    CPP_CMAKE_TARGET video_streaming_server
     CLASS_NAME "StreamingServerResource;StreamingServerUpstreamOp;StreamingServerDownstreamOp"
-    SOURCES streaming_server_enhanced.cpp
+    SOURCES video_streaming_server.cpp
 )
 
 # Custom __init__.py with all three classes explicitly listed
@@ -29,7 +29,7 @@ import holoscan.gxf
 
 # Load the python binding
 try:
-    from ._streaming_server_enhanced import (
+    from ._video_streaming_server import (
         StreamingServerResource,
         StreamingServerUpstreamOp,
         StreamingServerDownstreamOp
@@ -52,7 +52,7 @@ See https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator_pyt
 
 # Register types with the SDK
 try:
-    from ._streaming_server_enhanced import register_types as _register_types
+    from ._video_streaming_server import register_types as _register_types
     try:
         from holoscan.core import io_type_registry
     except ImportError as e:
@@ -70,6 +70,6 @@ except ImportError as e:
 # Write the custom __init__.py at generation time (after configure, before build)
 # Use file(GENERATE) which runs after all configure-time processing
 file(GENERATE
-    OUTPUT "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_server_enhanced/__init__.py"
+    OUTPUT "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/video_streaming_server/__init__.py"
     CONTENT "${INIT_PY_CONTENT}"
 )

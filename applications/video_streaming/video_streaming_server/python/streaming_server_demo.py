@@ -35,9 +35,9 @@ from pathlib import Path
 from holoscan.core import Application
 
 # Import our streaming server operators
-# The __init__.py automatically imports from _streaming_server_enhanced
+# The __init__.py automatically imports from _video_streaming_server
 try:
-    from holohub.streaming_server_enhanced import (
+    from holohub.video_streaming_server import (
         StreamingServerDownstreamOp,
         StreamingServerResource,
         StreamingServerUpstreamOp,
@@ -46,7 +46,7 @@ except ImportError as e:
     print(f"Error: StreamingServer operators not found: {e}")
     print("Make sure the Python bindings are built and installed.")
     print(
-        "Build with: ./holohub build streaming_server_enhanced --language cpp --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'"
+        "Build with: ./holohub build video_streaming_server --language cpp --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'"
     )
     sys.exit(1)
 

@@ -136,11 +136,11 @@ class PyStreamingServerResource : public StreamingServerResource {
   }
 };
 
-PYBIND11_MODULE(_streaming_server_enhanced, m) {
+PYBIND11_MODULE(_video_streaming_server, m) {
   m.doc() = R"pbdoc(
       Holoscan SDK Streaming Server Enhanced Python Bindings
       ---------------------------------------------------
-      .. currentmodule:: holohub.streaming_server_enhanced
+      .. currentmodule:: holohub.video_streaming_server
   )pbdoc";
 
   // StreamingServerResource
@@ -209,7 +209,7 @@ Parameters
 ----------
 fragment : holoscan.core.Fragment (constructor only)
     The fragment that the operator belongs to.
-streaming_server_resource : holohub.streaming_server_enhanced.StreamingServerResource
+streaming_server_resource : holohub.video_streaming_server.StreamingServerResource
     The shared StreamingServerResource for managing server connection.
 width : int, optional
     Frame width. Default value is ``854``.
@@ -251,7 +251,7 @@ Parameters
 ----------
 fragment : holoscan.core.Fragment (constructor only)
     The fragment that the operator belongs to.
-streaming_server_resource : holohub.streaming_server_enhanced.StreamingServerResource
+streaming_server_resource : holohub.video_streaming_server.StreamingServerResource
     The shared StreamingServerResource for managing server connection.
 width : int, optional
     Frame width. Default value is ``854``.

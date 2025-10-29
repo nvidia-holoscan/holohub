@@ -24,7 +24,7 @@ find_package(holoscan 3.5 REQUIRED CONFIG
 # Find required packages
 find_package(CUDAToolkit REQUIRED)
 
-# Bundle NEWER SSL libraries from streaming_server_enhanced operator (supports OpenSSL 3.0-3.5)
+# Bundle NEWER SSL libraries from video_streaming_server operator (supports OpenSSL 3.0-3.5)
 # Detect system architecture
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
   set(ARCH_DIR "x86_64")
@@ -34,13 +34,13 @@ else()
   message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 # Find the streaming server operator directory using relative path
-set(OPERATOR_SSL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../operators/video_streaming/streaming_server_enhanced/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
+set(OPERATOR_SSL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../operators/video_streaming/video_streaming_server/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
 
 # Validate operator bundle exists - fail early with clear error message
 if(NOT EXISTS "${OPERATOR_SSL_DIR}")
   message(FATAL_ERROR "Operator SSL directory not found: ${OPERATOR_SSL_DIR}\n"
                       "Please ensure NGC assets are installed per README:\n"
-                      "  cd operators/video_streaming/streaming_server_enhanced\n"
+                      "  cd operators/video_streaming/video_streaming_server\n"
                       "  ngc registry resource download-version \"nvidia/holoscan_server_cloud_streaming:0.2\"\n"
                       "  unzip holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming")
 endif()
@@ -54,7 +54,7 @@ add_executable(streaming_server_demo
 target_link_libraries(streaming_server_demo
     PRIVATE
     holoscan::core
-    holoscan::ops::streaming_server_enhanced
+    holoscan::ops::video_streaming_server
     CUDA::cudart
     "${OPERATOR_SSL_DIR}/libssl.so.3"
     "${OPERATOR_SSL_DIR}/libcrypto.so.3"
@@ -109,7 +109,7 @@ add_custom_command(TARGET streaming_server_demo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libcudart.so.12"
         "$<TARGET_FILE_DIR:streaming_server_demo>/lib/libcudart.so.12"
-    COMMENT "Bundling ALL required libraries from streaming_server_enhanced operator"
+    COMMENT "Bundling ALL required libraries from video_streaming_server operator"
 )
 
 # Configure linking to use the bundled newer SSL libraries

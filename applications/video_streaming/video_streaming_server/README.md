@@ -259,7 +259,7 @@ add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
 The Python implementation (`python/streaming_server_demo.py`) demonstrates usage of the Python bindings:
 
 ```python
-from holohub.streaming_server_enhanced import (
+from holohub.video_streaming_server import (
     StreamingServerDownstreamOp,
     StreamingServerResource,
     StreamingServerUpstreamOp,

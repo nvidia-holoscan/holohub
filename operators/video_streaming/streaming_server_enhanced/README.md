@@ -1,6 +1,6 @@
 # Streaming Server Operators
 
-The `streaming_server_enhanced` operator provides a modular streaming server implementation with separate upstream, downstream, and resource components. This split architecture allows for better separation of concerns and more flexible streaming pipeline configurations.
+The `video_streaming_server` operator provides a modular streaming server implementation with separate upstream, downstream, and resource components. This split architecture allows for better separation of concerns and more flexible streaming pipeline configurations.
 
 > **📚 Related Documentation:**
 > - **[Main Operators README](../README.md)** - Setup, dependencies, NGC downloads, and Python examples

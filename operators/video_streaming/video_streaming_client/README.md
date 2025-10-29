@@ -22,7 +22,7 @@ Streaming Protocol Implementation:
 > **📚 Related Documentation:**
 > - **[Main Operators README](../README.md)** - Setup, dependencies, NGC downloads, and Python examples
 > - **[Client Application README](../../../applications/video_streaming/video_streaming_client/README.md)** - Complete client application with usage examples
-> - **[Server Operator README](../streaming_server_enhanced/README.md)** - Companion server operator documentation
+> - **[Server Operator README](../video_streaming_server/README.md)** - Companion server operator documentation
 > - **[Testing Documentation](../../../applications/video_streaming/TESTING.md)** - Integration testing and verification
 
 ## Architecture Overview

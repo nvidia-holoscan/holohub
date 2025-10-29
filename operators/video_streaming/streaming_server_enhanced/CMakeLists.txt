@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.20)
-project(streaming_server_enhanced CXX)
+project(video_streaming_server CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -60,7 +60,7 @@ find_library(Poco_LIBRARY
 )
 
 # Create the main streaming server library with all components
-add_library(streaming_server_enhanced
+add_library(video_streaming_server
     SHARED
     # Split operators for tensor-based processing
     streaming_server_upstream_op.cpp
@@ -74,21 +74,21 @@ add_library(streaming_server_enhanced
 )
 
 # Set C++ standard and properties
-set_target_properties(streaming_server_enhanced PROPERTIES
+set_target_properties(video_streaming_server PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
     POSITION_INDEPENDENT_CODE ON
 )
 
 # Set target properties
-target_include_directories(streaming_server_enhanced
+target_include_directories(video_streaming_server
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${STREAMINGSERVER_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(streaming_server_enhanced
+target_link_libraries(video_streaming_server
     PUBLIC
     holoscan::core
     holoscan::ops::format_converter
@@ -101,15 +101,15 @@ target_link_libraries(streaming_server_enhanced
 )
 
 # Create the main alias that applications will use
-add_library(holoscan::ops::streaming_server_enhanced ALIAS streaming_server_enhanced)
+add_library(holoscan::ops::video_streaming_server ALIAS video_streaming_server)
 
 # Note: DecodedFrameData library removed since we now work with holoscan::Tensor directly
 
 
 
 # Install targets
-install(TARGETS streaming_server_enhanced
-    EXPORT streaming_server_enhanced_targets
+install(TARGETS video_streaming_server
+    EXPORT video_streaming_server_targets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
@@ -122,7 +122,7 @@ install(FILES
     streaming_server_downstream_op.hpp
     streaming_server_resource.hpp
     frame_debug_utils.hpp
-    DESTINATION include/operators/streaming_server_enhanced
+    DESTINATION include/operators/video_streaming_server
 )
 
 # Explicitly install each required StreamingServer library - CMake will fail if any are missing
@@ -199,8 +199,8 @@ endif()
 
 
 # Export targets
-install(EXPORT streaming_server_enhanced_targets
-    FILE streaming_server_enhanced_targets.cmake
+install(EXPORT video_streaming_server_targets
+    FILE video_streaming_server_targets.cmake
     NAMESPACE holoscan::ops::
     DESTINATION lib/cmake/holoscan
 )
