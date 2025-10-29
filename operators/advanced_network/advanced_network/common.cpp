@@ -167,6 +167,16 @@ Status get_mac_addr(int port, char* mac) {
   return g_ano_mgr->get_mac_addr(port, mac);
 }
 
+Status drop_all_traffic(int port) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->drop_all_traffic(port);
+}
+
+Status allow_all_traffic(int port) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->allow_all_traffic(port);
+}
+
 bool is_tx_burst_available(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->is_tx_burst_available(burst);
@@ -295,6 +305,11 @@ Status get_rx_burst(BurstParams** burst) {
 uint16_t get_num_rx_queues(int port_id) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_num_rx_queues(port_id);
+}
+
+void flush_port_queue(int port, int queue) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  g_ano_mgr->flush_port_queue(port, queue);
 }
 
 void print_stats() {
