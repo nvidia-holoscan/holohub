@@ -10,7 +10,6 @@ This application demonstrates how to create a bidirectional video streaming clie
 
 ## Features
 
-- **Bidirectional Streaming**: Sends video frames to server and receives frames back
 - **Multiple Video Sources**:
   - V4L2 Camera (webcam) support with configurable resolution
   - Video file replay for testing and demos
@@ -29,9 +28,24 @@ This application demonstrates how to create a bidirectional video streaming clie
 - video_streaming operator
 - V4L2 camera (optional, for live streaming)
 
+
+### Download Dependencies
+
+Download the client streaming binaries from NGC by running the provided script:
+
+```bash
+./applications/video_streaming/video_streaming_client/download_dependencies.sh
+```
+The script will automatically:
+- Navigate to the correct operator directory
+- Download the client binaries from NGC
+- Extract and install them
+- Clean up temporary files
+
+
 ## Usage
 
-> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
+> ⚠️ This applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
 >
 > ```bash
 > # Set SDK version environment variable
@@ -46,14 +60,14 @@ This application demonstrates how to create a bidirectional video streaming clie
 
 ```bash
 # From holohub root directory - runs with video file playback
-./holohub run video_streaming client_replayer
+./holohub run video_streaming_client replayer --language cpp
 ```
 
 **V4L2 Camera Mode (640x480):**
 
 ```bash
 # From holohub root directory - runs with V4L2 camera (webcam)
-./holohub run video_streaming client_v4l2
+./holohub run video_streaming_client v4l2 --language cpp
 ```
 
 ### Python Client
@@ -62,20 +76,14 @@ This application demonstrates how to create a bidirectional video streaming clie
 
 ```bash
 # From holohub root directory - runs with video file playback
-./holohub run video_streaming client_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+./holohub run video_streaming_client replayer --language python
 ```
 
 **V4L2 Camera Mode (640x480):**
 
 ```bash
 # From holohub root directory - runs with V4L2 camera (webcam)
-./holohub run video_streaming client_python_v4l2 \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+./holohub run video_streaming_client v4l2 --language python
 ```
 
 **Default Client Configurations:**
@@ -305,7 +313,7 @@ The client implements a bidirectional streaming pipeline with format conversion:
 **Video Replayer Pipeline:**
 
 ```text
-VideoStreamReplayerOp → FormatConverterOp → StreamingClientOp → HoloVizOp
+VideoStreamReplayerOp → FormatConverterOp → VideoStreamingClientOp → HoloVizOp
                                                     ↓
                                             (sends to server)
                                                     ↓
@@ -317,7 +325,7 @@ VideoStreamReplayerOp → FormatConverterOp → StreamingClientOp → HoloVizOp
 **V4L2 Camera Pipeline:**
 
 ```text
-V4L2VideoCaptureOp → FormatConverterOp → StreamingClientOp → HoloVizOp
+V4L2VideoCaptureOp → FormatConverterOp → VideoStreamingClientOp → HoloVizOp
                                                  ↓
                                          (sends to server)
                                                  ↓
@@ -330,7 +338,7 @@ V4L2VideoCaptureOp → FormatConverterOp → StreamingClientOp → HoloVizOp
 
 1. **Video Source**: Either `VideoStreamReplayerOp` (file) or `V4L2VideoCaptureOp` (camera) provides video frames
 2. **Format Converter**: Converts video format to RGB888 for streaming
-3. **StreamingClientOp**: Sends frames to server and receives processed frames back
+3. **VideoStreamingClientOp**: Sends frames to server and receives processed frames back
 4. **HoloVizOp**: Displays the received frames from the server
 
 ## C++ Implementation
@@ -363,7 +371,7 @@ auto format_converter = make_operator<ops::FormatConverterOp>(
 );
 
 // Create streaming client
-auto streaming_client = make_operator<ops::StreamingClientOp>(
+auto streaming_client = make_operator<ops::VideoStreamingClientOp>(
     "streaming_client",
     Arg("server_ip", std::string("127.0.0.1")),
     Arg("signaling_port", uint16_t{48010}),
@@ -416,7 +424,7 @@ auto format_converter = make_operator<ops::FormatConverterOp>(
 );
 
 // Create streaming client
-auto streaming_client = make_operator<ops::StreamingClientOp>(
+auto streaming_client = make_operator<ops::VideoStreamingClientOp>(
     "streaming_client",
     Arg("server_ip", std::string("127.0.0.1")),
     Arg("signaling_port", uint16_t{48010}),
@@ -448,7 +456,7 @@ The Python implementation (`python/streaming_client_demo.py`) demonstrates usage
 **Video Replayer Mode:**
 
 ```python
-from holohub.streaming_client_enhanced import StreamingClientOp
+from holohub.video_streaming_client import VideoStreamingClientOp
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
@@ -483,7 +491,7 @@ class StreamingClientApp(Application):
         )
 
         # Create streaming client
-        streaming_client = StreamingClientOp(
+        streaming_client = VideoStreamingClientOp(
             self,
             allocator,  # Allocator for output buffer
             name="streaming_client",
@@ -514,7 +522,7 @@ class StreamingClientApp(Application):
 **V4L2 Camera Mode:**
 
 ```python
-from holohub.streaming_client_enhanced import StreamingClientOp
+from holohub.video_streaming_client import VideoStreamingClientOp
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
@@ -553,7 +561,7 @@ class StreamingClientApp(Application):
         )
 
         # Create streaming client
-        streaming_client = StreamingClientOp(
+        streaming_client = VideoStreamingClientOp(
             self,
             allocator,  # Allocator for output buffer
             name="streaming_client",
@@ -583,8 +591,8 @@ class StreamingClientApp(Application):
 
 **Key Points:**
 
-- The `StreamingClientOp` requires an allocator (passed as a positional argument) for output buffer allocation
-- The `StreamingClientOp` handles bidirectional streaming (sends and receives frames)
+- The `VideoStreamingClientOp` requires an allocator (passed as a positional argument) for output buffer allocation
+- The `VideoStreamingClientOp` handles bidirectional streaming (sends and receives frames)
 - **Parameters are set via constructor arguments** (from command-line or defaults), not from YAML
 - The constructor parameters (`source`, `server_ip`, `port`, `width`, `height`, `fps`) configure the application
 - Format conversion is necessary to convert source formats to RGB for streaming

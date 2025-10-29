@@ -7,7 +7,7 @@
                 "affiliation": "NVIDIA"
             }
         ],
-        "language": "C++",
+        "language": ["C++", "Python"],
         "version": "1.0.0",
         "changelog": {
             "1.0.0": "Initial release of unified video streaming demo with both client and server components"
@@ -28,9 +28,10 @@
             "Client",
             "Server", 
             "Demo",
+            "V4L2",
             "Bidirectional"
         ],
-        "ranking": 1,
+        "ranking": 2,
         "requirements": {
             "operators": [
                 {

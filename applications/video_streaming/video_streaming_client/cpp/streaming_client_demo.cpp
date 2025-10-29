@@ -32,7 +32,7 @@
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
 
-#include "streaming_client.hpp"
+#include "video_streaming_client.hpp"
 
 
 
@@ -63,7 +63,7 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  log_level: INFO\n\n";
 
   out_file << "# Streaming client settings\n";
-  out_file << "streaming_client:\n";
+  out_file << "video_streaming_client:\n";
   out_file << "  # Video/stream parameters\n";
   out_file << "  width: 854\n";
   out_file << "  height: 480\n";
@@ -214,8 +214,8 @@ class StreamingClientTestApp : public holoscan::Application {
             "pool", 1, source_block_size, source_num_blocks)),
         Arg("cuda_stream_pool", cuda_stream_pool));
 
-    auto streaming_client = make_operator<ops::StreamingClientOp>(
-        "streaming_client",
+    auto video_streaming_client = make_operator<ops::VideoStreamingClientOp>(
+        "video_streaming_client",
         Arg("width", width_),
         Arg("height", height_),
         Arg("fps", fps_),
@@ -231,7 +231,7 @@ class StreamingClientTestApp : public holoscan::Application {
     } else {
       add_flow(source, format_converter, {{"output", "source_video"}});
     }
-    add_flow(format_converter, streaming_client);
+    add_flow(format_converter, video_streaming_client);
 
     if (visualize_frames_) {
         auto holoviz = make_operator<ops::HolovizOp>(
@@ -242,7 +242,7 @@ class StreamingClientTestApp : public holoscan::Application {
             Arg("allocator", allocator),
             Arg("cuda_stream_pool", cuda_stream_pool));
 
-        add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
+        add_flow(video_streaming_client, holoviz, {{"output_frames", "receivers"}});
     }
   }
 
@@ -425,14 +425,14 @@ int main(int argc, char** argv) {
   }
 
   // Load parameters from config with safe defaults (640x480 for V4L2 compatibility)
-  uint32_t width = get_config_value(app.get(), "streaming_client.width", 640U);
-  uint32_t height = get_config_value(app.get(), "streaming_client.height", 480U);
-  uint32_t fps = get_config_value(app.get(), "streaming_client.fps", 30U);
-  std::string server_ip = get_config_value(app.get(), "streaming_client.server_ip",
+  uint32_t width = get_config_value(app.get(), "video_streaming_client.width", 640U);
+  uint32_t height = get_config_value(app.get(), "video_streaming_client.height", 480U);
+  uint32_t fps = get_config_value(app.get(), "video_streaming_client.fps", 30U);
+  std::string server_ip = get_config_value(app.get(), "video_streaming_client.server_ip",
                                            std::string("127.0.0.1"));
-  uint16_t signaling_port = get_config_value(app.get(), "streaming_client.signaling_port", 48010);
-  bool receive_frames = get_config_value(app.get(), "streaming_client.receive_frames", true);
-  bool send_frames = get_config_value(app.get(), "streaming_client.send_frames", true);
+  uint16_t signaling_port = get_config_value(app.get(), "video_streaming_client.signaling_port", 48010);
+  bool receive_frames = get_config_value(app.get(), "video_streaming_client.receive_frames", true);
+  bool send_frames = get_config_value(app.get(), "video_streaming_client.send_frames", true);
   bool visualize_frames = get_config_value(app.get(), "visualize_frames", true);
 
   // Set application parameters from config

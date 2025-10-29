@@ -16,39 +16,12 @@
 cmake_minimum_required(VERSION 3.20)
 project(video_streaming LANGUAGES CXX)
 
-# Check if this application should be built
-# (APP_video_streaming is set by add_holohub_application in parent)
-if(NOT APP_video_streaming)
-  return()
-endif()
+# Build client and server applications
+add_holohub_application(video_streaming_client DEPENDS
+                        OPERATORS video_streaming_client)
 
-# Default to download datasets
-option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
-
-# Download the endoscopy sample data (required for replayer mode)
-if(HOLOHUB_DOWNLOAD_DATASETS)
-  include(holoscan_download_data)
-  holoscan_download_data(endoscopy
-    URL nvidia/clara-holoscan/holoscan_endoscopy_sample_data:20230222
-    DOWNLOAD_NAME holoscan_endoscopy_sample_data_20230222.zip
-    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
-    GENERATE_GXF_ENTITIES
-    GXF_ENTITIES_HEIGHT 480
-    GXF_ENTITIES_WIDTH 854
-    GXF_ENTITIES_CHANNELS 3
-    GXF_ENTITIES_FRAMERATE 30
-    ALL
-  )
-endif()
-
-# Build client and server subdirectories directly
-# Note: The parent uses add_holohub_application(video_streaming) which:
-# - Defines APP_video_streaming option for conditional building
-# - Automatically enables the video_streaming operator dependency
-# We use add_subdirectory (not add_holohub_application) for client/server because
-# they are tightly coupled components that must always be built together.
-add_subdirectory(video_streaming_client)
-add_subdirectory(video_streaming_server)
+add_holohub_application(video_streaming_server DEPENDS
+                        OPERATORS video_streaming_server)
 
 # Add integration testing
 if(BUILD_TESTING)

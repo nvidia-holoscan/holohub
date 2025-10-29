@@ -20,7 +20,7 @@
 
 #include <string>
 
-#include "../streaming_client.hpp"
+#include "../video_streaming_client.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
@@ -35,10 +35,10 @@ namespace py = pybind11;
 namespace holoscan::ops {
 
 /* Trampoline class for handling Python kwargs */
-class PyStreamingClientOp : public StreamingClientOp {
+class PyStreamingClientOp : public VideoStreamingClientOp {
  public:
   /* Inherit the constructors */
-  using StreamingClientOp::StreamingClientOp;
+  using VideoStreamingClientOp::VideoStreamingClientOp;
 
   /* Constructor for Python with proper fragment setup */
   explicit PyStreamingClientOp(Fragment* fragment,
@@ -53,7 +53,7 @@ class PyStreamingClientOp : public StreamingClientOp {
                                uint32_t min_non_zero_bytes = 100,
                                std::shared_ptr<Allocator> allocator = nullptr,
                                const std::string& name = "streaming_client_enhanced"s)
-      : StreamingClientOp(ArgList{Arg{"width", width},
+      : VideoStreamingClientOp(ArgList{Arg{"width", width},
                                   Arg{"height", height},
                                   Arg{"fps", fps},
                                   Arg{"server_ip", server_ip},
@@ -80,8 +80,8 @@ PYBIND11_MODULE(_streaming_client_enhanced, m) {
       .. currentmodule:: holohub.streaming_client_enhanced
   )pbdoc";
 
-  py::class_<StreamingClientOp, PyStreamingClientOp, Operator, std::shared_ptr<StreamingClientOp>>(
-      m, "StreamingClientOp", R"doc(
+  py::class_<VideoStreamingClientOp, PyStreamingClientOp, Operator, std::shared_ptr<VideoStreamingClientOp>>(
+      m, "VideoStreamingClientOp", R"doc(
 Operator that wraps the StreamingClient for video streaming in Holoscan.
 
 This operator provides client-side video streaming capabilities, allowing
@@ -136,7 +136,7 @@ name : str, optional (constructor only)
            "allocator"_a = py::none(),
            "name"_a = "streaming_client_enhanced"s,
            R"doc(
-Constructor for StreamingClientOp.
+Constructor for VideoStreamingClientOp.
 
 Parameters
 ----------

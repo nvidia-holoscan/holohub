@@ -26,19 +26,18 @@ The video streaming demo provides:
 
 ### Client Dependencies
 
-Download the client streaming binaries from NGC:
+Download the client streaming binaries from NGC by running the provided script:
 
 ```bash
-# Navigate to the client operator directory
-cd <your_holohub_path>/operators/video_streaming/streaming_client_enhanced
-
-# Download using NGC CLI
-ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
-unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
-
-# Clean up
-rm -rf holoscan_client_cloud_streaming_v0.2
+# From holohub root directory
+./applications/video_streaming/setup_dependencies.sh
 ```
+
+The script will automatically:
+- Navigate to the correct operator directory
+- Download the client binaries from NGC
+- Extract and install them
+- Clean up temporary files
 
 ### Server Dependencies
 

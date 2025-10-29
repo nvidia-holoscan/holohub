@@ -1,47 +1,48 @@
 {
-  "application": {
-    "name": "Video Streaming Client Demo (Python)",
-    "description": "Python implementation of video streaming client using Holoscan SDK streaming operators",
-    "authors": [
-      {
-        "name": "Holoscan Team",
-        "affiliation": "NVIDIA"
-      }
-    ],
-    "language": "python",
-    "version": "1.0.0",
-    "changelog": {
-      "1.0.0": "Initial release of Python video streaming client"
-    },
-    "holoscan_sdk": {
-      "minimum_required_version": "3.5.0",
-      "tested_versions": [
-        "3.5.0"
-      ]
-    },
-    "platforms": [
-      "x86_64",
-      "aarch64"
-    ],
-    "tags": [
-      "Streaming",
-      "Video",
-      "Client",
-      "Python",
-      "Real-time"
-    ],
-    "ranking": 1,
-    "requirements": {
-      "operators": [
-        {
-          "name": "video_streaming",
-          "version": "1.1.0"
+    "application": {
+        "name": "Video Streaming Client Demo (Python)",
+        "description": "Python implementation of video streaming client using Holoscan SDK streaming operators",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "Python",
+        "version": "1.0.0",
+        "changelog": {
+            "1.0.0": "Initial release of Python video streaming client"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.5.0",
+            "tested_versions": [
+                "3.5.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [
+            "Streaming",
+            "Video",
+            "Client",
+            "Real-time",
+            "Demo",
+            "V4L2"
+        ],
+        "ranking": 2,
+        "requirements": {
+            "operators": [
+                {
+                    "name": "video_streaming",
+                    "version": "1.1.0"
+                }
+            ]
+        },
+        "run": {
+            "command": "python3 streaming_client_demo.py",
+            "workdir": "holohub_bin"
         }
-      ]
-    },
-    "run": {
-      "command": "python3 streaming_client_demo.py",
-      "workdir": "holohub_bin"
     }
-  }
 }

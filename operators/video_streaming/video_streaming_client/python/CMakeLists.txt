@@ -15,19 +15,18 @@
 
 include(pybind11_add_holohub_module)
 
-# Use the actual C++ target name (streaming_client) to get proper include directories
-# The module will be renamed to match the PYBIND11_MODULE name (_streaming_client_enhanced)
+# Use the actual C++ target name (video_streaming_client) to get proper include directories
 pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET streaming_client
-    CLASS_NAME "StreamingClientOp"
-    SOURCES streaming_client_enhanced.cpp
+    CPP_CMAKE_TARGET video_streaming_client
+    CLASS_NAME "VideoStreamingClientOp"
+    SOURCES video_streaming_client.cpp
 )
 
 # Override the output name and directory to match expected module structure
 # This ensures the .so file is named _streaming_client_enhanced to match PYBIND11_MODULE
-set_target_properties(streaming_client_python PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_client_enhanced"
-    OUTPUT_NAME "_streaming_client_enhanced"
+set_target_properties(video_streaming_client_python PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/video_streaming_client"
+    OUTPUT_NAME "_video_streaming_client"
 )
 
 # Use file(GENERATE) to create __init__.py at generation time
@@ -75,6 +74,6 @@ except ImportError as e:
 ")
 
 file(GENERATE
-    OUTPUT "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/streaming_client_enhanced/__init__.py"
+    OUTPUT "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/video_streaming_client/__init__.py"
     CONTENT "${CLIENT_INIT_PY_CONTENT}"
 )

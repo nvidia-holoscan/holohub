@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "streaming_client.hpp"
+#include "video_streaming_client.hpp"
 
 #include <cuda_runtime.h>
 #include <dlpack/dlpack.h>
@@ -320,7 +320,7 @@ bool writeTensorToDisk(const std::shared_ptr<holoscan::Tensor>& tensor,
     }
 }
 
-void StreamingClientOp::setup(holoscan::OperatorSpec& spec) {
+void VideoStreamingClientOp::setup(holoscan::OperatorSpec& spec) {
   // Define inputs/outputs
   spec.input<holoscan::gxf::Entity>("input_frames");
   spec.output<holoscan::gxf::Entity>("output_frames").condition(ConditionType::kNone);
@@ -345,12 +345,12 @@ void StreamingClientOp::setup(holoscan::OperatorSpec& spec) {
              "Memory allocator for output buffer allocation");
 
   // Print the parameters for debugging with correct values
-  HOLOSCAN_LOG_INFO("StreamingClientOp setup with defaults: width={}, height={}, fps={}, "
+  HOLOSCAN_LOG_INFO("VideoStreamingClientOp setup with defaults: width={}, height={}, fps={}, "
                      "server_ip={}, port={}, send_frames={}, min_non_zero_bytes={}",
                     854u, 480u, 30u, "127.0.0.1", 48010, true, 100u);
 }
 
-void StreamingClientOp::initialize() {
+void VideoStreamingClientOp::initialize() {
   // CRITICAL: Set environment variables BEFORE calling Operator::initialize()
   // Use comprehensive logging configuration for Holoscan Streaming Stack team debugging
 
@@ -409,10 +409,10 @@ void StreamingClientOp::initialize() {
   }
 
 
-  HOLOSCAN_LOG_INFO("StreamingClientOp initialized successfully");
+  HOLOSCAN_LOG_INFO("VideoStreamingClientOp initialized successfully");
 }
 
-void StreamingClientOp::start() {
+void VideoStreamingClientOp::start() {
   if (!client_) {
     HOLOSCAN_LOG_ERROR("Cannot start streaming: client not initialized");
     return;
@@ -560,7 +560,7 @@ void StreamingClientOp::start() {
   }
 }
 
-void StreamingClientOp::stop() {
+void VideoStreamingClientOp::stop() {
   if (client_) {
     try {
       HOLOSCAN_LOG_INFO("Stopping StreamingClient...");
@@ -627,7 +627,7 @@ void StreamingClientOp::stop() {
   }
 }
 
-bool StreamingClientOp::handleConnectionRetry(int compute_call_count) {
+bool VideoStreamingClientOp::handleConnectionRetry(int compute_call_count) {
   static int connection_retry_interval = 0;
 
   // If not streaming, try to reconnect periodically
@@ -707,7 +707,7 @@ bool StreamingClientOp::handleConnectionRetry(int compute_call_count) {
   return true;  // Streaming
 }
 
-bool StreamingClientOp::validateAndPrepareTensor(const std::shared_ptr<holoscan::Tensor>& tensor,
+bool VideoStreamingClientOp::validateAndPrepareTensor(const std::shared_ptr<holoscan::Tensor>& tensor,
                                                    int& expected_width,
                                                    int& expected_height) {
   // Validate tensor before processing
@@ -759,7 +759,7 @@ bool StreamingClientOp::validateAndPrepareTensor(const std::shared_ptr<holoscan:
   return true;
 }
 
-std::shared_ptr<std::vector<uint8_t>> StreamingClientOp::convertBGRtoBGRA(
+std::shared_ptr<std::vector<uint8_t>> VideoStreamingClientOp::convertBGRtoBGRA(
     const std::shared_ptr<holoscan::Tensor>& tensor,
     int expected_width,
     int expected_height) {
@@ -826,7 +826,7 @@ std::shared_ptr<std::vector<uint8_t>> StreamingClientOp::convertBGRtoBGRA(
   return bgra_buffer;
 }
 
-VideoFrame StreamingClientOp::createVideoFrame(
+VideoFrame VideoStreamingClientOp::createVideoFrame(
     const std::shared_ptr<std::vector<uint8_t>>& bgra_buffer,
     int expected_width,
     int expected_height) {
@@ -916,7 +916,7 @@ VideoFrame StreamingClientOp::createVideoFrame(
   return frame;
 }
 
-void StreamingClientOp::emitBGRATensorForVisualization(
+void VideoStreamingClientOp::emitBGRATensorForVisualization(
     holoscan::OutputContext& op_output,
     holoscan::ExecutionContext& context,
     const std::shared_ptr<std::vector<uint8_t>>& bgra_buffer,
@@ -971,7 +971,7 @@ void StreamingClientOp::emitBGRATensorForVisualization(
   }
 }
 
-bool StreamingClientOp::sendFrameWithRetry(const VideoFrame& frame) {
+bool VideoStreamingClientOp::sendFrameWithRetry(const VideoFrame& frame) {
   bool send_success = false;
   int send_attempts = 0;
   const int max_send_attempts = 3;
@@ -1026,7 +1026,7 @@ bool StreamingClientOp::sendFrameWithRetry(const VideoFrame& frame) {
   return send_success;
 }
 
-void StreamingClientOp::compute(holoscan::InputContext& op_input,
+void VideoStreamingClientOp::compute(holoscan::InputContext& op_input,
                              holoscan::OutputContext& op_output,
                              holoscan::ExecutionContext& context) {
   // Add detailed connection state logging
@@ -1433,7 +1433,7 @@ void StreamingClientOp::compute(holoscan::InputContext& op_input,
   }
 }
 
-void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
+void VideoStreamingClientOp::onFrameReceived(const VideoFrame& frame) {
   std::lock_guard<std::mutex> lock(frame_mutex_);
 
   // Debug logging for client frame reception
@@ -1574,7 +1574,7 @@ void StreamingClientOp::onFrameReceived(const VideoFrame& frame) {
 #endif  // HOLOSCAN_DEBUG_FRAME_WRITING
 }
 
-bool StreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tensor>& tensor) {
+bool VideoStreamingClientOp::validateTensorData(const std::shared_ptr<holoscan::Tensor>& tensor) {
   if (!tensor) {
     HOLOSCAN_LOG_ERROR("Tensor validation failed: null tensor");
     return false;

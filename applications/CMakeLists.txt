@@ -140,6 +140,8 @@ add_holohub_application(video_deidentification)
 add_holohub_application(video_streaming DEPENDS
                         OPERATORS video_streaming)
 
+add_subdirectory(video_streaming)
+
 add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)

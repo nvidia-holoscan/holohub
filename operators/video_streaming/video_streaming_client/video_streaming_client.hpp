@@ -16,8 +16,8 @@
  */
 
 /**
- * @file streaming_client.hpp
- * @brief StreamingClientOp for Holoscan SDK integration with Holoscan Streaming Stack
+ * @file video_streaming_client.hpp
+ * @brief VideoStreamingClientOp for Holoscan SDK integration with Holoscan Streaming Stack
  *
  * This operator provides streaming client functionality for the Holoscan SDK, allowing
  * real-time video streaming to remote servers using the Holoscan Streaming Stack library.
@@ -58,7 +58,7 @@
 namespace holoscan::ops {
 
 /**
- * @brief Operator that wraps the StreamingClient for video streaming in Holoscan
+ * @brief Operator that wraps the VideoStreamingClient for video streaming in Holoscan
  *
  * This operator provides integration with the StreamingClient library,
  * allowing Holoscan applications to send and receive video streams.
@@ -68,11 +68,11 @@ namespace holoscan::ops {
  * - Configurable minimum non-zero byte threshold for frame validation
  * - This helps prevent server disconnections due to invalid frame data
  */
-class StreamingClientOp : public holoscan::Operator {
+class VideoStreamingClientOp : public holoscan::Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(StreamingClientOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(VideoStreamingClientOp)
 
-  StreamingClientOp() = default;
+  VideoStreamingClientOp() = default;
 
   void setup(holoscan::OperatorSpec& spec) override;
   void initialize() override;
