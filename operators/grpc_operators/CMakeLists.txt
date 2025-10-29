@@ -17,4 +17,7 @@ cmake_minimum_required(VERSION 3.20)
 project(grpc_operators LANGUAGES NONE)
 
 add_subdirectory(cpp)
-add_subdirectory(python)
+
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
