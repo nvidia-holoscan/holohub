@@ -64,6 +64,10 @@ static inline int get_queue_from_key(uint32_t key) {
 
 std::atomic<bool> force_quit = false;
 
+// Used to signal to RX threads to flush all existing packets.
+// Defaults to seq_cst, so no fences needed.
+std::atomic<bool> flush_rx_queues = false;
+
 struct TxWorkerParams {
   int port;
   int queue;
@@ -877,6 +881,12 @@ void DpdkMgr::initialize() {
     return;
   }
 
+  // Initialize all drop_all_traffic_flow pointers to nullptr
+  for (auto& config : drop_all_traffic_flow) {
+    config.jump = nullptr;
+    config.drop = nullptr;
+  }
+
   this->initialized_ = true;
 }
 
@@ -1350,13 +1360,124 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
 
 
   attr.ingress = 1;
-  attr.priority = 0;
+  attr.priority = 1;  // Lower priority to allow drop_traffic (priority 0) to take precedence
   attr.group = 3;
 
   pattern[3].type = RTE_FLOW_ITEM_TYPE_END;
 
   flow = rte_flow_create(port, &attr, pattern, action, &error);
   return flow;
+}
+
+Status DpdkMgr::drop_all_traffic(int port) {
+  /* Declaring structs being used. */
+  struct rte_flow_attr attr;
+  struct rte_flow_item pattern[MAX_PATTERN_NUM];
+  struct rte_flow_action action[MAX_ACTION_NUM];
+  struct rte_flow* flow = NULL;
+  struct rte_flow_error error;
+  DropTrafficConfig config;
+
+  // Initialize the jump rule to group 3 (required by HWS)
+  {
+    struct rte_flow_error jump_error;
+    struct rte_flow_attr jump_attr{.group = 0, .ingress = 1};
+    struct rte_flow_action_jump jump_v = {.group = 3};
+    struct rte_flow_action jump_actions[] = {
+      { .type = RTE_FLOW_ACTION_TYPE_JUMP, .conf = &jump_v},
+      { .type = RTE_FLOW_ACTION_TYPE_END}
+    };
+
+    struct rte_flow_item jump_pattern[] = {
+      { .type = RTE_FLOW_ITEM_TYPE_ETH, .spec = 0, .mask = 0},
+      { .type = RTE_FLOW_ITEM_TYPE_END},
+    };
+
+    auto res = rte_flow_validate(port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+    if (!res) {
+      config.jump = rte_flow_create(
+          port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+      if (config.jump == nullptr) {
+        HOLOSCAN_LOG_ERROR("rte_flow_create failed for jump rule in drop_all_traffic");
+      }
+    } else {
+      HOLOSCAN_LOG_ERROR("Failed flow validation for jump rule in drop_all_traffic: {}", res);
+    }
+  }
+
+  // Clear all structures
+  memset(pattern, 0, sizeof(pattern));
+  memset(action, 0, sizeof(action));
+  memset(&attr, 0, sizeof(struct rte_flow_attr));
+
+  // Set DROP action
+  action[0].type = RTE_FLOW_ACTION_TYPE_DROP;
+  action[1].type = RTE_FLOW_ACTION_TYPE_END;
+
+  // Match all ethernet packets
+  pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
+  pattern[1].type = RTE_FLOW_ITEM_TYPE_END;
+
+  // Set highest priority (0) and use group 3 (consistent with add_flow)
+  attr.ingress = 1;
+  attr.priority = 0;  // Highest priority - blocks all traffic
+  attr.group = 3;
+
+  HOLOSCAN_LOG_INFO("Creating drop all traffic rule on port {} with priority {}",
+    port, attr.priority);
+
+  // Create the flow rule
+  config.drop = rte_flow_create(port, &attr, pattern, action, &error);
+
+  if (config.drop == nullptr) {
+    HOLOSCAN_LOG_ERROR("Failed to create drop all traffic flow rule on port {}: {}",
+                       port, error.message ? error.message : "unknown error");
+    rte_flow_destroy(port, config.jump, &error);
+    return Status::INTERNAL_ERROR;
+  } else {
+    HOLOSCAN_LOG_INFO("Successfully created drop all traffic rule on port {}", port);
+  }
+
+  drop_all_traffic_flow[port] = config;
+  flush_rx_queues.store(true);
+
+  return Status::SUCCESS;
+}
+
+Status DpdkMgr::allow_all_traffic(int port) {
+  if (drop_all_traffic_flow[port].drop == nullptr) {
+    HOLOSCAN_LOG_ERROR("Cannot remove drop rule: flow pointer is null");
+    return Status::INVALID_PARAMETER;
+  }
+
+  // Tell the RX threads they can keep processing packets
+  flush_rx_queues.store(false);
+
+  struct rte_flow_error jump_error;
+  struct rte_flow_error drop_error;
+  int drop_ret = rte_flow_destroy(port, drop_all_traffic_flow[port].drop, &drop_error);
+  int jump_ret = rte_flow_destroy(port, drop_all_traffic_flow[port].jump, &jump_error);
+
+  if (drop_ret != 0) {
+    HOLOSCAN_LOG_ERROR("Failed to destroy drop all traffic flow rule on port {}: {}",
+                       port, drop_error.message ? drop_error.message : "unknown error");
+  }
+
+  if (jump_ret != 0) {
+    HOLOSCAN_LOG_ERROR("Failed to destroy jump all traffic flow rule on port {}: {}",
+                       port, jump_error.message ? jump_error.message : "unknown error");
+  }
+
+  if (drop_ret != 0 || jump_ret != 0) {
+    return Status::INTERNAL_ERROR;
+  }
+
+  drop_all_traffic_flow[port].drop = nullptr;
+  drop_all_traffic_flow[port].jump = nullptr;
+
+  HOLOSCAN_LOG_INFO(
+    "Successfully removed drop all traffic rule on port {}, traffic is now allowed", port);
+  return Status::SUCCESS;
 }
 
 struct rte_flow* DpdkMgr::add_modify_flow_set(int port, int queue, const char* buf, int len,
@@ -1421,7 +1542,7 @@ struct rte_flow* DpdkMgr::add_modify_flow_set(int port, int queue, const char* b
   pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
   pattern[0].spec = &eth;
   pattern[0].mask = &eth;
-  attr.priority = 0;
+  attr.priority = 1;
 
   pattern[1].type = RTE_FLOW_ITEM_TYPE_END;
 
@@ -1644,6 +1765,12 @@ void DpdkMgr::flush_packets(int port) {
   while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
 }
 
+void DpdkMgr::flush_port_queue(int port, int queue) {
+  struct rte_mbuf* rx_mbuf;
+  HOLOSCAN_LOG_INFO("Flushing packets on port {} queue {}", port, queue);
+  while (rte_eth_rx_burst(port, queue, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
+}
+
 /*
   RX worker supporting multiple queues for a single core. This is useful when a user wants
   to segregate traffic by queues, but they don't want to waste extra CPU cores by mapping a
@@ -1697,6 +1824,44 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
+    const bool should_flush = flush_rx_queues.load();
+
+    if (should_flush) {
+      // Free any packets we have stored in temporary arrays that are not pushed to the ring
+      for (int i = 0; i < num_queues; i++) {
+        // Free any unprocessed packets in mbuf_arr
+        if (nb_rx[i] > 0) {
+          for (int p = cur_pkt_in_batch[i]; p < cur_pkt_in_batch[i] + nb_rx[i]; p++) {
+            rte_pktmbuf_free(mbuf_arr[i][p]);
+          }
+          nb_rx[i] = 0;
+          cur_pkt_in_batch[i] = 0;
+        }
+
+        // Free any packets already stored in bursts that haven't been pushed to ring yet
+        if (bursts[i] != nullptr) {
+          // Free all packet mbufs stored in the burst
+          for (int p = 0; p < bursts[i]->hdr.hdr.num_pkts; p++) {
+            rte_pktmbuf_free(reinterpret_cast<rte_mbuf**>(bursts[i]->pkts[0])[p]);
+          }
+
+          // Free the pkt_extra_info buffer back to the pool
+          if (bursts[i]->pkt_extra_info != nullptr) {
+            rte_mempool_put(tparams->flowid_pool, bursts[i]->pkt_extra_info);
+          }
+
+          // Free the segment buffers back to the burst pool
+          for (int seg = 0; seg < bursts[i]->hdr.hdr.num_segs; seg++) {
+            rte_mempool_put(tparams->rx_burst_pool, (void*)bursts[i]->pkts[seg]);
+          }
+
+          // Free the burst metadata back to the meta pool
+          rte_mempool_put(tparams->rx_meta_pool, bursts[i]);
+          bursts[i] = nullptr;
+        }
+      }
+    }
+
     if (bursts[cur_idx] == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&bursts[cur_idx])) < 0) {
         HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\
@@ -1847,6 +2012,42 @@ int DpdkMgr::rx_core_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
+    const bool should_flush = flush_rx_queues.load();
+
+    if (should_flush) {
+      // Free any packets we have stored in temporary arrays that are not pushed to the ring
+      // Free any unprocessed packets in mbuf_arr
+      if (nb_rx > 0) {
+        for (int p = cur_pkt_in_batch; p < cur_pkt_in_batch + nb_rx; p++) {
+          rte_pktmbuf_free(mbuf_arr[p]);
+        }
+        nb_rx = 0;
+        cur_pkt_in_batch = 0;
+      }
+
+      // Free any packets already stored in burst that haven't been pushed to ring yet
+      if (burst != nullptr) {
+        // Free all packet mbufs stored in the burst
+        for (int p = 0; p < burst->hdr.hdr.num_pkts; p++) {
+          rte_pktmbuf_free(reinterpret_cast<rte_mbuf**>(burst->pkts[0])[p]);
+        }
+
+        // Free the pkt_extra_info buffer back to the pool
+        if (burst->pkt_extra_info != nullptr) {
+          rte_mempool_put(tparams->flowid_pool, burst->pkt_extra_info);
+        }
+
+        // Free the segment buffers back to the burst pool
+        for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
+          rte_mempool_put(tparams->rx_burst_pool, (void*)burst->pkts[seg]);
+        }
+
+        // Free the burst metadata back to the meta pool
+        rte_mempool_put(tparams->rx_meta_pool, burst);
+        burst = nullptr;
+      }
+    }
+
     if (burst == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
         HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\

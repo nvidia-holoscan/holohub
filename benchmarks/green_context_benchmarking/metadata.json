@@ -1,6 +1,7 @@
 {
     "benchmark": {
-        "name": "Real-time Thread Scheduling Benchmark",
+        "name": "Green Context Benchmarking",
+        "description": "Benchmark CUDA Green Context scheduling latency and performance with CUPTI profiling",
         "authors": [
             {
                 "name": "Holoscan Team",
@@ -13,22 +14,21 @@
             "1.0": "Initial Release"
         },
         "holoscan_sdk": {
-            "minimum_required_version": "3.5.0",
+            "minimum_required_version": "3.6.0",
             "tested_versions": [
-                "3.5.0"
+                "3.6.0"
             ]
         },
         "platforms": [
             "x86_64",
             "aarch64"
         ],
-        "tags": ["Threading", "Benchmarking", "Real-time", "Performance"],
+        "tags": ["Benchmarking", "CUDA", "Green Context", "Scheduling", "CUPTI", "Performance"],
         "ranking": 1,
         "requirements": {},
         "run": {
-            "command": "<holohub_app_bin>/realtime_thread_benchmark",
-            "workdir": "holohub_bin",
-            "docker_run_args": ["--cap-add=SYS_NICE", "--cap-add=SYS_ADMIN"]
+            "command": "<holohub_app_bin>/green_context_benchmarking",
+            "workdir": "holohub_app_bin"
         }
     }
 }

@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "holoscan/core/gxf/gxf_operator.hpp"
-#include "holoscan/utils/cuda_stream_handler.hpp"
 
 namespace holoscan::ops {
 /**
@@ -48,7 +47,6 @@ class VisualizerICardioOp : public holoscan::Operator {
   Parameter<std::vector<std::string>> in_tensor_names_;
   Parameter<std::vector<std::string>> out_tensor_names_;
   Parameter<std::shared_ptr<Allocator>> allocator_;
-  Parameter<std::vector<IOSpec*>> receivers_;
   Parameter<std::vector<IOSpec*>> transmitters_;
   Parameter<std::string> data_dir_;
   Parameter<bool> input_on_cuda_;
@@ -72,7 +70,6 @@ class VisualizerICardioOp : public holoscan::Operator {
 
   const std::string logo_file_ = "logo.txt";
   void* logo_image_ = nullptr;
-  CudaStreamHandler cuda_stream_handler_;
 };
 
 }  // namespace holoscan::ops

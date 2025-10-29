@@ -26,7 +26,7 @@ from holoscan.operators import (
     VideoStreamRecorderOp,
     VideoStreamReplayerOp,
 )
-from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
+from holoscan.resources import BlockMemoryPool, MemoryStorageType
 from packaging.version import Version
 
 from holohub.visualizer_icardio import VisualizerICardioOp
@@ -56,7 +56,6 @@ class MultiAIICardio(Application):
         self.sample_data_path = data
 
     def compose(self):
-        cuda_stream_pool = CudaStreamPool(self, name="cuda_stream")
 
         record_type = self.record_type
         is_aja = self.source.lower() == "aja"
@@ -95,7 +94,6 @@ class MultiAIICardio(Application):
                 block_size=320 * 320 * bytes_per_float32 * in_components,
                 num_blocks=format_convert_pool_blocks,
             ),
-            cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("plax_cham_pre"),
         )
         aortic_ste_pre = FormatConverterOp(
@@ -109,7 +107,6 @@ class MultiAIICardio(Application):
                 block_size=300 * 300 * bytes_per_float32 * in_components,
                 num_blocks=format_convert_pool_blocks,
             ),
-            cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("aortic_ste_pre"),
         )
         b_mode_pers_pre = FormatConverterOp(
@@ -123,7 +120,6 @@ class MultiAIICardio(Application):
                 block_size=320 * 240 * bytes_per_float32 * in_components,
                 num_blocks=format_convert_pool_blocks,
             ),
-            cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("b_mode_pers_pre"),
         )
 
@@ -162,7 +158,6 @@ class MultiAIICardio(Application):
                 block_size=block_size,
                 num_blocks=2 * 3,
             ),
-            cuda_stream_pool=cuda_stream_pool,
             **inference_kwargs,
         )
 
@@ -182,7 +177,6 @@ class MultiAIICardio(Application):
                 block_size=2 * bytes_per_float32 * 6,
                 num_blocks=1,
             ),
-            cuda_stream_pool=cuda_stream_pool,
             **self.kwargs("multiai_postprocessor"),
         )
 
@@ -198,7 +192,6 @@ class MultiAIICardio(Application):
                 block_size=320 * 320 * 4 * bytes_per_uint8,
                 num_blocks=1 * 8,
             ),
-            cuda_stream_pool=cuda_stream_pool,
             **visualizer_kwargs,
         )
 
@@ -230,7 +223,6 @@ class MultiAIICardio(Application):
         holoviz = HolovizOp(
             self,
             name="holoviz",
-            cuda_stream_pool=cuda_stream_pool,
             enable_render_buffer_output=record_type == "visualizer",
             allocator=visualizer_allocator,
             **self.kwargs("holoviz"),
