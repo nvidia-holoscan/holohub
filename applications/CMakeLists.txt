@@ -137,9 +137,6 @@ add_holohub_application(vpi_stereo)
 
 add_holohub_application(video_deidentification)
 
-add_holohub_application(video_streaming DEPENDS
-                        OPERATORS video_streaming)
-
 add_subdirectory(video_streaming)
 
 add_holohub_application(webrtc_video_server)
