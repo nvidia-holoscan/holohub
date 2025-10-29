@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the pytest tests added to the `video_streaming` operators in branch `cd/add-video-streaming-pytest-tests`.
+This document summarizes the pytest tests added to the `video_streaming` operators for comprehensive Python binding validation.
 
 ## What Was Added
 
