@@ -58,12 +58,6 @@ target_link_libraries(test_streaming_client_op
     GTest::gtest_main
 )
 
-# Include directories
-target_include_directories(test_streaming_client_op
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-)
-
 # Add test to CTest
 add_test(NAME streaming_client_op_unit_tests
          COMMAND test_streaming_client_op)

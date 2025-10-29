@@ -58,13 +58,6 @@ target_link_libraries(test_streaming_server_ops
     GTest::gtest_main
 )
 
-# Include directories
-target_include_directories(test_streaming_server_ops
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../holoscan_server_cloud_streaming/include
-)
-
 # Add test to CTest
 add_test(NAME streaming_server_ops_unit_tests
          COMMAND test_streaming_server_ops)
