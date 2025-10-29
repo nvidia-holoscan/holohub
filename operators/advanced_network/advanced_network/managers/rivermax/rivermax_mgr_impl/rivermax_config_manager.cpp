@@ -546,6 +546,72 @@ bool RivermaxConfigParser::parse_common_rx_settings(
   rivermax_rx_config.stats_report_interval_ms =
       rx_settings["stats_report_interval_ms"].as<uint32_t>(0);
 
+  // Parse burst pool adaptive dropping configuration (optional)
+  const auto& burst_pool_config = rx_settings["burst_pool_adaptive_dropping"];
+  if (burst_pool_config) {
+    rivermax_rx_config.burst_pool_adaptive_dropping_enabled =
+        burst_pool_config["enabled"].as<bool>(false);
+    rivermax_rx_config.burst_pool_low_threshold_percent =
+        burst_pool_config["low_threshold_percent"].as<uint32_t>(25);
+    rivermax_rx_config.burst_pool_critical_threshold_percent =
+        burst_pool_config["critical_threshold_percent"].as<uint32_t>(10);
+    rivermax_rx_config.burst_pool_recovery_threshold_percent =
+        burst_pool_config["recovery_threshold_percent"].as<uint32_t>(50);
+
+    // Validate threshold percentages
+    uint32_t critical = rivermax_rx_config.burst_pool_critical_threshold_percent;
+    uint32_t low = rivermax_rx_config.burst_pool_low_threshold_percent;
+    uint32_t recovery = rivermax_rx_config.burst_pool_recovery_threshold_percent;
+
+    // Check valid range (0..100)
+    if (critical > 100 || low > 100 || recovery > 100) {
+      HOLOSCAN_LOG_ERROR(
+          "Invalid burst pool threshold percentages: all values must be in range 0..100 "
+          "(critical={}, low={}, recovery={})",
+          critical, low, recovery);
+      return false;
+    }
+
+    // Check for nonsensical zero values
+    if (critical == 0 || recovery == 0) {
+      HOLOSCAN_LOG_ERROR(
+          "Invalid burst pool threshold percentages: critical and recovery cannot be 0 "
+          "(critical={}, low={}, recovery={})",
+          critical, low, recovery);
+      return false;
+    }
+
+    // Check proper ordering: critical < low < recovery
+    if (critical >= low) {
+      HOLOSCAN_LOG_ERROR(
+          "Invalid burst pool threshold ordering: critical must be < low "
+          "(critical={}, low={})",
+          critical, low);
+      return false;
+    }
+
+    if (low >= recovery) {
+      HOLOSCAN_LOG_ERROR(
+          "Invalid burst pool threshold ordering: low must be < recovery "
+          "(low={}, recovery={})",
+          low, recovery);
+      return false;
+    }
+
+    HOLOSCAN_LOG_INFO(
+        "Parsed burst pool adaptive dropping config: enabled={}, thresholds={}%/{}%/{}%",
+        rivermax_rx_config.burst_pool_adaptive_dropping_enabled,
+        rivermax_rx_config.burst_pool_low_threshold_percent,
+        rivermax_rx_config.burst_pool_critical_threshold_percent,
+        rivermax_rx_config.burst_pool_recovery_threshold_percent);
+  } else {
+    // Use default values if not specified
+    rivermax_rx_config.burst_pool_adaptive_dropping_enabled = false;
+    rivermax_rx_config.burst_pool_low_threshold_percent = 25;
+    rivermax_rx_config.burst_pool_critical_threshold_percent = 10;
+    rivermax_rx_config.burst_pool_recovery_threshold_percent = 50;
+  }
+
   return true;
 }
 

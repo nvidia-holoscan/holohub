@@ -45,7 +45,11 @@ RivermaxCommonRxQueueConfig::RivermaxCommonRxQueueConfig(const RivermaxCommonRxQ
       send_packet_ext_info(other.send_packet_ext_info),
       stats_report_interval_ms(other.stats_report_interval_ms),
       cpu_cores(other.cpu_cores),
-      master_core(other.master_core) {}
+      master_core(other.master_core),
+      burst_pool_adaptive_dropping_enabled(other.burst_pool_adaptive_dropping_enabled),
+      burst_pool_low_threshold_percent(other.burst_pool_low_threshold_percent),
+      burst_pool_critical_threshold_percent(other.burst_pool_critical_threshold_percent),
+      burst_pool_recovery_threshold_percent(other.burst_pool_recovery_threshold_percent) {}
 
 RivermaxCommonRxQueueConfig& RivermaxCommonRxQueueConfig::operator=(
     const RivermaxCommonRxQueueConfig& other) {
@@ -68,6 +72,10 @@ RivermaxCommonRxQueueConfig& RivermaxCommonRxQueueConfig::operator=(
   stats_report_interval_ms = other.stats_report_interval_ms;
   cpu_cores = other.cpu_cores;
   master_core = other.master_core;
+  burst_pool_adaptive_dropping_enabled = other.burst_pool_adaptive_dropping_enabled;
+  burst_pool_low_threshold_percent = other.burst_pool_low_threshold_percent;
+  burst_pool_critical_threshold_percent = other.burst_pool_critical_threshold_percent;
+  burst_pool_recovery_threshold_percent = other.burst_pool_recovery_threshold_percent;
   return *this;
 }
 
@@ -432,6 +440,13 @@ ReturnStatus RivermaxQueueToIPOReceiverSettingsBuilder::convert_settings(
   target_settings->max_packets_in_rx_chunk = source_settings->max_chunk_size;
 
   send_packet_ext_info_ = source_settings->send_packet_ext_info;
+
+  // Copy burst pool configuration
+  burst_pool_adaptive_dropping_enabled_ = source_settings->burst_pool_adaptive_dropping_enabled;
+  burst_pool_low_threshold_percent_ = source_settings->burst_pool_low_threshold_percent;
+  burst_pool_critical_threshold_percent_ = source_settings->burst_pool_critical_threshold_percent;
+  burst_pool_recovery_threshold_percent_ = source_settings->burst_pool_recovery_threshold_percent;
+
   settings_built_ = true;
   built_settings_ = *target_settings;
 
@@ -482,6 +497,12 @@ ReturnStatus RivermaxQueueToRTPReceiverSettingsBuilder::convert_settings(
   target_settings->register_memory = source_settings->memory_registration;
   max_chunk_size_ = source_settings->max_chunk_size;
   send_packet_ext_info_ = source_settings->send_packet_ext_info;
+
+  // Copy burst pool configuration
+  burst_pool_adaptive_dropping_enabled_ = source_settings->burst_pool_adaptive_dropping_enabled;
+  burst_pool_low_threshold_percent_ = source_settings->burst_pool_low_threshold_percent;
+  burst_pool_critical_threshold_percent_ = source_settings->burst_pool_critical_threshold_percent;
+  burst_pool_recovery_threshold_percent_ = source_settings->burst_pool_recovery_threshold_percent;
 
   settings_built_ = true;
   built_settings_ = *target_settings;

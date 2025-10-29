@@ -71,6 +71,24 @@ bool RivermaxManagerRxService::initialize() {
   return true;
 }
 
+void RivermaxManagerRxService::apply_burst_pool_configuration() {
+  if (rx_burst_manager_) {
+    // Apply the configuration to the burst manager
+    rx_burst_manager_->set_adaptive_burst_dropping(burst_pool_adaptive_dropping_enabled_);
+    rx_burst_manager_->configure_pool_thresholds(burst_pool_low_threshold_percent_,
+                                                 burst_pool_critical_threshold_percent_,
+                                                 burst_pool_recovery_threshold_percent_);
+
+    HOLOSCAN_LOG_INFO("Applied burst pool configuration: enabled={}, thresholds={}%/{}%/{}%",
+                      burst_pool_adaptive_dropping_enabled_,
+                      burst_pool_low_threshold_percent_,
+                      burst_pool_critical_threshold_percent_,
+                      burst_pool_recovery_threshold_percent_);
+  } else {
+    HOLOSCAN_LOG_ERROR("Cannot apply burst pool configuration: burst manager not initialized");
+  }
+}
+
 void RivermaxManagerRxService::free_rx_burst(BurstParams* burst) {
   if (!rx_burst_manager_) {
     HOLOSCAN_LOG_ERROR("RX burst manager not initialized");
@@ -125,6 +143,15 @@ bool IPOReceiverService::configure_service() {
   send_packet_ext_info_ = ipo_receiver_builder_->send_packet_ext_info_;
   gpu_id_ = ipo_receiver_builder_->built_settings_.gpu_id;
   max_chunk_size_ = ipo_receiver_builder_->built_settings_.max_packets_in_rx_chunk;
+
+  // Copy burst pool configuration
+  burst_pool_adaptive_dropping_enabled_ =
+      ipo_receiver_builder_->burst_pool_adaptive_dropping_enabled_;
+  burst_pool_low_threshold_percent_ = ipo_receiver_builder_->burst_pool_low_threshold_percent_;
+  burst_pool_critical_threshold_percent_ =
+      ipo_receiver_builder_->burst_pool_critical_threshold_percent_;
+  burst_pool_recovery_threshold_percent_ =
+      ipo_receiver_builder_->burst_pool_recovery_threshold_percent_;
   return true;
 }
 
@@ -194,6 +221,15 @@ bool RTPReceiverService::configure_service() {
   send_packet_ext_info_ = rtp_receiver_builder_->send_packet_ext_info_;
   gpu_id_ = rtp_receiver_builder_->built_settings_.gpu_id;
   max_chunk_size_ = rtp_receiver_builder_->max_chunk_size_;
+
+  // Copy burst pool configuration
+  burst_pool_adaptive_dropping_enabled_ =
+      rtp_receiver_builder_->burst_pool_adaptive_dropping_enabled_;
+  burst_pool_low_threshold_percent_ = rtp_receiver_builder_->burst_pool_low_threshold_percent_;
+  burst_pool_critical_threshold_percent_ =
+      rtp_receiver_builder_->burst_pool_critical_threshold_percent_;
+  burst_pool_recovery_threshold_percent_ =
+      rtp_receiver_builder_->burst_pool_recovery_threshold_percent_;
   return true;
 }
 
@@ -540,7 +576,13 @@ void MediaSenderService::free_tx_burst(BurstParams* burst) {
 }
 
 void MediaSenderService::shutdown() {
-  if (processing_frame_) { processing_frame_.reset(); }
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (processing_frame_) {
+      processing_frame_.reset();
+    }
+  }
+
   if (tx_media_frame_provider_) { tx_media_frame_provider_->stop(); }
   if (tx_media_frame_pool_) { tx_media_frame_pool_->stop(); }
 }
