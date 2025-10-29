@@ -286,14 +286,14 @@ if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
 endif()
 
-# Add unit tests if testing is enabled
+# Include pytest module early to ensure it's available
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/modules/add_python_tests.cmake)
+
 if(BUILD_TESTING)
     # C++ unit tests
     add_subdirectory(tests)
     
     # Python binding tests (pytest)
-    # Use the official add_python_tests() function from holohub cmake modules
-    include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/modules/add_python_tests.cmake)
     add_python_tests(
         INPUT "python/tests"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
