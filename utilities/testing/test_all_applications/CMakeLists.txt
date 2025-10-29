@@ -39,6 +39,19 @@ endif()
 
 enable_testing()
 
+# Detect current architecture
+set(CURRENT_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+message("Current architecture: ${CURRENT_ARCH}")
+
+# Normalize architecture names to match metadata.json conventions
+if(CURRENT_ARCH MATCHES "^(x86_64|amd64|AMD64)$")
+  set(CURRENT_ARCH "x86_64")
+elseif(CURRENT_ARCH MATCHES "^(aarch64|arm64|ARM64)$")
+  set(CURRENT_ARCH "aarch64")
+endif()
+
+message("Normalized architecture: ${CURRENT_ARCH}")
+
 # Find all metadata.json files in the applications directory
 file(GLOB_RECURSE METADATA_FILES 
   "${HOLOHUB_ROOT}/applications/*/metadata.json")
@@ -78,13 +91,48 @@ foreach(METADATA_FILE ${METADATA_FILES})
     set(APP_NAME "${DIR_NAME}")
   endif()
   
-  # Skip template applications
-  if(APP_NAME STREQUAL "template" OR APP_NAME MATCHES "cookiecutter")
-    continue()
-  endif()
     
   set(TEST_NAME "${APP_NAME}${TEST_SUFFIX}")
   message("  Processing: ${TEST_NAME}")
+  
+  # Read and parse metadata.json to check platform support
+  file(READ "${METADATA_FILE}" METADATA_CONTENT)
+  
+  # Extract platforms array from JSON
+  # This uses CMake's JSON support (available in CMake 3.19+)
+  string(JSON PLATFORMS_JSON ERROR_VARIABLE JSON_ERROR GET "${METADATA_CONTENT}" "application" "platforms")
+  
+  if(JSON_ERROR)
+    message(STATUS "Could not parse platforms from ${METADATA_FILE}: ${JSON_ERROR}")
+    set(PLATFORM_SUPPORTED FALSE)
+  else()
+    # Get the length of the platforms array
+    string(JSON PLATFORMS_LENGTH ERROR_VARIABLE JSON_ERROR LENGTH "${METADATA_CONTENT}" "application" "platforms")
+    
+    if(JSON_ERROR OR NOT PLATFORMS_LENGTH)
+      message("  Warning: Could not get platforms array length")
+      message("  Assuming all platforms are supported")
+      set(PLATFORM_SUPPORTED TRUE)
+    else()
+      set(PLATFORM_SUPPORTED FALSE)
+      
+      # Check each platform in the array
+      math(EXPR PLATFORMS_LAST_INDEX "${PLATFORMS_LENGTH} - 1")
+      foreach(INDEX RANGE ${PLATFORMS_LAST_INDEX})
+        string(JSON PLATFORM_VALUE GET "${METADATA_CONTENT}" "application" "platforms" ${INDEX})
+        
+        if(PLATFORM_VALUE STREQUAL CURRENT_ARCH)
+          set(PLATFORM_SUPPORTED TRUE)
+          break()
+        endif()
+      endforeach()
+    endif()
+  endif()
+
+  if(NOT PLATFORM_SUPPORTED)
+    message("  Skipping: ${TEST_NAME} - current architecture '${CURRENT_ARCH}' not in supported platforms")
+    continue()
+  endif()
   
   # Build the command
   if(LANGUAGE STREQUAL "")
