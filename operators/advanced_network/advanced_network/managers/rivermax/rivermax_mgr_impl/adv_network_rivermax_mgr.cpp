@@ -131,6 +131,7 @@ class RivermaxMgr::RivermaxMgrImpl {
   Status get_mac_addr(int port, char* mac);
 
  private:
+  void apply_burst_pool_configuration_to_service(uint32_t service_id);
   static void flush_packets(int port);
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
@@ -225,6 +226,7 @@ void RivermaxMgr::RivermaxMgrImpl::initialize() {
     burst_tx_pool[i].hdr.hdr.port_id = 0;
     burst_tx_pool[i].hdr.hdr.q_id = 0;
     burst_tx_pool[i].hdr.hdr.num_pkts = MAX_NUM_OF_FRAMES_IN_BURST;
+    burst_tx_pool[i].hdr.hdr.burst_flags = FLAGS_NONE;
     burst_tx_pool[i].pkts[0] = new void*[MAX_NUM_OF_FRAMES_IN_BURST];
     burst_tx_pool[i].pkt_lens[0] = new uint32_t[MAX_NUM_OF_FRAMES_IN_BURST];
     burst_tx_pool[i].pkt_extra_info = new void*[MAX_NUM_OF_FRAMES_IN_BURST];
@@ -299,6 +301,10 @@ bool RivermaxMgr::RivermaxMgrImpl::initialize_rx_service(
   }
 
   rx_services_[service_id] = std::move(rx_service);
+
+  // Apply burst pool adaptive dropping configuration
+  apply_burst_pool_configuration_to_service(service_id);
+
   return true;
 }
 
@@ -599,6 +605,33 @@ BurstParams* RivermaxMgr::RivermaxMgrImpl::create_tx_burst_params() {
 
 Status RivermaxMgr::RivermaxMgrImpl::get_mac_addr(int port, char* mac) {
   return Status::NOT_SUPPORTED;
+}
+
+void RivermaxMgr::RivermaxMgrImpl::apply_burst_pool_configuration_to_service(uint32_t service_id) {
+  // Extract port_id and queue_id from service_id
+  int port_id = RivermaxBurst::burst_port_id_from_burst_tag(service_id);
+  int queue_id = RivermaxBurst::burst_queue_id_from_burst_tag(service_id);
+
+  // Find the service and apply configuration from parsed settings
+  auto it = rx_services_.find(service_id);
+  if (it != rx_services_.end()) {
+    auto service = it->second;
+    auto rx_service = std::dynamic_pointer_cast<RivermaxManagerRxService>(service);
+    if (rx_service) {
+      // Apply the burst pool configuration using the service's method
+      rx_service->apply_burst_pool_configuration();
+
+      HOLOSCAN_LOG_INFO("Applied burst pool configuration to service {} (port={}, queue={})",
+                        service_id,
+                        port_id,
+                        queue_id);
+    } else {
+      HOLOSCAN_LOG_ERROR("Failed to cast service to RivermaxManagerRxService for service {}",
+                         service_id);
+    }
+  } else {
+    HOLOSCAN_LOG_ERROR("Failed to find service {}", service_id);
+  }
 }
 
 RivermaxMgr::RivermaxMgr() : pImpl(std::make_unique<RivermaxMgrImpl>()) {}
