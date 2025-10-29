@@ -266,8 +266,8 @@ All tests must pass with the following criteria:
 - Application context integration
 - Fragment context integration
 
-#### ✅ Server Operator Tests (30/30 PASSED)
-- **Resource Tests (15 tests):**
+#### ✅ Server Operator Tests (31/31 PASSED)
+- **Resource Tests (18 tests):**
   - Basic creation and initialization
   - Name property handling
   - Inheritance verification
