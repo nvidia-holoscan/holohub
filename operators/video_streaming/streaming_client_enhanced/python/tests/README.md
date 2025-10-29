@@ -89,7 +89,7 @@ python3 -m pytest python/tests/ -v
 ```
 ============================= test session starts ==============================
 platform linux -- Python 3.10.12, pytest-7.4.0
-collected 25 items
+collected 30 items
 
 test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_operator_creation_basic PASSED [  4%]
 test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_operator_name PASSED [  8%]
@@ -97,7 +97,7 @@ test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_video_p
 test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_video_parameters[1280-720-60] PASSED [ 16%]
 test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_video_parameters[1920-1080-30] PASSED [ 20%]
 ...
-========================== 25 passed in 1.23s ==================================
+========================== 30 passed in 1.23s ==================================
 ```
 
 ## Fixtures
