@@ -27,7 +27,7 @@ This application demonstrates how to create a bidirectional video streaming serv
 
 ## Usage
 
-> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
+> ⚠️ The server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
 >
 > ```bash
 > # Set SDK version environment variable
@@ -38,19 +38,17 @@ This application demonstrates how to create a bidirectional video streaming serv
 
 ```bash
 # From holohub root directory - runs with default settings (854x480 @ 30fps)
-./holohub run video_streaming
+./holohub run video_streaming_server --language cpp
 ```
 
 ### Python Server
 
 ```bash
 # From holohub root directory - runs with default settings (854x480 @ 30fps)
-./holohub run video_streaming server_python \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+./holohub run video_streaming_server --language python
 
 # With custom parameters via command-line arguments
-./holohub run video_streaming server_python \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+./holohub run video_streaming_server --language python \
   --extra-args '--port 48010 --width 854 --height 480 --fps 30'
 ```
 

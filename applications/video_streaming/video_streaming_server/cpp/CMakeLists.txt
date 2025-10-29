@@ -34,7 +34,7 @@ else()
   message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 # Find the streaming server operator directory using relative path
-set(OPERATOR_SSL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../operators/video_streaming/video_streaming_server/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
+set(OPERATOR_SSL_DIR "${CMAKE_SOURCE_DIR}/operators/video_streaming/video_streaming_server/holoscan_server_cloud_streaming/lib/${ARCH_DIR}")
 
 # Validate operator bundle exists - fail early with clear error message
 if(NOT EXISTS "${OPERATOR_SSL_DIR}")
