@@ -52,7 +52,7 @@ class PyStreamingClientOp : public VideoStreamingClientOp {
                                bool send_frames = true,
                                uint32_t min_non_zero_bytes = 100,
                                std::shared_ptr<Allocator> allocator = nullptr,
-                               const std::string& name = "streaming_client_enhanced"s)
+                               const std::string& name = "video_streaming_client"s)
       : VideoStreamingClientOp(ArgList{Arg{"width", width},
                                   Arg{"height", height},
                                   Arg{"fps", fps},
@@ -73,11 +73,11 @@ class PyStreamingClientOp : public VideoStreamingClientOp {
 };
 
 /* The python module */
-PYBIND11_MODULE(_streaming_client_enhanced, m) {
+PYBIND11_MODULE(_video_streaming_client, m) {
   m.doc() = R"pbdoc(
       Holoscan SDK Streaming Client Enhanced Python Bindings
       ---------------------------------------------------
-      .. currentmodule:: holohub.streaming_client_enhanced
+      .. currentmodule:: holohub.video_streaming_client
   )pbdoc";
 
   py::class_<VideoStreamingClientOp, PyStreamingClientOp, Operator, std::shared_ptr<VideoStreamingClientOp>>(
@@ -110,7 +110,7 @@ min_non_zero_bytes : int, optional
 allocator : holoscan.resources.Allocator, optional
     Memory allocator for output buffer allocation. Default value is ``None``.
 name : str, optional (constructor only)
-    The name of the operator. Default value is ``"streaming_client_enhanced"``.
+    The name of the operator. Default value is ``"video_streaming_client"``.
 )doc")
       .def(py::init<Fragment*,
                     const py::args&,
@@ -134,7 +134,7 @@ name : str, optional (constructor only)
            "send_frames"_a = true,
            "min_non_zero_bytes"_a = 100,
            "allocator"_a = py::none(),
-           "name"_a = "streaming_client_enhanced"s,
+           "name"_a = "video_streaming_client"s,
            R"doc(
 Constructor for VideoStreamingClientOp.
 

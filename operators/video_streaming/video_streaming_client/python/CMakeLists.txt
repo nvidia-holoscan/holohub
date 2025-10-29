@@ -23,7 +23,7 @@ pybind11_add_holohub_module(
 )
 
 # Override the output name and directory to match expected module structure
-# This ensures the .so file is named _streaming_client_enhanced to match PYBIND11_MODULE
+# This ensures the .so file is named _video_streaming_client to match PYBIND11_MODULE
 set_target_properties(video_streaming_client_python PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/video_streaming_client"
     OUTPUT_NAME "_video_streaming_client"
@@ -39,7 +39,7 @@ import holoscan.gxf
 
 # Load the python binding
 try:
-    from ._streaming_client_enhanced import StreamingClientOp
+    from ._video_streaming_client import StreamingClientOp
 except ImportError as e:
     pybind11_hsdk_err = 'unknown base type \"holoscan::'
     if pybind11_hsdk_err not in str(e):
@@ -58,7 +58,7 @@ See https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator_pyt
 
 # Register types with the SDK
 try:
-    from ._streaming_client_enhanced import register_types as _register_types
+    from ._video_streaming_client import register_types as _register_types
     try:
         from holoscan.core import io_type_registry
     except ImportError as e:

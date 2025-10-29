@@ -44,14 +44,13 @@ from holoscan.operators import (
 from holoscan.resources import CudaStreamPool, UnboundedAllocator
 
 # Import our streaming client operator
-# The __init__.py automatically imports from _streaming_client_enhanced
 try:
-    from holohub.streaming_client_enhanced import StreamingClientOp
+    from holohub.video_streaming_client import StreamingClientOp
 except ImportError as e:
     print(f"Error: StreamingClientOp not found: {e}")
     print("Make sure the Python bindings are built and installed.")
     print(
-        "Build with: ./holohub build streaming_client_enhanced --language cpp --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'"
+        "Build with: ./holohub build video_streaming_client --language cpp --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'"
     )
     sys.exit(1)
 

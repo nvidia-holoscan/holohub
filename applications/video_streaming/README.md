@@ -149,7 +149,7 @@ The Python applications use these Holoscan operator bindings:
 
 **Client Components:**
 
-- `holohub.streaming_client_enhanced.StreamingClientOp` - Bidirectional client streaming
+- `holohub.video_streaming_client.StreamingClientOp` - Bidirectional client streaming
 
 **Holoscan Core Operators:**
 
@@ -286,7 +286,7 @@ For complete implementation details, see the component-specific READMEs:
 
 ## Camera Setup and Testing
 
-> **📖 For detailed camera configuration and troubleshooting**, see the [Client Operator README](../../operators/video_streaming/streaming_client_enhanced/README.md#camera-setup-and-testing) which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.
+> **📖 For detailed camera configuration and troubleshooting**, see the [Client Operator README](../../operators/video_streaming/video_streaming_client/README.md#camera-setup-and-testing) which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.
 
 ### Testing Your V4L2 Camera
 

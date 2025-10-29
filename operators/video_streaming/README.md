@@ -4,13 +4,13 @@ A unified package containing both streaming client and server operators for real
 
 ## Overview
 
-This operator package combines `streaming_client_enhanced` and `streaming_server_enhanced` into a single, cohesive video streaming solution.
+This operator package combines `video_streaming_client` and `streaming_server_enhanced` into a single, cohesive video streaming solution.
 
 ## Structure
 
 ```
 video_streaming/
-├── streaming_client_enhanced/    # Complete streaming client operator
+├── video_streaming_client/    # Complete streaming client operator
 │   ├── streaming_client.cpp     # Main client implementation
 │   ├── frame_saver.cpp          # Frame saving utility
 │   └── holoscan_client_cloud_streaming/  # Client streaming binary once NGC download is complete
@@ -25,7 +25,7 @@ video_streaming/
 
 ## Components
 
-### Streaming Client Enhanced (`streaming_client_enhanced/`)
+### Streaming Client Enhanced (`video_streaming_client/`)
 
 The client component provides bidirectional video streaming capabilities:
 
@@ -36,7 +36,7 @@ The client component provides bidirectional video streaming capabilities:
   - V4L2 camera support
   - Frame validation and debugging
 
-**Documentation**: See `streaming_client_enhanced/README.md` for detailed information.
+**Documentation**: See `video_streaming_client/README.md` for detailed information.
 
 ### Streaming Server Enhanced (`streaming_server_enhanced/`)
 
@@ -81,7 +81,7 @@ Both client and server operators have Python bindings available. To use them in 
 
 ```python
 # Client functionality
-from holohub.streaming_client_enhanced import StreamingClientOp
+from holohub.video_streaming_client import StreamingClientOp
 
 # Server functionality
 from holohub.streaming_server_enhanced import (
@@ -137,7 +137,7 @@ To build the client operator, first download the client binaries from NGC:
 ```bash
 # Download using NGC CLI
 
-cd <your_holohub_path>/operators/video_streaming/streaming_client_enhanced
+cd <your_holohub_path>/operators/video_streaming/video_streaming_client
 ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
 unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
 

@@ -5,7 +5,7 @@ The `streaming_server_enhanced` operator provides a modular streaming server imp
 > **📚 Related Documentation:**
 > - **[Main Operators README](../README.md)** - Setup, dependencies, NGC downloads, and Python examples
 > - **[Server Application README](../../../applications/video_streaming/video_streaming_server/README.md)** - Complete server application with usage examples
-> - **[Client Operator README](../streaming_client_enhanced/README.md)** - Companion client operator documentation
+> - **[Client Operator README](../video_streaming_client/README.md)** - Companion client operator documentation
 > - **[Testing Documentation](../../../applications/video_streaming/TESTING.md)** - Integration testing and verification
 
 ## Architecture Overview
