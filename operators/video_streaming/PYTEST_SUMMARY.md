@@ -74,7 +74,7 @@ operators/video_streaming/
   - Memory management for resources
   - Multiple resources with different ports
 
-#### TestStreamingServerUpstreamOpBinding (6+ tests)
+#### TestStreamingServerUpstreamOpBinding (6 tests)
 - Basic operator creation
 - Operator name property
 - Operator with custom resource configuration
@@ -82,7 +82,7 @@ operators/video_streaming/
 - Method availability
 - Multiple operators sharing same resource
 
-#### TestStreamingServerDownstreamOpBinding (6+ tests)
+#### TestStreamingServerDownstreamOpBinding (6 tests)
 - Basic operator creation
 - Operator name property
 - Operator with custom resource configuration
@@ -90,7 +90,7 @@ operators/video_streaming/
 - Method availability
 - Multiple operators sharing same resource
 
-#### TestStreamingServerIntegration (4+ tests)
+#### TestStreamingServerIntegration (4 tests)
 - Bidirectional server setup (upstream + downstream)
 - Multiple servers on different ports
 - Operators in Application context
