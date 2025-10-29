@@ -26,7 +26,7 @@ add_holohub_application(video_streaming_server DEPENDS
 # Add integration testing
 if(BUILD_TESTING)
   # Add integration test for video streaming demo
-  add_test(NAME video_streaming_integration_test
+  add_test(NAME video_streaming_integration_test_cpp
            COMMAND bash -c "
              echo '=== Integration Test with Log Verification ==='
              echo 'Starting server and client with log capture...'
@@ -260,7 +260,7 @@ if(BUILD_TESTING)
            "
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-  set_tests_properties(video_streaming_integration_test PROPERTIES
+  set_tests_properties(video_streaming_integration_test_cpp PROPERTIES
                        TIMEOUT 300
                        PASS_REGULAR_EXPRESSION "Integration test PASSED"
                        FAIL_REGULAR_EXPRESSION "Integration test FAILED")

@@ -41,23 +41,23 @@
             ]
         },
         "dockerfile": "<holohub_app_source>/Dockerfile",
-        "default_mode": "server",
+        "default_mode": "server_cpp",
         "modes": {
-            "server": {
+            "server_cpp": {
                 "description": "Streaming server that receives and distributes video frames",
                 "run": {
                     "command": "<holohub_app_bin>/video_streaming_server/cpp/streaming_server_demo_wrapper.sh",
                     "workdir": "holohub_bin"
                 }
             },
-            "client_v4l2": {
+            "client_cpp_v4l2": {
                 "description": "Streaming client using V4L2 camera (webcam)",
                 "run": {
                     "command": "<holohub_app_bin>/video_streaming_client/cpp/streaming_client_demo_wrapper.sh --config streaming_client_demo.yaml",
                     "workdir": "holohub_bin"
                 }
             },
-            "client_replayer": {
+            "client_cpp_replayer": {
                 "description": "Streaming client using video file replay",
                 "run": {
                     "command": "<holohub_app_bin>/video_streaming_client/cpp/streaming_client_demo_wrapper.sh --config streaming_client_demo_replayer.yaml",
@@ -71,7 +71,7 @@
                     "workdir": "holohub_bin"
                 }
             },
-            "client_python": {
+            "client_python_replayer": {
                 "description": "Streaming client (Python implementation) - Video replayer",
                 "run": {
                     "command": "python3 streaming_client_demo.py --source replayer",
