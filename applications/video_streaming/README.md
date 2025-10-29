@@ -26,26 +26,28 @@ The video streaming demo provides:
 
 ### Client Dependencies
 
-Download the client streaming binaries from NGC by running the provided script:
+Download the client streaming binaries from NGC:
 
 ```bash
-# From holohub root directory
-./applications/video_streaming/setup_dependencies.sh
-```
+# Navigate to the client operator directory from the holohub root directory
+cd operators/video_streaming/video_streaming_client
 
-The script will automatically:
-- Navigate to the correct operator directory
-- Download the client binaries from NGC
-- Extract and install them
-- Clean up temporary files
+# Download using NGC CLI
+ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
+unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
+
+# Clean up
+rm -rf holoscan_client_cloud_streaming_v0.2
+cd - # Return to the original directory
+```
 
 ### Server Dependencies
 
 Download the server streaming binaries from NGC:
 
 ```bash
-# Navigate to the server operator directory  
-cd <your_holohub_path>/operators/video_streaming/video_streaming_server
+# Navigate to the server operator directory from the holohub root directory
+cd operators/video_streaming/video_streaming_server
 
 # Download using NGC CLI
 ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
@@ -53,6 +55,7 @@ unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zi
 
 # Clean up
 rm -rf holoscan_server_cloud_streaming_v0.2
+cd - # Return to the original directory
 ```
 
 ## Running the Applications
@@ -71,7 +74,7 @@ The unified application provides both client and server applications.
 ### 1. Start the Streaming Server
 
 ```bash
-./holohub run video_streaming server
+./holohub run video_streaming_server --language cpp
 ```
 
 ### 2. Start the Streaming Client (in another terminal)
@@ -79,63 +82,16 @@ The unified application provides both client and server applications.
 - **Option A: V4L2 Camera (Webcam)**, which uses `streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
 
   ```bash
-  ./holohub run video_streaming client_v4l2
+  ./holohub run video_streaming_client v4l2 --language cpp
   ```
 
 - **Option B: Video Replayer**, which uses `streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
 
   ```bash
-  ./holohub run video_streaming client_replayer
+  ./holohub run video_streaming_client replayer --language cpp
   ```
 
-## Python Applications
-
-Both server and client applications are available in Python using the Holoscan Python bindings. The Python implementations are fully compatible with their C++ counterparts and can be used interchangeably.
-
-### Running Python Server
-
-```bash
-./holohub run video_streaming server_python
-```
-
-**Default Configuration:**
-
-- Port: 48010
-- Resolution: 854x480
-- Frame Rate: 30 fps
-- Pipeline: StreamingServerUpstreamOp → StreamingServerDownstreamOp (passthrough/echo mode)
-
-### Running Python Client
-
-**Video Replayer Mode (Default - 854x480):**
-
-```bash
-./holohub run video_streaming client_python
-```
-
-**V4L2 Camera Mode (640x480):**
-
-```bash
-./holohub run video_streaming client_python_v4l2
-```
-
-**Default Client Configurations:**
-
-**Video Replayer Mode:**
-
-- Source: Video file (surgical_video)
-- Resolution: 854x480
-- Frame Rate: 30 fps
-- Server: 127.0.0.1:48010
-
-**V4L2 Camera Mode:**
-
-- Source: /dev/video0 (webcam)
-- Resolution: 640x480
-- Frame Rate: 30 fps
-- Server: 127.0.0.1:48010
-
-**Important:** Ensure the server is configured to match the client's resolution for optimal performance.
+**Note:** To run the applications in Python, you just need to replace the `--language cpp` with `--language python`.
 
 ### Python Bindings
 
@@ -143,13 +99,13 @@ The Python applications use these Holoscan operator bindings:
 
 **Server Components:**
 
-- `holohub.video_streaming_server.StreamingServerResource` - Manages server connections
-- `holohub.video_streaming_server.StreamingServerUpstreamOp` - Receives frames from clients
-- `holohub.video_streaming_server.StreamingServerDownstreamOp` - Sends frames to clients
+- `holohub.streaming_server_enhanced.StreamingServerResource` - Manages server connections
+- `holohub.streaming_server_enhanced.StreamingServerUpstreamOp` - Receives frames from clients
+- `holohub.streaming_server_enhanced.StreamingServerDownstreamOp` - Sends frames to clients
 
 **Client Components:**
 
-- `holohub.video_streaming_client.StreamingClientOp` - Bidirectional client streaming
+- `holohub.streaming_client_enhanced.VideoStreamingClientOp` - Bidirectional client streaming
 
 **Holoscan Core Operators:**
 
@@ -171,7 +127,7 @@ The Python applications use these Holoscan operator bindings:
 
 - Video source: `VideoStreamReplayerOp` or `V4L2VideoCaptureOp`
 - `FormatConverterOp` handles format conversion (RGBA→RGB→BGR)
-- `StreamingClientOp` manages bidirectional streaming (send and receive)
+- `VideoStreamingClientOp` manages bidirectional streaming (send and receive)
 - `HolovizOp` visualizes received frames
 
 **For complete Python implementation examples and code**, see:
@@ -286,7 +242,7 @@ For complete implementation details, see the component-specific READMEs:
 
 ## Camera Setup and Testing
 
-> **📖 For detailed camera configuration and troubleshooting**, see the [Client Operator README](../../operators/video_streaming/video_streaming_client/README.md#camera-setup-and-testing) which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.
+> **📖 For detailed camera configuration and troubleshooting**, see the [Client Operator README](../../operators/video_streaming/streaming_client_enhanced/README.md#camera-setup-and-testing) which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.
 
 ### Testing Your V4L2 Camera
 
@@ -468,7 +424,7 @@ For detailed information about the underlying video streaming operators used in 
 
 The operator documentation includes:
 
-- **Client Components**: StreamingClientOp, FrameSaverOp
+- **Client Components**: VideoStreamingClientOp, FrameSaverOp
 - **Server Components**: StreamingServerResource, StreamingServerUpstreamOp, StreamingServerDownstreamOp
 - **Parameters and Configuration**: Detailed parameter descriptions and usage examples
 - **Testing Documentation**: Comprehensive test suite with 40+ tests passing

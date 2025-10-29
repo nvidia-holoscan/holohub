@@ -39,7 +39,7 @@ import holoscan.gxf
 
 # Load the python binding
 try:
-    from ._video_streaming_client import StreamingClientOp
+    from ._video_streaming_client import VideoStreamingClientOp
 except ImportError as e:
     pybind11_hsdk_err = 'unknown base type \"holoscan::'
     if pybind11_hsdk_err not in str(e):

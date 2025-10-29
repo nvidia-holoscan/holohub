@@ -25,15 +25,24 @@ This application demonstrates how to create a bidirectional video streaming clie
 - For Python: Python 3.8+ and bindings built with `-DHOLOHUB_BUILD_PYTHON=ON`
 - CUDA 12.x (currently not working with CUDA 13.x)
 - OpenCV
-- video_streaming operator
+- `video_streaming_client` operator
 - V4L2 camera (optional, for live streaming)
 
-### Download Dependencies
+### Download Client Cloud Streaming
 
-Download the client streaming binaries from NGC by running the provided script:
+Download the Holoscan Client Cloud Streaming binaries from NGC:
 
 ```bash
-./applications/video_streaming/video_streaming_client/download_dependencies.sh
+# Navigate to the client operator directory from the holohub root directory
+cd operators/video_streaming/video_streaming_client
+
+# Download using NGC CLI
+ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
+unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
+
+# Clean up
+rm -rf holoscan_client_cloud_streaming_v0.2
+cd - # Return to the original directory
 ```
 
 ## Usage

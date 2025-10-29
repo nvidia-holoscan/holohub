@@ -17,7 +17,7 @@
 """
 Streaming Client Demo Application (Python)
 
-This application demonstrates how to use the StreamingClientOp Python bindings
+This application demonstrates how to use the VideoStreamingClientOp Python bindings
 to create a video streaming client that can send and receive video frames.
 
 Features:
@@ -45,9 +45,9 @@ from holoscan.resources import CudaStreamPool, UnboundedAllocator
 
 # Import our streaming client operator
 try:
-    from holohub.video_streaming_client import StreamingClientOp
+    from holohub.video_streaming_client import VideoStreamingClientOp
 except ImportError as e:
-    print(f"Error: StreamingClientOp not found: {e}")
+    print(f"Error: VideoStreamingClientOp not found: {e}")
     print("Make sure the Python bindings are built and installed.")
     print(
         "Build with: ./holohub build video_streaming_client --language cpp --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'"
@@ -120,7 +120,7 @@ class StreamingClientApp(Application):
         )
 
         # Create streaming client (allocator added via positional args if supported)
-        streaming_client = StreamingClientOp(
+        streaming_client = VideoStreamingClientOp(
             self,
             allocator,  # Add allocator for output buffer
             name="streaming_client",
@@ -337,7 +337,7 @@ def main():
         # Show pipeline
         viz_part = " -> HolovizOp" if app.visualize else ""
         print(
-            f"Pipeline: {app.source.capitalize()}Op -> FormatConverterOp -> StreamingClientOp{viz_part}"
+            f"Pipeline: {app.source.capitalize()}Op -> FormatConverterOp -> VideoStreamingClientOp{viz_part}"
         )
         print("Press Ctrl+C to stop gracefully")
 
