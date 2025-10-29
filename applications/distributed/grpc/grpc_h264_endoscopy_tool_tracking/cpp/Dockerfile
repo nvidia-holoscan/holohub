@@ -64,3 +64,4 @@ WORKDIR /
 
 RUN /install_dependencies.sh
 
+RUN pip3 install grpcio-tools==1.70.0
