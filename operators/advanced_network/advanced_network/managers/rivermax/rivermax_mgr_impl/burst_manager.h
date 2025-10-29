@@ -87,7 +87,9 @@ class RivermaxBurst : public BurstParams {
    */
   inline uint16_t get_burst_id() const {
     auto burst_info = get_burst_info();
-    if (burst_info == nullptr) { return 0; }
+    if (burst_info == nullptr) {
+      return 0;
+    }
     return burst_info->burst_id;
   }
 
@@ -140,7 +142,9 @@ class RivermaxBurst : public BurstParams {
 
     auto burst_info = get_burst_info();
 
-    if (burst_info == nullptr) { return; }
+    if (burst_info == nullptr) {
+      return;
+    }
 
     burst_info->hds_on = hds_on;
     burst_info->header_stride_size = header_stride_size;
@@ -164,9 +168,7 @@ class RivermaxBurst : public BurstParams {
    *
    * @return The flags of the burst.
    */
-  inline BurstFlags get_burst_flags() const {
-    return static_cast<BurstFlags>(hdr.hdr.burst_flags);
-  }
+  inline BurstFlags get_burst_flags() const { return static_cast<BurstFlags>(hdr.hdr.burst_flags); }
 
   /**
    * @brief Gets the extended info of a burst.
@@ -405,7 +407,9 @@ class RxBurstsManager {
 
     auto out_burst = rx_bursts_out_queue_->dequeue_burst().get();
     *burst = static_cast<BurstParams*>(out_burst);
-    if (*burst == nullptr) { return Status::NULL_PTR; }
+    if (*burst == nullptr) {
+      return Status::NULL_PTR;
+    }
     return Status::SUCCESS;
   }
 
