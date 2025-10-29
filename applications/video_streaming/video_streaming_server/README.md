@@ -25,6 +25,22 @@ This application demonstrates how to create a bidirectional video streaming serv
 - CUDA 12.x (currently not working with CUDA 13.x)
 - video_streaming operator
 
+### Server Dependencies
+
+Download the server streaming binaries from NGC using the provided script:
+
+```bash
+# Run from the holohub root directory
+./applications/video_streaming/video_streaming_server/download_dependencies.sh
+```
+
+This script will automatically:
+- Check for NGC CLI installation
+- Download `holoscan_server_cloud_streaming:0.2` from NGC
+- Extract the binaries to the correct location
+- Clean up temporary files
+
+
 ## Usage
 
 > ⚠️ The server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.

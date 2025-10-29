@@ -28,7 +28,6 @@ This application demonstrates how to create a bidirectional video streaming clie
 - video_streaming operator
 - V4L2 camera (optional, for live streaming)
 
-
 ### Download Dependencies
 
 Download the client streaming binaries from NGC by running the provided script:
@@ -36,12 +35,6 @@ Download the client streaming binaries from NGC by running the provided script:
 ```bash
 ./applications/video_streaming/video_streaming_client/download_dependencies.sh
 ```
-The script will automatically:
-- Navigate to the correct operator directory
-- Download the client binaries from NGC
-- Extract and install them
-- Clean up temporary files
-
 
 ## Usage
 
