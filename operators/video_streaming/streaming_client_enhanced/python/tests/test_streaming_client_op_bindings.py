@@ -94,7 +94,7 @@ class TestStreamingClientOpBinding:
             op = operator_factory(min_non_zero_bytes=threshold)
             assert op is not None
 
-    def test_operator_inheritance(self, streaming_client_op_class, holoscan_modules):
+    def test_operator_inheritance(self, streaming_client_op_class):
         """Test that StreamingClientOp is a valid Holoscan Operator."""
         # Note: pybind11 wrapped classes may not show as direct subclasses via issubclass()
         # Instead, verify it's an Operator by checking for Operator-like methods
