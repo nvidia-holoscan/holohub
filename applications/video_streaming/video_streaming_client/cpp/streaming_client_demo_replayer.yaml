@@ -71,7 +71,7 @@ simple_text_serializer:
   max_elements: 500
 
 # Streaming client settings
-streaming_client:
+video_streaming_client:
   # Video/stream parameters - Match video file resolution
   width: 854  # Match video file resolution (854x480)
   height: 480
