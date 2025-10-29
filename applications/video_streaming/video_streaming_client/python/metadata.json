@@ -40,9 +40,23 @@
                 }
             ]
         },
-        "run": {
-            "command": "python3 streaming_client_demo.py",
-            "workdir": "holohub_bin"
+        "dockerfile": "applications/video_streaming/Dockerfile",
+        "default_mode": "replayer",
+        "modes": {
+            "replayer": {
+                "description": "Streaming client (Python implementation) - Video replayer",
+                "run": {
+                    "command": "python3 streaming_client_demo.py --source replayer",
+                    "workdir": "holohub_bin"
+                }
+            },
+            "v4l2": {
+                "description": "Streaming client (Python implementation) - V4L2 camera",
+                "run": {
+                    "command": "python3 streaming_client_demo.py --source v4l2 --width 640 --height 480",
+                    "workdir": "holohub_bin"
+                }
+            }
         }
     }
 }

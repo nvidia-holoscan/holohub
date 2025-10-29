@@ -1,6 +1,6 @@
 {
     "application": {
-        "name": "Video Streaming Client Demo",
+        "name": "Video Streaming Client Demo (C++)",
         "description": "C++ implementation of video streaming client using Holoscan SDK streaming operators",
         "authors": [
             {
@@ -28,14 +28,14 @@
             "Video",
             "Client",
             "Real-time",
-            "Demo",
+            "Network",
             "V4L2"
         ],
         "ranking": 2,
         "requirements": {
             "operators": [
                 {
-                    "name": "video_streaming",
+                    "name": "video_streaming_client",
                     "version": "1.1.0"
                 }
             ]

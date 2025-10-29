@@ -1,6 +1,7 @@
 {
     "application": {
-        "name": "Video Streaming Server Demo",
+        "name": "Video Streaming Server Demo (C++)",
+        "description": "C++ implementation of video streaming server using Holoscan SDK streaming operators",
         "authors": [
             {
                 "name": "Holoscan Team",
@@ -23,24 +24,31 @@
             "aarch64"
         ],
         "tags": [
-            "Video",
             "Streaming",
+            "Video",
             "Server",
-            "Demo",
-            "Bidirectional"
+            "Real-time",
+            "Network"
         ],
-        "ranking": 1,
+        "ranking": 2,
         "requirements": {
             "operators": [
                 {
-                    "name": "video_streaming",
+                    "name": "video_streaming_server",
                     "version": "1.1.0"
                 }
             ]
         },
-        "run": {
-            "command": "<holohub_app_bin>/cpp/streaming_server_demo_wrapper.sh",
-            "workdir": "holohub_bin"
+        "dockerfile": "applications/video_streaming/Dockerfile",
+        "default_mode": "server",
+        "modes": {
+            "server": {
+                "description": "Run the streaming server",
+                "run": {
+                    "command": "<holohub_app_bin>/streaming_server_demo_wrapper.sh",
+                    "workdir": "holohub_bin"
+                }
+            }
         }
     }
 }
