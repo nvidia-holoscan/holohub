@@ -392,11 +392,7 @@ This pytest implementation provides:
 5. ✅ **Integration with existing test infrastructure**
 6. ✅ **Validation of Python/C++ binding correctness**
 
-Combined with the C++ unit tests (31 tests) from the previous branch, the video streaming operators now have:
-- **91+ total unit tests**
-- **Comprehensive validation at both C++ and Python levels**
-- **Clear documentation and examples**
-- **Easy to run and maintain**
 
-The testing infrastructure is now complete and production-ready! 🎉
+
+
 
