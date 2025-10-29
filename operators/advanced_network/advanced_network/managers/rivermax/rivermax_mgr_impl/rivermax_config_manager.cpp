@@ -89,8 +89,9 @@ bool RivermaxConfigContainer::parse_configuration(const NetworkConfig& cfg) {
   set_rivermax_log_level(cfg.log_level_);
 
   if (rivermax_rx_config_found == 0 && rivermax_tx_config_found == 0) {
-    HOLOSCAN_LOG_ERROR("Failed to parse Rivermax advanced_network settings. "
-                       "No valid settings found");
+    HOLOSCAN_LOG_ERROR(
+        "Failed to parse Rivermax advanced_network settings. "
+        "No valid settings found");
     return false;
   }
 
@@ -112,12 +113,16 @@ int RivermaxConfigContainer::parse_rx_queues(uint16_t port_id,
   auto rx_config_manager = std::dynamic_pointer_cast<RxConfigManager>(
       get_config_manager(RivermaxConfigContainer::ConfigType::RX));
 
-  if (!rx_config_manager) { return 0; }
+  if (!rx_config_manager) {
+    return 0;
+  }
 
   rx_config_manager->set_configuration(cfg_);
 
   for (const auto& q : queues) {
-    if (!rx_config_manager->append_candidate_for_rx_queue(port_id, q)) { continue; }
+    if (!rx_config_manager->append_candidate_for_rx_queue(port_id, q)) {
+      continue;
+    }
     rivermax_rx_config_found++;
   }
 
@@ -208,7 +213,9 @@ bool RxConfigManager::append_ipo_receiver_candidate_for_rx_queue(
     return false;
   }
 
-  if (config_memory_allocator(rivermax_rx_config, q) == false) { return false; }
+  if (config_memory_allocator(rivermax_rx_config, q) == false) {
+    return false;
+  }
 
   rivermax_rx_config.cpu_cores = q.common_.cpu_core_;
   rivermax_rx_config.master_core = cfg_.common_.master_core_;
@@ -239,7 +246,9 @@ bool RxConfigManager::append_rtp_receiver_candidate_for_rx_queue(
     return false;
   }
 
-  if (config_memory_allocator(rivermax_rx_config, q) == false) { return false; }
+  if (config_memory_allocator(rivermax_rx_config, q) == false) {
+    return false;
+  }
 
   rivermax_rx_config.cpu_cores = q.common_.cpu_core_;
   rivermax_rx_config.master_core = cfg_.common_.master_core_;
@@ -270,12 +279,16 @@ int RivermaxConfigContainer::parse_tx_queues(uint16_t port_id,
   auto tx_config_manager = std::dynamic_pointer_cast<TxConfigManager>(
       get_config_manager(RivermaxConfigContainer::ConfigType::TX));
 
-  if (!tx_config_manager) { return 0; }
+  if (!tx_config_manager) {
+    return 0;
+  }
 
   tx_config_manager->set_configuration(cfg_);
 
   for (const auto& q : queues) {
-    if (!tx_config_manager->append_candidate_for_tx_queue(port_id, q)) { continue; }
+    if (!tx_config_manager->append_candidate_for_tx_queue(port_id, q)) {
+      continue;
+    }
     rivermax_tx_config_found++;
   }
 
@@ -355,7 +368,9 @@ bool TxConfigManager::append_media_sender_candidate_for_tx_queue(
     return false;
   }
 
-  if (config_memory_allocator(rivermax_tx_config, q) == false) { return false; }
+  if (config_memory_allocator(rivermax_tx_config, q) == false) {
+    return false;
+  }
 
   rivermax_tx_config.cpu_cores = q.common_.cpu_core_;
   rivermax_tx_config.master_core = cfg_.common_.master_core_;
@@ -697,8 +712,7 @@ bool RivermaxConfigParser::parse_common_tx_settings(
   rivermax_tx_config.print_parameters = tx_settings["verbose"].as<bool>(false);
   rivermax_tx_config.num_of_threads = tx_settings["num_of_threads"].as<size_t>(1);
   rivermax_tx_config.send_packet_ext_info = tx_settings["send_packet_ext_info"].as<bool>(true);
-  rivermax_tx_config.num_of_packets_in_chunk =
-    tx_settings["num_of_packets_in_chunk"].as<size_t>(
+  rivermax_tx_config.num_of_packets_in_chunk = tx_settings["num_of_packets_in_chunk"].as<size_t>(
       MediaSenderSettings::DEFAULT_NUM_OF_PACKETS_IN_CHUNK_FHD);
   rivermax_tx_config.sleep_between_operations =
       tx_settings["sleep_between_operations"].as<bool>(true);
@@ -719,9 +733,8 @@ bool RivermaxConfigParser::parse_media_sender_settings(
   rivermax_tx_config.use_internal_memory_pool =
       tx_settings["use_internal_memory_pool"].as<bool>(false);
   if (rivermax_tx_config.use_internal_memory_pool) {
-    rivermax_tx_config.memory_pool_location =
-      GetMemoryKindFromString(tx_settings["memory_pool_location"].template
-        as<std::string>("device"));
+    rivermax_tx_config.memory_pool_location = GetMemoryKindFromString(
+        tx_settings["memory_pool_location"].template as<std::string>("device"));
     if (rivermax_tx_config.memory_pool_location == MemoryKind::INVALID) {
       rivermax_tx_config.memory_pool_location = MemoryKind::DEVICE;
       HOLOSCAN_LOG_ERROR("Invalid memory pool location, setting to DEVICE");
@@ -826,7 +839,9 @@ bool ConfigManagerUtilities::validate_cores(const std::string& cores) {
 void ConfigManagerUtilities::set_allocator_type(AppSettings& app_settings_config,
                                                 const std::string& allocator_type) {
   auto setAllocatorType = [&](const std::string& allocatorTypeStr, AllocatorTypeUI allocatorType) {
-    if (allocator_type == allocatorTypeStr) { app_settings_config.allocator_type = allocatorType; }
+    if (allocator_type == allocatorTypeStr) {
+      app_settings_config.allocator_type = allocatorType;
+    }
   };
 
   app_settings_config.allocator_type = AllocatorTypeUI::Auto;
