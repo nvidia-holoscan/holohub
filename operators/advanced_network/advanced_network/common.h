@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
  * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-=======
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
->>>>>>> 332dabe5 (Arbitrary byte matching with flex parser)
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -387,6 +383,30 @@ int64_t get_q_id(BurstParams* burst);
 Status get_mac_addr(int port, char* mac);
 
 /**
+ * @brief Drop all traffic on a port
+ *
+ * Creates a high-priority flow rule that drops all incoming traffic on the specified port.
+ * This acts as a "kill switch" for traffic. Use allow_all_traffic() to remove the drop rule.
+ *
+ * @param port Port number of interface
+ *
+ * @returns Status::SUCCESS on success, error status on failure
+ */
+Status drop_all_traffic(int port);
+
+/**
+ * @brief Allow all traffic on a port
+ *
+ * Removes a previously installed drop rule created by drop_all_traffic(), restoring
+ * normal traffic flow on the port.
+ *
+ * @param port Port number of interface
+ *
+ * @returns Status::SUCCESS on success, error status on failure
+ */
+Status allow_all_traffic(int port);
+
+/**
  * @brief Get port number from interface name
  *
  * @param key PCIe address or config name of the interface to look up
@@ -485,6 +505,17 @@ void print_stats();
  * @return uint16_t Number of RX queues
  */
 uint16_t get_num_rx_queues(int port_id);
+
+/**
+ * @brief Flush all packets from a specific port/queue
+ *
+ * Drains and discards all packets currently in the specified queue on the specified port.
+ * This is useful for clearing stale packets from a queue before starting operations.
+ *
+ * @param port Port number of interface
+ * @param queue Queue ID on the port
+ */
+void flush_port_queue(int port, int queue);
 
 };  // namespace holoscan::advanced_network
 
