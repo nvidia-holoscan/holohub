@@ -207,11 +207,11 @@ The unit tests are designed for CI/CD pipelines:
 
 Each test suite has detailed documentation:
 
-- **[Client Tests README](streaming_client_enhanced/tests/README.md)** - StreamingClientOp C++ unit tests
-- **[Server Tests README](streaming_server_enhanced/tests/README.md)** - Server operator C++ unit tests
+- **[Client Tests README](./streaming_client_enhanced/tests/README.md)** - StreamingClientOp C++ unit tests
+- **[Server Tests README](./streaming_server_enhanced/tests/README.md)** - Server operator C++ unit tests
 
 Additional documentation:
-- **[Python Binding Tests (pytest)](PYTEST_SUMMARY.md)** - Python binding tests for all operators (61 tests)
+- **[Python Binding Tests (pytest)](./PYTEST_SUMMARY.md)** - Python binding tests for all operators (61 tests)
 - **[Integration Tests](../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../applications/video_streaming/README.md)** - Application overview
 
