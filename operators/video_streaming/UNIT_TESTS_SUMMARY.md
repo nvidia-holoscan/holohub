@@ -68,9 +68,9 @@ operators/video_streaming/
 | Component | Tests | Lines of Code | Coverage | Execution Time |
 |-----------|-------|---------------|----------|----------------|
 | StreamingClientOp | 13 | ~700 | Initialization, parameters, setup, edge cases | ~0.06 sec |
-| StreamingServerResource | 8 | ~300 | Resource creation, configuration, various settings | (included below) |
-| StreamingServerUpstreamOp | 6 | ~250 | Initialization, setup, cleanup, shared resources | (included below) |
-| StreamingServerDownstreamOp | 4 | ~150 | Initialization, setup, cleanup | (included below) |
+| StreamingServerResource | 8 | ~300 | Resource creation, configuration, various settings | ~0.03 sec |
+| StreamingServerUpstreamOp | 6 | ~250 | Initialization, setup, cleanup, shared resources | ~0.02 sec |
+| StreamingServerDownstreamOp | 4 | ~150 | Initialization, setup, cleanup | ~0.01 sec |
 | **Total** | **31** | **~1,400** | **Comprehensive** | **~0.12 sec** |
 
 **Test Success Rate: 100% ✅** (2/2 test suites passed, 31 individual tests passed)
