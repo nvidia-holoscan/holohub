@@ -18,10 +18,8 @@
 # Base image
 ############################################################
 
-ARG BASE_IMAGE
-ARG GPU_TYPE
-
-FROM ${BASE_IMAGE} as base
+ARG BASE_SDK_VERSION
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-cuda13 as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
