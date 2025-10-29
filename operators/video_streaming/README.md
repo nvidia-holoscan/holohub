@@ -268,7 +268,7 @@ Run all unit tests from the holohub root directory:
 
 **Python Unit Tests** for Python bindings of all video streaming operators (61 tests total):
 - ✅ **30 tests** for `StreamingClientOp` Python bindings
-- ✅ **31 tests** for server operators (18 Resource + 6 Upstream + 6 Downstream + 4 Integration)
+- ✅ **31 tests** for server operators (18 Resource + 6 Upstream + 6 Downstream + 1 Integration)
 - ✅ Fast execution (~16.88 seconds total)
 - ✅ 100% pass rate
 - ✅ Tests operator creation, parameter handling, inheritance, and memory management
