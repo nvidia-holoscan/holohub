@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the pytest tests added to the `video_streaming` operators for comprehensive Python binding validation.
+This document summarizes the pytest tests added to the `video_streaming` operators for Python binding validation.
 
 ## What Was Added
 
@@ -14,20 +14,20 @@ operators/video_streaming/
 │   └── python/
 │       └── tests/
 │           ├── conftest.py                              # Pytest fixtures
-│           ├── test_streaming_client_op_bindings.py     # 25+ tests
+│           ├── test_streaming_client_op_bindings.py     # 30 tests
 │           └── README.md                                # Documentation
 │
 └── streaming_server_enhanced/
     └── python/
         └── tests/
             ├── conftest.py                              # Pytest fixtures
-            ├── test_streaming_server_ops_bindings.py    # 35+ tests
+            ├── test_streaming_server_ops_bindings.py    # 31 tests
             └── README.md                                # Documentation
 ```
 
 ## Test Coverage
 
-### StreamingClientOp Python Bindings (25+ tests)
+### StreamingClientOp Python Bindings (30 tests)
 
 #### TestStreamingClientOpBinding (20+ tests)
 - **Basic Tests:**
@@ -56,7 +56,7 @@ operators/video_streaming/
 - Operator in Application context
 - Operator in Fragment context
 
-### StreamingServerOps Python Bindings (34 tests)
+### StreamingServerOps Python Bindings (31 tests)
 
 #### TestStreamingServerResourceBinding (18 tests)
 - **Basic Tests:**
