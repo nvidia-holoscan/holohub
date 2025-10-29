@@ -529,7 +529,7 @@ class MediaSenderZeroCopyService : public MediaSenderBaseService {
 
  private:
   std::shared_ptr<BufferedMediaFrameProvider>
-      tx_media_frame_provider_;                   ///< Provider for buffered media frames
+      tx_media_frame_provider_;  ///< Provider for buffered media frames
   bool is_frame_in_process_ = false;
   mutable std::mutex mutex_;
 
