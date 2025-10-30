@@ -79,6 +79,7 @@ add_custom_target(stereo_depth_yaml
 # This command should run after stereo_vision_data which removes existing files
 add_custom_command(
     OUTPUT "${HOLOHUB_DATA_DIR}/stereo_vision/ess.engine"
+    OUTPUT "${HOLOHUB_DATA_DIR}/stereo_vision/ess_plugins.so"
     COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/get_data_and_models.sh" "${HOLOHUB_DATA_DIR}/stereo_vision"
     DEPENDS stereo_vision_data
 )
@@ -86,6 +87,7 @@ add_custom_command(
 add_custom_target(get_data_and_models ALL
                   DEPENDS
                   "${HOLOHUB_DATA_DIR}/stereo_vision/ess.engine"
+                  "${HOLOHUB_DATA_DIR}/stereo_vision/ess_plugins.so"
 )
 
 add_dependencies(stereo_depth stereo_depth_yaml get_data_and_models)
