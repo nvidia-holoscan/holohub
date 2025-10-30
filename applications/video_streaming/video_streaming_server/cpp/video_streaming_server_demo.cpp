@@ -26,10 +26,9 @@
 
 #include <holoscan/holoscan.hpp>
 
+#include "video_streaming_server_downstream_op.hpp"
 #include "video_streaming_server_resource.hpp"
 #include "video_streaming_server_upstream_op.hpp"
-#include "video_streaming_server_downstream_op.hpp"
-
 
 // Create a default YAML configuration file if it doesn't exist
 bool ensure_config_file_exists(const std::string& config_path) {
@@ -135,11 +134,11 @@ class StreamingServerTestApp : public holoscan::Application {
     try {
       video_streaming_server_args = from_config("video_streaming_server");
     } catch (const std::exception& e) {
-      HOLOSCAN_LOG_WARN("Missing video_streaming_server config section, using defaults ({})", e.what());
+      HOLOSCAN_LOG_WARN("Missing video_streaming_server config section, using defaults ({})",
+                        e.what());
     }
-    auto video_streaming_server_resource =
-        make_resource<ops::StreamingServerResource>("video_streaming_server_resource",
-                                                     video_streaming_server_args);
+    auto video_streaming_server_resource = make_resource<ops::StreamingServerResource>(
+        "video_streaming_server_resource", video_streaming_server_args);
 
     // Both operators use the same resource and load their config (with backward compatibility)
     holoscan::ArgList upstream_args;
@@ -164,8 +163,7 @@ class StreamingServerTestApp : public holoscan::Application {
     // Connect them in pipeline
     add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
 
-    HOLOSCAN_LOG_INFO(
-        "Application composed with streaming server using continuous execution");
+    HOLOSCAN_LOG_INFO("Application composed with streaming server using continuous execution");
   }
 };
 
@@ -228,9 +226,8 @@ int main(int argc, char** argv) {
   std::string config_path = "video_streaming_server_demo.yaml";
 
   // Parse command line arguments
-  static struct option long_options[] = {{"config", required_argument, 0, 'c'},
-                                         {"help", no_argument, 0, '?'},
-                                         {0, 0, 0, 0}};
+  static struct option long_options[] = {
+      {"config", required_argument, 0, 'c'}, {"help", no_argument, 0, '?'}, {0, 0, 0, 0}};
 
   int option_index = 0;
   int c;
