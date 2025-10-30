@@ -13,5 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(cpp)
-
+# If Python is enabled,
+#  - skip building the C++ application
+#  - Python application doesn't have anything to build.
+if(NOT HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(cpp)
+endif()

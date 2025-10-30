@@ -16,9 +16,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(basic_networking_ping LANGUAGES NONE)
 
-add_subdirectory(cpp)
-
-if(HOLOHUB_BUILD_PYTHON) # since using python wrapping
+if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
+else()
+  add_subdirectory(cpp)
 endif()
 

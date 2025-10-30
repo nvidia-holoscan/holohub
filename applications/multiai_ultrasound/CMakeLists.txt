@@ -36,8 +36,9 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
 endif()
 
 add_subdirectory(operators)
-add_subdirectory(cpp)
 
-if(HOLOHUB_BUILD_PYTHON) # since using python wrapping
+if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
+else()
+  add_subdirectory(cpp)
 endif()

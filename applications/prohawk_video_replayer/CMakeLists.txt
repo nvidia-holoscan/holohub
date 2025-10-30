@@ -16,4 +16,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(prohawk_video_replayer_apps LANGUAGES NONE)
 
-add_subdirectory(cpp)
+# If Python is enabled,
+#  - skip building the C++ application
+#  - Python application doesn't have anything to build.
+if(NOT HOLOHUB_BUILD_PYTHON) 
+  add_subdirectory(cpp)
+endif()
