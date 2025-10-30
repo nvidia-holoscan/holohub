@@ -16,8 +16,10 @@
 cmake_minimum_required(VERSION 3.20)
 project(deltacast_transmitter_apps LANGUAGES NONE)
 
+if(HOLOHUB_BUILD_CPP)
+  add_subdirectory(cpp)
+endif()
+
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
-else()
-  add_subdirectory(cpp)
 endif()

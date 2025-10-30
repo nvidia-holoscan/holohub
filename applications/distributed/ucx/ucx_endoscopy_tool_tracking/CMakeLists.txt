@@ -48,8 +48,10 @@ if(BUILD_TESTING)
   set_tests_properties(endoscopy_engine_generation PROPERTIES FIXTURES_SETUP endoscopy_engine_generation_fixture)
 endif()
 
+if(HOLOHUB_BUILD_CPP)
+  add_subdirectory(cpp)
+endif()
+
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
-else()
-  add_subdirectory(cpp)
 endif()

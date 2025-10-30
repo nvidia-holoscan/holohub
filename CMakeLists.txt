@@ -46,6 +46,7 @@ include(CTest)
 
 # Options
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
+option(HOLOHUB_BUILD_CPP "Build support for C++" ON)
 option(HOLOHUB_BUILD_PYTHON "Build support for Python" ON)
 
 # Enable flow benchmarking

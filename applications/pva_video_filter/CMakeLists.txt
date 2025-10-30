@@ -16,4 +16,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(pva_video_filter)
 
-add_subdirectory(cpp)
+if(HOLOHUB_BUILD_CPP)
+  add_subdirectory(cpp)
+endif()

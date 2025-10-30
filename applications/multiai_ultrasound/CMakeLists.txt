@@ -37,8 +37,10 @@ endif()
 
 add_subdirectory(operators)
 
+if(HOLOHUB_BUILD_CPP)
+  add_subdirectory(cpp)
+endif()
+
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
-else()
-  add_subdirectory(cpp)
 endif()
