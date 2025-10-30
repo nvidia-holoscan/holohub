@@ -263,10 +263,10 @@ int main(int argc, char** argv) {
   app->config(config_file);
   app->set_datapath(data_directory);
   app->run();
-  
+
   if (plugin_handle) {
     dlclose(plugin_handle);
   }
-  
+
   return 0;
 }
