@@ -20,12 +20,12 @@
 
 #include <string>
 
-#include "../video_streaming_client.hpp"
+#include <holoscan/core/arg.hpp>
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
-#include <holoscan/core/arg.hpp>
 #include "../../operator_util.hpp"
+#include "../video_streaming_client.hpp"
 
 using std::string_literals::operator""s;
 using pybind11::literals::operator""_a;
@@ -41,26 +41,21 @@ class PyStreamingClientOp : public VideoStreamingClientOp {
   using VideoStreamingClientOp::VideoStreamingClientOp;
 
   /* Constructor for Python with proper fragment setup */
-  explicit PyStreamingClientOp(Fragment* fragment,
-                               const py::args& args,
-                               uint32_t width = 854,
-                               uint32_t height = 480,
-                               uint32_t fps = 30,
+  explicit PyStreamingClientOp(Fragment* fragment, const py::args& args, uint32_t width = 854,
+                               uint32_t height = 480, uint32_t fps = 30,
                                const std::string& server_ip = "127.0.0.1",
-                               uint16_t signaling_port = 48010,
-                               bool receive_frames = true,
-                               bool send_frames = true,
-                               uint32_t min_non_zero_bytes = 100,
+                               uint16_t signaling_port = 48010, bool receive_frames = true,
+                               bool send_frames = true, uint32_t min_non_zero_bytes = 100,
                                std::shared_ptr<Allocator> allocator = nullptr,
                                const std::string& name = "video_streaming_client"s)
       : VideoStreamingClientOp(ArgList{Arg{"width", width},
-                                  Arg{"height", height},
-                                  Arg{"fps", fps},
-                                  Arg{"server_ip", server_ip},
-                                  Arg{"signaling_port", signaling_port},
-                                  Arg{"receive_frames", receive_frames},
-                                  Arg{"send_frames", send_frames},
-                                  Arg{"min_non_zero_bytes", min_non_zero_bytes}}) {
+                                       Arg{"height", height},
+                                       Arg{"fps", fps},
+                                       Arg{"server_ip", server_ip},
+                                       Arg{"signaling_port", signaling_port},
+                                       Arg{"receive_frames", receive_frames},
+                                       Arg{"send_frames", send_frames},
+                                       Arg{"min_non_zero_bytes", min_non_zero_bytes}}) {
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);
@@ -80,8 +75,10 @@ PYBIND11_MODULE(_video_streaming_client, m) {
       .. currentmodule:: holohub.video_streaming_client
   )pbdoc";
 
-  py::class_<VideoStreamingClientOp, PyStreamingClientOp, Operator, std::shared_ptr<VideoStreamingClientOp>>(
-      m, "VideoStreamingClientOp", R"doc(
+  py::class_<VideoStreamingClientOp,
+             PyStreamingClientOp,
+             Operator,
+             std::shared_ptr<VideoStreamingClientOp>>(m, "VideoStreamingClientOp", R"doc(
 Operator that wraps the StreamingClient for video streaming in Holoscan.
 
 This operator provides client-side video streaming capabilities, allowing

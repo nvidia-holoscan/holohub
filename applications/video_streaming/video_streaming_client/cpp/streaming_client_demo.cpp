@@ -27,14 +27,12 @@
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
-#include "holoscan/data_loggers/basic_console_logger/basic_console_logger.hpp"
 #include <holoscan/operators/holoviz/holoviz.hpp>
-#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
+#include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
+#include "holoscan/data_loggers/basic_console_logger/basic_console_logger.hpp"
 
 #include "video_streaming_client.hpp"
-
-
 
 // Create a default YAML configuration file if it doesn't exist
 bool ensure_config_file_exists(const std::string& config_path) {
@@ -168,8 +166,9 @@ class StreamingClientTestApp : public holoscan::Application {
         data_path = "data";
         HOLOSCAN_LOG_INFO("Using local data path: {}", data_path);
       } else {
-        HOLOSCAN_LOG_ERROR("No valid data directory found! Please set HOLOSCAN_INPUT_PATH "
-                           "or provide a valid data directory.");
+        HOLOSCAN_LOG_ERROR(
+            "No valid data directory found! Please set HOLOSCAN_INPUT_PATH "
+            "or provide a valid data directory.");
         return;
       }
     }
@@ -192,9 +191,7 @@ class StreamingClientTestApp : public holoscan::Application {
     if (source_ == "v4l2") {
       HOLOSCAN_LOG_INFO("Using V4L2 camera as source");
       source = make_operator<ops::V4L2VideoCaptureOp>(
-          "v4l2_source",
-          from_config("v4l2_source"),
-          Arg("allocator", allocator));
+          "v4l2_source", from_config("v4l2_source"), Arg("allocator", allocator));
     } else {
       HOLOSCAN_LOG_INFO("Using video replayer as source");
       source = make_operator<ops::VideoStreamReplayerOp>(
@@ -210,8 +207,8 @@ class StreamingClientTestApp : public holoscan::Application {
     auto format_converter = make_operator<ops::FormatConverterOp>(
         "format_converter",
         from_config("format_converter"),
-        Arg("pool", make_resource<BlockMemoryPool>(
-            "pool", 1, source_block_size, source_num_blocks)),
+        Arg("pool",
+            make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks)),
         Arg("cuda_stream_pool", cuda_stream_pool));
 
     auto video_streaming_client = make_operator<ops::VideoStreamingClientOp>(
@@ -234,15 +231,14 @@ class StreamingClientTestApp : public holoscan::Application {
     add_flow(format_converter, video_streaming_client);
 
     if (visualize_frames_) {
-        auto holoviz = make_operator<ops::HolovizOp>(
-            "holoviz",
-            from_config("holoviz"),
-            Arg("width", width_),
-            Arg("height", height_),
-            Arg("allocator", allocator),
-            Arg("cuda_stream_pool", cuda_stream_pool));
+      auto holoviz = make_operator<ops::HolovizOp>("holoviz",
+                                                   from_config("holoviz"),
+                                                   Arg("width", width_),
+                                                   Arg("height", height_),
+                                                   Arg("allocator", allocator),
+                                                   Arg("cuda_stream_pool", cuda_stream_pool));
 
-        add_flow(video_streaming_client, holoviz, {{"output_frames", "receivers"}});
+      add_flow(video_streaming_client, holoviz, {{"output_frames", "receivers"}});
     }
   }
 
@@ -278,7 +274,7 @@ void print_usage() {
 }
 
 // Helper function to safely get config values with defaults
-template<typename T>
+template <typename T>
 T get_config_value(holoscan::Application* app, const std::string& key, const T& default_value) {
   try {
     return app->from_config(key).as<T>();
@@ -290,7 +286,7 @@ T get_config_value(holoscan::Application* app, const std::string& key, const T& 
 }
 
 // Specialization for std::string to avoid printing issues
-template<>
+template <>
 std::string get_config_value<std::string>(holoscan::Application* app, const std::string& key,
                                           const std::string& default_value) {
   try {
@@ -308,12 +304,10 @@ int main(int argc, char** argv) {
   std::string data_directory = "";
 
   // Define command line options
-  static struct option long_options[] = {
-      {"config", required_argument, 0, 'c'},
-      {"data", required_argument, 0, 'd'},
-      {"help", no_argument, 0, '?'},
-      {0, 0, 0, 0}
-  };
+  static struct option long_options[] = {{"config", required_argument, 0, 'c'},
+                                         {"data", required_argument, 0, 'd'},
+                                         {"help", no_argument, 0, '?'},
+                                         {0, 0, 0, 0}};
 
   // Parse command line arguments
   int opt;
@@ -339,18 +333,17 @@ int main(int argc, char** argv) {
   if (data_directory.empty()) {
     // Try multiple possible locations
     const std::vector<std::string> possible_paths = {
-      std::string(std::getenv("HOLOSCAN_INPUT_PATH") ? std::getenv("HOLOSCAN_INPUT_PATH") : ""),
-      std::string((std::filesystem::current_path() / "data").c_str()),
-      std::string((std::filesystem::current_path() / "data/endoscopy").c_str()),
-      "/workspace/holoscan-sdk/data",
-      "/workspace/holoscan-sdk/data/endoscopy",
-      "/workspace/holohub/data/endoscopy",
-      "/workspace/holohub/data",
-      "/opt/nvidia/holoscan/data",
-      "/opt/nvidia/holoscan/data/endoscopy",
-      "/workspace/holohub-internal/data",
-      "/workspace/holohub-internal/data/endoscopy"
-    };
+        std::string(std::getenv("HOLOSCAN_INPUT_PATH") ? std::getenv("HOLOSCAN_INPUT_PATH") : ""),
+        std::string((std::filesystem::current_path() / "data").c_str()),
+        std::string((std::filesystem::current_path() / "data/endoscopy").c_str()),
+        "/workspace/holoscan-sdk/data",
+        "/workspace/holoscan-sdk/data/endoscopy",
+        "/workspace/holohub/data/endoscopy",
+        "/workspace/holohub/data",
+        "/opt/nvidia/holoscan/data",
+        "/opt/nvidia/holoscan/data/endoscopy",
+        "/workspace/holohub-internal/data",
+        "/workspace/holohub-internal/data/endoscopy"};
 
     for (const auto& path : possible_paths) {
       if (!path.empty() && std::filesystem::exists(path)) {
@@ -369,7 +362,8 @@ int main(int argc, char** argv) {
 
     if (data_directory.empty()) {
       std::cerr << "ERROR: Could not find surgical_video.gxf_index in any of the standard "
-                   "locations." << std::endl;
+                   "locations."
+                << std::endl;
       std::cerr << "Please ensure the video file is present in one of these locations:"
                 << std::endl;
       for (const auto& path : possible_paths) {
@@ -383,8 +377,8 @@ int main(int argc, char** argv) {
 
   // Verify both the directory and video file exist
   if (!std::filesystem::exists(data_directory)) {
-    std::cerr << "ERROR: Specified data directory '" << data_directory
-              << "' does not exist!" << std::endl;
+    std::cerr << "ERROR: Specified data directory '" << data_directory << "' does not exist!"
+              << std::endl;
     return 1;
   }
 
@@ -428,9 +422,10 @@ int main(int argc, char** argv) {
   uint32_t width = get_config_value(app.get(), "video_streaming_client.width", 640U);
   uint32_t height = get_config_value(app.get(), "video_streaming_client.height", 480U);
   uint32_t fps = get_config_value(app.get(), "video_streaming_client.fps", 30U);
-  std::string server_ip = get_config_value(app.get(), "video_streaming_client.server_ip",
-                                           std::string("127.0.0.1"));
-  uint16_t signaling_port = get_config_value(app.get(), "video_streaming_client.signaling_port", 48010);
+  std::string server_ip =
+      get_config_value(app.get(), "video_streaming_client.server_ip", std::string("127.0.0.1"));
+  uint16_t signaling_port =
+      get_config_value(app.get(), "video_streaming_client.signaling_port", 48010);
   bool receive_frames = get_config_value(app.get(), "video_streaming_client.receive_frames", true);
   bool send_frames = get_config_value(app.get(), "video_streaming_client.send_frames", true);
   bool visualize_frames = get_config_value(app.get(), "visualize_frames", true);
