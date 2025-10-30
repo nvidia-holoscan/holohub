@@ -118,7 +118,7 @@ class StreamingServerResource : public holoscan::Resource {
   double get_downstream_fps() const;
 
   // Direct access to underlying StreamingServer (if needed)
-  StreamingServer* get_streaming_server() const { return streaming_server_.get(); }
+  StreamingServer* get_streaming_server() const { return video_streaming_server_.get(); }
 
  private:
   // Configuration parameters
@@ -132,7 +132,7 @@ class StreamingServerResource : public holoscan::Resource {
   Parameter<bool> enable_downstream_;
 
   // StreamingServer instance (uses its own PIMPL internally)
-  std::unique_ptr<StreamingServer> streaming_server_;
+  std::unique_ptr<StreamingServer> video_streaming_server_;
 
   // Resource configuration
   Config config_;

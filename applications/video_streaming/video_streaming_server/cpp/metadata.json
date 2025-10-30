@@ -45,7 +45,7 @@
             "server": {
                 "description": "Run the streaming server",
                 "run": {
-                    "command": "<holohub_app_bin>/streaming_server_demo_wrapper.sh",
+                    "command": "<holohub_app_bin>/video_streaming_server_demo_wrapper.sh",
                     "workdir": "holohub_bin"
                 }
             }

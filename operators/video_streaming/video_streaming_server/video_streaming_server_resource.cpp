@@ -26,7 +26,7 @@
 namespace holoscan::ops {
 
 StreamingServerResource::~StreamingServerResource() {
-  if (streaming_server_ && is_running()) {
+  if (video_streaming_server_ && is_running()) {
     try {
       stop();
     } catch (const std::exception& e) {
@@ -65,10 +65,10 @@ void StreamingServerResource::initialize() {
 
   try {
     StreamingServer::Config server_config = to_streaming_server_config(config_);
-    streaming_server_ = std::make_unique<StreamingServer>(server_config);
+    video_streaming_server_ = std::make_unique<StreamingServer>(server_config);
 
     // Set up event callback that updates internal state and broadcasts to all listeners
-    streaming_server_->setEventCallback([this](const StreamingServer::Event& event) {
+    video_streaming_server_->setEventCallback([this](const StreamingServer::Event& event) {
       // Update internal state
       handle_streaming_server_event(event);
 
@@ -93,7 +93,7 @@ void StreamingServerResource::initialize() {
 }
 
 void StreamingServerResource::start() {
-  if (!is_initialized_ || !streaming_server_) {
+  if (!is_initialized_ || !video_streaming_server_) {
     throw std::runtime_error("StreamingServerResource not initialized");
   }
 
@@ -108,7 +108,7 @@ void StreamingServerResource::start() {
 
       // Start the StreamingServer (it handles all the Holoscan Streaming Stack
       // complexity internally)
-    streaming_server_->start();
+    video_streaming_server_->start();
     is_running_ = true;
 
     HOLOSCAN_LOG_INFO("✅ StreamingServerResource started successfully");
@@ -124,8 +124,8 @@ void StreamingServerResource::stop() {
   }
 
   try {
-    if (streaming_server_) {
-      streaming_server_->stop();
+    if (video_streaming_server_) {
+      video_streaming_server_->stop();
     }
 
     HOLOSCAN_LOG_INFO("StreamingServerResource stopped");
@@ -133,27 +133,27 @@ void StreamingServerResource::stop() {
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error stopping StreamingServerResource: {}", e.what());
       // Don't re-throw to maintain compatibility with destructor and update_config()
-      // The is_running() method checks streaming_server_->isRunning() for actual state
+      // The is_running() method checks video_streaming_server_->isRunning() for actual state
   }
 }
 
 bool StreamingServerResource::is_running() const {
-  return is_running_ && streaming_server_ && streaming_server_->isRunning();
+  return is_running_ && video_streaming_server_ && video_streaming_server_->isRunning();
 }
 
 bool StreamingServerResource::has_connected_clients() const {
-  return streaming_server_ ? streaming_server_->hasConnectedClients() : false;
+  return video_streaming_server_ ? video_streaming_server_->hasConnectedClients() : false;
 }
 
 void StreamingServerResource::send_frame(const Frame& frame) {
-  if (!is_running() || !streaming_server_) {
+  if (!is_running() || !video_streaming_server_) {
     return;
   }
 
   try {
     if (config_.enable_downstream) {
       VideoFrame server_frame = convert_to_streaming_server_frame(frame);
-      streaming_server_->sendFrame(server_frame);
+      video_streaming_server_->sendFrame(server_frame);
       frames_sent_++;
     }
   } catch (const std::exception& e) {
@@ -162,13 +162,13 @@ void StreamingServerResource::send_frame(const Frame& frame) {
 }
 
 Frame StreamingServerResource::receive_frame() {
-  if (!is_running() || !streaming_server_) {
+  if (!is_running() || !video_streaming_server_) {
     return Frame{};
   }
 
   try {
     if (config_.enable_upstream) {
-      VideoFrame server_frame = streaming_server_->receiveFrame();
+      VideoFrame server_frame = video_streaming_server_->receiveFrame();
       return convert_from_streaming_server_frame(server_frame);
     }
   } catch (const std::exception& e) {
@@ -179,14 +179,14 @@ Frame StreamingServerResource::receive_frame() {
 }
 
 bool StreamingServerResource::try_receive_frame(Frame& frame) {
-  if (!is_running() || !streaming_server_) {
+  if (!is_running() || !video_streaming_server_) {
     return false;
   }
 
   try {
     if (config_.enable_upstream) {
       VideoFrame server_frame;
-      if (streaming_server_->tryReceiveFrame(server_frame)) {
+      if (video_streaming_server_->tryReceiveFrame(server_frame)) {
         frame = convert_from_streaming_server_frame(server_frame);
         return true;
       }
@@ -220,7 +220,7 @@ void StreamingServerResource::update_config(const Config& new_config) {
 }
 
 StreamingServer::Config StreamingServerResource::get_streaming_server_config() const {
-  return streaming_server_ ? streaming_server_->getConfig() : StreamingServer::Config{};
+  return video_streaming_server_ ? video_streaming_server_->getConfig() : StreamingServer::Config{};
 }
 
 void StreamingServerResource::set_event_callback(EventCallback callback) {

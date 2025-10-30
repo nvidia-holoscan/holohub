@@ -48,9 +48,9 @@ class PyStreamingServerUpstreamOp : public StreamingServerUpstreamOp {
                                        uint32_t fps = 30,
                                        std::shared_ptr<Allocator> allocator = nullptr,
                                        std::shared_ptr<StreamingServerResource>
-                                           streaming_server_resource = nullptr,
+                                           video_streaming_server_resource = nullptr,
                                        const std::string& name =
-                                           "streaming_server_upstream"s,
+                                           "video_streaming_server_upstream"s,
                                        const py::args& args = py::args())
       : StreamingServerUpstreamOp(ArgList{Arg{"width", width},
                                           Arg{"height", height},
@@ -62,8 +62,8 @@ class PyStreamingServerUpstreamOp : public StreamingServerUpstreamOp {
     if (allocator) {
       this->add_arg(Arg("allocator", allocator));
     }
-    if (streaming_server_resource) {
-      this->add_arg(Arg("streaming_server_resource", streaming_server_resource));
+    if (video_streaming_server_resource) {
+      this->add_arg(Arg("video_streaming_server_resource", video_streaming_server_resource));
     }
     setup(*spec_);
   }
@@ -82,9 +82,9 @@ class PyStreamingServerDownstreamOp : public StreamingServerDownstreamOp {
                                             "none"s,
                                         std::shared_ptr<Allocator> allocator = nullptr,
                                         std::shared_ptr<StreamingServerResource>
-                                            streaming_server_resource = nullptr,
+                                            video_streaming_server_resource = nullptr,
                                         const std::string& name =
-                                            "streaming_server_downstream"s,
+                                            "video_streaming_server_downstream"s,
                                         const py::args& args = py::args())
       : StreamingServerDownstreamOp(ArgList{Arg{"width", width},
                                             Arg{"height", height},
@@ -98,8 +98,8 @@ class PyStreamingServerDownstreamOp : public StreamingServerDownstreamOp {
     if (allocator) {
       this->add_arg(Arg("allocator", allocator));
     }
-    if (streaming_server_resource) {
-      this->add_arg(Arg("streaming_server_resource", streaming_server_resource));
+    if (video_streaming_server_resource) {
+      this->add_arg(Arg("video_streaming_server_resource", video_streaming_server_resource));
     }
     setup(*spec_);
   }
@@ -118,7 +118,7 @@ class PyStreamingServerResource : public StreamingServerResource {
                                      bool enable_upstream = true,
                                      bool enable_downstream = true,
                                      bool is_multi_instance = false,
-                                     const std::string& name = "streaming_server_resource"s)
+                                     const std::string& name = "video_streaming_server_resource"s)
       : StreamingServerResource(ArgList{Arg{"port", port},
                                         Arg{"width", width},
                                         Arg{"height", height},
@@ -173,7 +173,7 @@ enable_downstream : bool, optional
 is_multi_instance : bool, optional
     Enable multi-instance mode. Default value is ``False``.
 name : str, optional (constructor only)
-    The name of the resource. Default value is ``"streaming_server_resource"``.
+    The name of the resource. Default value is ``"video_streaming_server_resource"``.
 )doc")
       .def(py::init<Fragment*,
                     uint16_t,
@@ -194,7 +194,7 @@ name : str, optional (constructor only)
            "enable_upstream"_a = true,
            "enable_downstream"_a = true,
            "is_multi_instance"_a = false,
-           "name"_a = "streaming_server_resource"s);
+           "name"_a = "video_streaming_server_resource"s);
 
   // StreamingServerUpstreamOp
   py::class_<StreamingServerUpstreamOp, PyStreamingServerUpstreamOp, Operator,
@@ -209,7 +209,7 @@ Parameters
 ----------
 fragment : holoscan.core.Fragment (constructor only)
     The fragment that the operator belongs to.
-streaming_server_resource : holohub.video_streaming_server.StreamingServerResource
+video_streaming_server_resource : holohub.video_streaming_server.StreamingServerResource
     The shared StreamingServerResource for managing server connection.
 width : int, optional
     Frame width. Default value is ``854``.
@@ -220,7 +220,7 @@ fps : int, optional
 allocator : holoscan.resources.Allocator, optional
     Memory allocator to use. Default value is ``None``.
 name : str, optional (constructor only)
-    The name of the operator. Default value is ``"streaming_server_upstream"``.
+    The name of the operator. Default value is ``"video_streaming_server_upstream"``.
 )doc")
       .def(py::init<Fragment*,
                     uint32_t,
@@ -235,8 +235,8 @@ name : str, optional (constructor only)
            "height"_a = 480,
            "fps"_a = 30,
            "allocator"_a = py::none(),
-           "streaming_server_resource"_a = py::none(),
-           "name"_a = "streaming_server_upstream"s);
+           "video_streaming_server_resource"_a = py::none(),
+           "name"_a = "video_streaming_server_upstream"s);
 
   // StreamingServerDownstreamOp
   py::class_<StreamingServerDownstreamOp, PyStreamingServerDownstreamOp, Operator,
@@ -251,7 +251,7 @@ Parameters
 ----------
 fragment : holoscan.core.Fragment (constructor only)
     The fragment that the operator belongs to.
-streaming_server_resource : holohub.video_streaming_server.StreamingServerResource
+video_streaming_server_resource : holohub.video_streaming_server.StreamingServerResource
     The shared StreamingServerResource for managing server connection.
 width : int, optional
     Frame width. Default value is ``854``.
@@ -266,7 +266,7 @@ processing_type : str, optional
 allocator : holoscan.resources.Allocator, optional
     Memory allocator to use. Default value is ``None``.
 name : str, optional (constructor only)
-    The name of the operator. Default value is ``"streaming_server_downstream"``.
+    The name of the operator. Default value is ``"video_streaming_server_downstream"``.
 )doc")
       .def(py::init<Fragment*,
                     uint32_t,
@@ -285,7 +285,7 @@ name : str, optional (constructor only)
            "enable_processing"_a = false,
            "processing_type"_a = "none"s,
            "allocator"_a = py::none(),
-           "streaming_server_resource"_a = py::none(),
-           "name"_a = "streaming_server_downstream"s);
+           "video_streaming_server_resource"_a = py::none(),
+           "name"_a = "video_streaming_server_downstream"s);
 }  // PYBIND11_MODULE NOLINT
 }  // namespace holoscan::ops

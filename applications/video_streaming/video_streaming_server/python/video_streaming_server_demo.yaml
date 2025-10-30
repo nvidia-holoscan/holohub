@@ -28,7 +28,7 @@ processing:
   type: "none"  # Options: "none", "mirror", "filter"
 
 # Streaming server resource settings
-streaming_server_resource:
+video_streaming_server_resource:
   width: 854
   height: 480
   fps: 30

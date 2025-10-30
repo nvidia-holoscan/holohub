@@ -63,7 +63,7 @@ void StreamingServerDownstreamOp::setup(OperatorSpec& spec) {
   spec.param(fps_, "fps", "Frames Per Second", "Frame rate of the video", 30u);
   spec.param(allocator_, "allocator", "Memory Allocator",
              "Memory allocator for frame data");
-  spec.param(streaming_server_resource_, "streaming_server_resource", "Streaming Server Resource",
+  spec.param(video_streaming_server_resource_, "video_streaming_server_resource", "Streaming Server Resource",
              "StreamingServerResource for managing server connections");
 
   HOLOSCAN_LOG_INFO("StreamingServerDownstreamOp setup completed - sends frames to clients");
@@ -72,13 +72,13 @@ void StreamingServerDownstreamOp::setup(OperatorSpec& spec) {
 void StreamingServerDownstreamOp::initialize() {
   Operator::initialize();
 
-  auto streaming_server_resource = streaming_server_resource_.get();
-  if (!streaming_server_resource) {
+  auto video_streaming_server_resource = video_streaming_server_resource_.get();
+  if (!video_streaming_server_resource) {
     throw std::runtime_error("StreamingServerResource is null");
   }
 
     // Validate parameters and use resource defaults if not specified
-  auto resource_config = streaming_server_resource->get_config();
+  auto resource_config = video_streaming_server_resource->get_config();
 
   if (!width_.has_value() || width_.get() == 0) {
     HOLOSCAN_LOG_INFO("Using resource width: {}", resource_config.width);
@@ -101,7 +101,7 @@ void StreamingServerDownstreamOp::initialize() {
 
   try {
       // Add event listener on the shared resource (allows multiple operators to listen)
-    streaming_server_resource->add_event_listener(
+    video_streaming_server_resource->add_event_listener(
         [this](const StreamingServerResource::Event& event) {
       on_streaming_server_event(event);
     });
@@ -116,7 +116,7 @@ void StreamingServerDownstreamOp::initialize() {
 }
 
 void StreamingServerDownstreamOp::start() {
-  if (!streaming_server_resource_.get()) {
+  if (!video_streaming_server_resource_.get()) {
     HOLOSCAN_LOG_ERROR("Cannot start downstream operator: StreamingServerResource not available");
     return;
   }
@@ -126,8 +126,8 @@ void StreamingServerDownstreamOp::start() {
 
       // Start the shared streaming server resource
       // Note: This might already be started by another operator, which is fine
-    if (!streaming_server_resource_.get()->is_running()) {
-      streaming_server_resource_.get()->start();
+    if (!video_streaming_server_resource_.get()->is_running()) {
+      video_streaming_server_resource_.get()->start();
     }
 
     HOLOSCAN_LOG_INFO("✅ Downstream StreamingServer started successfully");
@@ -150,8 +150,8 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
     return;
   }
 
-  auto streaming_server_resource = streaming_server_resource_.get();
-  if (!streaming_server_resource || !streaming_server_resource->is_running()) {
+  auto video_streaming_server_resource = video_streaming_server_resource_.get();
+  if (!video_streaming_server_resource || !video_streaming_server_resource->is_running()) {
     return;
   }
 
@@ -206,7 +206,7 @@ void StreamingServerDownstreamOp::compute(InputContext& op_input, OutputContext&
                           output_frame.getWidth(), output_frame.getHeight(),
                           output_frame.getDataSize());
 
-      streaming_server_resource->send_frame(output_frame);
+      video_streaming_server_resource->send_frame(output_frame);
       frames_sent_++;
 
       HOLOSCAN_LOG_INFO("✅ DOWNSTREAM: Frame sent successfully to StreamingServerResource");

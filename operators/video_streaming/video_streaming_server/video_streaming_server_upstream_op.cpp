@@ -66,7 +66,7 @@ void StreamingServerUpstreamOp::setup(OperatorSpec& spec) {
   spec.param(fps_, "fps", "Frames Per Second", "Frame rate of the video", 30u);
   spec.param(allocator_, "allocator", "Memory Allocator",
              "Memory allocator for frame data");
-  spec.param(streaming_server_resource_, "streaming_server_resource", "Streaming Server Resource",
+  spec.param(video_streaming_server_resource_, "video_streaming_server_resource", "Streaming Server Resource",
              "StreamingServerResource for managing server connections");
 
   HOLOSCAN_LOG_INFO("StreamingServerUpstreamOp setup completed - receives frames from clients");
@@ -76,12 +76,12 @@ void StreamingServerUpstreamOp::initialize() {
   Operator::initialize();
 
     // Get the streaming server resource
-  if (!streaming_server_resource_.get()) {
+  if (!video_streaming_server_resource_.get()) {
     throw std::runtime_error("StreamingServerResource is null");
   }
 
     // Validate parameters and use resource defaults if not specified
-  auto resource_config = streaming_server_resource_.get()->get_config();
+  auto resource_config = video_streaming_server_resource_.get()->get_config();
 
   if (!width_.has_value() || width_.get() == 0) {
     HOLOSCAN_LOG_INFO("Using resource width: {}", resource_config.width);
@@ -104,7 +104,7 @@ void StreamingServerUpstreamOp::initialize() {
 
   try {
       // Set up event callback on the shared resource
-    streaming_server_resource_.get()->set_event_callback(
+    video_streaming_server_resource_.get()->set_event_callback(
         [this](const StreamingServerResource::Event& event) {
       on_streaming_server_event(event);
     });
@@ -120,8 +120,8 @@ void StreamingServerUpstreamOp::initialize() {
 }
 
 void StreamingServerUpstreamOp::start() {
-  auto streaming_server_resource = streaming_server_resource_.get();
-  if (!streaming_server_resource) {
+  auto video_streaming_server_resource = video_streaming_server_resource_.get();
+  if (!video_streaming_server_resource) {
     HOLOSCAN_LOG_ERROR("Cannot start upstream operator: StreamingServerResource not available");
     return;
   }
@@ -131,8 +131,8 @@ void StreamingServerUpstreamOp::start() {
 
       // Start the shared streaming server resource
       // Note: This might already be started by another operator, which is fine
-    if (!streaming_server_resource->is_running()) {
-      streaming_server_resource->start();
+    if (!video_streaming_server_resource->is_running()) {
+      video_streaming_server_resource->start();
     }
 
     HOLOSCAN_LOG_INFO("✅ Upstream StreamingServer started successfully");
@@ -156,14 +156,14 @@ void StreamingServerUpstreamOp::compute(holoscan::InputContext& op_input,
     return;
   }
 
-  auto streaming_server_resource = streaming_server_resource_.get();
-  if (!streaming_server_resource || !streaming_server_resource->is_running()) {
+  auto video_streaming_server_resource = video_streaming_server_resource_.get();
+  if (!video_streaming_server_resource || !video_streaming_server_resource->is_running()) {
     return;
   }
 
     // Try to receive a frame using polling approach
   Frame received_frame;
-  if (streaming_server_resource->try_receive_frame(received_frame)) {
+  if (video_streaming_server_resource->try_receive_frame(received_frame)) {
     frames_received_++;
 
       // 🔍 DUPLICATE DETECTION: Check if this frame was already processed

@@ -62,7 +62,7 @@ class StreamingServerUpstreamOp : public holoscan::Operator {
   Parameter<std::shared_ptr<Allocator>> allocator_;  ///< Memory allocator
 
     // StreamingServerResource reference
-  Parameter<std::shared_ptr<StreamingServerResource>> streaming_server_resource_;
+  Parameter<std::shared_ptr<StreamingServerResource>> video_streaming_server_resource_;
 
     // Internal state
   std::atomic<bool> is_shutting_down_{false};
