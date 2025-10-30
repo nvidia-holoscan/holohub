@@ -18,10 +18,10 @@ The integration test validates:
 
 ### Option 1: Using Integration Test Script
 
-The integration test script (`integration_test.sh`) runs the complete end-to-end test in a Docker container with proper SDK version and dependencies.
+The integration test script (`integration_test_cpp.sh`) runs the complete end-to-end test in a Docker container with proper SDK version and dependencies.
 
 ```bash
-./applications/video_streaming/integration_test.sh
+./applications/video_streaming/integration_test_cpp.sh
 ```
 
 **Test Configuration:**
@@ -46,7 +46,7 @@ The integration test script (`integration_test.sh`) runs the complete end-to-end
   --ctest-options="-R video_streaming_integration_test"
 ```
 
-**Note:** Both methods run the same underlying integration test defined in `CMakeLists.txt`. The wrapper script (`integration_test.sh`) adds developer-friendly conveniences on top of the direct command.
+**Note:** Both methods run the same underlying integration test defined in `CMakeLists.txt`. The wrapper script (`integration_test_cpp.sh`) adds developer-friendly conveniences on top of the direct command.
 
 ## Integration Test Process
 
@@ -60,9 +60,6 @@ echo "Current commit: $(git log --oneline -1)"
 
 # Cleans Docker build cache (optional, for fresh builds)
 docker system prune -f --filter "label=holohub"
-
-# Sets SDK version environment variable
-export HOLOHUB_BASE_SDK_VERSION=3.5.0
 ```
 
 ### 2. Docker Build & Test Execution (2-4 minutes)
@@ -453,7 +450,7 @@ The integration test is designed for CI/CD pipelines:
 
 ```bash
 # CI-friendly command with timeout and exit codes
-timeout 300 ./applications/video_streaming/integration_test.sh
+timeout 300 ./applications/video_streaming/integration_test_cpp.sh
 echo "Integration test exit code: $?"
 ```
 

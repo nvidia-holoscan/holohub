@@ -16,8 +16,8 @@
 ############################################################
 # Base image
 ############################################################
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
-FROM ${BASE_IMAGE}
+
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
 
 # Install system dependencies including updated OpenSSL and testing tools
 RUN apt-get update && apt-get install -y \

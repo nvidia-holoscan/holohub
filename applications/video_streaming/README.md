@@ -21,7 +21,7 @@ The video streaming demo provides:
 
 - NVIDIA GPU
 - CUDA 12.x (currently not working with CUDA 13.x)
-- Holoscan SDK 3.5.0+
+- Holoscan SDK 3.5.0
 - V4L2 camera (optional, for live streaming)
 
 ### Client Dependencies
@@ -62,13 +62,7 @@ cd - # Return to the original directory
 
 The unified application provides both client and server applications.
 
-> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
->
-> ```bash
-> # Set SDK version environment variable
-> export HOLOHUB_BASE_SDK_VERSION=3.5.0
-> ```
->
+> ⚠️ Both client and server applications require and use the Holoscan SDK 3.5.0.
 > ℹ️ The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
 ### 1. Start the Streaming Server
@@ -389,7 +383,7 @@ You can use `--verbose` flag to get more detailed output.
 
 ```bash
 # Run C++ integration test
-./applications/video_streaming/integration_test.sh
+./applications/video_streaming/integration_test_cpp.sh
 
 # Run Python integration test
 ./applications/video_streaming/integration_test_python.sh
@@ -409,7 +403,7 @@ Or use direct HoloHub CLI commands:
 
 **Test Scripts:**
 
-- `integration_test.sh` - C++ server and client test (SDK 3.5.0)
+- `integration_test_cpp.sh` - C++ server and client test (SDK 3.5.0)
 - `integration_test_python.sh` - Python server and client test (SDK 3.6.0)
 
 **⚠️ Important:** Both scripts run in Docker and build from **committed source code**. Commit your changes before running tests.

@@ -20,7 +20,7 @@ This application demonstrates how to create a bidirectional video streaming clie
 
 ## Requirements
 
-- Holoscan SDK 3.5.0 or higher
+- Holoscan SDK 3.5.0
 - Custom Dockerfile with OpenSSL 3.4.0 (for running via holohub CLI)
 - For Python: Python 3.8+ and bindings built with `-DHOLOHUB_BUILD_PYTHON=ON`
 - CUDA 12.x (currently not working with CUDA 13.x)
@@ -47,13 +47,7 @@ cd - # Return to the original directory
 
 ## Usage
 
-> ⚠️ This applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
->
-> ```bash
-> # Set SDK version environment variable
-> export HOLOHUB_BASE_SDK_VERSION=3.5.0
-> ```
->
+> ⚠️ This applications will require anduse the Holoscan SDK 3.5.0.
 > ℹ️ The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
 ### C++ Client

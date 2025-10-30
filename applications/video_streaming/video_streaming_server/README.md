@@ -45,12 +45,7 @@ cd - # Return to the original directory
 
 ## Usage
 
-> ⚠️ The server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
->
-> ```bash
-> # Set SDK version environment variable
-> export HOLOHUB_BASE_SDK_VERSION=3.5.0
-> ```
+> ⚠️ This applications will require and use the Holoscan SDK 3.5.0.
 
 ### C++ Server
 
