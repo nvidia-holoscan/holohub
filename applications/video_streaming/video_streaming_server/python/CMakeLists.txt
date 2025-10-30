@@ -13,41 +13,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Copy streaming_server_demo application file
+# Copy video_streaming_server_demo application file
 
-# Copy streaming_server_demo application file to both locations
-add_custom_target(python_streaming_server_demo ALL
+# Copy video_streaming_server_demo application file to both locations
+add_custom_target(python_video_streaming_server_demo ALL
   COMMAND ${CMAKE_COMMAND} -E copy
-          "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.py"
-          "${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo.py"
+          "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.py"
+          "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_server_demo.py"
   COMMAND ${CMAKE_COMMAND} -E copy
-          "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.py"
-          "${CMAKE_BINARY_DIR}/streaming_server_demo.py"
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.py"
-  BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo.py"
-             "${CMAKE_BINARY_DIR}/streaming_server_demo.py"
+          "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.py"
+          "${CMAKE_BINARY_DIR}/video_streaming_server_demo.py"
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.py"
+  BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_server_demo.py"
+             "${CMAKE_BINARY_DIR}/video_streaming_server_demo.py"
 )
 
 # Copy YAML configuration files if they exist
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.yaml")
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml"
-    "${CMAKE_CURRENT_BINARY_DIR}/streaming_server_demo.yaml"
+    "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.yaml"
+    "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_server_demo.yaml"
     COPYONLY
   )
 endif()
 
 # Install Python application
 install(
-  FILES streaming_server_demo.py
+  FILES video_streaming_server_demo.py
   DESTINATION bin/video_streaming/python
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
 
 # Install configuration files
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.yaml")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.yaml")
   install(
-    FILES streaming_server_demo.yaml
+    FILES video_streaming_server_demo.yaml
     DESTINATION bin/video_streaming/python
   )
 endif()

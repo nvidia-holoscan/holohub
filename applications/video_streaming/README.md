@@ -99,9 +99,9 @@ The Python applications use these Holoscan operator bindings:
 
 **Server Components:**
 
-- `holohub.streaming_server_enhanced.StreamingServerResource` - Manages server connections
-- `holohub.streaming_server_enhanced.StreamingServerUpstreamOp` - Receives frames from clients
-- `holohub.streaming_server_enhanced.StreamingServerDownstreamOp` - Sends frames to clients
+- `holohub.video_streaming_server.StreamingServerResource` - Manages server connections
+- `holohub.video_streaming_server.StreamingServerUpstreamOp` - Receives frames from clients
+- `holohub.video_streaming_server.StreamingServerDownstreamOp` - Sends frames to clients
 
 **Client Components:**
 
@@ -213,7 +213,7 @@ Terminal 2 - Python Client:
 
 ### Configuration Files
 
-**Python Server:** `python/streaming_server_demo.yaml`
+**Python Server:** `python/video_streaming_server_demo.yaml`
 **Python Client (Replayer):** `python/video_streaming_client_demo_replayer.yaml`
 **Python Client (V4L2):** `python/video_streaming_client_demo.yaml`
 
@@ -229,7 +229,7 @@ For complete implementation details, see the component-specific READMEs:
 ### Server Options
 
 - `-h, --help`: Show help message
-- `-c, --config <file>`: Configuration file path (default: streaming_server_demo.yaml)
+- `-c, --config <file>`: Configuration file path (default: video_streaming_server_demo.yaml)
 - `-d, --data <directory>`: Data directory for video files
 
 ### Client Options  

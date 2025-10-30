@@ -26,9 +26,9 @@
 
 #include <holoscan/holoscan.hpp>
 
-#include "streaming_server_resource.hpp"
-#include "streaming_server_upstream_op.hpp"
-#include "streaming_server_downstream_op.hpp"
+#include "video_streaming_server_resource.hpp"
+#include "video_streaming_server_upstream_op.hpp"
+#include "video_streaming_server_downstream_op.hpp"
 
 
 // Create a default YAML configuration file if it doesn't exist
@@ -58,7 +58,7 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  log_level: INFO\n\n";
 
   out_file << "# Streaming server settings\n";
-  out_file << "streaming_server:\n";
+  out_file << "video_streaming_server:\n";
   out_file << "  # Video/stream parameters\n";
   out_file << "  width: 854\n";
   out_file << "  height: 480\n";
@@ -79,7 +79,7 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  buffer_size: 10\n\n";
 
   out_file << "# Upstream operator configuration (receives frames from clients)\n";
-  out_file << "# Note: width, height, fps are inherited from streaming_server resource\n";
+  out_file << "# Note: width, height, fps are inherited from video_streaming_server resource\n";
   out_file << "# Uncomment below to override resource defaults per-operator\n";
   out_file << "upstream_op: {}\n";
   out_file << "  # width: 854\n";
@@ -87,7 +87,7 @@ bool ensure_config_file_exists(const std::string& config_path) {
   out_file << "  # fps: 30\n\n";
 
   out_file << "# Downstream operator configuration (sends frames to clients)\n";
-  out_file << "# Note: width, height, fps are inherited from streaming_server resource\n";
+  out_file << "# Note: width, height, fps are inherited from video_streaming_server resource\n";
   out_file << "# Uncomment below to override resource defaults per-operator\n";
   out_file << "downstream_op: {}\n";
   out_file << "  # width: 854\n";
@@ -131,15 +131,15 @@ class StreamingServerTestApp : public holoscan::Application {
     using namespace holoscan;
 
     // Create shared resource with configuration from YAML (with backward compatibility)
-    holoscan::ArgList streaming_server_args;
+    holoscan::ArgList video_streaming_server_args;
     try {
-      streaming_server_args = from_config("streaming_server");
+      video_streaming_server_args = from_config("video_streaming_server");
     } catch (const std::exception& e) {
-      HOLOSCAN_LOG_WARN("Missing streaming_server config section, using defaults ({})", e.what());
+      HOLOSCAN_LOG_WARN("Missing video_streaming_server config section, using defaults ({})", e.what());
     }
-    auto streaming_server_resource =
-        make_resource<ops::StreamingServerResource>("streaming_server_resource",
-                                                     streaming_server_args);
+    auto video_streaming_server_resource =
+        make_resource<ops::StreamingServerResource>("video_streaming_server_resource",
+                                                     video_streaming_server_args);
 
     // Both operators use the same resource and load their config (with backward compatibility)
     holoscan::ArgList upstream_args;
@@ -149,7 +149,7 @@ class StreamingServerTestApp : public holoscan::Application {
       HOLOSCAN_LOG_WARN("Missing upstream_op config section, using defaults ({})", e.what());
     }
     auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>("upstream_op", upstream_args);
-    upstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
+    upstream_op->add_arg(Arg("video_streaming_server_resource", video_streaming_server_resource));
 
     holoscan::ArgList downstream_args;
     try {
@@ -159,7 +159,7 @@ class StreamingServerTestApp : public holoscan::Application {
     }
     auto downstream_op =
         make_operator<ops::StreamingServerDownstreamOp>("downstream_op", downstream_args);
-    downstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
+    downstream_op->add_arg(Arg("video_streaming_server_resource", video_streaming_server_resource));
 
     // Connect them in pipeline
     add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
@@ -170,10 +170,10 @@ class StreamingServerTestApp : public holoscan::Application {
 };
 
 void print_usage() {
-  std::cout << "Usage: streaming_server_demo [options]\n"
+  std::cout << "Usage: video_streaming_server_demo [options]\n"
             << "Options:\n"
             << "  -c, --config <file>        Configuration file path (default: "
-               "streaming_server_demo.yaml)\n"
+               "video_streaming_server_demo.yaml)\n"
             << "  -?, --help                 Show this help message\n"
             << std::endl;
 }
@@ -225,7 +225,7 @@ uint16_t get_config_value<uint16_t>(holoscan::Application* app, const std::strin
 
 int main(int argc, char** argv) {
   // Default config file path
-  std::string config_path = "streaming_server_demo.yaml";
+  std::string config_path = "video_streaming_server_demo.yaml";
 
   // Parse command line arguments
   static struct option long_options[] = {{"config", required_argument, 0, 'c'},
@@ -276,7 +276,7 @@ int main(int argc, char** argv) {
     }
 
     // Configuration parameters are loaded from YAML via from_config()
-    // The streaming_server section configures StreamingServerResource
+    // The video_streaming_server section configures StreamingServerResource
     // The upstream_op and downstream_op sections configure the operators
     // All parameters (width, height, fps, port, etc.) are loaded from YAML
 

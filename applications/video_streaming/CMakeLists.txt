@@ -72,7 +72,7 @@ if(BUILD_TESTING)
 
               # Start server in background with log capture
               echo 'Starting streaming server...'
-              ./applications/video_streaming/video_streaming_server/cpp/streaming_server_demo --config applications/video_streaming/video_streaming_server/cpp/streaming_server_demo.yaml > \$SERVER_LOG 2>&1 &
+              ./applications/video_streaming/video_streaming_server/cpp/video_streaming_server_demo --config applications/video_streaming/video_streaming_server/cpp/video_streaming_server_demo.yaml > \$SERVER_LOG 2>&1 &
               SERVER_PID=\$!
 
               # Wait for server to start and check logs
@@ -323,7 +323,7 @@ if(BUILD_TESTING)
 
                # Start Python server in background with log capture
                echo 'Starting Python streaming server...'
-               python3 streaming_server_demo.py --width 854 --height 480 > \$SERVER_LOG 2>&1 &
+               python3 video_streaming_server_demo.py --width 854 --height 480 > \$SERVER_LOG 2>&1 &
                SERVER_PID=\$!
 
                # Wait for server to start and check logs

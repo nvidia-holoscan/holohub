@@ -193,7 +193,7 @@ An operator that receives Holoscan tensors and sends them to streaming clients:
 - **`allocator`**: Memory allocator for tensor data
   - type: `std::shared_ptr<Allocator>`
 
-- **`streaming_server_resource`**: Reference to StreamingServerResource
+- **`video_streaming_server_resource`**: Reference to StreamingServerResource
   - type: `std::shared_ptr<StreamingServerResource>`
 
 ### StreamingServerDownstreamOp Parameters
@@ -222,7 +222,7 @@ An operator that receives Holoscan tensors and sends them to streaming clients:
 - **`allocator`**: Memory allocator for tensor data
   - type: `std::shared_ptr<Allocator>`
 
-- **`streaming_server_resource`**: Reference to StreamingServerResource
+- **`video_streaming_server_resource`**: Reference to StreamingServerResource
   - type: `std::shared_ptr<StreamingServerResource>`
 
 ## Input/Output Ports
@@ -248,8 +248,8 @@ An operator that receives Holoscan tensors and sends them to streaming clients:
 auto allocator = make_resource<UnboundedAllocator>("allocator");
 
 // Create the shared StreamingServerResource
-auto streaming_server_resource = make_resource<ops::StreamingServerResource>(
-    "streaming_server_resource",
+auto video_streaming_server_resource = make_resource<ops::StreamingServerResource>(
+    "video_streaming_server_resource",
     Arg("port") = 48010,
     Arg("server_name") = "MyStreamingServer",
     Arg("width") = 854,
@@ -264,7 +264,7 @@ auto streaming_server_resource = make_resource<ops::StreamingServerResource>(
 auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>(
     "streaming_upstream",
     Arg("allocator") = allocator,
-    Arg("streaming_server_resource") = streaming_server_resource
+    Arg("video_streaming_server_resource") = video_streaming_server_resource
 );
 
 // Create downstream operator (sends frames to clients)
@@ -273,7 +273,7 @@ auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>(
     Arg("enable_processing") = false,
     Arg("processing_type") = "none",
     Arg("allocator") = allocator,
-    Arg("streaming_server_resource") = streaming_server_resource
+    Arg("video_streaming_server_resource") = video_streaming_server_resource
 );
 
 

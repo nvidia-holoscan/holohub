@@ -63,11 +63,11 @@ find_library(Poco_LIBRARY
 add_library(video_streaming_server
     SHARED
     # Split operators for tensor-based processing
-    streaming_server_upstream_op.cpp
-    streaming_server_downstream_op.cpp
+    video_streaming_server_upstream_op.cpp
+    video_streaming_server_downstream_op.cpp
 
     # Resource
-    streaming_server_resource.cpp
+    video_streaming_server_resource.cpp
 
     # Shared debug utilities
     frame_debug_utils.cpp
@@ -118,9 +118,9 @@ install(TARGETS video_streaming_server
 
 # Install headers
 install(FILES
-    streaming_server_upstream_op.hpp
-    streaming_server_downstream_op.hpp
-    streaming_server_resource.hpp
+    video_streaming_server_upstream_op.hpp
+    video_streaming_server_downstream_op.hpp
+    video_streaming_server_resource.hpp
     frame_debug_utils.hpp
     DESTINATION include/operators/video_streaming_server
 )

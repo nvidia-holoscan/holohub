@@ -20,9 +20,9 @@
 
 #include <string>
 
-#include "../streaming_server_resource.hpp"
-#include "../streaming_server_upstream_op.hpp"
-#include "../streaming_server_downstream_op.hpp"
+#include "../video_streaming_server_resource.hpp"
+#include "../video_streaming_server_upstream_op.hpp"
+#include "../video_streaming_server_downstream_op.hpp"
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>

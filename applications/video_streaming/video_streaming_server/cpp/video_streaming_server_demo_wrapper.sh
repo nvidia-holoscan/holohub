@@ -17,4 +17,4 @@
 # Set library path to prioritize bundled libraries
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 export LD_LIBRARY_PATH="${SCRIPT_DIR}/lib:${SCRIPT_DIR}:${LD_LIBRARY_PATH}"
-exec "${SCRIPT_DIR}/streaming_server_demo" "$@"
+exec "${SCRIPT_DIR}/video_streaming_server_demo" "$@"

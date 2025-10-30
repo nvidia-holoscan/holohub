@@ -75,7 +75,7 @@ class StreamingServerApp(Application):
         # Create shared streaming server resource
         streaming_resource = StreamingServerResource(
             self,
-            name="streaming_server_resource",
+            name="video_streaming_server_resource",
             port=self.port,
             width=self.width,
             height=self.height,
@@ -86,12 +86,12 @@ class StreamingServerApp(Application):
 
         # Upstream operator (receives from clients)
         upstream_op = StreamingServerUpstreamOp(
-            self, name="upstream_op", streaming_server_resource=streaming_resource
+            self, name="upstream_op", video_streaming_server_resource=streaming_resource
         )
 
         # Downstream operator (sends to clients)
         downstream_op = StreamingServerDownstreamOp(
-            self, name="downstream_op", streaming_server_resource=streaming_resource
+            self, name="downstream_op", video_streaming_server_resource=streaming_resource
         )
 
         # Connect: upstream -> downstream
@@ -107,7 +107,7 @@ application:
   log_level: "INFO"
 
 # Server configuration
-streaming_server:
+video_streaming_server:
   port: 48010
   width: 854
   height: 480

@@ -29,7 +29,7 @@
 #include <holoscan/holoscan.hpp>
 
 // Include StreamingServer header to get Frame class definition
-#include "streaming_server_resource.hpp"
+#include "video_streaming_server_resource.hpp"
 
 namespace holoscan::ops::debug_utils {
 

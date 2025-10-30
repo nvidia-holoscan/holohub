@@ -15,7 +15,7 @@ video_streaming/
 │   ├── frame_saver.cpp          # Frame saving utility
 │   └── holoscan_client_cloud_streaming/  # Client streaming binary once NGC download is complete
 ├── video_streaming_server/    # Complete streaming server operator
-│   ├── streaming_server_*.cpp   # Server implementations
+│   ├── video_streaming_server_*.cpp   # Server implementations
 │   ├── frame_debug_utils.cpp    # Debug utilities
 │   └── holoscan_server_cloud_streaming/  # Server streaming binary once NGC download is complete 
 ├── CMakeLists.txt               # Unified build configuration
@@ -70,9 +70,9 @@ add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
 #include "frame_saver.hpp"
 
 // Server functionality  
-#include "streaming_server_resource.hpp"
-#include "streaming_server_upstream_op.hpp"
-#include "streaming_server_downstream_op.hpp"
+#include "video_streaming_server_resource.hpp"
+#include "video_streaming_server_upstream_op.hpp"
+#include "video_streaming_server_downstream_op.hpp"
 ```
 
 #### Python Applications

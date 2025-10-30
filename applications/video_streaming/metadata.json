@@ -46,7 +46,7 @@
             "server_cpp": {
                 "description": "Streaming server that receives and distributes video frames",
                 "run": {
-                    "command": "<holohub_app_bin>/video_streaming_server/cpp/streaming_server_demo_wrapper.sh",
+                    "command": "<holohub_app_bin>/video_streaming_server/cpp/video_streaming_server_demo_wrapper.sh",
                     "workdir": "holohub_bin"
                 }
             },
@@ -67,7 +67,7 @@
             "server_python": {
                 "description": "Streaming server (Python implementation)",
                 "run": {
-                    "command": "python3 streaming_server_demo.py",
+                    "command": "python3 video_streaming_server_demo.py",
                     "workdir": "holohub_bin"
                 }
             },

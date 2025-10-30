@@ -22,7 +22,7 @@ application:
   log_level: INFO
 
 # Streaming server settings - standalone mode
-streaming_server:
+video_streaming_server:
   # Video/stream parameters
   width: 854
   height: 480

@@ -87,8 +87,8 @@ export HOLOHUB_BASE_SDK_VERSION=3.5.0
 The `video_streaming_integration_test` defined in CMakeLists.txt:
 
 1. **Server Startup** (10 seconds)
-   - Launches streaming server in background: `streaming_server_demo`
-   - Uses config: `streaming_server_demo.yaml`
+   - Launches streaming server in background: `video_streaming_server_demo`
+   - Uses config: `video_streaming_server_demo.yaml`
    - Waits for server to initialize and stabilize
 
 2. **Client Connection & Streaming** (30 seconds)
@@ -424,7 +424,7 @@ sudo lsof -ti:48010 | xargs sudo kill -9
 
 ```bash
 # Expected behavior - test still passes if streaming worked
-1: Segmentation fault (core dumped) ./streaming_server_demo
+1: Segmentation fault (core dumped) ./video_streaming_server_demo
 1: ✓ Server: StreamingServerUpstreamOp processed 567 unique frames
 1: ✓ STREAMING VERIFICATION PASSED - Frames actually transmitted!
 ```
@@ -555,8 +555,8 @@ export HOLOHUB_BASE_SDK_VERSION=3.6.0
 The `video_streaming_integration_test_python` defined in CMakeLists.txt:
 
 1. **Server Startup** (10 seconds)
-   - Launches Python streaming server in background: `python3 streaming_server_demo.py`
-   - Uses config: `streaming_server_demo.yaml`
+   - Launches Python streaming server in background: `python3 video_streaming_server_demo.py`
+   - Uses config: `video_streaming_server_demo.yaml`
    - Waits for server to initialize and stabilize
 
 2. **Client Connection & Streaming** (30 seconds)
@@ -607,7 +607,7 @@ Starting Python streaming client...
 Letting Python streaming run for 30 seconds...
 Stopping Python client...
 Stopping Python server...
-/usr/bin/bash: line 58:  530 Segmentation fault      (core dumped) python3 streaming_server_demo.py ...
+/usr/bin/bash: line 58:  530 Segmentation fault      (core dumped) python3 video_streaming_server_demo.py ...
 
 === Verifying Python Server Logs ===
 ✓ Python Server: Client connected

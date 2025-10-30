@@ -45,7 +45,7 @@
             "server": {
                 "description": "Run the streaming server",
                 "run": {
-                    "command": "python3 streaming_server_demo.py",
+                    "command": "python3 video_streaming_server_demo.py",
                     "workdir": "holohub_bin"
                 }
             }
