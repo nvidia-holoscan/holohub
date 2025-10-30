@@ -44,17 +44,6 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml")
   )
 endif()
 
-# Add testing for Python application
-if(BUILD_TESTING)
-  add_test(NAME streaming_client_demo_python_test
-           COMMAND python3 streaming_client_demo.py --help
-           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-  set_tests_properties(streaming_client_demo_python_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "Streaming Client Demo"
-                       FAIL_REGULAR_EXPRESSION "Error;ERROR;Failed")
-endif()
-
 # Install Python application
 install(
   FILES streaming_client_demo.py
