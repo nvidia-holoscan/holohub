@@ -16,10 +16,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(video_streaming_server LANGUAGES CXX)
 
-# Add C++ subdirectory
-add_subdirectory(cpp)
-
-# Add Python subdirectory
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
+else()
+  add_subdirectory(cpp)
 endif()
