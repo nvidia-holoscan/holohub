@@ -17,10 +17,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(pubsub LANGUAGES NONE)
 
-# Add the cpp subdirectory
-add_subdirectory(cpp)
-
-# Conditionally add Python subdirectory if Python builds are enabled
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
+else()
+  add_subdirectory(cpp)
 endif()
