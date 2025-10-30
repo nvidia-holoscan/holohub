@@ -968,8 +968,10 @@ class HoloHubCLI:
         )
         if normalized_language == "python":
             cmake_args.append("-DHOLOHUB_BUILD_PYTHON=ON")
-        else:
+            cmake_args.append("-DHOLOHUB_BUILD_CPP=OFF")
+        elif normalized_language == "cpp":
             cmake_args.append("-DHOLOHUB_BUILD_PYTHON=OFF")
+            cmake_args.append("-DHOLOHUB_BUILD_CPP=ON")
 
         if configure_args:
             cmake_args.extend(configure_args)
