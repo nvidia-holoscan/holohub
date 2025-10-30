@@ -53,14 +53,14 @@
             "client_cpp_v4l2": {
                 "description": "Streaming client using V4L2 camera (webcam)",
                 "run": {
-                    "command": "<holohub_app_bin>/video_streaming_client/cpp/streaming_client_demo_wrapper.sh --config streaming_client_demo.yaml",
+                    "command": "<holohub_app_bin>/video_streaming_client/cpp/video_streaming_client_demo_wrapper.sh --config video_streaming_client_demo.yaml",
                     "workdir": "holohub_bin"
                 }
             },
             "client_cpp_replayer": {
                 "description": "Streaming client using video file replay",
                 "run": {
-                    "command": "<holohub_app_bin>/video_streaming_client/cpp/streaming_client_demo_wrapper.sh --config streaming_client_demo_replayer.yaml",
+                    "command": "<holohub_app_bin>/video_streaming_client/cpp/video_streaming_client_demo_wrapper.sh --config video_streaming_client_demo_replayer.yaml",
                     "workdir": "holohub_bin"
                 }
             },
@@ -74,14 +74,14 @@
             "client_python_replayer": {
                 "description": "Streaming client (Python implementation) - Video replayer",
                 "run": {
-                    "command": "python3 streaming_client_demo.py --source replayer",
+                    "command": "python3 video_streaming_client_demo.py --source replayer",
                     "workdir": "holohub_bin"
                 }
             },
             "client_python_v4l2": {
                 "description": "Streaming client (Python implementation) - V4L2 camera",
                 "run": {
-                    "command": "python3 streaming_client_demo.py --source v4l2 --width 640 --height 480",
+                    "command": "python3 video_streaming_client_demo.py --source v4l2 --width 640 --height 480",
                     "workdir": "holohub_bin"
                 }
             }

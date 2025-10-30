@@ -92,8 +92,8 @@ The `video_streaming_integration_test` defined in CMakeLists.txt:
    - Waits for server to initialize and stabilize
 
 2. **Client Connection & Streaming** (30 seconds)
-   - Starts streaming client: `streaming_client_demo`
-   - Uses config: `streaming_client_demo_replayer.yaml` (video replay mode)
+   - Starts streaming client: `video_streaming_client_demo`
+   - Uses config: `video_streaming_client_demo_replayer.yaml` (video replay mode)
    - Establishes connection to server
    - Streams video frames bidirectionally for 30 seconds
    - Typically processes ~567 frames in both directions
@@ -560,8 +560,8 @@ The `video_streaming_integration_test_python` defined in CMakeLists.txt:
    - Waits for server to initialize and stabilize
 
 2. **Client Connection & Streaming** (30 seconds)
-   - Starts Python streaming client: `python3 streaming_client_demo.py`
-   - Uses config: `streaming_client_demo_replayer.yaml` (video replay mode)
+   - Starts Python streaming client: `python3 video_streaming_client_demo.py`
+   - Uses config: `video_streaming_client_demo_replayer.yaml` (video replay mode)
    - Establishes connection to server
    - Streams video frames bidirectionally for 30 seconds
    - Typically processes ~565 frames in both directions
@@ -730,7 +730,7 @@ The Python integration test validates the following checks. **All checks must pa
 
 #### Segmentation Fault at Shutdown (Expected Behavior)
 ```bash
-Segmentation fault (core dumped) python3 streaming_server_demo.py
+Segmentation fault (core dumped) python3 video_streaming_server_demo.py
 ✓ Python Server: StreamingServerUpstreamOp processed 561 unique frames
 ✓ PYTHON STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
 ✓ Python Integration test PASSED

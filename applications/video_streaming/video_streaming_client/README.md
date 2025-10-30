@@ -133,7 +133,7 @@ cd - # Return to the original directory
 
 The C++ application is configured via YAML file. Configuration varies based on video source:
 
-**Video Replayer Configuration** (`cpp/streaming_client_demo_replayer.yaml`):
+**Video Replayer Configuration** (`cpp/video_streaming_client_demo_replayer.yaml`):
 
 ```yaml
 %YAML 1.2
@@ -196,7 +196,7 @@ allocator:
 scheduler: "greedy"
 ```
 
-**V4L2 Camera Configuration** (`cpp/streaming_client_demo.yaml`):
+**V4L2 Camera Configuration** (`cpp/video_streaming_client_demo.yaml`):
 
 ```yaml
 source: "v4l2"
@@ -245,13 +245,13 @@ The Python application is primarily configured via **command-line arguments**:
 
 ```bash
 # Video replayer mode (854x480)
-python3 streaming_client_demo.py --source replayer --width 854 --height 480
+python3 video_streaming_client_demo.py --source replayer --width 854 --height 480
 
 # V4L2 camera mode (640x480)
-python3 streaming_client_demo.py --source v4l2 --width 640 --height 480
+python3 video_streaming_client_demo.py --source v4l2 --width 640 --height 480
 
 # Custom server
-python3 streaming_client_demo.py --server-ip 192.168.1.100 --port 48010
+python3 video_streaming_client_demo.py --server-ip 192.168.1.100 --port 48010
 ```
 
 **Python YAML Structure** (optional, auto-selected based on source):
@@ -301,10 +301,10 @@ visualization:
 
 **Configuration Files**:
 
-- C++ V4L2: `cpp/streaming_client_demo.yaml`
-- C++ Replayer: `cpp/streaming_client_demo_replayer.yaml`
-- Python V4L2: `python/streaming_client_demo.yaml`
-- Python Replayer: `python/streaming_client_demo_replayer.yaml`
+- C++ V4L2: `cpp/video_streaming_client_demo.yaml`
+- C++ Replayer: `cpp/video_streaming_client_demo_replayer.yaml`
+- Python V4L2: `python/video_streaming_client_demo.yaml`
+- Python Replayer: `python/video_streaming_client_demo_replayer.yaml`
 
 **Note**: Python parameters set via command-line take precedence over YAML configuration. The Python app auto-selects the appropriate config file based on the `--source` argument.
 
@@ -345,7 +345,7 @@ V4L2VideoCaptureOp → FormatConverterOp → VideoStreamingClientOp → HoloVizO
 
 ## C++ Implementation
 
-The C++ implementation (`cpp/streaming_client_demo.cpp`) demonstrates usage of the streaming client operator:
+The C++ implementation (`cpp/video_streaming_client_demo.cpp`) demonstrates usage of the streaming client operator:
 
 **Video Replayer Mode:**
 
@@ -453,7 +453,7 @@ add_flow(video_streaming_client, holoviz, {{"output_frames", "receivers"}});
 
 ## Python Implementation
 
-The Python implementation (`python/streaming_client_demo.py`) demonstrates usage of the Python bindings:
+The Python implementation (`python/video_streaming_client_demo.py`) demonstrates usage of the Python bindings:
 
 **Video Replayer Mode:**
 
@@ -660,7 +660,7 @@ class StreamingClientApp(Application):
 
 7. **Format Converter Errors**:
    - `Invalid channel count for RGBA8888 3 != 4`: Video replayer outputs RGB888 (3 channels), not RGBA8888
-   - Solution: Use correct configuration file (`streaming_client_demo_replayer.yaml`)
+   - Solution: Use correct configuration file (`video_streaming_client_demo_replayer.yaml`)
 
 ### Debug Mode
 
@@ -675,10 +675,10 @@ application:
 
 See the included configuration files for complete examples:
 
-- C++ V4L2: `cpp/streaming_client_demo.yaml`
-- C++ Replayer: `cpp/streaming_client_demo_replayer.yaml`
-- Python V4L2: `python/streaming_client_demo.yaml`
-- Python Replayer: `python/streaming_client_demo_replayer.yaml`
+- C++ V4L2: `cpp/video_streaming_client_demo.yaml`
+- C++ Replayer: `cpp/video_streaming_client_demo_replayer.yaml`
+- Python V4L2: `python/video_streaming_client_demo.yaml`
+- Python Replayer: `python/video_streaming_client_demo_replayer.yaml`
 
 ## Integration with Server
 
@@ -754,7 +754,7 @@ Terminal 2 - Start C++ Client:
 
 | Feature | V4L2 Camera | Video Replayer |
 |---------|-------------|----------------|
-| **Config File** | `streaming_client_demo.yaml` | `streaming_client_demo_replayer.yaml` |
+| **Config File** | `video_streaming_client_demo.yaml` | `video_streaming_client_demo_replayer.yaml` |
 | **Source Type** | `source: "v4l2"` | `source: "replayer"` |
 | **Input Format** | `rgba8888` (4 channels) | `rgb888` (3 channels) |
 | **Resolution** | 640x480 (configurable) | 854x480 |

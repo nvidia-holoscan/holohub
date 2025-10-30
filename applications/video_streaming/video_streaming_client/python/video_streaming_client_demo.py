@@ -289,9 +289,9 @@ def main():
         # Use source if provided, otherwise default to replayer
         source = args.source if args.source is not None else "replayer"
         if source == "replayer":
-            config_file = "streaming_client_demo_replayer.yaml"
+            config_file = "video_streaming_client_demo_replayer.yaml"
         else:  # v4l2
-            config_file = "streaming_client_demo.yaml"
+            config_file = "video_streaming_client_demo.yaml"
         print(f"Auto-selected config file for {source}: {config_file}")
 
     # Create and run the application

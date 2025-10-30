@@ -46,14 +46,14 @@
             "replayer": {
                 "description": "Streaming client using video file replay",
                 "run": {
-                    "command": "<holohub_app_bin>/streaming_client_demo_wrapper.sh --config streaming_client_demo_replayer.yaml",
+                    "command": "<holohub_app_bin>/video_streaming_client_demo_wrapper.sh --config video_streaming_client_demo_replayer.yaml",
                     "workdir": "holohub_bin"
                 }
             },
             "v4l2": {
                 "description": "Streaming client using V4L2 camera (webcam)",
                 "run": {
-                    "command": "<holohub_app_bin>/streaming_client_demo_wrapper.sh --config streaming_client_demo.yaml",
+                    "command": "<holohub_app_bin>/video_streaming_client_demo_wrapper.sh --config video_streaming_client_demo.yaml",
                     "workdir": "holohub_bin"
                 }
             }

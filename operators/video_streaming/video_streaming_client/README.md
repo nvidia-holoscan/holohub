@@ -130,7 +130,7 @@ v4l2-ctl --device=/dev/video0 --set-fmt-video=width=1280,height=720,pixelformat=
 The streaming client applications use YAML configuration files to set camera parameters. Edit the appropriate config file:
 
 #### For video_streaming_client:
-Edit `../../../applications/video_streaming/video_streaming_client/cpp/streaming_client_demo.yaml`:
+Edit `../../../applications/video_streaming/video_streaming_client/cpp/video_streaming_client_demo.yaml`:
 
 ```yaml
 # V4L2 camera configuration

@@ -264,10 +264,10 @@ class StreamingClientTestApp : public holoscan::Application {
 };
 
 void print_usage() {
-  std::cout << "Usage: streaming_client_demo [options]\n"
+  std::cout << "Usage: video_streaming_client_demo [options]\n"
             << "  -h, --help                Show this help message\n"
             << "  -c, --config <file>        Configuration file path "
-               "(default: streaming_client_demo.yaml)\n"
+               "(default: video_streaming_client_demo.yaml)\n"
             << "  -d, --data <directory>     Data directory (default: environment "
                "variable HOLOSCAN_INPUT_PATH or current directory)\n"
             << std::endl;
@@ -300,7 +300,7 @@ std::string get_config_value<std::string>(holoscan::Application* app, const std:
 
 int main(int argc, char** argv) {
   // Default config file path
-  std::string config_path = "streaming_client_demo.yaml";
+  std::string config_path = "video_streaming_client_demo.yaml";
   std::string data_directory = "";
 
   // Define command line options

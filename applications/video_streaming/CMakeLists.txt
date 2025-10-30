@@ -91,7 +91,7 @@ if(BUILD_TESTING)
 
                # Start client in background with log capture
                echo 'Starting streaming client...'
-               ./applications/video_streaming/video_streaming_client/cpp/video_streaming_client_demo_cpp --config applications/video_streaming/video_streaming_client/cpp/streaming_client_demo_replayer.yaml --data \"\$DATA_PATH\" > \$CLIENT_LOG 2>&1 &
+               ./applications/video_streaming/video_streaming_client/cpp/video_streaming_client_demo_cpp --config applications/video_streaming/video_streaming_client/cpp/video_streaming_client_demo_replayer.yaml --data \"\$DATA_PATH\" > \$CLIENT_LOG 2>&1 &
                CLIENT_PID=\$!
 
               # Let streaming run for 30 seconds
@@ -342,7 +342,7 @@ if(BUILD_TESTING)
 
                # Start Python client in background with log capture (using replayer for integration test)
                echo 'Starting Python streaming client...'
-               python3 streaming_client_demo.py --source replayer --width 854 --height 480 > \$CLIENT_LOG 2>&1 &
+               python3 video_streaming_client_demo.py --source replayer --width 854 --height 480 > \$CLIENT_LOG 2>&1 &
                CLIENT_PID=\$!
 
                # Let streaming run for 30 seconds

@@ -32,7 +32,7 @@ if(NOT EXISTS "${OPERATOR_CLIENT_DIR}")
 endif()
 
 add_executable(video_streaming_client_demo_cpp
-  streaming_client_demo.cpp
+  video_streaming_client_demo.cpp
 )
 
 target_link_libraries(video_streaming_client_demo_cpp
@@ -51,9 +51,9 @@ target_link_libraries(video_streaming_client_demo_cpp
 # Copy wrapper script and make executable
 add_custom_command(TARGET video_streaming_client_demo_cpp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_wrapper.sh"
-        "$<TARGET_FILE_DIR:video_streaming_client_demo_cpp>/streaming_client_demo_wrapper.sh"
-    COMMAND chmod +x "$<TARGET_FILE_DIR:video_streaming_client_demo_cpp>/streaming_client_demo_wrapper.sh"
+        "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client_demo_wrapper.sh"
+        "$<TARGET_FILE_DIR:video_streaming_client_demo_cpp>/video_streaming_client_demo_wrapper.sh"
+    COMMAND chmod +x "$<TARGET_FILE_DIR:video_streaming_client_demo_cpp>/video_streaming_client_demo_wrapper.sh"
     COMMENT "Installing wrapper script with LD_LIBRARY_PATH"
 )
 
@@ -61,18 +61,18 @@ add_custom_command(TARGET video_streaming_client_demo_cpp POST_BUILD
 add_custom_command(TARGET video_streaming_client_demo_cpp POST_BUILD
     # Copy to the binary directory (for local testing)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml"
-        "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo.yaml"
+        "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client_demo.yaml"
+        "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_client_demo.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml"
-        "${CMAKE_CURRENT_BINARY_DIR}/streaming_client_demo_replayer.yaml"
+        "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client_demo_replayer.yaml"
+        "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_client_demo_replayer.yaml"
     # Copy to the build root directory (where holohub run executes)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml"
-        "${CMAKE_BINARY_DIR}/streaming_client_demo.yaml"
+        "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client_demo.yaml"
+        "${CMAKE_BINARY_DIR}/video_streaming_client_demo.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml"
-        "${CMAKE_BINARY_DIR}/streaming_client_demo_replayer.yaml"
+        "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client_demo_replayer.yaml"
+        "${CMAKE_BINARY_DIR}/video_streaming_client_demo_replayer.yaml"
     COMMENT "Copying config files"
 )
 
@@ -94,12 +94,12 @@ install(
 )
 
 install(
-  FILES streaming_client_demo.yaml streaming_client_demo_replayer.yaml
+  FILES video_streaming_client_demo.yaml video_streaming_client_demo_replayer.yaml
   DESTINATION bin/video_streaming_client/cpp
 )
 
 install(
-  FILES "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_wrapper.sh"
+  FILES "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_client_demo_wrapper.sh"
   DESTINATION bin/video_streaming_client/cpp
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )

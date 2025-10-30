@@ -79,13 +79,13 @@ The unified application provides both client and server applications.
 
 ### 2. Start the Streaming Client (in another terminal)
 
-- **Option A: V4L2 Camera (Webcam)**, which uses `streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
+- **Option A: V4L2 Camera (Webcam)**, which uses `video_streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
 
   ```bash
   ./holohub run video_streaming_client v4l2 --language cpp
   ```
 
-- **Option B: Video Replayer**, which uses `streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
+- **Option B: Video Replayer**, which uses `video_streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
 
   ```bash
   ./holohub run video_streaming_client replayer --language cpp
@@ -105,7 +105,7 @@ The Python applications use these Holoscan operator bindings:
 
 **Client Components:**
 
-- `holohub.streaming_client_enhanced.VideoStreamingClientOp` - Bidirectional client streaming
+- `holohub.video_streaming_client_enhanced.VideoStreamingClientOp` - Bidirectional client streaming
 
 **Holoscan Core Operators:**
 
@@ -214,8 +214,8 @@ Terminal 2 - Python Client:
 ### Configuration Files
 
 **Python Server:** `python/streaming_server_demo.yaml`
-**Python Client (Replayer):** `python/streaming_client_demo_replayer.yaml`
-**Python Client (V4L2):** `python/streaming_client_demo.yaml`
+**Python Client (Replayer):** `python/video_streaming_client_demo_replayer.yaml`
+**Python Client (V4L2):** `python/video_streaming_client_demo.yaml`
 
 ### Detailed Documentation
 
@@ -235,14 +235,14 @@ For complete implementation details, see the component-specific READMEs:
 ### Client Options  
 
 - `-h, --help`: Show help message
-- `-c, --config <file>`: Configuration file path (default: streaming_client_demo.yaml)
+- `-c, --config <file>`: Configuration file path (default: video_streaming_client_demo.yaml)
 - `-d, --data <directory>`: Data directory for video files
 
 **Note:** Video source type (V4L2 vs replayer) is configured in the YAML file, not via command line arguments.
 
 ## Camera Setup and Testing
 
-> **📖 For detailed camera configuration and troubleshooting**, see the [Client Operator README](../../operators/video_streaming/streaming_client_enhanced/README.md#camera-setup-and-testing) which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.
+> **📖 For detailed camera configuration and troubleshooting**, see the [Client Operator README](../../operators/video_streaming/video_streaming_client_enhanced/README.md#camera-setup-and-testing) which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.
 
 ### Testing Your V4L2 Camera
 
@@ -278,8 +278,8 @@ v4l2-ctl --device=/dev/video0 --list-formats-ext
 
 | Feature | V4L2 Camera | Video Replayer |
 |---------|-------------|----------------|
-| **Config File** | `streaming_client_demo.yaml` (default) | `streaming_client_demo_replayer.yaml` (custom) |
-| **Command** | `--docker-opts='-e device=/dev/video0'` | `--run-args='-c streaming_client_demo_replayer.yaml'` |
+| **Config File** | `video_streaming_client_demo.yaml` (default) | `video_streaming_client_demo_replayer.yaml` (custom) |
+| **Command** | `--docker-opts='-e device=/dev/video0'` | `--run-args='-c video_streaming_client_demo_replayer.yaml'` |
 | **Source Type** | `source: "v4l2"` | `source: "replayer"` |
 | **Input Format** | `rgba8888` (4 channels) | `rgb888` (3 channels) |
 | **Resolution** | 640x480 | 854x480 |
@@ -344,12 +344,12 @@ To switch between V4L2 camera and video replayer:
 
   ```bash
   # Ensure the replayer config exists in build directory
-  cp applications/streaming_client_demo/cpp/streaming_client_demo_replayer.yaml build/streaming_client_demo/
+  cp applications/video_streaming_client_demo/cpp/video_streaming_client_demo_replayer.yaml build/video_streaming_client_demo/
   ```
 
 - **Format converter errors:**
   - `Invalid channel count for RGBA8888 3 != 4`: Video replayer outputs RGB888 (3 channels), not RGBA8888 (4 channels)
-  - Solution: Use `streaming_client_demo_replayer.yaml` which has correct format converter settings
+  - Solution: Use `video_streaming_client_demo_replayer.yaml` which has correct format converter settings
 
 - **Resolution mismatch:**
   - Video file is 854x480, ensure all components use matching resolution
