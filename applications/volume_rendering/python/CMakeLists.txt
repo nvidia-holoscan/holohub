@@ -33,5 +33,5 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     ALL
   )
-  add_dependencies(volume_rendering volume_rendering_data)
+  add_dependencies(volume_rendering_python volume_rendering_data)
 endif()
