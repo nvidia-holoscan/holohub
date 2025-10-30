@@ -165,7 +165,7 @@ format_converter:
   out_channel_order: [2, 1, 0]  # Convert RGB to BGR
 
 # Streaming client settings
-streaming_client:
+video_streaming_client:
   width: 854
   height: 480
   fps: 30
@@ -219,7 +219,7 @@ format_converter:
   out_channel_order: [2, 1, 0]
 
 # Streaming client settings
-streaming_client:
+video_streaming_client:
   width: 640
   height: 480
   fps: 30
@@ -266,7 +266,7 @@ application:
 source: "replayer"  # or "v4l2"
 
 # Streaming client settings
-streaming_client:
+video_streaming_client:
   width: 854
   height: 480
   fps: 30
@@ -350,7 +350,7 @@ The C++ implementation (`cpp/streaming_client_demo.cpp`) demonstrates usage of t
 **Video Replayer Mode:**
 
 ```cpp
-#include "streaming_client.hpp"
+#include "video_streaming_client.hpp"
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
@@ -373,8 +373,8 @@ auto format_converter = make_operator<ops::FormatConverterOp>(
 );
 
 // Create streaming client
-auto streaming_client = make_operator<ops::VideoStreamingClientOp>(
-    "streaming_client",
+auto video_streaming_client = make_operator<ops::VideoStreamingClientOp>(
+    "video_streaming_client",
     Arg("server_ip", std::string("127.0.0.1")),
     Arg("signaling_port", uint16_t{48010}),
     Arg("width", 854U),
@@ -394,14 +394,14 @@ auto holoviz = make_operator<ops::HolovizOp>(
 
 // Connect the pipeline
 add_flow(replayer, format_converter, {{"output", "source_video"}});
-add_flow(format_converter, streaming_client);
-add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
+add_flow(format_converter, video_streaming_client);
+add_flow(video_streaming_client, holoviz, {{"output_frames", "receivers"}});
 ```
 
 **V4L2 Camera Mode:**
 
 ```cpp
-#include "streaming_client.hpp"
+#include "video_streaming_client.hpp"
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
@@ -426,8 +426,8 @@ auto format_converter = make_operator<ops::FormatConverterOp>(
 );
 
 // Create streaming client
-auto streaming_client = make_operator<ops::VideoStreamingClientOp>(
-    "streaming_client",
+auto video_streaming_client = make_operator<ops::VideoStreamingClientOp>(
+    "video_streaming_client",
     Arg("server_ip", std::string("127.0.0.1")),
     Arg("signaling_port", uint16_t{48010}),
     Arg("width", 640U),
@@ -447,8 +447,8 @@ auto holoviz = make_operator<ops::HolovizOp>(
 
 // Connect the pipeline
 add_flow(v4l2_source, format_converter, {{"signal", "source_video"}});
-add_flow(format_converter, streaming_client);
-add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
+add_flow(format_converter, video_streaming_client);
+add_flow(video_streaming_client, holoviz, {{"output_frames", "receivers"}});
 ```
 
 ## Python Implementation
@@ -493,10 +493,10 @@ class StreamingClientApp(Application):
         )
 
         # Create streaming client
-        streaming_client = VideoStreamingClientOp(
+        video_streaming_client = VideoStreamingClientOp(
             self,
             allocator,  # Allocator for output buffer
-            name="streaming_client",
+            name="video_streaming_client",
             server_ip="127.0.0.1",
             signaling_port=48010,
             width=854,
@@ -517,8 +517,8 @@ class StreamingClientApp(Application):
 
         # Connect the pipeline
         self.add_flow(replayer, format_converter, {("output", "source_video")})
-        self.add_flow(format_converter, streaming_client)
-        self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
+        self.add_flow(format_converter, video_streaming_client)
+        self.add_flow(video_streaming_client, holoviz, {("output_frames", "receivers")})
 ```
 
 **V4L2 Camera Mode:**
@@ -563,10 +563,10 @@ class StreamingClientApp(Application):
         )
 
         # Create streaming client
-        streaming_client = VideoStreamingClientOp(
+        video_streaming_client = VideoStreamingClientOp(
             self,
             allocator,  # Allocator for output buffer
-            name="streaming_client",
+            name="video_streaming_client",
             server_ip="127.0.0.1",
             signaling_port=48010,
             width=640,
@@ -587,8 +587,8 @@ class StreamingClientApp(Application):
 
         # Connect the pipeline
         self.add_flow(v4l2_source, format_converter, {("signal", "source_video")})
-        self.add_flow(format_converter, streaming_client)
-        self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
+        self.add_flow(format_converter, video_streaming_client)
+        self.add_flow(video_streaming_client, holoviz, {("output_frames", "receivers")})
 ```
 
 **Key Points:**

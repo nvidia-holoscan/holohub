@@ -120,10 +120,10 @@ class StreamingClientApp(Application):
         )
 
         # Create streaming client (allocator added via positional args if supported)
-        streaming_client = VideoStreamingClientOp(
+        video_streaming_client = VideoStreamingClientOp(
             self,
             allocator,  # Add allocator for output buffer
-            name="streaming_client",
+            name="video_streaming_client",
             width=self.width,
             height=self.height,
             fps=self.fps,
@@ -134,7 +134,7 @@ class StreamingClientApp(Application):
             min_non_zero_bytes=10,
         )
 
-        # Connect the pipeline: source -> format_converter -> streaming_client -> holoviz
+        # Connect the pipeline: source -> format_converter -> video_streaming_client -> holoviz
         # Match C++ implementation
         if self.source == "v4l2":
             # V4L2 outputs on "signal" port
@@ -144,7 +144,7 @@ class StreamingClientApp(Application):
             self.add_flow(source_op, format_converter, {("output", "source_video")})
 
         # Format converter output -> streaming client input
-        self.add_flow(format_converter, streaming_client)
+        self.add_flow(format_converter, video_streaming_client)
 
         # Optional visualization
         if self.visualize:
@@ -168,7 +168,7 @@ class StreamingClientApp(Application):
 
             # Connect streaming client output -> holoviz (receives frames from server)
             # Explicitly map output_frames port to receivers port (matching C++ implementation)
-            self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
+            self.add_flow(video_streaming_client, holoviz, {("output_frames", "receivers")})
 
     def _create_replayer_source(self, allocator):
         """Create video stream replayer source."""
@@ -235,7 +235,7 @@ v4l2:
   pixel_format: "YUYV"
 
 # Streaming client settings
-streaming_client:
+video_streaming_client:
   width: 854
   height: 480
   fps: 30

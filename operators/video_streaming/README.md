@@ -11,7 +11,7 @@ This operator package combines `video_streaming_client` and `video_streaming_ser
 ```
 video_streaming/
 ├── video_streaming_client/    # Complete streaming client operator
-│   ├── streaming_client.cpp     # Main client implementation
+│   ├── video_streaming_client.cpp     # Main client implementation
 │   ├── frame_saver.cpp          # Frame saving utility
 │   └── holoscan_client_cloud_streaming/  # Client streaming binary once NGC download is complete
 ├── video_streaming_server/    # Complete streaming server operator
@@ -66,7 +66,7 @@ add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
 #### C++ Applications
 ```cpp
 // Client functionality
-#include "streaming_client.hpp"
+#include "video_streaming_client.hpp"
 #include "frame_saver.hpp"
 
 // Server functionality  

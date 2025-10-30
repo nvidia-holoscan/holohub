@@ -35,7 +35,7 @@ format_converter:
   out_channel_order: [2, 1, 0] # Convert RGB to BGR
 
 # Streaming client settings
-streaming_client:
+video_streaming_client:
   # Video/stream parameters - Match video file resolution (854x480)
   width: 854
   height: 480

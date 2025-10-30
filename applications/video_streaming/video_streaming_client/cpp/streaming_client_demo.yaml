@@ -71,7 +71,7 @@ simple_text_serializer:
   max_elements: 500
 
 # Streaming client settings
-streaming_client:
+video_streaming_client:
   # Video/stream parameters
   width: 640  # Match V4L2 source resolution
   height: 480

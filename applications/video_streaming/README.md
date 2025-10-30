@@ -353,7 +353,7 @@ To switch between V4L2 camera and video replayer:
 
 - **Resolution mismatch:**
   - Video file is 854x480, ensure all components use matching resolution
-  - Check `streaming_client`, `holoviz`, and `format_converter` settings
+  - Check `video_streaming_client`, `holoviz`, and `format_converter` settings
 
 ### Expected Behavior and Logs
 
