@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_GUARDS_HPP
-#define GST_GUARDS_HPP
+#ifndef HOLOSCAN__GSTREAMER__GST__GUARDS_HPP
+#define HOLOSCAN__GSTREAMER__GST__GUARDS_HPP
 
 #include <memory>
 #include <gst/gst.h>
@@ -58,5 +58,5 @@ GstErrorGuard make_gst_error_guard(GError* error);
 }  // namespace gst
 }  // namespace holoscan
 
-#endif /* GST_GUARDS_HPP */
+#endif /* HOLOSCAN__GSTREAMER__GST__GUARDS_HPP */
 

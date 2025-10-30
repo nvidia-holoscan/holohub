@@ -445,16 +445,13 @@ bool GstSrcBridge::send_eos() {
 }
 
 gst::Caps GstSrcBridge::get_caps() const {
+  // TODO:
   // Get the source pad and its current caps
-  ::GstPad* pad = gst_element_get_static_pad(src_element_.get(), "src");
-  if (!pad) {
+  gst::Pad pad(gst_element_get_static_pad(src_element_.get(), "src"));
+  if (!pad)
     return gst::Caps(); // Return empty caps
-  }
 
-  ::GstCaps* caps = gst_pad_get_current_caps(pad);
-  gst_object_unref(pad);
-
-  return gst::Caps(caps); // Automatic reference counting
+  return gst::Caps(gst_pad_get_current_caps(pad.get()));
 }
 
 gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_map) {

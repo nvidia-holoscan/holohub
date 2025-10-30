@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_BUFFER_HPP
-#define GST_BUFFER_HPP
+#ifndef HOLOSCAN__GSTREAMER__GST__BUFFER_HPP
+#define HOLOSCAN__GSTREAMER__GST__BUFFER_HPP
 
 #include <gst/gst.h>
 #include <string>
@@ -108,5 +108,5 @@ std::string get_buffer_info_string(::GstBuffer* buffer, ::GstCaps* caps = nullpt
 }  // namespace gst
 }  // namespace holoscan
 
-#endif /* GST_BUFFER_HPP */
+#endif /* HOLOSCAN__GSTREAMER__GST__BUFFER_HPP */
 

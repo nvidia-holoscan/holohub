@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_VIDEO_INFO_HPP
-#define GST_VIDEO_INFO_HPP
+#ifndef HOLOSCAN__GSTREAMER__GST__VIDEO_INFO_HPP
+#define HOLOSCAN__GSTREAMER__GST__VIDEO_INFO_HPP
 
 #include <gst/video/video.h>
 #include "caps.hpp"
@@ -81,5 +81,5 @@ private:
 }  // namespace gst
 }  // namespace holoscan
 
-#endif /* GST_VIDEO_INFO_HPP */
+#endif /* HOLOSCAN__GSTREAMER__GST__VIDEO_INFO_HPP */
 

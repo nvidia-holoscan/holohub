@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_SRC_BRIDGE_HPP
-#define GST_SRC_BRIDGE_HPP
+#ifndef HOLOSCAN__GSTREAMER__GST_SRC_BRIDGE_HPP
+#define HOLOSCAN__GSTREAMER__GST_SRC_BRIDGE_HPP
 
 #include <chrono>
 #include <future>
@@ -147,5 +147,5 @@ class GstSrcBridge {
 
 }  // namespace holoscan
 
-#endif /* GST_SRC_BRIDGE_HPP */
+#endif /* HOLOSCAN__GSTREAMER__GST_SRC_BRIDGE_HPP */
 

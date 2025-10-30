@@ -56,10 +56,6 @@ class Object {
   // Get the raw pointer
   T* get() const { return ptr_.get(); }
   
-  // Dereference operators
-  T& operator*() const { return *ptr_; }
-  T* operator->() const { return ptr_.get(); }
-  
   // Bool conversion
   explicit operator bool() const { return ptr_ != nullptr; }
   
@@ -116,6 +112,11 @@ using CudaContext = Object<::GstCudaContext>;
  * @brief Convenience alias for ::GstAllocator
  */
 using Allocator = Object<::GstAllocator>;
+
+/**
+ * @brief Convenience alias for ::GstPad
+ */
+ using Pad = Object<::GstPad>;
 
 }  // namespace gst
 }  // namespace holoscan
