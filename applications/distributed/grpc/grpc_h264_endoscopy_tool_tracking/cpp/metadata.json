@@ -13,6 +13,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"dockerfile": "applications/h264/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "2.6.0",
 			"tested_versions": [
