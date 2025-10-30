@@ -59,12 +59,6 @@ RUN CFLAGS=-I/usr/local/cuda/include meson build -Dplatform=generic -Dc_args=-I/
 RUN ninja -C build install
 RUN rm /tmp/dpdk-${DPDK_VERSION}.tar.xz
 
-# Build application
-ADD . ${HOLOHUB_DIR}
-WORKDIR ${HOLOHUB_DIR}
-RUN ls -lart ${HOLOHUB_DIR}
-RUN ./holohub build network_radar_pipeline
-
 WORKDIR /tmp/
 RUN wget https://github.com/nats-io/nats-server/releases/download/${NATS_VER}/${NATS_FILE} && \
         dpkg -i ${NATS_FILE}
