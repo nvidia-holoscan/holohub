@@ -298,8 +298,8 @@ Total Test time (real) =  88.48 sec
 ```console
 [info] Source set to: replayer
 [info] Using video replayer as source
-[info] 🔧 ENHANCED StreamingClient constructed! Version with buffer validation fixes!
-[info] StreamingClient created successfully
+[info] 🔧 VideoStreamingClient constructed! Version with buffer validation fixes!
+[info] VideoStreamingClient created successfully
 [info] ✅ Connection established successfully
 [info] ✅ Upstream connection established successfully!
 [info] ✅ Frame sent successfully on attempt 1

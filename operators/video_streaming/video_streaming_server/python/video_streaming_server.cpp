@@ -138,7 +138,7 @@ class PyStreamingServerResource : public StreamingServerResource {
 
 PYBIND11_MODULE(_video_streaming_server, m) {
   m.doc() = R"pbdoc(
-      Holoscan SDK Streaming Server Enhanced Python Bindings
+      Holoscan SDK Video Streaming Server Python Bindings
       ---------------------------------------------------
       .. currentmodule:: holohub.video_streaming_server
   )pbdoc";

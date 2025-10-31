@@ -25,7 +25,7 @@ video_streaming/
 
 ## Components
 
-### Streaming Client Enhanced (`video_streaming_client/`)
+### Video Streaming Client (`video_streaming_client/`)
 
 The client component provides bidirectional video streaming capabilities:
 
@@ -38,7 +38,7 @@ The client component provides bidirectional video streaming capabilities:
 
 **Documentation**: See `video_streaming_client/README.md` for detailed information.
 
-### Streaming Server Enhanced (`video_streaming_server/`)
+### Streaming Server (`video_streaming_server/`)
 
 The server component provides comprehensive streaming server functionality:
 

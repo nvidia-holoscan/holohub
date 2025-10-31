@@ -70,7 +70,7 @@ class PyStreamingClientOp : public VideoStreamingClientOp {
 /* The python module */
 PYBIND11_MODULE(_video_streaming_client, m) {
   m.doc() = R"pbdoc(
-      Holoscan SDK Streaming Client Enhanced Python Bindings
+      Holoscan SDK Video Streaming Client Python Bindings
       ---------------------------------------------------
       .. currentmodule:: holohub.video_streaming_client
   )pbdoc";
