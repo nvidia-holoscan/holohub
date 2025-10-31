@@ -18,4 +18,6 @@ cmake_minimum_required(VERSION 3.20)
 project(vb1940 LANGUAGES NONE)
 
 # Add the cpp subdirectory
-add_subdirectory(cpp)
+if(HOLOHUB_BUILD_CPP)
+  add_subdirectory(cpp)
+endif()
