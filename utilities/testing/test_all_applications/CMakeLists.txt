@@ -53,7 +53,7 @@ endif()
 message("Normalized architecture: ${CURRENT_ARCH}")
 
 # Find all metadata.json files in the applications directory
-file(GLOB_RECURSE METADATA_FILES 
+file(GLOB_RECURSE METADATA_FILES
   "${HOLOHUB_ROOT}/applications/*/metadata.json")
 
 list(LENGTH METADATA_FILES METADATA_COUNT)
@@ -64,16 +64,16 @@ foreach(METADATA_FILE ${METADATA_FILES})
   # Get the directory containing metadata.json
   get_filename_component(METADATA_DIR "${METADATA_FILE}" DIRECTORY)
   get_filename_component(DIR_NAME "${METADATA_DIR}" NAME)
-  
+
   # Skip template directories
   if(DIR_NAME STREQUAL "template" OR DIR_NAME MATCHES "cookiecutter")
     continue()
   endif()
-  
+
   # Check if metadata.json is in a cpp or python subdirectory
   set(LANGUAGE "")
   set(TEST_SUFFIX "")
-  
+
   if(DIR_NAME STREQUAL "cpp")
     set(LANGUAGE "cpp")
     set(TEST_SUFFIX "_cpp")
@@ -90,37 +90,37 @@ foreach(METADATA_FILE ${METADATA_FILES})
     # metadata.json is at the application root level
     set(APP_NAME "${DIR_NAME}")
   endif()
-  
-    
+
+
   set(TEST_NAME "${APP_NAME}${TEST_SUFFIX}")
   message("  Processing: ${TEST_NAME}")
-  
+
   # Read and parse metadata.json to check platform support
   file(READ "${METADATA_FILE}" METADATA_CONTENT)
-  
+
   # Extract platforms array from JSON
   # This uses CMake's JSON support (available in CMake 3.19+)
   string(JSON PLATFORMS_JSON ERROR_VARIABLE JSON_ERROR GET "${METADATA_CONTENT}" "application" "platforms")
-  
+
   if(JSON_ERROR)
     message(STATUS "Could not parse platforms from ${METADATA_FILE}: ${JSON_ERROR}")
     set(PLATFORM_SUPPORTED FALSE)
   else()
     # Get the length of the platforms array
     string(JSON PLATFORMS_LENGTH ERROR_VARIABLE JSON_ERROR LENGTH "${METADATA_CONTENT}" "application" "platforms")
-    
+
     if(JSON_ERROR OR NOT PLATFORMS_LENGTH)
       message("  Warning: Could not get platforms array length")
       message("  Assuming all platforms are supported")
       set(PLATFORM_SUPPORTED TRUE)
     else()
       set(PLATFORM_SUPPORTED FALSE)
-      
+
       # Check each platform in the array
       math(EXPR PLATFORMS_LAST_INDEX "${PLATFORMS_LENGTH} - 1")
       foreach(INDEX RANGE ${PLATFORMS_LAST_INDEX})
         string(JSON PLATFORM_VALUE GET "${METADATA_CONTENT}" "application" "platforms" ${INDEX})
-        
+
         if(PLATFORM_VALUE STREQUAL CURRENT_ARCH)
           set(PLATFORM_SUPPORTED TRUE)
           break()
@@ -133,7 +133,7 @@ foreach(METADATA_FILE ${METADATA_FILES})
     message("  Skipping: ${TEST_NAME} - current architecture '${CURRENT_ARCH}' not in supported platforms")
     continue()
   endif()
-  
+
   # Build the command
   if(LANGUAGE STREQUAL "")
     # No language flag
@@ -142,7 +142,7 @@ foreach(METADATA_FILE ${METADATA_FILES})
     # Add language flag
     set(TEST_COMMAND ${HOLOHUB_ROOT}/holohub ${HOLOHUB_COMMAND} ${APP_NAME} --language ${LANGUAGE})
   endif()
-  
+
   # Add test for the application
   message("  Adding test: ${TEST_NAME}")
   add_test(
@@ -150,19 +150,19 @@ foreach(METADATA_FILE ${METADATA_FILES})
     COMMAND ${TEST_COMMAND}
     WORKING_DIRECTORY ${HOLOHUB_ROOT}
   )
-  
+
   # Set timeout based on application name
   if(APP_NAME STREQUAL "sam2" OR APP_NAME MATCHES "prohawk")
     set(TEST_TIMEOUT 1000)
   else()
     set(TEST_TIMEOUT 600)
   endif()
-  
+
   set_tests_properties(${TEST_NAME} PROPERTIES
     TIMEOUT ${TEST_TIMEOUT}
     FIXTURES_REQUIRED ${TEST_NAME}_fixture
   )
-  
+
   # Add cleanup test using CTest fixtures
   # This cleanup will ALWAYS run after the test, even if the test fails
   set(CLEANUP_TEST_NAME "${TEST_NAME}_cleanup")
@@ -172,5 +172,5 @@ foreach(METADATA_FILE ${METADATA_FILES})
   )
   set_tests_properties(${CLEANUP_TEST_NAME} PROPERTIES
     FIXTURES_CLEANUP ${TEST_NAME}_fixture
-  )  
+  )
 endforeach()
