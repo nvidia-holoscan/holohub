@@ -43,7 +43,7 @@ The integration test script (`integration_test_cpp.sh`) runs the complete end-to
 ```bash
 # From holohub root - standard HoloHub test command
 ./holohub test video_streaming \
-  --ctest-options="-R video_streaming_integration_test"
+  --ctest-options="-R video_streaming_integration_test_cpp"
 ```
 
 **Note:** Both methods run the same underlying integration test defined in `CMakeLists.txt`. The wrapper script (`integration_test_cpp.sh`) adds developer-friendly conveniences on top of the direct command.
@@ -68,7 +68,7 @@ docker system prune -f --filter "label=holohub"
 # Builds Docker image and runs CTest
 ./holohub test video_streaming \
   --cmake-options="-DBUILD_TESTING=ON" \
-  --ctest-options="-R video_streaming_integration_test -V" \
+  --ctest-options="-R video_streaming_integration_test_cpp -V" \
   --verbose
 ```
 
@@ -81,7 +81,7 @@ docker system prune -f --filter "label=holohub"
 
 ### 3. Integration Test Execution (44 seconds)
 
-The `video_streaming_integration_test` defined in CMakeLists.txt:
+The `video_streaming_integration_test_cpp` defined in CMakeLists.txt:
 
 1. **Server Startup** (10 seconds)
    - Launches streaming server in background: `video_streaming_server_demo`
@@ -89,7 +89,7 @@ The `video_streaming_integration_test` defined in CMakeLists.txt:
    - Waits for server to initialize and stabilize
 
 2. **Client Connection & Streaming** (30 seconds)
-   - Starts streaming client: `video_streaming_client_demo`
+   - Starts streaming client: `video_streaming_client_demo_cpp`
    - Uses config: `video_streaming_client_demo_replayer.yaml` (video replay mode)
    - Establishes connection to server
    - Streams video frames bidirectionally for 30 seconds
@@ -191,7 +191,7 @@ Step 1/15 : ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
 
 [CTest output...]
 Test project /workspace/holohub/build-video_streaming
-    Start 1: video_streaming_integration_test
+    Start 1: video_streaming_integration_test_cpp
 
 1: === Integration Test with Log Verification ===
 1: Starting server and client with log capture...
@@ -225,7 +225,7 @@ Test project /workspace/holohub/build-video_streaming
 1: Client checks passed: 4
 1: ✓ STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
 1: ✓ Integration test PASSED
-1/2 Test #1: video_streaming_integration_test ..........   Passed   44.08 sec
+1/2 Test #1: video_streaming_integration_test_cpp ..........   Passed   44.08 sec
 
     Start 2: video_streaming_integration_test_python
 
@@ -265,7 +265,7 @@ Test project /workspace/holohub/build-video_streaming
 2/2 Test #2: video_streaming_integration_test_python ...   Passed   44.39 sec
 
 The following tests passed:
-    video_streaming_integration_test
+    video_streaming_integration_test_cpp
     video_streaming_integration_test_python
 
 100% tests passed, 0 tests failed out of 2
@@ -638,7 +638,7 @@ Total Test time (real) = 44.42 sec
 
 **Note:** When running the full integration test suite (both C++ and Python tests together), you'll see:
 - Test counter: `2/2 Test #2` (instead of `1/1`)
-- Both tests listed: `video_streaming_integration_test` and `video_streaming_integration_test_python`
+- Both tests listed: `video_streaming_integration_test_cpp` and `video_streaming_integration_test_python`
 - Total: `0 tests failed out of 2`
 - Total time: ~88 seconds (both tests combined)
 

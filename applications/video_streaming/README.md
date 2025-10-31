@@ -369,7 +369,7 @@ Or use direct HoloHub CLI commands:
 ```bash
 # Run C++ integration test using HoloHub CLI
 ./holohub test video_streaming \
-  --ctest-options="-R video_streaming_integration_test"
+  --ctest-options="-R video_streaming_integration_test_cpp"
 
 # Run Python integration test using HoloHub CLI
 ./holohub test video_streaming \
