@@ -1,17 +1,17 @@
 {
     "application": {
-        "name": "Video Streaming Server Demo (Python)",
-        "description": "Python implementation of video streaming server using Holoscan SDK streaming operators",
+        "name": "Video Streaming Server Demo (C++)",
+        "description": "C++ implementation of video streaming server using Holoscan SDK streaming operators",
         "authors": [
             {
                 "name": "Holoscan Team",
                 "affiliation": "NVIDIA"
             }
         ],
-        "language": "python",
+        "language": "C++",
         "version": "1.0.0",
         "changelog": {
-            "1.0.0": "Initial release of Python video streaming server"
+            "1.0.0": "Initial release of video streaming server with bidirectional streaming support"
         },
         "holoscan_sdk": {
             "minimum_required_version": "3.5.0",
@@ -45,7 +45,7 @@
             "server": {
                 "description": "Run the streaming server",
                 "run": {
-                    "command": "python3 video_streaming_server_demo.py",
+                    "command": "<holohub_app_bin>/video_streaming_server_demo_wrapper.sh",
                     "workdir": "holohub_bin"
                 }
             }

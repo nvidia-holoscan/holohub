@@ -1,3 +1,4 @@
+#!/bin/bash
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -13,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Combined Video Streaming Operators (Client + Server)
-# This builds both streaming client and server components in their original structure
-
-add_holohub_operator(video_streaming_client)
-add_holohub_operator(video_streaming_server)
+# Set library path to prioritize bundled libraries
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+export LD_LIBRARY_PATH="${SCRIPT_DIR}/lib:${SCRIPT_DIR}:${LD_LIBRARY_PATH}"
+exec "${SCRIPT_DIR}/video_streaming_server_demo" "$@"
