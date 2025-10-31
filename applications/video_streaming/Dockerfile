@@ -60,6 +60,9 @@ RUN cd /tmp && \
 ENV LD_LIBRARY_PATH="/usr/local/ssl/lib64:${LD_LIBRARY_PATH}"
 ENV PKG_CONFIG_PATH="/usr/local/ssl/lib64/pkgconfig:${PKG_CONFIG_PATH}"
 
+# Install pytest for Python binding tests
+RUN pip install pytest
+
 # Install NGC CLI following official instructions
 WORKDIR /tmp/ngc-install
 RUN wget --no-check-certificate --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.151.0/files/ngccli_linux.zip -O ngccli_linux.zip && \

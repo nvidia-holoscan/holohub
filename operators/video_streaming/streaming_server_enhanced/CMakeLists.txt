@@ -209,3 +209,21 @@ install(EXPORT streaming_server_enhanced_targets
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
 endif()
+
+# Include pytest module early to ensure it's available
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/modules/add_python_tests.cmake)
+
+if(BUILD_TESTING)
+    # C++ unit tests
+    add_subdirectory(tests)
+
+    # Python binding tests (pytest) - only if Python bindings are built
+    if(HOLOHUB_BUILD_PYTHON)
+        add_python_tests(
+            INPUT "python/tests"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            PREFIX "streaming_server_enhanced_pytest"
+            PYTEST_ARGS "-v" "--tb=short"
+        )
+    endif()
+endif()
