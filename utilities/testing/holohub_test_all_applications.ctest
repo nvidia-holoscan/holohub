@@ -54,8 +54,7 @@ endif()
 ctest_configure(OPTIONS "${CONFIGURE_OPTIONS}")
 
 # Run the tests
-ctest_test(RETURN_VALUE test_result 
-          )
+ctest_test(RETURN_VALUE test_result)
 
 # Submit results if requested
 if(DEFINED CTEST_SUBMIT_URL)

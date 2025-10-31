@@ -168,7 +168,7 @@ foreach(METADATA_FILE ${METADATA_FILES})
   set(CLEANUP_TEST_NAME "${TEST_NAME}_cleanup")
   add_test(
     NAME ${CLEANUP_TEST_NAME}
-    COMMAND /bin/bash -c "docker rmi -f holohub:${APP_NAME} 2>/dev/null || true"
+    COMMAND /bin/bash -c "docker rmi holohub:${APP_NAME} 2>/dev/null || true"
   )
   set_tests_properties(${CLEANUP_TEST_NAME} PROPERTIES
     FIXTURES_CLEANUP ${TEST_NAME}_fixture
