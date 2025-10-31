@@ -142,6 +142,8 @@ add_holohub_application(video_streaming DEPENDS
 
 add_holohub_application(webrtc_video_server)
 
+add_holohub_application(live_video_streaming_server)
+
 add_holohub_application(yolo_model_deployment)
 add_holohub_application(vila_live)
 add_holohub_application(holochat)
