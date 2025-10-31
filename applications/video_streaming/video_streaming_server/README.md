@@ -42,10 +42,9 @@ rm -rf holoscan_server_cloud_streaming_v0.2
 cd - # Return to the original directory
 ```
 
-
 ## Usage
 
-> ⚠️ This applications will require and use the Holoscan SDK 3.5.0.
+> ⚠️ This application requires and uses the Holoscan SDK 3.5.0.
 
 ### C++ Server
 

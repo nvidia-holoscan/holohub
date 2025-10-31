@@ -266,31 +266,6 @@ v4l2-ctl --device=/dev/video0 --list-formats-ext
 
 **Important:** Ensure both client and server use matching resolution settings for optimal performance.
 
-## Video Source Modes
-
-### V4L2 Camera Mode vs Video Replayer Mode
-
-| Feature | V4L2 Camera | Video Replayer |
-|---------|-------------|----------------|
-| **Config File** | `video_streaming_client_demo.yaml` (default) | `video_streaming_client_demo_replayer.yaml` (custom) |
-| **Command** | `--docker-opts='-e device=/dev/video0'` | `--run-args='-c video_streaming_client_demo_replayer.yaml'` |
-| **Source Type** | `source: "v4l2"` | `source: "replayer"` |
-| **Input Format** | `rgba8888` (4 channels) | `rgb888` (3 channels) |
-| **Resolution** | 640x480 | 854x480 |
-| **Data Source** | Live webcam | Pre-recorded surgical video |
-| **Use Case** | Real-time streaming | Testing, demos, development |
-
-### Switching Between Modes
-
-To switch between V4L2 camera and video replayer:
-
-1. **Stop the current client** (Ctrl+C)
-2. **Use the appropriate command:**
-   - For camera: `./holohub run video_streaming client_v4l2` (or `client_python_v4l2`)
-   - For video replay: `./holohub run video_streaming client_replayer` (or `client_python`)
-
-**Important:** The server doesn't need to be restarted when switching client modes.
-
 ## Troubleshooting
 
 ### Camera Issues

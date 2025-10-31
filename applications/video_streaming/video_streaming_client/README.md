@@ -47,7 +47,7 @@ cd - # Return to the original directory
 
 ## Usage
 
-> ⚠️ This applications will require anduse the Holoscan SDK 3.5.0.
+> ⚠️ This application requires and uses the Holoscan SDK 3.5.0.
 > ℹ️ The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
 ### C++ Client
