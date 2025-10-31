@@ -58,7 +58,7 @@ endif()
 # Install Python application
 install(
   FILES streaming_client_demo.py
-  DESTINATION bin/video_streaming/python
+  DESTINATION bin/video_streaming_client/python
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
 
@@ -66,7 +66,7 @@ install(
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo.yaml")
   install(
     FILES streaming_client_demo.yaml
-    DESTINATION bin/video_streaming/python
+    DESTINATION bin/video_streaming_client/python
   )
 endif()
 
@@ -74,6 +74,6 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/streaming_client_demo_replayer.yaml")
   install(
     FILES streaming_client_demo_replayer.yaml
-    DESTINATION bin/video_streaming/python
+    DESTINATION bin/video_streaming_client/python
   )
 endif()

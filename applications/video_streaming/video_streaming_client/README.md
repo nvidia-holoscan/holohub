@@ -3,7 +3,6 @@
 This application demonstrates how to create a bidirectional video streaming client that sends video frames to a server and receives frames back. Both C++ and Python implementations are available with support for V4L2 cameras and video file replay.
 
 > **📚 Related Documentation:**
->
 > - **[Main README](../README.md)** - Application overview, quick start, and common configuration
 > - **[Server README](../video_streaming_server/README.md)** - Server setup and configuration
 > - **[Testing Documentation](../TESTING.md)** - Integration testing and verification
@@ -11,7 +10,7 @@ This application demonstrates how to create a bidirectional video streaming clie
 ## Features
 
 - **Bidirectional Streaming**: Sends video frames to server and receives frames back
-- **Multiple Video Sources**:
+- **Multiple Video Sources**: 
   - V4L2 Camera (webcam) support with configurable resolution
   - Video file replay for testing and demos
 - **Real-time Visualization**: Holoviz integration for displaying received frames
@@ -31,26 +30,24 @@ This application demonstrates how to create a bidirectional video streaming clie
 
 ## Usage
 
-> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
+> [!IMPORTANT] The client applications requires Holoscan SDK 3.5.0. Either set the SDK version environment variable before running the applications, or use the `--base-img` option to specify the base image.
 >
 > ```bash
 > # Set SDK version environment variable
 > export HOLOHUB_BASE_SDK_VERSION=3.5.0
 > ```
->
-> ℹ️ The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
+
+> [!NOTE] The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
 ### C++ Client
 
 **Video Replayer Mode (Default - 854x480):**
-
 ```bash
 # From holohub root directory - runs with video file playback
 ./holohub run video_streaming client_replayer
 ```
 
 **V4L2 Camera Mode (640x480):**
-
 ```bash
 # From holohub root directory - runs with V4L2 camera (webcam)
 ./holohub run video_streaming client_v4l2
@@ -59,7 +56,6 @@ This application demonstrates how to create a bidirectional video streaming clie
 ### Python Client
 
 **Video Replayer Mode (Default - 854x480):**
-
 ```bash
 # From holohub root directory - runs with video file playback
 ./holohub run video_streaming client_python \
@@ -69,7 +65,6 @@ This application demonstrates how to create a bidirectional video streaming clie
 ```
 
 **V4L2 Camera Mode (640x480):**
-
 ```bash
 # From holohub root directory - runs with V4L2 camera (webcam)
 ./holohub run video_streaming client_python_v4l2 \
@@ -81,14 +76,12 @@ This application demonstrates how to create a bidirectional video streaming clie
 **Default Client Configurations:**
 
 **Video Replayer Mode:**
-
 - Source: Video file (surgical_video)
 - Resolution: 854x480
 - Frame Rate: 30 fps
 - Server: 127.0.0.1:48010
 
 **V4L2 Camera Mode:**
-
 - Source: /dev/video0 (webcam)
 - Resolution: 640x480
 - Frame Rate: 30 fps
@@ -96,9 +89,7 @@ This application demonstrates how to create a bidirectional video streaming clie
 
 **Important:** Ensure the server is configured to match the client's resolution for optimal performance.
 
-### Command Line Options
-
-**Python Client**:
+### Command Line Options (Python)
 
 - `--source {replayer,v4l2}`: Video source type (default: replayer)
 - `--server-ip IP`: Server IP address (default: 127.0.0.1)
@@ -106,175 +97,44 @@ This application demonstrates how to create a bidirectional video streaming clie
 - `--width WIDTH`: Frame width (default: 854 for replayer, 640 for v4l2)
 - `--height HEIGHT`: Frame height (default: 480)
 - `--fps FPS`: Frames per second (default: 30)
-- `--no-viz`: Disable visualization (Holoviz)
 - `--config PATH` or `-c PATH`: Path to YAML configuration file
-- `--create-config PATH`: Create default configuration file at specified path
 - `--help`: Show help message
 
-**C++ Client**:
+### Command Line Options (C++)
 
 - `-c PATH` or `--config PATH`: Path to YAML configuration file
-- `-d PATH` or `--data PATH`: Data directory path (for video files)
-- `-h` or `--help`: Show help message
 
 ## Configuration
 
-### C++ Configuration
-
-The C++ application is configured via YAML file. Configuration varies based on video source:
-
-**Video Replayer Configuration** (`cpp/streaming_client_demo_replayer.yaml`):
+The application can be configured via YAML file or command-line arguments. Example configuration file structure:
 
 ```yaml
-%YAML 1.2
----
+# Application metadata
 application:
-  title: Streaming Client Test App
-  version: 1.0
-  log_level: INFO
-
-# Source configuration
-source: "replayer"
-
-# Video replayer configuration
-replayer:
-  directory: "/workspace/holohub/data/endoscopy"
-  basename: "surgical_video"
-  frame_rate: 30
-  repeat: true
-  realtime: true
-  count: 0
-
-# Format converter - replayer outputs RGB888 (3 channels)
-format_converter:
-  in_dtype: "rgb888"
-  out_dtype: "rgb888"
-  out_tensor_name: tensor
-  scale_min: 0.0
-  scale_max: 255.0
-  out_channel_order: [2, 1, 0]  # Convert RGB to BGR
-
-# Streaming client settings
-streaming_client:
-  width: 854
-  height: 480
-  fps: 30
-  server_ip: "127.0.0.1"
-  signaling_port: 48010
-  send_frames: true
-  receive_frames: true
-  min_non_zero_bytes: 10
-
-# Visualization
-visualize_frames: true
-
-holoviz:
-  width: 854
-  height: 480
-  tensors:
-    - name: "bgra_tensor"
-      type: color
-      image_format: "b8g8r8a8_unorm"
-      opacity: 1.0
-      priority: 0
-
-# Buffer pool configuration
-allocator:
-  block_size: 4194304
-  num_blocks: 12
-
-scheduler: "greedy"
-```
-
-**V4L2 Camera Configuration** (`cpp/streaming_client_demo.yaml`):
-
-```yaml
-source: "v4l2"
-
-# V4L2 camera configuration
-v4l2_source:
-  device: "/dev/video0"
-  width: 640
-  height: 480
-  frame_rate: 30
-  pixel_format: "YUYV"
-
-# Format converter - V4L2 outputs RGBA8888 (4 channels)
-format_converter:
-  in_dtype: "rgba8888"
-  out_dtype: "rgb888"
-  out_tensor_name: tensor
-  scale_min: 0.0
-  scale_max: 255.0
-  out_channel_order: [2, 1, 0]
-
-# Streaming client settings
-streaming_client:
-  width: 640
-  height: 480
-  fps: 30
-  server_ip: "127.0.0.1"
-  signaling_port: 48010
-  send_frames: true
-  receive_frames: true
-  min_non_zero_bytes: 10
-```
-
-**Key Configuration Notes**:
-
-- **Format Converter**: V4L2 outputs `rgba8888` (4 channels), video replayer outputs `rgb888` (3 channels)
-- **Channel Order**: `out_channel_order: [2, 1, 0]` converts RGB to BGR
-- **Resolution**: V4L2 default is 640x480, video replayer is 854x480
-- **Allocator**: Buffer pool sized for BGRA frames (4MB blocks)
-
-### Python Configuration
-
-The Python application is primarily configured via **command-line arguments**:
-
-**Command-Line Parameters** (recommended):
-
-```bash
-# Video replayer mode (854x480)
-python3 streaming_client_demo.py --source replayer --width 854 --height 480
-
-# V4L2 camera mode (640x480)
-python3 streaming_client_demo.py --source v4l2 --width 640 --height 480
-
-# Custom server
-python3 streaming_client_demo.py --server-ip 192.168.1.100 --port 48010
-```
-
-**Python YAML Structure** (optional, auto-selected based on source):
-
-```yaml
-application:
-  title: "Streaming Client Python Demo"
+  title: "Streaming Client Demo"
   version: "1.0"
   log_level: "INFO"
 
 # Source configuration
 source: "replayer"  # or "v4l2"
 
-# Streaming client settings
+# Client configuration
 streaming_client:
+  server_ip: "127.0.0.1"
+  signaling_port: 48010
   width: 854
   height: 480
   fps: 30
-  server_ip: "127.0.0.1"
-  signaling_port: 48010
   send_frames: true
   receive_frames: true
-  min_non_zero_bytes: 10
 
-# Video replayer settings
+# Video replayer configuration (if source: "replayer")
 replayer:
   directory: "/workspace/holohub/data/endoscopy"
   basename: "surgical_video"
   frame_rate: 30
-  repeat: true
-  realtime: true
 
-# V4L2 camera settings
+# V4L2 camera configuration (if source: "v4l2")
 v4l2:
   device: "/dev/video0"
   width: 640
@@ -282,29 +142,32 @@ v4l2:
   frame_rate: 30
   pixel_format: "YUYV"
 
-# Visualization settings
-visualization:
-  enabled: true
+# Visualization configuration
+holoviz:
   width: 854
   height: 480
+
+# Scheduler configuration
+scheduler: "multi_thread"
+
+multi_thread_scheduler:
+  worker_thread_number: 2
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 5000
 ```
 
-**Configuration Files**:
-
+Configuration files are located in:
 - C++ V4L2: `cpp/streaming_client_demo.yaml`
 - C++ Replayer: `cpp/streaming_client_demo_replayer.yaml`
 - Python V4L2: `python/streaming_client_demo.yaml`
 - Python Replayer: `python/streaming_client_demo_replayer.yaml`
-
-**Note**: Python parameters set via command-line take precedence over YAML configuration. The Python app auto-selects the appropriate config file based on the `--source` argument.
 
 ## Pipeline Architecture
 
 The client implements a bidirectional streaming pipeline with format conversion:
 
 **Video Replayer Pipeline:**
-
-```text
+```
 VideoStreamReplayerOp → FormatConverterOp → StreamingClientOp → HoloVizOp
                                                     ↓
                                             (sends to server)
@@ -315,8 +178,7 @@ VideoStreamReplayerOp → FormatConverterOp → StreamingClientOp → HoloVizOp
 ```
 
 **V4L2 Camera Pipeline:**
-
-```text
+```
 V4L2VideoCaptureOp → FormatConverterOp → StreamingClientOp → HoloVizOp
                                                  ↓
                                          (sends to server)
@@ -338,7 +200,6 @@ V4L2VideoCaptureOp → FormatConverterOp → StreamingClientOp → HoloVizOp
 The C++ implementation (`cpp/streaming_client_demo.cpp`) demonstrates usage of the streaming client operator:
 
 **Video Replayer Mode:**
-
 ```cpp
 #include "streaming_client.hpp"
 #include <holoscan/operators/format_converter/format_converter.hpp>
@@ -358,8 +219,7 @@ auto format_converter = make_operator<ops::FormatConverterOp>(
     "format_converter",
     Arg("in_dtype", std::string("rgb888")),
     Arg("out_dtype", std::string("rgb888")),
-    Arg("out_tensor_name", std::string("tensor")),
-    Arg("out_channel_order", std::vector<int>{2, 1, 0})  // RGB to BGR
+    Arg("out_tensor_name", std::string("tensor"))
 );
 
 // Create streaming client
@@ -389,7 +249,6 @@ add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
 ```
 
 **V4L2 Camera Mode:**
-
 ```cpp
 #include "streaming_client.hpp"
 #include <holoscan/operators/format_converter/format_converter.hpp>
@@ -411,8 +270,7 @@ auto format_converter = make_operator<ops::FormatConverterOp>(
     "format_converter",
     Arg("in_dtype", std::string("rgba8888")),  // V4L2 outputs RGBA
     Arg("out_dtype", std::string("rgb888")),   // Convert to RGB
-    Arg("out_tensor_name", std::string("tensor")),
-    Arg("out_channel_order", std::vector<int>{2, 1, 0})  // RGB to BGR
+    Arg("out_tensor_name", std::string("tensor"))
 );
 
 // Create streaming client
@@ -446,7 +304,6 @@ add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
 The Python implementation (`python/streaming_client_demo.py`) demonstrates usage of the Python bindings:
 
 **Video Replayer Mode:**
-
 ```python
 from holohub.streaming_client_enhanced import StreamingClientOp
 from holoscan.operators import (
@@ -477,9 +334,6 @@ class StreamingClientApp(Application):
             in_dtype="rgb888",
             out_dtype="rgb888",
             out_tensor_name="tensor",
-            scale_min=0.0,
-            scale_max=255.0,
-            out_channel_order=[2, 1, 0],  # Convert RGB to BGR
         )
 
         # Create streaming client
@@ -512,7 +366,6 @@ class StreamingClientApp(Application):
 ```
 
 **V4L2 Camera Mode:**
-
 ```python
 from holohub.streaming_client_enhanced import StreamingClientOp
 from holoscan.operators import (
@@ -546,9 +399,6 @@ class StreamingClientApp(Application):
             in_dtype="rgba8888",  # V4L2 outputs RGBA
             out_dtype="rgb888",   # Convert to RGB
             out_tensor_name="tensor",
-            scale_min=0.0,
-            scale_max=255.0,
-            out_channel_order=[2, 1, 0],  # Convert RGB to BGR
             pool=allocator,
         )
 
@@ -582,32 +432,26 @@ class StreamingClientApp(Application):
 ```
 
 **Key Points:**
-
 - The `StreamingClientOp` requires an allocator (passed as a positional argument) for output buffer allocation
 - The `StreamingClientOp` handles bidirectional streaming (sends and receives frames)
-- **Parameters are set via constructor arguments** (from command-line or defaults), not from YAML
-- The constructor parameters (`source`, `server_ip`, `port`, `width`, `height`, `fps`) configure the application
 - Format conversion is necessary to convert source formats to RGB for streaming
 - V4L2 always outputs RGBA8888 (4 channels) regardless of input format and uses "signal" output port
 - Video replayer outputs RGB888 (3 channels) and uses "output" output port
 - The `min_non_zero_bytes` parameter prevents sending empty frames during startup
 - The `output_frames` port receives processed frames from the server
 - Holoviz displays the received frames using the `receivers` input port
-- The Python app auto-selects the appropriate config file based on `--source` argument if no config is specified
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Connection Failed**: Verify server is running and ports are correct
-
    ```bash
    # Check if server is listening
    netstat -tlnp | grep 48010
    ```
 
 2. **Camera Not Found**: Check V4L2 device path
-
    ```bash
    # List available cameras
    ls -l /dev/video*
@@ -620,7 +464,6 @@ class StreamingClientApp(Application):
    ```
 
 3. **Permission Denied (Camera)**: Add user to video group
-
    ```bash
    sudo usermod -a -G video $USER
    # Log out and back in
@@ -630,14 +473,12 @@ class StreamingClientApp(Application):
    ```
 
 4. **Import Error (Python)**: Ensure Holoscan SDK Python bindings are installed
-
    ```bash
    # Build with Python bindings
    ./holohub build video_streaming --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
    ```
 
 5. **Video Files Not Found**: Check data directory path
-
    ```bash
    # Ensure video files exist
    ls -l /workspace/holohub/data/endoscopy/surgical_video*
@@ -648,7 +489,7 @@ class StreamingClientApp(Application):
    - V4L2 default: 640x480
    - Server default: 854x480
 
-7. **Format Converter Errors**:
+7. **Format Converter Errors**: 
    - `Invalid channel count for RGBA8888 3 != 4`: Video replayer outputs RGB888 (3 channels), not RGBA8888
    - Solution: Use correct configuration file (`streaming_client_demo_replayer.yaml`)
 
@@ -664,7 +505,6 @@ application:
 ## Examples
 
 See the included configuration files for complete examples:
-
 - C++ V4L2: `cpp/streaming_client_demo.yaml`
 - C++ Replayer: `cpp/streaming_client_demo_replayer.yaml`
 - Python V4L2: `python/streaming_client_demo.yaml`
@@ -677,7 +517,6 @@ See the included configuration files for complete examples:
 **Option 1: Using Holohub CLI (Recommended)**
 
 Terminal 1 - Start Python Server:
-
 ```bash
 # From holohub root directory
 ./holohub run video_streaming server_python \
@@ -687,7 +526,6 @@ Terminal 1 - Start Python Server:
 ```
 
 Terminal 2 - Start Python Client with Video Replayer (854x480):
-
 ```bash
 # From holohub root directory
 ./holohub run video_streaming client_python \
@@ -697,7 +535,6 @@ Terminal 2 - Start Python Client with Video Replayer (854x480):
 ```
 
 Terminal 2 - Or Start Python Client with V4L2 Camera (640x480):
-
 ```bash
 # From holohub root directory
 ./holohub run video_streaming client_python_v4l2 \
@@ -709,7 +546,6 @@ Terminal 2 - Or Start Python Client with V4L2 Camera (640x480):
 ### Testing with C++ Server
 
 Terminal 1 - Start Server (C++ or Python):
-
 ```bash
 # C++ Server
 ./holohub run video_streaming
@@ -722,7 +558,6 @@ Terminal 1 - Start Server (C++ or Python):
 ```
 
 Terminal 2 - Start C++ Client:
-
 ```bash
 # Video Replayer Mode
 ./holohub run video_streaming client_replayer
@@ -731,8 +566,7 @@ Terminal 2 - Start C++ Client:
 ./holohub run video_streaming client_v4l2
 ```
 
-**Important:**
-
+**Important:** 
 - C++ and Python implementations are fully compatible - you can mix and match (C++ client with Python server, etc.)
 - Ensure client and server resolutions match for optimal performance
 - The server must be started before the client

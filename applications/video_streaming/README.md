@@ -60,19 +60,19 @@ rm -rf holoscan_server_cloud_streaming_v0.2
 
 The unified application provides both client and server applications.
 
-> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
+> [!IMPORTANT] Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
 >
 > ```bash
 > # Set SDK version environment variable
 > export HOLOHUB_BASE_SDK_VERSION=3.5.0
 > ```
->
-> ℹ️ The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
+
+> [!NOTE] The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
 ### 1. Start the Streaming Server
 
 ```bash
-./holohub run video_streaming server
+./holohub run video_streaming
 ```
 
 ### 2. Start the Streaming Client (in another terminal)
@@ -93,14 +93,24 @@ The unified application provides both client and server applications.
 
 Both server and client applications are available in Python using the Holoscan Python bindings. The Python implementations are fully compatible with their C++ counterparts and can be used interchangeably.
 
+### Requirements
+
+- Python 3.8 or higher
+- Holoscan SDK 3.5.0+ with Python bindings
+- Build with `-DHOLOHUB_BUILD_PYTHON=ON` flag
+- Custom Dockerfile with OpenSSL 3.4.0
+
 ### Running Python Server
 
 ```bash
-./holohub run video_streaming server_python
+# From holohub root directory - runs with default settings (854x480 @ 30fps)
+./holohub run video_streaming server_python \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
 **Default Configuration:**
-
 - Port: 48010
 - Resolution: 854x480
 - Frame Rate: 30 fps
@@ -109,28 +119,32 @@ Both server and client applications are available in Python using the Holoscan P
 ### Running Python Client
 
 **Video Replayer Mode (Default - 854x480):**
-
 ```bash
-./holohub run video_streaming client_python
+# From holohub root directory - runs with video file playback
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
 **V4L2 Camera Mode (640x480):**
-
 ```bash
-./holohub run video_streaming client_python_v4l2
+# From holohub root directory - runs with V4L2 camera (webcam)
+./holohub run video_streaming client_python_v4l2 \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
 **Default Client Configurations:**
 
 **Video Replayer Mode:**
-
 - Source: Video file (surgical_video)
 - Resolution: 854x480
 - Frame Rate: 30 fps
 - Server: 127.0.0.1:48010
 
 **V4L2 Camera Mode:**
-
 - Source: /dev/video0 (webcam)
 - Resolution: 640x480
 - Frame Rate: 30 fps
@@ -143,17 +157,14 @@ Both server and client applications are available in Python using the Holoscan P
 The Python applications use these Holoscan operator bindings:
 
 **Server Components:**
-
 - `holohub.streaming_server_enhanced.StreamingServerResource` - Manages server connections
 - `holohub.streaming_server_enhanced.StreamingServerUpstreamOp` - Receives frames from clients
 - `holohub.streaming_server_enhanced.StreamingServerDownstreamOp` - Sends frames to clients
 
 **Client Components:**
-
 - `holohub.streaming_client_enhanced.StreamingClientOp` - Bidirectional client streaming
 
 **Holoscan Core Operators:**
-
 - `holoscan.operators.VideoStreamReplayerOp` - Video file playback
 - `holoscan.operators.V4L2VideoCaptureOp` - Webcam capture
 - `holoscan.operators.FormatConverterOp` - Format conversion (RGBA→RGB→BGR)
@@ -162,28 +173,24 @@ The Python applications use these Holoscan operator bindings:
 ### Python Implementation Overview
 
 **Server Architecture:**
-
 - `StreamingServerResource` manages streaming connections and client lifecycle
 - `StreamingServerUpstreamOp` receives frames from clients (output port: `output_frames`)
 - `StreamingServerDownstreamOp` sends frames to clients (input port: `input_frames`)
 - Simple pipeline: `upstream_op → downstream_op` (passthrough/echo mode)
 
 **Client Architecture:**
-
 - Video source: `VideoStreamReplayerOp` or `V4L2VideoCaptureOp`
 - `FormatConverterOp` handles format conversion (RGBA→RGB→BGR)
 - `StreamingClientOp` manages bidirectional streaming (send and receive)
 - `HolovizOp` visualizes received frames
 
 **For complete Python implementation examples and code**, see:
-
 - **[Server README](video_streaming_server/README.md)** - Full Python server implementation
 - **[Client README](video_streaming_client/README.md)** - Full Python client implementation (replayer and V4L2 modes)
 
 ### Command Line Options (Python)
 
 **Server Options:**
-
 - `--port PORT`: Server port (default: 48010)
 - `--width WIDTH`: Frame width (default: 854)
 - `--height HEIGHT`: Frame height (default: 480)
@@ -193,7 +200,6 @@ The Python applications use these Holoscan operator bindings:
 - `--help`: Show help message
 
 **Client Options:**
-
 - `--source {replayer,v4l2}`: Video source type (default: replayer)
 - `--server-ip IP`: Server IP address (default: 127.0.0.1)
 - `--port PORT`: Server port (default: 48010)
@@ -216,41 +222,37 @@ The Python applications use these Holoscan operator bindings:
 Python clients are fully compatible with C++ servers and vice versa:
 
 Terminal 1 - C++ Server:
-
 ```bash
 ./holohub run video_streaming
 ```
 
 Terminal 2 - Python Client:
-
 ```bash
-./holohub run video_streaming client_python
+./holohub run video_streaming client_python \
+  --docker-file applications/video_streaming/Dockerfile \
+  --docker-opts='-e EnableHybridMode=1' \
+  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
 
 ### Python Troubleshooting
 
 **Import Error:**
-
 - Ensure Holoscan SDK Python bindings are installed
 - Verify build with: `./holohub build video_streaming --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'`
 
 **Camera Not Found:**
-
 - Check V4L2 device path: `ls -l /dev/video*`
 - Test camera: `v4l2-ctl --device=/dev/video0 --info`
 
 **Connection Failed:**
-
 - Verify server is running and ports are correct
 - Check: `netstat -tlnp | grep 48010`
 
 **Video Files Not Found:**
-
 - Check data directory path: `/workspace/holohub/data/endoscopy/`
 - Ensure video files exist in the data directory
 
 **Resolution Mismatch:**
-
 - Replayer default: 854x480
 - V4L2 default: 640x480
 - Server default: 854x480
@@ -265,7 +267,6 @@ Terminal 2 - Python Client:
 ### Detailed Documentation
 
 For complete implementation details, see the component-specific READMEs:
-
 - **[Server README](video_streaming_server/README.md)** - Complete server documentation (C++ and Python)
 - **[Client README](video_streaming_client/README.md)** - Complete client documentation (C++ and Python)
 
@@ -425,35 +426,24 @@ The video streaming demo includes comprehensive integration testing for both C++
 ### Quick Start
 
 ```bash
-./holohub test video_streaming
-```
-
-You can use `--verbose` flag to get more detailed output.
-
-### Run specific tests
-
-```bash
 # Run C++ integration test
 ./applications/video_streaming/integration_test.sh
 
 # Run Python integration test
 ./applications/video_streaming/integration_test_python.sh
-```
 
-Or use direct HoloHub CLI commands:
-
-```bash
-# Run C++ integration test using HoloHub CLI
+# Or use direct HoloHub CLI commands:
+# C++ test
 ./holohub test video_streaming \
   --ctest-options="-R video_streaming_integration_test"
 
-# Run Python integration test using HoloHub CLI
+# Python test
 ./holohub test video_streaming \
+  --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
   --ctest-options="-R video_streaming_integration_test_python"
 ```
 
 **Test Scripts:**
-
 - `integration_test.sh` - C++ server and client test (SDK 3.5.0)
 - `integration_test_python.sh` - Python server and client test (SDK 3.6.0)
 
