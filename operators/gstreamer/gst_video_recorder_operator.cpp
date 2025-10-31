@@ -687,7 +687,7 @@ void GstVideoRecorderOperator::stop() {
   // Send EOS to signal end of stream (only if bridge was initialized)
   if (bridge_) {
     HOLOSCAN_LOG_INFO("Sending EOS to bridge");
-  bridge_->send_eos();
+    bridge_->send_eos();
     
     HOLOSCAN_LOG_INFO("GstVideoRecorderOperator::stop() - EOS sent, waiting for pipeline to finish");
     
