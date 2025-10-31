@@ -48,4 +48,6 @@ target_include_directories(nv_video_reader PUBLIC
   $<BUILD_INTERFACE:${NVC_SDK_PATH}/Utils>
 )
 
-add_subdirectory(python)
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
