@@ -19,6 +19,7 @@
 #include <npp.h>
 #include <Eigen/Dense>
 #include <iostream>
+#include <dlfcn.h>
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
@@ -237,6 +238,13 @@ int main(int argc, char** argv) {
     }
   }
 
+  // Load TensorRT plugins with RTLD_LOCAL to avoid GXF extension initialization
+  std::string plugin_path = data_directory + "/ess_plugins.so";
+  void* plugin_handle = dlopen(plugin_path.c_str(), RTLD_LAZY | RTLD_LOCAL);
+  if (!plugin_handle) {
+    HOLOSCAN_LOG_ERROR("Failed to load TensorRT plugins from {}: {}", plugin_path, dlerror());
+  }
+
   if (stereo_cal.empty()) {
     stereo_cal = data_directory + "/stereo_calibration.yaml";
   }
@@ -255,5 +263,10 @@ int main(int argc, char** argv) {
   app->config(config_file);
   app->set_datapath(data_directory);
   app->run();
+
+  if (plugin_handle) {
+    dlclose(plugin_handle);
+  }
+
   return 0;
 }
