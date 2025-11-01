@@ -115,7 +115,41 @@ def generate_featured_component_card(
     name = metadata.get("name", metadata_path.parent.name)
     description = metadata.get("description", "")
     tags = metadata.get("tags", [])
-    logger.info(f"Generating featured {component_type} card for {name}")
+
+    # Detect all available languages by checking for metadata.json files
+    available_languages = []
+    current_lang = metadata.get("language", "")
+
+    # Check if this is in a language-specific subdirectory (cpp/python)
+    metadata_dir = metadata_path.parent
+    parent_dir = metadata_dir.parent if metadata_dir.name in ["cpp", "python"] else metadata_dir
+
+    # Check for Python version
+    python_metadata = parent_dir / "python" / "metadata.json"
+    if python_metadata.exists():
+        available_languages.append("Python")
+
+    # Check for C++ version
+    cpp_metadata = parent_dir / "cpp" / "metadata.json"
+    if cpp_metadata.exists():
+        available_languages.append("C++")
+
+    # If no language-specific subdirectories found, use the current language from metadata
+    if not available_languages and current_lang:
+        if isinstance(current_lang, list):
+            available_languages = current_lang
+        else:
+            available_languages = [current_lang]
+
+    # Create language badge HTML if languages are available
+    language_badge_html = ""
+    if available_languages:
+        languages_str = ", ".join(available_languages)
+        language_badge_html = f'<span style="display: inline-block; background-color: var(--md-code-bg-color); color: var(--md-code-fg-color); padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600; margin-bottom: 0.5rem;">{languages_str}</span>'
+
+    logger.info(
+        f"Generating featured {component_type} card for {name} with languages: {', '.join(available_languages) if available_languages else 'None'}"
+    )
 
     readme_path = find_readme_path(metadata_path.parent, git_repo_path)
     readme_content = ""
@@ -206,6 +240,7 @@ def generate_featured_component_card(
                     {badge_html}
                     <img src="{image_url}" alt="{name}" width="120" height="120">
                     <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">{name}</h3>
+                    {language_badge_html}
                     <p class="feature-card-desc">{description}</p>
                     {tags_html}
                     <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->

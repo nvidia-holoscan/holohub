@@ -59,11 +59,11 @@ flowchart LR
 ### Running the Application
 
 ```bash
-# Run the C++ version
+# Run the Python version
 ./holohub run slang_gamma_correction
 
-# Run the Python version
-./holohub run slang_gamma_correction --language=python
+# Run the C++ version
+./holohub run slang_gamma_correction --language=cpp
 ```
 
 ## Customization
