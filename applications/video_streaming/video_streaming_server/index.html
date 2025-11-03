@@ -18,11 +18,11 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
     
     
       
-        <title>Video Streaming Server Demo (Python) (latest) - NVIDIA Holoscan Reference Applications</title>
+        <title>Video Streaming Server Demo (C++) (latest) - NVIDIA Holoscan Reference Applications</title>
       
     
     
@@ -140,7 +140,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Video Streaming Server Demo (Python) (latest)
+              Video Streaming Server Demo (C++) (latest)
             
           </span>
         </div>
@@ -12731,7 +12731,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/video_streaming/streaming_server_enhanced/" class="md-nav__link ">
+            <a href="../../../operators/video_streaming/video_streaming_server/" class="md-nav__link ">
               
   
   
@@ -12790,7 +12790,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/video_streaming/streaming_client_enhanced/" class="md-nav__link ">
+            <a href="../../../operators/video_streaming/video_streaming_client/" class="md-nav__link ">
               
   
   
@@ -14960,6 +14960,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#download-server-cloud-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Download Server Cloud Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -15206,13 +15221,7 @@
       
       
       
-        <a href="../../../tags/#tag:bidirectional" class="md-tag">Bidirectional</a>
-      
-    
-      
-      
-      
-        <a href="../../../tags/#tag:python" class="md-tag">Python</a>
+        <a href="../../../tags/#tag:network" class="md-tag">Network</a>
       
     
       
@@ -15244,7 +15253,7 @@
 
 
 <h1 id="video-streaming-server-demo"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/video_streaming/video_streaming_server">Video Streaming Server Demo</a><a class="headerlink" href="#video-streaming-server-demo" title="Permanent link">#</a></h1>
-<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> October 24, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> November 3, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br><br></p>
 <p>This application demonstrates how to create a bidirectional video streaming server that receives frames from clients and sends them back. Both C++ and Python implementations are available.</p>
 <blockquote>
 <p><strong>📚 Related Documentation:</strong></p>
@@ -15271,25 +15280,33 @@
 <li>CUDA 12.x (currently not working with CUDA 13.x)</li>
 <li>video_streaming operator</li>
 </ul>
+<h3 id="download-server-cloud-streaming">Download Server Cloud Streaming<a class="headerlink" href="#download-server-cloud-streaming" title="Permanent link">#</a></h3>
+<p>Download the Holoscan Server Cloud Streaming binaries from NGC:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Navigate to the server operator directory from the holohub root directory</span>
+<span class="nb">cd</span><span class="w"> </span>operators/video_streaming/video_streaming_server
+
+<span class="c1"># Download using NGC CLI</span>
+ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">&quot;nvidia/holoscan_server_cloud_streaming:0.2&quot;</span>
+unzip<span class="w"> </span>-o<span class="w"> </span>holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip<span class="w"> </span>-d<span class="w"> </span>holoscan_server_cloud_streaming
+
+<span class="c1"># Clean up</span>
+rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_streaming_v0.2
+<span class="nb">cd</span><span class="w"> </span>-<span class="w"> </span><span class="c1"># Return to the original directory</span>
+</code></pre></div>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
 <blockquote>
-<p>⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the <code>--base-img</code> option to specify the base image.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Set SDK version environment variable</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">HOLOHUB_BASE_SDK_VERSION</span><span class="o">=</span><span class="m">3</span>.5.0
-</code></pre></div>
+<p>⚠️ <strong>Important:</strong> This application is currently only compatible with CUDA 12.x. If your system uses CUDA 13.x, ensure you add the <code>--cuda 12</code> flag to all command-line invocations shown below.</p>
 </blockquote>
 <h3 id="c-server">C++ Server<a class="headerlink" href="#c-server" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># From holohub root directory - runs with default settings (854x480 @ 30fps)</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming
+./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming_server<span class="w"> </span>--language<span class="w"> </span>cpp
 </code></pre></div>
 <h3 id="python-server">Python Server<a class="headerlink" href="#python-server" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># From holohub root directory - runs with default settings (854x480 @ 30fps)</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>server_python<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming_server<span class="w"> </span>--language<span class="w"> </span>python
 
 <span class="c1"># With custom parameters via command-line arguments</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>server_python<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span><span class="w"> </span><span class="se">\</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming_server<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--extra-args<span class="w"> </span><span class="s1">&#39;--port 48010 --width 854 --height 480 --fps 30&#39;</span>
 </code></pre></div>
 <p><strong>Default Configuration:</strong></p>
@@ -15328,7 +15345,7 @@
 <span class="w">  </span><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">INFO</span>
 
 <span class="c1"># Streaming server settings</span>
-<span class="nt">streaming_server</span><span class="p">:</span>
+<span class="nt">video_streaming_server</span><span class="p">:</span>
 <span class="w">  </span><span class="c1"># Video/stream parameters</span>
 <span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">854</span>
 <span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480</span>
@@ -15365,7 +15382,7 @@
 <span class="c1"># Enable data flow tracking for debugging/profiling</span>
 <span class="nt">tracking</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 </code></pre></div>
-<p><strong>C++ Configuration File</strong>: <code>cpp/streaming_server_demo.yaml</code></p>
+<p><strong>C++ Configuration File</strong>: <code>cpp/video_streaming_server_demo.yaml</code></p>
 <h3 id="python-configuration">Python Configuration<a class="headerlink" href="#python-configuration" title="Permanent link">#</a></h3>
 <p>The Python application is primarily configured via <strong>command-line arguments</strong>, with optional YAML support for advanced settings:</p>
 <p><strong>Command-Line Parameters</strong> (recommended):</p>
@@ -15403,7 +15420,7 @@
 <span class="w">  </span><span class="nt">stop_on_deadlock</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">stop_on_deadlock_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5000</span>
 </code></pre></div>
-<p><strong>Python Configuration File</strong>: <code>python/streaming_server_demo.yaml</code></p>
+<p><strong>Python Configuration File</strong>: <code>python/video_streaming_server_demo.yaml</code></p>
 <p><strong>Note</strong>: Python parameters set via command-line take precedence over YAML configuration. For most use cases, command-line arguments are sufficient.</p>
 <h2 id="pipeline-architecture">Pipeline Architecture<a class="headerlink" href="#pipeline-architecture" title="Permanent link">#</a></h2>
 <p>The server implements a simple bidirectional streaming pipeline:</p>
@@ -15417,21 +15434,21 @@
 </ol>
 <h2 id="c-implementation">C++ Implementation<a class="headerlink" href="#c-implementation" title="Permanent link">#</a></h2>
 <p>The C++ implementation (<code>cpp/streaming_server_demo.cpp</code>) demonstrates usage of the streaming server operators:</p>
-<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;streaming_server_downstream_op.hpp&quot;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;streaming_server_resource.hpp&quot;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;streaming_server_upstream_op.hpp&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;video_streaming_server_downstream_op.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;video_streaming_server_resource.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;video_streaming_server_upstream_op.hpp&quot;</span>
 
 <span class="c1">// Create shared streaming server resource from config</span>
-<span class="c1">// Configuration loaded from YAML &#39;streaming_server&#39; section</span>
-<span class="n">holoscan</span><span class="o">::</span><span class="n">ArgList</span><span class="w"> </span><span class="n">streaming_server_args</span><span class="p">;</span>
+<span class="c1">// Configuration loaded from YAML &#39;video_streaming_server&#39; section</span>
+<span class="n">holoscan</span><span class="o">::</span><span class="n">ArgList</span><span class="w"> </span><span class="n">video_streaming_server_args</span><span class="p">;</span>
 <span class="k">try</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">streaming_server_args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">from_config</span><span class="p">(</span><span class="s">&quot;streaming_server&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">video_streaming_server_args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">from_config</span><span class="p">(</span><span class="s">&quot;video_streaming_server&quot;</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">HOLOSCAN_LOG_WARN</span><span class="p">(</span><span class="s">&quot;Missing streaming_server config section, using defaults&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">HOLOSCAN_LOG_WARN</span><span class="p">(</span><span class="s">&quot;Missing video_streaming_server config section, using defaults&quot;</span><span class="p">);</span>
 <span class="p">}</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">streaming_server_resource</span><span class="w"> </span><span class="o">=</span>
-<span class="w">    </span><span class="n">make_resource</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerResource</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;streaming_server_resource&quot;</span><span class="p">,</span>
-<span class="w">                                                 </span><span class="n">streaming_server_args</span><span class="p">);</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">video_streaming_server_resource</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">make_resource</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerResource</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;video_streaming_server_resource&quot;</span><span class="p">,</span>
+<span class="w">                                                 </span><span class="n">video_streaming_server_args</span><span class="p">);</span>
 
 <span class="c1">// Upstream operator (receives from clients)</span>
 <span class="c1">// Configuration loaded from YAML &#39;upstream_op&#39; section</span>
@@ -15442,7 +15459,7 @@
 <span class="w">    </span><span class="n">HOLOSCAN_LOG_WARN</span><span class="p">(</span><span class="s">&quot;Missing upstream_op config section, using defaults&quot;</span><span class="p">);</span>
 <span class="p">}</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">upstream_op</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerUpstreamOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;upstream_op&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">upstream_args</span><span class="p">);</span>
-<span class="n">upstream_op</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="p">(</span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;streaming_server_resource&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">streaming_server_resource</span><span class="p">));</span>
+<span class="n">upstream_op</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="p">(</span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;video_streaming_server_resource&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">video_streaming_server_resource</span><span class="p">));</span>
 
 <span class="c1">// Downstream operator (sends to clients)</span>
 <span class="c1">// Configuration loaded from YAML &#39;downstream_op&#39; section</span>
@@ -15454,7 +15471,7 @@
 <span class="p">}</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">downstream_op</span><span class="w"> </span><span class="o">=</span>
 <span class="w">    </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerDownstreamOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;downstream_op&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">downstream_args</span><span class="p">);</span>
-<span class="n">downstream_op</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="p">(</span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;streaming_server_resource&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">streaming_server_resource</span><span class="p">));</span>
+<span class="n">downstream_op</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="p">(</span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;video_streaming_server_resource&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">video_streaming_server_resource</span><span class="p">));</span>
 
 <span class="c1">// Connect: upstream -&gt; downstream (passthrough/echo mode)</span>
 <span class="n">add_flow</span><span class="p">(</span><span class="n">upstream_op</span><span class="p">,</span><span class="w"> </span><span class="n">downstream_op</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">output_frames</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">input_frames</span><span class="err">&#39;</span><span class="p">));</span>
@@ -15464,14 +15481,14 @@
 <li>All operators use the <code>ops::</code> namespace prefix</li>
 <li>Configuration is loaded from YAML using <code>from_config()</code> for flexibility</li>
 <li>The <code>StreamingServerResource</code> is created first and passed to operators using <code>add_arg()</code></li>
-<li>The resource is configured from the <code>streaming_server</code> YAML section</li>
+<li>The resource is configured from the <code>video_streaming_server</code> YAML section</li>
 <li>Upstream and downstream operators are configured from their respective YAML sections (<code>upstream_op</code>, <code>downstream_op</code>)</li>
-<li>Both operators must reference the same shared <code>streaming_server_resource</code></li>
+<li>Both operators must reference the same shared <code>video_streaming_server_resource</code></li>
 <li>This pattern allows for dynamic configuration without recompiling</li>
 </ul>
 <h2 id="python-implementation">Python Implementation<a class="headerlink" href="#python-implementation" title="Permanent link">#</a></h2>
 <p>The Python implementation (<code>python/streaming_server_demo.py</code>) demonstrates usage of the Python bindings:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holohub.streaming_server_enhanced</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holohub.video_streaming_server</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">StreamingServerDownstreamOp</span><span class="p">,</span>
     <span class="n">StreamingServerResource</span><span class="p">,</span>
     <span class="n">StreamingServerUpstreamOp</span><span class="p">,</span>
@@ -15501,9 +15518,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Create shared streaming server resource with parameters from constructor</span>
-        <span class="n">streaming_resource</span> <span class="o">=</span> <span class="n">StreamingServerResource</span><span class="p">(</span>
+        <span class="n">video_streaming_resource</span> <span class="o">=</span> <span class="n">StreamingServerResource</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;streaming_server_resource&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;video_streaming_server_resource&quot;</span><span class="p">,</span>
             <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
@@ -15514,12 +15531,12 @@
 
         <span class="c1"># Upstream operator (receives from clients)</span>
         <span class="n">upstream_op</span> <span class="o">=</span> <span class="n">StreamingServerUpstreamOp</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;upstream_op&quot;</span><span class="p">,</span> <span class="n">streaming_server_resource</span><span class="o">=</span><span class="n">streaming_resource</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;upstream_op&quot;</span><span class="p">,</span> <span class="n">video_streaming_server_resource</span><span class="o">=</span><span class="n">video_streaming_resource</span>
         <span class="p">)</span>
 
         <span class="c1"># Downstream operator (sends to clients)</span>
         <span class="n">downstream_op</span> <span class="o">=</span> <span class="n">StreamingServerDownstreamOp</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;downstream_op&quot;</span><span class="p">,</span> <span class="n">streaming_server_resource</span><span class="o">=</span><span class="n">streaming_resource</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;downstream_op&quot;</span><span class="p">,</span> <span class="n">video_streaming_server_resource</span><span class="o">=</span><span class="n">video_streaming_resource</span>
         <span class="p">)</span>
 
         <span class="c1"># Connect: upstream -&gt; downstream (passthrough/echo mode)</span>
@@ -15571,10 +15588,10 @@ sudo<span class="w"> </span>lsof<span class="w"> </span>-ti:48010<span class="w"
 <h2 id="configuration-examples">Configuration Examples<a class="headerlink" href="#configuration-examples" title="Permanent link">#</a></h2>
 <p>See the included configuration files for complete examples:</p>
 <ul>
-<li><code>cpp/streaming_server_demo.yaml</code> - C++ server configuration (used by C++ application)</li>
-<li><code>python/streaming_server_demo.yaml</code> - Python server configuration (optional, Python primarily uses command-line args)</li>
+<li><code>cpp/video_streaming_server_demo.yaml</code> - C++ server configuration (used by C++ application)</li>
+<li><code>python/video_streaming_server_demo.yaml</code> - Python server configuration (optional, Python primarily uses command-line args)</li>
 </ul>
-<p><strong>Note</strong>: C++ and Python use different YAML structures. The C++ version uses <code>streaming_server</code> section with direct parameters, while Python uses <code>server</code> and <code>stream</code> sections. For Python, command-line arguments are the recommended configuration method.</p>
+<p><strong>Note</strong>: C++ and Python use different YAML structures. The C++ version uses <code>video_streaming_server</code> section with direct parameters, while Python uses <code>server</code> and <code>stream</code> sections. For Python, command-line arguments are the recommended configuration method.</p>
 <h2 id="integration-with-client">Integration with Client<a class="headerlink" href="#integration-with-client" title="Permanent link">#</a></h2>
 <h3 id="testing-with-python-client">Testing with Python Client<a class="headerlink" href="#testing-with-python-client" title="Permanent link">#</a></h3>
 <h4 id="option-1-using-holohub-cli-recommended">Option 1: Using Holohub CLI (Recommended)<a class="headerlink" href="#option-1-using-holohub-cli-recommended" title="Permanent link">#</a></h4>
@@ -15663,7 +15680,7 @@ sudo<span class="w"> </span>lsof<span class="w"> </span>-ti:48010<span class="w"
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../video_streaming_client/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Video Streaming Client Demo (Python) (latest)">
+          <a href="../video_streaming_client/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Video Streaming Client Demo (C++) (latest)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -15673,7 +15690,7 @@ sudo<span class="w"> </span>lsof<span class="w"> </span>-ti:48010<span class="w"
                 Previous
               </span>
               <div class="md-ellipsis">
-                Video Streaming Client Demo (Python) (latest)
+                Video Streaming Client Demo (C++) (latest)
               </div>
             </div>
           </a>

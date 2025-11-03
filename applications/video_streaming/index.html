@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
     
     
       
@@ -12729,7 +12729,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../operators/video_streaming/streaming_server_enhanced/" class="md-nav__link ">
+            <a href="../../operators/video_streaming/video_streaming_server/" class="md-nav__link ">
               
   
   
@@ -12788,7 +12788,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../operators/video_streaming/streaming_client_enhanced/" class="md-nav__link ">
+            <a href="../../operators/video_streaming/video_streaming_client/" class="md-nav__link ">
               
   
   
@@ -15010,38 +15010,29 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="2. Start the Streaming Client (in another terminal)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-a-v4l2-camera-webcam" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option A: V4L2 Camera (Webcam)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-b-video-replayer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option B: Video Replayer
+    </span>
+  </a>
+  
 </li>
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#python-applications" class="md-nav__link">
-    <span class="md-ellipsis">
-      Python Applications
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Python Applications">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#running-python-server" class="md-nav__link">
-    <span class="md-ellipsis">
-      Running Python Server
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#running-python-client" class="md-nav__link">
-    <span class="md-ellipsis">
-      Running Python Client
-    </span>
-  </a>
   
 </li>
         
@@ -15178,39 +15169,6 @@
   <a href="#recommended-resolution-settings" class="md-nav__link">
     <span class="md-ellipsis">
       Recommended Resolution Settings
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#video-source-modes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Video Source Modes
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Video Source Modes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#v4l2-camera-mode-vs-video-replayer-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      V4L2 Camera Mode vs Video Replayer Mode
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#switching-between-modes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Switching Between Modes
     </span>
   </a>
   
@@ -15381,6 +15339,12 @@
       
       
       
+        <a href="../../tags/#tag:v4l2" class="md-tag">V4L2</a>
+      
+    
+      
+      
+      
         <a href="../../tags/#tag:video" class="md-tag">Video</a>
       
     
@@ -15389,7 +15353,7 @@
 
 
 <h1 id="video-streaming-demo"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/video_streaming">Video Streaming Demo</a><a class="headerlink" href="#video-streaming-demo" title="Permanent link">#</a></h1>
-<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> October 24, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> November 3, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br><br></p>
 <p>This unified application demonstrates how to use the Holoscan SDK to create both streaming client and server applications for bidirectional video communication. This demo application demonstrates bidirectional video communication between client and server with real-time visualization.</p>
 <p><img alt="Video Streaming Demo" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/video_streaming/screenshot_streaming_demo.png?raw=true" /><br />
 <em>Fig. 1: Example of surgical video streaming with bidirectional communication showing the client receiving and displaying frames from the server.</em></p>
@@ -15408,13 +15372,13 @@
 <ul>
 <li>NVIDIA GPU</li>
 <li>CUDA 12.x (currently not working with CUDA 13.x)</li>
-<li>Holoscan SDK 3.5.0+</li>
+<li>Holoscan SDK 3.5.0 or higher</li>
 <li>V4L2 camera (optional, for live streaming)</li>
 </ul>
 <h3 id="client-dependencies">Client Dependencies<a class="headerlink" href="#client-dependencies" title="Permanent link">#</a></h3>
 <p>Download the client streaming binaries from NGC:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Navigate to the client operator directory</span>
-<span class="nb">cd</span><span class="w"> </span>&lt;your_holohub_path&gt;/operators/video_streaming/streaming_client_enhanced
+<div class="highlight"><pre><span></span><code><span class="c1"># Navigate to the client operator directory from the holohub root directory</span>
+<span class="nb">cd</span><span class="w"> </span>operators/video_streaming/video_streaming_client
 
 <span class="c1"># Download using NGC CLI</span>
 ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">&quot;nvidia/holoscan_client_cloud_streaming:0.2&quot;</span>
@@ -15422,11 +15386,12 @@ unzip<span class="w"> </span>-o<span class="w"> </span>holoscan_client_cloud_str
 
 <span class="c1"># Clean up</span>
 rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_client_cloud_streaming_v0.2
+<span class="nb">cd</span><span class="w"> </span>-<span class="w"> </span><span class="c1"># Return to the original directory</span>
 </code></pre></div>
 <h3 id="server-dependencies">Server Dependencies<a class="headerlink" href="#server-dependencies" title="Permanent link">#</a></h3>
 <p>Download the server streaming binaries from NGC:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Navigate to the server operator directory  </span>
-<span class="nb">cd</span><span class="w"> </span>&lt;your_holohub_path&gt;/operators/video_streaming/streaming_server_enhanced
+<div class="highlight"><pre><span></span><code><span class="c1"># Navigate to the server operator directory from the holohub root directory</span>
+<span class="nb">cd</span><span class="w"> </span>operators/video_streaming/video_streaming_server
 
 <span class="c1"># Download using NGC CLI</span>
 ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">&quot;nvidia/holoscan_server_cloud_streaming:0.2&quot;</span>
@@ -15434,76 +15399,66 @@ unzip<span class="w"> </span>-o<span class="w"> </span>holoscan_server_cloud_str
 
 <span class="c1"># Clean up</span>
 rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_streaming_v0.2
+<span class="nb">cd</span><span class="w"> </span>-<span class="w"> </span><span class="c1"># Return to the original directory</span>
 </code></pre></div>
 <h2 id="running-the-applications">Running the Applications<a class="headerlink" href="#running-the-applications" title="Permanent link">#</a></h2>
 <p>The unified application provides both client and server applications.</p>
 <blockquote>
-<p>⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the <code>--base-img</code> option to specify the base image.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Set SDK version environment variable</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">HOLOHUB_BASE_SDK_VERSION</span><span class="o">=</span><span class="m">3</span>.5.0
-</code></pre></div>
+<p>⚠️ <strong>Important:</strong> These applications are currently only compatible with CUDA 12.x. If your system uses CUDA 13.x, ensure you add the <code>--cuda 12</code> flag to all command-line invocations shown below.</p>
 <p>ℹ️ The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.</p>
 </blockquote>
 <h3 id="1-start-the-streaming-server">1. Start the Streaming Server<a class="headerlink" href="#1-start-the-streaming-server" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>server
+<p>You can start the server in either C++ or Python mode.</p>
+<p><strong>C++ Server:</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming_server<span class="w"> </span>--language<span class="w"> </span>cpp
+</code></pre></div>
+<p><strong>Python Server:</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming_server<span class="w"> </span>--language<span class="w"> </span>python
 </code></pre></div>
 <h3 id="2-start-the-streaming-client-in-another-terminal">2. Start the Streaming Client (in another terminal)<a class="headerlink" href="#2-start-the-streaming-client-in-another-terminal" title="Permanent link">#</a></h3>
+<p>You can start the client in either C++ or Python mode regardless of the server language.</p>
+<h4 id="option-a-v4l2-camera-webcam">Option A: V4L2 Camera (Webcam)<a class="headerlink" href="#option-a-v4l2-camera-webcam" title="Permanent link">#</a></h4>
+<p>It uses <code>video_streaming_client_demo.yaml</code> and captures video from webcam with 640x480 resolution.</p>
 <ul>
-<li><strong>Option A: V4L2 Camera (Webcam)</strong>, which uses <code>streaming_client_demo.yaml</code> and captures video from webcam with 640x480 resolution.</li>
+<li>
+<p><strong>C++ V4L2 Camera Client:</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming_client<span class="w"> </span>v4l2<span class="w"> </span>--language<span class="w"> </span>cpp
+</code></pre></div>
+</li>
+<li>
+<p><strong>Python V4L2 Camera Client:</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming_client<span class="w"> </span>v4l2<span class="w"> </span>--language<span class="w"> </span>python
+</code></pre></div>
+</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>client_v4l2
+<h4 id="option-b-video-replayer">Option B: Video Replayer<a class="headerlink" href="#option-b-video-replayer" title="Permanent link">#</a></h4>
+<p>It uses <code>video_streaming_client_demo_replayer.yaml</code> and replays a pre-recorded video file with 854x480 resolution.</p>
+<ul>
+<li><strong>C++ Video Replayer Client:</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming_client<span class="w"> </span>replayer<span class="w"> </span>--language<span class="w"> </span>cpp
 </code></pre></div>
 <ul>
-<li><strong>Option B: Video Replayer</strong>, which uses <code>streaming_client_demo_replayer.yaml</code> and replays a pre-recorded video file with 854x480 resolution.</li>
+<li><strong>Python Video Replayer Client:</strong></li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>client_replayer
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming_client<span class="w"> </span>replayer<span class="w"> </span>--language<span class="w"> </span>python
 </code></pre></div>
-<h2 id="python-applications">Python Applications<a class="headerlink" href="#python-applications" title="Permanent link">#</a></h2>
-<p>Both server and client applications are available in Python using the Holoscan Python bindings. The Python implementations are fully compatible with their C++ counterparts and can be used interchangeably.</p>
-<h3 id="running-python-server">Running Python Server<a class="headerlink" href="#running-python-server" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>server_python
-</code></pre></div>
-<p><strong>Default Configuration:</strong></p>
-<ul>
-<li>Port: 48010</li>
-<li>Resolution: 854x480</li>
-<li>Frame Rate: 30 fps</li>
-<li>Pipeline: StreamingServerUpstreamOp → StreamingServerDownstreamOp (passthrough/echo mode)</li>
-</ul>
-<h3 id="running-python-client">Running Python Client<a class="headerlink" href="#running-python-client" title="Permanent link">#</a></h3>
-<p><strong>Video Replayer Mode (Default - 854x480):</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>client_python
-</code></pre></div>
-<p><strong>V4L2 Camera Mode (640x480):</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>client_python_v4l2
-</code></pre></div>
-<p><strong>Default Client Configurations:</strong></p>
-<p><strong>Video Replayer Mode:</strong></p>
-<ul>
-<li>Source: Video file (surgical_video)</li>
-<li>Resolution: 854x480</li>
-<li>Frame Rate: 30 fps</li>
-<li>Server: 127.0.0.1:48010</li>
-</ul>
-<p><strong>V4L2 Camera Mode:</strong></p>
-<ul>
-<li>Source: /dev/video0 (webcam)</li>
-<li>Resolution: 640x480</li>
-<li>Frame Rate: 30 fps</li>
-<li>Server: 127.0.0.1:48010</li>
-</ul>
-<p><strong>Important:</strong> Ensure the server is configured to match the client's resolution for optimal performance.</p>
+<blockquote>
+<p><strong>Note:</strong>
+- The video streaming server and client are <strong>cross-language compatible</strong>. You can start the server in one language (C++ or Python) and then connect with a client running in either language.<br />
+- You can <strong>switch between the client modes</strong> (replayer or V4L2 camera) at any time without restarting the server—just stop one client and start the other. The server automatically manages client connections.</p>
+</blockquote>
 <h3 id="python-bindings">Python Bindings<a class="headerlink" href="#python-bindings" title="Permanent link">#</a></h3>
 <p>The Python applications use these Holoscan operator bindings:</p>
 <p><strong>Server Components:</strong></p>
 <ul>
-<li><code>holohub.streaming_server_enhanced.StreamingServerResource</code> - Manages server connections</li>
-<li><code>holohub.streaming_server_enhanced.StreamingServerUpstreamOp</code> - Receives frames from clients</li>
-<li><code>holohub.streaming_server_enhanced.StreamingServerDownstreamOp</code> - Sends frames to clients</li>
+<li><code>holohub.video_streaming_server.StreamingServerResource</code> - Manages server connections</li>
+<li><code>holohub.video_streaming_server.StreamingServerUpstreamOp</code> - Receives frames from clients</li>
+<li><code>holohub.video_streaming_server.StreamingServerDownstreamOp</code> - Sends frames to clients</li>
 </ul>
 <p><strong>Client Components:</strong></p>
 <ul>
-<li><code>holohub.streaming_client_enhanced.StreamingClientOp</code> - Bidirectional client streaming</li>
+<li><code>holohub.video_streaming_client.VideoStreamingClientOp</code> - Bidirectional client streaming</li>
 </ul>
 <p><strong>Holoscan Core Operators:</strong></p>
 <ul>
@@ -15524,7 +15479,7 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 <ul>
 <li>Video source: <code>VideoStreamReplayerOp</code> or <code>V4L2VideoCaptureOp</code></li>
 <li><code>FormatConverterOp</code> handles format conversion (RGBA→RGB→BGR)</li>
-<li><code>StreamingClientOp</code> manages bidirectional streaming (send and receive)</li>
+<li><code>VideoStreamingClientOp</code> manages bidirectional streaming (send and receive)</li>
 <li><code>HolovizOp</code> visualizes received frames</li>
 </ul>
 <p><strong>For complete Python implementation examples and code</strong>, see:</p>
@@ -15599,9 +15554,9 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 <li>Ensure client and server resolutions match</li>
 </ul>
 <h3 id="configuration-files">Configuration Files<a class="headerlink" href="#configuration-files" title="Permanent link">#</a></h3>
-<p><strong>Python Server:</strong> <code>python/streaming_server_demo.yaml</code>
-<strong>Python Client (Replayer):</strong> <code>python/streaming_client_demo_replayer.yaml</code>
-<strong>Python Client (V4L2):</strong> <code>python/streaming_client_demo.yaml</code></p>
+<p><strong>Python Server:</strong> <code>video_streaming_server/python/video_streaming_server_demo.yaml</code>
+<strong>Python Client (Replayer):</strong> <code>video_streaming_client/python/video_streaming_client_demo_replayer.yaml</code>
+<strong>Python Client (V4L2):</strong> <code>video_streaming_client/python/video_streaming_client_demo.yaml</code></p>
 <h3 id="detailed-documentation">Detailed Documentation<a class="headerlink" href="#detailed-documentation" title="Permanent link">#</a></h3>
 <p>For complete implementation details, see the component-specific READMEs:</p>
 <ul>
@@ -15612,19 +15567,19 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 <h3 id="server-options">Server Options<a class="headerlink" href="#server-options" title="Permanent link">#</a></h3>
 <ul>
 <li><code>-h, --help</code>: Show help message</li>
-<li><code>-c, --config &lt;file&gt;</code>: Configuration file path (default: streaming_server_demo.yaml)</li>
+<li><code>-c, --config &lt;file&gt;</code>: Configuration file path (default: video_streaming_server_demo.yaml)</li>
 <li><code>-d, --data &lt;directory&gt;</code>: Data directory for video files</li>
 </ul>
 <h3 id="client-options">Client Options<a class="headerlink" href="#client-options" title="Permanent link">#</a></h3>
 <ul>
 <li><code>-h, --help</code>: Show help message</li>
-<li><code>-c, --config &lt;file&gt;</code>: Configuration file path (default: streaming_client_demo.yaml)</li>
+<li><code>-c, --config &lt;file&gt;</code>: Configuration file path (default: video_streaming_client_demo.yaml)</li>
 <li><code>-d, --data &lt;directory&gt;</code>: Data directory for video files</li>
 </ul>
 <p><strong>Note:</strong> Video source type (V4L2 vs replayer) is configured in the YAML file, not via command line arguments.</p>
 <h2 id="camera-setup-and-testing">Camera Setup and Testing<a class="headerlink" href="#camera-setup-and-testing" title="Permanent link">#</a></h2>
 <blockquote>
-<p><strong>📖 For detailed camera configuration and troubleshooting</strong>, see the <a href="../../operators/video_streaming/streaming_client_enhanced/#camera-setup-and-testing">Client Operator README</a> which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.</p>
+<p><strong>📖 For detailed camera configuration and troubleshooting</strong>, see the <a href="../../operators/video_streaming/video_streaming_client/#camera-setup-and-testing">Client Operator README</a> which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.</p>
 </blockquote>
 <h3 id="testing-your-v4l2-camera">Testing Your V4L2 Camera<a class="headerlink" href="#testing-your-v4l2-camera" title="Permanent link">#</a></h3>
 <p>Before starting the streaming client with camera input:</p>
@@ -15648,63 +15603,6 @@ v4l2-ctl<span class="w"> </span>--device<span class="o">=</span>/dev/video0<span
 <li><strong>854x480 @ 30fps</strong> - Default, good for testing and lower bandwidth</li>
 </ul>
 <p><strong>Important:</strong> Ensure both client and server use matching resolution settings for optimal performance.</p>
-<h2 id="video-source-modes">Video Source Modes<a class="headerlink" href="#video-source-modes" title="Permanent link">#</a></h2>
-<h3 id="v4l2-camera-mode-vs-video-replayer-mode">V4L2 Camera Mode vs Video Replayer Mode<a class="headerlink" href="#v4l2-camera-mode-vs-video-replayer-mode" title="Permanent link">#</a></h3>
-<table>
-<thead>
-<tr>
-<th>Feature</th>
-<th>V4L2 Camera</th>
-<th>Video Replayer</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Config File</strong></td>
-<td><code>streaming_client_demo.yaml</code> (default)</td>
-<td><code>streaming_client_demo_replayer.yaml</code> (custom)</td>
-</tr>
-<tr>
-<td><strong>Command</strong></td>
-<td><code>--docker-opts='-e device=/dev/video0'</code></td>
-<td><code>--run-args='-c streaming_client_demo_replayer.yaml'</code></td>
-</tr>
-<tr>
-<td><strong>Source Type</strong></td>
-<td><code>source: "v4l2"</code></td>
-<td><code>source: "replayer"</code></td>
-</tr>
-<tr>
-<td><strong>Input Format</strong></td>
-<td><code>rgba8888</code> (4 channels)</td>
-<td><code>rgb888</code> (3 channels)</td>
-</tr>
-<tr>
-<td><strong>Resolution</strong></td>
-<td>640x480</td>
-<td>854x480</td>
-</tr>
-<tr>
-<td><strong>Data Source</strong></td>
-<td>Live webcam</td>
-<td>Pre-recorded surgical video</td>
-</tr>
-<tr>
-<td><strong>Use Case</strong></td>
-<td>Real-time streaming</td>
-<td>Testing, demos, development</td>
-</tr>
-</tbody>
-</table>
-<h3 id="switching-between-modes">Switching Between Modes<a class="headerlink" href="#switching-between-modes" title="Permanent link">#</a></h3>
-<p>To switch between V4L2 camera and video replayer:</p>
-<ol>
-<li><strong>Stop the current client</strong> (Ctrl+C)</li>
-<li><strong>Use the appropriate command:</strong></li>
-<li>For camera: <code>./holohub run video_streaming client_v4l2</code> (or <code>client_python_v4l2</code>)</li>
-<li>For video replay: <code>./holohub run video_streaming client_replayer</code> (or <code>client_python</code>)</li>
-</ol>
-<p><strong>Important:</strong> The server doesn't need to be restarted when switching client modes.</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <h3 id="camera-issues">Camera Issues<a class="headerlink" href="#camera-issues" title="Permanent link">#</a></h3>
 <ul>
@@ -15746,19 +15644,19 @@ sudo<span class="w"> </span>lsof<span class="w"> </span>-ti:48010<span class="w"
 <li><strong>Config file not found:</strong></li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="c1"># Ensure the replayer config exists in build directory</span>
-cp<span class="w"> </span>applications/streaming_client_demo/cpp/streaming_client_demo_replayer.yaml<span class="w"> </span>build/streaming_client_demo/
+cp<span class="w"> </span>applications/video_streaming/video_streaming_client/cpp/video_streaming_client_demo_replayer.yaml<span class="w"> </span>build/video_streaming_client_demo/
 </code></pre></div>
 <ul>
 <li><strong>Format converter errors:</strong></li>
 <li><code>Invalid channel count for RGBA8888 3 != 4</code>: Video replayer outputs RGB888 (3 channels), not RGBA8888 (4 channels)</li>
 <li>
-<p>Solution: Use <code>streaming_client_demo_replayer.yaml</code> which has correct format converter settings</p>
+<p>Solution: Use <code>video_streaming_client_demo_replayer.yaml</code> which has correct format converter settings</p>
 </li>
 <li>
 <p><strong>Resolution mismatch:</strong></p>
 </li>
 <li>Video file is 854x480, ensure all components use matching resolution</li>
-<li>Check <code>streaming_client</code>, <code>holoviz</code>, and <code>format_converter</code> settings</li>
+<li>Check <code>video_streaming_client</code>, <code>holoviz</code>, and <code>format_converter</code> settings</li>
 </ul>
 <h3 id="expected-behavior-and-logs">Expected Behavior and Logs<a class="headerlink" href="#expected-behavior-and-logs" title="Permanent link">#</a></h3>
 <p><strong>Client Application:</strong>
@@ -15780,7 +15678,7 @@ The server should display connection status and frame processing information. Lo
 <p>You can use <code>--verbose</code> flag to get more detailed output.</p>
 <h3 id="run-specific-tests">Run specific tests<a class="headerlink" href="#run-specific-tests" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run C++ integration test</span>
-./applications/video_streaming/integration_test.sh
+./applications/video_streaming/integration_test_cpp.sh
 
 <span class="c1"># Run Python integration test</span>
 ./applications/video_streaming/integration_test_python.sh
@@ -15788,7 +15686,7 @@ The server should display connection status and frame processing information. Lo
 <p>Or use direct HoloHub CLI commands:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run C++ integration test using HoloHub CLI</span>
 ./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>video_streaming<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--ctest-options<span class="o">=</span><span class="s2">&quot;-R video_streaming_integration_test&quot;</span>
+<span class="w">  </span>--ctest-options<span class="o">=</span><span class="s2">&quot;-R video_streaming_integration_test_cpp&quot;</span>
 
 <span class="c1"># Run Python integration test using HoloHub CLI</span>
 ./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>video_streaming<span class="w"> </span><span class="se">\</span>
@@ -15796,7 +15694,7 @@ The server should display connection status and frame processing information. Lo
 </code></pre></div>
 <p><strong>Test Scripts:</strong></p>
 <ul>
-<li><code>integration_test.sh</code> - C++ server and client test (SDK 3.5.0)</li>
+<li><code>integration_test_cpp.sh</code> - C++ server and client test (SDK 3.5.0)</li>
 <li><code>integration_test_python.sh</code> - Python server and client test (SDK 3.6.0)</li>
 </ul>
 <p><strong>⚠️ Important:</strong> Both scripts run in Docker and build from <strong>committed source code</strong>. Commit your changes before running tests.</p>
@@ -15806,7 +15704,7 @@ The server should display connection status and frame processing information. Lo
 <p>📋 <strong><a href="../../operators/video_streaming/">Video Streaming Operators</a></strong> - Complete operator documentation</p>
 <p>The operator documentation includes:</p>
 <ul>
-<li><strong>Client Components</strong>: StreamingClientOp, FrameSaverOp</li>
+<li><strong>Client Components</strong>: VideoStreamingClientOp, FrameSaverOp</li>
 <li><strong>Server Components</strong>: StreamingServerResource, StreamingServerUpstreamOp, StreamingServerDownstreamOp</li>
 <li><strong>Parameters and Configuration</strong>: Detailed parameter descriptions and usage examples</li>
 <li><strong>Testing Documentation</strong>: Comprehensive test suite with 40+ tests passing</li>
@@ -15876,13 +15774,13 @@ The server should display connection status and frame processing information. Lo
         
         
           
-          <a href="video_streaming_client/" class="md-footer__link md-footer__link--next" aria-label="Next: Video Streaming Client Demo (Python) (latest)">
+          <a href="video_streaming_client/" class="md-footer__link md-footer__link--next" aria-label="Next: Video Streaming Client Demo (C++) (latest)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Video Streaming Client Demo (Python) (latest)
+                Video Streaming Client Demo (C++) (latest)
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -8,21 +8,21 @@
       
       
       
-        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/operators/video_streaming/streaming_client_enhanced/">
+        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/operators/video_streaming/video_streaming_server/">
       
       
-        <link rel="prev" href="../streaming_server_enhanced/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../../volume_loader/">
+        <link rel="next" href="../video_streaming_client/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
     
     
       
-        <title>StreamingClientOp (latest) - NVIDIA Holoscan Reference Applications</title>
+        <title>StreamingServerOps (latest) - NVIDIA Holoscan Reference Applications</title>
       
     
     
@@ -94,7 +94,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#streamingclient-operator" class="md-skip">
+        <a href="#streaming-server-operators" class="md-skip">
           Skip to content
         </a>
       
@@ -140,7 +140,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              StreamingClientOp (latest)
+              StreamingServerOps (latest)
             
           </span>
         </div>
@@ -12705,65 +12705,6 @@
                 
   
   
-  
-  
-    
-    
-      
-        
-          
-        
-      
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_40_2" >
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="../streaming_server_enhanced/" class="md-nav__link ">
-              
-  
-  
-  <span class="md-ellipsis">
-    Streaming Server
-    
-  </span>
-  
-
-            </a>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_40_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_40_2">
-            <span class="md-nav__icon md-icon"></span>
-            Streaming Server
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -12786,11 +12727,70 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_40_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_40_2" checked>
         
           
           <div class="md-nav__link md-nav__container">
             <a href="./" class="md-nav__link md-nav__link--active">
+              
+  
+  
+  <span class="md-ellipsis">
+    Streaming Server
+    
+  </span>
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_40_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_40_2">
+            <span class="md-nav__icon md-icon"></span>
+            Streaming Server
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_40_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../video_streaming_client/" class="md-nav__link ">
               
   
   
@@ -12804,7 +12804,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_40_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_40_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_40_3">
             <span class="md-nav__icon md-icon"></span>
             StreamingClient
@@ -14969,70 +14969,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#requirements-setup" class="md-nav__link">
+  <a href="#architecture-components" class="md-nav__link">
     <span class="md-ellipsis">
-      Requirements &amp; Setup
+      Architecture Components
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#camera-setup-and-testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Camera Setup and Testing
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Camera Setup and Testing">
+    <nav class="md-nav" aria-label="Architecture Components">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#testing-your-v4l2-camera" class="md-nav__link">
+  <a href="#holoscanopsstreamingserverresource" class="md-nav__link">
     <span class="md-ellipsis">
-      Testing Your V4L2 Camera
+      holoscan::ops::StreamingServerResource
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuring-camera-resolution" class="md-nav__link">
+  <a href="#holoscanopsstreamingserverupstreamop" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuring Camera Resolution
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuring Camera Resolution">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#for-video_streaming_client" class="md-nav__link">
-    <span class="md-ellipsis">
-      For video_streaming_client:
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#recommended-settings-by-camera-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      Recommended Settings by Camera Type
+      holoscan::ops::StreamingServerUpstreamOp
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#troubleshooting-camera-issues" class="md-nav__link">
+  <a href="#holoscanopsstreamingserverdownstreamop" class="md-nav__link">
     <span class="md-ellipsis">
-      Troubleshooting Camera Issues
+      holoscan::ops::StreamingServerDownstreamOp
     </span>
   </a>
   
@@ -15044,83 +15011,46 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#framesaver-utility-class" class="md-nav__link">
+  <a href="#benefits-of-split-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      FrameSaver Utility Class
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="FrameSaver Utility Class">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Features
+      Benefits of Split Architecture
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      Usage
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Usage">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#integration-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Integration Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       Parameters
     </span>
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#output-files" class="md-nav__link">
+  <a href="#streamingserverresource-parameters" class="md-nav__link">
     <span class="md-ellipsis">
-      Output Files
+      StreamingServerResource Parameters
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#debugging-features" class="md-nav__link">
+  <a href="#streamingserverupstreamop-parameters" class="md-nav__link">
     <span class="md-ellipsis">
-      Debugging Features
+      StreamingServerUpstreamOp Parameters
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-output" class="md-nav__link">
+  <a href="#streamingserverdownstreamop-parameters" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Output
+      StreamingServerDownstreamOp Parameters
     </span>
   </a>
   
@@ -15130,22 +15060,140 @@
     </nav>
   
 </li>
+      
+        <li class="md-nav__item">
+  <a href="#inputoutput-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input/Output Ports
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Input/Output Ports">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#building-the-framesaver" class="md-nav__link">
+  <a href="#streamingserverupstreamop-ports" class="md-nav__link">
     <span class="md-ellipsis">
-      Building the FrameSaver
+      StreamingServerUpstreamOp Ports
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-cases" class="md-nav__link">
+  <a href="#streamingserverdownstreamop-ports" class="md-nav__link">
     <span class="md-ellipsis">
-      Use Cases
+      StreamingServerDownstreamOp Ports
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#complete-pipeline-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complete Pipeline Setup
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Requirements &amp; Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Requirements &amp; Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deployment-on-nvcf" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment on NVCF
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment on NVCF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#push-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      Push Container
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Set Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-the-cloud-streaming-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create the Cloud Streaming Function
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update Function
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deploy Function
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Function
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -15158,6 +15206,15 @@
   <a href="#python-bindings-applications" class="md-nav__link">
     <span class="md-ellipsis">
       Python Bindings &amp; Applications
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Resources
     </span>
   </a>
   
@@ -15182,12 +15239,6 @@
       
       
       
-        <a href="../../../tags/#tag:client" class="md-tag">Client</a>
-      
-    
-      
-      
-      
         <a href="../../../tags/#tag:cloud" class="md-tag">Cloud</a>
       
     
@@ -15195,6 +15246,12 @@
       
       
         <a href="../../../tags/#tag:networking" class="md-tag">Networking</a>
+      
+    
+      
+      
+      
+        <a href="../../../tags/#tag:server" class="md-tag">Server</a>
       
     
       
@@ -15213,279 +15270,386 @@
 
 
 
-<h1 id="streamingclient-operator"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/video_streaming/streaming_client_enhanced">StreamingClient Operator</a><a class="headerlink" href="#streamingclient-operator" title="Permanent link">#</a></h1>
-<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++, Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> October 24, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
-<p>The StreamingClientOp class implements a Holoscan operator that provides bidirectional video streaming capabilities with the following key components:</p>
-<ul>
-<li>Configuration and Initialization:</li>
-<li>Configurable parameters for frame dimensions (width, height), frame rate (fps), server connection (IP, port)</li>
-<li>Input/output ports for frame data using GXF entities</li>
-<li>Support for both sending and receiving frames through separate flags</li>
-</ul>
-<p>Frame Processing Pipeline:
-- Input handling: Receives frames as GXF entities containing H.264 encoded video tensors
-- Frame conversion: Converts input tensors to VideoFrame objects with BGRA format
-- Memory management: Implements safe memory handling with bounds checking and zero-padding
-- Output generation: Creates GXF entities with properly configured tensors for downstream processing</p>
-<p>Streaming Protocol Implementation:
-- Bidirectional streaming support through StreamingClient class
-- Frame callback system for receiving frames
-- Frame source system for sending frames
-- Connection management with server including timeout handling</p>
+<h1 id="streaming-server-operators"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/video_streaming/video_streaming_server">Streaming Server Operators</a><a class="headerlink" href="#streaming-server-operators" title="Permanent link">#</a></h1>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++, Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> November 3, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.5.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
+<p>The <code>video_streaming_server</code> operator provides a modular streaming server implementation with separate upstream, downstream, and resource components. This split architecture allows for better separation of concerns and more flexible streaming pipeline configurations.</p>
 <blockquote>
 <p><strong>📚 Related Documentation:</strong>
 - <strong><a href="../">Main Operators README</a></strong> - Setup, dependencies, NGC downloads, and Python examples
-- <strong><a href="../../../applications/video_streaming/video_streaming_client/">Client Application README</a></strong> - Complete client application with usage examples
-- <strong><a href="../streaming_server_enhanced/">Server Operator README</a></strong> - Companion server operator documentation
+- <strong><a href="../../../applications/video_streaming/video_streaming_server/">Server Application README</a></strong> - Complete server application with usage examples
+- <strong><a href="../video_streaming_client/">Client Operator README</a></strong> - Companion client operator documentation
 - <strong><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/video_streaming/TESTING.md">Testing Documentation</a></strong> - Integration testing and verification</p>
 </blockquote>
 <h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">#</a></h2>
-<p>The StreamingClient operator integrates with the Holoscan Client Cloud Streaming library to provide seamless video streaming capabilities:</p>
+<p>The Streaming Server operators integrate with the Holoscan Server Cloud Streaming library to provide comprehensive multi-client streaming capabilities:</p>
 <div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────────────────────────┐
 │                           Holoscan Application                                  │
 ├─────────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐    ┌─────────────────────────────────────────────────────┐ │
-│  │   Input Source  │    │              StreamingClientOp                      │ │
-│  │                 │    │                                                     │ │
-│  │  • V4L2 Camera  │───▶│  ┌─────────────────┐    ┌─────────────────────────┐ │ │
-│  │  • Video File   │    │  │  Frame Convert  │    │    VideoFrame Object   │ │ │
-│  │  • Tensor Data  │    │  │  BGR → BGRA     │───▶│    • Width/Height      │ │ │
-│  │                 │    │  │  Validation     │    │    • Pixel Data        │ │ │
-│  └─────────────────┘    │  └─────────────────┘    │    • Format (BGRA)     │ │ │
-│                         │                         │    • Timestamp         │ │ │
-│  ┌─────────────────┐    │                         └─────────────────────────┘ │ │
-│  │  Output Sink    │◀───┤                                      │              │ │
-│  │                 │    │                                      ▼              │ │
-│  │  • HoloViz      │    │  ┌─────────────────────────────────────────────────┐ │ │
-│  │  • File Writer  │    │  │         Holoscan Client Cloud Streaming        │ │ │
-│  │  • Next Op      │    │  │                                                 │ │ │
-│  └─────────────────┘    │  │  ┌─────────────────┐    ┌─────────────────────┐ │ │ │
-│                         │  │  │ StreamingClient │    │   Network Protocol  │ │ │ │
-│                         │  │  │                 │    │                     │ │ │ │
-│                         │  │  │ • sendFrame()   │───▶│  • Cloud Streaming │ │ │ │
-│                         │  │  │ • Callbacks     │    │  • Signaling       │ │ │ │
-│                         │  │  │ • Connection    │    │  • Media Transport  │ │ │ │
-│                         │  │  │   Management    │    │  • Encryption       │ │ │ │
-│                         │  │  └─────────────────┘    └─────────────────────┘ │ │ │
-│                         │  │                                      │          │ │ │
-│                         │  └──────────────────────────────────────┼──────────┘ │ │
-│                         │                                         │            │ │
-│                         └─────────────────────────────────────────┼────────────┘ │
-└───────────────────────────────────────────────────────────────────┼──────────────┘
-                                                                    │
-                          ┌─────────────────────────────────────────┼──────────────┐
-                          │                    Network                             │
-                          │                                                        │
-                          │  ┌─────────────────────────────────────────────────┐   │
-                          │  │              Streaming Server                   │   │
-                          │  │                                                 │   │
-                          │  │  • Holoscan Server Cloud Streaming             │   │
-                          │  │  • Multi-client support                        │   │
-                          │  │  • Bidirectional communication                 │   │
-                          │  │  • Frame processing and relay                  │   │
-                          │  └─────────────────────────────────────────────────┘   │
+│                                                                                 │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │                    StreamingServerResource                                  │ │
+│  │                                                                             │ │
+│  │  ┌─────────────────────────────────────────────────────────────────────────┐ │ │
+│  │  │              Holoscan Server Cloud Streaming                            │ │ │
+│  │  │                                                                         │ │ │
+│  │  │  ┌─────────────────┐    ┌─────────────────────────────────────────────┐ │ │ │
+│  │  │  │ StreamingServer │    │         Network Protocol Stack              │ │ │ │
+│  │  │  │                 │    │                                             │ │ │ │
+│  │  │  │ • Multi-client  │───▶│  • Media Transport &amp; Encoding               │ │ │ │
+│  │  │  │   Management    │    │  • Connection Management                    │ │ │ │
+│  │  │  │ • Frame Routing │    │  • Security &amp; Authentication                │ │ │ │
+│  │  │  │ • Callbacks     │    │                                             │ │ │ │
+│  │  │  └─────────────────┘    └─────────────────────────────────────────────┘ │ │ │
+│  │  └─────────────────────────────────────────────────────────────────────────┘ │ │
+│  │                                      │                                      │ │
+│  └──────────────────────────────────────┼──────────────────────────────────────┘ │
+│                                         │                                        │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │                        Processing Pipeline                                  │ │
+│  │                                                                             │ │
+│  │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐ │ │
+│  │  │StreamingServer  │    │   Processing    │    │StreamingServer          │ │ │
+│  │  │UpstreamOp       │    │   Operators     │    │DownstreamOp             │ │ │
+│  │  │                 │    │                 │    │                         │ │ │
+│  │  │ • Frame Receive │───▶│ • Format Conv   │───▶│ • Frame Processing      │ │ │
+│  │  │ • Client Frames │    │ • AI/ML Ops     │    │ • Tensor → VideoFrame   │ │ │
+│  │  │ • Tensor Output │    │ • Filtering     │    │ • Multi-client Send     │ │ │
+│  │  │ • Validation    │    │ • Enhancement   │    │ • Optional Processing   │ │ │
+│  │  └─────────────────┘    └─────────────────┘    └─────────────────────────┘ │ │
+│  │           │                       │                            │            │ │
+│  └───────────┼───────────────────────┼────────────────────────────┼────────────┘ │
+│              │                       │                            │              │
+│              ▼                       │                            ▲              │
+│  ┌─────────────────┐                 │                ┌─────────────────────────┐ │
+│  │  Input Sources  │                 │                │     Output Sinks        │ │
+│  │                 │                 │                │                         │ │
+│  │ • Client Frames │                 │                │ • Client Connections    │ │
+│  │ • Network Data  │                 │                │ • Processed Frames      │ │
+│  │ • Remote Cams   │                 │                │ • Multi-cast Streams    │ │
+│  └─────────────────┘                 │                └─────────────────────────┘ │
+│                                      │                                           │
+│                                      ▼                                           │
+│                          ┌─────────────────────────┐                            │
+│                          │   Optional Processing   │                            │
+│                          │                         │                            │
+│                          │ • AI/ML Inference       │                            │
+│                          │ • Computer Vision       │                            │
+│                          │ • Frame Enhancement     │                            │
+│                          │ • Analytics             │                            │
+│                          └─────────────────────────┘                            │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                         │
+                          ┌──────────────┼──────────────┐
+                          │             Network         │
+                          │                             │
+                          │  ┌──────────────────────────┴──────────────────────┐  │
+                          │  │                Multiple Clients                 │  │
+                          │  │                                                 │  │
+                          │  │  ┌─────────────┐  ┌─────────────┐  ┌──────────┐│  │
+                          │  │  │   Client 1  │  │   Client 2  │  │ Client N ││  │
+                          │  │  │             │  │             │  │          ││  │
+                          │  │  │ • Holoscan  │  │ • Holoscan  │  │• Holoscan││  │
+                          │  │  │   Client    │  │   Client    │  │  Client  ││  │
+                          │  │  │   Streaming │  │   Streaming │  │ Streaming││  │
+                          │  │  └─────────────┘  └─────────────┘  └──────────┘│  │
+                          │  └─────────────────────────────────────────────────┘  │
                           └────────────────────────────────────────────────────────┘
 </code></pre></div>
 <h3 id="component-interactions">Component Interactions<a class="headerlink" href="#component-interactions" title="Permanent link">#</a></h3>
 <ol>
 <li>
-<p><strong>Input Processing</strong>: The operator receives video frames from upstream Holoscan operators (V4L2, video replayer, etc.)</p>
+<p><strong>Multi-Client Management</strong>: The StreamingServerResource manages multiple simultaneous client connections through the Holoscan Server Cloud Streaming library</p>
 </li>
 <li>
-<p><strong>Frame Conversion</strong>: Input tensors are converted to VideoFrame objects with proper format validation and memory management</p>
+<p><strong>Upstream Processing</strong>: StreamingServerUpstreamOp receives frames from connected clients and converts them to Holoscan tensors for processing</p>
 </li>
 <li>
-<p><strong>Cloud Streaming Integration</strong>: The VideoFrame is passed to the Holoscan Client Cloud Streaming library via <code>StreamingClient::sendFrame()</code></p>
+<p><strong>Pipeline Integration</strong>: Frames flow through the standard Holoscan processing pipeline (AI/ML, computer vision, analytics, etc.)</p>
 </li>
 <li>
-<p><strong>Network Transport</strong>: The cloud streaming library handles:</p>
-</li>
-<li>Protocol implementation</li>
-<li>Signaling and connection establishment</li>
-<li>Media encoding and transport</li>
-<li>
-<p>Security and encryption</p>
+<p><strong>Downstream Distribution</strong>: StreamingServerDownstreamOp takes processed tensors and distributes them to all connected clients</p>
 </li>
 <li>
-<p><strong>Bidirectional Communication</strong>: Frames received from the server are processed through callbacks and converted back to Holoscan tensors</p>
+<p><strong>Network Protocol Handling</strong>: The cloud streaming library manages:</p>
+</li>
+<li>Multi-client signaling and negotiation</li>
+<li>Media encoding/decoding and transport</li>
+<li>Load balancing and connection management</li>
+<li>
+<p>Security and authentication</p>
 </li>
 <li>
-<p><strong>Output Generation</strong>: Processed frames are emitted as GXF entities for downstream operators (HoloViz, file writers, etc.)</p>
+<p><strong>Bidirectional Communication</strong>: Supports simultaneous receiving from clients (upstream) and sending to clients (downstream)</p>
 </li>
 </ol>
+<h2 id="architecture-components">Architecture Components<a class="headerlink" href="#architecture-components" title="Permanent link">#</a></h2>
+<h3 id="holoscanopsstreamingserverresource"><code>holoscan::ops::StreamingServerResource</code><a class="headerlink" href="#holoscanopsstreamingserverresource" title="Permanent link">#</a></h3>
+<p>A shared resource that manages the underlying StreamingServer instance and provides:
+- Centralized server lifecycle management
+- Event handling and callback management
+- Configuration management for server parameters
+- Frame sending and receiving coordination between operators</p>
+<h3 id="holoscanopsstreamingserverupstreamop"><code>holoscan::ops::StreamingServerUpstreamOp</code><a class="headerlink" href="#holoscanopsstreamingserverupstreamop" title="Permanent link">#</a></h3>
+<p>An operator that receives video frames from streaming clients and outputs them as Holoscan tensors:
+- Receives frames from connected clients via the StreamingServerResource
+- Converts received frames to <code>holoscan::Tensor</code> format
+- Provides duplicate frame detection to ensure unique frame processing
+- Outputs tensors to the Holoscan processing pipeline</p>
+<h3 id="holoscanopsstreamingserverdownstreamop"><code>holoscan::ops::StreamingServerDownstreamOp</code><a class="headerlink" href="#holoscanopsstreamingserverdownstreamop" title="Permanent link">#</a></h3>
+<p>An operator that receives Holoscan tensors and sends them to streaming clients:
+- Takes <code>holoscan::Tensor</code> input from the processing pipeline
+- Converts tensors back to video frame format
+- Sends processed frames to connected clients via the StreamingServerResource
+- Supports optional frame processing (mirroring, rotation, etc.)</p>
+<h2 id="benefits-of-split-architecture">Benefits of Split Architecture<a class="headerlink" href="#benefits-of-split-architecture" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Modularity</strong>: Each component has a single responsibility (resource management, receiving, or sending)</li>
+<li><strong>Flexibility</strong>: You can use only upstream, only downstream, or both depending on your pipeline needs</li>
+<li><strong>Shared Resource</strong>: Multiple operators can share the same StreamingServerResource instance</li>
+<li><strong>Better Testing</strong>: Each component can be tested independently</li>
+<li><strong>Clear Data Flow</strong>: Explicit tensor-based input/output ports make data flow obvious</li>
+<li><strong>Processing Integration</strong>: Seamless integration with Holoscan's tensor processing pipeline</li>
+</ul>
+<h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h2>
+<h3 id="streamingserverresource-parameters">StreamingServerResource Parameters<a class="headerlink" href="#streamingserverresource-parameters" title="Permanent link">#</a></h3>
+<ul>
+<li><strong><code>port</code></strong>: Port used for streaming server</li>
+<li>type: <code>uint16_t</code></li>
+<li>
+<p>default: 48010</p>
+</li>
+<li>
+<p><strong><code>is_multi_instance</code></strong>: Allow multiple server instances</p>
+</li>
+<li>type: <code>bool</code></li>
+<li>
+<p>default: false</p>
+</li>
+<li>
+<p><strong><code>server_name</code></strong>: Name identifier for the server</p>
+</li>
+<li>type: <code>std::string</code></li>
+<li>
+<p>default: "HoloscanStreamingServer"</p>
+</li>
+<li>
+<p><strong><code>width</code></strong>: Width of the video frames in pixels</p>
+</li>
+<li>type: <code>uint32_t</code></li>
+<li>
+<p>default: 854</p>
+</li>
+<li>
+<p><strong><code>height</code></strong>: Height of the video frames in pixels</p>
+</li>
+<li>type: <code>uint32_t</code></li>
+<li>
+<p>default: 480</p>
+</li>
+<li>
+<p><strong><code>fps</code></strong>: Frame rate of the video</p>
+</li>
+<li>type: <code>uint16_t</code></li>
+<li>
+<p>default: 30</p>
+</li>
+<li>
+<p><strong><code>enable_upstream</code></strong>: Enable upstream (receiving) functionality</p>
+</li>
+<li>type: <code>bool</code></li>
+<li>
+<p>default: true</p>
+</li>
+<li>
+<p><strong><code>enable_downstream</code></strong>: Enable downstream (sending) functionality</p>
+</li>
+<li>type: <code>bool</code></li>
+<li>default: true</li>
+</ul>
+<h3 id="streamingserverupstreamop-parameters">StreamingServerUpstreamOp Parameters<a class="headerlink" href="#streamingserverupstreamop-parameters" title="Permanent link">#</a></h3>
+<ul>
+<li><strong><code>width</code></strong>: Frame width (inherits from resource if not specified)</li>
+<li>type: <code>uint32_t</code></li>
+<li>
+<p>default: 854</p>
+</li>
+<li>
+<p><strong><code>height</code></strong>: Frame height (inherits from resource if not specified)</p>
+</li>
+<li>type: <code>uint32_t</code></li>
+<li>
+<p>default: 480</p>
+</li>
+<li>
+<p><strong><code>fps</code></strong>: Frame rate (inherits from resource if not specified)</p>
+</li>
+<li>type: <code>uint32_t</code></li>
+<li>
+<p>default: 30</p>
+</li>
+<li>
+<p><strong><code>allocator</code></strong>: Memory allocator for tensor data</p>
+</li>
+<li>
+<p>type: <code>std::shared_ptr&lt;Allocator&gt;</code></p>
+</li>
+<li>
+<p><strong><code>video_streaming_server_resource</code></strong>: Reference to StreamingServerResource</p>
+</li>
+<li>type: <code>std::shared_ptr&lt;StreamingServerResource&gt;</code></li>
+</ul>
+<h3 id="streamingserverdownstreamop-parameters">StreamingServerDownstreamOp Parameters<a class="headerlink" href="#streamingserverdownstreamop-parameters" title="Permanent link">#</a></h3>
+<ul>
+<li><strong><code>width</code></strong>: Frame width (inherits from resource if not specified)</li>
+<li>type: <code>uint32_t</code></li>
+<li>
+<p>default: 854</p>
+</li>
+<li>
+<p><strong><code>height</code></strong>: Frame height (inherits from resource if not specified)</p>
+</li>
+<li>type: <code>uint32_t</code></li>
+<li>
+<p>default: 480</p>
+</li>
+<li>
+<p><strong><code>fps</code></strong>: Frame rate (inherits from resource if not specified)</p>
+</li>
+<li>type: <code>uint32_t</code></li>
+<li>
+<p>default: 30</p>
+</li>
+<li>
+<p><strong><code>enable_processing</code></strong>: Enable frame processing (mirroring, etc.)</p>
+</li>
+<li>type: <code>bool</code></li>
+<li>
+<p>default: false</p>
+</li>
+<li>
+<p><strong><code>processing_type</code></strong>: Type of processing to apply</p>
+</li>
+<li>type: <code>std::string</code></li>
+<li>default: "none"</li>
+<li>
+<p>options: "none", "mirror", "rotate"</p>
+</li>
+<li>
+<p><strong><code>allocator</code></strong>: Memory allocator for tensor data</p>
+</li>
+<li>
+<p>type: <code>std::shared_ptr&lt;Allocator&gt;</code></p>
+</li>
+<li>
+<p><strong><code>video_streaming_server_resource</code></strong>: Reference to StreamingServerResource</p>
+</li>
+<li>type: <code>std::shared_ptr&lt;StreamingServerResource&gt;</code></li>
+</ul>
+<h2 id="inputoutput-ports">Input/Output Ports<a class="headerlink" href="#inputoutput-ports" title="Permanent link">#</a></h2>
+<h3 id="streamingserverupstreamop-ports">StreamingServerUpstreamOp Ports<a class="headerlink" href="#streamingserverupstreamop-ports" title="Permanent link">#</a></h3>
+<p><strong>Output Ports:</strong>
+- <strong><code>output_frames</code></strong>: Output port for frames received from clients
+  - type: <code>holoscan::Tensor</code></p>
+<h3 id="streamingserverdownstreamop-ports">StreamingServerDownstreamOp Ports<a class="headerlink" href="#streamingserverdownstreamop-ports" title="Permanent link">#</a></h3>
+<p><strong>Input Ports:</strong>
+- <strong><code>input_frames</code></strong>: Input port for frames to be sent to clients
+  - type: <code>holoscan::Tensor</code></p>
+<h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">#</a></h2>
+<h3 id="complete-pipeline-setup">Complete Pipeline Setup<a class="headerlink" href="#complete-pipeline-setup" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Create allocator resource</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">allocator</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_resource</span><span class="o">&lt;</span><span class="n">UnboundedAllocator</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;allocator&quot;</span><span class="p">);</span>
+
+<span class="c1">// Create the shared StreamingServerResource</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">video_streaming_server_resource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_resource</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerResource</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;video_streaming_server_resource&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;port&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">48010</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;server_name&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;MyStreamingServer&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;width&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">854</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;height&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">480</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;fps&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;enable_upstream&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;enable_downstream&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;is_multi_instance&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span>
+<span class="p">);</span>
+
+<span class="c1">// Create upstream operator (receives frames from clients)</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">upstream_op</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerUpstreamOp</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;streaming_upstream&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;allocator&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">allocator</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;video_streaming_server_resource&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">video_streaming_server_resource</span>
+<span class="p">);</span>
+
+<span class="c1">// Create downstream operator (sends frames to clients)</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">downstream_op</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerDownstreamOp</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;streaming_downstream&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;enable_processing&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;processing_type&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;none&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;allocator&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">allocator</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;video_streaming_server_resource&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">video_streaming_server_resource</span>
+<span class="p">);</span>
+</code></pre></div>
 <h2 id="requirements-setup">Requirements &amp; Setup<a class="headerlink" href="#requirements-setup" title="Permanent link">#</a></h2>
 <p>For complete setup instructions including:
 - Holoscan SDK 3.5.0 and CUDA 12.x requirements
-- NGC binary downloads (client streaming binaries)
+- NGC binary downloads (server streaming binaries)
 - Build troubleshooting</p>
-<p><strong>See the <a href="../">Main Operators README</a> for detailed setup instructions.</strong> </p>
-<h2 id="camera-setup-and-testing">Camera Setup and Testing<a class="headerlink" href="#camera-setup-and-testing" title="Permanent link">#</a></h2>
-<p>This section provides detailed technical camera configuration for the StreamingClient operator. For application-level camera setup and quick start instructions, see the <a href="../../../applications/video_streaming/#camera-setup-and-testing">Application README</a>.</p>
-<h3 id="testing-your-v4l2-camera">Testing Your V4L2 Camera<a class="headerlink" href="#testing-your-v4l2-camera" title="Permanent link">#</a></h3>
-<p>Before using the streaming client with your camera, verify it's working properly:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Check available video devices</span>
-ls<span class="w"> </span>-la<span class="w"> </span>/dev/video*
-
-<span class="c1"># Get camera information</span>
-v4l2-ctl<span class="w"> </span>--device<span class="o">=</span>/dev/video0<span class="w"> </span>--info
-
-<span class="c1"># List supported formats and resolutions</span>
-v4l2-ctl<span class="w"> </span>--device<span class="o">=</span>/dev/video0<span class="w"> </span>--list-formats-ext
-
-<span class="c1"># Test camera capture (replace resolution as needed)</span>
-v4l2-ctl<span class="w"> </span>--device<span class="o">=</span>/dev/video0<span class="w"> </span>--set-fmt-video<span class="o">=</span><span class="nv">width</span><span class="o">=</span><span class="m">1280</span>,height<span class="o">=</span><span class="m">720</span>,pixelformat<span class="o">=</span>MJPG<span class="w"> </span>--stream-mmap<span class="w"> </span>--stream-count<span class="o">=</span><span class="m">10</span>
+<p><strong>See the <a href="../">Main Operators README</a> for detailed setup instructions.</strong></p>
+<h3 id="deployment-on-nvcf">Deployment on NVCF<a class="headerlink" href="#deployment-on-nvcf" title="Permanent link">#</a></h3>
+<p>The Holoscan cloud streaming stack provides plugins with endpoints required to deploy the server docker container as a streaming function.
+You can push the container and create/update/deploy the streaming function from the <a href="https://nvcf.ngc.nvidia.com/functions">web portal</a>.</p>
+<h4 id="push-container">Push Container<a class="headerlink" href="#push-container" title="Permanent link">#</a></h4>
+<p>Note: You first must docker login to the NGC Container Registry before you can push containers to it:
+https://docs.nvidia.com/ngc/gpu-cloud/ngc-private-registry-user-guide/index.html#accessing-ngc-registry
+Tag the container and push it to the container registry:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>tag<span class="w"> </span>simple-streamer:latest<span class="w"> </span><span class="o">{</span>registry<span class="o">}</span>/<span class="o">{</span>org-id<span class="o">}</span>/<span class="o">{</span>container-name<span class="o">}</span>:<span class="o">{</span>version<span class="o">}</span>
+docker<span class="w"> </span>push<span class="w"> </span><span class="o">{</span>registry<span class="o">}</span>/<span class="o">{</span>org-id<span class="o">}</span>/<span class="o">{</span>container-name<span class="o">}</span>:<span class="o">{</span>version<span class="o">}</span>
 </code></pre></div>
-<h3 id="configuring-camera-resolution">Configuring Camera Resolution<a class="headerlink" href="#configuring-camera-resolution" title="Permanent link">#</a></h3>
-<p>The streaming client applications use YAML configuration files to set camera parameters. Edit the appropriate config file:</p>
-<h4 id="for-video_streaming_client">For video_streaming_client:<a class="headerlink" href="#for-video_streaming_client" title="Permanent link">#</a></h4>
-<p>Edit <code>../../../applications/video_streaming/video_streaming_client/cpp/streaming_client_demo.yaml</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># V4L2 camera configuration</span>
-<span class="nt">v4l2_source</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/dev/video0&quot;</span><span class="w">        </span><span class="c1"># Camera device path</span>
-<span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1280</span><span class="w">                  </span><span class="c1"># Camera resolution width</span>
-<span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">720</span><span class="w">                  </span><span class="c1"># Camera resolution height  </span>
-<span class="w">  </span><span class="nt">frame_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span><span class="w">               </span><span class="c1"># Camera frame rate</span>
-<span class="w">  </span><span class="nt">pixel_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;MJPG&quot;</span><span class="w">         </span><span class="c1"># Pixel format (MJPG recommended for higher resolutions)</span>
-<span class="w">  </span><span class="c1"># Optional camera settings:</span>
-<span class="w">  </span><span class="c1"># exposure_time: 100         # Exposure time in multiples of 100μs</span>
-<span class="w">  </span><span class="c1"># gain: 10                   # Camera gain value</span>
+<p>For example, if your organization name/id is 0494839893562652 and you want to push a container to the prod container registry
+using the name my-simple-streamer at version 0.1.0 then run:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>tag<span class="w"> </span>simple-streamer:latest<span class="w"> </span>nvcr.io/0494839893562652/my-simple-streamer:0.1.0
+docker<span class="w"> </span>push<span class="w"> </span>nvcr.io/0494839893562652/my-simple-streamer:0.1.0
 </code></pre></div>
-<h3 id="recommended-settings-by-camera-type">Recommended Settings by Camera Type<a class="headerlink" href="#recommended-settings-by-camera-type" title="Permanent link">#</a></h3>
-<p><strong>For Logitech HD Pro Webcam C920:</strong>
-- <strong>1280x720 @ 30fps MJPG</strong> - Best balance of quality and performance
-- <strong>1920x1080 @ 30fps MJPG</strong> - High quality (higher bandwidth)
-- <strong>640x480 @ 30fps YUYV</strong> - Low bandwidth testing</p>
-<p><strong>General Guidelines:</strong>
-- Use <strong>MJPG</strong> format for resolutions above 640x480 for better performance
-- Use <strong>YUYV</strong> format for lower resolutions or when uncompressed data is needed
-- Start with 30 FPS and adjust based on your system performance
-- Match the resolution between client and server applications</p>
-<h3 id="troubleshooting-camera-issues">Troubleshooting Camera Issues<a class="headerlink" href="#troubleshooting-camera-issues" title="Permanent link">#</a></h3>
-<p><strong>Camera not detected:</strong>
-<div class="highlight"><pre><span></span><code><span class="c1"># Check camera permissions</span>
-sudo<span class="w"> </span>usermod<span class="w"> </span>-a<span class="w"> </span>-G<span class="w"> </span>video<span class="w"> </span><span class="nv">$USER</span>
-<span class="c1"># Log out and back in, then test again</span>
+<h4 id="set-variables">Set Variables<a class="headerlink" href="#set-variables" title="Permanent link">#</a></h4>
+<p>All the helper scripts below depend on the following environment variables being set:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Required variables</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NGC_PERSONAL_API_KEY</span><span class="o">=</span>&lt;get<span class="w"> </span>from<span class="w"> </span>https://nvcf.ngc.nvidia.com/functions<span class="w"> </span>-&gt;<span class="w"> </span>Generate<span class="w"> </span>Personal<span class="w"> </span>API<span class="w"> </span>Key&gt;
+<span class="nb">export</span><span class="w"> </span><span class="nv">STREAMING_CONTAINER_IMAGE</span><span class="o">=</span>&lt;registry&gt;/&lt;org-id&gt;/&lt;container-name&gt;:&lt;version&gt;
+<span class="nb">export</span><span class="w"> </span><span class="nv">STREAMING_FUNCTION_NAME</span><span class="o">=</span>&lt;my-simple-streamer-function-name&gt;
+
+<span class="c1"># Optional variables (shown with default values)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NGC_DOMAIN</span><span class="o">=</span>api.ngc.nvidia.com
+<span class="nb">export</span><span class="w"> </span><span class="nv">NVCF_SERVER</span><span class="o">=</span>grpc.nvcf.nvidia.com
+<span class="nb">export</span><span class="w"> </span><span class="nv">STREAMING_SERVER_PORT</span><span class="o">=</span><span class="m">49100</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">HTTP_SERVER_PORT</span><span class="o">=</span><span class="m">8011</span>
+</code></pre></div>
+<h4 id="create-the-cloud-streaming-function">Create the Cloud Streaming Function<a class="headerlink" href="#create-the-cloud-streaming-function" title="Permanent link">#</a></h4>
+<p>Create the streaming function by running the provided script after setting all the required variables:
+<div class="highlight"><pre><span></span><code>./nvcf/create_streaming_function.sh
 </code></pre></div></p>
-<p><strong>Poor performance:</strong>
-- Try lower resolution (e.g., 640x480)
-- Switch from YUYV to MJPG format
-- Reduce frame rate to 15 or 24 FPS</p>
-<p><strong>Format not supported:</strong>
-<div class="highlight"><pre><span></span><code><span class="c1"># Check what formats your camera actually supports</span>
-v4l2-ctl<span class="w"> </span>--device<span class="o">=</span>/dev/video0<span class="w"> </span>--list-formats-ext<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;Size:|Interval:&quot;</span>
-</code></pre></div></p>
-<h2 id="framesaver-utility-class">FrameSaver Utility Class<a class="headerlink" href="#framesaver-utility-class" title="Permanent link">#</a></h2>
-<p>The <code>FrameSaverOp</code> is a utility operator that can save video frames to disk for debugging and analysis purposes. This operator is not integrated into the main streaming client but can be used as a standalone debugging tool.</p>
-<h3 id="features">Features<a class="headerlink" href="#features" title="Permanent link">#</a></h3>
-<ul>
-<li><strong>Frame Capture</strong>: Saves individual video frames to disk</li>
-<li><strong>Multiple Formats</strong>: Supports both raw binary (.raw) and BGR format (.bgr) output</li>
-<li><strong>GPU/CPU Support</strong>: Automatically handles frames from both GPU and CPU memory</li>
-<li><strong>Configurable Output</strong>: Customizable output directory and filename patterns</li>
-<li><strong>Data Analysis</strong>: Includes frame content analysis and logging</li>
-</ul>
-<h3 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h3>
-<h4 id="basic-configuration">Basic Configuration<a class="headerlink" href="#basic-configuration" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code><span class="c1"># Add FrameSaverOp to your Holoscan application</span>
-<span class="nt">frame_saver</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;debug_frames&quot;</span><span class="w">           </span><span class="c1"># Directory to save frames</span>
-<span class="w">  </span><span class="nt">base_filename</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;frame_&quot;</span><span class="w">              </span><span class="c1"># Base filename for saved frames</span>
-<span class="w">  </span><span class="nt">save_as_raw</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">                   </span><span class="c1"># false = .bgr format, true = .raw format</span>
+<p>Once the function is created, export the <code>FUNCTION_ID</code> as a variable:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">STREAMING_FUNCTION_ID</span><span class="o">={</span>my-simple-streamer-function-id<span class="o">}</span>
 </code></pre></div>
-<h4 id="integration-example">Integration Example<a class="headerlink" href="#integration-example" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;frame_saver.hpp&quot;</span>
-
-<span class="c1">// In your application setup</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">frame_saver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">FrameSaverOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;frame_saver&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">holoscan</span><span class="o">::</span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;output_dir&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;debug_frames&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">holoscan</span><span class="o">::</span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;base_filename&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;frame_&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">holoscan</span><span class="o">::</span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;save_as_raw&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">)</span>
-<span class="p">);</span>
-
-<span class="c1">// Connect to your frame source</span>
-<span class="n">add_flow</span><span class="p">(</span><span class="n">frame_saver</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">input_frames</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">output_frames</span><span class="err">&#39;</span><span class="p">));</span>
-</code></pre></div>
-<h4 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h4>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>output_dir</code></td>
-<td>string</td>
-<td>"output_frames"</td>
-<td>Directory where frames will be saved</td>
-</tr>
-<tr>
-<td><code>base_filename</code></td>
-<td>string</td>
-<td>"frame_"</td>
-<td>Base name for saved frame files</td>
-</tr>
-<tr>
-<td><code>save_as_raw</code></td>
-<td>bool</td>
-<td>false</td>
-<td>Whether to save as raw binary (.raw) or BGR format (.bgr)</td>
-</tr>
-</tbody>
-</table>
-<h4 id="output-files">Output Files<a class="headerlink" href="#output-files" title="Permanent link">#</a></h4>
-<ul>
-<li><strong>BGR Format (.bgr)</strong>: Standard BGR pixel format, can be opened with image viewers</li>
-<li><strong>Raw Format (.raw)</strong>: Binary data, useful for debugging memory layouts</li>
-<li><strong>Naming</strong>: <code>frame_000001.bgr</code>, <code>frame_000002.bgr</code>, etc.</li>
-</ul>
-<h4 id="debugging-features">Debugging Features<a class="headerlink" href="#debugging-features" title="Permanent link">#</a></h4>
-<p>The FrameSaver includes built-in debugging features:</p>
-<ul>
-<li><strong>Content Analysis</strong>: Logs frame size, zero-pixel count, and data validity</li>
-<li><strong>Memory Handling</strong>: Automatically copies GPU frames to CPU before saving</li>
-<li><strong>Error Handling</strong>: Comprehensive error reporting for file operations</li>
-</ul>
-<h4 id="example-output">Example Output<a class="headerlink" href="#example-output" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code>Frame 0 data analysis: size=1843200, all_zeros=false, non_zero_count=95
-Saved frame 0 to debug_frames/frame_000001.bgr
-</code></pre></div>
-<h3 id="building-the-framesaver">Building the FrameSaver<a class="headerlink" href="#building-the-framesaver" title="Permanent link">#</a></h3>
-<p>To use the FrameSaver in your application, you'll need to:</p>
-<ol>
-<li>
-<p><strong>Include the source files</strong> in your CMakeLists.txt:
-<div class="highlight"><pre><span></span><code><span class="nb">add_library</span><span class="p">(</span><span class="s">frame_saver</span>
-<span class="w">  </span><span class="s">frame_saver.cpp</span>
-<span class="w">  </span><span class="s">frame_saver.hpp</span>
-<span class="p">)</span>
+<h4 id="update-function">Update Function<a class="headerlink" href="#update-function" title="Permanent link">#</a></h4>
+<p>Update an existing streaming function by running the provided script after setting all the required variables:
+<div class="highlight"><pre><span></span><code>./nvcf/update_streaming_function.sh
 </code></pre></div></p>
-</li>
-<li>
-<p><strong>Link against required libraries</strong>:
-<div class="highlight"><pre><span></span><code><span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">frame_saver</span>
-<span class="w">  </span><span class="s">holoscan::core</span>
-<span class="w">  </span><span class="s">CUDA::cudart</span>
-<span class="p">)</span>
-</code></pre></div></p>
-</li>
-</ol>
-<h3 id="use-cases">Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">#</a></h3>
-<ul>
-<li><strong>Debugging</strong>: Save frames at specific points in your pipeline</li>
-<li><strong>Analysis</strong>: Examine frame content and format</li>
-<li><strong>Testing</strong>: Verify frame data integrity</li>
-<li><strong>Development</strong>: Visual inspection of processed frames</li>
-</ul>
+<h4 id="deploy-function">Deploy Function<a class="headerlink" href="#deploy-function" title="Permanent link">#</a></h4>
+<p>Deploy the streaming function from the web portal: https://nvcf.ngc.nvidia.com/functions</p>
+<h4 id="test-function">Test Function<a class="headerlink" href="#test-function" title="Permanent link">#</a></h4>
+<p>Start the test intermediate haproxy by running the provided script after setting all the required variables:</p>
+<div class="highlight"><pre><span></span><code>./nvcf/start_test_intermediate_haproxy.sh
+</code></pre></div>
+<p>Please note that the test haproxy server should be running on a separate machine, either on the client machine or a separate one.</p>
+<p>Note: If the test haproxy is still running, and you wish to test the executable or docker file again you must first stop it:</p>
+<div class="highlight"><pre><span></span><code>./nvcf/stop_test_intermediate_haproxy.sh
+</code></pre></div>
 <h2 id="python-bindings-applications">Python Bindings &amp; Applications<a class="headerlink" href="#python-bindings-applications" title="Permanent link">#</a></h2>
 <p>For Python usage, application examples, and testing:
 - <strong><a href="../">Main Operators README</a></strong> - Python bindings overview and setup
-- <strong><a href="../../../applications/video_streaming/video_streaming_client/">Client Application README</a></strong> - Complete Python client implementation
+- <strong><a href="../../../applications/video_streaming/video_streaming_server/">Server Application README</a></strong> - Complete Python server implementation
 - <strong><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/video_streaming/TESTING.md">Testing Documentation</a></strong> - Integration testing guide</p>
+<h2 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">#</a></h2>
+<p>For more information on NVCF Cloud functions, please refer to <a href="https://docs.nvidia.com/cloud-functions/user-guide/latest/cloud-function/function-creation.html#function-creation">NVIDIA Cloud Functions documentation</a>.</p>
 
 
 
@@ -15526,7 +15690,7 @@ Saved frame 0 to debug_frames/frame_000001.bgr
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../streaming_server_enhanced/" class="md-footer__link md-footer__link--prev" aria-label="Previous: StreamingServerOps (latest)">
+          <a href="../" class="md-footer__link md-footer__link--prev" aria-label="Previous: VideoStreamingOps (latest)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -15536,20 +15700,20 @@ Saved frame 0 to debug_frames/frame_000001.bgr
                 Previous
               </span>
               <div class="md-ellipsis">
-                StreamingServerOps (latest)
+                VideoStreamingOps (latest)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../volume_loader/" class="md-footer__link md-footer__link--next" aria-label="Next: VolumeLoaderOp (latest)">
+          <a href="../video_streaming_client/" class="md-footer__link md-footer__link--next" aria-label="Next: VideoStreamingClientOp (latest)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                VolumeLoaderOp (latest)
+                VideoStreamingClientOp (latest)
               </div>
             </div>
             <div class="md-footer__button md-icon">
