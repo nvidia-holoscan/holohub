@@ -18,10 +18,10 @@ The integration test validates:
 
 ### Option 1: Using Integration Test Script
 
-The integration test script (`integration_test.sh`) runs the complete end-to-end test in a Docker container with proper SDK version and dependencies.
+The integration test script (`integration_test_cpp.sh`) runs the complete end-to-end test in a Docker container with proper SDK version and dependencies.
 
 ```bash
-./applications/video_streaming/integration_test.sh
+./applications/video_streaming/integration_test_cpp.sh
 ```
 
 **Test Configuration:**
@@ -43,10 +43,10 @@ The integration test script (`integration_test.sh`) runs the complete end-to-end
 ```bash
 # From holohub root - standard HoloHub test command
 ./holohub test video_streaming \
-  --ctest-options="-R video_streaming_integration_test"
+  --ctest-options="-R video_streaming_integration_test_cpp"
 ```
 
-**Note:** Both methods run the same underlying integration test defined in `CMakeLists.txt`. The wrapper script (`integration_test.sh`) adds developer-friendly conveniences on top of the direct command.
+**Note:** Both methods run the same underlying integration test defined in `CMakeLists.txt`. The wrapper script (`integration_test_cpp.sh`) adds developer-friendly conveniences on top of the direct command.
 
 ## Integration Test Process
 
@@ -60,9 +60,6 @@ echo "Current commit: $(git log --oneline -1)"
 
 # Cleans Docker build cache (optional, for fresh builds)
 docker system prune -f --filter "label=holohub"
-
-# Sets SDK version environment variable
-export HOLOHUB_BASE_SDK_VERSION=3.5.0
 ```
 
 ### 2. Docker Build & Test Execution (2-4 minutes)
@@ -71,7 +68,7 @@ export HOLOHUB_BASE_SDK_VERSION=3.5.0
 # Builds Docker image and runs CTest
 ./holohub test video_streaming \
   --cmake-options="-DBUILD_TESTING=ON" \
-  --ctest-options="-R video_streaming_integration_test -V" \
+  --ctest-options="-R video_streaming_integration_test_cpp -V" \
   --verbose
 ```
 
@@ -84,16 +81,16 @@ export HOLOHUB_BASE_SDK_VERSION=3.5.0
 
 ### 3. Integration Test Execution (44 seconds)
 
-The `video_streaming_integration_test` defined in CMakeLists.txt:
+The `video_streaming_integration_test_cpp` defined in CMakeLists.txt:
 
 1. **Server Startup** (10 seconds)
-   - Launches streaming server in background: `streaming_server_demo`
-   - Uses config: `streaming_server_demo.yaml`
+   - Launches streaming server in background: `video_streaming_server_demo`
+   - Uses config: `video_streaming_server_demo.yaml`
    - Waits for server to initialize and stabilize
 
 2. **Client Connection & Streaming** (30 seconds)
-   - Starts streaming client: `streaming_client_demo`
-   - Uses config: `streaming_client_demo_replayer.yaml` (video replay mode)
+   - Starts streaming client: `video_streaming_client_demo_cpp`
+   - Uses config: `video_streaming_client_demo_replayer.yaml` (video replay mode)
    - Establishes connection to server
    - Streams video frames bidirectionally for 30 seconds
    - Typically processes ~567 frames in both directions
@@ -194,7 +191,7 @@ Step 1/15 : ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
 
 [CTest output...]
 Test project /workspace/holohub/build-video_streaming
-    Start 1: video_streaming_integration_test
+    Start 1: video_streaming_integration_test_cpp
 
 1: === Integration Test with Log Verification ===
 1: Starting server and client with log capture...
@@ -228,7 +225,7 @@ Test project /workspace/holohub/build-video_streaming
 1: Client checks passed: 4
 1: ✓ STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
 1: ✓ Integration test PASSED
-1/2 Test #1: video_streaming_integration_test ..........   Passed   44.08 sec
+1/2 Test #1: video_streaming_integration_test_cpp ..........   Passed   44.08 sec
 
     Start 2: video_streaming_integration_test_python
 
@@ -268,7 +265,7 @@ Test project /workspace/holohub/build-video_streaming
 2/2 Test #2: video_streaming_integration_test_python ...   Passed   44.39 sec
 
 The following tests passed:
-    video_streaming_integration_test
+    video_streaming_integration_test_cpp
     video_streaming_integration_test_python
 
 100% tests passed, 0 tests failed out of 2
@@ -301,8 +298,8 @@ Total Test time (real) =  88.48 sec
 ```console
 [info] Source set to: replayer
 [info] Using video replayer as source
-[info] 🔧 ENHANCED StreamingClient constructed! Version with buffer validation fixes!
-[info] StreamingClient created successfully
+[info] 🔧 VideoStreamingClient constructed! Version with buffer validation fixes!
+[info] VideoStreamingClient created successfully
 [info] ✅ Connection established successfully
 [info] ✅ Upstream connection established successfully!
 [info] ✅ Frame sent successfully on attempt 1
@@ -424,7 +421,7 @@ sudo lsof -ti:48010 | xargs sudo kill -9
 
 ```bash
 # Expected behavior - test still passes if streaming worked
-1: Segmentation fault (core dumped) ./streaming_server_demo
+1: Segmentation fault (core dumped) ./video_streaming_server_demo
 1: ✓ Server: StreamingServerUpstreamOp processed 567 unique frames
 1: ✓ STREAMING VERIFICATION PASSED - Frames actually transmitted!
 ```
@@ -453,7 +450,7 @@ The integration test is designed for CI/CD pipelines:
 
 ```bash
 # CI-friendly command with timeout and exit codes
-timeout 300 ./applications/video_streaming/integration_test.sh
+timeout 300 ./applications/video_streaming/integration_test_cpp.sh
 echo "Integration test exit code: $?"
 ```
 
@@ -555,13 +552,13 @@ export HOLOHUB_BASE_SDK_VERSION=3.6.0
 The `video_streaming_integration_test_python` defined in CMakeLists.txt:
 
 1. **Server Startup** (10 seconds)
-   - Launches Python streaming server in background: `python3 streaming_server_demo.py`
-   - Uses config: `streaming_server_demo.yaml`
+   - Launches Python streaming server in background: `python3 video_streaming_server_demo.py`
+   - Uses config: `video_streaming_server_demo.yaml`
    - Waits for server to initialize and stabilize
 
 2. **Client Connection & Streaming** (30 seconds)
-   - Starts Python streaming client: `python3 streaming_client_demo.py`
-   - Uses config: `streaming_client_demo_replayer.yaml` (video replay mode)
+   - Starts Python streaming client: `python3 video_streaming_client_demo.py`
+   - Uses config: `video_streaming_client_demo_replayer.yaml` (video replay mode)
    - Establishes connection to server
    - Streams video frames bidirectionally for 30 seconds
    - Typically processes ~565 frames in both directions
@@ -607,7 +604,7 @@ Starting Python streaming client...
 Letting Python streaming run for 30 seconds...
 Stopping Python client...
 Stopping Python server...
-/usr/bin/bash: line 58:  530 Segmentation fault      (core dumped) python3 streaming_server_demo.py ...
+/usr/bin/bash: line 58:  530 Segmentation fault      (core dumped) python3 video_streaming_server_demo.py ...
 
 === Verifying Python Server Logs ===
 ✓ Python Server: Client connected
@@ -641,7 +638,7 @@ Total Test time (real) = 44.42 sec
 
 **Note:** When running the full integration test suite (both C++ and Python tests together), you'll see:
 - Test counter: `2/2 Test #2` (instead of `1/1`)
-- Both tests listed: `video_streaming_integration_test` and `video_streaming_integration_test_python`
+- Both tests listed: `video_streaming_integration_test_cpp` and `video_streaming_integration_test_python`
 - Total: `0 tests failed out of 2`
 - Total time: ~88 seconds (both tests combined)
 
@@ -730,7 +727,7 @@ The Python integration test validates the following checks. **All checks must pa
 
 #### Segmentation Fault at Shutdown (Expected Behavior)
 ```bash
-Segmentation fault (core dumped) python3 streaming_server_demo.py
+Segmentation fault (core dumped) python3 video_streaming_server_demo.py
 ✓ Python Server: StreamingServerUpstreamOp processed 561 unique frames
 ✓ PYTHON STREAMING VERIFICATION PASSED - All checks passed, frames transmitted!
 ✓ Python Integration test PASSED
