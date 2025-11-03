@@ -348,7 +348,7 @@ v4l2-ctl --device=/dev/video0 --list-formats-ext
 
   ```bash
   # Ensure the replayer config exists in build directory
-  cp applications/video_streaming_client_demo/cpp/video_streaming_client_demo_replayer.yaml build/video_streaming_client_demo/
+  cp applications/video_streaming/video_streaming_client/cpp/video_streaming_client_demo_replayer.yaml build/video_streaming_client_demo/
   ```
 
 - **Format converter errors:**
