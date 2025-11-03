@@ -21,7 +21,7 @@ The video streaming demo provides:
 
 - NVIDIA GPU
 - CUDA 12.x (currently not working with CUDA 13.x)
-- Holoscan SDK 3.5.0
+- Holoscan SDK 3.5.0 or higher
 - V4L2 camera (optional, for live streaming)
 
 ### Client Dependencies
@@ -62,7 +62,8 @@ cd - # Return to the original directory
 
 The unified application provides both client and server applications.
 
-> ⚠️ Both client and server applications require and use the Holoscan SDK 3.5.0.
+> ⚠️ **Important:** These applications are currently only compatible with CUDA 12.x. If your system uses CUDA 13.x, ensure you add the `--cuda 12` flag to all command-line invocations shown below.
+>
 > ℹ️ The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
 ### 1. Start the Streaming Server

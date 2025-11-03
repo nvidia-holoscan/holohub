@@ -44,7 +44,7 @@ cd - # Return to the original directory
 
 ## Usage
 
-> ⚠️ This application requires and uses the Holoscan SDK 3.5.0.
+> ⚠️ **Important:** This application is currently only compatible with CUDA 12.x. If your system uses CUDA 13.x, ensure you add the `--cuda 12` flag to all command-line invocations shown below.
 
 ### C++ Server
 
