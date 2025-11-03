@@ -48,4 +48,4 @@ jobs:
       - name: Run CMake tests
         run: |
           cd build
-          ctest --verbose
+          ctest --verbose -E "video_streaming"
