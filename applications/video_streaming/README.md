@@ -68,25 +68,59 @@ The unified application provides both client and server applications.
 
 ### 1. Start the Streaming Server
 
+You can start the server in either C++ or Python mode.
+
+**C++ Server:**
+
 ```bash
 ./holohub run video_streaming_server --language cpp
 ```
 
+**Python Server:**
+
+```bash
+./holohub run video_streaming_server --language python
+```
+
 ### 2. Start the Streaming Client (in another terminal)
 
-- **Option A: V4L2 Camera (Webcam)**, which uses `video_streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
+You can start the client in either C++ or Python mode regardless of the server language.
 
-  ```bash
-  ./holohub run video_streaming_client v4l2 --language cpp
-  ```
+#### Option A: V4L2 Camera (Webcam)
 
-- **Option B: Video Replayer**, which uses `video_streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
+It uses `video_streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
+
+- **C++ V4L2 Camera Client:**
+
+    ```bash
+    ./holohub run video_streaming_client v4l2 --language cpp
+    ```
+
+- **Python V4L2 Camera Client:**
+
+    ```bash
+    ./holohub run video_streaming_client v4l2 --language python
+    ```
+
+#### Option B: Video Replayer
+
+It uses `video_streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
+
+- **C++ Video Replayer Client:**
 
   ```bash
   ./holohub run video_streaming_client replayer --language cpp
   ```
 
-**Note:** To run the applications in Python, you just need to replace the `--language cpp` with `--language python`.
+- **Python Video Replayer Client:**
+
+  ```bash
+  ./holohub run video_streaming_client replayer --language python
+  ```
+
+> **Note:**
+> - The video streaming server and client are **cross-language compatible**. You can start the server in one language (C++ or Python) and then connect with a client running in either language.  
+> - You can **switch between the client modes** (replayer or V4L2 camera) at any time without restarting the server—just stop one client and start the other. The server automatically manages client connections.
 
 ### Python Bindings
 
@@ -208,9 +242,9 @@ Terminal 2 - Python Client:
 
 ### Configuration Files
 
-**Python Server:** `python/video_streaming_server_demo.yaml`
-**Python Client (Replayer):** `python/video_streaming_client_demo_replayer.yaml`
-**Python Client (V4L2):** `python/video_streaming_client_demo.yaml`
+**Python Server:** `video_streaming_server/python/video_streaming_server_demo.yaml`
+**Python Client (Replayer):** `video_streaming_client/python/video_streaming_client_demo_replayer.yaml`
+**Python Client (V4L2):** `video_streaming_client/python/video_streaming_client_demo.yaml`
 
 ### Detailed Documentation
 
