@@ -30,7 +30,7 @@ add_holohub_application(video_streaming_server DEPENDS
                         OPERATORS video_streaming_server)
 
 # Add integration testing
-if(BUILD_TESTING)
+if(APP_video_streaming AND BUILD_TESTING)
   # Add C++ integration test
   if(HOLOHUB_BUILD_CPP)
     add_test(NAME video_streaming_integration_test_cpp

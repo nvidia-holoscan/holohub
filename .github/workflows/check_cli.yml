@@ -48,5 +48,4 @@ jobs:
       - name: Run CMake tests
         run: |
           cd build
-          # Exclude video_streaming tests due to external dependencies
-          ctest --verbose -E "video_streaming"
+          ctest --verbose
