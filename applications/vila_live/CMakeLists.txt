@@ -51,7 +51,7 @@ if(BUILD_TESTING)
   # add model path and quant path to the yaml file, see also Dockerfile
   string(APPEND CONFIG_FILE "\nmodel_path: /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ/")
   string(APPEND CONFIG_FILE "\nquant_path: /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ/llm/llama-3-vila1.5-8b-fix-w4-g128-awq-v2.pt")
-  file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/tests/vila_live_testing.yaml ${CONFIG_FILE})
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/vila_live_testing.yaml ${CONFIG_FILE})
 
   add_custom_target(vila_live_test ALL
     DEPENDS "vila_live"
