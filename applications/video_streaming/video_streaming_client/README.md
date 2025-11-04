@@ -10,7 +10,6 @@ This application demonstrates how to create a bidirectional video streaming clie
 
 ## Features
 
-- **Bidirectional Streaming**: Sends video frames to server and receives frames back
 - **Multiple Video Sources**:
   - V4L2 Camera (webcam) support with configurable resolution
   - Video file replay for testing and demos
@@ -26,17 +25,29 @@ This application demonstrates how to create a bidirectional video streaming clie
 - For Python: Python 3.8+ and bindings built with `-DHOLOHUB_BUILD_PYTHON=ON`
 - CUDA 12.x (currently not working with CUDA 13.x)
 - OpenCV
-- video_streaming operator
+- `video_streaming_client` operator
 - V4L2 camera (optional, for live streaming)
+
+### Download Client Cloud Streaming
+
+Download the Holoscan Client Cloud Streaming binaries from NGC:
+
+```bash
+# Navigate to the client operator directory from the holohub root directory
+cd operators/video_streaming/video_streaming_client
+
+# Download using NGC CLI
+ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
+unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip -d holoscan_client_cloud_streaming
+
+# Clean up
+rm -rf holoscan_client_cloud_streaming_v0.2
+cd - # Return to the original directory
+```
 
 ## Usage
 
-> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
->
-> ```bash
-> # Set SDK version environment variable
-> export HOLOHUB_BASE_SDK_VERSION=3.5.0
-> ```
+> ⚠️ **Important:** This application is currently only compatible with CUDA 12.x. If your system uses CUDA 13.x, ensure you add the `--cuda 12` flag to all command-line invocations shown below.
 >
 > ℹ️ The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
@@ -46,14 +57,14 @@ This application demonstrates how to create a bidirectional video streaming clie
 
 ```bash
 # From holohub root directory - runs with video file playback
-./holohub run video_streaming client_replayer
+./holohub run video_streaming_client replayer --language cpp
 ```
 
 **V4L2 Camera Mode (640x480):**
 
 ```bash
 # From holohub root directory - runs with V4L2 camera (webcam)
-./holohub run video_streaming client_v4l2
+./holohub run video_streaming_client v4l2 --language cpp
 ```
 
 ### Python Client
@@ -62,20 +73,14 @@ This application demonstrates how to create a bidirectional video streaming clie
 
 ```bash
 # From holohub root directory - runs with video file playback
-./holohub run video_streaming client_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+./holohub run video_streaming_client replayer --language python
 ```
 
 **V4L2 Camera Mode (640x480):**
 
 ```bash
 # From holohub root directory - runs with V4L2 camera (webcam)
-./holohub run video_streaming client_python_v4l2 \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+./holohub run video_streaming_client v4l2 --language python
 ```
 
 **Default Client Configurations:**
@@ -123,7 +128,7 @@ This application demonstrates how to create a bidirectional video streaming clie
 
 The C++ application is configured via YAML file. Configuration varies based on video source:
 
-**Video Replayer Configuration** (`cpp/streaming_client_demo_replayer.yaml`):
+**Video Replayer Configuration** (`cpp/video_streaming_client_demo_replayer.yaml`):
 
 ```yaml
 %YAML 1.2
@@ -155,7 +160,7 @@ format_converter:
   out_channel_order: [2, 1, 0]  # Convert RGB to BGR
 
 # Streaming client settings
-streaming_client:
+video_streaming_client:
   width: 854
   height: 480
   fps: 30
@@ -186,7 +191,7 @@ allocator:
 scheduler: "greedy"
 ```
 
-**V4L2 Camera Configuration** (`cpp/streaming_client_demo.yaml`):
+**V4L2 Camera Configuration** (`cpp/video_streaming_client_demo.yaml`):
 
 ```yaml
 source: "v4l2"
@@ -209,7 +214,7 @@ format_converter:
   out_channel_order: [2, 1, 0]
 
 # Streaming client settings
-streaming_client:
+video_streaming_client:
   width: 640
   height: 480
   fps: 30
@@ -235,13 +240,13 @@ The Python application is primarily configured via **command-line arguments**:
 
 ```bash
 # Video replayer mode (854x480)
-python3 streaming_client_demo.py --source replayer --width 854 --height 480
+python3 video_streaming_client_demo.py --source replayer --width 854 --height 480
 
 # V4L2 camera mode (640x480)
-python3 streaming_client_demo.py --source v4l2 --width 640 --height 480
+python3 video_streaming_client_demo.py --source v4l2 --width 640 --height 480
 
 # Custom server
-python3 streaming_client_demo.py --server-ip 192.168.1.100 --port 48010
+python3 video_streaming_client_demo.py --server-ip 192.168.1.100 --port 48010
 ```
 
 **Python YAML Structure** (optional, auto-selected based on source):
@@ -256,7 +261,7 @@ application:
 source: "replayer"  # or "v4l2"
 
 # Streaming client settings
-streaming_client:
+video_streaming_client:
   width: 854
   height: 480
   fps: 30
@@ -291,10 +296,10 @@ visualization:
 
 **Configuration Files**:
 
-- C++ V4L2: `cpp/streaming_client_demo.yaml`
-- C++ Replayer: `cpp/streaming_client_demo_replayer.yaml`
-- Python V4L2: `python/streaming_client_demo.yaml`
-- Python Replayer: `python/streaming_client_demo_replayer.yaml`
+- C++ V4L2: `cpp/video_streaming_client_demo.yaml`
+- C++ Replayer: `cpp/video_streaming_client_demo_replayer.yaml`
+- Python V4L2: `python/video_streaming_client_demo.yaml`
+- Python Replayer: `python/video_streaming_client_demo_replayer.yaml`
 
 **Note**: Python parameters set via command-line take precedence over YAML configuration. The Python app auto-selects the appropriate config file based on the `--source` argument.
 
@@ -305,7 +310,7 @@ The client implements a bidirectional streaming pipeline with format conversion:
 **Video Replayer Pipeline:**
 
 ```text
-VideoStreamReplayerOp → FormatConverterOp → StreamingClientOp → HoloVizOp
+VideoStreamReplayerOp → FormatConverterOp → VideoStreamingClientOp → HoloVizOp
                                                     ↓
                                             (sends to server)
                                                     ↓
@@ -317,7 +322,7 @@ VideoStreamReplayerOp → FormatConverterOp → StreamingClientOp → HoloVizOp
 **V4L2 Camera Pipeline:**
 
 ```text
-V4L2VideoCaptureOp → FormatConverterOp → StreamingClientOp → HoloVizOp
+V4L2VideoCaptureOp → FormatConverterOp → VideoStreamingClientOp → HoloVizOp
                                                  ↓
                                          (sends to server)
                                                  ↓
@@ -330,17 +335,17 @@ V4L2VideoCaptureOp → FormatConverterOp → StreamingClientOp → HoloVizOp
 
 1. **Video Source**: Either `VideoStreamReplayerOp` (file) or `V4L2VideoCaptureOp` (camera) provides video frames
 2. **Format Converter**: Converts video format to RGB888 for streaming
-3. **StreamingClientOp**: Sends frames to server and receives processed frames back
+3. **VideoStreamingClientOp**: Sends frames to server and receives processed frames back
 4. **HoloVizOp**: Displays the received frames from the server
 
 ## C++ Implementation
 
-The C++ implementation (`cpp/streaming_client_demo.cpp`) demonstrates usage of the streaming client operator:
+The C++ implementation (`cpp/video_streaming_client_demo.cpp`) demonstrates usage of the streaming client operator:
 
 **Video Replayer Mode:**
 
 ```cpp
-#include "streaming_client.hpp"
+#include "video_streaming_client.hpp"
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
@@ -363,8 +368,8 @@ auto format_converter = make_operator<ops::FormatConverterOp>(
 );
 
 // Create streaming client
-auto streaming_client = make_operator<ops::StreamingClientOp>(
-    "streaming_client",
+auto video_streaming_client = make_operator<ops::VideoStreamingClientOp>(
+    "video_streaming_client",
     Arg("server_ip", std::string("127.0.0.1")),
     Arg("signaling_port", uint16_t{48010}),
     Arg("width", 854U),
@@ -384,14 +389,14 @@ auto holoviz = make_operator<ops::HolovizOp>(
 
 // Connect the pipeline
 add_flow(replayer, format_converter, {{"output", "source_video"}});
-add_flow(format_converter, streaming_client);
-add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
+add_flow(format_converter, video_streaming_client);
+add_flow(video_streaming_client, holoviz, {{"output_frames", "receivers"}});
 ```
 
 **V4L2 Camera Mode:**
 
 ```cpp
-#include "streaming_client.hpp"
+#include "video_streaming_client.hpp"
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
@@ -416,8 +421,8 @@ auto format_converter = make_operator<ops::FormatConverterOp>(
 );
 
 // Create streaming client
-auto streaming_client = make_operator<ops::StreamingClientOp>(
-    "streaming_client",
+auto video_streaming_client = make_operator<ops::VideoStreamingClientOp>(
+    "video_streaming_client",
     Arg("server_ip", std::string("127.0.0.1")),
     Arg("signaling_port", uint16_t{48010}),
     Arg("width", 640U),
@@ -437,18 +442,18 @@ auto holoviz = make_operator<ops::HolovizOp>(
 
 // Connect the pipeline
 add_flow(v4l2_source, format_converter, {{"signal", "source_video"}});
-add_flow(format_converter, streaming_client);
-add_flow(streaming_client, holoviz, {{"output_frames", "receivers"}});
+add_flow(format_converter, video_streaming_client);
+add_flow(video_streaming_client, holoviz, {{"output_frames", "receivers"}});
 ```
 
 ## Python Implementation
 
-The Python implementation (`python/streaming_client_demo.py`) demonstrates usage of the Python bindings:
+The Python implementation (`python/video_streaming_client_demo.py`) demonstrates usage of the Python bindings:
 
 **Video Replayer Mode:**
 
 ```python
-from holohub.streaming_client_enhanced import StreamingClientOp
+from holohub.video_streaming_client import VideoStreamingClientOp
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
@@ -483,10 +488,10 @@ class StreamingClientApp(Application):
         )
 
         # Create streaming client
-        streaming_client = StreamingClientOp(
+        video_streaming_client = VideoStreamingClientOp(
             self,
             allocator,  # Allocator for output buffer
-            name="streaming_client",
+            name="video_streaming_client",
             server_ip="127.0.0.1",
             signaling_port=48010,
             width=854,
@@ -507,14 +512,14 @@ class StreamingClientApp(Application):
 
         # Connect the pipeline
         self.add_flow(replayer, format_converter, {("output", "source_video")})
-        self.add_flow(format_converter, streaming_client)
-        self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
+        self.add_flow(format_converter, video_streaming_client)
+        self.add_flow(video_streaming_client, holoviz, {("output_frames", "receivers")})
 ```
 
 **V4L2 Camera Mode:**
 
 ```python
-from holohub.streaming_client_enhanced import StreamingClientOp
+from holohub.video_streaming_client import VideoStreamingClientOp
 from holoscan.operators import (
     FormatConverterOp,
     HolovizOp,
@@ -553,10 +558,10 @@ class StreamingClientApp(Application):
         )
 
         # Create streaming client
-        streaming_client = StreamingClientOp(
+        video_streaming_client = VideoStreamingClientOp(
             self,
             allocator,  # Allocator for output buffer
-            name="streaming_client",
+            name="video_streaming_client",
             server_ip="127.0.0.1",
             signaling_port=48010,
             width=640,
@@ -577,14 +582,14 @@ class StreamingClientApp(Application):
 
         # Connect the pipeline
         self.add_flow(v4l2_source, format_converter, {("signal", "source_video")})
-        self.add_flow(format_converter, streaming_client)
-        self.add_flow(streaming_client, holoviz, {("output_frames", "receivers")})
+        self.add_flow(format_converter, video_streaming_client)
+        self.add_flow(video_streaming_client, holoviz, {("output_frames", "receivers")})
 ```
 
 **Key Points:**
 
-- The `StreamingClientOp` requires an allocator (passed as a positional argument) for output buffer allocation
-- The `StreamingClientOp` handles bidirectional streaming (sends and receives frames)
+- The `VideoStreamingClientOp` requires an allocator (passed as a positional argument) for output buffer allocation
+- The `VideoStreamingClientOp` handles bidirectional streaming (sends and receives frames)
 - **Parameters are set via constructor arguments** (from command-line or defaults), not from YAML
 - The constructor parameters (`source`, `server_ip`, `port`, `width`, `height`, `fps`) configure the application
 - Format conversion is necessary to convert source formats to RGB for streaming
@@ -650,7 +655,7 @@ class StreamingClientApp(Application):
 
 7. **Format Converter Errors**:
    - `Invalid channel count for RGBA8888 3 != 4`: Video replayer outputs RGB888 (3 channels), not RGBA8888
-   - Solution: Use correct configuration file (`streaming_client_demo_replayer.yaml`)
+   - Solution: Use correct configuration file (`video_streaming_client_demo_replayer.yaml`)
 
 ### Debug Mode
 
@@ -665,10 +670,10 @@ application:
 
 See the included configuration files for complete examples:
 
-- C++ V4L2: `cpp/streaming_client_demo.yaml`
-- C++ Replayer: `cpp/streaming_client_demo_replayer.yaml`
-- Python V4L2: `python/streaming_client_demo.yaml`
-- Python Replayer: `python/streaming_client_demo_replayer.yaml`
+- C++ V4L2: `cpp/video_streaming_client_demo.yaml`
+- C++ Replayer: `cpp/video_streaming_client_demo_replayer.yaml`
+- Python V4L2: `python/video_streaming_client_demo.yaml`
+- Python Replayer: `python/video_streaming_client_demo_replayer.yaml`
 
 ## Integration with Server
 
@@ -744,7 +749,7 @@ Terminal 2 - Start C++ Client:
 
 | Feature | V4L2 Camera | Video Replayer |
 |---------|-------------|----------------|
-| **Config File** | `streaming_client_demo.yaml` | `streaming_client_demo_replayer.yaml` |
+| **Config File** | `video_streaming_client_demo.yaml` | `video_streaming_client_demo_replayer.yaml` |
 | **Source Type** | `source: "v4l2"` | `source: "replayer"` |
 | **Input Format** | `rgba8888` (4 channels) | `rgb888` (3 channels) |
 | **Resolution** | 640x480 (configurable) | 854x480 |

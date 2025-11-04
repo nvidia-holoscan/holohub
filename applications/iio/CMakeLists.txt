@@ -16,5 +16,10 @@
 cmake_minimum_required(VERSION 3.20)
 project(iio LANGUAGES NONE)
 
-add_subdirectory(cpp)
-add_subdirectory(python)
+if(HOLOHUB_BUILD_CPP)
+  add_subdirectory(cpp)
+endif()
+
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
