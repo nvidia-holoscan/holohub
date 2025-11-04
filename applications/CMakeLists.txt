@@ -118,10 +118,6 @@ add_holohub_application(psd_pipeline DEPENDS
                                   vita49_psd_packetizer
                                   data_writer)
 
-# Unified streaming applications
-add_holohub_application(video_streaming_demo_enhanced DEPENDS
-                        OPERATORS video_streaming)
-
 add_holohub_application(ultrasound_segmentation DEPENDS
                         OPERATORS OPTIONAL aja_source)
 
@@ -141,6 +137,8 @@ add_holohub_application(vpi_stereo)
 
 add_holohub_application(video_deidentification)
 
+add_subdirectory(video_streaming)
+
 add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)
@@ -152,4 +150,3 @@ add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)
 add_subdirectory(slang)
-add_subdirectory(video_streaming)

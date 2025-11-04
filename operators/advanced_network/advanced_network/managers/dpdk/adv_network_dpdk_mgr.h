@@ -59,6 +59,11 @@ struct DPDKQueueConfig {
   std::vector<union rte_eth_rxseg> rx_useg;
 };
 
+struct DropTrafficConfig {
+  struct rte_flow *jump;
+  struct rte_flow *drop;
+};
+
 class DpdkLogLevel {
  public:
   enum Level {
@@ -192,6 +197,8 @@ class DpdkMgr : public Manager {
   Status get_tx_metadata_buffer(BurstParams** burst) override;
   Status send_tx_burst(BurstParams* burst) override;
   Status get_mac_addr(int port, char* mac) override;
+  Status drop_all_traffic(int port) override;
+  Status allow_all_traffic(int port) override;
   void shutdown() override;
   void print_stats() override;
   void adjust_memory_regions() override;
@@ -199,6 +206,7 @@ class DpdkMgr : public Manager {
   BurstParams* create_tx_burst_params() override;
   bool validate_config() const override;
   uint16_t get_num_rx_queues(int port_id) const override;
+  void flush_port_queue(int port, int queue) override;
 
  private:
   static void PrintDpdkStats(int port);
@@ -219,11 +227,16 @@ class DpdkMgr : public Manager {
   struct rte_flow* add_modify_flow_set(int port, int queue, const char* buf, int len,
                                        Direction direction);
 
+  static struct rte_flow_item_flex_handle *create_flex_flow_rule(
+    int port, int offset, struct rte_flow_item *udp_item, struct rte_flow_item *end_pattern);
+  struct rte_flow* add_flex_item_flow(int port, const FlexItemMatch& match, uint16_t queue_id);
+
   void apply_tx_offloads(int port);
 
   std::array<struct rte_ether_addr, MAX_IFS> mac_addrs;
   std::unordered_map<uint32_t, struct rte_ring*> rx_rings;
   struct rte_ether_addr conf_ports_eth_addr[RTE_MAX_ETHPORTS];
+  std::unordered_map<uint16_t, struct rte_flow_item_flex_handle*> flex_item_handles_;
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
   std::unordered_map<uint32_t, struct rte_mempool*> tx_burst_buffers;
   std::unordered_map<std::string, std::shared_ptr<struct rte_pktmbuf_extmem>> ext_pktmbufs_;
@@ -236,6 +249,7 @@ class DpdkMgr : public Manager {
   struct rte_mempool* rx_flow_id_buffer;
   struct rte_mempool* rx_metadata;
   struct rte_mempool* tx_metadata;
+  std::array<DropTrafficConfig, RTE_MAX_ETHPORTS> drop_all_traffic_flow;
   uint64_t timestamp_mask_{0};
   uint64_t timestamp_offset_{0};
   std::array<struct rte_eth_conf, MAX_INTERFACES> local_port_conf;
