@@ -850,6 +850,87 @@ exec {holohub_script} "$@"
         # Mode docker_run_args should replace CLI docker_opts
         self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")
 
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    def test_test_command_coverage_flag_forwarding(self, mock_container_class):
+        """Ensure --coverage is forwarded to CTest command"""
+        mock_container = MagicMock()
+        mock_container.image_name = "holohub:testtag"
+        mock_container_class.return_value = mock_container
+
+        args = self.cli.parser.parse_args(
+            "test test_project --coverage --no-docker-build --dryrun".split()
+        )
+        args.func(args)
+
+        # Verify container.run was called and the ctest command contains coverage flag
+        mock_container.run.assert_called_once()
+        kwargs = mock_container.run.call_args[1]
+        self.assertIn("-DCOVERAGE=ON", kwargs["extra_args"][1])
+        # Should run as root to allow package installation
+        self.assertTrue(kwargs.get("as_root", False))
+        # Ensure preinstall for gcov (gcc) is prefixed
+        self.assertIn("apt-get install -y gcc", kwargs["extra_args"][1])
+
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    def test_test_command_coverage_build_arg(self, mock_container_class):
+        """Ensure --coverage adds COVERAGE=ON build argument to docker build"""
+        mock_container = MagicMock()
+        mock_container.image_name = "holohub:testtag"
+        mock_container_class.return_value = mock_container
+
+        args = self.cli.parser.parse_args("test test_project --coverage --dryrun".split())
+        args.func(args)
+
+        # Verify container.build was called with COVERAGE=ON build arg
+        mock_container.build.assert_called_once()
+        build_kwargs = mock_container.build.call_args[1]
+        self.assertIn("COVERAGE=ON", build_kwargs["build_args"])
+        self.assertIn("--build-arg", build_kwargs["build_args"])
+
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    def test_test_command_language_forwarding(self, mock_container_class):
+        """Ensure --language is accepted and passed to container creation"""
+        mock_container = MagicMock()
+        mock_container_class.return_value = mock_container
+
+        args = self.cli.parser.parse_args(
+            "test test_project --language python --no-docker-build --dryrun".split()
+        )
+        # Spy: we can't directly assert language on constructor without a spec; rely on handle_test not crashing
+        args.func(args)
+        # Validate run invoked (indirect evidence parsing and flow succeeded)
+        mock_container.run.assert_called_once()
+
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    def test_test_command_language_adds_cmake_flags(self, mock_container_class):
+        """Ensure --language injects HOLOHUB_BUILD_* cmake flags into CTest configure options"""
+        mock_container = MagicMock()
+        mock_container.image_name = "holohub:testtag"
+        mock_container_class.return_value = mock_container
+
+        # Case 1: cpp
+        args = self.cli.parser.parse_args(
+            "test test_project --language cpp --no-docker-build --dryrun".split()
+        )
+        args.func(args)
+        kwargs = mock_container.run.call_args[1]
+        cmd = kwargs["extra_args"][1]
+        self.assertIn(
+            '-DCONFIGURE_OPTIONS="-DHOLOHUB_BUILD_PYTHON=OFF;-DHOLOHUB_BUILD_CPP=ON"', cmd
+        )
+
+        # Case 2: python
+        mock_container.run.reset_mock()
+        args = self.cli.parser.parse_args(
+            "test test_project --language python --no-docker-build --dryrun".split()
+        )
+        args.func(args)
+        kwargs = mock_container.run.call_args[1]
+        cmd = kwargs["extra_args"][1]
+        self.assertIn(
+            '-DCONFIGURE_OPTIONS="-DHOLOHUB_BUILD_PYTHON=ON;-DHOLOHUB_BUILD_CPP=OFF"', cmd
+        )
+
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("builtins.print")
     def test_modes_command(self, mock_print, mock_find_project):

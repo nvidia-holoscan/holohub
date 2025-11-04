@@ -392,6 +392,9 @@ class HoloHubCLI:
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
         test.add_argument("--clear-cache", action="store_true", help="Clear cache folders")
+        test.add_argument(
+            "--language", choices=["cpp", "python"], help="Specify language implementation"
+        )
         test.add_argument("--site-name", help="Site name")
         test.add_argument("--cdash-url", help="CDash URL")
         test.add_argument("--platform-name", help="Platform name")
@@ -409,6 +412,11 @@ class HoloHubCLI:
         )
         test.add_argument("--no-xvfb", action="store_true", help="Do not use xvfb")
         test.add_argument("--ctest-script", help="CTest script")
+        test.add_argument(
+            "--coverage",
+            action="store_true",
+            help="Enable code coverage in CTest (adds coverage compile flags and runs ctest_coverage)",
+        )
         test.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
         )
@@ -857,12 +865,18 @@ class HoloHubCLI:
         container.verbose = args.verbose
 
         if not skip_docker_build:
+            # Add COVERAGE build argument if coverage is enabled
+            build_args = args.build_args or ""
+            if getattr(args, "coverage", False):
+                coverage_arg = "--build-arg COVERAGE=ON"
+                build_args = f"{build_args} {coverage_arg}".strip()
+
             container.build(
                 docker_file=args.docker_file,
                 base_img=args.base_img,
                 img=args.img,
                 no_cache=args.no_cache,
-                build_args=args.build_args,
+                build_args=build_args,
                 cuda_version=getattr(args, "cuda", None),
                 extra_scripts=getattr(args, "extra_scripts", []),
             )
@@ -884,8 +898,24 @@ class HoloHubCLI:
             ctest_cmd += f"-DAPP={args.project} "
         ctest_cmd += f"-DTAG={tag} "
 
+        # Aggregate configure options from CLI and language selection
+        configure_opts: list[str] = []
         if args.cmake_options:
-            cmake_opts = ";".join(args.cmake_options)
+            configure_opts.extend(args.cmake_options)
+
+        # Respect language selection by toggling build flags
+        normalized_lang = None
+        if hasattr(args, "language") and args.language:
+            normalized_lang = holohub_cli_util.normalize_language(args.language)
+            if normalized_lang == "python":
+                configure_opts.append("-DHOLOHUB_BUILD_PYTHON=ON")
+                configure_opts.append("-DHOLOHUB_BUILD_CPP=OFF")
+            elif normalized_lang == "cpp":
+                configure_opts.append("-DHOLOHUB_BUILD_PYTHON=OFF")
+                configure_opts.append("-DHOLOHUB_BUILD_CPP=ON")
+
+        if configure_opts:
+            cmake_opts = ";".join(configure_opts)
             ctest_cmd += f'-DCONFIGURE_OPTIONS="{cmake_opts}" '
 
         if getattr(args, "ctest_options", None):
@@ -900,6 +930,9 @@ class HoloHubCLI:
         if args.platform_name:
             ctest_cmd += f"-DPLATFORM_NAME={args.platform_name} "
 
+        if getattr(args, "coverage", False):
+            ctest_cmd += "-DCOVERAGE=ON "
+
         if args.ctest_script:
             ctest_cmd += f"-S {args.ctest_script} "
         else:
@@ -908,10 +941,19 @@ class HoloHubCLI:
         if args.verbose:
             ctest_cmd += "-VV "
 
+        # If coverage is requested, ensure gcov is available; install gcc if missing (as root)
+        if getattr(args, "coverage", False):
+            preinstall_cmd = (
+                "if ! command -v gcov >/dev/null 2>&1; then "
+                "(apt-get update && apt-get install -y gcc) || true; fi; "
+            )
+            ctest_cmd = preinstall_cmd + ctest_cmd
+
         container.run(
             img=getattr(args, "img", None),
             use_tini=True,
             docker_opts="--entrypoint=bash",
+            as_root=getattr(args, "coverage", False),
             extra_args=["-c", ctest_cmd],
         )
 
