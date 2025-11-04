@@ -285,10 +285,12 @@
   background-color: var(--md-default-bg-color);
   border: 1px solid var(--md-default-fg-color--lighter);
   border-radius: 8px;
-  margin: 10% auto;
+  margin: 5vh auto;
   padding: 2em;
   width: 90%;
   max-width: 650px;
+  max-height: 85vh;
+  overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   animation: slideDown 0.3s ease;
 }
@@ -506,7 +508,8 @@
   .run-locally-modal-content {
     width: 95%;
     padding: 1.5em;
-    margin: 20% auto;
+    margin: 2vh auto;
+    max-height: 90vh;
   }
 
   .run-locally-command {
