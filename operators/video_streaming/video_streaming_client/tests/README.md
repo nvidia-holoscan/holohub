@@ -1,10 +1,10 @@
-# C++ Unit Tests for StreamingClientOp
+# C++ Unit Tests for VideoStreamingClientOp
 
-This directory contains C++ unit tests for the `StreamingClientOp` operator using the Google Test (GTest) framework.
+This directory contains C++ unit tests for the `VideoStreamingClientOp` operator using the Google Test (GTest) framework.
 
 ## Overview
 
-The unit tests verify the correct behavior of the StreamingClientOp operator in isolation, without requiring an actual streaming server connection. Tests focus on:
+The unit tests verify the correct behavior of the VideoStreamingClientOp operator in isolation, without requiring an actual streaming server connection. Tests focus on:
 
 - ✅ **Operator initialization** with various parameter combinations
 - ✅ **Parameter validation** for video resolutions, frame rates, and network settings
@@ -54,7 +54,7 @@ The unit tests verify the correct behavior of the StreamingClientOp operator in 
 ```bash
 # From holohub root directory
 # ./holohub test automatically builds with -DBUILD_TESTING=ON
-./holohub test video_streaming --ctest-options="-R streaming_client_op_unit_tests -VV"
+./holohub test video_streaming --ctest-options="-R video_streaming_client_op_unit_tests -VV"
 ```
 
 ## Test Output Example
@@ -62,21 +62,21 @@ The unit tests verify the correct behavior of the StreamingClientOp operator in 
 ```
 [==========] Running 13 tests from 1 test suite.
 [----------] Global test environment set-up.
-[----------] 13 tests from StreamingClientOpTest
-[ RUN      ] StreamingClientOpTest.BasicInitialization
-[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
-[       OK ] StreamingClientOpTest.BasicInitialization (0 ms)
-[ RUN      ] StreamingClientOpTest.InitializationWithStreamingDisabled
-[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
-[       OK ] StreamingClientOpTest.InitializationWithStreamingDisabled (0 ms)
-[ RUN      ] StreamingClientOpTest.VideoResolutionParameters
-[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
-[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
-[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
-[info] [streaming_client.cpp:348] StreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
-[       OK ] StreamingClientOpTest.VideoResolutionParameters (0 ms)
+[----------] 13 tests from VideoStreamingClientOpTest
+[ RUN      ] VideoStreamingClientOpTest.BasicInitialization
+[info] [video_streaming_client.cpp:348] VideoStreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[       OK ] VideoStreamingClientOpTest.BasicInitialization (0 ms)
+[ RUN      ] VideoStreamingClientOpTest.InitializationWithStreamingDisabled
+[info] [video_streaming_client.cpp:348] VideoStreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[       OK ] VideoStreamingClientOpTest.InitializationWithStreamingDisabled (0 ms)
+[ RUN      ] VideoStreamingClientOpTest.VideoResolutionParameters
+[info] [video_streaming_client.cpp:348] VideoStreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[info] [video_streaming_client.cpp:348] VideoStreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[info] [video_streaming_client.cpp:348] VideoStreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[info] [video_streaming_client.cpp:348] VideoStreamingClientOp setup with defaults: width=854, height=480, fps=30, server_ip=127.0.0.1, port=48010, send_frames=true, min_non_zero_bytes=100
+[       OK ] VideoStreamingClientOpTest.VideoResolutionParameters (0 ms)
 ...
-[----------] 13 tests from StreamingClientOpTest (0 ms total)
+[----------] 13 tests from VideoStreamingClientOpTest (0 ms total)
 
 [----------] Global test environment tear-down
 [==========] 13 tests from 1 test suite ran. (0 ms total)
@@ -85,8 +85,8 @@ The unit tests verify the correct behavior of the StreamingClientOp operator in 
 100% tests passed, 0 tests failed out of 1
 
 Label Time Summary:
-streaming_client    =   0.06 sec*proc (1 test)
-unit                =   0.06 sec*proc (1 test)
+video_streaming_client    =   0.06 sec*proc (1 test)
+unit                      =   0.06 sec*proc (1 test)
 
 Total Test time (real) =   0.07 sec
 ```
@@ -96,9 +96,9 @@ Total Test time (real) =   0.07 sec
 Each test follows this pattern:
 
 ```cpp
-TEST_F(StreamingClientOpTest, TestName) {
+TEST_F(VideoStreamingClientOpTest, TestName) {
   // 1. Create operator with specific parameters
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "operator_name",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -106,10 +106,10 @@ TEST_F(StreamingClientOpTest, TestName) {
   );
 
   // 2. Verify creation
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
   
   // 3. Verify properties
-  EXPECT_EQ(streaming_client_op_->name(), "operator_name");
+  EXPECT_EQ(video_streaming_client_op_->name(), "operator_name");
   ...
 }
 ```
@@ -130,7 +130,7 @@ TEST_F(StreamingClientOpTest, TestName) {
 
 ## See Also
 
-- **[Streaming Client Operator README](../README.md)** - Operator documentation
-- **[Streaming Server Tests](../../streaming_server_enhanced/tests/README.md)** - Server operator tests  
+- **[Video Streaming Client Operator README](../README.md)** - Operator documentation
 - **[Integration Tests](../../../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../../../applications/video_streaming/README.md)** - Application overview
+

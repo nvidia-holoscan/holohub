@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# C++ Unit Tests for StreamingClientOp
+# C++ Unit Tests for Video Streaming Server Operators
 
 if(NOT BUILD_TESTING)
   return()
@@ -45,37 +45,37 @@ if(NOT GTest_FOUND)
 endif()
 
 # Add test executable
-add_executable(test_streaming_client_op
-  test_streaming_client_op.cpp
+add_executable(test_video_streaming_server_ops
+  test_video_streaming_server_ops.cpp
 )
 
-# Link against the streaming client library and GTest
-target_link_libraries(test_streaming_client_op
+# Link against the video streaming server library and GTest
+target_link_libraries(test_video_streaming_server_ops
   PRIVATE
-    streaming_client
+    video_streaming_server
     holoscan::core
     GTest::gtest
     GTest::gtest_main
 )
 
 # Include directories
-target_include_directories(test_streaming_client_op
+target_include_directories(test_video_streaming_server_ops
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
 # Add test to CTest
-add_test(NAME streaming_client_op_unit_tests
-         COMMAND test_streaming_client_op)
+add_test(NAME video_streaming_server_ops_unit_tests
+         COMMAND test_video_streaming_server_ops)
 
 # Set test properties
-set_tests_properties(streaming_client_op_unit_tests PROPERTIES
+set_tests_properties(video_streaming_server_ops_unit_tests PROPERTIES
   TIMEOUT 60
-  LABELS "unit;streaming_client"
+  LABELS "unit;video_streaming_server"
 )
 
 # Set output directory
-set_target_properties(test_streaming_client_op PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/operators/video_streaming/streaming_client_enhanced/tests"
+set_target_properties(test_video_streaming_server_ops PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/operators/video_streaming/video_streaming_server/tests"
 )
 

@@ -19,17 +19,17 @@
 #include <memory>
 
 #include "holoscan/holoscan.hpp"
-#include "../streaming_client.hpp"
+#include "../video_streaming_client.hpp"
 
 namespace holoscan::ops {
 
 /**
- * @brief Test fixture for StreamingClientOp unit tests
+ * @brief Test fixture for VideoStreamingClientOp unit tests
  *
  * This test fixture provides a Holoscan Fragment context for testing
- * the StreamingClientOp operator in isolation.
+ * the VideoStreamingClientOp operator in isolation.
  */
-class StreamingClientOpTest : public ::testing::Test {
+class VideoStreamingClientOpTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Create a minimal fragment for testing
@@ -37,12 +37,12 @@ class StreamingClientOpTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    streaming_client_op_.reset();
+    video_streaming_client_op_.reset();
     fragment_.reset();
   }
 
   std::shared_ptr<holoscan::Fragment> fragment_;
-  std::shared_ptr<StreamingClientOp> streaming_client_op_;
+  std::shared_ptr<VideoStreamingClientOp> video_streaming_client_op_;
 };
 
 // ====================================================================================
@@ -52,12 +52,12 @@ class StreamingClientOpTest : public ::testing::Test {
 /**
  * @brief Test basic operator creation with minimal required parameters
  *
- * Verifies that the StreamingClientOp can be instantiated with standard parameters
+ * Verifies that the VideoStreamingClientOp can be instantiated with standard parameters
  * and that the operator has the expected name and type.
  */
-TEST_F(StreamingClientOpTest, BasicInitialization) {
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
-      "test_streaming_client",
+TEST_F(VideoStreamingClientOpTest, BasicInitialization) {
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
+      "test_video_streaming_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
       holoscan::Arg("fps") = 30u,
@@ -66,9 +66,9 @@ TEST_F(StreamingClientOpTest, BasicInitialization) {
       holoscan::Arg("send_frames") = false,  // Disable for unit testing
       holoscan::Arg("receive_frames") = false);  // Disable for unit testing
 
-  ASSERT_NE(streaming_client_op_, nullptr);
-  EXPECT_EQ(streaming_client_op_->name(), "test_streaming_client");
-  EXPECT_EQ(streaming_client_op_->operator_type(), holoscan::Operator::OperatorType::kNative);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
+  EXPECT_EQ(video_streaming_client_op_->name(), "test_video_streaming_client");
+  EXPECT_EQ(video_streaming_client_op_->operator_type(), holoscan::Operator::OperatorType::kNative);
 }
 
 /**
@@ -77,8 +77,8 @@ TEST_F(StreamingClientOpTest, BasicInitialization) {
  * Verifies that the operator can be created with streaming disabled,
  * useful for testing without requiring an actual server connection.
  */
-TEST_F(StreamingClientOpTest, InitializationWithStreamingDisabled) {
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+TEST_F(VideoStreamingClientOpTest, InitializationWithStreamingDisabled) {
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "disabled_client",
       holoscan::Arg("width") = 1280u,
       holoscan::Arg("height") = 720u,
@@ -88,8 +88,8 @@ TEST_F(StreamingClientOpTest, InitializationWithStreamingDisabled) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
 
-  ASSERT_NE(streaming_client_op_, nullptr);
-  EXPECT_EQ(streaming_client_op_->name(), "disabled_client");
+  ASSERT_NE(video_streaming_client_op_, nullptr);
+  EXPECT_EQ(video_streaming_client_op_->name(), "disabled_client");
 }
 
 // ====================================================================================
@@ -102,9 +102,9 @@ TEST_F(StreamingClientOpTest, InitializationWithStreamingDisabled) {
  * Verifies that the operator accepts different video resolutions
  * commonly used in streaming applications.
  */
-TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
+TEST_F(VideoStreamingClientOpTest, VideoResolutionParameters) {
   // Standard Definition (640x480)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "sd_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -113,10 +113,10 @@ TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // HD (1280x720)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "hd_client",
       holoscan::Arg("width") = 1280u,
       holoscan::Arg("height") = 720u,
@@ -125,10 +125,10 @@ TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // Full HD (1920x1080)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "fhd_client",
       holoscan::Arg("width") = 1920u,
       holoscan::Arg("height") = 1080u,
@@ -137,10 +137,10 @@ TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // 4K (3840x2160)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "4k_client",
       holoscan::Arg("width") = 3840u,
       holoscan::Arg("height") = 2160u,
@@ -149,7 +149,7 @@ TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 }
 
 /**
@@ -158,9 +158,9 @@ TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
  * Verifies that the operator accepts different frame rates
  * from low-latency to high-performance scenarios.
  */
-TEST_F(StreamingClientOpTest, FrameRateParameters) {
+TEST_F(VideoStreamingClientOpTest, FrameRateParameters) {
   // Low frame rate (15 FPS)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "low_fps_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -169,10 +169,10 @@ TEST_F(StreamingClientOpTest, FrameRateParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // Standard frame rate (30 FPS)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "standard_fps_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -181,10 +181,10 @@ TEST_F(StreamingClientOpTest, FrameRateParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // High frame rate (60 FPS)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "high_fps_client",
       holoscan::Arg("width") = 1280u,
       holoscan::Arg("height") = 720u,
@@ -193,10 +193,10 @@ TEST_F(StreamingClientOpTest, FrameRateParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // Very high frame rate (120 FPS)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "very_high_fps_client",
       holoscan::Arg("width") = 1280u,
       holoscan::Arg("height") = 720u,
@@ -205,7 +205,7 @@ TEST_F(StreamingClientOpTest, FrameRateParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 }
 
 /**
@@ -213,9 +213,9 @@ TEST_F(StreamingClientOpTest, FrameRateParameters) {
  *
  * Verifies that the operator accepts different server IPs and ports.
  */
-TEST_F(StreamingClientOpTest, NetworkParameters) {
+TEST_F(VideoStreamingClientOpTest, NetworkParameters) {
   // Localhost
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "localhost_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -224,10 +224,10 @@ TEST_F(StreamingClientOpTest, NetworkParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // LAN address
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "lan_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -236,10 +236,10 @@ TEST_F(StreamingClientOpTest, NetworkParameters) {
       holoscan::Arg("signaling_port") = uint16_t{8080},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // Different port
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "custom_port_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -248,7 +248,7 @@ TEST_F(StreamingClientOpTest, NetworkParameters) {
       holoscan::Arg("signaling_port") = uint16_t{9999},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 }
 
 /**
@@ -256,9 +256,9 @@ TEST_F(StreamingClientOpTest, NetworkParameters) {
  *
  * Verifies different combinations of send_frames and receive_frames parameters.
  */
-TEST_F(StreamingClientOpTest, StreamingModeParameters) {
+TEST_F(VideoStreamingClientOpTest, StreamingModeParameters) {
   // Send only
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "send_only_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -267,10 +267,10 @@ TEST_F(StreamingClientOpTest, StreamingModeParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = true,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // Receive only
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "receive_only_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -279,10 +279,10 @@ TEST_F(StreamingClientOpTest, StreamingModeParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = true);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // Bidirectional
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "bidirectional_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -291,10 +291,10 @@ TEST_F(StreamingClientOpTest, StreamingModeParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = true,
       holoscan::Arg("receive_frames") = true);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // Both disabled (configuration only)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "disabled_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -303,7 +303,7 @@ TEST_F(StreamingClientOpTest, StreamingModeParameters) {
       holoscan::Arg("signaling_port") = uint16_t{48010},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 }
 
 /**
@@ -312,9 +312,9 @@ TEST_F(StreamingClientOpTest, StreamingModeParameters) {
  * Verifies that the min_non_zero_bytes parameter is accepted and that
  * operators can be created with various validation thresholds.
  */
-TEST_F(StreamingClientOpTest, FrameValidationParameter) {
+TEST_F(VideoStreamingClientOpTest, FrameValidationParameter) {
   // Default validation threshold (100 bytes)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "default_validation_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -324,10 +324,10 @@ TEST_F(StreamingClientOpTest, FrameValidationParameter) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false,
       holoscan::Arg("min_non_zero_bytes") = 100u);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // Low validation threshold
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "low_validation_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -337,10 +337,10 @@ TEST_F(StreamingClientOpTest, FrameValidationParameter) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false,
       holoscan::Arg("min_non_zero_bytes") = 10u);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // High validation threshold
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "high_validation_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -350,10 +350,10 @@ TEST_F(StreamingClientOpTest, FrameValidationParameter) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false,
       holoscan::Arg("min_non_zero_bytes") = 500u);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // No validation (0 bytes)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "no_validation_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -363,7 +363,7 @@ TEST_F(StreamingClientOpTest, FrameValidationParameter) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false,
       holoscan::Arg("min_non_zero_bytes") = 0u);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 }
 
 // ====================================================================================
@@ -376,8 +376,8 @@ TEST_F(StreamingClientOpTest, FrameValidationParameter) {
  * Verifies that the setup() method can be called without crashing
  * and properly configures the operator's input/output ports.
  */
-TEST_F(StreamingClientOpTest, OperatorSetup) {
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+TEST_F(VideoStreamingClientOpTest, OperatorSetup) {
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "test_setup_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -387,13 +387,13 @@ TEST_F(StreamingClientOpTest, OperatorSetup) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
 
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // Create an operator spec for setup testing
   auto spec = std::make_shared<holoscan::OperatorSpec>(fragment_.get());
 
   // Test that setup doesn't crash (basic smoke test)
-  EXPECT_NO_THROW(streaming_client_op_->setup(*spec));
+  EXPECT_NO_THROW(video_streaming_client_op_->setup(*spec));
 }
 
 // ====================================================================================
@@ -405,8 +405,8 @@ TEST_F(StreamingClientOpTest, OperatorSetup) {
  *
  * Verifies that the operator accepts very small resolutions.
  */
-TEST_F(StreamingClientOpTest, MinimumResolution) {
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+TEST_F(VideoStreamingClientOpTest, MinimumResolution) {
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "min_resolution_client",
       holoscan::Arg("width") = 320u,
       holoscan::Arg("height") = 240u,
@@ -416,8 +416,8 @@ TEST_F(StreamingClientOpTest, MinimumResolution) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
 
-  ASSERT_NE(streaming_client_op_, nullptr);
-  EXPECT_EQ(streaming_client_op_->name(), "min_resolution_client");
+  ASSERT_NE(video_streaming_client_op_, nullptr);
+  EXPECT_EQ(video_streaming_client_op_->name(), "min_resolution_client");
 }
 
 /**
@@ -425,8 +425,8 @@ TEST_F(StreamingClientOpTest, MinimumResolution) {
  *
  * Verifies that the operator accepts 8K resolution parameters.
  */
-TEST_F(StreamingClientOpTest, MaximumResolution) {
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+TEST_F(VideoStreamingClientOpTest, MaximumResolution) {
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "max_resolution_client",
       holoscan::Arg("width") = 7680u,  // 8K width
       holoscan::Arg("height") = 4320u,  // 8K height
@@ -436,8 +436,8 @@ TEST_F(StreamingClientOpTest, MaximumResolution) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
 
-  ASSERT_NE(streaming_client_op_, nullptr);
-  EXPECT_EQ(streaming_client_op_->name(), "max_resolution_client");
+  ASSERT_NE(video_streaming_client_op_, nullptr);
+  EXPECT_EQ(video_streaming_client_op_->name(), "max_resolution_client");
 }
 
 /**
@@ -446,9 +446,9 @@ TEST_F(StreamingClientOpTest, MaximumResolution) {
  * Verifies that the operator accepts valid port numbers including
  * low and high port ranges.
  */
-TEST_F(StreamingClientOpTest, PortNumberEdgeCases) {
+TEST_F(VideoStreamingClientOpTest, PortNumberEdgeCases) {
   // Low port number (1024 - first non-privileged port)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "low_port_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -457,10 +457,10 @@ TEST_F(StreamingClientOpTest, PortNumberEdgeCases) {
       holoscan::Arg("signaling_port") = uint16_t{1024},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // High port number (65535 - maximum port)
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "high_port_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -469,7 +469,7 @@ TEST_F(StreamingClientOpTest, PortNumberEdgeCases) {
       holoscan::Arg("signaling_port") = uint16_t{65535},
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 }
 
 // ====================================================================================
@@ -482,8 +482,8 @@ TEST_F(StreamingClientOpTest, PortNumberEdgeCases) {
  * Verifies that the operator can be properly destroyed without crashing
  * or leaking resources.
  */
-TEST_F(StreamingClientOpTest, OperatorCleanup) {
-  streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
+TEST_F(VideoStreamingClientOpTest, OperatorCleanup) {
+  video_streaming_client_op_ = fragment_->make_operator<VideoStreamingClientOp>(
       "cleanup_test_client",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -493,24 +493,24 @@ TEST_F(StreamingClientOpTest, OperatorCleanup) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
 
-  ASSERT_NE(streaming_client_op_, nullptr);
+  ASSERT_NE(video_streaming_client_op_, nullptr);
 
   // Test that cleanup doesn't crash
   EXPECT_NO_THROW({
-    streaming_client_op_.reset();
+    video_streaming_client_op_.reset();
   });
 
-  EXPECT_EQ(streaming_client_op_, nullptr);
+  EXPECT_EQ(video_streaming_client_op_, nullptr);
 }
 
 /**
  * @brief Test multiple operator instances
  *
- * Verifies that multiple StreamingClientOp instances can be created
+ * Verifies that multiple VideoStreamingClientOp instances can be created
  * and managed simultaneously without conflicts.
  */
-TEST_F(StreamingClientOpTest, MultipleInstances) {
-  auto client1 = fragment_->make_operator<StreamingClientOp>(
+TEST_F(VideoStreamingClientOpTest, MultipleInstances) {
+  auto client1 = fragment_->make_operator<VideoStreamingClientOp>(
       "client_1",
       holoscan::Arg("width") = 640u,
       holoscan::Arg("height") = 480u,
@@ -520,7 +520,7 @@ TEST_F(StreamingClientOpTest, MultipleInstances) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
 
-  auto client2 = fragment_->make_operator<StreamingClientOp>(
+  auto client2 = fragment_->make_operator<VideoStreamingClientOp>(
       "client_2",
       holoscan::Arg("width") = 1280u,
       holoscan::Arg("height") = 720u,
@@ -530,7 +530,7 @@ TEST_F(StreamingClientOpTest, MultipleInstances) {
       holoscan::Arg("send_frames") = false,
       holoscan::Arg("receive_frames") = false);
 
-  auto client3 = fragment_->make_operator<StreamingClientOp>(
+  auto client3 = fragment_->make_operator<VideoStreamingClientOp>(
       "client_3",
       holoscan::Arg("width") = 1920u,
       holoscan::Arg("height") = 1080u,
