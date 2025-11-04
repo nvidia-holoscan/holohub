@@ -284,8 +284,8 @@ def test_rivermax_tx_rx(executable, work_dir, nvidia_nics, rivermax_receiver_typ
     Test 6: Rivermax TX/RX.
     """
     # Skip if Rivermax manager is not available
-    manager_list = os.environ.get('ANO_MANAGER_LIST', '').split()
-    if 'rivermax' not in manager_list:
+    manager_list = os.environ.get("ANO_MANAGER_LIST", "").split()
+    if "rivermax" not in manager_list:
         pytest.skip("Rivermax manager not available in this build")
 
     # Skip if Rivermax license is not available
@@ -363,5 +363,6 @@ def test_rivermax_tx_rx(executable, work_dir, nvidia_nics, rivermax_receiver_typ
     received_packets = results.get_rx_packets(0)
     missed_pkts_check = results.get_missed_packets(0)
     errored_pkts_check = results.get_errored_packets(0)
-    assert received_packets > 0 and missed_pkts_check == 0 and errored_pkts_check == 0, \
-        "Validation failed"
+    assert (
+        received_packets > 0 and missed_pkts_check == 0 and errored_pkts_check == 0
+    ), "Validation failed"

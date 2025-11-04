@@ -529,14 +529,31 @@ def parse_rivermax_benchmark_results(log: str) -> BenchmarkResults:
 
     matches = re.findall(benchmark_summary_ipo_receiver, log)
     if matches:
-        (stream_index, total_rx_packets, throughput, dropped, consumed,
-         unconsumed, lost, exceed_md, bad_rtp_hdr, extra_info) = matches[0]
+        (
+            stream_index,
+            total_rx_packets,
+            throughput,
+            dropped,
+            consumed,
+            unconsumed,
+            lost,
+            exceed_md,
+            bad_rtp_hdr,
+            extra_info,
+        ) = matches[0]
         missed_packets["0"] = int(dropped) + int(lost) + int(exceed_md)
     else:
         matches = re.findall(benchmark_summary_rtp_receiver, log)
         if matches:
-            (stream_index, total_rx_packets, throughput, consumed,
-             unconsumed, lost, bad_rtp_hdr) = matches[0]
+            (
+                stream_index,
+                total_rx_packets,
+                throughput,
+                consumed,
+                unconsumed,
+                lost,
+                bad_rtp_hdr,
+            ) = matches[0]
             missed_packets["0"] = int(lost)  # Only lost packets, no dropped or exceed_md
         else:
             logger.error("No matches found for Rivermax benchmark summary")

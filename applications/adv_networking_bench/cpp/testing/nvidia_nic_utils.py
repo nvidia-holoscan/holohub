@@ -86,7 +86,9 @@ def get_nvidia_nics() -> List[NetworkInterface]:
         mac_address = result.stdout.strip()
 
         # Get IP address
-        result = run_command(f"ip -4 addr show {interface_name} | grep -oP '(?<=inet\s)\d+(\.\d+){{3}}'")
+        result = run_command(
+            f"ip -4 addr show {interface_name} | grep -oP '(?<=inet\s)\d+(\.\d+){{3}}'"
+        )
         if result.returncode != 0:
             ip_address = None
         else:
@@ -94,8 +96,11 @@ def get_nvidia_nics() -> List[NetworkInterface]:
 
         # Create and add the interface
         interface = NetworkInterface(
-            interface_name=interface_name, bus_id=bus_id, mac_address=mac_address, is_up=is_up,
-            ip_address=ip_address
+            interface_name=interface_name,
+            bus_id=bus_id,
+            mac_address=mac_address,
+            is_up=is_up,
+            ip_address=ip_address,
         )
 
         interfaces.append(interface)
