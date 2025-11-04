@@ -95,7 +95,7 @@ The unit tests verify the correct behavior of the video streaming server operato
 
 ## Test Output Example
 
-```
+```text
 [==========] Running 25 tests from 3 test suites.
 [----------] Global test environment set-up.
 [----------] 8 tests from StreamingServerResourceTest

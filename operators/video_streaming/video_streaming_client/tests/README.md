@@ -59,7 +59,7 @@ The unit tests verify the correct behavior of the VideoStreamingClientOp operato
 
 ## Test Output Example
 
-```
+```text
 [==========] Running 13 tests from 1 test suite.
 [----------] Global test environment set-up.
 [----------] 13 tests from VideoStreamingClientOpTest
