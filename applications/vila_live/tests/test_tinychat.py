@@ -22,7 +22,11 @@ import unittest
 import requests
 import yaml
 
-test_yaml = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vila_live_testing.yaml")
+# Use environment variable if set, otherwise fallback to source directory location
+test_yaml = os.environ.get(
+    "VILA_LIVE_TEST_CONFIG",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "vila_live_testing.yaml"),
+)
 
 
 class TestTinyChat(unittest.TestCase):
