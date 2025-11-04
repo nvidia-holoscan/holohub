@@ -30,6 +30,4 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     GXF_ENTITIES_FRAMERATE 30
     ALL
   )
-
-  add_dependencies(openigtlink_3dslicer colonoscopy_segmentation_data)
 endif()
