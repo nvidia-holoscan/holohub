@@ -101,50 +101,63 @@ from holohub.video_streaming_server import (
 
 The video streaming demo provides both client and server applications. For complete documentation and setup instructions, see the **[Applications README](../../applications/video_streaming/README.md)**.
 
-### C++ Applications
+> ⚠️ **Important:** These applications are currently only compatible with CUDA 12.x. If your system uses CUDA 13.x, ensure you add the `--cuda 12` flag to all command-line invocations shown below.
 
-**Start the Streaming Server:**
+### 1. Start the Streaming Server
+
+You can start the server in either C++ or Python mode.
+
+**C++ Server:**
+
 ```bash
-./holohub run video_streaming server
+./holohub run video_streaming_server --language cpp
 ```
 
-**Start the Streaming Client (in another terminal):**
+**Python Server:**
 
-- **Option A: V4L2 Camera (Webcam)**
 ```bash
-./holohub run video_streaming client_v4l2
+./holohub run video_streaming_server --language python
 ```
 
-- **Option B: Video Replayer**
-```bash
-./holohub run video_streaming client_replayer
-```
+### 2. Start the Streaming Client (in another terminal)
 
-### Python Applications
+You can start the client in either C++ or Python mode regardless of the server language.
 
-**Running Python Server:**
-```bash
-./holohub run video_streaming server_python
-```
+#### Option A: V4L2 Camera (Webcam)
 
-**Running Python Client - Video Replayer Mode (Default - 854x480):**
-```bash
-./holohub run video_streaming client_python
-```
+It uses `video_streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
 
-**Running Python Client - V4L2 Camera Mode (640x480):**
-```bash
-./holohub run video_streaming client_python_v4l2
-```
+- **C++ V4L2 Camera Client:**
 
-### Environment Setup
+    ```bash
+    ./holohub run video_streaming_client v4l2 --language cpp
+    ```
 
-> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications, or use the Docker-based commands above.
->
-> ```bash
-> # Set SDK version environment variable
-> export HOLOHUB_BASE_SDK_VERSION=3.5.0
-> ```
+- **Python V4L2 Camera Client:**
+
+    ```bash
+    ./holohub run video_streaming_client v4l2 --language python
+    ```
+
+#### Option B: Video Replayer
+
+It uses `video_streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
+
+- **C++ Video Replayer Client:**
+
+  ```bash
+  ./holohub run video_streaming_client replayer --language cpp
+  ```
+
+- **Python Video Replayer Client:**
+
+  ```bash
+  ./holohub run video_streaming_client replayer --language python
+  ```
+
+> **Note:**
+> - The video streaming server and client are **cross-language compatible**. You can start the server in one language (C++ or Python) and then connect with a client running in either language.  
+> - You can **switch between the client modes** (replayer or V4L2 camera) at any time without restarting the server—just stop one client and start the other. The server automatically manages client connections.
 
 ### Default Configurations
 
@@ -170,7 +183,7 @@ For detailed Python application documentation, see:
 ## Dependencies
 
 ### Required
-- **Holoscan SDK 3.5.0**: Core framework
+- **Holoscan SDK 3.5.0 or higher**: Core framework
 - **CUDA 12.x**: GPU acceleration support
 
 ### Cloud Streaming Binaries

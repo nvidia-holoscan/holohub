@@ -283,7 +283,7 @@ auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>(
 ## Requirements & Setup
 
 For complete setup instructions including:
-- Holoscan SDK 3.5.0 and CUDA 12.x requirements
+- Holoscan SDK 3.5.0 or higher and CUDA 12.x requirements
 - NGC binary downloads (server streaming binaries)
 - Build troubleshooting
 

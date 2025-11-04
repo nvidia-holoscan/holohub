@@ -97,7 +97,7 @@ The StreamingClient operator integrates with the Holoscan Client Cloud Streaming
 ## Requirements & Setup
 
 For complete setup instructions including:
-- Holoscan SDK 3.5.0 and CUDA 12.x requirements
+- Holoscan SDK 3.5.0 or higher and CUDA 12.x requirements
 - NGC binary downloads (client streaming binaries)
 - Build troubleshooting
 
