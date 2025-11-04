@@ -35,3 +35,20 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
   add_dependencies(volume_rendering_python volume_rendering_data)
 endif()
+
+if(BUILD_TESTING)
+
+  add_test(NAME volume_rendering_python_test
+           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/volume_rendering.py
+             --count=100
+             -c "${HOLOHUB_DATA_DIR}/volume_rendering/config.json"
+             -d "${HOLOHUB_DATA_DIR}/volume_rendering/highResCT.mhd"
+             -m "${HOLOHUB_DATA_DIR}/volume_rendering/smoothmasks.seg.mhd"
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+  set_property(TEST volume_rendering_python_test PROPERTY ENVIRONMENT
+           "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
+
+  set_tests_properties(volume_rendering_python_test PROPERTIES
+                       PASS_REGULAR_EXPRESSION "Application has finished running.")
+endif()
