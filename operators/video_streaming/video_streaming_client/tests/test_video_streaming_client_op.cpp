@@ -555,4 +555,3 @@ TEST_F(VideoStreamingClientOpTest, MultipleInstances) {
 }
 
 }  // namespace holoscan::ops
-
