@@ -48,7 +48,7 @@ if(BUILD_TESTING)
 
   set_property(TEST volume_rendering_python_test PROPERTY ENVIRONMENT
            "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
-  
+
   set_tests_properties(volume_rendering_python_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Application has finished running.")
 endif()
