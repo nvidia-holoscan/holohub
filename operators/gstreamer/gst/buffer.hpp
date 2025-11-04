@@ -18,8 +18,13 @@
 #ifndef HOLOSCAN__GSTREAMER__GST__BUFFER_HPP
 #define HOLOSCAN__GSTREAMER__GST__BUFFER_HPP
 
-#include <gst/gst.h>
+#include <memory>
 #include <string>
+
+#include <gst/gst.h>
+
+#include "memory.hpp"
+#include "object.hpp"
 
 namespace holoscan {
 namespace gst {
@@ -35,7 +40,7 @@ namespace gst {
  * allocation fails, ensuring that all successfully constructed Buffer objects
  * are always in a valid state.
  */
-class Buffer {
+class Buffer : public Object<::GstBuffer> {
 public:
   /**
    * @brief Default constructor (creates empty buffer)
@@ -45,29 +50,15 @@ public:
 
   /**
    * @brief Constructor from native GstBuffer
-   * @param buffer Native GstBuffer pointer (will be referenced, or creates new if NULL)
-   * @throws std::runtime_error if buffer allocation fails
+   * @param buffer Native GstBuffer pointer
    */
   explicit Buffer(::GstBuffer* buffer);
 
   /**
-   * @brief Destructor (automatically unreferences the buffer)
+   * @brief Increment GStreamer reference count and return the raw pointer
+   * @return Raw GstBuffer pointer
    */
-  ~Buffer();
-
-  // Copy operations using GStreamer reference counting
-  Buffer(const Buffer& other);
-  Buffer& operator=(const Buffer& other);
-
-  // Allow move operations
-  Buffer(Buffer&& other) noexcept;
-  Buffer& operator=(Buffer&& other) noexcept;
-
-  /**
-   * @brief Get the underlying GstBuffer pointer
-   * @return Native GstBuffer pointer (always valid)
-   */
-  ::GstBuffer* get() const { return buffer_; }
+  ::GstBuffer* ref() const override;
 
   /**
    * @brief Get buffer size in bytes
@@ -76,34 +67,17 @@ public:
   gsize size() const;
 
   /**
-   * @brief Get presentation timestamp
-   * @return PTS in nanoseconds, or GST_CLOCK_TIME_NONE if not set
-   */
-  GstClockTime pts() const;
-
-  /**
-   * @brief Get duration
-   * @return Duration in nanoseconds, or GST_CLOCK_TIME_NONE if not set
-   */
-  GstClockTime duration() const;
-
-  /**
    * @brief Get buffer flags
    * @return Buffer flags
    */
   GstBufferFlags flags() const;
 
-private:
-  ::GstBuffer* buffer_;
+  /**
+   * @brief Append a memory block to the buffer
+   * @param memory Memory block to append
+   */
+  void append_memory(const gst::Memory& memory);
 };
-
-/**
- * @brief Get buffer metadata as a formatted string
- * @param buffer GstBuffer to analyze
- * @param caps Optional GstCaps for additional format information
- * @return Formatted string with buffer information (size, timestamps, etc.)
- */
-std::string get_buffer_info_string(::GstBuffer* buffer, ::GstCaps* caps = nullptr);
 
 }  // namespace gst
 }  // namespace holoscan

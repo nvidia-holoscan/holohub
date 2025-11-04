@@ -277,7 +277,6 @@ class GstVideoRecorderApp : public Application {
         Arg("framerate", framerate_),
         Arg("properties", properties_),
         Arg("max-buffers", size_t(10)),
-        Arg("timeout_ms", static_cast<uint64_t>(1000)),
         Arg("filename", filename_)
     );
 

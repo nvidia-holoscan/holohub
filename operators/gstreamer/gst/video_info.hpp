@@ -19,10 +19,11 @@
 #define HOLOSCAN__GSTREAMER__GST__VIDEO_INFO_HPP
 
 #include <gst/video/video.h>
-#include "caps.hpp"
 
 namespace holoscan {
 namespace gst {
+
+class Caps;
 
 /**
  * @brief Video information extracted from GstCaps
@@ -33,22 +34,17 @@ namespace gst {
 class VideoInfo {
 public:
   /**
-   * @brief Access the underlying GstVideoInfo structure directly
-   * @return Pointer to GstVideoInfo structure
-   */
-  const ::GstVideoInfo* operator->() const { return &video_info_; }
-
-  /**
-   * @brief Get the underlying GstVideoInfo pointer
-   * @return Native GstVideoInfo pointer
-   */
-  const ::GstVideoInfo* get() const { return &video_info_; }
+  * @brief Constructor from Caps object
+  * @param caps Caps object containing video information
+  * @throws std::runtime_error if caps don't contain valid video information
+  */
+  explicit VideoInfo(const Caps& caps);
 
   /**
    * @brief Get total buffer size for all planes
    * @return Total size in bytes for all video planes
    */
-  gsize get_total_size() const;
+  gsize get_size() const;
 
   /**
    * @brief Get stride (bytes per line) for a specific plane
@@ -58,6 +54,13 @@ public:
   gsize get_plane_stride(int plane_index) const;
 
   /**
+   * @brief Get component height for a specific plane
+   * @param plane_index Plane index
+   * @return Component height in pixels, or 0 if invalid
+   */
+  gsize get_plane_comp_height(int plane_index) const;
+
+  /**
    * @brief Get plane size for a specific plane
    * @param plane_index Plane index
    * @return Size in bytes for the specified plane, or 0 if invalid
@@ -65,17 +68,7 @@ public:
   gsize get_plane_size(int plane_index) const;
 
 private:
-  /**
-   * @brief Constructor from Caps object (private - only Caps can create VideoInfo)
-   * @param caps Caps object containing video information
-   */
-  explicit VideoInfo(const Caps& caps);
-
-  // Allow Caps class to create VideoInfo objects
-  friend class Caps;
-
-  Caps caps_;      // Keep caps alive to ensure GstCaps validity
-  ::GstVideoInfo video_info_; // Cached GstVideoInfo for direct format access
+  ::GstVideoInfo video_info_;
 };
 
 }  // namespace gst

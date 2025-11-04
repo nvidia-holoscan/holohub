@@ -35,7 +35,7 @@ namespace holoscan {
 /**
  * @brief Operator for recording video streams to file using GStreamer
  *
- * This operator receives Holoscan entities containing video tensor data,
+ * This operator receives TensorMap containing video tensor data,
  * encodes them using GStreamer, and writes them to a file. It supports
  * various video formats and codecs through GStreamer's encoding pipeline.
  * 
@@ -50,7 +50,7 @@ class GstVideoRecorderOperator : public Operator {
    * @brief Setup the operator specification
    * 
    * Defines the operator's inputs and parameters:
-   * - input: GXF Entity containing video frame tensor(s)
+   * - input: TensorMap containing video frame tensor(s)
    * - encoder: Encoder base name (e.g., "nvh264", "nvh265", "x264", "x265") - default: "nvh264"
    *            Note: "enc" suffix is automatically appended to form the element name
    * - framerate: Video framerate as fraction or decimal - default: "30/1"
@@ -58,7 +58,6 @@ class GstVideoRecorderOperator : public Operator {
    *              Special: "0/1" for live mode (no framerate control, process frames as fast as they come)
    *              Note: In live mode, timestamps reflect actual frame arrival times (real-time)
    * - max_buffers: Maximum number of buffers to queue (0 = unlimited) - default: 10
-   * - timeout_ms: Timeout in milliseconds for buffer push - default: 1000ms
    * - filename: Output video filename - default: "output.mp4"
    *              Note: If no extension is provided, ".mp4" is automatically appended
    * - properties: Map of encoder-specific properties - default: empty map
@@ -77,6 +76,7 @@ class GstVideoRecorderOperator : public Operator {
    * @brief Start function called after initialization but before first compute
    * 
    * Creates and starts the GStreamer pipeline, and begins bus monitoring.
+   * @throws std::runtime_error if pipeline or element creation/initialization fails
    */
   void start() override;
 
@@ -84,13 +84,14 @@ class GstVideoRecorderOperator : public Operator {
    * @brief Compute function that processes video frames
    * 
    * This function:
-   * 1. Receives a video frame entity from the input port
-   * 2. Converts the entity to a GStreamer buffer
+   * 1. Receives a video frame TensorMap from the input port
+   * 2. Converts the TensorMap to a GStreamer buffer
    * 3. Pushes the buffer into the encoding pipeline
    * 
-   * @param input Input context for receiving video frame entities
+   * @param input Input context for receiving video frame TensorMap
    * @param output Output context (unused - this is a sink operator)
    * @param context Execution context for GXF operations
+   * @throws std::runtime_error if bridge creation fails or tensor format is invalid
    */
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override;
 
@@ -111,7 +112,6 @@ class GstVideoRecorderOperator : public Operator {
   Parameter<std::string> format_;
   Parameter<std::string> framerate_;  // Fraction string: "30/1", "30000/1001", "29.97", or "0/1" for live mode (real-time timestamps)
   Parameter<size_t> max_buffers_;
-  Parameter<uint64_t> timeout_ms_;
   Parameter<std::string> filename_;
   Parameter<std::map<std::string, std::string>> properties_;  // Encoder-specific properties (e.g., {"bitrate": "8000", "preset": "1"})
   
@@ -122,6 +122,9 @@ class GstVideoRecorderOperator : public Operator {
   
   // Bus monitoring
   std::future<void> bus_monitor_future_;
+  
+  // Frame tracking
+  size_t frame_count_ = 0;
 };
 
 }  // namespace holoscan

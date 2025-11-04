@@ -25,7 +25,8 @@
 #include <gst/cuda/gstcudamemory.h>
 #include <holoscan/core/domain/tensor_map.hpp>
 
-#include "gst/guards.hpp"
+#include "gst/message.hpp"
+#include "gst/error.hpp"
 
 namespace {
 
@@ -89,6 +90,7 @@ std::string normalize_framerate(const std::string& framerate) {
  * 
  * @param filename Reference to filename (may be modified to add .mp4 extension)
  * @return The muxer element name
+ * @note Never throws - defaults to mp4mux for unsupported extensions
  */
 std::string get_muxer_from_extension(std::string& filename) {
   std::filesystem::path filepath(filename);
@@ -192,7 +194,7 @@ void monitor_pipeline_bus(GstElement* pipeline) {
   auto bus = holoscan::gst::Bus(gst_element_get_bus(pipeline));
   
   while (true) {
-    auto msg = holoscan::gst::make_gst_message_guard(
+    auto msg = holoscan::gst::Message(
         gst_bus_timed_pop_filtered(bus.get(), 100 * GST_MSECOND,
             static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS | GST_MESSAGE_STATE_CHANGED)));
     
@@ -202,7 +204,7 @@ void monitor_pipeline_bus(GstElement* pipeline) {
           GError* error;
           gchar* debug_info;
           gst_message_parse_error(msg.get(), &error, &debug_info);
-          auto error_guard = holoscan::gst::make_gst_error_guard(error);
+          auto error_guard = holoscan::gst::Error(error);
           HOLOSCAN_LOG_ERROR("GStreamer error: {}", error_guard->message);
           if (debug_info) {
             HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
@@ -246,6 +248,7 @@ void monitor_pipeline_bus(GstElement* pipeline) {
  * @param framerate Framerate string (e.g., "30/1")
  * @param max_buffers Maximum queue size
  * @return Shared pointer to the created GstSrcBridge
+ * @throws std::runtime_error if tensor map is empty, tensor is null, or tensor shape is invalid
  */
 std::shared_ptr<holoscan::GstSrcBridge> create_bridge_from_tensor_map(
     const holoscan::TensorMap& tensor_map,
@@ -359,7 +362,6 @@ bool set_encoder_property(GstElement* encoder,
     case G_TYPE_STRING:
       g_object_set(encoder, key.c_str(), value.c_str(), nullptr);
       return true;
-      break;
     
     case G_TYPE_INT:
       try {
@@ -409,7 +411,6 @@ bool set_encoder_property(GstElement* encoder,
       bool bool_val = (value == "true" || value == "1" || value == "TRUE" || value == "True");
       g_object_set(encoder, key.c_str(), bool_val, nullptr);
       return true;
-      break;
     }
     
     case G_TYPE_FLOAT:
@@ -450,6 +451,7 @@ bool set_encoder_property(GstElement* encoder,
  * @param src_element Source element (appsrc from bridge)
  * @param converter Converter element (cudaconvert or videoconvert)
  * @param encoder Encoder element to link to
+ * @throws std::runtime_error if state change or linking fails
  */
 void add_and_link_source_converter(GstElement* pipeline, 
                                     const holoscan::gst::Element& src_element,
@@ -506,9 +508,6 @@ void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
   spec.param(max_buffers_, "max-buffers", "Max Buffers",
              "Maximum number of buffers to queue (0 = unlimited)",
              size_t(10));
-  spec.param(timeout_ms_, "timeout_ms", "Timeout (ms)", 
-             "Timeout in milliseconds for buffer push",
-             1000UL);
   spec.param(filename_, "filename", "Output Filename",
              "Output video filename",
              std::string("output.mp4"));
@@ -520,6 +519,9 @@ void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
 void GstVideoRecorderOperator::start() {
   Operator::start();
   
+  // Initialize frame counter
+  frame_count_ = 0;
+  
   HOLOSCAN_LOG_INFO("GstVideoRecorderOperator - Starting");
   HOLOSCAN_LOG_INFO("Output filename: '{}'", filename_.get());
   HOLOSCAN_LOG_INFO("Encoder: {}enc", encoder_name_.get());
@@ -529,7 +531,6 @@ void GstVideoRecorderOperator::start() {
   HOLOSCAN_LOG_INFO("Framerate: {} fps", framerate_.get());
   
   HOLOSCAN_LOG_INFO("Max buffers: {}", max_buffers_.get());
-  HOLOSCAN_LOG_INFO("Timeout: {}ms", timeout_ms_.get());
   HOLOSCAN_LOG_INFO("Video parameters (width, height, format, storage) will be detected from first frame");
   HOLOSCAN_LOG_INFO("Setting up GStreamer pipeline (without source)");
   
@@ -632,19 +633,18 @@ void GstVideoRecorderOperator::start() {
 
 void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& output, 
                               ExecutionContext& context) {
-  static int frame_count = 0;
-  frame_count++;
+  frame_count_++;
   
-  HOLOSCAN_LOG_DEBUG("GstVideoRecorderOperator::compute() - Frame #{} - Receiving tensor map", frame_count);
+  HOLOSCAN_LOG_DEBUG("GstVideoRecorderOperator::compute() - Frame #{} - Receiving tensor map", frame_count_);
   
   // Receive the video frame tensor map from the input port
   auto tensor_map = input.receive<TensorMap>("input").value();
-  HOLOSCAN_LOG_DEBUG("Frame #{} - TensorMap received", frame_count);
+  HOLOSCAN_LOG_DEBUG("Frame #{} - TensorMap received", frame_count_);
 
   // Initialize bridge on first frame
   // Only upon receiving the first frame, we know the frame parameters
   if (!bridge_) {
-    HOLOSCAN_LOG_INFO("Frame #{} - First frame, detecting video parameters from tensor", frame_count);
+    HOLOSCAN_LOG_INFO("Frame #{} - First frame, detecting video parameters from tensor", frame_count_);
     // Create bridge from tensor map (detects video parameters automatically)
     bridge_ = create_bridge_from_tensor_map(tensor_map, name(), format_.get(), framerate_.get(), max_buffers_.get());
     HOLOSCAN_LOG_INFO("Bridge created");
@@ -656,29 +656,25 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
     add_and_link_source_converter(pipeline_.get(), bridge_->get_gst_element(), converter, encoder_);
   }
 
-  HOLOSCAN_LOG_DEBUG("Frame #{} - Converting tensor map to GStreamer buffer", frame_count);
+  HOLOSCAN_LOG_DEBUG("Frame #{} - Converting tensor map to GStreamer buffer", frame_count_);
 
   // Convert tensor map to GStreamer buffer using the bridge
   auto buffer = bridge_->create_buffer_from_tensor_map(tensor_map);
   if (buffer.size() == 0) {
-    HOLOSCAN_LOG_ERROR("Frame #{} - Failed to convert entity to buffer", frame_count);
+    HOLOSCAN_LOG_ERROR("Frame #{} - Failed to convert tensor map to buffer", frame_count_);
     return;
   }
 
-  HOLOSCAN_LOG_DEBUG("Frame #{} - Buffer created, size: {} bytes", frame_count, buffer.size());
+  HOLOSCAN_LOG_DEBUG("Frame #{} - Buffer created, size: {} bytes", frame_count_, buffer.size());
 
   // Push buffer into the GStreamer encoding pipeline
-  auto timeout = std::chrono::milliseconds(timeout_ms_.get());
-  HOLOSCAN_LOG_DEBUG("Frame #{} - Pushing buffer to encoding pipeline (timeout: {}ms)", 
-                    frame_count, timeout_ms_.get());
-  
-  if (!bridge_->push_buffer(std::move(buffer), timeout)) {
+  if (!bridge_->push_buffer(std::move(buffer))) {
     HOLOSCAN_LOG_ERROR("Frame #{} - Failed to push buffer to encoding pipeline (timeout or error)", 
-                       frame_count);
+                       frame_count_);
     return;
   }
   
-  HOLOSCAN_LOG_DEBUG("Frame #{} - Buffer successfully pushed to encoding pipeline", frame_count);
+  HOLOSCAN_LOG_DEBUG("Frame #{} - Buffer successfully pushed to encoding pipeline", frame_count_);
 }
 
 void GstVideoRecorderOperator::stop() {

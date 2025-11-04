@@ -16,104 +16,53 @@
  */
 
 #include "caps.hpp"
-#include "video_info.hpp"
+
+#include <memory>
 #include <stdexcept>
+
+#include "video_info.hpp"
 
 namespace holoscan {
 namespace gst {
 
-// ============================================================================
-// Caps Implementation - RAII for caps with member functions
-// ============================================================================
-
-Caps::Caps(::GstCaps* caps) : caps_(caps) {}
+Caps::Caps(::GstCaps* caps) : Object<::GstCaps>(caps, [](::GstCaps* caps) {
+  if (caps)
+    gst_caps_unref(caps);
+}) {}
 
 Caps::Caps(const std::string& caps_string) :
-  caps_(gst_caps_from_string(caps_string.c_str())) {
-  if (!caps_) {
+  Caps(gst_caps_from_string(caps_string.c_str())) {
+  if (!get()) {
     throw std::runtime_error("Invalid caps string: '" + caps_string + "'");
   }
 } 
 
-Caps::~Caps() {
-  if (caps_)
-    gst_caps_unref(caps_);
-}
-
-Caps::Caps(const Caps& other) : caps_(other.caps_) {
-  if (caps_)
-    gst_caps_ref(caps_);
-}
-
-Caps& Caps::operator=(const Caps& other) {
-  if (this != &other) {
-    // Clean up current caps
-    if (caps_)
-      gst_caps_unref(caps_);
-
-    // Copy from other
-    caps_ = other.caps_;
-    if (caps_)
-      gst_caps_ref(caps_);
-  }
-  return *this;
-}
-
-Caps::Caps(Caps&& other) noexcept : caps_(other.caps_) {
-  other.caps_ = nullptr;
-}
-
-Caps& Caps::operator=(Caps&& other) noexcept {
-  if (this != &other) {
-    // Clean up current caps
-    if (caps_)
-      gst_caps_unref(caps_);
-
-    // Move from other
-    caps_ = other.caps_;
-    other.caps_ = nullptr;
-  }
-  return *this;
-}
-
-::GstCaps* Caps::get() const {
-  return caps_;
-}
-
-Caps::operator bool() const {
-  return caps_ != nullptr;
-}
-
 ::GstCaps* Caps::ref() const {
-  if (caps_) {
-    gst_caps_ref(caps_);
-    return caps_;
-  }
+  if (get())
+    return gst_caps_ref(get());
   return nullptr;
 }
 
-::GstCaps* Caps::release() {
-  auto result = caps_;
-  caps_ = nullptr;
-  return result;
-}
-
-void Caps::reset() {
-  if (caps_) {
-    gst_caps_unref(caps_);
-    caps_ = nullptr;
-  }
-}
-
-const char* Caps::get_structure_name() const {
-  if (caps_ == nullptr || get_size() == 0)
+const char* Caps::get_structure_name(guint index) const {
+  if (!get() || index >= get_size())
     return nullptr;
 
-  ::GstStructure* structure = gst_caps_get_structure(caps_, 0);
+  ::GstStructure* structure = gst_caps_get_structure(get(), index);
   if (!structure)
     return nullptr;
 
   return gst_structure_get_name(structure);
+}
+
+const GValue* Caps::get_structure_value(const char* fieldname, guint index) const {
+  if (!get() || index >= get_size())
+    return nullptr;
+
+  ::GstStructure* structure = gst_caps_get_structure(get(), index);
+  if (!structure)
+    return nullptr;
+
+  return gst_structure_get_value(structure, fieldname);
 }
 
 std::optional<VideoInfo> Caps::get_video_info() const {
@@ -128,35 +77,31 @@ std::optional<VideoInfo> Caps::get_video_info() const {
 bool Caps::is_empty() const {
   // Note: GStreamer semantics - nullptr returns FALSE (not empty)
   // Empty caps is created with gst_caps_new_empty()
-  return gst_caps_is_empty(caps_);
+  return gst_caps_is_empty(get());
 }
 
 guint Caps::get_size() const {
-  return gst_caps_get_size(caps_);
+  return gst_caps_get_size(get());
 }
 
 bool Caps::has_feature(const char* feature_name) const {
-  if (!feature_name || caps_ == nullptr || get_size() == 0)
+  if (!feature_name || get() == nullptr || get_size() == 0)
     return false;
 
   // Check if the caps contain the specified feature
   for (guint i = 0; i < get_size(); i++) {
-    GstCapsFeatures* features = gst_caps_get_features(caps_, i);
-    if (features && gst_caps_features_contains(features, feature_name))
+    auto features = gst_caps_get_features(get(), i);
+    if (gst_caps_features_contains(features, feature_name))
       return true;
   }
-  
   return false;
 }
 
 std::string Caps::to_string() const {
-  gchar* caps_str = gst_caps_to_string(caps_);
-  if (!caps_str) {
+  std::unique_ptr<gchar, decltype(&g_free)> caps_str(gst_caps_to_string(get()), &g_free);
+  if (!caps_str)
     return std::string();
-  }
-  std::string result(caps_str);
-  g_free(caps_str);
-  return result;
+  return std::string(caps_str.get());
 }
 
 }  // namespace gst

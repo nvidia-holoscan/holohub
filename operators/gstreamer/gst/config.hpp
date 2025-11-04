@@ -15,31 +15,20 @@
  * limitations under the License.
  */
 
-#include "guards.hpp"
+#ifndef HOLOSCAN__GSTREAMER__GST__CONFIG_HPP
+#define HOLOSCAN__GSTREAMER__GST__CONFIG_HPP
 
-namespace holoscan {
-namespace gst {
+#include <gst/gstversion.h>
 
-// ============================================================================
-// RAII Guard Implementations
-// ============================================================================
+// CUDA support in GStreamer requires version 1.24+.
+// This includes functions like gst_cuda_memory_init_once() and gst_cuda_allocator_alloc_wrapped().
+// Enable CUDA support only if GStreamer version is 1.24.0 or higher.
+#if GST_CHECK_VERSION(1, 24, 0)
+#define HOLOSCAN_GSTREAMER_CUDA_SUPPORT 1
+#else
+#define HOLOSCAN_GSTREAMER_CUDA_SUPPORT 0
+#endif  // HOLOSCAN_GSTREAMER_CUDA_SUPPORT
 
-GstMessageGuard make_gst_message_guard(GstMessage* message) {
-  return std::shared_ptr<GstMessage>(message, [](GstMessage* msg) {
-    if (msg) {
-      gst_message_unref(msg);
-    }
-  });
-}
+#endif /* GST_CONFIG_HPP */
 
-GstErrorGuard make_gst_error_guard(GError* error) {
-  return std::shared_ptr<GError>(error, [](GError* err) {
-    if (err) {
-      g_error_free(err);
-    }
-  });
-}
-
-}  // namespace gst
-}  // namespace holoscan
 

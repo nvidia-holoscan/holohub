@@ -15,73 +15,81 @@
  * limitations under the License.
  */
 
-#ifndef GSTREAMER_GST_OBJECT_HPP
-#define GSTREAMER_GST_OBJECT_HPP
+#ifndef HOLOSCAN__GSTREAMER__GST__OBJECT_HPP
+#define HOLOSCAN__GSTREAMER__GST__OBJECT_HPP
 
+#include <functional>
 #include <memory>
 #include <gst/gst.h>
+#include "config.hpp"
+
+#if HOLOSCAN_GSTREAMER_CUDA_SUPPORT
 #include <gst/cuda/gstcudacontext.h>
+#endif  // HOLOSCAN_GSTREAMER_CUDA_SUPPORT
 
 namespace holoscan {
 namespace gst {
 
 /**
  * @brief RAII wrapper for GStreamer objects with automatic cleanup
- * @tparam T The GStreamer object type (::GstElement, ::GstBus, etc.)
+ * @tparam T The GStreamer object type (e.g. ::GstElement, ::GstCaps, ::GstBuffer, etc.)
+ * 
+ * Supports custom deleters for types with specialized ref/unref functions.
+ * Default deleter uses gst_object_unref for GstObject-derived types.
  */
 template<typename T>
 class Object {
- private:
-  std::shared_ptr<T> ptr_;
-
  public:
-  // Constructors
-  Object() = default;
-  
+  using Deleter = std::function<void(T*)>; 
   // Constructor from raw pointer (takes ownership)
-  explicit Object(T* object) : ptr_(object, [](T* obj) {
-    if (obj) {
-      gst_object_unref(obj);
-    }
-  }) {}
-  
-  // Copy constructor and assignment
-  Object(const Object&) = default;
-  Object& operator=(const Object&) = default;
-  
-  // Move constructor and assignment
-  Object(Object&&) noexcept = default;
-  Object& operator=(Object&&) noexcept = default;
-  
+  explicit Object(T* object = nullptr, Deleter deleter = Deleter()) :
+    ptr_(object, deleter ? deleter : [](T* obj) {
+      if (obj)
+        gst_object_unref(obj);
+    }) {}
+
+  virtual ~Object() = default;
+
+  // Enable copy semantics
+  Object(const Object& other) = default;
+  Object& operator=(const Object& other) = default;
+
+  // Enable move semantics
+  Object(Object&& other) = default;
+  Object& operator=(Object&& other) = default;
+    
   // Get the raw pointer
   T* get() const { return ptr_.get(); }
-  
+
+  // Access GStreamer object members directly
+  T* operator->() const { return ptr_.get(); }
+
   // Bool conversion
-  explicit operator bool() const { return ptr_ != nullptr; }
+  explicit operator bool() const { return static_cast<bool>(ptr_); }
   
   // Increment GStreamer reference count and return the raw pointer
   // Useful when you need to pass ownership to GStreamer APIs
-  T* ref() const {
-    if (ptr_) {
-      gst_object_ref(ptr_.get());
-      return ptr_.get();
-    }
+  virtual T* ref() const {
+    if (ptr_)
+      return static_cast<T*>(gst_object_ref(ptr_.get()));
     return nullptr;
   }
   
   // Transfer ownership out of the guard
   // Increments the ref count, resets the guard, and returns the pointer
   T* release() {
+    if (!ptr_)
+      return nullptr;
     auto result = ref();
-    ptr_.reset();
+    reset();
     return result;
   }
   
   // Reset the guard
   void reset() { ptr_.reset(); }
-  
-  // Get the underlying shared_ptr
-  const std::shared_ptr<T>& shared_ptr() const { return ptr_; }
+
+ private:
+  std::shared_ptr<T> ptr_;
 };
 
 // ============================================================================
@@ -104,11 +112,6 @@ using ElementFactory = Object<::GstElementFactory>;
 using Bus = Object<::GstBus>;
 
 /**
- * @brief Convenience alias for ::GstCudaContext
- */
-using CudaContext = Object<::GstCudaContext>;
-
-/**
  * @brief Convenience alias for ::GstAllocator
  */
 using Allocator = Object<::GstAllocator>;
@@ -118,8 +121,16 @@ using Allocator = Object<::GstAllocator>;
  */
  using Pad = Object<::GstPad>;
 
+
+#if HOLOSCAN_GSTREAMER_CUDA_SUPPORT
+/**
+ * @brief Convenience alias for ::GstCudaContext
+ */
+using CudaContext = Object<::GstCudaContext>;
+#endif  // HOLOSCAN_GSTREAMER_CUDA_SUPPORT
+
 }  // namespace gst
 }  // namespace holoscan
 
-#endif /* GSTREAMER_GST_OBJECT_HPP */
+#endif /* HOLOSCAN__GSTREAMER__GST__OBJECT_HPP */
 

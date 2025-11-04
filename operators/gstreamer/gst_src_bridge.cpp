@@ -28,8 +28,13 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 #include <gst/video/video.h>
-#include <gst/cuda/gstcudamemory.h>
-#include <gst/cuda/gstcudacontext.h>
+#if HOLOSCAN_GSTREAMER_CUDA_SUPPORT
+ #include <gst/cuda/gstcudamemory.h>
+ #include <gst/cuda/gstcudacontext.h>
+ #ifndef GST_MAP_READ_CUDA
+  #define GST_MAP_READ_CUDA ((GstMapFlags) (GST_MAP_READ | GST_MAP_CUDA))
+ #endif
+#endif  // HOLOSCAN_GSTREAMER_CUDA_SUPPORT
 
 #include <dlpack/dlpack.h>
 
@@ -38,15 +43,10 @@
 
 #include <holoscan/core/domain/tensor.hpp>
 #include <holoscan/core/gxf/entity.hpp>
-
 #include <holoscan/logger/logger.hpp>
 
+#include "gst/memory.hpp"
 #include "gst/video_info.hpp"
-
-// Convenience constant for mapping CUDA memory for reading
-#ifndef GST_MAP_READ_CUDA
-#define GST_MAP_READ_CUDA ((GstMapFlags) (GST_MAP_READ | GST_MAP_CUDA))
-#endif
 
 namespace holoscan {
 
@@ -67,8 +67,23 @@ static bool gst_initialized = [](){
  */
 class GstSrcBridge::MemoryWrapper {
  public:
+  MemoryWrapper() = default;
   virtual ~MemoryWrapper() = default;
-  virtual ::GstMemory* wrap_memory(const holoscan::Tensor* tensor, void* user_data, GDestroyNotify notify) = 0;
+  // Non-copyable and non-movable
+  MemoryWrapper(const MemoryWrapper&) = delete;
+  MemoryWrapper& operator=(const MemoryWrapper&) = delete;
+  MemoryWrapper(MemoryWrapper&&) = delete;
+  MemoryWrapper& operator=(MemoryWrapper&&) = delete;
+
+  /**
+   * @brief Wrap a tensor into a GStreamer memory object
+   * @param tensor Tensor to wrap
+   * @param user_data User data to pass to the notify callback
+   * @param destroy_notify Notify callback to free the user data when the memory is destroyed
+   * @return GStreamer memory object (empty on failure)
+   * @throws std::runtime_error if CUDA initialization or context creation fails (CudaMemoryWrapper only)
+   */
+  virtual gst::Memory wrap_memory(const holoscan::Tensor* tensor, void* user_data, GDestroyNotify destroy_notify) = 0;
 };
 
 /**
@@ -76,80 +91,54 @@ class GstSrcBridge::MemoryWrapper {
  */
 class GstSrcBridge::HostMemoryWrapper : public MemoryWrapper {
  public:
-  HostMemoryWrapper() = default;
-  ~HostMemoryWrapper() override = default;
-  
-  // Non-copyable and non-movable
-  HostMemoryWrapper(const HostMemoryWrapper&) = delete;
-  HostMemoryWrapper& operator=(const HostMemoryWrapper&) = delete;
-  HostMemoryWrapper(HostMemoryWrapper&&) = delete;
-  HostMemoryWrapper& operator=(HostMemoryWrapper&&) = delete;
-  
-  ::GstMemory* wrap_memory(
+  gst::Memory wrap_memory(
       const holoscan::Tensor* tensor,
       void* user_data,
-      GDestroyNotify notify) override {
+      GDestroyNotify destroy_notify) override {
     
-    void* tensor_data = tensor->data();
-    size_t tensor_size = tensor->nbytes();
-    
-    if (!tensor_data || tensor_size == 0) {
+    if (!tensor->data() || tensor->nbytes() == 0) {
       HOLOSCAN_LOG_ERROR("Invalid tensor data or size for host memory wrapping");
-      return nullptr;
+      return gst::Memory();
     }
     
-    HOLOSCAN_LOG_DEBUG("Wrapping as host memory (zero-copy): size={} bytes", tensor_size);
-    
-    return gst_memory_new_wrapped(
-        static_cast<GstMemoryFlags>(0),  // flags
-        tensor_data,                      // data pointer
-        tensor_size,                      // maxsize
+    HOLOSCAN_LOG_DEBUG("Wrapping as host memory (zero-copy): size={} bytes", tensor->nbytes());
+    return gst::Memory(gst_memory_new_wrapped(
+        static_cast<GstMemoryFlags>(0),   // flags
+        tensor->data(),                   // data pointer
+        tensor->nbytes(),                 // maxsize
         0,                                // offset
-        tensor_size,                      // size
+        tensor->nbytes(),                 // size
         user_data,                        // user_data
-        notify);                          // notify callback
+        destroy_notify));                 // destroy_notify callback
   }
 };
 
+#if HOLOSCAN_GSTREAMER_CUDA_SUPPORT
 /**
  * CUDA device memory wrapper - wraps GPU memory using GStreamer CUDA memory
  * Initializes CUDA resources in constructor, throws on failure
+ * Creates CUDA context on first use based on tensor's device
  */
 class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
  public:
   CudaMemoryWrapper() {
     HOLOSCAN_LOG_INFO("Initializing CUDA resources for zero-copy device memory");
     
-    // First, check if CUDA is available using CUDA runtime API
-    int device_count = 0;
-    cudaError_t cuda_err = cudaGetDeviceCount(&device_count);
-    if (cuda_err != cudaSuccess || device_count == 0) {
+    // Check if CUDA is available using CUDA runtime API
+    cudaError_t cuda_err = cudaGetDeviceCount(&device_count_);
+    if (cuda_err != cudaSuccess || device_count_ == 0) {
       std::string error_msg = fmt::format(
           "CUDA not available: {} (device count: {}). "
           "Cannot initialize CUDA resources for zero-copy device memory.",
-          cudaGetErrorString(cuda_err), device_count);
+          cudaGetErrorString(cuda_err), device_count_);
       HOLOSCAN_LOG_ERROR(error_msg);
       throw std::runtime_error(error_msg);
     }
     
-    HOLOSCAN_LOG_INFO("CUDA detected: {} device(s) available", device_count);
-    
-    // For now, assume device 0 (can be enhanced to detect actual device from tensor)
-    gint cuda_device_id = 0;
+    HOLOSCAN_LOG_INFO("CUDA detected: {} device(s) available", device_count_);
     
     // Initialize CUDA memory system (must be called before any GStreamer CUDA operations)
     gst_cuda_memory_init_once();
-    
-    // Create a CUDA context for this device - wrap in RAII guard
-    cuda_context_ = gst::CudaContext(gst_cuda_context_new(cuda_device_id));
-    if (!cuda_context_) {
-      std::string error_msg = fmt::format(
-          "Failed to create CUDA context for device {}. "
-          "GStreamer CUDA support may not be properly configured.", 
-          cuda_device_id);
-      HOLOSCAN_LOG_ERROR(error_msg);
-      throw std::runtime_error(error_msg);
-    }
     
     // Get or create a CUDA allocator - wrap in RAII guard
     ::GstAllocator* allocator = gst_allocator_find(GST_CUDA_MEMORY_TYPE_NAME);
@@ -164,33 +153,51 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
       throw std::runtime_error(error_msg);
     }
     
-    HOLOSCAN_LOG_INFO("CUDA resources initialized successfully (device {})", cuda_device_id);
+    HOLOSCAN_LOG_INFO("CUDA resources initialized successfully");
   }
   
-  // Non-copyable and non-movable
-  CudaMemoryWrapper(const CudaMemoryWrapper&) = delete;
-  CudaMemoryWrapper& operator=(const CudaMemoryWrapper&) = delete;
-  CudaMemoryWrapper(CudaMemoryWrapper&&) = delete;
-  CudaMemoryWrapper& operator=(CudaMemoryWrapper&&) = delete;
-  
-  ::GstMemory* wrap_memory(
+  gst::Memory wrap_memory(
       const holoscan::Tensor* tensor,
       void* user_data,
-      GDestroyNotify notify) override {
+      GDestroyNotify destroy_notify) override {
     
     void* tensor_data = tensor->data();
     size_t tensor_size = tensor->nbytes();
     
     if (!tensor_data || tensor_size == 0) {
       HOLOSCAN_LOG_ERROR("Invalid tensor data or size for CUDA memory wrapping");
-      return nullptr;
+      return gst::Memory();
     }
     
+    // Detect CUDA device from tensor
+    gint cuda_device_id = tensor->device().device_id;
+    
+    // Validate device ID
+    if (cuda_device_id < 0 || cuda_device_id >= device_count_) {
+      HOLOSCAN_LOG_ERROR("Invalid CUDA device ID {} from tensor (available: 0-{})", 
+                        cuda_device_id, device_count_ - 1);
+      return gst::Memory();
+    }
+    
+    if (!cuda_context_ || current_device_id_ != cuda_device_id) { 
+      if (current_device_id_ >= 0 && current_device_id_ != cuda_device_id)
+        HOLOSCAN_LOG_WARN("Current CUDA device is different from the one requested. Current: {}, Requested: {}", current_device_id_, cuda_device_id);
+
+      HOLOSCAN_LOG_INFO("Creating CUDA context for device {}", cuda_device_id);
+      cuda_context_ = gst::CudaContext(gst_cuda_context_new(cuda_device_id));
+      if (!cuda_context_) {
+        HOLOSCAN_LOG_ERROR("Failed to create CUDA context for device {}", cuda_device_id);
+        throw std::runtime_error("Failed to create CUDA context for device " + std::to_string(cuda_device_id));
+      }
+      current_device_id_ = cuda_device_id;
+      HOLOSCAN_LOG_INFO("CUDA context created for device {}", cuda_device_id);
+    }
+
     // Get tensor shape to create GstVideoInfo
     auto shape = tensor->shape();
     if (shape.size() < 2) {
       HOLOSCAN_LOG_ERROR("Tensor has invalid rank {} for CUDA wrapping", shape.size());
-      return nullptr;
+      return gst::Memory();
     }
     
     // Assume tensor is in format: [height, width, channels] or [height, width]
@@ -203,26 +210,32 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
     gst_video_info_init(&video_info);
     if (!gst_video_info_set_format(&video_info, format, width, height)) {
       HOLOSCAN_LOG_ERROR("Failed to set video info for CUDA memory wrapping");
-      return nullptr;
+      return gst::Memory();
     }
     
-    HOLOSCAN_LOG_DEBUG("Wrapping as CUDA device memory (zero-copy): size={} bytes", tensor_size);
+    HOLOSCAN_LOG_DEBUG("Wrapping as CUDA device memory (zero-copy): device={}, size={} bytes", 
+                      cuda_device_id, tensor_size);
     
     // Wrap the device memory pointer in GstCudaMemory
-    return gst_cuda_allocator_alloc_wrapped(
+    return gst::Memory(gst_cuda_allocator_alloc_wrapped(
         GST_CUDA_ALLOCATOR(cuda_allocator_.get()),
         cuda_context_.get(),
-        nullptr,                         // CUDA stream (nullptr = default)
-        &video_info,                     // video info
+        nullptr,                                     // CUDA stream (nullptr = default)
+        &video_info,                                 // video info
         reinterpret_cast<CUdeviceptr>(tensor_data),  // device pointer
-        user_data,                       // user_data
-        notify);                         // notify callback
+        user_data,                                   // user_data
+        destroy_notify));                            // destroy_notify callback
   }
 
  private:
+  int device_count_ = 0;
+  gint current_device_id_ = -1;  // -1 means no context created yet
   gst::CudaContext cuda_context_;
   gst::Allocator cuda_allocator_;
 };
+#endif  // HOLOSCAN_GSTREAMER_CUDA_SUPPORT
+
+namespace {
 
 // ============================================================================
 // Tensor Wrapper for Memory Lifetime Management
@@ -230,19 +243,17 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
 
 // Wrapper to keep tensor alive while GStreamer uses its memory
 struct TensorWrapper {
-  std::shared_ptr<holoscan::DLManagedTensorContext> dl_ctx;  // Keep tensor memory alive
-  
   explicit TensorWrapper(std::shared_ptr<holoscan::DLManagedTensorContext> ctx) 
     : dl_ctx(std::move(ctx)) {}
+
+  std::shared_ptr<holoscan::DLManagedTensorContext> dl_ctx;  // Keep tensor memory alive
 };
 
 // Callback to free TensorWrapper when GstMemory is destroyed
-static void free_tensor_wrapper(gpointer user_data) {
+void free_tensor_wrapper(gpointer user_data) {
   auto* wrapper = static_cast<TensorWrapper*>(user_data);
   delete wrapper;
 }
-
-namespace {
 
 /**
  * @brief Create memory wrapper based on tensor storage type and caps
@@ -259,18 +270,20 @@ std::shared_ptr<GstSrcBridge::MemoryWrapper> create_memory_wrapper(
   // Check device type from DLPack
   DLDevice device = tensor->device();
   bool is_device_memory = (device.device_type == kDLCUDA || device.device_type == kDLCUDAManaged);
-  
-  const char* storage_type_str = is_device_memory ? "GPU" : "CPU";
+  auto storage_type_str = is_device_memory ? "GPU" : "CPU";
   
   // Use CudaMemoryWrapper for GPU tensors when GStreamer requests CUDA memory
   if (is_device_memory && cuda_requested) {
+#if HOLOSCAN_GSTREAMER_CUDA_SUPPORT
     HOLOSCAN_LOG_INFO("Creating CUDA memory wrapper ({} memory)", storage_type_str);
     return std::make_shared<GstSrcBridge::CudaMemoryWrapper>();
-  } else {
-    // Use HostMemoryWrapper for CPU memory or when CUDA not requested
-    HOLOSCAN_LOG_INFO("Creating host memory wrapper ({} memory)", storage_type_str);
-    return std::make_shared<GstSrcBridge::HostMemoryWrapper>();
+#else
+  HOLOSCAN_LOG_WARN("CUDA memory requested but not available (requires GStreamer 1.24+). Falling back to host memory.");
+#endif  // HOLOSCAN_GSTREAMER_CUDA_SUPPORT
   }
+  // Use HostMemoryWrapper for CPU memory or when CUDA not requested
+  HOLOSCAN_LOG_INFO("Creating host memory wrapper ({} memory)", storage_type_str);
+  return std::make_shared<GstSrcBridge::HostMemoryWrapper>();
 }
 
 }  // anonymous namespace
@@ -279,56 +292,58 @@ std::shared_ptr<GstSrcBridge::MemoryWrapper> create_memory_wrapper(
 // GstSrcBridge Implementation
 // ============================================================================
 
-GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, size_t max_buffers)
+GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps_string, size_t max_buffers)
     : name_(name), 
-      caps_(caps), 
+      caps_string_(caps_string), 
       max_buffers_(max_buffers),
       src_element_{gst_element_factory_make("appsrc", name_.empty() ? nullptr : name_.c_str())} {
   HOLOSCAN_LOG_INFO("Creating GstSrcBridge: name='{}', caps='{}', max_buffers={}",
-                    name, caps, max_buffers);
+                    name, caps_string_, max_buffers);
   
   if (!src_element_) {
     HOLOSCAN_LOG_ERROR("Failed to create appsrc element");
     throw std::runtime_error("Failed to create appsrc element");
   }
 
-  GstAppSrc* appsrc = GST_APP_SRC(src_element_.get());
+  gst::Caps caps(caps_string_);
+  if (!caps) {
+    HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", caps_string_);
+    throw std::runtime_error("Failed to parse caps");
+  }
+
+  HOLOSCAN_LOG_INFO("Set appsrc caps: {}", caps.to_string());
 
   // Parse framerate from caps first to determine is-live mode
   bool is_live = false;
-  if (caps_ != "ANY") {
-    GstCaps* gst_caps = gst_caps_from_string(caps_.c_str());
-    if (gst_caps) {
-      // Extract framerate from caps
-      if (gst_caps_get_size(gst_caps) > 0) {
-        GstStructure* structure = gst_caps_get_structure(gst_caps, 0);
-        const GValue* framerate_value = gst_structure_get_value(structure, "framerate");
+  if (caps_string_ != "ANY") {
+    // Extract framerate from caps
+    if (caps.get_size() > 0) {
+      const GValue* framerate_value = caps.get_structure_value("framerate");
+      
+      if (framerate_value && GST_VALUE_HOLDS_FRACTION(framerate_value)) {
+        framerate_num_ = gst_value_get_fraction_numerator(framerate_value);
+        framerate_den_ = gst_value_get_fraction_denominator(framerate_value);
         
-        if (framerate_value && GST_VALUE_HOLDS_FRACTION(framerate_value)) {
-          framerate_num_ = gst_value_get_fraction_numerator(framerate_value);
-          framerate_den_ = gst_value_get_fraction_denominator(framerate_value);
-          
-          // If framerate is 0, treat as live source (process frames as fast as they come)
-          if (framerate_num_ == 0) {
-            is_live = true;
-            HOLOSCAN_LOG_INFO("Framerate is 0/1 - using live mode (no framerate control)");
-          } else {
-            HOLOSCAN_LOG_INFO("Parsed framerate from caps: {}/{} fps", 
-                              framerate_num_, framerate_den_);
-          }
-        } else {
-          // No framerate specified - use live mode
+        // If framerate is 0, treat as live source (process frames as fast as they come)
+        if (framerate_num_ == 0) {
           is_live = true;
-          framerate_num_ = 0;
-          framerate_den_ = 1;
-          HOLOSCAN_LOG_INFO("Framerate not found in caps - using live mode (no framerate control)");
+          HOLOSCAN_LOG_INFO("Framerate is 0/1 - using live mode (no framerate control)");
+        } else {
+          HOLOSCAN_LOG_INFO("Parsed framerate from caps: {}/{} fps", 
+                            framerate_num_, framerate_den_);
         }
+      } else {
+        // No framerate specified - use live mode
+        is_live = true;
+        framerate_num_ = 0;
+        framerate_den_ = 1;
+        HOLOSCAN_LOG_INFO("Framerate not found in caps - using live mode (no framerate control)");
       }
-      gst_caps_unref(gst_caps);
     }
   }
 
   // Configure appsrc properties
+  GstAppSrc* appsrc = GST_APP_SRC(src_element_.get());
   g_object_set(appsrc,
     "stream-type", GST_APP_STREAM_TYPE_STREAM,  // Continuous stream
     "format", GST_FORMAT_TIME,                    // Time-based format
@@ -343,34 +358,18 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps, siz
                     max_buffers_, is_live ? "true" : "false");
 
   // Set caps if not ANY
-  if (caps_ != "ANY") {
-    GstCaps* gst_caps = gst_caps_from_string(caps_.c_str());
-    if (gst_caps) {
-      gst_app_src_set_caps(appsrc, gst_caps);
-      gst_caps_unref(gst_caps);
-      HOLOSCAN_LOG_INFO("Set appsrc caps: {}", caps_);
-    } else {
-      HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", caps_);
-      throw std::runtime_error("Failed to parse caps");
-    }
-  }
+  if (caps_string_ != "ANY")
+    gst_app_src_set_caps(appsrc, caps.ref());
   
   HOLOSCAN_LOG_INFO("GstSrcBridge initialized with appsrc (max_buffers: {}, framerate: {}/{})", 
                     max_buffers_, framerate_num_, framerate_den_);
 }
 
-GstSrcBridge::~GstSrcBridge() {
-  HOLOSCAN_LOG_INFO("Destroying GstSrcBridge");
-  
-  // Attempt to send EOS during destruction
-  if (send_eos()) {
-    HOLOSCAN_LOG_INFO("Sent EOS during destruction");
-  }
-  
-  HOLOSCAN_LOG_INFO("GstSrcBridge destroyed");
+gst::Element GstSrcBridge::get_gst_element() const {
+  return src_element_;
 }
 
-bool GstSrcBridge::push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout) {
+bool GstSrcBridge::push_buffer(gst::Buffer buffer) {
   HOLOSCAN_LOG_DEBUG("GstSrcBridge::push_buffer() - Starting");
   
   if (!buffer.get()) {
@@ -380,43 +379,24 @@ bool GstSrcBridge::push_buffer(gst::Buffer buffer, std::chrono::milliseconds tim
 
   GstAppSrc* appsrc = GST_APP_SRC(src_element_.get());
   
-  // Check appsrc queue status
-  guint64 current_level_bytes = 0;
-  guint64 max_bytes = 0;
-  guint current_level_buffers = 0;
-  guint max_buffers = 0;
-  g_object_get(appsrc, 
-               "current-level-bytes", &current_level_bytes, 
-               "max-bytes", &max_bytes,
-               "current-level-buffers", &current_level_buffers,
-               "max-buffers", &max_buffers,
-               NULL);
-  HOLOSCAN_LOG_DEBUG("appsrc queue: {}/{} buffers, {}/{} bytes", 
-                    current_level_buffers, max_buffers,
-                    current_level_bytes, max_bytes);
-  
-  HOLOSCAN_LOG_DEBUG("Calling gst_app_src_push_buffer()");
-  
   // Push the buffer to appsrc (transfers ownership)
   // Note: gst_app_src_push_buffer takes ownership and will unref the buffer
-  GstFlowReturn ret = gst_app_src_push_buffer(appsrc, gst_buffer_ref(buffer.get()));
-  
-  HOLOSCAN_LOG_DEBUG("gst_app_src_push_buffer() returned: {} ({})", 
-                    gst_flow_get_name(ret), static_cast<int>(ret));
-  
-  if (ret != GST_FLOW_OK) {
-    if (ret == GST_FLOW_FLUSHING) {
+  GstFlowReturn ret = gst_app_src_push_buffer(appsrc, buffer.ref());
+  switch (ret) {
+    case GST_FLOW_OK:
+      HOLOSCAN_LOG_DEBUG("Successfully pushed buffer to appsrc");
+      break;
+    case GST_FLOW_FLUSHING:
       HOLOSCAN_LOG_WARN("appsrc is flushing, buffer not pushed");
-    } else if (ret == GST_FLOW_EOS) {
+      break;
+    case GST_FLOW_EOS:
       HOLOSCAN_LOG_WARN("appsrc is in EOS state");
-    } else {
+      break;
+    default:
       HOLOSCAN_LOG_ERROR("Failed to push buffer to appsrc: {}", gst_flow_get_name(ret));
-    }
-    return false;
+      break;
   }
-  
-  HOLOSCAN_LOG_DEBUG("Successfully pushed buffer to appsrc");
-  return true;
+  return ret == GST_FLOW_OK;
 }
 
 bool GstSrcBridge::send_eos() {
@@ -445,8 +425,6 @@ bool GstSrcBridge::send_eos() {
 }
 
 gst::Caps GstSrcBridge::get_caps() const {
-  // TODO:
-  // Get the source pad and its current caps
   gst::Pad pad(gst_element_get_static_pad(src_element_.get(), "src"));
   if (!pad)
     return gst::Caps(); // Return empty caps
@@ -456,11 +434,11 @@ gst::Caps GstSrcBridge::get_caps() const {
 
 gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_map) {
   // Create an empty GStreamer buffer at the start
-  gst::Buffer gst_buffer;
+  gst::Buffer buffer;
 
   if (tensor_map.empty()) {
     HOLOSCAN_LOG_ERROR("TensorMap is empty");
-    return gst_buffer;
+    return buffer;
   }
 
   int tensor_count = 0;
@@ -485,10 +463,10 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_
     // Lazy initialization of memory wrapper on first tensor
     if (!memory_wrapper_) {
       try {
-        memory_wrapper_ = create_memory_wrapper(tensor_ptr.get(), caps_);
+        memory_wrapper_ = create_memory_wrapper(tensor_ptr.get(), caps_string_);
       } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("Failed to create memory wrapper: {}", e.what());
-        return gst_buffer;
+        return buffer;
       }
     }
 
@@ -496,7 +474,7 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_
     auto tensor_wrapper = std::make_unique<TensorWrapper>(tensor_ptr->dl_ctx());
 
     // Use the memory wrapper to wrap the tensor
-    ::GstMemory* memory = memory_wrapper_->wrap_memory(
+    auto memory = memory_wrapper_->wrap_memory(
         tensor_ptr.get(),
         tensor_wrapper.get(),
         free_tensor_wrapper);
@@ -510,7 +488,7 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_
     tensor_wrapper.release();
 
     // Append wrapped memory to buffer
-    gst_buffer_append_memory(gst_buffer.get(), memory);
+    buffer.append_memory(memory);
     
     tensor_count++;
     total_size += tensor_size;
@@ -540,10 +518,9 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_
       duration = next_timestamp - timestamp;
     }
     
-    GST_BUFFER_PTS(gst_buffer.get()) = timestamp;
-    GST_BUFFER_DTS(gst_buffer.get()) = timestamp;
-    GST_BUFFER_DURATION(gst_buffer.get()) = duration;
-    
+    buffer->pts = timestamp;
+    buffer->dts = timestamp;
+    buffer->duration = duration;
     frame_count_++;
     
     HOLOSCAN_LOG_DEBUG("Successfully created zero-copy GStreamer buffer: {} tensors, {} total bytes, frame={}, PTS={}",
@@ -551,7 +528,7 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_
                        (timestamp == GST_CLOCK_TIME_NONE) ? "NONE" : std::to_string(timestamp) + " ns");
   }
   
-  return gst_buffer;
+  return buffer;
 }
 
 }  // namespace holoscan

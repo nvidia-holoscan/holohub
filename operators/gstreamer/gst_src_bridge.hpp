@@ -28,6 +28,7 @@
 
 #include <holoscan/core/domain/tensor_map.hpp>
 
+#include "gst/config.hpp"
 #include "gst/buffer.hpp"
 #include "gst/caps.hpp"
 #include "gst/object.hpp"
@@ -40,22 +41,20 @@ namespace holoscan {
  * This class provides a pure GStreamer implementation for managing an appsrc element,
  * handling buffer creation from tensors, and managing the data flow into GStreamer pipelines.
  * It contains no Holoscan-specific dependencies (except for GXF tensors which are the data format).
+ * 
+ * @note The user is responsible for calling send_eos() when done sending data to properly
+ *       finalize the stream. The destructor does NOT automatically send EOS.
  */
 class GstSrcBridge {
  public:
   /**
    * @brief Constructor - creates and initializes the GStreamer appsrc element
    * @param name Optional name for the appsrc element
-   * @param caps Capabilities string (e.g., "video/x-raw,format=RGBA,width=1920,height=1080")
+   * @param caps_string Capabilities string (e.g., "video/x-raw,format=RGBA,width=1920,height=1080")
    * @param max_buffers Maximum number of buffers in queue (0 = unlimited)
    * @throws std::runtime_error if initialization fails
    */
-  GstSrcBridge(const std::string& name, const std::string& caps, size_t max_buffers);
-
-  /**
-   * @brief Destructor - cleans up GStreamer resources
-   */
-  ~GstSrcBridge();
+  GstSrcBridge(const std::string& name, const std::string& caps_string, size_t max_buffers);
 
   // Non-copyable and non-movable
   GstSrcBridge(const GstSrcBridge&) = delete;
@@ -65,11 +64,9 @@ class GstSrcBridge {
 
   /**
    * @brief Get the underlying GStreamer element
-   * @return Reference to the GStreamer element wrapper (appsrc)
+   * @return GStreamer element wrapper (appsrc)
    */
-  const gst::Element& get_gst_element() const {
-    return src_element_;
-  }
+  gst::Element get_gst_element() const;
 
   /**
    * @brief Send End-Of-Stream signal to appsrc
@@ -88,13 +85,12 @@ class GstSrcBridge {
    * @brief Push a buffer into the GStreamer pipeline
    * 
    * If the queue is at capacity (controlled by max_buffers), this function
-   * will block until space becomes available, the timeout expires, or EOS is signaled.
+   * will block until space becomes available or EOS is signaled.
    * 
    * @param buffer GStreamer buffer to push
-   * @param timeout Duration to wait in milliseconds (zero = try immediately and return, no waiting)
    * @return true if buffer was successfully queued, false otherwise
    */
-  bool push_buffer(gst::Buffer buffer, std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
+   bool push_buffer(gst::Buffer buffer);
 
   /**
    * @brief Create a GStreamer buffer from a TensorMap
@@ -120,11 +116,13 @@ class GstSrcBridge {
   // Forward declarations for nested classes
   class MemoryWrapper;
   class HostMemoryWrapper;
+#if HOLOSCAN_GSTREAMER_CUDA_SUPPORT
   class CudaMemoryWrapper;
+#endif  // HOLOSCAN_GSTREAMER_CUDA_SUPPORT
  private:
   // Configuration
   std::string name_;
-  std::string caps_;
+  std::string caps_string_;
   size_t max_buffers_;
 
   // Framerate from caps (numerator/denominator)

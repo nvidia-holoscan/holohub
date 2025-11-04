@@ -23,6 +23,8 @@
 
 #include <gst/gst.h>
 
+#include "object.hpp"
+
 namespace holoscan {
 namespace gst {
 
@@ -36,7 +38,7 @@ class VideoInfo;
  * automatic cleanup when destroyed. It also provides convenient member functions
  * for common GstCaps operations.
  */
-class Caps {
+class Caps : public Object<::GstCaps> {
 public:
   /**
    * @brief Constructor from GstCaps pointer (takes ownership, does NOT increment refcount)
@@ -52,53 +54,25 @@ public:
   explicit Caps(const std::string& caps_string);
 
   /**
-   * @brief Destructor automatically unrefs the caps
-   */
-  ~Caps();
-
-  // Copy operations using GStreamer reference counting
-  Caps(const Caps& other);
-  Caps& operator=(const Caps& other);
-
-  // Allow move operations
-  Caps(Caps&& other) noexcept;
-  Caps& operator=(Caps&& other) noexcept;
-
-  /**
-   * @brief Get the native GStreamer GstCaps pointer
-   * @return Raw GstCaps pointer
-   */
-   ::GstCaps* get() const;
-
-  /**
-   * @brief Check if caps pointer is not nullptr
-   * @return true if caps_ is not nullptr, false otherwise
-   */
-  explicit operator bool() const;
-
-  /**
    * @brief Increment GStreamer reference count and return the raw pointer
    * @return Raw GstCaps pointer
    */
-  ::GstCaps* ref() const;
-
-  /**
-   * @brief Transfer ownership out of the guard (like std::unique_ptr::release)
-   * Does NOT increment ref count - transfers the existing reference to the caller
-   * @return Raw GstCaps pointer (caller takes ownership of the existing reference)
-   */
-  ::GstCaps* release();
-
-  /**
-   * @brief Reset the guard
-   */
-  void reset();
+  ::GstCaps* ref() const override;
 
   /**
    * @brief Get the name of the first structure in the caps
+   * @param index Index of the structure to get the name of (default is 0 - first/primary structure)
    * @return Structure name (e.g., "video/x-raw", "audio/x-raw") or nullptr if caps is nullptr/empty/invalid
    */
-  const char* get_structure_name() const;
+  const char* get_structure_name(guint index = 0) const;
+
+  /**
+   * @brief Get the value of a specific field in a specific structure
+   * @param fieldname Field name to get the value of (e.g., "framerate")
+   * @param index Index of the structure to get the value from (default is 0 - first/primary structure)
+   * @return Value of the field, or nullptr if field not found or caps is nullptr/empty/invalid
+   */
+  const GValue* get_structure_value(const char* fieldname, guint index = 0) const;
 
   /**
    * @brief Extract video format information from caps
@@ -131,9 +105,6 @@ public:
    * @return String representation of the caps (GStreamer returns "NULL" for nullptr caps)
    */
   std::string to_string() const;
-
-private:
-  ::GstCaps* caps_;
 };
 
 }  // namespace gst
