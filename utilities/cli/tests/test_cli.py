@@ -850,12 +850,12 @@ exec {holohub_script} "$@"
         # Mode docker_run_args should replace CLI docker_opts
         self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")
 
-    @patch("utilities.cli.holohub.HoloHubContainer")
-    def test_test_command_coverage_flag_forwarding(self, mock_container_class):
+    @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
+    def test_test_command_coverage_flag_forwarding(self, mock_make_container):
         """Ensure --coverage is forwarded to CTest command"""
         mock_container = MagicMock()
         mock_container.image_name = "holohub:testtag"
-        mock_container_class.return_value = mock_container
+        mock_make_container.return_value = mock_container
 
         args = self.cli.parser.parse_args(
             "test test_project --coverage --no-docker-build --dryrun".split()
@@ -871,12 +871,12 @@ exec {holohub_script} "$@"
         # Ensure preinstall for gcov (gcc) is prefixed
         self.assertIn("apt-get install -y gcc", kwargs["extra_args"][1])
 
-    @patch("utilities.cli.holohub.HoloHubContainer")
-    def test_test_command_coverage_build_arg(self, mock_container_class):
+    @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
+    def test_test_command_coverage_build_arg(self, mock_make_container):
         """Ensure --coverage adds COVERAGE=ON build argument to docker build"""
         mock_container = MagicMock()
         mock_container.image_name = "holohub:testtag"
-        mock_container_class.return_value = mock_container
+        mock_make_container.return_value = mock_container
 
         args = self.cli.parser.parse_args("test test_project --coverage --dryrun".split())
         args.func(args)
@@ -887,11 +887,11 @@ exec {holohub_script} "$@"
         self.assertIn("COVERAGE=ON", build_kwargs["build_args"])
         self.assertIn("--build-arg", build_kwargs["build_args"])
 
-    @patch("utilities.cli.holohub.HoloHubContainer")
-    def test_test_command_language_forwarding(self, mock_container_class):
+    @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
+    def test_test_command_language_forwarding(self, mock_make_container):
         """Ensure --language is accepted and passed to container creation"""
         mock_container = MagicMock()
-        mock_container_class.return_value = mock_container
+        mock_make_container.return_value = mock_container
 
         args = self.cli.parser.parse_args(
             "test test_project --language python --no-docker-build --dryrun".split()
@@ -901,12 +901,12 @@ exec {holohub_script} "$@"
         # Validate run invoked (indirect evidence parsing and flow succeeded)
         mock_container.run.assert_called_once()
 
-    @patch("utilities.cli.holohub.HoloHubContainer")
-    def test_test_command_language_adds_cmake_flags(self, mock_container_class):
+    @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
+    def test_test_command_language_adds_cmake_flags(self, mock_make_container):
         """Ensure --language injects HOLOHUB_BUILD_* cmake flags into CTest configure options"""
         mock_container = MagicMock()
         mock_container.image_name = "holohub:testtag"
-        mock_container_class.return_value = mock_container
+        mock_make_container.return_value = mock_container
 
         # Case 1: cpp
         args = self.cli.parser.parse_args(
