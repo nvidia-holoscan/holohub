@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+%YAML 1.2
+---
+# Streaming Client Demo Configuration - REPLAYER SOURCE (Video File)
+# This configuration is optimized for video file playback
+
+# Application configuration
+application:
+  title: Streaming Client Demo (Replayer)
+  version: 1.0
+  log_level: INFO
+
+# Source: replayer for video file playback
+source: "replayer"
+
+# Video replayer configuration
+replayer:
+  directory: "/workspace/holohub/data/endoscopy"
+  basename: "surgical_video"
+  frame_rate: 30
+  repeat: true
+  realtime: true
+  count: 0
+
+# Format converter configuration
+# Video replayer outputs RGB888 (3 channels)
+format_converter:
+  in_dtype: "rgb888"           # Replayer outputs RGB (3 channels)
+  out_dtype: "rgb888"          # Keep as RGB (3 channels)
+  out_tensor_name: "tensor"
+  scale_min: 0.0
+  scale_max: 255.0
+  out_channel_order: [2, 1, 0] # Convert RGB to BGR
+
+# Streaming client settings
+video_streaming_client:
+  # Video/stream parameters - Match video file resolution (854x480)
+  width: 854
+  height: 480
+  fps: 30
+  
+  # Server connection settings
+  server_ip: "127.0.0.1"
+  signaling_port: 48010
+  
+  # Operation mode
+  receive_frames: true
+  send_frames: true
+  
+  # Frame validation
+  min_non_zero_bytes: 10
+
+# Visualization options
+visualize_frames: true
+
+# Holoviz configuration (match video resolution)
+holoviz:
+  width: 854
+  height: 480
+  tensors:
+    - name: "bgra_tensor"
+      type: color
+      image_format: "b8g8r8a8_unorm"  # BGRA format (4 channels)
+      opacity: 1.0
+      priority: 0
+
+# Buffer pool configuration
+allocator:
+  block_size: 4194304    # 4MB buffer blocks
+  num_blocks: 12
+
+# Scheduler configuration
+scheduler: "greedy"
+
