@@ -261,8 +261,8 @@ Run all unit tests from the holohub root directory:
 
 **Documentation:**
 - **[Unit Tests Summary](UNIT_TESTS_SUMMARY.md)** - Comprehensive unit test documentation
-- **[Client Tests](streaming_client_enhanced/tests/README.md)** - StreamingClientOp test details
-- **[Server Tests](streaming_server_enhanced/tests/README.md)** - Server operator test details
+- **[Client Tests](video_streaming_client/tests/README.md)** - VideoStreamingClientOp test details
+- **[Server Tests](video_streaming_server/tests/README.md)** - Server operator test details
 
 ### Integration Tests
 

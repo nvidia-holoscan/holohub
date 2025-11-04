@@ -39,16 +39,16 @@ This package includes **31 unit tests** across all video streaming operators:
 
 ```
 operators/video_streaming/
-├── streaming_client_enhanced/
+├── video_streaming_client/
 │   ├── tests/
-│   │   ├── test_streaming_client_op.cpp      # Client unit tests (13 tests)
+│   │   ├── test_video_streaming_client_op.cpp # Client unit tests (13 tests)
 │   │   ├── CMakeLists.txt                     # Build config
 │   │   └── README.md                          # Documentation
 │   └── CMakeLists.txt                         # Updated to include tests
 │
-└── streaming_server_enhanced/
+└── video_streaming_server/
     ├── tests/
-    │   ├── test_streaming_server_ops.cpp      # Server unit tests (18 tests)
+    │   ├── test_video_streaming_server_ops.cpp # Server unit tests (18 tests)
     │   ├── CMakeLists.txt                     # Build config
     │   └── README.md                          # Documentation
     └── CMakeLists.txt                         # Updated to include tests
@@ -198,8 +198,8 @@ The unit tests are designed for CI/CD pipelines:
 
 Each test suite has detailed documentation:
 
-- **[Client Tests README](streaming_client_enhanced/tests/README.md)** - StreamingClientOp tests
-- **[Server Tests README](streaming_server_enhanced/tests/README.md)** - Server operator tests
+- **[Client Tests README](video_streaming_client/tests/README.md)** - VideoStreamingClientOp tests
+- **[Server Tests README](video_streaming_server/tests/README.md)** - Server operator tests
 
 Additional documentation:
 - **[Integration Tests](../../applications/video_streaming/TESTING.md)** - End-to-end testing
