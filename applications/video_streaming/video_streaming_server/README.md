@@ -25,32 +25,42 @@ This application demonstrates how to create a bidirectional video streaming serv
 - CUDA 12.x (currently not working with CUDA 13.x)
 - video_streaming operator
 
+### Download Server Cloud Streaming
+
+Download the Holoscan Server Cloud Streaming binaries from NGC:
+
+```bash
+# Navigate to the server operator directory from the holohub root directory
+cd operators/video_streaming/video_streaming_server
+
+# Download using NGC CLI
+ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
+unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip -d holoscan_server_cloud_streaming
+
+# Clean up
+rm -rf holoscan_server_cloud_streaming_v0.2
+cd - # Return to the original directory
+```
+
 ## Usage
 
-> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
->
-> ```bash
-> # Set SDK version environment variable
-> export HOLOHUB_BASE_SDK_VERSION=3.5.0
-> ```
+> ⚠️ **Important:** This application is currently only compatible with CUDA 12.x. If your system uses CUDA 13.x, ensure you add the `--cuda 12` flag to all command-line invocations shown below.
 
 ### C++ Server
 
 ```bash
 # From holohub root directory - runs with default settings (854x480 @ 30fps)
-./holohub run video_streaming
+./holohub run video_streaming_server --language cpp
 ```
 
 ### Python Server
 
 ```bash
 # From holohub root directory - runs with default settings (854x480 @ 30fps)
-./holohub run video_streaming server_python \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+./holohub run video_streaming_server --language python
 
 # With custom parameters via command-line arguments
-./holohub run video_streaming server_python \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON' \
+./holohub run video_streaming_server --language python \
   --extra-args '--port 48010 --width 854 --height 480 --fps 30'
 ```
 
@@ -96,7 +106,7 @@ application:
   log_level: INFO
 
 # Streaming server settings
-streaming_server:
+video_streaming_server:
   # Video/stream parameters
   width: 854
   height: 480
@@ -134,7 +144,7 @@ multi_thread_scheduler:
 tracking: false
 ```
 
-**C++ Configuration File**: `cpp/streaming_server_demo.yaml`
+**C++ Configuration File**: `cpp/video_streaming_server_demo.yaml`
 
 ### Python Configuration
 
@@ -178,7 +188,7 @@ multi_thread_scheduler:
   stop_on_deadlock_timeout: 5000
 ```
 
-**Python Configuration File**: `python/streaming_server_demo.yaml`
+**Python Configuration File**: `python/video_streaming_server_demo.yaml`
 
 **Note**: Python parameters set via command-line take precedence over YAML configuration. For most use cases, command-line arguments are sufficient.
 
@@ -201,21 +211,21 @@ Client Streams → StreamingServerUpstreamOp → StreamingServerDownstreamOp →
 The C++ implementation (`cpp/streaming_server_demo.cpp`) demonstrates usage of the streaming server operators:
 
 ```cpp
-#include "streaming_server_downstream_op.hpp"
-#include "streaming_server_resource.hpp"
-#include "streaming_server_upstream_op.hpp"
+#include "video_streaming_server_downstream_op.hpp"
+#include "video_streaming_server_resource.hpp"
+#include "video_streaming_server_upstream_op.hpp"
 
 // Create shared streaming server resource from config
-// Configuration loaded from YAML 'streaming_server' section
-holoscan::ArgList streaming_server_args;
+// Configuration loaded from YAML 'video_streaming_server' section
+holoscan::ArgList video_streaming_server_args;
 try {
-    streaming_server_args = from_config("streaming_server");
+    video_streaming_server_args = from_config("video_streaming_server");
 } catch (const std::exception& e) {
-    HOLOSCAN_LOG_WARN("Missing streaming_server config section, using defaults");
+    HOLOSCAN_LOG_WARN("Missing video_streaming_server config section, using defaults");
 }
-auto streaming_server_resource =
-    make_resource<ops::StreamingServerResource>("streaming_server_resource",
-                                                 streaming_server_args);
+auto video_streaming_server_resource =
+    make_resource<ops::StreamingServerResource>("video_streaming_server_resource",
+                                                 video_streaming_server_args);
 
 // Upstream operator (receives from clients)
 // Configuration loaded from YAML 'upstream_op' section
@@ -226,7 +236,7 @@ try {
     HOLOSCAN_LOG_WARN("Missing upstream_op config section, using defaults");
 }
 auto upstream_op = make_operator<ops::StreamingServerUpstreamOp>("upstream_op", upstream_args);
-upstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
+upstream_op->add_arg(Arg("video_streaming_server_resource", video_streaming_server_resource));
 
 // Downstream operator (sends to clients)
 // Configuration loaded from YAML 'downstream_op' section
@@ -238,7 +248,7 @@ try {
 }
 auto downstream_op =
     make_operator<ops::StreamingServerDownstreamOp>("downstream_op", downstream_args);
-downstream_op->add_arg(Arg("streaming_server_resource", streaming_server_resource));
+downstream_op->add_arg(Arg("video_streaming_server_resource", video_streaming_server_resource));
 
 // Connect: upstream -> downstream (passthrough/echo mode)
 add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
@@ -249,9 +259,9 @@ add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
 - All operators use the `ops::` namespace prefix
 - Configuration is loaded from YAML using `from_config()` for flexibility
 - The `StreamingServerResource` is created first and passed to operators using `add_arg()`
-- The resource is configured from the `streaming_server` YAML section
+- The resource is configured from the `video_streaming_server` YAML section
 - Upstream and downstream operators are configured from their respective YAML sections (`upstream_op`, `downstream_op`)
-- Both operators must reference the same shared `streaming_server_resource`
+- Both operators must reference the same shared `video_streaming_server_resource`
 - This pattern allows for dynamic configuration without recompiling
 
 ## Python Implementation
@@ -259,7 +269,7 @@ add_flow(upstream_op, downstream_op, {{"output_frames", "input_frames"}});
 The Python implementation (`python/streaming_server_demo.py`) demonstrates usage of the Python bindings:
 
 ```python
-from holohub.streaming_server_enhanced import (
+from holohub.video_streaming_server import (
     StreamingServerDownstreamOp,
     StreamingServerResource,
     StreamingServerUpstreamOp,
@@ -289,9 +299,9 @@ class StreamingServerApp(Application):
         """
         
         # Create shared streaming server resource with parameters from constructor
-        streaming_resource = StreamingServerResource(
+        video_streaming_resource = StreamingServerResource(
             self,
-            name="streaming_server_resource",
+            name="video_streaming_server_resource",
             port=self.port,
             width=self.width,
             height=self.height,
@@ -302,12 +312,12 @@ class StreamingServerApp(Application):
 
         # Upstream operator (receives from clients)
         upstream_op = StreamingServerUpstreamOp(
-            self, name="upstream_op", streaming_server_resource=streaming_resource
+            self, name="upstream_op", video_streaming_server_resource=video_streaming_resource
         )
 
         # Downstream operator (sends to clients)
         downstream_op = StreamingServerDownstreamOp(
-            self, name="downstream_op", streaming_server_resource=streaming_resource
+            self, name="downstream_op", video_streaming_server_resource=video_streaming_resource
         )
 
         # Connect: upstream -> downstream (passthrough/echo mode)
@@ -364,10 +374,10 @@ application:
 
 See the included configuration files for complete examples:
 
-- `cpp/streaming_server_demo.yaml` - C++ server configuration (used by C++ application)
-- `python/streaming_server_demo.yaml` - Python server configuration (optional, Python primarily uses command-line args)
+- `cpp/video_streaming_server_demo.yaml` - C++ server configuration (used by C++ application)
+- `python/video_streaming_server_demo.yaml` - Python server configuration (optional, Python primarily uses command-line args)
 
-**Note**: C++ and Python use different YAML structures. The C++ version uses `streaming_server` section with direct parameters, while Python uses `server` and `stream` sections. For Python, command-line arguments are the recommended configuration method.
+**Note**: C++ and Python use different YAML structures. The C++ version uses `video_streaming_server` section with direct parameters, while Python uses `server` and `stream` sections. For Python, command-line arguments are the recommended configuration method.
 
 ## Integration with Client
 

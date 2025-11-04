@@ -21,7 +21,7 @@ The video streaming demo provides:
 
 - NVIDIA GPU
 - CUDA 12.x (currently not working with CUDA 13.x)
-- Holoscan SDK 3.5.0+
+- Holoscan SDK 3.5.0 or higher
 - V4L2 camera (optional, for live streaming)
 
 ### Client Dependencies
@@ -29,8 +29,8 @@ The video streaming demo provides:
 Download the client streaming binaries from NGC:
 
 ```bash
-# Navigate to the client operator directory
-cd <your_holohub_path>/operators/video_streaming/streaming_client_enhanced
+# Navigate to the client operator directory from the holohub root directory
+cd operators/video_streaming/video_streaming_client
 
 # Download using NGC CLI
 ngc registry resource download-version "nvidia/holoscan_client_cloud_streaming:0.2"
@@ -38,6 +38,7 @@ unzip -o holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zi
 
 # Clean up
 rm -rf holoscan_client_cloud_streaming_v0.2
+cd - # Return to the original directory
 ```
 
 ### Server Dependencies
@@ -45,8 +46,8 @@ rm -rf holoscan_client_cloud_streaming_v0.2
 Download the server streaming binaries from NGC:
 
 ```bash
-# Navigate to the server operator directory  
-cd <your_holohub_path>/operators/video_streaming/streaming_server_enhanced
+# Navigate to the server operator directory from the holohub root directory
+cd operators/video_streaming/video_streaming_server
 
 # Download using NGC CLI
 ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.2"
@@ -54,89 +55,72 @@ unzip -o holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zi
 
 # Clean up
 rm -rf holoscan_server_cloud_streaming_v0.2
+cd - # Return to the original directory
 ```
 
 ## Running the Applications
 
 The unified application provides both client and server applications.
 
-> ⚠️ Both client and server applications require Holoscan SDK 3.5.0. Set the SDK version environment variable before running the applications in each terminal, or use the `--base-img` option to specify the base image.
->
-> ```bash
-> # Set SDK version environment variable
-> export HOLOHUB_BASE_SDK_VERSION=3.5.0
-> ```
+> ⚠️ **Important:** These applications are currently only compatible with CUDA 12.x. If your system uses CUDA 13.x, ensure you add the `--cuda 12` flag to all command-line invocations shown below.
 >
 > ℹ️ The client requires OpenSSL 3.4.0, which is installed inside the custom Dockerfile.
 
 ### 1. Start the Streaming Server
 
+You can start the server in either C++ or Python mode.
+
+**C++ Server:**
+
 ```bash
-./holohub run video_streaming server
+./holohub run video_streaming_server --language cpp
+```
+
+**Python Server:**
+
+```bash
+./holohub run video_streaming_server --language python
 ```
 
 ### 2. Start the Streaming Client (in another terminal)
 
-- **Option A: V4L2 Camera (Webcam)**, which uses `streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
+You can start the client in either C++ or Python mode regardless of the server language.
+
+#### Option A: V4L2 Camera (Webcam)
+
+It uses `video_streaming_client_demo.yaml` and captures video from webcam with 640x480 resolution.
+
+- **C++ V4L2 Camera Client:**
+
+    ```bash
+    ./holohub run video_streaming_client v4l2 --language cpp
+    ```
+
+- **Python V4L2 Camera Client:**
+
+    ```bash
+    ./holohub run video_streaming_client v4l2 --language python
+    ```
+
+#### Option B: Video Replayer
+
+It uses `video_streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
+
+- **C++ Video Replayer Client:**
 
   ```bash
-  ./holohub run video_streaming client_v4l2
+  ./holohub run video_streaming_client replayer --language cpp
   ```
 
-- **Option B: Video Replayer**, which uses `streaming_client_demo_replayer.yaml` and replays a pre-recorded video file with 854x480 resolution.
+- **Python Video Replayer Client:**
 
   ```bash
-  ./holohub run video_streaming client_replayer
+  ./holohub run video_streaming_client replayer --language python
   ```
 
-## Python Applications
-
-Both server and client applications are available in Python using the Holoscan Python bindings. The Python implementations are fully compatible with their C++ counterparts and can be used interchangeably.
-
-### Running Python Server
-
-```bash
-./holohub run video_streaming server_python
-```
-
-**Default Configuration:**
-
-- Port: 48010
-- Resolution: 854x480
-- Frame Rate: 30 fps
-- Pipeline: StreamingServerUpstreamOp → StreamingServerDownstreamOp (passthrough/echo mode)
-
-### Running Python Client
-
-**Video Replayer Mode (Default - 854x480):**
-
-```bash
-./holohub run video_streaming client_python
-```
-
-**V4L2 Camera Mode (640x480):**
-
-```bash
-./holohub run video_streaming client_python_v4l2
-```
-
-**Default Client Configurations:**
-
-**Video Replayer Mode:**
-
-- Source: Video file (surgical_video)
-- Resolution: 854x480
-- Frame Rate: 30 fps
-- Server: 127.0.0.1:48010
-
-**V4L2 Camera Mode:**
-
-- Source: /dev/video0 (webcam)
-- Resolution: 640x480
-- Frame Rate: 30 fps
-- Server: 127.0.0.1:48010
-
-**Important:** Ensure the server is configured to match the client's resolution for optimal performance.
+> **Note:**
+> - The video streaming server and client are **cross-language compatible**. You can start the server in one language (C++ or Python) and then connect with a client running in either language.  
+> - You can **switch between the client modes** (replayer or V4L2 camera) at any time without restarting the server—just stop one client and start the other. The server automatically manages client connections.
 
 ### Python Bindings
 
@@ -144,13 +128,13 @@ The Python applications use these Holoscan operator bindings:
 
 **Server Components:**
 
-- `holohub.streaming_server_enhanced.StreamingServerResource` - Manages server connections
-- `holohub.streaming_server_enhanced.StreamingServerUpstreamOp` - Receives frames from clients
-- `holohub.streaming_server_enhanced.StreamingServerDownstreamOp` - Sends frames to clients
+- `holohub.video_streaming_server.StreamingServerResource` - Manages server connections
+- `holohub.video_streaming_server.StreamingServerUpstreamOp` - Receives frames from clients
+- `holohub.video_streaming_server.StreamingServerDownstreamOp` - Sends frames to clients
 
 **Client Components:**
 
-- `holohub.streaming_client_enhanced.StreamingClientOp` - Bidirectional client streaming
+- `holohub.video_streaming_client.VideoStreamingClientOp` - Bidirectional client streaming
 
 **Holoscan Core Operators:**
 
@@ -172,7 +156,7 @@ The Python applications use these Holoscan operator bindings:
 
 - Video source: `VideoStreamReplayerOp` or `V4L2VideoCaptureOp`
 - `FormatConverterOp` handles format conversion (RGBA→RGB→BGR)
-- `StreamingClientOp` manages bidirectional streaming (send and receive)
+- `VideoStreamingClientOp` manages bidirectional streaming (send and receive)
 - `HolovizOp` visualizes received frames
 
 **For complete Python implementation examples and code**, see:
@@ -258,9 +242,9 @@ Terminal 2 - Python Client:
 
 ### Configuration Files
 
-**Python Server:** `python/streaming_server_demo.yaml`
-**Python Client (Replayer):** `python/streaming_client_demo_replayer.yaml`
-**Python Client (V4L2):** `python/streaming_client_demo.yaml`
+**Python Server:** `video_streaming_server/python/video_streaming_server_demo.yaml`
+**Python Client (Replayer):** `video_streaming_client/python/video_streaming_client_demo_replayer.yaml`
+**Python Client (V4L2):** `video_streaming_client/python/video_streaming_client_demo.yaml`
 
 ### Detailed Documentation
 
@@ -274,20 +258,20 @@ For complete implementation details, see the component-specific READMEs:
 ### Server Options
 
 - `-h, --help`: Show help message
-- `-c, --config <file>`: Configuration file path (default: streaming_server_demo.yaml)
+- `-c, --config <file>`: Configuration file path (default: video_streaming_server_demo.yaml)
 - `-d, --data <directory>`: Data directory for video files
 
 ### Client Options  
 
 - `-h, --help`: Show help message
-- `-c, --config <file>`: Configuration file path (default: streaming_client_demo.yaml)
+- `-c, --config <file>`: Configuration file path (default: video_streaming_client_demo.yaml)
 - `-d, --data <directory>`: Data directory for video files
 
 **Note:** Video source type (V4L2 vs replayer) is configured in the YAML file, not via command line arguments.
 
 ## Camera Setup and Testing
 
-> **📖 For detailed camera configuration and troubleshooting**, see the [Client Operator README](../../operators/video_streaming/streaming_client_enhanced/README.md#camera-setup-and-testing) which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.
+> **📖 For detailed camera configuration and troubleshooting**, see the [Client Operator README](../../operators/video_streaming/video_streaming_client/README.md#camera-setup-and-testing) which includes advanced v4l2-ctl commands, YAML configuration examples, and camera-specific settings.
 
 ### Testing Your V4L2 Camera
 
@@ -316,31 +300,6 @@ v4l2-ctl --device=/dev/video0 --list-formats-ext
 - **854x480 @ 30fps** - Default, good for testing and lower bandwidth
 
 **Important:** Ensure both client and server use matching resolution settings for optimal performance.
-
-## Video Source Modes
-
-### V4L2 Camera Mode vs Video Replayer Mode
-
-| Feature | V4L2 Camera | Video Replayer |
-|---------|-------------|----------------|
-| **Config File** | `streaming_client_demo.yaml` (default) | `streaming_client_demo_replayer.yaml` (custom) |
-| **Command** | `--docker-opts='-e device=/dev/video0'` | `--run-args='-c streaming_client_demo_replayer.yaml'` |
-| **Source Type** | `source: "v4l2"` | `source: "replayer"` |
-| **Input Format** | `rgba8888` (4 channels) | `rgb888` (3 channels) |
-| **Resolution** | 640x480 | 854x480 |
-| **Data Source** | Live webcam | Pre-recorded surgical video |
-| **Use Case** | Real-time streaming | Testing, demos, development |
-
-### Switching Between Modes
-
-To switch between V4L2 camera and video replayer:
-
-1. **Stop the current client** (Ctrl+C)
-2. **Use the appropriate command:**
-   - For camera: `./holohub run video_streaming client_v4l2` (or `client_python_v4l2`)
-   - For video replay: `./holohub run video_streaming client_replayer` (or `client_python`)
-
-**Important:** The server doesn't need to be restarted when switching client modes.
 
 ## Troubleshooting
 
@@ -389,16 +348,16 @@ To switch between V4L2 camera and video replayer:
 
   ```bash
   # Ensure the replayer config exists in build directory
-  cp applications/streaming_client_demo/cpp/streaming_client_demo_replayer.yaml build/streaming_client_demo/
+  cp applications/video_streaming/video_streaming_client/cpp/video_streaming_client_demo_replayer.yaml build/video_streaming_client_demo/
   ```
 
 - **Format converter errors:**
   - `Invalid channel count for RGBA8888 3 != 4`: Video replayer outputs RGB888 (3 channels), not RGBA8888 (4 channels)
-  - Solution: Use `streaming_client_demo_replayer.yaml` which has correct format converter settings
+  - Solution: Use `video_streaming_client_demo_replayer.yaml` which has correct format converter settings
 
 - **Resolution mismatch:**
   - Video file is 854x480, ensure all components use matching resolution
-  - Check `streaming_client`, `holoviz`, and `format_converter` settings
+  - Check `video_streaming_client`, `holoviz`, and `format_converter` settings
 
 ### Expected Behavior and Logs
 
@@ -434,7 +393,7 @@ You can use `--verbose` flag to get more detailed output.
 
 ```bash
 # Run C++ integration test
-./applications/video_streaming/integration_test.sh
+./applications/video_streaming/integration_test_cpp.sh
 
 # Run Python integration test
 ./applications/video_streaming/integration_test_python.sh
@@ -445,7 +404,7 @@ Or use direct HoloHub CLI commands:
 ```bash
 # Run C++ integration test using HoloHub CLI
 ./holohub test video_streaming \
-  --ctest-options="-R video_streaming_integration_test"
+  --ctest-options="-R video_streaming_integration_test_cpp"
 
 # Run Python integration test using HoloHub CLI
 ./holohub test video_streaming \
@@ -454,7 +413,7 @@ Or use direct HoloHub CLI commands:
 
 **Test Scripts:**
 
-- `integration_test.sh` - C++ server and client test (SDK 3.5.0)
+- `integration_test_cpp.sh` - C++ server and client test (SDK 3.5.0)
 - `integration_test_python.sh` - Python server and client test (SDK 3.6.0)
 
 **⚠️ Important:** Both scripts run in Docker and build from **committed source code**. Commit your changes before running tests.
@@ -469,7 +428,7 @@ For detailed information about the underlying video streaming operators used in 
 
 The operator documentation includes:
 
-- **Client Components**: StreamingClientOp, FrameSaverOp
+- **Client Components**: VideoStreamingClientOp, FrameSaverOp
 - **Server Components**: StreamingServerResource, StreamingServerUpstreamOp, StreamingServerDownstreamOp
 - **Parameters and Configuration**: Detailed parameter descriptions and usage examples
 - **Testing Documentation**: Comprehensive test suite with 40+ tests passing

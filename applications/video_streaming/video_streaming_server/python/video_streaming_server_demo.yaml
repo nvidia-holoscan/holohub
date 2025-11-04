@@ -1,0 +1,74 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+%YAML 1.2
+---
+# Streaming Server Python Demo Configuration
+
+application:
+  title: "Streaming Server Python Demo"
+  version: "1.0"
+  log_level: "INFO"
+
+# Server configuration
+server:
+  signaling_port: 48010
+  streaming_port: 48020
+  standalone_mode: false  # true for standalone, false for bidirectional
+
+# Stream settings
+stream:
+  width: 854
+  height: 480
+  fps: 30
+
+# Processing settings
+processing:
+  enabled: false
+  type: "none"  # Options: "none", "mirror", "filter"
+
+# Streaming server resource settings
+video_streaming_server_resource:
+  width: 854
+  height: 480
+  fps: 30
+  signaling_port: 48010
+  streaming_port: 48020
+
+# Video source settings (for standalone mode)
+video_source:
+  directory: "/workspace/holohub/data/endoscopy"
+  basename: "surgical_video"
+  frame_rate: 30
+  repeat: true
+  realtime: true
+  count: 0
+
+# Format converter settings (for processing)
+format_converter:
+  in_dtype: "rgb888"
+  out_dtype: "rgb888"
+  out_tensor_name: "processed_tensor"
+  scale_min: 0.0
+  scale_max: 255.0
+
+# Memory allocator configuration
+allocator:
+  type: "UnboundedAllocator"
+
+# Scheduler configuration
+scheduler: "multi_thread"
+
+# Multi-thread scheduler settings
+multi_thread_scheduler:
+  worker_thread_number: 2
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 5000
+
+# Greedy scheduler settings (backup)
+greedy_scheduler:
+  max_duration_ms: 10000
+  check_recession_period_ms: 0
+
+# Enable data flow tracking
+tracking: false
