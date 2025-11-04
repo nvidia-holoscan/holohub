@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.20)
 project(video_streaming_client)
 
 # Find Holoscan - use simple approach
-find_package(holoscan 3.2 REQUIRED CONFIG
+find_package(holoscan 3.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Set the StreamingClient directory (following server pattern)
