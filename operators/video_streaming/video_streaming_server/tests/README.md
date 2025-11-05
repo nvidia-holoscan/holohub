@@ -96,7 +96,7 @@ The unit tests verify the correct behavior of the video streaming server operato
 ## Test Output Example
 
 ```text
-[==========] Running 25 tests from 3 test suites.
+[==========] Running 25 tests from 4 test suites.
 [----------] Global test environment set-up.
 [----------] 8 tests from StreamingServerResourceTest
 [ RUN      ] StreamingServerResourceTest.BasicResourceInitialization
@@ -106,20 +106,26 @@ The unit tests verify the correct behavior of the video streaming server operato
 ...
 [----------] 8 tests from StreamingServerResourceTest (0 ms total)
 
-[----------] 8 tests from StreamingServerUpstreamOpTest
+[----------] 7 tests from StreamingServerUpstreamOpTest
 [ RUN      ] StreamingServerUpstreamOpTest.UpstreamOpBasicInitialization
 [       OK ] StreamingServerUpstreamOpTest.UpstreamOpBasicInitialization (0 ms)
 ...
-[----------] 8 tests from StreamingServerUpstreamOpTest (0 ms total)
+[----------] 7 tests from StreamingServerUpstreamOpTest (0 ms total)
 
-[----------] 9 tests from StreamingServerDownstreamOpTest
+[----------] 7 tests from StreamingServerDownstreamOpTest
 [ RUN      ] StreamingServerDownstreamOpTest.DownstreamOpBasicInitialization
 [       OK ] StreamingServerDownstreamOpTest.DownstreamOpBasicInitialization (0 ms)
 ...
-[----------] 9 tests from StreamingServerDownstreamOpTest (0 ms total)
+[----------] 7 tests from StreamingServerDownstreamOpTest (0 ms total)
+
+[----------] 3 tests from StreamingServerIntegrationTest
+[ RUN      ] StreamingServerIntegrationTest.ResourceWithUpstreamOp
+[       OK ] StreamingServerIntegrationTest.ResourceWithUpstreamOp (0 ms)
+...
+[----------] 3 tests from StreamingServerIntegrationTest (0 ms total)
 
 [----------] Global test environment tear-down
-[==========] 25 tests from 3 test suites ran. (0 ms total)
+[==========] 25 tests from 4 test suites ran. (0 ms total)
 [  PASSED  ] 25 tests.
 
 100% tests passed, 0 tests failed out of 1
