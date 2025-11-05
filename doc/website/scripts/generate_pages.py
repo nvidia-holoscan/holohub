@@ -14,6 +14,7 @@
 # limitations under the License.
 """Generate the code reference pages and copy Jupyter notebooks and README files."""
 
+import html
 import json
 import logging
 import os.path
@@ -223,12 +224,12 @@ def create_run_locally_button_and_modal(
 
     # Convert modes to JSON and escape for HTML attribute
     modes_json = json.dumps(modes_list)
-    modes_json_escaped = modes_json.replace('"', "&quot;")
+    modes_json_escaped = html.escape(modes_json, quote=True)
 
     # Escape for JSON/HTML attributes
-    app_name_escaped = app_name.replace('"', "&quot;").replace("'", "&#39;")
-    app_short_name_escaped = app_short_name.replace('"', "&quot;").replace("'", "&#39;")
-    detected_lang_escaped = detected_lang.replace('"', "&quot;").replace("'", "&#39;")
+    app_name_escaped = html.escape(app_name, quote=True)
+    app_short_name_escaped = html.escape(app_short_name, quote=True)
+    detected_lang_escaped = html.escape(detected_lang, quote=True)
 
     # Only create the button - modal will be created by JavaScript
     button_html = f"""<button class="run-locally-button" 
