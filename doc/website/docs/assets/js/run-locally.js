@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create step 2 label with language
         const step2Label = appLanguage 
-            ? `Step 2: Run the ${appLanguage} application` 
+            ? `Step 2: Run the ${escapeHtml(appLanguage)} application` 
             : 'Step 2: Run the application';
         
         // Generate modes section HTML if modes exist
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.innerHTML = `
             <div class="run-locally-modal-content">
                 <div class="run-locally-modal-header">
-                    <h3 id="run-locally-title">Run ${escapeHtml(appName)} Locally</h3>
+                    <h3 id="run-locally-title">Run ${escapeHtml(appName)}${appLanguage ? ' (' + escapeHtml(appLanguage) + ')' : ''} Locally</h3>
                     <button class="run-locally-close" aria-label="Close">&times;</button>
                 </div>
                 <button class="run-locally-copy-all-btn" data-command="${escapeHtml(allCommands)}">
