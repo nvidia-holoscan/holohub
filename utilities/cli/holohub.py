@@ -785,6 +785,7 @@ class HoloHubCLI:
             no_cache=args.no_cache,
             build_args=args.build_args,
             cuda_version=getattr(args, "cuda", None),
+            build_scripts=getattr(args, "build_scripts", []),
         )
 
     def handle_run_container(self, args: argparse.Namespace) -> None:
@@ -803,6 +804,7 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
                 cuda_version=getattr(args, "cuda", None),
+                build_scripts=getattr(args, "build_scripts", []),
             )
 
         trailing_args = getattr(args, "_trailing_args", [])
@@ -852,6 +854,7 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
                 cuda_version=getattr(args, "cuda", None),
+                build_scripts=getattr(args, "build_scripts", []),
             )
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
@@ -1066,6 +1069,7 @@ class HoloHubCLI:
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
                     cuda_version=getattr(args, "cuda", None),
+                    build_scripts=getattr(args, "build_scripts", []),
                 )
 
             # Build command with all necessary arguments
@@ -1299,6 +1303,7 @@ class HoloHubCLI:
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
                     cuda_version=getattr(args, "cuda", None),
+                    build_scripts=getattr(args, "build_scripts", []),
                 )
             language = holohub_cli_util.normalize_language(
                 container.project_metadata.get("metadata", {}).get("language", None)
@@ -1794,6 +1799,7 @@ class HoloHubCLI:
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
                     cuda_version=getattr(args, "cuda", None),
+                    build_scripts=getattr(args, "build_scripts", []),
                 )
 
             # Install command with all necessary arguments
@@ -1903,6 +1909,7 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
                 cuda_version=getattr(args, "cuda", None),
+                build_scripts=getattr(args, "build_scripts", []),
             )
         else:
             print(f"Skipping build, using existing Dev Container {dev_container_tag}...")

@@ -42,6 +42,7 @@ from .util import (
     list_normalized_languages,
     replace_placeholders,
     run_command,
+    get_holohub_setup_scripts_dir,
 )
 
 
@@ -129,6 +130,11 @@ class HoloHubContainer:
             "--build-args",
             help="(Build container) Extra arguments to docker build command, "
             "example: `--build-args '--network=host --build-arg \"CUSTOM=value with spaces\"'`",
+        )
+        parser.add_argument(
+            "--build-scripts",
+            action="append",
+            help="Named dependency installation scripts to run as Docker layers. Searches in HOLOHUB_SETUP_SCRIPTS_DIR directory.",
         )
         return parser
 
@@ -381,6 +387,7 @@ class HoloHubContainer:
         img: Optional[str] = None,
         no_cache: bool = False,
         build_args: Optional[str] = None,
+        build_scripts: Optional[List[str]] = None,
         cuda_version: Optional[Union[str, int]] = None,
     ) -> None:
         """Build the container image"""
@@ -439,9 +446,32 @@ class HoloHubContainer:
         if full_build_args:
             cmd.extend(shlex.split(full_build_args))
 
-        cmd.extend(["-f", str(docker_file_path), "-t", img, str(HoloHubContainer.HOLOHUB_ROOT)])
+        cmd.extend([
+            "-f", str(docker_file_path),
+            "-t", img,
+            *(['-t', f'{img}-base'] if build_scripts else []),
+            str(HoloHubContainer.HOLOHUB_ROOT)])
 
         run_command(cmd, dry_run=self.dryrun)
+
+        if build_scripts:
+            for script in build_scripts:
+                script_path = (get_holohub_setup_scripts_dir().relative_to(HoloHubContainer.HOLOHUB_ROOT) / f"{script}.sh")
+                if not script_path.exists():
+                    fatal(f"Script {script}.sh not found in {get_holohub_setup_scripts_dir()}")
+                cmd = [
+                    self.DOCKER_EXE,
+                    "build",
+                    "--build-arg","BUILDKIT_INLINE_CACHE=1",
+                    "--build-arg",f"BASE_IMAGE={img}",
+                    "--network=host",
+                    f"--build-arg",f"SCRIPT={script_path}",
+                    "-t",f"{img}-{script}",
+                    "-t",f"{img}",
+                    "-f", str(get_holohub_setup_scripts_dir() / "script.Dockerfile"),
+                    str(HoloHubContainer.HOLOHUB_ROOT)
+                ]
+                run_command(cmd, dry_run=self.dryrun)
 
     def run(
         self,
