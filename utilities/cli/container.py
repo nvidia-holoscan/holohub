@@ -461,12 +461,10 @@ class HoloHubContainer:
 
         if build_scripts:
             for script in build_scripts:
-                script_path = (
-                    get_holohub_setup_scripts_dir().relative_to(HoloHubContainer.HOLOHUB_ROOT)
-                    / f"{script}.sh"
-                )
+                script_path = get_holohub_setup_scripts_dir() / f"{script}.sh"
                 if not script_path.exists():
                     fatal(f"Script {script}.sh not found in {get_holohub_setup_scripts_dir()}")
+                relative_script_path = script_path.relative_to(HoloHubContainer.HOLOHUB_ROOT)
                 cmd = [
                     self.DOCKER_EXE,
                     "build",
@@ -476,7 +474,7 @@ class HoloHubContainer:
                     f"BASE_IMAGE={img}",
                     "--network=host",
                     "--build-arg",
-                    f"SCRIPT={script_path}",
+                    f"SCRIPT={relative_script_path}",
                     "-t",
                     f"{img}-{script}",
                     "-t",
