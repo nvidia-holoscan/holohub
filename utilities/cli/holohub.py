@@ -1720,7 +1720,9 @@ class HoloHubCLI:
                 holohub_cli_util.run_command(["cp", source, dest_folder], dry_run=args.dryrun)
 
             if not args.dryrun:
-                print(Color.blue("\nTo enable ./holohub autocomplete in your current shell session:"))
+                print(
+                    Color.blue("\nTo enable ./holohub autocomplete in your current shell session:")
+                )
                 print("  source /etc/bash_completion.d/holohub_autocomplete")
                 print("Or add it to your shell profile:")
                 print("  echo '. /etc/bash_completion.d/holohub_autocomplete' >> ~/.bashrc")
@@ -1731,7 +1733,9 @@ class HoloHubCLI:
             for script in args.scripts:
                 script_path = holohub_cli_util.get_holohub_setup_scripts_dir() / f"{script}.sh"
                 if not script_path.exists():
-                    holohub_cli_util.fatal(f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}")
+                    holohub_cli_util.fatal(
+                        f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}"
+                    )
                 holohub_cli_util.run_command([script_path], dry_run=args.dryrun)
 
     def handle_env_info(self, args: argparse.Namespace) -> None:
