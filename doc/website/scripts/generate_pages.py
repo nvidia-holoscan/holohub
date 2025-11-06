@@ -147,9 +147,9 @@ def create_run_locally_button_and_modal(
     """Create the Run Locally button (modal will be created dynamically by JavaScript).
 
     Args:
-        app_path (str): Path to the application (e.g., "applications/endoscopy_tool_tracking/python")
-        app_name (str): Name of the application for display
-        metadata (dict): Application metadata containing language information
+        app_path (str): Path to the application or workflow (e.g., "applications/endoscopy_tool_tracking/python" or "workflows/ai_surgical_video/python")
+        app_name (str): Name of the application or workflow for display
+        metadata (dict): Application or workflow metadata containing language information
         git_repo_path (Path): Path to the Git repository root
 
     Returns:
@@ -185,11 +185,15 @@ def create_run_locally_button_and_modal(
             else:
                 detected_lang = language
 
-    # Extract just the application name from the path (last meaningful part)
+    # Extract just the application/workflow name from the path (last meaningful part)
     path_parts_list = app_path.split("/")
     app_short_name = path_parts_list[-1]
     if app_short_name in ["python", "cpp"]:
         app_short_name = path_parts_list[-2] if len(path_parts_list) > 1 else path_parts_list[-1]
+
+    # Determine component type (application or workflow)
+    component_type = path_parts_list[0] if len(path_parts_list) > 0 else "application"
+    component_type_singular = component_type.rstrip("s")  # Remove trailing 's' to get singular form
 
     # Check if both Python and C++ versions exist
     # This is needed to determine if we should add --language cpp flag
@@ -230,12 +234,14 @@ def create_run_locally_button_and_modal(
     app_name_escaped = html.escape(app_name, quote=True)
     app_short_name_escaped = html.escape(app_short_name, quote=True)
     detected_lang_escaped = html.escape(detected_lang, quote=True)
+    component_type_escaped = html.escape(component_type_singular, quote=True)
 
     # Only create the button - modal will be created by JavaScript
-    button_html = f"""<button class="run-locally-button" 
-    data-app-name="{app_name_escaped}" 
+    button_html = f"""<button class="run-locally-button"
+    data-app-name="{app_name_escaped}"
     data-app-short-name="{app_short_name_escaped}"
     data-app-language="{detected_lang_escaped}"
+    data-component-type="{component_type_escaped}"
     data-needs-language-flag="{needs_language_flag}"
     data-modes="{modes_json_escaped}">
     ▶ Run Locally
@@ -624,22 +630,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const availableVersions = Array.from(versionSelector.options)
             .map(opt => opt.value)
             .filter(val => val !== 'latest');
-        
+
         versionSelector.addEventListener('change', function() {
             const selectedValue = this.value;
             let currentPath = window.location.pathname;
-            
+
             // Remove trailing slash for easier processing
             if (currentPath.endsWith('/')) {
                 currentPath = currentPath.slice(0, -1);
             }
-            
+
             let pathParts = currentPath.split('/').filter(part => part !== '');
-            
+
             // Check if the last part is a version number
             const lastPart = pathParts[pathParts.length - 1];
             const isOnVersionPage = availableVersions.includes(lastPart);
-            
+
             if (selectedValue === 'latest') {
                 // If currently on a version page, remove the version from the path
                 if (isOnVersionPage) {
@@ -655,7 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     pathParts.push(selectedValue);
                 }
             }
-            
+
             const newPath = '/' + pathParts.join('/') + '/';
             window.location.href = newPath;
         });
@@ -756,14 +762,14 @@ def create_page(
             current_version, archives, relative_dir, latest_version
         )
 
-    # Generate Run Locally button for applications only (only for latest, non-archived versions)
+    # Generate Run Locally button for applications and workflows (only for latest, non-archived versions)
     run_locally_html = ""
     alt_language_link = ""
     all_languages = ""
     if (
         not archive_version
         and len(relative_dir.parts) > 0
-        and relative_dir.parts[0] == "applications"
+        and relative_dir.parts[0] in ["applications", "workflows"]
     ):
         app_path = str(relative_dir)
         app_name = metadata.get("name", "Application")
