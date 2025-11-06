@@ -28,7 +28,12 @@ FROM ${BASE_IMAGE} AS base
 ARG DEBIAN_FRONTEND=noninteractive
 ARG CMAKE_BUILD_TYPE=Release
 
-FROM base as holohub-cli-setup
+# --------------------------------------------------------------------------
+#
+# Set up prerequisites to run HoloHub CLI
+#
+# --------------------------------------------------------------------------
+FROM base as holohub-cli-prerequisites
 
 # Install python3 if not present (needed for holohub CLI)
 ARG PYTHON_VERSION=python3
@@ -57,10 +62,10 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 
 # --------------------------------------------------------------------------
 #
-# Set up common packages for developing with Holoscan SDK
+# Use HoloHub CLI to set up common packages for developing with Holoscan SDK
 #
 # --------------------------------------------------------------------------
-FROM holohub-cli-setup as dev
+FROM holohub-cli-prerequisites as holohub-cli
 
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
@@ -81,7 +86,7 @@ ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 # Holoscan SDK Flow Benchmarking performance tools
 #
 # --------------------------------------------------------------------------
-FROM dev as benchmarking-setup
+FROM holohub-cli as benchmarking-setup
 
 ARG CMAKE_BUILD_TYPE=Release
 
@@ -109,7 +114,7 @@ ENV PYTHONPATH=/workspace/holohub/benchmarks/holoscan_flow_benchmarking
 # Set up common packages for developing with Yuan Qcap
 #
 # --------------------------------------------------------------------------
-FROM dev as yuan-qcap
+FROM holohub-cli as yuan-qcap
 
 # Qcap dependency
 RUN apt update \
@@ -124,7 +129,7 @@ RUN apt update \
 # Set up common packages for developing with RTI Connext DDS
 #
 # --------------------------------------------------------------------------
-FROM dev as dds
+FROM holohub-cli as dds
 
 RUN apt update \
     && apt install --no-install-recommends -y \
@@ -133,8 +138,8 @@ RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/ja
 
 # --------------------------------------------------------------------------
 #
-# Default development stage. Use "--target <layer>" use a different stage above
-# as the target for application development.
+# Default development stage. Use "--target <layer>" to build a different stage above
+# as the environment for project development.
 #
 # --------------------------------------------------------------------------
-FROM dev as final
+FROM holohub-cli as holohub-dev
