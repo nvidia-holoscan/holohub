@@ -175,6 +175,8 @@ HOLOHUB_ROOT = _get_holohub_root()
 def get_holohub_root() -> Path:
     return HOLOHUB_ROOT
 
+def get_holohub_setup_scripts_dir() -> Path:
+    return Path(os.environ.get("HOLOHUB_SETUP_SCRIPTS_DIR", HOLOHUB_ROOT / "utilities" / "setup")).expanduser()
 
 def _get_maybe_sudo() -> str:
     """Get sudo command if available, with caching to avoid repeated subprocess calls"""
@@ -1243,6 +1245,7 @@ def collect_environment_variables() -> None:
         "HOLOHUB_DOCS_URL",
         "HOLOHUB_CLI_DOCS_URL",
         "HOLOHUB_DATA_PATH",
+        "HOLOHUB_SETUP_SCRIPTS_DIR",
         # Legacy variables
         "HOLOHUB_APP_NAME",
         "HOLOHUB_CONTAINER_BASE_NAME",

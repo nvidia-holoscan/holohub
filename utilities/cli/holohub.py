@@ -314,6 +314,11 @@ class HoloHubCLI:
         setup.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
+        setup.add_argument(
+            "--scripts",
+            action="append",
+            help="Named dependency installation scripts to run. Can be specified multiple times. Searches in HOLOHUB_SETUP_SCRIPTS_DIR directory.",
+        )
         setup.set_defaults(func=self.handle_setup)
 
         # Add env-info command
@@ -1689,32 +1694,40 @@ class HoloHubCLI:
 
     def handle_setup(self, args: argparse.Namespace) -> None:
         """Handle setup command"""
-        holohub_cli_util.install_packages_if_missing(
-            ["wget", "xvfb", "git", "unzip", "ffmpeg", "ninja-build", "libv4l-dev"],
-            dry_run=args.dryrun,
-        )
 
-        holohub_cli_util.setup_cmake(dry_run=args.dryrun)
-        holohub_cli_util.setup_python_dev(dry_run=args.dryrun)
-        holohub_cli_util.setup_ngc_cli(dry_run=args.dryrun)
-        holohub_cli_util.setup_cuda_dependencies(dry_run=args.dryrun)
+        if not args.scripts:
+            holohub_cli_util.install_packages_if_missing(
+                ["wget", "xvfb", "git", "unzip", "ffmpeg", "ninja-build", "libv4l-dev"],
+                dry_run=args.dryrun,
+            )
 
-        source = f"{HoloHubCLI.HOLOHUB_ROOT}/utilities/holohub_autocomplete"
-        dest_folder = "/etc/bash_completion.d"
-        dest = f"{dest_folder}/holohub_autocomplete"
-        if (
-            not os.path.exists(dest) or not filecmp.cmp(source, dest, shallow=False)
-        ) and os.path.exists(dest_folder):
-            holohub_cli_util.run_command(["cp", source, dest_folder], dry_run=args.dryrun)
+            holohub_cli_util.setup_cmake(dry_run=args.dryrun)
+            holohub_cli_util.setup_python_dev(dry_run=args.dryrun)
+            holohub_cli_util.setup_ngc_cli(dry_run=args.dryrun)
+            holohub_cli_util.setup_cuda_dependencies(dry_run=args.dryrun)
 
-        if not args.dryrun:
-            print(Color.blue("\nTo enable ./holohub autocomplete in your current shell session:"))
-            print("  source /etc/bash_completion.d/holohub_autocomplete")
-            print("Or add it to your shell profile:")
-            print("  echo '. /etc/bash_completion.d/holohub_autocomplete' >> ~/.bashrc")
-            print("  source ~/.bashrc")
+            source = f"{HoloHubCLI.HOLOHUB_ROOT}/utilities/holohub_autocomplete"
+            dest_folder = "/etc/bash_completion.d"
+            dest = f"{dest_folder}/holohub_autocomplete"
+            if (
+                not os.path.exists(dest) or not filecmp.cmp(source, dest, shallow=False)
+            ) and os.path.exists(dest_folder):
+                holohub_cli_util.run_command(["cp", source, dest_folder], dry_run=args.dryrun)
 
-            print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
+            if not args.dryrun:
+                print(Color.blue("\nTo enable ./holohub autocomplete in your current shell session:"))
+                print("  source /etc/bash_completion.d/holohub_autocomplete")
+                print("Or add it to your shell profile:")
+                print("  echo '. /etc/bash_completion.d/holohub_autocomplete' >> ~/.bashrc")
+                print("  source ~/.bashrc")
+
+                print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
+        else:
+            for script in args.scripts:
+                script_path = holohub_cli_util.get_holohub_setup_scripts_dir() / f"{script}.sh"
+                if not script_path.exists():
+                    holohub_cli_util.fatal(f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}")
+                holohub_cli_util.run_command([script_path], dry_run=args.dryrun)
 
     def handle_env_info(self, args: argparse.Namespace) -> None:
         """Handle env-info command to collect debugging information"""
