@@ -193,7 +193,7 @@ def create_run_locally_button_and_modal(
 
     # Determine component type (application or workflow)
     component_type = path_parts_list[0] if len(path_parts_list) > 0 else "application"
-    component_type_singular = component_type.rstrip('s')  # Remove trailing 's' to get singular form
+    component_type_singular = component_type.rstrip("s")  # Remove trailing 's' to get singular form
 
     # Check if both Python and C++ versions exist
     # This is needed to determine if we should add --language cpp flag
