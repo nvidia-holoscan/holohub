@@ -18,6 +18,7 @@ limitations under the License.
 import os
 from argparse import ArgumentParser
 
+import cupy as cp
 import cvcuda
 import nvcv
 from holoscan.core import Application, Operator, OperatorSpec
@@ -53,8 +54,11 @@ class ImageProcessingOp(Operator):
         tensormap = op_input.receive("input_tensor")
         input_tensor = tensormap[""]  # stride (2562, 3, 1)
 
-        cv_in = nvcv.as_tensor(input_tensor, "HWC")  # Input_tensor is (480, 854, 3)
-
+        # Create an independent NVCV tensor via a copy (it was observed that without the copy,
+        # both CV-CUDA and Holoscan may attempt to clear the same memory buffer, leading to a
+        # crash on application shutdown.
+        cupy_array = cp.asarray(input_tensor)
+        cv_in = nvcv.as_tensor(cupy_array.copy(), "HWC")
         if self.cv_out is None:
             # store output buffer for future reuse
             self.cv_out = cvcuda.flip(src=cv_in, flipCode=0)

@@ -64,6 +64,7 @@ class VolumeRenderingApp(Application):
         density_min,
         density_max,
         mask_volume_file,
+        count,
         **kwargs,
     ):
         self._rendering_config = render_config_file
@@ -73,6 +74,7 @@ class VolumeRenderingApp(Application):
         self._mask_volume_file = mask_volume_file
         self._density_min = density_min
         self._density_max = density_max
+        self._count = count
 
         super().__init__(argv, *args, **kwargs)
 
@@ -138,6 +140,8 @@ class VolumeRenderingApp(Application):
 
         visualizer = HolovizOp(
             self,
+            # stop application after short duration when testing
+            CountCondition(self, count=self._count),
             name="viz",
             window_title="Volume Rendering with ClaraViz",
             enable_camera_pose_output=True,
@@ -278,6 +282,15 @@ def main():
         help=f"Name of mask volume file to load (default {mask_volume_file_default})",
     )
     parser.add_argument(
+        "-n",
+        "--count",
+        action="store",
+        type=int,
+        default=-1,
+        dest="count",
+        help="Duration to run application (default '-1' for unlimited duration)",
+    )
+    parser.add_argument(
         "-h", "--help", action="help", default=argparse.SUPPRESS, help="Help message"
     )
     parser.add_argument(
@@ -300,6 +313,7 @@ def main():
         density_min=args.density_min,
         density_max=args.density_max,
         mask_volume_file=str(args.mask) if "mask" in args else None,
+        count=args.count,
     )
     app.config()
 
@@ -307,6 +321,8 @@ def main():
         app.run()
     except Exception as e:
         logger.error("Error:", str(e))
+
+    print("Application has finished running.")
 
 
 if __name__ == "__main__":

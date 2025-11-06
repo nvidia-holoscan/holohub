@@ -29,7 +29,7 @@
 function(add_python_tests)
   # Parse arguments
   set(options "")
-  set(oneValueArgs "WORKING_DIRECTORY;INPUT;PREFIX")
+  set(oneValueArgs "WORKING_DIRECTORY;INPUT;PREFIX;ENVIRONMENT")
   set(multiValueArgs "PYTEST_ARGS")
   cmake_parse_arguments(PARSE_ARGV 0 PYTEST "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -42,6 +42,9 @@ function(add_python_tests)
   endif()
   if(NOT PYTEST_PREFIX)
     set(PYTEST_PREFIX "pytest")
+  endif()
+  if(NOT PYTEST_ENVIRONMENT)
+    set(PYTEST_ENVIRONMENT "")
   endif()
 
   # Find Python3 interpreter if not already found
@@ -127,6 +130,7 @@ function(add_python_tests)
       set_tests_properties("${ctest_name}"
         PROPERTIES
           SKIP_REGULAR_EXPRESSION "SKIPPED"
+          ENVIRONMENT "${PYTEST_ENVIRONMENT}"
       )
       set(tests_added TRUE)
     endif()
