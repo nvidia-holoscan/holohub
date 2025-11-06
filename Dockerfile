@@ -83,7 +83,7 @@ ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 # --------------------------------------------------------------------------
 FROM dev as benchmarking-setup
 
-ARG CMAKE_BUILD_TYPE
+ARG CMAKE_BUILD_TYPE=Release
 
 # For benchmarking
 RUN apt update \
