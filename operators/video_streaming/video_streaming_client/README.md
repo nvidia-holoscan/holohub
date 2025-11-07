@@ -8,18 +8,21 @@ The VideoStreamingClientOp class implements a Holoscan operator that provides bi
 - Support for both sending and receiving frames through separate flags
 
 Frame Processing Pipeline:
+
 - Input handling: Receives frames as GXF entities containing H.264 encoded video tensors
 - Frame conversion: Converts input tensors to VideoFrame objects with BGRA format
 - Memory management: Implements safe memory handling with bounds checking and zero-padding
 - Output generation: Creates GXF entities with properly configured tensors for downstream processing
 
 Streaming Protocol Implementation:
+
 - Bidirectional streaming support through StreamingClient class
 - Frame callback system for receiving frames
 - Frame source system for sending frames
 - Connection management with server including timeout handling
 
 > **📚 Related Documentation:**
+>
 > - **[Main Operators README](../README.md)** - Setup, dependencies, NGC downloads, and Python examples
 > - **[Client Application README](../../../applications/video_streaming/video_streaming_client/README.md)** - Complete client application with usage examples
 > - **[Server Operator README](../video_streaming_server/README.md)** - Companion server operator documentation
@@ -29,51 +32,51 @@ Streaming Protocol Implementation:
 
 The StreamingClient operator integrates with the Holoscan Client Cloud Streaming library to provide seamless video streaming capabilities:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                           Holoscan Application                                  │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐    ┌─────────────────────────────────────────────────────┐ │
-│  │   Input Source  │    │              VideoStreamingClientOp                      │ │
+│  │   Input Source  │    │              VideoStreamingClientOp                 │ │
 │  │                 │    │                                                     │ │
 │  │  • V4L2 Camera  │───▶│  ┌─────────────────┐    ┌─────────────────────────┐ │ │
-│  │  • Video File   │    │  │  Frame Convert  │    │    VideoFrame Object   │ │ │
-│  │  • Tensor Data  │    │  │  BGR → BGRA     │───▶│    • Width/Height      │ │ │
-│  │                 │    │  │  Validation     │    │    • Pixel Data        │ │ │
-│  └─────────────────┘    │  └─────────────────┘    │    • Format (BGRA)     │ │ │
-│                         │                         │    • Timestamp         │ │ │
+│  │  • Video File   │    │  │  Frame Convert  │    │    VideoFrame Object    │ │ │
+│  │  • Tensor Data  │    │  │  BGR → BGRA     │───▶│    • Width/Height       │ │ │
+│  │                 │    │  │  Validation     │    │    • Pixel Data         │ │ │
+│  └─────────────────┘    │  └─────────────────┘    │    • Format (BGRA)      │ │ │
+│                         │                         │    • Timestamp          │ │ │
 │  ┌─────────────────┐    │                         └─────────────────────────┘ │ │
 │  │  Output Sink    │◀───┤                                      │              │ │
 │  │                 │    │                                      ▼              │ │
-│  │  • HoloViz      │    │  ┌─────────────────────────────────────────────────┐ │ │
+│  │  • HoloViz      │    │  ┌────────────────────────────────────────────────┐ │ │
 │  │  • File Writer  │    │  │         Holoscan Client Cloud Streaming        │ │ │
-│  │  • Next Op      │    │  │                                                 │ │ │
-│  └─────────────────┘    │  │  ┌─────────────────┐    ┌─────────────────────┐ │ │ │
-│                         │  │  │ StreamingClient │    │   Network Protocol  │ │ │ │
-│                         │  │  │                 │    │                     │ │ │ │
+│  │  • Next Op      │    │  │                                                │ │ │
+│  └─────────────────┘    │  │  ┌─────────────────┐    ┌────────────────────┐ │ │ │
+│                         │  │  │ StreamingClient │    │   Network Protocol │ │ │ │
+│                         │  │  │                 │    │                    │ │ │ │
 │                         │  │  │ • sendFrame()   │───▶│  • Cloud Streaming │ │ │ │
 │                         │  │  │ • Callbacks     │    │  • Signaling       │ │ │ │
-│                         │  │  │ • Connection    │    │  • Media Transport  │ │ │ │
-│                         │  │  │   Management    │    │  • Encryption       │ │ │ │
-│                         │  │  └─────────────────┘    └─────────────────────┘ │ │ │
-│                         │  │                                      │          │ │ │
-│                         │  └──────────────────────────────────────┼──────────┘ │ │
-│                         │                                         │            │ │
-│                         └─────────────────────────────────────────┼────────────┘ │
-└───────────────────────────────────────────────────────────────────┼──────────────┘
+│                         │  │  │ • Connection    │    │  • Media Transport │ │ │ │
+│                         │  │  │   Management    │    │  • Encryption      │ │ │ │
+│                         │  │  └─────────────────┘    └────────────────────┘ │ │ │
+│                         │  │                                      │         │ │ │
+│                         │  └──────────────────────────────────────┼─────────┘ │ │
+│                         │                                         │           │ │
+│                         └─────────────────────────────────────────┼───────────┘ │
+└───────────────────────────────────────────────────────────────────┼─────────────┘
                                                                     │
-                          ┌─────────────────────────────────────────┼──────────────┐
-                          │                    Network                             │
-                          │                                                        │
-                          │  ┌─────────────────────────────────────────────────┐   │
-                          │  │              Streaming Server                   │   │
-                          │  │                                                 │   │
+                          ┌─────────────────────────────────────────┼─────────────┐
+                          │                    Network                            │
+                          │                                                       │
+                          │  ┌────────────────────────────────────────────────┐   │
+                          │  │              Streaming Server                  │   │
+                          │  │                                                │   │
                           │  │  • Holoscan Server Cloud Streaming             │   │
                           │  │  • Multi-client support                        │   │
                           │  │  • Bidirectional communication                 │   │
                           │  │  • Frame processing and relay                  │   │
-                          │  └─────────────────────────────────────────────────┘   │
-                          └────────────────────────────────────────────────────────┘
+                          │  └────────────────────────────────────────────────┘   │
+                          └───────────────────────────────────────────────────────┘
 ```
 
 ### Component Interactions
@@ -97,11 +100,12 @@ The StreamingClient operator integrates with the Holoscan Client Cloud Streaming
 ## Requirements & Setup
 
 For complete setup instructions including:
+
 - Holoscan SDK 3.5.0 or higher and CUDA 12.x requirements
 - NGC binary downloads (client streaming binaries)
 - Build troubleshooting
 
-**See the [Main Operators README](../README.md) for detailed setup instructions.** 
+**See the [Main Operators README](../README.md) for detailed setup instructions.**
 
 ## Camera Setup and Testing
 
@@ -129,7 +133,8 @@ v4l2-ctl --device=/dev/video0 --set-fmt-video=width=1280,height=720,pixelformat=
 
 The streaming client applications use YAML configuration files to set camera parameters. Edit the appropriate config file:
 
-#### For video_streaming_client:
+#### For video_streaming_client
+
 Edit `../../../applications/video_streaming/video_streaming_client/cpp/video_streaming_client_demo.yaml`:
 
 ```yaml
@@ -148,11 +153,13 @@ v4l2_source:
 ### Recommended Settings by Camera Type
 
 **For Logitech HD Pro Webcam C920:**
+
 - **1280x720 @ 30fps MJPG** - Best balance of quality and performance
 - **1920x1080 @ 30fps MJPG** - High quality (higher bandwidth)
 - **640x480 @ 30fps YUYV** - Low bandwidth testing
 
 **General Guidelines:**
+
 - Use **MJPG** format for resolutions above 640x480 for better performance
 - Use **YUYV** format for lower resolutions or when uncompressed data is needed
 - Start with 30 FPS and adjust based on your system performance
@@ -161,6 +168,7 @@ v4l2_source:
 ### Troubleshooting Camera Issues
 
 **Camera not detected:**
+
 ```bash
 # Check camera permissions
 sudo usermod -a -G video $USER
@@ -168,11 +176,13 @@ sudo usermod -a -G video $USER
 ```
 
 **Poor performance:**
+
 - Try lower resolution (e.g., 640x480)
 - Switch from YUYV to MJPG format
 - Reduce frame rate to 15 or 24 FPS
 
 **Format not supported:**
+
 ```bash
 # Check what formats your camera actually supports
 v4l2-ctl --device=/dev/video0 --list-formats-ext | grep -E "Size:|Interval:"
@@ -253,6 +263,7 @@ Saved frame 0 to debug_frames/frame_000001.bgr
 To use the FrameSaver in your application, you'll need to:
 
 1. **Include the source files** in your CMakeLists.txt:
+
 ```cmake
 add_library(frame_saver
   frame_saver.cpp
@@ -261,6 +272,7 @@ add_library(frame_saver
 ```
 
 2. **Link against required libraries**:
+
 ```cmake
 target_link_libraries(frame_saver
   holoscan::core
@@ -278,6 +290,7 @@ target_link_libraries(frame_saver
 ## Python Bindings & Applications
 
 For Python usage, application examples, and testing:
+
 - **[Main Operators README](../README.md)** - Python bindings overview and setup
 - **[Client Application README](../../../applications/video_streaming/video_streaming_client/README.md)** - Complete Python client implementation
 - **[Testing Documentation](../../../applications/video_streaming/TESTING.md)** - Integration testing guide

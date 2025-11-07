@@ -3,6 +3,7 @@
 The `video_streaming_server` operator provides a modular streaming server implementation with separate upstream, downstream, and resource components. This split architecture allows for better separation of concerns and more flexible streaming pipeline configurations.
 
 > **📚 Related Documentation:**
+>
 > - **[Main Operators README](../README.md)** - Setup, dependencies, NGC downloads, and Python examples
 > - **[Server Application README](../../../applications/video_streaming/video_streaming_server/README.md)** - Complete server application with usage examples
 > - **[Client Operator README](../video_streaming_client/README.md)** - Companion client operator documentation
@@ -110,6 +111,7 @@ The Streaming Server operators integrate with the Holoscan Server Cloud Streamin
 ### `holoscan::ops::StreamingServerResource`
 
 A shared resource that manages the underlying StreamingServer instance and provides:
+
 - Centralized server lifecycle management
 - Event handling and callback management
 - Configuration management for server parameters
@@ -118,6 +120,7 @@ A shared resource that manages the underlying StreamingServer instance and provi
 ### `holoscan::ops::StreamingServerUpstreamOp`
 
 An operator that receives video frames from streaming clients and outputs them as Holoscan tensors:
+
 - Receives frames from connected clients via the StreamingServerResource
 - Converts received frames to `holoscan::Tensor` format
 - Provides duplicate frame detection to ensure unique frame processing
@@ -126,6 +129,7 @@ An operator that receives video frames from streaming clients and outputs them a
 ### `holoscan::ops::StreamingServerDownstreamOp`
 
 An operator that receives Holoscan tensors and sends them to streaming clients:
+
 - Takes `holoscan::Tensor` input from the processing pipeline
 - Converts tensors back to video frame format
 - Sends processed frames to connected clients via the StreamingServerResource
@@ -230,12 +234,14 @@ An operator that receives Holoscan tensors and sends them to streaming clients:
 ### StreamingServerUpstreamOp Ports
 
 **Output Ports:**
+
 - **`output_frames`**: Output port for frames received from clients
   - type: `holoscan::Tensor`
 
 ### StreamingServerDownstreamOp Ports
 
 **Input Ports:**
+
 - **`input_frames`**: Input port for frames to be sent to clients
   - type: `holoscan::Tensor`
 
@@ -278,11 +284,11 @@ auto downstream_op = make_operator<ops::StreamingServerDownstreamOp>(
 
 
 ```
-                                                 
 
 ## Requirements & Setup
 
 For complete setup instructions including:
+
 - Holoscan SDK 3.5.0 or higher and CUDA 12.x requirements
 - NGC binary downloads (server streaming binaries)
 - Build troubleshooting
@@ -297,7 +303,7 @@ You can push the container and create/update/deploy the streaming function from 
 #### Push Container
 
 Note: You first must docker login to the NGC Container Registry before you can push containers to it:
-https://docs.nvidia.com/ngc/gpu-cloud/ngc-private-registry-user-guide/index.html#accessing-ngc-registry
+<https://docs.nvidia.com/ngc/gpu-cloud/ngc-private-registry-user-guide/index.html#accessing-ngc-registry>
 Tag the container and push it to the container registry:
 
 ```bash
@@ -333,6 +339,7 @@ export HTTP_SERVER_PORT=8011
 #### Create the Cloud Streaming Function
 
 Create the streaming function by running the provided script after setting all the required variables:
+
 ```bash
 ./nvcf/create_streaming_function.sh
 ```
@@ -346,13 +353,14 @@ export STREAMING_FUNCTION_ID={my-simple-streamer-function-id}
 #### Update Function
 
 Update an existing streaming function by running the provided script after setting all the required variables:
+
 ```bash
 ./nvcf/update_streaming_function.sh
 ```
 
 #### Deploy Function
 
-Deploy the streaming function from the web portal: https://nvcf.ngc.nvidia.com/functions
+Deploy the streaming function from the web portal: <https://nvcf.ngc.nvidia.com/functions>
 
 #### Test Function
 
@@ -373,6 +381,7 @@ Note: If the test haproxy is still running, and you wish to test the executable 
 ## Python Bindings & Applications
 
 For Python usage, application examples, and testing:
+
 - **[Main Operators README](../README.md)** - Python bindings overview and setup
 - **[Server Application README](../../../applications/video_streaming/video_streaming_server/README.md)** - Complete Python server implementation
 - **[Testing Documentation](../../../applications/video_streaming/TESTING.md)** - Integration testing guide
@@ -380,4 +389,3 @@ For Python usage, application examples, and testing:
 ## Additional Resources
 
 For more information on NVCF Cloud functions, please refer to [NVIDIA Cloud Functions documentation](https://docs.nvidia.com/cloud-functions/user-guide/latest/cloud-function/function-creation.html#function-creation).
-

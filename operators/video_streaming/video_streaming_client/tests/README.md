@@ -54,7 +54,7 @@ The unit tests verify the correct behavior of the VideoStreamingClientOp operato
 ```bash
 # From holohub root directory
 # ./holohub test automatically builds with -DBUILD_TESTING=ON
-./holohub test video_streaming --ctest-options="-R video_streaming_client_op_unit_tests -VV"
+./holohub test video_streaming --ctest-options="-R video_streaming_client_op_unit_tests -VV" --cuda 12
 ```
 
 ## Test Output Example
@@ -120,10 +120,8 @@ TEST_F(VideoStreamingClientOpTest, TestName) {
 
 ⚠️ **Integration Tests**: For end-to-end testing with actual streaming, see the integration tests in `applications/video_streaming/TESTING.md`.
 
-
 ## See Also
 
 - **[Video Streaming Client Operator README](../README.md)** - Operator documentation
 - **[Integration Tests](../../../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../../../applications/video_streaming/README.md)** - Application overview
-

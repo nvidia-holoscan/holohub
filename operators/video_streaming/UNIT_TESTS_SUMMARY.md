@@ -8,36 +8,40 @@ This document summarizes the C++ unit tests for the `video_streaming` operators,
 
 This package includes **31 unit tests** across all video streaming operators:
 
-### 1. **StreamingClientOp Tests** (13 tests)
-   - Basic initialization
-   - Parameter validation (video, network, streaming modes)
-   - Frame validation parameters
-   - Edge cases and boundaries
-   - Resource management
+### 1. **StreamingClientOp Tests**
 
-### 2. **StreamingServerResource Tests** (8 tests)
-   - Resource creation and configuration
-   - Various resolutions and frame rates
-   - Port configurations
-   - Streaming direction settings
-   - Multi-instance mode
+- Basic initialization
+- Parameter validation (video, network, streaming modes)
+- Frame validation parameters
+- Edge cases and boundaries
+- Resource management
 
-### 3. **StreamingServerUpstreamOp Tests** (6 tests)
-   - Operator initialization
-   - Custom video parameters
-   - Setup and cleanup
-   - Shared resource configuration
-   - Multiple operators with shared resource
+### 2. **StreamingServerResource Tests**
 
-### 4. **StreamingServerDownstreamOp Tests** (4 tests)
-   - Operator initialization
-   - Custom video parameters
-   - Setup and cleanup
-   - Resource cleanup
+- Resource creation and configuration
+- Various resolutions and frame rates
+- Port configurations
+- Streaming direction settings
+- Multi-instance mode
+
+### 3. **StreamingServerUpstreamOp Tests**
+
+- Operator initialization
+- Custom video parameters
+- Setup and cleanup
+- Shared resource configuration
+- Multiple operators with shared resource
+
+### 4. **StreamingServerDownstreamOp Tests**
+
+- Operator initialization
+- Custom video parameters
+- Setup and cleanup
+- Resource cleanup
 
 ## File Structure
 
-```
+```text
 operators/video_streaming/
 ├── video_streaming_client/
 │   ├── tests/
@@ -54,24 +58,13 @@ operators/video_streaming/
     └── CMakeLists.txt                         # Updated to include tests
 ```
 
-## Test Statistics
-
-| Component | Tests | Lines of Code | Coverage | Execution Time |
-|-----------|-------|---------------|----------|----------------|
-| StreamingClientOp | 13 | ~700 | Initialization, parameters, setup, edge cases | ~0.06 sec |
-| StreamingServerResource | 8 | ~300 | Resource creation, configuration, various settings | (included below) |
-| StreamingServerUpstreamOp | 6 | ~250 | Initialization, setup, cleanup, shared resources | (included below) |
-| StreamingServerDownstreamOp | 4 | ~150 | Initialization, setup, cleanup | (included below) |
-| **Total** | **31** | **~1,400** | **Comprehensive** | **~0.12 sec** |
-
-**Test Success Rate: 100% ✅** (2/2 test suites passed, 31 individual tests passed)
-
 ## Building and Running Tests
 
 ### Run All Unit Tests
+
 ```bash
 # Run all unit tests
-./holohub test video_streaming --ctest-options="-R unit_tests -VV"
+./holohub test video_streaming --ctest-options="-R unit_tests -VV" --cuda 12
 ```
 
 **Note:** `./holohub test` automatically builds the operator with `-DBUILD_TESTING=ON`, so no separate build step is needed.
@@ -97,14 +90,14 @@ unit                =   0.12 sec*proc (2 tests)
 Total Test time (real) =   0.13 sec
 ```
 
-✅ **All 31 tests pass successfully in ~0.13 seconds!**
-
 ## Test Categories
 
 ### 1. Initialization Tests
+
 Verify operators can be created with various parameter combinations.
 
 **Example:**
+
 ```cpp
 TEST_F(StreamingClientOpTest, BasicInitialization) {
   streaming_client_op_ = fragment_->make_operator<StreamingClientOp>(
@@ -119,9 +112,11 @@ TEST_F(StreamingClientOpTest, BasicInitialization) {
 ```
 
 ### 2. Parameter Validation Tests
+
 Test various video resolutions, frame rates, network configurations.
 
 **Example:**
+
 ```cpp
 TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
   // Test SD, HD, Full HD, 4K resolutions
@@ -130,9 +125,11 @@ TEST_F(StreamingClientOpTest, VideoResolutionParameters) {
 ```
 
 ### 3. Setup Tests
+
 Verify operator setup() methods work correctly.
 
 **Example:**
+
 ```cpp
 TEST_F(StreamingClientOpTest, OperatorSetup) {
   auto spec = std::make_shared<OperatorSpec>(fragment_.get());
@@ -141,9 +138,11 @@ TEST_F(StreamingClientOpTest, OperatorSetup) {
 ```
 
 ### 4. Edge Case Tests
+
 Test boundary conditions and extreme parameter values.
 
 **Example:**
+
 ```cpp
 TEST_F(StreamingClientOpTest, MaximumResolution) {
   // Test 8K resolution (7680x4320)
@@ -152,9 +151,11 @@ TEST_F(StreamingClientOpTest, MaximumResolution) {
 ```
 
 ### 5. Resource Management Tests
+
 Verify cleanup and multiple instance handling.
 
 **Example:**
+
 ```cpp
 TEST_F(StreamingClientOpTest, MultipleInstances) {
   auto client1 = fragment_->make_operator<StreamingClientOp>(...);
@@ -167,7 +168,8 @@ TEST_F(StreamingClientOpTest, MultipleInstances) {
 
 The unit tests complement the existing integration tests:
 
-### Unit Tests (This Branch)
+### Unit Tests
+
 - ✅ **Scope**: Individual operator components
 - ✅ **Speed**: Fast (0.13 seconds total for 31 tests, ~0.004 sec per test)
 - ✅ **Dependencies**: None (network-free)
@@ -175,7 +177,8 @@ The unit tests complement the existing integration tests:
 - ✅ **Run When**: During development, before commit
 - ✅ **Success Rate**: 100% pass rate
 
-### Integration Tests (Already Exist)
+### Integration Tests
+
 - ✅ **Scope**: End-to-end application behavior
 - ✅ **Speed**: Slower (~44 seconds per test)
 - ✅ **Dependencies**: Requires server/client interaction
@@ -187,12 +190,12 @@ The unit tests complement the existing integration tests:
 The unit tests are designed for CI/CD pipelines:
 
 **Benefits:**
+
 - ✅ **Ultra-fast feedback** - Complete in ~0.13 seconds (well under 2 minutes)
 - ✅ **No network dependencies** - Tests run in isolation
 - ✅ **Clear pass/fail status** - 100% pass rate (2/2 suites, 31 tests)
 - ✅ **Detailed error output** - GTest provides clear failure messages
 - ✅ **Reliable** - No flaky network-dependent failures
-
 
 ## Documentation
 
@@ -202,6 +205,6 @@ Each test suite has detailed documentation:
 - **[Server Tests README](video_streaming_server/tests/README.md)** - Server operator tests
 
 Additional documentation:
+
 - **[Integration Tests](../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../applications/video_streaming/README.md)** - Application overview
-
