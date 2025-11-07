@@ -566,6 +566,8 @@ void DocaMgr::initialize() {
       return;
     }
 
+    cudaSetDevice(gpu_dev);
+    cudaFree(0);
     doca_ret = doca_gpu_create(gpu_bdf, &gdev[gpu_dev]);
     if (doca_ret != DOCA_SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Failed get DOCA GPU device {}", gpu_mr_devs);
@@ -1340,7 +1342,7 @@ int DocaMgr::rx_core(void* arg) {
     loop_count++;
 
     for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
-      packets_stats = (struct adv_doca_rx_gpu_info *)pkt_cpu_list[pkt_idx_cpu_list[ridx]];
+      packets_stats = &((struct adv_doca_rx_gpu_info *)(pkt_cpu_list[ridx]))[pkt_idx_cpu_list[ridx]];
       status = DOCA_GPUNETIO_VOLATILE(packets_stats->status);
 
       // Log semaphore status periodically unless it's ready
@@ -1400,7 +1402,7 @@ int DocaMgr::rx_core(void* arg) {
   cudaStreamSynchronize(rx_stream);
 
   for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
-    packets_stats = (struct adv_doca_rx_gpu_info *)pkt_cpu_list[pkt_idx_cpu_list[ridx]];
+    packets_stats = &((struct adv_doca_rx_gpu_info *)(pkt_cpu_list[ridx]))[pkt_idx_cpu_list[ridx]];
     // HOLOSCAN_LOG_INFO("Check queue {} sem {}", ridx, sem_idx[ridx]);
     status = DOCA_GPUNETIO_VOLATILE(packets_stats->status);
     

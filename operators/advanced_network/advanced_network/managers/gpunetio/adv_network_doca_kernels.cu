@@ -93,7 +93,7 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
   __shared__ uint32_t rx_pkt_bytes;
   // uint32_t pktb = 0;
   uint32_t tot_pkts_batch = 0;
-  struct adv_doca_rx_gpu_info *packets_stats = (struct adv_doca_rx_gpu_info *)pkt_gpu_list[pkt_idx];
+  struct adv_doca_rx_gpu_info *packets_stats = &((struct adv_doca_rx_gpu_info *)pkt_gpu_list[blockIdx.x])[pkt_idx];
 
   // Warmup
   if (eth_rxq_gpu == NULL) return;
@@ -105,6 +105,7 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
   __syncthreads();
 
   do {
+    printf("Receive kernel max pkts %d\n", batch_list[blockIdx.x]);
       ret = doca_gpu_dev_eth_rxq_recv<DOCA_GPUNETIO_ETH_EXEC_SCOPE_BLOCK,
 									DOCA_GPUNETIO_ETH_MCST_AUTO,
 									DOCA_GPUNETIO_ETH_NIC_HANDLER_AUTO,
@@ -125,6 +126,7 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
 
     if (out_pkt_num == 0) continue;
 
+    printf("out_pkt_num %d\n", out_pkt_num);
     buf_idx = threadIdx.x;
     while (buf_idx < out_pkt_num) {
       buf_addr = doca_gpu_dev_eth_rxq_get_pkt_addr(rxq, out_first_pkt_idx + buf_idx);
@@ -185,7 +187,7 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
         pkt_idx = (pkt_idx + 1) % MAX_DEFAULT_SEM_X_QUEUE;
         DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
         tot_pkts_batch = 0;
-        packets_stats = (struct adv_doca_rx_gpu_info *)pkt_gpu_list[pkt_idx];
+        packets_stats = &((struct adv_doca_rx_gpu_info *)pkt_gpu_list[blockIdx.x])[pkt_idx];
       }
     }
   } while (DOCA_GPUNETIO_VOLATILE(*exit_cond) == 0);
@@ -226,7 +228,7 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
   __shared__ uint32_t rx_pkt_bytes;
   // __shared__ struct doca_gpu_dev_eth_rxq_attr out_attr[MAX_RX_NUM_PKTS];
   // uint32_t pktb = 0;
-  struct adv_doca_rx_gpu_info *packets_stats = (struct adv_doca_rx_gpu_info *)pkt_gpu_list[pkt_idx_list[blockIdx.x]];
+  struct adv_doca_rx_gpu_info *packets_stats = &((struct adv_doca_rx_gpu_info *)pkt_gpu_list[blockIdx.x])[pkt_idx_list[blockIdx.x]];
 
   // Warmup
   if (eth_rxq_gpu == NULL) return;
@@ -238,9 +240,6 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
 									DOCA_GPUNETIO_ETH_MCST_AUTO,
 									DOCA_GPUNETIO_ETH_NIC_HANDLER_AUTO,
 									false>(rxq, batch_list[blockIdx.x], CUDA_MAX_RX_TIMEOUT_NS, &out_first_pkt_idx, &out_pkt_num, NULL);
-
-  // ret = doca_gpu_dev_eth_rxq_receive_block(
-  //     rxq, batch_list[blockIdx.x], CUDA_MAX_RX_TIMEOUT_NS, &out_pkt_num, &rx_buf_idx);
   /* If any thread returns receive error, the whole execution stops */
   if (ret != DOCA_SUCCESS) {
     out_pkt_num = 0;
