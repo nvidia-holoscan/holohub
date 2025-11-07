@@ -4,7 +4,7 @@
 @PACKAGE_INIT@
 
 # Find dependencies
-find_package(holoscan 3.2 REQUIRED CONFIG)
+find_package(holoscan 3.5 REQUIRED CONFIG)
 
 # Add the current directory to CMAKE_MODULE_PATH for FindStreamingClient.cmake
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")

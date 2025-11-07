@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.20)
 project(video_streaming_client)
 
 # Find Holoscan - use simple approach
-find_package(holoscan 3.2 REQUIRED CONFIG
+find_package(holoscan 3.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Set the StreamingClient directory (following server pattern)
@@ -284,4 +284,9 @@ message(STATUS "StreamingClient operator configuration complete with imported ta
 # Add Python bindings if requested
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
+endif()
+
+# Add unit tests if testing is enabled
+if(BUILD_TESTING)
+    add_subdirectory(tests)
 endif()

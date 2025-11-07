@@ -8,19 +8,19 @@ This operator package combines `video_streaming_client` and `video_streaming_ser
 
 ## Structure
 
-```
+```text
 video_streaming/
-├── video_streaming_client/    # Complete streaming client operator
-│   ├── video_streaming_client.cpp     # Main client implementation
-│   ├── frame_saver.cpp          # Frame saving utility
+├── video_streaming_client/               # Complete streaming client operator
+│   ├── video_streaming_client.cpp        # Main client implementation
+│   ├── frame_saver.cpp                   # Frame saving utility
 │   └── holoscan_client_cloud_streaming/  # Client streaming binary once NGC download is complete
-├── video_streaming_server/    # Complete streaming server operator
-│   ├── video_streaming_server_*.cpp   # Server implementations
-│   ├── frame_debug_utils.cpp    # Debug utilities
+├── video_streaming_server/               # Complete streaming server operator
+│   ├── video_streaming_server_*.cpp      # Server implementations
+│   ├── frame_debug_utils.cpp             # Debug utilities
 │   └── holoscan_server_cloud_streaming/  # Server streaming binary once NGC download is complete 
-├── CMakeLists.txt               # Unified build configuration
-├── metadata.json                # Combined metadata
-└── README.md                    # This file
+├── CMakeLists.txt                        # Unified build configuration
+├── metadata.json                         # Combined metadata
+└── README.md                             # This file
 ```
 
 ## Components
@@ -31,7 +31,7 @@ The client component provides bidirectional video streaming capabilities:
 
 - **VideoStreamingClientOp**: Main operator for video streaming client functionality
 - **FrameSaverOp**: Utility operator for saving frames to disk
-- **Features**: 
+- **Features**:
   - Send and receive video frames
   - V4L2 camera support
   - Frame validation and debugging
@@ -55,15 +55,16 @@ The server component provides comprehensive streaming server functionality:
 
 ## Usage
 
-
 ### In Applications
 
 #### CMakeLists.txt
+
 ```cmake
 add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
 ```
 
 #### C++ Applications
+
 ```cpp
 // Client functionality
 #include "video_streaming_client.hpp"
@@ -92,40 +93,27 @@ from holohub.video_streaming_server import (
 ```
 
 **Building with Python support:**
+
 ```bash
-./holohub build video_streaming \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+./holohub build video_streaming --language python
 ```
 
-**Running Python applications:**
-```bash
-# Python Server
-./holohub run video_streaming server_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+## Running the Applications
 
-# Python Client (Video Replayer)
-./holohub run video_streaming client_python \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+The video streaming demo provides both client and server applications. For complete documentation and setup instructions, see the **[Applications README](../../applications/video_streaming/README.md)**.
 
-# Python Client (V4L2 Camera)
-./holohub run video_streaming client_python_v4l2 \
-  --docker-file applications/video_streaming/Dockerfile \
-  --docker-opts='-e EnableHybridMode=1' \
-  --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
-```
+> ⚠️ **Important:** These applications are currently only compatible with CUDA 12.x. If your system uses CUDA 13.x, ensure you add the `--cuda 12` flag to all command-line invocations shown below.
 
-For detailed Python application documentation, see:
+**For complete Python application documentation, see:**
+
 - **[Server Application (C++ and Python)](../../applications/video_streaming/video_streaming_server/README.md)**
 - **[Client Application (C++ and Python)](../../applications/video_streaming/video_streaming_client/README.md)**
 
 ## Dependencies
 
 ### Required
-- **Holoscan SDK 3.5.0**: Core framework
+
+- **Holoscan SDK 3.5.0 or higher**: Core framework
 - **CUDA 12.x**: GPU acceleration support
 
 ### Cloud Streaming Binaries
@@ -164,13 +152,30 @@ All dependencies need to be properly installed in the operator directory structu
 
 ## Testing
 
-Testing is handled at the application level through the unified `video_streaming` integration test, which provides end-to-end validation of both client and server components working together.
+This package includes comprehensive testing at multiple levels:
+
+### Unit Tests
+
+**For comprehensive test output examples, expected results, and detailed test information, see [UNIT_TESTS_SUMMARY.md](UNIT_TESTS_SUMMARY.md).**
+
+#### Run Instructions
+
+Run all unit tests from the holohub root directory:
+
+```bash
+# Run all unit tests with verbose output
+./holohub test video_streaming --ctest-options="-R unit_tests -V"
+```
+
+### Integration Tests
+
+Please refer to the [Integration Tests](../../applications/video_streaming/TESTING.md) for end-to-end integration tests validate the complete streaming pipeline with actual server/client communication and frame transmission.
+
 
 ## Related Applications
 
 - **[Streaming Client Demo](../../applications/video_streaming/video_streaming_client/)**: Example client application
 - **[Streaming Server Demo](../../applications/video_streaming/video_streaming_server/)**: Example server application
-
 
 ## Performance Notes
 
