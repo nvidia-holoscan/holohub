@@ -132,9 +132,11 @@ class HoloHubContainer:
             "example: `--build-args '--network=host --build-arg \"CUSTOM=value with spaces\"'`",
         )
         parser.add_argument(
-            "--build-scripts",
+            "--extra-scripts",
             action="append",
-            help="Named dependency installation scripts to run as Docker layers. Searches in HOLOHUB_SETUP_SCRIPTS_DIR directory.",
+            help="(Build container) Named dependency installation scripts to run as Docker layers." + \
+                "Searches in the directory path specified by the HOLOHUB_SETUP_SCRIPTS_DIR environment variable." + \
+                "Use `./holohub setup --list-scripts` to list all available scripts."
         )
         return parser
 
@@ -387,15 +389,15 @@ class HoloHubContainer:
         img: Optional[str] = None,
         no_cache: bool = False,
         build_args: Optional[str] = None,
-        build_scripts: Optional[List[str]] = None,
+        extra_scripts: Optional[List[str]] = None,
         cuda_version: Optional[Union[str, int]] = None,
     ) -> None:
         """
         Build the container image according to the procedure:
 
         1. Build the Dockerfile provided environment with the given BASE_IMAGE and given tag.
-            If build_scripts are provided, also tag this image as {img}-base.
-        2. If build_scripts are provided, build an additional Docker layer for each script.
+            If extra_scripts are provided, also tag this image as {img}-base.
+        2. If extra_scripts are provided, build an additional Docker layer for each script.
             Tag each iterative layer as {img}-{script} and {img}.
 
         Result: Docker image named {img} based on the Dockerfile and any additional scripts.
@@ -461,15 +463,15 @@ class HoloHubContainer:
                 str(docker_file_path),
                 "-t",
                 img,
-                *(["-t", f"{img}-base"] if build_scripts else []),
+                *(["-t", f"{img}-base"] if extra_scripts else []),
                 str(HoloHubContainer.HOLOHUB_ROOT),
             ]
         )
 
         run_command(cmd, dry_run=self.dryrun)
 
-        if build_scripts:
-            for script in build_scripts:
+        if extra_scripts:
+            for script in extra_scripts:
                 script_path = get_holohub_setup_scripts_dir() / f"{script}.sh"
                 if not script_path.exists():
                     fatal(f"Script {script}.sh not found in {get_holohub_setup_scripts_dir()}")

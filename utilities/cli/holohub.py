@@ -309,7 +309,7 @@ class HoloHubCLI:
         lint.set_defaults(func=self.handle_lint)
 
         # setup command
-        setup = subparsers.add_parser("setup", help="Install HoloHub main required packages")
+        setup = subparsers.add_parser("setup", help="Install HoloHub recommended packages for development.")
         self.subparsers["setup"] = setup
         setup.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
@@ -317,12 +317,15 @@ class HoloHubCLI:
         setup.add_argument(
             "--list-scripts",
             action="store_true",
-            help="List all setup scripts found in the HOLOHUB_SETUP_SCRIPTS_DIR directory",
+            help="List all setup scripts found in the HOLOHUB_SETUP_SCRIPTS_DIR directory." + \
+                "Run scripts directly or with `./holohub setup --scripts <script_name>`.",
         )
         setup.add_argument(
             "--scripts",
             action="append",
-            help="Named dependency installation scripts to run. Can be specified multiple times. Searches in HOLOHUB_SETUP_SCRIPTS_DIR directory.",
+            help="Named dependency installation scripts to run. Can be specified multiple times." + \
+                "Searches in the directory path specified by the HOLOHUB_SETUP_SCRIPTS_DIR environment variable." + \
+                "Omit to install default recommended packages for Holoscan SDK development."
         )
         setup.set_defaults(func=self.handle_setup)
 
@@ -790,7 +793,7 @@ class HoloHubCLI:
             no_cache=args.no_cache,
             build_args=args.build_args,
             cuda_version=getattr(args, "cuda", None),
-            build_scripts=getattr(args, "build_scripts", []),
+            extra_scripts=getattr(args, "extra_scripts", []),
         )
 
     def handle_run_container(self, args: argparse.Namespace) -> None:
@@ -809,7 +812,7 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
                 cuda_version=getattr(args, "cuda", None),
-                build_scripts=getattr(args, "build_scripts", []),
+                extra_scripts=getattr(args, "extra_scripts", []),
             )
 
         trailing_args = getattr(args, "_trailing_args", [])
@@ -859,7 +862,7 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
                 cuda_version=getattr(args, "cuda", None),
-                build_scripts=getattr(args, "build_scripts", []),
+                extra_scripts=getattr(args, "extra_scripts", []),
             )
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
@@ -1074,7 +1077,7 @@ class HoloHubCLI:
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
                     cuda_version=getattr(args, "cuda", None),
-                    build_scripts=getattr(args, "build_scripts", []),
+                    extra_scripts=getattr(args, "extra_scripts", []),
                 )
 
             # Build command with all necessary arguments
@@ -1308,7 +1311,7 @@ class HoloHubCLI:
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
                     cuda_version=getattr(args, "cuda", None),
-                    build_scripts=getattr(args, "build_scripts", []),
+                    extra_scripts=getattr(args, "extra_scripts", []),
                 )
             language = holohub_cli_util.normalize_language(
                 container.project_metadata.get("metadata", {}).get("language", None)
@@ -1718,7 +1721,8 @@ class HoloHubCLI:
                 script_path = holohub_cli_util.get_holohub_setup_scripts_dir() / f"{script}.sh"
                 if not script_path.exists():
                     holohub_cli_util.fatal(
-                        f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}"
+                        f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}." + \
+                        "Use `./holohub setup --list-scripts` to list all available scripts."
                     )
                 holohub_cli_util.run_command([script_path], dry_run=args.dryrun)
             sys.exit(0)
@@ -1818,7 +1822,7 @@ class HoloHubCLI:
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
                     cuda_version=getattr(args, "cuda", None),
-                    build_scripts=getattr(args, "build_scripts", []),
+                    extra_scripts=getattr(args, "extra_scripts", []),
                 )
 
             # Install command with all necessary arguments
@@ -1928,7 +1932,7 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
                 cuda_version=getattr(args, "cuda", None),
-                build_scripts=getattr(args, "build_scripts", []),
+                extra_scripts=getattr(args, "extra_scripts", []),
             )
         else:
             print(f"Skipping build, using existing Dev Container {dev_container_tag}...")
