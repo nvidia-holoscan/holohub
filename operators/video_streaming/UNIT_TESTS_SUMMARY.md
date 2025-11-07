@@ -6,7 +6,7 @@ This document summarizes the C++ unit tests for the `video_streaming` operators,
 
 ## Test Suites
 
-This package includes **31 unit tests** across all video streaming operators:
+This package includes the following unit tests across all video streaming operators:
 
 ### 1. **StreamingClientOp Tests**
 
@@ -45,14 +45,14 @@ This package includes **31 unit tests** across all video streaming operators:
 operators/video_streaming/
 ├── video_streaming_client/
 │   ├── tests/
-│   │   ├── test_video_streaming_client_op.cpp # Client unit tests (13 tests)
+│   │   ├── test_video_streaming_client_op.cpp # Client unit tests
 │   │   ├── CMakeLists.txt                     # Build config
 │   │   └── README.md                          # Documentation
 │   └── CMakeLists.txt                         # Updated to include tests
 │
 └── video_streaming_server/
     ├── tests/
-    │   ├── test_video_streaming_server_ops.cpp # Server unit tests (18 tests)
+    │   ├── test_video_streaming_server_ops.cpp # Server unit tests
     │   ├── CMakeLists.txt                     # Build config
     │   └── README.md                          # Documentation
     └── CMakeLists.txt                         # Updated to include tests
@@ -171,7 +171,7 @@ The unit tests complement the existing integration tests:
 ### Unit Tests
 
 - ✅ **Scope**: Individual operator components
-- ✅ **Speed**: Fast (0.13 seconds total for 31 tests, ~0.004 sec per test)
+- ✅ **Speed**: Fast (~0.13 seconds)
 - ✅ **Dependencies**: None (network-free)
 - ✅ **Focus**: API validation, parameter handling, resource management
 - ✅ **Run When**: During development, before commit
@@ -191,9 +191,9 @@ The unit tests are designed for CI/CD pipelines:
 
 **Benefits:**
 
-- ✅ **Ultra-fast feedback** - Complete in ~0.13 seconds (well under 2 minutes)
+- ✅ **Ultra-fast feedback** - Complete in ~0.13 seconds
 - ✅ **No network dependencies** - Tests run in isolation
-- ✅ **Clear pass/fail status** - 100% pass rate (2/2 suites, 31 tests)
+- ✅ **Clear pass/fail status** - 100% tests passed, 0 tests failed out of 2
 - ✅ **Detailed error output** - GTest provides clear failure messages
 - ✅ **Reliable** - No flaky network-dependent failures
 
