@@ -121,13 +121,6 @@ TEST_F(VideoStreamingClientOpTest, TestName) {
 ⚠️ **Integration Tests**: For end-to-end testing with actual streaming, see the integration tests in `applications/video_streaming/TESTING.md`.
 
 
-**Key Improvements**:
-1. Tests focus on operator functionality, not just binding validation
-2. Better organized test categories
-3. More comprehensive parameter validation
-4. Clearer documentation
-5. Integrated into current build system
-
 ## See Also
 
 - **[Video Streaming Client Operator README](../README.md)** - Operator documentation
