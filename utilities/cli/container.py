@@ -134,9 +134,9 @@ class HoloHubContainer:
         parser.add_argument(
             "--extra-scripts",
             action="append",
-            help="(Build container) Named dependency installation scripts to run as Docker layers." + \
-                "Searches in the directory path specified by the HOLOHUB_SETUP_SCRIPTS_DIR environment variable." + \
-                "Use `./holohub setup --list-scripts` to list all available scripts."
+            help="(Build container) Named dependency installation scripts to run as Docker layers."
+            + "Searches in the directory path specified by the HOLOHUB_SETUP_SCRIPTS_DIR environment variable."
+            + "Use `./holohub setup --list-scripts` to list all available scripts.",
         )
         return parser
 
