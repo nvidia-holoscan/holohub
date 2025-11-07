@@ -315,6 +315,11 @@ class HoloHubCLI:
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
         setup.add_argument(
+            "--list-scripts",
+            action="store_true",
+            help="List all setup scripts found in the HOLOHUB_SETUP_SCRIPTS_DIR directory",
+        )
+        setup.add_argument(
             "--scripts",
             action="append",
             help="Named dependency installation scripts to run. Can be specified multiple times. Searches in HOLOHUB_SETUP_SCRIPTS_DIR directory.",
@@ -1700,6 +1705,24 @@ class HoloHubCLI:
     def handle_setup(self, args: argparse.Namespace) -> None:
         """Handle setup command"""
 
+        if args.list_scripts:
+            setup_scripts_dir = holohub_cli_util.get_holohub_setup_scripts_dir()
+            print(holohub_cli_util.format_cmd(f"Listing setup scripts available in {setup_scripts_dir}"))
+            print(Color.green("Use with `./holohub setup --scripts <script_name>`"))
+            for script in setup_scripts_dir.glob("*.sh"):
+                print(f"  {script.name.strip('.sh')}")
+            sys.exit(0)
+
+        if args.scripts:
+            for script in args.scripts:
+                script_path = holohub_cli_util.get_holohub_setup_scripts_dir() / f"{script}.sh"
+                if not script_path.exists():
+                    holohub_cli_util.fatal(
+                        f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}"
+                    )
+                holohub_cli_util.run_command([script_path], dry_run=args.dryrun)
+            sys.exit(0)
+
         if not args.scripts:
             holohub_cli_util.install_packages_if_missing(
                 ["wget", "xvfb", "git", "unzip", "ffmpeg", "ninja-build", "libv4l-dev"],
@@ -1729,14 +1752,6 @@ class HoloHubCLI:
                 print("  source ~/.bashrc")
 
                 print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
-        else:
-            for script in args.scripts:
-                script_path = holohub_cli_util.get_holohub_setup_scripts_dir() / f"{script}.sh"
-                if not script_path.exists():
-                    holohub_cli_util.fatal(
-                        f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}"
-                    )
-                holohub_cli_util.run_command([script_path], dry_run=args.dryrun)
 
     def handle_env_info(self, args: argparse.Namespace) -> None:
         """Handle env-info command to collect debugging information"""
