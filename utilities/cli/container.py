@@ -390,7 +390,16 @@ class HoloHubContainer:
         build_scripts: Optional[List[str]] = None,
         cuda_version: Optional[Union[str, int]] = None,
     ) -> None:
-        """Build the container image"""
+        """
+        Build the container image according to the procedure:
+
+        1. Build the Dockerfile provided environment with the given BASE_IMAGE and given tag.
+            If build_scripts are provided, also tag this image as {img}-base.
+        2. If build_scripts are provided, build an additional Docker layer for each script.
+            Tag each iterative layer as {img}-{script} and {img}.
+
+        Result: Docker image named {img} based on the Dockerfile and any additional scripts.
+        """
 
         if cuda_version is not None:
             self.cuda_version = cuda_version
@@ -480,7 +489,7 @@ class HoloHubContainer:
                     "-t",
                     f"{img}",
                     "-f",
-                    str(get_holohub_setup_scripts_dir() / "script.Dockerfile"),
+                    str(get_holohub_setup_scripts_dir() / "Dockerfile.util"),
                     str(HoloHubContainer.HOLOHUB_ROOT),
                 ]
                 run_command(cmd, dry_run=self.dryrun)
