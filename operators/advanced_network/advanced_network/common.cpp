@@ -350,6 +350,7 @@ Status adv_net_init(NetworkConfig &config) {
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config(
     const YAML::Node& flow_item, holoscan::advanced_network::FlowConfig& flow) {
+  struct in_addr addr;
   try {
     flow.name_ = flow_item["name"].as<std::string>();
     flow.id_ = flow_item["id"].as<int>();
@@ -381,7 +382,6 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     flow.match_.ipv4_len_ = 0;
   }
 
-  struct in_addr addr;
   try {
     std::string ipv4_src = flow_item["match"]["ipv4_src"].as<std::string>();
     if (inet_pton(AF_INET, ipv4_src.c_str(), &addr) != 1) {
