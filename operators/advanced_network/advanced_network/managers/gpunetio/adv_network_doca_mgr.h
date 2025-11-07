@@ -42,7 +42,6 @@
 #include <doca_dpdk.h>
 #include <doca_flow.h>
 #include <doca_dev.h>
-#include <doca_buf_array.h>
 #include <doca_pe.h>
 #include <doca_eth_txq_gpu_data_path.h>
 
@@ -63,7 +62,10 @@
 #define MPS_ENABLED 0
 #define RX_PERSISTENT_ENABLED 1
 
+#define ALIGN_SIZE(size, align) size = ((size + (align)-1) / (align)) * (align);
+
 struct adv_doca_rx_gpu_info {
+  enum doca_gpu_semaphore_status status;
   uint32_t num_pkts;
   uint32_t nbytes;
   uintptr_t gpu_pkt0_addr;
@@ -127,9 +129,12 @@ class DocaRxQueue {
   DocaRxQueue(struct doca_dev* dev, struct doca_gpu* gdev, struct doca_flow_port* df_port,
               uint16_t qid, int max_pkt_num, int max_pkt_size, enum doca_gpu_mem_type mtype);
   ~DocaRxQueue();
-  doca_error_t create_udp_pipe(const FlowConfig& cfg, struct doca_flow_pipe* rxq_pipe_default);
-  doca_error_t create_semaphore();
-  doca_error_t destroy_semaphore();
+  doca_error_t create_udp_pipe(const FlowConfig& cfg, struct doca_flow_pipe* rxq_pipe_default, uint16_t &flow_queue_id);
+  // doca_error_t create_semaphore();
+  // doca_error_t destroy_semaphore();
+  
+  doca_error_t create_rx_packet_list();
+  doca_error_t destroy_rx_packet_list();
 
   uint16_t qid;                         /* Number of queues */
   struct doca_gpu* gdev;                /* GPUNetio handler associated to queues*/
@@ -146,9 +151,10 @@ class DocaRxQueue {
   struct doca_flow_port* df_port;              /* DOCA Flow port */
   struct doca_flow_pipe* rxq_pipe;             /* DOCA Flow receive pipe */
   struct doca_flow_pipe_entry* root_udp_entry; /* DOCA Flow root entry */
-
-  struct doca_gpu_semaphore* sem_cpu;     /* One semaphore per queue to report stats, CPU handler*/
-  struct doca_gpu_semaphore_gpu* sem_gpu; /* One semaphore per queue to report stats, GPU handler*/
+  struct adv_doca_rx_gpu_info *pkt_list_gpu;
+  struct adv_doca_rx_gpu_info *pkt_list_cpu;
+  // struct doca_gpu_semaphore* sem_cpu;     /* One semaphore per queue to report stats, CPU handler*/
+  // struct doca_gpu_semaphore_gpu* sem_gpu; /* One semaphore per queue to report stats, GPU handler*/
   enum doca_gpu_mem_type mtype;
 };
 
@@ -168,11 +174,12 @@ class DocaTxQueue {
   struct doca_mmap* pkt_buff_mmap;      /* DOCA mmap to receive packet with DOCA Ethernet queue */
   void* gpu_pkt_addr;                   /* DOCA mmap GPU memory address */
   void* cpu_pkt_addr;                   /* DOCA mmap CPU pinned memory address */
+  uint32_t pkt_mkey;                   /* DOCA mmap GPU memory address */
   int dmabuf_fd;                        /* GPU memory dmabuf file descriptor */
   int max_pkt_num;
   int max_pkt_size;
-  struct doca_buf_arr* buf_arr;         /* DOCA buffer array object around GPU memory buffer */
-  struct doca_gpu_buf_arr* buf_arr_gpu; /* DOCA buffer array GPU handle */
+  // struct doca_buf_arr* buf_arr;         /* DOCA buffer array object around GPU memory buffer */
+  // struct doca_gpu_buf_arr* buf_arr_gpu; /* DOCA buffer array GPU handle */
   std::atomic<uint32_t> buff_arr_idx;
   struct doca_pe* pe;
   std::atomic<uint32_t> tx_cmp_posted;
@@ -237,7 +244,7 @@ class DocaMgr : public Manager {
   doca_error_t init_doca_devices();
   doca_error_t create_root_pipe(int port_id);
   doca_error_t create_default_pipe(int port_id, uint32_t cnt_defq);
-  struct doca_flow_port* init_doca_flow(uint16_t port_id, uint8_t rxq_num);
+  struct doca_flow_port* init_doca_flow(struct doca_dev *dev, uint16_t port_id, uint8_t rxq_num);
   int setup_pools_and_rings(int max_tx_batch);
   std::string GetQueueName(int port, int q, Direction dir);
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
@@ -269,6 +276,8 @@ class DocaMgr : public Manager {
   std::thread worker_th[16];
   int worker_th_idx;
   std::set<int> gpu_mr_devs;
+
+  uint16_t flow_queue_id = 0;
 };
 
 extern DocaMgr doca_mgr;

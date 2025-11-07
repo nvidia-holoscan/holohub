@@ -86,22 +86,28 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /opt
 
-# Configure the DOCA APT repository
-RUN if [ "${TARGETARCH}" = "amd64" ]; then \
-        DOCA_ARCH="x86_64"; \
-    elif [ "$TARGETARCH" = "arm64" ]; then \
-        DOCA_ARCH="arm64-sbsa"; \
-    else \
-        echo "Unknown architecture: $TARGETARCH"; \
-        exit 1; \
-    fi \
-    && DISTRO=$(. /etc/os-release && echo ${ID}${VERSION_ID}) \
-    && DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/${DOCA_VERSION}/${DISTRO}/${DOCA_ARCH} \
-    && echo "Using DOCA_REPO_LINK=${DOCA_REPO_LINK}" \
-    && LOCAL_GPG_KEY_PATH="/usr/share/keyrings/mellanox-archive-keyring.gpg" \
-    && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} > /dev/null \
-    && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list
+RUN apt-get update && apt-get install -y build-essential wget
 
+# Configure the DOCA APT repository
+# RUN if [ "${TARGETARCH}" = "amd64" ]; then \
+#         DOCA_ARCH="x86_64"; \
+#     elif [ "$TARGETARCH" = "arm64" ]; then \
+#         DOCA_ARCH="arm64-sbsa"; \
+#     else \
+#         echo "Unknown architecture: $TARGETARCH"; \
+#         exit 1; \
+#     fi \
+#     && DISTRO=$(. /etc/os-release && echo ${ID}${VERSION_ID}) \
+#     && DOCA_REPO_LINK=https://linux.mellanox.com/public/repo/doca/${DOCA_VERSION}/${DISTRO}/${DOCA_ARCH} \
+#     && echo "Using DOCA_REPO_LINK=${DOCA_REPO_LINK}" \
+#     && LOCAL_GPG_KEY_PATH="/usr/share/keyrings/mellanox-archive-keyring.gpg" \
+#     && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} > /dev/null \
+#     && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list
+
+RUN wget https://urm.nvidia.com/artifactory/sw-nbu-int-generic-local/doca-repo-3.2.0/doca-repo-3.2.0-122000/doca-host_3.2.0-122000-25.10-ubuntu2204_amd64.deb \
+    && apt-get install -y ./doca-host_3.2.0-122000-25.10-ubuntu2204_amd64.deb \
+    && apt-get update
+    
 # APT installs
 # - cublas, cufft, cusolver, curand dev libs: for matx
 # - ninja-build: for cmake build
@@ -122,10 +128,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libcurand-dev-12-6 \
         ninja-build \
         pkgconf \
+        mlnx-dpdk \
         mlnx-dpdk-dev \
-        libdoca-sdk-dma-dev \
+        doca-sdk-gpunetio \
         libdoca-sdk-gpunetio-dev \
+        doca-sdk-eth \
         libdoca-sdk-eth-dev \
+        doca-sdk-flow \
         libdoca-sdk-flow-dev \
         mlnx-ofed-kernel-utils \
         ibverbs-utils \

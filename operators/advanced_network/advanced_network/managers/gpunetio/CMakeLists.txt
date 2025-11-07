@@ -65,7 +65,6 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     holoscan::core
     -ldoca_gpunetio
-    -ldoca_gpunetio_device # static
     -ldoca_eth
     -ldoca_flow
 )
