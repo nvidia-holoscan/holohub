@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,19 @@
 #ifndef HOLOSCAN__GSTREAMER__GST_SRC_BRIDGE_HPP
 #define HOLOSCAN__GSTREAMER__GST_SRC_BRIDGE_HPP
 
+#include <gst/app/gstappsrc.h>
+#include <gst/gst.h>
+
 #include <chrono>
 #include <future>
 #include <memory>
 #include <string>
 
-#include <gst/gst.h>
-#include <gst/app/gstappsrc.h>
-
 #include <holoscan/core/domain/tensor_map.hpp>
 
-#include "gst/config.hpp"
 #include "gst/buffer.hpp"
 #include "gst/caps.hpp"
+#include "gst/config.hpp"
 #include "gst/object.hpp"
 
 namespace holoscan {
@@ -41,7 +41,7 @@ namespace holoscan {
  * This class provides a pure GStreamer implementation for managing an appsrc element,
  * handling buffer creation from tensors, and managing the data flow into GStreamer pipelines.
  * It contains no Holoscan-specific dependencies (except for GXF tensors which are the data format).
- * 
+ *
  * @note The user is responsible for calling send_eos() when done sending data to properly
  *       finalize the stream. The destructor does NOT automatically send EOS.
  */
@@ -55,6 +55,11 @@ class GstSrcBridge {
    * @throws std::runtime_error if initialization fails
    */
   GstSrcBridge(const std::string& name, const std::string& caps_string, size_t max_buffers);
+
+  /**
+   * @brief Destructor - cleans up GStreamer resources
+   */
+  ~GstSrcBridge();
 
   // Non-copyable and non-movable
   GstSrcBridge(const GstSrcBridge&) = delete;
@@ -70,38 +75,38 @@ class GstSrcBridge {
 
   /**
    * @brief Send End-Of-Stream signal to appsrc
-   * 
+   *
    * Call this when you're done sending data to signal the downstream pipeline
    * to finalize processing (e.g., write file headers/trailers).
-   * 
+   *
    * Note: This function returns immediately after sending EOS. The caller should
    * wait for the EOS message on the pipeline bus to know when processing is complete.
-   * 
+   *
    * @return true if EOS was successfully sent, false if already sent or error occurred
    */
   bool send_eos();
 
   /**
    * @brief Push a buffer into the GStreamer pipeline
-   * 
+   *
    * If the queue is at capacity (controlled by max_buffers), this function
    * will block until space becomes available or EOS is signaled.
-   * 
+   *
    * @param buffer GStreamer buffer to push
    * @return true if buffer was successfully queued, false otherwise
    */
-   bool push_buffer(gst::Buffer buffer);
+  bool push_buffer(gst::Buffer buffer);
 
   /**
    * @brief Create a GStreamer buffer from a TensorMap
-   * 
+   *
    * Wraps all tensors in the map as GStreamer memory blocks with zero-copy.
    * Supports both packed formats (RGBA, RGB) and planar formats (I420, NV12).
    * For multi-plane formats, expects separate tensors with naming convention:
    *   - "video_frame" for Y/luma plane
    *   - "video_frame_u", "video_frame_v" for chroma planes (I420)
    *   - "video_frame_uv" for interleaved chroma (NV12)
-   * 
+   *
    * @param tensor_map TensorMap containing one or more tensors
    * @return GStreamer Buffer with zero-copy wrapping, empty on failure
    */
@@ -138,12 +143,12 @@ class GstSrcBridge {
   // Handles wrapping tensor data pointers as GstMemory objects without copying data.
   // Reused for all subsequent buffers for efficient memory management.
   std::shared_ptr<MemoryWrapper> memory_wrapper_;
-  
+
   // Frame timing
-  uint64_t frame_count_ = 0;  // Frame counter for accurate timestamp calculation (avoids rounding error accumulation)
+  uint64_t frame_count_ =
+      0;  // Frame counter for accurate timestamp calculation (avoids rounding error accumulation)
 };
 
 }  // namespace holoscan
 
 #endif /* HOLOSCAN__GSTREAMER__GST_SRC_BRIDGE_HPP */
-

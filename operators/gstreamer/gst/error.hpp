@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,18 +18,19 @@
 #ifndef HOLOSCAN__GSTREAMER__GST__ERROR_HPP
 #define HOLOSCAN__GSTREAMER__GST__ERROR_HPP
 
-#include <memory>
 #include <glib.h>
+
+#include <memory>
 
 namespace holoscan {
 namespace gst {
 
 /**
  * @brief RAII wrapper for GError with automatic cleanup
- * 
+ *
  * This class manages the lifetime of a GError object and automatically
  * calls g_error_free when destroyed.
- * 
+ *
  * Note: GError uses copy/free semantics, not ref-counting, so it doesn't
  * inherit from Object<T>.
  */
@@ -39,11 +40,12 @@ class Error {
    * @brief Constructor from raw pointer (takes ownership)
    * @param error GError pointer to wrap (nullptr is allowed)
    */
-  explicit Error(::GError* error = nullptr) : ptr_(error, [](::GError* err) {
-    if (err) {
-      g_error_free(err);
-    }
-  }) {}
+  explicit Error(::GError* error = nullptr)
+      : ptr_(error, [](::GError* err) {
+          if (err) {
+            g_error_free(err);
+          }
+        }) {}
 
   /**
    * @brief Get the raw pointer
@@ -55,7 +57,7 @@ class Error {
    * @brief Access GError members directly
    * @return Pointer to GError for member access
    */
-   const ::GError* operator->() const { return ptr_.get(); }
+  const ::GError* operator->() const { return ptr_.get(); }
 
   /**
    * @brief Bool conversion
@@ -71,4 +73,3 @@ class Error {
 }  // namespace holoscan
 
 #endif /* HOLOSCAN__GSTREAMER__GST__ERROR_HPP */
-

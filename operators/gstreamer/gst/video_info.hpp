@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,15 +29,16 @@ class Caps;
  * @brief Video information extracted from GstCaps
  *
  * This class encapsulates video format information including dimensions and format.
- * It holds a private Caps object to ensure the underlying GstCaps remains valid.
+ * GstVideoInfo is a POD structure that contains copied data from the caps, so it
+ * does not hold references to the original GstCaps object.
  */
 class VideoInfo {
-public:
+ public:
   /**
-  * @brief Constructor from Caps object
-  * @param caps Caps object containing video information
-  * @throws std::runtime_error if caps don't contain valid video information
-  */
+   * @brief Constructor from Caps object
+   * @param caps Caps object containing video information
+   * @throws std::runtime_error if caps don't contain valid video information
+   */
   explicit VideoInfo(const Caps& caps);
 
   /**
@@ -51,23 +52,60 @@ public:
    * @param plane_index Plane index
    * @return Stride in bytes, or 0 if invalid
    */
-  gsize get_plane_stride(int plane_index) const;
+  gsize get_stride(int plane_index) const;
 
   /**
    * @brief Get component height for a specific plane
    * @param plane_index Plane index
    * @return Component height in pixels, or 0 if invalid
    */
-  gsize get_plane_comp_height(int plane_index) const;
+  gsize get_comp_height(int plane_index) const;
+
+  /**
+   * @brief Get component width for a specific plane
+   * @param plane_index Plane index
+   * @return Component width in pixels, or 0 if invalid
+   */
+  gsize get_comp_width(int plane_index) const;
 
   /**
    * @brief Get plane size for a specific plane
    * @param plane_index Plane index
    * @return Size in bytes for the specified plane, or 0 if invalid
    */
-  gsize get_plane_size(int plane_index) const;
+  gsize get_size(int plane_index) const;
 
-private:
+  /**
+   * @brief Get number of components
+   * @return Number of components, or 0 if invalid
+   */
+  gsize get_n_components() const;
+
+  /**
+   * @brief Get number of planes
+   * @return Number of planes, or 0 if invalid
+   */
+  gsize get_n_planes() const;
+
+  /**
+   * @brief Get video format
+   * @return GstVideoFormat enum value
+   */
+  GstVideoFormat get_format() const;
+
+  /**
+   * @brief Get width
+   * @return Width in pixels
+   */
+  gint get_width() const;
+
+  /**
+   * @brief Get height
+   * @return Height in pixels
+   */
+  gint get_height() const;
+
+ private:
   ::GstVideoInfo video_info_;
 };
 
@@ -75,4 +113,3 @@ private:
 }  // namespace holoscan
 
 #endif /* HOLOSCAN__GSTREAMER__GST__VIDEO_INFO_HPP */
-

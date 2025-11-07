@@ -46,6 +46,7 @@ add_definitions(${GSTREAMER_APP_CFLAGS_OTHER})
 add_library(holoscan_gstreamer_bridge SHARED
   gst/buffer.cpp
   gst/caps.cpp
+  gst/memory.cpp
   gst/video_info.cpp
   gst_src_bridge.cpp
   gst_video_recorder_operator.cpp
@@ -110,10 +111,10 @@ install(FILES
   gst/message.hpp
   gst/object.hpp
   gst/video_info.hpp
-    gst_src_bridge.hpp
-    gst_video_recorder_operator.hpp
-    core/initializer.hpp
-    DESTINATION include/holoscan/operators/gstreamer)
+  gst_src_bridge.hpp
+  gst_video_recorder_operator.hpp
+  core/initializer.hpp
+  DESTINATION include/holoscan/operators/gstreamer)
 
 # Export the library for use by other CMake projects
 export(TARGETS holoscan_gstreamer_bridge 

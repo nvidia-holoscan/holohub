@@ -28,6 +28,7 @@
 #include "gst/message.hpp"
 #include "gst/error.hpp"
 
+namespace holoscan {
 namespace {
 
 /**
@@ -204,11 +205,10 @@ void monitor_pipeline_bus(GstElement* pipeline) {
           GError* error;
           gchar* debug_info;
           gst_message_parse_error(msg.get(), &error, &debug_info);
-          auto error_guard = holoscan::gst::Error(error);
-          HOLOSCAN_LOG_ERROR("GStreamer error: {}", error_guard->message);
+          gst::Error gst_error(error);
+          HOLOSCAN_LOG_ERROR("GStreamer error: {}", gst_error->message);
           if (debug_info) {
             HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
-            g_free(debug_info);
           }
           return;
         }
@@ -486,9 +486,7 @@ void add_and_link_source_converter(GstElement* pipeline,
   HOLOSCAN_LOG_INFO("Pipeline complete: source -> converter -> encoder -> parser -> muxer -> filesink");
 }
 
-}  // namespace
-
-namespace holoscan {
+}  // unnamed namespace
 
 void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
   spec.input<TensorMap>("input");
@@ -660,12 +658,12 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
 
   // Convert tensor map to GStreamer buffer using the bridge
   auto buffer = bridge_->create_buffer_from_tensor_map(tensor_map);
-  if (buffer.size() == 0) {
+  if (buffer.get_size() == 0) {
     HOLOSCAN_LOG_ERROR("Frame #{} - Failed to convert tensor map to buffer", frame_count_);
     return;
   }
 
-  HOLOSCAN_LOG_DEBUG("Frame #{} - Buffer created, size: {} bytes", frame_count_, buffer.size());
+  HOLOSCAN_LOG_DEBUG("Frame #{} - Buffer created, size: {} bytes", frame_count_, buffer.get_size());
 
   // Push buffer into the GStreamer encoding pipeline
   if (!bridge_->push_buffer(std::move(buffer))) {

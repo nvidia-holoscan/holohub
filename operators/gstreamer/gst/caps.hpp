@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,10 +18,10 @@
 #ifndef HOLOSCAN__GSTREAMER__GST__CAPS_HPP
 #define HOLOSCAN__GSTREAMER__GST__CAPS_HPP
 
+#include <gst/gst.h>
+
 #include <optional>
 #include <string>
-
-#include <gst/gst.h>
 
 #include "object.hpp"
 
@@ -38,10 +38,11 @@ class VideoInfo;
  * automatic cleanup when destroyed. It also provides convenient member functions
  * for common GstCaps operations.
  */
-class Caps : public Object<::GstCaps> {
-public:
+class Caps : public Object<::GstCaps, gst_mini_object_ref_typed<::GstCaps>,
+                           gst_mini_object_unref_typed<::GstCaps>> {
+ public:
   /**
-   * @brief Constructor from GstCaps pointer (takes ownership, does NOT increment refcount)
+   * @brief Constructor from GstCaps pointer (takes ownership)
    * @param caps GstCaps to wrap - caller transfers ownership (nullptr is allowed)
    */
   explicit Caps(::GstCaps* caps = nullptr);
@@ -54,29 +55,26 @@ public:
   explicit Caps(const std::string& caps_string);
 
   /**
-   * @brief Increment GStreamer reference count and return the raw pointer
-   * @return Raw GstCaps pointer
-   */
-  ::GstCaps* ref() const override;
-
-  /**
    * @brief Get the name of the first structure in the caps
    * @param index Index of the structure to get the name of (default is 0 - first/primary structure)
-   * @return Structure name (e.g., "video/x-raw", "audio/x-raw") or nullptr if caps is nullptr/empty/invalid
+   * @return Structure name (e.g., "video/x-raw", "audio/x-raw") or nullptr if caps is
+   * nullptr/empty/invalid
    */
   const char* get_structure_name(guint index = 0) const;
 
   /**
    * @brief Get the value of a specific field in a specific structure
    * @param fieldname Field name to get the value of (e.g., "framerate")
-   * @param index Index of the structure to get the value from (default is 0 - first/primary structure)
+   * @param index Index of the structure to get the value from (default is 0 - first/primary
+   * structure)
    * @return Value of the field, or nullptr if field not found or caps is nullptr/empty/invalid
    */
   const GValue* get_structure_value(const char* fieldname, guint index = 0) const;
 
   /**
    * @brief Extract video format information from caps
-   * @return std::optional<VideoInfo> containing video information, or std::nullopt if not video caps
+   * @return std::optional<VideoInfo> containing video information, or std::nullopt if not video
+   * caps
    */
   std::optional<VideoInfo> get_video_info() const;
 
@@ -111,4 +109,3 @@ public:
 }  // namespace holoscan
 
 #endif /* HOLOSCAN__GSTREAMER__GST__CAPS_HPP */
-

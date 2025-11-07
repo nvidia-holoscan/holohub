@@ -15,18 +15,28 @@
  * limitations under the License.
  */
 
-#ifndef HOLOSCAN__GSTREAMER__GST__CONFIG_HPP
-#define HOLOSCAN__GSTREAMER__GST__CONFIG_HPP
+#include "memory.hpp"
 
-#include <gst/gstversion.h>
+namespace holoscan {
+namespace gst {
 
-// CUDA support in GStreamer requires version 1.24+.
-// This includes functions like gst_cuda_memory_init_once() and gst_cuda_allocator_alloc_wrapped().
-// Enable CUDA support only if GStreamer version is 1.24.0 or higher.
-#if GST_CHECK_VERSION(1, 24, 0)
-#define HOLOSCAN_GSTREAMER_CUDA_SUPPORT 1
-#else
-#define HOLOSCAN_GSTREAMER_CUDA_SUPPORT 0
-#endif  // HOLOSCAN_GSTREAMER_CUDA_SUPPORT
+// ============================================================================
+// Memory Implementation - RAII for GstMemory
+// ============================================================================
 
-#endif /* GST_CONFIG_HPP */
+gsize Memory::get_sizes(gsize* offset, gsize* max_size) const {
+  if (!get()) return 0;
+  return gst_memory_get_sizes(get(), offset, max_size);
+}
+
+bool Memory::map(::GstMapInfo* info, ::GstMapFlags flags) const {
+  if (!get()) return false;
+  return gst_memory_map(get(), info, flags);
+}
+
+void Memory::unmap(::GstMapInfo* info) const {
+  if (get()) gst_memory_unmap(get(), info);
+}
+
+}  // namespace gst
+}  // namespace holoscan
