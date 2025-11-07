@@ -15,10 +15,6 @@
 
 # C++ Unit Tests for VideoStreamingClientOp
 
-if(NOT BUILD_TESTING)
-  return()
-endif()
-
 # Use FetchContent to get GTest if not found
 find_package(GTest QUIET)
 
