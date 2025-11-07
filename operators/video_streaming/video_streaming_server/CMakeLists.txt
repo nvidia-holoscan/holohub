@@ -209,3 +209,8 @@ install(EXPORT video_streaming_server_targets
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)
 endif()
+
+# Add unit tests if testing is enabled
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
