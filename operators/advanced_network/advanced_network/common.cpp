@@ -366,49 +366,44 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
   try {
     flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
   } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing udp_src {} : {}", flow_item["match"]["udp_src"], e.what());
-    return false;
+    flow.match_.udp_src_  = 0;
   }
 
   try {
     flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
   } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing udp_dst {} : {}", flow_item["match"]["udp_dst"], e.what());
-    return false;
+    flow.match_.udp_dst_  = 0;
   }
 
   try {
     flow.match_.ipv4_len_ = flow_item["match"]["ipv4_len"].as<uint16_t>();
   } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing ipv4_len {} : {}", flow_item["match"]["ipv4_len"], e.what());
-    return false;
+    flow.match_.ipv4_len_ = 0;
   }
 
   struct in_addr addr;
   try {
-    auto ipv4_src = flow_item["match"]["ipv4_src"].as<std::string>();
+    std::string ipv4_src = flow_item["match"]["ipv4_src"].as<std::string>();
     if (inet_pton(AF_INET, ipv4_src.c_str(), &addr) != 1) {
-      HOLOSCAN_LOG_ERROR("Error parsing ipv4_src {} : {}", flow_item["match"]["ipv4_src"], e.what());
+      HOLOSCAN_LOG_ERROR("Error parsing ipv4_src : {}", ipv4_src);
       return false;
     } else {
       flow.match_.ipv4_src_ = addr.s_addr;
     }
   } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing ipv4_src {} : {}", flow_item["match"]["ipv4_src"], e.what());
-    return false;
+    flow.match_.ipv4_src_ = in_addr_t(0x00000000);
   }
 
   try {
-    auto ipv4_dst = flow_item["match"]["ipv4_dst"].as<std::string>();
+    std::string ipv4_dst = flow_item["match"]["ipv4_dst"].as<std::string>();
     if (inet_pton(AF_INET, ipv4_dst.c_str(), &addr) != 1) {
-      HOLOSCAN_LOG_ERROR("Error parsing ipv4_dst {} : {}", flow_item["match"]["ipv4_dst"], e.what());
+      HOLOSCAN_LOG_ERROR("Error parsing ipv4_dst : {}", ipv4_dst);
       return false;
     } else {
       flow.match_.ipv4_dst_ = addr.s_addr;
     }
   } catch (const std::exception& e) {
-    HOLOSCAN_LOG_ERROR("Error parsing ipv4_dst {} : {}", flow_item["match"]["ipv4_dst"], e.what());
-    return false;
+    flow.match_.ipv4_dst_ = in_addr_t(0x00000000);
   }
 
   // if none of the normal match criteria are defined, use flex item match
