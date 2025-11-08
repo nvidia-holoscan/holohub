@@ -18,6 +18,7 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <arpa/inet.h>
 
 #include "advanced_network/manager.h"
 #include "advanced_network/common.h"

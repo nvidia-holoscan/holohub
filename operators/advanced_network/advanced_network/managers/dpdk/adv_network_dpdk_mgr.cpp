@@ -27,6 +27,7 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <arpa/inet.h>
 
 #include "adv_network_dpdk_mgr.h"
 #include "holoscan/holoscan.hpp"
@@ -1311,7 +1312,7 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   }
 
   char str_ip[INET_ADDRSTRLEN];
-  if (cfg.match_.ipv4_src_ > 0) {
+  if (cfg.match_.ipv4_src_ != INADDR_ANY) {
     ip_spec.hdr.src_addr = cfg.match_.ipv4_src_;
     ip_mask.hdr.src_addr = 0xffffffff;
     has_ip_match = true;
@@ -1319,7 +1320,7 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
     HOLOSCAN_LOG_INFO("Adding IPv4 source IP match for {}", str_ip);
   }
 
-  if (cfg.match_.ipv4_dst_ > 0) {
+  if (cfg.match_.ipv4_dst_ != INADDR_ANY) {
     ip_spec.hdr.dst_addr = cfg.match_.ipv4_dst_;
     ip_mask.hdr.dst_addr = 0xffffffff;
     has_ip_match = true;
