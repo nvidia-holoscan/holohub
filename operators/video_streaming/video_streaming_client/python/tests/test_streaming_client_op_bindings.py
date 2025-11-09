@@ -259,3 +259,108 @@ class TestStreamingClientOpIntegration:
         )
         assert op is not None
         assert op.name == "fragment_client"
+
+
+class TestStreamingClientOpWithMockData:
+    """Tests for StreamingClientOp using mock image data from root conftest."""
+
+    def test_operator_with_mock_frame_cupy(self, operator_factory, mock_image):
+        """Test operator can be created with mock CuPy frame data."""
+        # Create operator
+        op = operator_factory(width=1920, height=1080, fps=30)
+        assert op is not None
+
+        # Create a mock 1920x1080 RGB frame using CuPy
+        frame = mock_image(shape=(1080, 1920, 3), dtype="uint8", backend="cupy")
+        
+        # Verify frame properties
+        assert frame.shape == (1080, 1920, 3)
+        assert frame.dtype.name == "uint8"
+        
+        # Verify it's a CuPy array
+        import cupy as cp
+        assert isinstance(frame, cp.ndarray)
+
+    def test_operator_with_mock_frame_numpy(self, operator_factory, mock_image):
+        """Test operator can be created with mock NumPy frame data."""
+        # Create operator
+        op = operator_factory(width=640, height=480, fps=30)
+        assert op is not None
+
+        # Create a mock 640x480 RGB frame using NumPy
+        frame = mock_image(shape=(480, 640, 3), dtype="uint8", backend="numpy")
+        
+        # Verify frame properties
+        assert frame.shape == (480, 640, 3)
+        assert frame.dtype.name == "uint8"
+        
+        # Verify it's a NumPy array
+        import numpy as np
+        assert isinstance(frame, np.ndarray)
+
+    def test_operator_with_various_resolutions(self, operator_factory, mock_image):
+        """Test operator with mock frames of various resolutions."""
+        test_resolutions = [
+            (640, 480),    # VGA
+            (1280, 720),   # HD
+            (1920, 1080),  # Full HD
+            (3840, 2160),  # 4K
+        ]
+
+        for width, height in test_resolutions:
+            # Create operator for this resolution
+            op = operator_factory(width=width, height=height, fps=30)
+            assert op is not None
+
+            # Create mock frame matching the resolution
+            frame = mock_image(shape=(height, width, 3), backend="cupy")
+            assert frame.shape == (height, width, 3)
+
+    def test_operator_with_grayscale_frame(self, operator_factory, mock_image):
+        """Test operator with mock grayscale frame data."""
+        # Create operator
+        op = operator_factory(width=1280, height=720, fps=30)
+        assert op is not None
+
+        # Create a mock grayscale frame (single channel)
+        frame = mock_image(shape=(720, 1280), dtype="uint8", backend="cupy")
+        
+        # Verify frame properties
+        assert frame.shape == (720, 1280)
+        assert frame.dtype.name == "uint8"
+
+    def test_operator_with_float_frame(self, operator_factory, mock_image):
+        """Test operator with mock float32 frame data."""
+        # Create operator
+        op = operator_factory(width=854, height=480, fps=30)
+        assert op is not None
+
+        # Create a mock float frame (normalized 0-1)
+        frame = mock_image(shape=(480, 854, 3), dtype="float32", backend="cupy")
+        
+        # Verify frame properties
+        assert frame.shape == (480, 854, 3)
+        assert frame.dtype.name == "float32"
+        
+        # Verify values are in expected range [0, 1]
+        import cupy as cp
+        assert cp.all(frame >= 0.0)
+        assert cp.all(frame <= 1.0)
+
+    def test_operator_with_seeded_frame(self, operator_factory, mock_image):
+        """Test operator with reproducible mock frame data using seed."""
+        # Create operator
+        op = operator_factory(width=640, height=480, fps=30)
+        assert op is not None
+
+        # Create two frames with the same seed - should be identical
+        frame1 = mock_image(shape=(480, 640, 3), backend="cupy", seed=42)
+        frame2 = mock_image(shape=(480, 640, 3), backend="cupy", seed=42)
+        
+        # Verify frames are identical
+        import cupy as cp
+        assert cp.all(frame1 == frame2)
+
+        # Create frame with different seed - should be different
+        frame3 = mock_image(shape=(480, 640, 3), backend="cupy", seed=123)
+        assert not cp.all(frame1 == frame3)

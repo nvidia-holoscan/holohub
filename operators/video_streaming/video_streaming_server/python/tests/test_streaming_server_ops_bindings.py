@@ -308,3 +308,147 @@ class TestStreamingServerIntegration:
         # Verify they are different instances
         assert resource1 is not resource2
         assert fragment is not fragment2
+
+
+class TestStreamingServerWithMockData:
+    """Tests for StreamingServer operators using mock image data from root conftest."""
+
+    def test_resource_with_mock_frame_dimensions(self, resource_factory, mock_image):
+        """Test resource creation with mock frame data matching configured dimensions."""
+        # Create resource with specific dimensions
+        resource = resource_factory(width=1920, height=1080, fps=30)
+        assert resource is not None
+
+        # Create mock frame matching resource dimensions
+        frame = mock_image(shape=(1080, 1920, 3), dtype="uint8", backend="cupy")
+        
+        # Verify frame matches resource configuration
+        assert frame.shape == (1080, 1920, 3)
+        assert frame.dtype.name == "uint8"
+
+    def test_upstream_operator_with_mock_frames(
+        self, upstream_operator_factory, resource_factory, mock_image
+    ):
+        """Test upstream operator with mock frame data."""
+        # Create resource and operator
+        resource = resource_factory(width=854, height=480, fps=30)
+        op = upstream_operator_factory(name="upstream_with_frames", resource=resource)
+        assert op is not None
+
+        # Create mock frames that could be received from client
+        frame1 = mock_image(shape=(480, 854, 3), backend="cupy", seed=1)
+        frame2 = mock_image(shape=(480, 854, 3), backend="cupy", seed=2)
+        
+        # Verify frames are different (different seeds)
+        import cupy as cp
+        assert not cp.all(frame1 == frame2)
+        
+        # Verify frames match expected dimensions
+        assert frame1.shape == (480, 854, 3)
+        assert frame2.shape == (480, 854, 3)
+
+    def test_downstream_operator_with_mock_frames(
+        self, downstream_operator_factory, resource_factory, mock_image
+    ):
+        """Test downstream operator with mock frame data."""
+        # Create resource and operator
+        resource = resource_factory(width=1280, height=720, fps=60)
+        op = downstream_operator_factory(name="downstream_with_frames", resource=resource)
+        assert op is not None
+
+        # Create mock frames that could be sent to client
+        frame = mock_image(shape=(720, 1280, 3), dtype="uint8", backend="cupy")
+        
+        # Verify frame properties
+        assert frame.shape == (720, 1280, 3)
+        assert frame.dtype.name == "uint8"
+
+    def test_bidirectional_server_with_mock_frames(
+        self, resource_factory, upstream_operator_factory, downstream_operator_factory, mock_image
+    ):
+        """Test bidirectional server setup with mock frame data."""
+        # Create resource for bidirectional streaming
+        resource = resource_factory(
+            width=1920, height=1080, fps=30, enable_upstream=True, enable_downstream=True
+        )
+
+        # Create both operators
+        upstream_op = upstream_operator_factory(name="upstream", resource=resource)
+        downstream_op = downstream_operator_factory(name="downstream", resource=resource)
+        
+        assert upstream_op is not None
+        assert downstream_op is not None
+
+        # Create mock frames for both directions
+        incoming_frame = mock_image(shape=(1080, 1920, 3), backend="cupy", seed=100)
+        outgoing_frame = mock_image(shape=(1080, 1920, 3), backend="cupy", seed=200)
+        
+        # Verify frames are different
+        import cupy as cp
+        assert not cp.all(incoming_frame == outgoing_frame)
+
+    def test_multiple_resolutions_with_mock_frames(
+        self, resource_factory, upstream_operator_factory, mock_image
+    ):
+        """Test multiple server instances with different resolutions and mock frames."""
+        test_configs = [
+            (640, 480, 30),    # VGA @ 30fps
+            (1280, 720, 60),   # HD @ 60fps
+            (1920, 1080, 30),  # Full HD @ 30fps
+        ]
+
+        for width, height, fps in test_configs:
+            # Create resource and operator for this configuration
+            resource = resource_factory(
+                name=f"resource_{width}x{height}", width=width, height=height, fps=fps
+            )
+            op = upstream_operator_factory(
+                name=f"upstream_{width}x{height}", resource=resource
+            )
+            assert op is not None
+
+            # Create mock frame matching configuration
+            frame = mock_image(shape=(height, width, 3), backend="cupy")
+            assert frame.shape == (height, width, 3)
+
+    def test_server_with_numpy_and_cupy_frames(
+        self, resource_factory, upstream_operator_factory, mock_image
+    ):
+        """Test server can work with both NumPy and CuPy frame data."""
+        # Create resource and operator
+        resource = resource_factory(width=854, height=480, fps=30)
+        op = upstream_operator_factory(name="multi_backend", resource=resource)
+        assert op is not None
+
+        # Create frames with both backends
+        cupy_frame = mock_image(shape=(480, 854, 3), backend="cupy")
+        numpy_frame = mock_image(shape=(480, 854, 3), backend="numpy")
+        
+        # Verify correct types
+        import cupy as cp
+        import numpy as np
+        assert isinstance(cupy_frame, cp.ndarray)
+        assert isinstance(numpy_frame, np.ndarray)
+        
+        # Verify same shape
+        assert cupy_frame.shape == numpy_frame.shape
+
+    def test_server_with_float_frames(
+        self, resource_factory, downstream_operator_factory, mock_image
+    ):
+        """Test server with float32 frame data (normalized)."""
+        # Create resource and operator
+        resource = resource_factory(width=1280, height=720, fps=30)
+        op = downstream_operator_factory(name="float_frames", resource=resource)
+        assert op is not None
+
+        # Create float frame (normalized 0-1)
+        frame = mock_image(shape=(720, 1280, 3), dtype="float32", backend="cupy")
+        
+        # Verify frame properties
+        assert frame.dtype.name == "float32"
+        
+        # Verify values in expected range
+        import cupy as cp
+        assert cp.all(frame >= 0.0)
+        assert cp.all(frame <= 1.0)
