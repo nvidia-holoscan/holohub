@@ -267,37 +267,44 @@ class TestStreamingServerIntegration:
         assert op1 is not None
         assert op2 is not None
 
-    def test_operators_in_application_context(
-        self, holoscan_modules, streaming_server_classes, fragment
-    ):
-        """Test StreamingServer operators within Application context."""
-        Application = holoscan_modules["Application"]
+    def test_operators_in_application_context(self, app, streaming_server_classes):
+        """Test StreamingServer operators within Application context using root app fixture."""
         ResourceClass = streaming_server_classes["Resource"]
         UpstreamClass = streaming_server_classes["Upstream"]
         DownstreamClass = streaming_server_classes["Downstream"]
 
-        class TestApp(Application):
+        class TestApp(app.__class__):
+            def __init__(self, res_class, up_class, down_class):
+                super().__init__()
+                self.res_class = res_class
+                self.up_class = up_class
+                self.down_class = down_class
+
             def compose(self):
                 # Create resource
-                resource = ResourceClass(
+                resource = self.res_class(
                     self, name="app_resource", port=48010, width=854, height=480, fps=30
                 )
 
                 # Create operators
-                UpstreamClass(self, name="app_upstream", streaming_server_resource=resource)
-                DownstreamClass(self, name="app_downstream", streaming_server_resource=resource)
+                self.up_class(self, name="app_upstream", streaming_server_resource=resource)
+                self.down_class(self, name="app_downstream", streaming_server_resource=resource)
                 # Note: Not adding to workflow to avoid execution
 
-        app = TestApp()
-        assert app is not None
+        test_app = TestApp(ResourceClass, UpstreamClass, DownstreamClass)
+        assert test_app is not None
 
-    def test_resource_isolation_between_fragments(self, holoscan_modules, resource_factory):
-        """Test that resources are properly isolated between fragments."""
-        Fragment = holoscan_modules["Fragment"]
+    def test_resource_isolation_between_fragments(self, fragment, resource_factory):
+        """Test that resources are properly isolated between fragments using root fragment fixture."""
+        # Create a second fragment for comparison
+        from holoscan.core import Fragment
 
-        fragment1 = Fragment()
         fragment2 = Fragment()
 
-        # Can't easily test with fixtures since they use a shared fragment
-        # This is more of a conceptual test
-        assert fragment1 is not fragment2
+        # Create resources in different fragments
+        resource1 = resource_factory(name="resource1", fragment=fragment)
+        resource2 = resource_factory(name="resource2", fragment=fragment2)
+
+        # Verify they are different instances
+        assert resource1 is not resource2
+        assert fragment is not fragment2

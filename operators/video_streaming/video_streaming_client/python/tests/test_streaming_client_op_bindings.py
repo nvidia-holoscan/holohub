@@ -220,14 +220,17 @@ class TestStreamingClientOpBinding:
 class TestStreamingClientOpIntegration:
     """Integration tests for StreamingClientOp Python bindings in Application context."""
 
-    def test_operator_in_application_context(self, holoscan_modules, streaming_client_op_class):
-        """Test StreamingClientOp within a Holoscan Application context."""
-        Application = holoscan_modules["Application"]
+    def test_operator_in_application_context(self, app, streaming_client_op_class):
+        """Test StreamingClientOp within a Holoscan Application context using root app fixture."""
 
-        class TestApp(Application):
+        class TestApp(app.__class__):
+            def __init__(self, op_class):
+                super().__init__()
+                self.op_class = op_class
+
             def compose(self):
                 # Create the streaming client operator
-                streaming_client_op_class(
+                self.op_class(
                     self,
                     name="test_client",
                     width=640,
@@ -240,11 +243,11 @@ class TestStreamingClientOpIntegration:
                 )
                 # Note: Not adding to workflow to avoid execution
 
-        app = TestApp()
-        assert app is not None
+        test_app = TestApp(streaming_client_op_class)
+        assert test_app is not None
 
-    def test_operator_in_fragment(self, holoscan_modules, streaming_client_op_class, fragment):
-        """Test StreamingClientOp within a Fragment."""
+    def test_operator_in_fragment(self, fragment, streaming_client_op_class):
+        """Test StreamingClientOp within a Fragment using root fragment fixture."""
         op = streaming_client_op_class(
             fragment,
             name="fragment_client",

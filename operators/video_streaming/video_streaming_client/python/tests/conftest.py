@@ -25,21 +25,6 @@ import pytest
 
 
 @pytest.fixture(scope="session")
-def holoscan_modules():
-    """Import and provide Holoscan SDK modules."""
-    try:
-        from holoscan.core import Application, Operator, OperatorSpec
-
-        return {
-            "Application": Application,
-            "Operator": Operator,
-            "OperatorSpec": OperatorSpec,
-        }
-    except ImportError as e:
-        pytest.skip(f"Holoscan SDK not available: {e}")
-
-
-@pytest.fixture(scope="session")
 def streaming_client_module():
     """Import the video_streaming_client Python module."""
     try:

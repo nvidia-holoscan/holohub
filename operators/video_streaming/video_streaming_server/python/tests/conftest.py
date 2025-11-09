@@ -25,24 +25,6 @@ import pytest
 
 
 @pytest.fixture(scope="session")
-def holoscan_modules():
-    """Import and provide Holoscan SDK modules."""
-    try:
-        from holoscan.core import Application, Operator, OperatorSpec, Resource
-        from holoscan.resources import Allocator
-
-        return {
-            "Application": Application,
-            "Operator": Operator,
-            "OperatorSpec": OperatorSpec,
-            "Resource": Resource,
-            "Allocator": Allocator,
-        }
-    except ImportError as e:
-        pytest.skip(f"Holoscan SDK not available: {e}")
-
-
-@pytest.fixture(scope="session")
 def streaming_server_module():
     """Import the video_streaming_server Python module."""
     try:
@@ -93,6 +75,7 @@ def resource_factory(streaming_server_classes, fragment):
         enable_upstream=True,
         enable_downstream=True,
         server_name="TestServer",
+        fragment=fragment,  # Allow override but default to fixture fragment
     ):
         return ResourceClass(
             fragment,
