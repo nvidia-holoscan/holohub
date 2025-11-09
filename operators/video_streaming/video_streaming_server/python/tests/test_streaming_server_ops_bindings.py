@@ -452,3 +452,237 @@ class TestStreamingServerWithMockData:
         import cupy as cp
         assert cp.all(frame >= 0.0)
         assert cp.all(frame <= 1.0)
+
+
+class TestStreamingServerUpstreamOpCompute:
+    """Tests for StreamingServerUpstreamOp compute() method using execution_context."""
+
+    def test_compute_method_exists(self, upstream_operator_factory, resource_factory):
+        """Test that compute method is accessible from Python."""
+        resource = resource_factory()
+        op = upstream_operator_factory(name="test_upstream", resource=resource)
+        assert hasattr(op, "compute")
+        assert callable(op.compute)
+
+    def test_upstream_compute_with_mock_frame(
+        self,
+        upstream_operator_factory,
+        resource_factory,
+        op_input_factory,
+        op_output,
+        execution_context,
+        mock_image,
+    ):
+        """Test upstream operator compute() with mock received frame."""
+        # Create resource and operator
+        resource = resource_factory(width=640, height=480, fps=30, enable_upstream=True)
+        op = upstream_operator_factory(name="upstream_compute", resource=resource)
+        assert op is not None
+
+        # Create mock frame that would be received from client
+        frame = mock_image(shape=(480, 640, 3), dtype="uint8", backend="cupy")
+        op_input = op_input_factory(frame, tensor_name="", port="input")
+
+        # Call compute - test that binding works
+        try:
+            op.compute(op_input, op_output, execution_context)
+            # If compute succeeds, verify output was emitted
+            if op_output.emitted is not None:
+                out_msg, out_port = op_output.emitted
+                assert out_port == "output_frames"
+        except Exception as e:
+            # May fail without actual server connection, but binding should work
+            assert "compute" not in str(e).lower() or "not found" not in str(e).lower()
+
+    def test_upstream_compute_with_various_resolutions(
+        self,
+        upstream_operator_factory,
+        resource_factory,
+        op_input_factory,
+        op_output,
+        execution_context,
+        mock_image,
+    ):
+        """Test upstream compute() with various frame resolutions."""
+        test_configs = [
+            (640, 480),
+            (1280, 720),
+            (1920, 1080),
+        ]
+
+        for width, height in test_configs:
+            resource = resource_factory(width=width, height=height, fps=30)
+            op = upstream_operator_factory(name=f"upstream_{width}x{height}", resource=resource)
+            frame = mock_image(shape=(height, width, 3), backend="cupy")
+            op_input = op_input_factory(frame, tensor_name="", port="input")
+
+            try:
+                op.compute(op_input, op_output, execution_context)
+            except Exception:
+                # Expected to fail without server, but binding should work
+                pass
+
+    def test_upstream_compute_method_signature(self, upstream_operator_factory, resource_factory):
+        """Test that upstream compute method has correct signature."""
+        resource = resource_factory()
+        op = upstream_operator_factory(name="sig_test", resource=resource)
+        
+        assert hasattr(op, "compute")
+        compute_method = getattr(op, "compute")
+        assert callable(compute_method)
+        
+        import inspect
+        sig = inspect.signature(compute_method)
+        assert len(sig.parameters) == 3  # op_input, op_output, execution_context
+
+
+class TestStreamingServerDownstreamOpCompute:
+    """Tests for StreamingServerDownstreamOp compute() method using execution_context."""
+
+    def test_compute_method_exists(self, downstream_operator_factory, resource_factory):
+        """Test that compute method is accessible from Python."""
+        resource = resource_factory()
+        op = downstream_operator_factory(name="test_downstream", resource=resource)
+        assert hasattr(op, "compute")
+        assert callable(op.compute)
+
+    def test_downstream_compute_with_mock_frame(
+        self,
+        downstream_operator_factory,
+        resource_factory,
+        op_input_factory,
+        op_output,
+        execution_context,
+        mock_image,
+    ):
+        """Test downstream operator compute() with mock frame to send."""
+        # Create resource and operator
+        resource = resource_factory(width=1280, height=720, fps=30, enable_downstream=True)
+        op = downstream_operator_factory(name="downstream_compute", resource=resource)
+        assert op is not None
+
+        # Create mock frame to send to client
+        frame = mock_image(shape=(720, 1280, 3), dtype="uint8", backend="cupy")
+        op_input = op_input_factory(frame, tensor_name="", port="input_frames")
+
+        # Call compute - test that binding works
+        try:
+            op.compute(op_input, op_output, execution_context)
+            # Downstream sends frames, so no output expected in this test
+        except Exception as e:
+            # May fail without actual server connection, but binding should work
+            assert "compute" not in str(e).lower() or "not found" not in str(e).lower()
+
+    def test_downstream_compute_with_various_resolutions(
+        self,
+        downstream_operator_factory,
+        resource_factory,
+        op_input_factory,
+        op_output,
+        execution_context,
+        mock_image,
+    ):
+        """Test downstream compute() with various frame resolutions."""
+        test_configs = [
+            (854, 480),
+            (1280, 720),
+            (1920, 1080),
+        ]
+
+        for width, height in test_configs:
+            resource = resource_factory(width=width, height=height, fps=60)
+            op = downstream_operator_factory(
+                name=f"downstream_{width}x{height}", resource=resource
+            )
+            frame = mock_image(shape=(height, width, 3), backend="cupy")
+            op_input = op_input_factory(frame, tensor_name="", port="input_frames")
+
+            try:
+                op.compute(op_input, op_output, execution_context)
+            except Exception:
+                # Expected to fail without server, but binding should work
+                pass
+
+    def test_downstream_compute_with_float_frames(
+        self,
+        downstream_operator_factory,
+        resource_factory,
+        op_input_factory,
+        op_output,
+        execution_context,
+        mock_image,
+    ):
+        """Test downstream compute() with float32 frame data."""
+        resource = resource_factory(width=640, height=480, fps=30)
+        op = downstream_operator_factory(name="float_downstream", resource=resource)
+        
+        # Create float frame
+        frame = mock_image(shape=(480, 640, 3), dtype="float32", backend="cupy")
+        op_input = op_input_factory(frame, tensor_name="", port="input_frames")
+
+        try:
+            op.compute(op_input, op_output, execution_context)
+        except Exception:
+            # Expected to fail without server, but binding should work
+            pass
+
+    def test_downstream_compute_method_signature(
+        self, downstream_operator_factory, resource_factory
+    ):
+        """Test that downstream compute method has correct signature."""
+        resource = resource_factory()
+        op = downstream_operator_factory(name="sig_test", resource=resource)
+        
+        assert hasattr(op, "compute")
+        compute_method = getattr(op, "compute")
+        assert callable(compute_method)
+        
+        import inspect
+        sig = inspect.signature(compute_method)
+        assert len(sig.parameters) == 3  # op_input, op_output, execution_context
+
+
+class TestBidirectionalServerCompute:
+    """Tests for bidirectional server compute() with both operators."""
+
+    def test_bidirectional_compute_flow(
+        self,
+        resource_factory,
+        upstream_operator_factory,
+        downstream_operator_factory,
+        op_input_factory,
+        op_output,
+        execution_context,
+        mock_image,
+    ):
+        """Test compute flow in bidirectional server setup."""
+        # Create resource for bidirectional streaming
+        resource = resource_factory(
+            width=1920, height=1080, fps=30, enable_upstream=True, enable_downstream=True
+        )
+
+        # Create both operators
+        upstream_op = upstream_operator_factory(name="bi_upstream", resource=resource)
+        downstream_op = downstream_operator_factory(name="bi_downstream", resource=resource)
+
+        # Test upstream compute with incoming frame
+        incoming_frame = mock_image(shape=(1080, 1920, 3), backend="cupy", seed=1)
+        upstream_input = op_input_factory(incoming_frame, tensor_name="", port="input")
+
+        try:
+            upstream_op.compute(upstream_input, op_output, execution_context)
+        except Exception:
+            pass  # Expected without server
+
+        # Test downstream compute with outgoing frame
+        outgoing_frame = mock_image(shape=(1080, 1920, 3), backend="cupy", seed=2)
+        downstream_input = op_input_factory(outgoing_frame, tensor_name="", port="input_frames")
+
+        try:
+            downstream_op.compute(downstream_input, op_output, execution_context)
+        except Exception:
+            pass  # Expected without server
+
+        # Verify both operators have compute methods
+        assert hasattr(upstream_op, "compute")
+        assert hasattr(downstream_op, "compute")

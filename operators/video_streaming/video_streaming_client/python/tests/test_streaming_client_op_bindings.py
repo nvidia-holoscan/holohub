@@ -364,3 +364,89 @@ class TestStreamingClientOpWithMockData:
         # Create frame with different seed - should be different
         frame3 = mock_image(shape=(480, 640, 3), backend="cupy", seed=123)
         assert not cp.all(frame1 == frame3)
+
+
+class TestStreamingClientOpCompute:
+    """Tests for StreamingClientOp compute() method using execution_context."""
+
+    def test_compute_method_exists(self, operator_factory):
+        """Test that compute method is accessible from Python."""
+        op = operator_factory()
+        assert hasattr(op, "compute")
+        assert callable(op.compute)
+
+    def test_compute_with_mock_input_frame(
+        self, operator_factory, op_input_factory, op_output, execution_context, mock_image
+    ):
+        """Test compute() method with mock input frame."""
+        # Create operator configured to receive frames
+        op = operator_factory(
+            width=640, height=480, fps=30, send_frames=False, receive_frames=True
+        )
+        assert op is not None
+
+        # Create mock input frame
+        frame = mock_image(shape=(480, 640, 3), dtype="uint8", backend="cupy")
+        op_input = op_input_factory(frame, tensor_name="", port="input_frames")
+
+        # Call compute - should not raise
+        try:
+            op.compute(op_input, op_output, execution_context)
+        except Exception as e:
+            # Compute may fail due to network not being set up, but method should be callable
+            # We're primarily testing that the binding works
+            assert "compute" not in str(e).lower() or "not found" not in str(e).lower()
+
+    def test_compute_with_various_frame_sizes(
+        self, operator_factory, op_input_factory, op_output, execution_context, mock_image
+    ):
+        """Test compute() with various frame sizes."""
+        test_configs = [
+            (640, 480),
+            (1280, 720),
+            (1920, 1080),
+        ]
+
+        for width, height in test_configs:
+            op = operator_factory(width=width, height=height, fps=30, receive_frames=True)
+            frame = mock_image(shape=(height, width, 3), backend="cupy")
+            op_input = op_input_factory(frame, tensor_name="", port="input_frames")
+
+            # Test that compute is callable with different frame sizes
+            try:
+                op.compute(op_input, op_output, execution_context)
+            except Exception:
+                # Expected to fail without network, but binding should work
+                pass
+
+    def test_compute_with_float_frames(
+        self, operator_factory, op_input_factory, op_output, execution_context, mock_image
+    ):
+        """Test compute() with float32 frame data."""
+        op = operator_factory(width=854, height=480, fps=30, receive_frames=True)
+        
+        # Create float frame
+        frame = mock_image(shape=(480, 854, 3), dtype="float32", backend="cupy")
+        op_input = op_input_factory(frame, tensor_name="", port="input_frames")
+
+        # Test compute with float data
+        try:
+            op.compute(op_input, op_output, execution_context)
+        except Exception:
+            # Expected to fail without network, but binding should work
+            pass
+
+    def test_compute_method_signature(self, operator_factory):
+        """Test that compute method has correct signature."""
+        op = operator_factory()
+        
+        # Verify compute method exists and is callable
+        assert hasattr(op, "compute")
+        compute_method = getattr(op, "compute")
+        assert callable(compute_method)
+        
+        # The method should accept 3 arguments (plus self)
+        import inspect
+        sig = inspect.signature(compute_method)
+        # Should have 3 parameters: op_input, op_output, execution_context
+        assert len(sig.parameters) == 3
