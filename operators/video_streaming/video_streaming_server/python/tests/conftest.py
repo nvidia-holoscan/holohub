@@ -28,12 +28,11 @@ import pytest
 def holoscan_modules():
     """Import and provide Holoscan SDK modules."""
     try:
-        from holoscan.core import Application, Fragment, Operator, OperatorSpec, Resource
+        from holoscan.core import Application, Operator, OperatorSpec, Resource
         from holoscan.resources import Allocator
 
         return {
             "Application": Application,
-            "Fragment": Fragment,
             "Operator": Operator,
             "OperatorSpec": OperatorSpec,
             "Resource": Resource,
@@ -78,13 +77,6 @@ def streaming_server_classes(streaming_server_module):
         }
     except AttributeError as e:
         pytest.skip(f"StreamingServer classes not found: {e}")
-
-
-@pytest.fixture
-def fragment(holoscan_modules):
-    """Create a Holoscan Fragment for testing."""
-    Fragment = holoscan_modules["Fragment"]
-    return Fragment()
 
 
 @pytest.fixture

@@ -28,11 +28,10 @@ import pytest
 def holoscan_modules():
     """Import and provide Holoscan SDK modules."""
     try:
-        from holoscan.core import Application, Fragment, Operator, OperatorSpec
+        from holoscan.core import Application, Operator, OperatorSpec
 
         return {
             "Application": Application,
-            "Fragment": Fragment,
             "Operator": Operator,
             "OperatorSpec": OperatorSpec,
         }
@@ -71,13 +70,6 @@ def streaming_client_op_class(streaming_client_module):
         return streaming_client_module.VideoStreamingClientOp
     except AttributeError as e:
         pytest.skip(f"VideoStreamingClientOp class not found: {e}")
-
-
-@pytest.fixture
-def fragment(holoscan_modules):
-    """Create a Holoscan Fragment for testing."""
-    Fragment = holoscan_modules["Fragment"]
-    return Fragment()
 
 
 @pytest.fixture
