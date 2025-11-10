@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
-DEFAULT_BASE_SDK_VERSION = "3.7.0"
+DEFAULT_BASE_SDK_VERSION = "3.8.0"
 
 PROJECT_PREFIXES = {
     "application": "APP",
