@@ -34,6 +34,7 @@ doca_error_t doca_sender_packet_kernel(cudaStream_t stream, struct doca_gpu_eth_
                                        uint64_t pkt_buff_addr, const uint32_t pkt_buff_mkey,
                                        uint32_t gpu_pkt0_idx,
                                        const size_t num_pkts, uint32_t max_pkts,
+                                       const uint64_t max_pkt_size,
                                        uint32_t* gpu_pkts_len, bool set_completion);
 #if __cplusplus
 }

@@ -98,15 +98,12 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
   // Warmup
   if (eth_rxq_gpu == NULL) return;
 
-  if (threadIdx.x == 0) {
+  if (threadIdx.x == 0)
     DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
-    DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
-  }
   __syncthreads();
 
   do {
-    printf("Receive kernel max pkts %d\n", batch_list[blockIdx.x]);
-      ret = doca_gpu_dev_eth_rxq_recv<DOCA_GPUNETIO_ETH_EXEC_SCOPE_BLOCK,
+    ret = doca_gpu_dev_eth_rxq_recv<DOCA_GPUNETIO_ETH_EXEC_SCOPE_BLOCK,
 									DOCA_GPUNETIO_ETH_MCST_AUTO,
 									DOCA_GPUNETIO_ETH_NIC_HANDLER_AUTO,
 									false>(rxq, batch_list[blockIdx.x], CUDA_MAX_RX_TIMEOUT_NS, &out_first_pkt_idx, &out_pkt_num, NULL);
@@ -126,10 +123,10 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
 
     if (out_pkt_num == 0) continue;
 
-    printf("out_pkt_num %d\n", out_pkt_num);
     buf_idx = threadIdx.x;
     while (buf_idx < out_pkt_num) {
       buf_addr = doca_gpu_dev_eth_rxq_get_pkt_addr(rxq, out_first_pkt_idx + buf_idx);
+      // printf("persistent out_pkt_num %d pkt %ld addr %lx\n", out_pkt_num, buf_idx, buf_addr);
 #if DOCA_DEBUG_KERNEL == 1
       raw_to_udp(buf_addr, &hdr, &payload);
       printf(
@@ -178,6 +175,7 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
              batch_list[blockIdx.x],
              pkt_idx);
 #endif
+
       if (tot_pkts_batch >= batch_list[blockIdx.x]) {
         DOCA_GPUNETIO_VOLATILE(packets_stats->num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
         DOCA_GPUNETIO_VOLATILE(packets_stats->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
@@ -320,74 +318,74 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
  * @param num_pkts Number of packets
  */
 __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, uint64_t pkt_buff_addr,
-                                    const uint32_t pkt_buff_mkey, uint32_t gpu_pkt0_idx, const size_t num_pkts, uint32_t max_pkts,
+                                    const uint32_t pkt_buff_mkey, uint32_t gpu_pkt0_idx,
+                                    const size_t num_pkts, uint32_t max_pkts, const uint64_t max_pkt_size,
                                     uint32_t* gpu_pkts_len, const bool set_completion) {
   uint32_t pkt_idx = threadIdx.x;
-  const uint64_t wqe_pi = __ldg(&txq->wqe_pi);
-  const uint64_t wqe_idx = wqe_pi + threadIdx.x;
   struct doca_gpu_dev_eth_txq_wqe *wqe_ptr;
-  enum doca_gpu_eth_send_flags flags = DOCA_GPUNETIO_ETH_SEND_FLAG_NONE;
+  uint32_t num_completed;
+  __shared__ uint64_t base_wqe_idx;
 
 #if DOCA_DEBUG_KERNEL == 2
   struct eth_ip_udp_hdr* hdr;
   uint8_t* payload;
-  uintptr_t buf_addr;
 #endif
 
   // Warmup
   if (num_pkts == 0) return;
-  
-  if (set_completion)
-    flags = DOCA_GPUNETIO_ETH_SEND_FLAG_NOTIFY;
+
+  if (threadIdx.x == 0)
+    base_wqe_idx = doca_gpu_dev_eth_txq_reserve_wq_slots(txq, num_pkts);
+  __syncthreads();
 
   while (pkt_idx < num_pkts) {
-    uint64_t addr = ((uint64_t)pkt_buff_addr) + (uint64_t)(((pkt_idx + gpu_pkt0_idx) % max_pkts));
-    wqe_ptr = doca_gpu_dev_eth_txq_get_wqe_ptr(txq, wqe_idx);
-		doca_gpu_dev_eth_txq_wqe_prepare_send(txq, wqe_ptr, wqe_idx, addr, pkt_buff_mkey, gpu_pkts_len[pkt_idx], flags);
+    uint64_t addr = ((uint64_t)pkt_buff_addr) + (max_pkt_size * (uint64_t)(((pkt_idx + gpu_pkt0_idx) % max_pkts)));
+    wqe_ptr = doca_gpu_dev_eth_txq_get_wqe_ptr(txq, base_wqe_idx + pkt_idx);
 
-    __syncthreads();
+    if (set_completion && pkt_idx == (num_pkts - 1))
+		  doca_gpu_dev_eth_txq_wqe_prepare_send(txq, wqe_ptr, base_wqe_idx + pkt_idx, addr, pkt_buff_mkey, gpu_pkts_len[pkt_idx], DOCA_GPUNETIO_ETH_SEND_FLAG_NOTIFY);
+    else
+      doca_gpu_dev_eth_txq_wqe_prepare_send(txq, wqe_ptr, base_wqe_idx + pkt_idx, addr, pkt_buff_mkey, gpu_pkts_len[pkt_idx], DOCA_GPUNETIO_ETH_SEND_FLAG_NONE);
 
     #if DOCA_DEBUG_KERNEL == 2
-    ret = doca_gpu_dev_buf_get_addr(buf, &buf_addr);
-    if (ret != DOCA_SUCCESS) {
-      printf("UDP Error %d doca_gpu_dev_buf_get_addr thread %d\n", ret, threadIdx.x);
-      break;
-    }
-
-    raw_to_udp(buf_addr, &hdr, &payload);
-    printf(
-        "Queue %d Thread %d received UDP packet len %d with "
-        "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
-        "Eth dst %02x:%02x:%02x:%02x:%02x:%02x - "
-        "Src port %d - Dst port %d\n",
-        blockIdx.x,
-        threadIdx.x,
-        gpu_pkts_len[pkt_idx],
-        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[0],
-        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[1],
-        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[2],
-        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[3],
-        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[4],
-        ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[5],
-        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[0],
-        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[1],
-        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[2],
-        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[3],
-        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[4],
-        ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[5],
-        hdr->l4_hdr.src_port,
-        hdr->l4_hdr.dst_port);
-#endif
+      raw_to_udp(addr, &hdr, &payload);
+      printf(
+          "Queue %d Thread %d num_pkts %d base_wqe_idx %ld wqeidx %ld received UDP packet %lx len %d with "
+          "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
+          "Eth dst %02x:%02x:%02x:%02x:%02x:%02x - "
+          "Src port %d - Dst port %d\n",
+          blockIdx.x, threadIdx.x,
+          (int)num_pkts, base_wqe_idx, base_wqe_idx + pkt_idx,
+          addr, gpu_pkts_len[pkt_idx],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[0],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[1],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[2],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[3],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[4],
+          ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[5],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[0],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[1],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[2],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[3],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[4],
+          ((uint8_t*)hdr->l2_hdr.d_addr_bytes)[5],
+          hdr->l4_hdr.src_port,
+          hdr->l4_hdr.dst_port);
+    #endif
 
     pkt_idx = (pkt_idx + blockDim.x);
   }
 
   __syncthreads();
 
-  if (threadIdx.x == 0)
-    doca_gpu_dev_eth_txq_submit(txq, wqe_pi + num_pkts);
-    // __threadfence_system(); ??
+  if (threadIdx.x == 0) {
+    #if DOCA_DEBUG_KERNEL == 2
+      printf("Submit base_wqe_idx %ld num_pkts %d sq %x from gpu_pkt0_idx %d max_pkts %d set_completion %d\n",
+        base_wqe_idx, (int)num_pkts, txq->sq_num_shift8, gpu_pkt0_idx, max_pkts, set_completion);
+    #endif
 
+    doca_gpu_dev_eth_txq_submit(txq, base_wqe_idx + num_pkts);
+  }
   __syncthreads();
 }
 
@@ -434,6 +432,7 @@ doca_error_t doca_sender_packet_kernel(cudaStream_t stream, struct doca_gpu_eth_
                                        uint64_t pkt_buff_addr, const uint32_t pkt_buff_mkey,
                                        uint32_t gpu_pkt0_idx,
                                        const size_t num_pkts, uint32_t max_pkts,
+                                       const uint64_t max_pkt_size,
                                        uint32_t* gpu_pkts_len, bool set_completion) {
   cudaError_t result = cudaSuccess;
 
@@ -455,7 +454,7 @@ doca_error_t doca_sender_packet_kernel(cudaStream_t stream, struct doca_gpu_eth_
 
   /* For simplicity launch 1 CUDA block with 32 CUDA threads */
   send_packets_kernel<<<1, CUDA_BLOCK_THREADS, 0, stream>>>(
-      txq, pkt_buff_addr, pkt_buff_mkey, gpu_pkt0_idx, num_pkts, max_pkts, gpu_pkts_len, set_completion);
+      txq, pkt_buff_addr, pkt_buff_mkey, gpu_pkt0_idx, num_pkts, max_pkts, max_pkt_size, gpu_pkts_len, set_completion);
   result = cudaGetLastError();
   if (cudaSuccess != result) {
     HOLOSCAN_LOG_ERROR(

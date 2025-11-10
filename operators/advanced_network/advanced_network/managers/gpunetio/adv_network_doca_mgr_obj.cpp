@@ -91,35 +91,47 @@ DocaRxQueue::DocaRxQueue(struct doca_dev* dev_, struct doca_gpu* gdev_,
     HOLOSCAN_LOG_CRITICAL("Failed to add dev to mmap: {}", doca_error_get_descr(result));
   }
 
+  ALIGN_SIZE(cyclic_buffer_size, get_host_page_size());
+
   result = doca_gpu_mem_alloc(
       gdev, cyclic_buffer_size, GPU_PAGE_SIZE, mtype, &gpu_pkt_addr, &cpu_pkt_addr);
   if (result != DOCA_SUCCESS || gpu_pkt_addr == nullptr) {
     HOLOSCAN_LOG_CRITICAL("Failed to allocate gpu memory {}", doca_error_get_descr(result));
   }
 
-  /* Map GPU memory buffer used to receive packets with DMABuf */
-  // result = doca_gpu_dmabuf_fd(gdev, gpu_pkt_addr, cyclic_buffer_size, &(dmabuf_fd));
-  // if (result != DOCA_SUCCESS) {
-  HOLOSCAN_LOG_INFO("Mapping receive queue buffer (0x{} size {}B) with nvidia-peermem mode",
+  dmabuf_fd = -1;
+  if (mtype == DOCA_GPU_MEM_TYPE_GPU) {
+    /* Map GPU memory buffer used to send packets with DMABuf */
+	  result = doca_gpu_dmabuf_fd(gdev, gpu_pkt_addr, cyclic_buffer_size, &(dmabuf_fd));
+    if (result == DOCA_SUCCESS) {
+      		HOLOSCAN_LOG_INFO("Mapping send queue buffer ({} size {}B dmabuf fd {}) with dmabuf mode",
+			      gpu_pkt_addr,
+			      cyclic_buffer_size,
+			      dmabuf_fd);
+
+      result = doca_mmap_set_dmabuf_memrange(pkt_buff_mmap,
+                    dmabuf_fd,
                     gpu_pkt_addr,
+                    0,
                     cyclic_buffer_size);
-
-  /* If failed, use nvidia-peermem legacy method */
-  result = doca_mmap_set_memrange(pkt_buff_mmap, gpu_pkt_addr, cyclic_buffer_size);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_CRITICAL("Failed to set memrange for mmap {}", doca_error_get_descr(result));
+      if (result != DOCA_SUCCESS) {
+        HOLOSCAN_LOG_ERROR("Failed to set dmabuf memrange for mmap {}", doca_error_get_descr(result));
+      }
+    }
   }
-  /*
-          } else {
-                  HOLOSCAN_LOG_INFO("Mapping receive queue buffer (0x{} size {}B dmabuf fd {}) with
-     dmabuf mode", gpu_pkt_addr, cyclic_buffer_size, dmabuf_fd);
 
-                  result = doca_mmap_set_dmabuf_memrange(pkt_buff_mmap, dmabuf_fd, gpu_pkt_addr, 0,
-     cyclic_buffer_size); if (result != DOCA_SUCCESS) { HOLOSCAN_LOG_CRITICAL("Failed to set dmabuf
-     memrange for mmap {}", doca_error_get_descr(result));
-                  }
-          }
-  */
+	if (dmabuf_fd == -1) {
+		HOLOSCAN_LOG_INFO("Mapping send queue buffer ({} size {}B) with nvidia-peermem mode",
+			      gpu_pkt_addr,
+			      cyclic_buffer_size);
+
+		/* If failed, use nvidia-peermem legacy method */
+		result = doca_mmap_set_memrange(pkt_buff_mmap, gpu_pkt_addr, cyclic_buffer_size);
+		if (result != DOCA_SUCCESS) {
+			HOLOSCAN_LOG_ERROR("Failed to set memrange for mmap {}", doca_error_get_descr(result));
+		}
+	}
+
   result = doca_mmap_set_permissions(
       pkt_buff_mmap, DOCA_ACCESS_FLAG_LOCAL_READ_WRITE | DOCA_ACCESS_FLAG_PCI_RELAXED_ORDERING);
   if (result != DOCA_SUCCESS) {
@@ -202,12 +214,10 @@ doca_error_t DocaRxQueue::create_udp_pipe(const FlowConfig& cfg,
   };
   const char* pipe_name = "GPU_RXQ_UDP_PIPE";
 
-  // match.parser_meta.outer_l3_type = DOCA_FLOW_L3_META_IPV4;
-  // match.parser_meta.outer_l4_type = DOCA_FLOW_L4_META_UDP;
   match.parser_meta.outer_l3_type = DOCA_FLOW_L3_META_IPV4;
 	match.parser_meta.outer_l4_type = DOCA_FLOW_L4_META_UDP;
-  match.outer.udp.l4_port.src_port = rte_cpu_to_be_16(cfg.match_.udp_src_);
-  match.outer.udp.l4_port.dst_port = rte_cpu_to_be_16(cfg.match_.udp_dst_);
+  match.outer.udp.l4_port.src_port = htons(cfg.match_.udp_src_);
+  match.outer.udp.l4_port.dst_port = htons(cfg.match_.udp_dst_);
 
   HOLOSCAN_LOG_INFO(
       "UDP pipe with src port {} dst port {}", cfg.match_.udp_src_, cfg.match_.udp_dst_);
@@ -247,6 +257,7 @@ doca_error_t DocaRxQueue::create_udp_pipe(const FlowConfig& cfg,
   }
 
   rss_queues[0] = flow_queue_id;
+  printf("UDP pipe queue %d\n", flow_queue_id);
   doca_eth_rxq_apply_queue_id(eth_rxq_cpu, rss_queues[0]);
   flow_queue_id++;
 

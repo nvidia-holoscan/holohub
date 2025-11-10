@@ -1022,6 +1022,7 @@ doca_error_t DocaMgr::create_root_pipe(int port_id) {
 }
 
 DocaMgr::~DocaMgr() {
+  HOLOSCAN_LOG_INFO("Calling DocaMgr::~DocaMgr");
   // const auto& rx = cfg_.ifs_[0].rx_;
   // for (auto& q : rx.queues_) {
   //   uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
@@ -1307,6 +1308,7 @@ int DocaMgr::rx_core(void* arg) {
     HOLOSCAN_LOG_ERROR("Function doca_gpu_mem_alloc returned {}", doca_error_get_descr(result));
     exit(1);
   }
+
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
 
 #if ADV_NETWORK_MANAGER_WARMUP_KERNEL
@@ -1319,11 +1321,10 @@ int DocaMgr::rx_core(void* arg) {
                               batch_gpu_list,
                               gpu_exit_condition,
                               false);
-#endif
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 1;
   cudaStreamSynchronize(rx_stream);
-
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
+#endif
 
   doca_receiver_packet_kernel(rx_stream,
                               tparams->rxqn,
@@ -1348,7 +1349,8 @@ int DocaMgr::rx_core(void* arg) {
       // Log semaphore status periodically unless it's ready
       if (status != DOCA_GPU_SEMAPHORE_STATUS_READY && (loop_count % loop_log_rate == 0)) {
         HOLOSCAN_LOG_INFO(
-            "rx_core Q {}, sem_idx {}, status: {}", ridx, pkt_idx_cpu_list[ridx], (int)status);
+            "rx_core Q {}, sem_idx {}, status: {} exit_condition {}",
+              ridx, pkt_idx_cpu_list[ridx], (int)status, DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition));
       }
 
       if (status == DOCA_GPU_SEMAPHORE_STATUS_READY) {
@@ -1493,7 +1495,7 @@ int DocaMgr::tx_core(void* arg) {
     }
     HOLOSCAN_LOG_DEBUG("Warmup send kernel queue {}", idxq);
     doca_sender_packet_kernel(
-        tx_stream[idxq], tparams->txqw[idxq].txq->eth_txq_gpu, 0, 0, 0, 0, 0, nullptr, false);
+        tx_stream[idxq], tparams->txqw[idxq].txq->eth_txq_gpu, 0, 0, 0, 0, 0, 0, nullptr, false);
     cudaStreamSynchronize(tx_stream[idxq]);
   }
 
@@ -1528,6 +1530,7 @@ int DocaMgr::tx_core(void* arg) {
                                 burst->hdr.hdr.gpu_pkt0_idx,
                                 burst->hdr.hdr.num_pkts,
                                 burst->hdr.hdr.max_pkt,
+                                tparams->txqw[idxq].txq->max_pkt_size,
                                 burst->pkt_lens[0],
                                 set_completion[idxq]);
 
