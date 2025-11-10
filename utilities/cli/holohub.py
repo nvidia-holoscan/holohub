@@ -309,10 +309,25 @@ class HoloHubCLI:
         lint.set_defaults(func=self.handle_lint)
 
         # setup command
-        setup = subparsers.add_parser("setup", help="Install HoloHub main required packages")
+        setup = subparsers.add_parser(
+            "setup", help="Install HoloHub recommended packages for development."
+        )
         self.subparsers["setup"] = setup
         setup.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
+        )
+        setup.add_argument(
+            "--list-scripts",
+            action="store_true",
+            help="List all setup scripts found in the HOLOHUB_SETUP_SCRIPTS_DIR directory. "
+            + "Run scripts directly or with `./holohub setup --scripts <script_name>`.",
+        )
+        setup.add_argument(
+            "--scripts",
+            action="append",
+            help="Named dependency installation scripts to run. Can be specified multiple times. "
+            + "Searches in the directory path specified by the HOLOHUB_SETUP_SCRIPTS_DIR environment variable. "
+            + "Omit to install default recommended packages for Holoscan SDK development.",
         )
         setup.set_defaults(func=self.handle_setup)
 
@@ -780,6 +795,7 @@ class HoloHubCLI:
             no_cache=args.no_cache,
             build_args=args.build_args,
             cuda_version=getattr(args, "cuda", None),
+            extra_scripts=getattr(args, "extra_scripts", []),
         )
 
     def handle_run_container(self, args: argparse.Namespace) -> None:
@@ -798,6 +814,7 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
                 cuda_version=getattr(args, "cuda", None),
+                extra_scripts=getattr(args, "extra_scripts", []),
             )
 
         trailing_args = getattr(args, "_trailing_args", [])
@@ -847,6 +864,7 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
                 cuda_version=getattr(args, "cuda", None),
+                extra_scripts=getattr(args, "extra_scripts", []),
             )
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
@@ -1061,6 +1079,7 @@ class HoloHubCLI:
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
                     cuda_version=getattr(args, "cuda", None),
+                    extra_scripts=getattr(args, "extra_scripts", []),
                 )
 
             # Build command with all necessary arguments
@@ -1294,6 +1313,7 @@ class HoloHubCLI:
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
                     cuda_version=getattr(args, "cuda", None),
+                    extra_scripts=getattr(args, "extra_scripts", []),
                 )
             language = holohub_cli_util.normalize_language(
                 container.project_metadata.get("metadata", {}).get("language", None)
@@ -1689,32 +1709,65 @@ class HoloHubCLI:
 
     def handle_setup(self, args: argparse.Namespace) -> None:
         """Handle setup command"""
-        holohub_cli_util.install_packages_if_missing(
-            ["wget", "xvfb", "git", "unzip", "ffmpeg", "ninja-build", "libv4l-dev"],
-            dry_run=args.dryrun,
-        )
 
-        holohub_cli_util.setup_cmake(dry_run=args.dryrun)
-        holohub_cli_util.setup_python_dev(dry_run=args.dryrun)
-        holohub_cli_util.setup_ngc_cli(dry_run=args.dryrun)
-        holohub_cli_util.setup_cuda_dependencies(dry_run=args.dryrun)
+        if args.list_scripts:
+            setup_scripts_dir = holohub_cli_util.get_holohub_setup_scripts_dir()
+            print(
+                holohub_cli_util.format_cmd(
+                    f"Listing setup scripts available in {setup_scripts_dir}"
+                )
+            )
+            print(Color.green("Use with `./holohub setup --scripts <script_name>`"))
+            for script in setup_scripts_dir.glob("*.sh"):
+                print(f"  {script.stem}")
+            sys.exit(0)
 
-        source = f"{HoloHubCLI.HOLOHUB_ROOT}/utilities/holohub_autocomplete"
-        dest_folder = "/etc/bash_completion.d"
-        dest = f"{dest_folder}/holohub_autocomplete"
-        if (
-            not os.path.exists(dest) or not filecmp.cmp(source, dest, shallow=False)
-        ) and os.path.exists(dest_folder):
-            holohub_cli_util.run_command(["cp", source, dest_folder], dry_run=args.dryrun)
+        if args.scripts:
+            for script in args.scripts:
+                script_path = holohub_cli_util.get_holohub_setup_scripts_dir() / f"{script}.sh"
+                if any(sep in script for sep in ("/", "\\")):
+                    holohub_cli_util.fatal(
+                        f"Invalid script name '{script}': path separators are not allowed"
+                    )
+                script_path = (
+                    holohub_cli_util.get_holohub_setup_scripts_dir().resolve() / f"{script}.sh"
+                )
+                if not script_path.exists():
+                    holohub_cli_util.fatal(
+                        f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}"
+                    )
+                holohub_cli_util.run_command(["bash", str(script_path)], dry_run=args.dryrun)
+            sys.exit(0)
 
-        if not args.dryrun:
-            print(Color.blue("\nTo enable ./holohub autocomplete in your current shell session:"))
-            print("  source /etc/bash_completion.d/holohub_autocomplete")
-            print("Or add it to your shell profile:")
-            print("  echo '. /etc/bash_completion.d/holohub_autocomplete' >> ~/.bashrc")
-            print("  source ~/.bashrc")
+        if not args.scripts:
+            holohub_cli_util.install_packages_if_missing(
+                ["wget", "xvfb", "git", "unzip", "ffmpeg", "ninja-build", "libv4l-dev"],
+                dry_run=args.dryrun,
+            )
 
-            print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
+            holohub_cli_util.setup_cmake(dry_run=args.dryrun)
+            holohub_cli_util.setup_python_dev(dry_run=args.dryrun)
+            holohub_cli_util.setup_ngc_cli(dry_run=args.dryrun)
+            holohub_cli_util.setup_cuda_dependencies(dry_run=args.dryrun)
+
+            source = f"{HoloHubCLI.HOLOHUB_ROOT}/utilities/holohub_autocomplete"
+            dest_folder = "/etc/bash_completion.d"
+            dest = f"{dest_folder}/holohub_autocomplete"
+            if (
+                not os.path.exists(dest) or not filecmp.cmp(source, dest, shallow=False)
+            ) and os.path.exists(dest_folder):
+                holohub_cli_util.run_command(["cp", source, dest_folder], dry_run=args.dryrun)
+
+            if not args.dryrun:
+                print(
+                    Color.blue("\nTo enable ./holohub autocomplete in your current shell session:")
+                )
+                print("  source /etc/bash_completion.d/holohub_autocomplete")
+                print("Or add it to your shell profile:")
+                print("  echo '. /etc/bash_completion.d/holohub_autocomplete' >> ~/.bashrc")
+                print("  source ~/.bashrc")
+
+                print(Color.green("Setup for HoloHub is ready. Happy Holocoding!"))
 
     def handle_env_info(self, args: argparse.Namespace) -> None:
         """Handle env-info command to collect debugging information"""
@@ -1781,6 +1834,7 @@ class HoloHubCLI:
                     no_cache=args.no_cache,
                     build_args=build_args.get("build_args"),
                     cuda_version=getattr(args, "cuda", None),
+                    extra_scripts=getattr(args, "extra_scripts", []),
                 )
 
             # Install command with all necessary arguments
@@ -1890,6 +1944,7 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=args.build_args,
                 cuda_version=getattr(args, "cuda", None),
+                extra_scripts=getattr(args, "extra_scripts", []),
             )
         else:
             print(f"Skipping build, using existing Dev Container {dev_container_tag}...")
