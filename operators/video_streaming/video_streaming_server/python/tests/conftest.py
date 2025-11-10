@@ -109,7 +109,7 @@ def upstream_operator_factory(streaming_server_classes, fragment):
     def _create_operator(name="test_upstream", resource=None):
         if resource is None:
             pytest.skip("Resource required for operator creation")
-        return UpstreamClass(fragment, name=name, streaming_server_resource=resource)
+        return UpstreamClass(fragment, name=name, video_streaming_server_resource=resource)
 
     return _create_operator
 
@@ -122,7 +122,7 @@ def downstream_operator_factory(streaming_server_classes, fragment):
     def _create_operator(name="test_downstream", resource=None):
         if resource is None:
             pytest.skip("Resource required for operator creation")
-        return DownstreamClass(fragment, name=name, streaming_server_resource=resource)
+        return DownstreamClass(fragment, name=name, video_streaming_server_resource=resource)
 
     return _create_operator
 
