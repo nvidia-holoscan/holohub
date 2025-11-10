@@ -37,7 +37,7 @@ for rendering decoded data to the native window.
 
 Integrated GPU devices in the Orin family (Jetson AGX Orin, IGX Orin) are not supported.
 
-Platforms with drivers < R580.00 are not supported.
+Platforms with NVIDIA drivers < 580.00 are not supported.
 
 ### Symbol error at load
 
