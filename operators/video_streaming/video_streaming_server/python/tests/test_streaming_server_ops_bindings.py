@@ -95,7 +95,7 @@ class TestStreamingServerResourceBinding:
             resource = resource_factory(server_name=name)
             assert resource is not None
 
-    def test_resource_inheritance(self, holoscan_modules, streaming_server_classes):
+    def test_resource_inheritance(self, streaming_server_classes):
         """Test that StreamingServerResource is a valid Holoscan Resource."""
         # Note: pybind11 wrapped classes may not show as direct subclasses via issubclass()
         # Instead, verify it's a Resource by checking for Resource-like attributes
@@ -151,7 +151,7 @@ class TestStreamingServerUpstreamOpBinding:
         op = upstream_operator_factory(resource=resource)
         assert op is not None
 
-    def test_operator_inheritance(self, streaming_server_classes, holoscan_modules):
+    def test_operator_inheritance(self, streaming_server_classes):
         """Test that StreamingServerUpstreamOp is a valid Operator."""
         # Note: pybind11 wrapped classes may not show as direct subclasses via issubclass()
         # Instead, verify it's an Operator by checking for Operator-like methods
@@ -203,7 +203,7 @@ class TestStreamingServerDownstreamOpBinding:
         op = downstream_operator_factory(resource=resource)
         assert op is not None
 
-    def test_operator_inheritance(self, streaming_server_classes, holoscan_modules):
+    def test_operator_inheritance(self, streaming_server_classes):
         """Test that StreamingServerDownstreamOp is a valid Operator."""
         # Note: pybind11 wrapped classes may not show as direct subclasses via issubclass()
         # Instead, verify it's an Operator by checking for Operator-like methods
