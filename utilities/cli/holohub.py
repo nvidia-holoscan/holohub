@@ -1726,8 +1726,12 @@ class HoloHubCLI:
             for script in args.scripts:
                 script_path = holohub_cli_util.get_holohub_setup_scripts_dir() / f"{script}.sh"
                 if any(sep in script for sep in ("/", "\\")):
-                    holohub_cli_util.fatal(f"Invalid script name '{script}': path separators are not allowed")
-                script_path = holohub_cli_util.get_holohub_setup_scripts_dir().resolve() / f"{script}.sh"
+                    holohub_cli_util.fatal(
+                        f"Invalid script name '{script}': path separators are not allowed"
+                    )
+                script_path = (
+                    holohub_cli_util.get_holohub_setup_scripts_dir().resolve() / f"{script}.sh"
+                )
                 if not script_path.exists():
                     holohub_cli_util.fatal(
                         f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}"
