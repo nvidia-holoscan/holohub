@@ -78,7 +78,7 @@ file(GENERATE
 if(BUILD_TESTING AND HOLOHUB_BUILD_PYTHON)
     include(add_python_tests)
     add_python_tests(
-        INPUT "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+        INPUT "tests"
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         PREFIX "video_streaming_server_pytest"
         PYTEST_ARGS "-v"
