@@ -15113,9 +15113,14 @@ elementary stream input. As a result the video stream can be displayed as
 quickly as the decoding can be performed. This application uses
 <code>PeriodicCondition</code> to play video at the same speed as the source video.</em></p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
-<p>This application is configured to use H.264 elementary stream from endoscopy
+<ul>
+<li>NVIDIA GPU with display driver <strong>&gt;= 580</strong> for CUDA 13 support. See <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html">the Holoscan SDK User Guide</a>
+for a list of all Holoscan SDK supported platforms.</li>
+<li>Orin platforms (Jetpack 6.x, IGX OS 1.x) are not supported at this time.</li>
+<li>This application is configured to use H.264 elementary stream from endoscopy
 sample data as input. To use any other stream, the filename / path for the
-input file can be specified in the 'h264_video_decode.yaml' file.</p>
+input file can be specified in the 'h264_video_decode.yaml' file.</li>
+</ul>
 <h3 id="data">Data<a class="headerlink" href="#data" title="Permanent link">#</a></h3>
 <p><a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data">📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking</a></p>
 <p>The data is automatically downloaded when building the application.</p>
