@@ -134,7 +134,7 @@ class TestHoloHubCLI(unittest.TestCase):
             no_cache=True,
             build_args=None,
             cuda_version=None,
-            build_scripts=None,
+            extra_scripts=None,
         )
         # Test run command
         run_args = self.cli.parser.parse_args("run test_project --local".split())

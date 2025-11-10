@@ -319,14 +319,14 @@ class HoloHubCLI:
         setup.add_argument(
             "--list-scripts",
             action="store_true",
-            help="List all setup scripts found in the HOLOHUB_SETUP_SCRIPTS_DIR directory."
+            help="List all setup scripts found in the HOLOHUB_SETUP_SCRIPTS_DIR directory. "
             + "Run scripts directly or with `./holohub setup --scripts <script_name>`.",
         )
         setup.add_argument(
             "--scripts",
             action="append",
-            help="Named dependency installation scripts to run. Can be specified multiple times."
-            + "Searches in the directory path specified by the HOLOHUB_SETUP_SCRIPTS_DIR environment variable."
+            help="Named dependency installation scripts to run. Can be specified multiple times. "
+            + "Searches in the directory path specified by the HOLOHUB_SETUP_SCRIPTS_DIR environment variable. "
             + "Omit to install default recommended packages for Holoscan SDK development.",
         )
         setup.set_defaults(func=self.handle_setup)
@@ -1719,18 +1719,20 @@ class HoloHubCLI:
             )
             print(Color.green("Use with `./holohub setup --scripts <script_name>`"))
             for script in setup_scripts_dir.glob("*.sh"):
-                print(f"  {script.name.strip('.sh')}")
+                print(f"  {script.stem}")
             sys.exit(0)
 
         if args.scripts:
             for script in args.scripts:
                 script_path = holohub_cli_util.get_holohub_setup_scripts_dir() / f"{script}.sh"
+                if any(sep in script for sep in ("/", "\\")):
+                    holohub_cli_util.fatal(f"Invalid script name '{script}': path separators are not allowed")
+                script_path = holohub_cli_util.get_holohub_setup_scripts_dir().resolve() / f"{script}.sh"
                 if not script_path.exists():
                     holohub_cli_util.fatal(
-                        f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}."
-                        + "Use `./holohub setup --list-scripts` to list all available scripts."
+                        f"Script {script}.sh not found in {holohub_cli_util.get_holohub_setup_scripts_dir()}"
                     )
-                holohub_cli_util.run_command([script_path], dry_run=args.dryrun)
+                holohub_cli_util.run_command(["bash", str(script_path)], dry_run=args.dryrun)
             sys.exit(0)
 
         if not args.scripts:

@@ -475,7 +475,13 @@ class HoloHubContainer:
                 script_path = get_holohub_setup_scripts_dir() / f"{script}.sh"
                 if not script_path.exists():
                     fatal(f"Script {script}.sh not found in {get_holohub_setup_scripts_dir()}")
-                relative_script_path = script_path.relative_to(HoloHubContainer.HOLOHUB_ROOT)
+                try:
+                    relative_script_path = script_path.relative_to(HoloHubContainer.HOLOHUB_ROOT)
+                except ValueError:
+                    fatal(
+                        f"Script {script}.sh at {script_path} is not within {HoloHubContainer.HOLOHUB_ROOT}. "
+                        f"The HOLOHUB_SETUP_SCRIPTS_DIR environment variable must resolve to a subdirectory within the project scope."
+                    )
                 cmd = [
                     self.DOCKER_EXE,
                     "build",
