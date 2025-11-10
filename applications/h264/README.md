@@ -25,7 +25,7 @@ for rendering decoded data to the native window.
 ## Supported Platforms
 
 - x86_64
-- arm64 + discrete GPU platforms (SBSA, IGX dGPU)
+- arm64 + discrete GPU platforms (SBSA)
 
 > [!IMPORTANT]  
 > Starting from Holoscan 3.6.0, H.264 applications only support CUDA 13 or higher.
@@ -35,7 +35,9 @@ for rendering decoded data to the native window.
 
 ### Unsupported Platforms
 
-Devices with integrated GPU (Jetson AGX, IGX Orin iGPU mode) are not supported.
+Integrated GPU devices in the Orin family (Jetson AGX Orin, IGX Orin) are not supported.
+
+Platforms with drivers < R580.00 are not supported.
 
 ### Symbol error at load
 
