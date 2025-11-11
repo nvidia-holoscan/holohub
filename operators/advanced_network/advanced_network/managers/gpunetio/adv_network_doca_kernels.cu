@@ -84,14 +84,12 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
   uint64_t buf_idx;
   struct doca_gpu_eth_rxq* rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
   int pkt_idx = 0;
-#if DOCA_DEBUG_KERNEL == 1
   struct eth_ip_udp_hdr* hdr;
   uint8_t* payload;
-#endif
-	__shared__ uint64_t out_first_pkt_idx;
+
+  __shared__ uint64_t out_first_pkt_idx;
 	__shared__ uint32_t out_pkt_num;
   __shared__ uint32_t rx_pkt_bytes;
-  // uint32_t pktb = 0;
   uint32_t tot_pkts_batch = 0;
   struct adv_doca_rx_gpu_info *packets_stats = &((struct adv_doca_rx_gpu_info *)pkt_gpu_list[blockIdx.x])[pkt_idx];
 
@@ -127,8 +125,8 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
     while (buf_idx < out_pkt_num) {
       buf_addr = doca_gpu_dev_eth_rxq_get_pkt_addr(rxq, out_first_pkt_idx + buf_idx);
       // printf("persistent out_pkt_num %d pkt %ld addr %lx\n", out_pkt_num, buf_idx, buf_addr);
-#if DOCA_DEBUG_KERNEL == 1
       raw_to_udp(buf_addr, &hdr, &payload);
+#if DOCA_DEBUG_KERNEL == 1
       printf(
           "Queue %d Thread %d received UDP packet with "
           "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
@@ -159,9 +157,8 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
         DOCA_GPUNETIO_VOLATILE(packets_stats->gpu_pkt0_idx) = out_first_pkt_idx;
       }
 
-      // doca_gpu_dev_eth_rxq_get_buf_bytes(rxq, buf_idx, &pktb);
-      // atomicAdd_block(&rx_pkt_bytes, pktb);
-
+      //Eth + IP + (UDP + Payload)
+      atomicAdd_block(&rx_pkt_bytes, DOCA_GPUNETIO_ETH_BSWAP16(hdr->l3_hdr.total_length) + sizeof(struct ether_hdr));
       buf_idx += blockDim.x;
     }
     __syncthreads();
@@ -217,15 +214,12 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
   uintptr_t buf_addr;
   uint64_t buf_idx;
   struct doca_gpu_eth_rxq* rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
-#if DOCA_DEBUG_KERNEL == 1
   struct eth_ip_udp_hdr* hdr;
   uint8_t* payload;
-#endif
-	__shared__ uint64_t out_first_pkt_idx;
+
+  __shared__ uint64_t out_first_pkt_idx;
 	__shared__ uint32_t out_pkt_num;
   __shared__ uint32_t rx_pkt_bytes;
-  // __shared__ struct doca_gpu_dev_eth_rxq_attr out_attr[MAX_RX_NUM_PKTS];
-  // uint32_t pktb = 0;
   struct adv_doca_rx_gpu_info *packets_stats = &((struct adv_doca_rx_gpu_info *)pkt_gpu_list[blockIdx.x])[pkt_idx_list[blockIdx.x]];
 
   // Warmup
@@ -254,8 +248,9 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
   buf_idx = threadIdx.x;
   while (buf_idx < out_pkt_num) {
     buf_addr = doca_gpu_dev_eth_rxq_get_pkt_addr(rxq, out_first_pkt_idx + buf_idx);
-#if DOCA_DEBUG_KERNEL == 1
     raw_to_udp(buf_addr, &hdr, &payload);
+
+#if DOCA_DEBUG_KERNEL == 1
     printf(
         "Queue %d Thread %d received UDP packet with "
         "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
@@ -286,8 +281,8 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
       DOCA_GPUNETIO_VOLATILE(packets_stats->gpu_pkt0_idx) = out_first_pkt_idx;
     }
 
-    // doca_gpu_dev_eth_rxq_get_buf_bytes(rxq, buf_idx, &pktb);
-    // atomicAdd_block(&rx_pkt_bytes, pktb);
+    //Eth + IP + (UDP + Payload)
+    atomicAdd_block(&rx_pkt_bytes, DOCA_GPUNETIO_ETH_BSWAP16(hdr->l3_hdr.total_length) + sizeof(struct ether_hdr));
 
     buf_idx += blockDim.x;
   }
