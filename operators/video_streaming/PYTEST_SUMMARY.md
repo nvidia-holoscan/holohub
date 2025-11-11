@@ -10,14 +10,14 @@ This document summarizes the pytest tests added to the `video_streaming` operato
 
 ```
 operators/video_streaming/
-├── streaming_client_enhanced/
+├── video_streaming_client/
 │   └── python/
 │       └── tests/
 │           ├── conftest.py                              # Pytest fixtures
 │           ├── test_streaming_client_op_bindings.py     # 30 tests
 │           └── README.md                                # Documentation
 │
-└── streaming_server_enhanced/
+└── video_streaming_server/
     └── python/
         └── tests/
             ├── conftest.py                              # Pytest fixtures
@@ -101,9 +101,9 @@ operators/video_streaming/
 ### What PR #1134 Had
 
 From the original PR #1134, there were pytest tests in:
-- `operators/streaming_client_enhanced_test/testing/test_streaming_client_op_bindings.py`
-- `operators/streaming_client_enhanced_test/testing/conftest.py`
-- `operators/streaming_client_enhanced_test/testing/test_utils.py`
+- `operators/video_streaming_client_test/testing/test_streaming_client_op_bindings.py`
+- `operators/video_streaming_client_test/testing/conftest.py`
+- `operators/video_streaming_client_test/testing/test_utils.py`
 
 ### What Happened to Those Tests
 
@@ -161,10 +161,10 @@ The tests were removed in commit `173b6ee0` ("Remove application testing infrast
 ./holohub test video_streaming --cuda 12 --ctest-options="-R streaming.*pytest -VV"
 
 # Running only client tests
-./holohub test video_streaming --cuda 12 --ctest-options="-R streaming_client_enhanced_pytest -VV"
+./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_client_pytest -VV"
 
 # Running only server tests
-./holohub test video_streaming --cuda 12 --ctest-options="-R streaming_server_enhanced_pytest -VV"
+./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_server_pytest -VV"
 ```
 
 **Why CUDA 12?** The video streaming client libraries are currently built against CUDA 12 runtime libraries. Running tests on CUDA 13 without the `--cuda 12` flag will result in test failures due to library incompatibilities.
@@ -183,22 +183,22 @@ The tests were removed in commit `173b6ee0` ("Remove application testing infrast
 ./holohub test video_streaming --ctest-options="-R streaming.*pytest -VV"
 
 # Run only client tests
-./holohub test video_streaming --ctest-options="-R streaming_client_enhanced_pytest -VV"
+./holohub test video_streaming --ctest-options="-R video_streaming_client_pytest -VV"
 
 # Run only server tests
-./holohub test video_streaming --ctest-options="-R streaming_server_enhanced_pytest -VV"
+./holohub test video_streaming --ctest-options="-R video_streaming_server_pytest -VV"
 ```
 
 **Expected Output:**
 ```
 Test project /workspace/holohub/build-video_streaming
 Constructing a list of tests
-Test #1: streaming_client_enhanced_pytest.test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_operator_creation_basic
+Test #1: video_streaming_client_pytest.test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_operator_creation_basic
 ...
-Test #61: streaming_server_enhanced_pytest.test_streaming_server_ops_bindings.py::TestStreamingServerIntegration::test_resource_isolation_between_fragments
+Test #61: video_streaming_server_pytest.test_streaming_server_ops_bindings.py::TestStreamingServerIntegration::test_resource_isolation_between_fragments
 
 The following tests passed:
-    streaming_client_enhanced_pytest.test_streaming_client_op_bindings.py::TestStreamingClientOpBinding.test_operator_creation_basic
+    video_streaming_client_pytest.test_streaming_client_op_bindings.py::TestStreamingClientOpBinding.test_operator_creation_basic
     ... (all 61 tests listed)
 
 100% tests passed, 0 tests failed out of 61
@@ -228,8 +228,8 @@ pytest operators/video_streaming/*/python/tests/ -v > test_results.log 2>&1
 
 # With coverage and redirected output
 pytest operators/video_streaming/*/python/tests/ -v \
-  --cov=streaming_client_enhanced \
-  --cov=streaming_server_enhanced \
+  --cov=video_streaming_client \
+  --cov=video_streaming_server \
   --cov-report=html \
   > test_results.log 2>&1
 
@@ -369,7 +369,7 @@ All tests must pass with the following criteria:
 # Or with CMake directly
 cd build
 cmake .. -DBUILD_PYTHON=ON
-make streaming_client_enhanced_python streaming_server_enhanced_python
+make video_streaming_client_python video_streaming_server_python
 ```
 
 ## Troubleshooting
@@ -398,8 +398,8 @@ This is expected and intentional behavior.
 ## Related Documentation
 
 - **[C++ Unit Tests Summary](./UNIT_TESTS_SUMMARY.md)** - C++ operator unit tests
-- **[Client pytest README](./streaming_client_enhanced/python/tests/README.md)** - Client test details
-- **[Server pytest README](./streaming_server_enhanced/python/tests/README.md)** - Server test details
+- **[Client pytest README](./video_streaming_client/python/tests/README.md)** - Client test details
+- **[Server pytest README](./video_streaming_server/python/tests/README.md)** - Server test details
 - **[Integration Tests](../../applications/video_streaming/TESTING.md)** - End-to-end testing
 
 ## Summary
