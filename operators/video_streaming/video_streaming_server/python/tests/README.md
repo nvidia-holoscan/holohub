@@ -159,7 +159,7 @@ python3 -m pytest python/tests/ -v
 ```
 ============================= test session starts ==============================
 platform linux -- Python 3.10.12, pytest-7.4.0
-collected 47 items
+collected 51 items
 
 test_streaming_server_ops_bindings.py::TestStreamingServerResourceBinding::test_resource_creation_basic PASSED [  2%]
 test_streaming_server_ops_bindings.py::TestStreamingServerResourceBinding::test_resource_name PASSED [  5%]
@@ -169,7 +169,7 @@ test_streaming_server_ops_bindings.py::TestStreamingServerWithMockData::test_ser
 test_streaming_server_ops_bindings.py::TestStreamingServerUpstreamOpCompute::test_compute_method_exists PASSED [ 95%]
 test_streaming_server_ops_bindings.py::TestBidirectionalServerCompute::test_bidirectional_compute_flow PASSED [100%]
 
-========================== 47 passed in 3.2s ==================================
+========================== 51 passed in 3.2s ==================================
 ```
 
 ## Fixtures
