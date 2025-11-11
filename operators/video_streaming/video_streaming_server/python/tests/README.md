@@ -65,6 +65,39 @@ The pytest tests verify the Python bindings of the StreamingServer operators, fo
 - `test_operators_in_application_context` - Works within Application
 - `test_resource_isolation_between_fragments` - Fragment isolation
 
+### TestStreamingServerWithMockData
+
+**Mock Data Tests:**
+- `test_resource_with_mock_frame_dimensions` - Resource with various dimensions
+- `test_upstream_operator_with_mock_frames` - Upstream with mock data
+- `test_downstream_operator_with_mock_frames` - Downstream with mock data
+- `test_bidirectional_server_with_mock_frames` - Bidirectional with mock data
+- `test_multiple_resolutions_with_mock_frames` - Multiple resolutions
+- `test_server_with_numpy_and_cupy_frames` - NumPy/CuPy compatibility
+- `test_server_with_float_frames` - Float32 data type
+
+### TestStreamingServerUpstreamOpCompute
+
+**Upstream Compute Tests:**
+- `test_compute_method_exists` - Method accessibility
+- `test_upstream_compute_with_mock_frame` - Basic compute functionality
+- `test_upstream_compute_with_various_resolutions` - Multiple resolutions
+- `test_upstream_compute_method_signature` - Method signature validation
+
+### TestStreamingServerDownstreamOpCompute
+
+**Downstream Compute Tests:**
+- `test_compute_method_exists` - Method accessibility
+- `test_downstream_compute_with_mock_frame` - Basic compute functionality
+- `test_downstream_compute_with_various_resolutions` - Multiple resolutions
+- `test_downstream_compute_with_float_frames` - Float32 frames
+- `test_downstream_compute_method_signature` - Method signature validation
+
+### TestBidirectionalServerCompute
+
+**Bidirectional Compute Tests:**
+- `test_bidirectional_compute_flow` - Full bidirectional compute flow
+
 ## ⚠️ CUDA Version Compatibility
 
 > **Important:** These tests require **CUDA 12**. If you're using CUDA 13, you must specify `--cuda 12` when building and running tests.
@@ -75,7 +108,7 @@ The pytest tests verify the Python bindings of the StreamingServer operators, fo
 ./holohub build video_streaming --cuda 12 --configure-args='-DBUILD_TESTING=ON'
 
 # Running tests
-./holohub test video_streaming --cuda 12 --ctest-options="-R streaming_server_enhanced_pytest -VV"
+./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_server_pytest -VV"
 ```
 
 The video streaming server operators depend on libraries built against CUDA 12 runtime. Using CUDA 13 without the `--cuda 12` flag will cause test failures.
@@ -103,13 +136,13 @@ pytest -v -k test_resource_creation_basic
 pytest -v test_streaming_server_ops_bindings.py::TestStreamingServerResourceBinding
 
 # With coverage
-pytest --cov=streaming_server_enhanced --cov-report=html
+pytest --cov=holohub.video_streaming_server --cov-report=html
 ```
 
 ### Option 2: From operator root directory
 
 ```bash
-# From operators/video_streaming/streaming_server_enhanced directory
+# From operators/video_streaming/video_streaming_server directory
 python3 -m pytest python/tests/ -v
 ```
 
@@ -117,8 +150,8 @@ python3 -m pytest python/tests/ -v
 
 ```bash
 # From holohub root
-./holohub build video_streaming --configure-args='-DBUILD_TESTING=ON'
-./holohub test video_streaming --ctest-options="-R streaming_server.*pytest"
+./holohub build video_streaming --cuda 12 --configure-args='-DBUILD_TESTING=ON'
+./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_server_pytest -VV"
 ```
 
 ## Test Output Example
@@ -126,27 +159,26 @@ python3 -m pytest python/tests/ -v
 ```
 ============================= test session starts ==============================
 platform linux -- Python 3.10.12, pytest-7.4.0
-collected 35 items
+collected 47 items
 
 test_streaming_server_ops_bindings.py::TestStreamingServerResourceBinding::test_resource_creation_basic PASSED [  2%]
 test_streaming_server_ops_bindings.py::TestStreamingServerResourceBinding::test_resource_name PASSED [  5%]
 test_streaming_server_ops_bindings.py::TestStreamingServerResourceBinding::test_video_parameters[640-480-30] PASSED [  8%]
 ...
-test_streaming_server_ops_bindings.py::TestStreamingServerIntegration::test_bidirectional_server_setup PASSED [ 97%]
-test_streaming_server_ops_bindings.py::TestStreamingServerIntegration::test_operators_in_application_context PASSED [100%]
+test_streaming_server_ops_bindings.py::TestStreamingServerWithMockData::test_server_with_float_frames PASSED [ 90%]
+test_streaming_server_ops_bindings.py::TestStreamingServerUpstreamOpCompute::test_compute_method_exists PASSED [ 95%]
+test_streaming_server_ops_bindings.py::TestBidirectionalServerCompute::test_bidirectional_compute_flow PASSED [100%]
 
-========================== 35 passed in 1.45s ==================================
+========================== 47 passed in 3.2s ==================================
 ```
 
 ## Fixtures
 
 Defined in `conftest.py`:
 
-**Core Fixtures:**
-- `holoscan_modules` - Holoscan SDK imports
-- `streaming_server_module` - StreamingServer Python module
-- `streaming_server_classes` - All server operator classes
-- `fragment` - Holoscan Fragment for testing
+**Module Fixtures:**
+- `streaming_server_module` - VideoStreamingServer Python module
+- `streaming_server_classes` - All server operator classes (Resource, Upstream, Downstream)
 
 **Factory Fixtures:**
 - `resource_factory` - Factory for creating StreamingServerResource
@@ -155,6 +187,16 @@ Defined in `conftest.py`:
 
 **Default Fixtures:**
 - `default_resource` - Pre-configured resource with defaults
+
+**Common Fixtures** (copied from root conftest.py):
+- `app` - Holoscan Application instance
+- `fragment` - Holoscan Fragment for testing
+- `mock_image` - Factory for creating mock image tensors
+- `op_input_factory` - Factory for mock operator inputs
+- `op_output` - Mock operator output
+- `execution_context` - Mock execution context
+
+> **Note:** Common fixtures are duplicated locally because `add_python_tests()` uses `--confcutdir` for test isolation, preventing access to the root conftest.py.
 
 ## Writing New Tests
 

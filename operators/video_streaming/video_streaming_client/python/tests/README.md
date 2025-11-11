@@ -44,6 +44,25 @@ The pytest tests verify the Python bindings of the StreamingClientOp operator, f
 - `test_operator_in_application_context` - Works within Application
 - `test_operator_in_fragment` - Works within Fragment
 
+### TestStreamingClientOpWithMockData
+
+**Mock Data Tests:**
+- `test_operator_with_mock_frame_cupy` - CuPy array handling
+- `test_operator_with_mock_frame_numpy` - NumPy array handling
+- `test_operator_with_various_resolutions` - Multiple resolutions
+- `test_operator_with_grayscale_frame` - Grayscale format
+- `test_operator_with_float_frame` - Float32 data type
+- `test_operator_with_seeded_frame` - Deterministic random data
+
+### TestStreamingClientOpCompute
+
+**Compute Method Tests:**
+- `test_compute_method_exists` - Method accessibility
+- `test_client_compute_with_mock_frame` - Basic compute functionality
+- `test_client_compute_with_various_resolutions` - Multiple resolutions
+- `test_client_compute_with_float_frames` - Float32 frames
+- `test_client_compute_method_signature` - Method signature validation
+
 ## ⚠️ CUDA Version Compatibility
 
 > **Important:** These tests require **CUDA 12**. If you're using CUDA 13, you must specify `--cuda 12` when building and running tests.
@@ -54,7 +73,7 @@ The pytest tests verify the Python bindings of the StreamingClientOp operator, f
 ./holohub build video_streaming --cuda 12 --configure-args='-DBUILD_TESTING=ON'
 
 # Running tests
-./holohub test video_streaming --cuda 12 --ctest-options="-R streaming_client_enhanced_pytest -VV"
+./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_client_pytest -VV"
 ```
 
 The video streaming client operator depends on libraries built against CUDA 12 runtime. Using CUDA 13 without the `--cuda 12` flag will cause test failures.
@@ -82,13 +101,13 @@ pytest -v -k test_operator_creation_basic
 pytest -v -m unit
 
 # With coverage
-pytest --cov=streaming_client_enhanced --cov-report=html
+pytest --cov=holohub.video_streaming_client --cov-report=html
 ```
 
 ### Option 2: From operator root directory
 
 ```bash
-# From operators/video_streaming/streaming_client_enhanced directory
+# From operators/video_streaming/video_streaming_client directory
 python3 -m pytest python/tests/ -v
 ```
 
@@ -96,8 +115,8 @@ python3 -m pytest python/tests/ -v
 
 ```bash
 # From holohub root
-./holohub build video_streaming --configure-args='-DBUILD_TESTING=ON'
-./holohub test video_streaming --ctest-options="-R streaming_client.*pytest"
+./holohub build video_streaming --cuda 12 --configure-args='-DBUILD_TESTING=ON'
+./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_client_pytest -VV"
 ```
 
 ## Test Output Example
@@ -105,7 +124,7 @@ python3 -m pytest python/tests/ -v
 ```
 ============================= test session starts ==============================
 platform linux -- Python 3.10.12, pytest-7.4.0
-collected 30 items
+collected 41 items
 
 test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_operator_creation_basic PASSED [  4%]
 test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_operator_name PASSED [  8%]
@@ -113,19 +132,33 @@ test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_video_p
 test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_video_parameters[1280-720-60] PASSED [ 16%]
 test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_video_parameters[1920-1080-30] PASSED [ 20%]
 ...
-========================== 30 passed in 1.23s ==================================
+test_streaming_client_op_bindings.py::TestStreamingClientOpWithMockData::test_operator_with_mock_frame_cupy PASSED [ 90%]
+test_streaming_client_op_bindings.py::TestStreamingClientOpCompute::test_compute_method_exists PASSED [ 95%]
+...
+========================== 41 passed in 2.5s ==================================
 ```
 
 ## Fixtures
 
 Defined in `conftest.py`:
 
-- `holoscan_modules` - Holoscan SDK imports
-- `streaming_client_module` - StreamingClient Python module
-- `streaming_client_op_class` - StreamingClientOp class
-- `fragment` - Holoscan Fragment for testing
+**Module Fixtures:**
+- `streaming_client_module` - VideoStreamingClient Python module
+- `streaming_client_op_class` - VideoStreamingClientOp class
+
+**Factory Fixtures:**
 - `operator_factory` - Factory for creating operators with parameters
 - `default_operator` - Pre-configured operator with defaults
+
+**Common Fixtures** (copied from root conftest.py):
+- `app` - Holoscan Application instance
+- `fragment` - Holoscan Fragment for testing
+- `mock_image` - Factory for creating mock image tensors
+- `op_input_factory` - Factory for mock operator inputs
+- `op_output` - Mock operator output
+- `execution_context` - Mock execution context
+
+> **Note:** Common fixtures are duplicated locally because `add_python_tests()` uses `--confcutdir` for test isolation, preventing access to the root conftest.py.
 
 ## Writing New Tests
 
