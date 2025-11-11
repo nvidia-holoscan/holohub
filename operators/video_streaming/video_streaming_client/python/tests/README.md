@@ -124,7 +124,7 @@ python3 -m pytest python/tests/ -v
 ```
 ============================= test session starts ==============================
 platform linux -- Python 3.10.12, pytest-7.4.0
-collected 41 items
+collected 33 items
 
 test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_operator_creation_basic PASSED [  4%]
 test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_operator_name PASSED [  8%]
@@ -135,7 +135,7 @@ test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_video_p
 test_streaming_client_op_bindings.py::TestStreamingClientOpWithMockData::test_operator_with_mock_frame_cupy PASSED [ 90%]
 test_streaming_client_op_bindings.py::TestStreamingClientOpCompute::test_compute_method_exists PASSED [ 95%]
 ...
-========================== 41 passed in 2.5s ==================================
+========================== 33 passed in 2.5s ==================================
 ```
 
 ## Fixtures
