@@ -162,11 +162,10 @@ class MultiAIICardio(Application):
 
         # version 2.6 supports the CUDA version of `max_per_channel_scaled`
         try:
-            from packaging.version import Version
-
-            supports_cuda_processing = Version(holoscan_version) >= Version("2.6")
+            major, minor = map(int, holoscan_version.split('.')[:2])
+            supports_cuda_processing = (major, minor) >= (2, 6)
         except Exception:
-            supports_cuda_processing = True
+            supports_cuda_processing = False
         multiai_postprocessor = InferenceProcessorOp(
             self,
             input_on_cuda=supports_cuda_processing,
