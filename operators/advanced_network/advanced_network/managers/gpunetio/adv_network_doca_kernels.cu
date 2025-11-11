@@ -323,7 +323,6 @@ __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, uint64_t pkt_b
                                     uint32_t* gpu_pkts_len, const bool set_completion) {
   uint32_t pkt_idx = threadIdx.x;
   struct doca_gpu_dev_eth_txq_wqe *wqe_ptr;
-  uint32_t num_completed;
   __shared__ uint64_t base_wqe_idx;
 
 #if DOCA_DEBUG_KERNEL == 2
