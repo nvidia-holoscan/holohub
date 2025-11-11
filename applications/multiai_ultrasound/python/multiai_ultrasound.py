@@ -27,7 +27,6 @@ from holoscan.operators import (
     VideoStreamReplayerOp,
 )
 from holoscan.resources import BlockMemoryPool, MemoryStorageType
-from packaging.version import Version
 
 from holohub.visualizer_icardio import VisualizerICardioOp
 
@@ -163,9 +162,11 @@ class MultiAIICardio(Application):
 
         # version 2.6 supports the CUDA version of `max_per_channel_scaled`
         try:
+            from packaging.version import Version
+
             supports_cuda_processing = Version(holoscan_version) >= Version("2.6")
         except Exception:
-            supports_cuda_processing = False
+            supports_cuda_processing = True
         multiai_postprocessor = InferenceProcessorOp(
             self,
             input_on_cuda=supports_cuda_processing,
