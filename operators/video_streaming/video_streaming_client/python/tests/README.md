@@ -88,30 +88,7 @@ The video streaming client operator depends on libraries built against CUDA 12 r
 
 ## Running Tests
 
-### Option 1: Using pytest directly
-
-```bash
-# From this directory
-pytest -v
-
-# Run specific test
-pytest -v -k test_operator_creation_basic
-
-# Run with markers
-pytest -v -m unit
-
-# With coverage
-pytest --cov=holohub.video_streaming_client --cov-report=html
-```
-
-### Option 2: From operator root directory
-
-```bash
-# From operators/video_streaming/video_streaming_client directory
-python3 -m pytest python/tests/ -v
-```
-
-### Option 3: Via CMake/CTest
+### Via CMake/CTest (Recommended)
 
 ```bash
 # From holohub root

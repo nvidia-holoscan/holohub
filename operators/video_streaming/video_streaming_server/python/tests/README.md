@@ -123,30 +123,7 @@ The video streaming server operators depend on libraries built against CUDA 12 r
 
 ## Running Tests
 
-### Option 1: Using pytest directly
-
-```bash
-# From this directory
-pytest -v
-
-# Run specific test
-pytest -v -k test_resource_creation_basic
-
-# Run specific test class
-pytest -v test_streaming_server_ops_bindings.py::TestStreamingServerResourceBinding
-
-# With coverage
-pytest --cov=holohub.video_streaming_server --cov-report=html
-```
-
-### Option 2: From operator root directory
-
-```bash
-# From operators/video_streaming/video_streaming_server directory
-python3 -m pytest python/tests/ -v
-```
-
-### Option 3: Via CMake/CTest
+### Via CMake/CTest (Recommended)
 
 ```bash
 # From holohub root
