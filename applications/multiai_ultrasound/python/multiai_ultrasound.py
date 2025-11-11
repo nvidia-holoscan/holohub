@@ -162,7 +162,7 @@ class MultiAIICardio(Application):
 
         # version 2.6 supports the CUDA version of `max_per_channel_scaled`
         try:
-            major, minor = map(int, holoscan_version.split('.')[:2])
+            major, minor = map(int, holoscan_version.split(".")[:2])
             supports_cuda_processing = (major, minor) >= (2, 6)
         except Exception:
             supports_cuda_processing = False
