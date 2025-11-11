@@ -321,7 +321,7 @@ class TestStreamingServerWithMockData:
 
         # Create mock frame matching resource dimensions
         frame = mock_image(shape=(1080, 1920, 3), dtype="uint8", backend="cupy")
-        
+
         # Verify frame matches resource configuration
         assert frame.shape == (1080, 1920, 3)
         assert frame.dtype.name == "uint8"
@@ -338,11 +338,12 @@ class TestStreamingServerWithMockData:
         # Create mock frames that could be received from client
         frame1 = mock_image(shape=(480, 854, 3), backend="cupy", seed=1)
         frame2 = mock_image(shape=(480, 854, 3), backend="cupy", seed=2)
-        
+
         # Verify frames are different (different seeds)
         import cupy as cp
+
         assert not cp.all(frame1 == frame2)
-        
+
         # Verify frames match expected dimensions
         assert frame1.shape == (480, 854, 3)
         assert frame2.shape == (480, 854, 3)
@@ -358,7 +359,7 @@ class TestStreamingServerWithMockData:
 
         # Create mock frames that could be sent to client
         frame = mock_image(shape=(720, 1280, 3), dtype="uint8", backend="cupy")
-        
+
         # Verify frame properties
         assert frame.shape == (720, 1280, 3)
         assert frame.dtype.name == "uint8"
@@ -375,16 +376,17 @@ class TestStreamingServerWithMockData:
         # Create both operators
         upstream_op = upstream_operator_factory(name="upstream", resource=resource)
         downstream_op = downstream_operator_factory(name="downstream", resource=resource)
-        
+
         assert upstream_op is not None
         assert downstream_op is not None
 
         # Create mock frames for both directions
         incoming_frame = mock_image(shape=(1080, 1920, 3), backend="cupy", seed=100)
         outgoing_frame = mock_image(shape=(1080, 1920, 3), backend="cupy", seed=200)
-        
+
         # Verify frames are different
         import cupy as cp
+
         assert not cp.all(incoming_frame == outgoing_frame)
 
     def test_multiple_resolutions_with_mock_frames(
@@ -392,8 +394,8 @@ class TestStreamingServerWithMockData:
     ):
         """Test multiple server instances with different resolutions and mock frames."""
         test_configs = [
-            (640, 480, 30),    # VGA @ 30fps
-            (1280, 720, 60),   # HD @ 60fps
+            (640, 480, 30),  # VGA @ 30fps
+            (1280, 720, 60),  # HD @ 60fps
             (1920, 1080, 30),  # Full HD @ 30fps
         ]
 
@@ -402,9 +404,7 @@ class TestStreamingServerWithMockData:
             resource = resource_factory(
                 name=f"resource_{width}x{height}", width=width, height=height, fps=fps
             )
-            op = upstream_operator_factory(
-                name=f"upstream_{width}x{height}", resource=resource
-            )
+            op = upstream_operator_factory(name=f"upstream_{width}x{height}", resource=resource)
             assert op is not None
 
             # Create mock frame matching configuration
@@ -423,13 +423,14 @@ class TestStreamingServerWithMockData:
         # Create frames with both backends
         cupy_frame = mock_image(shape=(480, 854, 3), backend="cupy")
         numpy_frame = mock_image(shape=(480, 854, 3), backend="numpy")
-        
+
         # Verify correct types
         import cupy as cp
         import numpy as np
+
         assert isinstance(cupy_frame, cp.ndarray)
         assert isinstance(numpy_frame, np.ndarray)
-        
+
         # Verify same shape
         assert cupy_frame.shape == numpy_frame.shape
 
@@ -444,12 +445,13 @@ class TestStreamingServerWithMockData:
 
         # Create float frame (normalized 0-1)
         frame = mock_image(shape=(720, 1280, 3), dtype="float32", backend="cupy")
-        
+
         # Verify frame properties
         assert frame.dtype.name == "float32"
-        
+
         # Verify values in expected range
         import cupy as cp
+
         assert cp.all(frame >= 0.0)
         assert cp.all(frame <= 1.0)
 
@@ -526,11 +528,11 @@ class TestStreamingServerUpstreamOpCompute:
         """Test that upstream compute method has correct signature."""
         resource = resource_factory()
         op = upstream_operator_factory(name="sig_test", resource=resource)
-        
+
         assert hasattr(op, "compute")
         compute_method = getattr(op, "compute")
         assert callable(compute_method)
-        
+
         # Note: inspect.signature() on pybind11 methods may not reliably report parameters
         # The functional tests (test_upstream_compute_with_mock_frame, etc.) verify
         # that compute() works correctly with the expected parameters
@@ -591,9 +593,7 @@ class TestStreamingServerDownstreamOpCompute:
 
         for width, height in test_configs:
             resource = resource_factory(width=width, height=height, fps=60)
-            op = downstream_operator_factory(
-                name=f"downstream_{width}x{height}", resource=resource
-            )
+            op = downstream_operator_factory(name=f"downstream_{width}x{height}", resource=resource)
             frame = mock_image(shape=(height, width, 3), backend="cupy")
             op_input = op_input_factory(frame, tensor_name="", port="input_frames")
 
@@ -615,7 +615,7 @@ class TestStreamingServerDownstreamOpCompute:
         """Test downstream compute() with float32 frame data."""
         resource = resource_factory(width=640, height=480, fps=30)
         op = downstream_operator_factory(name="float_downstream", resource=resource)
-        
+
         # Create float frame
         frame = mock_image(shape=(480, 640, 3), dtype="float32", backend="cupy")
         op_input = op_input_factory(frame, tensor_name="", port="input_frames")
@@ -632,11 +632,11 @@ class TestStreamingServerDownstreamOpCompute:
         """Test that downstream compute method has correct signature."""
         resource = resource_factory()
         op = downstream_operator_factory(name="sig_test", resource=resource)
-        
+
         assert hasattr(op, "compute")
         compute_method = getattr(op, "compute")
         assert callable(compute_method)
-        
+
         # Note: inspect.signature() on pybind11 methods may not reliably report parameters
         # The functional tests (test_downstream_compute_with_mock_frame, etc.) verify
         # that compute() works correctly with the expected parameters
