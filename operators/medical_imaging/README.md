@@ -28,7 +28,7 @@ This set of operators depends on [Holoscan SDK Python package](https://pypi.org/
 - [numpy-stl](https://pypi.org/project/numpy-stl/)
 - [Pillow](https://pypi.org/project/pillow/)
 - [pydicom](https://pypi.org/project/pydicom/)
-- [PyPDF2](https://pypi.org/project/PyPDF2/)
+- [pypdf](https://pypi.org/project/pypdf/)
 - [scikit-image](https://pypi.org/project/scikit-image/)
 - [SimpleITK](https://pypi.org/project/SimpleITK/)
 - [torch](https://pypi.org/project/torch/)

@@ -39,7 +39,7 @@ ImplicitVRLittleEndian, _ = optional_import("pydicom.uid", name="ImplicitVRLittl
 Dataset, _ = optional_import("pydicom.dataset", name="Dataset")
 FileDataset, _ = optional_import("pydicom.dataset", name="FileDataset")
 Sequence, _ = optional_import("pydicom.sequence", name="Sequence")
-PdfReader, _ = optional_import("PyPDF2", name="PdfReader")
+PdfReader, _ = optional_import("pypdf", name="PdfReader")
 
 
 class DICOMEncapsulatedPDFWriterOperator(Operator):
@@ -259,7 +259,7 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         try:
             bytes_stream = BytesIO(content)
             reader = PdfReader(bytes_stream)
-            self._logger.debug(f"The PDF has {reader.pages} page(s).")
+            self._logger.debug(f"The PDF has {len(reader.pages)} page(s).")
         except Exception as ex:
             self._logger.exception(f"Cannot read as PDF: {ex}")
             return False

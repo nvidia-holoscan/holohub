@@ -10,7 +10,7 @@ The `DICOMEncapsulatedPDFWriterOperator` converts PDF files into DICOM-compliant
 
 - Holoscan SDK Python package
 - pydicom
-- PyPDF2
+- pypdf
 
 ## Example Usage
 
