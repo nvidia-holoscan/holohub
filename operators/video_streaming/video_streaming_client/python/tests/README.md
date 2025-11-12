@@ -101,7 +101,7 @@ The video streaming client operator depends on libraries built against CUDA 12 r
 
 For interactive testing and debugging, you can run pytest directly inside the holohub container.
 
-> **⚠️ Important:** You must run `./holohub test` first (Option 1) to build the Python bindings. The build command alone does not compile Python bindings for this project.
+> **⚠️ Important:** You must run `./holohub test` first (Option 1) to build the Python bindings.
 
 **Step 1: Build Python bindings by running tests once**
 
@@ -238,14 +238,4 @@ This is expected behavior - tests will skip gracefully.
 - [C++ Unit Tests](../../tests/README.md) - C++ operator unit tests
 - [StreamingClientOp Documentation](../../README.md) - Operator documentation
 - [Integration Tests](../../../../../applications/video_streaming/TESTING.md) - End-to-end tests
-
-## Contributing
-
-When adding tests:
-1. Follow existing test naming patterns
-2. Use descriptive test names
-3. Add docstrings explaining what is tested
-4. Use appropriate fixtures
-5. Add parametrization for multiple test cases
-6. Update this README if adding new test categories
 

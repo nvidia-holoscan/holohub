@@ -104,8 +104,6 @@ The pytest tests verify the Python bindings of the StreamingServer operators, fo
 
 **For CUDA 13 systems:**
 ```bash
-# Building
-./holohub build video_streaming --cuda 12 --configure-args='-DBUILD_TESTING=ON'
 
 # Running tests
 ./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_server_pytest -VV"
@@ -135,7 +133,7 @@ The video streaming server operators depend on libraries built against CUDA 12 r
 
 For interactive testing and debugging, you can run pytest directly inside the holohub container.
 
-> **⚠️ Important:** You must run `./holohub test` first (Option 1) to build the Python bindings. The build command alone does not compile Python bindings for this project.
+> **⚠️ Important:** You must run `./holohub test` first (Option 1) to build the Python bindings.
 
 **Step 1: Build Python bindings by running tests once**
 
@@ -304,37 +302,3 @@ python/tests/
 - [C++ Unit Tests](../../tests/README.md) - C++ operator unit tests
 - [StreamingServerOps Documentation](../../README.md) - Server operator documentation
 - [Integration Tests](../../../../../applications/video_streaming/TESTING.md) - End-to-end tests
-
-## Contributing
-
-When adding tests:
-1. Follow existing test naming patterns (`test_<feature>_<aspect>`)
-2. Use descriptive test names and docstrings
-3. Use appropriate fixtures from `conftest.py`
-4. Add parametrization for multiple test cases
-5. Test both success and error cases
-6. Update this README if adding new test categories
-7. Ensure tests are isolated (no side effects)
-
-## Test Marks
-
-You can add custom markers:
-
-```python
-@pytest.mark.slow
-def test_time_consuming():
-    # Slow test
-    pass
-
-@pytest.mark.requires_gpu
-def test_gpu_feature():
-    # GPU-dependent test
-    pass
-```
-
-Run specific markers:
-```bash
-pytest -m slow  # Run only slow tests
-pytest -m "not slow"  # Skip slow tests
-```
-
