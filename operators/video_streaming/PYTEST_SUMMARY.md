@@ -124,9 +124,6 @@ operators/video_streaming/
 ```bash
 # From holohub root directory
 
-# Build with testing enabled
-./holohub build video_streaming --configure-args='-DBUILD_TESTING=ON'
-
 # Run all streaming pytest tests via CTest
 ./holohub test video_streaming --ctest-options="-R streaming.*pytest -VV"
 
@@ -167,22 +164,6 @@ You can save test output to a file for documentation or debugging purposes:
 
 # Save stdout and stderr separately
 ./holohub test video_streaming --ctest-options="-R streaming.*pytest -VV" > stdout.log 2> stderr.log
-```
-
-#### With Direct pytest
-```bash
-# Redirect all output to a file
-pytest operators/video_streaming/*/python/tests/ -v > test_results.log 2>&1
-
-# With coverage and redirected output
-pytest operators/video_streaming/*/python/tests/ -v \
-  --cov=video_streaming_client \
-  --cov=video_streaming_server \
-  --cov-report=html \
-  > test_results.log 2>&1
-
-# Append to existing log file
-pytest operators/video_streaming/*/python/tests/ -v >> test_results.log 2>&1
 ```
 
 #### Log File Interpretation
@@ -307,18 +288,6 @@ All tests must pass with the following criteria:
 - **pytest:** 6.0+
 - **Holoscan SDK:** 3.5.0+
 - **Python bindings:** Must be built
-
-## Building Python Bindings
-
-```bash
-# From holohub root
-./holohub build video_streaming
-
-# Or with CMake directly
-cd build
-cmake .. -DBUILD_PYTHON=ON
-make video_streaming_client_python video_streaming_server_python
-```
 
 ## Troubleshooting
 
