@@ -14,7 +14,7 @@ langchain-core==0.3.79
 sentence-transformers==4.0.1
 jq==1.6.0
 ragas==0.2.14
-llama_index>=0.12.26
+llama_index==0.14.8
 simsimd==3.7.7
 pdf2image==1.17.0
 pdfminer==20191125
