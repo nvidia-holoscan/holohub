@@ -2,7 +2,7 @@
 
 This directory contains Python unit tests for the `StreamingClientOp` Python bindings (pybind11).
 
-> **📖 See Also:** For general information about pytest setup, prerequisites, CUDA compatibility, and troubleshooting, refer to **[PYTEST_SUMMARY.md](../../PYTEST_SUMMARY.md)**.
+> **📖 See Also:** For general information about pytest setup, prerequisites, CUDA compatibility, and troubleshooting, refer to **[PYTEST_SUMMARY.md](../../../PYTEST_SUMMARY.md)**.
 
 ## Overview
 
@@ -182,7 +182,7 @@ def test_parametrized(self, operator_factory, param1, param2):
 
 ## Related Documentation
 
-- **[Python Tests Summary (PYTEST_SUMMARY.md)](../../PYTEST_SUMMARY.md)** - Overview of all Python binding tests
+- **[Python Tests Summary (PYTEST_SUMMARY.md)](../../../PYTEST_SUMMARY.md)** - Overview of all Python binding tests
 - [C++ Unit Tests](../../tests/README.md) - C++ operator unit tests
 - [StreamingClientOp Documentation](../../README.md) - Operator documentation
 - [Integration Tests](../../../../../applications/video_streaming/TESTING.md) - End-to-end tests

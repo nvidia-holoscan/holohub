@@ -2,7 +2,7 @@
 
 This directory contains Python unit tests for the StreamingServer operators Python bindings (pybind11).
 
-> **📖 See Also:** For general information about pytest setup, prerequisites, CUDA compatibility, and troubleshooting, refer to **[PYTEST_SUMMARY.md](../../PYTEST_SUMMARY.md)**.
+> **📖 See Also:** For general information about pytest setup, prerequisites, CUDA compatibility, and troubleshooting, refer to **[PYTEST_SUMMARY.md](../../../PYTEST_SUMMARY.md)**.
 
 ## Overview
 
@@ -244,7 +244,7 @@ python/tests/
 
 ## Related Documentation
 
-- **[Python Tests Summary (PYTEST_SUMMARY.md)](../../PYTEST_SUMMARY.md)** - Overview of all Python binding tests
+- **[Python Tests Summary (PYTEST_SUMMARY.md)](../../../PYTEST_SUMMARY.md)** - Overview of all Python binding tests
 - [C++ Unit Tests](../../tests/README.md) - C++ operator unit tests
 - [StreamingServerOps Documentation](../../README.md) - Server operator documentation
 - [Integration Tests](../../../../../applications/video_streaming/TESTING.md) - End-to-end tests
