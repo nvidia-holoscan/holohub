@@ -100,11 +100,11 @@ The video streaming client operator depends on libraries built against CUDA 12 r
 
 For interactive testing and debugging, you can run pytest directly inside the holohub container.
 
-**Step 1: Build the project first**
+**Step 1: Build the project with Python bindings**
 
 ```bash
 # From holohub root - this compiles the Python bindings
-./holohub build video_streaming --cuda 12
+./holohub build video_streaming --cuda 12 --language python
 ```
 
 **Step 2: Launch container and run pytest**
