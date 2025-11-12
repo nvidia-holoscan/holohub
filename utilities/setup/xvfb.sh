@@ -26,6 +26,7 @@ fi
 
 apt-get update
 apt-get install --no-install-recommends -y xvfb
+apt-get clean && rm -rf /var/lib/apt/lists/*
 
 if command -v xvfb-run &> /dev/null; then
     echo "xvfb installed successfully"
