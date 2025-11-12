@@ -4,6 +4,8 @@
 
 This document summarizes the C++ unit tests for the `video_streaming` operators, providing comprehensive coverage of all client and server components.
 
+> **Note:** This document covers **C++ unit tests only**. For Python binding tests, see **[PYTEST_SUMMARY.md](./PYTEST_SUMMARY.md)**.
+
 ## Test Suites
 
 This package includes the following unit tests across all video streaming operators:
@@ -213,8 +215,14 @@ The unit tests are designed for CI/CD pipelines:
 
 Each test suite has detailed documentation:
 
-- **[Client Tests README](video_streaming_client/tests/README.md)** - VideoStreamingClientOp tests
-- **[Server Tests README](video_streaming_server/tests/README.md)** - Server operator tests
+- **[Client Tests README](video_streaming_client/tests/README.md)** - VideoStreamingClientOp C++ unit tests
+- **[Server Tests README](video_streaming_server/tests/README.md)** - Server operator C++ unit tests
+
+Python binding tests:
+
+- **[Python Tests Summary (PYTEST_SUMMARY.md)](./PYTEST_SUMMARY.md)** - Python binding tests overview
+- **[Client pytest README](video_streaming_client/python/tests/README.md)** - Client Python test details
+- **[Server pytest README](video_streaming_server/python/tests/README.md)** - Server Python test details
 
 Additional documentation:
 

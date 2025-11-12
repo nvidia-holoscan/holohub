@@ -2,6 +2,8 @@
 
 This directory contains Python unit tests for the StreamingServer operators Python bindings (pybind11).
 
+> **📖 See Also:** For general information about pytest setup, prerequisites, CUDA compatibility, and troubleshooting, refer to **[PYTEST_SUMMARY.md](../../PYTEST_SUMMARY.md)**.
+
 ## Overview
 
 The pytest tests verify the Python bindings of the StreamingServer operators, focusing on:
@@ -97,27 +99,6 @@ The pytest tests verify the Python bindings of the StreamingServer operators, fo
 
 **Bidirectional Compute Tests:**
 - `test_bidirectional_compute_flow` - Full bidirectional compute flow
-
-## ⚠️ CUDA Version Compatibility
-
-> **Important:** These tests require **CUDA 12**. If you're using CUDA 13, you must specify `--cuda 12` when building and running tests.
-
-**For CUDA 13 systems:**
-```bash
-
-# Running tests
-./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_server_pytest -VV"
-```
-
-The video streaming server operators depend on libraries built against CUDA 12 runtime. Using CUDA 13 without the `--cuda 12` flag will cause test failures.
-
-## Prerequisites
-
-- Python 3.8+
-- pytest 6.0+
-- Holoscan SDK 3.5.0+
-- StreamingServer Python bindings built
-- **CUDA 12** (or use `--cuda 12` flag on CUDA 13 systems)
 
 ## Running Tests
 
@@ -250,44 +231,6 @@ def test_shared_resource(
     assert downstream is not None
 ```
 
-## Troubleshooting
-
-### Import Errors
-
-If you get `ImportError: cannot import name 'StreamingServerResource'`:
-
-1. Ensure the Python bindings are built:
-   ```bash
-   ./holohub build video_streaming
-   ```
-
-2. Check PYTHONPATH includes the build directory:
-   ```bash
-   export PYTHONPATH=/path/to/holohub/build/python/lib:$PYTHONPATH
-   ```
-
-### Resource Creation Failures
-
-If resource creation fails with `RuntimeError`:
-- Ensure port is available (not in use)
-- Check port is in valid range (1-65535)
-- Verify no other server is using the same port
-
-### Operator Creation Without Resource
-
-If you get "Resource required for operator creation":
-- Always pass a valid resource to operator factories
-- Create resource first, then pass to operator factory
-
-### Holoscan SDK Not Found
-
-If you get `ModuleNotFoundError: No module named 'holoscan'`:
-
-```bash
-# Install Holoscan SDK or add to PYTHONPATH
-export PYTHONPATH=/opt/nvidia/holoscan/python/lib:$PYTHONPATH
-```
-
 ## Test Organization
 
 ```
@@ -299,6 +242,7 @@ python/tests/
 
 ## Related Documentation
 
+- **[Python Tests Summary (PYTEST_SUMMARY.md)](../../PYTEST_SUMMARY.md)** - Overview of all Python binding tests
 - [C++ Unit Tests](../../tests/README.md) - C++ operator unit tests
 - [StreamingServerOps Documentation](../../README.md) - Server operator documentation
 - [Integration Tests](../../../../../applications/video_streaming/TESTING.md) - End-to-end tests

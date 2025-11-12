@@ -2,6 +2,8 @@
 
 This directory contains Python unit tests for the `StreamingClientOp` Python bindings (pybind11).
 
+> **📖 See Also:** For general information about pytest setup, prerequisites, CUDA compatibility, and troubleshooting, refer to **[PYTEST_SUMMARY.md](../../PYTEST_SUMMARY.md)**.
+
 ## Overview
 
 The pytest tests verify the Python bindings of the StreamingClientOp operator, focusing on:
@@ -63,29 +65,6 @@ The pytest tests verify the Python bindings of the StreamingClientOp operator, f
 - `test_compute_with_various_frame_sizes` - Multiple frame sizes
 - `test_compute_with_float_frames` - Float32 frames
 - `test_compute_method_signature` - Method signature validation
-
-## ⚠️ CUDA Version Compatibility
-
-> **Important:** These tests require **CUDA 12**. If you're using CUDA 13, you must specify `--cuda 12` when building and running tests.
-
-**For CUDA 13 systems:**
-```bash
-# Building
-./holohub build video_streaming --cuda 12 --configure-args='-DBUILD_TESTING=ON'
-
-# Running tests
-./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_client_pytest -VV"
-```
-
-The video streaming client operator depends on libraries built against CUDA 12 runtime. Using CUDA 13 without the `--cuda 12` flag will cause test failures.
-
-## Prerequisites
-
-- Python 3.8+
-- pytest 6.0+
-- Holoscan SDK 3.5.0+
-- StreamingClientOp Python bindings built
-- **CUDA 12** (or use `--cuda 12` flag on CUDA 13 systems)
 
 ## Running Tests
 
@@ -199,42 +178,9 @@ def test_parametrized(self, operator_factory, param1, param2):
     # Test logic
 ```
 
-## Troubleshooting
-
-### Import Errors
-
-If you get `ImportError: cannot import name 'StreamingClientOp'`:
-
-1. Ensure the Python bindings are built:
-   ```bash
-   ./holohub build video_streaming
-   ```
-
-2. Check PYTHONPATH includes the build directory:
-   ```bash
-   export PYTHONPATH=/path/to/holohub/build/python/lib:$PYTHONPATH
-   ```
-
-### Holoscan SDK Not Found
-
-If you get `ModuleNotFoundError: No module named 'holoscan'`:
-
-```bash
-# Install Holoscan SDK or add to PYTHONPATH
-export PYTHONPATH=/opt/nvidia/holoscan/python/lib:$PYTHONPATH
-```
-
-### Test Skipping
-
-Some tests may be skipped if:
-- Holoscan SDK is not available
-- Python bindings are not built
-- Required dependencies are missing
-
-This is expected behavior - tests will skip gracefully.
-
 ## Related Documentation
 
+- **[Python Tests Summary (PYTEST_SUMMARY.md)](../../PYTEST_SUMMARY.md)** - Overview of all Python binding tests
 - [C++ Unit Tests](../../tests/README.md) - C++ operator unit tests
 - [StreamingClientOp Documentation](../../README.md) - Operator documentation
 - [Integration Tests](../../../../../applications/video_streaming/TESTING.md) - End-to-end tests
