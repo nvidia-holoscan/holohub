@@ -288,7 +288,9 @@ class TestStreamingServerIntegration:
 
                 # Create operators
                 self.up_class(self, name="app_upstream", video_streaming_server_resource=resource)
-                self.down_class(self, name="app_downstream", video_streaming_server_resource=resource)
+                self.down_class(
+                    self, name="app_downstream", video_streaming_server_resource=resource
+                )
                 # Note: Not adding to workflow to avoid execution
 
         test_app = TestApp(ResourceClass, UpstreamClass, DownstreamClass)
