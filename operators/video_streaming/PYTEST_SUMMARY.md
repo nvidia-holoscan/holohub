@@ -14,20 +14,22 @@ operators/video_streaming/
 │   └── python/
 │       └── tests/
 │           ├── conftest.py                              # Pytest fixtures
-│           ├── test_streaming_client_op_bindings.py     # 30 tests
+│           ├── test_streaming_client_op_bindings.py     # 38 test executions (30 functions, 8 parametrized variants)
 │           └── README.md                                # Documentation
 │
 └── video_streaming_server/
     └── python/
         └── tests/
             ├── conftest.py                              # Pytest fixtures
-            ├── test_streaming_server_ops_bindings.py    # 31 tests
+            ├── test_streaming_server_ops_bindings.py    # 51 test executions (42 functions, 9 parametrized variants)
             └── README.md                                # Documentation
 ```
 
 ## Test Coverage
 
-### StreamingClientOp Python Bindings (30 tests)
+> **Note:** Test counts reflect actual test executions (including parametrized variants). For example, a parametrized test with 4 variants counts as 4 test executions.
+
+### StreamingClientOp Python Bindings (38 test executions)
 
 #### TestStreamingClientOpBinding (20+ tests)
 - **Basic Tests:**
@@ -56,9 +58,9 @@ operators/video_streaming/
 - Operator in Application context
 - Operator in Fragment context
 
-### StreamingServerOps Python Bindings (31 tests)
+### StreamingServerOps Python Bindings (51 test executions)
 
-#### TestStreamingServerResourceBinding (18 tests)
+#### TestStreamingServerResourceBinding (23 test executions)
 - **Basic Tests:**
   - Resource creation and initialization
   - Name property validation
@@ -140,14 +142,14 @@ Test project /workspace/holohub/build-video_streaming
 Constructing a list of tests
 Test #1: video_streaming_client_pytest.test_streaming_client_op_bindings.py::TestStreamingClientOpBinding::test_operator_creation_basic
 ...
-Test #61: video_streaming_server_pytest.test_streaming_server_ops_bindings.py::TestStreamingServerIntegration::test_resource_isolation_between_fragments
+Test #89: video_streaming_server_pytest.test_streaming_server_ops_bindings.py::TestBidirectionalServerCompute::test_bidirectional_compute_flow
 
 The following tests passed:
     video_streaming_client_pytest.test_streaming_client_op_bindings.py::TestStreamingClientOpBinding.test_operator_creation_basic
-    ... (all 61 tests listed)
+    ... (all 89 tests listed)
 
-100% tests passed, 0 tests failed out of 61
-Total Test time (real) = 16.88 sec
+100% tests passed, 0 tests failed out of 89
+Total Test time (real) = ~20 sec
 ```
 
 ### 📝 Redirecting Output to a File
@@ -188,18 +190,18 @@ All tests must pass with the following criteria:
 
 | Criteria | Expected | Status |
 |----------|----------|--------|
-| **Total Tests** | 61 tests discovered and run | ✅ PASS |
-| **Client Tests** | 30 tests | ✅ PASS (30/30) |
-| **Server Tests** | 31 tests (18 Resource + 6 Upstream + 6 Downstream + 4 Integration) | ✅ PASS (31/31) |
-| **Pass Rate** | 100% of tests passing | ✅ PASS (61/61 = 100%) |
-| **Execution Time** | < 20 seconds | ✅ PASS (16.88 sec) |
+| **Total Tests** | 89 test executions (72 test functions + 17 parametrized variants) | ✅ PASS |
+| **Client Tests** | 38 test executions (30 functions + 8 parametrized variants) | ✅ PASS (38/38) |
+| **Server Tests** | 51 test executions (42 functions + 9 parametrized variants) | ✅ PASS (51/51) |
+| **Pass Rate** | 100% of tests passing | ✅ PASS (89/89 = 100%) |
+| **Execution Time** | < 20 seconds | ✅ PASS |
 | **Test Output** | Tests organized with proper naming (`.py::TestClass::test_method[params]`) | ✅ PASS |
 | **Integration** | Tests properly registered with CTest via `add_python_tests()` | ✅ PASS |
 | **Coverage** | Both client and server operators comprehensively tested | ✅ PASS |
 
 ### Test Categories Validated
 
-#### ✅ Client Operator Tests (30/30 PASSED)
+#### ✅ Client Operator Tests (38/38 test executions PASSED)
 - Basic creation and initialization
 - Name property handling
 - Inheritance verification
@@ -216,8 +218,8 @@ All tests must pass with the following criteria:
 - Application context integration
 - Fragment context integration
 
-#### ✅ Server Operator Tests (31/31 PASSED)
-- **Resource Tests (18 tests):**
+#### ✅ Server Operator Tests (51/51 test executions PASSED)
+- **Resource Tests (23 test executions):**
   - Basic creation and initialization
   - Name property handling
   - Inheritance verification
@@ -323,7 +325,7 @@ This is expected and intentional behavior.
 
 This pytest implementation provides:
 
-1. ✅ **60+ comprehensive Python binding tests**
+1. ✅ **89 comprehensive Python binding test executions** (72 test functions with 17 parametrized variants)
 2. ✅ **Coverage of both client and server operators**
 3. ✅ **Proper test organization and fixtures**
 4. ✅ **Extensive documentation and examples**

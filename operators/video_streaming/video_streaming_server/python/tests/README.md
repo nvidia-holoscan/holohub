@@ -16,6 +16,8 @@ The pytest tests verify the Python bindings of the StreamingServer operators, fo
 - ✅ **Parameter handling** - Cross-language parameter passing
 - ✅ **Memory management** - No leaks across boundaries
 
+**Test Count:** 51 test executions (42 test functions + 9 parametrized variants)
+
 ## Test Coverage
 
 ### TestStreamingServerResourceBinding

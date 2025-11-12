@@ -15,6 +15,8 @@ The pytest tests verify the Python bindings of the StreamingClientOp operator, f
 - ✅ **Memory management** - No leaks across Python/C++ boundary
 - ✅ **Error handling** - Graceful handling of errors in Python context
 
+**Test Count:** 38 test executions (30 test functions + 8 parametrized variants)
+
 ## Test Coverage
 
 ### TestStreamingClientOpBinding
