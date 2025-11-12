@@ -127,13 +127,22 @@ The video streaming server operators depend on libraries built against CUDA 12 r
 
 ```bash
 # From holohub root
-./holohub build video_streaming --cuda 12 --configure-args='-DBUILD_TESTING=ON'
+# ./holohub test automatically builds with -DBUILD_TESTING=ON
 ./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_server_pytest -VV"
 ```
 
 ### Option 2: Direct pytest Inside Container
 
-For interactive testing and debugging, you can run pytest directly inside the holohub container:
+For interactive testing and debugging, you can run pytest directly inside the holohub container.
+
+**Step 1: Build the project first**
+
+```bash
+# From holohub root - this compiles the Python bindings
+./holohub build video_streaming --cuda 12
+```
+
+**Step 2: Launch container and run pytest**
 
 ```bash
 # Launch interactive container with bash
@@ -147,14 +156,9 @@ pytest operators/video_streaming/video_streaming_server/python/tests/test_stream
 
 # Inside container, run specific test method
 pytest operators/video_streaming/video_streaming_server/python/tests/test_streaming_server_ops_bindings.py::TestStreamingServerResourceBinding::test_resource_creation_basic -v
-
-# Inside container, run with coverage
-pytest operators/video_streaming/video_streaming_server/python/tests/ -v \
-  --cov=video_streaming_server \
-  --cov-report=html
 ```
 
-> **Note:** Running pytest directly requires being inside the holohub container where CUDA libraries and Python dependencies are properly configured. Direct pytest execution outside the container will fail with CUDA library errors.
+> **Note:** You must build the project first to compile the Python bindings. Running pytest directly requires being inside the holohub container where CUDA libraries and Python dependencies are properly configured.
 
 ## Test Output Example
 
