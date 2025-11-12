@@ -127,7 +127,7 @@ The video streaming server operators depend on libraries built against CUDA 12 r
 
 ```bash
 # From holohub root
-# ./holohub test automatically builds with -DBUILD_TESTING=ON
+# ./holohub test automatically builds with -DBUILD_TESTING=ON and compiles Python bindings
 ./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_server_pytest -VV"
 ```
 
@@ -135,11 +135,13 @@ The video streaming server operators depend on libraries built against CUDA 12 r
 
 For interactive testing and debugging, you can run pytest directly inside the holohub container.
 
-**Step 1: Build the project with Python bindings**
+> **⚠️ Important:** You must run `./holohub test` first (Option 1) to build the Python bindings. The build command alone does not compile Python bindings for this project.
+
+**Step 1: Build Python bindings by running tests once**
 
 ```bash
-# From holohub root - this compiles the Python bindings
-./holohub build video_streaming --cuda 12 --language python
+# From holohub root - this builds Python bindings and runs tests
+./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_server_pytest -VV"
 ```
 
 **Step 2: Launch container and run pytest**
@@ -158,7 +160,7 @@ pytest operators/video_streaming/video_streaming_server/python/tests/test_stream
 pytest operators/video_streaming/video_streaming_server/python/tests/test_streaming_server_ops_bindings.py::TestStreamingServerResourceBinding::test_resource_creation_basic -v
 ```
 
-> **Note:** You must build the project first to compile the Python bindings. Running pytest directly requires being inside the holohub container where CUDA libraries and Python dependencies are properly configured.
+> **Note:** Direct pytest may encounter segfaults in compute tests. Option 1 (CTest) is more reliable as it runs tests in isolation.
 
 ## Test Output Example
 
