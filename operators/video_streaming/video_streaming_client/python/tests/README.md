@@ -33,6 +33,7 @@ The pytest tests verify the Python bindings of the StreamingClientOp operator, f
 - `test_setup_method` - setup() method functionality
 - `test_memory_management` - Multiple operators, garbage collection
 - `test_operator_reuse` - Multiple instances with same parameters
+- `test_docstring_availability` - Docstring availability for bindings
 - `test_string_parameter_handling` - String handling across boundaries
 - `test_edge_case_resolutions` - Min/max resolutions
 - `test_edge_case_fps` - Min/max frame rates
@@ -58,10 +59,10 @@ The pytest tests verify the Python bindings of the StreamingClientOp operator, f
 
 **Compute Method Tests:**
 - `test_compute_method_exists` - Method accessibility
-- `test_client_compute_with_mock_frame` - Basic compute functionality
-- `test_client_compute_with_various_resolutions` - Multiple resolutions
-- `test_client_compute_with_float_frames` - Float32 frames
-- `test_client_compute_method_signature` - Method signature validation
+- `test_compute_with_mock_input_frame` - Basic compute functionality with mock input
+- `test_compute_with_various_frame_sizes` - Multiple frame sizes
+- `test_compute_with_float_frames` - Float32 frames
+- `test_compute_method_signature` - Method signature validation
 
 ## ⚠️ CUDA Version Compatibility
 
