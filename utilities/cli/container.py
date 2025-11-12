@@ -37,6 +37,7 @@ from .util import (
     get_default_cuda_version,
     get_group_id,
     get_holohub_root,
+    get_holohub_setup_scripts_dir,
     get_host_gpu,
     get_image_pythonpath,
     list_normalized_languages,
@@ -129,6 +130,13 @@ class HoloHubContainer:
             "--build-args",
             help="(Build container) Extra arguments to docker build command, "
             "example: `--build-args '--network=host --build-arg \"CUSTOM=value with spaces\"'`",
+        )
+        parser.add_argument(
+            "--extra-scripts",
+            action="append",
+            help="(Build container) Named dependency installation scripts to run as Docker layers."
+            + "Searches in the directory path specified by the HOLOHUB_SETUP_SCRIPTS_DIR environment variable."
+            + "Use `./holohub setup --list-scripts` to list all available scripts.",
         )
         return parser
 
@@ -381,9 +389,19 @@ class HoloHubContainer:
         img: Optional[str] = None,
         no_cache: bool = False,
         build_args: Optional[str] = None,
+        extra_scripts: Optional[List[str]] = None,
         cuda_version: Optional[Union[str, int]] = None,
     ) -> None:
-        """Build the container image"""
+        """
+        Build the container image according to the procedure:
+
+        1. Build the Dockerfile provided environment with the given BASE_IMAGE and given tag.
+            If extra_scripts are provided, also tag this image as {img}-base.
+        2. If extra_scripts are provided, build an additional Docker layer for each script.
+            Tag each iterative layer as {img}-{script} and {img}.
+
+        Result: Docker image named {img} based on the Dockerfile and any additional scripts.
+        """
 
         if cuda_version is not None:
             self.cuda_version = cuda_version
@@ -439,9 +457,50 @@ class HoloHubContainer:
         if full_build_args:
             cmd.extend(shlex.split(full_build_args))
 
-        cmd.extend(["-f", str(docker_file_path), "-t", img, str(HoloHubContainer.HOLOHUB_ROOT)])
+        cmd.extend(
+            [
+                "-f",
+                str(docker_file_path),
+                "-t",
+                img,
+                *(["-t", f"{img}-base"] if extra_scripts else []),
+                str(HoloHubContainer.HOLOHUB_ROOT),
+            ]
+        )
 
         run_command(cmd, dry_run=self.dryrun)
+
+        if extra_scripts:
+            for script in extra_scripts:
+                script_path = get_holohub_setup_scripts_dir() / f"{script}.sh"
+                if not script_path.exists():
+                    fatal(f"Script {script}.sh not found in {get_holohub_setup_scripts_dir()}")
+                try:
+                    relative_script_path = script_path.relative_to(HoloHubContainer.HOLOHUB_ROOT)
+                except ValueError:
+                    fatal(
+                        f"Script {script}.sh at {script_path} is not within {HoloHubContainer.HOLOHUB_ROOT}. "
+                        f"The HOLOHUB_SETUP_SCRIPTS_DIR environment variable must resolve to a subdirectory within the project scope."
+                    )
+                cmd = [
+                    self.DOCKER_EXE,
+                    "build",
+                    "--build-arg",
+                    "BUILDKIT_INLINE_CACHE=1",
+                    "--build-arg",
+                    f"BASE_IMAGE={img}",
+                    "--network=host",
+                    "--build-arg",
+                    f"SCRIPT={relative_script_path}",
+                    "-t",
+                    f"{img}-{script}",
+                    "-t",
+                    f"{img}",
+                    "-f",
+                    str(get_holohub_setup_scripts_dir() / "Dockerfile.util"),
+                    str(HoloHubContainer.HOLOHUB_ROOT),
+                ]
+                run_command(cmd, dry_run=self.dryrun)
 
     def run(
         self,
