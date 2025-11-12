@@ -447,9 +447,8 @@ class TestStreamingClientOpCompute:
         compute_method = getattr(op, "compute")
         assert callable(compute_method)
 
-        # The method should accept 3 arguments (plus self)
-        import inspect
-
-        sig = inspect.signature(compute_method)
-        # Should have 3 parameters: op_input, op_output, execution_context
-        assert len(sig.parameters) == 3
+        # Note: inspect.signature() doesn't work on pybind11 C++ methods
+        # as they don't have Python signature metadata by default.
+        # The functional tests (test_compute_with_mock_input_frame, etc.)
+        # verify that compute() works correctly with the expected parameters:
+        # compute(op_input, op_output, execution_context)
