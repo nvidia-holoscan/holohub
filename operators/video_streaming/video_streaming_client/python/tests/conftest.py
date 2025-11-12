@@ -130,7 +130,9 @@ def mock_image():
         if dtype.kind in "ui":
             img = rng.integers(0, 256, size=shape, dtype=dtype, endpoint=False)
         elif dtype.kind == "f":
-            img = rng.uniform(0.0, 1.0, size=shape, dtype=dtype)
+            img = rng.uniform(0.0, 1.0, size=shape)
+            if img.dtype != dtype:
+                img = img.astype(dtype, copy=False)
         else:
             raise ValueError(f"{dtype=} unsupported")
         return img
