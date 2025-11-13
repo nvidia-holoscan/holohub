@@ -65,7 +65,7 @@ if(BUILD_TESTING)
   add_test(NAME colonoscopy_segmentation_python_test
            COMMAND ${PYTHON_EXECUTABLE_TEST} ${CMAKE_CURRENT_BINARY_DIR}/colonoscopy_segmentation_test.py
                    --config ${CMAKE_CURRENT_BINARY_DIR}/colonoscopy_segmentation_testing.yaml
-                   --data "${HOLOHUB_DATA_DIR}/colonoscopy_segmentation"       
+                   --data "${HOLOHUB_DATA_DIR}/colonoscopy_segmentation"
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_property(TEST colonoscopy_segmentation_python_test
                 PROPERTY ENVIRONMENT PYTHONPATH="")
