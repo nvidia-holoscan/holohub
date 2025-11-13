@@ -33,7 +33,7 @@ ARG CMAKE_BUILD_TYPE=Release
 # Set up prerequisites to run HoloHub CLI
 #
 # --------------------------------------------------------------------------
-FROM base as holohub-cli-prerequisites
+FROM base AS holohub-cli-prerequisites
 
 # Install python3 if not present (needed for holohub CLI)
 ARG PYTHON_VERSION=python3
@@ -65,7 +65,7 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 # Use HoloHub CLI to set up common packages for developing with Holoscan SDK
 #
 # --------------------------------------------------------------------------
-FROM holohub-cli-prerequisites as holohub-cli
+FROM holohub-cli-prerequisites AS holohub-cli
 
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
@@ -86,7 +86,7 @@ ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 # Holoscan SDK Flow Benchmarking performance tools
 #
 # --------------------------------------------------------------------------
-FROM holohub-cli as benchmarking-setup
+FROM holohub-cli AS benchmarking-setup
 
 ARG CMAKE_BUILD_TYPE=Release
 
@@ -114,7 +114,7 @@ ENV PYTHONPATH=/workspace/holohub/benchmarks/holoscan_flow_benchmarking
 # Set up common packages for developing with Yuan Qcap
 #
 # --------------------------------------------------------------------------
-FROM holohub-cli as yuan-qcap
+FROM holohub-cli AS yuan-qcap
 
 # Qcap dependency
 RUN apt update \
@@ -129,7 +129,7 @@ RUN apt update \
 # Set up common packages for developing with RTI Connext DDS
 #
 # --------------------------------------------------------------------------
-FROM holohub-cli as dds
+FROM holohub-cli AS dds
 
 RUN apt update \
     && apt install --no-install-recommends -y \
@@ -142,4 +142,4 @@ RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/ja
 # as the environment for project development.
 #
 # --------------------------------------------------------------------------
-FROM holohub-cli as holohub-dev
+FROM holohub-cli AS holohub-dev

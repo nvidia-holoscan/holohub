@@ -63,6 +63,14 @@ if(HOLOHUB_BUILD_PYTHON)
   endif()
   set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
   file(MAKE_DIRECTORY ${HOLOHUB_PYTHON_MODULE_OUT_DIR})
+
+  # Find the Python interpreter
+  find_package(Python COMPONENTS Interpreter)
+  set(PYTHON_EXECUTABLE ${Python_EXECUTABLE})
+  # Set the Python executable for testing if not defined
+  if(NOT DEFINED PYTHON_EXECUTABLE_TEST)
+    set(PYTHON_EXECUTABLE_TEST ${Python_EXECUTABLE})
+  endif()
 endif()
 
 # Set the default data directory
