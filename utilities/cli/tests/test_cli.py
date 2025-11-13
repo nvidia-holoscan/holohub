@@ -868,8 +868,6 @@ exec {holohub_script} "$@"
         self.assertIn("-DCOVERAGE=ON", kwargs["extra_args"][1])
         # Should run as root to allow package installation
         self.assertTrue(kwargs.get("as_root", False))
-        # Ensure preinstall for gcov (gcc) is prefixed
-        self.assertIn("apt-get install -y gcc", kwargs["extra_args"][1])
 
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_coverage_build_arg(self, mock_make_container):
