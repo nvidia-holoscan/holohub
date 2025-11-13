@@ -870,7 +870,7 @@ class HoloHubCLI:
         if not skip_docker_build:
             build_args = args.build_args or ""
             extra_scripts = (getattr(args, "extra_scripts", None) or []).copy()
-            
+
             # Configure coverage if enabled
             if getattr(args, "coverage", False):
                 # Add COVERAGE build argument
