@@ -75,9 +75,9 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
     ; fi
 
-RUN pip3 install holoscan cupy-cuda12x \
-    && chmod -R a+w /usr/local/lib/python3.12/dist-packages/holoscan-*.dist-info/ \
-    && chmod -R a+rw /usr/local/lib/python3.12/dist-packages/holoscan
+RUN set -e \
+    && pip3 install holoscan cupy-cuda12x \
+    && python3 -c "pass"  # dummy command to run wheel-axle-runtime post-installation setup
 
 ########################################################
 # Build with AJA C++ requirements
