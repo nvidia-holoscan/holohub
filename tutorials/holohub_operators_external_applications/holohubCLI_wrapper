@@ -18,14 +18,14 @@
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Pulls the holohub CLI from the holohub repo
-# The script checks if utilities/cli exists in the current directory, 
+# The script checks if utilities/cli exists in the current directory,
 # if not it pulls the holohub CLI from the holohub repo
 # To update the holohub CLI, remove the utilities/cli directory and run the script again
 if [ ! -d "${SCRIPT_PATH}/utilities/cli" ]; then
     git clone --depth 1 --no-checkout https://github.com/nvidia-holoscan/holohub.git ${SCRIPT_PATH}/.tmp-holohub/holohub \
         && cd ${SCRIPT_PATH}/.tmp-holohub/holohub \
         && git sparse-checkout init --cone \
-        && git sparse-checkout set utilities/cli utilities/metadata utilities/testing cmake\
+        && git sparse-checkout set utilities/cli utilities/metadata utilities/testing utilities/setup cmake\
         && git checkout main \
         && mv ${SCRIPT_PATH}/.tmp-holohub/holohub/utilities ${SCRIPT_PATH} \
         && mv ${SCRIPT_PATH}/.tmp-holohub/holohub/cmake ${SCRIPT_PATH} \

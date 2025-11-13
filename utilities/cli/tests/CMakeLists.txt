@@ -445,3 +445,12 @@ add_test(  # Test that Python projects automatically get -DHOLOHUB_BUILD_PYTHON=
 set_property(TEST test_holohub_build_python_auto_flag PROPERTY
     PASS_REGULAR_EXPRESSION "-DHOLOHUB_BUILD_PYTHON=ON"
 )
+
+add_test(
+    NAME test_holohub_run_container_extra_scripts_xvfb
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --extra-scripts xvfb --dryrun
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST test_holohub_run_container_extra_scripts_xvfb PROPERTY
+    PASS_REGULAR_EXPRESSION "SCRIPT=utilities/setup/xvfb.sh"
+)

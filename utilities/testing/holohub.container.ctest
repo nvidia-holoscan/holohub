@@ -52,6 +52,22 @@ set(configure_options
   -D APP_${APP}=ON
 )
 
+# Enable coverage if requested
+if(COVERAGE)
+
+  set(CTEST_CUSTOM_COVERAGE_EXCLUDE
+    ".*/_deps/.*"
+  )
+
+  list(APPEND configure_options
+    -DCMAKE_C_FLAGS=--coverage
+    -DCMAKE_CXX_FLAGS=--coverage
+    -DCMAKE_EXE_LINKER_FLAGS=--coverage
+    -DCMAKE_SHARED_LINKER_FLAGS=--coverage
+    "-DPYTHON_EXECUTABLE_TEST=coverage\;run\;--data-file=${CTEST_BINARY_DIRECTORY}/.coverage"
+  )
+endif()
+
 # Default nightly start time
 set(CTEST_NIGHTLY_START_TIME "06:00:00 UTC")
 
@@ -59,6 +75,15 @@ ctest_start(Nightly)
 ctest_configure(OPTIONS "${configure_options}")
 ctest_build()
 ctest_test(RETURN_VALUE test_result)
+
+if(COVERAGE)
+  # Generate the python coverage report as XML for CTest
+  execute_process(COMMAND coverage xml -o "${CTEST_BINARY_DIRECTORY}/coverage.xml"
+                  WORKING_DIRECTORY "${CTEST_BINARY_DIRECTORY}"
+                 )               
+  set(CTEST_COVERAGE_COMMAND "/usr/bin/gcov")
+  ctest_coverage()
+endif()
 
 if(CTEST_SUBMIT_URL)
   ctest_submit()
