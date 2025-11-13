@@ -13,17 +13,24 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "0.6.0",
+			"minimum_required_version": "3.5.0",
 			"tested_versions": [
-				"0.6.0"
+				"3.8.0"
 			]
 		},
 		"platforms": [
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "VLM", "Agent", "Video Streaming", "WebRTC", "MONAI"],
-		"ranking": 1,
+		"tags": [
+			"Healthcare AI",
+			"VLM",
+			"Agent",
+			"Video Streaming",
+			"WebRTC",
+			"MONAI"
+		],
+		"ranking": 2,
 		"requirements": {
 			"data": [
 				{
@@ -65,26 +72,77 @@
 				]
 			}
 		},
-	"dependencies": {
-		"applications": [
-			"webrtc_video_server"
-		]
-	},
-		"run": {
-			"command": "bash <holohub_app_source>/surgical_agent.sh",
-			"workdir": "holohub_root",
-			"options": {
-				"all": "Build and run everything (default)",
-				"build-video": "Build video streaming server app only",
-				"run-video": "Run video streaming server app only",
-				"setup-surgical": "Clone/update surgical framework only",
-				"run-surgical": "Run surgical agents only",
-				"stop-video": "Stop video streaming server app",
-				"stop-surgical": "Stop surgical agents services",
-				"clean": "Stop all services and clean up",
-				"help": "Show help message"
+		"dependencies": {
+			"applications": [
+				"webrtc_video_server"
+			]
+		},
+		"modes": {
+			"all": {
+				"description": "Build and run everything (default)",
+				"run": {
+					"command": "bash <holohub_app_source>/surgical_agent.sh all",
+					"workdir": "holohub_root"
+				}
+			},
+			"build-video": {
+				"description": "Build video streaming server app only",
+				"run": {
+					"command": "bash <holohub_app_source>/surgical_agent.sh build-video",
+					"workdir": "holohub_root"
+				}
+			},
+			"run-video": {
+				"description": "Run video streaming server app only",
+				"run": {
+					"command": "bash <holohub_app_source>/surgical_agent.sh run-video",
+					"workdir": "holohub_root"
+				}
+			},
+			"setup-surgical": {
+				"description": "Clone/update surgical framework only",
+				"run": {
+					"command": "bash <holohub_app_source>/surgical_agent.sh setup-surgical",
+					"workdir": "holohub_root"
+				}
+			},
+			"run-surgical": {
+				"description": "Run surgical agents only",
+				"run": {
+					"command": "bash <holohub_app_source>/surgical_agent.sh run-surgical",
+					"workdir": "holohub_root"
+				}
+			},
+			"stop-video": {
+				"description": "Stop video streaming server app",
+				"run": {
+					"command": "bash <holohub_app_source>/surgical_agent.sh stop-video",
+					"workdir": "holohub_root"
+				}
+			},
+			"stop-surgical": {
+				"description": "Stop surgical agents services",
+				"run": {
+					"command": "bash <holohub_app_source>/surgical_agent.sh stop-surgical",
+					"workdir": "holohub_root"
+				}
+			},
+			"clean": {
+				"description": "Stop all services and clean up",
+				"run": {
+					"command": "bash <holohub_app_source>/surgical_agent.sh clean",
+					"workdir": "holohub_root"
+				}
+			},
+			"help": {
+				"description": "Show help message",
+				"run": {
+					"command": "bash <holohub_app_source>/surgical_agent.sh help",
+					"workdir": "holohub_root"
+				}
 			}
 		},
+		"default_mode": "all",
 		"services": [
 			{
 				"name": "Video Streaming Server",

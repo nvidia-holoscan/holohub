@@ -21,15 +21,19 @@ Before running the workflow, ensure you have:
 ## Quick Start
 
 ### Run Everything (Default)
+
 ```bash
 ./surgical_agent.sh
 ```
+
 or
+
 ```bash
 ./surgical_agent.sh all
 ```
 
 This will:
+
 1. Build the video streaming app
 2. Start the video server at `http://127.0.0.1:8080`
 3. Clone the VLM-Surgical-Agent-Framework repository
@@ -38,6 +42,7 @@ This will:
 ### Individual Components
 
 #### Video Streaming Only
+
 ```bash
 # Build the video app
 ./surgical_agent.sh build-video
@@ -47,6 +52,7 @@ This will:
 ```
 
 #### Surgical Agents Only
+
 ```bash
 # Setup/clone the framework
 ./surgical_agent.sh setup-surgical
@@ -56,6 +62,7 @@ This will:
 ```
 
 #### Management Commands
+
 ```bash
 # Stop the video app
 ./surgical_agent.sh stop-video
@@ -72,12 +79,15 @@ This will:
 When fully running, the following services will be available:
 
 ### Video Streaming
+
 - **WebRTC Server**: `http://127.0.0.1:8080`
   - Web interface for video streaming
   - Click "Start" to begin video playback
 
 ### Surgical Agent Framework
+
 The surgical agents framework runs multiple services via Docker:
+
 - **LLM Server (vLLM)**: Port 8000
 - **Whisper ASR**: Port 43001
 - **Main Flask App**: Port 8050
@@ -88,7 +98,8 @@ Visit `http://127.0.0.1:8050` for the surgical agent interface.
 ## Repository Structure
 
 After running, the directory will contain:
-```
+
+```text
 workflows/surgical_agent/
 ├── surgical_agent.sh                    # Main workflow script
 ├── README.md                            # This file
@@ -131,6 +142,7 @@ The typical workflow for using both systems together:
 ### Manual Cleanup
 
 If the script cleanup fails:
+
 ```bash
 # Stop video streaming containers specifically (using robust pattern matching)
 docker stop $(docker ps --format "{{.ID}}\t{{.Image}}\t{{.Command}}" | awk '$2 ~ /^holohub:/ && $3 ~ /\.\/holohub run webrtc_video_server/ {print $1}')
