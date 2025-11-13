@@ -953,14 +953,6 @@ class HoloHubCLI:
         if args.verbose:
             ctest_cmd += "-VV "
 
-        # If coverage is requested, ensure gcov is available; install gcc if missing (as root)
-        if getattr(args, "coverage", False):
-            preinstall_cmd = (
-                "if ! command -v gcov >/dev/null 2>&1; then "
-                "(apt-get update && apt-get install -y gcc) || true; fi; "
-            )
-            ctest_cmd = preinstall_cmd + ctest_cmd
-
         container.run(
             img=getattr(args, "img", None),
             use_tini=True,
