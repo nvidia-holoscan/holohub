@@ -13,7 +13,7 @@
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "3.5.0",
+			"minimum_required_version": "3.0.0",
 			"tested_versions": [
 				"3.8.0"
 			]
