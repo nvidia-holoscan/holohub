@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(video_streaming LANGUAGES CXX)
-
 # If APP_video_streaming is set, enable both client and server
 if(APP_video_streaming)
   set(APP_video_streaming_client ON CACHE BOOL "Build the video_streaming_client application" FORCE)
