@@ -824,6 +824,9 @@ class HoloHubCLI:
                 cuda_version=getattr(args, "cuda", None),
                 extra_scripts=getattr(args, "extra_scripts", []),
             )
+        else:
+            if hasattr(args, "cuda") and args.cuda is not None:
+                container.cuda_version = args.cuda
 
         trailing_args = getattr(args, "_trailing_args", [])
         docker_opts = args.docker_opts
@@ -886,6 +889,9 @@ class HoloHubCLI:
                 cuda_version=getattr(args, "cuda", None),
                 extra_scripts=extra_scripts,
             )
+        else:
+            if hasattr(args, "cuda") and args.cuda is not None:
+                container.cuda_version = args.cuda
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"
 
@@ -1129,6 +1135,9 @@ class HoloHubCLI:
                     cuda_version=getattr(args, "cuda", None),
                     extra_scripts=getattr(args, "extra_scripts", []),
                 )
+            else:
+                if hasattr(args, "cuda") and args.cuda is not None:
+                    container.cuda_version = args.cuda
 
             # Build command with all necessary arguments
             build_cmd = f"{self.script_name} build {args.project}"
@@ -1363,6 +1372,10 @@ class HoloHubCLI:
                     cuda_version=getattr(args, "cuda", None),
                     extra_scripts=getattr(args, "extra_scripts", []),
                 )
+            else:
+                if hasattr(args, "cuda") and args.cuda is not None:
+                    container.cuda_version = args.cuda
+
             language = holohub_cli_util.normalize_language(
                 container.project_metadata.get("metadata", {}).get("language", None)
             )
@@ -1884,6 +1897,9 @@ class HoloHubCLI:
                     cuda_version=getattr(args, "cuda", None),
                     extra_scripts=getattr(args, "extra_scripts", []),
                 )
+            else:
+                if hasattr(args, "cuda") and args.cuda is not None:
+                    container.cuda_version = args.cuda
 
             # Install command with all necessary arguments
             install_cmd = f"{self.script_name} install {args.project} --local"
@@ -1995,6 +2011,8 @@ class HoloHubCLI:
                 extra_scripts=getattr(args, "extra_scripts", []),
             )
         else:
+            if hasattr(args, "cuda") and args.cuda is not None:
+                container.cuda_version = args.cuda
             print(f"Skipping build, using existing Dev Container {dev_container_tag}...")
         devcontainer_env_options = container.get_devcontainer_args(
             docker_opts=getattr(args, "docker_opts", None) or ""
