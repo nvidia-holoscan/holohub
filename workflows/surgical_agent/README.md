@@ -23,7 +23,7 @@ Before running the workflow, ensure you have:
 ### Run Everything (Default)
 
 ```bash
-./holohub run surgical_agent
+./holohub run surgical_agent --local
 ```
 
 This will:
@@ -59,7 +59,7 @@ This will:
 
 ```bash
 # Stop the video app
-./holohub run surgical_agent stop-video
+./holohub run surgical_agent stop-video --local
 
 # Clean up all services
 ./holohub run surgical_agent clean
