@@ -865,11 +865,17 @@ class HoloHubCLI:
         container.verbose = args.verbose
 
         if not skip_docker_build:
-            # Add COVERAGE build argument if coverage is enabled
             build_args = args.build_args or ""
+            extra_scripts = (getattr(args, "extra_scripts", None) or []).copy()
+            
+            # Configure coverage if enabled
             if getattr(args, "coverage", False):
+                # Add COVERAGE build argument
                 coverage_arg = "--build-arg COVERAGE=ON"
                 build_args = f"{build_args} {coverage_arg}".strip()
+                # Add coverage setup script
+                if "coverage" not in extra_scripts:
+                    extra_scripts.append("coverage")
 
             container.build(
                 docker_file=args.docker_file,
@@ -878,7 +884,7 @@ class HoloHubCLI:
                 no_cache=args.no_cache,
                 build_args=build_args,
                 cuda_version=getattr(args, "cuda", None),
-                extra_scripts=getattr(args, "extra_scripts", []),
+                extra_scripts=extra_scripts,
             )
 
         xvfb = "" if args.no_xvfb else "xvfb-run -a"

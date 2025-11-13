@@ -59,6 +59,7 @@ if(COVERAGE)
     -DCMAKE_CXX_FLAGS=--coverage
     -DCMAKE_EXE_LINKER_FLAGS=--coverage
     -DCMAKE_SHARED_LINKER_FLAGS=--coverage
+    "-DPYTHON_EXECUTABLE_TEST=coverage\;run\;--data-file=${CTEST_BINARY_DIRECTORY}/.coverage"
   )
 endif()
 
@@ -71,6 +72,10 @@ ctest_build()
 ctest_test(RETURN_VALUE test_result)
 
 if(COVERAGE)
+  # Generate the python coverage report as XML for CTest
+  execute_process(COMMAND coverage xml -o "${CTEST_BINARY_DIRECTORY}/coverage.xml"
+                  WORKING_DIRECTORY "${CTEST_BINARY_DIRECTORY}"
+                 )               
   set(CTEST_COVERAGE_COMMAND "/usr/bin/gcov")
   ctest_coverage()
 endif()
