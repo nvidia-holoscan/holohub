@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -144,7 +144,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     // This section simply serves as an example to get an Eth+IP+UDP header onto the GPU,
     // but this header will not be correct without modification of the IP and MAC. In a
     // real situation the header would likely be constructed on the GPU
-    if (gpu_direct_.get() && hds_.get() == 0) {
+    if (gpu_direct_.get() && !hds_.get()) {
       cudaMalloc(&gds_header_, header_size_.get());
       cudaMemset(gds_header_, 0, header_size_.get());
 
@@ -168,11 +168,11 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
                          "Payload size",
                          "Payload size to send including HDS portion",
                          1400);
-    spec.param<int>(hds_,
-                    "split_boundary",
-                    "Header-data split boundary",
-                    "Byte boundary where header and data is split",
-                    0);
+    spec.param<bool>(hds_,
+                     "split_boundary",
+                     "Header-data split boundary",
+                     "Whether header and data is split (Header to CPU, payload to GPU)",
+                     false);
     spec.param<bool>(gpu_direct_,
                      "gpu_direct",
                      "GPUDirect enabled",
@@ -212,7 +212,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     }
 
     auto msg = create_tx_burst_params();
-    set_header(msg, port_id_, queue_id, batch_size_.get(), hds_.get() > 0 ? 2 : 1);
+    set_header(msg, port_id_, queue_id, batch_size_.get(), hds_.get() ? 2 : 1);
 
     /**
      * Spin waiting until a buffer is free. This can be stalled by sending faster than the NIC can
@@ -242,7 +242,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
 
     // For HDS mode or CPU mode populate the packet headers
     for (int num_pkt = 0; num_pkt < get_num_packets(msg); num_pkt++) {
-      if (!gpu_direct_.get() || hds_.get() > 0) {
+      if (!gpu_direct_.get() || hds_.get()) {
         if ((ret = set_eth_header(msg, num_pkt, eth_dst_)) != Status::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set Ethernet header for packet {}", num_pkt);
           free_all_packets_and_burst_tx(msg);
@@ -273,7 +273,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
         udp_dst_idx_ = (++udp_dst_idx_ % udp_dst_ports_.size());
 
         // Only set payload on CPU buffer if we're not in HDS mode
-        if (hds_.get() == 0) {
+        if (!hds_.get()) {
           if ((ret = set_udp_payload(
                    msg,
                    num_pkt,
@@ -287,10 +287,10 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       }
 
       // Figure out the CPU and GPU length portions for advanced_network
-      if (gpu_direct_.get() && hds_.get() > 0) {
+      if (gpu_direct_.get() && hds_.get()) {
         gpu_bufs[cur_idx][num_pkt] =
             reinterpret_cast<uint8_t*>(get_segment_packet_ptr(msg, 1, num_pkt));
-        if ((ret = set_packet_lengths(msg, num_pkt, {hds_.get(), payload_size_.get()})) !=
+        if ((ret = set_packet_lengths(msg, num_pkt, {header_size_.get(), payload_size_.get()})) !=
             Status::SUCCESS) {
           HOLOSCAN_LOG_ERROR("Failed to set lengths for packet {}", num_pkt);
           free_all_packets_and_burst_tx(msg);
@@ -313,7 +313,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     }
 
     // In GPU-only mode copy the header
-    if (gpu_direct_.get() && hds_.get() == 0) {
+    if (gpu_direct_.get() && !hds_.get()) {
       copy_headers(gpu_bufs[cur_idx],
                    gds_header_,
                    header_size_.get(),
@@ -323,7 +323,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
 
     // Populate packets with 16-bit numbers of {0,0}, {1,1}, ...
     if (gpu_direct_.get()) {
-      const auto offset = (hds_.get() > 0) ? 0 : header_size_.get();
+      const auto offset = hds_.get() ? 0 : header_size_.get();
       populate_packets(gpu_bufs[cur_idx],
                        payload_size_.get(),
                        get_num_packets(msg),
@@ -371,7 +371,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   size_t udp_dst_idx_ = 0;
   std::vector<uint16_t> udp_src_ports_;
   std::vector<uint16_t> udp_dst_ports_;
-  Parameter<int> hds_;          // Header-data split point
+  Parameter<bool> hds_;         // Header-data split enabled
   Parameter<bool> gpu_direct_;  // GPUDirect enabled
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> header_size_;  // Header size of packet

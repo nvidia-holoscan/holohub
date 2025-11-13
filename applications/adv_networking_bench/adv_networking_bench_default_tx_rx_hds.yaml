@@ -31,6 +31,11 @@ advanced_network:
     loopback: ""
 
     memory_regions:
+    - name: "Data_TX_CPU"
+      kind: "huge"
+      affinity: 0
+      num_bufs: 51200
+      buf_size: 64    
     - name: "Data_TX_GPU"
       kind: "device"
       affinity: 0
@@ -57,11 +62,12 @@ advanced_network:
           batch_size: 10240
           cpu_core: 11
           memory_regions:
+            - "Data_TX_CPU"
             - "Data_TX_GPU"
           offloads:
             - "tx_eth_src"
     - name: "rx_port"
-      address: <0000:00:00.0>       # The BUS address of the interface doing Rx
+      address: <0000:00:00.0>      # The BUS address of the interface doing Rx
       rx:
         flow_isolation: true
         queues:
@@ -94,7 +100,7 @@ bench_rx:
 bench_tx:
   interface_name: "tx_port" # Name of the TX port from the advanced_network config
   gpu_direct: true          # Set to true if using a GPU region for the Tx queues.
-  split_boundary: 0         # Byte boundary where header and data is split, 0 if no split
+  split_boundary: true         # Byte boundary where header and data is split, 0 if no split
   batch_size: 10240
   payload_size: 1000
   header_size: 64
