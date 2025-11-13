@@ -23,13 +23,7 @@ Before running the workflow, ensure you have:
 ### Run Everything (Default)
 
 ```bash
-./surgical_agent.sh
-```
-
-or
-
-```bash
-./surgical_agent.sh all
+./holohub run surgical_agent
 ```
 
 This will:
@@ -45,33 +39,33 @@ This will:
 
 ```bash
 # Build the video app
-./surgical_agent.sh build-video
+./holohub run surgical_agent build-video
 
 # Run the video app
-./surgical_agent.sh run-video
+./holohub run surgical_agent run-video
 ```
 
 #### Surgical Agents Only
 
 ```bash
 # Setup/clone the framework
-./surgical_agent.sh setup-surgical
+./holohub run surgical_agent setup-surgical
 
 # Run the surgical agents
-./surgical_agent.sh run-surgical
+./holohub run surgical_agent run-surgical
 ```
 
 #### Management Commands
 
 ```bash
 # Stop the video app
-./surgical_agent.sh stop-video
+./holohub run surgical_agent stop-video
 
 # Clean up all services
-./surgical_agent.sh clean
+./holohub run surgical_agent clean
 
 # Show help
-./surgical_agent.sh help
+./holohub run surgical_agent help
 ```
 
 ## Services and Ports
@@ -117,12 +111,12 @@ workflows/surgical_agent/
 
 The typical workflow for using both systems together:
 
-1. **Start Services**: Run `./surgical_agent.sh` to start both video streaming and surgical agents
+1. **Start Services**: Execute `./holohub run surgical_agent to start both video streaming and surgical agents
 2. **Video Analysis**:
    - Open `http://127.0.0.1:8080` for video streaming
    - Open `http://127.0.0.1:8050` for surgical analysis
 3. **Interactive Analysis**: Use the surgical agent interface to analyze video content, take notes, and generate reports
-4. **Cleanup**: Run `./surgical_agent.sh clean` when finished
+4. **Cleanup**: Execute `./holohub run surgical_agent clean` when finished
 
 ## Troubleshooting
 
