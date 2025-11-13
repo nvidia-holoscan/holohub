@@ -37,9 +37,8 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
 endif()
 
 if(BUILD_TESTING)
-
   add_test(NAME volume_rendering_python_test
-           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/volume_rendering.py
+           COMMAND ${PYTHON_EXECUTABLE_TEST} ${CMAKE_CURRENT_SOURCE_DIR}/volume_rendering.py
              --count=100
              -c "${HOLOHUB_DATA_DIR}/volume_rendering/config.json"
              -d "${HOLOHUB_DATA_DIR}/volume_rendering/highResCT.mhd"

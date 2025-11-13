@@ -131,6 +131,12 @@ The new CLI introduces development lifecycle features:
 # Integrated testing framework
 ./holohub test myapp
 
+# With code coverage (requires coverage tools in image)
+./holohub test myapp --coverage
+
+# Specify language when a project has multiple implementations
+./holohub test myapp --language python
+
 # Show environment information
 ./holohub env-info
 ```

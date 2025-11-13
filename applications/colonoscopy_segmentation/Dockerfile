@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nvcr.io/nvidia/cuda:12.9.0-base-ubuntu24.04 as base
+FROM nvcr.io/nvidia/cuda:12.9.0-base-ubuntu24.04 AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -82,7 +82,7 @@ RUN set -e \
 ########################################################
 # Build with AJA C++ requirements
 ########################################################
-FROM base as aja_build
+FROM base AS aja_build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential gcc g++ git \
