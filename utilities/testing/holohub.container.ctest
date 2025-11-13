@@ -54,6 +54,11 @@ set(configure_options
 
 # Enable coverage if requested
 if(COVERAGE)
+
+  set(CTEST_CUSTOM_COVERAGE_EXCLUDE
+    ".*/_deps/.*"
+  )
+
   list(APPEND configure_options
     -DCMAKE_C_FLAGS=--coverage
     -DCMAKE_CXX_FLAGS=--coverage
