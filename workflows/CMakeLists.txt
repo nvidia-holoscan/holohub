@@ -20,4 +20,3 @@ set(HOLOSCAN_OPERATORS
         orsi_segmentation_preprocessor
 )
 add_holohub_application(ai_surgical_video DEPENDS OPERATORS ${HOLOSCAN_OPERATORS})
-add_holohub_application(surgical_agent)
