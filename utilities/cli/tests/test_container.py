@@ -73,6 +73,42 @@ class TestHoloHubContainer(unittest.TestCase):
             f"Image name {self.container.image_name} not found in command: {cmd}",
         )
 
+    @patch("utilities.cli.container.get_current_branch_slug", return_value="main-branch")
+    @patch("utilities.cli.container.get_git_short_sha", return_value="abcdef123456")
+    def test_image_names_contains_sha_branch_legacy(self, mock_sha, mock_branch):
+        """Test that image_names returns sha, branch, and legacy tags in order"""
+        names = self.container.image_names
+        mock_sha.assert_called_once()
+        mock_branch.assert_called_once()
+        self.assertGreaterEqual(len(names), 3)
+        self.assertEqual(names[0], "holohub-test_project:abcdef123456")
+        self.assertEqual(names[1], "holohub-test_project:main-branch")
+        self.assertEqual(names[2], "holohub:test_project")
+
+    @patch("utilities.cli.container.get_current_branch_slug", return_value="dev-branch")
+    @patch("utilities.cli.container.get_git_short_sha", return_value="feedfacebabe")
+    @patch("subprocess.run")
+    def test_build_applies_all_default_tags(self, mock_run, mock_sha, mock_branch):
+        """When --img is omitted, build should tag with sha, branch, and legacy tags."""
+        self.container.build()
+        mock_sha.assert_called()
+        mock_branch.assert_called()
+        cmd = mock_run.call_args[0][0]
+        cmd_str = " ".join(str(x) for x in cmd)
+        self.assertIn("-t holohub-test_project:feedfacebabe", cmd_str)
+        self.assertIn("-t holohub-test_project:dev-branch", cmd_str)
+        self.assertIn("-t holohub:test_project", cmd_str)
+
+    @patch("subprocess.run")
+    def test_build_with_explicit_img_uses_only_that_tag(self, mock_run):
+        """When --img is provided, only that tag should be applied."""
+        self.container.build(img="custom:tag")
+        cmd = mock_run.call_args[0][0]
+        cmd_str = " ".join(str(x) for x in cmd)
+        self.assertIn("-t custom:tag", cmd_str)
+        self.assertNotIn("-t holohub-test_project:", cmd_str)
+        self.assertNotIn("-t holohub:test_project", cmd_str)
+
     @patch("utilities.cli.container.check_nvidia_ctk")
     @patch("utilities.cli.container.get_image_pythonpath")
     @patch("subprocess.run")
@@ -96,7 +132,7 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertTrue("docker" in docker_run_call)
         self.assertTrue("run" in docker_run_call)
         self.assertTrue("--runtime" in docker_run_call and "nvidia" in docker_run_call)
-        self.assertTrue(self.container.image_name in docker_run_call)
+        self.assertIn(self.container.image_names[0], docker_run_call)
 
     @patch("subprocess.CompletedProcess")
     def test_dry_run(self, mock_completed_process):
@@ -104,7 +140,7 @@ class TestHoloHubContainer(unittest.TestCase):
         self.container.dryrun = True
         self.container.run()
         cmd = mock_completed_process.call_args[0][0]
-        self.assertTrue(self.container.image_name in cmd)
+        self.assertIn(self.container.image_names[0], cmd)
         self.assertIn("c 81:* rmw", cmd)
         self.container.dryrun = False
 
