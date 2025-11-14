@@ -113,6 +113,13 @@
 					"workdir": "holohub_root"
 				}
 			},
+			"stop-all": {
+				"description": "Stop all services",
+				"run": {
+					"command": "bash <holohub_app_source>/surgical_agent.sh stop-all",
+					"workdir": "holohub_root"
+				}
+			},
 			"stop-video": {
 				"description": "Stop video streaming server app",
 				"run": {
