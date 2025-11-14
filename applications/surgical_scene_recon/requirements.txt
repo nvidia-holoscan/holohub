@@ -1,0 +1,24 @@
+# Holoscan SDK (already in container)
+# holoscan>=3.7.0
+
+# Deep Learning & Gaussian Splatting
+torch>=2.1.0
+torchvision>=0.16.0
+gsplat>=1.0.0
+
+# GPU Computing
+cupy-cuda12x
+
+# Scientific Computing (numpy already in container)
+scipy
+
+# Image Processing
+pillow
+imageio
+
+# Progress & Utilities
+tqdm
+
+# Build Tools (required by gsplat)
+packaging
+ninja
