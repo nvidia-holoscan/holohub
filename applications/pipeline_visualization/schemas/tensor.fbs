@@ -1,0 +1,66 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace pipeline_visualization.flatbuffers;
+
+enum DLDataTypeCode : uint8 {
+  kDLInt = 0,
+  kDLUInt = 1,
+  kDLFloat = 2,
+}
+
+// Device type of a tensor.
+enum DLDeviceType : int32 {
+  kDLUnknown = 0,
+  kDLCPU = 1,
+  kDLCUDA = 2,
+  kDLCUDAHost = 3,
+  kDLCUDAManaged = 13,
+}
+
+// Data type of a tensor.
+struct DLDataType {
+  // Base type.
+  code: DLDataTypeCode;
+
+  // Number of bits, common choices are 8, 16, 32.
+  bits: uint8;       // e.g., 32 for float32
+
+  // Number of lanes in the type, used for vector types.
+  lanes: uint16;     // SIMD lanes (1 for scalar)
+}
+
+// Device context of a tensor.
+struct DLDevice {
+  // Device type.
+  device_type: DLDeviceType;
+
+  // Device index.
+  device_id: int32;
+}
+
+// Defines a Tensor message based on DLPack
+table Tensor {
+  data: [ubyte];
+  shape: [int64];
+  dtype: DLDataType (native_inline);
+  device: DLDevice (native_inline);
+  ndim: uint32;
+  strides: [int64];
+}
+
+root_type Tensor;
