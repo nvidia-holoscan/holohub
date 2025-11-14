@@ -126,7 +126,10 @@ clone_surgical_framework() {
     if [ -d "VLM-Surgical-Agent-Framework" ]; then
         print_warning "VLM-Surgical-Agent-Framework directory already exists. Pulling latest changes..."
         cd VLM-Surgical-Agent-Framework
-        git pull
+        if ! git pull; then
+            print_warning "Failed to pull latest changes. Repository may have local modifications."
+            print_status "Continuing with existing repository state..."
+        fi
     else
         git clone https://github.com/Project-MONAI/VLM-Surgical-Agent-Framework.git
         cd VLM-Surgical-Agent-Framework

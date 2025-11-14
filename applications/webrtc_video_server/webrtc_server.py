@@ -182,7 +182,11 @@ class WebAppThread(Thread):
         return response
 
     async def _get_ice_servers(self, request):
-        logging.info(f"Available ice servers are {json.dumps(self._ice_servers)}")
+        redacted = [
+            {k: ("<redacted>" if k in ("username", "credential") else v) for k, v in s.items()}
+            for s in self._ice_servers
+        ]
+        logging.info("Available ICE servers: %s", json.dumps(redacted))
         response = web.Response(content_type="application/json", text=json.dumps(self._ice_servers))
 
         # Add CORS headers for cross-origin requests only when aiohttp-cors is not available
@@ -256,7 +260,7 @@ class WebRTCServerApp(holoscan.core.Application):
             format_converter = FormatConverterOp(
                 self,
                 name="convert_video_to_tensor",
-                in_dtype=self._cmdline_args.pixel_format.lower(),
+                in_dtype="rgba8888",
                 out_dtype="rgb888",
                 pool=UnboundedAllocator(self, name="converter_pool"),
                 cuda_stream_pool=CudaStreamPool(

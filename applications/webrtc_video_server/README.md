@@ -138,7 +138,7 @@ Server Options:
   --host HOST           Host for HTTP server (default: 0.0.0.0)
   --port PORT           Port for HTTP server (default: 8080)
   --serve-client        Serve embedded web client UI (default: True)
-  --no-serve-client     API-only mode - do not serve embedded client
+  --no-serve-client     API-only mode - do not serve embedded client (enables full CORS for external clients)
   --cert-file CERT_FILE
                         SSL certificate file (for HTTPS)
   --key-file KEY_FILE   SSL key file (for HTTPS)
