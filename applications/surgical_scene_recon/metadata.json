@@ -1,0 +1,57 @@
+{
+	"application": {
+		"name": "Surgical Scene Reconstruction",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release - Static and Dynamic Gaussian Splatting with Temporal Deformation"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.7.0",
+			"tested_versions": [
+				"3.7.0"
+			]
+		},
+		"platforms": [
+			"x86_64"
+		],
+		"tags": ["Healthcare AI", "Endoscopy", "3D Reconstruction", "Gaussian Splatting", "Neural Rendering", "Temporal Deformation"],
+		"ranking": 2,
+		"requirements": {
+			"pytorch": ">=2.1.0",
+			"gsplat": ">=1.0.0",
+			"cupy": "cuda12x",
+			"data": "EndoNeRF dataset"
+		},
+		"default_mode": "dynamic_rendering",
+		"modes": {
+			"dynamic_rendering": {
+				"description": "High-quality rendering with temporal deformation (recommended for accurate tissue reconstruction)",
+				"run": {
+					"command": "python3 <holohub_app_source>/test_dynamic_rendering_viz.py --data_dir <data_dir>/EndoNeRF/pulling --checkpoint <checkpoint_dir>/ckpts/fine_best_psnr.pt",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"static_rendering": {
+				"description": "Fast preview mode without temporal deformation (for quick visualization)",
+				"run": {
+					"command": "python3 <holohub_app_source>/test_static_rendering_viz.py --data_dir <data_dir>/EndoNeRF/pulling --checkpoint <checkpoint_dir>/ckpts/fine_best_psnr.pt",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"training": {
+				"description": "Train a new Gaussian Splatting model on EndoNeRF dataset",
+				"run": {
+					"command": "python3 <holohub_app_source>/train_standalone.py --data_dir <data_dir>/EndoNeRF/pulling --output_dir <output_dir> --training_iterations 2000",
+					"workdir": "holohub_app_source"
+				}
+			}
+		}
+	}
+}
