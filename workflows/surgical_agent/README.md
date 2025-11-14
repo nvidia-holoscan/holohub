@@ -111,7 +111,7 @@ workflows/surgical_agent/
 
 The typical workflow for using both systems together:
 
-1. **Start Services**: Execute `./holohub run surgical_agent to start both video streaming and surgical agents
+1. **Start Services**: Execute `./holohub run surgical_agent` to start both video streaming and surgical agents
 2. **Video Analysis**:
    - Open `http://127.0.0.1:8080` for video streaming
    - Open `http://127.0.0.1:8050` for surgical analysis
@@ -155,3 +155,10 @@ docker stop $(docker ps -q)
 
 - [HoloHub WebRTC Video Server](../../applications/webrtc_video_server/README.md)
 - [VLM-Surgical-Agent-Framework](https://github.com/Project-MONAI/VLM-Surgical-Agent-Framework/)
+
+## Supported Platforms
+
+This workflow is currently supported on the following platforms:
+
+- **NVIDIA IGX Orin**: NVIDIA IGX Orin embedded computing platform
+- **X86**: Standard x86_64 architecture Ubuntu 22.04/24.04 systems with compatible GPU
