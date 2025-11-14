@@ -27,17 +27,24 @@
 #   PATH - The path to the operator within the Holohub repository (defaults to OPERATOR_NAME)
 #   REPO_URL - The URL of the Holohub repository (defaults to git@github.com:nvidia-holoscan/holohub.git)
 #   BRANCH - The branch to checkout (defaults to "main")
+#   DEPTH - Git clone depth (defaults to 1 for shallow clone, use 0 for full history)
 #   DISABLE_PYTHON - Whether to build Python bindings
+#   PATCH_COMMAND - Custom command to run after checkout (e.g., to apply patches)
+#
+# Note: When using PATCH_COMMAND with patches created from older commits, you may need to increase
+#       DEPTH or set it to 0 to include sufficient git history for the patch to apply correctly.
 #
 # Example:
 #   fetch_holohub_operator(realsense_camera)
 #   fetch_holohub_operator(dds_operator_base PATH dds/base)
 #   fetch_holohub_operator(custom_operator REPO_URL "https://github.com/custom/holohub.git")
 #   fetch_holohub_operator(custom_operator BRANCH "dev")
+#   fetch_holohub_operator(custom_operator DEPTH 0)
 #   fetch_holohub_operator(custom_operator DISABLE_PYTHON)
+#   fetch_holohub_operator(custom_operator PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/fix.patch)
 function(fetch_holohub_operator OPERATOR_NAME)
 
-  cmake_parse_arguments(ARGS "DISABLE_PYTHON" "PATH;REPO_URL;BRANCH" "" ${ARGN})
+  cmake_parse_arguments(ARGS "DISABLE_PYTHON" "PATH;REPO_URL;BRANCH;DEPTH" "PATCH_COMMAND" ${ARGN})
 
   if(NOT ARGS_REPO_URL)
     set(ARGS_REPO_URL "https://github.com/nvidia-holoscan/holohub.git")
@@ -51,6 +58,17 @@ function(fetch_holohub_operator OPERATOR_NAME)
     set(ARGS_BRANCH "main")
   endif()
 
+  if(NOT DEFINED ARGS_DEPTH)
+    set(ARGS_DEPTH 1)
+  endif()
+
+  # Build git depth argument as a list (so it expands as separate arguments)
+  if(ARGS_DEPTH EQUAL 0)
+    set(DEPTH_ARG "")
+  else()
+    set(DEPTH_ARG --depth ${ARGS_DEPTH})
+  endif()
+
   if(NOT ARGS_DISABLE_PYTHON)
     set(HOLOHUB_BUILD_PYTHON ON)
   endif()
@@ -61,7 +79,7 @@ function(fetch_holohub_operator OPERATOR_NAME)
       holohub_${OPERATOR_NAME}
       SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src"
       DOWNLOAD_COMMAND
-        git clone --depth 1 --no-checkout ${ARGS_REPO_URL} "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src"
+        git clone ${DEPTH_ARG} --branch ${ARGS_BRANCH} --no-checkout ${ARGS_REPO_URL} "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src"
         && cd "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src"
         && git sparse-checkout set --no-cone
             operators/${ARGS_PATH}
@@ -81,6 +99,7 @@ function(fetch_holohub_operator OPERATOR_NAME)
         && echo "  file(MAKE_DIRECTORY \\$\\{HOLOHUB_PYTHON_MODULE_OUT_DIR\\})" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
         && echo "endif()" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
         && echo "add_subdirectory(operators/${ARGS_PATH})" >> "${FETCHCONTENT_BASE_DIR}/holohub_${OPERATOR_NAME}-prefix/src/CMakeLists.txt"
+      PATCH_COMMAND ${ARGS_PATCH_COMMAND}
   )
 
   FetchContent_MakeAvailable(holohub_${OPERATOR_NAME})

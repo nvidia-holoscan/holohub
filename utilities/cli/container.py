@@ -67,7 +67,7 @@ class HoloHubContainer:
     DOCKER_EXE = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")  # Docker executable
 
     # SDK and path configuration
-    SDK_PATH = os.environ.get("HOLOHUB_SDK_PATH", "/opt/nvidia/holoscan")
+    SDK_PATH = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan")
     BASE_SDK_VERSION = os.environ.get("HOLOHUB_BASE_SDK_VERSION", DEFAULT_BASE_SDK_VERSION)
     BENCHMARKING_SUBDIR = os.environ.get(
         "HOLOHUB_BENCHMARKING_SUBDIR", "benchmarks/holoscan_flow_benchmarking"

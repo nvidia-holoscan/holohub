@@ -1238,7 +1238,6 @@ def collect_environment_variables() -> None:
         "HOLOHUB_HOSTNAME_PREFIX",
         "HOLOHUB_BASE_IMAGE",
         "HOLOHUB_DOCKER_EXE",
-        "HOLOHUB_SDK_PATH",
         "HOLOHUB_BASE_SDK_VERSION",
         "HOLOHUB_BENCHMARKING_SUBDIR",
         "HOLOHUB_DEFAULT_DOCKERFILE",
