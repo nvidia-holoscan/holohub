@@ -77,7 +77,7 @@ bench_rx:
 bench_tx:
   interface_name: "loopback_ports" # Name of the TX port from the advanced_network config
   gpu_direct: true          # Set to true if using a GPU region for the Tx queues.
-  split_boundary: 0         # Byte boundary where header and data is split, 0 if no split
+  split_boundary: false     # Byte boundary where header and data is split, 0 if no split
   batch_size: 10240
   payload_size: 1000
   header_size: 64
