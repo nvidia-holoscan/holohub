@@ -54,7 +54,7 @@ class HoloHubCLI:
         os.environ.get("HOLOHUB_BUILD_PARENT_DIR", HOLOHUB_ROOT / "build")
     )
     DEFAULT_DATA_DIR = Path(os.environ.get("HOLOHUB_DATA_DIR", HOLOHUB_ROOT / "data"))
-    DEFAULT_SDK_DIR = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan/lib")
+    DEFAULT_SDK_DIR = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan")
     # Allow overriding the default CTest script path via environment variable
     DEFAULT_CTEST_SCRIPT = os.environ.get(
         "HOLOHUB_CTEST_SCRIPT", "utilities/testing/holohub.container.ctest"
@@ -1010,7 +1010,7 @@ class HoloHubCLI:
             f"-DPython3_EXECUTABLE={sys.executable}",
             f"-DPython3_ROOT_DIR={os.path.dirname(os.path.dirname(sys.executable))}",
             f"-DCMAKE_BUILD_TYPE={build_type}",
-            f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}",
+            f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}/lib",
             f"-DHOLOHUB_DATA_DIR:PATH={HoloHubCLI.DEFAULT_DATA_DIR}",
             f"-D{proj_prefix}_{project_name}=ON",
         ]
@@ -1290,7 +1290,7 @@ class HoloHubCLI:
             # Set up environment
             env = os.environ.copy()
             env["PYTHONPATH"] = (
-                f"{os.environ.get('PYTHONPATH', '')}:{HoloHubCLI.DEFAULT_SDK_DIR}/../python/lib:{build_dir}/python/lib:{HoloHubCLI.HOLOHUB_ROOT}"
+                f"{os.environ.get('PYTHONPATH', '')}:{HoloHubCLI.DEFAULT_SDK_DIR}/python/lib:{build_dir}/python/lib:{HoloHubCLI.HOLOHUB_ROOT}"
             )
             env["HOLOHUB_DATA_PATH"] = str(HoloHubCLI.DEFAULT_DATA_DIR)
             env["HOLOSCAN_INPUT_PATH"] = os.environ.get(

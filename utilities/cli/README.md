@@ -375,11 +375,55 @@ This container-first approach ensures consistency and reproducibility across dif
 - **Dedicated Commands**: Separate `build`, `run`, `build-container`, and `run-container` commands for clear workflow control
 
 **Environment Variables:**
-- **`HOLOHUB_BUILD_LOCAL`**: When set to any value, forces local mode (equivalent to always passing `--local`)
-- **`HOLOHUB_ALWAYS_BUILD`**: Controls whether builds should be executed (defaults to `true`)
-  - Set to `false` to skip both local and container builds
-  - Useful for development iterations where you only want to run existing builds
-- Additionally, please see [container.py](container.py) for a list of project-specific configuration environment variables.
+
+The CLI supports the following environment variables for customization:
+
+**Build and Execution Control:**
+- **`HOLOHUB_BUILD_LOCAL`**: Forces local mode (equivalent to `--local`), skips the container build steps and runs on the host directly.
+- **`HOLOHUB_ALWAYS_BUILD`**: Set to `false` to skip builds with `--no-local-build` and `--no-docker-build`.
+
+**Paths and Directories:**
+- **`HOLOHUB_ROOT`**: HoloHub repository root directory, used to resolve relative paths for components, build artifacts, data, and other resources.
+  - **`HOLOHUB_BUILD_PARENT_DIR`**: Root directory for all builds (default: `<HOLOHUB_ROOT>/build`).
+  - **`HOLOHUB_DATA_DIR`**: Root data (such as models, datasets downloading during component building) directory (default: `<HOLOHUB_ROOT>/data`).
+  - **`HOLOHUB_SETUP_SCRIPTS_DIR`**: Directory containing setup scripts (default: `<HOLOHUB_ROOT>/utilities/setup`), typically used to install dependencies and setup the environment via `--extra-scripts`.
+- **`HOLOHUB_PATH_PREFIX`**: Prefix for path placeholder variables (default: `holohub_`). Path placeholders are used in `metadata.json` files, e.g., `"workdir": "holohub_app_source"`.
+- **`HOLOHUB_DEFAULT_HSDK_DIR`**: Holoscan SDK root directory (default: `/opt/nvidia/holoscan`). Used for both local builds and container operations to locate SDK libraries and Python bindings.
+- **`HOLOSCAN_SDK_ROOT`**: Path to local Holoscan SDK root directory (source or build tree), used for mounting local Holoscan SDK development trees into containers.
+
+**Container Configuration:**
+- **`HOLOHUB_REPO_PREFIX`**: Repository prefix for naming defaults (default: `holohub`). Used as the default value for container-related variables below.
+- **`HOLOHUB_CONTAINER_PREFIX`**: Docker container name prefix (default: `HOLOHUB_REPO_PREFIX`).
+- **`HOLOHUB_WORKSPACE_NAME`**: Workspace directory name in container (default: `HOLOHUB_REPO_PREFIX`). The `<HOLOHUB_ROOT>` directory is mounted in the container as `/workspace/<HOLOHUB_WORKSPACE_NAME>`.
+- **`HOLOHUB_HOSTNAME_PREFIX`**: Container hostname prefix (default: `HOLOHUB_REPO_PREFIX`). Used when building VSCode development containers.
+- **`HOLOHUB_DOCKER_EXE`**: Docker executable command (default: `docker`).
+
+**Docker Images:**
+
+The default base image format for Docker builds is `<HOLOHUB_BASE_IMAGE>:v<HOLOHUB_BASE_SDK_VERSION>-{cuda_tag}`, controlled by `HOLOHUB_BASE_IMAGE_FORMAT`.
+
+- **`HOLOHUB_BASE_IMAGE`**: Base Docker image name (default: `nvcr.io/nvidia/clara-holoscan/holoscan`).
+- **`HOLOHUB_BASE_SDK_VERSION`**: Holoscan SDK version (default: latest available version, e.g., `3.8.0`).
+- **`HOLOHUB_BASE_IMAGE_FORMAT`**: Template for base image naming. Controls the format of input images for Docker builds.
+
+The default output image format is `<HOLOHUB_CONTAINER_PREFIX>:ngc-v<HOLOHUB_BASE_SDK_VERSION>-{cuda_tag}`, controlled by `HOLOHUB_DEFAULT_IMAGE_FORMAT`.
+
+- **`HOLOHUB_DEFAULT_IMAGE_FORMAT`**: Template for output image naming. Controls the format of built container images.
+- **`HOLOHUB_DEFAULT_DOCKERFILE`**: Default Dockerfile path (default: `<HOLOHUB_ROOT>/Dockerfile`).
+
+**Docker Runtime:**
+- **`HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS`**: Additional default arguments passed to `docker build` commands. Typically used to set global build arguments for all applications in the codebase, applications and commands can override these arguments.
+- **`HOLOHUB_DEFAULT_DOCKER_RUN_ARGS`**: Additional default arguments passed to `docker run` commands. Typically used to set global runtime arguments for all applications in the codebase, applications and commands can override these arguments.
+- **`HOLOHUB_BENCHMARKING_SUBDIR`**: Benchmarking subdirectory (default: `benchmarks/holoscan_flow_benchmarking`).
+
+**Testing:**
+- **`HOLOHUB_CTEST_SCRIPT`**: CTest script path used by `./holohub test` command (default: `<HOLOHUB_ROOT>/utilities/testing/holohub.container.ctest`).
+
+**Other:**
+- **`HOLOHUB_CMD_NAME`**: Command name displayed in help messages (default: `./holohub`). Allows customizing the command name for external codebases.
+- **`HOLOHUB_CLI_DOCS_URL`**: CLI documentation URL. Allows customizing the documentation URL for external codebases.
+- **`CMAKE_BUILD_TYPE`**: Default CMake build type (`debug`, `release`, or `relwithdebinfo`) when not specified in build commands.
+- **`CMAKE_BUILD_PARALLEL_LEVEL`**: Number of parallel CMake build jobs.
 
 
 ## Getting Help
