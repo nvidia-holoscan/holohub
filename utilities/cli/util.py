@@ -176,6 +176,47 @@ def get_holohub_root() -> Path:
     return HOLOHUB_ROOT
 
 
+def _slugify(text: str, max_len: int = 63) -> str:
+    """Make a branch slug: lowercase, non-alnum to '-', trim dashes, max length."""
+    if not isinstance(text, str):
+        return "local"
+    lowered = text.lower()
+    replaced = re.sub(r"[^a-z0-9]+", "-", lowered)
+    trimmed = replaced.strip("-")
+    return (trimmed or "local")[:max_len]
+
+
+def get_git_short_sha(length: int = 12) -> str:
+    """Get short Git SHA for the current repository."""
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(HOLOHUB_ROOT)
+        sha = run_info_command(["git", "rev-parse", f"--short={length}", "HEAD"])
+        return sha or "local"
+    finally:
+        try:
+            os.chdir(original_cwd)
+        except Exception:
+            pass
+
+
+def get_current_branch_slug() -> str:
+    """Get current branch name as a slug suitable for Docker tags."""
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(HOLOHUB_ROOT)
+        # Prefer rev-parse for consistency with bash wrapper behavior.
+        branch = run_info_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+        if not branch or branch in ["HEAD", "(HEAD detached at", "(no branch)"]:
+            return "local"
+        return _slugify(branch)
+    finally:
+        try:
+            os.chdir(original_cwd)
+        except Exception:
+            pass
+
+
 def get_holohub_setup_scripts_dir() -> Path:
     return Path(
         os.environ.get("HOLOHUB_SETUP_SCRIPTS_DIR", HOLOHUB_ROOT / "utilities" / "setup")
