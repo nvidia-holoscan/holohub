@@ -21,18 +21,25 @@ REPO_URL="${CLI_REPO_URL:-https://github.com/nvidia-holoscan/holohub.git}"
 # Function to download CLI from holohub repo (this is a demo omitting error handling for brevity)
 download_cli() {
     echo "Downloading holohub CLI..."
-    git clone --depth 1 --no-checkout ${REPO_URL} ${SCRIPT_PATH}/.tmp-holohub/holohub \
-        && cd ${SCRIPT_PATH}/.tmp-holohub/holohub \
+    PINNED_COMMIT="${CLI_PINNED_COMMIT:-}"
+
+    git clone --no-checkout "${REPO_URL}" "${SCRIPT_PATH}/.tmp-holohub/holohub" \
+        && cd "${SCRIPT_PATH}/.tmp-holohub/holohub" \
         && git sparse-checkout init --cone \
         && git sparse-checkout set utilities/cli utilities/metadata utilities/testing utilities/setup cmake \
-        && git checkout ${HOLOHUB_BRANCH:-main} \
+        && if [ -n "${PINNED_COMMIT}" ]; then \
+               git fetch origin "${PINNED_COMMIT}" || true; \
+               git checkout "${PINNED_COMMIT}"; \
+           else \
+               git checkout "${HOLOHUB_BRANCH:-main}"; \
+           fi \
         && COMMIT_HASH=$(git rev-parse HEAD) \
-        && mv ${SCRIPT_PATH}/.tmp-holohub/holohub/utilities ${SCRIPT_PATH} \
-        && mv ${SCRIPT_PATH}/.tmp-holohub/holohub/cmake ${SCRIPT_PATH} \
-        && rm -rf ${SCRIPT_PATH}/.tmp-holohub \
-        && cd ${SCRIPT_PATH} \
-        && echo "${COMMIT_HASH}" > ${SCRIPT_PATH}/utilities/cli/.cli_commit_hash \
-        && echo "✓ CLI downloaded successfully"
+        && mv "${SCRIPT_PATH}/.tmp-holohub/holohub/utilities" "${SCRIPT_PATH}" \
+        && mv "${SCRIPT_PATH}/.tmp-holohub/holohub/cmake" "${SCRIPT_PATH}" \
+        && rm -rf "${SCRIPT_PATH}/.tmp-holohub" \
+        && cd "${SCRIPT_PATH}" \
+        && echo "${COMMIT_HASH}" > "${SCRIPT_PATH}/utilities/cli/.cli_commit_hash" \
+        && echo "✓ CLI downloaded successfully (commit ${COMMIT_HASH})"
 }
 
 # Check if CLI needs to be downloaded or force-updated (including the first time run)

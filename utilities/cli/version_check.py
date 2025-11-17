@@ -38,12 +38,53 @@ def check_for_cli_updates() -> None:
         CLI_CHECK_INTERVAL: Seconds between checks (default: 86400 = 24 hours)
         CLI_REPO_URL: Custom repository URL (default: https://github.com/nvidia-holoscan/holohub.git)
         HOLOHUB_BRANCH: Branch to track (default: main)
+        CLI_PINNED_COMMIT: If set, pin the CLI to this commit hash (short or full).
+            - When set, remote update checks are skipped.
+            - If the local CLI commit differs from the pinned commit, a warning is shown.
     """
     if os.environ.get("CLI_SKIP_UPDATE_CHECK") == "1":  # Skip if user disabled update checks
         return
 
     commit_file = Path(__file__).with_name(".cli_commit_hash")
     last_check_file = Path(__file__).with_name(".cli_last_check")
+
+    pinned_commit = os.environ.get("CLI_PINNED_COMMIT", "").strip()
+
+    local_hash = ""
+    try:
+        local_hash = commit_file.read_text().strip()
+    except OSError:
+        # If we can't read the local hash, we can't enforce pinning, but we can still
+        # optionally perform remote checks later.
+        pass
+
+    if pinned_commit:
+        # Allow short hash vs full hash comparisons by treating the shorter one as a prefix.
+        def _hashes_match(a: str, b: str) -> bool:
+            if not a or not b:
+                return False
+            if len(a) == len(b):
+                return a == b
+            if len(a) < len(b):
+                return b.startswith(a)
+            return a.startswith(b)
+
+        if not _hashes_match(local_hash, pinned_commit):
+            cmd_name = os.environ.get("HOLOHUB_CMD_NAME", "./holohub")
+            print()
+            print("════════════════════════════════════════════════════")
+            print(f"⚠️  {cmd_name} CLI version does not match pinned commit.")
+            if local_hash:
+                print(f"Current:  {local_hash[:8]}")
+            else:
+                print("Current:  <unknown>")
+            print(f"Pinned:   {pinned_commit[:8]}")
+            print("Please reinstall or checkout holohub at the pinned commit.")
+            print("Remote update checks are skipped while CLI_PINNED_COMMIT is set.")
+            print("════════════════════════════════════════════════════")
+
+        # When a pin is set we do not perform any remote update checks.
+        return
 
     try:  # Default: check once per 24 hours
         check_interval = int(os.environ.get("CLI_CHECK_INTERVAL", "86400"))
@@ -83,12 +124,6 @@ def check_for_cli_updates() -> None:
             return  # Git command failed, skip silently
     except (subprocess.TimeoutExpired, FileNotFoundError, IndexError):
         return  # Network issue or git not available, skip silently
-
-    local_hash = ""
-    try:
-        local_hash = commit_file.read_text().strip()
-    except OSError:
-        return
 
     if local_hash and remote_hash and local_hash != remote_hash:
         cmd_name = os.environ.get("HOLOHUB_CMD_NAME", "./holohub")
