@@ -18,7 +18,7 @@
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_URL="${CLI_REPO_URL:-https://github.com/nvidia-holoscan/holohub.git}"
 
-# Function to download CLI from holohub repo
+# Function to download CLI from holohub repo (this is a demo omitting error handling for brevity)
 download_cli() {
     echo "Downloading holohub CLI..."
     git clone --depth 1 --no-checkout ${REPO_URL} ${SCRIPT_PATH}/.tmp-holohub/holohub \

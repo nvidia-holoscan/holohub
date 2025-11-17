@@ -1008,33 +1008,39 @@ class TestVersionCheck(unittest.TestCase):
     ):
         from io import StringIO
 
-        # Point version_check at a known local hash and force an immediate check
-        module_path = Path(version_check.__file__)
-        commit_file = module_path.with_name(".cli_commit_hash")
-        last_check_file = module_path.with_name(".cli_last_check")
+        # Use a temporary directory and mock __file__ so we don't touch the real module directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_module_path = Path(temp_dir) / "version_check.py"
+            temp_module_path.write_text("")  # dummy file so the path exists
 
-        commit_file.write_text("localhash123456")
-        if last_check_file.exists():
-            last_check_file.unlink()
+            with patch.object(version_check, "__file__", str(temp_module_path)):
+                # Point version_check at a known local hash and force an immediate check
+                module_path = Path(version_check.__file__)
+                commit_file = module_path.with_name(".cli_commit_hash")
+                last_check_file = module_path.with_name(".cli_last_check")
 
-        remote_hash = "remotehash654321"
-        mock_run.return_value = subprocess.CompletedProcess(
-            args=["git", "ls-remote"],
-            returncode=0,
-            stdout=f"{remote_hash}\trefs/heads/main\n",
-            stderr="",
-        )
+                commit_file.write_text("localhash123456")
+                if last_check_file.exists():
+                    last_check_file.unlink()
 
-        original_interval = os.environ.get("CLI_CHECK_INTERVAL")
-        os.environ["CLI_CHECK_INTERVAL"] = "0"
-        try:
-            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-                version_check.check_for_cli_updates()
-        finally:
-            if original_interval is not None:
-                os.environ["CLI_CHECK_INTERVAL"] = original_interval
-            else:
-                os.environ.pop("CLI_CHECK_INTERVAL", None)
+                remote_hash = "remotehash654321"
+                mock_run.return_value = subprocess.CompletedProcess(
+                    args=["git", "ls-remote"],
+                    returncode=0,
+                    stdout=f"{remote_hash}\trefs/heads/main\n",
+                    stderr="",
+                )
+
+                original_interval = os.environ.get("CLI_CHECK_INTERVAL")
+                os.environ["CLI_CHECK_INTERVAL"] = "0"
+                try:
+                    with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                        version_check.check_for_cli_updates()
+                finally:
+                    if original_interval is not None:
+                        os.environ["CLI_CHECK_INTERVAL"] = original_interval
+                    else:
+                        os.environ.pop("CLI_CHECK_INTERVAL", None)
 
         output = mock_stdout.getvalue()
         self.assertIn("A new version of", output)
