@@ -942,6 +942,14 @@ class HoloHubCLI:
         project_data = self.find_project(project_name=project_name, language=language)
         project_type = project_data.get("project_type", "application")
 
+        # Prepare environment with extra env vars
+        build_env = os.environ.copy()
+        if env:
+            build_env.update(env)
+            if dryrun:
+                for key, value in env.items():
+                    print(holohub_cli_util.format_cmd(f"export {key}={value}", is_dryrun=True))
+
         # Handle benchmark patching before building
         app_source_path = None
         if benchmark:
@@ -1002,16 +1010,42 @@ class HoloHubCLI:
             cmake_args.append("-DHOLOHUB_BUILD_PYTHON=OFF")
             cmake_args.append("-DHOLOHUB_BUILD_CPP=ON")
 
+        # Configure sccache
+        sccache_bin = shutil.which("sccache")
+        enable_sccache_val, enable_sccache = holohub_cli_util.get_env_bool(
+            "HOLOHUB_ENABLE_SCCACHE", default=False
+        )
+        holohub_cli_util.info(f"HOLOHUB_ENABLE_SCCACHE={enable_sccache_val}")
+        if enable_sccache:
+            if not sccache_bin:
+                holohub_cli_util.fatal(
+                    "HOLOHUB_ENABLE_SCCACHE is enabled but 'sccache' was not found in PATH. "
+                    "Install it (e.g., `./holohub setup`) or disable sccache."
+                )
+            # Set CMake compiler launchers with -D
+            cmake_args.extend(
+                [
+                    f"-DCMAKE_C_COMPILER_LAUNCHER={sccache_bin}",
+                    f"-DCMAKE_CXX_COMPILER_LAUNCHER={sccache_bin}",
+                    f"-DCMAKE_CUDA_COMPILER_LAUNCHER={sccache_bin}",
+                ]
+            )
+            # Set default SCCACHE properties if not set
+            build_env.setdefault("SCCACHE_DIR", str(Path.home() / ".cache" / "sccache"))
+            build_env.setdefault("SCCACHE_CACHE_SIZE", "20G")
+            # Print SCCACHE environment variables
+            holohub_cli_util.info(f"Using sccache: {sccache_bin}")
+            for key, value in build_env.items():
+                if key.startswith("SCCACHE_"):
+                    holohub_cli_util.info(f"{key}={value}")
+        elif sccache_bin:
+            holohub_cli_util.warn(
+                "Detected 'sccache' in PATH but HOLOHUB_ENABLE_SCCACHE is disabled. "
+                "Skipping sccache."
+            )
+
         if configure_args:
             cmake_args.extend(configure_args)
-
-        # Prepare environment with env vars
-        build_env = os.environ.copy() if env else None
-        if env:
-            build_env.update(env)
-            if dryrun:
-                for key, value in env.items():
-                    print(holohub_cli_util.format_cmd(f"export {key}={value}", is_dryrun=True))
 
         holohub_cli_util.run_command(cmake_args, dry_run=dryrun, env=build_env)
 
@@ -1025,6 +1059,17 @@ class HoloHubCLI:
         build_cmd.extend(["-j", build_njobs])
 
         holohub_cli_util.run_command(build_cmd, dry_run=dryrun, env=build_env)
+
+        # Print sccache stats
+        if enable_sccache:
+            stats_file = build_dir / "sccache-stats.txt"
+            with open(stats_file, "w") as f:
+                holohub_cli_util.run_command(
+                    ["sccache", "--show-stats"],
+                    dry_run=dryrun,
+                    env=build_env,
+                    stdout=f if not dryrun else None,
+                )
 
         # If this is a package, run cpack
         if project_type == "package":
@@ -1798,10 +1843,11 @@ class HoloHubCLI:
                 dry_run=args.dryrun,
             )
 
+            holohub_cli_util.setup_cuda_dependencies(dry_run=args.dryrun)
             holohub_cli_util.setup_cmake(dry_run=args.dryrun)
             holohub_cli_util.setup_python_dev(dry_run=args.dryrun)
             holohub_cli_util.setup_ngc_cli(dry_run=args.dryrun)
-            holohub_cli_util.setup_cuda_dependencies(dry_run=args.dryrun)
+            holohub_cli_util.setup_sccache(dry_run=args.dryrun)
 
             source = f"{HoloHubCLI.HOLOHUB_ROOT}/utilities/holohub_autocomplete"
             dest_folder = "/etc/bash_completion.d"
