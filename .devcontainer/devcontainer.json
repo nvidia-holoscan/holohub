@@ -34,6 +34,7 @@
     },
     "runArgs": [
         "--net=host",
+        "--runtime=nvidia"
         //"<env>"
     ],
     "containerEnv": {

@@ -1,0 +1,44 @@
+{
+	"operator": {
+		"name": "GstVideoRecorderOp",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"language": ["C++"],
+		"holoscan_sdk": {
+			"minimum_required_version": "3.6.0",
+			"tested_versions": [
+				"3.8.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Video", "GStreamer", "Recording", "Media", "Encoding"],
+		"ranking": 1,
+		"requirements": {
+			"system_packages": [
+				"pkg-config",
+				"libgstreamer1.0-dev",
+				"libgstreamer-plugins-base1.0-dev",
+				"libgstreamer-plugins-bad1.0-dev",
+				"gstreamer1.0-plugins-base",
+				"gstreamer1.0-plugins-bad",
+				"gstreamer1.0-plugins-good",
+				"gstreamer1.0-plugins-ugly"
+			],
+			"optional_packages": [
+				"gstreamer1.0-cuda (for CUDA support, requires GStreamer 1.24+)",
+				"gstreamer1.0-libav (for additional codec support)"
+			]
+		}
+	}
+}
