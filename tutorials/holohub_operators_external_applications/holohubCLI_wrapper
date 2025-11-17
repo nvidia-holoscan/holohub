@@ -25,7 +25,7 @@ download_cli() {
         && cd ${SCRIPT_PATH}/.tmp-holohub/holohub \
         && git sparse-checkout init --cone \
         && git sparse-checkout set utilities/cli utilities/metadata utilities/testing utilities/setup cmake \
-        && git checkout main \
+        && git checkout ${HOLOHUB_BRANCH:-main} \
         && COMMIT_HASH=$(git rev-parse HEAD) \
         && mv ${SCRIPT_PATH}/.tmp-holohub/holohub/utilities ${SCRIPT_PATH} \
         && mv ${SCRIPT_PATH}/.tmp-holohub/holohub/cmake ${SCRIPT_PATH} \
