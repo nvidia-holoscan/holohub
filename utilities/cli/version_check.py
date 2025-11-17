@@ -60,8 +60,10 @@ def check_for_cli_updates() -> None:
     if (current_time - last_check) < check_interval:
         return  # Too soon to check again
 
-    try:  # Update last check timestamp
-        last_check_file.write_text(str(current_time))
+    try:  # Update last check timestamp atomically
+        temp_file = last_check_file.with_suffix(".tmp")
+        temp_file.write_text(str(current_time))
+        temp_file.replace(last_check_file)
     except OSError:
         return
 
