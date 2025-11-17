@@ -651,7 +651,7 @@ class HoloHubCLI:
             if "depends" in build_config:
                 if config["with_operators"]:
                     mode_deps = [dep.strip() for dep in build_config["depends"] if dep.strip()]
-                    msg = f"CLI --build-with='{config['with_operators']}' "
+                    msg = f"CLI args --build-with='{config['with_operators']}' "
                     msg += f"overrides mode depends: {', '.join(mode_deps)}"
                     holohub_cli_util.warn(msg)
                 else:
@@ -1839,7 +1839,6 @@ class HoloHubCLI:
 
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
-
         build_args = self.get_effective_build_config(args, mode_config)
 
         if mode_config:
