@@ -1022,16 +1022,8 @@ doca_error_t DocaMgr::create_root_pipe(int port_id) {
 }
 
 DocaMgr::~DocaMgr() {
-  HOLOSCAN_LOG_INFO("Calling DocaMgr::~DocaMgr");
-  // const auto& rx = cfg_.ifs_[0].rx_;
-  // for (auto& q : rx.queues_) {
-  //   uint32_t key = (cfg_.ifs_[0].port_id_ << 16) | q.common_.id_;
-  //   auto q_backend = rx_q_map_[key];
-  //   q_backend->destroy_semaphore();
-  // }
-
-  /* Tx burst preallocate */
-  for (int idx = 0; idx < MAX_TX_BURST; idx++) { cudaFreeHost(burst[idx].pkt_lens[0]); }
+  for (int idx = 0; idx < MAX_TX_BURST; idx++)
+    cudaFreeHost(burst[idx].pkt_lens[0]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1799,12 +1791,7 @@ void DocaMgr::shutdown() {
     }
   }
 
-  // RTE_LCORE_FOREACH_WORKER(icore) {
-  //   if (rte_eal_wait_lcore(icore) < 0) {
-  //     fprintf(stderr, "bad exit for coreid: %d\n", icore);
-  //     break;
-  //   }
-  // }
+  HOLOSCAN_LOG_INFO("DocaMgr::shutdown exit gracefully");
 }
 
 void DocaMgr::print_stats() {
