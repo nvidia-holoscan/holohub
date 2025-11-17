@@ -54,7 +54,7 @@ class HoloHubCLI:
         os.environ.get("HOLOHUB_BUILD_PARENT_DIR", HOLOHUB_ROOT / "build")
     )
     DEFAULT_DATA_DIR = Path(os.environ.get("HOLOHUB_DATA_DIR", HOLOHUB_ROOT / "data"))
-    DEFAULT_SDK_DIR = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan/lib")
+    DEFAULT_SDK_DIR = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan")
     # Allow overriding the default CTest script path via environment variable
     DEFAULT_CTEST_SCRIPT = os.environ.get(
         "HOLOHUB_CTEST_SCRIPT", "utilities/testing/holohub.container.ctest"
@@ -392,6 +392,9 @@ class HoloHubCLI:
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
         test.add_argument("--clear-cache", action="store_true", help="Clear cache folders")
+        test.add_argument(
+            "--language", choices=["cpp", "python"], help="Specify language implementation"
+        )
         test.add_argument("--site-name", help="Site name")
         test.add_argument("--cdash-url", help="CDash URL")
         test.add_argument("--platform-name", help="Platform name")
@@ -409,6 +412,11 @@ class HoloHubCLI:
         )
         test.add_argument("--no-xvfb", action="store_true", help="Do not use xvfb")
         test.add_argument("--ctest-script", help="CTest script")
+        test.add_argument(
+            "--coverage",
+            action="store_true",
+            help="Enable code coverage in CTest (adds coverage compile flags and runs ctest_coverage)",
+        )
         test.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
         )
@@ -860,14 +868,26 @@ class HoloHubCLI:
         container.verbose = args.verbose
 
         if not skip_docker_build:
+            build_args = args.build_args or ""
+            extra_scripts = (getattr(args, "extra_scripts", None) or []).copy()
+
+            # Configure coverage if enabled
+            if getattr(args, "coverage", False):
+                # Add COVERAGE build argument
+                coverage_arg = "--build-arg COVERAGE=ON"
+                build_args = f"{build_args} {coverage_arg}".strip()
+                # Add coverage setup script
+                if "coverage" not in extra_scripts:
+                    extra_scripts.append("coverage")
+
             container.build(
                 docker_file=args.docker_file,
                 base_img=args.base_img,
                 img=args.img,
                 no_cache=args.no_cache,
-                build_args=args.build_args,
+                build_args=build_args,
                 cuda_version=getattr(args, "cuda", None),
-                extra_scripts=getattr(args, "extra_scripts", []),
+                extra_scripts=extra_scripts,
             )
         else:
             if hasattr(args, "cuda") and args.cuda is not None:
@@ -890,8 +910,24 @@ class HoloHubCLI:
             ctest_cmd += f"-DAPP={args.project} "
         ctest_cmd += f"-DTAG={tag} "
 
+        # Aggregate configure options from CLI and language selection
+        configure_opts: list[str] = []
         if args.cmake_options:
-            cmake_opts = ";".join(args.cmake_options)
+            configure_opts.extend(args.cmake_options)
+
+        # Respect language selection by toggling build flags
+        normalized_lang = None
+        if hasattr(args, "language") and args.language:
+            normalized_lang = holohub_cli_util.normalize_language(args.language)
+            if normalized_lang == "python":
+                configure_opts.append("-DHOLOHUB_BUILD_PYTHON=ON")
+                configure_opts.append("-DHOLOHUB_BUILD_CPP=OFF")
+            elif normalized_lang == "cpp":
+                configure_opts.append("-DHOLOHUB_BUILD_PYTHON=OFF")
+                configure_opts.append("-DHOLOHUB_BUILD_CPP=ON")
+
+        if configure_opts:
+            cmake_opts = ";".join(configure_opts)
             ctest_cmd += f'-DCONFIGURE_OPTIONS="{cmake_opts}" '
 
         if getattr(args, "ctest_options", None):
@@ -906,6 +942,9 @@ class HoloHubCLI:
         if args.platform_name:
             ctest_cmd += f"-DPLATFORM_NAME={args.platform_name} "
 
+        if getattr(args, "coverage", False):
+            ctest_cmd += "-DCOVERAGE=ON "
+
         if args.ctest_script:
             ctest_cmd += f"-S {args.ctest_script} "
         else:
@@ -918,6 +957,7 @@ class HoloHubCLI:
             img=getattr(args, "img", None),
             use_tini=True,
             docker_opts="--entrypoint=bash",
+            as_root=getattr(args, "coverage", False),
             extra_args=["-c", ctest_cmd],
         )
 
@@ -970,7 +1010,7 @@ class HoloHubCLI:
             f"-DPython3_EXECUTABLE={sys.executable}",
             f"-DPython3_ROOT_DIR={os.path.dirname(os.path.dirname(sys.executable))}",
             f"-DCMAKE_BUILD_TYPE={build_type}",
-            f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}",
+            f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}/lib",
             f"-DHOLOHUB_DATA_DIR:PATH={HoloHubCLI.DEFAULT_DATA_DIR}",
             f"-D{proj_prefix}_{project_name}=ON",
         ]
@@ -1250,7 +1290,7 @@ class HoloHubCLI:
             # Set up environment
             env = os.environ.copy()
             env["PYTHONPATH"] = (
-                f"{os.environ.get('PYTHONPATH', '')}:{HoloHubCLI.DEFAULT_SDK_DIR}/../python/lib:{build_dir}/python/lib:{HoloHubCLI.HOLOHUB_ROOT}"
+                f"{os.environ.get('PYTHONPATH', '')}:{HoloHubCLI.DEFAULT_SDK_DIR}/python/lib:{build_dir}/python/lib:{HoloHubCLI.HOLOHUB_ROOT}"
             )
             env["HOLOHUB_DATA_PATH"] = str(HoloHubCLI.DEFAULT_DATA_DIR)
             env["HOLOSCAN_INPUT_PATH"] = os.environ.get(
