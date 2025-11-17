@@ -103,4 +103,5 @@ if __name__ == "__main__":
     try:
         check_for_cli_updates()
     except Exception:
+        # Suppress all exceptions to ensure CLI always runs, even if version check fails.
         pass
