@@ -212,7 +212,11 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     }
 
     auto msg = create_tx_burst_params();
-    set_header(msg, port_id_, queue_id, batch_size_.get(), hds_.get() ? 2 : 1);
+    set_header(msg,
+               port_id_,
+               queue_id,
+               batch_size_.get(),
+               (gpu_direct_.get() && hds_.get()) ? 2 : 1);
 
     /**
      * Spin waiting until a buffer is free. This can be stalled by sending faster than the NIC can
