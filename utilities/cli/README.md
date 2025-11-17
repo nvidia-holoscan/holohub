@@ -173,7 +173,7 @@ CLI parameters can be used in addition to modes. When provided, CLI parameters w
 
 ```bash
 # CLI parameters override mode settings (works with both implicit and explicit modes)
-./holohub run holochat --run-args="--debug"            # overrides default_mode.run.docker_run_args
+./holohub run holochat --run-args="--debug"            # appends to default_mode.run.command
 ./holohub run myapp --build-with="ops"                 # overrides default_mode.build.depends
 ./holohub build myapp standard --build-with="ops"      # overrides standard.build.depends
 ./holohub run holochat cloud --run-args="--test=case"  # overrides cloud.run.command
