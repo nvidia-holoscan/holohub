@@ -340,7 +340,7 @@ bench_rx:
 bench_tx:
   interface_name: tx_port
   gpu_direct: false
-  split_boundary: 0
+  split_boundary: false
   batch_size: 10240
   payload_size: 1000
   header_size: 64

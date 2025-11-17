@@ -2220,11 +2220,13 @@ int DpdkMgr::tx_core_worker(void* arg) {
     // Scatter mode needs to chain all the buffers
     if (msg->hdr.hdr.num_segs > 1) {
       for (size_t p = 0; p < msg->hdr.hdr.num_pkts; p++) {
-        for (int seg = 0; seg < msg->hdr.hdr.num_segs; seg++) {
+        for (int seg = 0; seg < msg->hdr.hdr.num_segs - 1; seg++) {
           auto* mbuf = reinterpret_cast<struct rte_mbuf*>(msg->pkts[seg][p]);
           mbuf->next = reinterpret_cast<struct rte_mbuf*>(msg->pkts[seg + 1][p]);
         }
 
+        // The next pointer of the last segment should be nullptr
+        reinterpret_cast<struct rte_mbuf*>(msg->pkts[msg->hdr.hdr.num_segs - 1][p])->next = nullptr;
         reinterpret_cast<struct rte_mbuf*>(msg->pkts[0][p])->nb_segs = msg->hdr.hdr.num_segs;
       }
     }
