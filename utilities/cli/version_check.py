@@ -73,7 +73,7 @@ def check_for_cli_updates() -> None:
             ["git", "ls-remote", repo_url, f"refs/heads/{branch}"],
             capture_output=True,
             text=True,
-            timeout=3,
+            timeout=30,
         )
         if result.returncode == 0 and result.stdout.strip():
             remote_hash = result.stdout.split()[0]
