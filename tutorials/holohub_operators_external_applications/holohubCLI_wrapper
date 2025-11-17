@@ -16,7 +16,7 @@
 # limitations under the License.
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_URL="https://github.com/nvidia-holoscan/holohub.git"
+REPO_URL="${CLI_REPO_URL:-https://github.com/nvidia-holoscan/holohub.git}"
 
 # Function to download CLI from holohub repo
 download_cli() {
