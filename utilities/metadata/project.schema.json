@@ -188,6 +188,13 @@
             }
           ],
           "description": "Docker run arguments - can be a single string or array of strings, equivalent to CLI `--docker-opts`"
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Environment variables to set when running the application"
         }
       },
       "description": "Run command configuration"
@@ -246,6 +253,13 @@
         },
         "run": {
           "$ref": "#/$defs/run_command"
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Environment variables to set for this mode"
         }
       },
       "required": ["description", "run"]

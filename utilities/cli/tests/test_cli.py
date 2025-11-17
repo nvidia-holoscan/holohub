@@ -611,7 +611,7 @@ exec {holohub_script} "$@"
         self.assertEqual(call_kwargs["project_name"], "test_project")
         self.assertEqual(call_kwargs["build_type"], "release")
         mock_run_command.assert_called_with(
-            ["cmake", "--install", str(mock_build_dir)], dry_run=False
+            ["cmake", "--install", str(mock_build_dir)], dry_run=False, env=None
         )
         mock_build_project_locally.reset_mock()
         mock_run_command.reset_mock()
@@ -830,25 +830,43 @@ exec {holohub_script} "$@"
         # Test build config application with mock args
         from argparse import Namespace
 
-        mock_args = Namespace(with_operators="existing", docker_opts="", configure_args=None)
+        # Test with no CLI args - should use mode config
+        mock_args = Namespace(
+            with_operators=None, docker_opts="", build_args="", configure_args=None
+        )
         enhanced = self.cli.get_effective_build_config(mock_args, mode_config)
-        # Mode config should replace CLI args entirely
-        self.assertEqual(enhanced["with_operators"], "op1;op2")
+        self.assertEqual(enhanced["with_operators"], "op1;op2")  # Uses mode config
 
-        # Test run config application with mock args
-        mock_args = Namespace(run_args="", docker_opts="--net host")
+        # Test with CLI args - CLI should override mode config
+        mock_args_with_override = Namespace(
+            with_operators="cli_op", docker_opts="", build_args="", configure_args=None
+        )
+        enhanced_override = self.cli.get_effective_build_config(
+            mock_args_with_override, mode_config
+        )
+        self.assertEqual(enhanced_override["with_operators"], "cli_op")  # CLI overrides mode
+
+        # Test run config application with no CLI args
+        mock_args = Namespace(run_args="", docker_opts="")
         enhanced = self.cli.get_effective_run_config(mock_args, mode_config)
-        self.assertEqual(enhanced["run_args"], "")  # CLI run_args
-        # Note: run config doesn't have docker_run_args, so CLI docker_opts should be preserved
-        self.assertEqual(enhanced["docker_opts"], "--net host")
+        self.assertEqual(enhanced["run_args"], "")
+        # Mode config doesn't have docker_run_args, so CLI docker_opts should be preserved
+        self.assertEqual(enhanced["docker_opts"], "")
 
-        # Test run config with docker_run_args replacement
+        # Test run config with docker_run_args - no CLI override
         mode_config_with_docker = {
             "run": {"command": "python3 app.py", "docker_run_args": ["--privileged", "--net=host"]}
         }
-        enhanced = self.cli.get_effective_run_config(mock_args, mode_config_with_docker)
-        # Mode docker_run_args should replace CLI docker_opts
-        self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")
+        mock_args_no_override = Namespace(run_args="", docker_opts="")
+        enhanced = self.cli.get_effective_run_config(mock_args_no_override, mode_config_with_docker)
+        self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")  # Uses mode config
+
+        # Test with CLI override - CLI should take precedence
+        mock_args_with_override = Namespace(run_args="", docker_opts="--gpus all")
+        enhanced_override = self.cli.get_effective_run_config(
+            mock_args_with_override, mode_config_with_docker
+        )
+        self.assertEqual(enhanced_override["docker_opts"], "--gpus all")  # CLI overrides mode
 
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_coverage_flag_forwarding(self, mock_make_container):
