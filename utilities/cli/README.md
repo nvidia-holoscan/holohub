@@ -176,7 +176,7 @@ CLI parameters can be used in addition to modes. When provided, CLI parameters w
 ./holohub run holochat --run-args="--debug"            # appends to default_mode.run.command
 ./holohub run myapp --build-with="ops"                 # overrides default_mode.build.depends
 ./holohub build myapp standard --build-with="ops"      # overrides standard.build.depends
-./holohub run holochat cloud --run-args="--test=case"  # overrides cloud.run.command
+./holohub run holochat cloud --run-args="--test=case"  # appends to cloud.run.command
 ```
 
 **Mode Priority Rules:**
