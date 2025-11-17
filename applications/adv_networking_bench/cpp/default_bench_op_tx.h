@@ -176,7 +176,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
     spec.param<bool>(gpu_direct_,
                      "gpu_direct",
                      "GPUDirect enabled",
-                     "Byte boundary where header and data is split",
+                     "Whether GPUDirect is enabled",
                      false);
     spec.param<std::string>(udp_src_port_str_,
           "udp_src_port", "UDP source port",
