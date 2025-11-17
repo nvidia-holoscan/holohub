@@ -31,6 +31,8 @@ from typing import List, Optional, Tuple, Union
 
 DEFAULT_BASE_SDK_VERSION = "3.8.0"
 
+DEFAULT_GIT_REF = "latest"
+
 PROJECT_PREFIXES = {
     "application": "APP",
     "benchmark": "APP",
@@ -176,6 +178,41 @@ def get_holohub_root() -> Path:
     return HOLOHUB_ROOT
 
 
+def _slugify(text: str, max_len: int = 63) -> str:
+    """Make a branch slug: lowercase, non-alnum to '-', trim dashes, max length."""
+    lowered = text.lower()
+    replaced = re.sub(r"[^a-z0-9]+", "-", lowered)
+    trimmed = replaced.strip("-")
+    return trimmed[:max_len]
+
+
+def get_git_short_sha(length: int = 12) -> str:
+    """Get short Git SHA for the current repository."""
+    try:
+        sha = run_info_command(
+            ["git", "rev-parse", f"--short={length}", "HEAD"], cwd=str(HOLOHUB_ROOT)
+        )
+        return sha or DEFAULT_GIT_REF
+    except Exception:
+        warn(f"Failed to get current git sha, defaulting to {DEFAULT_GIT_REF}")
+        return DEFAULT_GIT_REF
+
+
+def get_current_branch_slug() -> str:
+    """Get current branch name as a slug suitable for Docker tags."""
+    try:
+        # Prefer rev-parse for consistency with bash wrapper behavior.
+        branch = run_info_command(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=str(HOLOHUB_ROOT)
+        )
+        if not branch or branch in ["HEAD", "(no branch)"] or branch.startswith("(HEAD detached"):
+            return DEFAULT_GIT_REF
+        return _slugify(branch) or DEFAULT_GIT_REF
+    except Exception:
+        warn(f"Failed to get current branch, defaulting to {DEFAULT_GIT_REF}")
+        return DEFAULT_GIT_REF
+
+
 def get_holohub_setup_scripts_dir() -> Path:
     return Path(
         os.environ.get("HOLOHUB_SETUP_SCRIPTS_DIR", HOLOHUB_ROOT / "utilities" / "setup")
@@ -272,10 +309,10 @@ def run_command(
         sys.exit(e.returncode)
 
 
-def run_info_command(cmd: List[str]) -> Optional[str]:
+def run_info_command(cmd: List[str], cwd: Optional[str] = None) -> Optional[str]:
     """Run a command for information gathering and return stripped output or None if failed"""
     try:
-        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()
+        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, cwd=cwd).strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
