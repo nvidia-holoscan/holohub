@@ -44,8 +44,9 @@ export HOLOHUB_CMD_NAME=${BASH_SOURCE[0]}
 
 # Run the CLI command
 PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/holohub.py "$@"
-
+CLI_EXIT_CODE=$?
 # Check for CLI updates after command completes
 if [ -f "${SCRIPT_PATH}/utilities/cli/version_check.py" ]; then
     PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/version_check.py 2>/dev/null || true
 fi
+exit ${CLI_EXIT_CODE}
