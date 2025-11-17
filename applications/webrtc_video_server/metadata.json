@@ -28,19 +28,19 @@
 			"libraries": [
 				{
 					"name": "aiortc",
-					"version": "1.6.0"
+					"version": "1.14.*"
 				},
 				{
 					"name": "aiohttp",
-					"version": "3.9.9"
-				},
-				{
-					"name": "numpy",
-					"version": "1.26.4"
+					"version": "3.13.*"
 				},
 				{
 					"name": "aiohttp-cors",
-					"version": "0.7.0"
+					"version": "0.8.*"
+				},
+				{
+					"name": "numpy",
+					"version": "2.3.*"
 				}
 			]
 		},
