@@ -231,6 +231,10 @@ Each mode is defined as a named object under the `modes` key:
   - Can be a single string: `"--build-arg CUSTOM=value"`
   - Or an array: `["--build-arg", "CUSTOM=value"]`
 - **`cmake_options`** *(array of strings)*: Additional CMake configure arguments to pass to the local build step
+- **`env`** *(object)*: Environment variables to set **only for build operations** (local build and install)
+  - Key-value pairs of environment variable names and values
+  - Only applied during build, not during application execution
+  - **Note**: For environment variables needed during both build and run, use the top-level `env` field instead
 
 ##### **Run Command Fields (`run` object):**
 - **`command`** *(string)*: Complete command to execute including all arguments

@@ -232,6 +232,13 @@
             "type": "string"
           },
           "description": "Additional cmake options to pass to the local build step"
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Environment variables to set when building the application (local and container builds)"
         }
       }
     },
