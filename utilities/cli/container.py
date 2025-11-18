@@ -34,7 +34,9 @@ from .util import (
     find_hsdk_build_rel_dir,
     get_compute_capacity,
     get_cuda_tag,
+    get_current_branch_slug,
     get_default_cuda_version,
+    get_git_short_sha,
     get_group_id,
     get_holohub_root,
     get_holohub_setup_scripts_dir,
@@ -326,13 +328,31 @@ class HoloHubContainer:
         return HoloHubContainer.default_image(self.cuda_version)
 
     @property
+    def image_names(self) -> List[str]:
+        """Return list of image tags to apply: sha-tag, branch-tag, and legacy tag."""
+        project = self.project_metadata.get("project_name", "") if self.project_metadata else ""
+        repo = f"{self.CONTAINER_PREFIX}-{project}" if project else self.CONTAINER_PREFIX
+        sha_tag = f"{repo}:{get_git_short_sha()}"
+        branch_tag = f"{repo}:{get_current_branch_slug()}"
+        legacy_tag = self.image_name
+        # Deduplicate while preserving order.
+        seen = set()
+        result = []
+        for tag in [sha_tag, branch_tag, legacy_tag]:
+            if tag and tag not in seen:
+                result.append(tag)
+                seen.add(tag)
+        return result
+
+    @property
     def dockerfile_path(self) -> Path:
         """
         Get Dockerfile path for the project according to the search strategy:
         1. As specified in metadata.json
         2. <app_source>/Dockerfile
         3. <app_source>/<language>/Dockerfile
-        4. holohub/Dockerfile
+        4. `HOLOHUB_DEFAULT_DOCKERFILE` env variable
+        5. `<HOLOHUB_ROOT>/Dockerfile`
         """
         if not self.project_metadata:
             return HoloHubContainer.default_dockerfile()
@@ -409,7 +429,7 @@ class HoloHubContainer:
         # Get Dockerfile path
         docker_file_path = docker_file or self.dockerfile_path
         base_img = base_img or self.default_base_image(self.cuda_version)
-        img = img or self.image_name
+        tags = [img] if img else self.image_names
         gpu_type = get_host_gpu()
         compute_capacity = get_compute_capacity()
 
@@ -457,16 +477,14 @@ class HoloHubContainer:
         if full_build_args:
             cmd.extend(shlex.split(full_build_args))
 
-        cmd.extend(
-            [
-                "-f",
-                str(docker_file_path),
-                "-t",
-                img,
-                *(["-t", f"{img}-base"] if extra_scripts else []),
-                str(HoloHubContainer.HOLOHUB_ROOT),
-            ]
-        )
+        cmd.extend(["-f", str(docker_file_path)])
+        for tag_name in tags:
+            cmd.extend(["-t", tag_name])
+        if extra_scripts:
+            # Tag the base (pre-scripts) image for all tags for consistency
+            for tag_name in tags:
+                cmd.extend(["-t", f"{tag_name}-base"])
+        cmd.append(str(HoloHubContainer.HOLOHUB_ROOT))
 
         run_command(cmd, dry_run=self.dryrun)
 
@@ -488,18 +506,17 @@ class HoloHubContainer:
                     "--build-arg",
                     "BUILDKIT_INLINE_CACHE=1",
                     "--build-arg",
-                    f"BASE_IMAGE={img}",
+                    f"BASE_IMAGE={tags[0]}",  # reuse the default tag to sequentially add the scripts on top of each other.
                     "--network=host",
                     "--build-arg",
                     f"SCRIPT={relative_script_path}",
-                    "-t",
-                    f"{img}-{script}",
-                    "-t",
-                    f"{img}",
                     "-f",
                     str(get_holohub_setup_scripts_dir() / "Dockerfile.util"),
                     str(HoloHubContainer.HOLOHUB_ROOT),
                 ]
+                for tag_name in tags:
+                    # We override the default tag so we can add the next scripts on top of this.
+                    cmd.extend(["-t", f"{tag_name}-{script}", "-t", f"{tag_name}"])
                 run_command(cmd, dry_run=self.dryrun)
 
     def run(
@@ -523,7 +540,7 @@ class HoloHubContainer:
         if not self.dryrun:
             check_nvidia_ctk()
 
-        img = img or self.image_name
+        img = img or self.image_names[0]
         add_volumes = add_volumes or []
         extra_args = extra_args or []
 
