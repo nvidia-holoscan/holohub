@@ -44,7 +44,7 @@ download_cli() {
 
 # Check if CLI needs to be downloaded or force-updated (including the first time run)
 if [ "${CLI_FORCE_UPDATE}" = "1" ] || [ ! -d "${SCRIPT_PATH}/utilities/cli" ]; then
-    download_cli
+    download_cli || { echo "Error: Failed to download CLI"; exit 1; }
 fi
 
 export HOLOHUB_CMD_NAME=${BASH_SOURCE[0]}
