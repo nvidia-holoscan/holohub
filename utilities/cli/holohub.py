@@ -1075,12 +1075,9 @@ class HoloHubCLI:
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
             build_env = None
             if mode_config:
-                build_env = {}
-                if mode_config.get("env"):
-                    build_env.update(mode_config["env"])
                 build_cfg = mode_config.get("build", {})
                 if isinstance(build_cfg, dict) and build_cfg.get("env"):
-                    build_env.update(build_cfg["env"])
+                    build_env = dict(build_cfg["env"])
             self.build_project_locally(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
@@ -1202,12 +1199,9 @@ class HoloHubCLI:
             else:
                 build_env = None
                 if mode_config:
-                    build_env = {}
-                    if mode_config.get("env"):
-                        build_env.update(mode_config["env"])
                     build_cfg = mode_config.get("build", {})
                     if isinstance(build_cfg, dict) and build_cfg.get("env"):
-                        build_env.update(build_cfg["env"])
+                        build_env = dict(build_cfg["env"])
 
                 build_dir, project_data = self.build_project_locally(
                     project_name=args.project,
@@ -1865,12 +1859,9 @@ class HoloHubCLI:
             # Build and install locally
             mode_env = None
             if mode_config:
-                mode_env = {}
-                if mode_config.get("env"):
-                    mode_env.update(mode_config["env"])
                 build_cfg = mode_config.get("build", {})
                 if isinstance(build_cfg, dict) and build_cfg.get("env"):
-                    mode_env.update(build_cfg["env"])
+                    mode_env = dict(build_cfg["env"])
 
             build_dir, project_data = self.build_project_locally(
                 project_name=args.project,
