@@ -267,7 +267,7 @@ Each mode is defined as a named object under the `modes` key:
         "description": "High-performance mode with GPU acceleration",
         "requirements": ["gpu", "model", "tensorrt"],
         "env": {
-          "CUDA_VISIBLE_DEVICES": "0",
+          "TEST_VAR": "0",
           "BUILD_ENV": "production"
         },
         "build": {
