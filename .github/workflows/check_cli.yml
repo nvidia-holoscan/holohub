@@ -29,6 +29,7 @@ jobs:
         run: |
           python -m unittest utilities.cli.tests.test_cli
           python -m unittest utilities.cli.tests.test_container
+          python -m unittest utilities.cli.tests.test_util
 
   check-cli-ctest:
     runs-on: ubuntu-22.04
