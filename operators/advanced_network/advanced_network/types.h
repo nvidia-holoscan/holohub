@@ -374,7 +374,7 @@ struct FlowMatch {
   uint16_t udp_dst_;
   uint16_t ipv4_len_;
   in_addr_t ipv4_src_;
-  in_addr_t ipv4_dst_;  
+  in_addr_t ipv4_dst_;
   FlexItemMatch flex_item_match_;
 };
 struct FlowConfig {

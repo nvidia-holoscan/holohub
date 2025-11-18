@@ -1348,7 +1348,7 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
     has_udp_match = true;
     HOLOSCAN_LOG_INFO("Adding UDP port match for dst {}", cfg.match_.udp_dst_);
   }
-    
+
   if (has_udp_match == true) {
     udp_spec.hdr.dgram_len = 0;
     udp_spec.hdr.dgram_cksum = 0;
