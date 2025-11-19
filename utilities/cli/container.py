@@ -475,6 +475,9 @@ class HoloHubContainer:
 
         if no_cache:
             cmd.append("--no-cache")
+        else:
+            for tag_name in tags:
+                cmd.extend(["--cache-from", tag_name])
 
         full_build_args = " ".join(
             filter(None, [HoloHubContainer.DEFAULT_DOCKER_BUILD_ARGS, build_args])
