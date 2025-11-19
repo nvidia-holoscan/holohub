@@ -1375,7 +1375,7 @@ def collect_sccache_info() -> None:
     print(f"  sccache binary: {sccache_bin or '(not found in PATH)'}")
     print(f"  sccache version: {version or '(unavailable)'}")
 
-    effective_dir = os.environ.get("SCCACHE_DIR") or str(Path.home() / ".cache" / "sccache")
+    effective_dir = get_sccache_dir()
     print(f"  Effective SCCACHE_DIR: {effective_dir}")
 
     sccache_items = sorted(
