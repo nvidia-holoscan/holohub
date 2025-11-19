@@ -40,8 +40,8 @@
 		"ranking": 5,
 		"description": "Record Holoscan video streams to file using GStreamer encoding. Supports multiple codecs (H.264, H.265, VP8, VP9) and both host/device memory for efficient video recording.",
 		"run": {
-			"command": "gst-video-recorder --help",
-			"workdir": "install/bin/gst_video_recorder"
+			"command": "applications/gstreamer/gst_video_recorder/gst-video-recorder",
+			"workdir": "holohub_bin"
 		}
 	}
 }

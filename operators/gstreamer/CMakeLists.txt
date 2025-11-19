@@ -104,16 +104,6 @@ else()
     message(STATUS "GStreamer CUDA support: DISABLED (gstreamer-cuda-1.0 not found - requires GStreamer 1.24+)")
 endif()
 
-# Platform-specific settings
-if(APPLE)
-    # For macOS, we might need additional frameworks
-    find_library(FOUNDATION_FRAMEWORK Foundation)
-    find_library(COCOA_FRAMEWORK Cocoa)
-    if(FOUNDATION_FRAMEWORK AND COCOA_FRAMEWORK)
-        target_link_libraries(holoscan_gstreamer_bridge ${FOUNDATION_FRAMEWORK} ${COCOA_FRAMEWORK})
-    endif()
-endif()
-
 # Install library
 install(TARGETS holoscan_gstreamer_bridge DESTINATION lib)
 

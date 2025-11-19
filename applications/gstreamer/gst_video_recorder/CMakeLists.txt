@@ -20,6 +20,7 @@ find_package(holoscan REQUIRED CONFIG
 
 add_executable(gst-video-recorder
   gst_video_recorder.cpp
+  pattern_generator.cpp
 )
 
 target_link_libraries(gst-video-recorder

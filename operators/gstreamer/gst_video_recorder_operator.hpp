@@ -18,6 +18,7 @@
 #ifndef GST_VIDEO_RECORDER_OPERATOR_HPP
 #define GST_VIDEO_RECORDER_OPERATOR_HPP
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <string>
@@ -58,6 +59,8 @@ class GstVideoRecorderOperator : public Operator {
    *              Special: "0/1" for live mode (no framerate control, process frames as fast as they come)
    *              Note: In live mode, timestamps reflect actual frame arrival times (real-time)
    * - max_buffers: Maximum number of buffers to queue (0 = unlimited) - default: 10
+   * - block: Whether push_buffer() should block when the queue is full (true = block,
+   *          false = non-blocking, may drop/timeout) - default: true
    * - filename: Output video filename - default: "output.mp4"
    *              Note: If no extension is provided, ".mp4" is automatically appended
    * - properties: Map of encoder-specific properties - default: empty map
@@ -112,17 +115,19 @@ class GstVideoRecorderOperator : public Operator {
   Parameter<std::string> framerate_;  // Fraction string: "30/1", "30000/1001", "29.97",
                                        // or "0/1" for live mode (real-time timestamps)
   Parameter<size_t> max_buffers_;
+  Parameter<bool> block_;
   Parameter<std::string> filename_;
   Parameter<std::map<std::string, std::string>> properties_;  // Encoder-specific properties
                                                               // (e.g., bitrate, preset)
 
   // Bridge and pipeline management
-  std::shared_ptr<GstSrcBridge> bridge_;
+  std::shared_ptr<GstSrcBridge> src_bridge_;
   gst::Element pipeline_;
   gst::Element encoder_;  // Keep reference to link dynamically created converter to it
 
   // Bus monitoring
   std::future<void> bus_monitor_future_;
+  std::atomic<bool> stop_bus_monitor_{false};
 
   // Frame tracking
   size_t frame_count_ = 0;

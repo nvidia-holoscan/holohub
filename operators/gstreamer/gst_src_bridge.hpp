@@ -52,9 +52,11 @@ class GstSrcBridge {
    * @param name Optional name for the appsrc element
    * @param caps_string Capabilities string (e.g., "video/x-raw,format=RGBA,width=1920,height=1080")
    * @param max_buffers Maximum number of buffers in queue (0 = unlimited)
+   * @param block If true, push_buffer() blocks when queue is full; if false, returns immediately
    * @throws std::runtime_error if initialization fails
    */
-  GstSrcBridge(const std::string& name, const std::string& caps_string, size_t max_buffers);
+  GstSrcBridge(const std::string& name, const std::string& caps_string, size_t max_buffers, 
+               bool block = true);
 
   /**
    * @brief Destructor - cleans up GStreamer resources
@@ -89,8 +91,10 @@ class GstSrcBridge {
   /**
    * @brief Push a buffer into the GStreamer pipeline
    *
-   * If the queue is at capacity (controlled by max_buffers), this function
-   * will block until space becomes available or EOS is signaled.
+   * If the queue is at capacity (controlled by max_buffers), this function's
+   * behavior depends on the block setting:
+   * - If block=true (default): blocks until space becomes available or EOS is signaled
+   * - If block=false: returns immediately, potentially dropping the buffer
    *
    * @param buffer GStreamer buffer to push
    * @return true if buffer was successfully queued, false otherwise
@@ -130,6 +134,7 @@ class GstSrcBridge {
   std::string name_;
   std::string caps_string_;
   size_t max_buffers_;
+  bool block_;  // Whether push_buffer() should block when queue is full
 
   // Framerate from caps (numerator/denominator)
   // Default to 0/1 (live mode - no framerate control)

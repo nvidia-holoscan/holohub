@@ -70,20 +70,8 @@ RUN chmod +x /tmp/scripts/holohub
 RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Install GStreamer development packages and pkg-config
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y \
-        pkg-config \
-        libgstreamer1.0-dev \
-        libgstreamer-plugins-base1.0-dev \
-        libgstreamer-plugins-bad1.0-dev \
-        gstreamer1.0-plugins-base \
-        gstreamer1.0-plugins-bad \
-        gstreamer1.0-plugins-good \
-        gstreamer1.0-plugins-ugly \
-        gstreamer1.0-libav \
-    && apt-get autoremove -y \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
+COPY applications/gstreamer/gst_video_recorder/install_deps.sh /tmp/install_gst_video_recorder_deps.sh
+RUN /tmp/install_gst_video_recorder_deps.sh
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
