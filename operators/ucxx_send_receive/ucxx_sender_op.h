@@ -24,7 +24,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "holoscan/holoscan.hpp"
 
-#include "operators/ucxx/ucxx_endpoint.h"
+#include "ucxx_endpoint.h"
 
 namespace isaac::os::ops {
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "operators/ucxx/ucxx_endpoint.h"
+#include "ucxx_endpoint.h"
 
 namespace isaac::os {
 

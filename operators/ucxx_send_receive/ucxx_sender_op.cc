@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-#include "operators/ucxx/ucxx_sender_op.h"
+#include "ucxx_sender_op.h"
 
-#include "messages/reflection/message_reflection.h"
-#include "messages/reflection/message_registry.h"
-#include "messages/reflection/tensor_materialization.h"
+#include "message_reflection.h"
+#include "message_registry.h"
+#include "tensor_materialization.h"
 
 namespace isaac::os::ops {
 

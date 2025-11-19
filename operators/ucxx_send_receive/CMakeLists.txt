@@ -17,6 +17,11 @@ cmake_minimum_required(VERSION 3.20)
 
 project(ucxx_ops LANGUAGES CXX)
 
+find_package(holoscan 3 REQUIRED CONFIG)
+find_package(flatbuffers 25 REQUIRED)
+
+add_subdirectory(messages)
+
 add_library(ucxx_ops SHARED
   ucxx_endpoint.cc
   ucxx_receiver_op.cc
@@ -29,12 +34,12 @@ target_include_directories(ucxx_ops
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-include(isaac_deps/holoscan)
 target_link_libraries(ucxx_ops
   PUBLIC
     flatbuffers::flatbuffers
     holoscan::core
     isaac::messages::reflection
+    isaac::messages::reflection::tensor_materialization
     ucs
     ucxx
 )

@@ -24,8 +24,8 @@
 #include "holoscan/holoscan.hpp"
 #include "ucxx/api.h"
 
-#include "messages/reflection/message_reflection.h"
-#include "operators/ucxx/ucxx_endpoint.h"
+#include "message_reflection.h"
+#include "ucxx_endpoint.h"
 
 namespace isaac::os::ops {
 
