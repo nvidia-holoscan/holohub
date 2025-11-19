@@ -26,24 +26,33 @@ set -e  # Exit on any error
 
 echo "🔧 Installing GStreamer Video Recorder dependencies..."
 
+# Detect if we need sudo (not root and sudo is available)
+USE_SUDO=""
+if [ "$EUID" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+    USE_SUDO="sudo"
+    echo "ℹ️  Running with sudo (not root user)"
+else
+    echo "ℹ️  Running as root (Docker container or root user)"
+fi
+
 # Update package lists
 echo "📦 Updating package lists..."
-sudo apt-get update
+$USE_SUDO apt-get update
 
 # Install pkg-config (required for CMake to find GStreamer)
 echo "📦 Installing pkg-config..."
-sudo apt-get install -y pkg-config
+$USE_SUDO apt-get install -y pkg-config
 
 # Install GStreamer development libraries
 echo "📦 Installing GStreamer development packages..."
-sudo apt-get install -y \
+$USE_SUDO apt-get install -y \
     libgstreamer1.0-dev \
     libgstreamer-plugins-base1.0-dev \
     libgstreamer-plugins-bad1.0-dev
 
 # Install GStreamer plugins for comprehensive codec support
 echo "📦 Installing GStreamer plugins..."
-sudo apt-get install -y \
+$USE_SUDO apt-get install -y \
     gstreamer1.0-plugins-base \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-plugins-good \
@@ -52,7 +61,7 @@ sudo apt-get install -y \
 
 # Try to install optional CUDA plugin (requires GStreamer 1.24+)
 echo "🚀 Installing optional CUDA support (if available)..."
-if sudo apt-get install -y gstreamer1.0-cuda 2>/dev/null; then
+if $USE_SUDO apt-get install -y gstreamer1.0-cuda 2>/dev/null; then
     echo "✅ CUDA support installed successfully"
 else
     echo "⚠️  CUDA support not available (requires GStreamer 1.24+)"
@@ -61,9 +70,9 @@ fi
 
 # Clean up
 echo "🧹 Cleaning up..."
-sudo apt-get autoremove -y
-sudo apt-get clean
-sudo rm -rf /var/lib/apt/lists/*
+$USE_SUDO apt-get autoremove -y
+$USE_SUDO apt-get clean
+$USE_SUDO rm -rf /var/lib/apt/lists/*
 
 echo "✅ All dependencies installed successfully!"
 echo ""

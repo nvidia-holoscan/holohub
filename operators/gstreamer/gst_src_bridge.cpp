@@ -199,14 +199,24 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
 
     // Get tensor shape for width and height
     auto shape = tensor->shape();
-    if (shape.size() < 2) {
-      HOLOSCAN_LOG_ERROR("Tensor has invalid rank {} for CUDA wrapping", shape.size());
+    if (shape.size() < 2 || shape.size() > 3) {
+      HOLOSCAN_LOG_ERROR("Tensor has invalid rank {} for CUDA wrapping (expected 2 or 3)", shape.size());
       return gst::Memory();
     }
 
     // Tensor is in format: [height, width, channels] or [height, width].
     gint height = shape[0];
     gint width = shape[1];
+    
+    // Validate channels if present (rank 3)
+    if (shape.size() == 3) {
+      int channels = shape[2];
+      // Common video formats: GRAY8(1), RGB(3), RGBA/BGRA(4)
+      if (channels != 1 && channels != 3 && channels != 4) {
+        HOLOSCAN_LOG_ERROR("Tensor has invalid channel count {} (expected 1, 3, or 4)", channels);
+        return gst::Memory();
+      }
+    }
 
     HOLOSCAN_LOG_DEBUG("Wrapping tensor with format {} ({}x{})",
                        gst_video_format_to_string(video_format_), width, height);
@@ -311,13 +321,14 @@ std::shared_ptr<GstSrcBridge::MemoryWrapper> create_memory_wrapper(const holosca
 // ============================================================================
 
 GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps_string,
-                           size_t max_buffers)
+                           size_t max_buffers, bool block)
     : name_(name),
       caps_string_(caps_string),
       max_buffers_(max_buffers),
+      block_(block),
       src_element_(gst_element_factory_make("appsrc", name_.empty() ? nullptr : name_.c_str())) {
-  HOLOSCAN_LOG_INFO("Creating GstSrcBridge: name='{}', caps='{}', max_buffers={}", name_,
-                    caps_string_, max_buffers_);
+  HOLOSCAN_LOG_INFO("Creating GstSrcBridge: name='{}', caps='{}', max_buffers={}, block={}", name_,
+                    caps_string_, max_buffers_, block_);
 
   if (!src_element_) {
     HOLOSCAN_LOG_ERROR("Failed to create appsrc element");
@@ -365,7 +376,7 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps_stri
                "is-live", is_live ? TRUE : FALSE,  // Live mode if framerate is 0 or not specified
                "max-buffers", max_buffers_,        // Buffer queue limit (0 = unlimited)
                "max-bytes", (guint64)0,  // Byte limit (0 = unlimited, controlled by max-buffers)
-               "block", TRUE,  // Block push_buffer() when queue is full for proper flow control
+               "block", block_ ? TRUE : FALSE,  // Configurable blocking behavior
                NULL);
 
   // Set caps

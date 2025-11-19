@@ -173,9 +173,4 @@ The application supports both host and device (CUDA) memory:
 - EOS (End-Of-Stream) signal is sent automatically when recording completes
 - Video parameters (width, height, format, storage) are automatically detected from incoming frames
 
-## See Also
-
-- `holopattern_to_gst` - Similar application that can output to any GStreamer pipeline
-- GStreamer documentation: https://gstreamer.freedesktop.org/documentation/
-
 
