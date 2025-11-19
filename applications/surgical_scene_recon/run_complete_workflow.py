@@ -44,7 +44,7 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
         ingestion_dir: Path to training_ingestion directory
     """
     print(f"\n{'='*70}")
-    print(f"  STAGE 1: DATA ACCUMULATION")
+    print("  STAGE 1: DATA ACCUMULATION")
     print(f"{'='*70}\n")
     
     # Create output directories
@@ -77,7 +77,7 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
     
     # Validate file counts match
     if not (len(image_paths) == len(depth_paths) == len(mask_paths)):
-        print(f"\n❌ ERROR: Mismatched file counts!")
+        print("\n❌ ERROR: Mismatched file counts!")
         print(f"  Images: {len(image_paths)}")
         print(f"  Depths: {len(depth_paths)}")
         print(f"  Masks: {len(mask_paths)}")
@@ -141,7 +141,7 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
     poses_bounds = np.concatenate([poses_flat, bounds], axis=1)
     np.save(ingestion_dir / "poses_bounds.npy", poses_bounds)
     
-    print(f"\n✅ Stage 1 Complete: Data Accumulation")
+    print("\n✅ Stage 1 Complete: Data Accumulation")
     print(f"  - Images: {frames_to_process}")
     print(f"  - Depth: {frames_to_process}")
     print(f"  - Masks: {frames_to_process}")
@@ -165,7 +165,7 @@ def run_training(ingestion_dir, output_dir, training_iterations, coarse_iteratio
         checkpoint_path: Path to trained checkpoint, or None if failed
     """
     print(f"\n{'='*70}")
-    print(f"  STAGE 2: TRAINING")
+    print("  STAGE 2: TRAINING")
     print(f"{'='*70}\n")
     
     # Validate training script exists
@@ -218,17 +218,17 @@ def run_training(ingestion_dir, output_dir, training_iterations, coarse_iteratio
         best_ckpt = ckpt_dir / "fine_best_psnr.pt"
         
         if best_ckpt.exists():
-            print(f"\n✅ Stage 2 Complete: Training")
+            print("\n✅ Stage 2 Complete: Training")
             print(f"  Checkpoint: {best_ckpt}\n")
             return str(best_ckpt)
         else:
             final_ckpt = ckpt_dir / f"fine_step{training_iterations-1:05d}.pt"
             if final_ckpt.exists():
-                print(f"\n✅ Stage 2 Complete: Training")
+                print("\n✅ Stage 2 Complete: Training")
                 print(f"  Checkpoint: {final_ckpt}\n")
                 return str(final_ckpt)
             else:
-                print(f"\n❌ No checkpoint found")
+                print("\n❌ No checkpoint found")
                 return None
                 
     except Exception as e:
@@ -245,18 +245,22 @@ def run_inference(data_dir, checkpoint_path, num_frames=-1, visualize=True):
     Args:
         data_dir: Original data directory
         checkpoint_path: Path to trained checkpoint
-        num_frames: Number of frames to render (-1 = all frames, continuous loop)
+        num_frames: Number of frames to render. Use -1 for continuous loop of all frames,
+                    or positive integer to render that many frames once and exit
         visualize: Show visualization window
         
     Returns:
         success: True if successful
     """
     print(f"\n{'='*70}")
-    print(f"  STAGE 3: INFERENCE & RENDERING")
+    print("  STAGE 3: INFERENCE & RENDERING")
     print(f"{'='*70}\n")
     
-    print(f"Rendering ALL frames in continuous loop with your trained model...")
-    print(f"Press ESC or close window to exit visualization\n")
+    if num_frames > 0:
+        print(f"Rendering {num_frames} frames (no loop)...")
+    else:
+        print("Rendering ALL frames in continuous loop with your trained model...")
+    print("Press ESC or close window to exit visualization\n")
     
     # Validate rendering script exists
     script_path = Path("test_dynamic_rendering_viz.py")
@@ -270,11 +274,18 @@ def run_inference(data_dir, checkpoint_path, num_frames=-1, visualize=True):
         str(script_path),
         "--data_dir", data_dir,
         "--checkpoint", checkpoint_path,
-        # No --num_frames or --no-loop flags = render all frames in continuous loop
     ]
     
+    if num_frames > 0:
+        # Render specific number of frames, no loop
+        cmd.extend(["--num_frames", str(num_frames)])
+        cmd.append("--no-loop")
+    else:
+        # num_frames == -1: render all frames in continuous loop (default)
+        cmd.append("--loop")
+    
     print(f"Command: {' '.join(cmd)}\n")
-    print(f"Starting visualization...\n")
+    print("Starting visualization...\n")
     
     try:
         if visualize:
@@ -285,7 +296,7 @@ def run_inference(data_dir, checkpoint_path, num_frames=-1, visualize=True):
             ret = subprocess.call(cmd, env={**os.environ, "DISPLAY": ""})
         
         if ret == 0:
-            print(f"\n✅ Stage 3 Complete: Rendering")
+            print("\n✅ Stage 3 Complete: Rendering")
             return True
         else:
             print(f"\n⚠ Rendering exited with code {ret} (may be normal if window closed)")
@@ -310,7 +321,7 @@ def main():
     args = parser.parse_args()
     
     print(f"\n{'='*70}")
-    print(f"  COMPLETE UNIFIED WORKFLOW")
+    print("  COMPLETE UNIFIED WORKFLOW")
     print(f"{'='*70}")
     print(f"Data: {args.data_dir}")
     print(f"Output: {args.output_dir}")
@@ -361,16 +372,16 @@ def main():
     
     # Final summary
     print(f"\n{'='*70}")
-    print(f"  WORKFLOW COMPLETE! 🎉")
+    print("  WORKFLOW COMPLETE! 🎉")
     print(f"{'='*70}")
-    print(f"\nResults:")
+    print("\nResults:")
     print(f"  Data: {ingestion_dir}")
     print(f"  Model: {Path(args.output_dir) / 'trained_model'}")
     print(f"  Checkpoint: {checkpoint}")
     if not args.train_only:
-        print(f"  Renders: output/rendered_dynamic/")
-    print(f"\nTo re-run inference:")
-    print(f"  python test_dynamic_rendering_viz.py \\")
+        print("  Renders: output/rendered_dynamic/")
+    print("\nTo re-run inference:")
+    print("  python test_dynamic_rendering_viz.py \\")
     print(f"      --data_dir {args.data_dir} \\")
     print(f"      --checkpoint {checkpoint}")
     print(f"{'='*70}\n")

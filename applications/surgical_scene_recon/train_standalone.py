@@ -39,7 +39,7 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
         ingestion_dir: Path to training_ingestion directory
     """
     print(f"\n{'='*70}")
-    print(f"  DATA ACCUMULATION")
+    print("  DATA ACCUMULATION")
     print(f"{'='*70}\n")
     
     # Create output directories
@@ -72,7 +72,7 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
     
     # Validate file counts match
     if not (len(image_paths) == len(depth_paths) == len(mask_paths)):
-        print(f"\n❌ ERROR: Mismatched file counts!")
+        print("\n❌ ERROR: Mismatched file counts!")
         print(f"  Images: {len(image_paths)}")
         print(f"  Depths: {len(depth_paths)}")
         print(f"  Masks: {len(mask_paths)}")
@@ -136,7 +136,7 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
     poses_bounds = np.concatenate([poses_flat, bounds], axis=1)
     np.save(ingestion_dir / "poses_bounds.npy", poses_bounds)
     
-    print(f"\n✅ Accumulation complete!")
+    print("\n✅ Accumulation complete!")
     print(f"  - Images: {frames_to_process}")
     print(f"  - Depth: {frames_to_process}")
     print(f"  - Masks: {frames_to_process}")
@@ -160,7 +160,7 @@ def run_training(ingestion_dir, output_dir, training_iterations, coarse_iteratio
         checkpoint_path: Path to trained checkpoint, or None if failed
     """
     print(f"\n{'='*70}")
-    print(f"  TRAINING")
+    print("  TRAINING")
     print(f"{'='*70}\n")
     
     training_output = Path(output_dir) / "trained_model"
@@ -205,17 +205,17 @@ def run_training(ingestion_dir, output_dir, training_iterations, coarse_iteratio
         best_ckpt = ckpt_dir / "fine_best_psnr.pt"
         
         if best_ckpt.exists():
-            print(f"\n✅ Training complete!")
+            print("\n✅ Training complete!")
             print(f"  Checkpoint: {best_ckpt}\n")
             return str(best_ckpt)
         else:
             final_ckpt = ckpt_dir / f"fine_step{training_iterations-1:05d}.pt"
             if final_ckpt.exists():
-                print(f"\n✅ Training complete!")
+                print("\n✅ Training complete!")
                 print(f"  Checkpoint: {final_ckpt}\n")
                 return str(final_ckpt)
             else:
-                print(f"\n❌ No checkpoint found")
+                print("\n❌ No checkpoint found")
                 return None
                 
     except Exception as e:
@@ -236,7 +236,7 @@ def main():
     args = parser.parse_args()
     
     print(f"\n{'='*70}")
-    print(f"  Standalone Training Script")
+    print("  Standalone Training Script")
     print(f"{'='*70}")
     print(f"Data: {args.data_dir}")
     print(f"Output: {args.output_dir}")
@@ -262,18 +262,18 @@ def main():
     
     if checkpoint:
         print(f"\n{'='*70}")
-        print(f"  SUCCESS!")
+        print("  SUCCESS!")
         print(f"{'='*70}")
         print(f"Trained checkpoint: {checkpoint}")
-        print(f"\nRun inference with:")
-        print(f"python test_dynamic_rendering_viz.py \\")
+        print("\nRun inference with:")
+        print("python test_dynamic_rendering_viz.py \\")
         print(f"    --data_dir {args.data_dir} \\")
         print(f"    --checkpoint {checkpoint}")
         print(f"{'='*70}\n")
         return 0
     else:
         print(f"\n{'='*70}")
-        print(f"  FAILED!")
+        print("  FAILED!")
         print(f"{'='*70}\n")
         return 1
 

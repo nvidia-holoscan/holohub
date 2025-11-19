@@ -40,7 +40,6 @@ from pathlib import Path
 from typing import List
 
 import imageio
-import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
@@ -86,7 +85,7 @@ def create_gif(image_paths: List[str], output_path: str, fps: int = 10, loop: in
     print(f"  Duration per frame: {duration_ms} ms")
     
     # Save as GIF using PIL (better FPS control)
-    print(f"\nSaving GIF...")
+    print("\nSaving GIF...")
     pil_images[0].save(
         output_path,
         save_all=True,
@@ -126,7 +125,7 @@ def create_mp4(image_paths: List[str], output_path: str, fps: int = 10, quality:
         images.append(img)
     
     # Save as MP4 using imageio-ffmpeg
-    print(f"\nEncoding MP4...")
+    print("\nEncoding MP4...")
     writer = imageio.get_writer(
         output_path,
         fps=fps,

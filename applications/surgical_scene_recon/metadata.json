@@ -27,7 +27,7 @@
 			"pytorch": ">=2.1.0",
 			"gsplat": ">=1.0.0",
 			"cupy": "cuda12x",
-			"data": "EndoNeRF dataset"
+			"data": ["EndoNeRF dataset"]
 		},
 		"default_mode": "dynamic_rendering",
 		"modes": {

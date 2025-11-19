@@ -22,7 +22,6 @@ Designed for simple PNG-based loading without GXF conversion.
 Phase 1.1: Basic data loading and verification
 """
 
-import os
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -30,7 +29,6 @@ from PIL import Image
 import holoscan as hs
 from holoscan.core import Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.conditions import CountCondition
 
 
 class EndoNeRFLoaderOp(Operator):
@@ -77,7 +75,7 @@ class EndoNeRFLoaderOp(Operator):
         
     def start(self):
         """Load dataset metadata and file lists."""
-        print(f"[EndoNeRFLoader] Starting...")
+        print("[EndoNeRFLoader] Starting...")
         print(f"[EndoNeRFLoader] Data directory: {self.data_dir}")
         
         # Validate data directory
@@ -94,7 +92,7 @@ class EndoNeRFLoaderOp(Operator):
         self._load_poses(poses_file)
         
         # Get file lists
-        print(f"[EndoNeRFLoader] Loading file lists...")
+        print("[EndoNeRFLoader] Loading file lists...")
         self._load_file_lists(data_path)
         
         # Validate counts match
@@ -107,11 +105,11 @@ class EndoNeRFLoaderOp(Operator):
                 f"poses={self.num_frames}"
             )
         
-        print(f"[EndoNeRFLoader] Dataset loaded successfully!")
+        print("[EndoNeRFLoader] Dataset loaded successfully!")
         print(f"[EndoNeRFLoader]   - Frames: {self.num_frames}")
         print(f"[EndoNeRFLoader]   - Image size: {self.intrinsics['width']}x{self.intrinsics['height']}")
         print(f"[EndoNeRFLoader]   - Focal length: {self.intrinsics['focal']:.2f}")
-        print(f"[EndoNeRFLoader] Ready to stream!")
+        print("[EndoNeRFLoader] Ready to stream!")
         
     def _load_poses(self, poses_file):
         """
@@ -189,7 +187,7 @@ class EndoNeRFLoaderOp(Operator):
             raise ValueError(f"Masks directory not found: {masks_dir}")
         self.mask_paths = sorted(masks_dir.glob("*.png"))
         
-        print(f"[EndoNeRFLoader] Found files:")
+        print("[EndoNeRFLoader] Found files:")
         print(f"  - Images: {len(self.image_paths)}")
         print(f"  - Depths: {len(self.depth_paths)}")
         print(f"  - Masks: {len(self.mask_paths)}")
@@ -241,7 +239,7 @@ class EndoNeRFLoaderOp(Operator):
         
         # DEBUG: Print detailed info for first frame
         if frame_idx == 0:
-            print(f"\n[EndoNeRFLoader] ===== FIRST FRAME DEBUG =====")
+            print("\n[EndoNeRFLoader] ===== FIRST FRAME DEBUG =====")
             print(f"  RGB shape: {rgb_array.shape}, dtype: {rgb_array.dtype}")
             print(f"  RGB range: [{rgb_array.min()}, {rgb_array.max()}]")
             print(f"  Depth shape: {depth_array.shape}, dtype: {depth_array.dtype}")
@@ -253,7 +251,7 @@ class EndoNeRFLoaderOp(Operator):
             print(f"  Pose T shape: {pose['T'].shape}")
             print(f"  Intrinsics K:\n{self.intrinsics['K']}")
             print(f"  Time value: {time_value[0]:.4f} (frame {frame_idx}/{self.num_frames-1})")
-            print(f"[EndoNeRFLoader] =============================\n")
+            print("[EndoNeRFLoader] =============================\n")
         
         # Create output entity
         out_message = Entity(context)

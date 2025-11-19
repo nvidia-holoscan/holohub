@@ -27,7 +27,6 @@ import numpy as np
 from PIL import Image
 import cupy as cp
 
-import holoscan as hs
 from holoscan.core import Operator, OperatorSpec
 
 
@@ -67,7 +66,7 @@ class ImageSaverOp(Operator):
         self.output_dir_created = True
         
         if self.verbose:
-            print(f"[ImageSaver] Initialized")
+            print("[ImageSaver] Initialized")
             print(f"[ImageSaver]   Output directory: {output_path.absolute()}")
             print(f"[ImageSaver]   Saving every {self.save_every} frame(s)")
         
@@ -98,7 +97,7 @@ class ImageSaverOp(Operator):
                 continue
         
         if tensor is None:
-            print(f"[ImageSaver] WARNING: No image tensor found in message")
+            print("[ImageSaver] WARNING: No image tensor found in message")
             self.frame_count += 1
             return
         
@@ -163,6 +162,6 @@ class ImageSaverOp(Operator):
     def stop(self):
         """Cleanup and summary."""
         if self.verbose:
-            print(f"[ImageSaver] Stopped")
+            print("[ImageSaver] Stopped")
             print(f"[ImageSaver]   Total frames saved: {self.frame_count}")
             print(f"[ImageSaver]   Output directory: {Path(self.output_dir).absolute()}")

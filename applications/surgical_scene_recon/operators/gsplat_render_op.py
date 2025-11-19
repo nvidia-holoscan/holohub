@@ -107,7 +107,7 @@ class GsplatRenderOp(Operator):
         
         # DEBUG: First frame details
         if self.frame_count == 0:
-            print(f"\n[GsplatRender] ===== FIRST RENDER DEBUG =====")
+            print("\n[GsplatRender] ===== FIRST RENDER DEBUG =====")
             print(f"  Mode: {mode}")
             print(f"  Num gaussians: {len(params['means'])}")
             print(f"  Image size: {self.width}x{self.height}")
@@ -115,7 +115,7 @@ class GsplatRenderOp(Operator):
             print(f"  R shape: {R.shape}")
             print(f"  T shape: {T.shape}")
             print(f"  K shape: {K.shape}")
-            print(f"[GsplatRender] ================================\n")
+            print("[GsplatRender] ================================\n")
         
         # Render
         rendered = self._render_gsplat(params, R, T, K)
@@ -180,7 +180,7 @@ class GsplatRenderOp(Operator):
         
         # Debug: Print deformation effect on first frame
         if self.frame_count == 0:
-            print(f"[GsplatRender] Dynamic deformation applied:")
+            print("[GsplatRender] Dynamic deformation applied:")
             print(f"  - Mean displacement: {(means - means_base).abs().mean():.6f}")
             print(f"  - Scale change: {(scales_def - scales_base).abs().mean():.6f}")
             print(f"  - Time value: {time_val.item():.4f}")
@@ -221,7 +221,7 @@ class GsplatRenderOp(Operator):
         
         # DEBUG: First render details
         if self.frame_count == 0:
-            print(f"[GsplatRender] Rendering details:")
+            print("[GsplatRender] Rendering details:")
             print(f"  - SH degree: {sh_degree}")
             print(f"  - View matrix shape: {viewmats.shape}")
             print(f"  - K shape: {Ks.shape}")
@@ -251,7 +251,7 @@ class GsplatRenderOp(Operator):
             
             # DEBUG: First render output
             if self.frame_count == 0:
-                print(f"[GsplatRender] Render output:")
+                print("[GsplatRender] Render output:")
                 print(f"  - Colors shape: {rendered_colors.shape}")
                 print(f"  - Alphas shape: {rendered_alphas.shape}")
                 print(f"  - Colors range: [{rendered_colors.min():.4f}, {rendered_colors.max():.4f}]")
@@ -272,7 +272,7 @@ class GsplatRenderOp(Operator):
             }
             
         except Exception as e:
-            print(f"[GsplatRender] ERROR during rendering:")
+            print("[GsplatRender] ERROR during rendering:")
             print(f"  {e}")
             traceback.print_exc()
             raise

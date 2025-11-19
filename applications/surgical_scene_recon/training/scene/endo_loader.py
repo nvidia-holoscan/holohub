@@ -1,10 +1,36 @@
+# MIT License
+#
+# Copyright (c) 2025 EndoGaussian Project
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""
+EndoNeRF and SCARED dataset loaders for surgical scene reconstruction.
+MIT-licensed implementation derived from EndoGaussian project.
+"""
+
 import warnings
 
 warnings.filterwarnings("ignore")
 
 import json
 import os
-import random
 import os.path as osp
 
 import numpy as np
@@ -12,9 +38,7 @@ from PIL import Image
 from tqdm import tqdm
 from scene.cameras import Camera
 from typing import NamedTuple
-from torch.utils.data import Dataset
-from utils.general_utils import PILtoTorch, percentile_torch
-from utils.graphics_utils import getWorld2View2, focal2fov, fov2focal
+from utils.graphics_utils import focal2fov
 import glob
 from torchvision import transforms as T
 import open3d as o3d
@@ -23,7 +47,6 @@ import imageio.v2 as iio
 import cv2
 import torch
 import fpsample
-from torchvision import transforms
 from dataclasses import dataclass
 
 
@@ -173,10 +196,11 @@ class EndoNeRF_Dataset(object):
                 pts, colors, _ = self.get_pts_cam(depth, mask, color, disable_mask=False)
                 pts = self.get_pts_wld(pts, self.image_poses[idx])
                 num_pts = pts.shape[0]
+                sample_count = max(1, int(0.01 * num_pts))
                 if sampling == 'fps':
-                    sel_idxs = fpsample.bucket_fps_kdline_sampling(pts, int(0.01*num_pts), h=3)
+                    sel_idxs = fpsample.bucket_fps_kdline_sampling(pts, sample_count, h=3)
                 elif sampling == 'random':
-                    sel_idxs = np.random.choice(num_pts, int(0.01*num_pts), replace=False)
+                    sel_idxs = np.random.choice(num_pts, sample_count, replace=False)
                 else:
                     raise ValueError(f'{sampling} sampling has not been implemented yet.')
                 pts_sel, colors_sel = pts[sel_idxs], colors[sel_idxs]
@@ -456,10 +480,11 @@ class SCARED_Dataset(object):
                 # Previous code appended both full pts and sampled pts_sel (double append bug)
                 # This fix ensures uniform 10% sampling across all frames
                 num_pts = pts.shape[0]
+                sample_count = max(1, int(0.1 * num_pts))
                 if sampling == 'fps':
-                    sel_idxs = fpsample.bucket_fps_kdline_sampling(pts, int(0.1*num_pts), h=3)
+                    sel_idxs = fpsample.bucket_fps_kdline_sampling(pts, sample_count, h=3)
                 elif sampling == 'random':
-                    sel_idxs = np.random.choice(num_pts, int(0.1*num_pts), replace=False)
+                    sel_idxs = np.random.choice(num_pts, sample_count, replace=False)
                 else:
                     raise ValueError(f'{sampling} sampling has not been implemented yet.')
                 
@@ -481,7 +506,8 @@ class SCARED_Dataset(object):
             pts, colors, _ = self.get_pts_cam(depth, mask, color, disable_mask=False)
             pts = self.get_pts_wld(pts, self.pose_mat[idx])
             num_pts = pts.shape[0]
-            sel_idxs = np.random.choice(num_pts, int(0.5*num_pts), replace=True)
+            sample_count = max(1, int(0.5 * num_pts))
+            sel_idxs = np.random.choice(num_pts, sample_count, replace=True)
             pts, colors = pts[sel_idxs], colors[sel_idxs]
             normals = np.zeros((pts.shape[0], 3))
             

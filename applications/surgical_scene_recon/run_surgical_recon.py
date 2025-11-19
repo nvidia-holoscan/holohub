@@ -46,7 +46,7 @@ from pathlib import Path
 def run_inference_mode(args):
     """Run inference-only mode with existing checkpoint."""
     print(f"\n{'='*70}")
-    print(f"  MODE: INFERENCE-ONLY")
+    print("  MODE: INFERENCE-ONLY")
     print(f"{'='*70}")
     print(f"Data directory: {args.data_dir}")
     print(f"Checkpoint: {args.checkpoint}")
@@ -88,7 +88,7 @@ def run_inference_mode(args):
 def run_train_mode(args):
     """Run train-then-render mode."""
     print(f"\n{'='*70}")
-    print(f"  MODE: TRAIN-THEN-RENDER")
+    print("  MODE: TRAIN-THEN-RENDER")
     print(f"{'='*70}")
     print(f"Data directory: {args.data_dir}")
     print(f"Output directory: {args.output_dir}")
@@ -102,7 +102,7 @@ def run_train_mode(args):
     
     # Stage 1: Data collection and training
     print(f"\n{'='*70}")
-    print(f"  STAGE 1: DATA COLLECTION & TRAINING")
+    print("  STAGE 1: DATA COLLECTION & TRAINING")
     print(f"{'='*70}\n")
     
     # Validate training script exists
@@ -141,7 +141,7 @@ def run_train_mode(args):
     
     # Stage 2: Inference with trained checkpoint
     print(f"\n{'='*70}")
-    print(f"  STAGE 2: INFERENCE WITH TRAINED CHECKPOINT")
+    print("  STAGE 2: INFERENCE WITH TRAINED CHECKPOINT")
     print(f"{'='*70}\n")
     
     # Validate rendering script exists
@@ -168,7 +168,7 @@ def run_train_mode(args):
     
     if ret == 0:
         print(f"\n{'='*70}")
-        print(f"  SUCCESS! Train-then-render complete!")
+        print("  SUCCESS! Train-then-render complete!")
         print(f"{'='*70}")
         print(f"Trained model: {args.output_dir}/trained_model/")
         print(f"Checkpoint: {checkpoint_path}")

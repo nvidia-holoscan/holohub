@@ -34,7 +34,6 @@ Usage:
 import os
 from argparse import ArgumentParser
 
-import holoscan as hs
 from holoscan.core import Application
 from holoscan.conditions import CountCondition
 
@@ -66,7 +65,7 @@ class StaticRenderingTestApp(Application):
     def compose(self):
         """Build the test pipeline."""
         print(f"\n{'='*70}")
-        print(f"  Static Rendering Test Application")
+        print("  Static Rendering Test Application")
         print(f"{'='*70}")
         print(f"Data directory: {self.data_dir}")
         print(f"Checkpoint: {self.checkpoint_path}")
@@ -173,13 +172,13 @@ def main():
         app.run()
         
         print(f"\n{'='*70}")
-        print(f"  Static rendering test completed successfully!")
+        print("  Static rendering test completed successfully!")
         print(f"{'='*70}\n")
         return 0
         
     except Exception as e:
         print(f"\n{'='*70}")
-        print(f"  ERROR: Test failed!")
+        print("  ERROR: Test failed!")
         print(f"  {e}")
         print(f"{'='*70}\n")
         import traceback

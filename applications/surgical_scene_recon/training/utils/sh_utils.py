@@ -21,7 +21,10 @@
 #  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #  POSSIBILITY OF SUCH DAMAGE.
 
-import torch
+"""
+Spherical harmonics utilities for color representation.
+Originally from PlenOctree project, used for Gaussian Splatting color encoding.
+"""
 
 C0 = 0.28209479177387814
 C1 = 0.4886025119029199

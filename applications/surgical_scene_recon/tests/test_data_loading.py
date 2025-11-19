@@ -30,7 +30,6 @@ Usage:
 
 from argparse import ArgumentParser
 
-import holoscan as hs
 from holoscan.core import Application
 from holoscan.conditions import CountCondition
 
@@ -57,7 +56,7 @@ class DataLoadingTestApp(Application):
     def compose(self):
         """Build the test pipeline."""
         print(f"\n{'='*60}")
-        print(f"  Data Loading Test Application")
+        print("  Data Loading Test Application")
         print(f"{'='*60}")
         print(f"Data directory: {self.data_dir}")
         print(f"Will process {self.num_frames} frames")
@@ -122,13 +121,13 @@ def main():
         app.run()
         
         print(f"\n{'='*60}")
-        print(f"  Test completed successfully!")
+        print("  Test completed successfully!")
         print(f"{'='*60}\n")
         return 0
         
     except Exception as e:
         print(f"\n{'='*60}")
-        print(f"  ERROR: Test failed!")
+        print("  ERROR: Test failed!")
         print(f"  {e}")
         print(f"{'='*60}\n")
         import traceback

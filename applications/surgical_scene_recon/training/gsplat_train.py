@@ -1,3 +1,18 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 EndoGaussian Trainer with gsplat Backend
 ========================================
@@ -17,20 +32,16 @@ Architecture:
 import json
 import math
 import os
-import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import imageio
 import numpy as np
 import torch
-import torch.nn.functional as F
 import tqdm
 import yaml
 from torch import Tensor
-from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.tensorboard import SummaryWriter
 from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
 from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
@@ -38,7 +49,6 @@ from torchmetrics.functional.regression import pearson_corrcoef
 from typing_extensions import Literal
 
 # gsplat imports
-from gsplat import export_splats
 from gsplat.rendering import rasterization
 from gsplat.strategy import DefaultStrategy, MCMCStrategy
 from gsplat.optimizers import SelectiveAdam
@@ -294,7 +304,7 @@ class EndoNeRFParser:
         # Get initial point cloud
         if self.multiframe_init:
             # Priority 1: Multi-frame accumulation (SurgicalGaussian approach)
-            print(f"[Priority 1] Using multi-frame point cloud initialization...")
+            print("[Priority 1] Using multi-frame point cloud initialization...")
             pts, colors = accumulate_multiframe_pointcloud(
                 self.endo_dataset,
                 depth_mode=self.depth_mode,
@@ -388,7 +398,6 @@ class EndoNeRFDataset(torch.utils.data.Dataset):
         self.load_depths = load_depths
         
         # Get cameras from EndoNeRF dataset
-        from scene.endo_loader import EndoNeRF_Dataset
         endo_dataset = parser.endo_dataset
         
         # Get the appropriate indices
@@ -426,7 +435,6 @@ class EndoNeRFDataset(torch.utils.data.Dataset):
         
         # Load image
         from PIL import Image
-        import torchvision.transforms as T
         
         image_path = endo_dataset.image_paths[frame_idx]
         image = Image.open(image_path)
@@ -616,7 +624,7 @@ class EndoRunner:
                 ),
             ]
             
-            print(f"[Phase 6] Deformation network initialized")
+            print("[Phase 6] Deformation network initialized")
             print(f"[Phase 6]   MLP parameters: {sum(p.numel() for p in self.deform_net.get_mlp_parameters())}")
             print(f"[Phase 6]   Grid parameters: {sum(p.numel() for p in self.deform_net.get_grid_parameters())}")
             print(f"[Phase 6]   Deformable Gaussians: {self._deformation_table.sum().item()}/{N}")
@@ -637,7 +645,7 @@ class EndoRunner:
         
         # Priority 2: Create invisible mask if accurate_mask AND use_masks are enabled
         if cfg.use_masks and cfg.accurate_mask:
-            print(f"\n[Priority 2] Creating invisible mask from all frames...")
+            print("\n[Priority 2] Creating invisible mask from all frames...")
             self.invisible_mask = self._create_invisible_mask()
             coverage = (self.invisible_mask > 0).sum().item() / self.invisible_mask.numel() * 100
             print(f"[Priority 2] Invisible regions: {coverage:.1f}% of image")
@@ -645,9 +653,9 @@ class EndoRunner:
         else:
             self.invisible_mask = None
             if not cfg.use_masks:
-                print(f"[Priority 2] Masking disabled - Full scene reconstruction mode")
+                print("[Priority 2] Masking disabled - Full scene reconstruction mode")
             else:
-                print(f"[Priority 2] Accurate mask disabled")
+                print("[Priority 2] Accurate mask disabled")
         
         print(f"\n[Phase 1] EndoRunner initialized on {self.device}")
         print(f"[Phase 1] Configuration: two_stage={cfg.two_stage_training}, "
@@ -721,7 +729,7 @@ class EndoRunner:
         # Phase 6: Apply deformation ONLY in fine stage
         # Debug: Check deformation conditions (only in fine stage)
         if stage == "fine" and not hasattr(self, '_deform_cond_logged'):
-            print(f"\n[DEBUG] Deformation conditions (fine stage):")
+            print("\n[DEBUG] Deformation conditions (fine stage):")
             print(f"  stage={stage}")
             print(f"  time_idx={time_idx}")
             print(f"  time_idx is not None: {time_idx is not None}")
@@ -759,7 +767,7 @@ class EndoRunner:
             
             # Debug: Check deformation output shapes and values
             if not hasattr(self, '_deform_debug_logged'):
-                print(f"\n[DEBUG] Deformation output shapes (first call):")
+                print("\n[DEBUG] Deformation output shapes (first call):")
                 print(f"  means_deformed: {means_deformed.shape}, range: [{means_deformed.min():.3f}, {means_deformed.max():.3f}]")
                 print(f"  scales_deformed: {scales_deformed.shape}, range: [{scales_deformed.min():.3f}, {scales_deformed.max():.3f}]")
                 print(f"  quats_deformed: {quats_deformed.shape}, range: [{quats_deformed.min():.3f}, {quats_deformed.max():.3f}]")
@@ -925,13 +933,13 @@ class EndoRunner:
         cfg = self.cfg
         
         if cfg.two_stage_training:
-            print(f"\n[Phase 5] Starting TWO-STAGE training:")
+            print("\n[Phase 5] Starting TWO-STAGE training:")
             print(f"  Coarse stage: {cfg.coarse_iterations} iterations (fixed camera)")
             print(f"  Fine stage:   {cfg.fine_iterations} iterations (random sampling)")
             
             # Stage 1: Coarse
             print(f"\n{'='*70}")
-            print(f"  COARSE STAGE")
+            print("  COARSE STAGE")
             print(f"{'='*70}")
             self._train_stage(
                 stage="coarse",
@@ -940,14 +948,14 @@ class EndoRunner:
             
             # Stage 2: Fine
             print(f"\n{'='*70}")
-            print(f"  FINE STAGE")
+            print("  FINE STAGE")
             print(f"{'='*70}")
             self._train_stage(
                 stage="fine",
                 num_iterations=cfg.fine_iterations,
             )
         else:
-            print(f"\n[Phase 5] Starting ONE-STAGE training:")
+            print("\n[Phase 5] Starting ONE-STAGE training:")
             print(f"  Iterations: {cfg.max_steps}")
             
             # Single stage training
@@ -1071,7 +1079,7 @@ class EndoRunner:
             if stage == "fine" and step % 100 == 0 and hasattr(self, 'deform_net') and self.deform_net is not None:
                 print(f"\n[MONITOR] Step {step}:")
                 print(f"  Image rendered range: [{image_rendered.min():.3f}, {image_rendered.max():.3f}]")
-                print(f"  Gaussian parameters:")
+                print("  Gaussian parameters:")
                 print(f"    means range: [{self.splats['means'].min():.3f}, {self.splats['means'].max():.3f}]")
                 print(f"    scales (raw) range: [{self.splats['scales'].min():.3f}, {self.splats['scales'].max():.3f}]")
                 print(f"    opacities (raw) range: [{self.splats['opacities'].min():.3f}, {self.splats['opacities'].max():.3f}]")
@@ -1081,7 +1089,7 @@ class EndoRunner:
                 if hasattr(self, '_deformation_accum'):
                     deform_mag = self._deformation_accum.norm(dim=-1)
                     deform_count = (deform_mag > 0).sum()
-                    print(f"  Deformation statistics:")
+                    print("  Deformation statistics:")
                     print(f"    Accumulated magnitude: mean={deform_mag.mean():.6f}, max={deform_mag.max():.6f}")
                     print(f"    Active deformations: {deform_count}/{len(deform_mag)}")
                     print(f"    Deformable Gaussians: {self._deformation_table.sum()}/{len(self._deformation_table)}")
@@ -1102,7 +1110,7 @@ class EndoRunner:
                 total_grad_norm = total_grad_norm ** 0.5
                 mlp_grad_norm = mlp_grad_norm ** 0.5
                 grid_grad_norm = grid_grad_norm ** 0.5
-                print(f"  Deformation gradient norms:")
+                print("  Deformation gradient norms:")
                 print(f"    Total: {total_grad_norm:.6f}")
                 print(f"    MLP: {mlp_grad_norm:.6f}")
                 print(f"    Grid: {grid_grad_norm:.6f}")
@@ -1399,7 +1407,7 @@ class EndoRunner:
             data["deform_net"] = self.deform_net.state_dict()
             data["deform_optimizers"] = [opt.state_dict() for opt in self.deform_optimizers]
             if not is_best:  # Only print once per save
-                print(f"[Phase 6] Deformation network included in checkpoint")
+                print("[Phase 6] Deformation network included in checkpoint")
         
         torch.save(data, checkpoint_path)
         
@@ -1477,7 +1485,7 @@ class EndoRunner:
             stats = {k: torch.stack(v).mean().item() for k, v in metrics.items()}
             stats["num_GS"] = len(self.splats["means"])
             
-            print(f"[Phase 5] Evaluation Results:")
+            print("[Phase 5] Evaluation Results:")
             print(f"  PSNR:  {stats['psnr']:.3f}")
             print(f"  SSIM:  {stats['ssim']:.4f}")
             print(f"  LPIPS: {stats['lpips']:.4f}")
@@ -1492,7 +1500,7 @@ class EndoRunner:
                 self.writer.add_scalar(f"eval/{stage}/{k}", v, step)
             self.writer.flush()
         
-        print(f"[Phase 5] Evaluation complete!")
+        print("[Phase 5] Evaluation complete!")
     
     def update_deformation_table_with_tool_masks(self):
         """Update deformation table based on tool masks across all training frames
@@ -1513,7 +1521,7 @@ class EndoRunner:
         cfg = self.cfg
         device = self.device
         
-        print(f"\n[Tool Masking] Updating deformation table...")
+        print("\n[Tool Masking] Updating deformation table...")
         
         # Get current Gaussian positions (canonical, before deformation)
         means = self.splats["means"].detach()  # [N, 3]
@@ -1559,7 +1567,7 @@ class EndoRunner:
         pct_deformable = 100.0 * num_deformable / N
         
         print(f"[Tool Masking] Projected Gaussians to {num_frames} training frames")
-        print(f"[Tool Masking] Deformation table updated:")
+        print("[Tool Masking] Deformation table updated:")
         print(f"  Deformable (tissue):     {num_deformable}/{N} ({pct_deformable:.1f}%)")
         print(f"  Non-deformable (tool):   {num_non_deformable}/{N} ({100-pct_deformable:.1f}%)")
         print(f"  Threshold: {cfg.tool_mask_threshold} frame(s)")
@@ -1722,7 +1730,7 @@ def create_splats_with_optimizers(
     if cfg.init_type == "sfm":
         points = torch.from_numpy(parser.points).float()
         rgbs = torch.from_numpy(parser.points_rgb / 255.0).float()
-        print(f"[Phase 3] Using SfM point cloud initialization")
+        print("[Phase 3] Using SfM point cloud initialization")
     elif cfg.init_type == "random":
         points = cfg.init_extent * parser.scene_scale * (
             torch.rand((cfg.init_num_pts, 3)) * 2 - 1
@@ -1733,7 +1741,7 @@ def create_splats_with_optimizers(
         raise ValueError(f"Unknown init_type: {cfg.init_type}")
     
     # Initialize scales using KNN
-    print(f"[Phase 3] Computing KNN for scale initialization...")
+    print("[Phase 3] Computing KNN for scale initialization...")
     dist2_avg = (knn(points, 4)[:, 1:] ** 2).mean(dim=-1)  # [N,]
     dist_avg = torch.sqrt(dist2_avg)
     # Clamp to avoid log(0) = -inf for duplicate points
@@ -1780,25 +1788,25 @@ def create_splats_with_optimizers(
     # Choose optimizer class
     if cfg.sparse_grad:
         optimizer_class = torch.optim.SparseAdam
-        print(f"[Phase 3] Using SparseAdam optimizer")
+        print("[Phase 3] Using SparseAdam optimizer")
     elif cfg.visible_adam:
         optimizer_class = SelectiveAdam
-        print(f"[Phase 3] Using SelectiveAdam optimizer")
+        print("[Phase 3] Using SelectiveAdam optimizer")
     else:
         optimizer_class = torch.optim.Adam
-        print(f"[Phase 3] Using Adam optimizer")
+        print("[Phase 3] Using Adam optimizer")
     
     # Create optimizers for each parameter
     optimizers = {
         name: optimizer_class(
             [{"params": splats[name], "lr": lr * math.sqrt(BS), "name": name}],
             eps=1e-15 / math.sqrt(BS),
-            betas=(1 - BS * (1 - 0.9), 1 - BS * (1 - 0.999)),
+            betas=(0.9 ** BS, 0.999 ** BS),
         )
         for name, _, lr in params
     }
     
-    print(f"[Phase 3] ✓ Splats initialized:")
+    print("[Phase 3] ✓ Splats initialized:")
     print(f"[Phase 3]   means:     {splats['means'].shape}")
     print(f"[Phase 3]   scales:    {splats['scales'].shape}")
     print(f"[Phase 3]   quats:     {splats['quats'].shape}")
@@ -1959,7 +1967,7 @@ def accumulate_multiframe_pointcloud(
     """
     from PIL import Image
     
-    print(f"[Priority 1] Multi-frame point cloud initialization starting...")
+    print("[Priority 1] Multi-frame point cloud initialization starting...")
     print(f"[Priority 1] Mode: {depth_mode}, Sample rate: {sample_rate}")
     
     # Get image dimensions
@@ -2025,7 +2033,7 @@ def accumulate_multiframe_pointcloud(
     print(f"[Priority 1] Accumulation complete! Coverage: {coverage*100:.1f}%")
     
     # Convert accumulated depth/color to point cloud
-    print(f"[Priority 1] Converting to point cloud...")
+    print("[Priority 1] Converting to point cloud...")
     
     # Sample pixels for efficiency
     sample_mask = np.zeros((H, W), dtype=bool)
@@ -2088,7 +2096,7 @@ def main(local_rank: int, world_rank: int, world_size: int, cfg: EndoConfig):
     runner = EndoRunner(local_rank, world_rank, world_size, cfg)
     
     # Run training
-    print(f"\n[Phase 5] Starting training...")
+    print("\n[Phase 5] Starting training...")
     runner.train()
     
     print("\n" + "="*70)
@@ -2179,16 +2187,16 @@ if __name__ == "__main__":
     if cfg.two_stage_training:
         print(f"    Coarse: {cfg.coarse_iterations}")
         print(f"    Fine: {cfg.fine_iterations}")
-    print(f"\n  Reconstruction Mode:")
+    print("\n  Reconstruction Mode:")
     if cfg.use_masks:
-        print(f"    ✅ TISSUE-ONLY (tools removed)")
+        print("    ✅ TISSUE-ONLY (tools removed)")
         print(f"    - Priority 1 (Multi-frame init): {cfg.multiframe_init}")
         print(f"    - Priority 2 (Accurate mask): {cfg.accurate_mask}")
-        print(f"    - Priority 4 (GT masking): ENABLED")
+        print("    - Priority 4 (GT masking): ENABLED")
     else:
-        print(f"    🔧 FULL SCENE (tissue + tools)")
-        print(f"    - All masking disabled")
-        print(f"    - Tools will be reconstructed")
+        print("    🔧 FULL SCENE (tissue + tools)")
+        print("    - All masking disabled")
+        print("    - Tools will be reconstructed")
     print("="*70 + "\n")
     
     # Run training (single GPU for now)

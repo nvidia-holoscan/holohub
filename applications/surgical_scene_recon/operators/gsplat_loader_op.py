@@ -76,7 +76,7 @@ class GsplatLoaderOp(Operator):
         
     def start(self):
         """Load checkpoint and prepare gaussian parameters."""
-        print(f"[GsplatLoader] Starting...")
+        print("[GsplatLoader] Starting...")
         print(f"[GsplatLoader] Checkpoint: {self.checkpoint_path}")
         print(f"[GsplatLoader] Use deformation: {self.use_deformation}")
         
@@ -86,11 +86,11 @@ class GsplatLoaderOp(Operator):
             raise ValueError(f"Checkpoint not found: {self.checkpoint_path}")
         
         # Load checkpoint
-        print(f"[GsplatLoader] Loading checkpoint...")
+        print("[GsplatLoader] Loading checkpoint...")
         ckpt = torch.load(self.checkpoint_path, map_location="cuda", weights_only=False)
         
         # Print checkpoint info
-        print(f"[GsplatLoader] Checkpoint info:")
+        print("[GsplatLoader] Checkpoint info:")
         if "step" in ckpt:
             print(f"  - Training step: {ckpt['step']}")
         if "stage" in ckpt:
@@ -101,11 +101,11 @@ class GsplatLoaderOp(Operator):
         use_dynamic = self.use_deformation and has_deform_net
         
         if use_dynamic:
-            print(f"[GsplatLoader] Deformation network found in checkpoint")
+            print("[GsplatLoader] Deformation network found in checkpoint")
             self._load_dynamic_mode(ckpt)
         else:
             if not has_deform_net:
-                print(f"[GsplatLoader] No deformation network in checkpoint")
+                print("[GsplatLoader] No deformation network in checkpoint")
             self._load_static_mode(ckpt)
         
         print(f"[GsplatLoader] Ready! Mode: {self.mode}, Gaussians: {self.num_gaussians}")
@@ -119,7 +119,7 @@ class GsplatLoaderOp(Operator):
         - sigmoid(opacities) to convert from logit-space
         - normalize(quats) for valid quaternions
         """
-        print(f"[GsplatLoader] Loading in STATIC mode")
+        print("[GsplatLoader] Loading in STATIC mode")
         
         splats = ckpt["splats"]
         
@@ -140,7 +140,7 @@ class GsplatLoaderOp(Operator):
         self.mode = "static"
         
         # Print statistics
-        print(f"[GsplatLoader] Static mode loaded:")
+        print("[GsplatLoader] Static mode loaded:")
         print(f"  - Gaussians: {self.num_gaussians}")
         print(f"  - Means range: [{self.means.min():.2f}, {self.means.max():.2f}]")
         print(f"  - Scales range: [{self.scales.min():.4f}, {self.scales.max():.4f}]")
@@ -158,7 +158,7 @@ class GsplatLoaderOp(Operator):
         
         Also load deformation network.
         """
-        print(f"[GsplatLoader] Loading in DYNAMIC mode")
+        print("[GsplatLoader] Loading in DYNAMIC mode")
         
         # Add training code to Python path
         import sys
@@ -187,7 +187,7 @@ class GsplatLoaderOp(Operator):
         self.colors = torch.cat([sh0, shN], dim=-2)
         
         # Load deformation network
-        print(f"[GsplatLoader] Loading deformation network...")
+        print("[GsplatLoader] Loading deformation network...")
         from scene.deformation import deform_network
         from argparse import Namespace
         
@@ -196,7 +196,7 @@ class GsplatLoaderOp(Operator):
             cfg = ckpt["config"]
         else:
             # Use defaults from training code (matching checkpoint)
-            print(f"[GsplatLoader] Warning: No config in checkpoint, using defaults")
+            print("[GsplatLoader] Warning: No config in checkpoint, using defaults")
             cfg = Namespace(
                 bounds=1.5,
                 kplanes_config={'grid_dimensions': 2, 'input_coordinate_dim': 4, 
@@ -225,13 +225,13 @@ class GsplatLoaderOp(Operator):
         self.mode = "dynamic"
         
         # Print statistics
-        print(f"[GsplatLoader] Dynamic mode loaded:")
+        print("[GsplatLoader] Dynamic mode loaded:")
         print(f"  - Gaussians: {self.num_gaussians}")
         print(f"  - Means range: [{self.means_base.min():.2f}, {self.means_base.max():.2f}]")
         print(f"  - Scales range (log): [{self.scales_base.min():.4f}, {self.scales_base.max():.4f}]")
         print(f"  - Opacities range (logit): [{self.opacities_base.min():.4f}, {self.opacities_base.max():.4f}]")
         print(f"  - SH degree: {int(torch.sqrt(torch.tensor(self.colors.shape[-2])).item()) - 1}")
-        print(f"  - Deformation network: Ready")
+        print("  - Deformation network: Ready")
         
     def compute(self, op_input, op_output, context):
         """Emit gaussian parameters."""
@@ -267,4 +267,4 @@ class GsplatLoaderOp(Operator):
     
     def stop(self):
         """Cleanup."""
-        print(f"[GsplatLoader] Stopped")
+        print("[GsplatLoader] Stopped")
