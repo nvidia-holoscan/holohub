@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-#include "operators/ucxx/ucxx_receiver_op.h"
+#include "ucxx_receiver_op.h"
 
-#include "messages/reflection/message_registry.h"
+#include "message_registry.h"
 
 namespace isaac::os::ops {
 
