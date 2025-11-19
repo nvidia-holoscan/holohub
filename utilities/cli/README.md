@@ -400,6 +400,7 @@ The CLI supports the following environment variables for customization:
 **Build and Execution Control:**
 - **`HOLOHUB_BUILD_LOCAL`**: Forces local mode (equivalent to `--local`), skips the container build steps and runs on the host directly.
 - **`HOLOHUB_ALWAYS_BUILD`**: Set to `false` to skip builds with `--no-local-build` and `--no-docker-build`.
+- **`HOLOHUB_ENABLE_SCCACHE`**: Defaults to `false`. Set to `true` to enable rapids-sccache for the build. You can configure sccache with `SCCACHE_*` environment variables per the [sccache documentation](https://github.com/rapidsai/sccache/tree/rapids/docs).
 
 **Paths and Directories:**
 - **`HOLOHUB_ROOT`**: HoloHub repository root directory, used to resolve relative paths for components, build artifacts, data, and other resources.
