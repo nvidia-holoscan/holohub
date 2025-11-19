@@ -31,6 +31,7 @@ import torch.nn as nn
 import torch.nn.init as init
 from scene.hexplane import HexPlaneField
 
+
 class Deformation(nn.Module):
     def __init__(self, D=8, W=256, input_ch=27, input_ch_time=9, skips=None, args=None):
         super(Deformation, self).__init__()

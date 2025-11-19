@@ -33,7 +33,6 @@ import torch
 from torch import nn
 
 
-
 def compute_plane_tv(t):
     batch_size, c, h, w = t.shape
     count_h = batch_size * c * (h - 1) * w

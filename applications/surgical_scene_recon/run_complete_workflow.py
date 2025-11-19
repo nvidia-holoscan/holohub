@@ -22,11 +22,12 @@ Usage:
 """
 
 import os
-import sys
 import subprocess
-import numpy as np
-from pathlib import Path
+import sys
 from argparse import ArgumentParser
+from pathlib import Path
+
+import numpy as np
 from PIL import Image
 from tqdm import tqdm
 

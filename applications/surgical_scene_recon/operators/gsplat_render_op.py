@@ -27,11 +27,10 @@ Adapted from: holohub/applications/xr_gsplat/xr_gsplat.py::XrGsplatOp
 import math
 import traceback
 
-import torch
 import cupy as cp
-from gsplat.rendering import rasterization
-
 import holoscan as hs
+import torch
+from gsplat.rendering import rasterization
 from holoscan.core import Operator, OperatorSpec
 from holoscan.gxf import Entity
 

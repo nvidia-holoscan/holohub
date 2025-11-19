@@ -41,22 +41,21 @@ import numpy as np
 import torch
 import tqdm
 import yaml
-from torch import Tensor
-from torch.utils.tensorboard import SummaryWriter
-from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
-from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
-from torchmetrics.functional.regression import pearson_corrcoef
-from typing_extensions import Literal
+from gsplat.optimizers import SelectiveAdam
 
 # gsplat imports
 from gsplat.rendering import rasterization
 from gsplat.strategy import DefaultStrategy, MCMCStrategy
-from gsplat.optimizers import SelectiveAdam
-
-# Local imports
-from utils.loss_utils import l1_loss, ssim, lpips_loss, TV_loss
+from torch import Tensor
+from torch.utils.tensorboard import SummaryWriter
+from torchmetrics.functional.regression import pearson_corrcoef
+from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
+from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
+from typing_extensions import Literal
 from utils.image_utils import psnr
 
+# Local imports
+from utils.loss_utils import TV_loss, l1_loss, lpips_loss, ssim
 
 # ============================================================================
 # Configuration
@@ -581,10 +580,10 @@ class EndoRunner:
         # Phase 6: Initialize deformation network
         if cfg.use_deformation:
             print("[Phase 6] Initializing deformation network for dynamic scenes...")
-            from scene.deformation import deform_network
-            
             # Create args object for deformation network
             from argparse import Namespace
+
+            from scene.deformation import deform_network
             deform_args = Namespace(
                 bounds=cfg.bounds,
                 kplanes_config=cfg.kplanes_config,
@@ -1879,7 +1878,7 @@ def dilate_invisible_mask(mask: Tensor, kernel_size: int = 5, iterations: int = 
         dilated_mask: [H, W] tensor in [0, 1]
     """
     import cv2
-    
+
     # Move to CPU for OpenCV
     mask_np = mask.cpu().numpy()
     

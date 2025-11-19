@@ -25,10 +25,11 @@ General utility functions for EndoGaussian.
 MIT-licensed clean-room implementation.
 """
 
-import torch
-import numpy as np
-from PIL import Image
 from typing import Optional, Tuple
+
+import numpy as np
+import torch
+from PIL import Image
 
 
 def inverse_sigmoid(x: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:

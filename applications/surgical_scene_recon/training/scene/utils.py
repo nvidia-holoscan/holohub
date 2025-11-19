@@ -34,7 +34,6 @@ from typing import Any, Callable, Optional, Text, Tuple, Union
 import numpy as np
 import torch
 
-
 PRNGKey = Any
 Shape = Tuple[int]
 Dtype = Any  # this could be a real type?

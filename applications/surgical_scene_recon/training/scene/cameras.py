@@ -25,10 +25,10 @@ Camera models for EndoGaussian rendering.
 MIT-licensed clean-room implementation using standard pinhole camera model.
 """
 
+import numpy as np
 import torch
 from torch import nn
-import numpy as np
-from utils.graphics_utils import getWorld2View2, getProjectionMatrix
+from utils.graphics_utils import getProjectionMatrix, getWorld2View2
 
 
 class Camera(nn.Module):

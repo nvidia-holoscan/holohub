@@ -30,8 +30,8 @@ Usage:
 import os
 from argparse import ArgumentParser
 
-from holoscan.core import Application
 from holoscan.conditions import CountCondition
+from holoscan.core import Application
 from holoscan.operators import HolovizOp
 from holoscan.resources import UnboundedAllocator
 

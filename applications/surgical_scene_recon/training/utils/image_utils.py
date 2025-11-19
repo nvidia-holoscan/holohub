@@ -25,9 +25,10 @@ Image quality metrics and utilities for EndoGaussian.
 MIT-licensed clean-room implementation.
 """
 
+from typing import Optional
+
 import numpy as np
 import torch
-from typing import Optional
 from PIL import Image
 
 

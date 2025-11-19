@@ -25,9 +25,10 @@ Loss functions for EndoGaussian training.
 MIT-licensed clean-room implementation.
 """
 
+from math import exp
+
 import torch
 import torch.nn.functional as F
-from math import exp
 
 
 def TV_loss(x: torch.Tensor) -> torch.Tensor:

@@ -23,11 +23,10 @@ Useful for debugging and comparing rendered output with ground truth.
 import os
 from pathlib import Path
 
-import numpy as np
-from PIL import Image
 import cupy as cp
-
+import numpy as np
 from holoscan.core import Operator, OperatorSpec
+from PIL import Image
 
 
 class ImageSaverOp(Operator):

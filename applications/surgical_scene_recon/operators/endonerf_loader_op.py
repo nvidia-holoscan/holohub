@@ -23,12 +23,12 @@ Phase 1.1: Basic data loading and verification
 """
 
 from pathlib import Path
-import numpy as np
-from PIL import Image
 
 import holoscan as hs
+import numpy as np
 from holoscan.core import Operator, OperatorSpec
 from holoscan.gxf import Entity
+from PIL import Image
 
 
 class EndoNeRFLoaderOp(Operator):

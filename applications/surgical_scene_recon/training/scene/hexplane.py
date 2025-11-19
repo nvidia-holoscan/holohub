@@ -26,7 +26,7 @@ MIT-licensed implementation derived from 4DGaussians and K-Planes projects.
 """
 
 import itertools
-from typing import Optional, Sequence, Iterable, Collection
+from typing import Collection, Iterable, Optional, Sequence
 
 import torch
 import torch.nn as nn

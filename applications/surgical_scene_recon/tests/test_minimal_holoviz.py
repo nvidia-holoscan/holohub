@@ -19,11 +19,12 @@ Minimal Holoviz Test - No data needed
 Just tests if Holoviz window can open and display
 """
 
-import numpy as np
 import holoscan as hs
+import numpy as np
+from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import HolovizOp
-from holoscan.conditions import CountCondition
+
 
 class DummySourceOp(Operator):
     """Generate a simple test pattern"""

@@ -29,25 +29,25 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+import glob  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
 import os.path as osp  # noqa: E402
-
-import numpy as np  # noqa: E402
-from PIL import Image  # noqa: E402
-from tqdm import tqdm  # noqa: E402
-from scene.cameras import Camera  # noqa: E402
-from typing import NamedTuple  # noqa: E402
-from utils.graphics_utils import focal2fov  # noqa: E402
-import glob  # noqa: E402
-from torchvision import transforms as T  # noqa: E402
-import open3d as o3d  # noqa: E402
-from tqdm import trange  # noqa: E402
-import imageio.v2 as iio  # noqa: E402
-import cv2  # noqa: E402
-import torch  # noqa: E402
-import fpsample  # noqa: E402
 from dataclasses import dataclass  # noqa: E402
+from typing import NamedTuple  # noqa: E402
+
+import cv2  # noqa: E402
+import fpsample  # noqa: E402
+import imageio.v2 as iio  # noqa: E402
+import numpy as np  # noqa: E402
+import open3d as o3d  # noqa: E402
+import torch  # noqa: E402
+from PIL import Image  # noqa: E402
+from scene.cameras import Camera  # noqa: E402
+from torchvision import transforms as T  # noqa: E402
+from tqdm import tqdm  # noqa: E402
+from tqdm import trange  # noqa: E402
+from utils.graphics_utils import focal2fov  # noqa: E402
 
 
 class CameraInfo(NamedTuple):

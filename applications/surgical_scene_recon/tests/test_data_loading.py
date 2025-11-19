@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
@@ -30,11 +31,11 @@ Usage:
 
 from argparse import ArgumentParser  # noqa: E402
 
-from holoscan.core import Application  # noqa: E402
 from holoscan.conditions import CountCondition  # noqa: E402
+from holoscan.core import Application  # noqa: E402
 
 # Import our custom operators
-from operators import EndoNeRFLoaderOp, DebugPrintOp  # noqa: E402
+from operators import DebugPrintOp, EndoNeRFLoaderOp  # noqa: E402
 
 
 class DataLoadingTestApp(Application):

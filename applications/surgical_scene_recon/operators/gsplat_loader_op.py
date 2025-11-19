@@ -29,7 +29,6 @@ from pathlib import Path
 
 import torch
 import torch.nn.functional as F
-
 from holoscan.core import Operator, OperatorSpec
 
 
@@ -162,6 +161,7 @@ class GsplatLoaderOp(Operator):
         
         # Add training code to Python path
         import sys
+
         # Get training code path from environment or use relative path
         # Priority: 1) Environment variable, 2) Local training/ directory
         training_code_path = os.environ.get(
@@ -188,9 +188,10 @@ class GsplatLoaderOp(Operator):
         
         # Load deformation network
         print("[GsplatLoader] Loading deformation network...")
-        from scene.deformation import deform_network
         from argparse import Namespace
-        
+
+        from scene.deformation import deform_network
+
         # Get config from checkpoint or use defaults
         if "config" in ckpt:
             cfg = ckpt["config"]
