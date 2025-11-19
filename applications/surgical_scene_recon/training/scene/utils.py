@@ -28,6 +28,7 @@ MIT-licensed implementation derived from NeRF and related projects.
 
 import json
 import pathlib
+from pathlib import PurePosixPath as GPath
 from typing import Any, Callable, Optional, Text, Tuple, Union
 
 import numpy as np
@@ -42,8 +43,6 @@ Activation = Callable[[Array], Array]
 Initializer = Callable[[PRNGKey, Shape, Dtype], Array]
 Normalizer = Callable[[], Callable[[Array], Array]]
 PathType = Union[Text, pathlib.PurePosixPath]
-
-from pathlib import PurePosixPath as GPath
 
 
 def _compute_residual_and_jacobian(
@@ -436,13 +435,20 @@ class Camera:
     return new_camera
 
   def copy(self):
-    return copy.deepcopy(self)
+    import copy as copy_module
+    return copy_module.deepcopy(self)
 
 
 ''' Misc
 '''
-mse2psnr = lambda x : -10. * torch.log10(x)
-to8b = lambda x : (255*np.clip(x,0,1)).astype(np.uint8)
+
+
+def mse2psnr(x):
+    return -10. * torch.log10(x)
+
+
+def to8b(x):
+    return (255 * np.clip(x, 0, 1)).astype(np.uint8)
 
 
 

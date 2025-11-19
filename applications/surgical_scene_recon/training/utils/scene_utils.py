@@ -25,13 +25,17 @@ Scene rendering and visualization utilities for training.
 MIT-licensed implementation derived from EndoGaussian project.
 """
 
-import torch
 import os
-from PIL import Image, ImageDraw, ImageFont
-from matplotlib import pyplot as plt
-plt.rcParams['font.sans-serif'] = ['Times New Roman']
 
 import numpy as np
+import torch
+from PIL import Image, ImageDraw, ImageFont
+from matplotlib import pyplot as plt
+
+# Configure matplotlib fonts
+plt.rcParams['font.sans-serif'] = ['Times New Roman']
+
+
 @torch.no_grad()
 def render_training_image(scene, gaussians, viewpoints, render_func, pipe, background, stage, iteration, time_now):
     def render(gaussians, viewpoint, path, scaling):
@@ -91,9 +95,9 @@ def render_training_image(scene, gaussians, viewpoints, render_func, pipe, backg
         render(gaussians,viewpoints[idx],image_save_path,scaling = 1)
 
     # Extract point cloud for debugging (unused currently)
-    pc_mask = gaussians.get_opacity
-    pc_mask = pc_mask > 0.1
-    xyz = gaussians.get_xyz.detach()[pc_mask.squeeze()].cpu().permute(1,0).numpy()
+    # pc_mask = gaussians.get_opacity
+    # pc_mask = pc_mask > 0.1
+    # xyz = gaussians.get_xyz.detach()[pc_mask.squeeze()].cpu().permute(1,0).numpy()
 
 def visualize_and_save_point_cloud(point_cloud, R, T, filename):
     # Create 3D scatter plot

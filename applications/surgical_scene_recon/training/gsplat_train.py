@@ -989,8 +989,8 @@ class EndoRunner:
         
         # Get stage-specific thresholds
         if stage == "coarse":
-            opacity_threshold = cfg.opacity_threshold_coarse
-            densify_threshold = cfg.densify_grad_threshold_coarse
+            _ = cfg.opacity_threshold_coarse  # opacity_threshold (unused)
+            _ = cfg.densify_grad_threshold_coarse  # densify_threshold (unused)
         else:
             # Fine stage has decaying thresholds
             opacity_threshold_init = cfg.opacity_threshold_fine_init
@@ -1127,7 +1127,6 @@ class EndoRunner:
             
             # 2. Depth loss (endoscopy-specific)
             depth_rendered_p = depth_rendered.unsqueeze(1)  # [B, 1, H, W]
-            depth_gt_p = depth_gt.unsqueeze(1)  # [B, 1, H, W]
             
             # Separate masking for depth: can use depth in tool regions for 3D constraints
             if cfg.depth_supervise_tools:
@@ -1192,7 +1191,7 @@ class EndoRunner:
                     
                     for grids in multi_res_grids:
                         if len(grids) == 3:
-                            time_grids = []
+                            pass  # Spatial grids only
                         else:
                             time_grids_smooth = [2, 4, 5]  # Temporal grids
                             time_grids_spatial = [0, 1, 3]  # Spatial grids
@@ -1264,12 +1263,13 @@ class EndoRunner:
             
             # Update densification thresholds for fine stage
             if stage == "fine":
+                # Threshold scheduling (currently unused but kept for future use)
                 progress = step / num_iterations
-                opacity_threshold = (
+                _ = (
                     opacity_threshold_init -
                     progress * (opacity_threshold_init - opacity_threshold_after)
                 )
-                densify_threshold = (
+                _ = (
                     densify_threshold_init -
                     progress * (densify_threshold_init - densify_threshold_after)
                 )
@@ -1442,8 +1442,10 @@ class EndoRunner:
             camtoworld = data["camtoworld"].to(device)
             K = data["K"].to(device)
             image_gt = data["image"].to(device)
-            depth_gt = data["depth"].to(device)
-            mask = data["mask"].to(device)
+            # depth_gt and mask loaded but not used in current validation
+            # Kept for potential future validation metrics
+            _ = data["depth"].to(device)  # depth_gt
+            _ = data["mask"].to(device)  # mask
             time = data["time"].to(device) if "time" in data else None
             
             height, width = image_gt.shape[1:3]
@@ -1641,8 +1643,6 @@ def check_gaussians_in_tool_region(
     Returns:
         in_tool: Boolean tensor [N] indicating if Gaussian is in tool region
     """
-    N = means_2d.shape[0]
-    
     # Clamp coordinates to image bounds
     u = torch.clamp(means_2d[:, 0], 0, width - 1)
     v = torch.clamp(means_2d[:, 1], 0, height - 1)

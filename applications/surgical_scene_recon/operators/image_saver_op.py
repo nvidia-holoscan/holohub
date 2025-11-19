@@ -83,12 +83,10 @@ class ImageSaverOp(Operator):
         # Get the image tensor
         # Try different possible tensor names
         tensor = None
-        tensor_name = None
         for name in ["rendered_rgb", "input", "image", "rgb"]:
             try:
                 tensor = in_message.get(name)
                 if tensor is not None:
-                    tensor_name = name
                     break
             except (KeyError, AttributeError, RuntimeError):
                 # KeyError: tensor name not found in message
