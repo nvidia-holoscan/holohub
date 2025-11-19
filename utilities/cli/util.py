@@ -1376,14 +1376,17 @@ def collect_sccache_info() -> None:
     print(f"  sccache version: {version or '(unavailable)'}")
 
     effective_dir = get_sccache_dir()
-    print(f"  Effective SCCACHE_DIR: {effective_dir}")
+    print(f"  Local SCCACHE_DIR: {effective_dir}")
 
-    sccache_items = sorted(
-        (k, os.environ.get(k) or "(not set)") for k in os.environ if k.startswith("SCCACHE_")
-    )
+    # Collect SCCACHE_* variables once, excluding SCCACHE_DIR which is already printed above.
+    sccache_items = [
+        (key, value or "(not set)")
+        for key, value in os.environ.items()
+        if key.startswith("SCCACHE_") and key != "SCCACHE_DIR"
+    ]
     if sccache_items:
         print("  SCCACHE_* environment variables:")
-        for key, value in sccache_items:
+        for key, value in sorted(sccache_items):
             print(f"    {key}: {value}")
     else:
         print("  SCCACHE_* environment variables: (none set)")
