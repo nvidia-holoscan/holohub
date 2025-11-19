@@ -32,6 +32,28 @@ else()
     set(ARCH_DIR "x86_64") # Default to x86_64
 endif()
 
+# Replace bundled CUDA 12.0.107 with symlink to system CUDA 12.8+
+# This is needed because bundled CUDA lacks cudaGraphConditionalHandleCreate required by HSDK 3.8
+if(EXISTS ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR})
+    # Remove old bundled CUDA libraries if they exist
+    file(REMOVE 
+        ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}/libcudart.so.12
+        ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}/libcudart.so.12.0.107
+    )
+    # Create symlink to system CUDA
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
+        ${CUDAToolkit_LIBRARY_DIR}/libcudart.so.12
+        ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}/libcudart.so.12
+        RESULT_VARIABLE SYMLINK_RESULT
+    )
+    if(SYMLINK_RESULT EQUAL 0)
+        message(STATUS "Created symlink: bundled libcudart.so.12 -> system ${CUDAToolkit_LIBRARY_DIR}/libcudart.so.12")
+    else()
+        message(WARNING "Failed to create CUDA symlink, may encounter runtime errors")
+    endif()
+endif()
+
 # Find StreamingClient libraries directly (like server does)
 find_library(StreamingClient_LIBRARY
     NAMES StreamingClient libStreamingClient
@@ -112,12 +134,12 @@ target_link_options(video_streaming_client PRIVATE
   "-Wl,--disable-new-dtags"
 )
 
-# Set RPATH settings - ensure all libraries can be found at runtime, system libs first
+# Set RPATH settings - prioritize system CUDA paths FIRST, then other libraries
 set_target_properties(video_streaming_client PROPERTIES
   SKIP_BUILD_RPATH FALSE
   BUILD_WITH_INSTALL_RPATH FALSE
-  BUILD_RPATH "/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu:${CMAKE_BINARY_DIR}/lib:${CMAKE_BINARY_DIR}/operators/video_streaming_client:${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}"
-  INSTALL_RPATH "/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu:$ORIGIN:$ORIGIN/lib:$ORIGIN/../lib:$ORIGIN/../../lib:${CMAKE_INSTALL_PREFIX}/lib:/opt/nvidia/holoscan/lib:${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}"
+  BUILD_RPATH "/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu:${CMAKE_BINARY_DIR}/lib:${CMAKE_BINARY_DIR}/operators/video_streaming_client:${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}"
+  INSTALL_RPATH "/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu:$ORIGIN:$ORIGIN/lib:$ORIGIN/../lib:$ORIGIN/../../lib:${CMAKE_INSTALL_PREFIX}/lib:/opt/nvidia/holoscan/lib:${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}"
   INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
@@ -150,12 +172,8 @@ add_custom_command(TARGET video_streaming_client POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
   ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}/libcrypto.so.3
   ${CMAKE_BINARY_DIR}/operators/video_streaming_client/libcrypto.so.3
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-  ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}/libcudart.so.12.0.107
-  ${CMAKE_BINARY_DIR}/operators/video_streaming_client/libcudart.so.12.0.107
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-  ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}/libcudart.so.12
-  ${CMAKE_BINARY_DIR}/operators/video_streaming_client/libcudart.so.12
+  # Note: Skipping copy of libcudart.so.12.0.107 and libcudart.so.12
+  # These are now symlinks to system CUDA 12.8+ for Holoscan SDK 3.8 compatibility
   # Copy libraries to the main lib directory as well
   COMMAND ${CMAKE_COMMAND} -E make_directory
   ${CMAKE_BINARY_DIR}/lib
