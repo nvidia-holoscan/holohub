@@ -36,16 +36,21 @@ from .util import (
     get_cuda_tag,
     get_current_branch_slug,
     get_default_cuda_version,
+    get_env_bool,
     get_git_short_sha,
     get_group_id,
     get_holohub_root,
     get_holohub_setup_scripts_dir,
     get_host_gpu,
     get_image_pythonpath,
+    info,
     list_normalized_languages,
     replace_placeholders,
     run_command,
+    warn,
 )
+
+SCCACHE_CONTAINER_DIR = "/.cache/sccache"
 
 
 class HoloHubContainer:
@@ -627,6 +632,22 @@ class HoloHubContainer:
             else:
                 print("Warning: MPS directories not found. MPS may not be enabled on the host.")
 
+        # sccache mounting
+        _, enable_sccache = get_env_bool("HOLOHUB_ENABLE_SCCACHE", default=False)
+        has_host_sccache_env = any(k.startswith("SCCACHE_") for k in os.environ)
+        if enable_sccache:
+            sccache_host_dir = os.environ.get("SCCACHE_DIR")
+            if not sccache_host_dir:
+                sccache_host_dir = str(Path.home() / ".cache" / "sccache")
+            info(f"Host SCCACHE_DIR: {sccache_host_dir}")
+            info(f"Container mount point: {SCCACHE_CONTAINER_DIR}")
+            os.makedirs(sccache_host_dir, exist_ok=True)  # Pre-create for the current user to own
+            args.extend(["-v", f"{sccache_host_dir}:{SCCACHE_CONTAINER_DIR}"])
+        elif has_host_sccache_env:
+            warn(
+                "SCCACHE_* environment variables detected but HOLOHUB_ENABLE_SCCACHE is disabled; "
+                "not mounting sccache cache into the container."
+            )
         return args
 
     def get_nvidia_runtime_args(self) -> List[str]:
@@ -680,6 +701,25 @@ class HoloHubContainer:
         holohub_path_prefix = os.environ.get("HOLOHUB_PATH_PREFIX")
         if holohub_path_prefix:
             args.extend(["-e", f"HOLOHUB_PATH_PREFIX={holohub_path_prefix}"])
+
+        # Pass adequate variables for SCCACHE
+        _, enable_sccache = get_env_bool("HOLOHUB_ENABLE_SCCACHE", default=False)
+        sccache_keys = [k for k in os.environ if k.startswith("SCCACHE_")]
+        if enable_sccache:
+            # Forward HOLOHUB_ENABLE_SCCACHE to enable launcher before cmake build
+            args.extend(["-e", "HOLOHUB_ENABLE_SCCACHE"])
+            # Always set SCCACHE_DIR inside container to mounted path
+            args.extend(["-e", f"SCCACHE_DIR={SCCACHE_CONTAINER_DIR}"])
+            # Forward other SCCACHE_* environment variables present on host
+            for k in sccache_keys:
+                if k != "SCCACHE_DIR":
+                    args.extend(["-e", k])
+        elif len(sccache_keys) > 0:
+            warn(
+                "SCCACHE_* environment variables detected but HOLOHUB_ENABLE_SCCACHE is disabled; "
+                "not forwarding sccache environment variables into the container: "
+                f"{', '.join(sccache_keys)}"
+            )
         return args
 
     def enable_x11_access(self) -> None:
