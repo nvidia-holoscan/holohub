@@ -28,13 +28,13 @@ Usage:
     python test_data_loading.py --data_dir /path/to/EndoNeRF/pulling
 """
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser  # noqa: E402
 
-from holoscan.core import Application
-from holoscan.conditions import CountCondition
+from holoscan.core import Application  # noqa: E402
+from holoscan.conditions import CountCondition  # noqa: E402
 
 # Import our custom operators
-from operators import EndoNeRFLoaderOp, DebugPrintOp
+from operators import EndoNeRFLoaderOp, DebugPrintOp  # noqa: E402
 
 
 class DataLoadingTestApp(Application):

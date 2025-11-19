@@ -31,14 +31,19 @@ Usage:
         --num_frames 5
 """
 
-import os
-from argparse import ArgumentParser
+import os  # noqa: E402
+from argparse import ArgumentParser  # noqa: E402
 
-from holoscan.core import Application
-from holoscan.conditions import CountCondition
+from holoscan.core import Application  # noqa: E402
+from holoscan.conditions import CountCondition  # noqa: E402
 
 # Import our custom operators
-from operators import EndoNeRFLoaderOp, GsplatLoaderOp, GsplatRenderOp, DebugPrintOp
+from operators import (  # noqa: E402
+    EndoNeRFLoaderOp,
+    GsplatLoaderOp,
+    GsplatRenderOp,
+    DebugPrintOp,
+)
 
 
 class StaticRenderingTestApp(Application):
