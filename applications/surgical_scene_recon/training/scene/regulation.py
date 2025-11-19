@@ -37,8 +37,8 @@ def compute_plane_tv(t):
     batch_size, c, h, w = t.shape
     count_h = batch_size * c * (h - 1) * w
     count_w = batch_size * c * h * (w - 1)
-    h_tv = torch.square(t[..., 1:, :] - t[..., :h-1, :]).sum()
-    w_tv = torch.square(t[..., :, 1:] - t[..., :, :w-1]).sum()
+    h_tv = torch.square(t[..., 1:, :] - t[..., : h - 1, :]).sum()
+    w_tv = torch.square(t[..., :, 1:] - t[..., :, : w - 1]).sum()
     return 2 * (h_tv / count_h + w_tv / count_w)  # This is summing over batch and c instead of avg
 
 
@@ -46,13 +46,15 @@ def compute_plane_smoothness(t):
     batch_size, c, h, w = t.shape
     # Compute second derivative in the spatial height dimension (h)
     # This measures smoothness of the feature grid in the vertical direction
-    first_difference = t[..., 1:, :] - t[..., :h-1, :]  # [batch, c, h-1, w]
-    second_difference = first_difference[..., 1:, :] - first_difference[..., :h-2, :]  # [batch, c, h-2, w]
+    first_difference = t[..., 1:, :] - t[..., : h - 1, :]  # [batch, c, h-1, w]
+    second_difference = (
+        first_difference[..., 1:, :] - first_difference[..., : h - 2, :]
+    )  # [batch, c, h-2, w]
     # Take the L2 norm of the result
     return torch.square(second_difference).mean()
 
 
-class Regularizer():
+class Regularizer:
     def __init__(self, reg_type, initialization):
         self.reg_type = reg_type
         self.initialization = initialization
@@ -80,11 +82,12 @@ class Regularizer():
 
 
 class PlaneTV(Regularizer):
-    def __init__(self, initial_value, what: str = 'field'):
-        if what not in {'field', 'proposal_network'}:
-            raise ValueError(f'what must be one of "field" or "proposal_network" '
-                             f'but {what} was passed.')
-        name = f'planeTV-{what[:2]}'
+    def __init__(self, initial_value, what: str = "field"):
+        if what not in {"field", "proposal_network"}:
+            raise ValueError(
+                f'what must be one of "field" or "proposal_network" ' f"but {what} was passed."
+            )
+        name = f"planeTV-{what[:2]}"
         super().__init__(name, initial_value)
         self.what = what
 
@@ -93,9 +96,9 @@ class PlaneTV(Regularizer):
 
     def _regularize(self, model, **kwargs):
         multi_res_grids: Sequence[nn.ParameterList]
-        if self.what == 'field':
+        if self.what == "field":
             multi_res_grids = model.field.grids
-        elif self.what == 'proposal_network':
+        elif self.what == "proposal_network":
             multi_res_grids = [p.grids for p in model.proposal_networks]
         else:
             raise NotImplementedError(self.what)
@@ -115,19 +118,20 @@ class PlaneTV(Regularizer):
 
 
 class TimeSmoothness(Regularizer):
-    def __init__(self, initial_value, what: str = 'field'):
-        if what not in {'field', 'proposal_network'}:
-            raise ValueError(f'what must be one of "field" or "proposal_network" '
-                             f'but {what} was passed.')
-        name = f'time-smooth-{what[:2]}'
+    def __init__(self, initial_value, what: str = "field"):
+        if what not in {"field", "proposal_network"}:
+            raise ValueError(
+                f'what must be one of "field" or "proposal_network" ' f"but {what} was passed."
+            )
+        name = f"time-smooth-{what[:2]}"
         super().__init__(name, initial_value)
         self.what = what
 
     def _regularize(self, model, **kwargs) -> torch.Tensor:
         multi_res_grids: Sequence[nn.ParameterList]
-        if self.what == 'field':
+        if self.what == "field":
             multi_res_grids = model.field.grids
-        elif self.what == 'proposal_network':
+        elif self.what == "proposal_network":
             multi_res_grids = [p.grids for p in model.proposal_networks]
         else:
             raise NotImplementedError(self.what)
@@ -143,10 +147,9 @@ class TimeSmoothness(Regularizer):
         return torch.as_tensor(total)
 
 
-
 class L1ProposalNetwork(Regularizer):
     def __init__(self, initial_value):
-        super().__init__('l1-proposal-network', initial_value)
+        super().__init__("l1-proposal-network", initial_value)
 
     def _regularize(self, model, **kwargs) -> torch.Tensor:
         grids = [p.grids for p in model.proposal_networks]
@@ -159,30 +162,29 @@ class L1ProposalNetwork(Regularizer):
 
 class DepthTV(Regularizer):
     def __init__(self, initial_value):
-        super().__init__('tv-depth', initial_value)
+        super().__init__("tv-depth", initial_value)
 
     def _regularize(self, model, model_out, **kwargs) -> torch.Tensor:
-        depth = model_out['depth']
-        tv = compute_plane_tv(
-            depth.reshape(64, 64)[None, None, :, :]
-        )
+        depth = model_out["depth"]
+        tv = compute_plane_tv(depth.reshape(64, 64)[None, None, :, :])
         return tv
 
 
 class L1TimePlanes(Regularizer):
-    def __init__(self, initial_value, what='field'):
-        if what not in {'field', 'proposal_network'}:
-            raise ValueError(f'what must be one of "field" or "proposal_network" '
-                             f'but {what} was passed.')
-        super().__init__(f'l1-time-{what[:2]}', initial_value)
+    def __init__(self, initial_value, what="field"):
+        if what not in {"field", "proposal_network"}:
+            raise ValueError(
+                f'what must be one of "field" or "proposal_network" ' f"but {what} was passed."
+            )
+        super().__init__(f"l1-time-{what[:2]}", initial_value)
         self.what = what
 
     def _regularize(self, model, **kwargs) -> torch.Tensor:
         # model.grids is 6 x [1, rank * F_dim, reso, reso]
         multi_res_grids: Sequence[nn.ParameterList]
-        if self.what == 'field':
+        if self.what == "field":
             multi_res_grids = model.field.grids
-        elif self.what == 'proposal_network':
+        elif self.what == "proposal_network":
             multi_res_grids = [p.grids for p in model.proposal_networks]
         else:
             raise NotImplementedError(self.what)

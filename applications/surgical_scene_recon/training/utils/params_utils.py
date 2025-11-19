@@ -25,14 +25,15 @@ Parameter parsing utilities for training configuration.
 MIT-licensed implementation derived from EndoGaussian project.
 """
 
+
 def merge_hparams(args, config: dict):
     """
     Merge hyperparameters from config into args object.
-    
+
     Args:
         args: Object with attributes to be updated
         config: Dictionary containing parameter groups
-        
+
     Returns:
         The modified args object with updated attributes
     """

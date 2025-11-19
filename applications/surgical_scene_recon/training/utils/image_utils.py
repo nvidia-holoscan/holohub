@@ -35,10 +35,10 @@ from PIL import Image
 def tensor2array(tensor):
     """
     Convert a PyTorch tensor to numpy array.
-    
+
     Args:
         tensor: PyTorch tensor or numpy array
-        
+
     Returns:
         Numpy array
     """
@@ -51,11 +51,11 @@ def tensor2array(tensor):
 def mse(img1: torch.Tensor, img2: torch.Tensor) -> torch.Tensor:
     """
     Compute mean squared error between two images.
-    
+
     Args:
         img1: First image tensor of shape [B, C, H, W]
         img2: Second image tensor of shape [B, C, H, W]
-        
+
     Returns:
         MSE per image of shape [B, 1]
     """
@@ -63,21 +63,23 @@ def mse(img1: torch.Tensor, img2: torch.Tensor) -> torch.Tensor:
 
 
 @torch.no_grad()
-def psnr(img1: torch.Tensor, img2: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+def psnr(
+    img1: torch.Tensor, img2: torch.Tensor, mask: Optional[torch.Tensor] = None
+) -> torch.Tensor:
     """
     Compute Peak Signal-to-Noise Ratio (PSNR) between two images.
-    
+
     Supports optional masking for surgical tool exclusion in endoscopic images.
-    
+
     Args:
         img1: First image tensor (predicted)
         img2: Second image tensor (ground truth)
         mask: Optional binary mask. If provided, PSNR is computed only on masked regions.
               Can have 3 channels (RGB mask) or 1 channel (binary mask).
-              
+
     Returns:
         PSNR value in dB (scalar)
-        
+
     Note:
         - Assumes pixel values are in range [0, 1]
         - PSNR = 20 * log10(MAX_I / sqrt(MSE))
@@ -91,7 +93,7 @@ def psnr(img1: torch.Tensor, img2: torch.Tensor, mask: Optional[torch.Tensor] = 
         # Validate mask has at least 2 dimensions
         if mask.ndim < 2:
             raise ValueError(f"Mask must have at least 2 dimensions, got shape {mask.shape}")
-        
+
         if mask.shape[1] == 3:
             # RGB mask - compute weighted MSE across all channels
             mse_val = (((img1 - img2) ** 2) * mask).sum() / (mask.sum() + 1e-10)
@@ -99,7 +101,7 @@ def psnr(img1: torch.Tensor, img2: torch.Tensor, mask: Optional[torch.Tensor] = 
             # Single channel mask - compute MSE and normalize by mask sum
             # Divide by 3.0 to account for 3 color channels
             mse_val = (((img1 - img2) ** 2) * mask).sum() / ((mask.sum() + 1e-10) * 3.0)
-    
+
     # PSNR = 20 * log10(1.0 / sqrt(MSE))
     return 20 * torch.log10(1.0 / torch.sqrt(mse_val))
 
@@ -107,12 +109,12 @@ def psnr(img1: torch.Tensor, img2: torch.Tensor, mask: Optional[torch.Tensor] = 
 def rmse(a, b, mask: Optional[np.ndarray] = None) -> float:
     """
     Compute Root Mean Squared Error between two images.
-    
+
     Args:
         a: First image (tensor or numpy array)
         b: Second image (tensor or numpy array)
         mask: Optional binary mask
-        
+
     Returns:
         RMSE value (scalar)
     """
@@ -123,13 +125,13 @@ def rmse(a, b, mask: Optional[np.ndarray] = None) -> float:
         b = tensor2array(b)
     if torch.is_tensor(mask):
         mask = tensor2array(mask)
-    
+
     # Validate inputs are at least 2D (images should have H, W dimensions)
     if a.ndim < 2:
         raise ValueError(f"Input 'a' must have at least 2 dimensions (H, W), got shape {a.shape}")
     if b.ndim < 2:
         raise ValueError(f"Input 'b' must have at least 2 dimensions (H, W), got shape {b.shape}")
-    
+
     if mask is None:
         # Simple RMSE without masking
         rmse_val = (((a - b) ** 2).sum() / (a.shape[-1] * a.shape[-2])) ** 0.5
@@ -138,21 +140,21 @@ def rmse(a, b, mask: Optional[np.ndarray] = None) -> float:
         # Expand mask to match dimensions if needed
         if len(mask.shape) == len(a.shape) - 1:
             mask = mask[..., None]
-        
+
         mask_sum = np.sum(mask) + 1e-10
         rmse_val = (((a - b) ** 2 * mask).sum() / mask_sum) ** 0.5
-    
+
     return rmse_val
 
 
 def write_png(path: str, data: np.ndarray):
     """
     Write a numpy array as a PNG image.
-    
+
     Args:
         path: Output file path
         data: Image data as numpy array [H, W, C]
-        
+
     Returns:
         None (writes to disk)
     """
