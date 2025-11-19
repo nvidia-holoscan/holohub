@@ -26,16 +26,16 @@ add_custom_target(isaac_messages_header_generation
   DEPENDS ${ISAAC_MESSAGES_GENERATED_HEADERS}
 )
 
-add_library(isaac_messages_schemas INTERFACE)
+add_library(isaac_messages_schemas tensor_overrides.cc)
 add_library(isaac::messages::schemas ALIAS isaac_messages_schemas)
 
 target_include_directories(isaac_messages_schemas
-  INTERFACE
+  PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> # Includes of source headers are relative to the source root dir.
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 target_link_libraries(isaac_messages_schemas
-  INTERFACE
+  PUBLIC
     flatbuffers::flatbuffers
     holoscan::core
 )

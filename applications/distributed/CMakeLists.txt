@@ -18,3 +18,8 @@ project(distributed_applications LANGUAGES NONE)
 
 add_subdirectory(grpc)
 add_subdirectory(ucx)
+
+add_holohub_application(ucxx_endoscopy_tool_tracking
+    DEPENDS OPERATORS ucxx_send_receive
+              lstm_tensor_rt_inference
+              tool_tracking_postprocessor)
