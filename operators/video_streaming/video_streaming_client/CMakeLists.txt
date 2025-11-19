@@ -36,7 +36,7 @@ endif()
 # This is needed because bundled CUDA lacks cudaGraphConditionalHandleCreate required by HSDK 3.8
 if(EXISTS ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR})
     # Remove old bundled CUDA libraries if they exist
-    file(REMOVE 
+    file(REMOVE
         ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}/libcudart.so.12
         ${STREAMINGCLIENT_DIR}/lib/${ARCH_DIR}/libcudart.so.12.0.107
     )
