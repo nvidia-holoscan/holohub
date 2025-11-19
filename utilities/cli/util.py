@@ -1287,6 +1287,7 @@ def collect_environment_variables() -> None:
         "HOLOHUB_CMD_NAME",
         "HOLOHUB_BUILD_LOCAL",
         "HOLOHUB_ALWAYS_BUILD",
+        "HOLOHUB_ENABLE_SCCACHE",
         "HOLOHUB_BUILD_PARENT_DIR",
         "HOLOHUB_DATA_DIR",
         "HOLOHUB_DEFAULT_HSDK_DIR",
@@ -1353,7 +1354,39 @@ def collect_env_info() -> None:
     collect_python_info()
     collect_docker_info()
     collect_cuda_gpu_info()
+    collect_sccache_info()
     collect_environment_variables()
+
+
+def get_sccache_dir(env: Optional[dict[str, str]] = None) -> str:
+    source_env: dict[str, str] = env if env is not None else os.environ  # type: ignore[assignment]
+    return source_env.get("SCCACHE_DIR") or str(Path.home() / ".cache" / "sccache")
+
+
+def collect_sccache_info() -> None:
+    """Collect and display sccache-related information"""
+    print(f"\n{Color.blue('sccache Information:')}")
+
+    enable_val, enabled = get_env_bool("HOLOHUB_ENABLE_SCCACHE", default=False)
+    print(f"  HOLOHUB_ENABLE_SCCACHE: {enable_val} ({'enabled' if enabled else 'disabled'})")
+
+    sccache_bin = shutil.which("sccache")
+    version = run_info_command(["sccache", "--version"]) if sccache_bin else None
+    print(f"  sccache binary: {sccache_bin or '(not found in PATH)'}")
+    print(f"  sccache version: {version or '(unavailable)'}")
+
+    effective_dir = os.environ.get("SCCACHE_DIR") or str(Path.home() / ".cache" / "sccache")
+    print(f"  Effective SCCACHE_DIR: {effective_dir}")
+
+    sccache_items = sorted(
+        (k, os.environ.get(k) or "(not set)") for k in os.environ if k.startswith("SCCACHE_")
+    )
+    if sccache_items:
+        print("  SCCACHE_* environment variables:")
+        for key, value in sccache_items:
+            print(f"    {key}: {value}")
+    else:
+        print("  SCCACHE_* environment variables: (none set)")
 
 
 def normalize_args_str(args):
