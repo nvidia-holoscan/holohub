@@ -29,26 +29,26 @@
 			"cupy": "cuda12x",
 			"data": ["EndoNeRF dataset"]
 		},
-		"default_mode": "dynamic_rendering",
+		"default_mode": "training_quick",
 		"modes": {
+			"training_quick": {
+				"description": "Testing only (lower quality): 30 frames, 500 iterations (~2 min) - verifies setup works",
+				"run": {
+					"command": "python3 <holohub_app_source>/train_standalone.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_source>/output --training_iterations 500 --coarse_iterations 50 --num_frames 30",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"training_full": {
+				"description": "Production quality (recommended): all 63 frames, 2000 iterations (~5 min) - smooth temporal deformation",
+				"run": {
+					"command": "python3 <holohub_app_source>/train_standalone.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_source>/output --training_iterations 2000 --coarse_iterations 200",
+					"workdir": "holohub_app_source"
+				}
+			},
 			"dynamic_rendering": {
-				"description": "High-quality rendering with temporal deformation (recommended for accurate tissue reconstruction)",
+				"description": "High-quality rendering with temporal deformation (requires pre-trained checkpoint)",
 				"run": {
-					"command": "python3 <holohub_app_source>/test_dynamic_rendering_viz.py --data_dir <data_dir>/EndoNeRF/pulling --checkpoint <checkpoint_dir>/ckpts/fine_best_psnr.pt",
-					"workdir": "holohub_app_source"
-				}
-			},
-			"static_rendering": {
-				"description": "Fast preview mode without temporal deformation (for quick visualization)",
-				"run": {
-					"command": "python3 <holohub_app_source>/test_static_rendering_viz.py --data_dir <data_dir>/EndoNeRF/pulling --checkpoint <checkpoint_dir>/ckpts/fine_best_psnr.pt",
-					"workdir": "holohub_app_source"
-				}
-			},
-			"training": {
-				"description": "Train a new Gaussian Splatting model on EndoNeRF dataset",
-				"run": {
-					"command": "python3 <holohub_app_source>/train_standalone.py --data_dir <data_dir>/EndoNeRF/pulling --output_dir <output_dir> --training_iterations 2000",
+					"command": "python3 <holohub_app_source>/demo_dynamic_rendering_viz.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --checkpoint <holohub_app_source>/output/trained_model/ckpts/fine_best_psnr.pt",
 					"workdir": "holohub_app_source"
 				}
 			}

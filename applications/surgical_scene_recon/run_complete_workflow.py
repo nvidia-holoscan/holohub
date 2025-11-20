@@ -274,7 +274,7 @@ def run_inference(data_dir, checkpoint_path, num_frames=-1, visualize=True):
     print("Press ESC or close window to exit visualization\n")
 
     # Validate rendering script exists
-    script_path = Path("test_dynamic_rendering_viz.py")
+    script_path = Path("demo_dynamic_rendering_viz.py")
     if not script_path.exists():
         print(f"\n❌ ERROR: Rendering script not found: {script_path}")
         print(f"  Expected at: {script_path.absolute()}")
@@ -391,7 +391,7 @@ def main():
     if not args.train_only:
         print("  Renders: output/rendered_dynamic/")
     print("\nTo re-run inference:")
-    print("  python test_dynamic_rendering_viz.py \\")
+    print("  python demo_dynamic_rendering_viz.py \\")
     print(f"      --data_dir {args.data_dir} \\")
     print(f"      --checkpoint {checkpoint}")
     print(f"{'='*70}\n")

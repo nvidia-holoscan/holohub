@@ -90,10 +90,10 @@ LABEL updated="2025-10-24"
 CMD ["bash", "-c", "echo 'Surgical Scene Reconstruction Container' && \
      echo '' && \
      echo 'Available test scripts:' && \
-     echo '  - test_dynamic_rendering_viz.py (high-quality, temporal deformation)' && \
-     echo '  - test_static_rendering_viz.py (fast preview mode)' && \
-     echo '' && \
-     echo 'Example usage:' && \
-     echo '  python test_dynamic_rendering_viz.py --data_dir /path/to/data --checkpoint /path/to/checkpoint.pt' && \
+    echo '  - demo_dynamic_rendering_viz.py (high-quality, temporal deformation)' && \
+    echo '  - demo_static_rendering_viz.py (fast preview mode)' && \
+    echo '' && \
+    echo 'Example usage:' && \
+    echo '  python demo_dynamic_rendering_viz.py --data_dir /path/to/data --checkpoint /path/to/checkpoint.pt' && \
      echo '' && \
      echo 'See README.md and QUICKSTART.md for detailed instructions.'"]

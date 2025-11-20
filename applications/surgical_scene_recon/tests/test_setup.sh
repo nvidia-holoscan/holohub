@@ -81,11 +81,11 @@ fi
 echo "✓ test_train_then_render.py exists"
 
 # Check existing scripts still exist
-if [ ! -f "test_dynamic_rendering_viz.py" ]; then
-    echo "ERROR: test_dynamic_rendering_viz.py not found"
+if [ ! -f "demo_dynamic_rendering_viz.py" ]; then
+    echo "ERROR: demo_dynamic_rendering_viz.py not found"
     exit 1
 fi
-echo "✓ test_dynamic_rendering_viz.py exists (inference mode)"
+echo "✓ demo_dynamic_rendering_viz.py exists (inference mode)"
 
 echo ""
 echo "[4/4] Checking documentation..."

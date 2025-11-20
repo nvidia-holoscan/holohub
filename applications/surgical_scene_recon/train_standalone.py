@@ -273,7 +273,7 @@ def main():
         print(f"{'='*70}")
         print(f"Trained checkpoint: {checkpoint}")
         print("\nRun inference with:")
-        print("python test_dynamic_rendering_viz.py \\")
+        print("python demo_dynamic_rendering_viz.py \\")
         print(f"    --data_dir {args.data_dir} \\")
         print(f"    --checkpoint {checkpoint}")
         print(f"{'='*70}\n")

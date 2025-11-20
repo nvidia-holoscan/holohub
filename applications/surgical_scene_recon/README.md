@@ -1,35 +1,57 @@
 # G-SHARP: Gaussian Surgical Edge-Hardware Accelerated Real-time Pipeline
 
-Real-time 3D surgical scene reconstruction using Gaussian Splatting in a Holoscan streaming pipeline with temporal deformation for accurate tissue modeling. 
+Real-time 3D surgical scene reconstruction using Gaussian Splatting in a Holoscan streaming pipeline with temporal deformation for accurate tissue modeling.
 
 ---
 
 ## Overview
 
-This application combines **Holoscan SDK** for real-time streaming, **3D Gaussian Splatting** for neural 3D reconstruction, and **temporal deformation networks** for accurate surgical scene modeling.
+This application demonstrates real-time 3D surgical scene reconstruction by combining **Holoscan SDK** for high-performance streaming, **3D Gaussian Splatting** for neural 3D representation, and **temporal deformation networks** for accurate modeling of dynamic tissue.
 
-### Architecture
+The application provides a complete end-to-end pipeline - from raw surgical video to real-time 3D reconstruction - enabling researchers and developers to train custom models on their own endoscopic data and visualize results with GPU-accelerated rendering.
 
-The application provides a complete end-to-end pipeline for surgical scene reconstruction:
+![Surgical Scene Reconstruction Demo](surg_recon_inference.gif)
 
-#### **1. Data Accumulation & Training Pipeline**
+**Key Features:**
+- ✅ **Real-time Visualization:** Stream surgical scene reconstruction at >30 FPS using Holoscan
+- ✅ **Temporal Deformation:** Accurate per-frame tissue modeling as it deforms over time
+- ✅ **Tool Removal:** Tissue-only reconstruction mode (surgical instruments automatically excluded)
+- ✅ **End-to-End Training:** On-the-fly model training from streamed endoscopic data
+- ✅ **Two Operation Modes:** Inference-only (with pre-trained checkpoint) OR Train-then-render
+- ✅ **Production Ready:** Tested and optimized Holoscan pipeline with complete Docker containerization
 
-The training pipeline processes endoscopic surgical video frames to learn a 3D representation:
+**What It Does:**
+- **Input:** EndoNeRF surgical dataset (RGB images + stereo depth + camera poses + tool masks)
+- **Process:** Multi-frame Gaussian Splatting with 4D spatiotemporal deformation network
+- **Output:** Real-time 3D tissue reconstruction without surgical instruments
 
-- **Multi-modal Data Loading:** Accumulates RGB images, stereo depth maps, and tool segmentation masks from the EndoNeRF dataset
-- **Multi-frame Point Cloud Initialization:** Aggregates depth information across all frames to create a dense initial 3D point cloud (~30k points vs. ~3k from single frame)
-- **Gaussian Splatting Training:** Optimizes 3D Gaussians (position, scale, rotation, opacity, color) to represent the surgical scene
-- **Temporal Deformation Network:** Learns tissue deformation over time using a 4D spatiotemporal HexPlane field with MLP-based deformation
-- **Tool Removal:** Uses segmentation masks to reconstruct tissue-only scenes, removing surgical instruments
+**Use Cases:**
+- Surgical scene understanding and visualization
+- Tool-free tissue reconstruction for analysis
+- Research in surgical vision and 3D reconstruction
+- Development of real-time surgical guidance systems
 
-**Training Output:** A checkpoint containing:
-- Base 3D Gaussian parameters (means, scales, quaternions, opacities, spherical harmonics)
-- Deformation network weights (for temporal modeling)
-- Scene metadata (camera parameters, normalization scales)
+---
 
-#### **2. Real-time Rendering Pipeline**
+## Architecture
 
-The rendering pipeline uses Holoscan operators for real-time visualization:
+The application provides a complete end-to-end pipeline:
+
+### Training Pipeline
+
+Processes endoscopic video to learn 3D representation:
+
+- **Multi-modal Data Loading:** RGB images, depth maps, tool segmentation masks
+- **Multi-frame Point Cloud Init:** Dense initialization (~30k points from all frames)
+- **Gaussian Splatting Training:** Optimizes 3D Gaussians (position, scale, rotation, opacity, color)
+- **Temporal Deformation Network:** 4D spatiotemporal HexPlane field with MLP-based deformation
+- **Tool Removal:** Uses segmentation masks for tissue-only reconstruction
+
+![Training Visualization - Ground Truth vs Rendered](train_gt_animation.gif)
+
+### Real-time Rendering Pipeline
+
+Holoscan operators for real-time visualization:
 
 ```
 EndoNeRFLoaderOp → GsplatLoaderOp → GsplatRenderOp → HolovizOp
@@ -37,149 +59,67 @@ EndoNeRFLoaderOp → GsplatLoaderOp → GsplatRenderOp → HolovizOp
                                               ImageSaverOp
 ```
 
-**Pipeline Components:**
-- **EndoNeRFLoaderOp:** Streams camera poses and timestamps frame-by-frame
-- **GsplatLoaderOp:** Loads trained checkpoint and deformation network (once at startup)
-- **GsplatRenderOp:** Applies temporal deformation for current frame time, then renders using differentiable rasterization
-- **HolovizOp:** Real-time visualization with Holoscan's GPU-accelerated display
-- **ImageSaverOp:** Saves rendered frames to disk for inspection
-
-#### **3. Operating Modes**
-
-- **Dynamic Rendering (Recommended):** Applies temporal deformation to accurately reconstruct tissue as it deforms over time - highest quality
-- **Static Rendering (Fast Preview):** Uses base Gaussians without deformation - faster but less accurate for moving tissue
-- **Training Mode:** Trains a new model on your dataset - enables custom scene reconstruction
+**Components:**
+- **EndoNeRFLoaderOp:** Streams camera poses and timestamps
+- **GsplatLoaderOp:** Loads checkpoint and deformation network
+- **GsplatRenderOp:** Applies temporal deformation and renders
+- **HolovizOp:** Real-time GPU-accelerated visualization
 
 ---
 
 ## Dataset
 
-### EndoNeRF Dataset
+### EndoNeRF Dataset Setup
 
-This application uses the **EndoNeRF dataset** for surgical scene reconstruction. 
+This application uses the **EndoNeRF "pulling_soft_tissues" dataset**.
 
-**Download and Setup:**
-1. Visit the EndoNeRF repository: https://github.com/med-air/EndoNeRF
-2. Follow their instructions to download and process the dataset
-3. This application uses the `pulling_soft_tissues` clip (one of the accessible clips)
+#### Download
 
-**Dataset Structure:**
-After processing, your dataset should have the following structure:
-```
-<DATA_PATH>/
-└── EndoNeRF/
-    └── pulling/
-        ├── images/           # RGB frames
-        ├── depth/            # Depth maps
-        ├── masks/            # Tool masks
-        └── poses.txt         # Camera poses
-```
+**Direct Google Drive:** https://drive.google.com/drive/folders/1zTcX80c1yrbntY9c6-EK2W2UVESVEug8?usp=sharing
 
-**Path Configuration:**
-You'll need to set two environment variables for your system:
-- `HOLOHUB_PATH`: Path to your holohub-internal repository
-- `DATA_PATH`: Path to where you've downloaded and extracted the EndoNeRF dataset
+In the Google Drive folder, you'll see:
+- `cutting_tissues_twice`
+- `pulling_soft_tissues` ← **Download this one**
 
-**Example Setup:**
+**Alternative:** Visit the [EndoNeRF repository](https://github.com/med-air/EndoNeRF)
+
+#### Setup
+
+Place the dataset at the correct location:
+
 ```bash
-export HOLOHUB_PATH=/path/to/holohub-internal
-export DATA_PATH=/path/to/your/datasets
+# Create data directory
+mkdir -p data/EndoNeRF
+
+# Extract and move downloaded dataset
+mv ~/Downloads/pulling_soft_tissues data/EndoNeRF/pulling
+
+# Or copy if extracted elsewhere
+cp -r /path/to/pulling_soft_tissues data/EndoNeRF/pulling
 ```
 
-After setup, your EndoNeRF dataset should be accessible at:
+**⚠️ Critical:** Dataset MUST be physically at `holohub/data/EndoNeRF/pulling/` - do NOT use symlinks! Docker containers cannot follow symlinks outside mounted volumes.
+
+#### Verify
+
+Your dataset should have this structure:
+
 ```
-${DATA_PATH}/EndoNeRF/pulling/
+holohub/
+└── data/
+    └── EndoNeRF/
+        └── pulling/
+            ├── images/              # 63 RGB frames (.png)
+            ├── depth/               # 63 depth maps (.png)
+            ├── masks/               # 63 tool masks (.png)
+            └── poses_bounds.npy     # Camera poses (8.5 KB)
 ```
 
----
-
-## Complete Setup Guide
-
-### Step-by-Step Setup
-
-1. **Set Environment Variables**
-   ```bash
-   export HOLOHUB_PATH=/path/to/holohub-internal
-   export DATA_PATH=/path/to/your/datasets
-   ```
-
-2. **Download EndoNeRF Dataset**
-   - Visit: https://github.com/med-air/EndoNeRF
-   - Download and extract the `pulling_soft_tissues` dataset
-   - Place it in: `${DATA_PATH}/EndoNeRF/pulling/`
-
-3. **Build Docker Image** (one-time, ~10-15 minutes)
-   ```bash
-   cd ${HOLOHUB_PATH}
-   docker build -f applications/surgical_scene_recon/Dockerfile -t surgical_scene_recon:latest .
-   ```
-
-4. **Run Complete Workflow** (RECOMMENDED - automated script)
-   ```bash
-   cd ${HOLOHUB_PATH}/applications/surgical_scene_recon
-   ./run_complete_docker.sh production
-   ```
-   
-   This automated script handles training + rendering in one command!
-   See [Complete Workflow Script](#complete-workflow-script-automated) section for details.
-
-   **OR** manually train and then run inference separately:
-   
-   a. Train the model:
-   ```bash
-   cd ${HOLOHUB_PATH}
-   docker run --rm --gpus all \
-     -v ${HOLOHUB_PATH}:/workspace/holohub \
-     -v ${DATA_PATH}:/workspace/data \
-     -w /workspace/holohub/applications/surgical_scene_recon \
-     surgical_scene_recon:latest \
-     python run_surgical_recon.py \
-       --mode train \
-       --data_dir /workspace/data/EndoNeRF/pulling \
-       --output_dir output/production_training \
-       --training_iterations 2000 \
-       --coarse_iterations 200
-   ```
-   
-   b. Run production inference:
-   ```bash
-   cd ${HOLOHUB_PATH}
-   docker run --rm --gpus all \
-     -e DISPLAY=$DISPLAY \
-     -v /tmp/.X11-unix:/tmp/.X11-unix \
-     -v ${HOLOHUB_PATH}:/workspace/holohub \
-     -v ${DATA_PATH}:/workspace/data \
-     -w /workspace/holohub/applications/surgical_scene_recon \
-     surgical_scene_recon:latest \
-     python run_surgical_recon.py \
-       --mode inference \
-       --data_dir /workspace/data/EndoNeRF/pulling \
-       --checkpoint /workspace/holohub/applications/surgical_scene_recon/output/production_training/ckpts/fine_best_psnr.pt
-   ```
-
----
-
-## Key Features
-
-- ✅ **Real-time Visualization:** Stream surgical scene reconstruction at >10 FPS
-- ✅ **Temporal Deformation:** Accurate per-frame tissue modeling
-- ✅ **Tool Removal:** Tissue-only reconstruction mode (instruments excluded)
-- ✅ **Two Operation Modes:** Inference-only OR Train-then-render 🆕
-- ✅ **Integrated Training:** On-the-fly model training from streamed data 🆕
-- ✅ **Two Rendering Modes:** Static (fast) or Dynamic (high-quality)
-- ✅ **Holoviz Integration:** Interactive 3D visualization
-- ✅ **Production Ready:** Tested and optimized pipeline
-
-### What It Does
-
-**Input:** EndoNeRF surgical dataset (RGB images + camera poses + tool masks)  
-**Process:** Gaussian Splatting with temporal deformation network  
-**Output:** Real-time 3D tissue reconstruction without surgical instruments
-
-### Operation Modes
-
-1. **Inference-Only Mode:** Use pre-trained checkpoint for immediate rendering
-2. **Train-Then-Render Mode:** 🆕 Collect data → Train model → Render with trained checkpoint
+**Verification command:**
+```bash
+ls data/EndoNeRF/pulling/
+# Should show: images  depth  masks  poses_bounds.npy
+```
 
 ---
 
@@ -187,466 +127,302 @@ ${DATA_PATH}/EndoNeRF/pulling/
 
 ### Prerequisites
 
+- NVIDIA GPU (RTX 3000+ series recommended)
 - Docker with NVIDIA GPU support
-- NVIDIA GPU (RTX 3000+ recommended)
 - X11 display server
-- EndoNeRF dataset (see [Dataset](#dataset) section)
-- Path environment variables set: `HOLOHUB_PATH` and `DATA_PATH`
+- ~2 GB free disk space (dataset)
+- ~30 GB free disk space (Docker container)
 
-### Step 1: Build the Docker Image
+### Three Simple Steps
 
-Build the surgical scene reconstruction Docker image (one-time setup, ~10-15 minutes):
-
-```bash
-cd ${HOLOHUB_PATH}
-
-# Standard build
-docker build \
-  -f applications/surgical_scene_recon/Dockerfile \
-  -t surgical_scene_recon:latest \
-  .
-```
-
-**Custom base image (optional):**
-```bash
-# Use a different Holoscan version or custom base
-docker build \
-  --build-arg BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.8.0-cuda12-dgpu \
-  -f applications/surgical_scene_recon/Dockerfile \
-  -t surgical_scene_recon:latest \
-  .
-```
-
-**Rebuild (if updating):**
-```bash
-# Remove old image first
-docker rmi surgical_scene_recon:latest
-
-# Then rebuild
-docker build -f applications/surgical_scene_recon/Dockerfile -t surgical_scene_recon:latest .
-```
-
-**Verify the build:**
-```bash
-docker images surgical_scene_recon:latest
-```
-
-You should see output similar to:
-```
-REPOSITORY                TAG       IMAGE ID       CREATED          SIZE
-surgical_scene_recon      latest    abc123def456   2 minutes ago    26GB
-```
-
-**What's in the image:**
-- Holoscan SDK 3.7.0 with CUDA 12.x support
-- PyTorch ≥2.1.0, torchvision ≥0.16.0
-- gsplat ≥1.0.0 for Gaussian Splatting
-- Training dependencies: tqdm, pyyaml, tensorboard, lpips, torchmetrics
-- 3D processing: open3d, plyfile, fpsample
-- Image processing: pillow, imageio, opencv-python
-- Scientific: numpy, scipy, cupy-cuda12x, scikit-learn
-
-### Step 2: Run Production Inference
-
-Once the Docker image is built, run a full production inference with pre-trained checkpoint:
+#### Step 1: Clone HoloHub
 
 ```bash
-cd ${HOLOHUB_PATH}
-
-docker run --rm --gpus all \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v ${HOLOHUB_PATH}:/workspace/holohub \
-  -v ${DATA_PATH}:/workspace/data \
-  -w /workspace/holohub/applications/surgical_scene_recon \
-  surgical_scene_recon:latest \
-  python run_surgical_recon.py \
-    --mode inference \
-    --data_dir /workspace/data/EndoNeRF/pulling \
-    --checkpoint /workspace/data/checkpoints/fine_best_psnr.pt
+git clone https://github.com/nvidia-holoscan/holohub.git
+cd holohub
 ```
 
-**Note:** You'll need a pre-trained checkpoint. To train your own, see [Training Mode](#training-mode) below.
+#### Step 2: Download and Place Dataset
 
-**Press ESC or close window to exit visualization.**
+```bash
+# Download from Google Drive (link above in Dataset section)
+# Get the 'pulling_soft_tissues' folder
+
+# Create directory and place dataset
+mkdir -p data/EndoNeRF
+mv ~/Downloads/pulling_soft_tissues data/EndoNeRF/pulling
+
+# Verify
+ls data/EndoNeRF/pulling/
+# Should show: images  depth  masks  poses_bounds.npy
+```
+
+#### Step 3: Run Training
+
+**For testing/verification:**
+```bash
+./holohub run surgical_scene_recon training_quick
+```
+
+**⚠️ Note:** `training_quick` produces **static/jittery results** - this is expected! It's for testing only:
+- ✅ Verifies your setup works (~10 min training)
+- ❌ NOT for production quality
+
+**For production quality:**
+```bash
+./holohub run surgical_scene_recon training_full
+```
+
+**What happens:**
+1. **First time:** Builds Docker container (~10-15 minutes, one-time)
+2. **Training:** 
+   - `training_quick`: 30 frames, 500 iterations (~10 min) → Testing only
+   - `training_full`: 63 frames, 2000 iterations (~30 min) → Production quality ⭐
+3. **Auto-visualization:** Holoviz window opens showing your reconstruction
+
+### Available Modes
+
+Check all modes:
+```bash
+./holohub modes surgical_scene_recon
+```
+
+**Three modes available:**
+
+| Mode | Description | Time | Quality |
+|------|-------------|------|---------|
+| `training_quick` | Testing/verification only | ~10 min | Lower (static/jittery) |
+| `training_full` ⭐ | Production quality | ~30 min | High (smooth deformation) |
+| `dynamic_rendering` | Render with trained checkpoint | ~2 min | Uses your trained model |
+
+### Rendering with Trained Model
+
+After training completes, render with your checkpoint:
+
+```bash
+./holohub run surgical_scene_recon dynamic_rendering
+```
+
+Checkpoint location: `applications/surgical_scene_recon/output/trained_model/ckpts/fine_best_psnr.pt`
 
 ---
 
-## Training Mode
+## Advanced Usage
 
-If you don't have a pre-trained checkpoint, you can train your own model from the EndoNeRF dataset.
+### Troubleshooting
 
-### Quick Training Test
+**Problem: "FileNotFoundError: poses_bounds.npy not found"**
+- **Cause:** Dataset not in correct location or symlink used
+- **Solution:** Ensure dataset is physically at `holohub/data/EndoNeRF/pulling/`
+- **Verify:** Run `file data/EndoNeRF` - should show "directory", not "symbolic link"
 
-Train a quick test model (30 frames, 500 iterations, ~15 minutes):
+**Problem: "Unable to find image holohub-surgical_scene_recon"**
+- **Cause:** Container not built yet
+- **Solution:** Remove `--no-docker-build` flag (let CLI build automatically)
+- **Or:** Manually build: `./holohub build-container surgical_scene_recon`
+
+**Problem: Holoviz window doesn't appear**
+- **Cause:** X11 forwarding not enabled
+- **Solution:** Run `xhost +local:docker` before training
+- **Verify:** Check `echo $DISPLAY` shows a value
+
+**Problem: GPU out of memory**
+- **Cause:** Another process using GPU
+- **Solution:** Check `nvidia-smi` and stop other processes
+- **Or:** Reduce batch size (advanced - edit training config)
+
+### Container Management
+
+**Build container separately:**
+```bash
+./holohub build-container surgical_scene_recon
+```
+
+**Run container (builds if needed):**
+```bash
+./holohub run-container surgical_scene_recon
+```
+
+**Custom base image:**
+```bash
+./holohub build-container surgical_scene_recon \
+  --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v3.8.0-cuda12-dgpu
+```
+
+### Training Outputs
+
+After training, find your results:
 
 ```bash
-cd ${HOLOHUB_PATH}
-
-docker run --rm --gpus all \
-  -v ${HOLOHUB_PATH}:/workspace/holohub \
-  -v ${DATA_PATH}:/workspace/data \
-  -w /workspace/holohub/applications/surgical_scene_recon \
-  surgical_scene_recon:latest \
-  python train_standalone.py \
-    --data_dir /workspace/data/EndoNeRF/pulling \
-    --output_dir output/quick_test \
-    --training_iterations 500 \
-    --coarse_iterations 50 \
-    --num_frames 30
+ls applications/surgical_scene_recon/output/trained_model/
 ```
 
-### Full Production Training
+**Directory structure:**
+- `ckpts/` - Model checkpoints
+  - `fine_best_psnr.pt` - Best checkpoint (use this for rendering)
+  - `fine_step00XXX.pt` - Regular checkpoints
+- `logs/` - Training logs
+- `tb_logs/` - TensorBoard logs
+- `renders/` - Saved render frames
 
-Train a production-quality model (all 63 frames, 2000 iterations, ~25 minutes):
-
+**View training logs:**
 ```bash
-cd ${HOLOHUB_PATH}
-
-docker run --rm --gpus all \
-  -v ${HOLOHUB_PATH}:/workspace/holohub \
-  -v ${DATA_PATH}:/workspace/data \
-  -w /workspace/holohub/applications/surgical_scene_recon \
-  surgical_scene_recon:latest \
-  python run_surgical_recon.py \
-    --mode train \
-    --data_dir /workspace/data/EndoNeRF/pulling \
-    --output_dir output/production_training \
-    --training_iterations 2000 \
-    --coarse_iterations 200
+tensorboard --logdir applications/surgical_scene_recon/output/trained_model/tb_logs
 ```
 
-**Output:** Trained checkpoints will be saved to `${HOLOHUB_PATH}/applications/surgical_scene_recon/output/` directory.
+### CLI Help
 
-**Next Step:** Use the trained checkpoint for inference by replacing the `--checkpoint` path in the production inference command above.
-
----
-
-## Complete Workflow Script (Automated)
-
-For convenience, a complete automated workflow script is provided that handles training and rendering in a single command.
-
-### `run_complete_docker.sh` - One-Command Workflow
-
-This script automates the entire pipeline:
-1. ✅ Data accumulation from EndoNeRF dataset
-2. ✅ Model training with Gaussian Splatting
-3. ✅ Real-time rendering with trained checkpoint
-
-**Prerequisites:**
-- Docker image built: `surgical_scene_recon:latest`
-- Environment variables set: `HOLOHUB_PATH` and `DATA_PATH`
-- EndoNeRF dataset downloaded
-
-### Usage
-
-Navigate to the application directory and run:
-
+**Get mode information:**
 ```bash
-cd ${HOLOHUB_PATH}/applications/surgical_scene_recon
-
-# Quick test mode (30 frames, 500 iterations, ~15 minutes)
-./run_complete_docker.sh quick
-
-# Production mode (all 63 frames, 2000 iterations, ~30 minutes)
-./run_complete_docker.sh production
+./holohub modes surgical_scene_recon
 ```
 
-### Modes
-
-| Mode | Frames | Iterations | Time | Use Case |
-|------|--------|-----------|------|----------|
-| **quick** | 30 | 500 | ~15 min | Testing, development |
-| **production** | 63 (all) | 2000 | ~30 min | Production quality, final results |
-
-### What Happens
-
-**Stage 1 & 2: Training**
-- Loads EndoNeRF dataset (images, poses, masks)
-- Trains Gaussian Splatting model with temporal deformation
-- Saves checkpoint to `output/docker_complete_[mode]/trained_model/ckpts/`
-
-**Stage 3: Rendering**
-- Automatically loads trained checkpoint
-- Renders all frames with real-time visualization
-- Displays in Holoviz window (3-minute auto-timeout)
-- Press ESC to exit early
-
-### Output
-
-After completion, you'll have:
-```
-applications/surgical_scene_recon/
-└── output/
-    └── docker_complete_[mode]/
-        ├── training_ingestion/         # Accumulated training data
-        └── trained_model/
-            └── ckpts/
-                └── fine_best_psnr.pt   # Your trained checkpoint
-```
-
-### Example: Quick Test
-
-Complete end-to-end workflow in ~15 minutes:
-
+**Get run help:**
 ```bash
-# Set paths (if not already set)
-export HOLOHUB_PATH=/path/to/holohub-internal
-export DATA_PATH=/path/to/your/datasets
-
-# Navigate and run
-cd ${HOLOHUB_PATH}/applications/surgical_scene_recon
-./run_complete_docker.sh quick
+./holohub run surgical_scene_recon -h
+./holohub run -h
 ```
 
-This will:
-- Train on first 30 frames (~10 min)
-- Render results (~3 min visualization)
-- Save checkpoint for later use
-
-### Example: Production Run
-
-Full production workflow in ~30 minutes:
-
+**Get build help:**
 ```bash
-cd ${HOLOHUB_PATH}/applications/surgical_scene_recon
-./run_complete_docker.sh production
+./holohub build-container -h
 ```
-
-This will:
-- Train on all 63 frames (~25 min)
-- Render with best quality (~3 min visualization)
-- Create production-ready checkpoint
-
-### Reusing the Trained Checkpoint
-
-After the script completes, you can reuse the trained checkpoint:
-
-```bash
-cd ${HOLOHUB_PATH}
-
-docker run --rm --gpus all \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v ${HOLOHUB_PATH}:/workspace/holohub \
-  -v ${DATA_PATH}:/workspace/data \
-  -w /workspace/holohub/applications/surgical_scene_recon \
-  surgical_scene_recon:latest \
-  python run_surgical_recon.py \
-    --mode inference \
-    --data_dir /workspace/data/EndoNeRF/pulling \
-    --checkpoint /workspace/holohub/applications/surgical_scene_recon/output/docker_complete_production/trained_model/ckpts/fine_best_psnr.pt
-```
-
----
-
-## Architecture
-
-### Pipeline Flow
-
-```
-EndoNeRFLoader → GsplatLoader → GsplatRender → Holoviz
-  (RGB + poses      (checkpoint     (temporal        (display)
-   + time)           + deform_net)    deformation)
-```
-
-### Two Rendering Modes
-
-| Mode | Description | Use Case | Performance |
-|------|-------------|----------|-------------|
-| **Static** | Averaged reconstruction | Quick preview, testing | >20 FPS |
-| **Dynamic** | Per-frame deformation | Production, analysis | >10 FPS |
-
-### Components
-
-| Component | Purpose | Status |
-|-----------|---------|--------|
-| `EndoNeRFLoaderOp` | Load EndoNeRF dataset | ✅ Complete |
-| `GsplatLoaderOp` | Load checkpoint & deform network | ✅ Complete |
-| `GsplatRenderOp` | Render with temporal deformation | ✅ Complete |
-| `HolovizOp` | Real-time visualization | ✅ Complete |
-| `ImageSaverOp` | Save frames (optional) | ✅ Complete |
-
----
-
-## How It Works
-
-### 1. Data Loading
-- Loads RGB images, depth maps, and tool masks from EndoNeRF dataset
-- Extracts camera poses and intrinsics
-- Computes temporal values (normalized 0-1 across sequence)
-
-### 2. Checkpoint Loading
-- **Static Mode:** Load gaussians, apply activations (exp, sigmoid)
-- **Dynamic Mode:** Load base gaussians + deformation network (PyTorch model)
-
-### 3. Rendering
-- **Static Mode:** Direct rendering with pre-activated parameters
-- **Dynamic Mode:** 
-  1. Apply deformation network based on time value
-  2. Activate deformed parameters (exp, sigmoid)
-  3. Render with gsplat
-
-### 4. Visualization
-- Display in Holoviz window
-- Real-time playback through all frames
-- Loop continuously or single pass
 
 ---
 
 ## Technical Details
 
+### Pipeline Architecture
+
+**Training (gsplat_train.py):**
+1. **Data Loading:** EndoNeRF parser loads RGB, depth, masks, poses
+2. **Initialization:** Multi-frame point cloud (~30k points)
+3. **Two-Stage Training:**
+   - **Coarse:** Learn base Gaussians (no deformation)
+   - **Fine:** Add temporal deformation network
+4. **Optimization:** Adam with batch-size scaled learning rates
+5. **Regularization:** Depth loss, TV loss, masking losses
+
+**Rendering (Holoscan Pipeline):**
+1. **EndoNeRFLoaderOp:** Loads frame data (pose, time)
+2. **GsplatLoaderOp:** Loads Gaussians + deformation network
+3. **GsplatRenderOp:** Applies deformation(time) → rasterizes
+4. **HolovizOp:** Real-time visualization
+
 ### Temporal Deformation Network
 
-The deformation network models tissue deformation and tool movement over time:
-
-- **Input:** Base gaussian parameters + time value (0-1)
-- **Architecture:** HexPlane 4D grid + MLPs (position, scale, rotation, opacity)
-- **Output:** Deformed gaussian parameters for that specific time
+- **Architecture:** HexPlane 4D grid + MLP
+- **Input:** 3D position + time value [0, 1]
+- **Output:** Deformed position, scale, rotation, opacity
 - **Inference:** Direct PyTorch (no conversion, full precision)
 
 ### Gaussian Splatting
 
 - **Renderer:** gsplat library (CUDA-accelerated)
-- **Splats:** ~48,000 gaussians
+- **Splats:** ~50,000 gaussians (full training)
 - **SH Degree:** 3 (16 coefficients per gaussian)
 - **Resolution:** 640×512 pixels
 - **Format:** RGB (3 channels)
 
-### Dataset
+### Performance
 
-- **Source:** EndoNeRF "pulling" dataset
-- **Frames:** 63 training views
-- **Modality:** RGB + Depth + Tool Masks
-- **Camera:** Calibrated endoscope
-
----
-
-## Performance
-
-### Tested Configuration
+**Tested Configuration:**
 - **GPU:** NVIDIA RTX 6000 Ada Generation
 - **Container:** Holoscan SDK 3.7.0
-- **Gaussians:** 48,758 splats
+- **Training Time:**
+  - Quick: ~10 minutes (30 frames, 500 iter)
+  - Full: ~30 minutes (63 frames, 2000 iter)
+- **Rendering:** Real-time >30 FPS
 
+**Quality Metrics (training_full):**
+- **PSNR:** ~36-38 dB
+- **SSIM:** ~0.80
+- **Gaussians:** ~50,000 splats
+- **Deformation:** Smooth temporal consistency
+
+---
 
 ## File Structure
 
 ```
 surgical_scene_recon/
-├── README.md                           # This file - Complete documentation
-├── Dockerfile                          # Production container
+├── README.md                       # This file
+├── Dockerfile                      # Production container
+├── metadata.json                   # Holohub CLI configuration
 │
-├── run_complete_docker.sh              # Complete workflow (automated)
-├── run_surgical_recon.py               # Unified Python interface
-├── train_standalone.py                 # Standalone training script
-├── run_complete_workflow.py            # Python complete workflow
+├── demo_dynamic_rendering_viz.py   # Dynamic rendering demo
+├── train_standalone.py             # Training script
+├── run_surgical_recon.py           # Unified Python interface
+├── run_complete_workflow.py        # Python workflow orchestrator
 │
-├── operators/                          # Custom operators
-│   ├── endonerf_loader_op.py          # Data loading
-│   ├── gsplat_loader_op.py            # Checkpoint loading
-│   ├── gsplat_render_op.py            # Rendering
-│   ├── image_saver_op.py              # Image saving
+├── operators/                      # Custom Holoscan operators
+│   ├── endonerf_loader_op.py      # Data loading
+│   ├── gsplat_loader_op.py        # Checkpoint loading
+│   ├── gsplat_render_op.py        # Rendering
+│   └── image_saver_op.py          # Image saving
 │
-├── training/                           # 🆕 Training code
-│   ├── gsplat_train.py                # Main training script
-│   ├── scene/                         # Data loaders
-│   └── utils/                         # Training utilities
+├── training/                       # Training code
+│   ├── gsplat_train.py            # Main training script
+│   ├── scene/                     # Data loaders
+│   └── utils/                     # Training utilities
 │
-├── tests/                              # Test scripts
-│   ├── test_dynamic_rendering_viz.py  # Dynamic mode test
-│   ├── test_static_rendering_viz.py   # Static mode test
-│   ├── test_data_loading.py           # Data loading test
-│   ├── test_minimal_holoviz.py        # Minimal Holoviz test
-│   └── run_tests.sh                   # Automated test suite
-
+└── tests/                          # Unit tests
+    ├── test_dynamic_rendering_viz.py
+    ├── test_static_rendering_viz.py
+    ├── test_data_loading.py
+    └── test_minimal_holoviz.py
 ```
 
 ---
 
-## Requirements
+## Citation
 
-### Hardware
-- NVIDIA GPU with CUDA support (RTX 3000+ recommended)
-- 16GB+ GPU memory
-- X11 display server
+If you use this work, please cite:
 
-### Software
-- Docker with NVIDIA Container Toolkit
-- Holoscan SDK 3.7.0 (in container)
-- Python 3.10+
-- CUDA 12.x
+**EndoNeRF:**
+```bibtex
+@inproceedings{wang2022endonerf,
+  title={EndoNeRF: Neural Rendering for Stereo 3D Reconstruction of Deformable Tissues in Robotic Surgery},
+  author={Wang, Yuehao and Yifan, Wang and Tao, Rui and others},
+  booktitle={MICCAI},
+  year={2022}
+}
+```
 
-### Dependencies (Auto-installed)
-- PyTorch ≥2.1.0
-- gsplat ≥1.0.0
-- CuPy (CUDA 12.x)
-- scipy, pillow
+**3D Gaussian Splatting:**
+```bibtex
+@article{kerbl20233d,
+  title={3d gaussian splatting for real-time radiance field rendering},
+  author={Kerbl, Bernhard and Kopanas, Georgios and Leimk{\"u}hler, Thomas and Drettakis, George},
+  journal={ACM Transactions on Graphics},
+  year={2023}
+}
+```
 
----
-
-### ✅ Phase 1
-
-1. **Data Loading** - EndoNeRF dataset support
-2. **Static Rendering** - Fast, averaged reconstruction
-3. **Dynamic Rendering** - Per-frame temporal deformation
-4. **Holoviz Visualization** - Real-time interactive display
-5. **Image Saving** - Optional frame export
-6. **Production Quality** - Tested with 20,000+ frames
-
-### Technical Highlights
-
-- Direct PyTorch inference (no conversions)
-- Temporal deformation with HexPlane 4D grids
-- Tool removal via training-time masking
-- Real-time performance on modern GPUs
-- Clean Holoscan operator architecture
-
----
-
-## Use Cases
-
-### Surgical Review & Training
-- Visualize anatomy without instrument occlusion
-- Review tissue deformation over surgical procedure
-- Training tool for surgical techniques
-
-### Research & Development
-- 3D reconstruction quality analysis
-- Temporal dynamics study
-- Novel view synthesis
-
-### Interactive Exploration
-- View surgical scene from any angle
-- Understand spatial relationships
-- Analyze tissue deformation patterns
-
----
-
-## Comparison: Static vs Dynamic
-
-### When to Use Static Mode
-- ✅ Quick previews and testing
-- ✅ When temporal accuracy not critical
-- ✅ Faster iteration during development
-- ✅ Lower computational requirements
-
-### When to Use Dynamic Mode
-- ✅ Production visualization
-- ✅ Accurate tissue deformation modeling
-- ✅ Research and analysis
-- ✅ Highest visual quality
-
-### Quality Comparison
-- **Static:** Good reconstruction, averaged over time
-- **Dynamic:** Excellent reconstruction, per-frame accurate
-- **Deformation:** Dynamic captures mean tissue displacement of ~0.71 units
+**gsplat Library:**
+```bibtex
+@software{ye2024gsplat,
+  title={gsplat},
+  author={Ye, Vickie and Turkulainen, Matias and others},
+  year={2024},
+  url={https://github.com/nerfstudio-project/gsplat}
+}
+```
 
 ---
 
 ## License
 
-This application combines multiple components with different licenses:
-- Holoscan SDK (Apache 2.0)
-- gsplat (Apache 2.0)
-- Surgical Gaussian Training Code (Research License)
+This application is licensed under Apache 2.0. See individual files for specific licensing:
+- Application code: Apache 2.0 (NVIDIA)
+- Training utilities: MIT License (EndoGaussian Project)
+- Spherical harmonics utils: BSD-2-Clause (PlenOctree)
+
+---
+
+## Support
+
+For issues or questions:
+- Open an issue on the [HoloHub repository](https://github.com/nvidia-holoscan/holohub)
+- Refer to the [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/)
+

@@ -1284,7 +1284,9 @@ class EndoRunner:
             psnr_val = psnr(image_rendered_p, image_gt_p, mask_p).mean()
 
             # Track best PSNR in fine stage for checkpoint saving
-            if stage == "fine" and psnr_val.item() > self.best_psnr:
+            # Only save "best" checkpoints after 40% of training (avoid early unstable saves)
+            min_step_for_best = int(num_iterations * 0.4)
+            if stage == "fine" and psnr_val.item() > self.best_psnr and step >= min_step_for_best:
                 self.best_psnr = psnr_val.item()
                 self.best_psnr_step = step
                 # Save best checkpoint

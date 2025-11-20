@@ -61,7 +61,7 @@ def run_inference_mode(args):
         return 1
 
     # Validate rendering script exists
-    rendering_script = Path("test_dynamic_rendering_viz.py")
+    rendering_script = Path("demo_dynamic_rendering_viz.py")
     if not rendering_script.exists():
         print(f"\n❌ ERROR: Rendering script not found: {rendering_script}")
         print(f"  Expected at: {rendering_script.absolute()}")
@@ -152,7 +152,7 @@ def run_train_mode(args):
     print(f"{'='*70}\n")
 
     # Validate rendering script exists
-    rendering_script = Path("test_dynamic_rendering_viz.py")
+    rendering_script = Path("demo_dynamic_rendering_viz.py")
     if not rendering_script.exists():
         print(f"\n❌ ERROR: Rendering script not found: {rendering_script}")
         print(f"  Expected at: {rendering_script.absolute()}")
