@@ -4,6 +4,8 @@
 
 This document summarizes the C++ unit tests for the `video_streaming` operators, providing comprehensive coverage of all client and server components.
 
+> **Note:** This document covers **C++ unit tests only**. For Python binding tests, see **[PYTEST_SUMMARY.md](./PYTEST_SUMMARY.md)**.
+
 ## Test Suites
 
 This package includes the following unit tests across all video streaming operators:
@@ -58,16 +60,28 @@ operators/video_streaming/
     └── CMakeLists.txt                         # Updated to include tests
 ```
 
+## ⚠️ CUDA Version Compatibility
+
+> **Important:** The video streaming client tests require **CUDA 12**. If you're using CUDA 13, you must specify `--cuda 12` when running the `./holohub` script.
+
+**For CUDA 13 systems:**
+```bash
+./holohub build video_streaming --cuda 12
+./holohub test video_streaming --cuda 12 --ctest-options="-R unit_tests -VV"
+```
+
+**Why CUDA 12?** The video streaming client libraries are currently built against CUDA 12 runtime libraries. Running tests on CUDA 13 without the `--cuda 12` flag will result in test failures due to library incompatibilities.
+
 ## Building and Running Tests
 
 ### Run All Unit Tests
 
 ```bash
 # Run all unit tests
-./holohub test video_streaming --ctest-options="-R unit_tests -VV" --cuda 12
+./holohub test video_streaming --ctest-options="-R unit_tests -VV"
 ```
 
-**Note:** `./holohub test` automatically builds the operator with `-DBUILD_TESTING=ON`, so no separate build step is needed.
+**Note:** `./holohub test` automatically builds the operator with `-DBUILD_TESTING=ON`, so no separate build step is needed. Add `--cuda 12` if you're on a CUDA 13 system.
 
 ### Test Results
 
@@ -201,8 +215,14 @@ The unit tests are designed for CI/CD pipelines:
 
 Each test suite has detailed documentation:
 
-- **[Client Tests README](video_streaming_client/tests/README.md)** - VideoStreamingClientOp tests
-- **[Server Tests README](video_streaming_server/tests/README.md)** - Server operator tests
+- **[Client Tests README](video_streaming_client/tests/README.md)** - VideoStreamingClientOp C++ unit tests
+- **[Server Tests README](video_streaming_server/tests/README.md)** - Server operator C++ unit tests
+
+Python binding tests:
+
+- **[Python Tests Summary (PYTEST_SUMMARY.md)](./PYTEST_SUMMARY.md)** - Python binding tests overview
+- **[Client pytest README](video_streaming_client/python/tests/README.md)** - Client Python test details
+- **[Server pytest README](video_streaming_server/python/tests/README.md)** - Server Python test details
 
 Additional documentation:
 

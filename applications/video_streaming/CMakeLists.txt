@@ -19,6 +19,15 @@ if(APP_video_streaming)
   set(APP_video_streaming_server ON CACHE BOOL "Build the video_streaming_server application" FORCE)
 endif()
 
+# Enable operator flags before building applications
+# This ensures the operators are available when applications try to link
+if(APP_video_streaming_client)
+  set(OP_video_streaming_client ON CACHE BOOL "Build video_streaming_client operator" FORCE)
+endif()
+if(APP_video_streaming_server)
+  set(OP_video_streaming_server ON CACHE BOOL "Build video_streaming_server operator" FORCE)
+endif()
+
 # Build client and server applications
 add_holohub_application(video_streaming_client DEPENDS
                         OPERATORS video_streaming_client)

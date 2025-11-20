@@ -100,6 +100,15 @@ target_link_libraries(video_streaming_server
     ${Poco_LIBRARY}
 )
 
+# Set RPATH settings - prioritize system CUDA paths FIRST, then other libraries
+set_target_properties(video_streaming_server PROPERTIES
+    SKIP_BUILD_RPATH FALSE
+    BUILD_WITH_INSTALL_RPATH FALSE
+    BUILD_RPATH "/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu:${CMAKE_BINARY_DIR}/lib:${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}"
+    INSTALL_RPATH "/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu:$ORIGIN:$ORIGIN/lib:$ORIGIN/../lib:$ORIGIN/../../lib:${CMAKE_INSTALL_PREFIX}/lib:/opt/nvidia/holoscan/lib:${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}"
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+)
+
 # Create the main alias that applications will use
 add_library(holoscan::ops::video_streaming_server ALIAS video_streaming_server)
 
@@ -164,18 +173,9 @@ if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcrypto.so.3)
     )
 endif()
 
-# CUDA runtime libraries (if they exist in the server directory)
-if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcudart.so.12.0.107)
-    install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcudart.so.12.0.107
-        DESTINATION lib
-    )
-endif()
-
-if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcudart.so.12)
-    install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcudart.so.12
-        DESTINATION lib
-    )
-endif()
+# Note: Skipping bundled CUDA runtime libraries (libcudart.so.12.0.107 and libcudart.so.12)
+# to use system CUDA 12.8 instead for compatibility with Holoscan SDK 3.8.
+# The bundled CUDA 12.0.107 lacks cudaGraphConditionalHandleCreate required by HSDK 3.8.
 
 # Install symlinks if they exist
 if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libssl.so)
@@ -190,11 +190,7 @@ if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcrypto.so)
     )
 endif()
 
-if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcudart.so)
-    install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcudart.so
-        DESTINATION lib
-    )
-endif()
+# Note: Also skipping libcudart.so symlink - using system CUDA instead
 
 
 

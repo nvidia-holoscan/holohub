@@ -50,14 +50,12 @@ add_executable(video_streaming_server_demo
     video_streaming_server_demo.cpp
 )
 
-# Link libraries - include explicit SSL library paths from operator
+# Link libraries
 target_link_libraries(video_streaming_server_demo
     PRIVATE
     holoscan::core
     holoscan::ops::video_streaming_server
     CUDA::cudart
-    "${OPERATOR_SSL_DIR}/libssl.so.3"
-    "${OPERATOR_SSL_DIR}/libcrypto.so.3"
     pthread
     dl
     rt
@@ -80,16 +78,10 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.yaml")
     )
 endif()
 
-# Copy ALL required libraries from operator to application directory
+# Copy NGC streaming libraries from operator to application directory
+# Note: OpenSSL and CUDA are provided by system (via RPATH), not bundled
 add_custom_command(TARGET video_streaming_server_demo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:video_streaming_server_demo>/lib"
-    # Copy SSL libraries (newer versions)
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${OPERATOR_SSL_DIR}/libssl.so.3"
-        "$<TARGET_FILE_DIR:video_streaming_server_demo>/lib/libssl.so.3"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${OPERATOR_SSL_DIR}/libcrypto.so.3"
-        "$<TARGET_FILE_DIR:video_streaming_server_demo>/lib/libcrypto.so.3"
     # Copy Holoscan Streaming Stack libraries (required at runtime)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libStreamingServer.so"
@@ -106,14 +98,8 @@ add_custom_command(TARGET video_streaming_server_demo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${OPERATOR_SSL_DIR}/libPoco.so"
         "$<TARGET_FILE_DIR:video_streaming_server_demo>/lib/libPoco.so"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${OPERATOR_SSL_DIR}/libcudart.so.12"
-        "$<TARGET_FILE_DIR:video_streaming_server_demo>/lib/libcudart.so.12"
-    COMMENT "Bundling ALL required libraries from video_streaming_server operator"
+    COMMENT "Bundling NGC streaming libraries from video_streaming_server operator"
 )
-
-# Configure linking to use the bundled newer SSL libraries
-target_link_directories(video_streaming_server_demo PRIVATE "${OPERATOR_SSL_DIR}")
 
 # Copy wrapper script and make executable
 add_custom_command(TARGET video_streaming_server_demo POST_BUILD
@@ -124,12 +110,11 @@ add_custom_command(TARGET video_streaming_server_demo POST_BUILD
     COMMENT "Installing wrapper script with LD_LIBRARY_PATH"
 )
 
-# Set RPATH to prioritize bundled libraries over system libraries
-# BUILD_RPATH: Uses absolute path to NGC binaries in source tree (for development)
-# INSTALL_RPATH: Uses relative paths to find NGC binaries installed at <prefix>/lib
+# Set RPATH to prioritize system libraries for OpenSSL and CUDA
+# Priority: System OpenSSL 3.4 > Holoscan libs (UCX) > system CUDA > bundled NGC libs
 set_target_properties(video_streaming_server_demo PROPERTIES
-    BUILD_RPATH "$<TARGET_FILE_DIR:video_streaming_server_demo>/lib:$<TARGET_FILE_DIR:video_streaming_server_demo>:${OPERATOR_SSL_DIR}"
-    INSTALL_RPATH "$ORIGIN/lib:$ORIGIN:$ORIGIN/../../../lib"
+    BUILD_RPATH "/usr/local/ssl/lib64:/opt/nvidia/holoscan/lib:/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:$<TARGET_FILE_DIR:video_streaming_server_demo>/lib:$<TARGET_FILE_DIR:video_streaming_server_demo>:${OPERATOR_SSL_DIR}"
+    INSTALL_RPATH "/usr/local/ssl/lib64:/opt/nvidia/holoscan/lib:/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:$ORIGIN/lib:$ORIGIN:$ORIGIN/../../../lib"
     BUILD_WITH_INSTALL_RPATH FALSE
     INSTALL_RPATH_USE_LINK_PATH FALSE
     SKIP_BUILD_RPATH FALSE
