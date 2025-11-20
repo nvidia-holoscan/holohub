@@ -273,6 +273,10 @@
          <lastmod>2025-11-20</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/nvidia_video_codec/nvc_endoscopy_tool_tracking/</loc>
+         <lastmod>2025-11-20</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/object_detection_torch/</loc>
          <lastmod>2025-11-20</lastmod>
     </url>

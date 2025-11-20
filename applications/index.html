@@ -399,10 +399,11 @@
                 <div style="position: sticky; top: 80px; max-height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; padding-bottom: 1rem; will-change: transform;">
                     <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Applications</h4>
                     <nav class="sidebar-nav" data-page-type="applications" style="display: flex; flex-direction: column; gap: 0;">
-                        <a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('all'); return true;">All (93)</a>
+                        <a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('all'); return true;">All (94)</a>
                         <a href="#computer-vision-and-perception" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Computer Vision and Perception'); return true;">Computer Vision (31)</a>
                         <a href="#extended-reality" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Extended Reality'); return true;">Extended Reality (6)</a>
-                        <a href="#healthcare-ai" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Healthcare AI'); return true;">Healthcare AI (31)</a>
+                        <a href="#healthcare-ai" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Healthcare AI'); return true;">Healthcare AI (32)</a>
+                        <a href="#nvidia-video-codec" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('NVIDIA Video Codec'); return true;">NVIDIA Video Codec (4)</a>
                         <a href="#natural-language-and-conversational-ai" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Natural Language and Conversational AI'); return true;">NLP & Conversational AI (2)</a>
                         <a href="#networking-and-distributed-computing" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Networking and Distributed Computing'); return true;">Networking (9)</a>
                         <a href="#quantum-computing" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Quantum Computing'); return true;">Quantum Computing (1)</a>
@@ -411,7 +412,7 @@
                         <a href="#scheduler" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Scheduler'); return true;">Scheduler (1)</a>
                         <a href="#signal-processing" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Signal Processing'); return true;">Signal Processing (11)</a>
                         <a href="#streaming" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Streaming'); return true;">Streaming (11)</a>
-                        <a href="#video" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Video'); return true;">Video (49)</a>
+                        <a href="#video" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Video'); return true;">Video (50)</a>
                     </nav>
                 </div>
             </div>
@@ -430,6 +431,17 @@
                     </div>
                     
             
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box" data-recent="true">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/applications/nvidia_video_codec/nvc_endoscopy_tool_tracking';">
+                    <span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>
+                    <img src="/holohub/assets/images/application_default.png" alt="NVIDIA Video Codec: Endoscopy Tool Tracking" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">NVIDIA Video Codec: Endoscopy Tool Tracking</h3>
+                    <span style="display: inline-block; background-color: var(--md-code-bg-color); color: var(--md-code-fg-color); padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600; margin-bottom: 0.5rem;">Python, C++</span>
+                    <p class="feature-card-desc">This application demonstrates GPU-accelerated H.264 video decoding combined with LSTM-based AI inference for endoscop...</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:nvidia-video-codec" class="md-tag" style="display: none;">nvidia video codec</a> <a href="/holohub/tags/#tag:h.264" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">h.264</a> <a href="/holohub/tags/#tag:h.265" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">h.265</a> <a href="/holohub/tags/#tag:hevc" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">hevc</a> <a href="/holohub/tags/#tag:video" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">video</a> <a href="/holohub/tags/#tag:healthcare-ai" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">healthcare ai</a> <a href="/holohub/tags/#tag:surgical-ai" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">surgical ai</a> <a href="/holohub/tags/#tag:endoscopy" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">endoscopy</a> <a href="/holohub/tags/#tag:visualization" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">visualization</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
  <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box" data-recent="true">
                 <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/applications/video_streaming';">
                     <span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>
@@ -7716,6 +7728,8 @@
       
         
       
+        
+      
     
     
     
@@ -7855,14 +7869,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="nvidia_video_codec/nvc_decode/" class="md-nav__link ">
+            <a href="nvidia_video_codec/nvc_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    NVIDIA Video Codec: H.264 File Decoder
+    NVIDIA Video Codec: Endoscopy Tool Tracking
   
 
     
@@ -7879,7 +7893,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    NVIDIA Video Codec: H.264 File Decoder
+    NVIDIA Video Codec: Endoscopy Tool Tracking
   
 
           </label>
@@ -7923,6 +7937,74 @@
         
           
           <div class="md-nav__link md-nav__container">
+            <a href="nvidia_video_codec/nvc_decode/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NVIDIA Video Codec: H.264 File Decoder
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_38_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_38_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    NVIDIA Video Codec: H.264 File Decoder
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_38_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
             <a href="nvidia_video_codec/nvc_encode_writer/" class="md-nav__link ">
               
   
@@ -7942,8 +8024,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_38_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_38_3">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_38_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_38_4">
             <span class="md-nav__icon md-icon"></span>
             
   
