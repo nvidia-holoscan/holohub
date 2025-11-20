@@ -93,7 +93,7 @@ class HoloHubContainer:
     DEFAULT_DOCKER_BUILD_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS", "")
     # Additional Default run arguments for docker run command
     DEFAULT_DOCKER_RUN_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_RUN_ARGS", "")
-    REPO_NAME_FORMAT = os.environ.get("HOLOHUB_REPO_NAME_FORMAT", "{container_prefix}{project_name}")
+    REPO_NAME_FORMAT = os.environ.get("HOLOHUB_REPO_NAME_FORMAT", "{container_prefix}-{project_name}")
 
     @classmethod
     def default_base_image(cls, cuda_version: Optional[Union[str, int]] = None) -> str:
