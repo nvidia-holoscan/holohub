@@ -73,3 +73,14 @@ file(GENERATE
     OUTPUT "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/video_streaming_server/__init__.py"
     CONTENT "${INIT_PY_CONTENT}"
 )
+
+# Add Python binding tests if testing is enabled and Python bindings are built
+if(BUILD_TESTING AND HOLOHUB_BUILD_PYTHON)
+    include(add_python_tests)
+    add_python_tests(
+        INPUT "tests"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        PREFIX "video_streaming_server_pytest"
+        PYTEST_ARGS "-v"
+    )
+endif()

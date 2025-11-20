@@ -76,12 +76,11 @@ add_custom_command(TARGET video_streaming_client_demo_cpp POST_BUILD
     COMMENT "Copying config files"
 )
 
-# Set RPATH to prioritize bundled libraries over system libraries
-# BUILD_RPATH: Uses absolute path to NGC binaries in source tree (for development)
-# INSTALL_RPATH: Uses relative paths to find NGC binaries installed at <prefix>/lib
+# Set RPATH to prioritize system libraries for OpenSSL and CUDA
+# Priority: System OpenSSL 3.4 > Holoscan libs (UCX) > system CUDA > bundled NGC libs
 set_target_properties(video_streaming_client_demo_cpp PROPERTIES
-    BUILD_RPATH "$<TARGET_FILE_DIR:video_streaming_client_demo_cpp>/lib:$<TARGET_FILE_DIR:video_streaming_client_demo_cpp>:${OPERATOR_CLIENT_DIR}"
-    INSTALL_RPATH "$ORIGIN/lib:$ORIGIN:$ORIGIN/../../../lib"
+    BUILD_RPATH "/usr/local/ssl/lib64:/opt/nvidia/holoscan/lib:/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:$<TARGET_FILE_DIR:video_streaming_client_demo_cpp>/lib:$<TARGET_FILE_DIR:video_streaming_client_demo_cpp>:${OPERATOR_CLIENT_DIR}"
+    INSTALL_RPATH "/usr/local/ssl/lib64:/opt/nvidia/holoscan/lib:/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:$ORIGIN/lib:$ORIGIN:$ORIGIN/../../../lib"
     BUILD_WITH_INSTALL_RPATH FALSE
     INSTALL_RPATH_USE_LINK_PATH FALSE
     SKIP_BUILD_RPATH FALSE
