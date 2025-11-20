@@ -168,33 +168,25 @@ Examples:
 
 #### **Mode vs. CLI Arguments**
 
-**Implicit Default Mode Overrides:**
-When a mode is auto-selected (no mode name specified), CLI parameters are allowed and will override mode settings with warnings:
+**CLI Parameters Always Override Mode Settings:**
+CLI parameters can be used in addition to modes. When provided, CLI parameters will override the corresponding mode settings. The CLI shows warnings to help you understand what's being overridden:
 
 ```bash
-# These work - mode auto-selected, CLI parameters override with warnings
-./holohub run holochat --run-args="--debug"
-./holohub run myapp --build-with="ops" --docker-opts="--net=host"
+# CLI parameters override mode settings (works with both implicit and explicit modes)
+./holohub run holochat --run-args="--debug"            # appends to default_mode.run.command
+./holohub run myapp --build-with="ops"                 # overrides default_mode.build.depends
+./holohub build myapp standard --build-with="ops"      # overrides standard.build.depends
+./holohub run holochat cloud --run-args="--test=case"  # appends to cloud.run.command
 ```
 
-**Explicit Mode Configuration:**
-When a mode is explicitly specified, the CLI ensures consistent configuration by using the mode's predefined settings.
-CLI parameters override mode settings is not supported:
+**Mode Priority Rules:**
+When CLI parameters are **not** provided, mode settings are used:
+- If mode defines `run.docker_run_args` and no `--docker-opts` → Mode's docker options are used
+- If mode defines `build.depends` and no `--build-with` → Mode's dependencies are used
+- If mode defines `build.docker_build_args` and no `--build-args` → Mode's build args are used
+- If mode defines `build.cmake_options` and no `--configure-args` → Mode's cmake options are used
 
-```bash
-# with the mode specified, CLI parameters are not supported
-./holohub build myapp standard --build-with="ops"      # not supported mode + CLI args if 'standard' mode has 'build.depends'
-./holohub run holochat cloud --run-args="--test=case"  # not supported mode + CLI args
-```
-
-In this case, please either (1) modify the mode settings in `metadata.json` to match the CLI parameters, or (2) use the default mode implicitly with additional CLI parameters (e.g. `./holohub run myapp --language=cpp --local --build-type=debug`).
-
-**Mode Priority Rules (Explicit Modes Only):**
-When using explicit modes, the following mode settings take priority over CLI parameters:
-- If mode defines `run.docker_run_args` → Mode's docker options are used instead of `--docker-opts`
-- If mode defines `build.depends` → Mode's dependencies are used instead of `--build-with`
-- If mode defines `build.docker_build_args` → Mode's build args are used instead of `--build-args`
-- If mode defines `build.cmake_options` → Mode's cmake options are used instead of `--configure-args`
+When CLI parameters **are** provided, they always override mode settings.
 
 #### **For Application Developers**
 Applications can define modes in their `metadata.json`. Here's the complete field reference:
@@ -228,6 +220,10 @@ Each mode is defined as a named object under the `modes` key:
 **Optional Fields:**
 - **`requirements`** *(array of strings)*: List of dependency IDs required for this mode
 - **`build`** *(object)*: Build configuration (see build configuration fields below)
+- **`env`** *(object)*: Environment variables to set for both build and run operations
+  - Key-value pairs of environment variable names and values
+  - These environment variables are available during both the build phase and runtime
+  - Example: `{"CUDA_VISIBLE_DEVICES": "0", "BUILD_ENV": "production"}`
 
 ##### **Build Configuration Fields (`build` object):**
 - **`depends`** *(array of strings)*: List of operators/dependencies to build with this mode
@@ -235,6 +231,10 @@ Each mode is defined as a named object under the `modes` key:
   - Can be a single string: `"--build-arg CUSTOM=value"`
   - Or an array: `["--build-arg", "CUSTOM=value"]`
 - **`cmake_options`** *(array of strings)*: Additional CMake configure arguments to pass to the local build step
+- **`env`** *(object)*: Environment variables to set **only for build operations** (local build and install)
+  - Key-value pairs of environment variable names and values
+  - Only applied during build, not during application execution
+  - **Note**: For environment variables needed during both build and run, use the top-level `env` field instead
 
 ##### **Run Command Fields (`run` object):**
 - **`command`** *(string)*: Complete command to execute including all arguments
@@ -244,6 +244,11 @@ Each mode is defined as a named object under the `modes` key:
   - Or an array: `["--privileged", "--net=host"]`
   - **Note**: These arguments apply to both the container that builds your application and the container that runs it
   - **Common use cases**: GPU access (`--gpus=all`), device access (`--device=/dev/video0`), privileged operations (`--privileged`)
+- **`env`** *(object)*: Environment variables to set **only for runtime** (local runs only)
+  - Key-value pairs of environment variable names and values
+  - Only applied during application execution, not during build
+  - Example: `{"LOG_LEVEL": "debug", "RUNTIME_CONFIG": "optimized"}`
+  - **Note**: For environment variables needed during both build and run, use the top-level `env` field instead
 
 ##### **Complete Example**
 
@@ -265,6 +270,10 @@ Each mode is defined as a named object under the `modes` key:
       "production": {
         "description": "High-performance mode with GPU acceleration",
         "requirements": ["gpu", "model", "tensorrt"],
+        "env": {
+          "TEST_VAR": "0",
+          "BUILD_ENV": "production"
+        },
         "build": {
           "depends": ["tensorrt_backend", "gpu_ops"],
           "docker_build_args": ["--build-arg", "TENSORRT_VERSION=8.6", "--network=host"],
@@ -273,7 +282,11 @@ Each mode is defined as a named object under the `modes` key:
         "run": {
           "command": "python3 <holohub_app_source>/app.py --backend tensorrt --optimization-level 3",
           "workdir": "holohub_bin",
-          "docker_run_args": ["--gpus=all", "--shm-size=1g"]
+          "docker_run_args": ["--gpus=all", "--shm-size=1g"],
+          "env": {
+            "LOG_LEVEL": "info",
+            "RUNTIME_OPTIMIZATION": "max"
+          }
         }
       },
 
@@ -342,8 +355,13 @@ For cases where build and run containers need different Docker configurations, y
 Both modes automatically share the same Docker image name (`holohub:myapp`), so the run mode can use the image built by the build mode.
 
 ##### **Key Points for Mode Development**
-- **`default_mode`** is required only if your project defines two or more modes; with a single mode, it is selected automatically. The default mode is designed to allow additional CLI parameter overrides, so it is best to keep it general to maximize flexibility.
+- **`default_mode`** is required only if your project defines two or more modes; with a single mode, it is selected automatically. The default mode is used when no mode is explicitly specified on the command line.
 - **Mode names** must match pattern `^[a-zA-Z_][a-zA-Z0-9_]*$` (alphanumeric + underscore, can't start with number)
+- **Environment variables** can be specified at two levels:
+  - Top-level `env`: Environment variables for **both build and run** operations
+    - Can affect CLI behavior (e.g., `HOLOHUB_BUILD_LOCAL` to force local builds)
+  - `run.env`: Environment variables **only for runtime** (local runs only)
+  - When both are specified, they are merged with `run.env` taking precedence
 - **Docker arguments** can be specified in two places for different purposes:
   - `build.docker_build_args`: Docker **build** arguments for container image building (equivalent to CLI `--build-args`)
   - `run.docker_run_args`: Docker **run** arguments for both build and application containers (equivalent to CLI `--docker-opts`)
@@ -351,8 +369,9 @@ Both modes automatically share the same Docker image name (`holohub:myapp`), so 
   - if `no-docker-build` is specified, `build.docker_build_args` is ignored
 - **Path placeholders** like `<holohub_app_source>`, `<holohub_data_dir>` are supported in commands
 - **CLI parameter behavior**:
-  - **Implicit default modes**: CLI parameters override mode settings (with warnings)
-  - **Explicit modes**: CLI parameters are blocked to maintain mode integrity
+  - CLI parameters always override mode settings when provided
+  - This flexible approach allows users to customize mode behavior without modifying `metadata.json`
+  - When CLI parameters are not provided, mode settings are used as defaults, this is preferred to ensure consistency and reproducibility.
 - **Requirements** reference dependency IDs defined elsewhere in the metadata
 - **Modes provide complete control** over both build and runtime behavior for different deployment scenarios
 
@@ -381,6 +400,7 @@ The CLI supports the following environment variables for customization:
 **Build and Execution Control:**
 - **`HOLOHUB_BUILD_LOCAL`**: Forces local mode (equivalent to `--local`), skips the container build steps and runs on the host directly.
 - **`HOLOHUB_ALWAYS_BUILD`**: Set to `false` to skip builds with `--no-local-build` and `--no-docker-build`.
+- **`HOLOHUB_ENABLE_SCCACHE`**: Defaults to `false`. Set to `true` to enable rapids-sccache for the build. You can configure sccache with `SCCACHE_*` environment variables per the [sccache documentation](https://github.com/rapidsai/sccache/tree/rapids/docs).
 
 **Paths and Directories:**
 - **`HOLOHUB_ROOT`**: HoloHub repository root directory, used to resolve relative paths for components, build artifacts, data, and other resources.

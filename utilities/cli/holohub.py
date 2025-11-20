@@ -589,15 +589,6 @@ class HoloHubCLI:
             )
         return requested_mode, modes[requested_mode]
 
-    def _is_implicit_default(self, project_data: dict, user_requested_mode: Optional[str]) -> bool:
-        """
-        Check if we're using a default mode without explicitly requesting it.
-        This enables the implicit default mode behavior where CLI args are allowed.
-        """
-        if user_requested_mode is not None:
-            return False  # Mode was explicitly requested by user
-        return bool(project_data.get("metadata", {}).get("modes", {}))  # has default mode
-
     def validate_mode(
         self,
         args: argparse.Namespace,
@@ -606,52 +597,44 @@ class HoloHubCLI:
         project_data: dict,
         requested_mode: Optional[str],
     ) -> None:
-        """Validate that when mode is specified, no conflicting CLI parameters are provided"""
-        if not mode_name or not mode_config:
-            return  # No mode specified, allow CLI parameters
+        """Validate mode configuration"""
+        if not mode_config:
+            return  # No mode configuration to validate
 
-        # Check if this is an implicit default mode selection - if so, allow all CLI parameter overrides
-        if self._is_implicit_default(project_data, requested_mode):
-            # For implicit default modes, allow all CLI parameter overrides
-            # This enables the use case: ./holohub run app --run-args="..." --build-with="..." etc.
-            return
+        # Define valid keys for mode configuration
+        valid_top_level_keys = ["description", "requirements", "build", "run", "env"]
+        valid_build_keys = ["depends", "docker_build_args", "cmake_options", "env"]
+        valid_run_keys = ["command", "workdir", "docker_run_args", "env"]
 
-        conflicting_params = []
+        # Check top-level keys
+        for key in mode_config.keys():
+            if key not in valid_top_level_keys:
+                suggestions = self._suggest_command(key, valid_top_level_keys)
+                msg = f"Unknown key '{key}' in mode '{mode_name}'"
+                if suggestions:
+                    msg += f". Did you mean '{suggestions[0]}'?"
+                holohub_cli_util.warn(msg)
 
-        # Check build-related parameters
-        if "build" in mode_config:
-            build_config = mode_config["build"]
-            if "depends" in build_config and getattr(args, "with_operators", None):
-                conflicting_params.append("--build-with")
-            if "docker_build_args" in build_config and getattr(args, "build_args", None):
-                conflicting_params.append("--build-args")
-            if "cmake_options" in build_config and getattr(args, "configure_args", None):
-                conflicting_params.append("--configure-args")
-
-        # Check run-related parameters
-        if "run" in mode_config:
-            run_config = mode_config["run"]
-            if "docker_run_args" in run_config and getattr(args, "docker_opts", None):
-                conflicting_params.append("--docker-opts")
-            if "command" in run_config and getattr(args, "run_args", None):
-                conflicting_params.append("--run-args")
-
-        if conflicting_params:
-            params_str = ", ".join(conflicting_params)
-            holohub_cli_util.fatal(
-                f"Cannot specify CLI parameters {params_str} when using explicit mode '{mode_name}'. "
-                f"All configuration must be provided through the mode definition.\n"
-                f"See {os.environ.get('HOLOHUB_CLI_DOCS_URL', 'https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/README.md')}"
-            )
+        # Check section keys (build and run)
+        sections_to_validate = {"build": valid_build_keys, "run": valid_run_keys}
+        for section_name, valid_keys in sections_to_validate.items():
+            if section_name in mode_config and isinstance(mode_config[section_name], dict):
+                for key in mode_config[section_name].keys():
+                    if key not in valid_keys:
+                        suggestions = self._suggest_command(key, valid_keys)
+                        msg = f"Unknown key '{section_name}.{key}' in mode '{mode_name}'"
+                        if suggestions:
+                            msg += f". Did you mean '{suggestions[0]}'?"
+                        holohub_cli_util.warn(msg)
 
     def get_effective_build_config(
         self,
         args: argparse.Namespace,
         mode_config: dict,
-        project_data: dict = None,
-        requested_mode: Optional[str] = None,
     ) -> dict:
-        """Get effective build configuration combining CLI args and mode config without mutation"""
+        """
+        Get effective build configuration combining CLI args and mode config.
+        """
         config = {
             "with_operators": getattr(args, "with_operators", None),
             "docker_opts": getattr(args, "docker_opts", ""),
@@ -661,18 +644,12 @@ class HoloHubCLI:
         if not mode_config:
             return config
 
-        # Check if this is an implicit default mode - if so, CLI args take precedence
-        is_implicit_default = project_data and self._is_implicit_default(
-            project_data, requested_mode
-        )
-
-        # Apply build configuration (mode values override CLI values unless it's an implicit default)
+        # Apply build configuration - CLI parameters always override mode settings when provided
         if "build" in mode_config:
             build_config = mode_config["build"]
 
-            # For depends/with_operators: use CLI if provided and implicit default, otherwise use mode
             if "depends" in build_config:
-                if is_implicit_default and config["with_operators"]:
+                if config["with_operators"]:
                     mode_deps = [dep.strip() for dep in build_config["depends"] if dep.strip()]
                     msg = f"CLI args --build-with='{config['with_operators']}' "
                     msg += f"overrides mode depends: {', '.join(mode_deps)}"
@@ -681,9 +658,8 @@ class HoloHubCLI:
                     mode_deps = [dep.strip() for dep in build_config["depends"] if dep.strip()]
                     config["with_operators"] = ";".join(mode_deps) if mode_deps else ""
 
-            # For docker_build_args: use CLI if provided and implicit default, otherwise use mode
             if "docker_build_args" in build_config:
-                if is_implicit_default and config["build_args"]:
+                if config["build_args"]:
                     mode_args = holohub_cli_util.normalize_args_str(
                         build_config["docker_build_args"]
                     )
@@ -695,9 +671,8 @@ class HoloHubCLI:
                         build_config["docker_build_args"]
                     )
 
-            # For cmake_options: use CLI if provided and implicit default, otherwise use mode
             if "cmake_options" in build_config:
-                if is_implicit_default and config["configure_args"]:
+                if config["configure_args"]:
                     mode_opts = (
                         " ".join(build_config["cmake_options"])
                         if isinstance(build_config["cmake_options"], list)
@@ -714,10 +689,8 @@ class HoloHubCLI:
                 else:
                     config["configure_args"] = build_config["cmake_options"]
 
-        # Apply run.docker_run_args for build container (Docker run arguments)
         if "run" in mode_config and "docker_run_args" in mode_config["run"]:
-            # For docker_opts: use CLI if provided and implicit default, otherwise use mode
-            if is_implicit_default and getattr(args, "docker_opts", ""):
+            if getattr(args, "docker_opts", ""):
                 mode_opts = holohub_cli_util.normalize_args_str(
                     mode_config["run"]["docker_run_args"]
                 )
@@ -735,8 +708,6 @@ class HoloHubCLI:
         self,
         args: argparse.Namespace,
         mode_config: dict,
-        project_data: dict = None,
-        requested_mode: Optional[str] = None,
     ) -> dict:
         """Get effective run configuration combining CLI args and mode config without mutation"""
         config = {
@@ -747,27 +718,20 @@ class HoloHubCLI:
         if mode_config and "run" in mode_config:
             run_config = mode_config["run"]
 
-            # Check if this is an implicit default mode - if so, CLI args take precedence for docker_opts
-            is_implicit_default = project_data and self._is_implicit_default(
-                project_data, requested_mode
-            )
-
             if "command" in run_config:
                 config["command"] = run_config["command"]
             if "workdir" in run_config:
                 config["workdir"] = run_config["workdir"]
 
-            # For run_args: show warning if CLI overrides mode command in implicit default mode
-            if "command" in run_config and is_implicit_default and getattr(args, "run_args", ""):
+            if "command" in run_config and getattr(args, "run_args", ""):
                 msg = (
                     f"CLI args --run-args='{getattr(args, 'run_args', '')}' "
                     f"will be appended to mode command"
                 )
                 holohub_cli_util.warn(msg)
 
-            # For docker_run_args: use CLI if provided and implicit default, otherwise use mode
             if "docker_run_args" in run_config:
-                if is_implicit_default and getattr(args, "docker_opts", ""):
+                if getattr(args, "docker_opts", ""):
                     mode_opts = holohub_cli_util.normalize_args_str(run_config["docker_run_args"])
                     msg = (
                         f"CLI args --docker-opts='{getattr(args, 'docker_opts', '')}' "
@@ -972,10 +936,19 @@ class HoloHubCLI:
         parallel: Optional[str] = None,
         benchmark: bool = False,
         configure_args: Optional[list[str]] = None,
+        env: Optional[dict] = None,
     ) -> tuple[Path, dict]:
         """Helper method to build a project locally"""
         project_data = self.find_project(project_name=project_name, language=language)
         project_type = project_data.get("project_type", "application")
+
+        # Prepare environment with extra env vars
+        build_env = os.environ.copy()
+        if env:
+            build_env.update(env)
+            if dryrun:
+                for key, value in env.items():
+                    print(holohub_cli_util.format_cmd(f"export {key}={value}", is_dryrun=True))
 
         # Handle benchmark patching before building
         app_source_path = None
@@ -1037,10 +1010,44 @@ class HoloHubCLI:
             cmake_args.append("-DHOLOHUB_BUILD_PYTHON=OFF")
             cmake_args.append("-DHOLOHUB_BUILD_CPP=ON")
 
+        # Configure sccache
+        sccache_bin = shutil.which("sccache")
+        enable_sccache_val, enable_sccache = holohub_cli_util.get_env_bool(
+            "HOLOHUB_ENABLE_SCCACHE", default=False
+        )
+        holohub_cli_util.info(f"HOLOHUB_ENABLE_SCCACHE={enable_sccache_val}")
+        if enable_sccache:
+            if not sccache_bin:
+                holohub_cli_util.fatal(
+                    "HOLOHUB_ENABLE_SCCACHE is enabled but 'sccache' was not found in PATH. "
+                    "Install it (e.g., `./holohub setup`) or disable sccache."
+                )
+            # Set CMake compiler launchers with -D
+            cmake_args.extend(
+                [
+                    f"-DCMAKE_C_COMPILER_LAUNCHER={sccache_bin}",
+                    f"-DCMAKE_CXX_COMPILER_LAUNCHER={sccache_bin}",
+                    f"-DCMAKE_CUDA_COMPILER_LAUNCHER={sccache_bin}",
+                ]
+            )
+            # Set default SCCACHE properties if not set
+            build_env.setdefault("SCCACHE_DIR", str(Path.home() / ".cache" / "sccache"))
+            build_env.setdefault("SCCACHE_CACHE_SIZE", "20G")
+            # Print SCCACHE environment variables
+            holohub_cli_util.info(f"Using sccache: {sccache_bin}")
+            for key, value in build_env.items():
+                if key.startswith("SCCACHE_"):
+                    holohub_cli_util.info(f"{key}={value}")
+        elif sccache_bin:
+            holohub_cli_util.warn(
+                "Detected 'sccache' in PATH but HOLOHUB_ENABLE_SCCACHE is disabled. "
+                "Skipping sccache."
+            )
+
         if configure_args:
             cmake_args.extend(configure_args)
 
-        holohub_cli_util.run_command(cmake_args, dry_run=dryrun)
+        holohub_cli_util.run_command(cmake_args, dry_run=dryrun, env=build_env)
 
         # Build the project with optional parallel jobs
         build_cmd = ["cmake", "--build", str(build_dir), "--config", build_type]
@@ -1051,7 +1058,18 @@ class HoloHubCLI:
             build_njobs = os.environ.get("CMAKE_BUILD_PARALLEL_LEVEL", str(os.cpu_count()))
         build_cmd.extend(["-j", build_njobs])
 
-        holohub_cli_util.run_command(build_cmd, dry_run=dryrun)
+        holohub_cli_util.run_command(build_cmd, dry_run=dryrun, env=build_env)
+
+        # Print sccache stats
+        if enable_sccache:
+            stats_file = build_dir / "sccache-stats.txt"
+            with open(stats_file, "w") as f:
+                holohub_cli_util.run_command(
+                    ["sccache", "--show-stats"],
+                    dry_run=dryrun,
+                    env=build_env,
+                    stdout=f if not dryrun else None,
+                )
 
         # If this is a package, run cpack
         if project_type == "package":
@@ -1061,6 +1079,7 @@ class HoloHubCLI:
                     holohub_cli_util.run_command(
                         ["cpack", "--config", str(cpack_config), "-G", pkg_generator],
                         dry_run=dryrun,
+                        env=build_env,
                     )
 
         # Handle benchmark restoration after building
@@ -1081,23 +1100,29 @@ class HoloHubCLI:
 
     def handle_build(self, args: argparse.Namespace) -> None:
         """Handle build command"""
-        skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
-
         # Handle mode-specific configuration
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
 
+        if mode_config and mode_config.get("env"):
+            os.environ.update(mode_config["env"])
+
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
 
+        skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
+
         # Apply mode-specific build configuration
-        build_args = self.get_effective_build_config(
-            args, mode_config, project_data, getattr(args, "mode", None)
-        )
+        build_args = self.get_effective_build_config(args, mode_config)
 
         if mode_config:
             print(f"Building {args.project} in '{mode_name}' mode")
 
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
+            build_env = None
+            if mode_config:
+                build_cfg = mode_config.get("build", {})
+                if isinstance(build_cfg, dict) and build_cfg.get("env"):
+                    build_env = dict(build_cfg["env"])
             self.build_project_locally(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
@@ -1108,6 +1133,7 @@ class HoloHubCLI:
                 parallel=getattr(args, "parallel", None),
                 benchmark=getattr(args, "benchmark", False),
                 configure_args=build_args.get("configure_args"),
+                env=build_env,
             )
         else:
             # Build in container
@@ -1180,24 +1206,23 @@ class HoloHubCLI:
 
     def handle_run(self, args: argparse.Namespace) -> None:
         """Handle run command"""
-        skip_docker_build, skip_local_build = holohub_cli_util.check_skip_builds(args)
-        is_local_mode = args.local or os.environ.get("HOLOHUB_BUILD_LOCAL")
-
         # Handle mode-specific configuration
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
 
+        if mode_config and mode_config.get("env"):
+            os.environ.update(mode_config["env"])
+
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
 
+        skip_docker_build, skip_local_build = holohub_cli_util.check_skip_builds(args)
+        is_local_mode = args.local or os.environ.get("HOLOHUB_BUILD_LOCAL")
+
         # Apply mode-specific build configuration for build process
-        build_args = self.get_effective_build_config(
-            args, mode_config, project_data, getattr(args, "mode", None)
-        )
+        build_args = self.get_effective_build_config(args, mode_config)
 
         # Apply mode-specific run configuration
-        run_args = self.get_effective_run_config(
-            args, mode_config, project_data, getattr(args, "mode", None)
-        )
+        run_args = self.get_effective_run_config(args, mode_config)
 
         if mode_config:
             print(f"Running {args.project} in '{mode_name}' mode")
@@ -1217,6 +1242,12 @@ class HoloHubCLI:
                         f"  {self.script_name} build {args.project}"
                     )
             else:
+                build_env = None
+                if mode_config:
+                    build_cfg = mode_config.get("build", {})
+                    if isinstance(build_cfg, dict) and build_cfg.get("env"):
+                        build_env = dict(build_cfg["env"])
+
                 build_dir, project_data = self.build_project_locally(
                     project_name=args.project,
                     language=args.language if hasattr(args, "language") else None,
@@ -1226,6 +1257,7 @@ class HoloHubCLI:
                     pkg_generator=getattr(args, "pkg_generator", "DEB"),
                     parallel=getattr(args, "parallel", None),
                     configure_args=build_args.get("configure_args"),
+                    env=build_env,
                 )
 
             language = holohub_cli_util.normalize_language(
@@ -1297,8 +1329,21 @@ class HoloHubCLI:
                 "HOLOSCAN_INPUT_PATH", str(HoloHubCLI.DEFAULT_DATA_DIR)
             )
 
-            if run_config.get("env", None) is not None:
-                env.update(run_config["env"])
+            # Apply environment variables from mode and run config (run.env takes precedence)
+            env_sources = []
+            if mode_config and mode_config.get("env"):
+                env_sources.append((mode_config["env"], "mode.env"))
+            if run_config.get("env"):
+                env_sources.append((run_config["env"], "run.env"))
+            for env_dict, source_name in env_sources:
+                env.update(env_dict)
+                if args.verbose or args.dryrun:
+                    for key, value in env_dict.items():
+                        print(
+                            holohub_cli_util.format_cmd(
+                                f"export {key}={value} (from {source_name})", is_dryrun=args.dryrun
+                            )
+                        )
 
             # Print environment setup
             if args.verbose or args.dryrun:
@@ -1798,10 +1843,11 @@ class HoloHubCLI:
                 dry_run=args.dryrun,
             )
 
+            holohub_cli_util.setup_cuda_dependencies(dry_run=args.dryrun)
             holohub_cli_util.setup_cmake(dry_run=args.dryrun)
             holohub_cli_util.setup_python_dev(dry_run=args.dryrun)
             holohub_cli_util.setup_ngc_cli(dry_run=args.dryrun)
-            holohub_cli_util.setup_cuda_dependencies(dry_run=args.dryrun)
+            holohub_cli_util.setup_sccache(dry_run=args.dryrun)
 
             source = f"{HoloHubCLI.HOLOHUB_ROOT}/utilities/holohub_autocomplete"
             dest_folder = "/etc/bash_completion.d"
@@ -1841,21 +1887,28 @@ class HoloHubCLI:
 
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""
-        skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
-
         # Handle mode-specific configuration (if project has modes)
         project_data = self.find_project(args.project, language=getattr(args, "language", None))
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
+
+        if mode_config and mode_config.get("env"):
+            os.environ.update(mode_config["env"])
+
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
-        build_args = self.get_effective_build_config(
-            args, mode_config, project_data, getattr(args, "mode", None)
-        )
+        skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
+        build_args = self.get_effective_build_config(args, mode_config)
 
         if mode_config:
             print(f"Installing {args.project} in '{mode_name}' mode")
 
         if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
             # Build and install locally
+            mode_env = None
+            if mode_config:
+                build_cfg = mode_config.get("build", {})
+                if isinstance(build_cfg, dict) and build_cfg.get("env"):
+                    mode_env = dict(build_cfg["env"])
+
             build_dir, project_data = self.build_project_locally(
                 project_name=args.project,
                 language=getattr(args, "language", None),
@@ -1864,10 +1917,14 @@ class HoloHubCLI:
                 dryrun=args.dryrun,
                 parallel=getattr(args, "parallel", None),
                 configure_args=build_args.get("configure_args"),
+                env=mode_env,
             )
-            # Install the project
+            # Install the project (use same env as build)
+            install_env = os.environ.copy() if mode_env else None
+            if mode_env:
+                install_env.update(mode_env)
             holohub_cli_util.run_command(
-                ["cmake", "--install", str(build_dir)], dry_run=args.dryrun
+                ["cmake", "--install", str(build_dir)], dry_run=args.dryrun, env=install_env
             )
             if not args.dryrun:
                 print(f"{Color.green('Successfully installed')} {args.project}")
@@ -2127,15 +2184,14 @@ class HoloHubCLI:
             f"\nDirectory: {project_dir}\n\n{msg_next}",
         )
 
-    def _suggest_command(self, invalid_command: str) -> list[str]:
-        """Suggest similar command names using existing levenshtein_distance utility"""
-        available_commands = list(self.subparsers.keys())
+    def _suggest_command(self, invalid_value: str, valid_options: list[str]) -> list[str]:
+        """Suggest similar values using Levenshtein distance."""
         distances = [
-            (cmd, holohub_cli_util.levenshtein_distance(invalid_command, cmd))
-            for cmd in available_commands
+            (option, holohub_cli_util.levenshtein_distance(invalid_value, option))
+            for option in valid_options
         ]
         distances.sort(key=lambda x: x[1])
-        return [cmd for cmd, dist in distances[:2] if dist <= 2]  # Show up to 2 matches
+        return [option for option, dist in distances[:2] if dist <= 2]  # Show up to 2 matches
 
     def _check_for_dash_prefix_issue(self, cmd_args: List[str]) -> Optional[str]:
         """
@@ -2183,7 +2239,9 @@ class HoloHubCLI:
                         print(f"  {self.script_name} {potential_command} --help\n", file=sys.stderr)
                         sys.exit(e.code if e.code is not None else 1)
                     else:  # Invalid subcommand - suggest similar ones
-                        suggestions = self._suggest_command(potential_command)
+                        suggestions = self._suggest_command(
+                            potential_command, list(self.subparsers.keys())
+                        )
                         if suggestions:
                             print("\n💡 Did you mean:", file=sys.stderr)
                             for cmd in suggestions:
