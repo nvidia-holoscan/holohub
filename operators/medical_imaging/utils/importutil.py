@@ -264,7 +264,7 @@ def optional_import(
             _default_msg = (
                 f"{msg}."
                 + "\n\nFor details about installing the optional dependencies, please visit:"
-                + "\n    https://docs.monai.io/en/latest/installation.html#installing-the-recommended-dependencies"
+                + "\n    https://monai.readthedocs.io/en/stable/installation.html#installing-the-recommended-dependencies"
             )
             if tb is None:
                 self._exception = OptionalImportError(_default_msg)
