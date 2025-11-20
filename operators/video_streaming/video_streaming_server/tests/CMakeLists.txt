@@ -70,8 +70,14 @@ set_tests_properties(video_streaming_server_ops_unit_tests PROPERTIES
   LABELS "unit;video_streaming_server"
 )
 
-# Set output directory
+# Set output directory and RPATH
+# Priority: System OpenSSL 3.4 > Holoscan libs (UCX) > system CUDA > build dirs > system libs
 set_target_properties(test_video_streaming_server_ops PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/operators/video_streaming/video_streaming_server/tests"
+  SKIP_BUILD_RPATH FALSE
+  BUILD_WITH_INSTALL_RPATH FALSE
+  BUILD_RPATH "/usr/local/ssl/lib64:/opt/nvidia/holoscan/lib:/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:${CMAKE_BINARY_DIR}/lib:${CMAKE_BINARY_DIR}/operators/video_streaming/video_streaming_server:/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu"
+  INSTALL_RPATH "/usr/local/ssl/lib64:/opt/nvidia/holoscan/lib:/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib:/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu"
+  INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 

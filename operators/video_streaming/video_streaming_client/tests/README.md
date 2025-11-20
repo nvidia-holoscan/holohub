@@ -40,12 +40,28 @@ The unit tests verify the correct behavior of the VideoStreamingClientOp operato
    - `OperatorCleanup`: Proper destruction
    - `MultipleInstances`: Multiple operators simultaneously
 
+## ⚠️ CUDA Version Compatibility
+
+> **Important:** These tests require **CUDA 12**. If you're using CUDA 13, you must specify `--cuda 12` when building and running tests.
+
+**For CUDA 13 systems:**
+```bash
+# Building
+./holohub build video_streaming --cuda 12
+
+# Running tests
+./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_client_op_unit_tests -VV"
+```
+
+The video streaming client operator depends on libraries built against CUDA 12 runtime. Using CUDA 13 without the `--cuda 12` flag will cause test failures.
+
 ## Prerequisites
 
 - CMake 3.20 or higher
 - Holoscan SDK 3.5.0 or higher
 - Google Test (automatically found by CMake)
 - C++17 compiler
+- **CUDA 12** (or use `--cuda 12` flag on CUDA 13 systems)
 
 ## Building and Running Tests
 
@@ -54,7 +70,7 @@ The unit tests verify the correct behavior of the VideoStreamingClientOp operato
 ```bash
 # From holohub root directory
 # ./holohub test automatically builds with -DBUILD_TESTING=ON
-./holohub test video_streaming --ctest-options="-R video_streaming_client_op_unit_tests -VV" --cuda 12
+./holohub test video_streaming --ctest-options="-R video_streaming_client_op_unit_tests -VV"
 ```
 
 ## Test Output Example
@@ -120,8 +136,10 @@ TEST_F(VideoStreamingClientOpTest, TestName) {
 
 ⚠️ **Integration Tests**: For end-to-end testing with actual streaming, see the integration tests in `applications/video_streaming/TESTING.md`.
 
+
 ## See Also
 
 - **[Video Streaming Client Operator README](../README.md)** - Operator documentation
 - **[Integration Tests](../../../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../../../applications/video_streaming/README.md)** - Application overview
+
