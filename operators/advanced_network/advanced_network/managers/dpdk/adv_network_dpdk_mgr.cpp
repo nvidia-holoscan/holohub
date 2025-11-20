@@ -1311,8 +1311,8 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
     HOLOSCAN_LOG_INFO("Adding IPv4 length match for {}", cfg.match_.ipv4_len_);
   }
 
-  char str_ip[INET_ADDRSTRLEN];
   if (cfg.match_.ipv4_src_ != INADDR_ANY) {
+    char str_ip[INET_ADDRSTRLEN];
     ip_spec.hdr.src_addr = cfg.match_.ipv4_src_;
     ip_mask.hdr.src_addr = 0xffffffff;
     has_ip_match = true;
@@ -1321,6 +1321,7 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   }
 
   if (cfg.match_.ipv4_dst_ != INADDR_ANY) {
+    char str_ip[INET_ADDRSTRLEN];
     ip_spec.hdr.dst_addr = cfg.match_.ipv4_dst_;
     ip_mask.hdr.dst_addr = 0xffffffff;
     has_ip_match = true;
