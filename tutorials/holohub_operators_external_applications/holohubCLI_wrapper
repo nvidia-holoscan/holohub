@@ -17,12 +17,11 @@
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_URL="${CLI_REPO_URL:-https://github.com/nvidia-holoscan/holohub.git}"
+PINNED_COMMIT="${CLI_PINNED_COMMIT:-}"
 
 # Function to download CLI from holohub repo (this is a demo omitting error handling for brevity)
 download_cli() {
     echo "Downloading holohub CLI..."
-    PINNED_COMMIT="${CLI_PINNED_COMMIT:-}"
-
     git clone --no-checkout "${REPO_URL}" "${SCRIPT_PATH}/.tmp-holohub/holohub" \
         && cd "${SCRIPT_PATH}/.tmp-holohub/holohub" \
         && git sparse-checkout init --cone \
