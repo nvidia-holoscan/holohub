@@ -93,7 +93,9 @@ class HoloHubContainer:
     DEFAULT_DOCKER_BUILD_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS", "")
     # Additional Default run arguments for docker run command
     DEFAULT_DOCKER_RUN_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_RUN_ARGS", "")
-    REPO_NAME_FORMAT = os.environ.get("HOLOHUB_REPO_NAME_FORMAT", "{container_prefix}-{project_name}")
+    REPO_NAME_FORMAT = os.environ.get(
+        "HOLOHUB_REPO_NAME_FORMAT", "{container_prefix}-{project_name}"
+    )
 
     @classmethod
     def default_base_image(cls, cuda_version: Optional[Union[str, int]] = None) -> str:
@@ -337,7 +339,9 @@ class HoloHubContainer:
     def image_names(self) -> List[str]:
         """Return list of image tags to apply: sha-tag, branch-tag, and legacy tag."""
         project = self.project_metadata.get("project_name", "") if self.project_metadata else ""
-        repo = self.REPO_NAME_FORMAT.format(container_prefix=self.CONTAINER_PREFIX, project_name=project)
+        repo = self.REPO_NAME_FORMAT.format(
+            container_prefix=self.CONTAINER_PREFIX, project_name=project
+        )
         sha_tag = f"{repo}:{get_git_short_sha()}"
         branch_tag = f"{repo}:{get_current_branch_slug()}"
         legacy_tag = self.image_name
