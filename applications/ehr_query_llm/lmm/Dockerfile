@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +53,7 @@ RUN git clone https://github.com/ggerganov/llama.cpp.git \
     && git checkout be36bb946a6336238e92706464de6a30495fe825 \
     && mkdir build \
     && cd build \
-    && cmake .. -DLLAMA_CUBLAS=ON \
+    && cmake .. -DLLAMA_CUBLAS=ON -DCMAKE_CUDA_ARCHITECTURES="75;80;86;89;90" \
     && LLAMA_CUDA_F16=true cmake --build . --config Release
 
 # Install Torch based on the specified architecturea, and if not specified, host's
