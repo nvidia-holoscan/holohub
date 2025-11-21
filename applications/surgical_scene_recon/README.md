@@ -160,10 +160,10 @@ ls data/EndoNeRF/pulling/
 **For testing/verification:**
 
 ```bash
-./holohub run surgical_scene_recon training_quick
+./holohub run surgical_scene_recon train_quick
 ```
 
-**⚠️ Note:** `training_quick` produces **static/jittery results** - this is expected! It's for testing only:
+**⚠️ Note:** `train_quick` produces **static/jittery results** - this is expected! It's for testing only:
 
 - ✅ Verifies your setup works (~10 min training)
 - ❌ NOT for production quality
@@ -171,15 +171,15 @@ ls data/EndoNeRF/pulling/
 **For production quality:**
 
 ```bash
-./holohub run surgical_scene_recon training_full
+./holohub run surgical_scene_recon train
 ```
 
 **What happens:**
 
 1. **First time:** Builds Docker container (~10-15 minutes, one-time)
 2. **Training:**
-   - `training_quick`: 30 frames, 500 iterations (~10 min) → Testing only
-   - `training_full`: 63 frames, 2000 iterations (~30 min) → Production quality ⭐
+   - `train_quick`: 30 frames, 500 iterations (~10 min) → Testing only
+   - `train`: 63 frames, 2000 iterations (~30 min) → Production quality ⭐
 3. **Auto-visualization:** Holoviz window opens showing your reconstruction
 
 ### Available Modes
@@ -194,16 +194,16 @@ Check all modes:
 
 | Mode | Description | Time | Quality |
 ||-|||
-| `training_quick` | Testing/verification only | ~10 min | Lower (static/jittery) |
-| `training_full` ⭐ | Production quality | ~30 min | High (smooth deformation) |
-| `dynamic_rendering` | Render with trained checkpoint | ~2 min | Uses your trained model |
+| `train_quick` | Testing/verification only | ~10 min | Lower (static/jittery) |
+| `train` ⭐ | Production quality | ~30 min | High (smooth deformation) |
+| `render` | Render with trained checkpoint | ~2 min | Uses your trained model |
 
 ### Rendering with Trained Model
 
 After training completes, render with your checkpoint:
 
 ```bash
-./holohub run surgical_scene_recon dynamic_rendering
+./holohub run surgical_scene_recon render
 ```
 
 Checkpoint location: `applications/surgical_scene_recon/output/trained_model/ckpts/fine_best_psnr.pt`
@@ -348,7 +348,7 @@ tensorboard --logdir applications/surgical_scene_recon/output/trained_model/tb_l
   - Full: ~30 minutes (63 frames, 2000 iter)
 - **Rendering:** Real-time >30 FPS
 
-**Quality Metrics (training_full):**
+**Quality Metrics (train):**
 
 - **PSNR:** ~36-38 dB
 - **SSIM:** ~0.80

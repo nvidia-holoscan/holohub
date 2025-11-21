@@ -272,10 +272,8 @@ def main():
         print("  SUCCESS!")
         print(f"{'='*70}")
         print(f"Trained checkpoint: {checkpoint}")
-        print("\nRun inference with:")
-        print("python demo_dynamic_rendering_viz.py \\")
-        print(f"    --data_dir {args.data_dir} \\")
-        print(f"    --checkpoint {checkpoint}")
+        print("\nRun inference and render with:")
+        print(f"    ./holohub run surgical_scene_recon render")
         print(f"{'='*70}\n")
         return 0
     else:
