@@ -220,7 +220,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
 
   auto width = decoder_->GetWidth();
   auto height = decoder_->GetHeight();
-  auto color_planes = color_format.getDefaultColorPlanes(width, height, false);
+  auto color_planes = color_format.getDefaultColorPlanes(width, height, true);
   nvidia::gxf::VideoBufferInfo video_buffer_info{
       static_cast<uint32_t>(width),
       static_cast<uint32_t>(height),
@@ -228,7 +228,9 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
       std::move(color_planes),
       nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
   video_buffer_info.color_planes[0].offset = 0;
-  video_buffer_info.color_planes[1].offset = decoder_->GetLumaPlaneSize();
+  // When stride=true, use the actual size of the Y plane (which includes padding)
+  // instead of decoder's luma plane size
+  video_buffer_info.color_planes[1].offset = video_buffer_info.color_planes[0].size;
 
   auto result = video_buffer->resize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_NV12>(
       static_cast<uint32_t>(width),
@@ -236,7 +238,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
       nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR,
       nvidia::gxf::MemoryStorageType::kDevice,
       allocator.value(),
-      false);
+      true);
 
   if (!result) {
     throw std::runtime_error("Failed to resize video buffer");
@@ -248,10 +250,16 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     HOLOSCAN_LOG_INFO("Processing frame: width={}, height={}", width, height);
     HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[0].stride (Y): {}",
                       video_buffer_info.color_planes[0].stride);
+    HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[0].size (Y): {}",
+                      video_buffer_info.color_planes[0].size);
     HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[1].stride (UV): {}",
                       video_buffer_info.color_planes[1].stride);
+    HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[1].offset (UV): {}",
+                      video_buffer_info.color_planes[1].offset);
     HOLOSCAN_LOG_INFO("decoder_->GetDeviceFramePitch(): {}",
                       static_cast<int>(decoder_->GetDeviceFramePitch()));
+    HOLOSCAN_LOG_INFO("decoder_->GetLumaPlaneSize(): {}",
+                      static_cast<int>(decoder_->GetLumaPlaneSize()));
     HOLOSCAN_LOG_INFO("------------------------------------------");
   }
 

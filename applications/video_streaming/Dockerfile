@@ -78,6 +78,9 @@ RUN wget --no-check-certificate --content-disposition https://api.ngc.nvidia.com
 # Add NGC to PATH
 ENV PATH="/usr/local/ngc/ngc-cli:${PATH}"
 
+# Install Python testing dependencies
+RUN pip3 install --no-cache-dir pytest pytest-cov
+
 # Setup holohub run environment
 ENV PYTHONPATH=/opt/nvidia/holoscan/python/lib:${PYTHONPATH}
 
