@@ -129,7 +129,7 @@ class DynamicRenderingVizApp(Application):
         image_saver = ImageSaverOp(
             self,
             name="image_saver",
-            output_dir="output/rendered_dynamic",
+            output_dir=os.path.join(self.output_dir, "rendered_dynamic"),
             prefix="dynamic",
             save_every=1,
             verbose=True,
@@ -163,6 +163,12 @@ def main():
     parser = ArgumentParser(description="Test DYNAMIC Gaussian Splatting rendering with Holoviz")
     parser.add_argument(
         "--data_dir", type=str, required=True, help="Path to EndoNeRF pulling directory"
+    )
+    parser.add_argument(
+        "--output_dir", 
+        type=str, 
+        default="./output",
+        help="Output directory for rendering (default: ./output)"
     )
     parser.add_argument(
         "--checkpoint",
