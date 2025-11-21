@@ -86,12 +86,6 @@ if __name__ == "__main__":
     print("You should see a colored gradient pattern.")
     print("=" * 60)
 
-    try:
-        app = MinimalVizApp()
-        app.run()
-        print("\n✅ SUCCESS: Holoviz window opened and displayed!")
-    except Exception as e:
-        print(f"\n❌ FAILED: {e}")
-        import traceback
-
-        traceback.print_exc()
+    app = MinimalVizApp()
+    app.run()
+    print("\n✅ SUCCESS: Holoviz window opened and displayed!")
