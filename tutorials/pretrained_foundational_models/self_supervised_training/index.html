@@ -17500,7 +17500,7 @@ python3<span class="w"> </span>train_simclr_multigpu.py<span class="w"> </span>-
 python3<span class="w"> </span>train_simclr_multigpu.py<span class="w"> </span>--gpus<span class="w"> </span><span class="m">4</span><span class="w"> </span>--backbone<span class="w"> </span>resnet50<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">128</span>
 </code></pre></div></p>
 <p>DOWNSTREAM TASK - Segmentation
-This script shows an example of taking the checkpoint above and integrating it into <a href="https://monai.io/">MONAI</a>. </p>
+This script shows an example of taking the checkpoint above and integrating it into <a href="https://project-monai.github.io">MONAI</a>.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Fine-Tuning on &quot;GPU 1&quot; with 10% of the dataset, while freezing the encoder</span>
 python3<span class="w"> </span>downstream_task_tool_segmentation.py<span class="w"> </span>--gpu<span class="w"> </span><span class="m">1</span><span class="w"> </span>--perc<span class="w"> </span><span class="m">10</span><span class="w"> </span>--exp<span class="w"> </span>simclr<span class="w"> </span>--freeze
 </code></pre></div>
