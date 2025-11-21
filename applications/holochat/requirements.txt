@@ -2,7 +2,7 @@ langchain==0.1.11
 sentence_transformers~=4.1.0
 GitPython~=3.1.0
 gradio==5.35.*
-pypdf~=3.17.4
+pypdf~=6.3.0
 requests==2.*
 chromadb~=1.0.8
 openai~=1.30.2
