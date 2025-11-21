@@ -46,6 +46,7 @@ CTestConfig.cmake
 .config/
 .local/
 .ros/
+.nv/
 tmp/
 
 # History and user files

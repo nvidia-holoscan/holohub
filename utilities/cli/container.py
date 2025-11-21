@@ -34,15 +34,23 @@ from .util import (
     find_hsdk_build_rel_dir,
     get_compute_capacity,
     get_cuda_tag,
+    get_current_branch_slug,
     get_default_cuda_version,
+    get_env_bool,
+    get_git_short_sha,
     get_group_id,
     get_holohub_root,
+    get_holohub_setup_scripts_dir,
     get_host_gpu,
     get_image_pythonpath,
+    info,
     list_normalized_languages,
     replace_placeholders,
     run_command,
+    warn,
 )
+
+SCCACHE_CONTAINER_DIR = "/.cache/sccache"
 
 
 class HoloHubContainer:
@@ -66,7 +74,7 @@ class HoloHubContainer:
     DOCKER_EXE = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")  # Docker executable
 
     # SDK and path configuration
-    SDK_PATH = os.environ.get("HOLOHUB_SDK_PATH", "/opt/nvidia/holoscan")
+    SDK_PATH = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan")
     BASE_SDK_VERSION = os.environ.get("HOLOHUB_BASE_SDK_VERSION", DEFAULT_BASE_SDK_VERSION)
     BENCHMARKING_SUBDIR = os.environ.get(
         "HOLOHUB_BENCHMARKING_SUBDIR", "benchmarks/holoscan_flow_benchmarking"
@@ -129,6 +137,13 @@ class HoloHubContainer:
             "--build-args",
             help="(Build container) Extra arguments to docker build command, "
             "example: `--build-args '--network=host --build-arg \"CUSTOM=value with spaces\"'`",
+        )
+        parser.add_argument(
+            "--extra-scripts",
+            action="append",
+            help="(Build container) Named dependency installation scripts to run as Docker layers."
+            + "Searches in the directory path specified by the HOLOHUB_SETUP_SCRIPTS_DIR environment variable."
+            + "Use `./holohub setup --list-scripts` to list all available scripts.",
         )
         return parser
 
@@ -318,13 +333,31 @@ class HoloHubContainer:
         return HoloHubContainer.default_image(self.cuda_version)
 
     @property
+    def image_names(self) -> List[str]:
+        """Return list of image tags to apply: sha-tag, branch-tag, and legacy tag."""
+        project = self.project_metadata.get("project_name", "") if self.project_metadata else ""
+        repo = f"{self.CONTAINER_PREFIX}-{project}" if project else self.CONTAINER_PREFIX
+        sha_tag = f"{repo}:{get_git_short_sha()}"
+        branch_tag = f"{repo}:{get_current_branch_slug()}"
+        legacy_tag = self.image_name
+        # Deduplicate while preserving order.
+        seen = set()
+        result = []
+        for tag in [sha_tag, branch_tag, legacy_tag]:
+            if tag and tag not in seen:
+                result.append(tag)
+                seen.add(tag)
+        return result
+
+    @property
     def dockerfile_path(self) -> Path:
         """
         Get Dockerfile path for the project according to the search strategy:
         1. As specified in metadata.json
         2. <app_source>/Dockerfile
         3. <app_source>/<language>/Dockerfile
-        4. holohub/Dockerfile
+        4. `HOLOHUB_DEFAULT_DOCKERFILE` env variable
+        5. `<HOLOHUB_ROOT>/Dockerfile`
         """
         if not self.project_metadata:
             return HoloHubContainer.default_dockerfile()
@@ -381,9 +414,19 @@ class HoloHubContainer:
         img: Optional[str] = None,
         no_cache: bool = False,
         build_args: Optional[str] = None,
+        extra_scripts: Optional[List[str]] = None,
         cuda_version: Optional[Union[str, int]] = None,
     ) -> None:
-        """Build the container image"""
+        """
+        Build the container image according to the procedure:
+
+        1. Build the Dockerfile provided environment with the given BASE_IMAGE and given tag.
+            If extra_scripts are provided, also tag this image as {img}-base.
+        2. If extra_scripts are provided, build an additional Docker layer for each script.
+            Tag each iterative layer as {img}-{script} and {img}.
+
+        Result: Docker image named {img} based on the Dockerfile and any additional scripts.
+        """
 
         if cuda_version is not None:
             self.cuda_version = cuda_version
@@ -391,7 +434,7 @@ class HoloHubContainer:
         # Get Dockerfile path
         docker_file_path = docker_file or self.dockerfile_path
         base_img = base_img or self.default_base_image(self.cuda_version)
-        img = img or self.image_name
+        tags = [img] if img else self.image_names
         gpu_type = get_host_gpu()
         compute_capacity = get_compute_capacity()
 
@@ -439,9 +482,47 @@ class HoloHubContainer:
         if full_build_args:
             cmd.extend(shlex.split(full_build_args))
 
-        cmd.extend(["-f", str(docker_file_path), "-t", img, str(HoloHubContainer.HOLOHUB_ROOT)])
+        cmd.extend(["-f", str(docker_file_path)])
+        for tag_name in tags:
+            cmd.extend(["-t", tag_name])
+        if extra_scripts:
+            # Tag the base (pre-scripts) image for all tags for consistency
+            for tag_name in tags:
+                cmd.extend(["-t", f"{tag_name}-base"])
+        cmd.append(str(HoloHubContainer.HOLOHUB_ROOT))
 
         run_command(cmd, dry_run=self.dryrun)
+
+        if extra_scripts:
+            for script in extra_scripts:
+                script_path = get_holohub_setup_scripts_dir() / f"{script}.sh"
+                if not script_path.exists():
+                    fatal(f"Script {script}.sh not found in {get_holohub_setup_scripts_dir()}")
+                try:
+                    relative_script_path = script_path.relative_to(HoloHubContainer.HOLOHUB_ROOT)
+                except ValueError:
+                    fatal(
+                        f"Script {script}.sh at {script_path} is not within {HoloHubContainer.HOLOHUB_ROOT}. "
+                        f"The HOLOHUB_SETUP_SCRIPTS_DIR environment variable must resolve to a subdirectory within the project scope."
+                    )
+                cmd = [
+                    self.DOCKER_EXE,
+                    "build",
+                    "--build-arg",
+                    "BUILDKIT_INLINE_CACHE=1",
+                    "--build-arg",
+                    f"BASE_IMAGE={tags[0]}",  # reuse the default tag to sequentially add the scripts on top of each other.
+                    "--network=host",
+                    "--build-arg",
+                    f"SCRIPT={relative_script_path}",
+                    "-f",
+                    str(get_holohub_setup_scripts_dir() / "Dockerfile.util"),
+                    str(HoloHubContainer.HOLOHUB_ROOT),
+                ]
+                for tag_name in tags:
+                    # We override the default tag so we can add the next scripts on top of this.
+                    cmd.extend(["-t", f"{tag_name}-{script}", "-t", f"{tag_name}"])
+                run_command(cmd, dry_run=self.dryrun)
 
     def run(
         self,
@@ -464,7 +545,7 @@ class HoloHubContainer:
         if not self.dryrun:
             check_nvidia_ctk()
 
-        img = img or self.image_name
+        img = img or self.image_names[0]
         add_volumes = add_volumes or []
         extra_args = extra_args or []
 
@@ -551,6 +632,22 @@ class HoloHubContainer:
             else:
                 print("Warning: MPS directories not found. MPS may not be enabled on the host.")
 
+        # sccache mounting
+        _, enable_sccache = get_env_bool("HOLOHUB_ENABLE_SCCACHE", default=False)
+        has_host_sccache_env = any(k.startswith("SCCACHE_") for k in os.environ)
+        if enable_sccache:
+            sccache_host_dir = os.environ.get("SCCACHE_DIR")
+            if not sccache_host_dir:
+                sccache_host_dir = str(Path.home() / ".cache" / "sccache")
+            info(f"Host SCCACHE_DIR: {sccache_host_dir}")
+            info(f"Container mount point: {SCCACHE_CONTAINER_DIR}")
+            os.makedirs(sccache_host_dir, exist_ok=True)  # Pre-create for the current user to own
+            args.extend(["-v", f"{sccache_host_dir}:{SCCACHE_CONTAINER_DIR}"])
+        elif has_host_sccache_env:
+            warn(
+                "SCCACHE_* environment variables detected but HOLOHUB_ENABLE_SCCACHE is disabled; "
+                "not mounting sccache cache into the container."
+            )
         return args
 
     def get_nvidia_runtime_args(self) -> List[str]:
@@ -604,6 +701,25 @@ class HoloHubContainer:
         holohub_path_prefix = os.environ.get("HOLOHUB_PATH_PREFIX")
         if holohub_path_prefix:
             args.extend(["-e", f"HOLOHUB_PATH_PREFIX={holohub_path_prefix}"])
+
+        # Pass adequate variables for SCCACHE
+        _, enable_sccache = get_env_bool("HOLOHUB_ENABLE_SCCACHE", default=False)
+        sccache_keys = [k for k in os.environ if k.startswith("SCCACHE_")]
+        if enable_sccache:
+            # Forward HOLOHUB_ENABLE_SCCACHE to enable launcher before cmake build
+            args.extend(["-e", "HOLOHUB_ENABLE_SCCACHE"])
+            # Always set SCCACHE_DIR inside container to mounted path
+            args.extend(["-e", f"SCCACHE_DIR={SCCACHE_CONTAINER_DIR}"])
+            # Forward other SCCACHE_* environment variables present on host
+            for k in sccache_keys:
+                if k != "SCCACHE_DIR":
+                    args.extend(["-e", k])
+        elif len(sccache_keys) > 0:
+            warn(
+                "SCCACHE_* environment variables detected but HOLOHUB_ENABLE_SCCACHE is disabled; "
+                "not forwarding sccache environment variables into the container: "
+                f"{', '.join(sccache_keys)}"
+            )
         return args
 
     def enable_x11_access(self) -> None:

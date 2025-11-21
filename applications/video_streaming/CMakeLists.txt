@@ -13,13 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(video_streaming LANGUAGES CXX)
-
 # If APP_video_streaming is set, enable both client and server
 if(APP_video_streaming)
   set(APP_video_streaming_client ON CACHE BOOL "Build the video_streaming_client application" FORCE)
   set(APP_video_streaming_server ON CACHE BOOL "Build the video_streaming_server application" FORCE)
+endif()
+
+# Enable operator flags before building applications
+# This ensures the operators are available when applications try to link
+if(APP_video_streaming_client)
+  set(OP_video_streaming_client ON CACHE BOOL "Build video_streaming_client operator" FORCE)
+endif()
+if(APP_video_streaming_server)
+  set(OP_video_streaming_server ON CACHE BOOL "Build video_streaming_server operator" FORCE)
 endif()
 
 # Build client and server applications

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,9 +42,11 @@ void XrEndFrameOp::compute(InputContext& input, OutputContext& output, Execution
 
   // Submit composition layers to the XR device for display.
   std::vector<xr::CompositionLayerBaseHeader*> layers;
-  for (std::shared_ptr<xr::CompositionLayerBaseHeader>& layer : xr_composition_layers.value()) {
-    if (layer != nullptr) {
-      layers.push_back(layer.get());
+  if (xr_composition_layers.has_value()) {
+    for (std::shared_ptr<xr::CompositionLayerBaseHeader>& layer : xr_composition_layers.value()) {
+      if (layer != nullptr) {
+        layers.push_back(layer.get());
+      }
     }
   }
   xr_session->get().endFrame({
