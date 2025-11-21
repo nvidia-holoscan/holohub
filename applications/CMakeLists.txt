@@ -104,6 +104,8 @@ add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)
 
 add_holohub_application(stereo_vision)
 
+add_holohub_application(surgical_scene_recon)
+
 add_holohub_application(tao_peoplenet)
 
 add_holohub_application(network_radar_pipeline DEPENDS
