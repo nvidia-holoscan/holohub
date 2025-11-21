@@ -292,9 +292,7 @@ We provide integration tests that can be run with the following command to test 
 
 - **GPU:** NVIDIA RTX 6000 Ada Generation
 - **Container:** Holoscan SDK 3.7.0
-- **Training Time:**
-  - Verify: ~5 minutes (10 frames, 20 iterations)
-  - Full: ~30 minutes (63 frames, 2000 iterations)
+- **Training Time:** ~5 minutes (63 frames, 2000 iterations)
 - **Rendering:** Real-time >30 FPS
 
 **Quality Metrics (train mode):**
