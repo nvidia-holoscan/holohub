@@ -1,6 +1,4 @@
-# syntax=docker/dockerfile:1
-#
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,84 +14,75 @@
 # limitations under the License.
 
 ############################################################
-# Surgical Scene Reconstruction - Production Dockerfile v2.0
-#
-# This Dockerfile creates a production-ready container for
-# real-time surgical scene reconstruction using Gaussian
-# Splatting with temporal deformation in Holoscan.
-#
-# Features:
-#   - Dynamic rendering with temporal deformation
-#   - Real-time Holoviz visualization
-#   - 3D Gaussian Splatting (gsplat)
-#   - EndoNeRF dataset support
-#   - Tool removal capability
-#   - On-the-fly training support (NEW in v2.0)
+# Base image
 ############################################################
 
-# Use configurable base image (default: NGC Holoscan v3.7.0)
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.7.0-cuda12-dgpu
+ARG GPU_TYPE
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 FROM ${BASE_IMAGE} AS base
 
-# Prevent interactive prompts during installation
-ENV DEBIAN_FRONTEND=noninteractive
+ARG DEBIAN_FRONTEND=noninteractive
+ARG CMAKE_BUILD_TYPE=Release
 
-############################################################
-# Install System Dependencies
-############################################################
+# --------------------------------------------------------------------------
+#
+# Set up prerequisites to run HoloHub CLI
+#
+# --------------------------------------------------------------------------
+FROM base AS holohub-cli-prerequisites
 
-# Install OpenGL libraries required by open3d
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
+# Install python3 if not present (needed for holohub CLI)
+ARG PYTHON_VERSION=python3
+RUN if ! command -v python3 >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y \
+            software-properties-common curl gpg-agent \
+        && add-apt-repository ppa:deadsnakes/ppa \
+        && apt-get update \
+        && apt-get install --no-install-recommends -y \
+            ${PYTHON_VERSION} \
+        && apt purge -y \
+            python3-pip \
+            software-properties-common \
+        && apt-get autoremove --purge -y \
+        && rm -rf /var/lib/apt/lists/* \
+        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
+        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
+            ; fi \
+    ; fi
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
+    ; fi
 
-############################################################
-# Install Python Dependencies
-############################################################
+# --------------------------------------------------------------------------
+#
+# Use HoloHub CLI to set up common packages for developing with Holoscan SDK
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli-prerequisites AS holohub-cli
 
-# Install all dependencies from training requirements file
-# Includes both inference and training dependencies with version specifications
-# All versions tested and confirmed working in production
-COPY applications/surgical_scene_recon/training/training_requirements.txt /tmp/training_requirements.txt
-RUN pip install --no-cache-dir -r /tmp/training_requirements.txt
+RUN mkdir -p /tmp/scripts
+COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
-############################################################
-# Environment Configuration
-############################################################
+# Enable autocomplete
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
-# Set Python path for Holoscan SDK
-ENV PYTHONPATH="/opt/nvidia/holoscan/python/lib:${PYTHONPATH}"
+# Set default Holohub data directory
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 
-# Set working directory
-WORKDIR /workspace/holohub/applications/surgical_scene_recon
+# --------------------------------------------------------------------------
+#
+# Set up application dependencies
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli AS application-dependencies
 
-############################################################
-# Container Metadata
-############################################################
-
-LABEL maintainer="NVIDIA Holoscan Team"
-LABEL description="Surgical Scene Reconstruction with 3D Gaussian Splatting and Temporal Deformation"
-LABEL version="2.0-production-training"
-LABEL holoscan.sdk.version="3.7.0"
-LABEL application="surgical_scene_recon"
-LABEL rendering.modes="static,dynamic"
-LABEL operation.modes="inference,training"
-LABEL dataset.support="EndoNeRF"
-LABEL updated="2025-10-24"
-
-############################################################
-# Default Command
-############################################################
-
-# Show usage information by default
-CMD ["bash", "-c", "echo 'Surgical Scene Reconstruction Container' && \
-     echo '' && \
-     echo 'Available test scripts:' && \
-    echo '  - demo_dynamic_rendering_viz.py (high-quality, temporal deformation)' && \
-    echo '  - demo_static_rendering_viz.py (fast preview mode)' && \
-    echo '' && \
-    echo 'Example usage:' && \
-    echo '  python demo_dynamic_rendering_viz.py --data_dir /path/to/data --checkpoint /path/to/checkpoint.pt' && \
-     echo '' && \
-     echo 'See README.md and QUICKSTART.md for detailed instructions.'"]
+COPY applications/surgical_scene_recon/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
