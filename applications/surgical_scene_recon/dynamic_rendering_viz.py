@@ -167,10 +167,10 @@ def main():
         "--data_dir", type=str, required=True, help="Path to EndoNeRF pulling directory"
     )
     parser.add_argument(
-        "--output_dir", 
-        type=str, 
+        "--output_dir",
+        type=str,
         default="./output",
-        help="Output directory for rendering (default: ./output)"
+        help="Output directory for rendering (default: ./output)",
     )
     parser.add_argument(
         "--checkpoint",

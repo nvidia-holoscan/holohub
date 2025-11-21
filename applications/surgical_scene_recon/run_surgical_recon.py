@@ -209,9 +209,7 @@ def main():
     parser.add_argument(
         "--data_dir", type=str, required=True, help="Path to EndoNeRF dataset directory"
     )
-    parser.add_argument(
-        "--output_dir", type=str, default="output", help="Output directory"
-    )
+    parser.add_argument("--output_dir", type=str, default="output", help="Output directory")
     parser.add_argument(
         "--num_frames", type=int, default=-1, help="Number of frames to process (default: -1 = all)"
     )
