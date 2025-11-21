@@ -102,6 +102,13 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
 
     print(f"Validated {available_frames} frames in each directory\n")
 
+    # Guard against zero-frame datasets
+    if frames_to_process == 0:
+        print("\n❌ ERROR: No frames available to process!")
+        print("  Cannot proceed with training on an empty dataset.")
+        print("  Please check your data directory and frame count settings.\n")
+        return None
+
     # Copy frames
     poses_list = []
 
