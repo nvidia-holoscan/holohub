@@ -50,7 +50,7 @@
 				}
 			},
 			"train": {
-				"description": "Production quality (recommended): all 63 frames, 2000 iterations (~5 min) - smooth temporal deformation",
+				"description": "Good quality training: all 63 frames, 2000 iterations (~5 min) - smooth temporal deformation",
 				"run": {
 					"command": "python3 <holohub_app_source>/train_standalone.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --training_iterations 2000 --coarse_iterations 200",
 					"workdir": "holohub_app_source"

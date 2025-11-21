@@ -36,7 +36,7 @@ if(BUILD_TESTING)
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     set_tests_properties(surgical_scene_recon_training_test PROPERTIES
-        TIMEOUT 1800
+        TIMEOUT 600
         PASS_REGULAR_EXPRESSION "SUCCESS!"
     )
 
@@ -46,7 +46,7 @@ if(BUILD_TESTING)
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     set_tests_properties(surgical_scene_recon_inference_test PROPERTIES
-        TIMEOUT 1800
+        TIMEOUT 600
         PASS_REGULAR_EXPRESSION "Dynamic visualization completed successfully!"
     )
 endif()
