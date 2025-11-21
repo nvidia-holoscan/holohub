@@ -69,9 +69,7 @@ def render_training_image(
         draw1 = ImageDraw.Draw(image_with_labels)
 
         # Select font and font size
-        font = ImageFont.truetype(
-            "./utils/TIMES.TTF", size=40
-        )  # Replace with your chosen font file path
+        font = ImageFont.load_default()  # Use default font
 
         # Select text color
         text_color = (255, 0, 0)  # Red
