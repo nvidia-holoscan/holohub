@@ -17,6 +17,7 @@ Before running the workflow, ensure you have:
 - Git installed
 - Sufficient GPU memory for the AI models (recommended: 10GB+ VRAM)
 - Network access for downloading models and repositories
+- **Note**: This workflow internally uses the Hugging Face CLI for downloading models
 
 ## Quick Start
 
@@ -39,20 +40,20 @@ This will:
 
 ```bash
 # Build the video app
-./holohub run surgical_agent build-video
+./holohub run surgical_agent build-video --local
 
 # Run the video app
-./holohub run surgical_agent run-video
+./holohub run surgical_agent run-video --local
 ```
 
 #### Surgical Agents Only
 
 ```bash
 # Setup/clone the framework
-./holohub run surgical_agent setup-surgical
+./holohub run surgical_agent setup-surgical --local
 
 # Run the surgical agents
-./holohub run surgical_agent run-surgical
+./holohub run surgical_agent run-surgical --local
 ```
 
 #### Management Commands
@@ -62,10 +63,10 @@ This will:
 ./holohub run surgical_agent stop-video --local
 
 # Clean up all services
-./holohub run surgical_agent clean
+./holohub run surgical_agent clean --local
 
 # Show help
-./holohub run surgical_agent help
+./holohub run surgical_agent help --local
 ```
 
 ## Services and Ports
@@ -111,12 +112,12 @@ workflows/surgical_agent/
 
 The typical workflow for using both systems together:
 
-1. **Start Services**: Execute `./holohub run surgical_agent` to start both video streaming and surgical agents
+1. **Start Services**: Execute `./holohub run surgical_agent --local` to start both video streaming and surgical agents
 2. **Video Analysis**:
    - Open `http://127.0.0.1:8080` for video streaming
    - Open `http://127.0.0.1:8050` for surgical analysis
 3. **Interactive Analysis**: Use the surgical agent interface to analyze video content, take notes, and generate reports
-4. **Cleanup**: Execute `./holohub run surgical_agent clean` when finished
+4. **Cleanup**: Execute `./holohub run surgical_agent clean --local` when finished
 
 ## Troubleshooting
 

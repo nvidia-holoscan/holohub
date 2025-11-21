@@ -60,12 +60,6 @@ Install dependencies using pip:
 pip install -r requirements.txt
 ```
 
-Or manually:
-
-```bash
-pip install aiohttp==3.9.5 aiortc==1.6.0 aiohttp-cors==0.7.0 numpy==1.26.4
-```
-
 **For Camera Mode**: Ensure your camera device (e.g., `/dev/video0`) is accessible:
 
 ```bash

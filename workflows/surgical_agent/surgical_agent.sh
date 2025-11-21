@@ -48,9 +48,11 @@ print_error() {
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 HOLOHUB_ROOT="$( cd "$SCRIPT_DIR/../.." &> /dev/null && pwd )"
 WORKFLOW_DIR="$SCRIPT_DIR"
+BUILD_DIR="$HOLOHUB_ROOT/build/surgical_agent"
 
 print_status "Script directory: $SCRIPT_DIR"
 print_status "Holohub root: $HOLOHUB_ROOT"
+print_status "Build directory: $BUILD_DIR"
 
 # Container name for WebRTC video streaming server
 WEBRTC_CONTAINER_NAME="holohub_surgical_video"
@@ -121,27 +123,42 @@ run_video_app() {
 # Function to clone surgical agent framework
 clone_surgical_framework() {
     print_status "Cloning VLM-Surgical-Agent-Framework..."
-    cd "$WORKFLOW_DIR"
+
+    # Create build directory if it doesn't exist
+    mkdir -p "$BUILD_DIR"
+    if ! cd "$BUILD_DIR"; then
+        print_error "Failed to change directory to $BUILD_DIR"
+        return 1
+    fi
 
     if [ -d "VLM-Surgical-Agent-Framework" ]; then
         print_warning "VLM-Surgical-Agent-Framework directory already exists. Pulling latest changes..."
-        cd VLM-Surgical-Agent-Framework
+        if ! cd VLM-Surgical-Agent-Framework; then
+            print_error "Failed to change directory to VLM-Surgical-Agent-Framework"
+            return 1
+        fi
         if ! git pull; then
             print_warning "Failed to pull latest changes. Repository may have local modifications."
             print_status "Continuing with existing repository state..."
         fi
     else
         git clone https://github.com/Project-MONAI/VLM-Surgical-Agent-Framework.git
-        cd VLM-Surgical-Agent-Framework
+        if ! cd VLM-Surgical-Agent-Framework; then
+            print_error "Failed to change directory to VLM-Surgical-Agent-Framework"
+            return 1
+        fi
     fi
 
-    print_success "VLM-Surgical-Agent-Framework repository ready"
+    print_success "VLM-Surgical-Agent-Framework repository ready at $BUILD_DIR/VLM-Surgical-Agent-Framework"
 }
 
 # Function to run surgical agents
 run_surgical_agents() {
     print_status "Starting surgical agents services..."
-    cd "$WORKFLOW_DIR/VLM-Surgical-Agent-Framework/docker"
+    if ! cd "$BUILD_DIR/VLM-Surgical-Agent-Framework/docker"; then
+        print_error "Failed to change directory to docker"
+        return 1
+    fi
 
     if [ ! -f "run-surgical-agents.sh" ]; then
         print_error "run-surgical-agents.sh not found in docker directory"
@@ -243,14 +260,19 @@ show_usage() {
 # Function to stop surgical agents
 stop_surgical_agents() {
     print_status "Stopping surgical agents services..."
-    cd "$WORKFLOW_DIR/VLM-Surgical-Agent-Framework/docker"
 
-    if [ -f "run-surgical-agents.sh" ]; then
-        print_status "Running surgical agents stop command..."
-        ./run-surgical-agents.sh stop
-        print_success "Surgical agents services stopped"
+    if [ -d "$BUILD_DIR/VLM-Surgical-Agent-Framework/docker" ]; then
+        cd "$BUILD_DIR/VLM-Surgical-Agent-Framework/docker"
+
+        if [ -f "run-surgical-agents.sh" ]; then
+            print_status "Running surgical agents stop command..."
+            ./run-surgical-agents.sh stop
+            print_success "Surgical agents services stopped"
+        else
+            print_warning "run-surgical-agents.sh not found, cannot stop surgical agents"
+        fi
     else
-        print_warning "run-surgical-agents.sh not found, cannot stop surgical agents"
+        print_warning "VLM-Surgical-Agent-Framework not found in build directory, cannot stop surgical agents"
     fi
 }
 
@@ -269,9 +291,9 @@ cleanup() {
     stop_surgical_agents
 
     # Remove cloned surgical framework
-    if [ -d "$WORKFLOW_DIR/VLM-Surgical-Agent-Framework" ]; then
+    if [ -d "$BUILD_DIR/VLM-Surgical-Agent-Framework" ]; then
         print_status "Removing VLM-Surgical-Agent-Framework directory..."
-        rm -rf "$WORKFLOW_DIR/VLM-Surgical-Agent-Framework"
+        rm -rf "$BUILD_DIR/VLM-Surgical-Agent-Framework"
         print_success "Removed VLM-Surgical-Agent-Framework directory"
     fi
 
@@ -337,13 +359,18 @@ case "${1:-all}" in
         ;;
 esac
 
-print_success "Workflow completed successfully!"
-print_status "Services running:"
-print_status "- WebRTC video streaming server (camera mode): http://127.0.0.1:8080"
-print_status "  API Endpoints: POST /offer, GET /iceServers"
-print_status "- Surgical agents: Check docker container status with 'docker ps'"
-print_status ""
-print_status "To stop the video app: $0 stop-video"
-print_status "To stop surgical agents: $0 stop-surgical"
-print_status "To stop all services: $0 stop-all"
-print_status "To clean up everything (stop + remove artifacts): $0 clean"
+# Only show status for commands that start services
+case "${1:-all}" in
+    "all"|"run-surgical")
+        print_success "Workflow completed successfully!"
+        print_status "Services running:"
+        print_status "- WebRTC video streaming server (camera mode): http://127.0.0.1:8080"
+        print_status "  API Endpoints: POST /offer, GET /iceServers"
+        print_status "- Surgical agents: Check docker container status with 'docker ps'"
+        print_status ""
+        print_status "To stop the video app: $0 stop-video"
+        print_status "To stop surgical agents: $0 stop-surgical"
+        print_status "To stop all services: $0 stop-all"
+        print_status "To clean up everything (stop + remove artifacts): $0 clean"
+        ;;
+esac
