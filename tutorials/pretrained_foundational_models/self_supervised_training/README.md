@@ -64,7 +64,7 @@ python3 train_simclr_multigpu.py --gpus 4 --backbone resnet50 --batch_size 128
 ```
 
 DOWNSTREAM TASK - Segmentation
-This script shows an example of taking the checkpoint above and integrating it into [MONAI](https://monai.io/). 
+This script shows an example of taking the checkpoint above and integrating it into [MONAI](https://project-monai.github.io).
 
 ```bash
 # Fine-Tuning on "GPU 1" with 10% of the dataset, while freezing the encoder
