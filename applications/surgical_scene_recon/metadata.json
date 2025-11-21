@@ -59,7 +59,7 @@
 			"render": {
 				"description": "High-quality rendering with temporal deformation (requires pre-trained checkpoint)",
 				"run": {
-					"command": "python3 <holohub_app_source>/demo_dynamic_rendering_viz.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --checkpoint <holohub_app_bin>/output/trained_model/ckpts/fine_best_psnr.pt",
+					"command": "python3 <holohub_app_source>/dynamic_rendering_viz.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --checkpoint <holohub_app_bin>/output/trained_model/ckpts/fine_best_psnr.pt",
 					"workdir": "holohub_app_source"
 				}
 			}

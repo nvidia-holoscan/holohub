@@ -252,7 +252,7 @@ echo ""
 echo "Testing inference using the newly trained checkpoint..."
 echo ""
 
-timeout 60 python ../demo_dynamic_rendering_viz.py \
+timeout 60 python ../dynamic_rendering_viz.py \
     --data_dir "$DATA_DIR" \
     --checkpoint "$TRAINED_CKPT" \
     --num_frames 5 \

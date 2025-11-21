@@ -20,8 +20,9 @@ Test application for DYNAMIC gaussian splatting rendering with temporal deformat
 Pipeline: EndoNeRFLoader → GsplatLoader (dynamic) → GsplatRender → Holoviz + ImageSaver
 
 Usage:
-    python demo_dynamic_rendering_viz.py \
+    python dynamic_rendering_viz.py \
         --data_dir /path/to/EndoNeRF/pulling \
+        --output_dir /path/to/output \
         --checkpoint /path/to/checkpoint.pt \
         --num_frames 63
 """
