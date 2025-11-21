@@ -57,10 +57,11 @@ class DynamicRenderingVizApp(Application):
        Holoviz     ImageSaver
     """
 
-    def __init__(self, data_dir, checkpoint_path, num_frames=-1, loop=True):
+    def __init__(self, data_dir, output_dir, checkpoint_path, num_frames=-1, loop=True):
         super().__init__()
         self.name = "Dynamic Rendering Visualization"
         self.data_dir = data_dir
+        self.output_dir = output_dir
         self.checkpoint_path = checkpoint_path
         self.num_frames = num_frames
         self.loop = loop
@@ -206,6 +207,7 @@ def main():
     try:
         app = DynamicRenderingVizApp(
             data_dir=args.data_dir,
+            output_dir=args.output_dir,
             checkpoint_path=args.checkpoint,
             num_frames=args.num_frames,
             loop=args.loop,

@@ -39,4 +39,14 @@ if(BUILD_TESTING)
         TIMEOUT 1800
         PASS_REGULAR_EXPRESSION "SUCCESS!"
     )
+
+    # Test Surgical Scene Reconstruction Inference
+    add_test(NAME surgical_scene_recon_inference_test
+            COMMAND ./holohub run surgical_scene_recon verify_inference
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    set_tests_properties(surgical_scene_recon_inference_test PROPERTIES
+        TIMEOUT 1800
+        PASS_REGULAR_EXPRESSION "Dynamic visualization completed successfully!"
+    )
 endif()
