@@ -399,10 +399,10 @@
                 <div style="position: sticky; top: 80px; max-height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; padding-bottom: 1rem; will-change: transform;">
                     <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Applications</h4>
                     <nav class="sidebar-nav" data-page-type="applications" style="display: flex; flex-direction: column; gap: 0;">
-                        <a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('all'); return true;">All (94)</a>
+                        <a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('all'); return true;">All (95)</a>
                         <a href="#computer-vision-and-perception" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Computer Vision and Perception'); return true;">Computer Vision (31)</a>
                         <a href="#extended-reality" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Extended Reality'); return true;">Extended Reality (6)</a>
-                        <a href="#healthcare-ai" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Healthcare AI'); return true;">Healthcare AI (32)</a>
+                        <a href="#healthcare-ai" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Healthcare AI'); return true;">Healthcare AI (33)</a>
                         <a href="#nvidia-video-codec" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('NVIDIA Video Codec'); return true;">NVIDIA Video Codec (4)</a>
                         <a href="#natural-language-and-conversational-ai" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Natural Language and Conversational AI'); return true;">NLP & Conversational AI (2)</a>
                         <a href="#networking-and-distributed-computing" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Networking and Distributed Computing'); return true;">Networking (9)</a>
@@ -431,6 +431,17 @@
                     </div>
                     
             
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box" data-recent="true">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/applications/surgical_scene_recon';">
+                    <span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/surgical_scene_recon/train_gt_animation.gif" alt="Surgical Scene Reconstruction" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Surgical Scene Reconstruction</h3>
+                    <span style="display: inline-block; background-color: var(--md-code-bg-color); color: var(--md-code-fg-color); padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600; margin-bottom: 0.5rem;">Python</span>
+                    <p class="feature-card-desc">Real-time 3D surgical scene reconstruction using Gaussian Splatting in a Holoscan streaming pipeline with temporal de...</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:healthcare-ai" class="md-tag" style="display: none;">healthcare ai</a> <a href="/holohub/tags/#tag:endoscopy" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">endoscopy</a> <a href="/holohub/tags/#tag:3d-reconstruction" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">3d reconstruction</a> <a href="/holohub/tags/#tag:gaussian-splatting" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">gaussian splatting</a> <a href="/holohub/tags/#tag:neural-rendering" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">neural rendering</a> <a href="/holohub/tags/#tag:temporal-deformation" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">temporal deformation</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
  <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box" data-recent="true">
                 <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/applications/nvidia_video_codec/nvc_endoscopy_tool_tracking';">
                     <span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>
@@ -1703,6 +1714,8 @@
       
         
           
+        
+      
         
       
         
@@ -9907,6 +9920,74 @@
         
           
           <div class="md-nav__link md-nav__container">
+            <a href="surgical_scene_recon/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Surgical Scene Reconstruction with Gaussian Splatting
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_59_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_59">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Surgical Scene Reconstruction with Gaussian Splatting
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_60" >
+        
+          
+          <div class="md-nav__link md-nav__container">
             <a href="tao_peoplenet/" class="md-nav__link ">
               
   
@@ -9926,8 +10007,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_59_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_59">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_60_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_60">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -9975,7 +10056,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_60" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_61" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -9997,14 +10078,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_60" id="__nav_3_60_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_3_61" id="__nav_3_61_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_60_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_60">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_61_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_61">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -10040,7 +10121,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_60_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_61_2" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -10063,8 +10144,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_60_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_60_2">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_61_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_61_2">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -10108,7 +10189,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_60_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_61_3" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -10131,8 +10212,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_60_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_60_3">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_61_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_61_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -10150,74 +10231,6 @@
     </li>
   
 
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_61" >
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="velodyne_lidar_app/" class="md-nav__link ">
-              
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Velodyne VLP-16 Lidar Viewer
-  
-
-    
-  </span>
-  
-  
-
-            </a>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_61_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_61">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Velodyne VLP-16 Lidar Viewer
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
               
             
           </ul>
@@ -10256,6 +10269,74 @@
         
           
           <div class="md-nav__link md-nav__container">
+            <a href="velodyne_lidar_app/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Velodyne VLP-16 Lidar Viewer
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_62_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_62">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Velodyne VLP-16 Lidar Viewer
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_63" >
+        
+          
+          <div class="md-nav__link md-nav__container">
             <a href="vila_live/" class="md-nav__link ">
               
   
@@ -10275,8 +10356,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_62_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_62">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_63_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_63">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -10322,7 +10403,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_63" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_64" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -10344,151 +10425,6 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_63" id="__nav_3_63_label" tabindex="0">
-                <span class="md-nav__icon md-icon"></span>
-              </label>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_63_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_63">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    VITA 49 Power Spectral Density (PSD)
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_63_2" >
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="psd_pipeline/data_writer/" class="md-nav__link ">
-              
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Data Writer
-  
-
-    
-  </span>
-  
-  
-
-            </a>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_63_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_63_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Data Writer
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_64" >
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="video_streaming/" class="md-nav__link ">
-              
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Video Streaming Demo
-  
-
-    
-  </span>
-  
-  
-
-            </a>
-            
-              
               <label class="md-nav__link " for="__nav_3_64" id="__nav_3_64_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
@@ -10500,7 +10436,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Video Streaming Demo
+    VITA 49 Power Spectral Density (PSD)
   
 
           </label>
@@ -10536,6 +10472,151 @@
         
           
           <div class="md-nav__link md-nav__container">
+            <a href="psd_pipeline/data_writer/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Writer
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_64_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_64_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data Writer
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_65" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="video_streaming/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Video Streaming Demo
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_65" id="__nav_3_65_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_65_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_65">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Video Streaming Demo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_65_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
             <a href="video_streaming/video_streaming_client/" class="md-nav__link ">
               
   
@@ -10555,8 +10636,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_64_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_64_2">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_65_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_65_2">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -10600,7 +10681,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_64_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_65_3" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -10623,8 +10704,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_64_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_64_3">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_65_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_65_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -10642,74 +10723,6 @@
     </li>
   
 
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_65" >
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="volume_rendering/" class="md-nav__link ">
-              
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Volume rendering using ClaraViz
-  
-
-    
-  </span>
-  
-  
-
-            </a>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_65_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_65">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Volume rendering using ClaraViz
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
               
             
           </ul>
@@ -10748,14 +10761,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="vpi_stereo/" class="md-nav__link ">
+            <a href="volume_rendering/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    VPI Stereo Vision
+    Volume rendering using ClaraViz
   
 
     
@@ -10772,7 +10785,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    VPI Stereo Vision
+    Volume rendering using ClaraViz
   
 
           </label>
@@ -10816,14 +10829,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="webrtc_holoviz_server/" class="md-nav__link ">
+            <a href="vpi_stereo/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    WebRTC Holoviz Server
+    VPI Stereo Vision
   
 
     
@@ -10840,7 +10853,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    WebRTC Holoviz Server
+    VPI Stereo Vision
   
 
           </label>
@@ -10884,14 +10897,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="webrtc_video_client/" class="md-nav__link ">
+            <a href="webrtc_holoviz_server/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    WebRTC Video Client
+    WebRTC Holoviz Server
   
 
     
@@ -10908,7 +10921,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    WebRTC Video Client
+    WebRTC Holoviz Server
   
 
           </label>
@@ -10952,14 +10965,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="webrtc_video_server/" class="md-nav__link ">
+            <a href="webrtc_video_client/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    WebRTC Video Server
+    WebRTC Video Client
   
 
     
@@ -10976,7 +10989,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    WebRTC Video Server
+    WebRTC Video Client
   
 
           </label>
@@ -11020,14 +11033,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="xr_gsplat/" class="md-nav__link ">
+            <a href="webrtc_video_server/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    XR + Gaussian Splatting
+    WebRTC Video Server
   
 
     
@@ -11044,7 +11057,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    XR + Gaussian Splatting
+    WebRTC Video Server
   
 
           </label>
@@ -11088,14 +11101,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="xr_holoviz/" class="md-nav__link ">
+            <a href="xr_gsplat/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    XR + Holoviz
+    XR + Gaussian Splatting
   
 
     
@@ -11112,7 +11125,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    XR + Holoviz
+    XR + Gaussian Splatting
   
 
           </label>
@@ -11156,6 +11169,74 @@
         
           
           <div class="md-nav__link md-nav__container">
+            <a href="xr_holoviz/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XR + Holoviz
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_72_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_72">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    XR + Holoviz
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_73" >
+        
+          
+          <div class="md-nav__link md-nav__container">
             <a href="yolo_model_deployment/" class="md-nav__link ">
               
   
@@ -11175,8 +11256,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_72_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_72">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_73_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_73">
             <span class="md-nav__icon md-icon"></span>
             
   
