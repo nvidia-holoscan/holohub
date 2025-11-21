@@ -206,74 +206,6 @@ We provide integration tests that can be run with the following command to test 
 ./holohub test surgical_scene_recon --verbose
 ```
 
-## Troubleshooting
-
-#### Problem: "FileNotFoundError: poses_bounds.npy not found"
-
-- **Cause:** Dataset not in correct location or symlink used
-- **Solution:** Ensure dataset is physically at `<HOLOHUB_ROOT>/data/EndoNeRF/pulling/`
-- **Verify:** Run `file data/EndoNeRF` - should show "directory", not "symbolic link"
-
-#### Problem: "Unable to find image holohub-surgical_scene_recon"
-
-- **Cause:** Container not built yet
-- **Solution:** Remove `--no-docker-build` flag (let CLI build automatically)
-- **Or:** Manually build: `./holohub build-container surgical_scene_recon`
-
-#### Problem: Holoviz window doesn't appear
-
-- **Cause:** X11 forwarding not enabled
-- **Solution:** Run `xhost +local:docker` before training
-- **Verify:** Check `echo $DISPLAY` shows a value
-
-#### Problem: GPU out of memory
-
-- **Cause:** Another process using GPU
-- **Solution:** Check `nvidia-smi` and stop other processes
-- **Or:** Reduce batch size (advanced - edit training config)
-
-### Container Management
-
-**Build container separately:**
-
-```bash
-./holohub build-container surgical_scene_recon
-```
-
-**Run container (builds if needed):**
-
-```bash
-./holohub run-container surgical_scene_recon
-```
-
-**Custom base image:**
-
-```bash
-./holohub build-container surgical_scene_recon \
-  --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v3.8.0-cuda12-dgpu
-```
-
-### CLI Help
-
-**Get mode information:**
-
-```bash
-./holohub modes surgical_scene_recon
-```
-
-**Get run help:**
-
-```bash
-./holohub run surgical_scene_recon -h
-./holohub run -h
-```
-
-**Get build help:**
-
-```bash
-./holohub build-container -h
-```
-
 ## Technical Details
 
 ### Training Pipeline (gsplat_train.py)
@@ -301,6 +233,32 @@ We provide integration tests that can be run with the following command to test 
 - **SSIM:** ~0.80
 - **Gaussians:** ~50,000 splats
 - **Deformation:** Smooth temporal consistency
+
+## Troubleshooting
+
+### Problem: "FileNotFoundError: poses_bounds.npy not found"
+
+- **Cause:** Dataset not in correct location or symlink used
+- **Solution:** Ensure dataset is physically at `<HOLOHUB_ROOT>/data/EndoNeRF/pulling/`
+- **Verify:** Run `file data/EndoNeRF` - should show "directory", not "symbolic link"
+
+### Problem: "Unable to find image holohub-surgical_scene_recon"
+
+- **Cause:** Container not built yet
+- **Solution:** Remove `--no-docker-build` flag (let CLI build automatically)
+- **Or:** Manually build: `./holohub build-container surgical_scene_recon`
+
+### Problem: Holoviz window doesn't appear
+
+- **Cause:** X11 forwarding not enabled
+- **Solution:** Run `xhost +local:docker` before training
+- **Verify:** Check `echo $DISPLAY` shows a value
+
+### Problem: GPU out of memory
+
+- **Cause:** Another process using GPU
+- **Solution:** Check `nvidia-smi` and stop other processes
+- **Or:** Reduce batch size (advanced - edit training config)
 
 ## Acknowledgements
 
