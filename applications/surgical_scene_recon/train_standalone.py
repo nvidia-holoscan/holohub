@@ -273,7 +273,7 @@ def main():
         print(f"{'='*70}")
         print(f"Trained checkpoint: {checkpoint}")
         print("\nRun inference and render with:")
-        print(f"    ./holohub run surgical_scene_recon render")
+        print("    ./holohub run surgical_scene_recon render")
         print(f"{'='*70}\n")
         return 0
     else:

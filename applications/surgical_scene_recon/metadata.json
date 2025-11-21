@@ -45,7 +45,7 @@
 			"verify_inference": {
 				"description": "Testing only to verify if the inference works",
 				"run": {
-					"command": "python run_surgical_recon.py --mode inference --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --checkpoint <holohub_app_bin>/output/trained_model/ckpts/fine_best_psnr.pt --num_frames 5",
+					"command": "python <holohub_app_source>/run_surgical_recon.py --mode inference --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --checkpoint <holohub_app_bin>/output/trained_model/ckpts/fine_best_psnr.pt --num_frames 5",
 					"workdir": "holohub_app_source"
 				}
 			},

@@ -73,6 +73,8 @@ def run_inference_mode(args):
         str(rendering_script),
         "--data_dir",
         args.data_dir,
+        "--output_dir",
+        args.output_dir,
         "--checkpoint",
         args.checkpoint,
         "--num_frames",
@@ -208,6 +210,9 @@ def main():
         "--data_dir", type=str, required=True, help="Path to EndoNeRF dataset directory"
     )
     parser.add_argument(
+        "--output_dir", type=str, default="output", help="Output directory"
+    )
+    parser.add_argument(
         "--num_frames", type=int, default=-1, help="Number of frames to process (default: -1 = all)"
     )
     parser.add_argument(
@@ -220,12 +225,6 @@ def main():
     )
 
     # Train mode arguments
-    parser.add_argument(
-        "--output_dir",
-        type=str,
-        default="output/train_then_render",
-        help="Output directory for training (train mode only)",
-    )
     parser.add_argument(
         "--training_iterations",
         type=int,
