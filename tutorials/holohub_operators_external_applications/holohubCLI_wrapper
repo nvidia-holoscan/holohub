@@ -16,23 +16,49 @@
 # limitations under the License.
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_URL="${CLI_REPO_URL:-https://github.com/nvidia-holoscan/holohub.git}"
+CLI_PINNED_COMMIT="${CLI_PINNED_COMMIT:-304ac2639ab004368c8ed9b3f2a47de2521969ca}"
 
-# Pulls the holohub CLI from the holohub repo
-# The script checks if utilities/cli exists in the current directory,
-# if not it pulls the holohub CLI from the holohub repo
-# To update the holohub CLI, remove the utilities/cli directory and run the script again
-if [ ! -d "${SCRIPT_PATH}/utilities/cli" ]; then
-    git clone --depth 1 --no-checkout https://github.com/nvidia-holoscan/holohub.git ${SCRIPT_PATH}/.tmp-holohub/holohub \
-        && cd ${SCRIPT_PATH}/.tmp-holohub/holohub \
-        && git sparse-checkout init --cone \
-        && git sparse-checkout set utilities/cli utilities/metadata utilities/testing utilities/setup cmake\
-        && git checkout main \
-        && mv ${SCRIPT_PATH}/.tmp-holohub/holohub/utilities ${SCRIPT_PATH} \
-        && mv ${SCRIPT_PATH}/.tmp-holohub/holohub/cmake ${SCRIPT_PATH} \
-        && rm -rf ${SCRIPT_PATH}/.tmp-holohub \
-        && cd ${SCRIPT_PATH}
+if [ -z "${CLI_PINNED_COMMIT}" ]; then
+    echo "Error: CLI_PINNED_COMMIT must be set to a valid commit hash."
+    exit 1
+fi
+
+# Function to download CLI from holohub repo (this demo simplified error handling for brevity)
+download_cli() {
+    echo "Downloading holohub CLI..."
+    rm -rf "${SCRIPT_PATH}/.tmp-holohub" \
+        && rm -rf "${SCRIPT_PATH}/utilities" \
+        && rm -rf "${SCRIPT_PATH}/cmake"
+
+    git clone --no-checkout --filter=blob:none --quiet "${REPO_URL}" "${SCRIPT_PATH}/.tmp-holohub/holohub" \
+        && cd "${SCRIPT_PATH}/.tmp-holohub/holohub" \
+        && git sparse-checkout init --cone >/dev/null 2>&1 \
+        && git sparse-checkout set utilities/cli utilities/metadata utilities/testing utilities/setup cmake >/dev/null 2>&1 \
+        && git fetch --quiet origin "${CLI_PINNED_COMMIT}" || true \
+        && git -c advice.detachedHead=false checkout --quiet "${CLI_PINNED_COMMIT}" \
+        && COMMIT_HASH=$(git rev-parse HEAD) \
+        && mv "${SCRIPT_PATH}/.tmp-holohub/holohub/utilities" "${SCRIPT_PATH}" \
+        && mv "${SCRIPT_PATH}/.tmp-holohub/holohub/cmake" "${SCRIPT_PATH}" \
+        && rm -rf "${SCRIPT_PATH}/.tmp-holohub" \
+        && cd "${SCRIPT_PATH}" \
+        && echo "${COMMIT_HASH}" > "${SCRIPT_PATH}/utilities/cli/.cli_commit_hash"
+
+    echo "✓ CLI downloaded successfully (commit ${COMMIT_HASH})"
+}
+
+# Check if CLI needs to be downloaded or force-updated (including the first time run)
+if [ "${CLI_FORCE_UPDATE}" = "1" ] || [ ! -d "${SCRIPT_PATH}/utilities/cli" ]; then
+    download_cli || { echo "Error: Failed to download CLI"; exit 1; }
 fi
 
 export HOLOHUB_CMD_NAME=${BASH_SOURCE[0]}
 
 PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/holohub.py "$@"
+CLI_EXIT_CODE=$?
+# Check for CLI updates after command completes
+if [ -f "${SCRIPT_PATH}/utilities/cli/version_check.py" ]; then
+    export CLI_PINNED_COMMIT
+    PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/version_check.py 2>/dev/null || true
+fi
+exit ${CLI_EXIT_CODE}
