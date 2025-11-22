@@ -17,6 +17,7 @@
 import os
 import subprocess
 import sys
+import tempfile
 import unittest
 from io import StringIO
 from pathlib import Path
@@ -25,7 +26,7 @@ from unittest.mock import MagicMock, patch
 # Add the utilities directory to the Python path
 sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
-from utilities.cli import util
+from utilities.cli import util, version_check
 from utilities.cli.holohub import HoloHubCLI
 
 
@@ -342,7 +343,6 @@ class TestHoloHubCLI(unittest.TestCase):
     @patch("utilities.cli.holohub.HoloHubCLI._add_to_cmakelists")
     def test_project_file_generation(self, mock_add_to_cmakelists):
         import shutil
-        import tempfile
         from pathlib import Path
 
         # Create temporary directory for test projects
@@ -467,7 +467,6 @@ class TestHoloHubCLI(unittest.TestCase):
     def test_custom_script_name_entry_point(self):
         """Test that CLI behaves as if it's called with the custom script name"""
         import subprocess
-        import tempfile
         from pathlib import Path
 
         # Create a custom entry point script
@@ -1015,6 +1014,56 @@ class TestRunCommand(unittest.TestCase):
         self.assertRaises(ValueError, util.parse_semantic_version, "1.2.dev3")
         self.assertGreater(util.parse_semantic_version("1.2.3"), (1, 1, 10))
         self.assertLess(util.parse_semantic_version("1.2.3"), (1, 12, 3))
+
+
+class TestVersionCheck(unittest.TestCase):
+    """Very simple tests for the version_check helper."""
+
+    @patch("utilities.cli.version_check.subprocess.run")
+    def test_prints_update_message_when_remote_is_newer(
+        self,
+        mock_run,
+    ):
+        from io import StringIO
+
+        # Use a temporary directory and mock __file__ so we don't touch the real module directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_module_path = Path(temp_dir) / "version_check.py"
+            temp_module_path.write_text("")  # dummy file so the path exists
+
+            with patch.object(version_check, "__file__", str(temp_module_path)):
+                # Point version_check at a known local hash and force an immediate check
+                module_path = Path(version_check.__file__)
+                commit_file = module_path.with_name(".cli_commit_hash")
+                last_check_file = module_path.with_name(".cli_last_check")
+
+                commit_file.write_text("localhash123456")
+                if last_check_file.exists():
+                    last_check_file.unlink()
+
+                remote_hash = "remotehash654321"
+                mock_run.return_value = subprocess.CompletedProcess(
+                    args=["git", "ls-remote"],
+                    returncode=0,
+                    stdout=f"{remote_hash}\trefs/heads/main\n",
+                    stderr="",
+                )
+
+                original_interval = os.environ.get("CLI_CHECK_INTERVAL")
+                os.environ["CLI_CHECK_INTERVAL"] = "0"
+                try:
+                    with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                        version_check.check_for_cli_updates()
+                finally:
+                    if original_interval is not None:
+                        os.environ["CLI_CHECK_INTERVAL"] = original_interval
+                    else:
+                        os.environ.pop("CLI_CHECK_INTERVAL", None)
+
+        output = mock_stdout.getvalue()
+        self.assertIn("A new version of", output)
+        self.assertIn("localhas", output)
+        self.assertIn("remoteha", output)
 
 
 if __name__ == "__main__":
