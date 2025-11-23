@@ -52,11 +52,6 @@ TMP_HOLOHUB_DIR="${SCRIPT_PATH}/.tmp-holohub"
 REPO_URL="${CLI_REPO_URL:-https://github.com/nvidia-holoscan/holohub.git}"
 CLI_PINNED_COMMIT="${CLI_PINNED_COMMIT:-304ac2639ab004368c8ed9b3f2a47de2521969ca}"
 
-if [ -z "${CLI_PINNED_COMMIT}" ]; then
-    echo "Error: CLI_PINNED_COMMIT must be set to a valid commit hash."
-    exit 1
-fi
-
 cleanup_tmp() {
     rm -rf "${TMP_HOLOHUB_DIR}"
 }
