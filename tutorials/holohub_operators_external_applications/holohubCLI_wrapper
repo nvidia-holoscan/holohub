@@ -105,7 +105,7 @@ export HOLOHUB_CMD_NAME=${BASH_SOURCE[0]}
 
 PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/holohub.py "$@" || CLI_EXIT_CODE=$?
 
-# Check for CLI version has after command completes
+# Check for CLI version hash after command completes
 if [ -f "${SCRIPT_PATH}/utilities/cli/version_check.py" ]; then
     export CLI_PINNED_COMMIT
     PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/version_check.py 2>/dev/null || true
