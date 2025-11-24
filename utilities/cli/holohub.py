@@ -1031,7 +1031,7 @@ class HoloHubCLI:
                 ]
             )
             # Set default SCCACHE properties if not set
-            build_env.setdefault("SCCACHE_DIR", str(Path.home() / ".cache" / "sccache"))
+            build_env.setdefault("SCCACHE_DIR", holohub_cli_util.get_sccache_dir(build_env))
             build_env.setdefault("SCCACHE_CACHE_SIZE", "20G")
             # Print SCCACHE environment variables
             holohub_cli_util.info(f"Using sccache: {sccache_bin}")
