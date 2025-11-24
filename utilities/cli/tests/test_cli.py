@@ -27,6 +27,7 @@ sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
 from utilities.cli import util
 from utilities.cli.holohub import HoloHubCLI
+from utilities.cli.version_check import check_for_cli_updates
 
 
 def is_cookiecutter_available():
@@ -1015,6 +1016,26 @@ class TestRunCommand(unittest.TestCase):
         self.assertRaises(ValueError, util.parse_semantic_version, "1.2.dev3")
         self.assertGreater(util.parse_semantic_version("1.2.3"), (1, 1, 10))
         self.assertLess(util.parse_semantic_version("1.2.3"), (1, 12, 3))
+
+
+class TestVersionCheck(unittest.TestCase):
+    """Test the CLI version check functionality"""
+
+    @patch.dict(os.environ, {"CLI_PINNED_COMMIT": "abc1234"})
+    @patch("pathlib.Path.read_text")
+    @patch("builtins.print")
+    def test_mismatched_commit_hash(self, mock_print, mock_read_text):
+        """Test that warning is printed when commit hashes don't match"""
+        mock_read_text.return_value = "def5678"
+        check_for_cli_updates()
+
+        # Verify warning was printed
+        mock_print.assert_called()
+        print_calls = [call[0][0] for call in mock_print.call_args_list if call[0]]
+        output = " ".join(str(c) for c in print_calls)
+        self.assertIn("does not match", output)
+        self.assertIn("def5678", output)
+        self.assertIn("abc1234", output)
 
 
 if __name__ == "__main__":
