@@ -30,6 +30,7 @@
 				"description": "Example data dependency - remove or replace with actual requirements"
 			}
 		},
+		"default_mode": "publish",
 		"modes": {
 			"publish": {
 				"description": "Publisher mode (server)",
