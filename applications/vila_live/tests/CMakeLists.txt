@@ -24,12 +24,13 @@ add_test(NAME vila_live_tinychat_test
 # Set test properties
 set_tests_properties(vila_live_vlm_test
   PROPERTIES
-  ENVIRONMENT "HOLOHUB_DATA_DIR=${HOLOHUB_DATA_DIR}"
+  ENVIRONMENT "HOLOHUB_DATA_DIR=${HOLOHUB_DATA_DIR};VILA_LIVE_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/../vila_live_testing.yaml"
   PASS_REGULAR_EXPRESSION "Scheduler finished"
   FAIL_REGULAR_EXPRESSION "FAILED")
 
 # Set test properties for TinyChat test
 set_tests_properties(vila_live_tinychat_test
   PROPERTIES
+  ENVIRONMENT "VILA_LIVE_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/../vila_live_testing.yaml"
   PASS_REGULAR_EXPRESSION "Llama"
   FAIL_REGULAR_EXPRESSION "Traceback")

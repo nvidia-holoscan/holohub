@@ -30,6 +30,7 @@ add_library(
   xr
   xr_begin_frame_op.cpp
   xr_composition_layers.cpp
+  xr_empty_composition_layer_op.cpp
   xr_end_frame_op.cpp
   xr_hand_tracker.cpp
   xr_composition_layer_manager.cpp

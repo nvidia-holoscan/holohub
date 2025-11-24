@@ -26,6 +26,8 @@
 #include <xr_begin_frame_op.hpp>
 #include <xr_begin_frame_pydoc.hpp>
 #include <xr_composition_layers.hpp>
+#include <xr_empty_composition_layer_op.hpp>
+#include <xr_empty_composition_layer_pydoc.hpp>
 #include <xr_end_frame_op.hpp>
 #include <xr_end_frame_pydoc.hpp>
 #include <xr_hand_tracker.hpp>
@@ -70,6 +72,23 @@ class PyXrEndFrameOp : public XrEndFrameOp {
                  std::shared_ptr<holoscan::XrSession> xr_session,
                  const std::string& name = "xr_end_frame")
       : XrEndFrameOp(ArgList{Arg{"xr_session", xr_session}}) {
+    add_positional_condition_and_resource_args(this, args);
+    name_ = name;
+    fragment_ = fragment;
+    spec_ = std::make_shared<OperatorSpec>(fragment);
+    setup(*spec_.get());
+  }
+};
+
+class PyXrEmptyCompositionLayerOp : public XrEmptyCompositionLayerOp {
+ public:
+  /* Inherit the constructors */
+  using XrEmptyCompositionLayerOp::XrEmptyCompositionLayerOp;
+
+  // Define a constructor that fully initializes the object.
+  PyXrEmptyCompositionLayerOp(Fragment* fragment, const py::args& args,
+                               const std::string& name = "xr_empty_composition_layer")
+      : XrEmptyCompositionLayerOp() {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -185,6 +204,18 @@ PYBIND11_MODULE(_xr, m) {
            "xr_session"_a,
            "name"_a = "xr_end_frame_op"s,
            doc::XrEndFrameOp::doc_XrEndFrameOp_python);
+  py::class_<ops::XrEmptyCompositionLayerOp,
+             ops::PyXrEmptyCompositionLayerOp,
+             Operator,
+             std::shared_ptr<ops::XrEmptyCompositionLayerOp>>(
+      m,
+      "XrEmptyCompositionLayerOp",
+      doc::XrEmptyCompositionLayerOp::doc_XrEmptyCompositionLayerOp_python)
+      .def(
+          py::init<Fragment*, const py::args&, const std::string&>(),
+          "fragment"_a,
+          "name"_a = "xr_empty_composition_layer_op"s,
+          doc::XrEmptyCompositionLayerOp::doc_XrEmptyCompositionLayerOp_python);
 
   py::class_<XrSession, PyXrSession, holoscan::Resource, std::shared_ptr<XrSession>>(m, "XrSession")
       .def(py::init<Fragment*, const std::string&, uint32_t, const std::string&>(),

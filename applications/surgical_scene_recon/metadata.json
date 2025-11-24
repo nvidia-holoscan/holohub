@@ -1,0 +1,68 @@
+{
+	"application": {
+		"name": "Surgical Scene Reconstruction",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release - Static and Dynamic Gaussian Splatting with Temporal Deformation"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.7.0",
+			"tested_versions": [
+				"3.7.0"
+			]
+		},
+		"platforms": [
+			"x86_64"
+		],
+		"tags": ["Healthcare AI", "Endoscopy", "3D Reconstruction", "Gaussian Splatting", "Neural Rendering", "Temporal Deformation"],
+		"ranking": 2,
+		"requirements": {
+			"data": [
+				{
+					"name": "EndoNeRF dataset",
+					"description": "This dataset contains the surgical videos and the corresponding ground truth poses and bounds.",
+					"url": "https://drive.google.com/drive/folders/1zTcX80c1yrbntY9c6-EK2W2UVESVEug8?usp=sharing",
+					"version": "20220629"
+				}
+			]
+		},
+		"default_mode": "train",
+		"modes": {
+			"verify_train": {
+				"description": "Testing only (poor quality) to verify if the training works",
+				"run": {
+					"command": "python3 <holohub_app_source>/train_standalone.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --training_iterations 20 --coarse_iterations 5 --num_frames 10",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"verify_inference": {
+				"description": "Testing only to verify if the inference works",
+				"run": {
+					"command": "python <holohub_app_source>/run_surgical_recon.py --mode inference --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --checkpoint <holohub_app_bin>/output/trained_model/ckpts/fine_best_psnr.pt --num_frames 5",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"train": {
+				"description": "Good quality training: all 63 frames, 2000 iterations (~5 min) - smooth temporal deformation",
+				"run": {
+					"command": "python3 <holohub_app_source>/train_standalone.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --training_iterations 2000 --coarse_iterations 200",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"render": {
+				"description": "High-quality rendering with temporal deformation (requires pre-trained checkpoint)",
+				"run": {
+					"command": "python3 <holohub_app_source>/dynamic_rendering_viz.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --checkpoint <holohub_app_bin>/output/trained_model/ckpts/fine_best_psnr.pt",
+					"workdir": "holohub_app_source"
+				}
+			}
+		}
+	}
+}

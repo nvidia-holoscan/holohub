@@ -29,8 +29,6 @@ from holoscan.operators import (
 )
 from holoscan.resources import UnboundedAllocator
 
-from holohub.aja_source import AJASourceOp
-
 
 class DetectionPostprocessorOp(Operator):
     """Example of an operator post processing the tensor from inference component.
@@ -156,7 +154,12 @@ class MultiAIDetectionSegmentation(Application):
 
         # start constructing app
         is_aja = self.source.lower() == "aja"
-        SourceClass = AJASourceOp if is_aja else VideoStreamReplayerOp
+        if is_aja:
+            from holohub.aja_source import AJASourceOp
+
+            SourceClass = AJASourceOp
+        else:
+            SourceClass = VideoStreamReplayerOp
         source_kwargs = self.kwargs(self.source)
         if self.source == "replayer":
             video_dir = os.path.join(self.sample_data_path, "endoscopy")
