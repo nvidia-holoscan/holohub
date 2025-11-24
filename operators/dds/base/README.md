@@ -3,7 +3,7 @@
 The DDS Base Operator provides a base class which can be inherited by any
 operator class which requires access to a DDS domain.
 
-This operator requires an installation of [RTI Connext Express](https://content.rti.com/l/983311/2025-07-08/q5x1n8) to provide access to the DDS domain, as specified by the [OMG Data-Distribution Service](https://www.omg.org/omg-dds-portal/). To obtain a license/activation key, please [click here](https://content.rti.com/l/983311/2025-07-25/q6729c). Please see the [usage rules](https://www.rti.com/products/connext-express) for Connext Express.
+This operator requires an installation of [RTI Connext](https://content.rti.com/l/983311/2025-07-08/q5x1n8) to provide access to the DDS domain, as specified by the [OMG Data-Distribution Service](https://www.omg.org/omg-dds-portal/). To obtain a license/activation key, please [click here](https://content.rti.com/l/983311/2025-07-25/q6729c). Additional information on Connext can be found here: https://www.rti.com/products/third-party-integrations/nvidia.  For any questions, please email evaluations@rti.com
 
 #### `holoscan::ops::DDSOperatorBase`
 
