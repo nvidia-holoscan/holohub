@@ -48,8 +48,8 @@ Expected output:
 ```
 
 You should now see:
-- **Server window**: Original video with tool tracking overlays
-- **Client window**: Received processed frames with tool tracking
+- **Server window**: Video with tool tracking overlays (rendered locally)
+- **Client window**: Same rendered frame as server (broadcasted over network)
 
 ## Architecture Overview
 
@@ -57,30 +57,35 @@ You should now see:
 ```
 Video Replayer → Format Converter → LSTM Inference → Postprocessor
                                                            ↓
+                                                      HolovizOp
+                                                   (Render overlays)
+                                                           ↓
                                         ┌──────────────────┴─────────┐
                                         ↓                            ↓
-                                   HolovizOp                   UCXX Sender
-                                (Local Display)            (Broadcast @tag=1)
+                                (Local Display)                UCXX Sender
+                                                          (Broadcast @tag=1)
 ```
 
 ### Client Flow
 ```
 UCXX Receiver (@tag=1) → HolovizOp (Display)
+  (rendered frame)        (simple display)
 ```
 
 ### Message Flow
 
-1. **Server Processing**:
+1. **Server Processing & Rendering**:
    - Replays surgical video frame
    - Runs LSTM inference for tool detection
    - Post-processes to generate masks and coordinates
-   - Displays locally via HolovizOp
-   - Broadcasts via UCXX to all connected clients
+   - **Renders visualization with tool tracking overlays using HolovizOp**
+   - Displays rendered frame locally
+   - Broadcasts **pre-rendered RGBA frame** via UCXX to all connected clients
 
 2. **Client Reception**:
-   - Receives processed frame data via UCXX
-   - Deserializes tool tracking results
-   - Displays with HolovizOp
+   - Receives **rendered frame** (RGBA image) via UCXX
+   - Deserializes image data
+   - Displays with HolovizOp (simple image display, no overlay processing needed)
 
 ## Multi-Machine Deployment
 
@@ -130,11 +135,20 @@ auto ucxx_endpoint = make_resource<UcxxEndpoint>(
     Arg("listen", true)           // Server mode
 );
 
+auto holoviz = make_operator<HolovizOp>(
+    "holoviz",
+    Arg("enable_render_buffer_output") = true,  // Enable output
+    Arg("allocator") = allocator
+);
+
 auto ucxx_sender = make_operator<UcxxSenderOp>(
     "ucxx_sender",
     Arg("tag", 1ul),              // Message tag
     Arg("endpoint", ucxx_endpoint)
 );
+
+// Send rendered frames
+add_flow(holoviz, ucxx_sender, {{"render_buffer_output", "in"}});
 ```
 
 **Client (Connect Mode):**
@@ -149,7 +163,7 @@ auto ucxx_endpoint = make_resource<UcxxEndpoint>(
 auto ucxx_receiver = make_operator<UcxxReceiverOp>(
     "ucxx_receiver",
     Arg("tag", 1ul),                    // Must match sender tag
-    Arg("schema_name", "isaac.ToolTrackingPostprocessorOutput"),
+    Arg("schema_name", "isaac.Tensor"), // Receiving Tensor (rendered frames)
     Arg("buffer_size", buffer_size),
     Arg("endpoint", ucxx_endpoint)
 );
@@ -157,17 +171,35 @@ auto ucxx_receiver = make_operator<UcxxReceiverOp>(
 
 ### Message Tags
 
-- **Tag 1**: Tool tracking postprocessor output (Server → Client)
+- **Tag 1**: Rendered RGBA frames (Server → Client)
 
 Tags must match between sender and receiver pairs.
 
 ### Data Schema
 
-The server broadcasts `ToolTrackingPostprocessorOutput` which includes:
-- `mask`: RGBA color mask for tools (107×60×7)
-- `scaled_coords`: Tool coordinates and sizes (7×3)
+The server broadcasts `isaac.Tensor` (rendered frames) which includes:
+- **Schema**: `isaac.Tensor` (defined in `tensor.fbs`)
+- **Shape**: [480, 854, 4] (height, width, RGBA channels)
+- **Data Type**: uint8 (RGBA8 format, 4 bytes per pixel)
+- **Device**: GPU or CPU tensor depending on HolovizOp output
+- **Size**: ~1.6 MB per frame (data payload)
+- **Content**: Pre-rendered video with all tool tracking overlays
 
-Serialized using FlatBuffers for efficient transmission.
+The Tensor schema includes:
+```cpp
+table Tensor (native_type: "holoscan::Tensor") {
+  data: [ubyte];      // Raw pixel data
+  shape: [int64];     // [height, width, channels]
+  dtype: DLDataType;  // Data type info (uint8)
+  device: DLDevice;   // Device context (CPU/GPU)
+  ndim: uint32;       // Number of dimensions (3)
+  strides: [int64];   // Memory strides
+}
+```
+
+Serialized using FlatBuffers for efficient transmission with native `holoscan::Tensor` support.
+
+**Key Benefit**: Clients don't need to understand tool tracking data structures - they just display the rendered Tensor as an image!
 
 ## Command Reference
 

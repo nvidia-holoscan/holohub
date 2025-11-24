@@ -23,13 +23,14 @@
 namespace holoscan::apps {
 
 /**
- * @brief Server application that processes endoscopy video and broadcasts results
+ * @brief Simplified server application that broadcasts raw video frames
  * 
  * This application:
  * - Replays endoscopy video from disk
- * - Runs LSTM inference for tool tracking
- * - Displays processed results locally with HolovizOp
- * - Broadcasts processed frames to connected clients via UCXX
+ * - Broadcasts raw frames to connected clients via UCXX
+ * 
+ * Note: This is a simplified version for debugging UCXX transmission.
+ * Processing and rendering have been removed.
  */
 class UcxxEndoscopyServerApp : public holoscan::Application {
  public:

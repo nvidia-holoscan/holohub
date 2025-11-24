@@ -4,8 +4,8 @@
 
 This application demonstrates distributed execution of the Endoscopy Tool Tracking pipeline using UCXX operators for high-performance inter-node communication. The application uses a **server-client architecture** where:
 
-- **Server**: Replays video data, runs LSTM inference for tool tracking, displays results locally, and broadcasts processed frames to clients
-- **Client**: Receives processed frames from the server and displays them
+- **Server**: Replays video data, runs LSTM inference for tool tracking, renders visualization with overlays, and broadcasts the rendered frames to clients
+- **Client**: Receives pre-rendered frames from the server and displays them
 
 **Key Features:**
 - Distributed processing with UCXX (Unified Communication X)
@@ -22,16 +22,19 @@ This application is built using Holoscan SDK version 3.8.0 and supports the foll
 ```
 [Video Replayer] → [Format Converter] → [LSTM Inference] → [Tool Tracking Postprocessor]
                                                                          ↓
+                                                                    [HolovizOp]
+                                                                   (Render with overlays)
+                                                                         ↓
                                               ┌──────────────────────────┴────────────┐
                                               ↓                                        ↓
-                                         [HolovizOp]                            [UCXX Sender]
-                                     (Local Display)                          (Broadcast to Clients)
+                                      (Local Display)                           [UCXX Sender]
+                                                                          (Broadcast rendered frame)
 ```
 
 ### Client Pipeline
 ```
 [UCXX Receiver] → [HolovizOp]
- (from Server)     (Display)
+(rendered frame)   (Display)
 ```
 
 ## Prerequisites
@@ -162,8 +165,12 @@ sudo ufw allow 50008/tcp
 
 - **Protocol**: UCXX over TCP
 - **Default Port**: 50008
-- **Message Tag**: 1 (for processed frames)
-- **Data Format**: Tool tracking postprocessor output (FlatBuffers)
+- **Message Tag**: 1 (for rendered frames)
+- **Data Format**: `isaac.Tensor` (FlatBuffers schema)
+  - Shape: [480, 854, 4] (height, width, channels)
+  - Data Type: RGBA8 (4 bytes per pixel)
+  - Device: GPU or CPU depending on configuration
+- **Frame Size**: ~1.6 MB per frame (data payload)
 
 ## Data Requirements
 
@@ -201,12 +208,12 @@ ucxx_endoscopy_tool_tracking/
 - `FormatConverterOp`: Preprocesses video frames
 - `LSTMTensorRTInferenceOp`: Runs tool detection inference
 - `ToolTrackingPostprocessorOp`: Post-processes inference results
-- `HolovizOp`: Local visualization
-- `UcxxSenderOp`: Broadcasts to clients
+- `HolovizOp`: Renders visualization with tool tracking overlays
+- `UcxxSenderOp`: Broadcasts rendered frames to clients
 
 **Client:**
-- `UcxxReceiverOp`: Receives processed frames
-- `HolovizOp`: Displays results
+- `UcxxReceiverOp`: Receives pre-rendered frames from server
+- `HolovizOp`: Displays the received frames (simple image display)
 
 ### Extending the Application
 

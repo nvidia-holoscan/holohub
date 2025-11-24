@@ -30,7 +30,7 @@ void UcxxEndoscopyClientApp::compose() {
   const uint32_t width = 854;
   const uint32_t height = 480;
 
-  HOLOSCAN_LOG_INFO("Composing CLIENT application - receiving and displaying processed frames");
+  HOLOSCAN_LOG_INFO("Composing SIMPLIFIED CLIENT - receiving and displaying raw frames");
 
   // UCXX endpoint for receiving from server
   auto ucxx_endpoint = make_resource<isaac::os::UcxxEndpoint>(
@@ -39,27 +39,27 @@ void UcxxEndoscopyClientApp::compose() {
       Arg("port", port_),
       Arg("listen", false));
 
-  // UCXX receiver to get processed frames from server
-  // Buffer size needs to accommodate the postprocessor output
-  const uint64_t buffer_size = 107 * 60 * 7 * 4 * sizeof(float);
+  // UCXX receiver to get rendered frames from server as Tensor
+  // Buffer size for RGBA frame: width * height * 4 channels + metadata overhead
+  const int buffer_size = (4 << 10) + width * height * 4;
   auto ucxx_receiver = make_operator<isaac::os::ops::UcxxReceiverOp>(
       "ucxx_receiver",
       Arg("tag", 1ul),
-      Arg("schema_name", "isaac.ToolTrackingPostprocessorOutput"),
+      Arg("schema_name", "isaac.Tensor"),
       Arg("buffer_size", buffer_size),
       Arg("endpoint", ucxx_endpoint));
 
-  // Client-side visualization
+  // Client-side visualization - simple image display
   auto holoviz = make_operator<ops::HolovizOp>(
       "holoviz",
       from_config("holoviz_client"),
       Arg("width") = width,
       Arg("height") = height);
 
-  // Display received processed frames
+  // Display received rendered frames (Tensor output)
   add_flow(ucxx_receiver, holoviz, {{"out", "receivers"}});
 
-  HOLOSCAN_LOG_INFO("Client pipeline: Receive → Display");
+  HOLOSCAN_LOG_INFO("Simplified client pipeline: Receive → Display");
 }
 
 }  // namespace holoscan::apps

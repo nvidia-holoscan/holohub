@@ -108,28 +108,9 @@ holoviz:
 
 holoviz_client:
   tensors:
-    - name: mask
+    - name: ""
       type: color
       opacity: 1.0
       priority: 0
-    - name: scaled_coords
-      type: crosses
-      opacity: 1.0
-      line_width: 4
-      color: [1.0, 0.0, 0.0, 1.0]
-      priority: 1
-    - name: scaled_coords
-      type: text
-      opacity: 1.0
-      priority: 2
-      color: [1.0, 1.0, 1.0, 0.9]
-      text:
-        - Grasper
-        - Bipolar
-        - Hook
-        - Scissors
-        - Clipper
-        - Irrigator
-        - Spec.Bag
   headless: false
 

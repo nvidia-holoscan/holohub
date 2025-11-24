@@ -22,6 +22,7 @@
 namespace isaac {
 
 MessageRegistry::MessageRegistry() {
+  add_message<holoscan::Tensor, DefaultMessageReflection<holoscan::Tensor, isaac::Tensor>>();
   add_message<isaac::Tensor, DefaultMessageReflection<holoscan::Tensor, isaac::Tensor>>();
 }
 

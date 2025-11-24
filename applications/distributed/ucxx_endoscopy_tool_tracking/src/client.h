@@ -23,12 +23,12 @@
 namespace holoscan::apps {
 
 /**
- * @brief Client application that receives and displays processed frames
+ * @brief Client application that receives and displays rendered frames
  * 
  * This application:
  * - Connects to the server via UCXX
- * - Receives processed endoscopy frames with tool tracking annotations
- * - Displays the results with HolovizOp
+ * - Receives pre-rendered frames with tool tracking overlays
+ * - Displays the frames with HolovizOp (simple image display)
  */
 class UcxxEndoscopyClientApp : public holoscan::Application {
  public:

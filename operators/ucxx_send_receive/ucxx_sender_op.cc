@@ -17,6 +17,8 @@
 
 #include "ucxx_sender_op.h"
 
+#include <holoscan/holoscan.hpp>
+#include "gxf/std/tensor.hpp"
 #include "message_reflection.h"
 #include "message_registry.h"
 #include "tensor_materialization.h"
@@ -42,13 +44,14 @@ void UcxxSenderOp::setup(holoscan::OperatorSpec& spec) {
 
 void UcxxSenderOp::compute(holoscan::InputContext& input, holoscan::OutputContext&,
                            holoscan::ExecutionContext&) {
-  auto message = input.receive<std::any>("in").value();
+  auto in_message = input.receive<holoscan::gxf::Entity>("in").value();
+  auto tensor = in_message.get<holoscan::Tensor>("");
 
   // Look up the MessageReflection object for the message and use it to serialize the message to a
   // flatbuffer.
   const MessageRegistry& registry = MessageRegistry::get_instance();
   const std::optional<std::reference_wrapper<const MessageReflection>> reflection =
-      registry.get_message_reflection(message);
+      registry.get_message_reflection(tensor);
   if (!reflection.has_value()) {
     HOLOSCAN_LOG_ERROR("Message type not registered");
     return;
@@ -56,7 +59,7 @@ void UcxxSenderOp::compute(holoscan::InputContext& input, holoscan::OutputContex
   SendRequest& send = requests_.emplace_back();
   {
     isaac::WithTensorMaterialization materialize_tensors;
-    auto offset = reflection.value().get().pack(send.flatbuffer_builder, message);
+    auto offset = reflection.value().get().pack(send.flatbuffer_builder, tensor);
     send.flatbuffer_builder.Finish(offset);
   }
 
