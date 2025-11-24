@@ -30,9 +30,35 @@
 		],
 		"ranking": 1,
 		"requirements": {},
-		"run": {
-			"command": "python3 <holohub_app_source>/pipeline_visualization.py",
-			"workdir": "holohub_bin"
+		"default_mode": "standard",
+		"modes": {
+			"static_web": {
+				"description": "Static visualization of pipeline data",
+				"run": {
+					"command": "python3 <holohub_app_source>/../visualizer/visualizer_static.py",
+					"workdir": "holohub_bin"
+				},
+				"env": {
+					"PYTHONPATH": "<holohub_app_bin>/../flatbuffers"
+				}
+			},
+			"dynamic_web": {
+				"description": "Dynamic visualization of pipeline data",
+				"run": {
+					"command": "python3 <holohub_app_source>/../visualizer/visualizer_dynamic.py",
+					"workdir": "holohub_bin"
+				},
+				"env": {
+					"PYTHONPATH": "<holohub_app_bin>/../flatbuffers"
+				}
+			},
+			"standard": {
+				"description": "Standard mode for pipeline visualization",
+				"run": {
+					"command": "python3 <holohub_app_source>/pipeline_visualization.py",
+					"workdir": "holohub_bin"
+				}
+			}
 		}
 	}
 }
