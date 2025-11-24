@@ -43,6 +43,7 @@ from .util import (
     get_holohub_setup_scripts_dir,
     get_host_gpu,
     get_image_pythonpath,
+    get_sccache_dir,
     info,
     list_normalized_languages,
     replace_placeholders,
@@ -636,9 +637,7 @@ class HoloHubContainer:
         _, enable_sccache = get_env_bool("HOLOHUB_ENABLE_SCCACHE", default=False)
         has_host_sccache_env = any(k.startswith("SCCACHE_") for k in os.environ)
         if enable_sccache:
-            sccache_host_dir = os.environ.get("SCCACHE_DIR")
-            if not sccache_host_dir:
-                sccache_host_dir = str(Path.home() / ".cache" / "sccache")
+            sccache_host_dir = get_sccache_dir()
             info(f"Host SCCACHE_DIR: {sccache_host_dir}")
             info(f"Container mount point: {SCCACHE_CONTAINER_DIR}")
             os.makedirs(sccache_host_dir, exist_ok=True)  # Pre-create for the current user to own
