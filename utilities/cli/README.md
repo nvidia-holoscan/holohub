@@ -382,28 +382,28 @@ Both modes automatically share the same Docker image name (`holohub:myapp`), so 
   - `mode_name.build.env`: Set environment variables **only for build and install**
   - `mode_name.run.env`: Set environment variables **only for run**
   - They can affect CLI behavior (e.g., `HOLOHUB_BUILD_LOCAL` to force local builds)
-  - You can append to the existing environment variables by using `:` prefix or suffix. like
+  - You can append to the existing environment variables by using `:`, like
 
     ```json
     "modes": {
       "mode_name": {
         "env": {
-          "PATH": ":<holohub_app_bin>/bin"  # append to the existing PATH
+          "PATH": "<PATH>:<holohub_app_bin>/bin"  # append to the existing PATH
         }
       }
       "env": {
-        "PATH": "<holohub_bin>/bin:"  # prepend to the existing PATH
+        "PATH": "<holohub_bin>/bin:<PATH>"  # prepend to the existing PATH
       }
     }
     ```
 
-  - If it is set without `:` prefix or suffix, it will override the existing environment variable, like:
+  - If it is without appending or prepending, it will override the existing environment variable, like:
 
     ```json
     "modes": {
       "mode_name": {
         "env": {
-          "PATH": "<holohub_app_source>/bin"  # override the existing PATH (without :)
+          "PATH": "<holohub_app_source>/bin"  # override the existing PATH
         }
       }
     }

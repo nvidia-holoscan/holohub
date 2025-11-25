@@ -938,7 +938,7 @@ class HoloHubCLI:
         parallel: Optional[str] = None,
         benchmark: bool = False,
         configure_args: Optional[list[str]] = None,
-        env: Optional[dict] = None,
+        extra_env: Optional[dict] = None,
     ) -> tuple[Path, dict]:
         """Helper method to build a project locally"""
         project_data = self.find_project(project_name=project_name, language=language)
@@ -966,20 +966,19 @@ class HoloHubCLI:
         build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / project_name
         build_dir.mkdir(parents=True, exist_ok=True)
 
-        # Build path mapping
-        path_mapping = holohub_cli_util.build_holohub_path_mapping(
-            holohub_root=self.HOLOHUB_ROOT,
-            project_data=project_data,
-            build_dir=build_dir,
-            data_dir=self.DEFAULT_DATA_DIR,
-            prefix=self.prefix,
-            verbose=dryrun,
-        )
-
         # Prepare environment with extra env vars
         build_env = os.environ.copy()
-        if env:
-            holohub_cli_util.update_env(build_env, env, path_mapping, verbose=dryrun)
+        if extra_env:
+            # Build path mapping
+            path_mapping = holohub_cli_util.build_holohub_path_mapping(
+                holohub_root=self.HOLOHUB_ROOT,
+                project_data=project_data,
+                build_dir=build_dir,
+                data_dir=self.DEFAULT_DATA_DIR,
+                prefix=self.prefix,
+                verbose=dryrun,
+            )
+            holohub_cli_util.update_env(build_env, extra_env, path_mapping, verbose=dryrun)
 
         proj_prefix = holohub_cli_util.determine_project_prefix(project_type)
         cmake_args = [
@@ -1155,7 +1154,7 @@ class HoloHubCLI:
                 parallel=getattr(args, "parallel", None),
                 benchmark=getattr(args, "benchmark", False),
                 configure_args=build_args.get("configure_args"),
-                env=build_mode_env,
+                extra_env=build_mode_env,
             )
         else:
             # Build in container
@@ -1300,7 +1299,7 @@ class HoloHubCLI:
                     pkg_generator=getattr(args, "pkg_generator", "DEB"),
                     parallel=getattr(args, "parallel", None),
                     configure_args=build_args.get("configure_args"),
-                    env=build_mode_env,
+                    extra_env=build_mode_env,
                 )
 
             # Build path mapping
@@ -1327,8 +1326,8 @@ class HoloHubCLI:
                 run_env, run_mode_env, path_mapping, verbose=(args.verbose or args.dryrun)
             )
 
-            # Process command template using the path mapping
-            cmd = holohub_cli_util.replace_placeholders(run_config["command"], path_mapping)
+            # Process command template using the path mapping and environment variables
+            cmd = holohub_cli_util.replace_placeholders(run_config["command"], path_mapping, run_env)
 
             # Use effective run args (which may come from mode or CLI)
             effective_run_args = run_args.get("run_args")
@@ -1937,7 +1936,7 @@ class HoloHubCLI:
                 dryrun=args.dryrun,
                 parallel=getattr(args, "parallel", None),
                 configure_args=build_args.get("configure_args"),
-                env=build_mode_env,
+                extra_env=build_mode_env,
             )
 
             # Build path mapping
