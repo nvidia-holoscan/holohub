@@ -1133,15 +1133,14 @@ class HoloHubCLI:
         build_args = self.get_effective_build_config(args, mode_config)
 
         # Get mode-specific build environment variables
-        mode_env = mode_config.get("env", {})
-        # Update mode environment variables with build environment variables
-        holohub_cli_util.update_env(mode_env, mode_config.get("build", {}).get("env", {}))
+        build_mode_env = mode_config.get("env", {}).copy()
+        holohub_cli_util.update_env(build_mode_env, mode_config.get("build", {}).get("env", {}))
 
         # Check if local mode is requested
         is_local_mode = (
             args.local
             or os.environ.get("HOLOHUB_BUILD_LOCAL")
-            or mode_env.get("HOLOHUB_BUILD_LOCAL")
+            or build_mode_env.get("HOLOHUB_BUILD_LOCAL")
         )
 
         if is_local_mode:
@@ -1155,7 +1154,7 @@ class HoloHubCLI:
                 parallel=getattr(args, "parallel", None),
                 benchmark=getattr(args, "benchmark", False),
                 configure_args=build_args.get("configure_args"),
-                env=mode_env,
+                env=build_mode_env,
             )
         else:
             # Build in container
@@ -1252,11 +1251,11 @@ class HoloHubCLI:
             holohub_cli_util.fatal(f"Project '{args.project}' does not have a run configuration")
 
         # Get mode-specific build environment variables
-        build_mode_env = mode_config.get("env", {})
+        build_mode_env = mode_config.get("env", {}).copy()
         holohub_cli_util.update_env(build_mode_env, mode_config.get("build", {}).get("env", {}))
 
         # Get mode-specific run environment variables
-        run_mode_env = mode_config.get("env", {})
+        run_mode_env = mode_config.get("env", {}).copy()
         holohub_cli_util.update_env(run_mode_env, run_config.get("env", {}))
 
         # Check if builds should be skipped
@@ -1917,7 +1916,8 @@ class HoloHubCLI:
         build_args = self.get_effective_build_config(args, mode_config)
 
         # Get mode-specific build environment variables
-        build_mode_env = mode_config.get("build", {}).get("env", {})
+        build_mode_env = mode_config.get("env", {}).copy()
+        holohub_cli_util.update_env(build_mode_env, mode_config.get("build", {}).get("env", {}))
 
         # Check if local mode is requested
         is_local_mode = (
