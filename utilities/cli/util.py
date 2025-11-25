@@ -1141,7 +1141,7 @@ def replace_placeholders(
         env_placeholders = re.findall(r"<([^>]+)>", result)
         for env_placeholder in env_placeholders:
             bracketed_env_placeholder = f"<{env_placeholder}>"
-            result = result.replace(bracketed_env_placeholder, env_mapping[env_placeholder])
+            result = result.replace(bracketed_env_placeholder, env_mapping.get(env_placeholder, ""))
 
     return result
 
