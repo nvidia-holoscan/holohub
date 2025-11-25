@@ -140,7 +140,7 @@ class TestHoloHubCLI(unittest.TestCase):
         # Test run command
         run_args = self.cli.parser.parse_args("run test_project --local".split())
         run_args.func(run_args)
-        mock_find_project.assert_called_with(project_name="test_project", language=None)
+        mock_find_project.assert_called_with(project_name="test_project", language="cpp")
 
         # Test run command with --no-docker-build flag
         mock_container.reset_mock()
