@@ -472,6 +472,7 @@ class HoloHubCLI:
             HoloHubCLI.HOLOHUB_ROOT / "gxf_extensions",
             HoloHubCLI.HOLOHUB_ROOT / "operators",
             HoloHubCLI.HOLOHUB_ROOT / "pkg",
+            HoloHubCLI.HOLOHUB_ROOT / "tutorials",
             HoloHubCLI.HOLOHUB_ROOT / "workflows",
         )
         self.projects = metadata_util.gather_metadata(app_paths, exclude_paths=EXCLUDE_PATHS)
