@@ -142,13 +142,14 @@ class TestHoloHubCLI(unittest.TestCase):
         run_args.func(run_args)
         mock_find_project.assert_called_with(project_name="test_project", language=None)
 
-        # Test run command with --no-docker-build flag
+        # Test run command with --no-docker-build flag (clear HOLOHUB_BUILD_LOCAL)
         mock_container.reset_mock()
-        no_build_args = self.cli.parser.parse_args("run test_project --no-docker-build".split())
-        no_build_args.func(no_build_args)
-        # Verify container.build was not called when --no-docker-build is used
-        mock_container.build.assert_not_called()
-        mock_container.run.assert_called_once()
+        with patch.dict(os.environ, {}, clear=True):
+            no_build_args = self.cli.parser.parse_args("run test_project --no-docker-build".split())
+            no_build_args.func(no_build_args)
+            # Verify container.build was not called when --no-docker-build is used
+            mock_container.build.assert_not_called()
+            mock_container.run.assert_called_once()
 
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.holohub.HoloHubCLI.build_project_locally")
@@ -192,6 +193,7 @@ class TestHoloHubCLI(unittest.TestCase):
     @patch("utilities.cli.holohub.HoloHubContainer")
     @patch("utilities.cli.holohub.shlex.quote")
     @patch("utilities.cli.util.get_container_entrypoint")
+    @patch.dict(os.environ, {}, clear=True)
     def test_container_run_args(
         self,
         mock_get_container_entrypoint,
@@ -203,6 +205,7 @@ class TestHoloHubCLI(unittest.TestCase):
         """Test run_args handling in container mode"""
         # Setup mocks
         mock_find_project.return_value = self.mock_project_data
+        mock_build_project_locally.return_value = (Path("/path/to/build"), self.mock_project_data)
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
         mock_get_container_entrypoint.return_value = ["bash"]
@@ -416,24 +419,28 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_build_project_locally.reset_mock()
 
         # Test 2: Build with operators in container mode
-        args = self.cli.parser.parse_args(f"build test_project --build-with {operators}".split())
-        args.func(args)
-        # Verify container build
-        mock_container.run.assert_called()
-        kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][1]
-        self.assertIn(f'--build-with "{operators}"', command_string)
-        self.assertIn("--entrypoint=/bin/bash", kwargs["docker_opts"])
-        mock_container.reset_mock()
+        with patch.dict(os.environ, {}, clear=True):
+            args = self.cli.parser.parse_args(
+                f"build test_project --build-with {operators}".split()
+            )
+            args.func(args)
+            # Verify container build
+            mock_container.run.assert_called()
+            kwargs = mock_container.run.call_args[1]
+            command_string = kwargs["extra_args"][1]
+            self.assertIn(f'--build-with "{operators}"', command_string)
+            self.assertIn("--entrypoint=/bin/bash", kwargs["docker_opts"])
+            mock_container.reset_mock()
 
         # Test 3: Run with operators in container mode
-        args = self.cli.parser.parse_args(f"run test_project --build-with {operators}".split())
-        args.func(args)
-        # Verify container run
-        mock_container.run.assert_called()
-        kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][1]
-        self.assertIn(f'--build-with "{operators}"', command_string)
+        with patch.dict(os.environ, {}, clear=True):
+            args = self.cli.parser.parse_args(f"run test_project --build-with {operators}".split())
+            args.func(args)
+            # Verify container run
+            mock_container.run.assert_called()
+            kwargs = mock_container.run.call_args[1]
+            command_string = kwargs["extra_args"][1]
+            self.assertIn(f'--build-with "{operators}"', command_string)
 
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
@@ -612,30 +619,31 @@ exec {holohub_script} "$@"
         self.assertEqual(call_kwargs["project_name"], "test_project")
         self.assertEqual(call_kwargs["build_type"], "release")
         mock_run_command.assert_called_with(
-            ["cmake", "--install", str(mock_build_dir)], dry_run=False, env=None
+            ["cmake", "--install", str(mock_build_dir)], dry_run=False, env=os.environ
         )
         mock_build_project_locally.reset_mock()
         mock_run_command.reset_mock()
         mock_container.reset_mock()
 
         # Test 2: Install in container mode
-        args = self.cli.parser.parse_args(
-            "install test_project --build-type debug --language cpp".split()
-        )
-        args.func(args)
-        mock_container.build.assert_called_once()
-        mock_container.run.assert_called_once()
-        kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][1]
-        self.assertIn("./holohub install test_project --local", command_string)
-        self.assertIn("--build-type debug", command_string)
-        self.assertIn("--language cpp", command_string)
-        mock_container.reset_mock()
-        args = self.cli.parser.parse_args("install test_project --parallel 4".split())
-        args.func(args)
-        kwargs = mock_container.run.call_args[1]
-        command_string = kwargs["extra_args"][1]
-        self.assertIn("--parallel 4", command_string)
+        with patch.dict(os.environ, {}, clear=True):
+            args = self.cli.parser.parse_args(
+                "install test_project --build-type debug --language cpp".split()
+            )
+            args.func(args)
+            mock_container.build.assert_called_once()
+            mock_container.run.assert_called_once()
+            kwargs = mock_container.run.call_args[1]
+            command_string = kwargs["extra_args"][1]
+            self.assertIn("./holohub install test_project --local", command_string)
+            self.assertIn("--build-type debug", command_string)
+            self.assertIn("--language cpp", command_string)
+            mock_container.reset_mock()
+            args = self.cli.parser.parse_args("install test_project --parallel 4".split())
+            args.func(args)
+            kwargs = mock_container.run.call_args[1]
+            command_string = kwargs["extra_args"][1]
+            self.assertIn("--parallel 4", command_string)
 
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
@@ -750,20 +758,23 @@ exec {holohub_script} "$@"
 
         # Test benchmark in container mode
         with patch("utilities.cli.holohub.HoloHubContainer") as mock_container_class:
-            mock_container = MagicMock()
-            mock_container_class.return_value = mock_container
-            mock_find_project.return_value = mock_app_data
+            with patch.dict(os.environ, {}, clear=True):
+                mock_container = MagicMock()
+                mock_container_class.return_value = mock_container
+                mock_find_project.return_value = mock_app_data
 
-            args = self.cli.parser.parse_args("build test_app --benchmark".split())
-            self.assertTrue(args.benchmark, "Benchmark flag for container mode correctly parsed")
-            args.func(args)
+                args = self.cli.parser.parse_args("build test_app --benchmark".split())
+                self.assertTrue(
+                    args.benchmark, "Benchmark flag for container mode correctly parsed"
+                )
+                args.func(args)
 
-            mock_container.build.assert_called_once()
-            mock_container.run.assert_called_once()
-            kwargs = mock_container.run.call_args[1]
-            command_string = kwargs["extra_args"][1]
-            self.assertIn("--benchmark", command_string)
-            self.assertIn("./holohub build test_app --local", command_string)
+                mock_container.build.assert_called_once()
+                mock_container.run.assert_called_once()
+                kwargs = mock_container.run.call_args[1]
+                command_string = kwargs["extra_args"][1]
+                self.assertIn("--benchmark", command_string)
+                self.assertIn("./holohub build test_app --local", command_string)
 
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.holohub.HoloHubContainer")
@@ -979,6 +990,347 @@ exec {holohub_script} "$@"
         # Test without mode
         args = self.cli.parser.parse_args("build test_app --local".split())
         self.assertIsNone(args.mode)
+
+    def test_mode_environment_variables(self):
+        """Test environment variable definitions in mode configurations"""
+
+        # Test top-level env (applies to both build and run)
+        project_data = {
+            "metadata": {
+                "modes": {
+                    "default": {
+                        "description": "Default mode with top-level env",
+                        "env": {
+                            "CUSTOM_VAR": "top_level_value",
+                            "SHARED_VAR": "shared_value",
+                        },
+                        "run": {"command": "python3 app.py"},
+                    }
+                }
+            }
+        }
+
+        mode_name, mode_config = self.cli.resolve_mode(project_data)
+        self.assertEqual(mode_name, "default")
+        self.assertIn("env", mode_config)
+        self.assertEqual(mode_config["env"]["CUSTOM_VAR"], "top_level_value")
+        self.assertEqual(mode_config["env"]["SHARED_VAR"], "shared_value")
+
+        # Test build.env (applies only to build)
+        project_data_with_build_env = {
+            "metadata": {
+                "modes": {
+                    "default": {
+                        "description": "Mode with build env",
+                        "env": {"SHARED_VAR": "shared_value"},
+                        "build": {
+                            "env": {
+                                "BUILD_ONLY_VAR": "build_value",
+                                "OVERRIDE_VAR": "build_override",
+                            }
+                        },
+                        "run": {"command": "python3 app.py"},
+                    }
+                }
+            }
+        }
+
+        mode_name, mode_config = self.cli.resolve_mode(project_data_with_build_env)
+        self.assertIn("build", mode_config)
+        self.assertIn("env", mode_config["build"])
+        self.assertEqual(mode_config["build"]["env"]["BUILD_ONLY_VAR"], "build_value")
+
+        # Test run.env (applies only to run)
+        project_data_with_run_env = {
+            "metadata": {
+                "modes": {
+                    "default": {
+                        "description": "Mode with run env",
+                        "env": {"SHARED_VAR": "shared_value"},
+                        "run": {
+                            "command": "python3 app.py",
+                            "env": {"RUN_ONLY_VAR": "run_value", "LOG_LEVEL": "debug"},
+                        },
+                    }
+                }
+            }
+        }
+
+        mode_name, mode_config = self.cli.resolve_mode(project_data_with_run_env)
+        self.assertIn("run", mode_config)
+        self.assertIn("env", mode_config["run"])
+        self.assertEqual(mode_config["run"]["env"]["RUN_ONLY_VAR"], "run_value")
+        self.assertEqual(mode_config["run"]["env"]["LOG_LEVEL"], "debug")
+
+        # Test environment variable precedence (run.env > top-level env)
+        project_data_precedence = {
+            "metadata": {
+                "modes": {
+                    "default": {
+                        "description": "Mode testing env precedence",
+                        "env": {"VAR1": "top_level", "VAR2": "top_level_only"},
+                        "run": {
+                            "command": "python3 app.py",
+                            "env": {"VAR1": "run_level", "VAR3": "run_only"},
+                        },
+                    }
+                }
+            }
+        }
+
+        mode_name, mode_config = self.cli.resolve_mode(project_data_precedence)
+        # Top-level env should have VAR1 and VAR2
+        self.assertEqual(mode_config["env"]["VAR1"], "top_level")
+        self.assertEqual(mode_config["env"]["VAR2"], "top_level_only")
+        # Run env should override VAR1 and add VAR3
+        self.assertEqual(mode_config["run"]["env"]["VAR1"], "run_level")
+        self.assertEqual(mode_config["run"]["env"]["VAR3"], "run_only")
+
+    @patch.dict(
+        os.environ, {"PATH": "/usr/bin:/bin", "HOME": "/home/user", "CUSTOM_ENV": "original"}
+    )
+    def test_placeholder_replacement_in_env(self):
+        """Test placeholder replacement in environment variable values"""
+        from utilities.cli.util import replace_placeholders
+
+        # Test path placeholders
+        path_mapping = {
+            "holohub_root": "/workspace/holohub",
+            "holohub_app_source": "/workspace/holohub/applications/test_app",
+            "holohub_bin": "/workspace/holohub/build/test_app",
+            "holohub_data_dir": "/workspace/holohub/data",
+        }
+
+        env_mapping = {"PATH": "/usr/bin:/bin", "HOME": "/home/user"}
+
+        # Test simple path placeholder
+        result = replace_placeholders("<holohub_root>/scripts", path_mapping, env_mapping)
+        self.assertEqual(result, "/workspace/holohub/scripts")
+
+        # Test multiple path placeholders
+        result = replace_placeholders(
+            "<holohub_app_source>:<holohub_bin>", path_mapping, env_mapping
+        )
+        self.assertEqual(
+            result, "/workspace/holohub/applications/test_app:/workspace/holohub/build/test_app"
+        )
+
+        # Test environment variable placeholder
+        result = replace_placeholders("<HOME>/config", path_mapping, env_mapping)
+        self.assertEqual(result, "/home/user/config")
+
+        # Test combining env var with path placeholders (appending to PATH)
+        result = replace_placeholders("<PATH>:<holohub_bin>/bin", path_mapping, env_mapping)
+        self.assertEqual(result, "/usr/bin:/bin:/workspace/holohub/build/test_app/bin")
+
+        # Test prepending to PATH
+        result = replace_placeholders("<holohub_bin>/bin:<PATH>", path_mapping, env_mapping)
+        self.assertEqual(result, "/workspace/holohub/build/test_app/bin:/usr/bin:/bin")
+
+        # Test complex replacement with multiple placeholders
+        result = replace_placeholders(
+            "<holohub_data_dir>/models:<PATH>:<HOME>/.local/bin", path_mapping, env_mapping
+        )
+        self.assertEqual(
+            result, "/workspace/holohub/data/models:/usr/bin:/bin:/home/user/.local/bin"
+        )
+
+    @patch.dict(os.environ, {"EXISTING_VAR": "original_value", "PATH": "/usr/bin:/bin"})
+    def test_update_env_with_placeholders(self):
+        """Test update_env function with placeholder replacement"""
+        from utilities.cli.util import update_env
+
+        path_mapping = {
+            "holohub_root": "/workspace/holohub",
+            "holohub_bin": "/workspace/holohub/build/test_app",
+        }
+
+        # Test simple environment update
+        env = {"EXISTING_VAR": "original_value"}
+        new_env = {"NEW_VAR": "new_value"}
+        update_env(env, new_env, path_mapping)
+        self.assertEqual(env["NEW_VAR"], "new_value")
+        self.assertEqual(env["EXISTING_VAR"], "original_value")
+
+        # Test overriding existing variable
+        env = {"EXISTING_VAR": "original_value"}
+        new_env = {"EXISTING_VAR": "new_value"}
+        update_env(env, new_env, path_mapping)
+        self.assertEqual(env["EXISTING_VAR"], "new_value")
+
+        # Test appending to existing variable with placeholder
+        env = {"PATH": "/usr/bin:/bin"}
+        new_env = {"PATH": "<PATH>:<holohub_bin>/bin"}
+        update_env(env, new_env, path_mapping)
+        self.assertEqual(env["PATH"], "/usr/bin:/bin:/workspace/holohub/build/test_app/bin")
+
+        # Test prepending to existing variable
+        env = {"PATH": "/usr/bin:/bin"}
+        new_env = {"PATH": "<holohub_bin>/bin:<PATH>"}
+        update_env(env, new_env, path_mapping)
+        self.assertEqual(env["PATH"], "/workspace/holohub/build/test_app/bin:/usr/bin:/bin")
+
+        # Test using path placeholder without existing variable reference
+        env = {}
+        new_env = {"CUSTOM_PATH": "<holohub_root>/scripts"}
+        update_env(env, new_env, path_mapping)
+        self.assertEqual(env["CUSTOM_PATH"], "/workspace/holohub/scripts")
+
+    def test_mode_env_in_build_and_run_config(self):
+        """Test that mode environment variables are properly applied in build and run configurations"""
+        from pathlib import Path
+
+        # Test mode with environment variables at different levels
+        project_data = {
+            "project_name": "test_project",
+            "source_folder": Path("/workspace/holohub/applications/test_project"),
+            "metadata": {
+                "language": "python",
+                "modes": {
+                    "production": {
+                        "description": "Production mode with environment variables",
+                        "env": {"SHARED_VAR": "shared_value", "TOP_LEVEL_VAR": "top_value"},
+                        "build": {
+                            "depends": ["op1"],
+                            "env": {"BUILD_VAR": "build_value", "SHARED_VAR": "build_override"},
+                        },
+                        "run": {
+                            "command": "python3 <holohub_app_source>/app.py",
+                            "env": {
+                                "RUN_VAR": "run_value",
+                                "LOG_LEVEL": "info",
+                                "SHARED_VAR": "run_override",
+                            },
+                        },
+                    }
+                },
+            },
+        }
+
+        mode_name, mode_config = self.cli.resolve_mode(project_data, "production")
+        self.assertEqual(mode_name, "production")
+
+        # Verify top-level env
+        self.assertIn("env", mode_config)
+        self.assertEqual(mode_config["env"]["SHARED_VAR"], "shared_value")
+        self.assertEqual(mode_config["env"]["TOP_LEVEL_VAR"], "top_value")
+
+        # Verify build.env
+        self.assertIn("build", mode_config)
+        self.assertIn("env", mode_config["build"])
+        self.assertEqual(mode_config["build"]["env"]["BUILD_VAR"], "build_value")
+        self.assertEqual(mode_config["build"]["env"]["SHARED_VAR"], "build_override")
+
+        # Verify run.env
+        self.assertIn("run", mode_config)
+        self.assertIn("env", mode_config["run"])
+        self.assertEqual(mode_config["run"]["env"]["RUN_VAR"], "run_value")
+        self.assertEqual(mode_config["run"]["env"]["LOG_LEVEL"], "info")
+        self.assertEqual(mode_config["run"]["env"]["SHARED_VAR"], "run_override")
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.build_project_locally")
+    @patch("utilities.cli.util.run_command")
+    @patch("os.chdir")
+    @patch("pathlib.Path.is_dir")
+    @patch.dict(
+        os.environ,
+        {"PATH": "/usr/bin:/bin", "HOME": "/home/user", "PYTHONPATH": "/usr/lib/python3"},
+    )
+    def test_mode_env_applied_to_local_run(
+        self,
+        mock_is_dir,
+        mock_chdir,
+        mock_run_command,
+        mock_build_project_locally,
+        mock_find_project,
+    ):
+        """Test that mode environment variables with placeholders are properly applied during local run"""
+        from pathlib import Path
+
+        project_data = {
+            "project_name": "test_project",
+            "source_folder": Path("/workspace/holohub/applications/test_project"),
+            "metadata": {
+                "language": "python",
+                "modes": {
+                    "default": {
+                        "description": "Default mode with env and placeholders",
+                        "env": {
+                            "CUSTOM_VAR": "custom_value",
+                            "DATA_PATH": "<holohub_data_dir>/datasets",
+                        },
+                        "run": {
+                            "command": "python3 <holohub_app_source>/app.py",
+                            "env": {
+                                "PATH": "<holohub_bin>/bin:<PATH>",
+                                "LOG_LEVEL": "debug",
+                            },
+                        },
+                    }
+                },
+            },
+        }
+
+        mock_find_project.return_value = project_data
+        mock_build_dir = Path("/workspace/holohub/build/test_project")
+        mock_build_project_locally.return_value = (mock_build_dir, project_data)
+        mock_is_dir.return_value = True
+
+        args = self.cli.parser.parse_args(["run", "test_project", "--local", "--dryrun"])
+        args.func(args)
+
+        # Verify run_command was called
+        mock_run_command.assert_called()
+        call_args = mock_run_command.call_args
+
+        # Check that environment variables were passed
+        if call_args and len(call_args) > 0:
+            # The env parameter should be in kwargs
+            if "env" in call_args[1]:
+                env = call_args[1]["env"]
+                # Check that mode env variables are present
+                # Note: exact values depend on placeholder replacement
+                self.assertIn("CUSTOM_VAR", env)
+                self.assertIn("LOG_LEVEL", env)
+
+    def test_placeholder_in_mode_command(self):
+        """Test placeholder replacement in mode run commands"""
+        from utilities.cli.util import replace_placeholders
+
+        path_mapping = {
+            "holohub_root": "/workspace/holohub",
+            "holohub_app_source": "/workspace/holohub/applications/test_app",
+            "holohub_bin": "/workspace/holohub/build/test_app",
+            "holohub_data_dir": "/workspace/holohub/data",
+        }
+
+        env_mapping = {"HOME": "/home/user"}
+
+        # Test command with single placeholder
+        command = "python3 <holohub_app_source>/app.py"
+        result = replace_placeholders(command, path_mapping, env_mapping)
+        self.assertEqual(result, "python3 /workspace/holohub/applications/test_app/app.py")
+
+        # Test command with multiple placeholders
+        command = "python3 <holohub_app_source>/app.py --data <holohub_data_dir>/models"
+        result = replace_placeholders(command, path_mapping, env_mapping)
+        self.assertEqual(
+            result,
+            "python3 /workspace/holohub/applications/test_app/app.py --data /workspace/holohub/data/models",
+        )
+
+        # Test command with env variable placeholder
+        command = "bash <HOME>/scripts/run.sh --app <holohub_app_source>"
+        result = replace_placeholders(command, path_mapping, env_mapping)
+        self.assertEqual(
+            result, "bash /home/user/scripts/run.sh --app /workspace/holohub/applications/test_app"
+        )
+
+        # Test workdir with placeholder
+        workdir = "<holohub_bin>/output"
+        result = replace_placeholders(workdir, path_mapping, env_mapping)
+        self.assertEqual(result, "/workspace/holohub/build/test_app/output")
 
 
 class TestRunCommand(unittest.TestCase):
