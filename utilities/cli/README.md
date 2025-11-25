@@ -387,23 +387,14 @@ Both modes automatically share the same Docker image name (`holohub:myapp`), so 
     ```json
     "modes": {
       "mode_name": {
+        "run": {
+          "env": {
+            "PATH": "<PATH>:<holohub_app_bin>/bin"  # append to the updated PATH by mode_name.env
+            "CMAKE_BUILD_TYPE": "Release"  # override the existing CMAKE_BUILD_TYPE
+          }
+        },
         "env": {
-          "PATH": "<PATH>:<holohub_app_bin>/bin"  # append to the updated PATH by modes.env
-        }
-      }
-      "env": {
-        "PATH": "<holohub_bin>/bin:<PATH>"  # prepend to the existing PATH in the environment
-      }
-    }
-    ```
-
-  - If it is without appending or prepending, it will override the existing environment variable, like:
-
-    ```json
-    "modes": {
-      "mode_name": {
-        "env": {
-          "PATH": "<holohub_app_source>/bin"  # override any existing PATH
+          "PATH": "<holohub_bin>/bin:<PATH>"  # prepend to the existing PATH in the environment
         }
       }
     }
