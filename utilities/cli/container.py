@@ -386,7 +386,7 @@ class HoloHubContainer:
             else:
                 warn(
                     f"Dockerfile specified in metadata.json not found: {dockerfile}\n"
-                    f"Falling back to default Dockerfile search strategy."
+                    "Falling back to default Dockerfile search strategy."
                 )
 
         # Strategy 2-4: Search in source_folder hierarchy
