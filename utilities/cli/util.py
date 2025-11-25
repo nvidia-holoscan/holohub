@@ -1675,21 +1675,21 @@ def update_env(
     path_mapping = path_mapping or {}
 
     # Update the environment variables
-    for key in new_env.keys():
-        if key.endswith(":"):
+    for key, value in new_env.items():
+        if value.endswith(":"):
             env[key] = (
-                os.path.abspath(replace_placeholders(str(new_env[key][:-1]), path_mapping))
+                os.path.abspath(replace_placeholders(value[:-1], path_mapping))
                 + os.pathsep
                 + env.get(key, "")
             )
-        elif key.startswith(":"):
+        elif value.startswith(":"):
             env[key] = (
                 env.get(key, "")
                 + os.pathsep
-                + os.path.abspath(replace_placeholders(str(new_env[key][1:]), path_mapping))
+                + os.path.abspath(replace_placeholders(value[1:], path_mapping))
             )
         else:
-            env[key] = os.path.abspath(replace_placeholders(str(new_env[key]), path_mapping))
+            env[key] = os.path.abspath(replace_placeholders(value, path_mapping))
 
         if verbose:
             print(format_cmd(f"    export {key}={env[key]}", is_dryrun=verbose))
