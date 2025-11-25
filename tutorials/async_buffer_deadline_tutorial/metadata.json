@@ -33,7 +33,7 @@
       ]
     },
     "run": {
-      "command": "./tutorials/async_buffer_deadline/run_experiment.sh"
+      "command": "./tutorials/async_buffer_deadline_tutorial/run_experiment.sh"
     }
   }
 }
