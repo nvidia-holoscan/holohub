@@ -1900,7 +1900,7 @@ class HoloHubCLI:
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
 
         if mode_config:
-            print(f"Building {args.project} in '{mode_name}' mode")
+            print(f"Installing {args.project} in '{mode_name}' mode")
 
         # Apply mode-specific build configuration
         build_args = self.get_effective_build_config(args, mode_config)
