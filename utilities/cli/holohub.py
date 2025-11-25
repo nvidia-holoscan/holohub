@@ -1146,7 +1146,7 @@ class HoloHubCLI:
         if is_local_mode:
             self.build_project_locally(
                 project_name=args.project,
-                language=language,
+                language=args.language if hasattr(args, "language") else None,
                 build_type=args.build_type,
                 with_operators=build_args.get("with_operators"),
                 dryrun=args.dryrun,
@@ -1292,7 +1292,7 @@ class HoloHubCLI:
             else:
                 build_dir, project_data = self.build_project_locally(
                     project_name=args.project,
-                    language=language,
+                    language=args.language if hasattr(args, "language") else None,
                     build_type=args.build_type,
                     with_operators=build_args.get("with_operators"),
                     dryrun=args.dryrun,
@@ -1327,9 +1327,7 @@ class HoloHubCLI:
             )
 
             # Process command template using the path mapping and environment variables
-            cmd = holohub_cli_util.replace_placeholders(
-                run_config["command"], path_mapping, run_env
-            )
+            cmd = holohub_cli_util.replace_placeholders(run_config["command"], path_mapping, run_env)
 
             # Use effective run args (which may come from mode or CLI)
             effective_run_args = run_args.get("run_args")
@@ -1932,7 +1930,7 @@ class HoloHubCLI:
             # Build and install locally
             build_dir, project_data = self.build_project_locally(
                 project_name=args.project,
-                language=language,
+                language=args.language if hasattr(args, "language") else None,
                 build_type=args.build_type,
                 with_operators=build_args.get("with_operators"),
                 dryrun=args.dryrun,
