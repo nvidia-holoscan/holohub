@@ -1396,7 +1396,7 @@
             "name": "(gdb) volume_rendering/cpp",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build volume_rendering",
+            "preLaunchTask": "Build volume_rendering (cpp)",
             "program": "${workspaceFolder}/build/volume_rendering/applications/volume_rendering/cpp/volume_rendering",
             "args": [
                 "--config",
@@ -1427,7 +1427,7 @@
             "name": "(debugpy) volume_rendering/python",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build volume_rendering",
+            "preLaunchTask": "Build volume_rendering (Python)",
             "program": "${workspaceFolder}/applications/volume_rendering/python/volume_rendering.py",
             "cwd": "${workspaceFolder}/build/volume_rendering/",
             "env": {
