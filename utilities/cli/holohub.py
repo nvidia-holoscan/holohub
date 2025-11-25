@@ -1018,7 +1018,7 @@ class HoloHubCLI:
         holohub_cli_util.info(f"HOLOHUB_ENABLE_SCCACHE={enable_sccache_val}")
         if enable_sccache:
             if not sccache_bin:
-                holohub_cli_util.fatal(
+                (holohub_cli_util.warn if dryrun else holohub_cli_util.fatal)(
                     "HOLOHUB_ENABLE_SCCACHE is enabled but 'sccache' was not found in PATH. "
                     "Install it (e.g., `./holohub setup`) or disable sccache."
                 )
