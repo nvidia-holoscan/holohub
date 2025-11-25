@@ -390,8 +390,10 @@ class HoloHubContainer:
                 )
 
         # Strategy 2-4: Search in source_folder hierarchy
-        source_folder = Path(self.project_metadata.get("source_folder"))
+        source_folder = self.project_metadata.get("source_folder")
         if source_folder:
+            source_folder = Path(source_folder).resolve()
+
             # Strategy 2: Check language-specific Dockerfile
             dockerfile_path = source_folder / self.language / "Dockerfile"
             if dockerfile_path.exists():
