@@ -1327,7 +1327,9 @@ class HoloHubCLI:
             )
 
             # Process command template using the path mapping and environment variables
-            cmd = holohub_cli_util.replace_placeholders(run_config["command"], path_mapping, run_env)
+            cmd = holohub_cli_util.replace_placeholders(
+                run_config["command"], path_mapping, run_env
+            )
 
             # Use effective run args (which may come from mode or CLI)
             effective_run_args = run_args.get("run_args")

@@ -1108,7 +1108,7 @@ def replace_placeholders(
     env_mapping: dict[str, str] | None = None,
 ) -> str:
     """Replace placeholders in text using the provided path mapping and environment variables
-    
+
     Supports two types of placeholders:
     1. Path mapping placeholders: <holohub_*> (e.g., <holohub_root>, <holohub_app_bin>)
     2. Environment variable placeholders: All other placeholders (e.g., <PATH>, <HOME>, <USER>)
@@ -1141,7 +1141,7 @@ def replace_placeholders(
         env_placeholders = re.findall(r"<([^>]+)>", result)
         for env_placeholder in env_placeholders:
             bracketed_env_placeholder = f"<{env_placeholder}>"
-            result = result.replace(bracketed_env_placeholder, env[env_placeholder])
+            result = result.replace(bracketed_env_placeholder, env_mapping[env_placeholder])
 
     return result
 
