@@ -1902,7 +1902,7 @@ class HoloHubCLI:
         build_args = self.get_effective_build_config(args, mode_config)
 
         # Get mode-specific build environment variables
-        build_mode_env = mode_config.get("build", {}).get("env", {}) if mode_config else None
+        build_mode_env = mode_config.get("build", {}).get("env", {}) if mode_config else {}
 
         # Check if local mode is requested
         is_local_mode = (
