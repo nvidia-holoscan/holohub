@@ -619,7 +619,7 @@ exec {holohub_script} "$@"
         self.assertEqual(call_kwargs["project_name"], "test_project")
         self.assertEqual(call_kwargs["build_type"], "release")
         mock_run_command.assert_called_with(
-            ["cmake", "--install", str(mock_build_dir)], dry_run=False, env=None
+            ["cmake", "--install", str(mock_build_dir)], dry_run=False, env=os.environ
         )
         mock_build_project_locally.reset_mock()
         mock_run_command.reset_mock()

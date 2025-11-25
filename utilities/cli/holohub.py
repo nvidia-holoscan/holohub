@@ -1944,13 +1944,11 @@ class HoloHubCLI:
             )
 
             # Apply build mode environment variables
+            install_env = os.environ.copy()
             if build_mode_env:
-                install_env = {}
                 holohub_cli_util.update_env(
                     install_env, build_mode_env, path_mapping, verbose=(args.verbose or args.dryrun)
                 )
-            else:
-                install_env = None
 
             # Install the project
             holohub_cli_util.run_command(
