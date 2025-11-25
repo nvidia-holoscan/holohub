@@ -925,6 +925,7 @@ def build_holohub_path_mapping(
     build_dir: Optional[Path] = None,
     data_dir: Optional[Path] = None,
     prefix: Optional[str] = None,
+    verbose: bool = False,
 ) -> dict[str, str]:
     """Build a mapping of HoloHub placeholders to their resolved paths
 
@@ -935,6 +936,7 @@ def build_holohub_path_mapping(
         data_dir: Optional data directory path
         prefix: Prefix for placeholder keys. If None, reads from HOLOHUB_PATH_PREFIX
                 environment variable (default: "holohub_")
+        verbose: Whether to print verbose output
 
     Returns:
         Dictionary mapping placeholder names to their resolved paths
@@ -974,6 +976,11 @@ def build_holohub_path_mapping(
                 path_mapping[f"{prefix}app_bin"] = str(app_build_dir)
             except ValueError:
                 path_mapping[f"{prefix}app_bin"] = str(inferred_build_dir)
+
+    if verbose:
+        mapping_info = ";\n".join(f"<{key}>: {value}" for key, value in path_mapping.items())
+        print(format_cmd(f"Path mappings: \n{mapping_info}", is_dryrun=False))
+
     return path_mapping
 
 
@@ -1095,14 +1102,52 @@ def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
     return ""
 
 
-def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
-    """Replace placeholders in text using the provided path mapping"""
+def replace_placeholders(
+    text: str,
+    path_mapping: dict[str, str] | None = None,
+    env_mapping: dict[str, str] | None = None,
+) -> str:
+    """Replace placeholders in text using the provided path mapping and environment variables
+
+    Supports two types of placeholders:
+    1. Path mapping placeholders: <holohub_*> (e.g., <holohub_root>, <holohub_app_bin>)
+    2. Environment variable placeholders: All other placeholders (e.g., <PATH>, <HOME>, <USER>)
+
+    Resolution strategy:
+    - Placeholders starting with "holohub_" are resolved using path_mapping
+    - All other placeholders are resolved using environment variables
+
+    Args:
+        text: The text to replace placeholders in
+        path_mapping: The path mapping to use
+        env_mapping: The environment variables to use
+
+    Returns:
+        The text with placeholders replaced
+
+    """
     if not text:
         return text
     result = text
+    # Resolve path mapping placeholders
+    path_mapping = path_mapping or {}
     for placeholder, replacement in path_mapping.items():
         bracketed_placeholder = f"<{placeholder}>"
         result = result.replace(bracketed_placeholder, replacement)
+
+    # Resolve environment variable placeholders
+    if env_mapping:
+        # Find all environment variable placeholders in the result
+        env_placeholders = re.findall(r"<([^>]+)>", result)
+        for env_placeholder in env_placeholders:
+            # check if placeholder is in env_mapping otherwise warn and continue
+            if env_placeholder not in env_mapping:
+                warn(
+                    f"Placeholder <{env_placeholder}> is not in environment variables, defaulting to empty string."
+                )
+            bracketed_env_placeholder = f"<{env_placeholder}>"
+            result = result.replace(bracketed_env_placeholder, env_mapping.get(env_placeholder, ""))
+
     return result
 
 
@@ -1658,3 +1703,34 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
     except PackageInstallationError as e:
         info(f"TensorRT installation failed: {e}")
         info("Continuing with setup - TensorRT packages may need to be installed manually")
+
+
+def update_env(
+    env: dict[str, str],
+    new_env: dict[str, str],
+    path_mapping: dict[str, str] | None = None,
+    verbose: bool = False,
+) -> None:
+    """
+    Update the environment variable with the new value from the new environment dictionary.
+
+    Supports placeholder replacement for:
+    - Path mapping placeholders: <holohub_*> (e.g., <holohub_root>, <holohub_app_bin>)
+    - Environment variable placeholders: <VAR_NAME> (e.g., <PATH>, <HOME>, <USER>)
+      The variable name itself can be used as a placeholder to reference its current value.
+
+    Examples:
+    - "value:<VAR>" - prepend value to existing variable VAR
+    - "<VAR>:value" - append value to existing variable VAR
+    - "value:<VAR>:value2" - prepend and append to existing variable VAR
+    - "value" - replace existing variable
+
+    """
+    # Default to empty dictionaries if not provided
+    path_mapping = path_mapping or {}
+
+    # Update the environment variables
+    for key, value in new_env.items():
+        env[key] = replace_placeholders(value, path_mapping, env)
+        if verbose:
+            print(format_cmd(f"    export {key}={env[key]}", is_dryrun=False))
