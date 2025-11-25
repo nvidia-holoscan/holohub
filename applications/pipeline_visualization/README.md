@@ -1,4 +1,4 @@
-# Pipeline Visualization Example
+# Real-Time Data Stream Visualization with NATS and Web Dashboards
 
 This example demonstrates real-time visualization of data from Holoscan applications using NATS messaging and web-based dashboards. It showcases how to stream tensor data from a Holoscan pipeline and visualize it dynamically in a browser.
 
