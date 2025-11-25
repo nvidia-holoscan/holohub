@@ -1133,13 +1133,15 @@ class HoloHubCLI:
         build_args = self.get_effective_build_config(args, mode_config)
 
         # Get mode-specific build environment variables
-        build_mode_env = mode_config.get("build", {}).get("env", {})
+        mode_env = mode_config.get("env", {})
+        # Update mode environment variables with build environment variables
+        holohub_cli_util.update_env(mode_env, mode_config.get("build", {}).get("env", {}))
 
         # Check if local mode is requested
         is_local_mode = (
             args.local
             or os.environ.get("HOLOHUB_BUILD_LOCAL")
-            or build_mode_env.get("HOLOHUB_BUILD_LOCAL")
+            or mode_env.get("HOLOHUB_BUILD_LOCAL")
         )
 
         if is_local_mode:
@@ -1153,7 +1155,7 @@ class HoloHubCLI:
                 parallel=getattr(args, "parallel", None),
                 benchmark=getattr(args, "benchmark", False),
                 configure_args=build_args.get("configure_args"),
-                env=build_mode_env,
+                env=mode_env,
             )
         else:
             # Build in container
@@ -1250,7 +1252,12 @@ class HoloHubCLI:
             holohub_cli_util.fatal(f"Project '{args.project}' does not have a run configuration")
 
         # Get mode-specific build environment variables
-        build_mode_env = mode_config.get("build", {}).get("env", {})
+        build_mode_env = mode_config.get("env", {})
+        holohub_cli_util.update_env(build_mode_env, mode_config.get("build", {}).get("env", {}))
+
+        # Get mode-specific run environment variables
+        run_mode_env = mode_config.get("env", {})
+        holohub_cli_util.update_env(run_mode_env, run_config.get("env", {}))
 
         # Check if builds should be skipped
         skip_docker_build, skip_local_build = holohub_cli_util.check_skip_builds(args)
@@ -1260,7 +1267,7 @@ class HoloHubCLI:
             args.local
             or os.environ.get("HOLOHUB_BUILD_LOCAL")
             or build_mode_env.get("HOLOHUB_BUILD_LOCAL")
-            or run_config.get("env", {}).get("HOLOHUB_BUILD_LOCAL")
+            or run_mode_env.get("HOLOHUB_BUILD_LOCAL")
         )
 
         # Apply mode-specific build configuration for build process
@@ -1316,10 +1323,9 @@ class HoloHubCLI:
                 "HOLOSCAN_INPUT_PATH", str(self.DEFAULT_DATA_DIR)
             )
             # Apply mode environment variables (mode.run.env takes precedence over run.env)
-            if run_config.get("env"):
-                holohub_cli_util.update_env(
-                    run_env, run_config["env"], path_mapping, verbose=(args.verbose or args.dryrun)
-                )
+            holohub_cli_util.update_env(
+                run_env, run_mode_env, path_mapping, verbose=(args.verbose or args.dryrun)
+            )
 
             # Process command template using the path mapping
             cmd = holohub_cli_util.replace_placeholders(run_config["command"], path_mapping)

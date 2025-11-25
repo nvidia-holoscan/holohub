@@ -1669,7 +1669,7 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
 
 def update_env(
     env: dict[str, str],
-    new_env: dict[str, str] | None = None,
+    new_env: dict[str, str],
     path_mapping: dict[str, str] | None = None,
     verbose: bool = False,
 ) -> None:
@@ -1678,7 +1678,6 @@ def update_env(
     The path environment variables are going to be appended to the existing value by ":" delimiter
     """
     # Default to empty dictionaries if not provided
-    new_env = new_env or {}
     path_mapping = path_mapping or {}
 
     # Update the environment variables
