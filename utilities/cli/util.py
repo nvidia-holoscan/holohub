@@ -1658,3 +1658,34 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
     except PackageInstallationError as e:
         info(f"TensorRT installation failed: {e}")
         info("Continuing with setup - TensorRT packages may need to be installed manually")
+
+
+def update_env(
+    env: dict[str, str],
+    new_env: dict[str, str],
+    path_mapping: dict[str, str],
+    verbose: bool = False,
+) -> None:
+    """
+    Update the environment variable with the new value from the new environment dictionary.
+    The path environment variables are going to be appended to the existing value by ":" delimiter
+    """
+
+    for key in new_env.keys():
+        if key.endswith(":"):
+            env[key] = (
+                os.path.abspath(replace_placeholders(str(new_env[key][:-1]), path_mapping))
+                + os.pathsep
+                + env.get(key, "")
+            )
+        elif key.startswith(":"):
+            env[key] = (
+                env.get(key, "")
+                + os.pathsep
+                + os.path.abspath(replace_placeholders(str(new_env[key][1:]), path_mapping))
+            )
+        else:
+            env[key] = os.path.abspath(replace_placeholders(str(new_env[key]), path_mapping))
+
+        if verbose:
+            print(format_cmd(f"    export {key}={env[key]}", is_dryrun=verbose))

@@ -1104,10 +1104,10 @@ class HoloHubCLI:
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
 
-        if mode_config and mode_config.get("env"):
-            os.environ.update(mode_config["env"])
-
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
+
+        if mode_config and mode_config.get("env"):
+            holohub_cli_util.update_env(mode_config["env"], self.path_mapping)
 
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
 
@@ -1209,9 +1209,6 @@ class HoloHubCLI:
         # Handle mode-specific configuration
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
-
-        if mode_config and mode_config.get("env"):
-            os.environ.update(mode_config["env"])
 
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
 
@@ -1328,22 +1325,16 @@ class HoloHubCLI:
             env["HOLOSCAN_INPUT_PATH"] = os.environ.get(
                 "HOLOSCAN_INPUT_PATH", str(HoloHubCLI.DEFAULT_DATA_DIR)
             )
+            # Apply environment variables from mode and run config (mode.env takes precedence)
 
-            # Apply environment variables from mode and run config (run.env takes precedence)
-            env_sources = []
-            if mode_config and mode_config.get("env"):
-                env_sources.append((mode_config["env"], "mode.env"))
             if run_config.get("env"):
-                env_sources.append((run_config["env"], "run.env"))
-            for env_dict, source_name in env_sources:
-                env.update(env_dict)
                 if args.verbose or args.dryrun:
-                    for key, value in env_dict.items():
-                        print(
-                            holohub_cli_util.format_cmd(
-                                f"export {key}={value} (from {source_name})", is_dryrun=args.dryrun
-                            )
-                        )
+                    print(holohub_cli_util.format_cmd(f"Updating environment from run.env:", is_dryrun=args.dryrun))
+                holohub_cli_util.update_env(env, run_config["env"], path_mapping, verbose=(args.verbose or args.dryrun))
+            if mode_config and mode_config.get("env"):
+                if args.verbose or args.dryrun:
+                    print(holohub_cli_util.format_cmd(f"Updating environment from mode.env:", is_dryrun=args.dryrun))
+                holohub_cli_util.update_env(env, mode_config["env"], path_mapping, verbose=(args.verbose or args.dryrun))
 
             # Print environment setup
             if args.verbose or args.dryrun:
