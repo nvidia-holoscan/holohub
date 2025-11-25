@@ -945,10 +945,7 @@ class HoloHubCLI:
         # Prepare environment with extra env vars
         build_env = os.environ.copy()
         if env:
-            build_env.update(env)
-            if dryrun:
-                for key, value in env.items():
-                    print(holohub_cli_util.format_cmd(f"export {key}={value}", is_dryrun=True))
+            holohub_cli_util.update_env(build_env, env, verbose=dryrun)
 
         # Handle benchmark patching before building
         app_source_path = None
@@ -1106,8 +1103,12 @@ class HoloHubCLI:
 
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
 
-        if mode_config and mode_config.get("env"):
-            holohub_cli_util.update_env(mode_config["env"], self.path_mapping)
+        build_env = os.environ.copy()
+        if mode_config:
+            mode_env = mode_config.get("build", {}).get("env", {})
+            holohub_cli_util.update_env(
+                build_env, mode_env, self.path_mapping, verbose=(args.verbose or args.dryrun)
+            )
 
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
 
@@ -1117,12 +1118,7 @@ class HoloHubCLI:
         if mode_config:
             print(f"Building {args.project} in '{mode_name}' mode")
 
-        if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
-            build_env = None
-            if mode_config:
-                build_cfg = mode_config.get("build", {})
-                if isinstance(build_cfg, dict) and build_cfg.get("env"):
-                    build_env = dict(build_cfg["env"])
+        if args.local or build_env.get("HOLOHUB_BUILD_LOCAL"):
             self.build_project_locally(
                 project_name=args.project,
                 language=args.language if hasattr(args, "language") else None,
@@ -1212,6 +1208,31 @@ class HoloHubCLI:
 
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
 
+        # Get run configuration
+        if mode_config:
+            run_config = mode_config.get("run", {})
+        else:
+            run_config = project_data.get("metadata", {}).get("run", {})
+
+        if not run_config:
+            holohub_cli_util.fatal(f"Project '{args.project}' does not have a run configuration")
+
+        # Set up run environment
+        run_env = os.environ.copy()
+        run_env["PYTHONPATH"] = (
+            f"{os.environ.get('PYTHONPATH', '')}:{HoloHubCLI.DEFAULT_SDK_DIR}/python/lib:{build_dir}/python/lib:{HoloHubCLI.HOLOHUB_ROOT}"
+        )
+        run_env["HOLOHUB_DATA_PATH"] = str(HoloHubCLI.DEFAULT_DATA_DIR)
+        run_env["HOLOSCAN_INPUT_PATH"] = os.environ.get(
+            "HOLOSCAN_INPUT_PATH", str(HoloHubCLI.DEFAULT_DATA_DIR)
+        )
+
+        # Apply environment variables (mode.run.env takes precedence over run.env)
+        if run_config.get("env"):
+            holohub_cli_util.update_env(
+                run_env, run_config["env"], path_mapping, verbose=(args.verbose or args.dryrun)
+            )
+
         skip_docker_build, skip_local_build = holohub_cli_util.check_skip_builds(args)
         is_local_mode = args.local or os.environ.get("HOLOHUB_BUILD_LOCAL")
 
@@ -1261,15 +1282,6 @@ class HoloHubCLI:
                 project_data.get("metadata", {}).get("language", None)
             )
 
-            if mode_config and "run" in mode_config:
-                run_config = mode_config["run"]  # Use mode-specific run configuration
-            else:  # Fall back to legacy run configuration
-                run_config = project_data.get("metadata", {}).get("run", {})
-                if not run_config:
-                    holohub_cli_util.fatal(
-                        f"Project '{args.project}' does not have a run configuration"
-                    )
-
             prefix = holohub_cli_util.resolve_path_prefix(None)
             path_mapping = holohub_cli_util.build_holohub_path_mapping(
                 holohub_root=HoloHubCLI.HOLOHUB_ROOT,
@@ -1316,54 +1328,22 @@ class HoloHubCLI:
             if not args.dryrun:
                 os.chdir(target_dir)
 
-            # Set up environment
-            env = os.environ.copy()
-            env["PYTHONPATH"] = (
-                f"{os.environ.get('PYTHONPATH', '')}:{HoloHubCLI.DEFAULT_SDK_DIR}/python/lib:{build_dir}/python/lib:{HoloHubCLI.HOLOHUB_ROOT}"
-            )
-            env["HOLOHUB_DATA_PATH"] = str(HoloHubCLI.DEFAULT_DATA_DIR)
-            env["HOLOSCAN_INPUT_PATH"] = os.environ.get(
-                "HOLOSCAN_INPUT_PATH", str(HoloHubCLI.DEFAULT_DATA_DIR)
-            )
-            # Apply environment variables from mode and run config (mode.env takes precedence)
-
-            if run_config.get("env"):
-                if args.verbose or args.dryrun:
-                    print(
-                        holohub_cli_util.format_cmd(
-                            "Updating environment from run.env:", is_dryrun=args.dryrun
-                        )
-                    )
-                holohub_cli_util.update_env(
-                    env, run_config["env"], path_mapping, verbose=(args.verbose or args.dryrun)
-                )
-            if mode_config and mode_config.get("env"):
-                if args.verbose or args.dryrun:
-                    print(
-                        holohub_cli_util.format_cmd(
-                            "Updating environment from mode.env:", is_dryrun=args.dryrun
-                        )
-                    )
-                holohub_cli_util.update_env(
-                    env, mode_config["env"], path_mapping, verbose=(args.verbose or args.dryrun)
-                )
-
             # Print environment setup
             if args.verbose or args.dryrun:
                 print(
                     holohub_cli_util.format_cmd(
-                        "export PYTHONPATH=" + env["PYTHONPATH"], is_dryrun=args.dryrun
+                        "export PYTHONPATH=" + run_env["PYTHONPATH"], is_dryrun=args.dryrun
                     )
                 )
                 print(
                     holohub_cli_util.format_cmd(
-                        "export HOLOHUB_DATA_PATH=" + env["HOLOHUB_DATA_PATH"],
+                        "export HOLOHUB_DATA_PATH=" + run_env["HOLOHUB_DATA_PATH"],
                         is_dryrun=args.dryrun,
                     )
                 )
                 print(
                     holohub_cli_util.format_cmd(
-                        "export HOLOSCAN_INPUT_PATH=" + env["HOLOSCAN_INPUT_PATH"],
+                        "export HOLOSCAN_INPUT_PATH=" + run_env["HOLOSCAN_INPUT_PATH"],
                         is_dryrun=args.dryrun,
                     )
                 )
@@ -1394,7 +1374,7 @@ class HoloHubCLI:
                 cmd = f"{nsys_cmd} profile --trace=cuda,vulkan,nvtx,osrt {cmd}"
 
             cmd_to_run = cmd if isinstance(cmd, list) else shlex.split(cmd)
-            holohub_cli_util.run_command(cmd_to_run, env=env, dry_run=args.dryrun)
+            holohub_cli_util.run_command(cmd_to_run, env=run_env, dry_run=args.dryrun)
         else:
             container = self._make_project_container(
                 project_name=args.project,
@@ -1894,9 +1874,6 @@ class HoloHubCLI:
         project_data = self.find_project(args.project, language=getattr(args, "language", None))
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
 
-        if mode_config and mode_config.get("env"):
-            os.environ.update(mode_config["env"])
-
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
         build_args = self.get_effective_build_config(args, mode_config)
@@ -1904,14 +1881,17 @@ class HoloHubCLI:
         if mode_config:
             print(f"Installing {args.project} in '{mode_name}' mode")
 
-        if args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"):
-            # Build and install locally
-            mode_env = None
-            if mode_config:
-                build_cfg = mode_config.get("build", {})
-                if isinstance(build_cfg, dict) and build_cfg.get("env"):
-                    mode_env = dict(build_cfg["env"])
+        # Use same env as build to install the project
 
+        install_env = os.environ.copy()
+        if mode_config:
+            mode_env = mode_config.get("build", {}).get("env", {})
+            holohub_cli_util.update_env(
+                install_env, mode_env, self.path_mapping, verbose=(args.verbose or args.dryrun)
+            )
+
+        if args.local or install_env.get("HOLOHUB_BUILD_LOCAL"):
+            # Build and install locally
             build_dir, project_data = self.build_project_locally(
                 project_name=args.project,
                 language=getattr(args, "language", None),
@@ -1922,10 +1902,8 @@ class HoloHubCLI:
                 configure_args=build_args.get("configure_args"),
                 env=mode_env,
             )
-            # Install the project (use same env as build)
-            install_env = os.environ.copy() if mode_env else None
-            if mode_env:
-                install_env.update(mode_env)
+
+            # Install the project
             holohub_cli_util.run_command(
                 ["cmake", "--install", str(build_dir)], dry_run=args.dryrun, env=install_env
             )
