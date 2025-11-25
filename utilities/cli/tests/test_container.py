@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -47,6 +48,19 @@ class TestHoloHubContainer(unittest.TestCase):
             "metadata": {"language": "cpp", "dockerfile": "<holohub_app_source>/Dockerfile"},
         }
         self.container = HoloHubContainer(project_metadata=self.project_metadata)
+
+    def tearDown(self):
+        """Clean up temporary directory after each test"""
+        # Check if test_dir_path exists and remove it
+        if hasattr(self, "test_dir_path") and self.test_dir_path.exists():
+            try:
+                shutil.rmtree(self.test_dir_path)
+            except FileNotFoundError:
+                # Directory was already removed, ignore
+                pass
+            except Exception as e:
+                # Log but don't fail the test cleanup
+                print(f"Warning: Failed to clean up {self.test_dir_path}: {e}")
 
     def test_default_base_image(self):
         """Test that default base image is correctly formatted"""
