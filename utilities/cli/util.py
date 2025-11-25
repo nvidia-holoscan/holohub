@@ -1140,6 +1140,11 @@ def replace_placeholders(
         # Find all environment variable placeholders in the result
         env_placeholders = re.findall(r"<([^>]+)>", result)
         for env_placeholder in env_placeholders:
+            # check if placeholder is in env_mapping otherwise warn and continue
+            if env_placeholder not in env_mapping:
+                warn(
+                    f"Placeholder <{env_placeholder}> is not in environment variables, defaulting to empty string."
+                )
             bracketed_env_placeholder = f"<{env_placeholder}>"
             result = result.replace(bracketed_env_placeholder, env_mapping.get(env_placeholder, ""))
 
