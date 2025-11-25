@@ -1329,12 +1329,24 @@ class HoloHubCLI:
 
             if run_config.get("env"):
                 if args.verbose or args.dryrun:
-                    print(holohub_cli_util.format_cmd(f"Updating environment from run.env:", is_dryrun=args.dryrun))
-                holohub_cli_util.update_env(env, run_config["env"], path_mapping, verbose=(args.verbose or args.dryrun))
+                    print(
+                        holohub_cli_util.format_cmd(
+                            "Updating environment from run.env:", is_dryrun=args.dryrun
+                        )
+                    )
+                holohub_cli_util.update_env(
+                    env, run_config["env"], path_mapping, verbose=(args.verbose or args.dryrun)
+                )
             if mode_config and mode_config.get("env"):
                 if args.verbose or args.dryrun:
-                    print(holohub_cli_util.format_cmd(f"Updating environment from mode.env:", is_dryrun=args.dryrun))
-                holohub_cli_util.update_env(env, mode_config["env"], path_mapping, verbose=(args.verbose or args.dryrun))
+                    print(
+                        holohub_cli_util.format_cmd(
+                            "Updating environment from mode.env:", is_dryrun=args.dryrun
+                        )
+                    )
+                holohub_cli_util.update_env(
+                    env, mode_config["env"], path_mapping, verbose=(args.verbose or args.dryrun)
+                )
 
             # Print environment setup
             if args.verbose or args.dryrun:
