@@ -1114,11 +1114,6 @@ class HoloHubCLI:
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
-        language = holohub_cli_util.normalize_language(
-            args.language
-            if args.language
-            else project_data.get("metadata", {}).get("language", None)
-        )
 
         # Ensure mode_config is a dictionary
         mode_config = mode_config if mode_config is not None else {}
@@ -1327,7 +1322,7 @@ class HoloHubCLI:
             )
 
             # Process command template using the path mapping and environment variables
-            cmd = holohub_cli_util.replace_placeholders(run_config["command"], path_mapping, run_env)
+            cmd = holohub_cli_util.replace_placeholders(run_config["command"], path_mapping)
 
             # Use effective run args (which may come from mode or CLI)
             effective_run_args = run_args.get("run_args")
@@ -1897,11 +1892,6 @@ class HoloHubCLI:
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
-        language = holohub_cli_util.normalize_language(
-            args.language
-            if args.language
-            else project_data.get("metadata", {}).get("language", None)
-        )
 
         # Ensure mode_config is a dictionary
         mode_config = mode_config if mode_config is not None else {}
