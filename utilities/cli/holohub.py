@@ -1128,7 +1128,7 @@ class HoloHubCLI:
         build_args = self.get_effective_build_config(args, mode_config)
 
         # Get mode-specific build environment variables
-        build_mode_env = mode_config.get("build", {}).get("env", {}) if mode_config else None
+        build_mode_env = mode_config.get("build", {}).get("env", {}) if mode_config else {}
 
         # Check if local mode is requested
         is_local_mode = (
@@ -1241,6 +1241,9 @@ class HoloHubCLI:
         if not run_config:
             holohub_cli_util.fatal(f"Project '{args.project}' does not have a run configuration")
 
+        # Get mode-specific build environment variables
+        build_mode_env = mode_config.get("build", {}).get("env", {}) if mode_config else {}
+
         # Check if builds should be skipped
         skip_docker_build, skip_local_build = holohub_cli_util.check_skip_builds(args)
 
@@ -1248,8 +1251,8 @@ class HoloHubCLI:
         is_local_mode = (
             args.local
             or os.environ.get("HOLOHUB_BUILD_LOCAL")
-            or mode_config.get("build", {}).get("env", {}).get("HOLOHUB_BUILD_LOCAL")
-            or mode_config.get("run", {}).get("env", {}).get("HOLOHUB_BUILD_LOCAL")
+            or build_mode_env.get("HOLOHUB_BUILD_LOCAL")
+            or run_config.get("env", {}).get("HOLOHUB_BUILD_LOCAL")
         )
 
         # Apply mode-specific build configuration for build process
@@ -1273,7 +1276,6 @@ class HoloHubCLI:
                         f"  {self.script_name} build {args.project}"
                     )
             else:
-                build_mode_env = mode_config.get("build", {}).get("env", {})
                 build_dir, project_data = self.build_project_locally(
                     project_name=args.project,
                     language=language,
