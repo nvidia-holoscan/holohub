@@ -925,6 +925,7 @@ def build_holohub_path_mapping(
     build_dir: Optional[Path] = None,
     data_dir: Optional[Path] = None,
     prefix: Optional[str] = None,
+    verbose: bool = False,
 ) -> dict[str, str]:
     """Build a mapping of HoloHub placeholders to their resolved paths
 
@@ -935,6 +936,7 @@ def build_holohub_path_mapping(
         data_dir: Optional data directory path
         prefix: Prefix for placeholder keys. If None, reads from HOLOHUB_PATH_PREFIX
                 environment variable (default: "holohub_")
+        verbose: Whether to print verbose output
 
     Returns:
         Dictionary mapping placeholder names to their resolved paths
@@ -974,6 +976,11 @@ def build_holohub_path_mapping(
                 path_mapping[f"{prefix}app_bin"] = str(app_build_dir)
             except ValueError:
                 path_mapping[f"{prefix}app_bin"] = str(inferred_build_dir)
+
+    if verbose:
+        mapping_info = ";\n".join(f"<{key}>: {value}" for key, value in path_mapping.items())
+        print(format_cmd(f"Path mappings: \n{mapping_info}", is_dryrun=False))
+
     return path_mapping
 
 
