@@ -386,7 +386,7 @@ if [ "${download_command}" == "gdown" ]; then
         run_command gdown --folder ${url} -O ${download_dir_fullname} --remaining-ok
 
         if [ $? -ne 0 ]; then
-            fatal R "Unable to download ${url} via gdown."
+          c_echo_err R "Unable to download ${url} via gdown."
         else
           c_echo G "Successfully downloaded folder ${url} to ${download_dir_fullname}"
         fi
@@ -394,7 +394,7 @@ if [ "${download_command}" == "gdown" ]; then
     else
         # Download file directly
         run_command mkdir -p ${download_dir_fullname}
-        run_command gdown ${url} -O ${download_dir_fullname}/ --fuzzy
+        run_command gdown ${url} -O ${download_dir_fullname} --fuzzy
         if [ $? -ne 0 ]; then
             fatal R "Unable to download ${url} via gdown."
         else
