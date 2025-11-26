@@ -89,6 +89,3 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Install gdown for downloading datasets from google drive
 RUN pip install gdown
-
-# Install rclone for downloading datasets from google drive
-RUN curl https://rclone.org/install.sh | bash
