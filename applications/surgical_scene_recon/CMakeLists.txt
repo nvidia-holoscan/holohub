@@ -24,9 +24,6 @@ project(surgical_scene_recon LANGUAGES NONE)
 find_package(holoscan 3.7 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-# Default to download datasets
-option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
-
 # -----------------------------------------------------------------------------
 # Data
 # -----------------------------------------------------------------------------
@@ -58,9 +55,10 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF/pulling
     ALL
   )
-  holoscan_download_data(poses_bounds.npy
+  holoscan_download_data(poses_bounds
     URL "https://drive.google.com/file/d/1Oes4whfibIPHQIAzcIzWxjbCBp2ZZ-3e/view"
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF/pulling
+    DOWNLOAD_NAME poses_bounds.npy
     ALL
   )
 endif()
