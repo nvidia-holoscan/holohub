@@ -28,11 +28,17 @@
 			"NATS",
 			"Remote"
 		],
-		"ranking": 1,
+		"ranking": 2,
 		"requirements": {},
-		"run": {
-			"command": "<holohub_app_bin>/pipeline_visualization",
-			"workdir": "holohub_app_bin"
+		"default_mode": "app",
+		"modes": {
+			"app": {
+				"description": "Run mode for pipeline visualization application",
+				"run": {
+					"command": "<holohub_app_bin>/pipeline_visualization",
+					"workdir": "holohub_app_bin"
+				}
+			}
 		}
 	}
 }

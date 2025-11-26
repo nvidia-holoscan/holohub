@@ -12,6 +12,101 @@ The example consists of three main components:
 2. **NATS Server**: A message broker that handles real-time data streaming
 3. **Python Web Visualizers**: Dash-based web applications that subscribe to NATS streams and display live plots
 
+## Quick Start
+
+### Step 1: Start the NATS Server
+
+In a terminal, start the NATS server using Docker:
+
+```bash
+cd applications/pipeline_visualization
+./start_nats_server.sh
+```
+
+This will start a NATS server listening on `0.0.0.0:4222`.
+
+### Step 2: Build Visualizer Dependencies
+
+```bash
+./holohub build pipeline_visualization
+```
+
+### Step 3: Start the Visualizer
+
+In a second terminal, start one of the Python visualizers:
+
+```bash
+cd applications/pipeline_visualization/visualizer
+./start_visualizer.sh static   # or 'dynamic'
+```
+
+The web interface will be available at: **[http://localhost:8050](http://localhost:8050)**
+
+### Step 4: Run the Holoscan Application
+
+In a third terminal, run the C++ application:
+
+```bash
+# Run the Python version (default when --language is not specified)
+./holohub run pipeline_visualization
+
+# Or explicitly specify the language:
+./holohub run pipeline_visualization --language python
+./holohub run pipeline_visualization --language cpp
+```
+
+**Command-line Options:**
+
+```text
+Usage: ./pipeline_visualization [options]
+Options:
+  -h, --help            Display help information
+  -d, --disable_logger  Disable NATS logger
+  -c, --config          Config file path
+  -u, --nats_url        NATS URL (default: nats://0.0.0.0:4222)
+  -p, --subject_prefix  NATS subject prefix (default: nats_demo)
+  -r, --publish_rate    Publish rate in Hz (default: 2.0)
+```
+
+**Example with custom settings:**
+
+```bash
+./holohub run pipeline_visualization --nats_url nats://0.0.0.0:4222 --subject_prefix my_demo --publish_rate 5.0
+```
+
+### Step 5: Visualize the Data
+
+1. Open your web browser to [http://localhost:8050](http://localhost:8050)
+2. Enter the subject name (default: `nats_demo`)
+3. Click **Connect**
+4. Watch the real-time data plots update!
+
+The visualizer will display:
+
+- **source.out**: Original sine wave from the source operator
+- **modulate.in**: Input to the modulate operator (same as source.out)
+- **modulate.out**: Modulated signal with high-frequency component
+- **sink.in**: Final processed signal (same as modulate.out)
+
+## Configuration
+
+### NATS Logger Configuration (`pipeline_visualization.yaml`)
+
+The NATS logger behavior can be configured via YAML:
+
+```yaml
+nats_logger:
+  # Filter which operators to log (regex patterns)
+  allowlist_patterns:
+    - "*"
+  denylist_patterns:
+    - "*"
+  log_inputs: true              # Log operator inputs
+  log_outputs: true             # Log operator outputs
+  log_metadata: true            # Include metadata in messages
+  log_tensor_data_content: true # Include actual tensor data
+```
+
 ### Architecture
 
 ```mermaid
@@ -74,6 +169,7 @@ The static visualizer can be used when the output data and format of the Holosca
 There is a script `start_visualizer.sh` which sets the required Python path to the flatbuffers definitions and starts the visualizer. The script takes a parameter, `dynamic` starts the dynamic visualizer and `static` starts the static visualizer.
 
 Both visualizers display:
+
 - Real-time line plots of tensor data
 - Stream name (operator.port format)
 - IO type (Input/Output)
@@ -89,6 +185,8 @@ The data format is defined using FlatBuffers for efficient serialization:
 
 ## Prerequisites
 
+All dependencies are installed automatically when using the `holohub run` command inside the Holohub container.
+
 ### Python Dependencies
 
 Install the required Python packages:
@@ -98,6 +196,7 @@ pip install -r requirements.txt
 ```
 
 Required packages:
+
 - `numpy>=1.24.0,<3.0` - Numerical computing
 - `dash>=3.0.0,<4.0` - Web application framework
 - `plotly>=6.0.0,<7.0` - Interactive plotting
@@ -105,91 +204,6 @@ Required packages:
 - `flatbuffers>=25.9.23,<26.0.0` - FlatBuffers
 - `pandas>=2.3.3,<3.0` - Data manipulation
 
-## Usage
-
-### Step 1: Start the NATS Server
-
-In a terminal, start the NATS server using Docker:
-
-```bash
-cd applications/pipeline_visualization
-./start_nats_server.sh
-```
-
-This will start a NATS server listening on `0.0.0.0:4222`.
-
-### Step 2: Start the Visualizer
-
-In a second terminal, start one of the Python visualizers:
-
-```bash
-cd applications/pipeline_visualization/visualizer
-./start_visualizer.sh static   # or 'dynamic'
-```
-
-The web interface will be available at: **[http://localhost:8050](http://localhost:8050)**
-
-### Step 3: Run the Holoscan Application
-
-In a third terminal, run the C++ application:
-
-```bash
-# Run the Python version (default when --language is not specified)
-./holohub run pipeline_visualization
-
-# Or explicitly specify the language:
-./holohub run pipeline_visualization --language python
-./holohub run pipeline_visualization --language cpp
-```
-
-**Command-line Options:**
-```text
-Usage: ./pipeline_visualization [options]
-Options:
-  -h, --help            Display help information
-  -d, --disable_logger  Disable NATS logger
-  -c, --config          Config file path
-  -u, --nats_url        NATS URL (default: nats://0.0.0.0:4222)
-  -p, --subject_prefix  NATS subject prefix (default: nats_demo)
-  -r, --publish_rate    Publish rate in Hz (default: 2.0)
-```
-
-**Example with custom settings:**
-```bash
-./holohub run pipeline_visualization --nats_url nats://0.0.0.0:4222 --subject_prefix my_demo --publish_rate 5.0
-```
-
-### Step 4: Visualize the Data
-
-1. Open your web browser to [http://localhost:8050](http://localhost:8050)
-2. Enter the subject name (default: `nats_demo`)
-3. Click **Connect**
-4. Watch the real-time data plots update!
-
-The visualizer will display:
-- **source.out**: Original sine wave from the source operator
-- **modulate.in**: Input to the modulate operator (same as source.out)
-- **modulate.out**: Modulated signal with high-frequency component
-- **sink.in**: Final processed signal (same as modulate.out)
-
-## Configuration
-
-### NATS Logger Configuration (`pipeline_visualization.yaml`)
-
-The NATS logger behavior can be configured via YAML:
-
-```yaml
-nats_logger:
-  # Filter which operators to log (regex patterns)
-  allowlist_patterns:
-    - "*"
-  denylist_patterns:
-    - "*"
-  log_inputs: true              # Log operator inputs
-  log_outputs: true             # Log operator outputs
-  log_metadata: true            # Include metadata in messages
-  log_tensor_data_content: true # Include actual tensor data
-```
 ## Data Format
 
 ### NATS Message Structure
@@ -213,6 +227,7 @@ Message {
 The `unique_id` field follows the format: `<operator_name>.<port_name>`
 
 Examples:
+
 - `source.out` - Output port of the source operator
 - `modulate.in` - Input port of the modulate operator
 - `modulate.out` - Output port of the modulate operator
@@ -225,6 +240,7 @@ Examples:
 **Problem**: `Cannot connect to NATS` error
 
 **Solution**:
+
 - Ensure the NATS server is running: `docker ps | grep nats`
 - Check if port 4222 is available: `netstat -an | grep 4222`
 - Verify the NATS URL matches in both the C++ app and visualizer
@@ -234,6 +250,7 @@ Examples:
 **Problem**: Web page loads but graphs don't update
 
 **Solution**:
+
 1. Check that the C++ application is running
 2. Verify the subject name matches (default: `nats_demo`)
 3. Click the "Connect" button in the web interface
@@ -244,11 +261,14 @@ Examples:
 **Problem**: `ModuleNotFoundError: No module named 'pipeline_visualization.flatbuffers'`
 
 **Solution**:
+
 - Ensure the FlatBuffers files were generated during build
 - Set PYTHONPATH correctly:
+
   ```bash
   export PYTHONPATH=$PYTHONPATH:/path/to/build/applications/pipeline_visualization/flatbuffers/
   ```
+
 - Verify the files exist in the build directory
 
 ### No Data Displayed
@@ -256,6 +276,7 @@ Examples:
 **Problem**: Graphs are empty or show no data
 
 **Solution**:
+
 - Check that `log_tensor_data_content: true` in the YAML config
 - Verify the operator names match between the app and visualizer
 - For static visualizer, ensure the unique IDs in the code match your operators
@@ -268,6 +289,7 @@ Examples:
 To visualize data from your own Holoscan operators:
 
 1. Add the NATS logger to your application:
+
    ```cpp
    auto nats_logger = make_resource<NatsLogger>(
        "nats_logger",
@@ -277,6 +299,7 @@ To visualize data from your own Holoscan operators:
    ```
 
 2. For static visualizer, update the `_unique_ids` list:
+
    ```python
    self._unique_ids = ["my_op.out", "my_other_op.in"]
    ```
@@ -303,6 +326,7 @@ dcc.Graph(
 
 - **C++ side**: Use `--publish_rate` flag (default: 2 Hz)
 - **Visualizer side**: Modify the `interval` parameter in milliseconds:
+
   ```python
   dcc.Interval(
       id="interval-component",
@@ -333,6 +357,7 @@ To run multiple Holoscan apps simultaneously:
 
 1. Use different subject prefixes for each app
 2. Start multiple visualizer instances on different ports:
+
    ```python
    self._app.run(debug=True, host="0.0.0.0", port=8051)
    ```

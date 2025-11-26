@@ -28,32 +28,12 @@
 			"NATS",
 			"Remote"
 		],
-		"ranking": 1,
+		"ranking": 2,
 		"requirements": {},
-		"default_mode": "standard",
+		"default_mode": "app",
 		"modes": {
-			"static_web": {
-				"description": "Static visualization of pipeline data",
-				"run": {
-					"command": "python3 <holohub_app_source>/../visualizer/visualizer_static.py",
-					"workdir": "holohub_bin"
-				},
-				"env": {
-					"PYTHONPATH": "<holohub_app_bin>/../flatbuffers:<PYTHONPATH>"
-				}
-			},
-			"dynamic_web": {
-				"description": "Dynamic visualization of pipeline data",
-				"run": {
-					"command": "python3 <holohub_app_source>/../visualizer/visualizer_dynamic.py",
-					"workdir": "holohub_bin"
-				},
-				"env": {
-					"PYTHONPATH": "<holohub_app_bin>/../flatbuffers:<PYTHONPATH>"
-				}
-			},
-			"standard": {
-				"description": "Standard mode for pipeline visualization",
+			"app": {
+				"description": "Run mode for pipeline visualization application",
 				"run": {
 					"command": "python3 <holohub_app_source>/pipeline_visualization.py",
 					"workdir": "holohub_bin"
