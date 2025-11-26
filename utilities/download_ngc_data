@@ -275,7 +275,7 @@ fatal() {
 
 
 if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
-  # Check that we have ffmpeg 
+  # Check that we have ffmpeg
   if ! command -v ffmpeg > /dev/null; then
     fatal R "ffmpeg is required to generate GXF entities. Please install the ffmpeg package (e.g. sudo apt install ffmpeg)".
   fi
@@ -305,8 +305,12 @@ fi
 # Make the download directory
 mkdir -p ${download_dir}
 
-if [ "${url:0:8}" == "https://" ]; then
-
+if [[ ${url} == *"drive.google.com"* ]]; then
+    download_command=gdown
+    if ! command -v gdown > /dev/null; then
+      fatal R "Please install " W "gdown" R " command to download datasets. Follow the instructions in https://github.com/wkentaro/gdown to install gdown."
+    fi
+elif [ "${url:0:8}" == "https://" ]; then
     # Use wget if it is present on the system
     download_command=wget
     if ! command -v wget > /dev/null; then
@@ -370,6 +374,44 @@ if [ "${download_command}" == "wget" ] || [ "${download_command}" == "curl" ]; t
 
 fi
 
+# Google Drive
+if [ "${download_command}" == "gdown" ]; then
+    # print download_dir_fullname
+    c_echo G "Downloading to ${download_dir_fullname}"
+
+    # Detect if URL is a folder or file
+    if [[ ${url} == *"/folders/"* ]]; then
+        # Download folder directly
+        c_echo G "Downloading folder ${url} to ${download_dir_fullname}"
+        run_command gdown --folder ${url} -O ${download_dir_fullname} --remaining-ok
+
+        if [ $? -ne 0 ]; then
+            fatal R "Unable to download ${url} via gdown."
+        else
+          c_echo G "Successfully downloaded folder ${url} to ${download_dir_fullname}"
+        fi
+
+    else
+        # Download file directly
+        run_command mkdir -p ${download_dir_fullname}
+        run_command gdown ${url} -O ${download_dir_fullname}/ --fuzzy
+        if [ $? -ne 0 ]; then
+            fatal R "Unable to download ${url} via gdown."
+        else
+          c_echo G "Successfully downloaded file ${url} to ${download_dir_fullname}"
+        fi
+    fi
+
+    # Note: MD5 checking is not reliably supported for Google Drive downloads
+    if [ $URL_MD5 ]; then
+      c_echo Y "Warning: MD5 checking is not supported for Google Drive downloads with gdown"
+    fi
+
+    # set the stamp file
+    run_command touch ${download_stamp_file}
+
+fi
+
 # NGC CLI
 if [ "${download_command}" == "ngc" ]; then
 
@@ -382,7 +424,7 @@ if [ "${download_command}" == "ngc" ]; then
     # Newer version of ngc cli needs the following env settings to print progress bar
     export PYTHONIOENCODING=utf-8
     export LC_ALL=C.UTF-8
-    
+
     if [ "${IS_MODEL}" == "YES" ]; then
         ngcoutput=$(run_command ngc registry model download-version ${url} --dest .)
     else
