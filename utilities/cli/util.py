@@ -1408,6 +1408,17 @@ def get_sccache_dir(env: Optional[dict[str, str]] = None) -> str:
     return source_env.get("SCCACHE_DIR") or str(Path.home() / ".cache" / "sccache")
 
 
+def ensure_docker_dir_permissions(dir_path: str, recursive: bool = True) -> None:
+    """Ensure permissions for shared access between root and non-root container runs."""
+    if is_running_in_docker() and os.getuid() == 0 and get_group_id("docker") is not None:
+        r = "-R " if recursive else ""
+        cmd = f"chgrp {r}docker '{dir_path}' && chmod {r}g+rwX '{dir_path}'"
+        try:
+            subprocess.run(cmd, shell=True, check=True, capture_output=True)
+        except subprocess.CalledProcessError as e:
+            warn(f"Failed to set docker group permissions on {dir_path}: {e}")
+
+
 def collect_sccache_info() -> None:
     """Collect and display sccache-related information"""
     print(f"\n{Color.blue('sccache Information:')}")
