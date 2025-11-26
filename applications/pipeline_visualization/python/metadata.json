@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Pipeline Visualization",
+		"name": "Real-Time Data Stream Visualization with NATS and Web Dashboards (Python)",
 		"description": "Real-time visualization of data from Holoscan applications using NATS messaging and web-based dashboards",
 		"authors": [
 			{

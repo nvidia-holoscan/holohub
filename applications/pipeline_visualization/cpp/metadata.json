@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Real-Time Data Stream Visualization with NATS and Web Dashboards",
+		"name": "Real-Time Data Stream Visualization with NATS and Web Dashboards (C++)",
 		"description": "Real-time visualization of data from Holoscan applications using NATS messaging and web-based dashboards",
 		"authors": [
 			{
