@@ -24,6 +24,21 @@ project(surgical_scene_recon LANGUAGES NONE)
 find_package(holoscan 3.7 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# Default to download datasets
+option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
+
+# -----------------------------------------------------------------------------
+# Data
+# -----------------------------------------------------------------------------
+# Download the dataset from google drive directly
+if(HOLOHUB_DOWNLOAD_DATASETS)
+  include(holoscan_download_data)
+  holoscan_download_data(pulling
+    URL "https://drive.google.com/drive/folders/1zTcX80c1yrbntY9c6-EK2W2UVESVEug8?usp=sharing"
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF
+    ALL
+  )
+endif()
 
 # -----------------------------------------------------------------------------
 # Testing
