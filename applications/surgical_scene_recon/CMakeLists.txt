@@ -32,13 +32,6 @@ option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 # -----------------------------------------------------------------------------
 # Download the dataset from google drive directly
 if(HOLOHUB_DOWNLOAD_DATASETS)
-# datasets:
-# ├── depth
-# ├── gt_masks
-# ├── images
-# ├── images_right
-# ├── masks
-# └── poses_bounds.npy
   include(holoscan_download_data)
   holoscan_download_data(depth
     URL "https://drive.google.com/drive/folders/1JpRO1wDfS5U5A7OG3EK31m3bgbmJ8Ub9"
