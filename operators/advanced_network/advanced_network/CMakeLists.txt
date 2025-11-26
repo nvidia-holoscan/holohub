@@ -20,6 +20,7 @@ find_package(holoscan 2.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install") # Remove if holoscan logger dependency removed
 
 find_package(PkgConfig)
+find_package(CUDAToolkit REQUIRED)
 
 enable_language(CUDA)
 
@@ -31,9 +32,16 @@ add_compile_definitions(DOCA_ALLOW_EXPERIMENTAL_API)
 
 execute_process(COMMAND arch OUTPUT_VARIABLE ARCH)
 string(STRIP ${ARCH} ARCH)
-set(DPDK_PATH /opt/mellanox/dpdk)
+
+# Path configurations for DPDK and DOCA
+# Upstream DPDK (installed via meson) uses /usr/local by default
+# DOCA/mlnx-dpdk uses /opt/mellanox paths
+set(DPDK_PATH_UPSTREAM /usr/local)
+set(DPDK_PATH_MLNX /opt/mellanox/dpdk)
 set(DOCA_PATH /opt/mellanox/doca)
-set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${DPDK_PATH}/lib/${ARCH}-linux-gnu/pkgconfig:${DOCA_PATH}/lib/${ARCH}-linux-gnu/pkgconfig:/opt/mellanox/flexio/lib/pkgconfig:/opt/mellanox/collectx/lib/${ARCH}-linux-gnu/pkgconfig")
+
+# Set PKG_CONFIG_PATH to find DPDK (upstream first, then mlnx) and DOCA
+set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${DPDK_PATH_UPSTREAM}/lib/${ARCH}-linux-gnu/pkgconfig:${DPDK_PATH_UPSTREAM}/lib/pkgconfig:${DPDK_PATH_MLNX}/lib/${ARCH}-linux-gnu/pkgconfig:${DOCA_PATH}/lib/${ARCH}-linux-gnu/pkgconfig:/opt/mellanox/flexio/lib/pkgconfig:/opt/mellanox/collectx/lib/${ARCH}-linux-gnu/pkgconfig")
 
 # Common library
 add_library(advanced_network_common SHARED
@@ -71,8 +79,10 @@ install(
 # Backend libraries
 if(NOT DEFINED ANO_MGR)
     # Initialize ANO_MGR with a default if not provided
-    # Note: rivermax not added to the default list yet since it requires licensing
-    set(ANO_MGR "dpdk gpunetio" CACHE STRING "Manager type(s) list")
+    # Default: dpdk only (no DOCA dependency)
+    # Add "gpunetio" to enable GPU-accelerated networking (requires DOCA)
+    # Note: rivermax not added to the default list since it requires licensing
+    set(ANO_MGR "dpdk" CACHE STRING "Manager type(s) list")
 endif()
 separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
 

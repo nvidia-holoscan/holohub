@@ -26,9 +26,9 @@ is available in userspace, thus bypassing the kernel's networking stack entirely
 - Linux
 - An NVIDIA NIC with a ConnectX-6 or later chip
 - System tuning as described [here](/tutorials/high_performance_networking/README.md)
-- DPDK 22.11
-- MOFED 5.8-1.0.1.1 or later
-- DOCA 2.7 or later
+- DPDK 24.11.3 or higher
+- MOFED 5.8-1.0.1.1 or later (included with DOCA package)
+- DOCA 2.8 or later if using GPUNetIO
 
 #### Features
 

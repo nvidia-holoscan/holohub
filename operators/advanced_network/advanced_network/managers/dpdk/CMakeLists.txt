@@ -20,37 +20,38 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_sources(${PROJECT_NAME} PRIVATE adv_network_dpdk_mgr.cpp adv_network_dpdk_stats.cpp)
 
+# Try to find DPDK via pkg-config
+# This will find upstream DPDK (installed to /usr/local) or mlnx-dpdk (via PKG_CONFIG_PATH set in parent CMakeLists.txt)
 pkg_check_modules(DPDK QUIET libdpdk)
 
 if(NOT DPDK_FOUND)
-  message(STATUS "Looking for DPDK in alternative directories")
-  set(ENV{PKG_CONFIG_PATH} /opt/mellanox/dpdk/lib/x86_64-linux-gnu/pkgconfig/)
+  # Fallback: try to find mlnx-dpdk in standard Mellanox installation paths
+  message(STATUS "Looking for DPDK in Mellanox installation directories")
+  execute_process(COMMAND arch OUTPUT_VARIABLE ARCH)
+  string(STRIP ${ARCH} ARCH)
+  set(ENV{PKG_CONFIG_PATH} "/opt/mellanox/dpdk/lib/${ARCH}-linux-gnu/pkgconfig/")
   pkg_check_modules(DPDK REQUIRED libdpdk)
-
-  target_link_directories(${PROJECT_NAME} PUBLIC ${DPDK_LIBRARY_DIRS})
-  target_include_directories(${PROJECT_NAME} PUBLIC ${DPDK_INCLUDE_DIRS})
-  target_compile_options(${PROJECT_NAME} PUBLIC ${DPDK_CFLAGS_OTHER})
-  target_link_libraries(${PROJECT_NAME}
-    PUBLIC
-      ${DPDK_LDFLAGS_OTHER}
-      ${DPDK_LIBRARIES}
-    PRIVATE
-      holoscan::core
-      CUDA::cudart
-  )
-else() # Upstream DPDK
-  set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl)
-  target_link_directories(${PROJECT_NAME} PUBLIC ${DPDK_LIBRARY_DIRS})
-  target_link_libraries(${PROJECT_NAME}
-    PUBLIC
-      ${DPDK_LDFLAGS_OTHER}
-      ${DPDK_LIBRARIES}
-      ${DPDK_EXTRA_LIBS}
-    PRIVATE
-      holoscan::core
-      CUDA::cudart
-  )
 endif()
+
+message(STATUS "Found DPDK: ${DPDK_VERSION} in ${DPDK_LIBRARY_DIRS}")
+
+# Common DPDK configuration
+target_link_directories(${PROJECT_NAME} PUBLIC ${DPDK_LIBRARY_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${DPDK_INCLUDE_DIRS})
+target_compile_options(${PROJECT_NAME} PUBLIC ${DPDK_CFLAGS_OTHER})
+
+# Link libraries - add extra libs for Mellanox NIC support
+set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl)
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    ${DPDK_LDFLAGS_OTHER}
+    ${DPDK_LIBRARIES}
+    ${DPDK_EXTRA_LIBS}
+  PRIVATE
+    holoscan::core
+    CUDA::cudart
+    CUDA::cuda_driver
+)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)

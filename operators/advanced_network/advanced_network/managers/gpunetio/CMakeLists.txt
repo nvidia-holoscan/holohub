@@ -64,6 +64,8 @@ target_link_directories(${PROJECT_NAME} PUBLIC ${DOCA_LIBRARY_DIRS})
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     holoscan::core
+    CUDA::cudart
+    CUDA::cuda_driver
     -ldoca_gpunetio
     -ldoca_gpunetio_device # static
     -ldoca_eth
