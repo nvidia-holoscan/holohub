@@ -39,7 +39,7 @@
 					"workdir": "holohub_bin"
 				},
 				"env": {
-					"PYTHONPATH": "<holohub_app_bin>/../flatbuffers"
+					"PYTHONPATH": "<holohub_app_bin>/../flatbuffers:<PYTHONPATH>"
 				}
 			},
 			"dynamic_web": {
@@ -49,7 +49,7 @@
 					"workdir": "holohub_bin"
 				},
 				"env": {
-					"PYTHONPATH": "<holohub_app_bin>/../flatbuffers"
+					"PYTHONPATH": "<holohub_app_bin>/../flatbuffers:<PYTHONPATH>"
 				}
 			},
 			"standard": {
