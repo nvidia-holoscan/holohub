@@ -33,7 +33,7 @@ This will start a NATS server listening on `0.0.0.0:4222`.
 
 ### Step 3: Start the Visualizer
 
-In a second terminal, start one of the Python visualizers:
+In a second terminal, make sure the [visualizer Python dependencies](#visualizer-python-dependencies) are installed and start one of the Python visualizers:
 
 ```bash
 cd applications/pipeline_visualization/visualizer
@@ -44,7 +44,7 @@ The web interface will be available at: **[http://localhost:8050](http://localho
 
 ### Step 4: Run the Holoscan Application
 
-In a third terminal, run the C++ application:
+In a third terminal, run the application:
 
 ```bash
 # Run the Python version (default when --language is not specified)
@@ -137,18 +137,18 @@ flowchart TB
 
 ## Components
 
-### C++ Application (`cpp/`)
+### Application (`cpp/` and `python/`)
 
-The C++ application demonstrates a simple Holoscan pipeline with data logging:
+The C++ and Python applications demonstrates a simple Holoscan pipeline with data logging:
 
 - **SourceOp**: Generates sine waves with varying frequencies (10-20 Hz)
 - **ModulateOp**: Adds high-frequency modulation (300 Hz) to the signal
 - **SinkOp**: Receives the processed data
 - **NatsLogger**: A custom data logger that publishes tensor data to NATS using FlatBuffers serialization
 
-The application logs both inputs and outputs of operators, allowing visualization of data at each stage of the pipeline.
+The applications log both inputs and outputs of operators, allowing visualization of data at each stage of the pipeline.
 
-### Python Visualizers (`python/`)
+### Python Visualizers (`visualizer/`)
 
 Two visualization options are provided:
 
@@ -185,9 +185,11 @@ The data format is defined using FlatBuffers for efficient serialization:
 
 ## Prerequisites
 
-All dependencies are installed automatically when using the `holohub run` command inside the Holohub container.
+All dependencies to run the application are installed automatically when using the `holohub run` command inside
+the Holohub container. Since the visualizer is run outside the Holohub container, its dependencies must be
+installed separately. See the next section for details.
 
-### Python Dependencies
+### Visualizer Python Dependencies
 
 Install the required Python packages:
 

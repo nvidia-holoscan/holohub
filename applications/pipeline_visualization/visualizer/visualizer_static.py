@@ -137,9 +137,13 @@ class Visualizer:
 
                 # Identify which graph this data belongs to
                 unique_id = message.UniqueId().decode()
-                try:
-                    index = self._unique_ids.index(unique_id)
-                except ValueError:
+                for i, id in enumerate(self._unique_ids):
+                    # the python application is using tensor maps where the unique_id also contains
+                    # the tensor name, so we need to check if the unique_id starts with the id
+                    if unique_id.startswith(id):
+                        index = i
+                        break
+                else:
                     logger.warning(f"Unknown unique_id: {unique_id}")
                     continue
 
