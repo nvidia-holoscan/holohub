@@ -82,16 +82,20 @@ def extract_project_name(metadata_filepath: str) -> str:
     return parts[-2]
 
 
-def generate_build_and_run_command(metadata: dict) -> str:
+def generate_build_and_run_command(entry: dict) -> str:
     """Generate the build and run command for the application or workflow"""
-    language = metadata.get("metadata", {}).get("language", "").lower()
+    project_name = entry.get("project_name") or entry.get("application_name")
+    if not project_name:
+        return ""
+
+    language = entry.get("metadata", {}).get("language", "").lower()
     if language == "python":
-        return f'./holohub run {metadata["application_name"]} --language=python'
+        return f"./holohub run {project_name} --language=python"
     elif language in ["cpp", "c++"]:
-        return f'./holohub run {metadata["application_name"]} --language=cpp'
+        return f"./holohub run {project_name} --language=cpp"
     else:
         # Unknown language, use default
-        return f'./holohub run {metadata["application_name"]}'
+        return f"./holohub run {project_name}"
 
 
 def _warn_duplicate_projects(metadata_entries: list[dict]) -> None:
@@ -173,8 +177,10 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
                     data["readme"] = readme
                     data["project_name"] = project_name
                     data["source_folder"] = str(source_folder)
-                    if str(source_folder) in ["applications", "benchmarks", "workflows"]:
-                        data["build_and_run"] = generate_build_and_run_command(data)
+                    if data["project_type"] in ["application", "benchmark", "workflow"]:
+                        command = generate_build_and_run_command(data)
+                        if command:
+                            data["build_and_run"] = command
                     metadata.append(data)
             except json.decoder.JSONDecodeError as e:
                 logger.error('Error parsing JSON file "%s": %s', file_path, e)
