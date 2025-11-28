@@ -95,7 +95,7 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
     :input:
         repo_path: str
             The path to the repository to collect metadata from.
-        exclude_files: list
+        exclude_paths: list
             A list of files to exclude from metadata collection.
     :return:
         A list of dictionaries, each containing metadata for a project.
@@ -117,6 +117,8 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
     # Iterate over the found metadata files
     for file_path in metadata_files:
         if any(exclude_path in file_path for exclude_path in exclude_paths):
+            continue
+        if any(ex in file_path for ex in [f"{{cookiecutter", "cookiecutter.json"]):
             continue
         with open(file_path, "r") as file:
             try:
@@ -142,8 +144,8 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
                     source_folder = Path(file_path).parent
                     data["readme"] = readme
                     data["project_name"] = project_name
-                    data["source_folder"] = source_folder
-                    if source_folder in ["applications", "benchmarks", "workflows"]:
+                    data["source_folder"] = str(source_folder)
+                    if str(source_folder) in ["applications", "benchmarks", "workflows"]:
                         data["build_and_run"] = generate_build_and_run_command(data)
                     metadata.append(data)
             except json.decoder.JSONDecodeError as e:
@@ -162,7 +164,7 @@ def main(args: argparse.Namespace):
     repo_paths = args.include or DEFAULT_INCLUDE_PATHS
     output_file = args.output or DEFAULT_OUTPUT_FILEPATH
 
-    metadata = gather_metadata(repo_paths, exclude_files=args.exclude)
+    metadata = gather_metadata(repo_paths, exclude_paths=args.exclude)
 
     # Write the metadata to the output file
     with open(output_file, "w") as output:
