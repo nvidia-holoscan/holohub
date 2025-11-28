@@ -2063,9 +2063,7 @@ class HoloHubCLI:
             # No schema installed – skip validation.
             return
         if not metadata_path.exists():
-            holohub_cli_util.fatal(
-                f"Generated project is missing metadata.json at {metadata_path}"
-            )
+            holohub_cli_util.fatal(f"Generated project is missing metadata.json at {metadata_path}")
         try:
             with open(metadata_path, "r", encoding="utf-8") as metadata_file:
                 metadata_contents = json.load(metadata_file)
