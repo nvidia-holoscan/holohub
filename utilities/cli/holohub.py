@@ -2059,14 +2059,23 @@ class HoloHubCLI:
 
         import utilities.metadata.metadata_validator as metadata_validator
 
-        if not metadata_path.exists() or not schema_root:
+        if not schema_root:
+            # No schema installed – skip validation.
             return
+        if not metadata_path.exists():
+            holohub_cli_util.fatal(
+                f"Generated project is missing metadata.json at {metadata_path}"
+            )
         try:
             with open(metadata_path, "r", encoding="utf-8") as metadata_file:
                 metadata_contents = json.load(metadata_file)
         except json.JSONDecodeError as exc:
             holohub_cli_util.fatal(
                 f"Generated metadata.json is not valid ({exc}). File location: {metadata_path}"
+            )
+        except OSError as exc:
+            holohub_cli_util.fatal(
+                f"Failed to read metadata.json ({exc}). File location: {metadata_path}"
             )
         is_valid, message = metadata_validator.validate_json(metadata_contents, str(schema_root))
         if not is_valid:
