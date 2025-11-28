@@ -48,7 +48,16 @@ def normalize_language(language: str | None, *, strict: bool = False) -> str:
 
 
 def list_normalized_languages(language, *, strict: bool = False) -> list[str]:
-    """Return a list of normalized language tags from a single value or sequence."""
+    """
+    Return a list of normalized language tags from a single value or sequence.
+
+    Args:
+        language: A language string, list/iterable of languages, or None.
+        strict: If True, raises ValueError for unrecognized languages (passed to normalize_language).
+
+    Returns:
+        List of normalized language strings. Returns [""] if no valid languages found.
+    """
     if isinstance(language, str) or language is None:
         values = [language]
     elif isinstance(language, Iterable):
