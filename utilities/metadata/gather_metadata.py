@@ -104,7 +104,7 @@ def _warn_duplicate_projects(metadata_entries: list[dict]) -> None:
         project_name = entry.get("project_name", "")
         source_folder = entry.get("source_folder", "")
         for language in list_normalized_languages(entry.get("metadata", {}).get("language")):
-            key = (project_name, language)
+            key = (project_name, language or "")
             if key in seen:
                 lang_label = language or "unspecified language"
                 logger.warning(
