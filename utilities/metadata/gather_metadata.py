@@ -22,6 +22,14 @@ import logging
 import os
 from pathlib import Path
 
+try:
+    from utilities.metadata.utils import list_normalized_languages
+except ModuleNotFoundError:  # Allow running via `python utilities/metadata/gather_metadata.py`
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from utilities.metadata.utils import list_normalized_languages
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -86,6 +94,26 @@ def generate_build_and_run_command(metadata: dict) -> str:
         return f'./holohub run {metadata["application_name"]}'
 
 
+def _warn_duplicate_projects(metadata_entries: list[dict]) -> None:
+    seen: dict[tuple[str, str], str] = {}
+    for entry in metadata_entries:
+        project_name = entry.get("project_name", "")
+        source_folder = entry.get("source_folder", "")
+        for language in list_normalized_languages(entry.get("metadata", {}).get("language")):
+            key = (project_name, language)
+            if key in seen:
+                lang_label = language or "unspecified language"
+                logger.warning(
+                    "Duplicate project '%s' (%s) detected in '%s' and '%s'",
+                    project_name,
+                    lang_label,
+                    seen[key],
+                    source_folder,
+                )
+            else:
+                seen[key] = source_folder
+
+
 def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> list[dict]:
     """
     Collect project metadata from JSON files into a single dictionary
@@ -118,7 +146,7 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
     for file_path in metadata_files:
         if any(exclude_path in file_path for exclude_path in exclude_paths):
             continue
-        if any(ex in file_path for ex in [f"{{cookiecutter", "cookiecutter.json"]):
+        if any(ex in file_path for ex in ["{cookiecutter", "cookiecutter.json"]):
             continue
         with open(file_path, "r") as file:
             try:
@@ -158,13 +186,22 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
 def main(args: argparse.Namespace):
     """Run the gather application"""
 
-    DEFAULT_INCLUDE_PATHS = ["workflows", "applications", "operators", "tutorials"]
+    DEFAULT_INCLUDE_PATHS = [
+        "applications",
+        "benchmarks",
+        "gxf_extensions",
+        "operators",
+        "pkg",
+        "tutorials",
+        "workflows",
+    ]
     DEFAULT_OUTPUT_FILEPATH = "aggregate_metadata.json"
 
     repo_paths = args.include or DEFAULT_INCLUDE_PATHS
     output_file = args.output or DEFAULT_OUTPUT_FILEPATH
 
     metadata = gather_metadata(repo_paths, exclude_paths=args.exclude)
+    _warn_duplicate_projects(metadata)
 
     # Write the metadata to the output file
     with open(output_file, "w") as output:
