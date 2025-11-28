@@ -18,7 +18,20 @@ from collections.abc import Iterable
 
 
 def normalize_language(language: str | None, *, strict: bool = False) -> str:
-    """Normalize language names, optionally enforcing known HoloHub languages."""
+    """
+    Normalize language names, optionally enforcing known HoloHub languages.
+
+    Args:
+        language: The language name to normalize (e.g., "cpp", "python", "c++", "py").
+        strict: If True, raises ValueError for languages other than "cpp" and "python".
+
+    Returns:
+        Normalized language name ("cpp", "python", or the lowercased input if strict=False).
+        Returns empty string if language is None or not a string.
+
+    Raises:
+        ValueError: If strict=True and language is not a recognized HoloHub language.
+    """
     if not language or not isinstance(language, str):
         return ""
     lang = language.strip().lower()
