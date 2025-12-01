@@ -11,7 +11,8 @@
             "WORKSPACE_DIR": "${containerWorkspaceFolder}"
         },
         "options": [
-            "--progress=plain"
+            "--progress=plain",
+            "--network=host"
         ]
     },
     // Features to add to the dev container. More info: https://containers.dev/features.
