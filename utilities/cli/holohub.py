@@ -2018,6 +2018,17 @@ class HoloHubCLI:
                 extra_args=extra_args,
             )
 
+    def _collect_cache_dirs(self, patterns: list[str], default_dir=None) -> list:
+        """Helper to collect cache directories matching patterns."""
+        dirs = []
+        if default_dir is not None:
+            dirs.append(default_dir)
+        for pattern in patterns:
+            for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
+                if path.is_dir() and path not in dirs:
+                    dirs.append(path)
+        return dirs
+
     def handle_clear_cache(self, args: argparse.Namespace) -> None:
         """Handle clear-cache command"""
         # Determine which folders to clear
@@ -2037,26 +2048,17 @@ class HoloHubCLI:
 
         # Collect build folders if needed
         if clear_all or clear_build:
-            cache_dirs.append(self.DEFAULT_BUILD_PARENT_DIR)
-            for pattern in ["build", "build-*"]:
-                for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                    if path.is_dir() and path not in cache_dirs:
-                        cache_dirs.append(path)
+            cache_dirs.extend(
+                self._collect_cache_dirs(["build", "build-*"], self.DEFAULT_BUILD_PARENT_DIR)
+            )
 
         # Collect data folders if needed
         if clear_all or clear_data:
-            cache_dirs.append(self.DEFAULT_DATA_DIR)
-            for pattern in ["data", "data-*"]:
-                for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                    if path.is_dir() and path not in cache_dirs:
-                        cache_dirs.append(path)
+            cache_dirs.extend(self._collect_cache_dirs(["data", "data-*"], self.DEFAULT_DATA_DIR))
 
         # Collect install folders if needed
         if clear_all or clear_install:
-            for pattern in ["install", "install-*"]:
-                for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                    if path.is_dir() and path not in cache_dirs:
-                        cache_dirs.append(path)
+            cache_dirs.extend(self._collect_cache_dirs(["install", "install-*"]))
 
         for path in set(cache_dirs):
             if path.exists() and path.is_dir():
