@@ -15,7 +15,9 @@
 # limitations under the License.
 
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -29,12 +31,36 @@ from utilities.cli.util import get_cuda_tag, get_default_cuda_version
 
 class TestHoloHubContainer(unittest.TestCase):
     def setUp(self):
+        # make a temporary directory for the test
+        self.test_dir = tempfile.mkdtemp()
+        self.test_dir_path = Path(self.test_dir)
+        self.dockerfile_path = self.test_dir_path / "Dockerfile"
+
+        # create a Dockerfile in the test directory
+        self.dockerfile_path.write_text(
+            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:3.8.0-cuda12-dgpu"
+        )
+
+        # create project metadata
         self.project_metadata = {
             "project_name": "test_project",
-            "source_folder": Path("/test/path"),
+            "source_folder": self.test_dir_path,
             "metadata": {"language": "cpp", "dockerfile": "<holohub_app_source>/Dockerfile"},
         }
         self.container = HoloHubContainer(project_metadata=self.project_metadata)
+
+    def tearDown(self):
+        """Clean up temporary directory after each test"""
+        # Check if test_dir_path exists and remove it
+        if hasattr(self, "test_dir_path") and self.test_dir_path.exists():
+            try:
+                shutil.rmtree(self.test_dir_path)
+            except FileNotFoundError:
+                # Directory was already removed, ignore
+                pass
+            except Exception as e:
+                # Log but don't fail the test cleanup
+                print(f"Warning: Failed to clean up {self.test_dir_path}: {e}")
 
     def test_default_base_image(self):
         """Test that default base image is correctly formatted"""
@@ -49,7 +75,7 @@ class TestHoloHubContainer(unittest.TestCase):
     def test_dockerfile_path(self):
         """Test that Dockerfile path is correctly determined"""
         dockerfile_path = self.container.dockerfile_path
-        self.assertEqual(str(dockerfile_path), "/test/path/Dockerfile")
+        self.assertEqual(str(dockerfile_path), str(self.dockerfile_path))
 
     def test_image_name(self):
         """Test that image name is correctly determined"""

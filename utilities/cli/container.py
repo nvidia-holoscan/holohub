@@ -43,6 +43,7 @@ from .util import (
     get_holohub_setup_scripts_dir,
     get_host_gpu,
     get_image_pythonpath,
+    get_sccache_dir,
     info,
     list_normalized_languages,
     replace_placeholders,
@@ -354,41 +355,65 @@ class HoloHubContainer:
         """
         Get Dockerfile path for the project according to the search strategy:
         1. As specified in metadata.json
-        2. <app_source>/Dockerfile
-        3. <app_source>/<language>/Dockerfile
-        4. `HOLOHUB_DEFAULT_DOCKERFILE` env variable
-        5. `<HOLOHUB_ROOT>/Dockerfile`
+        2. <app_source>/<language>/Dockerfile
+        3. <app_source>/Dockerfile
+        4. <app_source>/../Dockerfile (traverse up to HOLOHUB_ROOT)
+        5. `HOLOHUB_DEFAULT_DOCKERFILE` env variable
+        6. `<HOLOHUB_ROOT>/Dockerfile`
         """
         if not self.project_metadata:
             return HoloHubContainer.default_dockerfile()
 
-        if self.project_metadata.get("metadata", {}).get("dockerfile"):
+        # Strategy 1: Check metadata for explicit dockerfile path
+        dockerfile_from_metadata = self.project_metadata.get("metadata", {}).get("dockerfile")
+        if dockerfile_from_metadata:
             # Build path mapping for this project
             path_mapping = build_holohub_path_mapping(
                 holohub_root=HoloHubContainer.HOLOHUB_ROOT,
                 project_data=self.project_metadata,
             )
 
-            dockerfile = replace_placeholders(
-                self.project_metadata["metadata"]["dockerfile"], path_mapping
-            )
+            dockerfile_str = replace_placeholders(dockerfile_from_metadata, path_mapping)
+            dockerfile = Path(dockerfile_str)
 
-            # If the Dockerfile path is not absolute, make it absolute
-            if not str(dockerfile).startswith(str(HoloHubContainer.HOLOHUB_ROOT)):
-                dockerfile = str(HoloHubContainer.HOLOHUB_ROOT / dockerfile)
+            # If the path is not absolute, make it relative to HOLOHUB_ROOT
+            if not dockerfile.is_absolute():
+                dockerfile = HoloHubContainer.HOLOHUB_ROOT / dockerfile
 
-            return Path(dockerfile)
+            # Validate that the Dockerfile exists
+            if dockerfile.exists():
+                return dockerfile
+            else:
+                warn(
+                    f"Dockerfile specified in metadata.json not found: {dockerfile}\n"
+                    "Falling back to default Dockerfile search strategy."
+                )
 
-        source_folder = self.project_metadata.get("source_folder", "")
+        # Strategy 2-4: Search in source_folder hierarchy
+        source_folder = self.project_metadata.get("source_folder")
         if source_folder:
-            dockerfile_path = source_folder / "Dockerfile"
-            if dockerfile_path.exists():
-                return dockerfile_path
+            source_folder = Path(source_folder).resolve()
 
+            # Strategy 2: Check language-specific Dockerfile
             dockerfile_path = source_folder / self.language / "Dockerfile"
             if dockerfile_path.exists():
                 return dockerfile_path
 
+            # Strategy 3: Check Dockerfile in source folder
+            dockerfile_path = source_folder / "Dockerfile"
+            if dockerfile_path.exists():
+                return dockerfile_path
+
+            # Strategy 4: Traverse up parent directories to HOLOHUB_ROOT
+            for parent in source_folder.parents:
+                # Stop at the root directory
+                if parent == HoloHubContainer.HOLOHUB_ROOT:
+                    break
+                dockerfile_path = parent / "Dockerfile"
+                if dockerfile_path.exists():
+                    return dockerfile_path
+
+        # Strategy 5-6: Fall back to default Dockerfile
         return HoloHubContainer.default_dockerfile()
 
     def __init__(self, project_metadata: Optional[dict[str, any]], language: Optional[str] = None):
@@ -636,9 +661,7 @@ class HoloHubContainer:
         _, enable_sccache = get_env_bool("HOLOHUB_ENABLE_SCCACHE", default=False)
         has_host_sccache_env = any(k.startswith("SCCACHE_") for k in os.environ)
         if enable_sccache:
-            sccache_host_dir = os.environ.get("SCCACHE_DIR")
-            if not sccache_host_dir:
-                sccache_host_dir = str(Path.home() / ".cache" / "sccache")
+            sccache_host_dir = get_sccache_dir()
             info(f"Host SCCACHE_DIR: {sccache_host_dir}")
             info(f"Container mount point: {SCCACHE_CONTAINER_DIR}")
             os.makedirs(sccache_host_dir, exist_ok=True)  # Pre-create for the current user to own
