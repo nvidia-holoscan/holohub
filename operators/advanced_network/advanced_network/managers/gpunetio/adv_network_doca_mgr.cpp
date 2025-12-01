@@ -1344,7 +1344,7 @@ int DocaMgr::rx_core(void* arg) {
     loop_count++;
 
     for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
-      packets_stats = &tparams->rxqw[idx].rxq->pkt_list_cpu[pkt_idx_cpu_list[ridx]];
+      packets_stats = &tparams->rxqw[ridx].rxq->pkt_list_cpu[pkt_idx_cpu_list[ridx]];
       status = DOCA_GPUNETIO_VOLATILE(packets_stats->status);
 
       // Log semaphore status periodically unless it's ready
