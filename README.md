@@ -207,21 +207,36 @@ Make sure you build the application (if applicable) before running it.
 
 ## Cleanup
 
-You can run the command below to reset your `build` directory:
+> [!IMPORTANT]
+> Many applications use custom container environments with specific build and runtime dependencies. If you encounter issues with missing or broken build tools between different applications, clearing the build cache should be your first troubleshooting step.
 
-  ```sh
-  ./holohub clear-cache
-  ```
+Clear cache directories using the `clear-cache` command:
 
-In some cases you may also want to clear out datasets downloaded by applications to the `data` folder:
+```sh
+# Clear all cache folders (build, data, install)
+./holohub clear-cache
 
-  ```sh
-  rm -rf ./data
-  ```
+# Clear specific cache types
+./holohub clear-cache --build      # Build folders only
+./holohub clear-cache --data       # Data folders only
+./holohub clear-cache --install    # Install folders only
 
-Note that many applications supply custom container environments with build and runtime dependencies.
-Failing to clean the build cache between different applications may result in unexpected behavior where build
-tools or libraries appear to be broken or missing. Clearing the build cache is a good first check to address those issues.
+# Combine flags to clear multiple types
+./holohub clear-cache --build --data
+
+# Preview what would be removed without actually deleting
+./holohub clear-cache --dryrun
+./holohub clear-cache --build --dryrun
+```
+
+> [!TIP]
+> If you encounter permission issues when clearing cache, run the command inside a container with root privileges:
+>
+> ```sh
+> ./holohub run-container --as-root -- ./holohub clear-cache
+> ```
+>
+> This is safer than using `sudo` directly, as it maintains proper container isolation and avoids changing file ownership.
 
 ## Contributing
 
