@@ -17247,6 +17247,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="holoscan::ops::DDSShapesSubscriberOp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -17381,16 +17409,18 @@
 <code>Triangle</code> shape topics as used by the <a href="https://www.rti.com/free-trial/shapes-demo">RTI Shapes Demo</a>.
 It will then translate the received shape data to an internal <code>Shape</code> datatype for output
 to downstream operators.</p>
-<p>This operator requires an installation of <a href="https://content.rti.com/l/983311/2025-07-08/q5x1n8">RTI Connext Express</a> to provide access to the DDS domain, as specified by the <a href="https://www.omg.org/omg-dds-portal/">OMG Data-Distribution Service</a>. To obtain a license/activation key, please <a href="https://content.rti.com/l/983311/2025-07-25/q6729c">click here</a>. Please see the <a href="https://www.rti.com/products/connext-express">usage rules</a> for Connext Express.</p>
-<h4 id="holoscanopsddsshapessubscriberop"><code>holoscan::ops::DDSShapesSubscriberOp</code><a class="headerlink" href="#holoscanopsddsshapessubscriberop" title="Permanent link">#</a></h4>
+<p>This operator requires an installation of <a href="https://content.rti.com/l/983311/2025-07-08/q5x1n8">RTI Connext</a> to provide access to the DDS domain, as specified by the <a href="https://www.omg.org/omg-dds-portal/">OMG Data-Distribution Service</a>.</p>
+<p>You can obtain a license/activation key for RTI Connext directly from RTI by downloading it <a href="https://content.rti.com/l/983311/2025-07-25/q6729c">here</a>. For additional information on RTI Connext and how it integrates with NVIDIA products, please refer to the <a href="https://www.rti.com/products/third-party-integrations/nvidia">RTI-NVIDIA integration page</a>.</p>
+<p>If you have questions, please email <a href="mailto:evaluations@rti.com">evaluations@rti.com</a>.</p>
+<h2 id="holoscanopsddsshapessubscriberop"><code>holoscan::ops::DDSShapesSubscriberOp</code><a class="headerlink" href="#holoscanopsddsshapessubscriberop" title="Permanent link">#</a></h2>
 <p>Operator class for the DDS Shapes Subscriber.</p>
 <p>This operator also inherits the parameters from <a href="../base/">DDSOperatorBase</a>.</p>
-<h5 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h5>
+<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h3>
 <ul>
 <li><strong><code>reader_qos</code></strong>: The name of the QoS profile to use for the DDS DataReader</li>
 <li>type: <code>std::string</code></li>
 </ul>
-<h5 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">#</a></h5>
+<h3 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">#</a></h3>
 <ul>
 <li><strong><code>output</code></strong>: Output shapes, translated from those read from DDS</li>
 <li>type: <code>holoscan::ops::DDSShapesSubscriberOp::Shape</code></li>
