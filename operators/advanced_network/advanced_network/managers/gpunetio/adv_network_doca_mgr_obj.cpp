@@ -102,10 +102,10 @@ DocaRxQueue::DocaRxQueue(struct doca_dev* dev_, struct doca_gpu* gdev_,
 
   dmabuf_fd = -1;
   if (mtype == DOCA_GPU_MEM_TYPE_GPU) {
-    /* Map GPU memory buffer used to send packets with DMABuf */
+    /* Map GPU memory buffer used to recv packets with DMABuf */
 	  result = doca_gpu_dmabuf_fd(gdev, gpu_pkt_addr, cyclic_buffer_size, &(dmabuf_fd));
     if (result == DOCA_SUCCESS) {
-      		HOLOSCAN_LOG_INFO("Mapping send queue buffer ({} size {}B dmabuf fd {}) with dmabuf mode",
+      		HOLOSCAN_LOG_INFO("Mapping recv queue buffer ({} size {}B dmabuf fd {}) with dmabuf mode",
 			      gpu_pkt_addr,
 			      cyclic_buffer_size,
 			      dmabuf_fd);
@@ -124,7 +124,7 @@ DocaRxQueue::DocaRxQueue(struct doca_dev* dev_, struct doca_gpu* gdev_,
   }
 
 	if (dmabuf_fd == -1) {
-		HOLOSCAN_LOG_INFO("Mapping send queue buffer ({} size {}B) with nvidia-peermem mode",
+		HOLOSCAN_LOG_INFO("Mapping recv queue buffer ({} size {}B) with nvidia-peermem mode",
 			      gpu_pkt_addr,
 			      cyclic_buffer_size);
 

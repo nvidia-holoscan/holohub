@@ -125,11 +125,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ninja-build \
         pkgconf \
         mlnx-dpdk-dev \
-        doca-sdk-gpunetio \
         libdoca-sdk-gpunetio-dev \
-        doca-sdk-eth \
         libdoca-sdk-eth-dev \
-        doca-sdk-flow \
         libdoca-sdk-flow-dev \
         mlnx-ofed-kernel-utils \
         ibverbs-utils \
