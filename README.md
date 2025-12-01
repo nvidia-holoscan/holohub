@@ -207,13 +207,15 @@ Make sure you build the application (if applicable) before running it.
 
 ## Cleanup
 
-You can run the command below to reset your `build` directory:
+You can run the command below to reset cache directories:
 
   ```sh
   ./holohub clear-cache
   ```
 
-In some cases you may also want to clear out datasets downloaded by applications to the `data` folder:
+This removes all the `build` and `data` directories. You can use `--dryrun` to preview what would be removed.
+
+In some cases you may want to clear out only the datasets downloaded by applications to the `data` folder:
 
   ```sh
   rm -rf ./data
