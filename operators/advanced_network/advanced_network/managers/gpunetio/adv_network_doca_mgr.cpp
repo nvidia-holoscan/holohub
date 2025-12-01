@@ -544,6 +544,7 @@ void DocaMgr::initialize() {
   int max_tx_batch_size = 0;
   size_t max_packet_size = 0;
   enum doca_gpu_mem_type mtype;
+  cudaError_t res_cuda = cudaSuccess;
   uint32_t key;
   int gpu_id = -1;
 
@@ -949,9 +950,6 @@ doca_error_t DocaMgr::create_root_pipe(int port_id) {
   udp_match.outer.eth.type = htons(DOCA_FLOW_ETHER_TYPE_IPV4);
   udp_match.outer.l3_type = DOCA_FLOW_L3_TYPE_IP4;
   udp_match.outer.ip4.next_proto = IPPROTO_UDP;
-
-  // udp_match.outer.l3_type = DOCA_FLOW_L3_TYPE_IP4;
-  // udp_match.outer.l4_type_ext = DOCA_FLOW_L4_TYPE_EXT_UDP;
 
   const auto& rx = cfg_.ifs_[port_id].rx_;
   for (const auto& flow : rx.flows_) {
