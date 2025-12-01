@@ -517,6 +517,26 @@
         },
         {
             "type": "shell",
+            "label": "Build pipeline_visualization",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "pipeline_visualization",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "python"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
             "label": "Build slang_simple",
             "command": "./holohub",
             "args": [
