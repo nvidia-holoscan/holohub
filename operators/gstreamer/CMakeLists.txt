@@ -39,6 +39,8 @@ add_library(holoscan_gstreamer_bridge SHARED
   gst/message.cpp
   gst/video_info.cpp
   gst_src_bridge.cpp
+  gst_src_op.cpp
+  gst_src_resource.cpp
   gst_video_recorder_op.cpp
 )
 
@@ -132,6 +134,8 @@ install(FILES
   gst/pipeline.hpp
   gst/video_info.hpp
   gst_src_bridge.hpp
+  gst_src_op.hpp
+  gst_src_resource.hpp
   gst_video_recorder_op.hpp
   DESTINATION include/holoscan/operators/gstreamer)
 
