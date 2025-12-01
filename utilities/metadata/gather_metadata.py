@@ -33,6 +33,18 @@ except ModuleNotFoundError:  # Allow running via `python utilities/metadata/gath
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+METADATA_DIRECTORY_CONFIG = {
+    "applications": {"ignore_patterns": ["template"], "metadata_is_required": True},
+    "benchmarks": {},
+    "gxf_extensions": {"ignore_patterns": ["utils"], "metadata_is_required": True},
+    "operators": {"ignore_patterns": ["template"], "metadata_is_required": True},
+    "pkg": {"metadata_is_required": False},
+    "tutorials": {"ignore_patterns": ["template"], "metadata_is_required": False},
+    "workflows": {"ignore_patterns": ["template"], "metadata_is_required": True},
+}
+
+DEFAULT_INCLUDE_PATHS = list(METADATA_DIRECTORY_CONFIG.keys())
+
 
 def find_metadata_files(repo_paths):
     """Recursively search for metadata.json files in the specified repository paths"""
@@ -144,13 +156,19 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
 
     metadata_files = find_metadata_files(repo_paths)
     metadata = []
-    exclude_paths = exclude_paths or []
+    exclude_patterns: list[str] = list(exclude_paths) if exclude_paths else []
 
     # Iterate over the found metadata files
     for file_path in metadata_files:
-        if any(exclude_path in file_path for exclude_path in exclude_paths):
+        if any(pattern in file_path for pattern in exclude_patterns):
             continue
-        if any(ex in file_path for ex in ["{cookiecutter", "cookiecutter.json"]):
+
+        directory_config = {}
+        for part in Path(file_path).parts:
+            if part in METADATA_DIRECTORY_CONFIG:
+                directory_config = METADATA_DIRECTORY_CONFIG[part]
+                break
+        if any(pattern in file_path for pattern in directory_config.get("ignore_patterns", [])):
             continue
         with open(file_path, "r") as file:
             try:
@@ -192,15 +210,6 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
 def main(args: argparse.Namespace):
     """Run the gather application"""
 
-    DEFAULT_INCLUDE_PATHS = [
-        "applications",
-        "benchmarks",
-        "gxf_extensions",
-        "operators",
-        "pkg",
-        "tutorials",
-        "workflows",
-    ]
     DEFAULT_OUTPUT_FILEPATH = "aggregate_metadata.json"
 
     repo_paths = args.include or DEFAULT_INCLUDE_PATHS

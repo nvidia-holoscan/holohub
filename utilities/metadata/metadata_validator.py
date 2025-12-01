@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import glob
 import json
 import os
 import re
@@ -24,10 +25,10 @@ from referencing import Registry
 from referencing.jsonschema import DRAFT4
 
 try:
-    from utilities.metadata.gather_metadata import find_metadata_files
+    from utilities.metadata.gather_metadata import DEFAULT_INCLUDE_PATHS, METADATA_DIRECTORY_CONFIG
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-    from utilities.metadata.gather_metadata import find_metadata_files
+    from utilities.metadata.gather_metadata import DEFAULT_INCLUDE_PATHS, METADATA_DIRECTORY_CONFIG
 
 
 def extract_readme_title(readme_path):
@@ -150,10 +151,9 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
     # Convert json to python object.
     current_wdir = os.getcwd()
     target_dir = os.path.join(current_wdir, directory)
-    all_metadata_files = find_metadata_files([target_dir])
 
     # Check if there is a metadata.json
-    subdirs = next(os.walk(target_dir))[1]
+    subdirs = next(os.walk(target_dir), (None, [], None))[1]
     for subdir in subdirs:
         ignore = False
         # check if we should ignore the pattern
@@ -162,9 +162,8 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
                 ignore = True
 
         if ignore is False:
-            subdir_path = os.path.join(target_dir, subdir)
-            # Check if any metadata file is within this subdirectory
-            has_metadata = any(f.startswith(subdir_path) for f in all_metadata_files)
+            subdir_pattern = os.path.join(target_dir, subdir, "**", "metadata.json")
+            has_metadata = bool(glob.glob(subdir_pattern, recursive=True))
 
             if not has_metadata:
                 if metadata_is_required:
@@ -174,6 +173,7 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
                     print("WARNING:" + subdir + " does not contain metadata.json file")
 
     # Check if the metadata is valid
+    all_metadata_files = glob.glob(os.path.join(target_dir, "**", "metadata.json"), recursive=True)
     for name in all_metadata_files:
         ignore = False
         # check if we should ignore the pattern
@@ -210,24 +210,14 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
 
 # Validate the directories
 if __name__ == "__main__":
-    exit_code_op = validate_json_directory("operators", ignore_patterns=["template"])
-    exit_code_extensions = validate_json_directory("gxf_extensions", ignore_patterns=["utils"])
-    exit_code_applications = validate_json_directory("applications", ignore_patterns=["template"])
-    exit_code_workflows = validate_json_directory("workflows", ignore_patterns=["template"])
-    exit_code_tutorials = validate_json_directory(
-        "tutorials", ignore_patterns=["template"], metadata_is_required=False
-    )
-    exit_code_benchmarks = validate_json_directory("benchmarks")
-    exit_code_packages = validate_json_directory("pkg", metadata_is_required=False)
-
-    sys.exit(
-        max(
-            exit_code_op,
-            exit_code_extensions,
-            exit_code_applications,
-            exit_code_workflows,
-            exit_code_tutorials,
-            exit_code_benchmarks,
-            exit_code_packages,
+    exit_codes = []
+    for directory in DEFAULT_INCLUDE_PATHS:
+        config = METADATA_DIRECTORY_CONFIG.get(directory, {})
+        code = validate_json_directory(
+            directory,
+            ignore_patterns=config.get("ignore_patterns", []),
+            metadata_is_required=config.get("metadata_is_required", True),
         )
-    )
+        exit_codes.append(code)
+
+    sys.exit(max(exit_codes) if exit_codes else 0)
