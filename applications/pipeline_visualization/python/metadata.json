@@ -32,8 +32,28 @@
 		"requirements": {},
 		"default_mode": "app",
 		"modes": {
+			"web_static": {
+				"description": "Run the static web dashboard visualizer",
+				"run": {
+					"command": "python3 <holohub_app_source>/../visualizer/visualizer_static.py",
+					"env": {
+						"PYTHONPATH": "<holohub_app_bin>/../flatbuffers:<PYTHONPATH>"
+					},
+					"workdir": "holohub_app_source"
+				}
+			},
+			"web_dynamic": {
+				"description": "Run the dynamic web dashboard visualizer",
+				"run": {
+					"command": "python3 <holohub_app_source>/../visualizer/visualizer_dynamic.py",
+					"env": {
+						"PYTHONPATH": "<holohub_app_bin>/../flatbuffers:<PYTHONPATH>"
+					},
+					"workdir": "holohub_app_source"
+				}
+			},
 			"app": {
-				"description": "Run mode for pipeline visualization application",
+				"description": "Run the pipeline application",
 				"run": {
 					"command": "python3 <holohub_app_source>/pipeline_visualization.py",
 					"workdir": "holohub_bin"

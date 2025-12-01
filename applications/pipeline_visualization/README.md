@@ -25,24 +25,19 @@ cd applications/pipeline_visualization
 
 This will start a NATS server listening on `0.0.0.0:4222`.
 
-### Step 2: Build Visualizer Dependencies
+### Step 2: Run the Visualizer
+
+In a second terminal, start the web dashboard visualizer. The dependencies are installed automatically when using the `holohub run` command inside the Holohub container. You can choose to run the static or dynamic visualizer by specifying the `web_static` or `web_dynamic` mode.
+
+Start the static web dashboard visualizer:
 
 ```bash
-./holohub build pipeline_visualization
+./holohub run pipeline_visualization web_static
 ```
 
-### Step 3: Start the Visualizer
+The web interface will be available at: [http://localhost:8050](http://localhost:8050)
 
-In a second terminal, make sure the [visualizer Python dependencies](#visualizer-python-dependencies) are installed and start one of the Python visualizers:
-
-```bash
-cd applications/pipeline_visualization/visualizer
-./start_visualizer.sh static   # or 'dynamic'
-```
-
-The web interface will be available at: **[http://localhost:8050](http://localhost:8050)**
-
-### Step 4: Run the Holoscan Application
+### Step 3: Run the Holoscan Application
 
 In a third terminal, run the application:
 
@@ -74,7 +69,7 @@ Options:
 ./holohub run pipeline_visualization --nats_url nats://0.0.0.0:4222 --subject_prefix my_demo --publish_rate 5.0
 ```
 
-### Step 5: Visualize the Data
+### Step 4: Visualize the Data
 
 1. Open your web browser to [http://localhost:8050](http://localhost:8050)
 2. Enter the subject name (default: `nats_demo`)
