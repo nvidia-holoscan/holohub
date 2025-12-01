@@ -207,19 +207,36 @@ Make sure you build the application (if applicable) before running it.
 
 ## Cleanup
 
-You can clear cache directories using the `clear-cache` command:
+> [!IMPORTANT]
+> Many applications use custom container environments with specific build and runtime dependencies. If you encounter issues with missing or broken build tools between different applications, clearing the build cache should be your first troubleshooting step.
+
+Clear cache directories using the `clear-cache` command:
 
 ```sh
-./holohub clear-cache              # Clear all cache folders (build, data, install)
-./holohub clear-cache --build      # Clear only build folders
-./holohub clear-cache --data       # Clear only data folders
-./holohub clear-cache --install    # Clear only install folders
-./holohub clear-cache --dryrun     # Preview what would be removed
+# Clear all cache folders (build, data, install)
+./holohub clear-cache
+
+# Clear specific cache types
+./holohub clear-cache --build      # Build folders only
+./holohub clear-cache --data       # Data folders only
+./holohub clear-cache --install    # Install folders only
+
+# Combine flags to clear multiple types
+./holohub clear-cache --build --data
+
+# Preview what would be removed without actually deleting
+./holohub clear-cache --dryrun
+./holohub clear-cache --build --dryrun
 ```
 
-Note that many applications supply custom container environments with build and runtime dependencies.
-Failing to clean the build cache between different applications may result in unexpected behavior where build
-tools or libraries appear to be broken or missing. Clearing the build cache is a good first check to address those issues.
+> [!TIP]
+> If you encounter permission issues when clearing cache, run the command inside a container with root privileges:
+>
+> ```sh
+> ./holohub run-container --as-root -- ./holohub clear-cache
+> ```
+>
+> This is safer than using `sudo` directly, as it maintains proper container isolation and avoids changing file ownership.
 
 ## Contributing
 
