@@ -84,7 +84,7 @@ def generate_build_and_run_command(entry: dict) -> str:
     if not project_name:
         return ""
 
-    language = entry.get("metadata", {}).get("language", "").lower()
+    language = normalize_language(entry.get("metadata", {}).get("language", ""))
     if language == "python":
         return f"./holohub run {project_name} --language=python"
     elif language in ["cpp", "c++"]:
