@@ -22,6 +22,8 @@
 
 #include <gst/gst.h>
 #include <holoscan/holoscan.hpp>
+#include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
+#include <holoscan/operators/format_converter/format_converter.hpp>
 #include <gst_video_recorder_operator.hpp>
 #include "pattern_generator.hpp"
 
@@ -104,6 +106,13 @@ struct AppConfig {
   int pattern = 0;  // 0=gradient, 1=checkerboard, 2=color bars
   int storage_type = 1;  // 0=host, 1=device (default to device for CUDA pipeline)
   std::map<std::string, std::string> properties;  // Encoder properties
+
+  // Source selection
+  std::string source = "pattern";  // "pattern" or "v4l2"
+
+  // V4L2 camera configuration
+  std::string v4l2_device = "/dev/video0";
+  std::string v4l2_pixel_format = "auto";  // "YUYV", "MJPEG", "auto", etc.
 };
 
 /**
@@ -114,7 +123,8 @@ struct AppConfig {
 void print_usage(const char* program_name) {
     std::cout << "Usage: " << program_name << " [OPTIONS]\n\n";
     std::cout << "Options:\n";
-    std::cout << "  -c, --count <number>     Number of frames to generate (default: unlimited)\n";
+    std::cout << "  --source <type>          Video source: pattern or v4l2 (default: pattern)\n";
+    std::cout << "  -c, --count <number>     Number of frames to capture (default: unlimited)\n";
     std::cout << "  -w, --width <pixels>     Frame width (default: 1920)\n";
     std::cout << "  -h, --height <pixels>    Frame height (default: 1080)\n";
     std::cout << "  -f, --framerate <rate>   Frame rate as fraction or decimal (default: 30/1)\n";
@@ -123,8 +133,10 @@ void print_usage(const char* program_name) {
                  "real-time timestamps)\n";
     std::cout << "  --pattern <type>         Pattern type: 0=gradient, 1=checkerboard, "
                  "2=color bars (default: 0)\n";
+    std::cout << "                            Only used when source=pattern\n";
     std::cout << "  --storage <type>         Memory storage type: 0=host, 1=device/CUDA "
                  "(default: 1)\n";
+    std::cout << "                            Only used when source=pattern\n";
     std::cout << "  -o, --output <filename>  Output video filename (default: output.mp4)\n";
     std::cout << "                            Supported formats: .mp4, .mkv\n";
     std::cout << "                            If no extension, defaults to .mp4\n";
@@ -136,6 +148,11 @@ void print_usage(const char* program_name) {
                  "--property preset=1\n";
     std::cout << "                            Property types are automatically detected "
                  "and converted\n";
+    std::cout << "\n";
+    std::cout << "V4L2 Camera Options:\n";
+    std::cout << "  --device <path>          V4L2 device path (default: /dev/video0)\n";
+    std::cout << "  --pixel-format <format>  V4L2 pixel format (default: auto)\n";
+    std::cout << "                            Examples: YUYV, MJPEG, auto\n";
     std::cout << "  --help                   Show this help message\n\n";
     std::cout << "Pipeline:\n";
     std::cout << "  The application automatically detects video parameters and selects "
@@ -143,15 +160,21 @@ void print_usage(const char* program_name) {
     std::cout << "  Parser element is automatically determined from the encoder.\n";
     std::cout << "  Muxer element is automatically determined from the file extension.\n\n";
     std::cout << "Examples:\n";
+    std::cout << "  Record from V4L2 camera:\n";
+    std::cout << "    " << program_name << " --source v4l2 --count 300 --output camera.mp4\n\n";
+    std::cout << "  Record from V4L2 camera with specific device and format:\n";
+    std::cout << "    " << program_name << " --source v4l2 --device /dev/video1 "
+                 "--pixel-format YUYV --output camera.mp4\n\n";
     std::cout << "  Record animated gradient with H.264:\n";
-    std::cout << "    " << program_name << " --count 300 --output gradient.mp4\n\n";
+    std::cout << "    " << program_name << " --source pattern --count 300 "
+                 "--output gradient.mp4\n\n";
     std::cout << "  Record with H.265/HEVC:\n";
     std::cout << "    " << program_name << " --count 300 --encoder nvh265 --output video.mp4\n\n";
     std::cout << "  Record to MKV container:\n";
     std::cout << "    " << program_name << " --count 300 --encoder nvh265 --output video.mkv\n\n";
     std::cout << "  Record checkerboard pattern:\n";
     std::cout << "    " << program_name << " --count 300 --pattern 1 --output checkerboard.mp4\n\n";
-    std::cout << "  Custom resolution and framerate:\n";
+    std::cout << "  Custom resolution and framerate (pattern only):\n";
     std::cout << "    " << program_name << " --count 300 --width 1280 --height 720 "
                  "--framerate 60 --output hd.mp4\n\n";
     std::cout << "  Record with NTSC framerate (exact 30000/1001):\n";
@@ -183,6 +206,22 @@ bool parse_arguments(int argc, char** argv, AppConfig& config) {
       if (arg == "--help") {
         print_usage(argv[0]);
         std::exit(0);  // Exit successfully after showing help
+      } else if (arg == "--source" && i + 1 < argc) {
+        config.source = argv[++i];
+        if (config.source != "pattern" && config.source != "v4l2") {
+          throw std::invalid_argument(
+              "Invalid source '" + config.source + "' (must be 'pattern' or 'v4l2')");
+        }
+      } else if (arg == "--device" && i + 1 < argc) {
+        config.v4l2_device = argv[++i];
+        if (config.v4l2_device.empty()) {
+          throw std::invalid_argument("V4L2 device path cannot be empty");
+        }
+      } else if (arg == "--pixel-format" && i + 1 < argc) {
+        config.v4l2_pixel_format = argv[++i];
+        if (config.v4l2_pixel_format.empty()) {
+          throw std::invalid_argument("Pixel format cannot be empty");
+        }
       } else if ((arg == "-c" || arg == "--count") && i + 1 < argc) {
         // Validate: 1 to 1 billion frames
         config.iteration_count = parse_validated<int64_t>(argv[++i], "frame count", 1, 1000000000);
@@ -231,10 +270,12 @@ bool parse_arguments(int argc, char** argv, AppConfig& config) {
         std::string key = prop.substr(0, eq_pos);
         std::string value = prop.substr(eq_pos + 1);
         config.properties[key] = value;
-      } else if ((arg == "-c" || arg == "--count" || arg == "-w" || arg == "--width" ||
-                arg == "-h" || arg == "--height" || arg == "-f" || arg == "--framerate" ||
-                arg == "--pattern" || arg == "--storage" || arg == "-o" || arg == "--output" ||
-                arg == "-e" || arg == "--encoder" || arg == "--property") && i + 1 >= argc) {
+      } else if ((arg == "--source" || arg == "-c" || arg == "--count" ||
+                arg == "-w" || arg == "--width" || arg == "-h" || arg == "--height" ||
+                arg == "-f" || arg == "--framerate" || arg == "--pattern" ||
+                arg == "--storage" || arg == "-o" || arg == "--output" ||
+                arg == "-e" || arg == "--encoder" || arg == "--property" ||
+                arg == "--device" || arg == "--pixel-format") && i + 1 >= argc) {
         throw std::invalid_argument("Missing value for argument: " + arg);
       } else {
         throw std::invalid_argument("Unknown argument: " + arg);
@@ -256,54 +297,109 @@ namespace holoscan {
 constexpr size_t DEFAULT_MAX_BUFFERS = 10;  // Default max buffers for GStreamer recorder
 
 /**
- * @brief Holoscan application that pushes generated pattern data into GStreamer
+ * @brief Holoscan application that records video from pattern generator or V4L2 camera
  */
 class GstVideoRecorderApp : public Application {
  public:
-  GstVideoRecorderApp(int64_t iteration_count, int width, int height,
-            std::string framerate, int pattern, int storage_type,
-            std::string filename, std::string encoder,
-            std::map<std::string, std::string> properties)
-    : iteration_count_(iteration_count), width_(width), height_(height),
-      framerate_(std::move(framerate)), pattern_(pattern), storage_type_(storage_type),
-      filename_(std::move(filename)), encoder_(std::move(encoder)),
-      properties_(std::move(properties)) {}
+  explicit GstVideoRecorderApp(const AppConfig& config)
+    : iteration_count_(config.iteration_count),
+      source_(config.source),
+      width_(config.width),
+      height_(config.height),
+      framerate_(config.framerate),
+      pattern_(config.pattern),
+      storage_type_(config.storage_type),
+      v4l2_device_(config.v4l2_device),
+      v4l2_pixel_format_(config.v4l2_pixel_format),
+      filename_(config.filename),
+      encoder_(config.encoder),
+      properties_(config.properties) {}
 
   void compose() override {
+    using namespace holoscan;
+
     // Create an allocator for tensor memory
     auto allocator = make_resource<UnboundedAllocator>("allocator");
 
-    // Create the pattern generator operator
-    auto pattern_gen_op = make_operator<PatternGenOperator>(
-        "pattern_gen_op",
-        make_condition<CountCondition>(iteration_count_),
-        Arg("allocator", allocator),
-        Arg("width", width_),
-        Arg("height", height_),
-        Arg("pattern", pattern_),
-        Arg("storage_type", storage_type_));
+    // Create the video source operator based on source selection
+    std::shared_ptr<Operator> source_op;
+    std::string source_output_port;
 
-    // Create the GStreamer video recorder operator - it manages the pipeline internally
-    // Note: width, height, format, and storage type are automatically detected from incoming frames
-    auto recorder_op = make_operator<GstVideoRecorderOperator>(
-        "gst_recorder_op",
-        Arg("encoder", encoder_),
-        Arg("framerate", framerate_),
-        Arg("properties", properties_),
-        Arg("max-buffers", DEFAULT_MAX_BUFFERS),
-        Arg("filename", filename_));
+    if (source_ == "v4l2") {
+      // Create V4L2 camera capture operator
+      // Note: V4L2VideoCaptureOp expects width/height as uint32_t
+      source_op = make_operator<ops::V4L2VideoCaptureOp>(
+          "v4l2_source",
+          make_condition<CountCondition>(iteration_count_),
+          Arg("allocator", allocator),
+          Arg("device", v4l2_device_),
+          Arg("width", static_cast<uint32_t>(width_)),
+          Arg("height", static_cast<uint32_t>(height_)),
+          Arg("pixel_format", v4l2_pixel_format_));
+      source_output_port = "signal";
 
-    // Connect the operators: pattern generator -> GStreamer recorder
-    add_flow(pattern_gen_op, recorder_op);
+      HOLOSCAN_LOG_INFO("Using V4L2 camera source: device={}, {}x{}, pixel_format={}",
+                        v4l2_device_, width_, height_, v4l2_pixel_format_);
+
+      // V4L2 requires a FormatConverterOp to properly convert the camera output
+      // V4L2 outputs RGBA8888, we keep it as-is for the recorder
+      auto format_converter = make_operator<ops::FormatConverterOp>(
+          "format_converter",
+          Arg("in_dtype", std::string("rgba8888")),
+          Arg("out_dtype", std::string("rgba8888")),
+          Arg("pool", allocator));
+
+      // Create the GStreamer video recorder operator
+      auto recorder_op = make_operator<GstVideoRecorderOperator>(
+          "gst_recorder_op",
+          Arg("encoder", encoder_),
+          Arg("framerate", framerate_),
+          Arg("properties", properties_),
+          Arg("max-buffers", DEFAULT_MAX_BUFFERS),
+          Arg("filename", filename_));
+
+      // Connect: V4L2 -> FormatConverter -> Recorder
+      add_flow(source_op, format_converter, {{source_output_port, "source_video"}});
+      add_flow(format_converter, recorder_op, {{"tensor", "input"}});
+    } else {
+      // Create pattern generator operator
+      source_op = make_operator<PatternGenOperator>(
+          "pattern_gen_op",
+          make_condition<CountCondition>(iteration_count_),
+          Arg("allocator", allocator),
+          Arg("width", width_),
+          Arg("height", height_),
+          Arg("pattern", pattern_),
+          Arg("storage_type", storage_type_));
+      source_output_port = "output";
+
+      HOLOSCAN_LOG_INFO("Using pattern generator source: {}x{}, pattern={}",
+                        width_, height_, get_pattern_name(pattern_));
+
+      // Create the GStreamer video recorder operator
+      auto recorder_op = make_operator<GstVideoRecorderOperator>(
+          "gst_recorder_op",
+          Arg("encoder", encoder_),
+          Arg("framerate", framerate_),
+          Arg("properties", properties_),
+          Arg("max-buffers", DEFAULT_MAX_BUFFERS),
+          Arg("filename", filename_));
+
+      // Connect: Pattern -> Recorder (direct)
+      add_flow(source_op, recorder_op, {{source_output_port, "input"}});
+    }
   }
 
  private:
   int64_t iteration_count_;
+  std::string source_;
   int width_;
   int height_;
   std::string framerate_;
   int pattern_;
   int storage_type_;
+  std::string v4l2_device_;
+  std::string v4l2_pixel_format_;
   std::string filename_;
   std::string encoder_;
   std::map<std::string, std::string> properties_;
@@ -323,13 +419,21 @@ int main(int argc, char** argv) {
     gst_init(&argc, &argv);
 
     // Log configuration before creating app
-    HOLOSCAN_LOG_INFO("Starting Holoscan Pattern to GStreamer Video Recorder");
-    HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, "
-                      "storage: {}, encoder: {}, output: '{}'",
-                      config.iteration_count, config.width, config.height,
-                      config.framerate, holoscan::get_pattern_name(config.pattern),
-                      config.storage_type == 1 ? "device" : "host",
-                      config.encoder, config.filename);
+    HOLOSCAN_LOG_INFO("Starting Holoscan Video Recorder with GStreamer");
+    HOLOSCAN_LOG_INFO("Source: {}", config.source);
+    HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}fps, encoder: {}, output: '{}'",
+                      config.iteration_count, config.framerate, config.encoder, config.filename);
+
+    if (config.source == "v4l2") {
+      HOLOSCAN_LOG_INFO("V4L2 camera: device={}, pixel_format={}",
+                        config.v4l2_device, config.v4l2_pixel_format);
+    } else {
+      HOLOSCAN_LOG_INFO("Pattern: {}x{}, type: {}, storage: {}",
+                        config.width, config.height,
+                        holoscan::get_pattern_name(config.pattern),
+                        config.storage_type == 1 ? "device" : "host");
+    }
+
     if (!config.properties.empty()) {
       HOLOSCAN_LOG_INFO("Encoder properties: {} properties configured", config.properties.size());
       for (const auto& [key, value] : config.properties) {
@@ -340,11 +444,7 @@ int main(int argc, char** argv) {
                       "auto-detected from frames");
 
     // Create the Holoscan application with parsed configuration
-    auto holoscan_app = std::make_shared<holoscan::GstVideoRecorderApp>(
-        config.iteration_count, config.width, config.height,
-        std::move(config.framerate), config.pattern, config.storage_type,
-        std::move(config.filename), std::move(config.encoder),
-        std::move(config.properties));
+    auto holoscan_app = std::make_shared<holoscan::GstVideoRecorderApp>(config);
 
     // Run the Holoscan application - the operator manages the GStreamer pipeline internally
     holoscan_app->run();

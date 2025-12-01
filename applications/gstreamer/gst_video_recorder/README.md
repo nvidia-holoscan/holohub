@@ -5,11 +5,15 @@ A Holoscan application that demonstrates video recording using the GStreamer enc
 ## Description
 
 This application showcases how to:
-- Generate video frames in Holoscan using the pattern generator
+- Capture video from V4L2 cameras (USB webcams, MIPI cameras, etc.) or generate test patterns
 - Feed video frames to GStreamer for encoding
 - Record encoded video to files in various formats (MP4, MKV)
 - Use different video codecs (H.264, H.265, and other GStreamer-supported codecs)
 - Support both host and CUDA device memory for zero-copy operation
+
+**Supported Video Sources:**
+- **V4L2 Camera** - Capture from any V4L2-compatible camera (USB webcams, MIPI cameras, etc.)
+- **Pattern Generator** - Generate animated test patterns (gradient, checkerboard, color bars)
 
 ## Requirements
 
@@ -20,6 +24,9 @@ This application showcases how to:
   - gstreamer1.0-plugins-good (mp4mux, matroskamux for container formats)
   - gstreamer1.0-plugins-ugly (x264enc for CPU-based H.264 encoding)
   - Additional codecs available through gstreamer1.0-libav if needed
+- V4L2-compatible camera (optional, for camera capture mode)
+  - USB webcams, MIPI CSI cameras, or any V4L2 video device
+  - Use `v4l2-ctl --list-devices` to see available cameras
 
 ## Building
 
@@ -54,18 +61,37 @@ gst-video-recorder [OPTIONS]
 
 ### Options
 
+**General Options:**
+- `--source <type>` - Video source: `pattern` or `v4l2` (default: pattern)
 - `-o, --output <filename>` - Output video filename (default: output.mp4)
   - Supported formats: .mp4, .mkv
   - If no extension, defaults to .mp4
 - `-e, --encoder <name>` - Encoder base name (default: nvh264)
   - Examples: nvh264, nvh265, x264, x265
   - Note: 'enc' suffix is automatically appended
-- `-c, --count <number>` - Number of frames to generate (default: unlimited)
-- `-w, --width <pixels>` - Frame width (default: 1920)
-- `-h, --height <pixels>` - Frame height (default: 1080)
+- `-c, --count <number>` - Number of frames to capture/generate (default: unlimited)
 - `-f, --framerate <rate>` - Frame rate as fraction or decimal (default: 30/1)
   - Examples: '30/1', '30000/1001', '29.97', '60'
   - Use '0/1' for live mode (no throttling, real-time timestamps)
+- `--property <key=value>` - Set encoder property (can be used multiple times)
+  - Examples: --property bitrate=8000 --property preset=1
+  - Property types are automatically detected and converted
+- `--help` - Show help message
+
+**Resolution Options:**
+- `-w, --width <pixels>` - Frame width (default: 1920)
+  - For V4L2: Must match a supported camera resolution
+  - For pattern: Any reasonable resolution (64-8192 pixels)
+- `-h, --height <pixels>` - Frame height (default: 1080)
+  - For V4L2: Must match a supported camera resolution
+  - For pattern: Any reasonable resolution (64-8192 pixels)
+
+**V4L2 Camera Options:**
+- `--device <path>` - V4L2 device path (default: /dev/video0)
+- `--pixel-format <format>` - V4L2 pixel format (default: auto)
+  - Examples: YUYV, MJPEG, auto
+
+**Pattern Generator Options:**
 - `--pattern <type>` - Pattern type (default: 0)
   - 0 = animated gradient
   - 1 = animated checkerboard
@@ -73,72 +99,84 @@ gst-video-recorder [OPTIONS]
 - `--storage <type>` - Memory storage type (default: 1)
   - 0 = host memory
   - 1 = device/CUDA memory
-- `--property <key=value>` - Set encoder property (can be used multiple times)
-  - Examples: --property bitrate=8000 --property preset=1
-  - Property types are automatically detected and converted
-- `--help` - Show help message
 
 ### Examples
 
-#### Record 10 seconds of video at 30fps (300 frames)
+#### V4L2 Camera Examples
 
+**Record from default V4L2 camera at 1920x1080 (30 seconds at 30fps):**
 ```bash
-gst-video-recorder --count 300 -o video.mp4
+gst-video-recorder --source v4l2 --width 1920 --height 1080 --count 900 -o camera.mp4
 ```
 
-#### Record high quality H.265 video
-
+**Record from specific V4L2 device with H.265:**
 ```bash
-gst-video-recorder --count 300 --encoder nvh265 --property bitrate=10000 -o video.mp4
+gst-video-recorder --source v4l2 --device /dev/video1 --width 1920 --height 1080 --encoder nvh265 --count 600 -o camera_h265.mp4
 ```
 
-#### Record 720p video
-
+**Record at 720p resolution:**
 ```bash
-gst-video-recorder --count 300 --width 1280 --height 720 -o video_720p.mp4
+gst-video-recorder --source v4l2 --width 1280 --height 720 --count 300 -o camera_720p.mp4
 ```
 
-#### Record using host memory (CPU)
-
+**Record with specific pixel format (YUYV):**
 ```bash
-gst-video-recorder --count 300 --storage 0 --encoder x264 -o video.mp4
+gst-video-recorder --source v4l2 --width 640 --height 480 --pixel-format YUYV --count 300 -o camera_yuyv.mp4
 ```
 
-#### Record with H.265 to MKV container
-
+**Record with custom encoder settings:**
 ```bash
-gst-video-recorder --count 300 --encoder nvh265 -o video.mkv
+gst-video-recorder --source v4l2 --property bitrate=12000 --property preset=1 --count 900 -o high_quality.mp4
 ```
 
-#### Record animated checkerboard pattern
+#### Pattern Generator Examples
 
+**Record 10 seconds of animated gradient (300 frames at 30fps):**
 ```bash
-gst-video-recorder --count 300 --pattern 1 -o checkerboard.mp4
+gst-video-recorder --source pattern --count 300 -o video.mp4
 ```
 
-#### Record with custom encoder properties
-
+**Record high quality H.265 video:**
 ```bash
-gst-video-recorder --count 300 --property bitrate=8000 --property preset=1 --property gop-size=30 -o custom.mp4
+gst-video-recorder --source pattern --count 300 --encoder nvh265 --property bitrate=10000 -o video.mp4
 ```
 
-#### Record with NTSC framerate (29.97 fps)
-
+**Record 720p video:**
 ```bash
-gst-video-recorder --count 300 --framerate 30000/1001 -o ntsc.mp4
+gst-video-recorder --source pattern --count 300 --width 1280 --height 720 -o video_720p.mp4
+```
+
+**Record checkerboard pattern:**
+```bash
+gst-video-recorder --source pattern --count 300 --pattern 1 -o checkerboard.mp4
+```
+
+**Record using host memory (CPU):**
+```bash
+gst-video-recorder --source pattern --count 300 --storage 0 --encoder x264 -o video.mp4
 ```
 
 ## Architecture
 
-The application consists of two main components:
+The application supports two video sources and uses a common encoding backend:
 
-1. **PatternGenOperator**: Generates animated test patterns as Holoscan entities with tensors
-2. **GstVideoRecorderOperator**: Receives video frames, manages the GStreamer pipeline, and handles encoding
+### Video Sources:
+1. **V4L2VideoCaptureOp**: Captures video from V4L2-compatible cameras (USB webcams, MIPI CSI cameras, etc.)
+2. **PatternGenOperator**: Generates animated test patterns as Holoscan entities with tensors
+
+### Encoding Backend:
+- **GstVideoRecorderOperator**: Receives video frames, manages the GStreamer pipeline, and handles encoding
 
 ### Pipeline Flow
 
+**V4L2 Camera Pipeline:**
 ```
-PatternGenOperator → GstVideoRecorderOperator → GStreamer Encoding Pipeline → File
+V4L2VideoCaptureOp → FormatConverterOp → GstVideoRecorderOperator → GStreamer Pipeline → File
+```
+
+**Pattern Generator Pipeline:**
+```
+PatternGenOperator → GstVideoRecorderOperator → GStreamer Pipeline → File
 ```
 
 The GStreamer encoding pipeline is automatically constructed based on the encoder and file format:
@@ -164,13 +202,26 @@ The application supports both host and device (CUDA) memory:
 
 ## Notes
 
-- The pattern generator supports three test patterns:
+### Video Sources
+
+**V4L2 Camera:**
+- Supports any V4L2-compatible camera (USB webcams, MIPI CSI cameras)
+- Camera resolution must be explicitly specified with `--width` and `--height`
+- Use `v4l2-ctl --list-formats-ext` to see supported resolutions and formats
+- FormatConverterOp automatically converts camera output to the format expected by the recorder
+
+**Pattern Generator:**
+- Supports three test patterns:
   - Animated gradient (default): Colorful sine wave patterns
   - Animated checkerboard: Moving checkerboard with variable square size
   - Color bars: SMPTE-style color bars (7 colors)
-- To use your own video source, replace `PatternGenOperator` with your video capture operator
+- Useful for testing the encoding pipeline without hardware dependencies
+
+### Recording
+
 - The application waits for encoding to complete before exiting to ensure proper file finalization
 - EOS (End-Of-Stream) signal is sent automatically when recording completes
 - Video parameters (width, height, format, storage) are automatically detected from incoming frames
+- Frame count can be limited with `--count` or runs indefinitely if not specified
 
 

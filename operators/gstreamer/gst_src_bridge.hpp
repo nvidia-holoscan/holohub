@@ -40,9 +40,9 @@ namespace holoscan {
 /**
  * @brief Bridge between GStreamer and external data sources
  *
- * This class provides a pure GStreamer implementation for managing an appsrc element,
+ * This class provides a GStreamer implementation for managing an appsrc element,
  * handling buffer creation from tensors, and managing the data flow into GStreamer pipelines.
- * It contains no Holoscan-specific dependencies (except for GXF tensors which are the data format).
+ * It has minimal Holoscan dependencies via TensorMap for tensor data representation.
  *
  * @note The user is responsible for calling send_eos() when done sending data to properly
  *       finalize the stream. The destructor does NOT automatically send EOS.

@@ -27,6 +27,8 @@ target_link_libraries(gst-video-recorder
   PRIVATE
   holoscan::core
   holoscan::ops::gstreamer_bridge
+  holoscan::ops::v4l2
+  holoscan::ops::format_converter
 )
 
 # Install target

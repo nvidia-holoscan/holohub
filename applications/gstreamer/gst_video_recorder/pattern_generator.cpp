@@ -39,7 +39,8 @@ holoscan::gxf::Entity PatternEntityGenerator::generate(int width, int height,
                                                        nvidia::gxf::MemoryStorageType storage_type,
                                                        holoscan::Allocator* allocator) {
   HOLOSCAN_LOG_DEBUG("Generating {}x{} pattern entity (storage: {})",
-                     width, height,
+                     width,
+                     height,
                      storage_type == nvidia::gxf::MemoryStorageType::kDevice ? "device" : "host");
 
   // Validate inputs
@@ -70,15 +71,14 @@ holoscan::gxf::Entity PatternEntityGenerator::generate(int width, int height,
       {{"video_frame",
         storage_type,
         nvidia::gxf::Shape{static_cast<int32_t>(height),
-                          static_cast<int32_t>(width),
-                          static_cast<int32_t>(RGBA_CHANNELS)},
+                           static_cast<int32_t>(width),
+                           static_cast<int32_t>(RGBA_CHANNELS)},
         nvidia::gxf::PrimitiveType::kUnsigned8,
         0,
-        nvidia::gxf::ComputeTrivialStrides(
-            nvidia::gxf::Shape{static_cast<int32_t>(height),
-                              static_cast<int32_t>(width),
-                              static_cast<int32_t>(RGBA_CHANNELS)},
-            sizeof(uint8_t))}},
+        nvidia::gxf::ComputeTrivialStrides(nvidia::gxf::Shape{static_cast<int32_t>(height),
+                                                              static_cast<int32_t>(width),
+                                                              static_cast<int32_t>(RGBA_CHANNELS)},
+                                           sizeof(uint8_t))}},
       false);
 
   if (!gxf_entity) {
@@ -120,15 +120,12 @@ holoscan::gxf::Entity PatternEntityGenerator::generate(int width, int height,
     }
 
     // Copy from host to device
-    cudaError_t cuda_result = cudaMemcpy(
-        device_ptr,
-        host_buffer.data(),
-        buffer_size,
-        cudaMemcpyHostToDevice);
+    cudaError_t cuda_result =
+        cudaMemcpy(device_ptr, host_buffer.data(), buffer_size, cudaMemcpyHostToDevice);
 
     if (cuda_result != cudaSuccess) {
       HOLOSCAN_LOG_ERROR("Failed to copy pattern to device memory: {}",
-                        cudaGetErrorString(cuda_result));
+                         cudaGetErrorString(cuda_result));
       return holoscan::gxf::Entity();
     }
   } else {
@@ -166,8 +163,8 @@ void CheckerboardPatternGenerator::generate_pattern_data(uint8_t* data, int widt
   animation_time_ += CHECKERBOARD_TIME_STEP;
 
   // Calculate square size with safety against division by zero
-  int square_size = CHECKERBOARD_BASE_SIZE +
-                    static_cast<int>(CHECKERBOARD_VARIATION * std::sin(animation_time_));
+  int square_size =
+      CHECKERBOARD_BASE_SIZE + static_cast<int>(CHECKERBOARD_VARIATION * std::sin(animation_time_));
   square_size = std::max(1, square_size);  // Ensure at least 1 to avoid division by zero
 
   for (int y = 0; y < height; y++) {
@@ -183,27 +180,30 @@ void CheckerboardPatternGenerator::generate_pattern_data(uint8_t* data, int widt
 void ColorBarsPatternGenerator::generate_pattern_data(uint8_t* data, int width, int height) {
   // SMPTE color bars (7 bars) - static to avoid recreating on each call
   static constexpr uint8_t colors[SMPTE_COLOR_BARS][RGB_CHANNELS] = {
-    {255, 255, 255},  // White
-    {255, 255, 0},    // Yellow
-    {0, 255, 255},    // Cyan
-    {0, 255, 0},      // Green
-    {255, 0, 255},    // Magenta
-    {255, 0, 0},      // Red
-    {0, 0, 255}       // Blue
+      {255, 255, 255},  // White
+      {255, 255, 0},    // Yellow
+      {0, 255, 255},    // Cyan
+      {0, 255, 0},      // Green
+      {255, 0, 255},    // Magenta
+      {255, 0, 0},      // Red
+      {0, 0, 255}       // Blue
   };
 
   int bar_width = width / SMPTE_COLOR_BARS;
-  if (bar_width == 0) bar_width = 1;  // Prevent division by zero for very small widths
+  if (bar_width == 0)
+    bar_width = 1;  // Prevent division by zero for very small widths
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       int idx = (y * width + x) * RGBA_CHANNELS;
       int bar_idx = x / bar_width;
-      if (bar_idx >= SMPTE_COLOR_BARS) bar_idx = SMPTE_COLOR_BARS - 1;
+      if (bar_idx >= SMPTE_COLOR_BARS)
+        bar_idx = SMPTE_COLOR_BARS - 1;
 
-      set_rgba_pixel(data, idx,
-                    colors[bar_idx][0],   // R
-                    colors[bar_idx][1],   // G
-                    colors[bar_idx][2]);  // B
+      set_rgba_pixel(data,
+                     idx,
+                     colors[bar_idx][0],   // R
+                     colors[bar_idx][1],   // G
+                     colors[bar_idx][2]);  // B
     }
   }
 }
@@ -214,10 +214,10 @@ void PatternGenOperator::setup(OperatorSpec& spec) {
   spec.param(allocator_, "allocator", "Allocator", "Memory allocator for tensor allocation");
   spec.param(width_, "width", "Width", "Frame width in pixels", 1920);
   spec.param(height_, "height", "Height", "Frame height in pixels", 1080);
-  spec.param(pattern_, "pattern", "Pattern",
-             "Pattern type: 0=gradient, 1=checkerboard, 2=color bars", 0);
-  spec.param(storage_type_, "storage_type", "StorageType",
-             "Memory storage type: 0=host, 1=device", 0);
+  spec.param(
+      pattern_, "pattern", "Pattern", "Pattern type: 0=gradient, 1=checkerboard, 2=color bars", 0);
+  spec.param(
+      storage_type_, "storage_type", "StorageType", "Memory storage type: 0=host, 1=device", 0);
 }
 
 void PatternGenOperator::start() {
@@ -255,12 +255,11 @@ void PatternGenOperator::compute(InputContext& input, OutputContext& output,
 
   // Convert storage_type parameter (0=host, 1=device) to MemoryStorageType enum
   nvidia::gxf::MemoryStorageType storage = (storage_type_.get() == 1)
-      ? nvidia::gxf::MemoryStorageType::kDevice
-      : nvidia::gxf::MemoryStorageType::kHost;
+                                               ? nvidia::gxf::MemoryStorageType::kDevice
+                                               : nvidia::gxf::MemoryStorageType::kHost;
 
   // Generate a pattern entity with tensors using the polymorphic generator
-  auto entity = generator_->generate(width_.get(), height_.get(),
-                                    storage, allocator_ptr);
+  auto entity = generator_->generate(width_.get(), height_.get(), storage, allocator_ptr);
   if (!entity) {
     HOLOSCAN_LOG_ERROR("Failed to generate pattern entity");
     return;

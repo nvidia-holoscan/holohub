@@ -20,6 +20,7 @@
 
 #include <gst/gst.h>
 #include <string>
+#include <type_traits>
 
 #include "bus.hpp"
 #include "object.hpp"
@@ -64,10 +65,7 @@ class ElementBase : public ObjectBase<Derived, NativeType> {
   /// @returns true if linking was successful, false otherwise
   template <typename T>
   bool link(const T& dest) const {
-    static_assert(std::is_base_of_v<ElementBase, std::decay_t<T>> ||
-                      std::is_convertible_v<std::decay_t<T>, ::GstElement*>,
-                  "Destination must be an ElementBase-derived class or ::GstElement* pointer");
-
+    // Type errors from misuse will surface clearly from the if constexpr branches
     if constexpr (std::is_convertible_v<std::decay_t<T>, ::GstElement*>) {
       return gst_element_link(GST_ELEMENT(this->get()), static_cast<::GstElement*>(dest));
     } else {

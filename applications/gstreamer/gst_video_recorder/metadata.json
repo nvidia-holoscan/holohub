@@ -36,7 +36,7 @@
 			"aarch64",
 			"x86_64"
 		],
-		"tags": ["GStreamer", "Video", "Recording", "Encoding", "File"],
+		"tags": ["Video", "GStreamer", "Recording", "Encoding", "File"],
 		"ranking": 5,
 		"description": "Record Holoscan video streams to file using GStreamer encoding. Supports multiple codecs (H.264, H.265, VP8, VP9) and both host/device memory for efficient video recording.",
 		"run": {
