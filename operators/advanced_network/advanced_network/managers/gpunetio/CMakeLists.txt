@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,9 +48,6 @@ target_compile_definitions(${PROJECT_NAME}
     ALLOW_EXPERIMENTAL_API
     DOCA_ALLOW_EXPERIMENTAL_API
 )
-
-# CUDA_SEPARABLE_COMPILATION ON
-# CUDA_RESOLVE_DEVICE_SYMBOLS ON
 
 set_target_properties(${PROJECT_NAME}
   PROPERTIES

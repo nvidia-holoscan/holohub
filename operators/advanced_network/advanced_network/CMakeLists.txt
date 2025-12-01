@@ -48,8 +48,6 @@ target_include_directories(advanced_network_common
 )
 add_library(holoscan::advanced_network ALIAS advanced_network_common)
 target_link_libraries(advanced_network_common PUBLIC holoscan::core) # Remove if holoscan logger dependency removed
-# CUDA_SEPARABLE_COMPILATION ON
-# CUDA_RESOLVE_DEVICE_SYMBOLS ON
 set_target_properties(advanced_network_common PROPERTIES
     OUTPUT_NAME "holoscan_advanced_network"
     EXPORT_NAME "advanced_network"

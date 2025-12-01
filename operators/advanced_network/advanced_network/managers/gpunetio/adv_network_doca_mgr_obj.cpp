@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <unistd.h>
 #include <sys/time.h>
 #include "adv_network_doca_mgr.h"
 #include "holoscan/holoscan.hpp"
@@ -116,8 +117,10 @@ DocaRxQueue::DocaRxQueue(struct doca_dev* dev_, struct doca_gpu* gdev_,
                     cyclic_buffer_size);
       if (result != DOCA_SUCCESS) {
         HOLOSCAN_LOG_ERROR("Failed to set dmabuf memrange for mmap {}", doca_error_get_descr(result));
+        dmabuf_fd = -1;
       }
-    }
+    } else
+      dmabuf_fd = -1;
   }
 
 	if (dmabuf_fd == -1) {
@@ -168,9 +171,6 @@ DocaRxQueue::DocaRxQueue(struct doca_dev* dev_, struct doca_gpu* gdev_,
     HOLOSCAN_LOG_CRITICAL("Failed doca_eth_rxq_get_gpu_handle: {}", doca_error_get_descr(result));
   }
 
-  // create_semaphore();
-  // create_rx_packet_list();
-
   rxq_pipe = nullptr;
   root_udp_entry = nullptr;
 }
@@ -196,6 +196,11 @@ DocaRxQueue::~DocaRxQueue() {
   result = doca_gpu_mem_free(gdev, gpu_pkt_addr);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to free gpu memory: {}", doca_error_get_descr(result));
+  }
+
+  result = destroy_rx_packet_list();
+  if (result != DOCA_SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to destroy_rx_packet_list: {}", doca_error_get_descr(result));
   }
 }
 
@@ -257,7 +262,6 @@ doca_error_t DocaRxQueue::create_udp_pipe(const FlowConfig& cfg,
   }
 
   rss_queues[0] = flow_queue_id;
-  printf("UDP pipe queue %d\n", flow_queue_id);
   doca_eth_rxq_apply_queue_id(eth_rxq_cpu, rss_queues[0]);
   flow_queue_id++;
 
@@ -303,13 +307,13 @@ doca_error_t DocaRxQueue::create_udp_pipe(const FlowConfig& cfg,
 doca_error_t DocaRxQueue::create_rx_packet_list() {
   doca_error_t result;
 
-  printf("Alloc packet list for Rxq\n");
-
   result = doca_gpu_mem_alloc(gdev, MAX_DEFAULT_SEM_X_QUEUE * sizeof(struct adv_doca_rx_gpu_info), GPU_PAGE_SIZE, DOCA_GPU_MEM_TYPE_CPU_GPU, (void**)&pkt_list_gpu, (void**)&pkt_list_cpu);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed allocate packet list memory: {}", doca_error_get_descr(result));
     return DOCA_ERROR_BAD_STATE;
   }
+
+  memset(pkt_list_cpu, 0, MAX_DEFAULT_SEM_X_QUEUE * sizeof(struct adv_doca_rx_gpu_info));
   
   return result;
 }
@@ -325,85 +329,6 @@ doca_error_t DocaRxQueue::destroy_rx_packet_list() {
 
   return result;
 }
-
-
-#if 0
-doca_error_t DocaRxQueue::create_semaphore() {
-  doca_error_t result;
-
-  result = doca_gpu_semaphore_create(gdev, &sem_cpu);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed doca_gpu_semaphore_create: {}", doca_error_get_descr(result));
-    return DOCA_ERROR_BAD_STATE;
-  }
-
-  /*
-   * Semaphore memory reside on CPU visible from GPU.
-   * CPU will poll in busy wait on this semaphore (multiple reads)
-   * while GPU access each item only once to update values.
-   */
-  result = doca_gpu_semaphore_set_memory_type(sem_cpu, DOCA_GPU_MEM_TYPE_CPU_GPU);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed doca_gpu_semaphore_set_memory_type: {}",
-                       doca_error_get_descr(result));
-    return DOCA_ERROR_BAD_STATE;
-  }
-
-  result = doca_gpu_semaphore_set_items_num(sem_cpu, MAX_DEFAULT_SEM_X_QUEUE);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed doca_gpu_semaphore_set_items_num: {}", doca_error_get_descr(result));
-    return DOCA_ERROR_BAD_STATE;
-  }
-
-  /*
-   * Semaphore memory reside on CPU visible from GPU.
-   * The CPU reads packets info from this structure.
-   * The GPU access each item only once to update values.
-   */
-  result = doca_gpu_semaphore_set_custom_info(
-      sem_cpu, sizeof(struct adv_doca_rx_gpu_info), DOCA_GPU_MEM_TYPE_CPU_GPU);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed doca_gpu_semaphore_set_custom_info: {}",
-                       doca_error_get_descr(result));
-    return DOCA_ERROR_BAD_STATE;
-  }
-
-  result = doca_gpu_semaphore_start(sem_cpu);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed doca_gpu_semaphore_start: {}", doca_error_get_descr(result));
-    return DOCA_ERROR_BAD_STATE;
-  }
-
-  result = doca_gpu_semaphore_get_gpu_handle(sem_cpu, &sem_gpu);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed doca_gpu_semaphore_get_gpu_handle: {}",
-                       doca_error_get_descr(result));
-    return DOCA_ERROR_BAD_STATE;
-  }
-
-  return DOCA_SUCCESS;
-}
-
-doca_error_t DocaRxQueue::destroy_semaphore() {
-  doca_error_t result;
-
-  result = doca_gpu_semaphore_stop(sem_cpu);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed doca_gpu_semaphore_stop: {}", doca_error_get_descr(result));
-    return DOCA_ERROR_BAD_STATE;
-  }
-
-  result = doca_gpu_semaphore_destroy(sem_cpu);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed doca_gpu_semaphore_destroy: {}", doca_error_get_descr(result));
-    return DOCA_ERROR_BAD_STATE;
-  }
-
-  sem_gpu = nullptr;
-
-  return DOCA_SUCCESS;
-}
-#endif
 
 DocaTxQueue::DocaTxQueue(struct doca_dev* ddev_, struct doca_gpu* gdev_, uint16_t qid_,
                          int max_pkt_num_, int max_pkt_size_, enum doca_gpu_mem_type mtype,
