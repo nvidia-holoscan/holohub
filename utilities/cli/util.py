@@ -580,14 +580,15 @@ def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -
 
 def get_compute_capacity() -> str:
     """Get GPU compute capacity"""
-    if not shutil.which("nvidia-smi"):
+    nvidia_smi = shutil.which("nvidia-smi")
+    if not nvidia_smi:
         return "0.0"
     try:
         output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=compute_cap", "--format=csv,noheader"]
+            [nvidia_smi, "--query-gpu=compute_cap", "--format=csv,noheader"]
         )
         return output.decode().strip().split("\n")[0]
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         return "0.0"
 
 
