@@ -383,6 +383,30 @@ int64_t get_q_id(BurstParams* burst);
 Status get_mac_addr(int port, char* mac);
 
 /**
+ * @brief Drop all traffic on a port
+ *
+ * Creates a high-priority flow rule that drops all incoming traffic on the specified port.
+ * This acts as a "kill switch" for traffic. Use allow_all_traffic() to remove the drop rule.
+ *
+ * @param port Port number of interface
+ *
+ * @returns Status::SUCCESS on success, error status on failure
+ */
+Status drop_all_traffic(int port);
+
+/**
+ * @brief Allow all traffic on a port
+ *
+ * Removes a previously installed drop rule created by drop_all_traffic(), restoring
+ * normal traffic flow on the port.
+ *
+ * @param port Port number of interface
+ *
+ * @returns Status::SUCCESS on success, error status on failure
+ */
+Status allow_all_traffic(int port);
+
+/**
  * @brief Get port number from interface name
  *
  * @param key PCIe address or config name of the interface to look up
@@ -482,6 +506,17 @@ void print_stats();
  */
 uint16_t get_num_rx_queues(int port_id);
 
+/**
+ * @brief Flush all packets from a specific port/queue
+ *
+ * Drains and discards all packets currently in the specified queue on the specified port.
+ * This is useful for clearing stale packets from a queue before starting operations.
+ *
+ * @param port Port number of interface
+ * @param queue Queue ID on the port
+ */
+void flush_port_queue(int port, int queue);
+
 };  // namespace holoscan::advanced_network
 
 template <>
@@ -509,6 +544,16 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    */
   static bool parse_flow_config(const YAML::Node& flow_item,
                                 holoscan::advanced_network::FlowConfig& flow);
+
+  /**
+   * @brief Parse flex item configuration from a YAML node.
+   *
+   * @param flex_item The YAML node containing the flex item configuration.
+   * @param flex_item_config The FlexItemConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_flex_item_config(const YAML::Node& flex_item,
+                                     holoscan::advanced_network::FlexItemConfig& flex_item_config);
 
   /**
    * @brief Parse memory region configuration from a YAML node.
@@ -687,6 +732,17 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
               }
               rx_cfg.flows_.emplace_back(std::move(flow));
             }
+
+            try {
+              for (const auto& flex_item : rx["flex_items"]) {
+                holoscan::advanced_network::FlexItemConfig flex_item_config;
+                if (!parse_flex_item_config(flex_item, flex_item_config)) {
+                  HOLOSCAN_LOG_ERROR("Failed to parse FlexItemConfig");
+                  return false;
+                }
+                rx_cfg.flex_items_.emplace_back(std::move(flex_item_config));
+              }
+            } catch (const std::exception& e) {}  // No flex_items defined for this interface.
 
             ifcfg.rx_ = rx_cfg;
           } catch (const std::exception& e) {}  // No RX queues defined for this interface.

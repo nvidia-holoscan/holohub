@@ -18,6 +18,7 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <arpa/inet.h>
 
 #include "advanced_network/manager.h"
 #include "advanced_network/common.h"
@@ -167,6 +168,16 @@ Status get_mac_addr(int port, char* mac) {
   return g_ano_mgr->get_mac_addr(port, mac);
 }
 
+Status drop_all_traffic(int port) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->drop_all_traffic(port);
+}
+
+Status allow_all_traffic(int port) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->allow_all_traffic(port);
+}
+
 bool is_tx_burst_available(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->is_tx_burst_available(burst);
@@ -297,6 +308,11 @@ uint16_t get_num_rx_queues(int port_id) {
   return g_ano_mgr->get_num_rx_queues(port_id);
 }
 
+void flush_port_queue(int port, int queue) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  g_ano_mgr->flush_port_queue(port, queue);
+}
+
 void print_stats() {
   ASSERT_ANO_MGR_INITIALIZED();
   g_ano_mgr->print_stats();
@@ -335,6 +351,7 @@ Status adv_net_init(NetworkConfig &config) {
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config(
     const YAML::Node& flow_item, holoscan::advanced_network::FlowConfig& flow) {
+  struct in_addr addr;
   try {
     flow.name_ = flow_item["name"].as<std::string>();
     flow.id_ = flow_item["id"].as<int>();
@@ -345,11 +362,18 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     return false;
   }
 
+  memset(&flow.match_, 0, sizeof(flow.match_));
+  flow.match_.type_ = holoscan::advanced_network::FlowMatchType::NORMAL;
+
   try {
     flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
-    flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
   } catch (const std::exception& e) {
     flow.match_.udp_src_ = 0;
+  }
+
+  try {
+    flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
+  } catch (const std::exception& e) {
     flow.match_.udp_dst_ = 0;
   }
 
@@ -357,6 +381,74 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     flow.match_.ipv4_len_ = flow_item["match"]["ipv4_len"].as<uint16_t>();
   } catch (const std::exception& e) {
     flow.match_.ipv4_len_ = 0;
+  }
+
+  try {
+    std::string ipv4_src = flow_item["match"]["ipv4_src"].as<std::string>();
+    if (inet_pton(AF_INET, ipv4_src.c_str(), &addr) != 1) {
+      HOLOSCAN_LOG_ERROR("Error parsing ipv4_src : {}", ipv4_src);
+      return false;
+    } else {
+      flow.match_.ipv4_src_ = addr.s_addr;
+    }
+  } catch (const std::exception& e) {
+    flow.match_.ipv4_src_ = INADDR_ANY;
+  }
+
+  try {
+    std::string ipv4_dst = flow_item["match"]["ipv4_dst"].as<std::string>();
+    if (inet_pton(AF_INET, ipv4_dst.c_str(), &addr) != 1) {
+      HOLOSCAN_LOG_ERROR("Error parsing ipv4_dst : {}", ipv4_dst);
+      return false;
+    } else {
+      flow.match_.ipv4_dst_ = addr.s_addr;
+    }
+  } catch (const std::exception& e) {
+    flow.match_.ipv4_dst_ = INADDR_ANY;
+  }
+
+  // if none of the normal match criteria are defined, use flex item match
+  if (   flow.match_.udp_src_  == 0
+      && flow.match_.udp_dst_  == 0
+      && flow.match_.ipv4_len_ == 0
+      && flow.match_.ipv4_src_ == INADDR_ANY
+      && flow.match_.ipv4_dst_ == INADDR_ANY
+    ) {
+    // No match criteria defined, use flex item match
+    flow.match_.flex_item_match_.flex_item_id_ = flow_item["match"]["flex_item_id"].as<uint16_t>();
+    flow.match_.flex_item_match_.val_ = flow_item["match"]["val"].as<uint32_t>();
+    flow.match_.flex_item_match_.mask_ = flow_item["match"]["mask"].as<uint32_t>();
+    flow.match_.type_ = holoscan::advanced_network::FlowMatchType::FLEX_ITEM;
+    HOLOSCAN_LOG_INFO("Using flex item match: flex_item_id={}, val={}, mask={}",
+                       flow.match_.flex_item_match_.flex_item_id_,
+                       flow.match_.flex_item_match_.val_,
+                       flow.match_.flex_item_match_.mask_);
+  }
+
+  return true;
+}
+
+/**
+ * @brief Parse flex item configuration from a YAML node.
+ *
+ * @param flex_item The YAML node containing the flex item configuration.
+ * @param flex_item_config The FlexItemConfig object to populate.
+ * @return true if parsing was successful, false otherwise.
+ */
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flex_item_config(
+    const YAML::Node& flex_item, holoscan::advanced_network::FlexItemConfig& flex_item_config) {
+  try {
+    flex_item_config.name_ = flex_item["name"].as<std::string>();
+    flex_item_config.id_ = flex_item["id"].as<uint16_t>();
+    flex_item_config.udp_dst_port_ = flex_item["udp_dst_port"].as<uint16_t>();
+    flex_item_config.offset_ = flex_item["offset"].as<uint16_t>();
+    if ((flex_item_config.offset_ % 4) != 0 || flex_item_config.offset_ > 28) {
+      HOLOSCAN_LOG_CRITICAL("Flex item offset (in bytes) must be a multiple of 4 and less than 28");
+      return false;
+    }
+  } catch (const std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Error parsing FlexItemConfig: {}", e.what());
+    return false;
   }
   return true;
 }

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +26,14 @@ ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU
 FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
+ARG CMAKE_BUILD_TYPE=Release
 
 # --------------------------------------------------------------------------
 #
-# Holohub CLI setup
+# Set up prerequisites to run HoloHub CLI
 #
+# --------------------------------------------------------------------------
+FROM base AS holohub-cli-prerequisites
 
 # Install python3 if not present (needed for holohub CLI)
 ARG PYTHON_VERSION=python3
@@ -57,6 +60,13 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
     ; fi
 
+# --------------------------------------------------------------------------
+#
+# Use HoloHub CLI to set up common packages for developing with Holoscan SDK
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli-prerequisites AS holohub-cli
+
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
@@ -67,18 +77,18 @@ RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
-# - This variable is consumed by all dependencies below as an environment variable (CMake 3.22+)
-# - We use ARG to only set it at docker build time, so it does not affect cmake builds
-#   performed at docker run time in case users want to use a different BUILD_TYPE
-ARG CMAKE_BUILD_TYPE=Release
+# Set default Holohub data directory
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 
-# Qcap dependency
-RUN apt update \
-    && apt install --no-install-recommends -y \
-        libgstreamer1.0-0 \
-        libgstreamer-plugins-base1.0-0 \
-        libgles2 \
-        libopengl0
+# --------------------------------------------------------------------------
+#
+# Set up common packages for advanced development with
+# Holoscan SDK Flow Benchmarking performance tools
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli AS benchmarking-setup
+
+ARG CMAKE_BUILD_TYPE=Release
 
 # For benchmarking
 RUN apt update \
@@ -99,11 +109,37 @@ COPY benchmarks/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_re
 RUN pip install -r /tmp/benchmarking_requirements.txt
 ENV PYTHONPATH=/workspace/holohub/benchmarks/holoscan_flow_benchmarking
 
-# For RTI Connext DDS
+# --------------------------------------------------------------------------
+#
+# Set up common packages for developing with Yuan Qcap
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli AS yuan-qcap
+
+# Qcap dependency
+RUN apt update \
+    && apt install --no-install-recommends -y \
+        libgstreamer1.0-0 \
+        libgstreamer-plugins-base1.0-0 \
+        libgles2 \
+        libopengl0
+
+# --------------------------------------------------------------------------
+#
+# Set up common packages for developing with RTI Connext DDS
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli AS dds
+
 RUN apt update \
     && apt install --no-install-recommends -y \
         openjdk-21-jre
 RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/java//")' >> /etc/bash.bashrc
 
-# Set default Holohub data directory
-ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
+# --------------------------------------------------------------------------
+#
+# Default development stage. Use "--target <layer>" to build a different stage above
+# as the environment for project development.
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli AS holohub-dev

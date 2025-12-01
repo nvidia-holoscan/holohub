@@ -92,6 +92,8 @@ add_holohub_application(object_detection_torch DEPENDS
 
 add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
 
+add_holohub_application(pipeline_visualization)
+
 add_holohub_application(polyp_detection)
 
 add_holohub_application(pva_video_filter)
@@ -103,6 +105,8 @@ add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
 add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)
 
 add_holohub_application(stereo_vision)
+
+add_holohub_application(surgical_scene_recon)
 
 add_holohub_application(tao_peoplenet)
 
@@ -117,10 +121,6 @@ add_holohub_application(psd_pipeline DEPENDS
                                   low_rate_psd
                                   vita49_psd_packetizer
                                   data_writer)
-
-# Unified streaming applications
-add_holohub_application(video_streaming_demo_enhanced DEPENDS
-                        OPERATORS video_streaming)
 
 add_holohub_application(ultrasound_segmentation DEPENDS
                         OPERATORS OPTIONAL aja_source)
@@ -141,6 +141,8 @@ add_holohub_application(vpi_stereo)
 
 add_holohub_application(video_deidentification)
 
+add_subdirectory(video_streaming)
+
 add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)
@@ -152,4 +154,3 @@ add_subdirectory(orsi)
 add_subdirectory(nvidia_nim)
 add_subdirectory(ehr_query_llm)
 add_subdirectory(slang)
-add_subdirectory(video_streaming)

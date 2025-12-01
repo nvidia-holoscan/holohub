@@ -1,0 +1,90 @@
+{
+    "application": {
+        "name": "Video Streaming Demo",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "C++",
+        "version": "1.0.0",
+        "changelog": {
+            "1.0.0": "Initial release of unified video streaming demo with both client and server components"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.5.0",
+            "tested_versions": [
+                "3.5.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [
+            "Video",
+            "Streaming",
+            "Client",
+            "Server", 
+            "Demo",
+            "V4L2",
+            "Bidirectional"
+        ],
+        "ranking": 2,
+        "requirements": {
+            "operators": [
+                {
+                    "name": "video_streaming",
+                    "version": "1.1.0"
+                }
+            ]
+        },
+        "dockerfile": "<holohub_app_source>/Dockerfile",
+        "default_mode": "server_cpp",
+        "modes": {
+            "server_cpp": {
+                "description": "Streaming server that receives and distributes video frames",
+                "run": {
+                    "command": "<holohub_app_bin>/video_streaming_server/cpp/video_streaming_server_demo_wrapper.sh",
+                    "workdir": "holohub_bin"
+                }
+            },
+            "client_cpp_v4l2": {
+                "description": "Streaming client using V4L2 camera (webcam)",
+                "run": {
+                    "command": "<holohub_app_bin>/video_streaming_client/cpp/video_streaming_client_demo_wrapper.sh --config video_streaming_client_demo.yaml",
+                    "workdir": "holohub_bin"
+                }
+            },
+            "client_cpp_replayer": {
+                "description": "Streaming client using video file replay",
+                "run": {
+                    "command": "<holohub_app_bin>/video_streaming_client/cpp/video_streaming_client_demo_wrapper.sh --config video_streaming_client_demo_replayer.yaml",
+                    "workdir": "holohub_bin"
+                }
+            },
+            "server_python": {
+                "description": "Streaming server (Python implementation)",
+                "run": {
+                    "command": "python3 video_streaming_server_demo.py",
+                    "workdir": "holohub_bin"
+                }
+            },
+            "client_python_replayer": {
+                "description": "Streaming client (Python implementation) - Video replayer",
+                "run": {
+                    "command": "python3 video_streaming_client_demo.py --source replayer",
+                    "workdir": "holohub_bin"
+                }
+            },
+            "client_python_v4l2": {
+                "description": "Streaming client (Python implementation) - V4L2 camera",
+                "run": {
+                    "command": "python3 video_streaming_client_demo.py --source v4l2 --width 640 --height 480",
+                    "workdir": "holohub_bin"
+                }
+            }
+        }
+    }
+}

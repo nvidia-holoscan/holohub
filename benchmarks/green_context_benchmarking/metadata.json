@@ -1,0 +1,34 @@
+{
+    "benchmark": {
+        "name": "Green Context Benchmarking",
+        "description": "Benchmark CUDA Green Context scheduling latency and performance with CUPTI profiling",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "cpp",
+        "version": "1.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "3.6.0",
+            "tested_versions": [
+                "3.6.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": ["Benchmarking", "CUDA", "Green Context", "Scheduling", "CUPTI", "Performance"],
+        "ranking": 1,
+        "requirements": {},
+        "run": {
+            "command": "<holohub_app_bin>/green_context_benchmarking",
+            "workdir": "holohub_app_bin"
+        }
+    }
+}

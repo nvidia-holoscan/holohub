@@ -29,7 +29,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
-DEFAULT_BASE_SDK_VERSION = "3.7.0"
+DEFAULT_BASE_SDK_VERSION = "3.9.0"
+
+DEFAULT_GIT_REF = "latest"
 
 PROJECT_PREFIXES = {
     "application": "APP",
@@ -176,6 +178,47 @@ def get_holohub_root() -> Path:
     return HOLOHUB_ROOT
 
 
+def _slugify(text: str, max_len: int = 63) -> str:
+    """Make a branch slug: lowercase, non-alnum to '-', trim dashes, max length."""
+    lowered = text.lower()
+    replaced = re.sub(r"[^a-z0-9]+", "-", lowered)
+    trimmed = replaced.strip("-")
+    return trimmed[:max_len]
+
+
+def get_git_short_sha(length: int = 12) -> str:
+    """Get short Git SHA for the current repository."""
+    try:
+        sha = run_info_command(
+            ["git", "rev-parse", f"--short={length}", "HEAD"], cwd=str(HOLOHUB_ROOT)
+        )
+        return sha or DEFAULT_GIT_REF
+    except Exception:
+        warn(f"Failed to get current git sha, defaulting to {DEFAULT_GIT_REF}")
+        return DEFAULT_GIT_REF
+
+
+def get_current_branch_slug() -> str:
+    """Get current branch name as a slug suitable for Docker tags."""
+    try:
+        # Prefer rev-parse for consistency with bash wrapper behavior.
+        branch = run_info_command(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=str(HOLOHUB_ROOT)
+        )
+        if not branch or branch in ["HEAD", "(no branch)"] or branch.startswith("(HEAD detached"):
+            return DEFAULT_GIT_REF
+        return _slugify(branch) or DEFAULT_GIT_REF
+    except Exception:
+        warn(f"Failed to get current branch, defaulting to {DEFAULT_GIT_REF}")
+        return DEFAULT_GIT_REF
+
+
+def get_holohub_setup_scripts_dir() -> Path:
+    return Path(
+        os.environ.get("HOLOHUB_SETUP_SCRIPTS_DIR", HOLOHUB_ROOT / "utilities" / "setup")
+    ).expanduser()
+
+
 def _get_maybe_sudo() -> str:
     """Get sudo command if available, with caching to avoid repeated subprocess calls"""
     global _sudo_available
@@ -266,10 +309,10 @@ def run_command(
         sys.exit(e.returncode)
 
 
-def run_info_command(cmd: List[str]) -> Optional[str]:
+def run_info_command(cmd: List[str], cwd: Optional[str] = None) -> Optional[str]:
     """Run a command for information gathering and return stripped output or None if failed"""
     try:
-        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()
+        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, cwd=cwd).strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
@@ -286,6 +329,28 @@ def parse_semantic_version(version: str) -> Tuple[int, int, int]:
     if not match:
         raise ValueError(f"Failed to parse semantic version string: {version}")
     return tuple(map(int, match.group(1).split(".")))
+
+
+def parse_rapids_sccache_version(version: str) -> Tuple[int, int, int, int]:
+    """
+    Parse RAPIDS sccache version strings into a 4-tuple (major, minor, patch, rapids_custom).
+    Required format:
+      - "0.12.0-rapids.20"
+      - "v0.12.0-rapids.20"
+    """
+    if not isinstance(version, str):
+        raise ValueError(f"Invalid version type: {type(version)}")
+    v = version.strip()
+    # Remove leading 'v' if present
+    if v.lower().startswith("v"):
+        v = v[1:]
+    # Match format "<major>.<minor>.<patch>-rapids.<custom>"
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)-rapids\.(\d+)", v, re.IGNORECASE)
+    if not match:
+        raise ValueError(
+            f"Failed to parse RAPIDS sccache version string (expected MAJOR.MINOR.PATCH-rapids.CUSTOM): {version}"
+        )
+    return tuple(map(int, match.groups()))
 
 
 def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.14.1") -> None:
@@ -515,14 +580,15 @@ def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -
 
 def get_compute_capacity() -> str:
     """Get GPU compute capacity"""
-    if not shutil.which("nvidia-smi"):
+    nvidia_smi = shutil.which("nvidia-smi")
+    if not nvidia_smi:
         return "0.0"
     try:
         output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=compute_cap", "--format=csv,noheader"]
+            [nvidia_smi, "--query-gpu=compute_cap", "--format=csv,noheader"]
         )
         return output.decode().strip().split("\n")[0]
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         return "0.0"
 
 
@@ -860,6 +926,7 @@ def build_holohub_path_mapping(
     build_dir: Optional[Path] = None,
     data_dir: Optional[Path] = None,
     prefix: Optional[str] = None,
+    verbose: bool = False,
 ) -> dict[str, str]:
     """Build a mapping of HoloHub placeholders to their resolved paths
 
@@ -870,6 +937,7 @@ def build_holohub_path_mapping(
         data_dir: Optional data directory path
         prefix: Prefix for placeholder keys. If None, reads from HOLOHUB_PATH_PREFIX
                 environment variable (default: "holohub_")
+        verbose: Whether to print verbose output
 
     Returns:
         Dictionary mapping placeholder names to their resolved paths
@@ -909,6 +977,11 @@ def build_holohub_path_mapping(
                 path_mapping[f"{prefix}app_bin"] = str(app_build_dir)
             except ValueError:
                 path_mapping[f"{prefix}app_bin"] = str(inferred_build_dir)
+
+    if verbose:
+        mapping_info = ";\n".join(f"<{key}>: {value}" for key, value in path_mapping.items())
+        print(format_cmd(f"Path mappings: \n{mapping_info}", is_dryrun=False))
+
     return path_mapping
 
 
@@ -1030,14 +1103,52 @@ def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
     return ""
 
 
-def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
-    """Replace placeholders in text using the provided path mapping"""
+def replace_placeholders(
+    text: str,
+    path_mapping: dict[str, str] | None = None,
+    env_mapping: dict[str, str] | None = None,
+) -> str:
+    """Replace placeholders in text using the provided path mapping and environment variables
+
+    Supports two types of placeholders:
+    1. Path mapping placeholders: <holohub_*> (e.g., <holohub_root>, <holohub_app_bin>)
+    2. Environment variable placeholders: All other placeholders (e.g., <PATH>, <HOME>, <USER>)
+
+    Resolution strategy:
+    - Placeholders starting with "holohub_" are resolved using path_mapping
+    - All other placeholders are resolved using environment variables
+
+    Args:
+        text: The text to replace placeholders in
+        path_mapping: The path mapping to use
+        env_mapping: The environment variables to use
+
+    Returns:
+        The text with placeholders replaced
+
+    """
     if not text:
         return text
     result = text
+    # Resolve path mapping placeholders
+    path_mapping = path_mapping or {}
     for placeholder, replacement in path_mapping.items():
         bracketed_placeholder = f"<{placeholder}>"
         result = result.replace(bracketed_placeholder, replacement)
+
+    # Resolve environment variable placeholders
+    if env_mapping:
+        # Find all environment variable placeholders in the result
+        env_placeholders = re.findall(r"<([^>]+)>", result)
+        for env_placeholder in env_placeholders:
+            # check if placeholder is in env_mapping otherwise warn and continue
+            if env_placeholder not in env_mapping:
+                warn(
+                    f"Placeholder <{env_placeholder}> is not in environment variables, defaulting to empty string."
+                )
+            bracketed_env_placeholder = f"<{env_placeholder}>"
+            result = result.replace(bracketed_env_placeholder, env_mapping.get(env_placeholder, ""))
+
     return result
 
 
@@ -1222,6 +1333,7 @@ def collect_environment_variables() -> None:
         "HOLOHUB_CMD_NAME",
         "HOLOHUB_BUILD_LOCAL",
         "HOLOHUB_ALWAYS_BUILD",
+        "HOLOHUB_ENABLE_SCCACHE",
         "HOLOHUB_BUILD_PARENT_DIR",
         "HOLOHUB_DATA_DIR",
         "HOLOHUB_DEFAULT_HSDK_DIR",
@@ -1232,7 +1344,6 @@ def collect_environment_variables() -> None:
         "HOLOHUB_HOSTNAME_PREFIX",
         "HOLOHUB_BASE_IMAGE",
         "HOLOHUB_DOCKER_EXE",
-        "HOLOHUB_SDK_PATH",
         "HOLOHUB_BASE_SDK_VERSION",
         "HOLOHUB_BENCHMARKING_SUBDIR",
         "HOLOHUB_DEFAULT_DOCKERFILE",
@@ -1243,6 +1354,7 @@ def collect_environment_variables() -> None:
         "HOLOHUB_DOCS_URL",
         "HOLOHUB_CLI_DOCS_URL",
         "HOLOHUB_DATA_PATH",
+        "HOLOHUB_SETUP_SCRIPTS_DIR",
         # Legacy variables
         "HOLOHUB_APP_NAME",
         "HOLOHUB_CONTAINER_BASE_NAME",
@@ -1288,7 +1400,42 @@ def collect_env_info() -> None:
     collect_python_info()
     collect_docker_info()
     collect_cuda_gpu_info()
+    collect_sccache_info()
     collect_environment_variables()
+
+
+def get_sccache_dir(env: Optional[dict[str, str]] = None) -> str:
+    source_env: dict[str, str] = env if env is not None else os.environ  # type: ignore[assignment]
+    return source_env.get("SCCACHE_DIR") or str(Path.home() / ".cache" / "sccache")
+
+
+def collect_sccache_info() -> None:
+    """Collect and display sccache-related information"""
+    print(f"\n{Color.blue('sccache Information:')}")
+
+    enable_val, enabled = get_env_bool("HOLOHUB_ENABLE_SCCACHE", default=False)
+    print(f"  HOLOHUB_ENABLE_SCCACHE: {enable_val} ({'enabled' if enabled else 'disabled'})")
+
+    sccache_bin = shutil.which("sccache")
+    version = run_info_command(["sccache", "--version"]) if sccache_bin else None
+    print(f"  sccache binary: {sccache_bin or '(not found in PATH)'}")
+    print(f"  sccache version: {version or '(unavailable)'}")
+
+    effective_dir = get_sccache_dir()
+    print(f"  Local SCCACHE_DIR: {effective_dir}")
+
+    # Collect SCCACHE_* variables once, excluding SCCACHE_DIR which is already printed above.
+    sccache_items = [
+        (key, value or "(not set)")
+        for key, value in os.environ.items()
+        if key.startswith("SCCACHE_") and key != "SCCACHE_DIR"
+    ]
+    if sccache_items:
+        print("  SCCACHE_* environment variables:")
+        for key, value in sorted(sccache_items):
+            print(f"    {key}: {value}")
+    else:
+        print("  SCCACHE_* environment variables: (none set)")
 
 
 def normalize_args_str(args):
@@ -1376,6 +1523,87 @@ def setup_ngc_cli(dry_run: bool = False) -> None:
         fatal(f"Failed to install NGC CLI: {e}")
 
 
+def setup_sccache(min_version: str = "0.12.0-rapids.20", dry_run: bool = False) -> None:
+    """
+    Install RAPIDS sccache if missing or older than min_version; link into /usr/local/bin.
+
+    Requirements:
+        - Only RAPIDS-formatted versions are supported, e.g. "0.12.0-rapids.20".
+
+    Args:
+        min_version: Minimum required RAPIDS version string ("[v]MAJOR.MINOR.PATCH-rapids.CUSTOM").
+    """
+    # If sccache exists and meets min_version, nothing to do
+    if shutil.which("sccache"):
+        output = run_info_command(["sccache", "--version"]) or ""
+        # Extract RAPIDS-formatted version token from output like "sccache 0.12.0-rapids.20"
+        ver_token = None
+        m = re.search(r"(?:v)?\d+\.\d+\.\d+-rapids\.\d+", output, re.IGNORECASE)
+        if m:
+            ver_token = m.group(0)
+        if ver_token:
+            try:
+                installed_ver = parse_rapids_sccache_version(ver_token)
+                required_ver = parse_rapids_sccache_version(min_version)
+                if installed_ver >= required_ver:
+                    return
+            except ValueError:
+                # Fall through to install if parsing somehow fails
+                pass
+
+    # Build exact release tag from requested RAPIDS-formatted min_version
+    try:
+        major, minor, patch, custom = parse_rapids_sccache_version(min_version)
+    except ValueError:
+        fatal(
+            f"Invalid sccache RAPIDS version format: '{min_version}'. "
+            f"Expected '[v]MAJOR.MINOR.PATCH-rapids.CUSTOM' (e.g., '0.12.0-rapids.20')."
+        )
+    INSTALL_VERSION = f"v{major}.{minor}.{patch}-rapids.{custom}"
+    BASE_URL = "https://github.com/rapidsai/sccache/releases/download"
+    install_dir = "/opt/sccache"
+    symlink_path = "/usr/local/bin/sccache"
+
+    # Normalize arch to match release artifacts
+    machine = platform.machine().lower()
+    if machine in ["x86_64", "amd64"]:
+        arch = "x86_64"
+    elif machine in ["aarch64", "arm64"]:
+        arch = "aarch64"
+    else:
+        arch = machine  # best effort fallback
+
+    tarball_name = f"sccache-{INSTALL_VERSION}-{arch}-unknown-linux-musl.tar.gz"
+    url = f"{BASE_URL}/{INSTALL_VERSION}/{tarball_name}"
+    tar_path = os.path.join(install_dir, "sccache.tar.gz")
+
+    try:
+        # Prepare install directory
+        run_command(["mkdir", "-p", install_dir], dry_run=dry_run)
+        # Download release tarball (wget, like other setup methods)
+        run_command(
+            ["wget", "--quiet", "--content-disposition", url, "-O", tar_path], dry_run=dry_run
+        )
+        # Extract just the 'sccache' binary into install_dir
+        extracted_rel = f"sccache-{INSTALL_VERSION}-{arch}-unknown-linux-musl/sccache"
+        run_command(
+            ["tar", "-xzf", tar_path, "-C", install_dir, "--strip-components=1", extracted_rel],
+            dry_run=dry_run,
+        )
+        run_command(["chmod", "u+x", os.path.join(install_dir, "sccache")], dry_run=dry_run)
+        # Link into /usr/local/bin (sudo added automatically if required)
+        abs_bin = os.path.abspath(os.path.join(install_dir, "sccache"))
+        run_command(["ln", "-sf", abs_bin, symlink_path], dry_run=dry_run)
+    except Exception as e:
+        fatal(f"Failed to install sccache: {e}")
+    finally:
+        # Remove downloaded tarball
+        try:
+            run_command(["rm", "-f", tar_path], dry_run=dry_run)
+        except Exception:
+            pass
+
+
 def get_cuda_runtime_version() -> Optional[str]:
     """Get CUDA runtime version from dpkg"""
     try:
@@ -1457,6 +1685,7 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
                 f"libnvinfer-dispatch10={installed_libnvinferversion}",
                 f"libnvonnxparsers10={installed_libnvinferversion}",
             ],
+            apt_options=["--no-install-recommends", "-y", "--allow-downgrades"],
             dry_run=dry_run,
         )
 
@@ -1475,3 +1704,34 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
     except PackageInstallationError as e:
         info(f"TensorRT installation failed: {e}")
         info("Continuing with setup - TensorRT packages may need to be installed manually")
+
+
+def update_env(
+    env: dict[str, str],
+    new_env: dict[str, str],
+    path_mapping: dict[str, str] | None = None,
+    verbose: bool = False,
+) -> None:
+    """
+    Update the environment variable with the new value from the new environment dictionary.
+
+    Supports placeholder replacement for:
+    - Path mapping placeholders: <holohub_*> (e.g., <holohub_root>, <holohub_app_bin>)
+    - Environment variable placeholders: <VAR_NAME> (e.g., <PATH>, <HOME>, <USER>)
+      The variable name itself can be used as a placeholder to reference its current value.
+
+    Examples:
+    - "value:<VAR>" - prepend value to existing variable VAR
+    - "<VAR>:value" - append value to existing variable VAR
+    - "value:<VAR>:value2" - prepend and append to existing variable VAR
+    - "value" - replace existing variable
+
+    """
+    # Default to empty dictionaries if not provided
+    path_mapping = path_mapping or {}
+
+    # Update the environment variables
+    for key, value in new_env.items():
+        env[key] = replace_placeholders(value, path_mapping, env)
+        if verbose:
+            print(format_cmd(f"    export {key}={env[key]}", is_dryrun=False))

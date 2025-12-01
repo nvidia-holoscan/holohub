@@ -1,0 +1,45 @@
+{
+    "operator": {
+        "name": "VideoStreamingClientOp",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "version": "1.1.0",
+        "changelog": {
+            "1.1.0": "Updated release with Python bindings support"
+        },
+        "language": ["C++", "Python"],
+        "platforms": ["x86_64", "aarch64"],
+        "tags": ["Streaming", "Client", "Networking", "Cloud", "Video"],
+        "holoscan_sdk": {
+            "minimum_required_version": "3.5.0",
+            "tested_versions": [
+                "3.5.0"
+            ]
+        },
+        "ranking": 2,
+        "requirements": {
+            "system_packages": [
+                {
+                    "name": "curl",
+                    "version": ">=7.68"
+                },
+                {
+                    "name": "openssl",
+                    "version": ">=1.1.1"
+                }
+            ],
+            "external_data": [
+                {
+                    "name": "holoscan_client_cloud_streaming",
+                    "source": "nvidia/holoscan/holoscan_client_cloud_streaming:0.2",
+                    "type": "ngc",
+                    "description": "Pre-built client streaming libraries from NVIDIA NGC"
+                }
+            ]
+        }
+    }
+}

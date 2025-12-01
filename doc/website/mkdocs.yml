@@ -47,8 +47,14 @@ extra_css:
   - assets/css/custom-material.css
   - assets/css/jupyter-themes.css
 
+extra_javascript:
+  - assets/js/run-locally.js
+
 plugins:
-  - search
+  - search:
+      indexing: 'full'
+      boost:
+        title: 5
 #  - git-revision-date-localized:
 #      fallback_to_build_date: true
   - gen-files:

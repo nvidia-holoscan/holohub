@@ -1,0 +1,212 @@
+
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+cmake_minimum_required(VERSION 3.20)
+project(video_streaming_server CXX)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Find Holoscan package
+find_package(holoscan REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Find CUDA
+find_package(CUDAToolkit REQUIRED)
+
+# Set the StreamingServer directory
+set(STREAMINGSERVER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/holoscan_server_cloud_streaming)
+
+# Detect architecture
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+    set(ARCH_DIR "x86_64")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+    set(ARCH_DIR "aarch64")
+else()
+    set(ARCH_DIR "x86_64") # Default to x86_64
+endif()
+
+# Find StreamingServer libraries directly
+find_library(StreamingServer_LIBRARY
+    NAMES StreamingServer libStreamingServer
+    PATHS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}
+    REQUIRED
+)
+
+find_library(NvStreamServer_LIBRARY
+    NAMES NvStreamServer libNvStreamServer
+    PATHS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}
+    REQUIRED
+)
+
+find_library(NvStreamBase_LIBRARY
+    NAMES NvStreamBase libNvStreamBase
+    PATHS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}
+    REQUIRED
+)
+
+find_library(NvStreamingSession_LIBRARY
+    NAMES NvStreamingSession libNvStreamingSession
+    PATHS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}
+    REQUIRED
+)
+
+find_library(Poco_LIBRARY
+    NAMES Poco libPoco
+    PATHS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}
+    REQUIRED
+)
+
+# Create the main streaming server library with all components
+add_library(video_streaming_server
+    SHARED
+    # Split operators for tensor-based processing
+    video_streaming_server_upstream_op.cpp
+    video_streaming_server_downstream_op.cpp
+
+    # Resource
+    video_streaming_server_resource.cpp
+
+    # Shared debug utilities
+    frame_debug_utils.cpp
+)
+
+# Set C++ standard and properties
+set_target_properties(video_streaming_server PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+# Set target properties
+target_include_directories(video_streaming_server
+    PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${STREAMINGSERVER_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(video_streaming_server
+    PUBLIC
+    holoscan::core
+    holoscan::ops::format_converter
+    CUDA::cudart
+    ${StreamingServer_LIBRARY}
+    ${NvStreamServer_LIBRARY}
+    ${NvStreamBase_LIBRARY}
+    ${NvStreamingSession_LIBRARY}
+    ${Poco_LIBRARY}
+)
+
+# Set RPATH settings - prioritize system CUDA paths FIRST, then other libraries
+set_target_properties(video_streaming_server PROPERTIES
+    SKIP_BUILD_RPATH FALSE
+    BUILD_WITH_INSTALL_RPATH FALSE
+    BUILD_RPATH "/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu:${CMAKE_BINARY_DIR}/lib:${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}"
+    INSTALL_RPATH "/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu:$ORIGIN:$ORIGIN/lib:$ORIGIN/../lib:$ORIGIN/../../lib:${CMAKE_INSTALL_PREFIX}/lib:/opt/nvidia/holoscan/lib:${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}"
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+)
+
+# Create the main alias that applications will use
+add_library(holoscan::ops::video_streaming_server ALIAS video_streaming_server)
+
+# Note: DecodedFrameData library removed since we now work with holoscan::Tensor directly
+
+
+
+# Install targets
+install(TARGETS video_streaming_server
+    EXPORT video_streaming_server_targets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
+
+# Install headers
+install(FILES
+    video_streaming_server_upstream_op.hpp
+    video_streaming_server_downstream_op.hpp
+    video_streaming_server_resource.hpp
+    frame_debug_utils.hpp
+    DESTINATION include/operators/video_streaming_server
+)
+
+# Explicitly install each required StreamingServer library - CMake will fail if any are missing
+# Core StreamingServer library
+install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libStreamingServer.so
+    DESTINATION lib
+)
+
+# NVIDIA Stream Server library
+install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libNvStreamServer.so
+    DESTINATION lib
+)
+
+# NVIDIA Stream Base library
+install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libNvStreamBase.so
+    DESTINATION lib
+)
+
+# NVIDIA Streaming Session library (critical for streaming functionality)
+install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libNvStreamingSession.so
+    DESTINATION lib
+)
+
+# Poco library
+install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libPoco.so
+    DESTINATION lib
+)
+
+# SSL/Crypto libraries (if they exist in the server directory)
+if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libssl.so.3)
+    install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libssl.so.3
+        DESTINATION lib
+    )
+endif()
+
+if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcrypto.so.3)
+    install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcrypto.so.3
+        DESTINATION lib
+    )
+endif()
+
+# Note: Skipping bundled CUDA runtime libraries (libcudart.so.12.0.107 and libcudart.so.12)
+# to use system CUDA 12.8 instead for compatibility with Holoscan SDK 3.8.
+# The bundled CUDA 12.0.107 lacks cudaGraphConditionalHandleCreate required by HSDK 3.8.
+
+# Install symlinks if they exist
+if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libssl.so)
+    install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libssl.so
+        DESTINATION lib
+    )
+endif()
+
+if(EXISTS ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcrypto.so)
+    install(FILES ${STREAMINGSERVER_DIR}/lib/${ARCH_DIR}/libcrypto.so
+        DESTINATION lib
+    )
+endif()
+
+# Note: Also skipping libcudart.so symlink - using system CUDA instead
+
+
+
+# Export targets
+install(EXPORT video_streaming_server_targets
+    FILE video_streaming_server_targets.cmake
+    NAMESPACE holoscan::ops::
+    DESTINATION lib/cmake/holoscan
+)
+
+# Add Python bindings if requested
+if(HOLOHUB_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
+
+# Add unit tests if testing is enabled
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

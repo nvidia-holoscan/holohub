@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +51,10 @@ RUN huggingface-cli download microsoft/Florence-2-large-ft \
 RUN MAX_JOBS=4 python3 -m pip install --no-cache-dir --no-build-isolation flash-attn~=2.5
 
 # Install QT dependencies
-RUN apt-get install -y \
-    qt6-base-dev \
-    libxcb-cursor0
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+        qt6-base-dev \
+        libxcb-cursor0 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace/holohub

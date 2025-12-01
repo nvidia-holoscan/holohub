@@ -98,6 +98,7 @@ advanced_network:
             settings_type: "media_sender"
             memory_registration: true
             memory_allocation: true
+            use_internal_memory_pool: true
             memory_pool_location: "device"
             #allocator_type: "huge_page_2mb"
             verbose: true

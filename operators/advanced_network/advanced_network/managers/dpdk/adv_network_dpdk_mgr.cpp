@@ -27,6 +27,7 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <arpa/inet.h>
 
 #include "adv_network_dpdk_mgr.h"
 #include "holoscan/holoscan.hpp"
@@ -63,6 +64,10 @@ static inline int get_queue_from_key(uint32_t key) {
 
 
 std::atomic<bool> force_quit = false;
+
+// Used to signal to RX threads to flush all existing packets.
+// Defaults to seq_cst, so no fences needed.
+std::atomic<bool> flush_rx_queues = false;
 
 struct TxWorkerParams {
   int port;
@@ -858,7 +863,11 @@ void DpdkMgr::initialize() {
       int flow_num = 0;
       for (const auto& flow : rx.flows_) {
         HOLOSCAN_LOG_INFO("Adding RX flow {}", flow.name_);
-        add_flow(intf.port_id_, flow);
+        if (flow.match_.type_ == FlowMatchType::FLEX_ITEM) {
+          add_flex_item_flow(intf.port_id_, flow.match_.flex_item_match_, flow.action_.id_);
+        } else {
+          add_flow(intf.port_id_, flow);
+        }
       }
 
       apply_tx_offloads(intf.port_id_);
@@ -871,6 +880,12 @@ void DpdkMgr::initialize() {
   if (setup_pools_and_rings(max_rx_batch_size, max_tx_batch_size) < 0) {
     HOLOSCAN_LOG_ERROR("Failed to set up pools and rings!");
     return;
+  }
+
+  // Initialize all drop_all_traffic_flow pointers to nullptr
+  for (auto& config : drop_all_traffic_flow) {
+    config.jump = nullptr;
+    config.drop = nullptr;
   }
 
   this->initialized_ = true;
@@ -1025,8 +1040,204 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
   return 0;
 }
 
-#define MAX_PATTERN_NUM 4
-#define MAX_ACTION_NUM 3
+#define MAX_PATTERN_NUM 5
+#define MAX_ACTION_NUM 4
+
+struct rte_flow_item_flex_handle *DpdkMgr::create_flex_flow_rule(
+    int port, int offset, struct rte_flow_item *udp_item, struct rte_flow_item *end_pattern) {
+  static struct rte_flow_item_flex_handle *item_handle = NULL;
+  struct rte_flow_error error;
+
+  if (item_handle != NULL) {
+    return item_handle;
+  }
+
+  {
+    struct rte_flow_error jump_error;
+    struct rte_flow_attr jump_attr;
+    jump_attr.group = 0;
+    jump_attr.ingress = 1;
+    struct rte_flow_action_jump jump_v;
+    jump_v.group = 1;
+    struct rte_flow_action jump_actions[2];
+    jump_actions[0].type = RTE_FLOW_ACTION_TYPE_JUMP;
+    jump_actions[0].conf = &jump_v;
+    jump_actions[1].type = RTE_FLOW_ACTION_TYPE_END;
+
+    struct rte_flow_item jump_pattern[2];
+    jump_pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
+    jump_pattern[0].spec = 0;
+    jump_pattern[0].mask = 0;
+    jump_pattern[1].type = RTE_FLOW_ITEM_TYPE_END;
+
+    int res = rte_flow_validate(port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+    if (!res) {
+      struct rte_flow* flow = rte_flow_create(
+          port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+      if (flow == NULL) {
+        printf("rte_flow_create failed");
+      }
+    } else {
+      printf("Failed flow validation: %d\n", res);
+    }
+  }
+
+  struct rte_flow_item_flex_conf flex_conf;
+  flex_conf.tunnel = FLEX_TUNNEL_MODE_SINGLE;
+  memset(&flex_conf.next_header, 0, sizeof(flex_conf.next_header));
+  flex_conf.next_header.field_mode = FIELD_MODE_FIXED;
+  flex_conf.next_header.field_base = 32 * 8;  // Always sample 8 32-bit words for now
+
+  memset(&flex_conf.next_protocol, 0, sizeof(flex_conf.next_protocol));
+
+  struct rte_flow_item_flex_field sample_data[1];
+  memset(&sample_data[0], 0, sizeof(sample_data));
+  sample_data[0].field_mode = FIELD_MODE_FIXED;
+  sample_data[0].field_size = 32;
+  sample_data[0].field_base = offset * 8;  // Offset is in bytes while DPDK wants bits
+  flex_conf.sample_data = &sample_data[0];
+  flex_conf.nb_samples = 1;
+
+  struct rte_flow_item_flex_link input_link;
+  memset(&input_link, 0, sizeof(input_link));
+  input_link.item = *udp_item;
+  flex_conf.input_link = &input_link;
+  flex_conf.nb_inputs = 1;
+
+  struct rte_flow_item_flex_link output_link;
+  memset(&output_link, 0, sizeof(output_link));
+  output_link.item = *end_pattern;
+  flex_conf.output_link = &output_link;
+  flex_conf.nb_outputs = 0;
+
+  item_handle = rte_flow_flex_item_create(port, &flex_conf, &error);
+  if (item_handle == NULL) {
+    printf("Failed to create flex item: %s\n", error.message);
+    return NULL;
+  }
+
+  return item_handle;
+}
+
+struct rte_flow* DpdkMgr::add_flex_item_flow(
+    int port, const FlexItemMatch& match_info, uint16_t queue_id) {
+  /* Declaring structs being used. 8< */
+  struct rte_flow_attr attr;
+  struct rte_flow_item pattern[MAX_PATTERN_NUM];
+  struct rte_flow_action action[MAX_ACTION_NUM];
+  struct rte_flow* flow = NULL;
+  struct rte_flow_action_queue queue = {.index = queue_id};
+  struct rte_flow_error error;
+  struct rte_flow_item_udp udp_spec;
+  struct rte_flow_item_udp udp_mask;
+  struct rte_flow_item_ipv4  ip_spec;
+  struct rte_flow_item_ipv4  ip_mask;
+  int res;
+  const auto& flex_item_config = cfg_.ifs_[port].rx_.flex_items_[match_info.flex_item_id_];
+
+  memset(pattern, 0, sizeof(pattern));
+  memset(action, 0, sizeof(action));
+  memset(&attr, 0, sizeof(struct rte_flow_attr));
+  memset(&ip_spec, 0, sizeof(struct rte_flow_item_ipv4));
+  memset(&ip_mask, 0, sizeof(struct rte_flow_item_ipv4));
+  memset(&udp_spec, 0, sizeof(struct rte_flow_item_udp));
+  memset(&udp_mask, 0, sizeof(struct rte_flow_item_udp));
+
+  // struct rte_flow_action_mark mark;
+  // mark.id = 0x40 + queue_id;
+
+  action[0].type = RTE_FLOW_ACTION_TYPE_QUEUE;
+  action[0].conf = &queue;
+  action[1].type = RTE_FLOW_ACTION_TYPE_END;
+  //  action[1].type = RTE_FLOW_ACTION_TYPE_MARK;
+  //  action[1].conf = &mark;
+  //  action[2].type = RTE_FLOW_ACTION_TYPE_END;
+
+  pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
+  pattern[1].type = RTE_FLOW_ITEM_TYPE_IPV4;
+  //  pattern[3].type = RTE_FLOW_ITEM_TYPE_FLEX; // defined later
+  pattern[4].type = RTE_FLOW_ITEM_TYPE_END;
+
+  struct rte_flow_item udp_item;
+  udp_spec.hdr.src_port = 0;
+  udp_spec.hdr.dst_port = htons(flex_item_config.udp_dst_port_);
+  udp_spec.hdr.dgram_len = 0;
+  udp_spec.hdr.dgram_cksum = 0;
+
+  udp_mask.hdr.src_port = 0;
+  udp_mask.hdr.dst_port = 0xffff;
+  udp_mask.hdr.dgram_len = 0;
+  udp_mask.hdr.dgram_cksum = 0;
+
+  udp_item.type = RTE_FLOW_ITEM_TYPE_UDP;
+  udp_item.spec = &udp_spec;
+  udp_item.mask = &udp_mask;
+  udp_item.last = NULL;
+
+  pattern[2] = udp_item;
+
+  if (flex_item_handles_.find(match_info.flex_item_id_) == flex_item_handles_.end()) {
+    struct rte_flow_item_flex_handle *item_handle =
+      create_flex_flow_rule(port, flex_item_config.offset_, &udp_item, &pattern[4]);
+    flex_item_handles_[match_info.flex_item_id_] = item_handle;
+  }
+
+  struct rte_flow_item_flex_handle *item_handle = flex_item_handles_[match_info.flex_item_id_];
+
+  /* Define the new protocol header structure */
+  struct rte_udp_flex_hdr {
+    rte_be32_t my_header;    /* my header */
+  } __rte_packed;
+
+  struct rte_udp_flex_hdr flex_spec;
+  flex_spec.my_header = match_info.val_;
+
+  struct rte_udp_flex_hdr flex_mask;
+  flex_mask.my_header = match_info.mask_;
+
+  /* Initialize spec and mask accessing the structure fields */
+  struct rte_flow_item_flex spec = {
+    .handle = item_handle,   /* opaque item handle */
+    .length = sizeof(struct rte_udp_flex_hdr),
+    .pattern = (const uint8_t *)&flex_spec
+  };
+
+  struct rte_flow_item_flex mask = {
+    .handle = item_handle,   /* opaque item handle */
+    .length = sizeof(struct rte_udp_flex_hdr),
+    .pattern = (const uint8_t *)&flex_mask
+  };
+
+  /* Initialize RTE Flow item itself */
+  struct rte_flow_item item = {
+    .type = RTE_FLOW_ITEM_TYPE_FLEX,
+    .spec = (const void *)&spec,
+    .mask = (const void *)&mask
+  };
+  pattern[3] = item;
+
+  attr.ingress = 1;
+  attr.priority = 0;
+  attr.group = 1;
+
+    /* Validate the rule and create it */
+     res = rte_flow_validate(port, &attr, pattern, action, &error);
+    if (!res) {
+        flow = rte_flow_create(port, &attr, pattern, action, &error);
+        if (!flow) {
+            printf("Flow creation failed for match %08x: %s\n",
+                   match_info.val_, error.message);
+        } else {
+            printf("Created flow rule: match %08x -> Queue %u\n",
+                   match_info.val_, queue_id);
+        }
+    } else {
+        printf("Flow validation failed for match %08x: %s\n",
+               match_info.val_, error.message);
+    }
+
+    return flow;
+}
 
 
 // Taken from flow_block.c DPDK example */
@@ -1043,7 +1254,6 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   struct rte_flow_item_udp udp_mask;
   struct rte_flow_item_ipv4  ip_spec;
   struct rte_flow_item_ipv4  ip_mask;
-  struct rte_flow_item udp_item;
   int res;
 
   // HWS requires using a non-zero group, so we make a jump event to group 3 for all ethernet
@@ -1079,6 +1289,8 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   memset(&attr, 0, sizeof(struct rte_flow_attr));
   memset(&ip_spec, 0, sizeof(struct rte_flow_item_ipv4));
   memset(&ip_mask, 0, sizeof(struct rte_flow_item_ipv4));
+  memset(&udp_spec, 0, sizeof(struct rte_flow_item_udp));
+  memset(&udp_mask, 0, sizeof(struct rte_flow_item_udp));
 
   action[0].type = RTE_FLOW_ACTION_TYPE_MARK;
   action[0].conf = &mark;
@@ -1090,43 +1302,184 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   pattern[1].type = RTE_FLOW_ITEM_TYPE_IPV4;
   pattern[2].type = RTE_FLOW_ITEM_TYPE_UDP;
 
+  bool has_ip_match = false;
+
   if (cfg.match_.ipv4_len_ > 0) {
     ip_spec.hdr.total_length = htons(cfg.match_.ipv4_len_);
     ip_mask.hdr.total_length = 0xffff;
-    pattern[1].spec = &ip_spec;
-    pattern[1].mask = &ip_mask;
+    has_ip_match = true;
     HOLOSCAN_LOG_INFO("Adding IPv4 length match for {}", cfg.match_.ipv4_len_);
   }
 
+  if (cfg.match_.ipv4_src_ != INADDR_ANY) {
+    char str_ip[INET_ADDRSTRLEN];
+    ip_spec.hdr.src_addr = cfg.match_.ipv4_src_;
+    ip_mask.hdr.src_addr = 0xffffffff;
+    has_ip_match = true;
+    inet_ntop(AF_INET, &ip_spec.hdr.src_addr, str_ip, INET_ADDRSTRLEN);
+    HOLOSCAN_LOG_INFO("Adding IPv4 source IP match for {}", str_ip);
+  }
+
+  if (cfg.match_.ipv4_dst_ != INADDR_ANY) {
+    char str_ip[INET_ADDRSTRLEN];
+    ip_spec.hdr.dst_addr = cfg.match_.ipv4_dst_;
+    ip_mask.hdr.dst_addr = 0xffffffff;
+    has_ip_match = true;
+    inet_ntop(AF_INET, &ip_spec.hdr.dst_addr, str_ip, INET_ADDRSTRLEN);
+    HOLOSCAN_LOG_INFO("Adding IPv4 destination IP match for {}", str_ip);
+  }
+
+  if (has_ip_match == true) {
+    pattern[1].spec = &ip_spec;
+    pattern[1].mask = &ip_mask;
+  }
+
+  bool has_udp_match = false;
+
   if (cfg.match_.udp_src_ > 0) {
     udp_spec.hdr.src_port = htons(cfg.match_.udp_src_);
+    udp_mask.hdr.src_port = 0xffff;
+    has_udp_match = true;
+    HOLOSCAN_LOG_INFO("Adding UDP port match for src {}", cfg.match_.udp_src_);
+  }
+
+  if (cfg.match_.udp_dst_ > 0) {
     udp_spec.hdr.dst_port = htons(cfg.match_.udp_dst_);
+    udp_mask.hdr.dst_port = 0xffff;
+    has_udp_match = true;
+    HOLOSCAN_LOG_INFO("Adding UDP port match for dst {}", cfg.match_.udp_dst_);
+  }
+
+  if (has_udp_match == true) {
     udp_spec.hdr.dgram_len = 0;
     udp_spec.hdr.dgram_cksum = 0;
-
-    udp_mask.hdr.src_port = 0xffff;
-    udp_mask.hdr.dst_port = 0xffff;
     udp_mask.hdr.dgram_len = 0;
     udp_mask.hdr.dgram_cksum = 0;
 
-    udp_item.type = RTE_FLOW_ITEM_TYPE_UDP;
-    udp_item.spec = &udp_spec;
-    udp_item.mask = &udp_mask;
-    udp_item.last = NULL;
-
-    pattern[2] = udp_item;
-    HOLOSCAN_LOG_INFO("Adding UDP port match for src/dst {}/{}",
-      cfg.match_.udp_src_, cfg.match_.udp_dst_);
+    pattern[2].spec = &udp_spec;
+    pattern[2].mask = &udp_mask;
   }
 
+
   attr.ingress = 1;
-  attr.priority = 0;
+  attr.priority = 1;  // Lower priority to allow drop_traffic (priority 0) to take precedence
   attr.group = 3;
 
   pattern[3].type = RTE_FLOW_ITEM_TYPE_END;
 
   flow = rte_flow_create(port, &attr, pattern, action, &error);
   return flow;
+}
+
+Status DpdkMgr::drop_all_traffic(int port) {
+  /* Declaring structs being used. */
+  struct rte_flow_attr attr;
+  struct rte_flow_item pattern[MAX_PATTERN_NUM];
+  struct rte_flow_action action[MAX_ACTION_NUM];
+  struct rte_flow* flow = NULL;
+  struct rte_flow_error error;
+  DropTrafficConfig config;
+
+  // Initialize the jump rule to group 3 (required by HWS)
+  {
+    struct rte_flow_error jump_error;
+    struct rte_flow_attr jump_attr{.group = 0, .ingress = 1};
+    struct rte_flow_action_jump jump_v = {.group = 3};
+    struct rte_flow_action jump_actions[] = {
+      { .type = RTE_FLOW_ACTION_TYPE_JUMP, .conf = &jump_v},
+      { .type = RTE_FLOW_ACTION_TYPE_END}
+    };
+
+    struct rte_flow_item jump_pattern[] = {
+      { .type = RTE_FLOW_ITEM_TYPE_ETH, .spec = 0, .mask = 0},
+      { .type = RTE_FLOW_ITEM_TYPE_END},
+    };
+
+    auto res = rte_flow_validate(port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+    if (!res) {
+      config.jump = rte_flow_create(
+          port, &jump_attr, jump_pattern, jump_actions, &jump_error);
+      if (config.jump == nullptr) {
+        HOLOSCAN_LOG_ERROR("rte_flow_create failed for jump rule in drop_all_traffic");
+      }
+    } else {
+      HOLOSCAN_LOG_ERROR("Failed flow validation for jump rule in drop_all_traffic: {}", res);
+    }
+  }
+
+  // Clear all structures
+  memset(pattern, 0, sizeof(pattern));
+  memset(action, 0, sizeof(action));
+  memset(&attr, 0, sizeof(struct rte_flow_attr));
+
+  // Set DROP action
+  action[0].type = RTE_FLOW_ACTION_TYPE_DROP;
+  action[1].type = RTE_FLOW_ACTION_TYPE_END;
+
+  // Match all ethernet packets
+  pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
+  pattern[1].type = RTE_FLOW_ITEM_TYPE_END;
+
+  // Set highest priority (0) and use group 3 (consistent with add_flow)
+  attr.ingress = 1;
+  attr.priority = 0;  // Highest priority - blocks all traffic
+  attr.group = 3;
+
+  HOLOSCAN_LOG_INFO("Creating drop all traffic rule on port {} with priority {}",
+    port, attr.priority);
+
+  // Create the flow rule
+  config.drop = rte_flow_create(port, &attr, pattern, action, &error);
+
+  if (config.drop == nullptr) {
+    HOLOSCAN_LOG_ERROR("Failed to create drop all traffic flow rule on port {}: {}",
+                       port, error.message ? error.message : "unknown error");
+    rte_flow_destroy(port, config.jump, &error);
+    return Status::INTERNAL_ERROR;
+  } else {
+    HOLOSCAN_LOG_INFO("Successfully created drop all traffic rule on port {}", port);
+  }
+
+  drop_all_traffic_flow[port] = config;
+  flush_rx_queues.store(true);
+
+  return Status::SUCCESS;
+}
+
+Status DpdkMgr::allow_all_traffic(int port) {
+  if (drop_all_traffic_flow[port].drop == nullptr) {
+    HOLOSCAN_LOG_ERROR("Cannot remove drop rule: flow pointer is null");
+    return Status::INVALID_PARAMETER;
+  }
+
+  // Tell the RX threads they can keep processing packets
+  flush_rx_queues.store(false);
+
+  struct rte_flow_error jump_error;
+  struct rte_flow_error drop_error;
+  int drop_ret = rte_flow_destroy(port, drop_all_traffic_flow[port].drop, &drop_error);
+  int jump_ret = rte_flow_destroy(port, drop_all_traffic_flow[port].jump, &jump_error);
+
+  if (drop_ret != 0) {
+    HOLOSCAN_LOG_ERROR("Failed to destroy drop all traffic flow rule on port {}: {}",
+                       port, drop_error.message ? drop_error.message : "unknown error");
+  }
+
+  if (jump_ret != 0) {
+    HOLOSCAN_LOG_ERROR("Failed to destroy jump all traffic flow rule on port {}: {}",
+                       port, jump_error.message ? jump_error.message : "unknown error");
+  }
+
+  if (drop_ret != 0 || jump_ret != 0) {
+    return Status::INTERNAL_ERROR;
+  }
+
+  drop_all_traffic_flow[port].drop = nullptr;
+  drop_all_traffic_flow[port].jump = nullptr;
+
+  HOLOSCAN_LOG_INFO(
+    "Successfully removed drop all traffic rule on port {}, traffic is now allowed", port);
+  return Status::SUCCESS;
 }
 
 struct rte_flow* DpdkMgr::add_modify_flow_set(int port, int queue, const char* buf, int len,
@@ -1191,7 +1544,7 @@ struct rte_flow* DpdkMgr::add_modify_flow_set(int port, int queue, const char* b
   pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
   pattern[0].spec = &eth;
   pattern[0].mask = &eth;
-  attr.priority = 0;
+  attr.priority = 1;
 
   pattern[1].type = RTE_FLOW_ITEM_TYPE_END;
 
@@ -1414,6 +1767,12 @@ void DpdkMgr::flush_packets(int port) {
   while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
 }
 
+void DpdkMgr::flush_port_queue(int port, int queue) {
+  struct rte_mbuf* rx_mbuf;
+  HOLOSCAN_LOG_INFO("Flushing packets on port {} queue {}", port, queue);
+  while (rte_eth_rx_burst(port, queue, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
+}
+
 /*
   RX worker supporting multiple queues for a single core. This is useful when a user wants
   to segregate traffic by queues, but they don't want to waste extra CPU cores by mapping a
@@ -1467,6 +1826,44 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
+    const bool should_flush = flush_rx_queues.load();
+
+    if (should_flush) {
+      // Free any packets we have stored in temporary arrays that are not pushed to the ring
+      for (int i = 0; i < num_queues; i++) {
+        // Free any unprocessed packets in mbuf_arr
+        if (nb_rx[i] > 0) {
+          for (int p = cur_pkt_in_batch[i]; p < cur_pkt_in_batch[i] + nb_rx[i]; p++) {
+            rte_pktmbuf_free(mbuf_arr[i][p]);
+          }
+          nb_rx[i] = 0;
+          cur_pkt_in_batch[i] = 0;
+        }
+
+        // Free any packets already stored in bursts that haven't been pushed to ring yet
+        if (bursts[i] != nullptr) {
+          // Free all packet mbufs stored in the burst
+          for (int p = 0; p < bursts[i]->hdr.hdr.num_pkts; p++) {
+            rte_pktmbuf_free(reinterpret_cast<rte_mbuf**>(bursts[i]->pkts[0])[p]);
+          }
+
+          // Free the pkt_extra_info buffer back to the pool
+          if (bursts[i]->pkt_extra_info != nullptr) {
+            rte_mempool_put(tparams->flowid_pool, bursts[i]->pkt_extra_info);
+          }
+
+          // Free the segment buffers back to the burst pool
+          for (int seg = 0; seg < bursts[i]->hdr.hdr.num_segs; seg++) {
+            rte_mempool_put(tparams->rx_burst_pool, (void*)bursts[i]->pkts[seg]);
+          }
+
+          // Free the burst metadata back to the meta pool
+          rte_mempool_put(tparams->rx_meta_pool, bursts[i]);
+          bursts[i] = nullptr;
+        }
+      }
+    }
+
     if (bursts[cur_idx] == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&bursts[cur_idx])) < 0) {
         HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\
@@ -1617,6 +2014,42 @@ int DpdkMgr::rx_core_worker(void* arg) {
   //  run loop
   //
   while (!force_quit.load()) {
+    const bool should_flush = flush_rx_queues.load();
+
+    if (should_flush) {
+      // Free any packets we have stored in temporary arrays that are not pushed to the ring
+      // Free any unprocessed packets in mbuf_arr
+      if (nb_rx > 0) {
+        for (int p = cur_pkt_in_batch; p < cur_pkt_in_batch + nb_rx; p++) {
+          rte_pktmbuf_free(mbuf_arr[p]);
+        }
+        nb_rx = 0;
+        cur_pkt_in_batch = 0;
+      }
+
+      // Free any packets already stored in burst that haven't been pushed to ring yet
+      if (burst != nullptr) {
+        // Free all packet mbufs stored in the burst
+        for (int p = 0; p < burst->hdr.hdr.num_pkts; p++) {
+          rte_pktmbuf_free(reinterpret_cast<rte_mbuf**>(burst->pkts[0])[p]);
+        }
+
+        // Free the pkt_extra_info buffer back to the pool
+        if (burst->pkt_extra_info != nullptr) {
+          rte_mempool_put(tparams->flowid_pool, burst->pkt_extra_info);
+        }
+
+        // Free the segment buffers back to the burst pool
+        for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
+          rte_mempool_put(tparams->rx_burst_pool, (void*)burst->pkts[seg]);
+        }
+
+        // Free the burst metadata back to the meta pool
+        rte_mempool_put(tparams->rx_meta_pool, burst);
+        burst = nullptr;
+      }
+    }
+
     if (burst == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
         HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\
@@ -1819,11 +2252,13 @@ int DpdkMgr::tx_core_worker(void* arg) {
     // Scatter mode needs to chain all the buffers
     if (msg->hdr.hdr.num_segs > 1) {
       for (size_t p = 0; p < msg->hdr.hdr.num_pkts; p++) {
-        for (int seg = 0; seg < msg->hdr.hdr.num_segs; seg++) {
+        for (int seg = 0; seg < msg->hdr.hdr.num_segs - 1; seg++) {
           auto* mbuf = reinterpret_cast<struct rte_mbuf*>(msg->pkts[seg][p]);
           mbuf->next = reinterpret_cast<struct rte_mbuf*>(msg->pkts[seg + 1][p]);
         }
 
+        // The next pointer of the last segment should be nullptr
+        reinterpret_cast<struct rte_mbuf*>(msg->pkts[msg->hdr.hdr.num_segs - 1][p])->next = nullptr;
         reinterpret_cast<struct rte_mbuf*>(msg->pkts[0][p])->nb_segs = msg->hdr.hdr.num_segs;
       }
     }
