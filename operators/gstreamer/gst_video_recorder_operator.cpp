@@ -17,16 +17,16 @@
 
 #include "gst_video_recorder_operator.hpp"
 
+#include <gst/cuda/gstcudamemory.h>
+#include <gxf/core/gxf.h>
 #include <algorithm>
 #include <cstring>
 #include <filesystem>
-#include <regex>
-#include <gxf/core/gxf.h>
-#include <gst/cuda/gstcudamemory.h>
 #include <holoscan/core/domain/tensor_map.hpp>
+#include <regex>
 
-#include "gst/message.hpp"
 #include "gst/error.hpp"
+#include "gst/message.hpp"
 
 // Timeout for waiting for EOS to be processed during pipeline shutdown
 constexpr std::chrono::seconds kEosTimeoutSeconds{30};
@@ -47,7 +47,7 @@ namespace {
  * - Fraction: "30000/1001" -> "30000/1001" (no change)
  * - Decimal (converted to fraction): "29.97" -> "2997/100"
  *
- * @param framerate Framerate string to normalize
+ * @param framerate Framerate string to normalize (frame per second)
  * @return Normalized framerate as fraction string
  * @throws std::runtime_error if framerate format is invalid
  */
@@ -74,9 +74,7 @@ std::string normalize_framerate(const std::string& framerate) {
 
     // Convert to rational: 29.97 = 2997/100
     int denominator = 1;
-    for (int i = 0; i < decimal_places; ++i) {
-      denominator *= 10;
-    }
+    for (int i = 0; i < decimal_places; ++i) { denominator *= 10; }
     int numerator = whole * denominator + fractional;
 
     std::string result = std::to_string(numerator) + "/" + std::to_string(denominator);
@@ -106,8 +104,10 @@ std::string get_muxer_from_extension(std::string& filename) {
   std::string extension = filepath.extension().string();
 
   // Convert to lowercase for case-insensitive comparison
-  std::transform(extension.begin(), extension.end(), extension.begin(),
-                 static_cast<int(*)(int)>(std::tolower));
+  std::transform(extension.begin(),
+                 extension.end(),
+                 extension.begin(),
+                 static_cast<int (*)(int)>(std::tolower));
 
   // If no extension, append .mp4 and set extension
   if (extension.empty()) {
@@ -165,7 +165,7 @@ std::string get_parser_from_encoder(GstElement* encoder) {
 
     // Get the first structure (media type)
     if (caps.get_size() > 0) {
-      GstStructure* structure = gst_caps_get_structure(caps.get(), 0);
+      GstStructure* structure = caps.get_structure(0);
       const char* media_type = gst_structure_get_name(structure);
 
       if (media_type) {
@@ -179,8 +179,8 @@ std::string get_parser_from_encoder(GstElement* encoder) {
         if (pos != std::string_view::npos && pos + 8 < media_type_str.length()) {
           auto codec = media_type_str.substr(pos + 8);
           auto parser_name = std::string(codec) + "parse";
-          HOLOSCAN_LOG_DEBUG("Derived parser '{}' from media type '{}'",
-                             parser_name, media_type_str);
+          HOLOSCAN_LOG_DEBUG(
+              "Derived parser '{}' from media type '{}'", parser_name, media_type_str);
           return parser_name;
         }
       }
@@ -198,17 +198,17 @@ std::string get_parser_from_encoder(GstElement* encoder) {
  * This function runs in a separate thread and processes bus messages until
  * an EOS, error, or stop signal is received.
  *
- * @param pipeline The GStreamer pipeline to monitor
- * @param stop_flag Atomic flag to signal the thread to stop
+ * @param pipeline The GStreamer pipeline to monitor (C++ wrapper)
+ * @param stop_flag Atomic flag to signal the thread to stop (reference)
  */
-void monitor_pipeline_bus(GstElement* pipeline, std::atomic<bool>* stop_flag) {
-  holoscan::gst::Bus bus(gst_element_get_bus(pipeline));
+void monitor_pipeline_bus(holoscan::gst::Pipeline& pipeline, std::atomic<bool>& stop_flag) {
+  holoscan::gst::Bus bus = pipeline.get_bus();
 
-  while (!stop_flag->load()) {
-    holoscan::gst::Message msg(
-        gst_bus_timed_pop_filtered(bus.get(), 100 * GST_MSECOND,
-                                   static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS |
-                                                               GST_MESSAGE_STATE_CHANGED)));
+  while (!stop_flag.load()) {
+    holoscan::gst::Message msg =
+        bus.timed_pop_filtered(100 * GST_MSECOND,
+                               static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS |
+                                                           GST_MESSAGE_STATE_CHANGED));
 
     if (msg) {
       switch (GST_MESSAGE_TYPE(msg.get())) {
@@ -226,9 +226,9 @@ void monitor_pipeline_bus(GstElement* pipeline, std::atomic<bool>* stop_flag) {
           return;
         case GST_MESSAGE_STATE_CHANGED: {
           // Only check state changes from the pipeline (not individual elements)
-          if (GST_MESSAGE_SRC(msg.get()) == GST_OBJECT(pipeline)) {
+          if (GST_MESSAGE_SRC(msg.get()) == GST_OBJECT(pipeline.get())) {
             GstState old_state, new_state, pending_state;
-            gst_message_parse_state_changed(msg.get(), &old_state, &new_state, &pending_state);
+            msg.parse_state_changed(&old_state, &new_state, &pending_state);
 
             // If pipeline transitions to NULL, stop monitoring
             if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
@@ -261,11 +261,8 @@ void monitor_pipeline_bus(GstElement* pipeline, std::atomic<bool>* stop_flag) {
  * @throws std::runtime_error if tensor map is empty, tensor is null, or tensor shape is invalid
  */
 std::shared_ptr<holoscan::GstSrcBridge> create_src_bridge_from_tensor_map(
-    const holoscan::TensorMap& tensor_map,
-    const std::string& operator_name,
-    const std::string& format,
-    const std::string& framerate,
-    size_t max_buffers,
+    const holoscan::TensorMap& tensor_map, const std::string& operator_name,
+    const std::string& format, const std::string& framerate, size_t max_buffers,
     bool block = true) {
   // Get the first tensor from the map
   if (tensor_map.empty()) {
@@ -282,13 +279,15 @@ std::shared_ptr<holoscan::GstSrcBridge> create_src_bridge_from_tensor_map(
   // Extract video parameters from tensor
   auto shape = first_tensor_ptr->shape();
   if (shape.size() < 2 || shape.size() > 3) {
-    HOLOSCAN_LOG_ERROR("Tensor rank is {}, expected 2 (height, width) or 3 (height, width, channels)", shape.size());
+    HOLOSCAN_LOG_ERROR(
+        "Tensor rank is {}, expected 2 (height, width) "
+        "or 3 (height, width, channels) dimensions",
+        shape.size());
     throw std::runtime_error("Invalid tensor shape for video data");
   }
 
   int height = shape[0];
   int width = shape[1];
-  
   // Validate channels if present (rank 3)
   if (shape.size() == 3) {
     int channels = shape[2];
@@ -304,31 +303,28 @@ std::shared_ptr<holoscan::GstSrcBridge> create_src_bridge_from_tensor_map(
   auto device = first_tensor_ptr->device();
   // Only kDLCUDA and kDLCUDAManaged map to nvidia::gxf::MemoryStorageType::kDevice
   // kDLCUDAHost is pinned host memory (kHost), not device memory
-  bool is_device_memory = (device.device_type == kDLCUDA ||
-                            device.device_type == kDLCUDAManaged);
+  bool is_device_memory = (device.device_type == kDLCUDA || device.device_type == kDLCUDAManaged);
   std::string storage_str = is_device_memory ? "device" : "host";
 
   HOLOSCAN_LOG_INFO("Detected video parameters: {}x{}@{}fps, format={}, storage={}",
-                    width, height, framerate, format, storage_str);
+                    width,
+                    height,
+                    framerate,
+                    format,
+                    storage_str);
 
   // Build caps string with detected parameters
   std::string capabilities = "video/x-raw";
   if (is_device_memory) {
     capabilities += "(" GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY ")";
   }
-  capabilities += ",format=" + format +
-                  ",width=" + std::to_string(width) +
-                  ",height=" + std::to_string(height) +
-                  ",framerate=" + framerate;
+  capabilities += ",format=" + format + ",width=" + std::to_string(width) +
+                  ",height=" + std::to_string(height) + ",framerate=" + framerate;
 
   HOLOSCAN_LOG_INFO("Capabilities: '{}'", capabilities);
 
   // Create and return the GstSrcBridge
-  return std::make_shared<holoscan::GstSrcBridge>(
-    operator_name,
-    capabilities,
-    max_buffers,
-    block);
+  return std::make_shared<holoscan::GstSrcBridge>(operator_name, capabilities, max_buffers, block);
 }
 
 /**
@@ -345,8 +341,8 @@ holoscan::gst::Element create_converter_element(bool is_device_memory) {
   std::string storage_str = is_device_memory ? "device" : "host";
   HOLOSCAN_LOG_INFO("Creating {} for {} memory", converter_name, storage_str);
 
-  auto converter = holoscan::gst::Element(
-      gst_element_factory_make(converter_name, "converter"));
+  auto converter =
+      holoscan::gst::Element(gst_element_factory_make(converter_name, "converter")).ref_sink();
   if (!converter) {
     HOLOSCAN_LOG_ERROR("Failed to create {} element", converter_name);
     throw std::runtime_error(std::string("Failed to create ") + converter_name + " element");
@@ -356,154 +352,44 @@ holoscan::gst::Element create_converter_element(bool is_device_memory) {
 }
 
 /**
- * @brief Set a single encoder property from string value
- *
- * This function uses GStreamer introspection to determine the property type
- * and automatically converts the string value to the appropriate type.
- *
- * @param encoder The encoder element to set the property on
- * @param key Property name
- * @param value Property value as string
- * @return true if property was set successfully, false otherwise
- */
-bool set_encoder_property(GstElement* encoder,
-                          const std::string& key,
-                          const std::string& value) {
-  // Find the property specification
-  GParamSpec* pspec = g_object_class_find_property(
-      G_OBJECT_GET_CLASS(encoder), key.c_str());
-
-  if (!pspec) {
-    return false;
-  }
-
-  // Set property based on its type
-  GType ptype = G_PARAM_SPEC_VALUE_TYPE(pspec);
-
-  switch (ptype) {
-    case G_TYPE_STRING:
-      g_object_set(encoder, key.c_str(), value.c_str(), nullptr);
-      return true;
-
-    case G_TYPE_INT:
-      try {
-        int int_val = std::stoi(value);
-        g_object_set(encoder, key.c_str(), int_val, nullptr);
-        return true;
-      } catch (const std::exception& e) {
-        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to int for property '{}': {}",
-                           value, key, e.what());
-      }
-      break;
-
-    case G_TYPE_UINT:
-      try {
-        unsigned int uint_val = std::stoul(value);
-        g_object_set(encoder, key.c_str(), uint_val, nullptr);
-        return true;
-      } catch (const std::exception& e) {
-        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to uint for property '{}': {}",
-                           value, key, e.what());
-      }
-      break;
-
-    case G_TYPE_INT64:
-      try {
-        int64_t int64_val = std::stoll(value);
-        g_object_set(encoder, key.c_str(), int64_val, nullptr);
-        return true;
-      } catch (const std::exception& e) {
-        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to int64 for property '{}': {}",
-                           value, key, e.what());
-      }
-      break;
-
-    case G_TYPE_UINT64:
-      try {
-        uint64_t uint64_val = std::stoull(value);
-        g_object_set(encoder, key.c_str(), uint64_val, nullptr);
-        return true;
-      } catch (const std::exception& e) {
-        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to uint64 for property '{}': {}",
-                           value, key, e.what());
-      }
-      break;
-
-    case G_TYPE_BOOLEAN: {
-      bool bool_val = (value == "true" || value == "1" || value == "TRUE" || value == "True");
-      g_object_set(encoder, key.c_str(), bool_val, nullptr);
-      return true;
-    }
-
-    case G_TYPE_FLOAT:
-      try {
-        float float_val = std::stof(value);
-        g_object_set(encoder, key.c_str(), float_val, nullptr);
-        return true;
-      } catch (const std::exception& e) {
-        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to float for property '{}': {}",
-                           value, key, e.what());
-      }
-      break;
-
-    case G_TYPE_DOUBLE:
-      try {
-        double double_val = std::stod(value);
-        g_object_set(encoder, key.c_str(), double_val, nullptr);
-        return true;
-      } catch (const std::exception& e) {
-        HOLOSCAN_LOG_ERROR("Failed to convert '{}' to double for property '{}': {}",
-                           value, key, e.what());
-      }
-      break;
-
-    default:
-      HOLOSCAN_LOG_WARN("Unsupported property type for '{}' (type: {}), skipping",
-                        key, g_type_name(ptype));
-      break;
-  }
-
-  return false;
-}
-
-/**
  * @brief Add source and converter elements to pipeline and link them to encoder
  *
  * @param pipeline The pipeline to add elements to
- * @param src_element Source element (appsrc from bridge)
- * @param converter Converter element (cudaconvert or videoconvert)
+ * @param src_element Source element (appsrc from bridge) - modified to set state
+ * @param converter Converter element (cudaconvert or videoconvert) - modified to set state
  * @param encoder Encoder element to link to
  * @throws std::runtime_error if state change or linking fails
  */
-void add_and_link_source_converter(GstElement* pipeline,
-                                    const holoscan::gst::Element& src_element,
-                                    const holoscan::gst::Element& converter,
-                                    const holoscan::gst::Element& encoder) {
-  // Add source and converter elements to pipeline
-  gst_bin_add_many(GST_BIN(pipeline), src_element.get(), converter.get(), nullptr);
+void add_and_link_source_converter(holoscan::gst::Pipeline& pipeline,
+                                   holoscan::gst::Element& src_element,
+                                   holoscan::gst::Element& converter,
+                                   const holoscan::gst::Element& encoder) {
+  // Add source and converter elements to pipeline using type-safe add_many
+  pipeline.add_many(src_element, converter);
 
   // Set elements to PLAYING state to match the pipeline
-  GstStateChangeReturn ret = gst_element_set_state(src_element.get(), GST_STATE_PLAYING);
+  GstStateChangeReturn ret = src_element.set_state(GST_STATE_PLAYING);
   if (ret == GST_STATE_CHANGE_FAILURE) {
     throw std::runtime_error("Failed to set source element to PLAYING state");
   }
 
-  ret = gst_element_set_state(converter.get(), GST_STATE_PLAYING);
+  ret = converter.set_state(GST_STATE_PLAYING);
   if (ret == GST_STATE_CHANGE_FAILURE) {
     throw std::runtime_error("Failed to set converter element to PLAYING state");
   }
 
   // Link elements: source -> converter -> encoder
-  if (!gst_element_link(src_element.get(), converter.get())) {
+  if (!src_element.link(converter)) {
     throw std::runtime_error("Failed to link source to converter");
   }
 
-  if (!gst_element_link(converter.get(), encoder.get())) {
+  if (!converter.link(encoder)) {
     throw std::runtime_error("Failed to link converter to encoder");
   }
 
-  HOLOSCAN_LOG_INFO("Pipeline complete: source -> converter -> encoder -> "
-                    "parser -> muxer -> filesink");
+  HOLOSCAN_LOG_INFO(
+      "Pipeline complete: source -> converter -> encoder -> "
+      "parser -> muxer -> filesink");
 }
 
 }  // unnamed namespace
@@ -514,27 +400,38 @@ void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
   // Register converter for std::map<std::string, std::string> to enable Arg() support
   register_converter<std::map<std::string, std::string>>();
 
-  spec.param(encoder_name_, "encoder", "Encoder",
+  spec.param(encoder_name_,
+             "encoder",
+             "Encoder",
              "Encoder base name (e.g., nvh264, nvh265, x264, x265). "
              "'enc' suffix is appended automatically.",
              std::string("nvh264"));
-  spec.param(format_, "format", "Pixel Format",
+  spec.param(format_,
+             "format",
+             "Pixel Format",
              "Video pixel format (e.g., RGBA, RGB, BGRA, BGR, GRAY8)",
              std::string("RGBA"));
-  spec.param(framerate_, "framerate", "Framerate",
+  spec.param(framerate_,
+             "framerate",
+             "Framerate",
              "Video framerate as fraction (e.g., '30/1', '30000/1001', '29.97')",
              std::string("30/1"));
-  spec.param(max_buffers_, "max-buffers", "Max Buffers",
+  spec.param(max_buffers_,
+             "max-buffers",
+             "Max Buffers",
              "Maximum number of buffers to queue (0 = unlimited)",
              size_t(10));
-  spec.param(block_, "block", "Block When Full",
+  spec.param(block_,
+             "block",
+             "Block When Full",
              "Whether push_buffer() should block when the internal queue is full "
              "(true = block, false = non-blocking, may drop/timeout)",
              true);
-  spec.param(filename_, "filename", "Output Filename",
-             "Output video filename",
-             std::string("output.mp4"));
-  spec.param(properties_, "properties", "Encoder Properties",
+  spec.param(
+      filename_, "filename", "Output Filename", "Output video filename", std::string("output.mp4"));
+  spec.param(properties_,
+             "properties",
+             "Encoder Properties",
              "Map of encoder-specific properties (e.g., bitrate, preset, gop-size)",
              std::map<std::string, std::string>());
 }
@@ -544,6 +441,9 @@ void GstVideoRecorderOperator::start() {
 
   // Initialize frame counter
   frame_count_ = 0;
+
+  // Ensure bus monitor stop flag is cleared for a fresh run
+  stop_bus_monitor_.store(false);
 
   HOLOSCAN_LOG_INFO("GstVideoRecorderOperator - Starting");
   HOLOSCAN_LOG_INFO("Output filename: '{}'", filename_.get());
@@ -555,20 +455,17 @@ void GstVideoRecorderOperator::start() {
 
   HOLOSCAN_LOG_INFO("Max buffers: {}", max_buffers_.get());
   HOLOSCAN_LOG_INFO("Block when queue is full: {}", block_.get());
-  HOLOSCAN_LOG_INFO("Video parameters (width, height, format, storage) will be "
-                    "detected from first frame");
+  HOLOSCAN_LOG_INFO(
+      "Video parameters (width, height, format, storage) will be "
+      "detected from first frame");
   HOLOSCAN_LOG_INFO("Setting up GStreamer pipeline (without source)");
 
   // Create pipeline
-  pipeline_ = gst::Element(gst_pipeline_new("video-recorder-pipeline"));
-  if (!pipeline_) {
-    throw std::runtime_error("Failed to create GStreamer pipeline");
-  }
+  pipeline_ = gst::Pipeline::create("video-recorder-pipeline");
 
   // Create encoder element first (append "enc" suffix to encoder base name)
   std::string encoder_element = encoder_name_.get() + "enc";
-  encoder_ = gst::Element(
-      gst_element_factory_make(encoder_element.c_str(), "encoder"));
+  encoder_ = gst::Element(gst_element_factory_make(encoder_element.c_str(), "encoder")).ref_sink();
   if (!encoder_) {
     HOLOSCAN_LOG_ERROR("Failed to create encoder element '{}'", encoder_element);
     throw std::runtime_error("Failed to create encoder element: " + encoder_element);
@@ -579,11 +476,11 @@ void GstVideoRecorderOperator::start() {
   if (!props.empty()) {
     HOLOSCAN_LOG_INFO("Applying {} encoder properties:", props.size());
     for (const auto& [key, value] : props) {
-      if (set_encoder_property(encoder_.get(), key, value)) {
+      if (encoder_.find_and_set_property(key, value)) {
         HOLOSCAN_LOG_INFO("  {} = {}", key, value);
       } else {
-        HOLOSCAN_LOG_WARN("  {} = {} (failed to set property on encoder '{}')",
-                          key, value, encoder_element);
+        HOLOSCAN_LOG_WARN(
+            "  {} = {} (failed to set property on encoder '{}')", key, value, encoder_element);
       }
     }
   }
@@ -595,17 +492,13 @@ void GstVideoRecorderOperator::start() {
   // Determine muxer from file extension (may modify filename to add .mp4 if no extension)
   std::string output_filename = filename_.get();
   std::string muxer_name = get_muxer_from_extension(output_filename);
-  HOLOSCAN_LOG_INFO("Auto-detected muxer: {} for extension in '{}'",
-                    muxer_name, output_filename);
+  HOLOSCAN_LOG_INFO("Auto-detected muxer: {} for extension in '{}'", muxer_name, output_filename);
 
   // Create remaining pipeline elements (without source and converter -
   // those will be added on first frame)
-  auto parser = gst::Element(
-      gst_element_factory_make(parser_name.c_str(), "parser"));
-  auto muxer = gst::Element(
-      gst_element_factory_make(muxer_name.c_str(), "muxer"));
-  auto filesink = gst::Element(
-      gst_element_factory_make("filesink", "filesink"));
+  auto parser = gst::Element(gst_element_factory_make(parser_name.c_str(), "parser")).ref_sink();
+  auto muxer = gst::Element(gst_element_factory_make(muxer_name.c_str(), "muxer")).ref_sink();
+  auto filesink = gst::Element(gst_element_factory_make("filesink", "filesink")).ref_sink();
 
   if (!parser) {
     HOLOSCAN_LOG_ERROR("Failed to create parser element '{}'", parser_name);
@@ -621,29 +514,29 @@ void GstVideoRecorderOperator::start() {
   }
 
   // Configure filesink with output filename (potentially modified with .mp4 extension)
-  g_object_set(filesink.get(), "location", output_filename.c_str(), nullptr);
+  filesink.set_properties("location", output_filename);
   HOLOSCAN_LOG_INFO("Output file: {}", output_filename);
 
   // Add all elements to pipeline
-  gst_bin_add_many(GST_BIN(pipeline_.get()),
-                   encoder_.get(), parser.get (),
-                   muxer.get(), filesink.get(), nullptr);
+  pipeline_.add_many(encoder_, parser, muxer, filesink);
 
   // Link elements: encoder -> parser -> muxer -> filesink
   // Source and converter will be added and linked on first frame
-  if (!gst_element_link_many(encoder_.get(), parser.get(),
-                             muxer.get(), filesink.get(), nullptr)) {
+  if (!encoder_.link_many(parser, muxer, filesink)) {
     HOLOSCAN_LOG_ERROR("Failed to link pipeline elements");
     throw std::runtime_error("Failed to link pipeline elements");
   }
 
   HOLOSCAN_LOG_INFO("Pipeline created: {}enc -> {} -> {} -> filesink",
-                    encoder_name_.get(), parser_name, muxer_name);
-  HOLOSCAN_LOG_INFO("Source and converter will be added on first frame based on "
-                    "detected storage type");
+                    encoder_name_.get(),
+                    parser_name,
+                    muxer_name);
+  HOLOSCAN_LOG_INFO(
+      "Source and converter will be added on first frame based on "
+      "detected storage type");
 
   // Start the GStreamer pipeline
-  GstStateChangeReturn ret = gst_element_set_state(pipeline_.get(), GST_STATE_PLAYING);
+  GstStateChangeReturn ret = pipeline_.set_state(GST_STATE_PLAYING);
   if (ret == GST_STATE_CHANGE_FAILURE) {
     HOLOSCAN_LOG_ERROR("Failed to start GStreamer pipeline");
     throw std::runtime_error("Failed to start GStreamer pipeline");
@@ -652,18 +545,20 @@ void GstVideoRecorderOperator::start() {
   HOLOSCAN_LOG_INFO("GStreamer pipeline started (waiting for source to be added)");
 
   // Start bus monitoring in a background thread
-  bus_monitor_future_ =
-      std::async(std::launch::async, monitor_pipeline_bus, pipeline_.get(), &stop_bus_monitor_);
+  bus_monitor_future_ = std::async(
+      std::launch::async, monitor_pipeline_bus, std::ref(pipeline_), std::ref(stop_bus_monitor_));
 
   HOLOSCAN_LOG_INFO("GstVideoRecorderOperator::start() - Pipeline setup complete");
 }
 
 void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& output,
-                              ExecutionContext& context) {
+                                       ExecutionContext& context) {
   frame_count_++;
 
-  HOLOSCAN_LOG_DEBUG("GstVideoRecorderOperator::compute() - Frame #{} - "
-                     "Receiving tensor map", frame_count_);
+  HOLOSCAN_LOG_DEBUG(
+      "GstVideoRecorderOperator::compute() - Frame #{} - "
+      "Receiving tensor map",
+      frame_count_);
 
   // Receive the video frame tensor map from the input port
   auto tensor_map = input.receive<TensorMap>("input").value();
@@ -675,19 +570,16 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
     HOLOSCAN_LOG_INFO("Frame #{} - First frame, detecting video parameters from tensor",
                       frame_count_);
     // Create bridge from tensor map (detects video parameters automatically)
-    src_bridge_ = create_src_bridge_from_tensor_map(tensor_map,
-                                                    name(),
-                                                    format_.get(),
-                                                    framerate_.get(),
-                                                    max_buffers_.get(),
-                                                    block_.get());
+    src_bridge_ = create_src_bridge_from_tensor_map(
+        tensor_map, name(), format_.get(), framerate_.get(), max_buffers_.get(), block_.get());
     HOLOSCAN_LOG_INFO("Bridge created");
 
     // Create appropriate converter based on storage type and add to pipeline
     auto converter = create_converter_element(
         src_bridge_->get_caps().has_feature(GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY));
     // Add source and converter to pipeline and link them to encoder
-    add_and_link_source_converter(pipeline_.get(), src_bridge_->get_gst_element(), converter, encoder_);
+    gst::Element src_element = src_bridge_->get_gst_element();
+    add_and_link_source_converter(pipeline_, src_element, converter, encoder_);
   }
 
   HOLOSCAN_LOG_DEBUG("Frame #{} - Converting tensor map to GStreamer buffer", frame_count_);
@@ -730,8 +622,8 @@ void GstVideoRecorderOperator::stop() {
     if (status == std::future_status::ready) {
       HOLOSCAN_LOG_INFO("EOS processed, pipeline finished cleanly");
     } else {
-      HOLOSCAN_LOG_WARN("EOS not processed within {} seconds, forcing shutdown", 
-                         kEosTimeoutSeconds.count());
+      HOLOSCAN_LOG_WARN("EOS not processed within {} seconds, forcing shutdown",
+                        kEosTimeoutSeconds.count());
       stop_bus_monitor_.store(true);  // Force stop as fallback only
       // Give it a bit more time to exit gracefully
       bus_monitor_future_.wait_for(std::chrono::seconds(2));
@@ -739,9 +631,9 @@ void GstVideoRecorderOperator::stop() {
   }
 
   // Now it's safe to set pipeline to NULL
-  if (pipeline_ && pipeline_.get() && GST_IS_ELEMENT(pipeline_.get())) {
+  if (pipeline_) {
     HOLOSCAN_LOG_INFO("Setting pipeline to NULL state");
-    GstStateChangeReturn ret = gst_element_set_state(pipeline_.get(), GST_STATE_NULL);
+    GstStateChangeReturn ret = pipeline_.set_state(GST_STATE_NULL);
     if (ret == GST_STATE_CHANGE_FAILURE) {
       HOLOSCAN_LOG_WARN("Failed to set pipeline to NULL state");
     }

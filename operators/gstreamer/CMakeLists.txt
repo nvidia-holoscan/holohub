@@ -32,6 +32,7 @@ pkg_check_modules(GSTREAMER_APP REQUIRED gstreamer-app-1.0)
 
 # Create the Holoscan GStreamer Bridge library
 add_library(holoscan_gstreamer_bridge SHARED
+  gst/app_src.cpp
   gst/buffer.cpp
   gst/caps.cpp
   gst/memory.cpp
@@ -100,6 +101,11 @@ if(GSTREAMER_CUDA_FOUND)
     target_compile_options(holoscan_gstreamer_bridge PRIVATE
         ${GSTREAMER_CUDA_CFLAGS_OTHER}
     )
+
+    # Suppress unstable API warnings for CUDA
+    target_compile_definitions(holoscan_gstreamer_bridge PRIVATE
+        GST_USE_UNSTABLE_API
+    )
 else()
     message(STATUS "GStreamer CUDA support: DISABLED (gstreamer-cuda-1.0 not found - requires GStreamer 1.24+)")
 endif()
@@ -109,13 +115,21 @@ install(TARGETS holoscan_gstreamer_bridge DESTINATION lib)
 
 # Install headers
 install(FILES
+  gst/allocator.hpp
+  gst/app_src.hpp
   gst/buffer.hpp
+  gst/bus.hpp
   gst/caps.hpp
   gst/config.hpp
+  gst/cuda_context.hpp
+  gst/element.hpp
   gst/error.hpp
   gst/memory.hpp
   gst/message.hpp
+  gst/mini_object.hpp
   gst/object.hpp
+  gst/pad.hpp
+  gst/pipeline.hpp
   gst/video_info.hpp
   gst_src_bridge.hpp
   gst_video_recorder_operator.hpp

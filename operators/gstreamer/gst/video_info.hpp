@@ -35,6 +35,12 @@ class Caps;
 class VideoInfo {
  public:
   /**
+   * @brief Default constructor - initializes empty video info
+   * @note Calls gst_video_info_init() to initialize the structure
+   */
+  VideoInfo();
+
+  /**
    * @brief Constructor from Caps object
    * @param caps Caps object containing video information
    * @throws std::runtime_error if caps don't contain valid video information
@@ -104,6 +110,22 @@ class VideoInfo {
    * @return Height in pixels
    */
   gint get_height() const;
+
+  /**
+   * @brief Set video format information
+   * @param format GstVideoFormat to set
+   * @param width Width in pixels
+   * @param height Height in pixels
+   * @returns true if the format was set successfully, false otherwise
+   * @note Wraps gst_video_info_set_format() for type-safe usage
+   */
+  bool set_format(GstVideoFormat format, gint width, gint height);
+
+  /**
+   * @brief Get underlying GstVideoInfo pointer
+   * @return Pointer to the underlying GstVideoInfo structure
+   */
+  const ::GstVideoInfo* get() const { return &video_info_; }
 
  private:
   ::GstVideoInfo video_info_;

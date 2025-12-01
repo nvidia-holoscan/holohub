@@ -24,13 +24,23 @@
 namespace holoscan {
 namespace gst {
 
+VideoInfo::VideoInfo() {
+  gst_video_info_init(&video_info_);
+}
+
 VideoInfo::VideoInfo(const Caps& caps) {
   if (!gst_video_info_from_caps(&video_info_, caps.get()))
     throw std::runtime_error(
         "Failed to create VideoInfo from Caps - caps may not contain valid video information");
 }
 
-gsize VideoInfo::get_size() const { return GST_VIDEO_INFO_SIZE(&video_info_); }
+bool VideoInfo::set_format(GstVideoFormat format, gint width, gint height) {
+  return gst_video_info_set_format(&video_info_, format, width, height);
+}
+
+gsize VideoInfo::get_size() const {
+  return GST_VIDEO_INFO_SIZE(&video_info_);
+}
 
 gsize VideoInfo::get_stride(int plane_index) const {
   if (plane_index < 0 || static_cast<guint>(plane_index) >= video_info_.finfo->n_planes) {
@@ -60,15 +70,25 @@ gsize VideoInfo::get_size(int plane_index) const {
   return get_stride(plane_index) * get_comp_height(plane_index);
 }
 
-gsize VideoInfo::get_n_components() const { return GST_VIDEO_INFO_N_COMPONENTS(&video_info_); }
+gsize VideoInfo::get_n_components() const {
+  return GST_VIDEO_INFO_N_COMPONENTS(&video_info_);
+}
 
-gsize VideoInfo::get_n_planes() const { return GST_VIDEO_INFO_N_PLANES(&video_info_); }
+gsize VideoInfo::get_n_planes() const {
+  return GST_VIDEO_INFO_N_PLANES(&video_info_);
+}
 
-GstVideoFormat VideoInfo::get_format() const { return GST_VIDEO_INFO_FORMAT(&video_info_); }
+GstVideoFormat VideoInfo::get_format() const {
+  return GST_VIDEO_INFO_FORMAT(&video_info_);
+}
 
-gint VideoInfo::get_width() const { return GST_VIDEO_INFO_WIDTH(&video_info_); }
+gint VideoInfo::get_width() const {
+  return GST_VIDEO_INFO_WIDTH(&video_info_);
+}
 
-gint VideoInfo::get_height() const { return GST_VIDEO_INFO_HEIGHT(&video_info_); }
+gint VideoInfo::get_height() const {
+  return GST_VIDEO_INFO_HEIGHT(&video_info_);
+}
 
 }  // namespace gst
 }  // namespace holoscan

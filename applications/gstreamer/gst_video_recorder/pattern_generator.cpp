@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <vector>
 
 #include <cuda_runtime.h>
@@ -40,6 +41,17 @@ holoscan::gxf::Entity PatternEntityGenerator::generate(int width, int height,
   HOLOSCAN_LOG_DEBUG("Generating {}x{} pattern entity (storage: {})",
                      width, height,
                      storage_type == nvidia::gxf::MemoryStorageType::kDevice ? "device" : "host");
+
+  // Validate inputs
+  if (width <= 0 || height <= 0) {
+    HOLOSCAN_LOG_ERROR("Invalid dimensions: {}x{} (must be positive)", width, height);
+    return holoscan::gxf::Entity();
+  }
+
+  if (!allocator) {
+    HOLOSCAN_LOG_ERROR("Allocator is null");
+    return holoscan::gxf::Entity();
+  }
 
   gxf_context_t context = allocator->gxf_context();
 
@@ -82,7 +94,15 @@ holoscan::gxf::Entity PatternEntityGenerator::generate(int width, int height,
     return holoscan::gxf::Entity();
   }
 
-  size_t buffer_size = width * height * RGBA_CHANNELS;
+  // Calculate buffer size with overflow protection
+  const auto w = static_cast<size_t>(width);
+  const auto h = static_cast<size_t>(height);
+  const auto c = static_cast<size_t>(RGBA_CHANNELS);
+  if (h != 0 && w > std::numeric_limits<size_t>::max() / (h * c)) {
+    HOLOSCAN_LOG_ERROR("Requested frame size is too large: {}x{}", width, height);
+    return holoscan::gxf::Entity();
+  }
+  size_t buffer_size = w * h * c;
 
   // For device memory, generate pattern in host buffer first, then copy to device
   if (storage_type == nvidia::gxf::MemoryStorageType::kDevice) {
@@ -92,9 +112,16 @@ holoscan::gxf::Entity PatternEntityGenerator::generate(int width, int height,
     // Generate pattern in host buffer (call derived class implementation)
     generate_pattern_data(host_buffer.data(), width, height);
 
+    // Get device pointer and validate
+    void* device_ptr = maybe_tensor.value()->pointer();
+    if (!device_ptr) {
+      HOLOSCAN_LOG_ERROR("Failed to get device tensor data pointer");
+      return holoscan::gxf::Entity();
+    }
+
     // Copy from host to device
     cudaError_t cuda_result = cudaMemcpy(
-        maybe_tensor.value()->pointer(),
+        device_ptr,
         host_buffer.data(),
         buffer_size,
         cudaMemcpyHostToDevice);
@@ -166,6 +193,7 @@ void ColorBarsPatternGenerator::generate_pattern_data(uint8_t* data, int width, 
   };
 
   int bar_width = width / SMPTE_COLOR_BARS;
+  if (bar_width == 0) bar_width = 1;  // Prevent division by zero for very small widths
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       int idx = (y * width + x) * RGBA_CHANNELS;
@@ -219,6 +247,12 @@ void PatternGenOperator::compute(InputContext& input, OutputContext& output,
                                  ExecutionContext& context) {
   HOLOSCAN_LOG_DEBUG("Generating pattern");
 
+  auto allocator_ptr = allocator_.get().get();
+  if (!allocator_ptr) {
+    HOLOSCAN_LOG_ERROR("Allocator parameter is not set");
+    return;
+  }
+
   // Convert storage_type parameter (0=host, 1=device) to MemoryStorageType enum
   nvidia::gxf::MemoryStorageType storage = (storage_type_.get() == 1)
       ? nvidia::gxf::MemoryStorageType::kDevice
@@ -226,7 +260,7 @@ void PatternGenOperator::compute(InputContext& input, OutputContext& output,
 
   // Generate a pattern entity with tensors using the polymorphic generator
   auto entity = generator_->generate(width_.get(), height_.get(),
-                                    storage, allocator_.get().get());
+                                    storage, allocator_ptr);
   if (!entity) {
     HOLOSCAN_LOG_ERROR("Failed to generate pattern entity");
     return;

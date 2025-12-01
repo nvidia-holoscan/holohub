@@ -23,7 +23,7 @@
 #include <string>
 
 #include "error.hpp"
-#include "object.hpp"
+#include "mini_object.hpp"
 
 namespace holoscan {
 namespace gst {
@@ -34,18 +34,18 @@ namespace gst {
  * This class manages the lifetime of a GstMessage object and automatically
  * calls gst_message_unref when destroyed.
  */
-class Message : public Object<::GstMessage, gst_mini_object_ref_typed<::GstMessage>,
-                              gst_mini_object_unref_typed<::GstMessage>> {
+class Message : public MiniObjectBase<Message, ::GstMessage> {
  public:
   /**
    * @brief Constructor from raw pointer (takes ownership)
    * @param message GstMessage pointer to wrap (nullptr is allowed)
    */
-  explicit Message(::GstMessage* message = nullptr) : Object(message) {}
+  explicit Message(::GstMessage* message = nullptr) : MiniObjectBase(message) {}
 
   /**
    * @brief Parse error message and extract error information.
    * @return Error object containing the GError (automatically freed on destruction).
+   * @throws std::runtime_error if the underlying GstMessage is null
    */
   Error parse_error() const;
 
@@ -55,8 +55,22 @@ class Message : public Object<::GstMessage, gst_mini_object_ref_typed<::GstMessa
    *                   The debug info will be copied to this string.
    *                   The memory is automatically managed (no manual g_free needed).
    * @return Error object containing the GError (automatically freed on destruction).
+   * @throws std::runtime_error if the underlying GstMessage is null
    */
   Error parse_error(std::string& debug_info) const;
+
+  /**
+   * @brief Parse state changed message and extract state information.
+   * @param oldstate Pointer to GstState to receive the old state
+   * @param newstate Pointer to GstState to receive the new state
+   * @param pending Pointer to GstState to receive the pending state
+   * @note All parameters can be nullptr if the information is not needed
+   * @throws std::runtime_error if the underlying GstMessage is null
+   */
+  void parse_state_changed(GstState* oldstate, GstState* newstate, GstState* pending) const;
+
+  static constexpr auto ref_func = gst_message_ref;
+  static constexpr auto unref_func = gst_message_unref;
 };
 
 }  // namespace gst

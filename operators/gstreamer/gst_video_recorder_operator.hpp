@@ -19,16 +19,18 @@
 #define GST_VIDEO_RECORDER_OPERATOR_HPP
 
 #include <atomic>
+#include <future>
 #include <map>
 #include <memory>
 #include <string>
-#include <future>
 
 #include <gst/gst.h>
 
 #include <holoscan/holoscan.hpp>
 
+#include "gst/element.hpp"
 #include "gst/object.hpp"
+#include "gst/pipeline.hpp"
 #include "gst_src_bridge.hpp"
 
 namespace holoscan {
@@ -54,10 +56,12 @@ class GstVideoRecorderOperator : public Operator {
    * - input: TensorMap containing video frame tensor(s)
    * - encoder: Encoder base name (e.g., "nvh264", "nvh265", "x264", "x265") - default: "nvh264"
    *            Note: "enc" suffix is automatically appended to form the element name
+   * - format: Pixel format for video data (e.g., "RGBA", "RGB", "BGRA", "BGR", "GRAY8") - default:
+   * "RGBA" Note: This format is used for GStreamer caps generation and tensor interpretation
    * - framerate: Video framerate as fraction or decimal - default: "30/1"
    *              Formats: "30/1", "30000/1001", "29.97", "60"
-   *              Special: "0/1" for live mode (no framerate control, process frames as fast as they come)
-   *              Note: In live mode, timestamps reflect actual frame arrival times (real-time)
+   *              Special: "0/1" for live mode (no framerate control, process frames as fast as they
+   * come) Note: In live mode, timestamps reflect actual frame arrival times (real-time)
    * - max_buffers: Maximum number of buffers to queue (0 = unlimited) - default: 10
    * - block: Whether push_buffer() should block when the queue is full (true = block,
    *          false = non-blocking, may drop/timeout) - default: true
@@ -65,9 +69,10 @@ class GstVideoRecorderOperator : public Operator {
    *              Note: If no extension is provided, ".mp4" is automatically appended
    * - properties: Map of encoder-specific properties - default: empty map
    *              Examples: {"bitrate": "8000", "preset": "1", "gop-size": "30"}
-   *              Property types are automatically detected and converted (int, uint, bool, float, etc.)
+   *              Property types are automatically detected and converted (int, uint, bool, float,
+   * etc.)
    *
-   * Note: Width, height, format, and storage type are automatically detected from the first frame
+   * Note: Width, height, and storage type are automatically detected from the first frame
    * Note: Parser element is automatically determined from the encoder name
    * Note: Muxer element is automatically determined from the file extension:
    *       .mp4 -> mp4mux, .mkv -> matroskamux
@@ -113,7 +118,7 @@ class GstVideoRecorderOperator : public Operator {
   Parameter<std::string> encoder_name_;
   Parameter<std::string> format_;
   Parameter<std::string> framerate_;  // Fraction string: "30/1", "30000/1001", "29.97",
-                                       // or "0/1" for live mode (real-time timestamps)
+                                      // or "0/1" for live mode (real-time timestamps)
   Parameter<size_t> max_buffers_;
   Parameter<bool> block_;
   Parameter<std::string> filename_;
@@ -122,7 +127,7 @@ class GstVideoRecorderOperator : public Operator {
 
   // Bridge and pipeline management
   std::shared_ptr<GstSrcBridge> src_bridge_;
-  gst::Element pipeline_;
+  gst::Pipeline pipeline_;
   gst::Element encoder_;  // Keep reference to link dynamically created converter to it
 
   // Bus monitoring
@@ -136,4 +141,3 @@ class GstVideoRecorderOperator : public Operator {
 }  // namespace holoscan
 
 #endif /* GST_VIDEO_RECORDER_OPERATOR_HPP */
-

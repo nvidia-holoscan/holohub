@@ -23,7 +23,7 @@
 #include <optional>
 #include <string>
 
-#include "object.hpp"
+#include "mini_object.hpp"
 
 namespace holoscan {
 namespace gst {
@@ -38,8 +38,7 @@ class VideoInfo;
  * automatic cleanup when destroyed. It also provides convenient member functions
  * for common GstCaps operations.
  */
-class Caps : public Object<::GstCaps, gst_mini_object_ref_typed<::GstCaps>,
-                           gst_mini_object_unref_typed<::GstCaps>> {
+class Caps : public MiniObjectBase<Caps, ::GstCaps> {
  public:
   /**
    * @brief Constructor from GstCaps pointer (takes ownership)
@@ -70,6 +69,15 @@ class Caps : public Object<::GstCaps, gst_mini_object_ref_typed<::GstCaps>,
    * @return Value of the field, or nullptr if field not found or caps is nullptr/empty/invalid
    */
   const GValue* get_structure_value(const char* fieldname, guint index = 0) const;
+
+  /**
+   * @brief Get a structure from the caps at the specified index
+   * @param index Index of the structure to get (default is 0 - first/primary structure)
+   * @return Pointer to the GstStructure at the given index, or nullptr if caps is
+   * nullptr/empty/invalid or index is out of bounds
+   * @note The returned structure is owned by the caps and should not be freed
+   */
+  GstStructure* get_structure(guint index = 0) const;
 
   /**
    * @brief Extract video format information from caps
@@ -103,6 +111,9 @@ class Caps : public Object<::GstCaps, gst_mini_object_ref_typed<::GstCaps>,
    * @return String representation of the caps (GStreamer returns "NULL" for nullptr caps)
    */
   std::string to_string() const;
+
+  static constexpr auto ref_func = gst_caps_ref;
+  static constexpr auto unref_func = gst_caps_unref;
 };
 
 }  // namespace gst

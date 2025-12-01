@@ -28,10 +28,12 @@
 
 #include <holoscan/core/domain/tensor_map.hpp>
 
+#include "gst/app_src.hpp"
 #include "gst/buffer.hpp"
 #include "gst/caps.hpp"
 #include "gst/config.hpp"
 #include "gst/object.hpp"
+#include "gst/pad.hpp"
 
 namespace holoscan {
 
@@ -55,7 +57,7 @@ class GstSrcBridge {
    * @param block If true, push_buffer() blocks when queue is full; if false, returns immediately
    * @throws std::runtime_error if initialization fails
    */
-  GstSrcBridge(const std::string& name, const std::string& caps_string, size_t max_buffers, 
+  GstSrcBridge(const std::string& name, const std::string& caps_string, size_t max_buffers,
                bool block = true);
 
   /**
@@ -142,7 +144,7 @@ class GstSrcBridge {
   int framerate_den_ = 1;
 
   // GStreamer element (appsrc)
-  gst::Element src_element_;
+  gst::AppSrc src_element_;
 
   // Memory wrapper factory for zero-copy tensor to GstMemory conversion.
   // Lazily initialized on first buffer creation based on tensor memory type (host/CUDA).

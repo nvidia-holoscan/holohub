@@ -27,38 +27,45 @@ namespace gst {
 // ============================================================================
 
 gsize Buffer::get_size() const {
-  if (!get()) throw std::runtime_error("Invalid buffer");
+  if (!get())
+    throw std::runtime_error("Invalid buffer");
   return gst_buffer_get_size(get());
 }
 
 GstBufferFlags Buffer::flags() const {
-  if (!get()) throw std::runtime_error("Invalid buffer");
+  if (!get())
+    throw std::runtime_error("Invalid buffer");
   return static_cast<GstBufferFlags>(GST_BUFFER_FLAGS(get()));
 }
 
 void Buffer::append_memory(const gst::Memory& memory) {
-  if (!get()) throw std::runtime_error("Invalid buffer");
+  if (!get())
+    throw std::runtime_error("Invalid buffer");
   // gst_buffer_append_memory takes ownership, so we need to give it a new reference
-  gst_buffer_append_memory(get(), memory.ref());
+  gst_buffer_append_memory(get(), memory.ref().get());
 }
 
 guint Buffer::n_memory() const {
-  if (!get()) throw std::runtime_error("Invalid buffer");
+  if (!get())
+    throw std::runtime_error("Invalid buffer");
   return gst_buffer_n_memory(get());
 }
 
 gst::Memory Buffer::get_memory(guint idx) const {
-  if (!get()) throw std::runtime_error("Invalid buffer");
+  if (!get())
+    throw std::runtime_error("Invalid buffer");
   return gst::Memory(gst_buffer_get_memory(get(), idx));
 }
 
 bool Buffer::map(::GstMapInfo* info, ::GstMapFlags flags) const {
-  if (!get()) return false;
+  if (!get())
+    return false;
   return gst_buffer_map(get(), info, flags);
 }
 
 void Buffer::unmap(::GstMapInfo* info) const {
-  if (get()) gst_buffer_unmap(get(), info);
+  if (get())
+    gst_buffer_unmap(get(), info);
 }
 
 }  // namespace gst

@@ -15,31 +15,12 @@
  * limitations under the License.
  */
 
-#include "memory.hpp"
+#include "app_src.hpp"
 
 namespace holoscan {
 namespace gst {
 
-// ============================================================================
-// Memory Implementation - RAII for GstMemory
-// ============================================================================
-
-gsize Memory::get_sizes(gsize* offset, gsize* max_size) const {
-  if (!get())
-    return 0;
-  return gst_memory_get_sizes(get(), offset, max_size);
-}
-
-bool Memory::map(::GstMapInfo* info, ::GstMapFlags flags) const {
-  if (!get())
-    return false;
-  return gst_memory_map(get(), info, flags);
-}
-
-void Memory::unmap(::GstMapInfo* info) const {
-  if (get())
-    gst_memory_unmap(get(), info);
-}
+// Currently no additional implementation needed beyond the header definitions
 
 }  // namespace gst
 }  // namespace holoscan

@@ -20,7 +20,7 @@
 
 #include <gst/gst.h>
 
-#include "object.hpp"
+#include "mini_object.hpp"
 
 namespace holoscan {
 namespace gst {
@@ -31,14 +31,13 @@ namespace gst {
  * This class manages the lifetime of a GstMemory object and automatically
  * calls gst_memory_unref when destroyed.
  */
-class Memory : public Object<::GstMemory, gst_mini_object_ref_typed<::GstMemory>,
-                             gst_mini_object_unref_typed<::GstMemory>> {
+class Memory : public MiniObjectBase<Memory, ::GstMemory> {
  public:
   /**
    * @brief Constructor from raw pointer (takes ownership)
    * @param memory GstMemory pointer to wrap (nullptr is allowed)
    */
-  explicit Memory(::GstMemory* memory = nullptr) : Object(memory) {}
+  explicit Memory(::GstMemory* memory = nullptr) : MiniObjectBase(memory) {}
 
   /**
    * @brief Get the size of the memory
@@ -61,6 +60,26 @@ class Memory : public Object<::GstMemory, gst_mini_object_ref_typed<::GstMemory>
    * @param info Pointer to GstMapInfo structure from the map call
    */
   void unmap(::GstMapInfo* info) const;
+
+  /**
+   * @brief Create a memory object that wraps existing data
+   * @param flags Memory flags (e.g., GST_MEMORY_FLAG_READONLY)
+   * @param data Pointer to the memory data to wrap
+   * @param maxsize Maximum size of the memory
+   * @param offset Offset within the memory
+   * @param size Size of the accessible memory
+   * @param user_data User data for the destroy callback
+   * @param notify Callback to free user_data when memory is released
+   * @returns A new Memory object wrapping the existing data
+   * @note Wraps gst_memory_new_wrapped() for type-safe usage
+   */
+  static Memory create_wrapped(::GstMemoryFlags flags, void* data, gsize maxsize, gsize offset,
+                               gsize size, void* user_data, ::GDestroyNotify notify) {
+    return Memory(gst_memory_new_wrapped(flags, data, maxsize, offset, size, user_data, notify));
+  }
+
+  static constexpr auto ref_func = gst_memory_ref;
+  static constexpr auto unref_func = gst_memory_unref;
 };
 
 }  // namespace gst

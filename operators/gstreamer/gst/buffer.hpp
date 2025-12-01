@@ -24,7 +24,7 @@
 #include <string>
 
 #include "memory.hpp"
-#include "object.hpp"
+#include "mini_object.hpp"
 
 namespace holoscan {
 namespace gst {
@@ -36,17 +36,25 @@ namespace gst {
  * automatic cleanup when destroyed. It also provides convenient member functions
  * for common GstBuffer operations.
  *
- * The constructor wraps an existing GstBuffer pointer (or nullptr). Member functions
- * will throw std::runtime_error if called on an invalid (null) buffer.
+ * The constructor wraps an existing GstBuffer pointer (or nullptr). Most member functions
+ * will throw std::runtime_error if called on an invalid (null) buffer. Exceptions:
+ * - map() returns false on null buffer
+ * - unmap() is a no-op on null buffer
  */
-class Buffer : public Object<::GstBuffer, gst_mini_object_ref_typed<::GstBuffer>,
-                             gst_mini_object_unref_typed<::GstBuffer>> {
+class Buffer : public MiniObjectBase<Buffer, ::GstBuffer> {
  public:
   /**
    * @brief Constructor from native GstBuffer
    * @param buffer Native GstBuffer pointer
    */
-  explicit Buffer(::GstBuffer* buffer = nullptr) : Object(buffer) {}
+  explicit Buffer(::GstBuffer* buffer = nullptr) : MiniObjectBase(buffer) {}
+
+  /**
+   * @brief Create a new empty GStreamer buffer
+   * @returns A new Buffer object wrapping a newly created GstBuffer
+   * @note Wraps gst_buffer_new() for type-safe buffer creation
+   */
+  static Buffer create() { return Buffer(gst_buffer_new()); }
 
   /**
    * @brief Get buffer size in bytes
@@ -83,15 +91,19 @@ class Buffer : public Object<::GstBuffer, gst_mini_object_ref_typed<::GstBuffer>
    * @brief Map buffer for access
    * @param info Pointer to GstMapInfo structure to fill
    * @param flags GstMapFlags indicating the desired access mode
-   * @return true if mapping was successful, false otherwise
+   * @return true if mapping was successful, false if buffer is null or mapping failed
    */
   bool map(::GstMapInfo* info, ::GstMapFlags flags) const;
 
   /**
    * @brief Unmap previously mapped buffer
    * @param info Pointer to GstMapInfo structure from the map call
+   * @note This is a no-op if buffer is null
    */
   void unmap(::GstMapInfo* info) const;
+
+  static constexpr auto ref_func = gst_buffer_ref;
+  static constexpr auto unref_func = gst_buffer_unref;
 };
 
 }  // namespace gst

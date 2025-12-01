@@ -17,16 +17,24 @@
 
 #include "message.hpp"
 
+#include <stdexcept>
+
 namespace holoscan {
 namespace gst {
 
 Error Message::parse_error() const {
+  if (!get()) {
+    throw std::runtime_error("Attempted to parse error from null GstMessage");
+  }
   ::GError* error = nullptr;
   gst_message_parse_error(get(), &error, nullptr);
   return Error(error);
 }
 
 Error Message::parse_error(std::string& debug_info) const {
+  if (!get()) {
+    throw std::runtime_error("Attempted to parse error from null GstMessage");
+  }
   ::GError* error = nullptr;
   gchar* debug = nullptr;
   gst_message_parse_error(get(), &error, &debug);
@@ -40,6 +48,14 @@ Error Message::parse_error(std::string& debug_info) const {
   }
 
   return Error(error);
+}
+
+void Message::parse_state_changed(GstState* oldstate, GstState* newstate,
+                                  GstState* pending) const {
+  if (!get()) {
+    throw std::runtime_error("Attempted to parse state change from null GstMessage");
+  }
+  gst_message_parse_state_changed(get(), oldstate, newstate, pending);
 }
 
 }  // namespace gst
