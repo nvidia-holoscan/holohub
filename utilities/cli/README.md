@@ -121,6 +121,9 @@ Development commands remain familiar:
 
 # Consistent naming conventions
 ./holohub clear-cache                  # Previously ./run clear_cache
+./holohub clear-cache --build          # Clear only build folders
+./holohub clear-cache --data           # Clear only data folders
+./holohub clear-cache --install        # Clear only install folders
 ./holohub list                         # Previously ./run list
 ```
 

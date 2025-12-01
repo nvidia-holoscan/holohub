@@ -433,6 +433,11 @@ class HoloHubCLI:
         clear_cache.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
+        clear_cache.add_argument("--build", action="store_true", help="Clear build folders only")
+        clear_cache.add_argument("--data", action="store_true", help="Clear data folders only")
+        clear_cache.add_argument(
+            "--install", action="store_true", help="Clear install folders only"
+        )
         clear_cache.set_defaults(func=self.handle_clear_cache)
 
         # Add vscode command
@@ -2015,19 +2020,44 @@ class HoloHubCLI:
 
     def handle_clear_cache(self, args: argparse.Namespace) -> None:
         """Handle clear-cache command"""
+        # Determine which folders to clear
+        clear_build = getattr(args, "build", False)
+        clear_data = getattr(args, "data", False)
+        clear_install = getattr(args, "install", False)
+
+        # If no flags are provided, clear all (backward compatibility)
+        clear_all = not (clear_build or clear_data or clear_install)
+
         if args.dryrun:
             print(Color.blue("Would clear cache folders:"))
         else:
             print(Color.blue("Clearing cache..."))
 
-        cache_dirs = [
-            self.DEFAULT_BUILD_PARENT_DIR,
-            self.DEFAULT_DATA_DIR,
-        ]
-        for pattern in ["build", "build-*", "data", "data-*", "install"]:
-            for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                if path.is_dir() and path not in cache_dirs:
-                    cache_dirs.append(path)
+        cache_dirs = []
+
+        # Collect build folders if needed
+        if clear_all or clear_build:
+            cache_dirs.append(self.DEFAULT_BUILD_PARENT_DIR)
+            for pattern in ["build", "build-*"]:
+                for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
+                    if path.is_dir() and path not in cache_dirs:
+                        cache_dirs.append(path)
+
+        # Collect data folders if needed
+        if clear_all or clear_data:
+            cache_dirs.append(self.DEFAULT_DATA_DIR)
+            for pattern in ["data", "data-*"]:
+                for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
+                    if path.is_dir() and path not in cache_dirs:
+                        cache_dirs.append(path)
+
+        # Collect install folders if needed
+        if clear_all or clear_install:
+            for pattern in ["install", "install-*"]:
+                for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
+                    if path.is_dir() and path not in cache_dirs:
+                        cache_dirs.append(path)
+
         for path in set(cache_dirs):
             if path.exists() and path.is_dir():
                 if args.dryrun:
