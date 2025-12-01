@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
-DEFAULT_BASE_SDK_VERSION = "3.8.0"
+DEFAULT_BASE_SDK_VERSION = "3.9.0"
 
 DEFAULT_GIT_REF = "latest"
 
@@ -580,14 +580,15 @@ def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -
 
 def get_compute_capacity() -> str:
     """Get GPU compute capacity"""
-    if not shutil.which("nvidia-smi"):
+    nvidia_smi = shutil.which("nvidia-smi")
+    if not nvidia_smi:
         return "0.0"
     try:
         output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=compute_cap", "--format=csv,noheader"]
+            [nvidia_smi, "--query-gpu=compute_cap", "--format=csv,noheader"]
         )
         return output.decode().strip().split("\n")[0]
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         return "0.0"
 
 
@@ -925,6 +926,7 @@ def build_holohub_path_mapping(
     build_dir: Optional[Path] = None,
     data_dir: Optional[Path] = None,
     prefix: Optional[str] = None,
+    verbose: bool = False,
 ) -> dict[str, str]:
     """Build a mapping of HoloHub placeholders to their resolved paths
 
@@ -935,6 +937,7 @@ def build_holohub_path_mapping(
         data_dir: Optional data directory path
         prefix: Prefix for placeholder keys. If None, reads from HOLOHUB_PATH_PREFIX
                 environment variable (default: "holohub_")
+        verbose: Whether to print verbose output
 
     Returns:
         Dictionary mapping placeholder names to their resolved paths
@@ -974,6 +977,11 @@ def build_holohub_path_mapping(
                 path_mapping[f"{prefix}app_bin"] = str(app_build_dir)
             except ValueError:
                 path_mapping[f"{prefix}app_bin"] = str(inferred_build_dir)
+
+    if verbose:
+        mapping_info = ";\n".join(f"<{key}>: {value}" for key, value in path_mapping.items())
+        print(format_cmd(f"Path mappings: \n{mapping_info}", is_dryrun=False))
+
     return path_mapping
 
 
@@ -1095,14 +1103,52 @@ def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
     return ""
 
 
-def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
-    """Replace placeholders in text using the provided path mapping"""
+def replace_placeholders(
+    text: str,
+    path_mapping: dict[str, str] | None = None,
+    env_mapping: dict[str, str] | None = None,
+) -> str:
+    """Replace placeholders in text using the provided path mapping and environment variables
+
+    Supports two types of placeholders:
+    1. Path mapping placeholders: <holohub_*> (e.g., <holohub_root>, <holohub_app_bin>)
+    2. Environment variable placeholders: All other placeholders (e.g., <PATH>, <HOME>, <USER>)
+
+    Resolution strategy:
+    - Placeholders starting with "holohub_" are resolved using path_mapping
+    - All other placeholders are resolved using environment variables
+
+    Args:
+        text: The text to replace placeholders in
+        path_mapping: The path mapping to use
+        env_mapping: The environment variables to use
+
+    Returns:
+        The text with placeholders replaced
+
+    """
     if not text:
         return text
     result = text
+    # Resolve path mapping placeholders
+    path_mapping = path_mapping or {}
     for placeholder, replacement in path_mapping.items():
         bracketed_placeholder = f"<{placeholder}>"
         result = result.replace(bracketed_placeholder, replacement)
+
+    # Resolve environment variable placeholders
+    if env_mapping:
+        # Find all environment variable placeholders in the result
+        env_placeholders = re.findall(r"<([^>]+)>", result)
+        for env_placeholder in env_placeholders:
+            # check if placeholder is in env_mapping otherwise warn and continue
+            if env_placeholder not in env_mapping:
+                warn(
+                    f"Placeholder <{env_placeholder}> is not in environment variables, defaulting to empty string."
+                )
+            bracketed_env_placeholder = f"<{env_placeholder}>"
+            result = result.replace(bracketed_env_placeholder, env_mapping.get(env_placeholder, ""))
+
     return result
 
 
@@ -1287,6 +1333,7 @@ def collect_environment_variables() -> None:
         "HOLOHUB_CMD_NAME",
         "HOLOHUB_BUILD_LOCAL",
         "HOLOHUB_ALWAYS_BUILD",
+        "HOLOHUB_ENABLE_SCCACHE",
         "HOLOHUB_BUILD_PARENT_DIR",
         "HOLOHUB_DATA_DIR",
         "HOLOHUB_DEFAULT_HSDK_DIR",
@@ -1353,7 +1400,42 @@ def collect_env_info() -> None:
     collect_python_info()
     collect_docker_info()
     collect_cuda_gpu_info()
+    collect_sccache_info()
     collect_environment_variables()
+
+
+def get_sccache_dir(env: Optional[dict[str, str]] = None) -> str:
+    source_env: dict[str, str] = env if env is not None else os.environ  # type: ignore[assignment]
+    return source_env.get("SCCACHE_DIR") or str(Path.home() / ".cache" / "sccache")
+
+
+def collect_sccache_info() -> None:
+    """Collect and display sccache-related information"""
+    print(f"\n{Color.blue('sccache Information:')}")
+
+    enable_val, enabled = get_env_bool("HOLOHUB_ENABLE_SCCACHE", default=False)
+    print(f"  HOLOHUB_ENABLE_SCCACHE: {enable_val} ({'enabled' if enabled else 'disabled'})")
+
+    sccache_bin = shutil.which("sccache")
+    version = run_info_command(["sccache", "--version"]) if sccache_bin else None
+    print(f"  sccache binary: {sccache_bin or '(not found in PATH)'}")
+    print(f"  sccache version: {version or '(unavailable)'}")
+
+    effective_dir = get_sccache_dir()
+    print(f"  Local SCCACHE_DIR: {effective_dir}")
+
+    # Collect SCCACHE_* variables once, excluding SCCACHE_DIR which is already printed above.
+    sccache_items = [
+        (key, value or "(not set)")
+        for key, value in os.environ.items()
+        if key.startswith("SCCACHE_") and key != "SCCACHE_DIR"
+    ]
+    if sccache_items:
+        print("  SCCACHE_* environment variables:")
+        for key, value in sorted(sccache_items):
+            print(f"    {key}: {value}")
+    else:
+        print("  SCCACHE_* environment variables: (none set)")
 
 
 def normalize_args_str(args):
@@ -1622,3 +1704,34 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
     except PackageInstallationError as e:
         info(f"TensorRT installation failed: {e}")
         info("Continuing with setup - TensorRT packages may need to be installed manually")
+
+
+def update_env(
+    env: dict[str, str],
+    new_env: dict[str, str],
+    path_mapping: dict[str, str] | None = None,
+    verbose: bool = False,
+) -> None:
+    """
+    Update the environment variable with the new value from the new environment dictionary.
+
+    Supports placeholder replacement for:
+    - Path mapping placeholders: <holohub_*> (e.g., <holohub_root>, <holohub_app_bin>)
+    - Environment variable placeholders: <VAR_NAME> (e.g., <PATH>, <HOME>, <USER>)
+      The variable name itself can be used as a placeholder to reference its current value.
+
+    Examples:
+    - "value:<VAR>" - prepend value to existing variable VAR
+    - "<VAR>:value" - append value to existing variable VAR
+    - "value:<VAR>:value2" - prepend and append to existing variable VAR
+    - "value" - replace existing variable
+
+    """
+    # Default to empty dictionaries if not provided
+    path_mapping = path_mapping or {}
+
+    # Update the environment variables
+    for key, value in new_env.items():
+        env[key] = replace_placeholders(value, path_mapping, env)
+        if verbose:
+            print(format_cmd(f"    export {key}={env[key]}", is_dryrun=False))

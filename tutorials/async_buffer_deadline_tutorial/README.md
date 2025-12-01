@@ -39,7 +39,7 @@ directory](../../applications/async_buffer_deadline).
 The following is an example application run instruction:
 
 ```
-./holohub run async_buffer_deadline --as-root --docker-opts='--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'
+./holohub run async_buffer_deadline_tutorial --as-root --docker-opts='--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'
 ```
 
 We need to run the application with root privileges and other flags as
@@ -50,7 +50,7 @@ We need to run the application with root privileges and other flags as
 To run all the experiments in this tutorial:
 
 ```
-./tutorials/async_buffer_deadline/run_experiment.sh
+./tutorials/async_buffer_deadline_tutorial/run_experiment.sh
 ```
 
 The above script will run the experiment and generate the plots in

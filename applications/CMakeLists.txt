@@ -92,6 +92,8 @@ add_holohub_application(object_detection_torch DEPENDS
 
 add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
 
+add_holohub_application(pipeline_visualization)
+
 add_holohub_application(polyp_detection)
 
 add_holohub_application(pva_video_filter)

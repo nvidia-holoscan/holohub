@@ -1262,6 +1262,45 @@
         },
         //#endregion nvidia_nim_nvclip
 
+        //#region pipeline_visualization
+        {
+            "name": "(gdb) pipeline_visualization/cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build pipeline_visualization",
+            "program": "${workspaceFolder}/build/pipeline_visualization/applications/pipeline_visualization/cpp/pipeline_visualization",
+            "args": [ ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/pipeline_visualization/applications/pipeline_visualization/cpp",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "presentation": {
+                "group": "pipeline_visualization"
+            }
+        },
+        {
+            "name": "(debugpy) pipeline_visualization/python",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Build pipeline_visualization",
+            "program": "${workspaceFolder}/applications/pipeline_visualization/python/pipeline_visualization.py",
+            "cwd": "${workspaceFolder}/applications/pipeline_visualization/",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build/pipeline_visualization/python/lib:${workspaceFolder}:${env:PYTHONPATH}"
+            },
+            "presentation": {
+                "group": "pipeline_visualization"
+            }
+        },
+        //#endregion pipeline_visualization
+
         //#region slang
         {
             "name": "(gdb) slang_simple/cpp",
@@ -1396,7 +1435,7 @@
             "name": "(gdb) volume_rendering/cpp",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build volume_rendering",
+            "preLaunchTask": "Build volume_rendering (cpp)",
             "program": "${workspaceFolder}/build/volume_rendering/applications/volume_rendering/cpp/volume_rendering",
             "args": [
                 "--config",
@@ -1427,7 +1466,7 @@
             "name": "(debugpy) volume_rendering/python",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build volume_rendering",
+            "preLaunchTask": "Build volume_rendering (Python)",
             "program": "${workspaceFolder}/applications/volume_rendering/python/volume_rendering.py",
             "cwd": "${workspaceFolder}/build/volume_rendering/",
             "env": {
