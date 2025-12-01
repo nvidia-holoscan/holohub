@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
+#include "adv_network_doca_mgr.h"
+#include <sys/time.h>
+#include <unistd.h>
 #include <atomic>
+#include <chrono>
 #include <cmath>
 #include <complex>
-#include <chrono>
 #include <iostream>
 #include <map>
 #include <set>
-#include <sys/time.h>
-#include <unistd.h>
 #include <thread>
 #include <unordered_map>
-#include "adv_network_doca_mgr.h"
 #include "adv_network_doca_kernels.h"
 #include "holoscan/holoscan.hpp"
 
@@ -253,8 +253,8 @@ doca_error_t DocaMgr::init_doca_devices() {
   for (auto& intf : cfg_.ifs_) {
     // Assign an arbitrary port ID in the interface config for faster lookup
     intf.port_id_ = port_id++;
-    HOLOSCAN_LOG_INFO("Initializing interface {} ({} - port {})",
-                      intf.name_, intf.address_, intf.port_id_);
+    HOLOSCAN_LOG_INFO(
+        "Initializing interface {} ({} - port {})", intf.name_, intf.address_, intf.port_id_);
     result = open_doca_device_with_pci(intf.address_.c_str(), &ddev[intf.port_id_]);
     if (result != DOCA_SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Failed to open NIC device based on PCI address");
@@ -284,16 +284,19 @@ doca_error_t DocaMgr::init_doca_devices() {
                       DocaLogLevel::to_description_string(log_level));
 
     result = doca_log_backend_create_with_file_sdk(stdout, &stdout_logger);
-    if (result != DOCA_SUCCESS) return result;
+    if (result != DOCA_SUCCESS)
+      return result;
 
     result = doca_log_backend_set_sdk_level(stdout_logger, log_level);
-    if (result != DOCA_SUCCESS) return result;
+    if (result != DOCA_SUCCESS)
+      return result;
   }
 
   return DOCA_SUCCESS;
 }
 
-struct doca_flow_port* DocaMgr::init_doca_flow(struct doca_dev *dev, uint16_t port_id, uint8_t rxq_num) {
+struct doca_flow_port* DocaMgr::init_doca_flow(struct doca_dev* dev, uint16_t port_id,
+                                               uint8_t rxq_num) {
   doca_error_t result;
   struct doca_flow_port_cfg* port_cfg;
   struct doca_flow_port* df_port;
@@ -344,33 +347,35 @@ struct doca_flow_port* DocaMgr::init_doca_flow(struct doca_dev *dev, uint16_t po
   }
 
   /* Start doca flow port */
-	result = doca_flow_port_cfg_create(&port_cfg);
-	if (result != DOCA_SUCCESS) {
-		HOLOSCAN_LOG_ERROR("Failed to create doca_flow_port_cfg: {}", doca_error_get_descr(result));
-		return NULL;
-	}
+  result = doca_flow_port_cfg_create(&port_cfg);
+  if (result != DOCA_SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to create doca_flow_port_cfg: {}", doca_error_get_descr(result));
+    return NULL;
+  }
 
-	result = doca_flow_port_cfg_set_port_id(port_cfg, port_id);
-	if (result != DOCA_SUCCESS) {
-		HOLOSCAN_LOG_ERROR("Failed to set doca_flow_port_cfg port_id: {}", doca_error_get_descr(result));
-		doca_flow_port_cfg_destroy(port_cfg);
-		return NULL;
-	}
+  result = doca_flow_port_cfg_set_port_id(port_cfg, port_id);
+  if (result != DOCA_SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_port_cfg port_id: {}",
+                       doca_error_get_descr(result));
+    doca_flow_port_cfg_destroy(port_cfg);
+    return NULL;
+  }
 
-	result = doca_flow_port_cfg_set_dev(port_cfg, dev);
-	if (result != DOCA_SUCCESS) {
-		HOLOSCAN_LOG_ERROR("Failed to set doca_flow_port_cfg DOCA device: {}", doca_error_get_descr(result));
-		doca_flow_port_cfg_destroy(port_cfg);
-		return NULL;
-	}
+  result = doca_flow_port_cfg_set_dev(port_cfg, dev);
+  if (result != DOCA_SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_port_cfg DOCA device: {}",
+                       doca_error_get_descr(result));
+    doca_flow_port_cfg_destroy(port_cfg);
+    return NULL;
+  }
 
-	result = doca_flow_port_start(port_cfg, &df_port);
-	if (result != DOCA_SUCCESS) {
-		HOLOSCAN_LOG_ERROR("Failed to start doca flow port with: {}", doca_error_get_descr(result));
-		doca_flow_port_cfg_destroy(port_cfg);
-		return NULL;
-	}
-	doca_flow_port_cfg_destroy(port_cfg);
+  result = doca_flow_port_start(port_cfg, &df_port);
+  if (result != DOCA_SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to start doca flow port with: {}", doca_error_get_descr(result));
+    doca_flow_port_cfg_destroy(port_cfg);
+    return NULL;
+  }
+  doca_flow_port_cfg_destroy(port_cfg);
 
   HOLOSCAN_LOG_INFO("Successfully started DOCA flow for port {}", port_id);
 
@@ -493,7 +498,9 @@ bool DocaMgr::set_config_and_initialize(const NetworkConfig& cfg) {
 }
 
 bool DocaMgr::validate_config() const {
-  if (!Manager::validate_config()) { return false; }
+  if (!Manager::validate_config()) {
+    return false;
+  }
 
   // Don't allow buffer splitting
   for (const auto& intf : cfg_.ifs_) {
@@ -556,7 +563,9 @@ void DocaMgr::initialize() {
 
   // Find all GPUs used in the MRs
   for (const auto& mr : cfg_.mrs_) {
-    if (mr.second.kind_ == MemoryKind::DEVICE) { gpu_mr_devs.emplace(mr.second.affinity_); }
+    if (mr.second.kind_ == MemoryKind::DEVICE) {
+      gpu_mr_devs.emplace(mr.second.affinity_);
+    }
   }
 
   // Populate all GPU device structures
@@ -603,7 +612,8 @@ void DocaMgr::initialize() {
 
   for (const auto& intf : cfg_.ifs_) {
     if (intf.rx_.queues_.size() > 0) {
-      df_port[intf.port_id_] = init_doca_flow(ddev[intf.port_id_], intf.port_id_, intf.rx_.queues_.size());
+      df_port[intf.port_id_] =
+          init_doca_flow(ddev[intf.port_id_], intf.port_id_, intf.rx_.queues_.size());
       if (df_port[intf.port_id_] == nullptr) {
         HOLOSCAN_LOG_CRITICAL("FAILED: init_doca_flow for port {}", intf.port_id_);
         return;
@@ -643,7 +653,9 @@ void DocaMgr::initialize() {
         }
       }
 
-      if (!rte_is_power_of_2(rxq_pkts)) { rxq_pkts = rte_align32pow2(rxq_pkts); }
+      if (!rte_is_power_of_2(rxq_pkts)) {
+        rxq_pkts = rte_align32pow2(rxq_pkts);
+      }
 
       if (q_max_packet_size > THRESHOLD_PKT_SIZE && rxq_pkts > THRESHOLD_BUF_NUM) {
         HOLOSCAN_LOG_WARN("Decreasing num_bufs to {}", THRESHOLD_BUF_NUM);
@@ -731,7 +743,9 @@ void DocaMgr::initialize() {
 
       if (intf.rx_.queues_.size() > 0) {
         doca_ret = create_root_pipe(intf.port_id_);
-        if (doca_ret != DOCA_SUCCESS) { HOLOSCAN_LOG_CRITICAL("Can't create UDP root pipe"); }
+        if (doca_ret != DOCA_SUCCESS) {
+          HOLOSCAN_LOG_CRITICAL("Can't create UDP root pipe");
+        }
       }
 
       /* Create semaphore for GPU - CPU communication per rxq*/
@@ -830,7 +844,8 @@ doca_error_t DocaMgr::create_default_pipe(int port_id, uint32_t cnt_defq) {
     auto q_backend = rx_q_map_[key];
 
     for (auto& flow : rx.flows_) {
-      if (q_backend->qid == flow.action_.id_) create_pipe = false;
+      if (q_backend->qid == flow.action_.id_)
+        create_pipe = false;
     }
 
     if (create_pipe == true) {
@@ -845,10 +860,11 @@ doca_error_t DocaMgr::create_default_pipe(int port_id, uint32_t cnt_defq) {
   }
 
   fwd.type = DOCA_FLOW_FWD_RSS;
-	fwd.rss_type = DOCA_FLOW_RESOURCE_TYPE_NON_SHARED;
-	fwd.rss.queues_array = rss_queues;
-	fwd.rss.outer_flags = DOCA_FLOW_RSS_IPV4;
-	fwd.rss.nr_queues = cnt_defq;;
+  fwd.rss_type = DOCA_FLOW_RESOURCE_TYPE_NON_SHARED;
+  fwd.rss.queues_array = rss_queues;
+  fwd.rss.outer_flags = DOCA_FLOW_RSS_IPV4;
+  fwd.rss.nr_queues = cnt_defq;
+  ;
 
   miss_fwd.type = DOCA_FLOW_FWD_DROP;
 
@@ -862,15 +878,15 @@ doca_error_t DocaMgr::create_default_pipe(int port_id, uint32_t cnt_defq) {
 
   /* Add HW offload */
   result = doca_flow_pipe_add_entry(0,
-					  rxq_pipe_default,
-					  &match,
-					  0,
-					  nullptr,
-					  nullptr,
-					  nullptr,
-					  DOCA_FLOW_NO_WAIT,
-					  nullptr,
-					  &entry);
+                                    rxq_pipe_default,
+                                    &match,
+                                    0,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    DOCA_FLOW_NO_WAIT,
+                                    nullptr,
+                                    &entry);
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("RxQ pipe entry creation failed with: {}", doca_error_get_descr(result));
     return result;
@@ -966,15 +982,15 @@ doca_error_t DocaMgr::create_root_pipe(int port_id) {
                                               0,
                                               root_pipe[port_id],
                                               &udp_match,
-						                                  nullptr,
-						                                  nullptr,
-						                                  nullptr,
-						                                  nullptr,
-						                                  nullptr,
-						                                  nullptr,
-						                                  &udp_fwd,
-						                                  nullptr,
-						                                  &(q_backend->root_udp_entry));
+                                              nullptr,
+                                              nullptr,
+                                              nullptr,
+                                              nullptr,
+                                              nullptr,
+                                              nullptr,
+                                              &udp_fwd,
+                                              nullptr,
+                                              &(q_backend->root_udp_entry));
 
     if (result != DOCA_SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Root pipe UDP entry creation failed with: {}",
@@ -1025,8 +1041,7 @@ doca_error_t DocaMgr::create_root_pipe(int port_id) {
 }
 
 DocaMgr::~DocaMgr() {
-  for (int idx = 0; idx < MAX_TX_BURST; idx++)
-    cudaFreeHost(burst[idx].pkt_lens[0]);
+  for (int idx = 0; idx < MAX_TX_BURST; idx++) cudaFreeHost(burst[idx].pkt_lens[0]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1081,7 +1096,8 @@ void DocaMgr::run() {
           if (cfg_.mrs_[q.common_.mrs_[0]].affinity_ == gpu_idx) {
             params_rx->rxqn++;
 
-            if (ridx == 0) params_rx->core_id = stoi(q.common_.cpu_core_);
+            if (ridx == 0)
+              params_rx->core_id = stoi(q.common_.cpu_core_);
 
             uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
             // Assign ring pointer to rxqw
@@ -1209,7 +1225,9 @@ int DocaMgr::rx_core(void* arg) {
         queue_ids_str += ", ";
       }
     }
-    if (tparams->rxqn == 0) { queue_ids_str = "none"; }
+    if (tparams->rxqn == 0) {
+      queue_ids_str = "none";
+    }
     HOLOSCAN_LOG_INFO("Starting Rx Core {} (queue IDs: {}), GPU {}",
                       tparams->core_id,
                       queue_ids_str,
@@ -1218,7 +1236,7 @@ int DocaMgr::rx_core(void* arg) {
 
   res_cuda = cudaSetDevice(tparams->gpu_id);
   if (res_cuda != cudaSuccess) {
-     HOLOSCAN_LOG_ERROR("Failed to set GPU device {}", tparams->gpu_id);
+    HOLOSCAN_LOG_ERROR("Failed to set GPU device {}", tparams->gpu_id);
     exit(1);
   }
   cudaFree(0);
@@ -1347,13 +1365,14 @@ int DocaMgr::rx_core(void* arg) {
 
       // Log semaphore status periodically unless it's ready
       if (status != DOCA_GPU_SEMAPHORE_STATUS_READY && (loop_count % loop_log_rate == 0)) {
-        HOLOSCAN_LOG_INFO(
-            "rx_core Q {}, sem_idx {}, status: {} exit_condition {}",
-              ridx, pkt_idx_cpu_list[ridx], (int)status, DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition));
+        HOLOSCAN_LOG_INFO("rx_core Q {}, sem_idx {}, status: {} exit_condition {}",
+                          ridx,
+                          pkt_idx_cpu_list[ridx],
+                          (int)status,
+                          DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition));
       }
 
       if (status == DOCA_GPU_SEMAPHORE_STATUS_READY) {
-
         if (rte_mempool_get(tparams->meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
           HOLOSCAN_LOG_ERROR("Processing function falling behind. No free buffers for metadata!");
           force_quit_doca.store(true);
@@ -1370,8 +1389,10 @@ int DocaMgr::rx_core(void* arg) {
         burst->hdr.hdr.nbytes = packets_stats->nbytes;
         burst->hdr.hdr.gpu_pkt0_idx = packets_stats->gpu_pkt0_idx;
         burst->hdr.hdr.gpu_pkt0_addr = packets_stats->gpu_pkt0_addr;
-        HOLOSCAN_LOG_DEBUG(
-            "sem {} queue {} num_pkts {}", pkt_cpu_list[pkt_idx_cpu_list[ridx]], ridx, burst->hdr.hdr.num_pkts);
+        HOLOSCAN_LOG_DEBUG("sem {} queue {} num_pkts {}",
+                           pkt_cpu_list[pkt_idx_cpu_list[ridx]],
+                           ridx,
+                           burst->hdr.hdr.num_pkts);
         // Check if the ring pointer assigned during setup is valid
         if (tparams->rxqw[ridx].ring == nullptr) {
           HOLOSCAN_LOG_ERROR("RX Worker: Ring pointer for queue index {} is null. Dropping burst.",
@@ -1403,10 +1424,10 @@ int DocaMgr::rx_core(void* arg) {
   cudaStreamSynchronize(rx_stream);
 
   for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
-    packets_stats = &((struct adv_doca_rx_gpu_info *)(pkt_cpu_list[ridx]))[pkt_idx_cpu_list[ridx]];
+    packets_stats = &((struct adv_doca_rx_gpu_info*)(pkt_cpu_list[ridx]))[pkt_idx_cpu_list[ridx]];
     // HOLOSCAN_LOG_INFO("Check queue {} sem {}", ridx, sem_idx[ridx]);
     status = DOCA_GPUNETIO_VOLATILE(packets_stats->status);
-    
+
     if (status == DOCA_GPU_SEMAPHORE_STATUS_READY) {
       last_batch += packets_stats->num_pkts;
       stats_rx_tot_pkts += packets_stats->num_pkts;
@@ -1471,7 +1492,9 @@ int DocaMgr::tx_core(void* arg) {
         queue_ids_str += ", ";
       }
     }
-    if (tparams->txqn == 0) { queue_ids_str = "none"; }
+    if (tparams->txqn == 0) {
+      queue_ids_str = "none";
+    }
     HOLOSCAN_LOG_INFO("Starting Tx Core {} (queue IDs: {}), GPU {}",
                       tparams->core_id,
                       queue_ids_str,
@@ -1480,7 +1503,7 @@ int DocaMgr::tx_core(void* arg) {
 
   res_cuda = cudaSetDevice(tparams->gpu_id);
   if (res_cuda != cudaSuccess) {
-     HOLOSCAN_LOG_ERROR("Failed to set GPU device {}", tparams->gpu_id);
+    HOLOSCAN_LOG_ERROR("Failed to set GPU device {}", tparams->gpu_id);
     exit(1);
   }
   cudaFree(0);
@@ -1525,7 +1548,8 @@ int DocaMgr::tx_core(void* arg) {
 
       /* Only necessary checks to prioritize the launch of the kernel */
       cnt_pkts[idxq] += burst->hdr.hdr.num_pkts;
-      if (cnt_pkts[idxq] > MAX_SQ_DESCR_NUM / 4) set_completion[idxq] = true;
+      if (cnt_pkts[idxq] > MAX_SQ_DESCR_NUM / 4)
+        set_completion[idxq] = true;
 
       doca_sender_packet_kernel(tx_stream[idxq],
                                 tparams->txqw[idxq].txq->eth_txq_gpu,
@@ -1637,7 +1661,9 @@ Status DocaMgr::get_tx_packet_burst(BurstParams* burst) {
   // Check if burst->hdr.hdr.num_pkts > max_tx_batch_size
 
   for (const auto& intf : cfg_.ifs_) {
-    if (burst->hdr.hdr.port_id != intf.port_id_) { continue; }
+    if (burst->hdr.hdr.port_id != intf.port_id_) {
+      continue;
+    }
 
     for (auto& q : intf.tx_.queues_) {
       if (q.common_.id_ == burst->hdr.hdr.q_id) {
@@ -1688,7 +1714,9 @@ Status DocaMgr::set_udp_payload(BurstParams* burst, int idx, void* data, int len
 
 bool DocaMgr::is_tx_burst_available(BurstParams* burst) {
   for (const auto& intf : cfg_.ifs_) {
-    if (burst->hdr.hdr.port_id != intf.port_id_) { continue; }
+    if (burst->hdr.hdr.port_id != intf.port_id_) {
+      continue;
+    }
 
     for (auto& q : intf.tx_.queues_) {
       if (q.common_.id_ == burst->hdr.hdr.q_id) {
@@ -1727,9 +1755,8 @@ Status DocaMgr::get_rx_burst(BurstParams** burst, int port, int q) {
   auto ring_it = rx_rings.find(key);
 
   if (ring_it == rx_rings.end()) {
-    HOLOSCAN_LOG_ERROR("get_rx_burst: Could not find ring for port {}, queue {}. Check config.",
-                       port,
-                       q);
+    HOLOSCAN_LOG_ERROR(
+        "get_rx_burst: Could not find ring for port {}, queue {}. Check config.", port, q);
     return Status::INVALID_PARAMETER;
   }
 
