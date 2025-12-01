@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Real-Time Data Stream Visualization with NATS and Web Dashboards (Python)",
+		"name": "Live Streaming Data Web Dashboard with NATS",
 		"description": "Real-time visualization of data from Holoscan applications using NATS messaging and web-based dashboards",
 		"authors": [
 			{
@@ -26,7 +26,10 @@
 		"tags": [
 			"Visualization",
 			"NATS",
-			"Remote"
+			"Streaming",
+			"Real-time",
+			"Tensor",
+			"Signal Processing"
 		],
 		"ranking": 2,
 		"requirements": {},
@@ -56,7 +59,7 @@
 				"description": "Run the pipeline application",
 				"run": {
 					"command": "python3 <holohub_app_source>/pipeline_visualization.py",
-					"workdir": "holohub_bin"
+					"workdir": "holohub_app_bin"
 				}
 			}
 		}
