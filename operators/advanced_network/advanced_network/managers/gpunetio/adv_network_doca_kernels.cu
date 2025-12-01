@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +82,7 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
   doca_error_t ret;
   uintptr_t buf_addr;
   uint64_t buf_idx;
-  struct doca_gpu_eth_rxq* rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
+  struct doca_gpu_eth_rxq* rxq;
   int pkt_idx = 0;
   struct eth_ip_udp_hdr* hdr;
   uint8_t* payload;
@@ -95,6 +95,8 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
 
   // Warmup
   if (eth_rxq_gpu == NULL) return;
+
+  rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
 
   if (threadIdx.x == 0)
     DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
@@ -113,7 +115,9 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
          * If application prints this message on the console, something bad happened and
          * applications needs to exit
          */
-        printf("Receive UDP kernel error %d rxpkts %d error %d\n", ret, out_pkt_num, ret);
+        #if DOCA_DEBUG_KERNEL == 1
+          printf("Receive UDP kernel error %d rxpkts %d error %d\n", ret, out_pkt_num, ret);
+        #endif
         DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
       }
       break;
@@ -213,7 +217,7 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
   doca_error_t ret;
   uintptr_t buf_addr;
   uint64_t buf_idx;
-  struct doca_gpu_eth_rxq* rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
+  struct doca_gpu_eth_rxq* rxq;
   struct eth_ip_udp_hdr* hdr;
   uint8_t* payload;
 
@@ -224,6 +228,8 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
 
   // Warmup
   if (eth_rxq_gpu == NULL) return;
+
+  rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
 
   if (threadIdx.x == 0) DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
   __syncthreads();
@@ -241,7 +247,9 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
        * If application prints this message on the console, something bad happened and
        * applications needs to exit
        */
-      printf("Receive UDP kernel error %d rxpkts %d error %d\n", ret, out_pkt_num, ret);
+      #if DOCA_DEBUG_KERNEL == 1
+        printf("Receive UDP kernel error %d rxpkts %d error %d\n", ret, out_pkt_num, ret);
+      #endif
     }
   }
 

@@ -86,7 +86,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /opt
 
-RUN apt-get update && apt-get install -y build-essential wget
+RUN apt-get update && apt-get install -y build-essential
 
 # Configure the DOCA APT repository
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
@@ -104,10 +104,6 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
     && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} > /dev/null \
     && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list
 
-RUN wget https://urm.nvidia.com/artifactory/sw-nbu-int-generic-local/doca-repo-3.2.0/doca-repo-3.2.0-122000/doca
-host_3.2.0-122000-25.10-ubuntu2204_amd64.deb \
-    && apt-get install -y ./doca-host_3.2.0-122000-25.10-ubuntu2204_amd64.deb \
-    && apt-get update
 # APT installs
 # - cublas, cufft, cusolver, curand dev libs: for matx
 # - ninja-build: for cmake build
@@ -128,7 +124,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libcurand-dev-12-6 \
         ninja-build \
         pkgconf \
-        mlnx-dpdk \
         mlnx-dpdk-dev \
         doca-sdk-gpunetio \
         libdoca-sdk-gpunetio-dev \

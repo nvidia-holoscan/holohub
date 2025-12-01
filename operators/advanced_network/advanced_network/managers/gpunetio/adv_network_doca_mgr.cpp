@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -566,8 +566,13 @@ void DocaMgr::initialize() {
       return;
     }
 
-    cudaSetDevice(gpu_dev);
+    res_cuda = cudaSetDevice(gpu_dev);
+    if (res_cuda != cudaSuccess) {
+      HOLOSCAN_LOG_ERROR("Failed to set GPU device {}", gpu_dev);
+      exit(1);
+    }
     cudaFree(0);
+
     doca_ret = doca_gpu_create(gpu_bdf, &gdev[gpu_dev]);
     if (doca_ret != DOCA_SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Failed get DOCA GPU device {}", gpu_mr_devs);
@@ -1213,8 +1218,12 @@ int DocaMgr::rx_core(void* arg) {
                       tparams->gpu_id);
   }
 
-  cudaSetDevice(tparams->gpu_id);
-  // cudaFree(0);
+  res_cuda = cudaSetDevice(tparams->gpu_id);
+  if (res_cuda != cudaSuccess) {
+     HOLOSCAN_LOG_ERROR("Failed to set GPU device {}", tparams->gpu_id);
+    exit(1);
+  }
+  cudaFree(0);
 #if MPS_ENABLED == 1
   cuDeviceGet(&cuDevice, tparams->gpu_id);
   cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
@@ -1335,7 +1344,7 @@ int DocaMgr::rx_core(void* arg) {
     loop_count++;
 
     for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
-      packets_stats = &((struct adv_doca_rx_gpu_info *)(pkt_cpu_list[ridx]))[pkt_idx_cpu_list[ridx]];
+      packets_stats = &tparams->rxqw[idx].rxq->pkt_list_cpu[pkt_idx_cpu_list[ridx]];
       status = DOCA_GPUNETIO_VOLATILE(packets_stats->status);
 
       // Log semaphore status periodically unless it's ready
@@ -1471,8 +1480,13 @@ int DocaMgr::tx_core(void* arg) {
                       tparams->gpu_id);
   }
 
-  cudaSetDevice(tparams->gpu_id);
-  // cudaFree(0);
+  res_cuda = cudaSetDevice(tparams->gpu_id);
+  if (res_cuda != cudaSuccess) {
+     HOLOSCAN_LOG_ERROR("Failed to set GPU device {}", tparams->gpu_id);
+    exit(1);
+  }
+  cudaFree(0);
+
 #if MPS_ENABLED == 1
   cuDeviceGet(&cuDevice, tparams->gpu_id);
   cuCtxCreate(&cuContext, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cuDevice);
