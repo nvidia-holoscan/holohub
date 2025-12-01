@@ -23,39 +23,23 @@ import os
 from pathlib import Path
 
 try:
-    from utilities.metadata.utils import list_normalized_languages
+    from utilities.metadata.utils import (
+        DEFAULT_INCLUDE_PATHS,
+        iter_metadata_paths,
+        list_normalized_languages,
+    )
 except ModuleNotFoundError:  # Allow running via `python utilities/metadata/gather_metadata.py`
     import sys
 
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-    from utilities.metadata.utils import list_normalized_languages
+    from utilities.metadata.utils import (
+        DEFAULT_INCLUDE_PATHS,
+        iter_metadata_paths,
+        list_normalized_languages,
+    )
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
-METADATA_DIRECTORY_CONFIG = {
-    "applications": {"ignore_patterns": ["template"], "metadata_is_required": True},
-    "benchmarks": {},
-    "gxf_extensions": {"ignore_patterns": ["utils"], "metadata_is_required": True},
-    "operators": {"ignore_patterns": ["template"], "metadata_is_required": True},
-    "pkg": {"metadata_is_required": False},
-    "tutorials": {"ignore_patterns": ["template"], "metadata_is_required": False},
-    "workflows": {"ignore_patterns": ["template"], "metadata_is_required": True},
-}
-
-DEFAULT_INCLUDE_PATHS = list(METADATA_DIRECTORY_CONFIG.keys())
-
-
-def find_metadata_files(repo_paths):
-    """Recursively search for metadata.json files in the specified repository paths"""
-    metadata_files = []
-
-    for repo_path in repo_paths:
-        for root, dirs, files in os.walk(repo_path):
-            if "metadata.json" in files:
-                metadata_files.append(os.path.join(root, "metadata.json"))
-
-    return sorted(metadata_files)
 
 
 def extract_readme(file_path):
@@ -154,22 +138,10 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
         "workflow",
     ]
 
-    metadata_files = find_metadata_files(repo_paths)
     metadata = []
-    exclude_patterns: list[str] = list(exclude_paths) if exclude_paths else []
 
     # Iterate over the found metadata files
-    for file_path in metadata_files:
-        if any(pattern in file_path for pattern in exclude_patterns):
-            continue
-
-        directory_config = {}
-        for part in Path(file_path).parts:
-            if part in METADATA_DIRECTORY_CONFIG:
-                directory_config = METADATA_DIRECTORY_CONFIG[part]
-                break
-        if any(pattern in file_path for pattern in directory_config.get("ignore_patterns", [])):
-            continue
+    for file_path in iter_metadata_paths(repo_paths, exclude_patterns=exclude_paths):
         with open(file_path, "r") as file:
             try:
                 entries = json.load(file)

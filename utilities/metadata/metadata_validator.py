@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import glob
 import json
 import os
 import re
@@ -25,10 +24,18 @@ from referencing import Registry
 from referencing.jsonschema import DRAFT4
 
 try:
-    from utilities.metadata.gather_metadata import DEFAULT_INCLUDE_PATHS, METADATA_DIRECTORY_CONFIG
+    from utilities.metadata.utils import (
+        DEFAULT_INCLUDE_PATHS,
+        METADATA_DIRECTORY_CONFIG,
+        iter_metadata_paths,
+    )
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-    from utilities.metadata.gather_metadata import DEFAULT_INCLUDE_PATHS, METADATA_DIRECTORY_CONFIG
+    from utilities.metadata.utils import (
+        DEFAULT_INCLUDE_PATHS,
+        METADATA_DIRECTORY_CONFIG,
+        iter_metadata_paths,
+    )
 
 
 def extract_readme_title(readme_path):
@@ -149,40 +156,29 @@ def validate_json(json_data, directory):
 def validate_json_directory(directory, ignore_patterns=[], metadata_is_required: bool = True):
     exit_code = 0
     # Convert json to python object.
-    current_wdir = os.getcwd()
-    target_dir = os.path.join(current_wdir, directory)
+    base_path = Path(os.getcwd()) / directory
+    ignore_patterns = ignore_patterns or []
 
+    metadata_entries = list(iter_metadata_paths([base_path], exclude_patterns=ignore_patterns))
+    metadata_subdirs = {
+        Path(file_path).relative_to(base_path).parts[0]
+        for file_path in metadata_entries
+        if Path(file_path).relative_to(base_path).parts
+    }
     # Check if there is a metadata.json
-    subdirs = next(os.walk(target_dir), (None, [], None))[1]
+    subdirs = next(os.walk(base_path), (None, [], None))[1]
     for subdir in subdirs:
-        ignore = False
-        # check if we should ignore the pattern
-        for ignore_pattern in ignore_patterns:
-            if ignore_pattern in subdir:
-                ignore = True
-
-        if ignore is False:
-            subdir_pattern = os.path.join(target_dir, subdir, "**", "metadata.json")
-            has_metadata = bool(glob.glob(subdir_pattern, recursive=True))
-
-            if not has_metadata:
-                if metadata_is_required:
-                    print("ERROR:" + subdir + " does not contain metadata.json file")
-                    exit_code = 1
-                else:
-                    print("WARNING:" + subdir + " does not contain metadata.json file")
+        if any(pattern in subdir for pattern in ignore_patterns):
+            continue
+        if subdir not in metadata_subdirs:
+            if metadata_is_required:
+                print("ERROR:" + subdir + " does not contain metadata.json file")
+                exit_code = 1
+            else:
+                print("WARNING:" + subdir + " does not contain metadata.json file")
 
     # Check if the metadata is valid
-    all_metadata_files = glob.glob(os.path.join(target_dir, "**", "metadata.json"), recursive=True)
-    for name in all_metadata_files:
-        ignore = False
-        # check if we should ignore the pattern
-        for ignore_pattern in ignore_patterns:
-            if ignore_pattern in name:
-                ignore = True
-        if ignore:
-            continue
-
+    for name in metadata_entries:
         with open(name, "r") as file:
             try:
                 jsonData = json.load(file)

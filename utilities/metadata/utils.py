@@ -14,7 +14,21 @@
 # limitations under the License.
 # Utility helpers shared across metadata consumers.
 
-from collections.abc import Iterable
+import os
+from collections.abc import Iterable, Iterator, Sequence
+from pathlib import Path
+
+METADATA_DIRECTORY_CONFIG = {
+    "applications": {"ignore_patterns": ["template"], "metadata_is_required": True},
+    "benchmarks": {},
+    "gxf_extensions": {"ignore_patterns": ["utils"], "metadata_is_required": True},
+    "operators": {"ignore_patterns": ["template"], "metadata_is_required": True},
+    "pkg": {"metadata_is_required": False},
+    "tutorials": {"ignore_patterns": ["template"], "metadata_is_required": False},
+    "workflows": {"ignore_patterns": ["template"], "metadata_is_required": True},
+}
+
+DEFAULT_INCLUDE_PATHS = tuple(METADATA_DIRECTORY_CONFIG.keys())
 
 
 def normalize_language(language: str | None, *, strict: bool = False) -> str:
@@ -50,3 +64,32 @@ def list_normalized_languages(language, *, strict: bool = False) -> list[str]:
     ]
     normalized = [value for value in normalized if value]
     return normalized or [""]
+
+
+def iter_metadata_paths(
+    repo_paths: Sequence[str | os.PathLike],
+    *,
+    exclude_patterns: Sequence[str] | None = None,
+) -> Iterator[str]:
+    """Yield filtered metadata.json paths."""
+    excludes = [pattern for pattern in (exclude_patterns or []) if pattern]
+
+    for repo_path in repo_paths:
+        for root, _, files in os.walk(repo_path):
+            if "metadata.json" not in files:
+                continue
+            file_path = os.path.join(root, "metadata.json")
+            if excludes and any(pattern in file_path for pattern in excludes):
+                continue
+
+            directory_config: dict = {}
+            for part in Path(file_path).parts:
+                if part in METADATA_DIRECTORY_CONFIG:
+                    directory_config = METADATA_DIRECTORY_CONFIG[part]
+                    break
+
+            ignore_patterns = directory_config.get("ignore_patterns", [])
+            if ignore_patterns and any(pattern in file_path for pattern in ignore_patterns):
+                continue
+
+            yield file_path
