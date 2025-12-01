@@ -319,12 +319,14 @@ doca_error_t DocaRxQueue::create_rx_packet_list() {
 }
 
 doca_error_t DocaRxQueue::destroy_rx_packet_list() {
-  doca_error_t result;
+  doca_error_t result = DOCA_SUCCESS;
 
-  result = doca_gpu_mem_free(gdev, pkt_list_gpu);
-  if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed destroy packet list memory: {}", doca_error_get_descr(result));
-    return DOCA_ERROR_BAD_STATE;
+  if (pkt_list_gpu) {
+    result = doca_gpu_mem_free(gdev, pkt_list_gpu);
+    if (result != DOCA_SUCCESS) {
+      HOLOSCAN_LOG_ERROR("Failed destroy packet list memory: {}", doca_error_get_descr(result));
+      return DOCA_ERROR_BAD_STATE;
+    }
   }
 
   return result;
