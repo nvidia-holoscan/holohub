@@ -388,6 +388,9 @@ class HoloHubCLI:
         )
         self.subparsers["test"] = test
         test.add_argument("project", nargs="?", help="Project to test")
+        test.add_argument(
+            "--local", action="store_true", help="Test locally instead of in container"
+        )
         test.add_argument("--verbose", action="store_true", help="Print extra output")
         test.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
@@ -833,7 +836,9 @@ class HoloHubCLI:
         container.dryrun = args.dryrun
         container.verbose = args.verbose
 
-        if not skip_docker_build:
+        is_local_mode = bool(args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"))
+
+        if not is_local_mode and not skip_docker_build:
             build_args = args.build_args or ""
             extra_scripts = (getattr(args, "extra_scripts", None) or []).copy()
 
@@ -864,11 +869,14 @@ class HoloHubCLI:
         # TAG is used in CTest scripts by default
         if getattr(args, "build_name_suffix", None):
             tag = args.build_name_suffix
+        elif is_local_mode:
+            tag = "local"
         else:
-            if skip_docker_build:
-                image_name = getattr(args, "img", None) or container.image_name
-            else:
-                image_name = args.base_img or container.default_base_image()
+            image_name = (
+                (getattr(args, "img", None) or container.image_name)
+                if skip_docker_build
+                else (args.base_img or container.default_base_image())
+            )
             tag = image_name.split(":")[-1]
 
         ctest_cmd = f"{xvfb} ctest "
@@ -918,6 +926,23 @@ class HoloHubCLI:
 
         if args.verbose:
             ctest_cmd += "-VV "
+
+        if is_local_mode:
+            print(
+                holohub_cli_util.format_cmd(f"cd {HoloHubCLI.HOLOHUB_ROOT}", is_dryrun=args.dryrun)
+            )
+            if not args.dryrun:
+                os.chdir(HoloHubCLI.HOLOHUB_ROOT)
+
+            env = os.environ.copy()
+            env["PYTHONPATH"] = (
+                f"{env.get('PYTHONPATH', '')}:{self.DEFAULT_SDK_DIR}/python/lib:{self.HOLOHUB_ROOT}"
+            )
+            env["HOLOHUB_DATA_PATH"] = str(self.DEFAULT_DATA_DIR)
+            env.setdefault("HOLOSCAN_INPUT_PATH", str(self.DEFAULT_DATA_DIR))
+
+            holohub_cli_util.run_command(["bash", "-c", ctest_cmd], dry_run=args.dryrun, env=env)
+            return
 
         container.run(
             img=getattr(args, "img", None),
