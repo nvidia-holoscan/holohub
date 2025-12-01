@@ -6,11 +6,11 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <link href="https://nvidia-holoscan.github.io/holohub/applications/pipeline_visualization/" rel="canonical"/>
-<link href="../network_radar_pipeline/" rel="prev"/>
-<link href="../video_deidentification/" rel="next"/>
+<link href="../laser_detection_latency/usb_cam_calibration/" rel="prev"/>
+<link href="../matlab_gpu_coder/matlab_image_processing/" rel="next"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.7.0" name="generator"/>
-<title>Real-Time Data Stream Visualization with NATS and Web Dashboards (C++) (latest) - NVIDIA Holoscan Reference Applications</title>
+<title>Live Streaming Data Web Dashboard with NATS (latest) - NVIDIA Holoscan Reference Applications</title>
 <link href="../../assets/stylesheets/main.618322db.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -30,7 +30,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#real-time-data-stream-visualization-with-nats-and-web-dashboards">
+<a class="md-skip" href="#live-streaming-data-web-dashboard-with-nats">
           Skip to content
         </a>
 </div>
@@ -65,7 +65,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              Real-Time Data Stream Visualization with NATS and Web Dashboards (C++) (latest)
+              Live Streaming Data Web Dashboard with NATS (latest)
             
           </span>
 </div>
@@ -1949,9 +1949,36 @@
 </ul>
 </nav>
 </li>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_33" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    
+  
+    Live Streaming Data Web Dashboard with NATS
+  
+
+    
+  </span>
+</a>
+</div>
+<nav aria-expanded="true" aria-labelledby="__nav_3_33_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_33">
+<span class="md-nav__icon md-icon"></span>
+            
+  
+    Live Streaming Data Web Dashboard with NATS
+  
+
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+</ul>
+</nav>
+</li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_33" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_33" id="__nav_3_33_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_34" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_34" id="__nav_3_34_label" tabindex="0">
 <span class="md-ellipsis">
     
   
@@ -1962,8 +1989,8 @@
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_33_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_33">
+<nav aria-expanded="false" aria-labelledby="__nav_3_34_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_34">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -1973,7 +2000,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_33_1" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_34_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../matlab_gpu_coder/matlab_image_processing/">
 <span class="md-ellipsis">
@@ -1986,8 +2013,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_33_1_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_33_1">
+<nav aria-expanded="false" aria-labelledby="__nav_3_34_1_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_34_1">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2000,7 +2027,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_33_2" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_34_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../matlab_gpu_coder/matlab_beamform/">
 <span class="md-ellipsis">
@@ -2013,8 +2040,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_33_2_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_33_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_34_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_34_2">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2030,7 +2057,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_35" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../volume_rendering_xr/">
 <span class="md-ellipsis">
@@ -2042,12 +2069,12 @@
     
   </span>
 </a>
-<label class="md-nav__link" for="__nav_3_34" id="__nav_3_34_label" tabindex="0">
+<label class="md-nav__link" for="__nav_3_35" id="__nav_3_35_label" tabindex="0">
 <span class="md-nav__icon md-icon"></span>
 </label>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_34">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_35">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2057,8 +2084,8 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_2" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_34_2" id="__nav_3_34_2_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_35_2" id="__nav_3_35_2_label" tabindex="0">
 <span class="md-ellipsis">
     
   
@@ -2069,8 +2096,8 @@
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_2_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_34_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_35_2">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2080,7 +2107,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_2_1" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_2_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../volume_rendering_xr/operators/XrTransformOp/">
 <span class="md-ellipsis">
@@ -2092,12 +2119,12 @@
     
   </span>
 </a>
-<label class="md-nav__link" for="__nav_3_34_2_1" id="__nav_3_34_2_1_label" tabindex="0">
+<label class="md-nav__link" for="__nav_3_35_2_1" id="__nav_3_35_2_1_label" tabindex="0">
 <span class="md-nav__icon md-icon"></span>
 </label>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_2_1_label" class="md-nav" data-md-level="4">
-<label class="md-nav__title" for="__nav_3_34_2_1">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_2_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_3_35_2_1">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2107,7 +2134,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_2_1_2" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_2_1_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../volume_rendering_xr/operators/XrTransformOp/XrTransformControlOp/">
 <span class="md-ellipsis">
@@ -2120,8 +2147,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_2_1_2_label" class="md-nav" data-md-level="5">
-<label class="md-nav__title" for="__nav_3_34_2_1_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_2_1_2_label" class="md-nav" data-md-level="5">
+<label class="md-nav__title" for="__nav_3_35_2_1_2">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2134,7 +2161,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_2_1_3" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_2_1_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../volume_rendering_xr/operators/XrTransformOp/XrTransformRenderOp/">
 <span class="md-ellipsis">
@@ -2147,8 +2174,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_2_1_3_label" class="md-nav" data-md-level="5">
-<label class="md-nav__title" for="__nav_3_34_2_1_3">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_2_1_3_label" class="md-nav" data-md-level="5">
+<label class="md-nav__title" for="__nav_3_35_2_1_3">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2164,7 +2191,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_2_2" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_2_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../volume_rendering_xr/operators/XrFrameOp/">
 <span class="md-ellipsis">
@@ -2176,12 +2203,12 @@
     
   </span>
 </a>
-<label class="md-nav__link" for="__nav_3_34_2_2" id="__nav_3_34_2_2_label" tabindex="0">
+<label class="md-nav__link" for="__nav_3_35_2_2" id="__nav_3_35_2_2_label" tabindex="0">
 <span class="md-nav__icon md-icon"></span>
 </label>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_2_2_label" class="md-nav" data-md-level="4">
-<label class="md-nav__title" for="__nav_3_34_2_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_2_2_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_3_35_2_2">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2191,7 +2218,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_2_2_2" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_2_2_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../volume_rendering_xr/operators/XrFrameOp/convert_depth/">
 <span class="md-ellipsis">
@@ -2204,8 +2231,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_2_2_2_label" class="md-nav" data-md-level="5">
-<label class="md-nav__title" for="__nav_3_34_2_2_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_2_2_2_label" class="md-nav" data-md-level="5">
+<label class="md-nav__title" for="__nav_3_35_2_2_2">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2218,7 +2245,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_2_2_3" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_2_2_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../volume_rendering_xr/operators/XrFrameOp/begin_frame/">
 <span class="md-ellipsis">
@@ -2231,8 +2258,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_2_2_3_label" class="md-nav" data-md-level="5">
-<label class="md-nav__title" for="__nav_3_34_2_2_3">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_2_2_3_label" class="md-nav" data-md-level="5">
+<label class="md-nav__title" for="__nav_3_35_2_2_3">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2245,7 +2272,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_2_2_4" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_2_2_4" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../volume_rendering_xr/operators/XrFrameOp/end_frame/">
 <span class="md-ellipsis">
@@ -2258,8 +2285,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_2_2_4_label" class="md-nav" data-md-level="5">
-<label class="md-nav__title" for="__nav_3_34_2_2_4">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_2_2_4_label" class="md-nav" data-md-level="5">
+<label class="md-nav__title" for="__nav_3_35_2_2_4">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2278,8 +2305,8 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_3" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_34_3" id="__nav_3_34_3_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_35_3" id="__nav_3_35_3_label" tabindex="0">
 <span class="md-ellipsis">
     
   
@@ -2290,8 +2317,8 @@
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_3_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_34_3">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_3_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_35_3">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2301,7 +2328,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_3_1" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_3_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../volume_rendering_xr/utils/xr_hello_holoscan/">
 <span class="md-ellipsis">
@@ -2313,12 +2340,12 @@
     
   </span>
 </a>
-<label class="md-nav__link" for="__nav_3_34_3_1" id="__nav_3_34_3_1_label" tabindex="0">
+<label class="md-nav__link" for="__nav_3_35_3_1" id="__nav_3_35_3_1_label" tabindex="0">
 <span class="md-nav__icon md-icon"></span>
 </label>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_3_1_label" class="md-nav" data-md-level="4">
-<label class="md-nav__title" for="__nav_3_34_3_1">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_3_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_3_35_3_1">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2328,7 +2355,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34_3_1_2" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_35_3_1_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../volume_rendering_xr/utils/xr_hello_holoscan/xr_basic_render/">
 <span class="md-ellipsis">
@@ -2341,8 +2368,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_3_1_2_label" class="md-nav" data-md-level="5">
-<label class="md-nav__title" for="__nav_3_34_3_1_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_35_3_1_2_label" class="md-nav" data-md-level="5">
+<label class="md-nav__title" for="__nav_3_35_3_1_2">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2364,7 +2391,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_35" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_36" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../multiai_endoscopy/">
 <span class="md-ellipsis">
@@ -2377,8 +2404,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_35_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_35">
+<nav aria-expanded="false" aria-labelledby="__nav_3_36_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_36">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2391,7 +2418,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_36" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_37" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../multiai_ultrasound/">
 <span class="md-ellipsis">
@@ -2403,12 +2430,12 @@
     
   </span>
 </a>
-<label class="md-nav__link" for="__nav_3_36" id="__nav_3_36_label" tabindex="0">
+<label class="md-nav__link" for="__nav_3_37" id="__nav_3_37_label" tabindex="0">
 <span class="md-nav__icon md-icon"></span>
 </label>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_36_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_36">
+<nav aria-expanded="false" aria-labelledby="__nav_3_37_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_37">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2418,7 +2445,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_36_2" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_37_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../multiai_ultrasound/cpp/">
 <span class="md-ellipsis">
@@ -2431,8 +2458,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_36_2_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_36_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_37_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_37_2">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2445,7 +2472,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_36_3" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_37_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../multiai_ultrasound/python/">
 <span class="md-ellipsis">
@@ -2458,8 +2485,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_36_3_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_36_3">
+<nav aria-expanded="false" aria-labelledby="__nav_3_37_3_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_37_3">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2472,8 +2499,8 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_36_4" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_36_4" id="__nav_3_36_4_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_37_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_37_4" id="__nav_3_37_4_label" tabindex="0">
 <span class="md-ellipsis">
     
   
@@ -2484,8 +2511,8 @@
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_36_4_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_36_4">
+<nav aria-expanded="false" aria-labelledby="__nav_3_37_4_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_37_4">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2495,7 +2522,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_36_4_1" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_37_4_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../multiai_ultrasound/operators/visualizer_icardio/">
 <span class="md-ellipsis">
@@ -2508,8 +2535,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_36_4_1_label" class="md-nav" data-md-level="4">
-<label class="md-nav__title" for="__nav_3_36_4_1">
+<nav aria-expanded="false" aria-labelledby="__nav_3_37_4_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_3_37_4_1">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2528,8 +2555,8 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_37" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_37" id="__nav_3_37_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_38" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_38" id="__nav_3_38_label" tabindex="0">
 <span class="md-ellipsis">
     
   
@@ -2540,8 +2567,8 @@
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_37_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_37">
+<nav aria-expanded="false" aria-labelledby="__nav_3_38_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_38">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2551,7 +2578,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_37_1" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_38_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../nvidia_nim/nvidia_nim_chat/">
 <span class="md-ellipsis">
@@ -2564,8 +2591,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_37_1_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_37_1">
+<nav aria-expanded="false" aria-labelledby="__nav_3_38_1_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_38_1">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2578,7 +2605,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_37_2" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_38_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../nvidia_nim/nvidia_nim_imaging/">
 <span class="md-ellipsis">
@@ -2591,8 +2618,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_37_2_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_37_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_38_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_38_2">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2605,7 +2632,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_37_3" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_38_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../nvidia_nim/nvidia_nim_nvclip/">
 <span class="md-ellipsis">
@@ -2618,8 +2645,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_37_3_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_37_3">
+<nav aria-expanded="false" aria-labelledby="__nav_3_38_3_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_38_3">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2635,8 +2662,8 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_38" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_38" id="__nav_3_38_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_39" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_39" id="__nav_3_39_label" tabindex="0">
 <span class="md-ellipsis">
     
   
@@ -2647,8 +2674,8 @@
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_38_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_38">
+<nav aria-expanded="false" aria-labelledby="__nav_3_39_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_39">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2658,7 +2685,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_38_1" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_39_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../nvidia_video_codec/nvc_encode_decode/">
 <span class="md-ellipsis">
@@ -2671,8 +2698,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_38_1_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_38_1">
+<nav aria-expanded="false" aria-labelledby="__nav_3_39_1_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_39_1">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2685,7 +2712,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_38_2" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_39_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../nvidia_video_codec/nvc_endoscopy_tool_tracking/">
 <span class="md-ellipsis">
@@ -2698,8 +2725,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_38_2_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_38_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_39_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_39_2">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2712,7 +2739,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_38_3" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_39_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../nvidia_video_codec/nvc_decode/">
 <span class="md-ellipsis">
@@ -2725,8 +2752,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_38_3_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_38_3">
+<nav aria-expanded="false" aria-labelledby="__nav_3_39_3_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_39_3">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2739,7 +2766,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_38_4" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_39_4" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../nvidia_video_codec/nvc_encode_writer/">
 <span class="md-ellipsis">
@@ -2752,8 +2779,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_38_4_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_38_4">
+<nav aria-expanded="false" aria-labelledby="__nav_3_39_4_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_39_4">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2769,7 +2796,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_39" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_40" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../object_detection_torch/">
 <span class="md-ellipsis">
@@ -2782,8 +2809,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_39_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_39">
+<nav aria-expanded="false" aria-labelledby="__nav_3_40_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_40">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2796,7 +2823,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_40" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_41" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../openigtlink_3dslicer/">
 <span class="md-ellipsis">
@@ -2809,8 +2836,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_40_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_40">
+<nav aria-expanded="false" aria-labelledby="__nav_3_41_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_41">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2823,8 +2850,8 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_41" type="checkbox"/>
-<label class="md-nav__link" for="__nav_3_41" id="__nav_3_41_label" tabindex="0">
+<input class="md-nav__toggle md-toggle" id="__nav_3_42" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_42" id="__nav_3_42_label" tabindex="0">
 <span class="md-ellipsis">
     
   
@@ -2835,8 +2862,8 @@
   </span>
 <span class="md-nav__icon md-icon"></span>
 </label>
-<nav aria-expanded="false" aria-labelledby="__nav_3_41_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_41">
+<nav aria-expanded="false" aria-labelledby="__nav_3_42_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_42">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2846,7 +2873,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_41_1" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_42_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../orsi/orsi_in_out_body/">
 <span class="md-ellipsis">
@@ -2859,8 +2886,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_41_1_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_41_1">
+<nav aria-expanded="false" aria-labelledby="__nav_3_42_1_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_42_1">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2873,7 +2900,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_41_2" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_42_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../orsi/orsi_multi_ai_ar/">
 <span class="md-ellipsis">
@@ -2886,8 +2913,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_41_2_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_41_2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_42_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_42_2">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2900,7 +2927,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_41_3" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_42_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../orsi/orsi_segmentation_ar/">
 <span class="md-ellipsis">
@@ -2913,8 +2940,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_41_3_label" class="md-nav" data-md-level="3">
-<label class="md-nav__title" for="__nav_3_41_3">
+<nav aria-expanded="false" aria-labelledby="__nav_3_42_3_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_42_3">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2930,7 +2957,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_42" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_43" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../polyp_detection/">
 <span class="md-ellipsis">
@@ -2943,8 +2970,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_42_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_42">
+<nav aria-expanded="false" aria-labelledby="__nav_3_43_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_43">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2957,7 +2984,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_43" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_44" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../cunumeric_integration/">
 <span class="md-ellipsis">
@@ -2970,8 +2997,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_43_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_43">
+<nav aria-expanded="false" aria-labelledby="__nav_3_44_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_44">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -2984,7 +3011,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_44" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_45" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../prohawk_video_replayer/">
 <span class="md-ellipsis">
@@ -2997,8 +3024,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_44_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_44">
+<nav aria-expanded="false" aria-labelledby="__nav_3_45_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_45">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -3011,7 +3038,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_45" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_46" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../pva_video_filter/">
 <span class="md-ellipsis">
@@ -3024,8 +3051,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_45_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_45">
+<nav aria-expanded="false" aria-labelledby="__nav_3_46_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_46">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -3038,7 +3065,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_46" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_47" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../qt_video_replayer/">
 <span class="md-ellipsis">
@@ -3051,8 +3078,8 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_46_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_46">
+<nav aria-expanded="false" aria-labelledby="__nav_3_47_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_47">
 <span class="md-nav__icon md-icon"></span>
             
   
@@ -3065,7 +3092,7 @@
 </nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_47" type="checkbox"/>
+<input class="md-nav__toggle md-toggle" id="__nav_3_48" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
 <a class="md-nav__link" href="../network_radar_pipeline/">
 <span class="md-ellipsis">
@@ -3078,39 +3105,12 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_47_label" class="md-nav" data-md-level="2">
-<label class="md-nav__title" for="__nav_3_47">
-<span class="md-nav__icon md-icon"></span>
-            
-  
-    Radar Signal Processing over Network
-  
-
-          </label>
-<ul class="md-nav__list" data-md-scrollfix="">
-</ul>
-</nav>
-</li>
-<li class="md-nav__item md-nav__item--active md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_48" type="checkbox"/>
-<div class="md-nav__link md-nav__container">
-<a class="md-nav__link md-nav__link--active" href="./">
-<span class="md-ellipsis">
-    
-  
-    Real-Time Data Stream Visualization with NATS and Web Dashboards
-  
-
-    
-  </span>
-</a>
-</div>
-<nav aria-expanded="true" aria-labelledby="__nav_3_48_label" class="md-nav" data-md-level="2">
+<nav aria-expanded="false" aria-labelledby="__nav_3_48_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_48">
 <span class="md-nav__icon md-icon"></span>
             
   
-    Real-Time Data Stream Visualization with NATS and Web Dashboards
+    Radar Signal Processing over Network
   
 
           </label>
@@ -7176,7 +7176,7 @@
 <li class="md-path__item">
 <a class="md-path__link" href="./">
 <span class="md-ellipsis">
-    Real-Time Data Stream Visualization with NATS and Web Dashboards
+    Live Streaming Data Web Dashboard with NATS
   </span>
 </a>
 </li>
@@ -7185,11 +7185,14 @@
 <article class="md-content__inner md-typeset">
 <nav class="md-tags">
 <a class="md-tag" href="../../tags/#tag:nats">NATS</a>
-<a class="md-tag" href="../../tags/#tag:remote">Remote</a>
+<a class="md-tag" href="../../tags/#tag:real-time">Real-time</a>
+<a class="md-tag" href="../../tags/#tag:signal-processing">Signal Processing</a>
+<a class="md-tag" href="../../tags/#tag:streaming">Streaming</a>
+<a class="md-tag" href="../../tags/#tag:tensor">Tensor</a>
 <a class="md-tag" href="../../tags/#tag:visualization">Visualization</a>
 </nav>
-<h1 id="real-time-data-stream-visualization-with-nats-and-web-dashboards"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/pipeline_visualization">Real-Time Data Stream Visualization with NATS and Web Dashboards</a><a class="headerlink" href="#real-time-data-stream-visualization-with-nats-and-web-dashboards" title="Permanent link">#</a></h1>
-<p><button class="run-locally-button" data-app-language="Python" data-app-name="Real-Time Data Stream Visualization with NATS and Web Dashboards (C++)" data-app-short-name="pipeline_visualization" data-component-type="application" data-modes='[{"name": "web_static", "description": "Run the static web dashboard visualizer"}, {"name": "web_dynamic", "description": "Run the dynamic web dashboard visualizer"}]' data-needs-language-flag="false">
+<h1 id="live-streaming-data-web-dashboard-with-nats"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/pipeline_visualization">Live Streaming Data Web Dashboard with NATS</a><a class="headerlink" href="#live-streaming-data-web-dashboard-with-nats" title="Permanent link">#</a></h1>
+<p><button class="run-locally-button" data-app-language="Python" data-app-name="Live Streaming Data Web Dashboard with NATS" data-app-short-name="pipeline_visualization" data-component-type="application" data-modes='[{"name": "web_static", "description": "Run the static web dashboard visualizer"}, {"name": "web_dynamic", "description": "Run the dynamic web dashboard visualizer"}]' data-needs-language-flag="false">
     ▶ Run Locally
 </button>
 <span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"></path></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"></path></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"></path><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"></path></svg></span> <strong>Language:</strong> Python, C++<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"></path><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"></path></svg></span> <strong>Last modified:</strong> December 1, 2025<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"></path><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"></path></svg></span> <strong>Latest version:</strong> 0.1.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"></path><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.8.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"></path></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.8.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"></path></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br/><br/></p>
@@ -7482,7 +7485,7 @@ installed separately. See the next section for details.</p>
 </main>
 <footer class="md-footer">
 <nav aria-label="Footer" class="md-footer__inner md-grid">
-<a aria-label="Previous: Radar Signal Processing over Network (latest)" class="md-footer__link md-footer__link--prev" href="../network_radar_pipeline/">
+<a aria-label="Previous: USB Camera Calibration (latest)" class="md-footer__link md-footer__link--prev" href="../laser_detection_latency/usb_cam_calibration/">
 <div class="md-footer__button md-icon">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
 </div>
@@ -7491,17 +7494,17 @@ installed separately. See the next section for details.</p>
                 Previous
               </span>
 <div class="md-ellipsis">
-                Radar Signal Processing over Network (latest)
+                USB Camera Calibration (latest)
               </div>
 </div>
 </a>
-<a aria-label="Next: Real-Time Face and Text Deidentification (latest)" class="md-footer__link md-footer__link--next" href="../video_deidentification/">
+<a aria-label="Next: Image Processing with MATLAB GPU Coder (latest)" class="md-footer__link md-footer__link--next" href="../matlab_gpu_coder/matlab_image_processing/">
 <div class="md-footer__title">
 <span class="md-footer__direction">
                 Next
               </span>
 <div class="md-ellipsis">
-                Real-Time Face and Text Deidentification (latest)
+                Image Processing with MATLAB GPU Coder (latest)
               </div>
 </div>
 <div class="md-footer__button md-icon">
