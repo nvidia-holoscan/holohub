@@ -213,7 +213,7 @@ You can run the command below to reset cache directories:
   ./holohub clear-cache
   ```
 
-This removes all the `build` and `data` directories. You can use `--dryrun` to preview what would be removed.
+This removes the `build`, `data`, and `install` directories. You can use `--dryrun` to preview what would be removed.
 
 In some cases you may want to clear out only the datasets downloaded by applications to the `data` folder:
 
