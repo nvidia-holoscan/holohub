@@ -207,19 +207,15 @@ Make sure you build the application (if applicable) before running it.
 
 ## Cleanup
 
-You can run the command below to reset cache directories:
+You can clear cache directories using the `clear-cache` command:
 
-  ```sh
-  ./holohub clear-cache
-  ```
-
-This removes the `build`, `data`, and `install` directories. You can use `--dryrun` to preview what would be removed.
-
-In some cases you may want to clear out only the datasets downloaded by applications to the `data` folder:
-
-  ```sh
-  rm -rf ./data
-  ```
+```sh
+./holohub clear-cache              # Clear all cache folders (build, data, install)
+./holohub clear-cache --build      # Clear only build folders
+./holohub clear-cache --data       # Clear only data folders
+./holohub clear-cache --install    # Clear only install folders
+./holohub clear-cache --dryrun     # Preview what would be removed
+```
 
 Note that many applications supply custom container environments with build and runtime dependencies.
 Failing to clean the build cache between different applications may result in unexpected behavior where build
