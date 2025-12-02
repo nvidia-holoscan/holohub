@@ -49,8 +49,6 @@ class PadBase : public ObjectBase<Derived, NativeType> {
   /// @returns A Caps wrapper for the current caps, or empty Caps if no caps are set
   /// @note Returns owned reference from gst_pad_get_current_caps (no sinking needed)
   Caps get_current_caps() const { return Caps(gst_pad_get_current_caps(GST_PAD(this->get()))); }
-
-  // TODO: Add more common pad functionality here (get_allowed_caps, is_linked, etc.)
 };
 
 /**

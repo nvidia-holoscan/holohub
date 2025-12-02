@@ -55,6 +55,14 @@ The `install_deps.sh` script installs:
 
 ## Usage
 
+The recommended way to run the application is through the `holohub` launcher:
+
+```bash
+./holohub run gst_video_recorder --run-args="[OPTIONS]"
+```
+
+Alternatively, if you know the binary location, you can run it directly:
+
 ```bash
 gst-video-recorder [OPTIONS]
 ```
@@ -106,54 +114,54 @@ gst-video-recorder [OPTIONS]
 
 **Record from default V4L2 camera at 1920x1080 (30 seconds at 30fps):**
 ```bash
-gst-video-recorder --source v4l2 --width 1920 --height 1080 --count 900 -o camera.mp4
+./holohub run gst_video_recorder --run-args="--source v4l2 --width 1920 --height 1080 --count 900 -o camera.mp4"
 ```
 
 **Record from specific V4L2 device with H.265:**
 ```bash
-gst-video-recorder --source v4l2 --device /dev/video1 --width 1920 --height 1080 --encoder nvh265 --count 600 -o camera_h265.mp4
+./holohub run gst_video_recorder --run-args="--source v4l2 --device /dev/video1 --width 1920 --height 1080 --encoder nvh265 --count 600 -o camera_h265.mp4"
 ```
 
 **Record at 720p resolution:**
 ```bash
-gst-video-recorder --source v4l2 --width 1280 --height 720 --count 300 -o camera_720p.mp4
+./holohub run gst_video_recorder --run-args="--source v4l2 --width 1280 --height 720 --count 300 -o camera_720p.mp4"
 ```
 
 **Record with specific pixel format (YUYV):**
 ```bash
-gst-video-recorder --source v4l2 --width 640 --height 480 --pixel-format YUYV --count 300 -o camera_yuyv.mp4
+./holohub run gst_video_recorder --run-args="--source v4l2 --width 640 --height 480 --pixel-format YUYV --count 300 -o camera_yuyv.mp4"
 ```
 
 **Record with custom encoder settings:**
 ```bash
-gst-video-recorder --source v4l2 --property bitrate=12000 --property preset=1 --count 900 -o high_quality.mp4
+./holohub run gst_video_recorder --run-args="--source v4l2 --property bitrate=12000 --property preset=1 --count 900 -o high_quality.mp4"
 ```
 
 #### Pattern Generator Examples
 
 **Record 10 seconds of animated gradient (300 frames at 30fps):**
 ```bash
-gst-video-recorder --source pattern --count 300 -o video.mp4
+./holohub run gst_video_recorder --run-args="--source pattern --count 300 -o video.mp4"
 ```
 
 **Record high quality H.265 video:**
 ```bash
-gst-video-recorder --source pattern --count 300 --encoder nvh265 --property bitrate=10000 -o video.mp4
+./holohub run gst_video_recorder --run-args="--source pattern --count 300 --encoder nvh265 --property bitrate=10000 -o video.mp4"
 ```
 
 **Record 720p video:**
 ```bash
-gst-video-recorder --source pattern --count 300 --width 1280 --height 720 -o video_720p.mp4
+./holohub run gst_video_recorder --run-args="--source pattern --count 300 --width 1280 --height 720 -o video_720p.mp4"
 ```
 
 **Record checkerboard pattern:**
 ```bash
-gst-video-recorder --source pattern --count 300 --pattern 1 -o checkerboard.mp4
+./holohub run gst_video_recorder --run-args="--source pattern --count 300 --pattern 1 -o checkerboard.mp4"
 ```
 
 **Record using host memory (CPU):**
 ```bash
-gst-video-recorder --source pattern --count 300 --storage 0 --encoder x264 -o video.mp4
+./holohub run gst_video_recorder --run-args="--source pattern --count 300 --storage 0 --encoder x264 -o video.mp4"
 ```
 
 ## Architecture
@@ -223,5 +231,6 @@ The application supports both host and device (CUDA) memory:
 - EOS (End-Of-Stream) signal is sent automatically when recording completes
 - Video parameters (width, height, format, storage) are automatically detected from incoming frames
 - Frame count can be limited with `--count` or runs indefinitely if not specified
+- Output files are written to the holohub workspace directory when using `./holohub run` (use absolute paths like `/workspace/holohub/video.mp4` for predictable output locations)
 
 

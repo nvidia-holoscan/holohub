@@ -81,9 +81,6 @@ class BinBase : public ElementBase<Derived, NativeType> {
       return element.get();
     }
   }
-
- public:
-  // TODO: Add more common bin functionality here (remove_element, etc.)
 };
 
 /**

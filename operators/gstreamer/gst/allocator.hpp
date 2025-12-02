@@ -53,8 +53,6 @@ class AllocatorBase : public ObjectBase<Derived, NativeType> {
       : ObjectBase<Derived, NativeType>(other) {}
   explicit AllocatorBase(ObjectBase<Derived, NativeType>&& other)
       : ObjectBase<Derived, NativeType>(std::move(other)) {}
-
-  // TODO: Add more common allocator functionality here (alloc, free, etc.)
 };
 
 /**
@@ -134,8 +132,6 @@ class CudaPoolAllocatorBase : public CudaAllocatorBase<Derived, NativeType> {
       : CudaAllocatorBase<Derived, NativeType>(other) {}
   explicit CudaPoolAllocatorBase(ObjectBase<Derived, NativeType>&& other)
       : CudaAllocatorBase<Derived, NativeType>(std::move(other)) {}
-
-  // TODO: Add pool-specific functionality here (reset, get_config, etc.)
 };
 
 /**

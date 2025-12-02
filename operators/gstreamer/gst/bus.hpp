@@ -52,8 +52,6 @@ class BusBase : public ObjectBase<Derived, NativeType> {
   Message timed_pop_filtered(GstClockTime timeout, GstMessageType types) const {
     return Message(gst_bus_timed_pop_filtered(GST_BUS(this->get()), timeout, types));
   }
-
-  // TODO: Add more common bus functionality here (post_message, poll, etc.)
 };
 
 /**

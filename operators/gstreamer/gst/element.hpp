@@ -93,8 +93,6 @@ class ElementBase : public ObjectBase<Derived, NativeType> {
     return Pad(gst_element_get_static_pad(GST_ELEMENT(this->get()), name.c_str()));
   }
 
-  // TODO: Add more common element functionality here (unlink, etc.)
-
  private:
   // Helper function to extract GstElement* from ElementBase-derived classes or raw pointers
   template <typename T>

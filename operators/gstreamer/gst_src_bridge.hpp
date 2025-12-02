@@ -22,6 +22,7 @@
 #include <gst/gst.h>
 
 #include <chrono>
+#include <cstdint>
 #include <future>
 #include <memory>
 #include <string>
