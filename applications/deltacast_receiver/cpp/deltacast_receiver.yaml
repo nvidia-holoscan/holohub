@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 DELTACAST.TV. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,10 +13,34 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/gxf_extensions)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/gxf_extensions)
+deltacast:
+  width: 1920
+  height: 1080
+  progressive: true
+  framerate: 30
+  board: 0
+  input: 0
+  rdma: false
 
-add_holohub_extension(emergent_source)
-add_holohub_extension(lstm_tensor_rt_inference)
-add_holohub_extension(yuan_qcap)
+format_converter:
+  in_dtype: "rgb888"
+  alpha_value: 255
+  out_dtype: "rgba8888"
+  out_channel_order: [2,1,0,3]
+
+drop_alpha_channel_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+  resize_height: 270
+  resize_width: 480
+
+holoviz:
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0
+  width: 480
+  height: 270
