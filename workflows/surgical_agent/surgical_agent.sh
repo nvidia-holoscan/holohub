@@ -79,6 +79,10 @@ build_video_app() {
     fi
 
     print_success "WebRTC video streaming server built successfully"
+    print_status ""
+    print_status "Next steps:"
+    print_status "  • Run the video server: ./holohub run surgical_agent run-video --local"
+    print_status "  • Or run the complete workflow: ./holohub run surgical_agent --local"
 }
 
 # Function to run video streaming app
@@ -114,9 +118,30 @@ run_video_app() {
 
     # Verify container is running
     if is_video_streaming_running; then
-        print_success "WebRTC video streaming container is running"
+        print_success "✓ WebRTC video streaming container is running"
+        print_status ""
+        print_status "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        print_status "Video Server Ready - What You Can Do:"
+        print_status "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        print_status ""
+        print_status "Camera Feed: Live camera stream is being captured from $CAMERA_DEVICE"
+        print_status ""
+        print_status "API Endpoints Available:"
+        print_status "   POST http://127.0.0.1:8080/offer     - Establish WebRTC connection"
+        print_status "   GET  http://127.0.0.1:8080/iceServers - Get ICE server configuration"
+        print_status ""
+        print_status "Next Steps:"
+        print_status "   • To run surgical agents: ./holohub run surgical_agent run-surgical --local"
+        print_status "   • To view container logs: docker logs $WEBRTC_CONTAINER_NAME"
+        print_status "   • To stop video server: ./holohub run surgical_agent stop-video --local"
+        print_status ""
     else
         print_warning "WebRTC video streaming container may not have started properly"
+        print_status ""
+        print_status "Troubleshooting:"
+        print_status "  • Check container logs: docker logs $WEBRTC_CONTAINER_NAME"
+        print_status "  • Verify camera device exists: ls -l $CAMERA_DEVICE"
+        print_status "  • Check if camera is in use: fuser $CAMERA_DEVICE"
     fi
 }
 
@@ -149,7 +174,13 @@ clone_surgical_framework() {
         fi
     fi
 
-    print_success "VLM-Surgical-Agent-Framework repository ready at $BUILD_DIR/VLM-Surgical-Agent-Framework"
+    print_success "✓ VLM-Surgical-Agent-Framework repository ready"
+    print_status ""
+    print_status "Repository location: $BUILD_DIR/VLM-Surgical-Agent-Framework"
+    print_status ""
+    print_status "Next steps:"
+    print_status "  • Start surgical agents: ./holohub run surgical_agent run-surgical --local"
+    print_status "  • Or complete the full workflow: ./holohub run surgical_agent --local"
 }
 
 # Function to run surgical agents
@@ -170,6 +201,23 @@ run_surgical_agents() {
 
     print_status "Running surgical agents docker services..."
     ./run-surgical-agents.sh
+
+    print_status ""
+    print_status "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    print_status "Surgical Agents Started"
+    print_status "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    print_status ""
+    print_status "The surgical agent services are now running"
+    print_status ""
+    print_status "What You Can Do:"
+    print_status "   • Check running containers: docker ps"
+    print_status "   • View agent logs: docker logs <container_name>"
+    print_status "   • Access agent interfaces (check repository docs for URLs)"
+    print_status ""
+    print_status "Management Commands:"
+    print_status "   • Stop surgical agents: ./holohub run surgical_agent stop-surgical --local"
+    print_status "   • Stop all services: ./holohub run surgical_agent stop-all --local"
+    print_status ""
 }
 
 # Function to stop video app
@@ -224,12 +272,16 @@ stop_video_app() {
         print_status "Removed legacy PID file"
     fi
 
-    print_success "WebRTC video streaming app cleanup completed"
+    print_success "✓ WebRTC video streaming app stopped and cleaned up"
+    print_status ""
+    print_status "What's next?"
+    print_status "  • Restart video server: ./holohub run surgical_agent run-video --local"
+    print_status "  • Run complete workflow: ./holohub run surgical_agent --local"
 }
 
 # Function to show usage
 show_usage() {
-    echo "Usage: $0 [OPTION]"
+    echo "Usage: ./holohub run surgical_agent [OPTION] --local"
     echo ""
     echo "Options:"
     echo "  all                 Build and run everything (default)"
@@ -248,13 +300,13 @@ show_usage() {
     echo "  PIXEL_FORMAT        Camera pixel format (default: YUYV)"
     echo ""
     echo "Examples:"
-    echo "  $0                                    # Run everything"
-    echo "  $0 all                                # Run everything"
-    echo "  $0 build-video                        # Just build the WebRTC video server app"
-    echo "  $0 stop-video                         # Stop the WebRTC video server app"
-    echo "  $0 stop-all                           # Stop all services"
-    echo "  $0 clean                              # Stop all services and remove cloned repos"
-    echo "  CAMERA_DEVICE=/dev/video5 $0 run-video  # Use different camera device"
+    echo "  ./holohub run surgical_agent --local                                  # Run everything"
+    echo "  ./holohub run surgical_agent all --local                              # Run everything"
+    echo "  ./holohub run surgical_agent build-video --local                      # Just build the WebRTC video server app"
+    echo "  ./holohub run surgical_agent stop-video --local                       # Stop the WebRTC video server app"
+    echo "  ./holohub run surgical_agent stop-all --local                         # Stop all services"
+    echo "  ./holohub run surgical_agent clean --local                            # Stop all services and remove cloned repos"
+    echo "  CAMERA_DEVICE=/dev/video5 ./holohub run surgical_agent run-video --local  # Use different camera device"
 }
 
 # Function to stop surgical agents
@@ -262,17 +314,25 @@ stop_surgical_agents() {
     print_status "Stopping surgical agents services..."
 
     if [ -d "$BUILD_DIR/VLM-Surgical-Agent-Framework/docker" ]; then
-        cd "$BUILD_DIR/VLM-Surgical-Agent-Framework/docker"
+        if ! cd "$BUILD_DIR/VLM-Surgical-Agent-Framework/docker"; then
+            print_error "Failed to change directory to $BUILD_DIR/VLM-Surgical-Agent-Framework/docker"
+            return 1
+        fi
 
         if [ -f "run-surgical-agents.sh" ]; then
             print_status "Running surgical agents stop command..."
             ./run-surgical-agents.sh stop
-            print_success "Surgical agents services stopped"
+            print_success "✓ Surgical agents services stopped"
+            print_status ""
+            print_status "What's next?"
+            print_status "  • Restart agents: ./holohub run surgical_agent run-surgical --local"
+            print_status "  • Run complete workflow: ./holohub run surgical_agent --local"
         else
             print_warning "run-surgical-agents.sh not found, cannot stop surgical agents"
         fi
     else
         print_warning "VLM-Surgical-Agent-Framework not found in build directory, cannot stop surgical agents"
+        print_status "Tip: Run './holohub run surgical_agent setup-surgical --local' to clone the framework"
     fi
 }
 
@@ -281,7 +341,18 @@ stop_all() {
     print_status "Stopping all services..."
     stop_video_app
     stop_surgical_agents
-    print_success "All services stopped"
+    echo ""
+    print_success "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    print_success "  ✓ All Services Stopped"
+    print_success "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    print_status "All surgical agent workflow services have been stopped."
+    print_status ""
+    print_status "What's next?"
+    print_status "  • Restart everything: ./holohub run surgical_agent --local"
+    print_status "  • Start video only: ./holohub run surgical_agent run-video --local"
+    print_status "  • Start agents only: ./holohub run surgical_agent run-surgical --local"
+    print_status "  • Full cleanup (remove cloned repos): ./holohub run surgical_agent clean --local"
 }
 
 # Function to clean up everything
@@ -297,7 +368,17 @@ cleanup() {
         print_success "Removed VLM-Surgical-Agent-Framework directory"
     fi
 
-    print_success "Complete cleanup finished"
+    echo ""
+    print_success "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    print_success "  ✓ Complete Cleanup Finished"
+    print_success "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    print_status "All services stopped and artifacts removed."
+    print_status ""
+    print_status "System is now in clean state. To start fresh:"
+    print_status "  • Run complete workflow: ./holohub run surgical_agent --local"
+    print_status "  • Build video server: ./holohub run surgical_agent build-video --local"
+    print_status "  • Setup surgical framework: ./holohub run surgical_agent setup-surgical --local"
 }
 
 # Trap to stop all services on script interruption/error (but not normal exit)
@@ -318,13 +399,27 @@ case "${1:-all}" in
     "run-video")
         run_video_app
         # Keep script running to maintain the background process
-        print_status "WebRTC video app running in camera mode. Press Ctrl+C to stop."
+        echo ""
+        print_status "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        print_status "  Video Server Running - Press Ctrl+C to stop"
+        print_status "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        print_status "The WebRTC video server is running in the background."
+        print_status "This script will monitor the container and keep it alive."
+        echo ""
 
         # Wait for containers to be running, then wait for user interruption
         while is_video_streaming_running; do
             sleep 5
         done
-        print_warning "WebRTC video streaming container stopped unexpectedly"
+        echo ""
+        print_warning "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        print_warning "  WebRTC video streaming container stopped unexpectedly"
+        print_warning "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        print_status "Troubleshooting:"
+        print_status "  • Check logs: docker logs $WEBRTC_CONTAINER_NAME"
+        print_status "  • Try restarting: ./holohub run surgical_agent run-video --local"
         ;;
     "setup-surgical")
         clone_surgical_framework
@@ -361,16 +456,50 @@ esac
 
 # Only show status for commands that start services
 case "${1:-all}" in
-    "all"|"run-surgical")
-        print_success "Workflow completed successfully!"
-        print_status "Services running:"
-        print_status "- WebRTC video streaming server (camera mode): http://127.0.0.1:8080"
-        print_status "  API Endpoints: POST /offer, GET /iceServers"
-        print_status "- Surgical agents: Check docker container status with 'docker ps'"
+    "all")
+        echo ""
+        print_success "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        print_success "  Surgical Agent Workflow - ALL SERVICES RUNNING!  "
+        print_success "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        print_status "WebRTC Video Streaming Server"
+        print_status "   Status: Running in camera mode"
+        print_status "   Camera: $CAMERA_DEVICE (format: $PIXEL_FORMAT)"
+        print_status "   API URL: http://127.0.0.1:8080"
+        print_status "   Container: $WEBRTC_CONTAINER_NAME"
         print_status ""
-        print_status "To stop the video app: $0 stop-video"
-        print_status "To stop surgical agents: $0 stop-surgical"
-        print_status "To stop all services: $0 stop-all"
-        print_status "To clean up everything (stop + remove artifacts): $0 clean"
+        print_status "Surgical Agent Framework"
+        print_status "   Status: Docker services running"
+        print_status "   Location: $BUILD_DIR/VLM-Surgical-Agent-Framework"
+        print_status "   View containers: docker ps | grep surgical"
+        echo ""
+        print_status "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        print_status "What You Can Do Now:"
+        print_status "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        print_status "Monitor Services:"
+        print_status "   • View all containers: docker ps"
+        print_status "   • Check video logs: docker logs $WEBRTC_CONTAINER_NAME"
+        print_status "   • Check agent logs: docker logs <agent_container_name>"
+        echo ""
+        print_status "Interact with Services:"
+        print_status "   • Test video API: curl http://127.0.0.1:8080/iceServers"
+        print_status "   • Connect WebRTC client to http://127.0.0.1:8080/offer"
+        print_status "   • Access surgical agents (see framework docs for endpoints)"
+        echo ""
+        print_status "Management Commands:"
+        print_status "   • Stop video only: ./holohub run surgical_agent stop-video --local"
+        print_status "   • Stop agents only: ./holohub run surgical_agent stop-surgical --local"
+        print_status "   • Stop everything: ./holohub run surgical_agent stop-all --local"
+        print_status "   • Full cleanup: ./holohub run surgical_agent clean --local"
+        echo ""
+        print_status "Documentation:"
+        print_status "   • Video server docs: $HOLOHUB_ROOT/applications/webrtc_video_server/README.md"
+        print_status "   • Surgical agents: $BUILD_DIR/VLM-Surgical-Agent-Framework/README.md"
+        echo ""
+        print_success "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        ;;
+    "run-surgical")
+        # Additional message already shown in run_surgical_agents function
         ;;
 esac

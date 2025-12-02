@@ -106,7 +106,7 @@ External web applications can now connect to the API endpoints. See [example_cli
 
 ## Command Line Reference
 
-```
+```text
 usage: webrtc_server.py [-h] [--source {file,camera}] [--video-file VIDEO_FILE]
                         [--camera-device CAMERA_DEVICE] [--pixel-format PIXEL_FORMAT]
                         [--host HOST] [--port PORT] [--serve-client]
