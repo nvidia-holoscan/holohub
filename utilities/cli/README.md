@@ -453,6 +453,7 @@ The CLI supports the following environment variables for customization:
 - **`HOLOHUB_PATH_PREFIX`**: Prefix for path placeholder variables (default: `holohub_`). Path placeholders are used in `metadata.json` files, e.g., `"workdir": "holohub_app_source"`.
 - **`HOLOHUB_DEFAULT_HSDK_DIR`**: Holoscan SDK root directory (default: `/opt/nvidia/holoscan`). Used for both local builds and container operations to locate SDK libraries and Python bindings.
 - **`HOLOSCAN_SDK_ROOT`**: Path to local Holoscan SDK root directory (source or build tree), used for mounting local Holoscan SDK development trees into containers.
+- **`HOLOHUB_SEARCH_PATH`**: Comma-separated directories to scan for metadata (default `applications,benchmarks,gxf_extensions,operators,pkg,tutorials,workflows`).
 
 **Container Configuration:**
 
