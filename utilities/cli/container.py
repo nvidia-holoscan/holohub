@@ -25,6 +25,8 @@ import sys
 from pathlib import Path
 from typing import List, Optional, Union
 
+from utilities.metadata.utils import list_normalized_languages
+
 from .util import (
     DEFAULT_BASE_SDK_VERSION,
     build_holohub_path_mapping,
@@ -45,7 +47,6 @@ from .util import (
     get_image_pythonpath,
     get_sccache_dir,
     info,
-    list_normalized_languages,
     replace_placeholders,
     run_command,
     warn,
@@ -426,7 +427,7 @@ class HoloHubContainer:
         # Get first language from project metadata if not provided.
         if language is None and self.project_metadata:
             language = self.project_metadata.get("metadata", {}).get("language", "")
-        self.language = list_normalized_languages(language)[0]
+        self.language = list_normalized_languages(language, strict=True)[0]
 
         self.cuda_version = None  # None means use default from get_cuda_tag
         self.dryrun = False

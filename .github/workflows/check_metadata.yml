@@ -25,3 +25,6 @@ jobs:
 
       - name: Run metadata_validator.py
         run: python utilities/metadata/metadata_validator.py
+
+      - name: Run gather_metadata.py
+        run: python utilities/metadata/gather_metadata.py
