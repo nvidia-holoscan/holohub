@@ -206,8 +206,8 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
   if (threadIdx.x == 0) {
     DOCA_GPUNETIO_VOLATILE(packets_stats->num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
     DOCA_GPUNETIO_VOLATILE(packets_stats->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
+    // Replace the __threadfence_system();
     doca_gpu_dev_eth_fence_release<DOCA_GPUNETIO_ETH_SYNC_SCOPE_SYS>();
-    // __threadfence_system();
     DOCA_GPUNETIO_VOLATILE(packets_stats->status) = DOCA_GPU_SEMAPHORE_STATUS_READY;
   }
 }
@@ -322,8 +322,8 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
 #endif
     DOCA_GPUNETIO_VOLATILE(packets_stats->num_pkts) = DOCA_GPUNETIO_VOLATILE(out_pkt_num);
     DOCA_GPUNETIO_VOLATILE(packets_stats->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
+    // Replace the __threadfence_system();
     doca_gpu_dev_eth_fence_release<DOCA_GPUNETIO_ETH_SYNC_SCOPE_SYS>();
-    // __threadfence_system();
     DOCA_GPUNETIO_VOLATILE(packets_stats->status) = DOCA_GPU_SEMAPHORE_STATUS_READY;
   }
 }
@@ -492,9 +492,6 @@ doca_error_t doca_sender_packet_kernel(cudaStream_t stream, struct doca_gpu_eth_
         "[{}:{}] cuda failed with {} \n", __FILE__, __LINE__, cudaGetErrorString(result));
     return DOCA_ERROR_BAD_STATE;
   }
-
-  // fprintf(stderr, "New send kernel gpu_pkt0_idx %d num_pkts %zd max_pkt %d\n", gpu_pkt0_idx,
-  // num_pkts, max_pkts);
 
   /* For simplicity launch 1 CUDA block with 32 CUDA threads */
   send_packets_kernel<<<1, CUDA_BLOCK_THREADS, 0, stream>>>(txq,
