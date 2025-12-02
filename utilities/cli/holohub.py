@@ -1700,7 +1700,7 @@ class HoloHubCLI:
             if (
                 holohub_cli_util.run_command(
                     [
-                        "python",
+                        sys.executable,
                         "-m",
                         "cpplint",
                         "--quiet",
