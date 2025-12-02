@@ -12,16 +12,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import glob
 import json
 import os
 import re
 import sys
+from pathlib import Path
 
 import jsonschema
 from jsonschema import Draft4Validator
 from referencing import Registry
 from referencing.jsonschema import DRAFT4
+
+try:
+    from utilities.metadata.utils import (
+        DEFAULT_INCLUDE_PATHS,
+        METADATA_DIRECTORY_CONFIG,
+        iter_metadata_paths,
+    )
+except ModuleNotFoundError:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from utilities.metadata.utils import (
+        DEFAULT_INCLUDE_PATHS,
+        METADATA_DIRECTORY_CONFIG,
+        iter_metadata_paths,
+    )
 
 
 def extract_readme_title(readme_path):
@@ -142,41 +156,29 @@ def validate_json(json_data, directory):
 def validate_json_directory(directory, ignore_patterns=[], metadata_is_required: bool = True):
     exit_code = 0
     # Convert json to python object.
-    current_wdir = os.getcwd()
+    base_path = Path(os.getcwd()) / directory
+    ignore_patterns = ignore_patterns or []
 
+    metadata_entries = list(iter_metadata_paths([base_path], exclude_patterns=ignore_patterns))
+    metadata_subdirs = {
+        Path(file_path).relative_to(base_path).parts[0]
+        for file_path in metadata_entries
+        if Path(file_path).relative_to(base_path).parts
+    }
     # Check if there is a metadata.json
-    subdirs = next(os.walk(current_wdir + "/" + directory))[1]
+    subdirs = next(os.walk(base_path), (None, [], None))[1]
     for subdir in subdirs:
-        ignore = False
-        # check if we should ignore the pattern
-        for ignore_pattern in ignore_patterns:
-            if ignore_pattern in subdir:
-                ignore = True
-
-        if ignore is False:
-            count = len(
-                glob.glob(
-                    current_wdir + "/" + directory + "/" + subdir + "/**/metadata.json",
-                    recursive=True,
-                )
-            )
-            if count == 0:
-                if metadata_is_required:
-                    print("ERROR:" + subdir + " does not contain metadata.json file")
-                    exit_code = 1
-                else:
-                    print("WARNING:" + subdir + " does not contain metadata.json file")
+        if any(pattern in subdir for pattern in ignore_patterns):
+            continue
+        if subdir not in metadata_subdirs:
+            if metadata_is_required:
+                print("ERROR:" + subdir + " does not contain metadata.json file")
+                exit_code = 1
+            else:
+                print("WARNING:" + subdir + " does not contain metadata.json file")
 
     # Check if the metadata is valid
-    for name in glob.glob(current_wdir + "/" + directory + "/**/metadata.json", recursive=True):
-        ignore = False
-        # check if we should ignore the pattern
-        for ignore_pattern in ignore_patterns:
-            if ignore_pattern in name:
-                ignore = True
-        if ignore:
-            continue
-
+    for name in metadata_entries:
         with open(name, "r") as file:
             try:
                 jsonData = json.load(file)
@@ -204,24 +206,14 @@ def validate_json_directory(directory, ignore_patterns=[], metadata_is_required:
 
 # Validate the directories
 if __name__ == "__main__":
-    exit_code_op = validate_json_directory("operators", ignore_patterns=["template"])
-    exit_code_extensions = validate_json_directory("gxf_extensions", ignore_patterns=["utils"])
-    exit_code_applications = validate_json_directory("applications", ignore_patterns=["template"])
-    exit_code_workflows = validate_json_directory("workflows", ignore_patterns=["template"])
-    exit_code_tutorials = validate_json_directory(
-        "tutorials", ignore_patterns=["template"], metadata_is_required=False
-    )
-    exit_code_benchmarks = validate_json_directory("benchmarks")
-    exit_code_packages = validate_json_directory("pkg", metadata_is_required=False)
-
-    sys.exit(
-        max(
-            exit_code_op,
-            exit_code_extensions,
-            exit_code_applications,
-            exit_code_workflows,
-            exit_code_tutorials,
-            exit_code_benchmarks,
-            exit_code_packages,
+    exit_codes = []
+    for directory in DEFAULT_INCLUDE_PATHS:
+        config = METADATA_DIRECTORY_CONFIG.get(directory, {})
+        code = validate_json_directory(
+            directory,
+            ignore_patterns=config.get("ignore_patterns", []),
+            metadata_is_required=config.get("metadata_is_required", True),
         )
-    )
+        exit_codes.append(code)
+
+    sys.exit(max(exit_codes) if exit_codes else 0)

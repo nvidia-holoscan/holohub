@@ -44,6 +44,7 @@ import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer
 from utilities.cli.util import Color
+from utilities.metadata.utils import list_normalized_languages, normalize_language
 
 
 class HoloHubCLI:
@@ -474,20 +475,12 @@ class HoloHubCLI:
         EXCLUDE_PATHS = ["applications/holoviz/template", "applications/template"]
         # Known exceptions, such as template files that do not represent a standalone project
 
-        app_paths = (
-            HoloHubCLI.HOLOHUB_ROOT / "applications",
-            HoloHubCLI.HOLOHUB_ROOT / "benchmarks",
-            HoloHubCLI.HOLOHUB_ROOT / "gxf_extensions",
-            HoloHubCLI.HOLOHUB_ROOT / "operators",
-            HoloHubCLI.HOLOHUB_ROOT / "pkg",
-            HoloHubCLI.HOLOHUB_ROOT / "tutorials",
-            HoloHubCLI.HOLOHUB_ROOT / "workflows",
-        )
+        app_paths = holohub_cli_util.get_component_search_paths(self.HOLOHUB_ROOT)
         self.projects = metadata_util.gather_metadata(app_paths, exclude_paths=EXCLUDE_PATHS)
 
     def find_project(self, project_name: str, language: Optional[str] = None) -> dict:
         """Find a project by name"""
-        normalized_language = holohub_cli_util.normalize_language(language)
+        normalized_language = normalize_language(language)
 
         cache_key = (project_name, normalized_language)
         if cache_key in self._project_data:
@@ -498,8 +491,8 @@ class HoloHubCLI:
         if candidates:
             available_lang = []
             for p in candidates:
-                for lang in holohub_cli_util.list_normalized_languages(
-                    p.get("metadata", {}).get("language", None)
+                for lang in list_normalized_languages(
+                    p.get("metadata", {}).get("language", None), strict=True
                 ):
                     available_lang.append(lang)
             available_lang = sorted(list(set(available_lang)))
@@ -517,8 +510,8 @@ class HoloHubCLI:
                 msg += f"Defaulting to '{target_lang}'. Use --language to select explicitly.\n\n"
                 print(Color.green(msg))
             for p in candidates:
-                if target_lang in holohub_cli_util.list_normalized_languages(
-                    p.get("metadata", {}).get("language", None)
+                if target_lang in list_normalized_languages(
+                    p.get("metadata", {}).get("language", None), strict=True
                 ):
                     self._project_data[cache_key] = p  # Return candidate matching target_lang
                     return p
@@ -897,7 +890,7 @@ class HoloHubCLI:
         # Respect language selection by toggling build flags
         normalized_lang = None
         if hasattr(args, "language") and args.language:
-            normalized_lang = holohub_cli_util.normalize_language(args.language)
+            normalized_lang = normalize_language(args.language)
             if normalized_lang == "python":
                 configure_opts.append("-DHOLOHUB_BUILD_PYTHON=ON")
                 configure_opts.append("-DHOLOHUB_BUILD_CPP=OFF")
@@ -1039,9 +1032,7 @@ class HoloHubCLI:
             cmake_args.append(f'-DHOLOHUB_BUILD_OPERATORS="{with_operators}"')
 
         if not language:
-            language = holohub_cli_util.normalize_language(
-                project_data.get("metadata", {}).get("language", None)
-            )
+            language = normalize_language(project_data.get("metadata", {}).get("language", None))
         # Set build flags based on language
         if language == "python":
             cmake_args.append("-DHOLOHUB_BUILD_PYTHON=ON")
@@ -1256,7 +1247,7 @@ class HoloHubCLI:
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
-        language = holohub_cli_util.normalize_language(
+        language = normalize_language(
             args.language
             if args.language
             else project_data.get("metadata", {}).get("language", None)
