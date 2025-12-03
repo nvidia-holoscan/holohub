@@ -44,6 +44,7 @@ import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer
 from utilities.cli.util import Color
+from utilities.metadata.utils import list_normalized_languages, normalize_language
 
 
 class HoloHubCLI:
@@ -388,6 +389,9 @@ class HoloHubCLI:
         )
         self.subparsers["test"] = test
         test.add_argument("project", nargs="?", help="Project to test")
+        test.add_argument(
+            "--local", action="store_true", help="Test locally instead of in container"
+        )
         test.add_argument("--verbose", action="store_true", help="Print extra output")
         test.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
@@ -433,6 +437,11 @@ class HoloHubCLI:
         clear_cache.add_argument(
             "--dryrun", action="store_true", help="Print commands without executing them"
         )
+        clear_cache.add_argument("--build", action="store_true", help="Clear build folders only")
+        clear_cache.add_argument("--data", action="store_true", help="Clear data folders only")
+        clear_cache.add_argument(
+            "--install", action="store_true", help="Clear install folders only"
+        )
         clear_cache.set_defaults(func=self.handle_clear_cache)
 
         # Add vscode command
@@ -466,20 +475,12 @@ class HoloHubCLI:
         EXCLUDE_PATHS = ["applications/holoviz/template", "applications/template"]
         # Known exceptions, such as template files that do not represent a standalone project
 
-        app_paths = (
-            HoloHubCLI.HOLOHUB_ROOT / "applications",
-            HoloHubCLI.HOLOHUB_ROOT / "benchmarks",
-            HoloHubCLI.HOLOHUB_ROOT / "gxf_extensions",
-            HoloHubCLI.HOLOHUB_ROOT / "operators",
-            HoloHubCLI.HOLOHUB_ROOT / "pkg",
-            HoloHubCLI.HOLOHUB_ROOT / "tutorials",
-            HoloHubCLI.HOLOHUB_ROOT / "workflows",
-        )
+        app_paths = holohub_cli_util.get_component_search_paths(self.HOLOHUB_ROOT)
         self.projects = metadata_util.gather_metadata(app_paths, exclude_paths=EXCLUDE_PATHS)
 
     def find_project(self, project_name: str, language: Optional[str] = None) -> dict:
         """Find a project by name"""
-        normalized_language = holohub_cli_util.normalize_language(language)
+        normalized_language = normalize_language(language)
 
         cache_key = (project_name, normalized_language)
         if cache_key in self._project_data:
@@ -490,8 +491,8 @@ class HoloHubCLI:
         if candidates:
             available_lang = []
             for p in candidates:
-                for lang in holohub_cli_util.list_normalized_languages(
-                    p.get("metadata", {}).get("language", None)
+                for lang in list_normalized_languages(
+                    p.get("metadata", {}).get("language", None), strict=True
                 ):
                     available_lang.append(lang)
             available_lang = sorted(list(set(available_lang)))
@@ -509,8 +510,8 @@ class HoloHubCLI:
                 msg += f"Defaulting to '{target_lang}'. Use --language to select explicitly.\n\n"
                 print(Color.green(msg))
             for p in candidates:
-                if target_lang in holohub_cli_util.list_normalized_languages(
-                    p.get("metadata", {}).get("language", None)
+                if target_lang in list_normalized_languages(
+                    p.get("metadata", {}).get("language", None), strict=True
                 ):
                     self._project_data[cache_key] = p  # Return candidate matching target_lang
                     return p
@@ -833,7 +834,9 @@ class HoloHubCLI:
         container.dryrun = args.dryrun
         container.verbose = args.verbose
 
-        if not skip_docker_build:
+        is_local_mode = bool(args.local or os.environ.get("HOLOHUB_BUILD_LOCAL"))
+
+        if not is_local_mode and not skip_docker_build:
             build_args = args.build_args or ""
             extra_scripts = (getattr(args, "extra_scripts", None) or []).copy()
 
@@ -864,11 +867,14 @@ class HoloHubCLI:
         # TAG is used in CTest scripts by default
         if getattr(args, "build_name_suffix", None):
             tag = args.build_name_suffix
+        elif is_local_mode:
+            tag = "local"
         else:
-            if skip_docker_build:
-                image_name = getattr(args, "img", None) or container.image_name
-            else:
-                image_name = args.base_img or container.default_base_image()
+            image_name = (
+                (getattr(args, "img", None) or container.image_name)
+                if skip_docker_build
+                else (args.base_img or container.default_base_image())
+            )
             tag = image_name.split(":")[-1]
 
         ctest_cmd = f"{xvfb} ctest "
@@ -884,7 +890,7 @@ class HoloHubCLI:
         # Respect language selection by toggling build flags
         normalized_lang = None
         if hasattr(args, "language") and args.language:
-            normalized_lang = holohub_cli_util.normalize_language(args.language)
+            normalized_lang = normalize_language(args.language)
             if normalized_lang == "python":
                 configure_opts.append("-DHOLOHUB_BUILD_PYTHON=ON")
                 configure_opts.append("-DHOLOHUB_BUILD_CPP=OFF")
@@ -918,6 +924,23 @@ class HoloHubCLI:
 
         if args.verbose:
             ctest_cmd += "-VV "
+
+        if is_local_mode:
+            print(
+                holohub_cli_util.format_cmd(f"cd {HoloHubCLI.HOLOHUB_ROOT}", is_dryrun=args.dryrun)
+            )
+            if not args.dryrun:
+                os.chdir(HoloHubCLI.HOLOHUB_ROOT)
+
+            env = os.environ.copy()
+            env["PYTHONPATH"] = (
+                f"{env.get('PYTHONPATH', '')}:{self.DEFAULT_SDK_DIR}/python/lib:{self.HOLOHUB_ROOT}"
+            )
+            env["HOLOHUB_DATA_PATH"] = str(self.DEFAULT_DATA_DIR)
+            env.setdefault("HOLOSCAN_INPUT_PATH", str(self.DEFAULT_DATA_DIR))
+
+            holohub_cli_util.run_command(["bash", "-c", ctest_cmd], dry_run=args.dryrun, env=env)
+            return
 
         container.run(
             img=getattr(args, "img", None),
@@ -1009,9 +1032,7 @@ class HoloHubCLI:
             cmake_args.append(f'-DHOLOHUB_BUILD_OPERATORS="{with_operators}"')
 
         if not language:
-            language = holohub_cli_util.normalize_language(
-                project_data.get("metadata", {}).get("language", None)
-            )
+            language = normalize_language(project_data.get("metadata", {}).get("language", None))
         # Set build flags based on language
         if language == "python":
             cmake_args.append("-DHOLOHUB_BUILD_PYTHON=ON")
@@ -1226,7 +1247,7 @@ class HoloHubCLI:
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
-        language = holohub_cli_util.normalize_language(
+        language = normalize_language(
             args.language
             if args.language
             else project_data.get("metadata", {}).get("language", None)
@@ -1679,7 +1700,7 @@ class HoloHubCLI:
             if (
                 holohub_cli_util.run_command(
                     [
-                        "python",
+                        sys.executable,
                         "-m",
                         "cpplint",
                         "--quiet",
@@ -2013,21 +2034,48 @@ class HoloHubCLI:
                 extra_args=extra_args,
             )
 
+    def _collect_cache_dirs(self, patterns: list[str], default_dir=None) -> list:
+        """Helper to collect cache directories matching patterns."""
+        dirs = []
+        if default_dir is not None:
+            dirs.append(default_dir)
+        for pattern in patterns:
+            for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
+                if path.is_dir() and path not in dirs:
+                    dirs.append(path)
+        return dirs
+
     def handle_clear_cache(self, args: argparse.Namespace) -> None:
         """Handle clear-cache command"""
+        # Determine which folders to clear
+        clear_build = getattr(args, "build", False)
+        clear_data = getattr(args, "data", False)
+        clear_install = getattr(args, "install", False)
+
+        # If no flags are provided, clear all (backward compatibility)
+        clear_all = not (clear_build or clear_data or clear_install)
+
         if args.dryrun:
             print(Color.blue("Would clear cache folders:"))
         else:
             print(Color.blue("Clearing cache..."))
 
-        cache_dirs = [
-            self.DEFAULT_BUILD_PARENT_DIR,
-            self.DEFAULT_DATA_DIR,
-        ]
-        for pattern in ["build", "build-*", "data", "data-*", "install"]:
-            for path in HoloHubCLI.HOLOHUB_ROOT.glob(pattern):
-                if path.is_dir() and path not in cache_dirs:
-                    cache_dirs.append(path)
+        cache_dirs = []
+
+        # Collect build folders if needed
+        if clear_all or clear_build:
+            cache_dirs.extend(
+                self._collect_cache_dirs(["build", "build-*"], self.DEFAULT_BUILD_PARENT_DIR)
+            )
+
+        # Collect data folders if needed
+        if clear_all or clear_data:
+            cache_dirs.extend(self._collect_cache_dirs(["data", "data-*"], self.DEFAULT_DATA_DIR))
+
+        # Collect install folders if needed
+        if clear_all or clear_install:
+            cache_dirs.extend(self._collect_cache_dirs(["install", "install-*"]))
+
         for path in set(cache_dirs):
             if path.exists() and path.is_dir():
                 if args.dryrun:

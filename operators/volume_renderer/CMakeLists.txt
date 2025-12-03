@@ -18,6 +18,8 @@ project(volume_renderer)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+find_package(ZLIB REQUIRED)
+
 # we don't need the gRPC interface, OpenH264 and the examples
 set(CLARA_VIZ_WITH_GRPC OFF CACHE INTERNAL "")
 set(CLARA_VIZ_WITH_OPENH264 OFF CACHE INTERNAL "")
@@ -91,6 +93,7 @@ target_link_libraries(volume_renderer
     clara::viz::core
     clara::viz::core::hw
     GXF::multimedia
+    ZLIB::ZLIB
 )
 
 target_include_directories(volume_renderer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
