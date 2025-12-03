@@ -17,7 +17,7 @@
 
 #include "ucxx_endpoint.h"
 
-namespace isaac::os {
+namespace holoscan::ops {
 
 UcxxEndpoint::~UcxxEndpoint() { worker_->stopProgressThread(); }
 
@@ -94,4 +94,4 @@ void UcxxEndpoint::on_endpoint_closed(ucs_status_t status) {
   }
 }
 
-};  // namespace isaac::os
+};  // namespace holoscan::ops

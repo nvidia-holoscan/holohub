@@ -21,12 +21,11 @@
 #include <string>
 #include <vector>
 
-#include "flatbuffers/flatbuffers.h"
 #include "holoscan/holoscan.hpp"
 
 #include "ucxx_endpoint.h"
 
-namespace isaac::os::ops {
+namespace holoscan::ops {
 
 // Sends messages through a UcxxEndpoint.
 class UcxxSenderOp : public holoscan::Operator {
@@ -38,16 +37,15 @@ class UcxxSenderOp : public holoscan::Operator {
                holoscan::ExecutionContext& context) override;
 
  private:
-  void on_request_complete(ucs_status_t status);
-
   holoscan::Parameter<uint64_t> tag_;
   holoscan::Parameter<std::shared_ptr<UcxxEndpoint>> endpoint_;
+  holoscan::Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
 
   struct SendRequest {
     std::shared_ptr<ucxx::Request> request;
-    flatbuffers::FlatBufferBuilder flatbuffer_builder;
+    std::vector<uint8_t> buffer;
   };
   std::list<SendRequest> requests_;
 };
 
-}  // namespace isaac::os::ops
+}  // namespace holoscan::ops

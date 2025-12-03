@@ -22,7 +22,7 @@
 #include "holoscan/holoscan.hpp"
 #include "ucxx/api.h"
 
-namespace isaac::os {
+namespace holoscan::ops {
 
 // Manages a UCXX Endpoint that can be used to send and receive messages with UCX.
 class UcxxEndpoint : public holoscan::Resource {
@@ -56,4 +56,4 @@ class UcxxEndpoint : public holoscan::Resource {
   std::shared_ptr<holoscan::AsynchronousCondition> is_alive_condition_;
 };
 
-}  // namespace isaac::os
+}  // namespace holoscan::ops

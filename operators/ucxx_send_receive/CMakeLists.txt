@@ -17,17 +17,14 @@ cmake_minimum_required(VERSION 3.20)
 
 project(ucxx_send_receive_operators LANGUAGES CXX)
 
-find_package(holoscan 3 REQUIRED CONFIG)
-find_package(flatbuffers 25 REQUIRED)
-
-add_subdirectory(messages)
+find_package(holoscan 3.8 REQUIRED CONFIG)
 
 add_library(ucxx_send_receive SHARED
   ucxx_endpoint.cc
   ucxx_receiver_op.cc
   ucxx_sender_op.cc
 )
-add_library(isaac::ops::ucxx ALIAS ucxx_send_receive)
+add_library(holoscan::ops::ucxx ALIAS ucxx_send_receive)
 
 target_include_directories(ucxx_send_receive
   PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
@@ -36,10 +33,7 @@ target_include_directories(ucxx_send_receive
 
 target_link_libraries(ucxx_send_receive
   PUBLIC
-    flatbuffers::flatbuffers
     holoscan::core
-    isaac::messages::reflection
-    isaac::messages::reflection::tensor_materialization
     ucs
     ucxx
 )

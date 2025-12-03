@@ -24,10 +24,9 @@
 #include "holoscan/holoscan.hpp"
 #include "ucxx/api.h"
 
-#include "message_reflection.h"
 #include "ucxx_endpoint.h"
 
-namespace isaac::os::ops {
+namespace holoscan::ops {
 
 // Receives messages through a UcxxEndpoint.
 class UcxxReceiverOp : public holoscan::Operator {
@@ -45,11 +44,10 @@ class UcxxReceiverOp : public holoscan::Operator {
   holoscan::Parameter<uint64_t> tag_;
   holoscan::Parameter<int> buffer_size_;
   holoscan::Parameter<std::shared_ptr<UcxxEndpoint>> endpoint_;
+  holoscan::Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
 
   std::vector<uint8_t> buffer_;
   std::shared_ptr<ucxx::Request> request_;
-
-  std::optional<std::reference_wrapper<const MessageReflection>> reflection_;
 };
 
 }  // namespace isaac::os::ops

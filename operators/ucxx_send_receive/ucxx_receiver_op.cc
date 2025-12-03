@@ -17,9 +17,7 @@
 
 #include "ucxx_receiver_op.h"
 
-#include "message_registry.h"
-
-#include <holoscan.hpp>
+#include <holoscan/holoscan.hpp>
 
 namespace {
 
@@ -37,15 +35,15 @@ namespace {
 //   allocator: Pointer to an allocator to use for tensor memory.
 //
 // Returns:
-//   holoscan::Expected<holoscan::Tensor> containing the deserialized tensor,
+//   holoscan::expected<holoscan::Tensor, holoscan::RuntimeError> containing the deserialized tensor,
 //   or an error if deserialization fails.
 // 
 // Based on nvidia::gxf::StdComponentSerializer::deserializeTensor.
-holoscan::Expected<holoscan::Tensor> deserializeTensor(
+holoscan::expected<holoscan::Tensor, holoscan::RuntimeError> deserializeTensor(
     const uint8_t* buffer, size_t buffer_size,
     holoscan::Allocator* allocator) {
   if (buffer == nullptr || buffer_size < sizeof(holoscan::TensorHeader)) {
-    return Unexpected{holoscan::Unexpected{holoscan::GXF_ARGUMENT_NULL}};
+    return holoscan::make_unexpected(holoscan::RuntimeError("Invalid buffer or buffer size"));
   }
 
   // Read header from buffer.
@@ -55,12 +53,12 @@ holoscan::Expected<holoscan::Tensor> deserializeTensor(
   if (sizeof(header->dims) > Shape::kMaxRank * sizeof(int32_t)) {
     HOLOSCAN_LOG_ERROR("Header size exceeds limit of %lu.",
                   Shape::kMaxRank * sizeof(int32_t));
-    return Unexpected{holoscan::Unexpected{holoscan::GXF_FAILURE}};
+    return holoscan::make_unexpected(holoscan::RuntimeError("Header size exceeds limit"));
   }
   if (sizeof(header->strides) > Shape::kMaxRank * sizeof(int64_t)) {
     HOLOSCAN_LOG_ERROR("Header size exceeds limit of %lu.",
                   Shape::kMaxRank * sizeof(int64_t));
-    return Unexpected{holoscan::Unexpected{GXF_FAILURE}};
+    return holoscan::make_unexpected(holoscan::RuntimeError("Header size exceeds limit"));
   }
 
   std::array<int32_t, Shape::kMaxRank> dims;
@@ -73,7 +71,7 @@ holoscan::Expected<holoscan::Tensor> deserializeTensor(
                                      header->element_type, header->bytes_per_element, strides,
                                      header->storage_type, allocator);
   if (!result) {
-    return ForwardError(result);
+    return holoscan::make_unexpected(holoscan::RuntimeError("Failed to reshape tensor"));
   }
 
   const size_t tensor_size = tensor.element_count() * tensor.bytes_per_element();
@@ -84,7 +82,7 @@ holoscan::Expected<holoscan::Tensor> deserializeTensor(
   if (remaining < tensor_size) {
     HOLOSCAN_LOG_ERROR("Buffer size %zu is too small to contain tensor data of size %zu",
                   buffer_size, tensor_size);
-    return Unexpected{holoscan::Unexpected{GXF_FAILURE}};
+    return holoscan::make_unexpected(holoscan::RuntimeError("Buffer size is too small"));
   }
 
   switch (tensor.storage_type()) {
@@ -97,8 +95,8 @@ holoscan::Expected<holoscan::Tensor> deserializeTensor(
       // Use allocator to get a staging buffer (pinned host memory) for faster transfer
       auto staging_buffer = allocator->allocate(tensor_size, MemoryStorageType::kHost);
       if (!staging_buffer) {
-        GXF_LOG_ERROR("Failed to allocate staging buffer for device memory copy");
-        return ForwardError(staging_buffer);
+        HOLOSCAN_LOG_ERROR("Failed to allocate staging buffer for device memory copy");
+        return holoscan::make_unexpected(holoscan::RuntimeError("Failed to allocate staging buffer"));
       }
       
       // Copy data to staging buffer
@@ -111,34 +109,33 @@ holoscan::Expected<holoscan::Tensor> deserializeTensor(
         HOLOSCAN_LOG_ERROR("Failure in CudaMemcpy. cuda_error: %s, error_str: %s",
                       cudaGetErrorName(error), cudaGetErrorString(error));
         allocator->free(staging_buffer.value());
-        return Unexpected{holoscan::Unexpected{GXF_FAILURE}};
+        return holoscan::make_unexpected(holoscan::RuntimeError("Failed to copy data to staging buffer"));
       }
       
       // Free the staging buffer
       auto free_result = allocator->free(staging_buffer.value());
       if (!free_result) {
         HOLOSCAN_LOG_ERROR("Failed to free staging buffer");
-        return ForwardError(free_result);
+        return holoscan::make_unexpected(holoscan::RuntimeError("Failed to free staging buffer"));
       }
       break;
     }
     default:
-      return Unexpected{holoscan::Unexpected{GXF_FAILURE}};
+      return holoscan::make_unexpected(holoscan::RuntimeError("Invalid memory storage type"));
   }
 
-  return Expected{holoscan::Expected{tensor}};
+  return tensor;
 }
 
 }  // namespace
 
-namespace isaac::os::ops {
+namespace holoscan::ops {
 
 void UcxxReceiverOp::setup(holoscan::OperatorSpec& spec) {
   spec.param(tag_, "tag", "Tag", "UCX tag number", 0ul);
-  spec.param(schema_name_, "schema_name", "Schema name", "Schema name of received messages");
   spec.param(buffer_size_, "buffer_size", "Buffer size", "Receive buffer size", 4 << 10);
   spec.param(endpoint_, "endpoint", "Endpoint", "UcxxEndpoint resource");
-
+  spec.param(allocator_, "allocator", "Allocator", "Allocator for staging buffers");
   spec.output<std::any>("out");
 
   // Add the endpoint's is_alive_condition to this operator so that it will only execute only when
@@ -167,8 +164,12 @@ void UcxxReceiverOp::compute([[maybe_unused]] holoscan::InputContext& input,
   // If the receive request is complete, deserialize and emit it.
   if (request_ && request_->isCompleted()) {
     if (auto status = request_->getStatus(); status == UCS_OK) {
-      std::any message = reflection_.value().get().unpack(buffer_.data(), buffer_.size());
-      output.emit(message, "out");
+      auto tensor = deserializeTensor(buffer_.data(), buffer_.size(), allocator_.get().get());
+      if (!tensor) {
+        HOLOSCAN_LOG_ERROR("Failed to deserialize tensor");
+        return;  
+      }
+      output.emit(tensor.value(), "out");
     } else {
       HOLOSCAN_LOG_ERROR("Receive request failed with status: {}", ucs_status_string(status));
     }

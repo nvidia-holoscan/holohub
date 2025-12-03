@@ -38,8 +38,7 @@ target_link_libraries(ucxx_endoscopy_tool_tracking
     holoscan::ops::video_stream_replayer
     holoscan::ops::format_converter
     holoscan::ops::holoviz
-    isaac::ops::ucxx
-    isaac::messages::schemas
+    holoscan::ops::ucxx
     lstm_tensor_rt_inference
     tool_tracking_postprocessor
 )
