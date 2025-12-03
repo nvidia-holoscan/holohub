@@ -98,6 +98,8 @@ class TestHoloHubContainer(unittest.TestCase):
             self.container.image_name in " ".join(cmd),
             f"Image name {self.container.image_name} not found in command: {cmd}",
         )
+        cmd_str = " ".join(cmd)
+        self.assertIn("NV_DRIVER_TYPE=", cmd_str)
 
     @patch("utilities.cli.container.get_current_branch_slug", return_value="main-branch")
     @patch("utilities.cli.container.get_git_short_sha", return_value="abcdef123456")
@@ -229,6 +231,18 @@ class TestHoloHubContainer(unittest.TestCase):
         # Unparsable driver version -> default to 13
         mock_run_info_command.return_value = "not.a.version"
         self.assertEqual(get_default_cuda_version(), "13")
+
+    @patch("utilities.cli.container.get_driver_type")
+    @patch("subprocess.run")
+    def test_build_includes_driver_type(self, mock_run, mock_get_driver_type):
+        """Test that NV_DRIVER_TYPE is included in the docker build command"""
+        mock_get_driver_type.return_value = "nvgpu"
+        self.container.build()
+
+        cmd = mock_run.call_args[0][0]
+        cmd_str = " ".join(str(x) for x in cmd)
+        self.assertIn("--build-arg NV_DRIVER_TYPE=nvgpu", cmd_str)
+        mock_get_driver_type.assert_called_once()
 
 
 if __name__ == "__main__":

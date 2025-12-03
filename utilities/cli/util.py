@@ -434,6 +434,18 @@ def get_host_gpu() -> str:
     return "dgpu"
 
 
+def get_driver_type() -> str:
+    """Determine driver stack openrm or nvgpu."""
+    gpu_name = get_gpu_name()
+    if gpu_name is None:
+        warn("nvidia-smi not found or no GPU detected, default driver type is OpenRM")
+        return "openrm"
+
+    if "nvgpu" in gpu_name.lower():
+        return "nvgpu"
+    return "openrm"
+
+
 def get_default_cuda_version() -> str:
     """
     Get default CUDA version based on NVIDIA driver version.
