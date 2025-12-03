@@ -17,7 +17,6 @@
 
 #include "gst_video_recorder_op.hpp"
 
-#include <gst/cuda/gstcudamemory.h>
 #include <gxf/core/gxf.h>
 #include <algorithm>
 #include <cstring>
@@ -25,8 +24,13 @@
 #include <holoscan/core/domain/tensor_map.hpp>
 #include <regex>
 
+#include "gst/config.hpp"
 #include "gst/error.hpp"
 #include "gst/message.hpp"
+
+#ifdef HOLOSCAN_GSTREAMER_CUDA_SUPPORT
+#include <gst/cuda/gstcudamemory.h>
+#endif
 
 // Timeout for waiting for EOS to be processed during pipeline shutdown
 constexpr std::chrono::seconds kEosTimeoutSeconds{30};
