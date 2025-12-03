@@ -2101,6 +2101,37 @@ class HoloHubCLI:
             print(Color.red(f"Failed to add application to applications/CMakeLists.txt: {str(e)}"))
             print(Color.red("Please add the application manually to applications/CMakeLists.txt"))
 
+    def validate_generated_metadata(self, metadata_path: Path, schema_root: Optional[Path]) -> None:
+        """Validate metadata.json for the newly created project."""
+        import json
+
+        import utilities.metadata.metadata_validator as metadata_validator
+
+        if not schema_root:
+            # No schema installed – skip validation.
+            return
+        if not metadata_path.exists():
+            holohub_cli_util.fatal(f"Generated project is missing metadata.json at {metadata_path}")
+        try:
+            with open(metadata_path, "r", encoding="utf-8") as metadata_file:
+                metadata_contents = json.load(metadata_file)
+        except json.JSONDecodeError as exc:
+            holohub_cli_util.fatal(
+                f"Generated metadata.json is not valid ({exc}). File location: {metadata_path}"
+            )
+        except OSError as exc:
+            holohub_cli_util.fatal(
+                f"Failed to read metadata.json ({exc}). File location: {metadata_path}"
+            )
+        is_valid, message = metadata_validator.validate_json(metadata_contents, str(schema_root))
+        if not is_valid:
+            holohub_cli_util.fatal(
+                f"Generated metadata.json failed validation against {schema_root / 'metadata.schema.json'}:\n{message}"
+            )
+        print(
+            Color.green(f"Validated metadata.json against {schema_root / 'metadata.schema.json'}")
+        )
+
     def handle_vscode(self, args: argparse.Namespace) -> None:
         """Builds a dev container and launches VS Code with proper devcontainer configuration."""
         if not shutil.which("code") and not args.dryrun:
@@ -2215,13 +2246,13 @@ class HoloHubCLI:
 
         import cookiecutter.main
 
-        project_dir = args.directory / context["project_slug"]
-        if project_dir.exists():
-            holohub_cli_util.fatal(f"Project directory {project_dir} already exists")
+        intended_dir = args.directory / context["project_slug"]
+        if intended_dir.exists():
+            holohub_cli_util.fatal(f"Project directory {intended_dir} already exists")
 
         try:
             # Let cookiecutter handle all file generation
-            cookiecutter.main.cookiecutter(
+            generated_path = cookiecutter.main.cookiecutter(
                 str(template_dir),
                 no_input=not args.interactive,
                 extra_context=context,
@@ -2231,14 +2262,20 @@ class HoloHubCLI:
             holohub_cli_util.fatal(f"Failed to create project: {str(e)}")
 
         # Add to CMakeLists.txt if in applications directory
+        project_dir = Path(generated_path)
+        actual_slug = project_dir.name
+
         if args.directory == self.HOLOHUB_ROOT / "applications":
-            self._add_to_cmakelists(context["project_slug"])
+            self._add_to_cmakelists(actual_slug)
 
         # Get the actual project directory after cookiecutter runs
-        project_dir = args.directory / context["project_slug"]
         metadata_path = project_dir / "metadata.json"
         src_dir = project_dir / "src"
-        main_file = next(src_dir.glob(f"{context['project_slug']}.*"), None)
+        main_file = next(src_dir.glob(f"{actual_slug}.*"), None)
+        schema_root = Path(__file__).resolve().parents[2] / "applications"
+        if not (schema_root / "metadata.schema.json").exists():
+            schema_root = None
+        self.validate_generated_metadata(metadata_path, schema_root)
 
         msg_next = ""
         if "applications" in args.template:
@@ -2248,7 +2285,7 @@ class HoloHubCLI:
                 f"- Update project metadata in {metadata_path}\n"
                 f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
                 f"- Build and run the application:\n"
-                f"   {self.script_name} run {context['project_slug']}"
+                f"   {self.script_name} run {actual_slug}"
             )
 
         print(

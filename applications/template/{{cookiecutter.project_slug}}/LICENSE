@@ -1,1 +1,4 @@
-place the license terms here
+{{ cookiecutter.project_name }}
+Copyright (c) {{ cookiecutter.year }} {{ cookiecutter.full_name }} ({{ cookiecutter.affiliation }})
+
+NOTE: Replace or update this file with the license that applies to your project
