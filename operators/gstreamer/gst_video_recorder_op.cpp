@@ -28,7 +28,7 @@
 #include "gst/error.hpp"
 #include "gst/message.hpp"
 
-#ifdef HOLOSCAN_GSTREAMER_CUDA_SUPPORT
+#if HOLOSCAN_GSTREAMER_CUDA_SUPPORT
 #include <gst/cuda/gstcudamemory.h>
 #endif
 
@@ -73,7 +73,14 @@ std::string normalize_framerate(const std::string& framerate) {
   if (std::regex_match(framerate, match, decimal_regex)) {
     int whole = std::stoi(match[1].str());
     std::string decimal_part = match[2].str();
-    int decimal_places = decimal_part.length();
+    int decimal_places = static_cast<int>(decimal_part.length());
+
+    // Limit decimal places to prevent overflow (9 digits max for int32)
+    if (decimal_places > 9) {
+      throw std::runtime_error("Framerate decimal precision too high: '" + framerate +
+                               "'. Maximum 9 decimal places supported.");
+    }
+
     int fractional = std::stoi(decimal_part);
 
     // Convert to rational: 29.97 = 2997/100
@@ -644,7 +651,7 @@ void GstVideoRecorderOp::stop() {
   }
 
   // Cleanup pipeline.
-  if (pipeline_ && pipeline_.get()) {
+  if (pipeline_) {
     pipeline_.reset();
   }
 

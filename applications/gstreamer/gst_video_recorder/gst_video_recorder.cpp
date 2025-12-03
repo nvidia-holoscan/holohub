@@ -325,6 +325,15 @@ class GstVideoRecorderApp : public Application {
     std::shared_ptr<Operator> source_op;
     std::string source_output_port;
 
+    // Create the GStreamer video recorder operator (common to both sources)
+    auto recorder_op = make_operator<GstVideoRecorderOp>(
+        "gst_recorder_op",
+        Arg("encoder", encoder_),
+        Arg("framerate", framerate_),
+        Arg("properties", properties_),
+        Arg("max-buffers", DEFAULT_MAX_BUFFERS),
+        Arg("filename", filename_));
+
     if (source_ == "v4l2") {
       // Create V4L2 camera capture operator
       // Note: V4L2VideoCaptureOp expects width/height as uint32_t
@@ -349,15 +358,6 @@ class GstVideoRecorderApp : public Application {
           Arg("out_dtype", std::string("rgba8888")),
           Arg("pool", allocator));
 
-      // Create the GStreamer video recorder operator
-      auto recorder_op = make_operator<GstVideoRecorderOp>(
-          "gst_recorder_op",
-          Arg("encoder", encoder_),
-          Arg("framerate", framerate_),
-          Arg("properties", properties_),
-          Arg("max-buffers", DEFAULT_MAX_BUFFERS),
-          Arg("filename", filename_));
-
       // Connect: V4L2 -> FormatConverter -> Recorder
       add_flow(source_op, format_converter, {{source_output_port, "source_video"}});
       add_flow(format_converter, recorder_op, {{"tensor", "input"}});
@@ -375,15 +375,6 @@ class GstVideoRecorderApp : public Application {
 
       HOLOSCAN_LOG_INFO("Using pattern generator source: {}x{}, pattern={}",
                         width_, height_, get_pattern_name(pattern_));
-
-      // Create the GStreamer video recorder operator
-      auto recorder_op = make_operator<GstVideoRecorderOp>(
-          "gst_recorder_op",
-          Arg("encoder", encoder_),
-          Arg("framerate", framerate_),
-          Arg("properties", properties_),
-          Arg("max-buffers", DEFAULT_MAX_BUFFERS),
-          Arg("filename", filename_));
 
       // Connect: Pattern -> Recorder (direct)
       add_flow(source_op, recorder_op, {{source_output_port, "input"}});

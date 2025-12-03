@@ -112,7 +112,7 @@ gst-video-recorder [OPTIONS]
 
 #### V4L2 Camera Examples
 
-**Record from default V4L2 camera at 1920x1080 (30 seconds at 30fps):**
+**Record from default V4L2 camera at 1920x1080 (30 seconds at 30 FPS):**
 ```bash
 ./holohub run gst_video_recorder --run-args="--source v4l2 --width 1920 --height 1080 --count 900 -o camera.mp4"
 ```
@@ -139,12 +139,12 @@ gst-video-recorder [OPTIONS]
 
 #### Pattern Generator Examples
 
-**Record 10 seconds of animated gradient (300 frames at 30fps):**
+**Record 10 seconds of animated gradient (300 frames at 30 FPS):**
 ```bash
 ./holohub run gst_video_recorder --run-args="--source pattern --count 300 -o video.mp4"
 ```
 
-**Record high quality H.265 video:**
+**Record high-quality H.265 video:**
 ```bash
 ./holohub run gst_video_recorder --run-args="--source pattern --count 300 --encoder nvh265 --property bitrate=10000 -o video.mp4"
 ```
@@ -178,12 +178,12 @@ The application supports two video sources and uses a common encoding backend:
 ### Pipeline Flow
 
 **V4L2 Camera Pipeline:**
-```
+```text
 V4L2VideoCaptureOp → FormatConverterOp → GstVideoRecorderOp → GStreamer Pipeline → File
 ```
 
 **Pattern Generator Pipeline:**
-```
+```text
 PatternGenOperator → GstVideoRecorderOp → GStreamer Pipeline → File
 ```
 

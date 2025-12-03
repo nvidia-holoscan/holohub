@@ -20,6 +20,8 @@
 
 #include <gst/gst.h>
 
+#include <algorithm>
+#include <cctype>
 #include <cstdint>
 #include <cstdio>
 #include <functional>
@@ -165,16 +167,20 @@ class ObjectBase {
 
  private:
   /**
-   * @brief Compile-time helper to convert std::string to const char*, leave other types unchanged
+   * @brief Helper to convert std::string to const char*, leave other types unchanged
    * @tparam T Argument type (automatically deduced)
    * @param arg Argument to potentially convert
    * @return const char* for std::string arguments, forwarded original argument for all other types
    *
-   * @note This function is evaluated completely at compile time, generating zero runtime overhead
+   * @note std::string arguments must be lvalues to avoid dangling pointers (temporaries are rejected
+   *       at compile time). Conversions are resolved via `if constexpr` with minimal overhead.
    */
   template <typename T>
   static constexpr auto convert_for_gobject(T&& arg) {
     if constexpr (std::is_same_v<std::decay_t<T>, std::string>) {
+      static_assert(std::is_lvalue_reference_v<T&&>,
+                    "std::string arguments to set_properties must be lvalues; use a named "
+                    "variable or .c_str() for temporaries.");
       return arg.c_str();
     } else {
       return std::forward<T>(arg);
@@ -186,15 +192,14 @@ class ObjectBase {
    * @brief Set multiple properties on the GObject in a single call
    * @tparam Args Variadic template for property names and values
    * @param args Property name-value pairs (name1, value1, name2, value2, ...)
-   * @return true if properties were set successfully, false otherwise
    *
    * @note This variadic template function mimics g_object_set behavior:
    *       - Accepts any number of property name-value pairs
-   *       - Automatically converts std::string to const char* at COMPILE TIME
+   *       - Automatically converts std::string to const char* at compile time
    *       - Supports all types that g_object_set can handle
-   *       - Property names can be const char* or std::string
+   *       - Property names can be const char* or std::string (must be lvalues)
    *       - Values can be any supported GObject property type
-   *       - ZERO runtime overhead - all conversions resolved at compile time
+   *       - Minimal overhead - conversions resolved at compile time
    *
    * @example
    *   // Set multiple properties at once
@@ -203,12 +208,15 @@ class ObjectBase {
    *                          "enabled", true,
    *                          "quality", 1.5f);
    *
-   *   // Works with std::string property names too
+   *   // Works with std::string property names too (must be lvalues)
    *   std::string prop = "bitrate";
-   *   element.set_properties(prop, 2000000, "name", std::string("test"));
+   *   std::string name = "test";
+   *   element.set_properties(prop, 2000000, "name", name.c_str());
    */
   template <typename... Args>
   void set_properties(Args&&... args) {
+    static_assert(sizeof...(Args) % 2 == 0,
+                  "set_properties expects an even number of arguments: (name, value) pairs.");
     if (!ptr_)
       return;
 
@@ -278,7 +286,14 @@ class ObjectBase {
         }
 
         case G_TYPE_BOOLEAN: {
-          bool bool_val = (value == "true" || value == "1" || value == "TRUE" || value == "True");
+          // Support common boolean representations, case-insensitive
+          std::string lower_val = value;
+          std::transform(lower_val.begin(),
+                         lower_val.end(),
+                         lower_val.begin(),
+                         static_cast<int (*)(int)>(std::tolower));
+          bool bool_val = (lower_val == "true" || lower_val == "1" ||
+                           lower_val == "yes" || lower_val == "on");
           set_properties(name, bool_val);
           break;
         }
