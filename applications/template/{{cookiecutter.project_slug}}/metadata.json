@@ -19,8 +19,10 @@
 				"{{ cookiecutter.holoscan_version }}"
 			]
 		},
-		"platforms": {% if cookiecutter.platforms %}{{ cookiecutter.platforms }}{% else %}["x86_64", "aarch64"]{% endif %},
-		"tags": {% if cookiecutter.tags %}{{ cookiecutter.tags }}{% else %}["keyword1", "keyword2", "keyword3"]{% endif %},
+		{%- set platform_tokens = cookiecutter.platforms.split(',') | map('trim') | reject('equalto', '') | list %}
+		"platforms": {% if platform_tokens %}{{ platform_tokens | tojson }}{% else %}["x86_64", "aarch64"]{% endif %},
+		{%- set tag_tokens = cookiecutter.tags.split(',') | map('trim') | reject('equalto', '') | list %}
+		"tags": {% if tag_tokens %}{{ tag_tokens | tojson }}{% else %}["keyword1", "keyword2", "keyword3"]{% endif %},
 		"ranking": 1,
 		"requirements": {
 			"example_requirement_1": {
@@ -34,11 +36,7 @@
 				"description": "Standard mode for {{ cookiecutter.project_name }} - development, testing, and basic usage",
 				"requirements": [],
 				"run": {
-					"command":{% if cookiecutter.language == "python" %}
-            "python3 <holohub_app_source>/src/main.py"
-          {% else %}
-            "<holohub_app_bin>/{{ cookiecutter.project_slug }}"
-          {% endif %},
+					"command": "{% if cookiecutter.language == 'python' %}python3 <holohub_app_source>/src/main.py{% else %}<holohub_app_bin>/{{ cookiecutter.project_slug }}{% endif %}",
 					"workdir": "holohub_bin"
 				}
 			}
