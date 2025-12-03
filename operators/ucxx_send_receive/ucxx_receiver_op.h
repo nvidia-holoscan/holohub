@@ -43,7 +43,6 @@ class UcxxReceiverOp : public holoscan::Operator {
 
  private:
   holoscan::Parameter<uint64_t> tag_;
-  holoscan::Parameter<std::string> schema_name_;
   holoscan::Parameter<int> buffer_size_;
   holoscan::Parameter<std::shared_ptr<UcxxEndpoint>> endpoint_;
 
