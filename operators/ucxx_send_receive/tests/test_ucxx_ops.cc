@@ -84,24 +84,31 @@ class TensorRxOp : public holoscan::Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(TensorRxOp)
 
   void setup(holoscan::OperatorSpec& spec) override {
-    spec.input<holoscan::Tensor>("in");
+    spec.input<holoscan::gxf::Entity>("in");
   }
 
   void compute(holoscan::InputContext& input, [[maybe_unused]] holoscan::OutputContext& output,
                [[maybe_unused]] holoscan::ExecutionContext& context) override {
-    auto tensor = input.receive<holoscan::Tensor>("in");
-    if (!tensor.has_value()) {
-      HOLOSCAN_LOG_ERROR("Failed to receive tensor");
+    auto entity = input.receive<holoscan::gxf::Entity>("in");
+    if (!entity.has_value()) {
+      HOLOSCAN_LOG_ERROR("Failed to receive entity");
+      return;
+    }
+    
+    // Get the tensor from the entity
+    auto tensor = entity.value().get<holoscan::Tensor>("");
+    if (!tensor) {
+      HOLOSCAN_LOG_ERROR("Failed to get tensor from entity");
       return;
     }
     
     // Verify tensor dimensions
     HOLOSCAN_LOG_INFO("Received tensor with rank {} and shape: [{}, {}, {}]", 
-                      tensor.value().ndim(), tensor.value().shape()[0], tensor.value().shape()[1], tensor.value().shape()[2]);
+                      tensor->ndim(), tensor->shape()[0], tensor->shape()[1], tensor->shape()[2]);
     
     // Verify data type
     HOLOSCAN_LOG_INFO("Received tensor with dtype: {} bits: {}", 
-                      tensor.value().dtype().code, tensor.value().dtype().bits);
+                      tensor->dtype().code, tensor->dtype().bits);
   }
 };
 

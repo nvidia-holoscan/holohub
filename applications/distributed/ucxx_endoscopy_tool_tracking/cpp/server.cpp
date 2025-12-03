@@ -17,6 +17,7 @@
 
 #include "server.h"
 
+#include <holoscan/holoscan.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
@@ -33,11 +34,16 @@ void UcxxEndoscopyServerApp::compose() {
 
   HOLOSCAN_LOG_INFO("Composing SIMPLIFIED SERVER - replaying and broadcasting raw frames");
 
+  auto allocator = make_resource<RMMAllocator>("video_replayer_allocator",
+                                      Arg("device_memory_max_size") = std::string("256MB"),
+                                      Arg("device_memory_initial_size") = std::string("256MB"));
+
   // Video replayer source
   auto replayer = make_operator<ops::VideoStreamReplayerOp>(
       "replayer",
-      from_config("replayer"),
-      Arg("directory", datapath_));
+      Arg("allocator") = allocator,
+      Arg("directory", datapath_),
+      from_config("replayer"));
 
   // UCXX endpoint for broadcasting to clients
   auto ucxx_endpoint = make_resource<holoscan::ops::UcxxEndpoint>(
@@ -50,7 +56,8 @@ void UcxxEndoscopyServerApp::compose() {
   auto ucxx_sender = make_operator<holoscan::ops::UcxxSenderOp>(
       "ucxx_sender",
       Arg("tag", 1ul),
-      Arg("endpoint", ucxx_endpoint));
+      Arg("endpoint") = ucxx_endpoint,
+      Arg("allocator") = allocator);
 
   // Simple pipeline: Replayer → UCXX Sender
   add_flow(replayer, ucxx_sender, {{"output", "in"}});

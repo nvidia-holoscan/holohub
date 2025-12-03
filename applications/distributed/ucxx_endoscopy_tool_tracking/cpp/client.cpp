@@ -17,6 +17,7 @@
 
 #include "client.h"
 
+#include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 
 #include "operators/ucxx_send_receive/ucxx_endpoint.h"
@@ -32,6 +33,10 @@ void UcxxEndoscopyClientApp::compose() {
 
   HOLOSCAN_LOG_INFO("Composing SIMPLIFIED CLIENT - receiving and displaying raw frames");
 
+  auto allocator = make_resource<RMMAllocator>("video_replayer_allocator",
+                                      Arg("device_memory_max_size") = std::string("256MB"),
+                                      Arg("device_memory_initial_size") = std::string("256MB"));
+
   // UCXX endpoint for receiving from server
   auto ucxx_endpoint = make_resource<holoscan::ops::UcxxEndpoint>(
       "ucxx_endpoint",
@@ -46,14 +51,16 @@ void UcxxEndoscopyClientApp::compose() {
       "ucxx_receiver",
       Arg("tag", 1ul),
       Arg("buffer_size", buffer_size),
-      Arg("endpoint", ucxx_endpoint));
+      Arg("endpoint") = ucxx_endpoint,
+      Arg("allocator") = allocator);
 
   // Client-side visualization - simple image display
   auto holoviz = make_operator<ops::HolovizOp>(
       "holoviz",
       from_config("holoviz_client"),
       Arg("width") = width,
-      Arg("height") = height);
+      Arg("height") = height,
+      Arg("allocator") = allocator);
 
   // Display received rendered frames (Tensor output)
   add_flow(ucxx_receiver, holoviz, {{"out", "receivers"}});

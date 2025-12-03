@@ -158,7 +158,7 @@ void UcxxReceiverOp::setup(holoscan::OperatorSpec& spec) {
   spec.param(buffer_size_, "buffer_size", "Buffer size", "Receive buffer size", 4 << 10);
   spec.param(endpoint_, "endpoint", "Endpoint", "UcxxEndpoint resource");
   spec.param(allocator_, "allocator", "Allocator", "Allocator for staging buffers");
-  spec.output<std::any>("out");
+  spec.output<holoscan::gxf::Entity>("out");
 
   // Add the endpoint's is_alive_condition to this operator so that it will only execute only when
   // the endpoint is alive.
@@ -193,15 +193,20 @@ void UcxxReceiverOp::compute([[maybe_unused]] holoscan::InputContext& input,
         return;  
       }
       
-      // Convert nvidia::gxf::Tensor to holoscan::Tensor using DLPack
-      auto maybe_dl_ctx = gxf_tensor.value().toDLManagedTensorContext();
-      if (!maybe_dl_ctx) {
-        HOLOSCAN_LOG_ERROR("Failed to convert GXF tensor to DLManagedTensorContext");
+      // Create an entity and add the tensor as a component with name ""
+      auto out_entity = holoscan::gxf::Entity::New(&context);
+      
+      // Add the GXF tensor to the entity
+      auto tensor_handle = static_cast<nvidia::gxf::Entity&>(out_entity).add<nvidia::gxf::Tensor>("");
+      if (!tensor_handle) {
+        HOLOSCAN_LOG_ERROR("Failed to add tensor to entity");
         return;
       }
       
-      auto holoscan_tensor = holoscan::Tensor(maybe_dl_ctx.value());
-      output.emit(holoscan_tensor, "out");
+      // Move the deserialized tensor data into the entity's tensor
+      *tensor_handle.value() = std::move(gxf_tensor.value());
+      
+      output.emit(out_entity, "out");
     } else {
       HOLOSCAN_LOG_ERROR("Receive request failed with status: {}", ucs_status_string(status));
     }
