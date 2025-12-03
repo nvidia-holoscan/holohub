@@ -35,7 +35,7 @@ is available in userspace, thus bypassing the kernel's networking stack entirely
     - [DOCA-Host](https://developer.nvidia.com/doca-archive) 2.8 or later (install `mlnx-ofed-kernel-dkms` package or the `doca-ofed` meta-package for extra tooling)
     - _(deprecated)_ [MOFED](https://network.nvidia.com/products/infiniband-drivers/linux/mlnx_ofed/) 23.10 or later (`sudo ./mlnxofedinstall --kernel-only`)
 
-> User-space libraries are including in the [Dockerfile](./Dockerfile) for each networking backend. Inspect this file if you wish to know what is needed to build and run on baremetal instead.
+> User-space libraries are included in the [Dockerfile](./Dockerfile) for each networking backend. Inspect this file if you wish to know what is needed to build and run on baremetal instead.
 
 #### Features
 
