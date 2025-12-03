@@ -192,8 +192,6 @@ FROM dpdk-build AS dpdk
 # ==============================================================
 FROM dpdk-build AS gpunetio-deps
 
-ARG DEBIAN_FRONTEND=noninteractive
-
 # Install DOCA SDK packages required for GPUNetIO
 # (DOCA repo is already configured in dpdk-build stage)
 # - libdoca-sdk-dma-dev: for gpunetio backend (dependency of doca-gpunetio module)
