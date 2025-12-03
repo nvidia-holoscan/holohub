@@ -112,8 +112,9 @@ DocaRxQueue::DocaRxQueue(struct doca_dev* dev_, struct doca_gpu* gdev_,
                            doca_error_get_descr(result));
         dmabuf_fd = -1;
       }
-    } else
+    } else {
       dmabuf_fd = -1;
+    }
   }
 
   if (dmabuf_fd == -1) {
@@ -427,6 +428,8 @@ DocaTxQueue::DocaTxQueue(struct doca_dev* ddev_, struct doca_gpu* gdev_, uint16_
         HOLOSCAN_LOG_ERROR("Failed to set dmabuf memrange for mmap {}",
                            doca_error_get_descr(result));
       }
+    } else {
+      dmabuf_fd = -1;
     }
   }
 

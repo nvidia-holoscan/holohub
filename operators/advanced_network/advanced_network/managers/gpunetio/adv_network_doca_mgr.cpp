@@ -864,7 +864,6 @@ doca_error_t DocaMgr::create_default_pipe(int port_id, uint32_t cnt_defq) {
   fwd.rss.queues_array = rss_queues;
   fwd.rss.outer_flags = DOCA_FLOW_RSS_IPV4;
   fwd.rss.nr_queues = cnt_defq;
-  ;
 
   miss_fwd.type = DOCA_FLOW_FWD_DROP;
 
@@ -1425,7 +1424,6 @@ int DocaMgr::rx_core(void* arg) {
 
   for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
     packets_stats = &((struct adv_doca_rx_gpu_info*)(pkt_cpu_list[ridx]))[pkt_idx_cpu_list[ridx]];
-    // HOLOSCAN_LOG_INFO("Check queue {} sem {}", ridx, sem_idx[ridx]);
     status = DOCA_GPUNETIO_VOLATILE(packets_stats->status);
 
     if (status == DOCA_GPU_SEMAPHORE_STATUS_READY) {
