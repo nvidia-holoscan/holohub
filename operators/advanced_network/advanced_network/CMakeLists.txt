@@ -40,9 +40,6 @@ set(DPDK_PATH_UPSTREAM /usr/local)
 set(DPDK_PATH_MLNX /opt/mellanox/dpdk)
 set(DOCA_PATH /opt/mellanox/doca)
 
-# Set PKG_CONFIG_PATH to find DPDK (upstream first, then mlnx) and DOCA
-set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${DPDK_PATH_UPSTREAM}/lib/${ARCH}-linux-gnu/pkgconfig:${DPDK_PATH_UPSTREAM}/lib/pkgconfig:${DPDK_PATH_MLNX}/lib/${ARCH}-linux-gnu/pkgconfig:${DOCA_PATH}/lib/${ARCH}-linux-gnu/pkgconfig:/opt/mellanox/flexio/lib/pkgconfig:/opt/mellanox/collectx/lib/${ARCH}-linux-gnu/pkgconfig")
-
 # Common library
 add_library(advanced_network_common SHARED
   common.cpp

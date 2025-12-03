@@ -86,26 +86,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /opt
 
 # APT installs for base dependencies (no DOCA/GPUNetIO packages)
-# - cublas, cufft, cusolver, curand dev libs: for matx
-# - ninja-build: for cmake build
-# - pkgconf: to import dpdk in CMake
-# - meson: for building DPDK
-# - python3-pyelftools: required for DPDK build
-# - libnuma-dev: NUMA support for DPDK
 # - libibverbs-dev, librdmacm-dev: RDMA/ibverbs support for Mellanox NICs
 # - libmlx5-1: Mellanox ConnectX driver
 # - ibverbs-utils: utilities
 # - python3-dev: for building python bindings
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libcublas-dev-12-6 \
-        libcufft-dev-12-6 \
-        libcusolver-dev-12-6 \
-        libcurand-dev-12-6 \
-        ninja-build \
-        pkgconf \
-        meson \
-        python3-pyelftools \
-        libnuma-dev \
         libibverbs-dev \
         librdmacm-dev \
         libmlx5-1 \
@@ -123,9 +108,9 @@ RUN python3 -m pip install --no-cache-dir \
         scapy
 
 # ==============================================================
-# dpdk-build: Build upstream DPDK from source
+# dpdk-deps: Build upstream DPDK from source
 # ==============================================================
-FROM base-deps AS dpdk-build
+FROM base-deps AS dpdk-deps
 
 ARG TARGETARCH
 # DPDK version to download and build
@@ -134,6 +119,24 @@ ARG DPDK_BUILD_DIR=/opt/dpdk-build
 ARG DPDK_INSTALL_PREFIX=/usr/local
 ARG DOCA_VERSION=2.8.0
 ARG DEBIAN_FRONTEND=noninteractive
+
+
+# - infiniband-diags for IB diagnostics
+# - mft for Mellanox Flex Transport
+# - ninja-build: for cmake build
+# - pkgconf: to import dpdk in CMake
+# - meson: for building DPDK
+# - python3-pyelftools: required for DPDK build
+# - libnuma-dev: NUMA support for DPDK
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        infiniband-diags \
+        mft \
+        ninja-build \
+        pkgconf \
+        meson \
+        python3-pyelftools \
+        libnuma-dev \        
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
 
@@ -172,28 +175,20 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
     && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} > /dev/null \
     && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list
 
-# Install mlnx-ofed-kernel-utils (utilities including ibdev2netdev used by tune_system.py)
+# - mlnx-ofed-kernel-utils for utilities including ibdev2netdev used by tune_system.py
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        mlnx-ofed-kernel-utils \
-    && rm -rf /var/lib/apt/lists/*
+    mlnx-ofed-kernel-utils
+
 
 WORKDIR /opt
-
-# ==============================
-# DPDK Target (Default)
-# This is the default target for users who only need DPDK support.
-# GPUNetIO/DOCA is NOT included.
-# ==============================
-FROM dpdk-build AS dpdk
-# DPDK is ready to use, no additional steps needed
 
 # ==============================================================
 # gpunetio-deps: Add DOCA SDK packages for GPUNetIO support
 # ==============================================================
-FROM dpdk-build AS gpunetio-deps
+FROM dpdk-deps AS gpunetio-deps
 
 # Install DOCA SDK packages required for GPUNetIO
-# (DOCA repo is already configured in dpdk-build stage)
+# (DOCA repo is already configured in dpdk-deps stage)
 # - libdoca-sdk-dma-dev: for gpunetio backend (dependency of doca-gpunetio module)
 # - libdoca-sdk-gpunetio-dev: for gpunetio backend (doca-gpunetio module)
 # - libdoca-sdk-eth-dev: for gpunetio backend (doca-eth module)
@@ -292,4 +287,4 @@ RUN cd rivermax-dev-kit && \
 # This provides upstream DPDK support without DOCA dependencies.
 # Use --target gpunetio if you need DOCA GPUNetIO support.
 # ==============================
-FROM dpdk
+FROM dpdk-deps

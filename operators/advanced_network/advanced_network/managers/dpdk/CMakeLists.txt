@@ -29,7 +29,7 @@ if(NOT DPDK_FOUND)
   message(STATUS "Looking for DPDK in Mellanox installation directories")
   execute_process(COMMAND arch OUTPUT_VARIABLE ARCH)
   string(STRIP ${ARCH} ARCH)
-  set(ENV{PKG_CONFIG_PATH} "/opt/mellanox/dpdk/lib/${ARCH}-linux-gnu/pkgconfig/")
+  list(APPEND CMAKE_PREFIX_PATH "/opt/mellanox/dpdk/lib/${ARCH}-linux-gnu/pkgconfig/")
   pkg_check_modules(DPDK REQUIRED libdpdk)
 endif()
 
