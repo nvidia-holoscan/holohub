@@ -24,7 +24,7 @@
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
-#include <gst_video_recorder_operator.hpp>
+#include <gst_video_recorder_op.hpp>
 #include "pattern_generator.hpp"
 
 namespace {
@@ -350,7 +350,7 @@ class GstVideoRecorderApp : public Application {
           Arg("pool", allocator));
 
       // Create the GStreamer video recorder operator
-      auto recorder_op = make_operator<GstVideoRecorderOperator>(
+      auto recorder_op = make_operator<GstVideoRecorderOp>(
           "gst_recorder_op",
           Arg("encoder", encoder_),
           Arg("framerate", framerate_),
@@ -377,7 +377,7 @@ class GstVideoRecorderApp : public Application {
                         width_, height_, get_pattern_name(pattern_));
 
       // Create the GStreamer video recorder operator
-      auto recorder_op = make_operator<GstVideoRecorderOperator>(
+      auto recorder_op = make_operator<GstVideoRecorderOp>(
           "gst_recorder_op",
           Arg("encoder", encoder_),
           Arg("framerate", framerate_),

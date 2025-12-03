@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "gst_video_recorder_operator.hpp"
+#include "gst_video_recorder_op.hpp"
 
 #include <gst/cuda/gstcudamemory.h>
 #include <gxf/core/gxf.h>
@@ -394,7 +394,7 @@ void add_and_link_source_converter(holoscan::gst::Pipeline& pipeline,
 
 }  // unnamed namespace
 
-void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
+void GstVideoRecorderOp::setup(OperatorSpec& spec) {
   spec.input<TensorMap>("input");
 
   // Register converter for std::map<std::string, std::string> to enable Arg() support
@@ -436,7 +436,7 @@ void GstVideoRecorderOperator::setup(OperatorSpec& spec) {
              std::map<std::string, std::string>());
 }
 
-void GstVideoRecorderOperator::start() {
+void GstVideoRecorderOp::start() {
   Operator::start();
 
   // Initialize frame counter
@@ -445,7 +445,7 @@ void GstVideoRecorderOperator::start() {
   // Ensure bus monitor stop flag is cleared for a fresh run
   stop_bus_monitor_.store(false);
 
-  HOLOSCAN_LOG_INFO("GstVideoRecorderOperator - Starting");
+  HOLOSCAN_LOG_INFO("GstVideoRecorderOp - Starting");
   HOLOSCAN_LOG_INFO("Output filename: '{}'", filename_.get());
   HOLOSCAN_LOG_INFO("Encoder: {}enc", encoder_name_.get());
 
@@ -548,15 +548,15 @@ void GstVideoRecorderOperator::start() {
   bus_monitor_future_ = std::async(
       std::launch::async, monitor_pipeline_bus, std::ref(pipeline_), std::ref(stop_bus_monitor_));
 
-  HOLOSCAN_LOG_INFO("GstVideoRecorderOperator::start() - Pipeline setup complete");
+  HOLOSCAN_LOG_INFO("GstVideoRecorderOp::start() - Pipeline setup complete");
 }
 
-void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& output,
+void GstVideoRecorderOp::compute(InputContext& input, OutputContext& output,
                                        ExecutionContext& context) {
   frame_count_++;
 
   HOLOSCAN_LOG_DEBUG(
-      "GstVideoRecorderOperator::compute() - Frame #{} - "
+      "GstVideoRecorderOp::compute() - Frame #{} - "
       "Receiving tensor map",
       frame_count_);
 
@@ -603,8 +603,8 @@ void GstVideoRecorderOperator::compute(InputContext& input, OutputContext& outpu
   HOLOSCAN_LOG_DEBUG("Frame #{} - Buffer successfully pushed to encoding pipeline", frame_count_);
 }
 
-void GstVideoRecorderOperator::stop() {
-  HOLOSCAN_LOG_INFO("GstVideoRecorderOperator::stop() - Recording stopping");
+void GstVideoRecorderOp::stop() {
+  HOLOSCAN_LOG_INFO("GstVideoRecorderOp::stop() - Recording stopping");
 
   // Send EOS to signal end of stream (only if bridge was initialized)
   if (src_bridge_) {
@@ -617,7 +617,7 @@ void GstVideoRecorderOperator::stop() {
   // Wait for the bus monitor thread to complete (it will exit when EOS is received)
   // Do NOT signal stop_bus_monitor_ - let it exit naturally on EOS
   if (bus_monitor_future_.valid()) {
-    HOLOSCAN_LOG_INFO("GstVideoRecorderOperator::stop() - Waiting for EOS to be processed");
+    HOLOSCAN_LOG_INFO("GstVideoRecorderOp::stop() - Waiting for EOS to be processed");
     auto status = bus_monitor_future_.wait_for(kEosTimeoutSeconds);
     if (status == std::future_status::ready) {
       HOLOSCAN_LOG_INFO("EOS processed, pipeline finished cleanly");
@@ -644,7 +644,7 @@ void GstVideoRecorderOperator::stop() {
     pipeline_.reset();
   }
 
-  HOLOSCAN_LOG_INFO("GstVideoRecorderOperator::stop() - Stop complete");
+  HOLOSCAN_LOG_INFO("GstVideoRecorderOp::stop() - Stop complete");
 }
 
 }  // namespace holoscan

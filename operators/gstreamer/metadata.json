@@ -10,7 +10,7 @@
     ],
     "version": "1.0.0",
     "changelog": {
-      "1.0.0": "Initial release with GstVideoRecorderOperator and GstSrcBridge"
+      "1.0.0": "Initial release with GstVideoRecorderOp and GstSrcBridge"
     },
     "language": ["C++"],
     "holoscan_sdk": {

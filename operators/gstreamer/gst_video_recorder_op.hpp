@@ -45,9 +45,9 @@ namespace holoscan {
  * The operator uses GstSrcBridge directly to bridge Holoscan data into a GStreamer
  * pipeline that handles encoding and muxing to produce output files.
  */
-class GstVideoRecorderOperator : public Operator {
+class GstVideoRecorderOp : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(GstVideoRecorderOperator)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(GstVideoRecorderOp)
 
   /**
    * @brief Setup the operator specification

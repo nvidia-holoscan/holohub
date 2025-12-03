@@ -20,11 +20,14 @@
 
 #include <gst/gst.h>
 
+#include <cstdint>
 #include <cstdio>
 #include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
+#include <utility>
 
 namespace holoscan {
 namespace gst {

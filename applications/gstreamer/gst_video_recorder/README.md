@@ -173,18 +173,18 @@ The application supports two video sources and uses a common encoding backend:
 2. **PatternGenOperator**: Generates animated test patterns as Holoscan entities with tensors
 
 ### Encoding Backend:
-- **GstVideoRecorderOperator**: Receives video frames, manages the GStreamer pipeline, and handles encoding
+- **GstVideoRecorderOp**: Receives video frames, manages the GStreamer pipeline, and handles encoding
 
 ### Pipeline Flow
 
 **V4L2 Camera Pipeline:**
 ```
-V4L2VideoCaptureOp → FormatConverterOp → GstVideoRecorderOperator → GStreamer Pipeline → File
+V4L2VideoCaptureOp → FormatConverterOp → GstVideoRecorderOp → GStreamer Pipeline → File
 ```
 
 **Pattern Generator Pipeline:**
 ```
-PatternGenOperator → GstVideoRecorderOperator → GStreamer Pipeline → File
+PatternGenOperator → GstVideoRecorderOp → GStreamer Pipeline → File
 ```
 
 The GStreamer encoding pipeline is automatically constructed based on the encoder and file format:
