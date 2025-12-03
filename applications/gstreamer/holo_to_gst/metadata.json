@@ -1,0 +1,35 @@
+{
+	"application": {
+		"name": "Holopattern to GStreamer",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.6.0",
+			"tested_versions": [
+				"3.6.0"
+			]
+		},
+		"platforms": [
+			"aarch64",
+			"x86_64"
+		],
+		"tags": ["Video", "GStreamer", "Streaming", "Source"],
+		"ranking": 5,
+		"description": "Output Holoscan-generated video patterns to GStreamer pipelines. Demonstrates how to send data from Holoscan to GStreamer for encoding, streaming, or processing.",
+		"run": {
+			"command": "applications/gstreamer/holo_to_gst/holo-to-gst",
+			"workdir": "holohub_bin"
+		}
+	}
+}
+
+
