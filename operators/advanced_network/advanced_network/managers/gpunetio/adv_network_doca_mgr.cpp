@@ -962,7 +962,7 @@ doca_error_t DocaMgr::create_root_pipe(int port_id) {
   }
   doca_flow_pipe_cfg_destroy(pipe_cfg);
 
-  struct doca_flow_match udp_match;
+  struct doca_flow_match udp_match = {0};
   udp_match.outer.eth.type = htons(DOCA_FLOW_ETHER_TYPE_IPV4);
   udp_match.outer.l3_type = DOCA_FLOW_L3_TYPE_IP4;
   udp_match.outer.ip4.next_proto = IPPROTO_UDP;
