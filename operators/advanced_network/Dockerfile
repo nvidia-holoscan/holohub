@@ -135,7 +135,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         pkgconf \
         meson \
         python3-pyelftools \
-        libnuma-dev \        
+        libnuma-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
