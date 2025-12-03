@@ -40,14 +40,14 @@ void UcxxEndoscopyServerApp::compose() {
       Arg("directory", datapath_));
 
   // UCXX endpoint for broadcasting to clients
-  auto ucxx_endpoint = make_resource<isaac::os::UcxxEndpoint>(
+  auto ucxx_endpoint = make_resource<holoscan::ops::UcxxEndpoint>(
       "ucxx_endpoint",
       Arg("hostname", hostname_),
       Arg("port", port_),
       Arg("listen", true));
 
   // UCXX sender to broadcast raw frames as Tensor
-  auto ucxx_sender = make_operator<isaac::os::ops::UcxxSenderOp>(
+  auto ucxx_sender = make_operator<holoscan::ops::UcxxSenderOp>(
       "ucxx_sender",
       Arg("tag", 1ul),
       Arg("endpoint", ucxx_endpoint));

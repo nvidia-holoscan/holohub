@@ -17,13 +17,29 @@
 
 #include "ucxx_sender_op.h"
 
+#include <cuda_runtime.h>
 #include <holoscan/holoscan.hpp>
 
 namespace {
 
+using nvidia::gxf::Shape;
+using nvidia::gxf::PrimitiveType;
+using nvidia::gxf::MemoryStorageType;
+
+#pragma pack(push, 1)
+struct TensorHeader {
+  MemoryStorageType storage_type;     // CPU or GPU tensor
+  PrimitiveType element_type;         // Tensor element type
+  uint64_t bytes_per_element;         // Bytes per tensor element
+  uint32_t rank;                      // Tensor rank
+  int32_t dims[Shape::kMaxRank];      // Tensor dimensions
+  uint64_t strides[Shape::kMaxRank];  // Tensor strides
+};
+#pragma pack(pop)
+
 // Serializes a tensor object into the given buffer.
 // 
-// This function converts a holoscan::Tensor into a raw binary buffer
+// This function converts a nvidia::gxf::Tensor into a raw binary buffer
 // format consisting of a TensorHeader followed by contiguous tensor data.
 // It copies shape/stride information into the header and copies the tensor
 // data based on storage type, using a staging buffer for device memory.
@@ -40,7 +56,7 @@ namespace {
 // 
 // Mirrors the serializeTensor function in ucxx_receiver_op.cc.
 holoscan::expected<size_t, holoscan::RuntimeError> serializeTensor(
-    const holoscan::Tensor& tensor,
+    const nvidia::gxf::Tensor& tensor,
     uint8_t* buffer,
     size_t buffer_size,
     holoscan::Allocator* allocator) {
@@ -51,11 +67,11 @@ holoscan::expected<size_t, holoscan::RuntimeError> serializeTensor(
   if (buffer == nullptr || buffer_size < required_size) {
     HOLOSCAN_LOG_ERROR("Buffer size %zu is too small for tensor serialization (need %zu)",
                        buffer_size, required_size);
-    return Unexpected{holoscan::RuntimeError(holoscan::ErrorCode::kInvalidArgument)};
+    return holoscan::make_unexpected(holoscan::RuntimeError("Buffer size too small"));
   }
 
   // Write header to buffer.
-  holoscan::TensorHeader* header = reinterpret_cast<holoscan::TensorHeader*>(buffer);
+  TensorHeader* header = reinterpret_cast<TensorHeader*>(buffer);
   header->storage_type = tensor.storage_type();
   header->element_type = tensor.element_type();
   header->bytes_per_element = tensor.bytes_per_element();
@@ -77,31 +93,27 @@ holoscan::expected<size_t, holoscan::RuntimeError> serializeTensor(
       break;
     case MemoryStorageType::kDevice: {
       // Use allocator to get a staging buffer (pinned host memory) for faster transfer
-      auto staging_buffer = allocator->allocate(tensor_size, MemoryStorageType::kHost);
+      auto staging_buffer = allocator->allocate(tensor_size, holoscan::MemoryStorageType::kHost);
       if (!staging_buffer) {
         HOLOSCAN_LOG_ERROR("Failed to allocate staging buffer for device memory copy");
         return holoscan::make_unexpected(holoscan::RuntimeError("Failed to allocate staging buffer"));
       }
       
       // Copy from device memory to staging buffer
-      const cudaError_t error = cudaMemcpy(staging_buffer.value(), tensor.pointer(), tensor_size,
+      const cudaError_t error = cudaMemcpy(staging_buffer, tensor.pointer(), tensor_size,
                                            cudaMemcpyDeviceToHost);
       if (error != cudaSuccess) {
         HOLOSCAN_LOG_ERROR("Failure in CudaMemcpy. cuda_error: %s, error_str: %s",
                            cudaGetErrorName(error), cudaGetErrorString(error));
-        allocator->free(staging_buffer.value());
+        allocator->free(staging_buffer);
         return holoscan::make_unexpected(holoscan::RuntimeError("Failed to copy data to staging buffer"));
       }
       
       // Copy from staging buffer to output buffer
-      std::memcpy(tensor_data, staging_buffer.value(), tensor_size);
+      std::memcpy(tensor_data, staging_buffer, tensor_size);
       
       // Free the staging buffer
-      auto free_result = allocator->free(staging_buffer.value());
-      if (!free_result) {
-        HOLOSCAN_LOG_ERROR("Failed to free staging buffer");
-        return holoscan::make_unexpected(holoscan::RuntimeError("Failed to free staging buffer"));
-      }
+      allocator->free(staging_buffer);
       break;
     }
     default:
@@ -138,25 +150,32 @@ void UcxxSenderOp::setup(holoscan::OperatorSpec& spec) {
 void UcxxSenderOp::compute(holoscan::InputContext& input, holoscan::OutputContext&,
                            holoscan::ExecutionContext&) {
   auto in_message = input.receive<holoscan::gxf::Entity>("in").value();
-  auto tensor = in_message.get<holoscan::Tensor>("");
-  if (!tensor) {
+  auto maybe_tensor = in_message.get<holoscan::Tensor>("");
+  if (!maybe_tensor) {
     HOLOSCAN_LOG_ERROR("Failed to get tensor from input message");
     return;
   }
 
+  // Convert holoscan::Tensor to nvidia::gxf::Tensor for serialization
+  auto gxf_tensor = std::make_shared<nvidia::gxf::Tensor>(maybe_tensor->dl_ctx());
+  if (!gxf_tensor) {
+    HOLOSCAN_LOG_ERROR("Failed to convert holoscan::Tensor to nvidia::gxf::Tensor");
+    return;
+  }
+
   // Calculate required buffer size for serialization
-  const size_t tensor_size = tensor->element_count() * tensor->bytes_per_element();
-  const size_t buffer_size = sizeof(holoscan::TensorHeader) + tensor_size;
+  const size_t tensor_size = gxf_tensor->element_count() * gxf_tensor->bytes_per_element();
+  const size_t buffer_size = sizeof(TensorHeader) + tensor_size;
 
   // Create a send request with pre-allocated buffer
   SendRequest& send = requests_.emplace_back();
   send.buffer.resize(buffer_size);
 
   // Serialize the tensor into the buffer
-  auto result = serializeTensor(*tensor, send.buffer.data(), send.buffer.size(), 
+  auto result = serializeTensor(*gxf_tensor, send.buffer.data(), send.buffer.size(), 
                                 allocator_.get().get());
-  if (!result) {
-    HOLOSCAN_LOG_ERROR("Failed to serialize tensor");
+  if (!result.has_value()) {
+    HOLOSCAN_LOG_ERROR("Failed to serialize tensor: {}", result.error().what());
     requests_.pop_back();
     return;
   }

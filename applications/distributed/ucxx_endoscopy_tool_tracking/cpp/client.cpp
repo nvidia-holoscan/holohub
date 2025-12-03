@@ -33,7 +33,7 @@ void UcxxEndoscopyClientApp::compose() {
   HOLOSCAN_LOG_INFO("Composing SIMPLIFIED CLIENT - receiving and displaying raw frames");
 
   // UCXX endpoint for receiving from server
-  auto ucxx_endpoint = make_resource<isaac::os::UcxxEndpoint>(
+  auto ucxx_endpoint = make_resource<holoscan::ops::UcxxEndpoint>(
       "ucxx_endpoint",
       Arg("hostname", hostname_),
       Arg("port", port_),
@@ -42,10 +42,9 @@ void UcxxEndoscopyClientApp::compose() {
   // UCXX receiver to get rendered frames from server as Tensor
   // Buffer size for RGBA frame: width * height * 4 channels + metadata overhead
   const int buffer_size = (4 << 10) + width * height * 4;
-  auto ucxx_receiver = make_operator<isaac::os::ops::UcxxReceiverOp>(
+  auto ucxx_receiver = make_operator<holoscan::ops::UcxxReceiverOp>(
       "ucxx_receiver",
       Arg("tag", 1ul),
-      Arg("schema_name", "isaac.Tensor"),
       Arg("buffer_size", buffer_size),
       Arg("endpoint", ucxx_endpoint));
 

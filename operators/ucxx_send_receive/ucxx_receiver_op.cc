@@ -17,13 +17,29 @@
 
 #include "ucxx_receiver_op.h"
 
+#include <cuda_runtime.h>
 #include <holoscan/holoscan.hpp>
 
 namespace {
 
+using nvidia::gxf::MemoryStorageType;
+using nvidia::gxf::Shape;
+using nvidia::gxf::PrimitiveType;
+
+#pragma pack(push, 1)
+struct TensorHeader {
+  MemoryStorageType storage_type;     // CPU or GPU tensor
+  PrimitiveType element_type;         // Tensor element type
+  uint64_t bytes_per_element;         // Bytes per tensor element
+  uint32_t rank;                      // Tensor rank
+  int32_t dims[Shape::kMaxRank];      // Tensor dimensions
+  uint64_t strides[Shape::kMaxRank];  // Tensor strides
+};
+#pragma pack(pop)
+
 // Deserializes a tensor object from the given buffer.
 // 
-// This function reconstructs a holoscan::Tensor from a raw binary buffer
+// This function reconstructs a nvidia::gxf::Tensor from a raw binary buffer
 // that contains a serialized TensorHeader followed by contiguous tensor data.
 // The function performs sanity checks on the header, copies shape/stride
 // information, allocates the tensor using the provided holoscan::Allocator,
@@ -32,22 +48,24 @@ namespace {
 // Args:
 //   buffer: Pointer to the start of the serialized tensor buffer.
 //   buffer_size: Size of the buffer in bytes.
+//   context: GXF context for creating allocator handles.
 //   allocator: Pointer to an allocator to use for tensor memory.
 //
 // Returns:
-//   holoscan::expected<holoscan::Tensor, holoscan::RuntimeError> containing the deserialized tensor,
+//   holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> containing the deserialized tensor,
 //   or an error if deserialization fails.
 // 
 // Based on nvidia::gxf::StdComponentSerializer::deserializeTensor.
-holoscan::expected<holoscan::Tensor, holoscan::RuntimeError> deserializeTensor(
+holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> deserializeTensor(
     const uint8_t* buffer, size_t buffer_size,
+    gxf_context_t context,
     holoscan::Allocator* allocator) {
-  if (buffer == nullptr || buffer_size < sizeof(holoscan::TensorHeader)) {
+  if (buffer == nullptr || buffer_size < sizeof(TensorHeader)) {
     return holoscan::make_unexpected(holoscan::RuntimeError("Invalid buffer or buffer size"));
   }
 
   // Read header from buffer.
-  const holoscan::TensorHeader* header = reinterpret_cast<const holoscan::TensorHeader*>(buffer);
+  const TensorHeader* header = reinterpret_cast<const TensorHeader*>(buffer);
 
   // Safety checks for header fields.
   if (sizeof(header->dims) > Shape::kMaxRank * sizeof(int32_t)) {
@@ -63,13 +81,21 @@ holoscan::expected<holoscan::Tensor, holoscan::RuntimeError> deserializeTensor(
 
   std::array<int32_t, Shape::kMaxRank> dims;
   std::memcpy(dims.data(), header->dims, sizeof(header->dims));
-  Tensor::stride_array_t strides;
+  nvidia::gxf::Tensor::stride_array_t strides;
   std::memcpy(strides.data(), header->strides, sizeof(header->strides));
 
-  Tensor tensor;
+  // Convert holoscan::Allocator to nvidia::gxf::Handle<nvidia::gxf::Allocator>
+  auto gxf_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
+      context, allocator->gxf_cid());
+  if (!gxf_allocator) {
+    HOLOSCAN_LOG_ERROR("Failed to create GXF allocator handle");
+    return holoscan::make_unexpected(holoscan::RuntimeError("Failed to create GXF allocator handle"));
+  }
+
+  nvidia::gxf::Tensor tensor;
   auto result = tensor.reshapeCustom(Shape(dims, header->rank),
                                      header->element_type, header->bytes_per_element, strides,
-                                     header->storage_type, allocator);
+                                     header->storage_type, gxf_allocator.value());
   if (!result) {
     return holoscan::make_unexpected(holoscan::RuntimeError("Failed to reshape tensor"));
   }
@@ -93,31 +119,27 @@ holoscan::expected<holoscan::Tensor, holoscan::RuntimeError> deserializeTensor(
       break;
     case MemoryStorageType::kDevice: {
       // Use allocator to get a staging buffer (pinned host memory) for faster transfer
-      auto staging_buffer = allocator->allocate(tensor_size, MemoryStorageType::kHost);
+      auto staging_buffer = allocator->allocate(tensor_size, holoscan::MemoryStorageType::kHost);
       if (!staging_buffer) {
         HOLOSCAN_LOG_ERROR("Failed to allocate staging buffer for device memory copy");
         return holoscan::make_unexpected(holoscan::RuntimeError("Failed to allocate staging buffer"));
       }
       
       // Copy data to staging buffer
-      std::memcpy(staging_buffer.value(), tensor_data, tensor_size);
+      std::memcpy(staging_buffer, tensor_data, tensor_size);
       
       // Copy from staging buffer to device memory
-      const cudaError_t error = cudaMemcpy(tensor.pointer(), staging_buffer.value(), tensor_size,
+      const cudaError_t error = cudaMemcpy(tensor.pointer(), staging_buffer, tensor_size,
                                            cudaMemcpyHostToDevice);
       if (error != cudaSuccess) {
         HOLOSCAN_LOG_ERROR("Failure in CudaMemcpy. cuda_error: %s, error_str: %s",
                       cudaGetErrorName(error), cudaGetErrorString(error));
-        allocator->free(staging_buffer.value());
+        allocator->free(staging_buffer);
         return holoscan::make_unexpected(holoscan::RuntimeError("Failed to copy data to staging buffer"));
       }
       
       // Free the staging buffer
-      auto free_result = allocator->free(staging_buffer.value());
-      if (!free_result) {
-        HOLOSCAN_LOG_ERROR("Failed to free staging buffer");
-        return holoscan::make_unexpected(holoscan::RuntimeError("Failed to free staging buffer"));
-      }
+      allocator->free(staging_buffer);
       break;
     }
     default:
@@ -164,12 +186,22 @@ void UcxxReceiverOp::compute([[maybe_unused]] holoscan::InputContext& input,
   // If the receive request is complete, deserialize and emit it.
   if (request_ && request_->isCompleted()) {
     if (auto status = request_->getStatus(); status == UCS_OK) {
-      auto tensor = deserializeTensor(buffer_.data(), buffer_.size(), allocator_.get().get());
-      if (!tensor) {
-        HOLOSCAN_LOG_ERROR("Failed to deserialize tensor");
+      auto gxf_tensor = deserializeTensor(buffer_.data(), buffer_.size(), 
+                                          context.context(), allocator_.get().get());
+      if (!gxf_tensor.has_value()) {
+        HOLOSCAN_LOG_ERROR("Failed to deserialize tensor: {}", gxf_tensor.error().what());
         return;  
       }
-      output.emit(tensor.value(), "out");
+      
+      // Convert nvidia::gxf::Tensor to holoscan::Tensor using DLPack
+      auto maybe_dl_ctx = gxf_tensor.value().toDLManagedTensorContext();
+      if (!maybe_dl_ctx) {
+        HOLOSCAN_LOG_ERROR("Failed to convert GXF tensor to DLManagedTensorContext");
+        return;
+      }
+      
+      auto holoscan_tensor = holoscan::Tensor(maybe_dl_ctx.value());
+      output.emit(holoscan_tensor, "out");
     } else {
       HOLOSCAN_LOG_ERROR("Receive request failed with status: {}", ucs_status_string(status));
     }

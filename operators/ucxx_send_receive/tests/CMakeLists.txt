@@ -13,26 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+find_package(holoscan 3.8 REQUIRED CONFIG)
+
 add_executable(test_ucxx_ops
   test_ucxx_ops.cc
 )
 
-include(isaac_deps/holoscan)
-include(isaac_deps/gtest)
+target_include_directories(test_ucxx_ops
+  PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
+)
 
 target_link_libraries(test_ucxx_ops
   PRIVATE
-    GTest::gtest_main
     holoscan::core
-    isaac::common::torch_utils
-    isaac::messages::reflection
-    isaac::messages::schemas
-    isaac::ops::ucxx
-    torch
+    holoscan::ops::ucxx
     ucxx
 )
 
 add_test(NAME test_ucxx_ops COMMAND test_ucxx_ops)
-set_tests_properties(test_ucxx_ops PROPERTIES
-  LABELS "cpp;operators;gpu"
-)

@@ -38,6 +38,6 @@ target_link_libraries(ucxx_send_receive
     ucxx
 )
 
-if(ISAAC_BUILD_TESTS)
+if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
