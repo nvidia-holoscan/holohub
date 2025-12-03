@@ -1423,7 +1423,7 @@ int DocaMgr::rx_core(void* arg) {
   cudaStreamSynchronize(rx_stream);
 
   for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
-    packets_stats = &((struct adv_doca_rx_gpu_info*)(pkt_cpu_list[ridx]))[pkt_idx_cpu_list[ridx]];
+    packets_stats = &tparams->rxqw[ridx].rxq->pkt_list_cpu[pkt_idx_cpu_list[ridx]];
     status = DOCA_GPUNETIO_VOLATILE(packets_stats->status);
 
     if (status == DOCA_GPU_SEMAPHORE_STATUS_READY) {
