@@ -51,7 +51,6 @@ B. Generating test patterns:
 
 These single-line commands will build and run the customized container for this application with all the dependencies installed (defined by `Dockerfile`), and then build and start the application using the default settings. The output video will be saved in the build directory as `output.mp4`.
 
-
 ## Building
 
 ### Option 1: Containerized Build (Recommended)
@@ -203,6 +202,14 @@ gst-video-recorder [OPTIONS]
 
 ```bash
 ./holohub run gst_video_recorder --run-args="--source pattern --count 300 --storage 0 --encoder x264 -o video.mp4"
+```
+
+## Testing
+
+The application includes integration tests to validate the pipeline execution and recording file creation. To run the tests, use the following command:
+
+```bash
+./holohub test gst_video_recorder --verbose
 ```
 
 ## Architecture
