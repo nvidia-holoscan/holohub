@@ -94,7 +94,7 @@ This is required for the application to properly link the Holoscan source to you
 │                    Holoscan Application                      │
 │                                                              │
 │                     ┌─────────────────────────────┐         │
-│                     │   GstSrcOperator            │         │
+│                     │   GstSrcOp            │         │
 │                     │  (Source Operator)          │         │
 │                     │  • Generates test pattern   │         │
 │                     │  • Creates GstBuffer        │         │
@@ -119,8 +119,8 @@ This is required for the application to properly link the Holoscan source to you
 
 ### Data Flow
 
-1. **GstSrcOperator** generates animated test patterns (RGBA format)
-2. **GstSrcOperator** creates GStreamer buffers with timestamp information
+1. **GstSrcOp** generates animated test patterns (RGBA format)
+2. **GstSrcOp** creates GStreamer buffers with timestamp information
 3. **GstSrcResource** (the `holoscansrc` element) provides buffers to the GStreamer pipeline
 4. **GStreamer Pipeline** processes and outputs the video data
 

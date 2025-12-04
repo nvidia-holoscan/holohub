@@ -10,7 +10,7 @@
 #include <cuda_runtime.h>
 #include <holoscan/holoscan.hpp>
 #include <gst_src_resource.hpp>
-#include <gst_src_operator.hpp>
+#include <gst_src_op.hpp>
 #include <gst/pipeline.hpp>
 
 namespace {
@@ -292,7 +292,7 @@ class GstSrcApp : public Application {
     );
 
     // Create the GStreamer source operator
-    auto gst_src_op = make_operator<GstSrcOperator>(
+    auto gst_src_op = make_operator<GstSrcOp>(
         "gst_src_op",
         Arg("gst_src_resource", holoscan_gst_src_),
         Arg("timeout_ms", static_cast<uint64_t>(1000))
