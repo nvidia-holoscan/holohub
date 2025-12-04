@@ -19,9 +19,11 @@
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
+#include <holoscan/operators/format_converter/format_converter.hpp>
+#include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 
-#include "operators/ucxx_send_receive/ucxx_endpoint.h"
-#include "operators/ucxx_send_receive/ucxx_receiver_op.h"
+#include "operators/ucxx_send_receive/ucxx_endpoint.hpp"
+#include "operators/ucxx_send_receive/ucxx_receiver_op.hpp"
 
 namespace holoscan::apps {
 
@@ -30,8 +32,10 @@ void UcxxEndoscopyClientApp::compose() {
 
   const uint32_t width = 854;
   const uint32_t height = 480;
+  const uint64_t source_block_size = width * height * 4 * 4;
+  const uint64_t source_num_blocks = 2;
 
-  HOLOSCAN_LOG_INFO("Composing SIMPLIFIED CLIENT - receiving and displaying raw frames");
+  HOLOSCAN_LOG_INFO("Composing CLIENT - receiving and displaying rendered frames");
 
   auto allocator = make_resource<RMMAllocator>("video_replayer_allocator",
                                       Arg("device_memory_max_size") = std::string("256MB"),
@@ -62,10 +66,40 @@ void UcxxEndoscopyClientApp::compose() {
       Arg("height") = height,
       Arg("allocator") = allocator);
 
+  // Optional recorder for testing/validation (enabled based on record_type parameter)
+  std::shared_ptr<Operator> recorder;
+  std::shared_ptr<Operator> recorder_format_converter;
+  bool enable_recording = false;
+  
+  // Check record_type to determine if recording should be enabled
+  auto record_type = from_config("record_type").as<std::string>();
+  if (record_type == "client") {
+    enable_recording = true;
+    HOLOSCAN_LOG_INFO("Client recording enabled (record_type=client)");
+    
+    recorder_format_converter = make_operator<ops::FormatConverterOp>(
+        "recorder_format_converter",
+        from_config("recorder_format_converter"),
+        Arg("pool") = make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
+    
+    recorder = make_operator<ops::VideoStreamRecorderOp>(
+        "recorder_client",
+        from_config("recorder_client"));
+  } else {
+    HOLOSCAN_LOG_INFO("Client recording disabled (record_type={})", record_type);
+  }
+
   // Display received rendered frames (Tensor output)
   add_flow(ucxx_receiver, holoviz, {{"out", "receivers"}});
 
-  HOLOSCAN_LOG_INFO("Simplified client pipeline: Receive → Display");
+  // Optional recording of received frames for testing
+  if (enable_recording) {
+    add_flow(ucxx_receiver, recorder_format_converter, {{"out", "source_video"}});
+    add_flow(recorder_format_converter, recorder);
+  }
+
+  HOLOSCAN_LOG_INFO("Client pipeline: Receive → Display{}",
+                   enable_recording ? " + Record" : "");
 }
 
 }  // namespace holoscan::apps

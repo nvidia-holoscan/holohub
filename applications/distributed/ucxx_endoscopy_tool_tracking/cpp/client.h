@@ -29,6 +29,7 @@ namespace holoscan::apps {
  * - Connects to the server via UCXX
  * - Receives pre-rendered frames with tool tracking overlays
  * - Displays the frames with HolovizOp (simple image display)
+ * - Optionally records received frames for validation (if recorder config exists in YAML)
  */
 class UcxxEndoscopyClientApp : public holoscan::Application {
  public:

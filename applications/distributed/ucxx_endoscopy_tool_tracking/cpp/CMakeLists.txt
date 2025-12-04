@@ -36,6 +36,7 @@ target_link_libraries(ucxx_endoscopy_tool_tracking
     PRIVATE
     holoscan::core
     holoscan::ops::video_stream_replayer
+    holoscan::ops::video_stream_recorder
     holoscan::ops::format_converter
     holoscan::ops::holoviz
     holoscan::ops::ucxx
@@ -73,8 +74,77 @@ endif()
 
 
 if(BUILD_TESTING)
-  add_test(ucxx_endoscopy_tool_tracking-test
-    COMMAND echo "Add test coverage for ucxx_endoscopy_tool_tracking here"
+
+  set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
+  set(SOURCE_VIDEO_BASENAME cpp_ucxx_endoscopy_tool_tracking_output)
+  set(VALIDATION_FRAMES_DIR ${CMAKE_SOURCE_DIR}/applications/endoscopy_tool_tracking/testing/)
+
+  file(MAKE_DIRECTORY ${RECORDING_DIR})
+
+  # Configure the yaml file for testing
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/ucxx_endoscopy_tool_tracking.yaml" CONFIG_FILE)
+  string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
+  string(REPLACE "headless: false" "headless: true" CONFIG_FILE ${CONFIG_FILE})
+  
+  # Enable client-side recording for frame validation
+  string(REPLACE "record_type: \"none\"" "record_type: \"client\"" CONFIG_FILE ${CONFIG_FILE})
+  
+  # Update recorder paths for testing
+  string(REPLACE "directory: \"/tmp\"" "directory: \"${RECORDING_DIR}\"" CONFIG_FILE ${CONFIG_FILE})
+  string(REPLACE "basename: \"ucxx_client_received\"" "basename: \"${SOURCE_VIDEO_BASENAME}\"" CONFIG_FILE ${CONFIG_FILE})
+
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking_testing.yaml" ${CONFIG_FILE})
+
+  # Add test that runs both server and client
+  # Note: The test runs the server in the background and connects a client to it
+  add_test(NAME ucxx_endoscopy_tool_tracking_cpp_test
+           COMMAND bash -c "\
+             ${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking \
+               --mode server \
+               --config ${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking_testing.yaml \
+               --data ${HOLOHUB_DATA_DIR}/endoscopy \
+               --hostname 127.0.0.1 \
+               --port 50008 & \
+             SERVER_PID=$!; \
+             sleep 2; \
+             ${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking \
+               --mode client \
+               --config ${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking_testing.yaml \
+               --hostname 127.0.0.1 \
+               --port 50008 & \
+             CLIENT_PID=$!; \
+             wait $CLIENT_PID; \
+             CLIENT_EXIT=$?; \
+             wait $SERVER_PID; \
+             SERVER_EXIT=$?; \
+             if [ $CLIENT_EXIT -ne 0 ] || [ $SERVER_EXIT -ne 0 ]; then \
+               exit 1; \
+             fi; \
+             exit 0"
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+  
+  set_tests_properties(ucxx_endoscopy_tool_tracking_cpp_test PROPERTIES
+                       PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
+                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+
+  # Set a timeout for the test (60 seconds should be enough for 10 frames)
+  set_tests_properties(ucxx_endoscopy_tool_tracking_cpp_test PROPERTIES TIMEOUT 60)
+
+  # Add test to check the validity of frames received by the client
+  # This validates the end-to-end distributed pipeline
+  add_test(NAME ucxx_endoscopy_tool_tracking_cpp_render_test
+      COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
+      --source_video_dir ${RECORDING_DIR}
+      --source_video_basename ${SOURCE_VIDEO_BASENAME}
+      --output_dir ${RECORDING_DIR}
+      --validation_frames_dir ${VALIDATION_FRAMES_DIR}
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
+
+  set_tests_properties(ucxx_endoscopy_tool_tracking_cpp_render_test PROPERTIES
+    DEPENDS ucxx_endoscopy_tool_tracking_cpp_test
+    PASS_REGULAR_EXPRESSION "Valid video output!"
+  )
+
 endif()
 

@@ -30,6 +30,8 @@ resources:
 extensions:
   - lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
 
+record_type: "none"   # "none" or "client" - enables recording of received frames on client side
+
 replayer:
   basename: "surgical_video"
   frame_rate: 0   # as specified in timestamps
@@ -113,4 +115,12 @@ holoviz_client:
       opacity: 1.0
       priority: 0
   headless: false
+
+recorder_format_converter:
+  in_dtype: "rgba8888"
+  out_dtype: "rgb888"
+
+recorder_client:
+  directory: "/tmp"
+  basename: "ucxx_client_received"
 

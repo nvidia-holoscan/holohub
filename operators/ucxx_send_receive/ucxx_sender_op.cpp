@@ -34,7 +34,11 @@ void UcxxSenderOp::setup(holoscan::OperatorSpec& spec) {
     if (arg.name() == "endpoint") {
       auto resource = std::any_cast<std::shared_ptr<holoscan::Resource>>(arg.value());
       auto endpoint = std::dynamic_pointer_cast<UcxxEndpoint>(resource);
-      add_arg(endpoint->is_alive_condition());
+      if (endpoint) {
+        add_arg(endpoint->is_alive_condition());
+      } else {
+        HOLOSCAN_LOG_ERROR("Failed to cast endpoint resource to UcxxEndpoint");
+      }
       break;
     }
   }
@@ -43,21 +47,40 @@ void UcxxSenderOp::setup(holoscan::OperatorSpec& spec) {
 void UcxxSenderOp::compute(holoscan::InputContext& input, holoscan::OutputContext&,
                            holoscan::ExecutionContext&) {
   auto in_message = input.receive<holoscan::gxf::Entity>("in").value();
-  auto maybe_tensor = in_message.get<holoscan::Tensor>("");
-  if (!maybe_tensor) {
-    HOLOSCAN_LOG_ERROR("Failed to get tensor from input message");
-    return;
-  }
-
-  // Convert holoscan::Tensor to nvidia::gxf::Tensor for serialization
-  auto gxf_tensor = std::make_shared<nvidia::gxf::Tensor>(maybe_tensor->dl_ctx());
-  if (!gxf_tensor) {
-    HOLOSCAN_LOG_ERROR("Failed to convert holoscan::Tensor to nvidia::gxf::Tensor");
-    return;
+  
+  // Try to get tensor - first as holoscan::Tensor, then as nvidia::gxf::Tensor
+  // Use a pointer to handle both cases uniformly
+  nvidia::gxf::Tensor* gxf_tensor_ptr = nullptr;
+  std::shared_ptr<nvidia::gxf::Tensor> gxf_tensor_storage;  // For holoscan::Tensor case
+  
+  // // Use the tensor name from parameter if specified, otherwise use default empty string
+  // const char* tensor_name = in_tensor_name_.has_value() && !in_tensor_name_.get().empty() 
+  //                           ? in_tensor_name_.get().c_str() 
+  //                           : "";
+  const char* tensor_name = "";
+  
+  auto maybe_holoscan_tensor = in_message.get<holoscan::Tensor>(tensor_name);
+  if (maybe_holoscan_tensor) {
+    // Convert holoscan::Tensor to nvidia::gxf::Tensor for serialization
+    gxf_tensor_storage = std::make_shared<nvidia::gxf::Tensor>(maybe_holoscan_tensor->dl_ctx());
+    if (!gxf_tensor_storage) {
+      HOLOSCAN_LOG_ERROR("Failed to convert holoscan::Tensor to nvidia::gxf::Tensor");
+      return;
+    }
+    gxf_tensor_ptr = gxf_tensor_storage.get();
+  } else {
+    // Try to get nvidia::gxf::Tensor directly by casting to nvidia::gxf::Entity
+    auto maybe_gxf_tensor = static_cast<nvidia::gxf::Entity&>(in_message).get<nvidia::gxf::Tensor>(tensor_name);
+    if (!maybe_gxf_tensor) {
+      HOLOSCAN_LOG_ERROR("Failed to get tensor from input message (tried both holoscan::Tensor and nvidia::gxf::Tensor)");
+      return;
+    }
+    // Use the GXF tensor directly (Handle provides pointer-like access)
+    gxf_tensor_ptr = maybe_gxf_tensor.value().get();
   }
 
   // Calculate required buffer size for serialization
-  const size_t tensor_size = gxf_tensor->element_count() * gxf_tensor->bytes_per_element();
+  const size_t tensor_size = gxf_tensor_ptr->element_count() * gxf_tensor_ptr->bytes_per_element();
   const size_t buffer_size = sizeof(holoscan::ops::ucxx::TensorHeader) + tensor_size;
 
   // Create a send request with pre-allocated buffer
@@ -65,7 +88,7 @@ void UcxxSenderOp::compute(holoscan::InputContext& input, holoscan::OutputContex
   send.buffer.resize(buffer_size);
 
   // Serialize the tensor into the buffer
-  auto result = holoscan::ops::ucxx::serializeTensor(*gxf_tensor, send.buffer.data(), send.buffer.size(), 
+  auto result = holoscan::ops::ucxx::serializeTensor(*gxf_tensor_ptr, send.buffer.data(), send.buffer.size(), 
                                                       allocator_.get().get());
   if (!result.has_value()) {
     HOLOSCAN_LOG_ERROR("Failed to serialize tensor: {}", result.error().what());

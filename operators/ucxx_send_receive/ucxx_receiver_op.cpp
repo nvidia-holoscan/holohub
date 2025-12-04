@@ -35,7 +35,11 @@ void UcxxReceiverOp::setup(holoscan::OperatorSpec& spec) {
     if (arg.name() == "endpoint") {
       auto resource = std::any_cast<std::shared_ptr<holoscan::Resource>>(arg.value());
       auto endpoint = std::dynamic_pointer_cast<UcxxEndpoint>(resource);
-      add_arg(endpoint->is_alive_condition());
+      if (endpoint) {
+        add_arg(endpoint->is_alive_condition());
+      } else {
+        HOLOSCAN_LOG_ERROR("Failed to cast endpoint resource to UcxxEndpoint");
+      }
       break;
     }
   }
