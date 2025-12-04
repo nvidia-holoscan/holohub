@@ -78,10 +78,3 @@ RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
 # Set default Holohub data directory
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
-
-# --------------------------------------------------------------------------
-#
-# Default development stage for GStreamer applications
-#
-# --------------------------------------------------------------------------
-FROM holohub-cli AS holohub-dev

@@ -54,10 +54,20 @@ class ObjectBase;
  *   auto bin = static_object_cast<Bin>(elem);  // Cast Element to Bin
  *
  * @note The To type must define get_type_func() returning its GType constant.
+ * @note This function is only for GstObject-based wrappers (ObjectBase hierarchy).
+ *       Using it with GstMiniObject-based wrappers (e.g., Caps, Buffer) is undefined behavior.
  */
 template <typename To, typename From>
 To static_object_cast(const From& from) {
   using ToNativeType = typename To::NativeType;
+
+  // Compile-time check: Ensure both types are ObjectBase-derived (not MiniObjectBase)
+  static_assert(
+      std::is_base_of_v<ObjectBase<typename From::Derived, typename From::NativeType>, From>,
+      "static_object_cast can only be used with ObjectBase-derived wrappers");
+  static_assert(
+      std::is_base_of_v<ObjectBase<typename To::Derived, typename To::NativeType>, To>,
+      "static_object_cast can only be used with ObjectBase-derived wrappers");
 
   if (!from.get()) {
     return To(nullptr);
@@ -127,14 +137,30 @@ class ObjectBase {
   // Bool conversion
   explicit operator bool() const { return static_cast<bool>(ptr_); }
 
-  // Increment GStreamer reference count and return reference for chaining
+  /**
+   * @brief Increment GStreamer reference count (advanced: for external ownership transfer)
+   * @return Reference to this object for chaining
+   *
+   * @warning This is an advanced escape hatch for transferring ownership to external GStreamer code.
+   *          The caller is responsible for ensuring a matching gst_object_unref is called by the
+   *          external code. The shared_ptr deleter will only call unref once when this wrapper is
+   *          destroyed, so using ref() without external unref will leak GObject references.
+   *
+   * @note For most use cases, prefer copying the wrapper (which automatically manages refcounts)
+   *       or using get() to pass the raw pointer to functions that don't take ownership.
+   */
   Derived& ref() {
     if (ptr_)
       gst_object_ref(ptr_.get());
     return static_cast<Derived&>(*this);
   }
 
-  // Const overload for const objects
+  /**
+   * @brief Const overload of ref() for const objects
+   * @return Const reference to this object for chaining
+   *
+   * @warning See non-const ref() for important usage notes about external ownership transfer.
+   */
   const Derived& ref() const {
     if (ptr_)
       gst_object_ref(ptr_.get());
@@ -288,10 +314,8 @@ class ObjectBase {
         case G_TYPE_BOOLEAN: {
           // Support common boolean representations, case-insensitive
           std::string lower_val = value;
-          std::transform(lower_val.begin(),
-                         lower_val.end(),
-                         lower_val.begin(),
-                         static_cast<int (*)(int)>(std::tolower));
+          std::transform(lower_val.begin(), lower_val.end(), lower_val.begin(),
+                         [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
           bool bool_val = (lower_val == "true" || lower_val == "1" ||
                            lower_val == "yes" || lower_val == "on");
           set_properties(name, bool_val);

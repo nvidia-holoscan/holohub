@@ -2,6 +2,9 @@
 
 A Holoscan application that demonstrates video recording using the GStreamer encoding pipeline.
 
+![GStreamer Video Recorder Pipeline](docs/pipeline_diagram.png)
+*Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's encoding pipeline*
+
 ## Description
 
 This application showcases how to:
@@ -232,5 +235,3 @@ The application supports both host and device (CUDA) memory:
 - Video parameters (width, height, format, storage) are automatically detected from incoming frames
 - Frame count can be limited with `--count` or runs indefinitely if not specified
 - Output files are written to the holohub workspace directory when using `./holohub run` (use absolute paths like `/workspace/holohub/video.mp4` for predictable output locations)
-
-
