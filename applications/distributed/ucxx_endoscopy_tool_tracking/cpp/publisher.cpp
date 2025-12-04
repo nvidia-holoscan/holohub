@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "server.h"
+#include "publisher.h"
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
@@ -29,10 +29,10 @@
 
 namespace holoscan::apps {
 
-void UcxxEndoscopyServerApp::compose() {
+void UcxxEndoscopyPublisherApp::compose() {
   using namespace holoscan;
 
-  HOLOSCAN_LOG_INFO("Composing SERVER with full processing pipeline");
+  HOLOSCAN_LOG_INFO("Composing PUBLISHER with full processing pipeline");
 
   // Constants for video dimensions
   const uint32_t width = 854;
@@ -113,7 +113,7 @@ void UcxxEndoscopyServerApp::compose() {
           "pool", 1, render_buffer_size, source_num_blocks),
       Arg("cuda_stream_pool") = cuda_stream_pool);
 
-  // UCXX endpoint for broadcasting to clients
+  // UCXX endpoint for broadcasting to subscribers
   auto ucxx_endpoint = make_resource<holoscan::ops::UcxxEndpoint>(
       "ucxx_endpoint",
       Arg("hostname", hostname_),
@@ -138,7 +138,7 @@ void UcxxEndoscopyServerApp::compose() {
   add_flow(holoviz, render_buffer_converter, {{"render_buffer_output", "source_video"}});
   add_flow(render_buffer_converter, ucxx_sender, {{"", "in"}});
 
-  HOLOSCAN_LOG_INFO("Server pipeline: Replayer → Format → LSTM → Postprocess → "
+  HOLOSCAN_LOG_INFO("Publisher pipeline: Replayer → Format → LSTM → Postprocess → "
                     "Holoviz → Convert → Broadcast");
 }
 

@@ -23,24 +23,28 @@
 namespace holoscan::apps {
 
 /**
- * @brief Client application that receives and displays rendered frames
- * 
+ * @brief Publisher application that processes video and broadcasts rendered frames
+ *
  * This application:
- * - Connects to the server via UCXX
- * - Receives pre-rendered frames with tool tracking overlays
- * - Displays the frames with HolovizOp (simple image display)
- * - Optionally records received frames for validation (if recorder config exists in YAML)
+ * - Replays endoscopy video from disk
+ * - Performs LSTM inference for tool tracking
+ * - Postprocesses inference results
+ * - Renders visualization overlays
+ * - Broadcasts rendered frames to connected subscribers via UCXX
  */
-class UcxxEndoscopyClientApp : public holoscan::Application {
+class UcxxEndoscopyPublisherApp : public holoscan::Application {
  public:
+  void set_datapath(const std::string& path) { datapath_ = path; }
   void set_hostname(const std::string& hostname) { hostname_ = hostname; }
   void set_port(int port) { port_ = port; }
 
   void compose() override;
 
  private:
-  std::string hostname_ = "127.0.0.1";
+  std::string datapath_ = "";
+  std::string hostname_ = "0.0.0.0";
   int port_ = 50008;
 };
 
 }  // namespace holoscan::apps
+

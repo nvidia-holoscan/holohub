@@ -23,8 +23,8 @@ find_package(holoscan 3.9.0 REQUIRED CONFIG
 
 add_executable(ucxx_endoscopy_tool_tracking
     main.cpp
-    server.cpp
-    client.cpp
+    publisher.cpp
+    subscriber.cpp
 )
 
 target_include_directories(ucxx_endoscopy_tool_tracking
@@ -86,38 +86,38 @@ if(BUILD_TESTING)
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "headless: false" "headless: true" CONFIG_FILE ${CONFIG_FILE})
 
-  # Enable client-side recording for frame validation
-  string(REPLACE "record_type: \"none\"" "record_type: \"client\"" CONFIG_FILE ${CONFIG_FILE})
+  # Enable subscriber-side recording for frame validation
+  string(REPLACE "record_type: \"none\"" "record_type: \"subscriber\"" CONFIG_FILE ${CONFIG_FILE})
 
   # Update recorder paths for testing
   string(REPLACE "directory: \"/tmp\"" "directory: \"${RECORDING_DIR}\"" CONFIG_FILE ${CONFIG_FILE})
-  string(REPLACE "basename: \"ucxx_client_received\"" "basename: \"${SOURCE_VIDEO_BASENAME}\"" CONFIG_FILE ${CONFIG_FILE})
+  string(REPLACE "basename: \"ucxx_subscriber_received\"" "basename: \"${SOURCE_VIDEO_BASENAME}\"" CONFIG_FILE ${CONFIG_FILE})
 
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking_testing.yaml" ${CONFIG_FILE})
 
-  # Add test that runs both server and client
+  # Add test that runs both publisher and subscriber
   # Note: The test runs the server in the background and connects a client to it
   add_test(NAME ucxx_endoscopy_tool_tracking_cpp_test
            COMMAND bash -c "\
              ${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking \
-               --mode server \
+               --mode publisher \
                --config ${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking_testing.yaml \
                --data ${HOLOHUB_DATA_DIR}/endoscopy \
                --hostname 127.0.0.1 \
                --port 50008 & \
-             SERVER_PID=$!; \
+             PUBLISHER_PID=$!; \
              sleep 2; \
              ${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking \
-               --mode client \
+               --mode subscriber \
                --config ${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking_testing.yaml \
                --hostname 127.0.0.1 \
                --port 50008 & \
-             CLIENT_PID=$!; \
-             wait $CLIENT_PID; \
-             CLIENT_EXIT=$?; \
-             wait $SERVER_PID; \
-             SERVER_EXIT=$?; \
-             if [ $CLIENT_EXIT -ne 0 ] || [ $SERVER_EXIT -ne 0 ]; then \
+             SUBSCRIBER_PID=$!; \
+             wait $SUBSCRIBER_PID; \
+             SUBSCRIBER_EXIT=$?; \
+             wait $PUBLISHER_PID; \
+             PUBLISHER_EXIT=$?; \
+             if [ $SUBSCRIBER_EXIT -ne 0 ] || [ $PUBLISHER_EXIT -ne 0 ]; then \
                exit 1; \
              fi; \
              exit 0"
@@ -130,7 +130,7 @@ if(BUILD_TESTING)
   # Set a timeout for the test (60 seconds should be enough for 10 frames)
   set_tests_properties(ucxx_endoscopy_tool_tracking_cpp_test PROPERTIES TIMEOUT 60)
 
-  # Add test to check the validity of frames received by the client
+  # Add test to check the validity of frames received by the subscriber
   # This validates the end-to-end distributed pipeline
   add_test(NAME ucxx_endoscopy_tool_tracking_cpp_render_test
       COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
@@ -142,7 +142,7 @@ if(BUILD_TESTING)
   )
 
   set_tests_properties(ucxx_endoscopy_tool_tracking_cpp_render_test PROPERTIES
-    DEPENDS ucxx_endoscopy_tool_tracking_cpp_test
+    DEPENDS ucxx_endoscopy_tool_tracking_subscriber_test
     PASS_REGULAR_EXPRESSION "Valid video output!"
   )
 

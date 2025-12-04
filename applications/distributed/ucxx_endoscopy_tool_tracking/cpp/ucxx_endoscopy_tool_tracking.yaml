@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-# UCXX Endoscopy Tool Tracking Server Configuration
+# UCXX Endoscopy Tool Tracking Publisher Configuration
 application:
-  title: Holohub - UCXX Endoscopy Tool Tracking Server
+  title: Holohub - UCXX Endoscopy Tool Tracking Publisher
   version: 1.0
   inputFormats: []
   outputFormats: ["screen"]
@@ -30,7 +30,7 @@ resources:
 extensions:
   - lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
 
-record_type: "none"   # "none" or "client" - enables recording of received frames on client side
+record_type: "none"   # "none" or "subscriber" - enables recording of received frames on subscriber side
 
 replayer:
   basename: "surgical_video"
@@ -108,7 +108,7 @@ holoviz:
         - Spec.Bag
   headless: false
 
-holoviz_client:
+holoviz_subscriber:
   tensors:
     - name: ""
       type: color
@@ -120,7 +120,7 @@ recorder_format_converter:
   in_dtype: "rgba8888"
   out_dtype: "rgb888"
 
-recorder_client:
+recorder_subscriber:
   directory: "/tmp"
-  basename: "ucxx_client_received"
+  basename: "ucxx_subscriber_received"
 

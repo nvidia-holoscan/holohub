@@ -20,8 +20,8 @@
 #include <holoscan/holoscan.hpp>
 #include <string>
 
-#include "client.h"
-#include "server.h"
+#include "publisher.h"
+#include "subscriber.h"
 
 /** Helper function to parse command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& data_path, std::string& config_path,
@@ -53,8 +53,8 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
         break;
       case 'm':
         mode = optarg;
-        if (mode != "server" && mode != "client") {
-          holoscan::log_error("Invalid mode '{}'. Must be 'server' or 'client'", mode);
+        if (mode != "publish" && mode != "subscribe") {
+          HOLOSCAN_LOG_ERROR("Invalid mode '{}'. Must be 'publish' or 'subscribe'", mode);
           return false;
         }
         break;
@@ -65,22 +65,22 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
                   << "Usage: " << argv[0] << " [options]\n"
                   << "\n"
                   << "Options:\n"
-                  << "  -d, --data <path>        Path to data directory (required for server)\n"
+                  << "  -d, --data <path>        Path to data directory (required for publisher)\n"
                   << "  -c, --config <path>      Path to config file (optional)\n"
-                  << "  -h, --hostname <host>    Hostname (default: 0.0.0.0 for server,\n"
-                  << "                           127.0.0.1 for client)\n"
+                  << "  -h, --hostname <host>    Hostname (default: 0.0.0.0 for publisher,\n"
+                  << "                           127.0.0.1 for subscriber)\n"
                   << "  -p, --port <port>        Port number (default: 50008)\n"
-                  << "  -m, --mode <mode>        Mode: 'server' or 'client' (required)\n"
+                  << "  -m, --mode <mode>        Mode: 'publish' or 'subscribe' (required)\n"
                   << "  -?, --help               Show this help message\n"
                   << "\n"
                   << "Description:\n"
-                  << "  Server: Processes video, renders with overlays, and broadcasts\n"
+                  << "  Publisher: Processes video, renders with overlays, and broadcasts\n"
                   << "          rendered frames\n"
-                  << "  Client: Receives pre-rendered frames from server and displays them\n"
+                  << "  Subscriber: Receives pre-rendered frames from publisher and displays them\n"
                   << "\n"
                   << "Examples:\n"
-                  << "  Server: " << argv[0] << " --mode server --data /path/to/data\n"
-                  << "  Client: " << argv[0] << " --mode client --hostname server_ip\n"
+                  << "  Publisher: " << argv[0] << " --mode publish --data /path/to/data\n"
+                  << "  Subscriber: " << argv[0] << " --mode subscribe --hostname publisher_ip\n"
                   << "\n";
         return false;
     }
@@ -104,21 +104,21 @@ int main(int argc, char** argv) {
 
   // Validate mode is specified
   if (mode.empty()) {
-    HOLOSCAN_LOG_ERROR("Mode must be specified. Use --mode server or --mode client");
+    HOLOSCAN_LOG_ERROR("Mode must be specified. Use --mode publish or --mode subscribe");
     return 1;
   }
 
   // Set default hostname based on mode if not specified
   if (hostname.empty()) {
-    if (mode == "client") {
-      hostname = "127.0.0.1";  // Default to localhost for client
+    if (mode == "subscribe") {
+      hostname = "127.0.0.1";  // Default to localhost for subscriber
     } else {
-      hostname = "0.0.0.0";  // Default to all interfaces for server
+      hostname = "0.0.0.0";  // Default to all interfaces for publisher
     }
   }
 
-  // For server mode, validate data directory
-  if (mode == "server") {
+  // For publisher mode, validate data directory
+  if (mode == "publish") {
     if (data_directory.empty()) {
       // Get the input data environment variable
       auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
             (std::filesystem::current_path() / "data/endoscopy").c_str());
       } else {
         HOLOSCAN_LOG_ERROR(
-            "Data directory required for server mode. Use --data or set HOLOSCAN_INPUT_PATH");
+            "Data directory required for publisher mode. Use --data or set HOLOSCAN_INPUT_PATH");
         return 1;
       }
     }
@@ -163,29 +163,29 @@ int main(int argc, char** argv) {
   HOLOSCAN_LOG_INFO("Mode: {}", mode);
   HOLOSCAN_LOG_INFO("Hostname: {}", hostname);
   HOLOSCAN_LOG_INFO("Port: {}", port);
-  if (mode == "server") {
+  if (mode == "publish") {
     HOLOSCAN_LOG_INFO("Data path: {}", data_directory);
   }
   HOLOSCAN_LOG_INFO("Config: {}", config_path);
 
   // Launch appropriate application based on mode
-  if (mode == "server") {
-    auto app = holoscan::make_application<holoscan::apps::UcxxEndoscopyServerApp>();
+  if (mode == "publish") {
+    auto app = holoscan::make_application<holoscan::apps::UcxxEndoscopyPublisherApp>();
     app->config(config_path);
     app->set_datapath(data_directory);
     app->set_hostname(hostname);
     app->set_port(port);
 
-    HOLOSCAN_LOG_INFO("Starting SERVER: Processing video and broadcasting to clients");
+    HOLOSCAN_LOG_INFO("Starting PUBLISHER: Processing video and broadcasting to subscribers");
     app->run();
 
-  } else if (mode == "client") {
-    auto app = holoscan::make_application<holoscan::apps::UcxxEndoscopyClientApp>();
+  } else if (mode == "subscribe") {
+    auto app = holoscan::make_application<holoscan::apps::UcxxEndoscopySubscriberApp>();
     app->config(config_path);
     app->set_hostname(hostname);
     app->set_port(port);
 
-    HOLOSCAN_LOG_INFO("Starting CLIENT: Receiving processed frames from server");
+    HOLOSCAN_LOG_INFO("Starting SUBSCRIBER: Receiving processed frames from publisher");
     app->run();
   }
 

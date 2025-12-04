@@ -32,18 +32,18 @@
 		"default_mode": "subscribe",
 		"modes": {
 			"publish": {
-				"description": "Publisher mode (server)",
+				"description": "Publisher mode",
 				"requirements": [],
 				"run": {
-					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode server",
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode publish",
 					"workdir": "holohub_bin"
 				}
 			},
 			"subscribe": {
-				"description": "Subscriber mode (client)",
+				"description": "Subscriber mode",
 				"requirements": [],
 				"run": {
-					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode client",
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode subscribe",
 					"workdir": "holohub_bin"
 				}
 			}
