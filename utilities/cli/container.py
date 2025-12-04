@@ -17,6 +17,7 @@
 import argparse
 import glob
 import os
+import re
 import shlex
 import shutil
 import stat
@@ -331,13 +332,16 @@ class HoloHubContainer:
     @property
     def image_name(self) -> str:
         if self.dockerfile_path != HoloHubContainer.default_dockerfile():
-            return f"{self.CONTAINER_PREFIX}:{self.project_metadata.get('project_name', '')}"
+            project_tag = self.get_project_name()
+            if project_tag:
+                return f"{self.CONTAINER_PREFIX}:{project_tag}"
+            return self.CONTAINER_PREFIX
         return HoloHubContainer.default_image(self.cuda_version)
 
     @property
     def image_names(self) -> List[str]:
         """Return list of image tags to apply: sha-tag, branch-tag, and legacy tag."""
-        project = self.project_metadata.get("project_name", "") if self.project_metadata else ""
+        project = self.get_project_name()
         repo = f"{self.CONTAINER_PREFIX}-{project}" if project else self.CONTAINER_PREFIX
         sha_tag = f"{repo}:{get_git_short_sha()}"
         branch_tag = f"{repo}:{get_current_branch_slug()}"
@@ -416,6 +420,16 @@ class HoloHubContainer:
 
         # Strategy 5-6: Fall back to default Dockerfile
         return HoloHubContainer.default_dockerfile()
+
+    def get_project_name(self) -> str:
+        """Return docker-safe project name."""
+        project_name = (self.project_metadata or {}).get("project_name", "")
+        if not project_name:
+            return ""
+        sanitized = project_name.lower()
+        sanitized = re.sub(r"[^a-z0-9._-]", "-", sanitized)
+        sanitized = re.sub(r"-{2,}", "-", sanitized).strip("-")
+        return sanitized or ""
 
     def __init__(self, project_metadata: Optional[dict[str, any]], language: Optional[str] = None):
         if not project_metadata:
@@ -839,7 +853,7 @@ class HoloHubContainer:
             docker_args.extend(shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS))
         if docker_opts:
             docker_args.extend(shlex.split(docker_opts))
-        project_name = self.project_metadata.get("project_name") if self.project_metadata else None
+        project_name = self.get_project_name()
         hostname = (
             f"{self.HOSTNAME_PREFIX}-{project_name}" if project_name else self.HOSTNAME_PREFIX
         )

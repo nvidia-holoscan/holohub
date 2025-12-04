@@ -879,7 +879,11 @@ class HoloHubCLI:
 
         ctest_cmd = f"{xvfb} ctest "
         if args.project:
-            ctest_cmd += f"-DAPP={args.project} "
+            project_metadata = container.project_metadata or {}
+            project_name = project_metadata.get("project_name", args.project)
+            project_type = project_metadata.get("project_type", "application")
+            proj_prefix = holohub_cli_util.determine_project_prefix(project_type)
+            ctest_cmd += f"-D{proj_prefix}={project_name} "
         ctest_cmd += f"-DTAG={tag} "
 
         # Aggregate configure options from CLI and language selection

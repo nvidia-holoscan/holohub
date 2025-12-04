@@ -12,9 +12,43 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Usage (run from the holohub repo root or invoke ctest directly):
+#   ctest -DAPP=my_app -DTAG=<tag> -S utilities/testing/holohub.container.ctest -VV
+#   ./holohub test [project] [options]
+#     Examples: ./holohub test app_name
+#               ./holohub test operator_name
+#               ./holohub test video_streaming --ctest-options "-R unit_tests -VV"
+# `./holohub test` options supported by this ctest config:
+#   --verbose               Print extra CLI output; also adds -VV to ctest
+#   --dryrun                Echo the commands without executing them
+#   --clear-cache           Remove cached build/data directories before testing
+#   --site-name NAME        Sets CTEST_SITE
+#   --cdash-url URL         Submit results to the specified CDash endpoint
+#   --platform-name NAME    Sets PLATFORM_NAME portion of the CTest build name
+#   --cmake-options OPT     Append cmake configure flags (may be passed multiple times)
+#   --ctest-options OPT     Append raw ctest arguments (may be passed multiple times)
+#   --no-xvfb               Disable xvfb-run wrapper (enabled by default for GUI apps)
+#   --coverage              Build with coverage instrumentation and run ctest_coverage
+#   --build-name-suffix TAG Override the auto-detected TAG used by CTest
 
-if(NOT APP)
-  message(FATAL_ERROR "A holohub application should be set via the APP variable.")
+
+set(PROJ_PREFIX APP)
+set(PROJ_NAME "")
+
+if(OP)
+  set(PROJ_NAME ${OP})
+  set(PROJ_PREFIX OP)
+elseif(PKG)
+  set(PROJ_NAME ${PKG})
+  set(PROJ_PREFIX PKG)
+elseif(EXT)
+  set(PROJ_NAME ${EXT})
+  set(PROJ_PREFIX EXT)
+elseif(APP)
+  set(PROJ_NAME ${APP})
+else()
+  message(STATUS "No APP/OP/PKG/EXT provided; running repository-wide tests")
 endif()
 
 if(NOT TAG)
@@ -22,7 +56,7 @@ if(NOT TAG)
 endif()
 
 set(CTEST_SOURCE_DIRECTORY "/workspace/holohub")
-set(CTEST_BINARY_DIRECTORY "/workspace/holohub/build-${APP}")
+set(CTEST_BINARY_DIRECTORY "/workspace/holohub/build-${PROJ_NAME}")
 
 if(NOT CTEST_SITE)
   set(CTEST_SITE "SITE_NA")
@@ -32,7 +66,7 @@ if(NOT PLATFORM_NAME)
   set(PLATFORM_NAME linux)
 endif()
 
-set(CTEST_BUILD_NAME "holohub-${PLATFORM_NAME}-${APP}-${TAG}")
+set(CTEST_BUILD_NAME "holohub-${PLATFORM_NAME}-${PROJ_NAME}-${TAG}")
 
 set(CTEST_UPDATE_COMMAND "git")
 set(CTEST_CMAKE_GENERATOR "Ninja")
@@ -47,9 +81,9 @@ ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
 
 set(configure_options
   ${CONFIGURE_OPTIONS}
-  -D HOLOHUB_DATA_DIR=/workspace/holohub/data-${APP}-${TAG}
+  -D HOLOHUB_DATA_DIR=/workspace/holohub/data-${PROJ_NAME}-${TAG}
   -D CMAKE_BUILD_TYPE=RelWithDebInfo
-  -D APP_${APP}=ON
+  -D ${PROJ_PREFIX}_${PROJ_NAME}=ON
 )
 
 # Enable coverage if requested
@@ -80,7 +114,7 @@ if(COVERAGE)
   # Generate the python coverage report as XML for CTest
   execute_process(COMMAND coverage xml -o "${CTEST_BINARY_DIRECTORY}/coverage.xml"
                   WORKING_DIRECTORY "${CTEST_BINARY_DIRECTORY}"
-                 )               
+                 )
   set(CTEST_COVERAGE_COMMAND "/usr/bin/gcov")
   ctest_coverage()
 endif()

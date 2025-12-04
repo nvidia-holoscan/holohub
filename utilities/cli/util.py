@@ -36,8 +36,10 @@ DEFAULT_GIT_REF = "latest"
 PROJECT_PREFIXES = {
     "application": "APP",
     "benchmark": "APP",
+    "gxf_extension": "EXT",
     "operator": "OP",
     "package": "PKG",
+    "tutorial": "APP",
     "workflow": "APP",
     "default": "APP",  # specified type but not recognized
 }
