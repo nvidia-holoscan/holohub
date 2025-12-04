@@ -38,3 +38,6 @@ add_test(NAME test_ucxx_ops
     && (grep -q \"Endpoint closed\" ${CMAKE_CURRENT_BINARY_DIR}/test_ucxx_ops.log || (echo \"ERROR: No endpoint closed\" && exit 1)) "
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
+set_tests_properties(test_ucxx_ops PROPERTIES
+  FAIL_REGULAR_EXPRESSION "Endpoint closed with status: Endpoint is not connected"
+)

@@ -19,7 +19,11 @@
 
 namespace holoscan::ops {
 
-UcxxEndpoint::~UcxxEndpoint() { worker_->stopProgressThread(); }
+UcxxEndpoint::~UcxxEndpoint() {
+  if(worker_) {
+    worker_->stopProgressThread();
+  }
+}
 
 void UcxxEndpoint::setup(holoscan::ComponentSpec& spec) {
   spec.param(hostname_, "hostname", "Hostname", "Hostname of the endpoint",
