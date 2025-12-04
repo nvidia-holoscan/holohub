@@ -66,4 +66,15 @@ if(BUILD_TESTING)
     set_tests_properties(gst_video_recorder_output_file_test PROPERTIES
         DEPENDS gst_video_recorder_test
     )
+
+    # Test 3: check if the output file is a valid MPEG video file
+    add_test(
+        NAME gst_video_recorder_valid_mpeg_test
+        COMMAND bash -c "ffprobe -v error ${OUTPUT_FILE}"
+    )
+
+    # Make the validation test depend on the file check test
+    set_tests_properties(gst_video_recorder_valid_mpeg_test PROPERTIES
+        DEPENDS gst_video_recorder_output_file_test
+    )
 endif()
