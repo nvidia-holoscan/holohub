@@ -36,15 +36,8 @@ install(TARGETS gst-video-recorder DESTINATION bin/gst_video_recorder)
 
 
 if(BUILD_TESTING)
-    # Set the test directories and variables
+    # Set and create the recording directory
     set(RECORDING_DIR ${CMAKE_CURRENT_BINARY_DIR}/recording_output)
-
-    # Remove the recording directory if it exists
-    if(EXISTS ${RECORDING_DIR})
-        file(REMOVE_RECURSE ${RECORDING_DIR})
-    endif()
-
-    # Create the recording directory
     file(MAKE_DIRECTORY ${RECORDING_DIR})
 
     # Set the output file
@@ -54,13 +47,12 @@ if(BUILD_TESTING)
     # Test 1: check if the pipeline runs successfully
     add_test(
         NAME gst_video_recorder_test
-        COMMAND gst-video-recorder --source pattern --count 10 -o ${OUTPUT_FILE}
+        COMMAND $<TARGET_FILE:gst-video-recorder> --source pattern --count 10 -o ${OUTPUT_FILE}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 
     # Set the test passing if the pipeline runs successfully
     set_tests_properties(gst_video_recorder_test PROPERTIES
-        DEPENDS gst-video-recorder
         PASS_REGULAR_EXPRESSION "EOS processed, pipeline finished cleanly"
     )
 
