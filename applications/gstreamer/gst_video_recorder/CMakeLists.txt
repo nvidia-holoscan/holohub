@@ -51,14 +51,14 @@ if(BUILD_TESTING)
     set(OUTPUT_FILE ${RECORDING_DIR}/test_output.mp4)
     message(STATUS "Output test file: ${OUTPUT_FILE}")
 
-    # Test 1: check if the pipline runs successfully
+    # Test 1: check if the pipeline runs successfully
     add_test(
         NAME gst_video_recorder_test
         COMMAND gst-video-recorder --source pattern --count 10 -o ${OUTPUT_FILE}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 
-    # Set the test passing if the pipline runs successfully
+    # Set the test passing if the pipeline runs successfully
     set_tests_properties(gst_video_recorder_test PROPERTIES
         DEPENDS gst-video-recorder
         PASS_REGULAR_EXPRESSION "EOS processed, pipeline finished cleanly"
