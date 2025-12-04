@@ -33,6 +33,25 @@ This application showcases how to:
   - USB webcams, MIPI CSI cameras, or any V4L2 video device
   - Use `v4l2-ctl --list-devices` to see available cameras
 
+## Quick Start
+
+To run the application with the default settings, simply run one of the following commands:
+
+A. Using the **V4L2 camera**:
+
+```bash
+./holohub run gst_video_recorder v4l2
+```
+
+B. Generating test patterns:
+
+```bash
+./holohub run gst_video_recorder pattern
+```
+
+These single-line commands will build and run the customized container for this application with all the dependencies installed (defined by `Dockerfile`), and then build and start the application using the default settings. The output video will be saved in the build directory as `output.mp4`.
+
+
 ## Building
 
 ### Option 1: Containerized Build (Recommended)
