@@ -70,18 +70,19 @@ void UcxxEndoscopyClientApp::compose() {
   std::shared_ptr<Operator> recorder;
   std::shared_ptr<Operator> recorder_format_converter;
   bool enable_recording = false;
-  
+
   // Check record_type to determine if recording should be enabled
   auto record_type = from_config("record_type").as<std::string>();
   if (record_type == "client") {
     enable_recording = true;
     HOLOSCAN_LOG_INFO("Client recording enabled (record_type=client)");
-    
+
     recorder_format_converter = make_operator<ops::FormatConverterOp>(
         "recorder_format_converter",
         from_config("recorder_format_converter"),
-        Arg("pool") = make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
-    
+        Arg("pool") = make_resource<BlockMemoryPool>(
+            "pool", 1, source_block_size, source_num_blocks));
+
     recorder = make_operator<ops::VideoStreamRecorderOp>(
         "recorder_client",
         from_config("recorder_client"));

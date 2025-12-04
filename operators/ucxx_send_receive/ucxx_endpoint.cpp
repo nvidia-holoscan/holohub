@@ -20,7 +20,7 @@
 namespace holoscan::ops {
 
 UcxxEndpoint::~UcxxEndpoint() {
-  if(worker_) {
+  if (worker_) {
     worker_->stopProgressThread();
   }
 }

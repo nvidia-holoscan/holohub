@@ -85,10 +85,10 @@ if(BUILD_TESTING)
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/ucxx_endoscopy_tool_tracking.yaml" CONFIG_FILE)
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "headless: false" "headless: true" CONFIG_FILE ${CONFIG_FILE})
-  
+
   # Enable client-side recording for frame validation
   string(REPLACE "record_type: \"none\"" "record_type: \"client\"" CONFIG_FILE ${CONFIG_FILE})
-  
+
   # Update recorder paths for testing
   string(REPLACE "directory: \"/tmp\"" "directory: \"${RECORDING_DIR}\"" CONFIG_FILE ${CONFIG_FILE})
   string(REPLACE "basename: \"ucxx_client_received\"" "basename: \"${SOURCE_VIDEO_BASENAME}\"" CONFIG_FILE ${CONFIG_FILE})
@@ -122,7 +122,7 @@ if(BUILD_TESTING)
              fi; \
              exit 0"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-  
+
   set_tests_properties(ucxx_endoscopy_tool_tracking_cpp_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")

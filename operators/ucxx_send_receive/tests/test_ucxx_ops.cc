@@ -41,7 +41,7 @@ class TensorTxOp : public holoscan::Operator {
                holoscan::ExecutionContext& context) override {
     // Create a GXF entity
     auto out_message = holoscan::gxf::Entity::New(&context);
-    
+
     // Add a tensor to the entity (need to cast to nvidia::gxf::Entity&)
     auto tensor = static_cast<nvidia::gxf::Entity&>(out_message)
                       .add<nvidia::gxf::Tensor>("").value();
@@ -59,7 +59,7 @@ class TensorTxOp : public holoscan::Operator {
     // Fill with random data (for testing purposes, use a simple pattern)
     const size_t tensor_size = kImageHeight * kImageWidth * kImageChannels;
     std::vector<uint8_t> host_data(tensor_size);
-    
+
     // Generate random data
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -94,20 +94,20 @@ class TensorRxOp : public holoscan::Operator {
       HOLOSCAN_LOG_ERROR("Failed to receive entity");
       return;
     }
-    
+
     // Get the tensor from the entity
     auto tensor = entity.value().get<holoscan::Tensor>("");
     if (!tensor) {
       HOLOSCAN_LOG_ERROR("Failed to get tensor from entity");
       return;
     }
-    
+
     // Verify tensor dimensions
-    HOLOSCAN_LOG_INFO("Received tensor with rank {} and shape: [{}, {}, {}]", 
+    HOLOSCAN_LOG_INFO("Received tensor with rank {} and shape: [{}, {}, {}]",
                       tensor->ndim(), tensor->shape()[0], tensor->shape()[1], tensor->shape()[2]);
-    
+
     // Verify data type
-    HOLOSCAN_LOG_INFO("Received tensor with dtype: {} bits: {}", 
+    HOLOSCAN_LOG_INFO("Received tensor with dtype: {} bits: {}",
                       tensor->dtype().code, tensor->dtype().bits);
   }
 };

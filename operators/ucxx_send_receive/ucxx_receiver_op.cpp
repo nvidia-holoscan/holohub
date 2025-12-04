@@ -65,20 +65,21 @@ void UcxxReceiverOp::compute([[maybe_unused]] holoscan::InputContext& input,
         HOLOSCAN_LOG_ERROR("Failed to deserialize tensor: {}", gxf_tensor.error().what());
         return;  
       }
-      
+
       // Create an entity and add the tensor as a component with name ""
       auto out_entity = holoscan::gxf::Entity::New(&context);
-      
+
       // Add the GXF tensor to the entity
-      auto tensor_handle = static_cast<nvidia::gxf::Entity&>(out_entity).add<nvidia::gxf::Tensor>("");
+      auto tensor_handle =
+          static_cast<nvidia::gxf::Entity&>(out_entity).add<nvidia::gxf::Tensor>("");
       if (!tensor_handle) {
         HOLOSCAN_LOG_ERROR("Failed to add tensor to entity");
         return;
       }
-      
+
       // Move the deserialized tensor data into the entity's tensor
       *tensor_handle.value() = std::move(gxf_tensor.value());
-      
+
       output.emit(out_entity, "out");
     } else {
       HOLOSCAN_LOG_ERROR("Receive request failed with status: {}", ucs_status_string(status));
@@ -97,4 +98,4 @@ void UcxxReceiverOp::compute([[maybe_unused]] holoscan::InputContext& input,
   }
 }
 
-}  // namespace isaac::os::ops
+}  // namespace holoscan::ops

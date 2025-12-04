@@ -41,7 +41,7 @@ struct TensorHeader {
 #pragma pack(pop)
 
 // Serializes a tensor object into the given buffer.
-// 
+//
 // This function converts a nvidia::gxf::Tensor into a raw binary buffer
 // format consisting of a TensorHeader followed by contiguous tensor data.
 // It copies shape/stride information into the header and copies the tensor
@@ -65,7 +65,7 @@ holoscan::expected<size_t, holoscan::RuntimeError> serializeTensor(
     holoscan::Allocator* allocator);
 
 // Deserializes a tensor object from the given buffer.
-// 
+//
 // This function reconstructs a nvidia::gxf::Tensor from a raw binary buffer
 // that contains a serialized TensorHeader followed by contiguous tensor data.
 // The function performs sanity checks on the header, copies shape/stride
@@ -79,14 +79,14 @@ holoscan::expected<size_t, holoscan::RuntimeError> serializeTensor(
 //   allocator: Pointer to an allocator to use for tensor memory.
 //
 // Returns:
-//   holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> containing the deserialized tensor,
-//   or an error if deserialization fails.
-// 
+//   holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> containing
+//   the deserialized tensor, or an error if deserialization fails.
+//
 // Based on nvidia::gxf::StdComponentSerializer::deserializeTensor.
 holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> deserializeTensor(
-    const uint8_t* buffer, 
+    const uint8_t* buffer,
     size_t buffer_size,
     gxf_context_t context,
     holoscan::Allocator* allocator);
 
-}  // namespace holoscan::ops
+}  // namespace holoscan::ops::ucxx

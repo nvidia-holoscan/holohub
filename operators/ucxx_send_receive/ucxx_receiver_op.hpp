@@ -49,4 +49,4 @@ class UcxxReceiverOp : public holoscan::Operator {
   std::shared_ptr<ucxx::Request> request_;
 };
 
-}  // namespace isaac::os::ops
+}  // namespace holoscan::ops

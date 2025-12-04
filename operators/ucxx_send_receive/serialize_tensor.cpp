@@ -44,7 +44,7 @@ holoscan::expected<size_t, holoscan::RuntimeError> serializeTensor(
   header->element_type = tensor.element_type();
   header->bytes_per_element = tensor.bytes_per_element();
   header->rank = tensor.rank();
-  
+
   for (size_t i = 0; i < Shape::kMaxRank; i++) {
     header->dims[i] = tensor.shape().dimension(i);
     header->strides[i] = tensor.stride(i);
@@ -64,9 +64,10 @@ holoscan::expected<size_t, holoscan::RuntimeError> serializeTensor(
       auto staging_buffer = allocator->allocate(tensor_size, holoscan::MemoryStorageType::kHost);
       if (!staging_buffer) {
         HOLOSCAN_LOG_ERROR("Failed to allocate staging buffer for device memory copy");
-        return holoscan::make_unexpected(holoscan::RuntimeError("Failed to allocate staging buffer"));
+        return holoscan::make_unexpected(
+            holoscan::RuntimeError("Failed to allocate staging buffer"));
       }
-      
+
       // Copy from device memory to staging buffer
       const cudaError_t error = cudaMemcpy(staging_buffer, tensor.pointer(), tensor_size,
                                            cudaMemcpyDeviceToHost);
@@ -74,12 +75,13 @@ holoscan::expected<size_t, holoscan::RuntimeError> serializeTensor(
         HOLOSCAN_LOG_ERROR("Failure in CudaMemcpy. cuda_error: %s, error_str: %s",
                            cudaGetErrorName(error), cudaGetErrorString(error));
         allocator->free(staging_buffer);
-        return holoscan::make_unexpected(holoscan::RuntimeError("Failed to copy data to staging buffer"));
+        return holoscan::make_unexpected(
+            holoscan::RuntimeError("Failed to copy data to staging buffer"));
       }
-      
+
       // Copy from staging buffer to output buffer
       std::memcpy(tensor_data, staging_buffer, tensor_size);
-      
+
       // Free the staging buffer
       allocator->free(staging_buffer);
       break;
@@ -126,7 +128,8 @@ holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> deserializeTenso
       context, allocator->gxf_cid());
   if (!gxf_allocator) {
     HOLOSCAN_LOG_ERROR("Failed to create GXF allocator handle");
-    return holoscan::make_unexpected(holoscan::RuntimeError("Failed to create GXF allocator handle"));
+    return holoscan::make_unexpected(
+        holoscan::RuntimeError("Failed to create GXF allocator handle"));
   }
 
   nvidia::gxf::Tensor tensor;
@@ -159,12 +162,13 @@ holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> deserializeTenso
       auto staging_buffer = allocator->allocate(tensor_size, holoscan::MemoryStorageType::kHost);
       if (!staging_buffer) {
         HOLOSCAN_LOG_ERROR("Failed to allocate staging buffer for device memory copy");
-        return holoscan::make_unexpected(holoscan::RuntimeError("Failed to allocate staging buffer"));
+        return holoscan::make_unexpected(
+            holoscan::RuntimeError("Failed to allocate staging buffer"));
       }
-      
+
       // Copy data to staging buffer
       std::memcpy(staging_buffer, tensor_data, tensor_size);
-      
+
       // Copy from staging buffer to device memory
       const cudaError_t error = cudaMemcpy(tensor.pointer(), staging_buffer, tensor_size,
                                            cudaMemcpyHostToDevice);
@@ -172,9 +176,10 @@ holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> deserializeTenso
         HOLOSCAN_LOG_ERROR("Failure in CudaMemcpy. cuda_error: %s, error_str: %s",
                       cudaGetErrorName(error), cudaGetErrorString(error));
         allocator->free(staging_buffer);
-        return holoscan::make_unexpected(holoscan::RuntimeError("Failed to copy data to staging buffer"));
+        return holoscan::make_unexpected(
+            holoscan::RuntimeError("Failed to copy data to staging buffer"));
       }
-      
+
       // Free the staging buffer
       allocator->free(staging_buffer);
       break;
@@ -186,4 +191,4 @@ holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> deserializeTenso
   return tensor;
 }
 
-}  // namespace holoscan::ops
+}  // namespace holoscan::ops::ucxx

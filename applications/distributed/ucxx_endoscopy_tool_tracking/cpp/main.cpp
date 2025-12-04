@@ -67,13 +67,15 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
                   << "Options:\n"
                   << "  -d, --data <path>        Path to data directory (required for server)\n"
                   << "  -c, --config <path>      Path to config file (optional)\n"
-                  << "  -h, --hostname <host>    Hostname (default: 0.0.0.0 for server, 127.0.0.1 for client)\n"
+                  << "  -h, --hostname <host>    Hostname (default: 0.0.0.0 for server,\n"
+                  << "                           127.0.0.1 for client)\n"
                   << "  -p, --port <port>        Port number (default: 50008)\n"
                   << "  -m, --mode <mode>        Mode: 'server' or 'client' (required)\n"
                   << "  -?, --help               Show this help message\n"
                   << "\n"
                   << "Description:\n"
-                  << "  Server: Processes video, renders with overlays, and broadcasts rendered frames\n"
+                  << "  Server: Processes video, renders with overlays, and broadcasts\n"
+                  << "          rendered frames\n"
                   << "  Client: Receives pre-rendered frames from server and displays them\n"
                   << "\n"
                   << "Examples:\n"
@@ -122,8 +124,10 @@ int main(int argc, char** argv) {
       auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");
       if (input_path != nullptr && input_path[0] != '\0') {
         data_directory = std::string(input_path) + "/endoscopy";
-      } else if (std::filesystem::is_directory(std::filesystem::current_path() / "data/endoscopy")) {
-        data_directory = std::string((std::filesystem::current_path() / "data/endoscopy").c_str());
+      } else if (std::filesystem::is_directory(
+                     std::filesystem::current_path() / "data/endoscopy")) {
+        data_directory = std::string(
+            (std::filesystem::current_path() / "data/endoscopy").c_str());
       } else {
         HOLOSCAN_LOG_ERROR(
             "Data directory required for server mode. Use --data or set HOLOSCAN_INPUT_PATH");
@@ -145,7 +149,7 @@ int main(int argc, char** argv) {
     auto config_file_path = std::getenv("HOLOSCAN_CONFIG_PATH");
     if (config_file_path == nullptr || config_file_path[0] == '\0') {
       config_path = app_path / std::filesystem::path("ucxx_endoscopy_tool_tracking.yaml");
-      
+
       // Fallback to standard config if UCXX-specific config doesn't exist
       if (!std::filesystem::exists(config_path)) {
         config_path = app_path / std::filesystem::path("endoscopy_tool_tracking.yaml");
@@ -171,16 +175,16 @@ int main(int argc, char** argv) {
     app->set_datapath(data_directory);
     app->set_hostname(hostname);
     app->set_port(port);
-    
+
     HOLOSCAN_LOG_INFO("Starting SERVER: Processing video and broadcasting to clients");
     app->run();
-    
+
   } else if (mode == "client") {
     auto app = holoscan::make_application<holoscan::apps::UcxxEndoscopyClientApp>();
     app->config(config_path);
     app->set_hostname(hostname);
     app->set_port(port);
-    
+
     HOLOSCAN_LOG_INFO("Starting CLIENT: Receiving processed frames from server");
     app->run();
   }
