@@ -429,6 +429,7 @@ class HoloHubContainer:
         sanitized = project_name.lower()
         sanitized = re.sub(r"[^a-z0-9._-]", "-", sanitized)
         sanitized = re.sub(r"-{2,}", "-", sanitized).strip("-")
+        sanitized = re.sub(r"^[^a-z0-9]+", "", sanitized)  # Docker tags must start alnum
         return sanitized or ""
 
     def __init__(self, project_metadata: Optional[dict[str, any]], language: Optional[str] = None):

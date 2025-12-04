@@ -83,8 +83,11 @@ set(configure_options
   ${CONFIGURE_OPTIONS}
   -D HOLOHUB_DATA_DIR=/workspace/holohub/data-${PROJ_NAME}-${TAG}
   -D CMAKE_BUILD_TYPE=RelWithDebInfo
-  -D ${PROJ_PREFIX}_${PROJ_NAME}=ON
 )
+
+if(PROJ_NAME)
+  list(APPEND configure_options "-D${PROJ_PREFIX}_${PROJ_NAME}=ON")
+endif()
 
 # Enable coverage if requested
 if(COVERAGE)
