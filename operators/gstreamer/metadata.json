@@ -1,0 +1,45 @@
+{
+  "operator": {
+    "name": "GStreamer Bridge Operators",
+    "description": "GStreamer bridge operators for video recording and streaming in Holoscan applications",
+    "authors": [
+      {
+        "name": "NVIDIA Corporation",
+        "affiliation": "NVIDIA Corporation"
+      }
+    ],
+    "version": "1.0.0",
+    "changelog": {
+      "1.0.0": "Initial release with GstVideoRecorderOp and GstSrcBridge"
+    },
+    "language": ["C++"],
+    "holoscan_sdk": {
+      "minimum_required_version": "3.8.0",
+      "tested_versions": ["3.8.0"]
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": [
+      "gstreamer",
+      "video",
+      "recording",
+      "multimedia",
+      "streaming",
+      "cuda"
+    ],
+    "ranking": 5,
+    "requirements": {
+      "system_packages": [
+        "libgstreamer1.0-dev",
+        "libgstreamer-plugins-base1.0-dev",
+        "libgstreamer-plugins-bad1.0-dev",
+        "gstreamer1.0-plugins-good",
+        "gstreamer1.0-plugins-bad",
+        "gstreamer1.0-libav",
+        "gstreamer1.0-tools"
+      ]
+    }
+  }
+}
