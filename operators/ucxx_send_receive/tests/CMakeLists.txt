@@ -30,4 +30,11 @@ target_link_libraries(test_ucxx_ops
     ucxx
 )
 
-add_test(NAME test_ucxx_ops COMMAND test_ucxx_ops)
+add_test(NAME test_ucxx_ops
+  COMMAND bash -c "(${CMAKE_CURRENT_BINARY_DIR}/test_ucxx_ops 2>&1 \| tee test_ucxx_ops.log) \
+    && (grep -q \"Endpoint connected\" ${CMAKE_CURRENT_BINARY_DIR}/test_ucxx_ops.log || (echo \\\"ERROR: No endpoint connected\\\" && exit 1)) \
+    && (grep -q \"Received tensor with rank 3 and shape: \\[1080, 1920, 3\\]\" ${CMAKE_CURRENT_BINARY_DIR}/test_ucxx_ops.log || (echo \"ERROR: No tensor received\" && exit 1)) \
+    && (grep -q \"Received tensor with dtype: 1 bits: 8\" ${CMAKE_CURRENT_BINARY_DIR}/test_ucxx_ops.log || (echo \"ERROR: No tensor received\" && exit 1)) \
+    && (grep -q \"Endpoint closed\" ${CMAKE_CURRENT_BINARY_DIR}/test_ucxx_ops.log || (echo \"ERROR: No endpoint closed\" && exit 1)) "
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
