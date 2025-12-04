@@ -19,9 +19,9 @@ from pathlib import Path
 import pandas as pd
 from llama_index import VectorStoreIndex
 from llama_index.core import Settings
+from llama_index.core.schema import TextNode
 from llama_index.embeddings import resolve_embed_model
 from llama_index.finetuning import EmbeddingQAFinetuneDataset
-from llama_index.core.schema import TextNode
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.evaluation import InformationRetrievalEvaluator
 from tqdm import tqdm
