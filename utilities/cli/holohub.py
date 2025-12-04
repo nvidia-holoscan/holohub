@@ -2109,8 +2109,12 @@ class HoloHubCLI:
         """Validate metadata.json for the newly created project."""
         import json
 
-        import utilities.metadata.metadata_validator as metadata_validator
+        try:
+            import utilities.metadata.metadata_validator as metadata_validator
+        except ImportError:
+            self._install_template_deps()
 
+        import utilities.metadata.metadata_validator as metadata_validator
         if not schema_root:
             # No schema installed – skip validation.
             return
