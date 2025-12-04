@@ -17650,6 +17650,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -18049,6 +18060,10 @@
 </code></pre></div>
 <p><strong>Record using host memory (CPU):</strong></p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --storage 0 --encoder x264 -o video.mp4&quot;</span>
+</code></pre></div>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">#</a></h2>
+<p>The application includes integration tests to validate the pipeline execution and recording file creation. To run the tests, use the following command:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>gst_video_recorder<span class="w"> </span>--verbose
 </code></pre></div>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
 <p>The application supports two video sources and uses a common encoding backend:</p>
