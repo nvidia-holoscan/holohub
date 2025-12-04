@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "ucxx_endpoint.h"
+#include "ucxx_endpoint.hpp"
 
 namespace holoscan::ops {
 

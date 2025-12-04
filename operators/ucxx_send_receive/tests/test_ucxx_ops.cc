@@ -19,9 +19,9 @@
 #include <random>
 
 #include <holoscan/holoscan.hpp>
-#include <ucxx_endpoint.h>
-#include <ucxx_receiver_op.h>
-#include <ucxx_sender_op.h>
+#include <ucxx_endpoint.hpp>
+#include <ucxx_receiver_op.hpp>
+#include <ucxx_sender_op.hpp>
 
 constexpr int kImageWidth = 1920;
 constexpr int kImageHeight = 1080;

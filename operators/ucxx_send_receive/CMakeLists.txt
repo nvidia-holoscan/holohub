@@ -20,9 +20,10 @@ project(ucxx_send_receive_operators LANGUAGES CXX)
 find_package(holoscan 3.8 REQUIRED CONFIG)
 
 add_library(ucxx_send_receive SHARED
-  ucxx_endpoint.cc
-  ucxx_receiver_op.cc
-  ucxx_sender_op.cc
+  ucxx_endpoint.cpp
+  ucxx_receiver_op.cpp
+  ucxx_sender_op.cpp
+  serialize_tensor.cpp
 )
 add_library(holoscan::ops::ucxx ALIAS ucxx_send_receive)
 
