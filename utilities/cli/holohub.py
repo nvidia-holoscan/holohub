@@ -44,6 +44,7 @@ import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer
 from utilities.cli.util import Color
+from utilities.metadata.utils import list_normalized_languages, normalize_language
 
 
 class HoloHubCLI:
@@ -474,20 +475,12 @@ class HoloHubCLI:
         EXCLUDE_PATHS = ["applications/holoviz/template", "applications/template"]
         # Known exceptions, such as template files that do not represent a standalone project
 
-        app_paths = (
-            HoloHubCLI.HOLOHUB_ROOT / "applications",
-            HoloHubCLI.HOLOHUB_ROOT / "benchmarks",
-            HoloHubCLI.HOLOHUB_ROOT / "gxf_extensions",
-            HoloHubCLI.HOLOHUB_ROOT / "operators",
-            HoloHubCLI.HOLOHUB_ROOT / "pkg",
-            HoloHubCLI.HOLOHUB_ROOT / "tutorials",
-            HoloHubCLI.HOLOHUB_ROOT / "workflows",
-        )
+        app_paths = holohub_cli_util.get_component_search_paths(self.HOLOHUB_ROOT)
         self.projects = metadata_util.gather_metadata(app_paths, exclude_paths=EXCLUDE_PATHS)
 
     def find_project(self, project_name: str, language: Optional[str] = None) -> dict:
         """Find a project by name"""
-        normalized_language = holohub_cli_util.normalize_language(language)
+        normalized_language = normalize_language(language)
 
         cache_key = (project_name, normalized_language)
         if cache_key in self._project_data:
@@ -498,8 +491,8 @@ class HoloHubCLI:
         if candidates:
             available_lang = []
             for p in candidates:
-                for lang in holohub_cli_util.list_normalized_languages(
-                    p.get("metadata", {}).get("language", None)
+                for lang in list_normalized_languages(
+                    p.get("metadata", {}).get("language", None), strict=True
                 ):
                     available_lang.append(lang)
             available_lang = sorted(list(set(available_lang)))
@@ -517,8 +510,8 @@ class HoloHubCLI:
                 msg += f"Defaulting to '{target_lang}'. Use --language to select explicitly.\n\n"
                 print(Color.green(msg))
             for p in candidates:
-                if target_lang in holohub_cli_util.list_normalized_languages(
-                    p.get("metadata", {}).get("language", None)
+                if target_lang in list_normalized_languages(
+                    p.get("metadata", {}).get("language", None), strict=True
                 ):
                     self._project_data[cache_key] = p  # Return candidate matching target_lang
                     return p
@@ -897,7 +890,7 @@ class HoloHubCLI:
         # Respect language selection by toggling build flags
         normalized_lang = None
         if hasattr(args, "language") and args.language:
-            normalized_lang = holohub_cli_util.normalize_language(args.language)
+            normalized_lang = normalize_language(args.language)
             if normalized_lang == "python":
                 configure_opts.append("-DHOLOHUB_BUILD_PYTHON=ON")
                 configure_opts.append("-DHOLOHUB_BUILD_CPP=OFF")
@@ -1039,9 +1032,7 @@ class HoloHubCLI:
             cmake_args.append(f'-DHOLOHUB_BUILD_OPERATORS="{with_operators}"')
 
         if not language:
-            language = holohub_cli_util.normalize_language(
-                project_data.get("metadata", {}).get("language", None)
-            )
+            language = normalize_language(project_data.get("metadata", {}).get("language", None))
         # Set build flags based on language
         if language == "python":
             cmake_args.append("-DHOLOHUB_BUILD_PYTHON=ON")
@@ -1256,7 +1247,7 @@ class HoloHubCLI:
         project_data = self.find_project(args.project, language=args.language)
         mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
         self.validate_mode(args, mode_name, mode_config, project_data, getattr(args, "mode", None))
-        language = holohub_cli_util.normalize_language(
+        language = normalize_language(
             args.language
             if args.language
             else project_data.get("metadata", {}).get("language", None)
@@ -1709,7 +1700,7 @@ class HoloHubCLI:
             if (
                 holohub_cli_util.run_command(
                     [
-                        "python",
+                        sys.executable,
                         "-m",
                         "cpplint",
                         "--quiet",
@@ -2110,6 +2101,37 @@ class HoloHubCLI:
             print(Color.red(f"Failed to add application to applications/CMakeLists.txt: {str(e)}"))
             print(Color.red("Please add the application manually to applications/CMakeLists.txt"))
 
+    def validate_generated_metadata(self, metadata_path: Path, schema_root: Optional[Path]) -> None:
+        """Validate metadata.json for the newly created project."""
+        import json
+
+        import utilities.metadata.metadata_validator as metadata_validator
+
+        if not schema_root:
+            # No schema installed – skip validation.
+            return
+        if not metadata_path.exists():
+            holohub_cli_util.fatal(f"Generated project is missing metadata.json at {metadata_path}")
+        try:
+            with open(metadata_path, "r", encoding="utf-8") as metadata_file:
+                metadata_contents = json.load(metadata_file)
+        except json.JSONDecodeError as exc:
+            holohub_cli_util.fatal(
+                f"Generated metadata.json is not valid ({exc}). File location: {metadata_path}"
+            )
+        except OSError as exc:
+            holohub_cli_util.fatal(
+                f"Failed to read metadata.json ({exc}). File location: {metadata_path}"
+            )
+        is_valid, message = metadata_validator.validate_json(metadata_contents, str(schema_root))
+        if not is_valid:
+            holohub_cli_util.fatal(
+                f"Generated metadata.json failed validation against {schema_root / 'metadata.schema.json'}:\n{message}"
+            )
+        print(
+            Color.green(f"Validated metadata.json against {schema_root / 'metadata.schema.json'}")
+        )
+
     def handle_vscode(self, args: argparse.Namespace) -> None:
         """Builds a dev container and launches VS Code with proper devcontainer configuration."""
         if not shutil.which("code") and not args.dryrun:
@@ -2224,13 +2246,13 @@ class HoloHubCLI:
 
         import cookiecutter.main
 
-        project_dir = args.directory / context["project_slug"]
-        if project_dir.exists():
-            holohub_cli_util.fatal(f"Project directory {project_dir} already exists")
+        intended_dir = args.directory / context["project_slug"]
+        if intended_dir.exists():
+            holohub_cli_util.fatal(f"Project directory {intended_dir} already exists")
 
         try:
             # Let cookiecutter handle all file generation
-            cookiecutter.main.cookiecutter(
+            generated_path = cookiecutter.main.cookiecutter(
                 str(template_dir),
                 no_input=not args.interactive,
                 extra_context=context,
@@ -2240,14 +2262,20 @@ class HoloHubCLI:
             holohub_cli_util.fatal(f"Failed to create project: {str(e)}")
 
         # Add to CMakeLists.txt if in applications directory
+        project_dir = Path(generated_path)
+        actual_slug = project_dir.name
+
         if args.directory == self.HOLOHUB_ROOT / "applications":
-            self._add_to_cmakelists(context["project_slug"])
+            self._add_to_cmakelists(actual_slug)
 
         # Get the actual project directory after cookiecutter runs
-        project_dir = args.directory / context["project_slug"]
         metadata_path = project_dir / "metadata.json"
         src_dir = project_dir / "src"
-        main_file = next(src_dir.glob(f"{context['project_slug']}.*"), None)
+        main_file = next(src_dir.glob(f"{actual_slug}.*"), None)
+        schema_root = Path(__file__).resolve().parents[2] / "applications"
+        if not (schema_root / "metadata.schema.json").exists():
+            schema_root = None
+        self.validate_generated_metadata(metadata_path, schema_root)
 
         msg_next = ""
         if "applications" in args.template:
@@ -2257,7 +2285,7 @@ class HoloHubCLI:
                 f"- Update project metadata in {metadata_path}\n"
                 f"- Review source code license files and headers (e.g. {project_dir / 'LICENSE'})\n"
                 f"- Build and run the application:\n"
-                f"   {self.script_name} run {context['project_slug']}"
+                f"   {self.script_name} run {actual_slug}"
             )
 
         print(
