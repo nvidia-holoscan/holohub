@@ -1,0 +1,67 @@
+{
+	"application": {
+		"name": "GStreamer Video Recorder",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"requirements": {
+			"system_packages": [
+				"pkg-config",
+				"libgstreamer1.0-dev",
+				"libgstreamer-plugins-base1.0-dev",
+				"gstreamer1.0-plugins-base",
+				"gstreamer1.0-plugins-bad",
+				"gstreamer1.0-plugins-good",
+				"gstreamer1.0-plugins-ugly"
+			],
+			"optional_packages": [
+				"gstreamer1.0-cuda (for CUDA support, requires GStreamer 1.24+)"
+			]
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.8.0",
+			"tested_versions": [
+				"3.8.0"
+			]
+		},
+		"platforms": [
+			"aarch64",
+			"x86_64"
+		],
+		"tags": ["Video", "GStreamer", "Recording", "Encoding", "File"],
+		"ranking": 2,
+		"description": "Record Holoscan video streams to file using GStreamer encoding. Supports multiple codecs (H.264, H.265, VP8, VP9) and both host/device memory for efficient video recording.",
+		"default_mode": "default",
+		"modes": {
+			"default": {
+				"description": "Record Holoscan video streams to file using GStreamer encoding (V4L2 camera or pattern generator).",
+				"run": {
+					"command": "applications/gstreamer/gst_video_recorder/gst-video-recorder",
+					"workdir": "holohub_bin"
+				}
+			},
+			"v4l2": {
+				"description": "Record video from a V4L2 camera",
+				"run": {
+					"command": "applications/gstreamer/gst_video_recorder/gst-video-recorder --source v4l2",
+					"workdir": "holohub_bin"
+				}
+			},
+			"pattern": {
+				"description": "Record a pattern generator video",
+				"run": {
+					"command": "applications/gstreamer/gst_video_recorder/gst-video-recorder --source pattern",
+					"workdir": "holohub_bin"
+				}
+			}
+		}
+	}
+}
