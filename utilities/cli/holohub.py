@@ -2113,8 +2113,7 @@ class HoloHubCLI:
             import utilities.metadata.metadata_validator as metadata_validator
         except ImportError:
             self._install_template_deps()
-
-        import utilities.metadata.metadata_validator as metadata_validator
+            import utilities.metadata.metadata_validator as metadata_validator
         if not schema_root:
             # No schema installed – skip validation.
             return
