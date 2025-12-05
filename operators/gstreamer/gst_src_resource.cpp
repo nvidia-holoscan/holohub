@@ -39,9 +39,14 @@ void GstSrcResource::setup(ComponentSpec& spec) {
   spec.param(max_buffers_,
              "max-buffers",
              "Max Buffers",
-             "Maximum number of buffers to keep in queue. When exceeded, push_buffer() will block. "
-             "0 means unlimited queue size.",
+             "Maximum number of buffers to keep in queue. When exceeded, push_buffer() will block "
+             "(if block=true) or drop/timeout (if block=false). 0 means unlimited queue size.",
              size_t(10));
+  spec.param(block_,
+             "block",
+             "Block on Full Queue",
+             "If true, push_buffer() blocks when queue is full. If false, uses timeout/drop behavior.",
+             true);
 }
 
 void GstSrcResource::initialize() {
@@ -51,10 +56,11 @@ void GstSrcResource::initialize() {
   HOLOSCAN_LOG_INFO("Initializing GstSrcResource");
   HOLOSCAN_LOG_INFO("Configured capabilities: '{}'", caps_.get());
   HOLOSCAN_LOG_INFO("Max buffers: {}", max_buffers_.get());
+  HOLOSCAN_LOG_INFO("Block on full queue: {}", block_.get());
 
   // Create the bridge (constructor initializes it)
   try {
-    bridge_ = std::make_shared<GstSrcBridge>(name(), caps_.get(), max_buffers_.get());
+    bridge_ = std::make_shared<GstSrcBridge>(name(), caps_.get(), max_buffers_.get(), block_.get());
 
     // Set the promise with the GStreamer element so callers can wait for it
     element_promise_.set_value(bridge_->get_gst_element());

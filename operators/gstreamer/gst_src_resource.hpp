@@ -57,6 +57,17 @@ class GstSrcResource : public Resource {
   std::shared_future<gst::Element> get_gst_element() const;
 
   /**
+   * @brief Send End-Of-Stream signal to appsrc
+   *
+   * Call this when you're done sending data to signal the downstream pipeline
+   * to finalize processing (e.g., write file headers/trailers).
+   *
+   * Note: This function returns immediately after sending EOS. The caller should
+   * wait for the EOS message on the pipeline bus to know when processing is complete.
+   */
+   void send_eos();
+
+  /**
    * @brief Push a buffer into the GStreamer pipeline
    *
    * Non-template overload for std::chrono::milliseconds. This is the actual implementation
@@ -71,17 +82,6 @@ class GstSrcResource : public Resource {
    * @note If max_buffers is set to 0, the queue is unlimited and no blocking occurs.
    */
   bool push_buffer(gst::Buffer buffer);
-
-  /**
-   * @brief Send End-Of-Stream signal to appsrc
-   *
-   * Call this when you're done sending data to signal the downstream pipeline
-   * to finalize processing (e.g., write file headers/trailers).
-   *
-   * Note: This function returns immediately after sending EOS. The caller should
-   * wait for the EOS message on the pipeline bus to know when processing is complete.
-   */
-  void send_eos();
 
   /**
    * @brief Create a GStreamer buffer from a TensorMap
@@ -104,6 +104,7 @@ class GstSrcResource : public Resource {
   // Resource parameters
   Parameter<std::string> caps_;
   Parameter<size_t> max_buffers_;
+  Parameter<bool> block_;
 
   // Promise/future for element access (resolves after initialize())
   std::promise<gst::Element> element_promise_;

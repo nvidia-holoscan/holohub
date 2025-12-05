@@ -2,247 +2,16 @@
 #include <memory>
 #include <thread>
 #include <chrono>
-#include <cstdint>
-#include <vector>
-#include <cmath>
 #include <csignal>
 
-#include <cuda_runtime.h>
 #include <holoscan/holoscan.hpp>
 #include <gst_src_resource.hpp>
 #include <gst_src_op.hpp>
 #include <gst/pipeline.hpp>
-
-namespace {
-
-const char* get_pattern_name(int pattern) {
-  const char* pattern_names[] = {"animated gradient", "animated checkerboard", "color bars"};
-  return (pattern >= 0 && pattern <= 2) ? pattern_names[pattern] : "unknown";
-}
-
-void generate_gradient_pattern(uint8_t* data, int width, int height) {
-  static float time_offset = 0.0f;
-  time_offset += 0.02f;
-  
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      int idx = (y * width + x) * 4;
-      // Animated color gradient
-      data[idx + 0] = static_cast<uint8_t>(128 + 127 * std::sin(x * 0.01f + time_offset));  // R
-      data[idx + 1] = static_cast<uint8_t>(128 + 127 * std::sin(y * 0.01f + time_offset));  // G
-      data[idx + 2] = static_cast<uint8_t>(128 + 127 * std::cos((x + y) * 0.005f + time_offset));  // B
-      data[idx + 3] = 255;  // A (fully opaque)
-    }
-  }
-}
-
-void generate_checkerboard_pattern(uint8_t* data, int width, int height) {
-  static float animation_time = 0.0f;
-  animation_time += 0.05f;
-  
-  int square_size = 64 + static_cast<int>(32 * std::sin(animation_time));
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      int idx = (y * width + x) * 4;
-      bool is_white = ((x / square_size) + (y / square_size)) % 2 == 0;
-      uint8_t color = is_white ? 255 : 0;
-      data[idx + 0] = color;  // R
-      data[idx + 1] = color;  // G
-      data[idx + 2] = color;  // B
-      data[idx + 3] = 255;    // A
-    }
-  }
-}
-
-void generate_color_bars_pattern(uint8_t* data, int width, int height) {
-  // SMPTE color bars (7 bars)
-  const uint8_t colors[7][3] = {
-    {255, 255, 255},  // White
-    {255, 255, 0},    // Yellow
-    {0, 255, 255},    // Cyan
-    {0, 255, 0},      // Green
-    {255, 0, 255},    // Magenta
-    {255, 0, 0},      // Red
-    {0, 0, 255}       // Blue
-  };
-  
-  int bar_width = width / 7;
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      int idx = (y * width + x) * 4;
-      int bar_idx = x / bar_width;
-      if (bar_idx >= 7) bar_idx = 6;
-      
-      data[idx + 0] = colors[bar_idx][0];  // R
-      data[idx + 1] = colors[bar_idx][1];  // G
-      data[idx + 2] = colors[bar_idx][2];  // B
-      data[idx + 3] = 255;                 // A
-    }
-  }
-}
-
-holoscan::gxf::Entity generate_pattern_entity(int width, int height, int pattern, 
-                                               nvidia::gxf::MemoryStorageType storage_type,
-                                               holoscan::Allocator* allocator) {
-  HOLOSCAN_LOG_DEBUG("Generating {}x{} pattern entity (type {}, storage: {})", 
-                     width, height, pattern, 
-                     storage_type == nvidia::gxf::MemoryStorageType::kDevice ? "device" : "host");
-  
-  gxf_context_t context = allocator->gxf_context();
-  
-  // Create allocator handle
-  auto allocator_handle =
-      nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context, allocator->gxf_cid());
-  if (!allocator_handle) {
-    HOLOSCAN_LOG_ERROR("Failed to create allocator handle");
-    return holoscan::gxf::Entity();
-  }
-  
-  // Create GXF entity with tensor using CreateTensorMap
-  auto gxf_entity = nvidia::gxf::CreateTensorMap(
-      context,
-      allocator_handle.value(),
-      {{"video_frame",
-        storage_type,
-        nvidia::gxf::Shape{static_cast<int32_t>(height),
-                          static_cast<int32_t>(width),
-                          static_cast<int32_t>(4)},  // RGBA channels
-        nvidia::gxf::PrimitiveType::kUnsigned8,
-        0,
-        nvidia::gxf::ComputeTrivialStrides(
-            nvidia::gxf::Shape{static_cast<int32_t>(height),
-                              static_cast<int32_t>(width),
-                              static_cast<int32_t>(4)},
-            sizeof(uint8_t))}},
-      false);
-  
-  if (!gxf_entity) {
-    HOLOSCAN_LOG_ERROR("Failed to create GXF entity. Error code: {}", 
-                       static_cast<int>(gxf_entity.error()));
-    return holoscan::gxf::Entity();
-  }
-  
-  // Get the tensor from the entity
-  auto maybe_tensor = gxf_entity.value().get<nvidia::gxf::Tensor>("video_frame");
-  if (!maybe_tensor) {
-    HOLOSCAN_LOG_ERROR("Failed to get tensor from entity");
-    return holoscan::gxf::Entity();
-  }
-  
-  size_t buffer_size = width * height * 4;  // RGBA
-  
-  // For device memory, generate pattern in host buffer first, then copy to device
-  if (storage_type == nvidia::gxf::MemoryStorageType::kDevice) {
-    // Allocate temporary host buffer
-    std::vector<uint8_t> host_buffer(buffer_size);
-    
-    // Generate pattern in host buffer
-    switch (pattern) {
-      case 0:  // Animated gradient
-        generate_gradient_pattern(host_buffer.data(), width, height);
-        break;
-      case 1:  // Animated checkerboard
-        generate_checkerboard_pattern(host_buffer.data(), width, height);
-        break;
-      case 2:  // Color bars (SMPTE style)
-        generate_color_bars_pattern(host_buffer.data(), width, height);
-        break;
-      default:
-        generate_gradient_pattern(host_buffer.data(), width, height);
-    }
-    
-    // Copy from host to device
-    cudaError_t cuda_result = cudaMemcpy(
-        maybe_tensor.value()->pointer(),
-        host_buffer.data(),
-        buffer_size,
-        cudaMemcpyHostToDevice);
-    
-    if (cuda_result != cudaSuccess) {
-      HOLOSCAN_LOG_ERROR("Failed to copy pattern to device memory: {}", 
-                        cudaGetErrorString(cuda_result));
-      return holoscan::gxf::Entity();
-    }
-  } else {
-    // Host memory - generate pattern directly
-    uint8_t* data = static_cast<uint8_t*>(maybe_tensor.value()->pointer());
-    if (!data) {
-      HOLOSCAN_LOG_ERROR("Failed to get tensor data pointer");
-      return holoscan::gxf::Entity();
-    }
-    
-    // Generate pattern based on type
-    switch (pattern) {
-      case 0:  // Animated gradient
-        generate_gradient_pattern(data, width, height);
-        break;
-      case 1:  // Animated checkerboard
-        generate_checkerboard_pattern(data, width, height);
-        break;
-      case 2:  // Color bars (SMPTE style)
-        generate_color_bars_pattern(data, width, height);
-        break;
-      default:
-        generate_gradient_pattern(data, width, height);
-    }
-  }
-  
-  // Wrap the GXF entity in a Holoscan entity and return
-  return holoscan::gxf::Entity(std::move(gxf_entity.value()));
-}
-
-}
+#include <gst_pipeline_bus_monitor.hpp>
+#include "pattern_generator.hpp"
 
 namespace holoscan {
-
-/**
- * PatternGenOperator - Generates pattern data as GXF entities with tensors
- */
-class PatternGenOperator : public Operator {
- public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(PatternGenOperator)
-
-  void setup(OperatorSpec& spec) override {
-    spec.output<gxf::Entity>("output");
-    
-    spec.param(allocator_, "allocator", "Allocator", "Memory allocator for tensor allocation");
-    spec.param(width_, "width", "Width", "Frame width in pixels", 1920);
-    spec.param(height_, "height", "Height", "Frame height in pixels", 1080);
-    spec.param(pattern_, "pattern", "Pattern", "Pattern type: 0=gradient, 1=checkerboard, 2=color bars", 0);
-    spec.param(storage_type_, "storage_type", "StorageType", 
-               "Memory storage type: 0=host, 1=device", 0);
-  }
-
-  void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
-    HOLOSCAN_LOG_DEBUG("Generating pattern");
-    
-    // Convert storage_type parameter (0=host, 1=device) to MemoryStorageType enum
-    nvidia::gxf::MemoryStorageType storage = (storage_type_.get() == 1) 
-        ? nvidia::gxf::MemoryStorageType::kDevice 
-        : nvidia::gxf::MemoryStorageType::kHost;
-    
-    // Generate a pattern entity with tensors
-    auto entity = generate_pattern_entity(width_.get(), height_.get(), pattern_.get(), 
-                                          storage, allocator_.get().get());
-    if (!entity) {
-      HOLOSCAN_LOG_ERROR("Failed to generate pattern entity");
-      return;
-    }
-
-    HOLOSCAN_LOG_DEBUG("Pattern entity generated, emitting to output");
-    
-    // Emit the entity to the output port
-    output.emit(entity, "output");
-    HOLOSCAN_LOG_DEBUG("Pattern entity emitted");
-  }
-
- private:
-  Parameter<std::shared_ptr<Allocator>> allocator_;
-  Parameter<int> width_;
-  Parameter<int> height_;
-  Parameter<int> pattern_;
-  Parameter<int> storage_type_;
-};
 
 /**
  * @brief Holoscan application that pushes generated pattern data into GStreamer
@@ -294,8 +63,7 @@ class GstSrcApp : public Application {
     // Create the GStreamer source operator
     auto gst_src_op = make_operator<GstSrcOp>(
         "gst_src_op",
-        Arg("gst_src_resource", holoscan_gst_src_),
-        Arg("timeout_ms", static_cast<uint64_t>(1000))
+        Arg("gst_src_resource", holoscan_gst_src_)
     );
 
     // Connect the operators: pattern generator -> GStreamer source
@@ -320,6 +88,36 @@ class GstSrcApp : public Application {
 }  // namespace holoscan
 
 /**
+ * @brief Custom pipeline bus monitor that sends SIGINT on error or window close
+ */
+class AppPipelineBusMonitor : public holoscan::gst::PipelineBusMonitor {
+ public:
+  using holoscan::gst::PipelineBusMonitor::PipelineBusMonitor;
+
+ protected:
+  void on_error(const holoscan::gst::Error& error, const std::string& debug_info) override {
+    // Call base implementation for logging
+    holoscan::gst::PipelineBusMonitor::on_error(error, debug_info);
+    
+    // Send SIGINT to interrupt the application
+    HOLOSCAN_LOG_INFO("Sending interrupt signal due to GStreamer error");
+    std::raise(SIGINT);
+  }
+
+  void on_state_changed(GstState old_state, GstState new_state, GstState pending_state) override {
+    // Call base implementation
+    holoscan::gst::PipelineBusMonitor::on_state_changed(old_state, new_state, pending_state);
+    
+    // If pipeline transitions to NULL unexpectedly, send SIGINT
+    if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
+      HOLOSCAN_LOG_INFO("GStreamer window closed");
+      HOLOSCAN_LOG_INFO("Sending interrupt signal due to window closure");
+      std::raise(SIGINT);
+    }
+  }
+};
+
+/**
  * @brief GStreamerApp - Manages GStreamer pipeline lifecycle
  * 
  * Encapsulates all GStreamer pipeline operations for consuming from holoscansrc
@@ -329,8 +127,7 @@ public:
   GStreamerApp(const std::string& pipeline_desc, 
                holoscan::gst::Element src_element)
     : pipeline_desc_(pipeline_desc), 
-      src_element_(src_element),
-      stop_bus_monitor_(false) {
+      src_element_(src_element) {
     HOLOSCAN_LOG_INFO("Setting up GStreamer pipeline");
 
     // Validate source element
@@ -392,13 +189,15 @@ public:
     }
 
     // Start bus monitoring in a background thread
-    bus_monitor_future_ = std::async(std::launch::async, [this]() { monitor_pipeline_bus(); });
+    bus_monitor_ = std::make_unique<AppPipelineBusMonitor>(pipeline_);
+    bus_monitor_->start();
   }
 
   ~GStreamerApp() {
     // Stop bus monitoring
-    stop_bus_monitor_ = true;
-    bus_monitor_future_.wait();
+    if (bus_monitor_) {
+      bus_monitor_->stop();
+    }
     
     // Stop and cleanup pipeline
     if (pipeline_) {
@@ -412,63 +211,14 @@ public:
   GStreamerApp& operator=(const GStreamerApp&) = delete;
 
   std::shared_future<void> get_bus_monitor_future() {
-    return bus_monitor_future_;
+    return bus_monitor_->get_future();
   }
 
 private:
-  void monitor_pipeline_bus() {
-    holoscan::gst::Bus bus(pipeline_.get_bus());
-    
-    while (!stop_bus_monitor_) {
-      auto msg(bus.timed_pop_filtered(100 * GST_MSECOND,
-              static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS | GST_MESSAGE_STATE_CHANGED)));
-      
-      if (msg) {
-        switch (msg.get_type()) {
-          case GST_MESSAGE_ERROR: {
-            std::string debug_info;
-            auto error = msg.parse_error(debug_info);
-            HOLOSCAN_LOG_ERROR("GStreamer error: {}", error->message);
-            if (!debug_info.empty()) {
-              HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
-            }
-            // Send SIGINT to interrupt the application
-            HOLOSCAN_LOG_INFO("Sending interrupt signal due to GStreamer error");
-            std::raise(SIGINT);
-            return;
-          }
-          case GST_MESSAGE_EOS:
-            HOLOSCAN_LOG_INFO("End of stream reached");
-            return;
-          case GST_MESSAGE_STATE_CHANGED: {
-            // Only check state changes from the pipeline (not individual elements)
-            if (GST_MESSAGE_SRC(msg.get()) == GST_OBJECT(pipeline_.get())) {
-              GstState old_state, new_state, pending_state;
-              gst_message_parse_state_changed(msg.get(), &old_state, &new_state, &pending_state);
-              
-              // If pipeline transitions to NULL unexpectedly, stop monitoring
-              if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
-                HOLOSCAN_LOG_INFO("GStreamer window closed");
-                // Send SIGINT to interrupt the application
-                HOLOSCAN_LOG_INFO("Sending interrupt signal due to window closure");
-                std::raise(SIGINT);
-                return;
-              }
-            }
-            break;
-          }
-          default:
-            break;
-        }
-      }
-    }
-  }
-
   std::string pipeline_desc_;
   holoscan::gst::Element src_element_;
   holoscan::gst::Pipeline pipeline_;
-  std::atomic<bool> stop_bus_monitor_;
-  std::shared_future<void> bus_monitor_future_;
+  std::unique_ptr<AppPipelineBusMonitor> bus_monitor_;
 };
 
 void print_usage(const char* program_name) {
@@ -563,7 +313,7 @@ int main(int argc, char** argv) {
 
     HOLOSCAN_LOG_INFO("Starting Holoscan Pattern to GStreamer Example");
     HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, storage: {}, pipeline: '{}', caps: '{}'", 
-                      iteration_count, width, height, framerate, get_pattern_name(pattern), 
+                      iteration_count, width, height, framerate, holoscan::get_pattern_name(pattern), 
                       storage_type == 1 ? "device" : "host", pipeline_desc, caps);
     HOLOSCAN_LOG_INFO("This will generate pattern data from Holoscan and push it into GStreamer");
 

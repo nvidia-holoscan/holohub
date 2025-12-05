@@ -29,33 +29,30 @@ void GstSrcOp::setup(OperatorSpec& spec) {
 
 void GstSrcOp::compute(InputContext& input, OutputContext& output,
                        ExecutionContext& context) {
-  static int frame_count = 0;
-  frame_count++;
-
-  HOLOSCAN_LOG_INFO("GstSrcOp::compute() - Frame #{} - Receiving tensor map", frame_count);
+  HOLOSCAN_LOG_DEBUG("GstSrcOp::compute() - Receiving tensor map");
 
   // Receive the tensor map from the input port
   auto tensor_map = input.receive<TensorMap>("input").value();
-  HOLOSCAN_LOG_INFO("Frame #{} - TensorMap received, converting to GStreamer buffer", frame_count);
+  HOLOSCAN_LOG_DEBUG("TensorMap received, converting to GStreamer buffer");
 
   // Convert tensor map to GStreamer buffer
   auto buffer = gst_src_resource_.get()->create_buffer_from_tensor_map(tensor_map);
   if (buffer.get_size() == 0) {
-    HOLOSCAN_LOG_ERROR("Frame #{} - Failed to convert entity to buffer", frame_count);
+    HOLOSCAN_LOG_ERROR("Failed to convert entity to buffer");
     return;
   }
 
-  HOLOSCAN_LOG_INFO("Frame #{} - Buffer created, size: {} bytes", frame_count, buffer.get_size());
+  HOLOSCAN_LOG_DEBUG("Buffer created, size: {} bytes", buffer.get_size());
 
   // Push buffer into the GStreamer pipeline
-  HOLOSCAN_LOG_INFO("Frame #{} - Pushing buffer to GstSrcResource", frame_count);
+  HOLOSCAN_LOG_DEBUG("Pushing buffer to GstSrcResource");
 
   if (!gst_src_resource_.get()->push_buffer(std::move(buffer))) {
-    HOLOSCAN_LOG_ERROR("Frame #{} - Failed to push buffer to GstSrcResource", frame_count);
+    HOLOSCAN_LOG_ERROR("Failed to push buffer to GstSrcResource");
     return;
   }
 
-  HOLOSCAN_LOG_INFO("Frame #{} - Buffer successfully pushed to GstSrcResource", frame_count);
+  HOLOSCAN_LOG_DEBUG("Buffer successfully pushed to GstSrcResource");
 }
 
 void GstSrcOp::stop() {

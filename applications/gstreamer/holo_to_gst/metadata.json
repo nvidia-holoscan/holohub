@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Holopattern to GStreamer",
+		"name": "Holoscan to GStreamer",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -12,10 +12,24 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"requirements": {
+			"system_packages": [
+				"pkg-config",
+				"libgstreamer1.0-dev",
+				"libgstreamer-plugins-base1.0-dev",
+				"gstreamer1.0-plugins-base",
+				"gstreamer1.0-plugins-bad",
+				"gstreamer1.0-plugins-good",
+				"gstreamer1.0-plugins-ugly"
+			],
+			"optional_packages": [
+				"gstreamer1.0-cuda (for CUDA support, requires GStreamer 1.24+)"
+			]
+		},
 		"holoscan_sdk": {
-			"minimum_required_version": "3.6.0",
+			"minimum_required_version": "3.8.0",
 			"tested_versions": [
-				"3.6.0"
+				"3.8.0"
 			]
 		},
 		"platforms": [
@@ -23,8 +37,8 @@
 			"x86_64"
 		],
 		"tags": ["Video", "GStreamer", "Streaming", "Source"],
-		"ranking": 5,
-		"description": "Output Holoscan-generated video patterns to GStreamer pipelines. Demonstrates how to send data from Holoscan to GStreamer for encoding, streaming, or processing.",
+		"ranking": 2,
+		"description": "Output Holoscan-generated video to GStreamer pipelines. Demonstrates how to send data from Holoscan to GStreamer for encoding, streaming, or processing.",
 		"run": {
 			"command": "applications/gstreamer/holo_to_gst/holo-to-gst",
 			"workdir": "holohub_bin"

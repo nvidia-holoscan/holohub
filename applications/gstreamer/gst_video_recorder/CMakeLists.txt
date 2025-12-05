@@ -19,8 +19,13 @@ find_package(holoscan REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(gst-video-recorder
+  ../common/pattern_generator.cpp
   gst_video_recorder.cpp
-  pattern_generator.cpp
+)
+
+target_include_directories(gst-video-recorder
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../common
 )
 
 target_link_libraries(gst-video-recorder

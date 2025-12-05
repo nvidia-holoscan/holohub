@@ -19,7 +19,13 @@ find_package(holoscan REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(holo-to-gst
+  ../common/pattern_generator.cpp
   holo_to_gst.cpp
+)
+
+target_include_directories(holo-to-gst
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../common
 )
 
 target_link_libraries(holo-to-gst
@@ -28,5 +34,6 @@ target_link_libraries(holo-to-gst
   holoscan::ops::gstreamer_bridge
 )
 
-# Install target to subdirectory (required by holohub CLI)
+# Install target
 install(TARGETS holo-to-gst DESTINATION bin/holo_to_gst)
+
