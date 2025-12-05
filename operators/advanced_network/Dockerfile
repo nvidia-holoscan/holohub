@@ -30,6 +30,8 @@ SHELL ["/bin/bash", "-eou", "pipefail", "-c"]
 RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         ca-certificates \
+        infiniband-diags \
+        mft \        
         gnupg \
         python3-pip \
         git \
@@ -112,13 +114,11 @@ RUN python3 -m pip install --no-cache-dir \
 # ==============================================================
 FROM base-deps AS dpdk-deps
 
-ARG TARGETARCH
 # DPDK version to download and build
-ARG DPDK_VERSION=24.11.3
+ARG DPDK_VERSION=25.11
 ARG DPDK_BUILD_DIR=/opt/dpdk-build
 ARG DPDK_INSTALL_PREFIX=/usr/local
 ARG DOCA_VERSION=2.8.0
-ARG DEBIAN_FRONTEND=noninteractive
 
 
 # - infiniband-diags for IB diagnostics
@@ -129,8 +129,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 # - python3-pyelftools: required for DPDK build
 # - libnuma-dev: NUMA support for DPDK
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        infiniband-diags \
-        mft \
         ninja-build \
         pkgconf \
         meson \
@@ -138,17 +136,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libnuma-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /tmp
-
-# Download DPDK source from official repository
-ADD https://fast.dpdk.org/rel/dpdk-${DPDK_VERSION}.tar.xz /tmp/
-RUN tar xf dpdk-${DPDK_VERSION}.tar.xz
-
-# Build and install DPDK using meson/ninja
-WORKDIR /tmp/dpdk-stable-${DPDK_VERSION}
-RUN meson setup ${DPDK_BUILD_DIR} \
+# Download, build and install DPDK using meson/ninja
+RUN curl -fsSL https://fast.dpdk.org/rel/dpdk-${DPDK_VERSION}.tar.xz -o /tmp/dpdk-${DPDK_VERSION}.tar.xz \
+    && tar xf /tmp/dpdk-${DPDK_VERSION}.tar.xz -C /tmp \
+    && cd /tmp/dpdk-${DPDK_VERSION} \
+    && meson setup ${DPDK_BUILD_DIR} \
         --prefix=${DPDK_INSTALL_PREFIX} \
-        -Denable_kmods=false \
         -Dtests=false \
         -Denable_docs=false \
         -Ddisable_drivers=baseband/*,bus/ifpga/*,common/cpt,common/dpaax,common/iavf,common/octeontx,common/octeontx2,crypto/nitrox,net/ark,net/atlantic,net/avp,net/axgbe,net/bnx2x,net/bnxt,net/cxgbe,net/e1000,net/ena,net/enic,net/fm10k,net/hinic,net/hns3,net/i40e,net/ixgbe,vdpa/ifc,net/igc,net/liquidio,net/netvsc,net/nfp,net/qede,net/sfc,net/thunderx,net/vdev_netvsc,net/vmxnet3,regex/octeontx2 \
@@ -156,7 +149,7 @@ RUN meson setup ${DPDK_BUILD_DIR} \
     && ninja \
     && meson install \
     && ldconfig \
-    && rm -rf /tmp/dpdk-stable-${DPDK_VERSION} /tmp/dpdk-stable-${DPDK_VERSION}.tar.xz ${DPDK_BUILD_DIR} /tmp/dpdk_patches
+    && rm -rf /tmp/dpdk-${DPDK_VERSION} /tmp/dpdk-${DPDK_VERSION}.tar.xz ${DPDK_BUILD_DIR} /tmp/dpdk_patches
 
 # Configure the DOCA APT repository for mlnx-ofed-kernel-utils
 # (needed for ibdev2netdev utility used by tune_system.py)
@@ -200,22 +193,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libdoca-sdk-flow-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# ==============================
-# GPUNetIO Target
-# This stage is built when --target gpunetio is specified.
-# It includes DOCA packages required for GPUNetIO support.
-# ==============================
-FROM gpunetio-deps AS gpunetio
-# GPUNetIO is ready to use with DOCA support
 
 # ==============================
 # Rivermax Target
 # This stage is only built when --target rivermax is specified. It installs and configures Rivermax SDK.
 # Note: Rivermax does not require DPDK - extends from base-deps directly.
 # ==============================
-FROM base-deps AS rivermax
-
-ARG TARGETARCH
+FROM base-deps AS rivermax-deps
 
 # Define Rivermax-specific build arguments and environment variables
 ARG RIVERMAX_VERSION=1.70.32
