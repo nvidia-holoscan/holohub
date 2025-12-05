@@ -266,14 +266,14 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         return True
 
 
-# Commenting out the following as pttype complains about the constructor for no reason
+# Commenting out the following which is used for integration testing
 # def test(test_copy_tags: bool = True):
-#     from operators.medical_imaging.operators.dicom_data_loader_operator import DICOMDataLoaderOperator
-#     from operators.medical_imaging.operators.dicom_series_selector_operator import DICOMSeriesSelectorOperator
+#     from operators.medical_imaging import DICOMDataLoaderOperator
+#     from operators.medical_imaging import DICOMSeriesSelectorOperator
 
 #     current_file_dir = Path(__file__).parent.resolve()
-#     dcm_folder = current_file_dir.joinpath("../../../inputs/livertumor_ct/dcm/1-CT_series_liver_tumor_from_nii014")
-#     pdf_file = current_file_dir.joinpath("../../../inputs/pdf/TestPDF.pdf")
+#     dcm_folder = current_file_dir.joinpath("/tmp/inputs/livertumor_ct/dcm/1-CT_series_liver_tumor_from_nii014")
+#     pdf_file = current_file_dir.joinpath("/tmp/inputs/pdf/TestPDF.pdf")
 #     out_path = Path("output_pdf_op").absolute()
 #     pdf_bytes = b"Not PDF bytes."
 
