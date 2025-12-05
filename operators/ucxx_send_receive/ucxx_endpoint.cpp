@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 
-#include "ucxx_endpoint.h"
+#include "ucxx_endpoint.hpp"
 
-namespace isaac::os {
+namespace holoscan::ops {
 
-UcxxEndpoint::~UcxxEndpoint() { worker_->stopProgressThread(); }
+UcxxEndpoint::~UcxxEndpoint() {
+  if (worker_) {
+    worker_->stopProgressThread();
+  }
+}
 
 void UcxxEndpoint::setup(holoscan::ComponentSpec& spec) {
   spec.param(hostname_, "hostname", "Hostname", "Hostname of the endpoint",
@@ -94,4 +98,4 @@ void UcxxEndpoint::on_endpoint_closed(ucs_status_t status) {
   }
 }
 
-};  // namespace isaac::os
+};  // namespace holoscan::ops

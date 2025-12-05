@@ -1,0 +1,52 @@
+{
+	"application": {
+		"name": "UCXX Endoscopy Tool Tracking with Flatbuffers",
+		"description": "Sample application demonstrating distributed execution with UCXX operators and Google Flatbuffer serialization",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "cpp",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.8.0",
+			"tested_versions": [
+				"3.8.0"
+			]
+		},
+		"platforms": "amd64",
+		"tags": "Distributed,UCXX,Flatbuffers,Serialization",
+		"ranking": 1,
+		"requirements": {
+			"example_requirement_1": {
+				"type": "data",
+				"name": "Example Data",
+				"description": "Example data dependency - remove or replace with actual requirements"
+			}
+		},
+		"default_mode": "subscribe",
+		"modes": {
+			"publish": {
+				"description": "Publisher mode",
+				"requirements": [],
+				"run": {
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode publish",
+					"workdir": "holohub_bin"
+				}
+			},
+			"subscribe": {
+				"description": "Subscriber mode",
+				"requirements": [],
+				"run": {
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode subscribe",
+					"workdir": "holohub_bin"
+				}
+			}
+		}
+	}
+}
