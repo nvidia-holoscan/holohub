@@ -17,37 +17,36 @@
 
 #pragma once
 
-#include <queue>
+#include <optional>
 #include <string>
 #include <vector>
 
-#include "flatbuffers/flatbuffers.h"
 #include "holoscan/holoscan.hpp"
+#include "ucxx/api.h"
 
-#include "ucxx_endpoint.h"
+#include "ucxx_endpoint.hpp"
 
-namespace isaac::os::ops {
+namespace holoscan::ops {
 
-// Sends messages through a UcxxEndpoint.
-class UcxxSenderOp : public holoscan::Operator {
+// Receives messages through a UcxxEndpoint.
+class UcxxReceiverOp : public holoscan::Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(UcxxSenderOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(UcxxReceiverOp)
 
   void setup(holoscan::OperatorSpec& spec) override;
+  void start() override;
+  void stop() override;
   void compute(holoscan::InputContext& input, holoscan::OutputContext& output,
                holoscan::ExecutionContext& context) override;
 
  private:
-  void on_request_complete(ucs_status_t status);
-
   holoscan::Parameter<uint64_t> tag_;
+  holoscan::Parameter<int> buffer_size_;
   holoscan::Parameter<std::shared_ptr<UcxxEndpoint>> endpoint_;
+  holoscan::Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
 
-  struct SendRequest {
-    std::shared_ptr<ucxx::Request> request;
-    flatbuffers::FlatBufferBuilder flatbuffer_builder;
-  };
-  std::list<SendRequest> requests_;
+  std::vector<uint8_t> buffer_;
+  std::shared_ptr<ucxx::Request> request_;
 };
 
-}  // namespace isaac::os::ops
+}  // namespace holoscan::ops

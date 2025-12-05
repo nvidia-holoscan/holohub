@@ -34,10 +34,12 @@ Receives messages through a configured UcxxEndpoint. This operator listens for i
 
 ## Key Features
 
-- **High Performance**: Leverages UCX for optimized network communication with support for RDMA and other high-speed interconnects
+- **High Performance**: Leverages UCX for optimized network communication. UCX also supports Direct Memory Access with
+  RDMA, Infiniband, etc.
 - **Low Latency**: Efficient zero-copy message transfers where possible
 - **Flexible Topology**: Supports both client/server and peer-to-peer communication patterns
-- **Message Serialization**: Uses FlatBuffers for efficient message serialization
+- **Message Serialization**: Uses tensor serialization based on the NVIDIA GXF/Holoscan serialization approach
+  for efficient message serialization
 - **Asynchronous Operations**: Non-blocking send and receive operations for better pipeline performance
 - **Cross-Platform**: Supports both x86_64 and aarch64 architectures
 
@@ -50,7 +52,7 @@ Receives messages through a configured UcxxEndpoint. This operator listens for i
 
 ## Requirements
 
-- **Holoscan SDK**: Version 3.8.0 or higher
+- **Holoscan SDK**: Version 3.9.0 or higher
 - **UCXX Library**: UCX C++ bindings
 - **Platforms**: x86_64, aarch64
 - **Dependencies**: UCX (Unified Communication X) framework
@@ -78,7 +80,6 @@ auto receiver = make_operator<UcxxReceiverOp>(
   "receiver",
   Arg("endpoint", endpoint),
   Arg("tag", 1UL),
-  Arg("schema_name", "MyMessageSchema"),
   Arg("buffer_size", 1024 * 1024)  // 1MB buffer
 );
 ```
@@ -90,4 +91,3 @@ auto receiver = make_operator<UcxxReceiverOp>(
 - Message tags must match between sender and receiver pairs
 - The endpoint should be initialized before the sender and receiver operators
 - Consider firewall rules and network security when deploying distributed applications
-

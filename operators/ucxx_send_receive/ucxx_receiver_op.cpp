@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-#include "ucxx_receiver_op.h"
+#include "ucxx_receiver_op.hpp"
+#include "serialize_tensor.hpp"
 
-#include "message_registry.h"
+#include <holoscan/holoscan.hpp>
 
-namespace isaac::os::ops {
+namespace holoscan::ops {
 
 void UcxxReceiverOp::setup(holoscan::OperatorSpec& spec) {
   spec.param(tag_, "tag", "Tag", "UCX tag number", 0ul);
-  spec.param(schema_name_, "schema_name", "Schema name", "Schema name of received messages");
   spec.param(buffer_size_, "buffer_size", "Buffer size", "Receive buffer size", 4 << 10);
   spec.param(endpoint_, "endpoint", "Endpoint", "UcxxEndpoint resource");
-
-  spec.output<std::any>("out");
+  spec.param(allocator_, "allocator", "Allocator", "Allocator for staging buffers");
+  spec.output<holoscan::gxf::Entity>("out");
 
   // Add the endpoint's is_alive_condition to this operator so that it will only execute only when
   // the endpoint is alive.
@@ -35,19 +35,13 @@ void UcxxReceiverOp::setup(holoscan::OperatorSpec& spec) {
     if (arg.name() == "endpoint") {
       auto resource = std::any_cast<std::shared_ptr<holoscan::Resource>>(arg.value());
       auto endpoint = std::dynamic_pointer_cast<UcxxEndpoint>(resource);
-      add_arg(endpoint->is_alive_condition());
+      if (endpoint) {
+        add_arg(endpoint->is_alive_condition());
+      } else {
+        HOLOSCAN_LOG_ERROR("Failed to cast endpoint resource to UcxxEndpoint");
+      }
       break;
     }
-  }
-}
-
-void UcxxReceiverOp::initialize() {
-  holoscan::Operator::initialize();
-
-  const MessageRegistry& registry = MessageRegistry::get_instance();
-  reflection_ = registry.get_message_reflection_by_schema(schema_name_);
-  if (!reflection_.has_value()) {
-    throw std::runtime_error("Message schema not registered: " + schema_name_.get());
   }
 }
 
@@ -65,8 +59,28 @@ void UcxxReceiverOp::compute([[maybe_unused]] holoscan::InputContext& input,
   // If the receive request is complete, deserialize and emit it.
   if (request_ && request_->isCompleted()) {
     if (auto status = request_->getStatus(); status == UCS_OK) {
-      std::any message = reflection_.value().get().unpack(buffer_.data(), buffer_.size());
-      output.emit(message, "out");
+      auto gxf_tensor = holoscan::ops::ucxx::deserializeTensor(
+        buffer_.data(), buffer_.size(), context.context(), allocator_.get().get());
+      if (!gxf_tensor.has_value()) {
+        HOLOSCAN_LOG_ERROR("Failed to deserialize tensor: {}", gxf_tensor.error().what());
+        return;
+      }
+
+      // Create an entity and add the tensor as a component with name ""
+      auto out_entity = holoscan::gxf::Entity::New(&context);
+
+      // Add the GXF tensor to the entity
+      auto tensor_handle =
+          static_cast<nvidia::gxf::Entity&>(out_entity).add<nvidia::gxf::Tensor>("");
+      if (!tensor_handle) {
+        HOLOSCAN_LOG_ERROR("Failed to add tensor to entity");
+        return;
+      }
+
+      // Move the deserialized tensor data into the entity's tensor
+      *tensor_handle.value() = std::move(gxf_tensor.value());
+
+      output.emit(out_entity, "out");
     } else {
       HOLOSCAN_LOG_ERROR("Receive request failed with status: {}", ucs_status_string(status));
     }
@@ -77,11 +91,11 @@ void UcxxReceiverOp::compute([[maybe_unused]] holoscan::InputContext& input,
   if (!request_) {
     async_condition()->event_state(holoscan::AsynchronousEventState::EVENT_WAITING);
     request_ = endpoint_->endpoint()->tagRecv(
-        buffer_.data(), buffer_.size(), ucxx::Tag{tag_.get()}, ucxx::TagMaskFull,
+        buffer_.data(), buffer_.size(), ::ucxx::Tag{tag_.get()}, ::ucxx::TagMaskFull,
         /*enablePythonFuture=*/false, [this](ucs_status_t, std::shared_ptr<void>) {
           async_condition()->event_state(holoscan::AsynchronousEventState::EVENT_DONE);
         });
   }
 }
 
-}  // namespace isaac::os::ops
+}  // namespace holoscan::ops

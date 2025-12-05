@@ -15,35 +15,30 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(ucxx_ops LANGUAGES CXX)
+project(ucxx_send_receive_operators LANGUAGES CXX)
 
-find_package(holoscan 3 REQUIRED CONFIG)
-find_package(flatbuffers 25 REQUIRED)
+find_package(holoscan 3.8 REQUIRED CONFIG)
 
-add_subdirectory(messages)
-
-add_library(ucxx_ops SHARED
-  ucxx_endpoint.cc
-  ucxx_receiver_op.cc
-  ucxx_sender_op.cc
+add_library(ucxx_send_receive SHARED
+  ucxx_endpoint.cpp
+  ucxx_receiver_op.cpp
+  ucxx_sender_op.cpp
+  serialize_tensor.cpp
 )
-add_library(isaac::ops::ucxx ALIAS ucxx_ops)
+add_library(holoscan::ops::ucxx ALIAS ucxx_send_receive)
 
-target_include_directories(ucxx_ops
-  PUBLIC ${CMAKE_SOURCE_DIR}
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(ucxx_send_receive
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+  PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
 
-target_link_libraries(ucxx_ops
+target_link_libraries(ucxx_send_receive
   PUBLIC
-    flatbuffers::flatbuffers
     holoscan::core
-    isaac::messages::reflection
-    isaac::messages::reflection::tensor_materialization
     ucs
     ucxx
 )
 
-if(ISAAC_BUILD_TESTS)
+if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
