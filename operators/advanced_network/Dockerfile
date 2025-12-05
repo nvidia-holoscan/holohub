@@ -112,10 +112,10 @@ RUN python3 -m pip install --no-cache-dir \
 # ==============================================================
 # dpdk-deps: Build upstream DPDK from source
 # ==============================================================
-FROM base-deps AS dpdk-deps
+FROM base-deps AS dpdk
 
 # DPDK version to download and build
-ARG DPDK_VERSION=25.11
+ARG DPDK_VERSION=24.11.3
 ARG DPDK_BUILD_DIR=/opt/dpdk-build
 ARG DPDK_INSTALL_PREFIX=/usr/local
 ARG DOCA_VERSION=2.8.0
@@ -139,7 +139,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Download, build and install DPDK using meson/ninja
 RUN curl -fsSL https://fast.dpdk.org/rel/dpdk-${DPDK_VERSION}.tar.xz -o /tmp/dpdk-${DPDK_VERSION}.tar.xz \
     && tar xf /tmp/dpdk-${DPDK_VERSION}.tar.xz -C /tmp \
-    && cd /tmp/dpdk-${DPDK_VERSION} \
+    && cd /tmp/dpdk-stable-${DPDK_VERSION} \
     && meson setup ${DPDK_BUILD_DIR} \
         --prefix=${DPDK_INSTALL_PREFIX} \
         -Dtests=false \
@@ -149,7 +149,7 @@ RUN curl -fsSL https://fast.dpdk.org/rel/dpdk-${DPDK_VERSION}.tar.xz -o /tmp/dpd
     && ninja \
     && meson install \
     && ldconfig \
-    && rm -rf /tmp/dpdk-${DPDK_VERSION} /tmp/dpdk-${DPDK_VERSION}.tar.xz ${DPDK_BUILD_DIR} /tmp/dpdk_patches
+    && rm -rf /tmp/dpdk-stable-${DPDK_VERSION} /tmp/dpdk-stable-${DPDK_VERSION}.tar.xz ${DPDK_BUILD_DIR} /tmp/dpdk_patches
 
 # Configure the DOCA APT repository for mlnx-ofed-kernel-utils
 # (needed for ibdev2netdev utility used by tune_system.py)
@@ -176,10 +176,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ==============================================================
 # gpunetio-deps: Add DOCA SDK packages for GPUNetIO support
 # ==============================================================
-FROM dpdk-deps AS gpunetio-deps
+FROM dpdk AS gpunetio
 
 # Install DOCA SDK packages required for GPUNetIO
-# (DOCA repo is already configured in dpdk-deps stage)
+# (DOCA repo is already configured in dpdk stage)
 # - libdoca-sdk-dma-dev: for gpunetio backend (dependency of doca-gpunetio module)
 # - libdoca-sdk-gpunetio-dev: for gpunetio backend (doca-gpunetio module)
 # - libdoca-sdk-eth-dev: for gpunetio backend (doca-eth module)
@@ -197,7 +197,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # This stage is only built when --target rivermax is specified. It installs and configures Rivermax SDK.
 # Note: Rivermax does not require DPDK - extends from base-deps directly.
 # ==============================
-FROM base-deps AS rivermax-deps
+FROM base-deps AS rivermax
 
 # Define Rivermax-specific build arguments and environment variables
 ARG RIVERMAX_VERSION=1.70.32
@@ -269,4 +269,4 @@ RUN cd rivermax-dev-kit && \
 # This provides upstream DPDK support without DOCA dependencies.
 # Use --target gpunetio if you need DOCA GPUNetIO support.
 # ==============================
-FROM dpdk-deps
+FROM dpdk

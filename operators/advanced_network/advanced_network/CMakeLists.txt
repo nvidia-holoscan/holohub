@@ -36,8 +36,6 @@ string(STRIP ${ARCH} ARCH)
 # Path configurations for DPDK and DOCA
 # Upstream DPDK (installed via meson) uses /usr/local by default
 # DOCA/mlnx-dpdk uses /opt/mellanox paths
-set(DPDK_PATH_UPSTREAM /usr/local)
-set(DPDK_PATH_MLNX /opt/mellanox/dpdk)
 set(DOCA_PATH /opt/mellanox/doca)
 
 # Common library
