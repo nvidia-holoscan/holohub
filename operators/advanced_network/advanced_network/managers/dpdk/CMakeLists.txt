@@ -27,13 +27,12 @@ pkg_check_modules(DPDK QUIET libdpdk)
 if(NOT DPDK_FOUND)
   # Fallback: try to find mlnx-dpdk in standard Mellanox installation paths
   message(STATUS "Looking for DPDK in Mellanox installation directories")
-  execute_process(COMMAND arch OUTPUT_VARIABLE ARCH)
-  string(STRIP ${ARCH} ARCH)
-  list(APPEND CMAKE_PREFIX_PATH "/opt/mellanox/dpdk/lib/${ARCH}-linux-gnu/pkgconfig/")
+  # Try to find DPDK via pkg-config
+  # Note: adding the following so it can find both upstream DPDK (installed to /usr/local) but also mlnx-dpdk (in `/opt/mellanox/dpdk`)
+  list(APPEND CMAKE_PREFIX_PATH "/opt/mellanox/dpdk/lib/${CMAKE_HOST_SYSTEM_PROCESSOR}-linux-gnu/")
   pkg_check_modules(DPDK REQUIRED libdpdk)
+  message(STATUS "Found DPDK: ${DPDK_VERSION} in ${DPDK_LIBRARY_DIRS}")
 endif()
-
-message(STATUS "Found DPDK: ${DPDK_VERSION} in ${DPDK_LIBRARY_DIRS}")
 
 # Common DPDK configuration
 target_link_directories(${PROJECT_NAME} PUBLIC ${DPDK_LIBRARY_DIRS})
