@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         ca-certificates \
         infiniband-diags \
-        mft \        
+        mft \
         gnupg \
         python3-pip \
         git \
