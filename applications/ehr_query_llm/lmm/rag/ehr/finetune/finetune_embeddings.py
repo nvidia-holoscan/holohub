@@ -27,8 +27,8 @@ from threading import Thread
 import requests
 import yaml
 import zmq
+from llama_index.core.schema import MetadataMode, TextNode
 from llama_index.finetuning import EmbeddingQAFinetuneDataset, SentenceTransformersFinetuneEngine
-from llama_index.schema import MetadataMode, TextNode
 from tqdm import tqdm
 
 from operators.ehr_query_llm.fhir.ehr_query import FHIRQuery
