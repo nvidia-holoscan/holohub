@@ -59,11 +59,11 @@ void UcxxReceiverOp::compute([[maybe_unused]] holoscan::InputContext& input,
   // If the receive request is complete, deserialize and emit it.
   if (request_ && request_->isCompleted()) {
     if (auto status = request_->getStatus(); status == UCS_OK) {
-      auto gxf_tensor = holoscan::ops::ucxx::deserializeTensor(buffer_.data(), buffer_.size(), 
-                                                                context.context(), allocator_.get().get());
+      auto gxf_tensor = holoscan::ops::ucxx::deserializeTensor(
+        buffer_.data(), buffer_.size(), context.context(), allocator_.get().get());
       if (!gxf_tensor.has_value()) {
         HOLOSCAN_LOG_ERROR("Failed to deserialize tensor: {}", gxf_tensor.error().what());
-        return;  
+        return;
       }
 
       // Create an entity and add the tensor as a component with name ""
