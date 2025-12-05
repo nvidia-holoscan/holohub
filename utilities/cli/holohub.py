@@ -879,7 +879,11 @@ class HoloHubCLI:
 
         ctest_cmd = f"{xvfb} ctest "
         if args.project:
-            ctest_cmd += f"-DAPP={args.project} "
+            project_metadata = container.project_metadata or {}
+            project_name = project_metadata.get("project_name", args.project)
+            project_type = project_metadata.get("project_type", "application")
+            proj_prefix = holohub_cli_util.determine_project_prefix(project_type)
+            ctest_cmd += f"-D{proj_prefix}={project_name} "
         ctest_cmd += f"-DTAG={tag} "
 
         # Aggregate configure options from CLI and language selection
@@ -2105,8 +2109,14 @@ class HoloHubCLI:
         """Validate metadata.json for the newly created project."""
         import json
 
-        import utilities.metadata.metadata_validator as metadata_validator
-
+        try:
+            import utilities.metadata.metadata_validator as metadata_validator
+        except ImportError:
+            template_setup_cmd = f"{self.script_name} setup --scripts template"
+            holohub_cli_util.fatal(
+                "Template dependencies required for metadata validation are missing. "
+                f"Please run `{template_setup_cmd}` and retry."
+            )
         if not schema_root:
             # No schema installed – skip validation.
             return
@@ -2242,9 +2252,11 @@ class HoloHubCLI:
         try:
             import cookiecutter.main
         except ImportError:
-            self._install_template_deps(args.dryrun)
-
-        import cookiecutter.main
+            template_setup_cmd = f"{self.script_name} setup --scripts template"
+            holohub_cli_util.fatal(
+                "cookiecutter is required to create new projects. "
+                f"Please run `{template_setup_cmd}` to install template dependencies."
+            )
 
         intended_dir = args.directory / context["project_slug"]
         if intended_dir.exists():
