@@ -2112,8 +2112,11 @@ class HoloHubCLI:
         try:
             import utilities.metadata.metadata_validator as metadata_validator
         except ImportError:
-            self._install_template_deps()
-            import utilities.metadata.metadata_validator as metadata_validator
+            template_setup_cmd = f"{self.script_name} setup --scripts template"
+            holohub_cli_util.fatal(
+                "Template dependencies required for metadata validation are missing. "
+                f"Please run `{template_setup_cmd}` and retry."
+            )
         if not schema_root:
             # No schema installed – skip validation.
             return
@@ -2249,9 +2252,11 @@ class HoloHubCLI:
         try:
             import cookiecutter.main
         except ImportError:
-            self._install_template_deps(args.dryrun)
-
-        import cookiecutter.main
+            template_setup_cmd = f"{self.script_name} setup --scripts template"
+            holohub_cli_util.fatal(
+                "cookiecutter is required to create new projects. "
+                f"Please run `{template_setup_cmd}` to install template dependencies."
+            )
 
         intended_dir = args.directory / context["project_slug"]
         if intended_dir.exists():
