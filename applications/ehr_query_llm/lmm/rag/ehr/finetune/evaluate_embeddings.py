@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,10 +17,11 @@ import argparse
 from pathlib import Path
 
 import pandas as pd
-from llama_index import ServiceContext, VectorStoreIndex
+from llama_index import VectorStoreIndex
+from llama_index.core import Settings
+from llama_index.core.schema import TextNode
 from llama_index.embeddings import resolve_embed_model
 from llama_index.finetuning import EmbeddingQAFinetuneDataset
-from llama_index.schema import TextNode
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.evaluation import InformationRetrievalEvaluator
 from tqdm import tqdm
@@ -58,12 +59,16 @@ def evaluate(
     relevant_docs = dataset.relevant_docs
 
     print(f"Using embed model {embed_model}")
-    service_context = ServiceContext.from_defaults(embed_model=embed_model, llm=None)
-    nodes = [TextNode(id_=id_, text=text) for id_, text in corpus.items()]
-    index = VectorStoreIndex(nodes, service_context=service_context, show_progress=True)
+    # Configure Settings with the embedding model
     if adapter:
         print(f"Using adapter {adapter}")
-        index.service_context.embed_model = adapter
+        Settings.embed_model = adapter
+    else:
+        Settings.embed_model = embed_model
+    Settings.llm = None
+
+    nodes = [TextNode(id_=id_, text=text) for id_, text in corpus.items()]
+    index = VectorStoreIndex(nodes, show_progress=True)
     retriever = index.as_retriever(similarity_top_k=top_k)
 
     eval_results = []
