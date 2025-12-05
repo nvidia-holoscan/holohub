@@ -9,7 +9,7 @@ asyncio==3.4.3
 pyzmq~=26.0
 chromadb==0.6.3
 langchain==0.3.27
-langchain-community==0.3.31
+langchain-community==0.4.1
 langchain-core==0.3.79
 sentence-transformers==4.0.1
 jq==1.6.0
@@ -21,7 +21,7 @@ pdfminer==20191125
 pdfminer.six==20250324
 opencv-python==4.11.0.86
 pikepdf==9.5.2
-pypdf==6.2.0
+pypdf==6.4.0
 poppler-utils==0.1.0
 markdown==3.5.2
 fhir.resources~=7.1.0
