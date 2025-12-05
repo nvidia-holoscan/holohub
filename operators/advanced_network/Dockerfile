@@ -170,8 +170,8 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
 
 # - mlnx-ofed-kernel-utils for utilities including ibdev2netdev used by tune_system.py
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    mlnx-ofed-kernel-utils
-
+    mlnx-ofed-kernel-utils \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
 
