@@ -80,11 +80,13 @@ FROM hsdk-${HOLOSCAN_DEB_SRC} AS hsdk-installed
 FROM hsdk-installed AS common-deps
 
 ARG TARGETARCH
-ARG DOCA_VERSION=2.8.0
+ARG DOCA_VERSION=3.2.0
 ARG CACHEBUST=1
 ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /opt
+
+RUN apt-get update && apt-get install -y build-essential
 
 # Configure the DOCA APT repository
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
@@ -123,7 +125,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ninja-build \
         pkgconf \
         mlnx-dpdk-dev \
-        libdoca-sdk-dma-dev \
         libdoca-sdk-gpunetio-dev \
         libdoca-sdk-eth-dev \
         libdoca-sdk-flow-dev \
