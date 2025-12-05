@@ -26,7 +26,6 @@ is available in userspace, thus bypassing the kernel's networking stack entirely
 - Linux
 - An NVIDIA NIC with a ConnectX-6 or later chip
 - System tuning as described [here](/tutorials/high_performance_networking/README.md)
-- DPDK 24.11.3 or higher
 - MOFED 5.8-1.0.1.1 or later (included with DOCA package)
 - MLNX5/IB drivers with peermem support - either through:
   - Inbox drivers (ubuntu kernel >= 5.4 and [< 6.8](https://discourse.ubuntu.com/t/nvidia-gpudirect-over-infiniband-migration-paths/44425))
