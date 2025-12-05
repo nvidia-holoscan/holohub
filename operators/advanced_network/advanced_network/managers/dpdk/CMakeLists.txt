@@ -21,7 +21,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_sources(${PROJECT_NAME} PRIVATE adv_network_dpdk_mgr.cpp adv_network_dpdk_stats.cpp)
 
 # Try to find DPDK via pkg-config
-# This will find upstream DPDK (installed to /usr/local) or mlnx-dpdk (via PKG_CONFIG_PATH set in parent CMakeLists.txt)
+# This will find upstream DPDK (installed to /usr/local) or mlnx-dpdk
 pkg_check_modules(DPDK QUIET libdpdk)
 
 if(NOT DPDK_FOUND)
