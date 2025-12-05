@@ -39,7 +39,7 @@ ImplicitVRLittleEndian, _ = optional_import("pydicom.uid", name="ImplicitVRLittl
 Dataset, _ = optional_import("pydicom.dataset", name="Dataset")
 FileDataset, _ = optional_import("pydicom.dataset", name="FileDataset")
 Sequence, _ = optional_import("pydicom.sequence", name="Sequence")
-PdfReader, _ = optional_import("PyPDF2", name="PdfReader")
+PdfReader, _ = optional_import("pypdf", name="PdfReader")
 
 
 class DICOMEncapsulatedPDFWriterOperator(Operator):
