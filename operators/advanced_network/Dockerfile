@@ -174,7 +174,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # ==============================================================
-# gpunetio-deps: Add DOCA SDK packages for GPUNetIO support
+# gpunetio: Add DOCA SDK packages for GPUNetIO support
 # ==============================================================
 FROM dpdk AS gpunetio
 
