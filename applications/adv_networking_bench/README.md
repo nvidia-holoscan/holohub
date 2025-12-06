@@ -71,7 +71,7 @@ Please refer to the top level Holohub README.md file for information on how to b
 
 ```bash
 # Regular build with DPDK and GPUNetIO support
-./holohub build adv_networking_bench
+./holohub build adv_networking_bench --build-args="--target gpunetio" --configure-args="-D ANO_MGR:STRING=gpunetio"
 ```
 
 For **Rivermax** support, follow the prerequisites from the [operators/advanced_network/README.md](/operators/advanced_network/README.md) README, then build the application with the following command:

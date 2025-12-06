@@ -1187,7 +1187,7 @@ struct rte_flow* DpdkMgr::add_flex_item_flow(
   /* Define the new protocol header structure */
   struct rte_udp_flex_hdr {
     rte_be32_t my_header;    /* my header */
-  } __rte_packed;
+  } __attribute__((packed));
 
   struct rte_udp_flex_hdr flex_spec;
   flex_spec.my_header = match_info.val_;

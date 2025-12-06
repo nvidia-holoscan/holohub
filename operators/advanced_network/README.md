@@ -26,9 +26,15 @@ is available in userspace, thus bypassing the kernel's networking stack entirely
 - Linux
 - An NVIDIA NIC with a ConnectX-6 or later chip
 - System tuning as described [here](/tutorials/high_performance_networking/README.md)
-- DPDK 22.11
-- MOFED 5.8-1.0.1.1 or later
-- DOCA 2.7 or later
+- MOFED 5.8-1.0.1.1 or later (included with DOCA package)
+- MLNX5/IB drivers with peermem support - either through:
+  - Inbox drivers (ubuntu kernel >= 5.4 and [< 6.8](https://discourse.ubuntu.com/t/nvidia-gpudirect-over-infiniband-migration-paths/44425))
+  - NVIDIA optimized kernels (IGX OS, DGX BaseOS)
+  - MLNX-OFED drivers, either from:
+    - [DOCA-Host](https://developer.nvidia.com/doca-archive) 2.8 or later (install `mlnx-ofed-kernel-dkms` package or the `doca-ofed` meta-package for extra tooling)
+    - _(deprecated)_ [MOFED](https://network.nvidia.com/products/infiniband-drivers/linux/mlnx_ofed/) 23.10 or later (`sudo ./mlnxofedinstall --kernel-only`)
+
+> User-space libraries are included in the [Dockerfile](./Dockerfile) for each networking backend. Inspect this file if you wish to know what is needed to build and run on baremetal instead.
 
 #### Features
 
