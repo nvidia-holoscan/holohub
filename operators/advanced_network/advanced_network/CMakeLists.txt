@@ -29,13 +29,6 @@ set(CMAKE_CUDA_ARCHITECTURES "80;90")
 
 add_compile_definitions(ALLOW_EXPERIMENTAL_API)
 add_compile_definitions(DOCA_ALLOW_EXPERIMENTAL_API)
-
-execute_process(COMMAND arch OUTPUT_VARIABLE ARCH)
-string(STRIP ${ARCH} ARCH)
-
-# Path configurations for DPDK and DOCA
-# Upstream DPDK (installed via meson) uses /usr/local by default
-# DOCA/mlnx-dpdk uses /opt/mellanox paths
 set(DOCA_PATH /opt/mellanox/doca)
 
 # Common library
