@@ -59,9 +59,9 @@ class PipelineBusMonitor {
   /**
    * @brief Construct a pipeline bus monitor
    *
-   * @param pipeline The GStreamer pipeline to monitor
+   * @param pipeline The GStreamer pipeline to monitor (copied to manage refcount)
    */
-  explicit PipelineBusMonitor(Pipeline& pipeline);
+  explicit PipelineBusMonitor(Pipeline pipeline);
 
   /**
    * @brief Virtual destructor
@@ -153,7 +153,7 @@ class PipelineBusMonitor {
    */
   void monitor_loop();
 
-  Pipeline& pipeline_;
+  Pipeline pipeline_;  // Store pipeline object to manage GObject refcount
   std::atomic<bool> stop_flag_{false};
   std::promise<void> completion_promise_;
   std::shared_future<void> completion_future_;

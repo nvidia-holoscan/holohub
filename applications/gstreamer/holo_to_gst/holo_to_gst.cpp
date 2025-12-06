@@ -1,91 +1,271 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <iostream>
 #include <memory>
 #include <thread>
 #include <chrono>
 #include <csignal>
+#include <cstdint>
 
+#include <gst/gst.h>
 #include <holoscan/holoscan.hpp>
+#include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
+#include <holoscan/operators/format_converter/format_converter.hpp>
 #include <gst_src_resource.hpp>
 #include <gst_src_op.hpp>
 #include <gst/pipeline.hpp>
 #include <gst_pipeline_bus_monitor.hpp>
 #include "pattern_generator.hpp"
 
-namespace holoscan {
+namespace {
 
 /**
- * @brief Holoscan application that pushes generated pattern data into GStreamer
+ * @brief Convert string to numeric type (template specializations)
+ *
+ * @tparam T Numeric type to convert to
+ * @param str String to convert
+ * @param pos Pointer to size_t to store position after conversion
+ * @return Converted value
+ * @throws std::invalid_argument or std::out_of_range on conversion failure
  */
-class GstSrcApp : public Application {
- public:
-  GstSrcApp(int64_t iteration_count, const std::string& caps, int width, int height, 
-            int framerate, int pattern, int storage_type)
-    : iteration_count_(iteration_count), caps_(caps), width_(width), height_(height), 
-      framerate_(framerate), pattern_(pattern), storage_type_(storage_type) {}
+template<typename T>
+T string_to(const std::string& str, size_t* pos);
 
-  void compose() override {
-    // Build caps string with actual width, height, framerate, and memory type
-    // Memory feature must come right after media type: video/x-raw(memory:CUDAMemory)
-    std::string full_caps;
-    
-    if (storage_type_ == 1) {
-      // CUDA memory: insert memory feature after media type
-      full_caps = "video/x-raw(memory:CUDAMemory),format=RGBA";
-    } else {
-      // Host memory: use default caps
-      full_caps = caps_;
+// Specialization for int
+template<>
+int string_to<int>(const std::string& str, size_t* pos) {
+  return std::stoi(str, pos);
+}
+
+// Specialization for int64_t
+template<>
+int64_t string_to<int64_t>(const std::string& str, size_t* pos) {
+  return std::stoll(str, pos);
+}
+
+/**
+ * @brief Safely parse a numeric value with validation
+ *
+ * @tparam T Numeric type to parse (int, int64_t, etc.)
+ * @param value_str String to parse
+ * @param param_name Parameter name for error messages
+ * @param min_value Minimum allowed value (inclusive)
+ * @param max_value Maximum allowed value (inclusive)
+ * @return Parsed and validated value
+ * @throws std::invalid_argument if parsing fails or value is out of range
+ */
+template<typename T>
+T parse_validated(const std::string& value_str, const std::string& param_name,
+                  T min_value, T max_value) {
+  try {
+    size_t pos = 0;
+    T value = string_to<T>(value_str, &pos);
+
+    // Check if entire string was consumed
+    if (pos != value_str.length()) {
+      throw std::invalid_argument("Invalid characters in value");
     }
-    
-    full_caps += ",width=" + std::to_string(width_) + 
-                 ",height=" + std::to_string(height_) + 
-                 ",framerate=" + std::to_string(framerate_) + "/1";
-    
-    HOLOSCAN_LOG_INFO("Source caps: {}", full_caps);
-    
-    // Create the GStreamer source resource for data bridging
-    holoscan_gst_src_ = make_resource<GstSrcResource>("holoscan_src", 
-        Arg("caps", full_caps));
 
-    // Create an allocator for tensor memory
-    auto allocator = make_resource<UnboundedAllocator>("allocator");
+    // Validate range
+    if (value < min_value || value > max_value) {
+      throw std::invalid_argument(
+          "Value " + std::to_string(value) + " is out of range [" +
+          std::to_string(min_value) + ", " + std::to_string(max_value) + "]");
+    }
 
-    // Create the pattern generator operator
-    auto pattern_gen_op = make_operator<PatternGenOperator>(
-        "pattern_gen_op",
-        make_condition<CountCondition>(iteration_count_),
-        Arg("allocator", allocator),
-        Arg("width", width_),
-        Arg("height", height_),
-        Arg("pattern", pattern_),
-        Arg("storage_type", storage_type_)
-    );
-
-    // Create the GStreamer source operator
-    auto gst_src_op = make_operator<GstSrcOp>(
-        "gst_src_op",
-        Arg("gst_src_resource", holoscan_gst_src_)
-    );
-
-    // Connect the operators: pattern generator -> GStreamer source
-    add_flow(pattern_gen_op, gst_src_op);
+    return value;
+  } catch (const std::invalid_argument& e) {
+    throw std::invalid_argument(
+        "Invalid " + param_name + ": " + value_str + " (" + e.what() + ")");
+  } catch (const std::out_of_range& e) {
+    throw std::invalid_argument(
+        param_name + " value is too large: " + value_str);
   }
+}
 
-  std::shared_ptr<GstSrcResource> get_src_resource() const {
-    return holoscan_gst_src_;
-  }
+/**
+ * @brief Configuration parameters for the Holoscan to GStreamer bridge
+ */
+struct AppConfig {
+  int64_t iteration_count = INT64_MAX;  // Default: run forever
+  std::string pipeline_desc = "cudadownload name=first ! videoconvert ! autovideosink sync=false";
+  std::string caps = "video/x-raw,format=RGBA";
+  int width = 1920;
+  int height = 1080;
+  int framerate = 30;
+  int pattern = 0;  // 0=gradient, 1=checkerboard, 2=color bars
+  int storage_type = 1;  // 0=host, 1=device (default to device for CUDA pipeline)
 
- private:
-  int64_t iteration_count_;
-  std::string caps_;
-  int width_;
-  int height_;
-  int framerate_;
-  int pattern_;
-  int storage_type_;
-  std::shared_ptr<GstSrcResource> holoscan_gst_src_;
+  // Source selection
+  std::string source = "pattern";  // "pattern" or "v4l2"
+
+  // V4L2 camera configuration
+  std::string v4l2_device = "/dev/video0";
+  std::string v4l2_pixel_format = "auto";  // "YUYV", "MJPEG", "auto", etc.
 };
 
-}  // namespace holoscan
+/**
+ * @brief Print usage information for the application
+ *
+ * @param program_name Name of the program (argv[0])
+ */
+void print_usage(const char* program_name) {
+    std::cout << "Usage: " << program_name << " [OPTIONS]\n\n";
+    std::cout << "Options:\n";
+    std::cout << "  --source <type>          Video source: pattern or v4l2 (default: pattern)\n";
+    std::cout << "  -c, --count <number>     Number of frames to capture/generate (default: unlimited)\n";
+    std::cout << "  -w, --width <pixels>     Frame width (default: 1920)\n";
+    std::cout << "  -h, --height <pixels>    Frame height (default: 1080)\n";
+    std::cout << "  -f, --framerate <fps>    Frame rate in frames per second (default: 30)\n";
+    std::cout << "  --pattern <type>         Pattern type: 0=gradient, 1=checkerboard, "
+                 "2=color bars (default: 0)\n";
+    std::cout << "                            Only used when source=pattern\n";
+    std::cout << "  --storage <type>         Memory storage type: 0=host, 1=device/CUDA "
+                 "(default: 1)\n";
+    std::cout << "                            Only used when source=pattern\n";
+    std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description\n";
+    std::cout << "                            (default: cudadownload name=first ! videoconvert ! "
+                 "autovideosink sync=false)\n";
+    std::cout << "                            IMPORTANT: Your pipeline MUST name the first element as 'first'\n";
+    std::cout << "  --caps <caps_string>     GStreamer capabilities string for the source\n";
+    std::cout << "                            (default: video/x-raw,format=RGBA)\n";
+    std::cout << "  --help                   Show this help message\n\n";
+    std::cout << "V4L2 Camera Options:\n";
+    std::cout << "  --device <path>          V4L2 device path (default: /dev/video0)\n";
+    std::cout << "  --pixel-format <format>  V4L2 pixel format (default: auto)\n";
+    std::cout << "                            Examples: YUYV, MJPEG, auto\n\n";
+    std::cout << "Pipeline Requirements:\n";
+    std::cout << "  - The first element in your pipeline MUST be named 'first'\n";
+    std::cout << "  - You can construct ANY GStreamer pipeline using 1000+ available plugins\n";
+    std::cout << "  - The examples shown are just starting points for customization\n\n";
+    std::cout << "Examples:\n";
+    std::cout << "  Display animated gradient (default):\n";
+    std::cout << "    " << program_name << "\n\n";
+    std::cout << "  Display from V4L2 camera:\n";
+    std::cout << "    " << program_name << " --source v4l2 --count 300\n\n";
+    std::cout << "  Display from V4L2 camera with specific device:\n";
+    std::cout << "    " << program_name << " --source v4l2 --device /dev/video1 "
+                 "--pixel-format YUYV\n\n";
+    std::cout << "  Display checkerboard pattern:\n";
+    std::cout << "    " << program_name << " --pattern 1\n\n";
+    std::cout << "  Display color bars:\n";
+    std::cout << "    " << program_name << " --pattern 2\n\n";
+    std::cout << "  Custom resolution and framerate:\n";
+    std::cout << "    " << program_name << " --width 1280 --height 720 --framerate 60\n\n";
+    std::cout << "  Save pattern to file (CPU-based encoding):\n";
+    std::cout << "    " << program_name << " --count 300 --pipeline \"cudadownload name=first ! "
+                 "videoconvert ! x264enc ! mp4mux ! filesink location=output.mp4\"\n\n";
+    std::cout << "  Save pattern to file (GPU-based encoding):\n";
+    std::cout << "    " << program_name << " --count 300 --pipeline \"cudaconvert name=first ! "
+                 "nvh264enc ! h264parse ! mp4mux ! filesink location=output.mp4\"\n\n";
+    std::cout << "  Record from V4L2 camera to file:\n";
+    std::cout << "    " << program_name << " --source v4l2 --count 300 --pipeline "
+                 "\"cudadownload name=first ! videoconvert ! x264enc ! mp4mux ! "
+                 "filesink location=camera.mp4\"\n\n";
+    std::cout << "  Stream over network:\n";
+    std::cout << "    " << program_name << " --pipeline \"cudaconvert name=first ! nvh264enc ! "
+                 "h264parse ! rtph264pay ! udpsink host=127.0.0.1 port=5000\"\n";
+}
+
+/**
+ * @brief Parse command-line arguments into application configuration
+ *
+ * @param argc Argument count
+ * @param argv Argument values
+ * @param config Output parameter for parsed configuration
+ * @return true if parsing succeeded, false on error (prints error message internally)
+ */
+bool parse_arguments(int argc, char** argv, AppConfig& config) {
+  try {
+    for (int i = 1; i < argc; i++) {
+      std::string arg = argv[i];
+
+      if (arg == "--help") {
+        print_usage(argv[0]);
+        std::exit(0);  // Exit successfully after showing help
+      } else if (arg == "--source" && i + 1 < argc) {
+        config.source = argv[++i];
+        if (config.source != "pattern" && config.source != "v4l2") {
+          throw std::invalid_argument(
+              "Invalid source '" + config.source + "' (must be 'pattern' or 'v4l2')");
+        }
+      } else if (arg == "--device" && i + 1 < argc) {
+        config.v4l2_device = argv[++i];
+        if (config.v4l2_device.empty()) {
+          throw std::invalid_argument("V4L2 device path cannot be empty");
+        }
+      } else if (arg == "--pixel-format" && i + 1 < argc) {
+        config.v4l2_pixel_format = argv[++i];
+        if (config.v4l2_pixel_format.empty()) {
+          throw std::invalid_argument("Pixel format cannot be empty");
+        }
+      } else if ((arg == "-c" || arg == "--count") && i + 1 < argc) {
+        // Validate: 1 to 1 billion frames
+        config.iteration_count = parse_validated<int64_t>(argv[++i], "frame count", 1, 1000000000);
+      } else if ((arg == "-w" || arg == "--width") && i + 1 < argc) {
+        // Validate: 64 to 8192 pixels (reasonable video width range)
+        config.width = parse_validated<int>(argv[++i], "width", 64, 8192);
+      } else if ((arg == "-h" || arg == "--height") && i + 1 < argc) {
+        // Validate: 64 to 8192 pixels (reasonable video height range)
+        config.height = parse_validated<int>(argv[++i], "height", 64, 8192);
+      } else if ((arg == "-f" || arg == "--framerate") && i + 1 < argc) {
+        // Validate: 1 to 240 fps
+        config.framerate = parse_validated<int>(argv[++i], "framerate", 1, 240);
+      } else if (arg == "--pattern" && i + 1 < argc) {
+        // Validate: 0=gradient, 1=checkerboard, 2=color bars
+        config.pattern = parse_validated<int>(argv[++i], "pattern", 0, 2);
+      } else if (arg == "--storage" && i + 1 < argc) {
+        // Validate: 0=host, 1=device
+        config.storage_type = parse_validated<int>(argv[++i], "storage type", 0, 1);
+      } else if ((arg == "-p" || arg == "--pipeline") && i + 1 < argc) {
+        config.pipeline_desc = argv[++i];
+        if (config.pipeline_desc.empty()) {
+          throw std::invalid_argument("Pipeline description cannot be empty");
+        }
+      } else if (arg == "--caps" && i + 1 < argc) {
+        config.caps = argv[++i];
+        if (config.caps.empty()) {
+          throw std::invalid_argument("Caps string cannot be empty");
+        }
+      } else if ((arg == "--source" || arg == "-c" || arg == "--count" ||
+                arg == "-w" || arg == "--width" || arg == "-h" || arg == "--height" ||
+                arg == "-f" || arg == "--framerate" || arg == "--pattern" ||
+                arg == "--storage" || arg == "-p" || arg == "--pipeline" ||
+                arg == "--caps" || arg == "--device" || arg == "--pixel-format") && i + 1 >= argc) {
+        throw std::invalid_argument("Missing value for argument: " + arg);
+      } else {
+        throw std::invalid_argument("Unknown argument: " + arg);
+      }
+    }
+    return true;  // Success
+  } catch (const std::invalid_argument& e) {
+    std::cerr << "Error: " << e.what() << std::endl << std::endl;
+    print_usage(argv[0]);
+    return false;  // Failure
+  }
+}
+
+}  // namespace
+
+namespace holoscan {
+
+// Constants
+constexpr size_t DEFAULT_MAX_BUFFERS = 10;  // Default max buffers for GStreamer source
 
 /**
  * @brief Custom pipeline bus monitor that sends SIGINT on error or window close
@@ -123,7 +303,7 @@ class AppPipelineBusMonitor : public holoscan::gst::PipelineBusMonitor {
  * Encapsulates all GStreamer pipeline operations for consuming from holoscansrc
  */
 class GStreamerApp {
-public:
+ public:
   GStreamerApp(const std::string& pipeline_desc, 
                holoscan::gst::Element src_element)
     : pipeline_desc_(pipeline_desc), 
@@ -214,108 +394,165 @@ public:
     return bus_monitor_->get_future();
   }
 
-private:
+ private:
   std::string pipeline_desc_;
   holoscan::gst::Element src_element_;
   holoscan::gst::Pipeline pipeline_;
   std::unique_ptr<AppPipelineBusMonitor> bus_monitor_;
 };
 
-void print_usage(const char* program_name) {
-    std::cout << "Usage: " << program_name << " [OPTIONS]\n\n";
-    std::cout << "Options:\n";
-    std::cout << "  -c, --count <number>     Number of frames to generate (default: unlimited)\n";
-    std::cout << "  -w, --width <pixels>     Frame width (default: 1920)\n";
-    std::cout << "  -h, --height <pixels>    Frame height (default: 1080)\n";
-    std::cout << "  -f, --framerate <fps>    Frame rate in frames per second (default: 30)\n";
-    std::cout << "  --pattern <type>         Pattern type: 0=gradient, 1=checkerboard, 2=color bars (default: 0)\n";
-    std::cout << "  --storage <type>         Memory storage type: 0=host, 1=device/CUDA (default: 0)\n";
-    std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description (default: videoconvert ! autovideosink)\n";
-    std::cout << "                            IMPORTANT: Your pipeline MUST name the first element as 'first'\n";
-    std::cout << "  --caps <caps_string>     GStreamer capabilities string for the source (default: video/x-raw,format=RGBA)\n";
-    std::cout << "  --help                   Show this help message\n\n";
-    std::cout << "Pipeline Requirements:\n";
-    std::cout << "  - The first element in your pipeline MUST be named 'first'\n";
-    std::cout << "  - GStreamer automatically handles dynamic linking within the pipeline\n\n";
-    std::cout << "Examples:\n";
-    std::cout << "  Display animated gradient (default):\n";
-    std::cout << "    " << program_name << "\n\n";
-    std::cout << "  Display checkerboard pattern:\n";
-    std::cout << "    " << program_name << " --pattern 1\n\n";
-    std::cout << "  Display color bars:\n";
-    std::cout << "    " << program_name << " --pattern 2\n\n";
-    std::cout << "  Generate pattern in CUDA device memory:\n";
-    std::cout << "    " << program_name << " --storage 1\n\n";
-    std::cout << "  Custom resolution and framerate:\n";
-    std::cout << "    " << program_name << " --width 1280 --height 720 --framerate 60\n\n";
-    std::cout << "  Save to file:\n";
-    std::cout << "    " << program_name << " --count 300 --pipeline \"videoconvert name=first ! x264enc ! mp4mux ! filesink location=output.mp4\"\n\n";
-    std::cout << "  Stream over network:\n";
-    std::cout << "    " << program_name << " --pipeline \"videoconvert name=first ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000\"\n";
-}
+/**
+ * @brief Holoscan application that pushes data from pattern generator or V4L2 camera into GStreamer
+ */
+class GstSrcApp : public Application {
+ public:
+  explicit GstSrcApp(const AppConfig& config)
+    : iteration_count_(config.iteration_count),
+      caps_(config.caps),
+      width_(config.width),
+      height_(config.height),
+      framerate_(config.framerate),
+      pattern_(config.pattern),
+      storage_type_(config.storage_type),
+      source_(config.source),
+      v4l2_device_(config.v4l2_device),
+      v4l2_pixel_format_(config.v4l2_pixel_format) {}
+
+  void compose() override {
+    // Build caps string with actual width, height, framerate, and memory type
+    // Memory feature must come right after media type: video/x-raw(memory:CUDAMemory)
+    std::string full_caps;
+    
+    if (storage_type_ == 1) {
+      // CUDA memory: insert memory feature after media type
+      full_caps = "video/x-raw(memory:CUDAMemory),format=RGBA";
+    } else {
+      // Host memory: use default caps
+      full_caps = caps_;
+    }
+    
+    full_caps += ",width=" + std::to_string(width_) + 
+                 ",height=" + std::to_string(height_) + 
+                 ",framerate=" + std::to_string(framerate_) + "/1";
+    
+    HOLOSCAN_LOG_INFO("Source caps: {}", full_caps);
+    
+    // Create the GStreamer source resource for data bridging
+    holoscan_gst_src_ = make_resource<GstSrcResource>("holoscan_src", 
+        Arg("caps", full_caps),
+        Arg("max_buffers", DEFAULT_MAX_BUFFERS));
+
+    // Create an allocator for tensor memory
+    auto allocator = make_resource<UnboundedAllocator>("allocator");
+
+    // Create the video source operator based on source selection
+    std::shared_ptr<Operator> source_op;
+    std::string source_output_port;
+
+    // Create the GStreamer source operator (common to both sources)
+    auto gst_src_op = make_operator<GstSrcOp>(
+        "gst_src_op",
+        Arg("gst_src_resource", holoscan_gst_src_));
+
+    if (source_ == "v4l2") {
+      // Create V4L2 camera capture operator
+      // Note: V4L2VideoCaptureOp expects width/height as uint32_t
+      source_op = make_operator<ops::V4L2VideoCaptureOp>(
+          "v4l2_source",
+          make_condition<CountCondition>(iteration_count_),
+          Arg("allocator", allocator),
+          Arg("device", v4l2_device_),
+          Arg("width", static_cast<uint32_t>(width_)),
+          Arg("height", static_cast<uint32_t>(height_)),
+          Arg("pixel_format", v4l2_pixel_format_));
+      source_output_port = "signal";
+
+      HOLOSCAN_LOG_INFO("Using V4L2 camera source: device={}, {}x{}, pixel_format={}",
+                        v4l2_device_, width_, height_, v4l2_pixel_format_);
+
+      // V4L2 requires a FormatConverterOp to properly convert the camera output
+      // V4L2 outputs RGBA8888, we keep it as-is for GStreamer
+      auto format_converter = make_operator<ops::FormatConverterOp>(
+          "format_converter",
+          Arg("in_dtype", std::string("rgba8888")),
+          Arg("out_dtype", std::string("rgba8888")),
+          Arg("pool", allocator));
+
+      // Connect: V4L2 -> FormatConverter -> GstSrc
+      add_flow(source_op, format_converter, {{source_output_port, "source_video"}});
+      add_flow(format_converter, gst_src_op, {{"tensor", "input"}});
+    } else {
+      // Create pattern generator operator
+      source_op = make_operator<PatternGenOperator>(
+          "pattern_gen_op",
+          make_condition<CountCondition>(iteration_count_),
+          Arg("allocator", allocator),
+          Arg("width", width_),
+          Arg("height", height_),
+          Arg("pattern", pattern_),
+          Arg("storage_type", storage_type_));
+      source_output_port = "output";
+
+      HOLOSCAN_LOG_INFO("Using pattern generator source: {}x{}, pattern={}",
+                        width_, height_, get_pattern_name(pattern_));
+
+      // Connect: Pattern -> GstSrc (direct)
+      add_flow(source_op, gst_src_op, {{source_output_port, "input"}});
+    }
+  }
+
+  std::shared_ptr<GstSrcResource> get_src_resource() const {
+    return holoscan_gst_src_;
+  }
+
+ private:
+  int64_t iteration_count_;
+  std::string caps_;
+  int width_;
+  int height_;
+  int framerate_;
+  int pattern_;
+  int storage_type_;
+  std::string source_;
+  std::string v4l2_device_;
+  std::string v4l2_pixel_format_;
+  std::shared_ptr<GstSrcResource> holoscan_gst_src_;
+};
+
+}  // namespace holoscan
 
 int main(int argc, char** argv) {
-  int64_t iteration_count = INT64_MAX;  // Default: run forever
-  std::string pipeline_desc = "videoconvert name=first ! autovideosink";  // Default value
-  std::string caps = "video/x-raw,format=RGBA";  // Default value
-  int width = 1920;
-  int height = 1080;
-  int framerate = 30;
-  int pattern = 0;  // 0=gradient, 1=checkerboard, 2=color bars
-  int storage_type = 0;  // 0=host, 1=device
-
-  // Parse command line arguments
-  for (int i = 1; i < argc; i++) {
-    std::string arg = argv[i];
-
-    if (arg == "--help") {
-      print_usage(argv[0]);
-      return 0;
-    }
-    else if ((arg == "-c" || arg == "--count") && i + 1 < argc) {
-      iteration_count = std::stoll(argv[++i]);
-    }
-    else if ((arg == "-w" || arg == "--width") && i + 1 < argc) {
-      width = std::stoi(argv[++i]);
-    }
-    else if ((arg == "-h" || arg == "--height") && i + 1 < argc) {
-      height = std::stoi(argv[++i]);
-    }
-    else if ((arg == "-f" || arg == "--framerate") && i + 1 < argc) {
-      framerate = std::stoi(argv[++i]);
-    }
-    else if (arg == "--pattern" && i + 1 < argc) {
-      pattern = std::stoi(argv[++i]);
-    }
-    else if (arg == "--storage" && i + 1 < argc) {
-      storage_type = std::stoi(argv[++i]);
-    }
-    else if ((arg == "-p" || arg == "--pipeline") && i + 1 < argc) {
-      pipeline_desc = argv[++i];
-    }
-    else if (arg == "--caps" && i + 1 < argc) {
-      caps = argv[++i];
-    }
-    else {
-      std::cerr << "Unknown argument: " << arg << std::endl;
-      print_usage(argv[0]);
-      return 1;
-    }
+  // Parse command-line arguments
+  AppConfig config;
+  if (!parse_arguments(argc, argv, config)) {
+    return 1;  // Error already printed by parse_arguments
   }
 
   try {
     // Initialize GStreamer
     gst_init(&argc, &argv);
 
-    // Create the Holoscan application with parsed parameters
-    auto holoscan_app = std::make_shared<holoscan::GstSrcApp>(
-        iteration_count, caps, width, height, framerate, pattern, storage_type);
+    // Log configuration before creating app
+    HOLOSCAN_LOG_INFO("Starting Holoscan to GStreamer Bridge");
+    HOLOSCAN_LOG_INFO("Source: {}", config.source);
 
-    HOLOSCAN_LOG_INFO("Starting Holoscan Pattern to GStreamer Example");
-    HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pattern: {}, storage: {}, pipeline: '{}', caps: '{}'", 
-                      iteration_count, width, height, framerate, holoscan::get_pattern_name(pattern), 
-                      storage_type == 1 ? "device" : "host", pipeline_desc, caps);
-    HOLOSCAN_LOG_INFO("This will generate pattern data from Holoscan and push it into GStreamer");
+    if (config.source == "v4l2") {
+      HOLOSCAN_LOG_INFO("V4L2 camera: device={}, pixel_format={}",
+                        config.v4l2_device, config.v4l2_pixel_format);
+    } else {
+      HOLOSCAN_LOG_INFO("Pattern: {}x{}, type: {}, storage: {}",
+                        config.width, config.height,
+                        holoscan::get_pattern_name(config.pattern),
+                        config.storage_type == 1 ? "device" : "host");
+    }
+
+    HOLOSCAN_LOG_INFO("Configuration: {} iterations, {}x{}@{}fps, pipeline: '{}', caps: '{}'", 
+                      config.iteration_count, config.width, config.height, 
+                      config.framerate, config.pipeline_desc, config.caps);
+    HOLOSCAN_LOG_INFO("This will push data from Holoscan into GStreamer");
+
+    // Create the Holoscan application with parsed configuration
+    auto holoscan_app = std::make_shared<holoscan::GstSrcApp>(config);
 
     // Run the Holoscan application asynchronously
     auto app_future = holoscan_app->run_async();
@@ -337,7 +574,7 @@ int main(int argc, char** argv) {
     }
 
     // Create the GStreamer application with the source element and start it
-    auto gstreamer_app = std::make_shared<GStreamerApp>(pipeline_desc, src_element);
+    auto gstreamer_app = std::make_shared<holoscan::GStreamerApp>(config.pipeline_desc, src_element);
 
     // Wait for Holoscan to finish generating frames
     app_future.wait();
@@ -357,7 +594,6 @@ int main(int argc, char** argv) {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     
     HOLOSCAN_LOG_INFO("Application finished");
-
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Application error: {}", e.what());
     return 1;
@@ -365,4 +601,3 @@ int main(int argc, char** argv) {
 
   return 0;
 }
-

@@ -22,8 +22,8 @@
 
 namespace holoscan::gst {
 
-PipelineBusMonitor::PipelineBusMonitor(Pipeline& pipeline)
-    : pipeline_(pipeline), completion_future_(completion_promise_.get_future()) {}
+PipelineBusMonitor::PipelineBusMonitor(Pipeline pipeline)
+    : pipeline_(std::move(pipeline)), completion_future_(completion_promise_.get_future()) {}
 
 PipelineBusMonitor::~PipelineBusMonitor() {
   stop();

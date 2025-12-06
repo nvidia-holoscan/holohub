@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font: bold 28px sans-serif; fill: #333; }
+      .subtitle { font: bold 20px sans-serif; fill: #555; }
+      .label { font: 16px sans-serif; fill: #333; }
+      .small-label { font: 14px sans-serif; fill: #666; }
+      .holoscan-box { fill: #76b900; stroke: #5a8f00; stroke-width: 2; }
+      .gstreamer-box { fill: #ff6600; stroke: #cc5200; stroke-width: 2; }
+      .output-box { fill: #0099cc; stroke: #007aa3; stroke-width: 2; }
+      .converter-box { fill: #9966cc; stroke: #7744aa; stroke-width: 2; }
+      .arrow { stroke: #333; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .arrow-label { font: 14px sans-serif; fill: #555; }
+      .section-bg { fill: #f5f5f5; stroke: #ccc; stroke-width: 1; }
+      .legend-box { fill: white; stroke: #999; stroke-width: 1; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="40" class="title" text-anchor="middle">Holoscan to GStreamer Bridge Architecture</text>
+
+  <!-- ==================== Pipeline 1: V4L2 Camera ==================== -->
+  
+  <!-- Section Background -->
+  <rect x="20" y="80" width="1160" height="280" class="section-bg" rx="8"/>
+  <text x="40" y="110" class="subtitle">V4L2 Camera Pipeline</text>
+
+  <!-- V4L2 Video Capture -->
+  <rect x="50" y="140" width="200" height="180" class="holoscan-box" rx="8"/>
+  <text x="150" y="185" class="label" text-anchor="middle">V4L2VideoCaptureOp</text>
+  <text x="150" y="210" class="small-label" text-anchor="middle">Capture from</text>
+  <text x="150" y="230" class="small-label" text-anchor="middle">V4L2 Camera</text>
+  <text x="150" y="255" class="small-label" text-anchor="middle">(USB, MIPI CSI)</text>
+  <text x="150" y="280" class="small-label" text-anchor="middle">→ Host Memory</text>
+
+  <!-- Arrow 1 -->
+  <line x1="250" y1="230" x2="300" y2="230" class="arrow"/>
+  <text x="275" y="220" class="arrow-label" text-anchor="middle">signal</text>
+
+  <!-- Format Converter -->
+  <rect x="300" y="140" width="200" height="180" class="holoscan-box" rx="8"/>
+  <text x="400" y="185" class="label" text-anchor="middle">FormatConverterOp</text>
+  <text x="400" y="210" class="small-label" text-anchor="middle">YUYV/MJPEG</text>
+  <text x="400" y="230" class="small-label" text-anchor="middle">→ RGBA</text>
+  <text x="400" y="255" class="small-label" text-anchor="middle">Host → GPU</text>
+  <text x="400" y="280" class="small-label" text-anchor="middle">Memory</text>
+
+  <!-- Arrow 2 -->
+  <line x1="500" y1="230" x2="550" y2="230" class="arrow"/>
+  <text x="525" y="220" class="arrow-label" text-anchor="middle">tensor</text>
+
+  <!-- GstSrcOp -->
+  <rect x="550" y="140" width="180" height="180" class="holoscan-box" rx="8"/>
+  <text x="640" y="185" class="label" text-anchor="middle">GstSrcOp</text>
+  <text x="640" y="210" class="small-label" text-anchor="middle">Bridge to</text>
+  <text x="640" y="230" class="small-label" text-anchor="middle">GStreamer</text>
+  <text x="640" y="255" class="small-label" text-anchor="middle">(CUDA Memory</text>
+  <text x="640" y="275" class="small-label" text-anchor="middle">Zero-Copy)</text>
+
+  <!-- Arrow 3 -->
+  <line x1="730" y1="230" x2="780" y2="230" class="arrow"/>
+  <text x="755" y="220" class="arrow-label" text-anchor="middle">appsrc</text>
+
+  <!-- GStreamer Pipeline -->
+  <rect x="780" y="140" width="200" height="180" class="gstreamer-box" rx="8"/>
+  <text x="880" y="185" class="label" text-anchor="middle">GStreamer Pipeline</text>
+  <text x="880" y="210" class="small-label" text-anchor="middle">User-Defined</text>
+  <text x="880" y="230" class="small-label" text-anchor="middle">Custom Processing</text>
+  <text x="880" y="255" class="small-label" text-anchor="middle">(1000+ plugins)</text>
+
+  <!-- Arrow 4 -->
+  <line x1="980" y1="230" x2="1030" y2="230" class="arrow"/>
+
+  <!-- Output -->
+  <rect x="1030" y="140" width="130" height="180" class="output-box" rx="8"/>
+  <text x="1095" y="185" class="label" text-anchor="middle">Output</text>
+  <text x="1095" y="215" class="small-label" text-anchor="middle">• Display</text>
+  <text x="1095" y="240" class="small-label" text-anchor="middle">• File</text>
+  <text x="1095" y="265" class="small-label" text-anchor="middle">• Stream</text>
+  <text x="1095" y="290" class="small-label" text-anchor="middle">• Effects</text>
+
+  <!-- ==================== Pipeline 2: Pattern Generator ==================== -->
+  
+  <!-- Section Background -->
+  <rect x="20" y="390" width="1160" height="280" class="section-bg" rx="8"/>
+  <text x="40" y="420" class="subtitle">Pattern Generator Pipeline</text>
+
+  <!-- Pattern Generator -->
+  <rect x="50" y="450" width="200" height="180" class="holoscan-box" rx="8"/>
+  <text x="150" y="495" class="label" text-anchor="middle">PatternGenOperator</text>
+  <text x="150" y="520" class="small-label" text-anchor="middle">Animated Patterns</text>
+  <text x="150" y="545" class="small-label" text-anchor="middle">(Gradient, Checkerboard)</text>
+  <text x="150" y="570" class="small-label" text-anchor="middle">→ GPU Memory</text>
+
+  <!-- Arrow 1 -->
+  <line x1="250" y1="540" x2="550" y2="540" class="arrow"/>
+  <text x="400" y="530" class="arrow-label" text-anchor="middle">output</text>
+
+  <!-- GstSrcOp -->
+  <rect x="550" y="450" width="180" height="180" class="holoscan-box" rx="8"/>
+  <text x="640" y="495" class="label" text-anchor="middle">GstSrcOp</text>
+  <text x="640" y="520" class="small-label" text-anchor="middle">Bridge to</text>
+  <text x="640" y="540" class="small-label" text-anchor="middle">GStreamer</text>
+  <text x="640" y="565" class="small-label" text-anchor="middle">(CUDA Memory</text>
+  <text x="640" y="585" class="small-label" text-anchor="middle">Zero-Copy)</text>
+
+  <!-- Arrow 2 -->
+  <line x1="730" y1="540" x2="780" y2="540" class="arrow"/>
+  <text x="755" y="530" class="arrow-label" text-anchor="middle">appsrc</text>
+
+  <!-- GStreamer Pipeline -->
+  <rect x="780" y="450" width="200" height="180" class="gstreamer-box" rx="8"/>
+  <text x="880" y="495" class="label" text-anchor="middle">GStreamer Pipeline</text>
+  <text x="880" y="520" class="small-label" text-anchor="middle">User-Defined</text>
+  <text x="880" y="540" class="small-label" text-anchor="middle">Custom Processing</text>
+  <text x="880" y="565" class="small-label" text-anchor="middle">(1000+ plugins)</text>
+
+  <!-- Arrow 3 -->
+  <line x1="980" y1="540" x2="1030" y2="540" class="arrow"/>
+
+  <!-- Output -->
+  <rect x="1030" y="450" width="130" height="180" class="output-box" rx="8"/>
+  <text x="1095" y="495" class="label" text-anchor="middle">Output</text>
+  <text x="1095" y="525" class="small-label" text-anchor="middle">• Display</text>
+  <text x="1095" y="550" class="small-label" text-anchor="middle">• File</text>
+  <text x="1095" y="575" class="small-label" text-anchor="middle">• Stream</text>
+  <text x="1095" y="600" class="small-label" text-anchor="middle">• Effects</text>
+
+  <!-- ==================== Legend ==================== -->
+  
+  <rect x="50" y="710" width="1100" height="70" class="legend-box" rx="8"/>
+  <text x="70" y="735" class="subtitle">Legend:</text>
+  
+  <!-- Holoscan -->
+  <rect x="170" y="720" width="100" height="30" class="holoscan-box" rx="4"/>
+  <text x="220" y="741" class="small-label" text-anchor="middle">Holoscan</text>
+  
+  <!-- GStreamer -->
+  <rect x="290" y="720" width="100" height="30" class="gstreamer-box" rx="4"/>
+  <text x="340" y="741" class="small-label" text-anchor="middle">GStreamer</text>
+  
+  <!-- Output -->
+  <rect x="410" y="720" width="80" height="30" class="output-box" rx="4"/>
+  <text x="450" y="741" class="small-label" text-anchor="middle">Output</text>
+
+  <!-- Key Feature Note -->
+  <text x="560" y="735" class="small-label" font-weight="bold">Key Feature:</text>
+  <text x="560" y="755" class="small-label">Custom GStreamer pipeline with 1000+ plugins</text>
+</svg>
+

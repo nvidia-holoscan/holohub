@@ -32,6 +32,8 @@ target_link_libraries(holo-to-gst
   PRIVATE
   holoscan::core
   holoscan::ops::gstreamer_bridge
+  holoscan::ops::v4l2
+  holoscan::ops::format_converter
 )
 
 # Install target

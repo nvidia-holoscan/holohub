@@ -1,184 +1,306 @@
-# Holoscan Pattern to GStreamer (holo-to-gst)
+# Holoscan to GStreamer Bridge
 
-This application demonstrates how to push pattern data from a Holoscan operator into a GStreamer pipeline using `GstSrcResource`.
+A Holoscan application that pushes video data from Holoscan operators into GStreamer pipelines for processing, encoding, and streaming.
 
-## Overview
+![Holoscan to GStreamer Bridge Pipeline](docs/pipeline_diagram.png)
 
-The application creates a Holoscan pipeline that:
-1. Generates animated test patterns (gradient, checkerboard, or color bars)
-2. Pushes frames into a GStreamer pipeline via `GstSrcResource`
-3. Processes/outputs the video using standard GStreamer elements
+*Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's flexible processing pipeline*
 
-This is the complementary example to `gst-to-holoviz` - instead of pulling data from GStreamer into Holoscan, this pushes data from Holoscan into GStreamer.
+## Description
+
+This application showcases how to:
+
+- Capture video from V4L2 cameras (USB webcams, MIPI cameras, etc.) or generate test patterns
+- Push video frames from Holoscan to GStreamer for processing
+- **Build custom GStreamer pipelines** for your specific use case (encoding, streaming, effects, etc.)
+- Stream or record video using any combination of GStreamer's 1000+ plugins
+- Use different video codecs and effects through GStreamer plugins
+- Support both host and CUDA device memory for zero-copy operation
+
+**Key Feature: Custom Pipeline Construction**
+
+The application provides a flexible bridge between Holoscan and GStreamer. You can construct **any GStreamer pipeline** you want - the examples provided are just demonstrations. This enables unlimited possibilities:
+- Video encoding (H.264, H.265, VP8, VP9, AV1, etc.)
+- Live streaming (RTP, RTSP, WebRTC, HLS, etc.)
+- Video effects and filters (flip, rotate, color correction, etc.)
+- Format conversion (resize, colorspace, etc.)
+- Multi-output (tee to multiple destinations)
+- Custom plugins (use your own GStreamer plugins)
+
+**Supported Video Sources:**
+
+- **V4L2 Camera** - Capture from any V4L2-compatible camera (USB webcams, MIPI cameras, etc.)
+- **Pattern Generator** - Generate animated test patterns (gradient, checkerboard, color bars)
+
+## Requirements
+
+- NVIDIA Holoscan SDK
+- GStreamer 1.0 with the following plugins:
+  - gstreamer1.0-plugins-base (videoconvert for host memory support)
+  - gstreamer1.0-plugins-bad (cudaconvert, cudadownload, nvh264enc, nvh265enc for NVIDIA hardware encoding)
+  - gstreamer1.0-plugins-good (mp4mux, matroskamux for container formats, autovideosink for display)
+  - gstreamer1.0-plugins-ugly (x264enc for CPU-based H.264 encoding)
+  - Additional codecs available through gstreamer1.0-libav if needed
+- V4L2-compatible camera (optional, for camera capture mode)
+  - USB webcams, MIPI CSI cameras, or any V4L2 video device
+  - Use `v4l2-ctl --list-devices` to see available cameras
+
+## Quick Start
+
+To run the application with the default settings, simply run one of the following commands:
+
+A. Using the **V4L2 camera**:
+
+```bash
+./holohub run holo_to_gst --mode v4l2
+```
+
+B. Generating test patterns:
+
+```bash
+./holohub run holo_to_gst --mode pattern
+```
+
+These single-line commands will build and run the customized container for this application with all the dependencies installed, and then build and start the application using the default settings.
 
 ## Building
 
+### Option 1: Containerized Build (Recommended)
+
+No setup required - all dependencies are included in the container:
+
 ```bash
-cd /workspace/holohub/applications/gstreamer/holo_to_gst
-mkdir build && cd build
-cmake ..
-make
+./holohub build holo_to_gst
 ```
+
+### Option 2: Local Build
+
+For faster builds and easier debugging. First install dependencies, then build locally:
+
+```bash
+# From the holo_to_gst directory
+./install_deps.sh
+
+# Then build locally
+./holohub build --local holo_to_gst
+```
+
+The `install_deps.sh` script installs:
+
+- pkg-config (required for CMake)
+- GStreamer development libraries
+- All necessary GStreamer plugins for processing and encoding
 
 ## Usage
 
-### Basic Examples
+The recommended way to run the application is through the `holohub` launcher:
 
-**Display animated gradient (default):**
 ```bash
-./holo-to-gst
+./holohub run holo_to_gst --run-args="[OPTIONS]"
 ```
 
-**Display animated checkerboard:**
+Alternatively, if you know the binary location, you can run it directly:
+
 ```bash
-./holo-to-gst --pattern 1
+holo-to-gst [OPTIONS]
 ```
 
-**Display color bars:**
-```bash
-./holo-to-gst --pattern 2
-```
+### Options
 
-**Custom resolution:**
-```bash
-./holo-to-gst --width 1280 --height 720
-```
+**General Options:**
 
-**Save video to file (300 frames):**
-```bash
-./holo-to-gst --count 300 --pipeline "videoconvert name=first ! x264enc ! mp4mux ! filesink location=output.mp4"
-```
-
-**Stream over network (RTP):**
-```bash
-./holo-to-gst --pipeline "videoconvert name=first ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000"
-```
-
-**Apply GStreamer effects:**
-```bash
-./holo-to-gst --pipeline "videoconvert name=first ! videoflip method=horizontal-flip ! autovideosink"
-```
-
-### Command Line Options
-
-- `-c, --count <number>` - Number of frames to generate (default: unlimited)
-- `-w, --width <pixels>` - Frame width (default: 1920)
-- `-h, --height <pixels>` - Frame height (default: 1080)
-- `--pattern <type>` - Pattern type: 0=gradient, 1=checkerboard, 2=color bars (default: 0)
-- `-p, --pipeline <desc>` - GStreamer pipeline description
+- `--source <type>` - Video source: `pattern` or `v4l2` (default: pattern)
+- `-c, --count <number>` - Number of frames to capture/generate (default: unlimited)
+- `-f, --framerate <fps>` - Frame rate in frames per second (default: 30)
+- `-p, --pipeline <desc>` - GStreamer pipeline description (default: `cudadownload name=first ! videoconvert ! autovideosink sync=false`)
+  - **IMPORTANT**: Your pipeline MUST name the first element as 'first'
+  - **Build any pipeline you want**: The examples are just suggestions - you have full access to GStreamer's 1000+ plugins
+  - **Examples**: encoding, streaming, effects, filters, multi-output, custom plugins, etc.
 - `--caps <caps_string>` - GStreamer capabilities for the source (default: `video/x-raw,format=RGBA`)
 - `--help` - Show help message
 
-### Important Requirements
+**Resolution Options:**
 
-**Your GStreamer pipeline MUST name the first element as 'first'**
+- `-w, --width <pixels>` - Frame width (default: 1920)
+  - For V4L2: Must match a supported camera resolution
+  - For pattern: Any reasonable resolution (64-8192 pixels)
+- `-h, --height <pixels>` - Frame height (default: 1080)
+  - For V4L2: Must match a supported camera resolution
+  - For pattern: Any reasonable resolution (64-8192 pixels)
 
-This is required for the application to properly link the Holoscan source to your pipeline.
+**V4L2 Camera Options:**
 
-**Correct:**
+- `--device <path>` - V4L2 device path (default: /dev/video0)
+- `--pixel-format <format>` - V4L2 pixel format (default: auto)
+  - Examples: YUYV, MJPEG, auto
+- `--storage <type>` - Must be set to `1` for V4L2 (FormatConverterOp outputs GPU memory)
+
+**Pattern Generator Options:**
+
+- `--pattern <type>` - Pattern type (default: 0)
+  - 0 = animated gradient
+  - 1 = animated checkerboard
+  - 2 = color bars (SMPTE style)
+- `--storage <type>` - Memory storage type (default: 1)
+  - 0 = host memory
+  - 1 = device/CUDA memory
+
+### Examples
+
+**Note**: The following examples demonstrate common use cases. You can construct **any GStreamer pipeline** you want by using the `--pipeline` parameter. These are just starting points - feel free to combine, modify, or create entirely new pipelines using GStreamer's extensive plugin ecosystem.
+
+#### V4L2 Camera Examples
+
+**Display live camera feed:**
+
 ```bash
---pipeline "videoconvert name=first ! autovideosink"
+./holohub run holo_to_gst --run-args="--source v4l2 --storage 1 --pipeline 'cudadownload name=first ! videoconvert ! autovideosink'"
 ```
 
-**Incorrect:**
+**Record from default V4L2 camera (30 seconds at 30 FPS):**
+
 ```bash
---pipeline "videoconvert ! autovideosink"  # Missing name=first
+./holohub run holo_to_gst --run-args="--source v4l2 --storage 1 --count 900 --pipeline 'cudadownload name=first ! videoconvert ! x264enc ! mp4mux ! filesink location=camera.mp4'"
 ```
 
-## How It Works
+**Record from specific V4L2 device with GPU encoder:**
 
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Holoscan Application                      │
-│                                                              │
-│                     ┌─────────────────────────────┐         │
-│                     │   GstSrcOp            │         │
-│                     │  (Source Operator)          │         │
-│                     │  • Generates test pattern   │         │
-│                     │  • Creates GstBuffer        │         │
-│                     │  • Pushes to GstSrcResource │         │
-│                     └──────────┬──────────────────┘         │
-│                                │                             │
-│                     ┌──────────▼──────────────────┐         │
-│                     │   GstSrcResource            │         │
-│                     │  (holoscansrc element)      │         │
-│                     └──────────┬──────────────────┘         │
-└────────────────────────────────┼──────────────────────────── ┘
-                                 │
-                                 ▼
-                  ┌────────────────────────────────────┐
-                  │      GStreamer Pipeline            │
-                  │                                    │
-                  │  videoconvert → x264enc → filesink │
-                  │       OR                           │
-                  │  effects → filters → output        │
-                  └────────────────────────────────────┘
-```
-
-### Data Flow
-
-1. **GstSrcOp** generates animated test patterns (RGBA format)
-2. **GstSrcOp** creates GStreamer buffers with timestamp information
-3. **GstSrcResource** (the `holoscansrc` element) provides buffers to the GStreamer pipeline
-4. **GStreamer Pipeline** processes and outputs the video data
-
-### Pattern Types
-
-- **Gradient (0)**: Animated colorful sine wave patterns
-- **Checkerboard (1)**: Animated black and white checkerboard with varying square sizes
-- **Color Bars (2)**: SMPTE-style color bars (white, yellow, cyan, green, magenta, red, blue)
-
-## Use Cases
-
-### Video Processing
-Apply GStreamer's rich ecosystem of video filters and effects:
 ```bash
-./holo-to-gst --pipeline "videoconvert name=first ! videobalance saturation=0 ! autovideosink"
+./holohub run holo_to_gst --run-args="--source v4l2 --device /dev/video1 --storage 1 --count 600 --pipeline 'cudaconvert name=first ! nvh264enc ! h264parse ! mp4mux ! filesink location=camera.mp4'"
 ```
 
-### Video Encoding
-Encode Holoscan output to various formats:
+**Record at 720p resolution:**
+
 ```bash
-# H.264
-./holo-to-gst --pipeline "videoconvert name=first ! x264enc ! mp4mux ! filesink location=output.mp4"
-
-# VP9 (WebM)
-./holo-to-gst --pipeline "videoconvert name=first ! vp9enc ! webmmux ! filesink location=output.webm"
+./holohub run holo_to_gst --run-args="--source v4l2 --width 1280 --height 720 --storage 1 --count 300 --pipeline 'cudadownload name=first ! videoconvert ! x264enc ! mp4mux ! filesink location=camera_720p.mp4'"
 ```
 
-### Streaming
-Stream Holoscan output over the network:
+**Stream camera over network (RTP):**
+
 ```bash
-# RTSP server (requires gst-rtsp-server)
-# RTP/UDP
-./holo-to-gst --pipeline "videoconvert name=first ! x264enc tune=zerolatency ! rtph264pay ! udpsink host=127.0.0.1 port=5000"
+./holohub run holo_to_gst --run-args="--source v4l2 --storage 1 --pipeline 'cudaconvert name=first ! nvh264enc tune=zerolatency ! h264parse ! rtph264pay ! udpsink host=127.0.0.1 port=5000'"
 ```
 
-### Multi-output
-Use GStreamer's `tee` element to send output to multiple destinations:
+#### Pattern Generator Examples
+
+**Display animated gradient (default):**
+
 ```bash
-./holo-to-gst --pipeline "videoconvert name=first ! tee name=t ! queue ! autovideosink t. ! queue ! x264enc ! mp4mux ! filesink location=output.mp4"
+./holohub run holo_to_gst --run-args=""
 ```
 
-## Troubleshooting
+**Display checkerboard pattern:**
 
-### "Could not find element named 'first'"
-Make sure your pipeline includes `name=first` on the first element after the source.
-
-### Pipeline won't start
-Check that all GStreamer elements in your pipeline are installed:
 ```bash
-gst-inspect-1.0 <element-name>
+./holohub run holo_to_gst --run-args="--pattern 1"
 ```
 
-### Buffer underruns / overruns
-Adjust the queue_limit parameter in GstSrcResource if needed.
+**Record pattern to file (10 seconds at 30 FPS):**
+
+```bash
+./holohub run holo_to_gst --run-args="--count 300 --pipeline 'cudadownload name=first ! videoconvert ! x264enc ! mp4mux ! filesink location=output.mp4'"
+```
+
+**Record 720p video:**
+
+```bash
+./holohub run holo_to_gst --run-args="--width 1280 --height 720 --count 300 --pipeline 'cudadownload name=first ! videoconvert ! x264enc ! mp4mux ! filesink location=output_720p.mp4'"
+```
+
+**Stream pattern over network:**
+
+```bash
+./holohub run holo_to_gst --run-args="--pipeline 'cudadownload name=first ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000'"
+```
+
+## Architecture
+
+The application supports two video sources and uses GStreamer for output processing:
+
+### Video Sources
+
+1. **V4L2VideoCaptureOp**: Captures video from V4L2-compatible cameras (USB webcams, MIPI CSI cameras, etc.)
+2. **PatternGenOperator**: Generates animated test patterns as Holoscan entities with tensors
+
+### Output Bridge
+
+- **GstSrcOp**: Receives video frames and pushes them into GStreamer via GstSrcResource
+
+### Pipeline Flow
+
+**V4L2 Camera Pipeline:**
+
+```text
+V4L2VideoCaptureOp → FormatConverterOp → GstSrcOp → GStreamer Pipeline → Output
+```
+
+**Pattern Generator Pipeline:**
+
+```text
+PatternGenOperator → GstSrcOp → GStreamer Pipeline → Output
+```
+
+The GStreamer pipeline is user-defined and can include any GStreamer elements:
+
+- **Display**: `cudadownload ! videoconvert ! autovideosink`
+- **CPU Encoding**: `cudadownload ! videoconvert ! x264enc ! h264parse ! mp4mux ! filesink`
+- **GPU Encoding**: `cudaconvert ! nvh264enc ! h264parse ! mp4mux ! filesink`
+- **Streaming**: `cudaconvert ! nvh264enc ! h264parse ! rtph264pay ! udpsink`
+- **Effects**: `cudadownload ! videoconvert ! videoflip ! videobalance ! autovideosink`
+- **Multi-output**: `cudadownload ! videoconvert ! tee ! [multiple outputs]`
+- **Custom**: Any combination of GStreamer plugins - the possibilities are endless!
+
+**Pipeline Flexibility**: You have full access to GStreamer's ecosystem of 1000+ plugins. Build complex pipelines for your specific needs - these examples just scratch the surface.
+
+## Performance
+
+The application supports both host and device (CUDA) memory:
+
+- **Device memory** (`--storage 1`, default): Zero-copy operation for better performance when using NVIDIA hardware encoders or GPU effects
+- **Host memory** (`--storage 0`): Required for some CPU-based GStreamer elements
+
+**Important**: V4L2 sources must use `--storage 1` as FormatConverterOp outputs GPU memory.
+
+## Notes
+
+### Video Sources
+
+**V4L2 Camera:**
+
+- Supports any V4L2-compatible camera (USB webcams, MIPI CSI cameras)
+- Camera resolution must be explicitly specified with `--width` and `--height`
+- Use `v4l2-ctl --list-formats-ext` to see supported resolutions and formats
+- FormatConverterOp automatically converts camera output to RGBA on GPU
+- **Must use `--storage 1`** as FormatConverterOp outputs GPU memory
+
+**Pattern Generator:**
+
+- Supports three test patterns:
+  - Animated gradient (default): Colorful sine wave patterns
+  - Animated checkerboard: Moving checkerboard with variable square size
+  - Color bars: SMPTE-style color bars (7 colors)
+- Useful for testing the pipeline without hardware dependencies
+- Supports both host (`--storage 0`) and device (`--storage 1`) memory
+
+### GStreamer Pipeline
+
+- **Pipeline element naming**: The first element MUST be named 'first' for proper linking
+- **Full customization**: You can use ANY GStreamer elements and build any pipeline you need
+- **Examples provided are starting points**: Modify, combine, or create entirely new pipelines
+- **GPU pipelines**: Use `cudaconvert` to keep data on GPU (best for GPU encoders)
+- **CPU pipelines**: Use `cudadownload` to transfer to host memory (required for CPU encoders/effects)
+- **Sync behavior**: Use `sync=false` on `autovideosink` for real-time display without timestamp synchronization
+- **Discover elements**: Use `gst-inspect-1.0` to explore GStreamer's extensive plugin library (1000+ elements)
+
+### Output
+
+- Frame count can be limited with `--count` or runs indefinitely if not specified
+- The application manages GStreamer pipeline lifecycle and handles cleanup properly
+- EOS (End-Of-Stream) signal is sent automatically when frame generation completes
 
 ## See Also
 
+- `gst_video_recorder` - Records video to files using GStreamer encoding
 - `gst-to-holoviz` - The complementary example that pulls data from GStreamer into Holoscan
 - GStreamer documentation: https://gstreamer.freedesktop.org/documentation/
 - Holoscan SDK documentation: https://docs.nvidia.com/holoscan/
-
