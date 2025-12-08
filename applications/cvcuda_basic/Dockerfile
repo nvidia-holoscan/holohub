@@ -38,7 +38,8 @@ RUN ARCH=$(uname -m) && \
         # install Python package for x86_64
         pip install cvcuda-cu12==0.15.0 && \
         # Download and install C++ library for x86_64
-        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-lib-0.15.0-cuda12-x86_64-linux.deb && curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-dev-0.15.0-cuda12-x86_64-linux.deb && \
+        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0/cvcuda-lib-0.15.0-cuda12-x86_64-linux.deb && \
+        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0/cvcuda-dev-0.15.0-cuda12-x86_64-linux.deb && \
         dpkg -i cvcuda-lib-0.15.0-cuda12-x86_64-linux.deb && \
         dpkg -i cvcuda-dev-0.15.0-cuda12-x86_64-linux.deb && \
         rm cvcuda-lib-0.15.0-cuda12-x86_64-linux.deb && \
@@ -47,8 +48,8 @@ RUN ARCH=$(uname -m) && \
         # install Python package for aarch64
         pip install cvcuda-cu12==0.15.0 && \
         # Download and install C++ library for aarch64
-        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-lib-0.15.0-cuda12-aarch64-linux.deb && \
-        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0-beta/cvcuda-dev-0.15.0-cuda12-aarch64-linux.deb && \
+        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0/cvcuda-lib-0.15.0-cuda12-aarch64-linux.deb && \
+        curl -LO https://github.com/CVCUDA/CV-CUDA/releases/download/v0.15.0/cvcuda-dev-0.15.0-cuda12-aarch64-linux.deb && \
         dpkg -i cvcuda-lib-0.15.0-cuda12-aarch64-linux.deb && \
         dpkg -i cvcuda-dev-0.15.0-cuda12-aarch64-linux.deb && \
         rm cvcuda-lib-0.15.0-cuda12-aarch64-linux.deb && \
@@ -64,7 +65,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # --------------------------------------------------------------------------
 #
-# Holohub dev setup 
+# Holohub dev setup
 #
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
