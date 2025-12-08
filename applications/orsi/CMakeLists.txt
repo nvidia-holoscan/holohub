@@ -53,7 +53,7 @@ if(APP_orsi_multi_ai_ar OR APP_orsi_in_out_body OR APP_orsi_segmentation_ar)
     )
   endif()
 
-  # configure the lib for the applicatios's build
+  # configure the lib for building the applications
   add_subdirectory(lib)
 
   add_holohub_application(orsi_multi_ai_ar DEPENDS
