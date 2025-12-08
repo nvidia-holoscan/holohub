@@ -17810,7 +17810,7 @@ found in this directory.</p>
 <h3 id="build-instructions">Build Instructions<a class="headerlink" href="#build-instructions" title="Permanent link">#</a></h3>
 <p>Please refer to the top level Holohub README.md file for information on how to build this application.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Regular build with DPDK and GPUNetIO support</span>
-./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench
+./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--build-args<span class="o">=</span><span class="s2">&quot;--target gpunetio&quot;</span><span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D ANO_MGR:STRING=gpunetio&quot;</span>
 </code></pre></div>
 <p>For <strong>Rivermax</strong> support, follow the prerequisites from the <a href="../../operators/advanced_network/">operators/advanced_network/README.md</a> README, then build the application with the following command:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--build-args<span class="o">=</span><span class="s2">&quot;--target rivermax&quot;</span><span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D ANO_MGR:STRING=rivermax&quot;</span>
