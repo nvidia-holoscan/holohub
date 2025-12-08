@@ -13,30 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(orsi_sample_apps LANGUAGES NONE)
-
-# Check if Deltacast is found
-set(ORSI_VIDEO_MASTER_SDK_FOUND OFF)
-
-if(IS_DIRECTORY "/usr/local/deltacast/Include")
-    if(EXISTS "/usr/lib/libvideomasterhd.so")
-        set(ORSI_VIDEO_MASTER_SDK_FOUND ON)
-    endif()
-endif()
-
-set(HOLOSCAN_OPERATORS
-        orsi_format_converter
-        orsi_segmentation_postprocessor
-        orsi_segmentation_preprocessor
-        orsi_visualizer
-)
-
-if(ORSI_VIDEO_MASTER_SDK_FOUND)
-    list(APPEND HOLOSCAN_OPERATORS deltacast_videomaster)
-endif()
-
 if(APP_orsi_multi_ai_ar OR APP_orsi_in_out_body OR APP_orsi_segmentation_ar)
+
+  cmake_minimum_required(VERSION 3.20)
+  project(orsi_sample_apps LANGUAGES NONE)
+
+  # Check if Deltacast is found
+  set(ORSI_VIDEO_MASTER_SDK_FOUND OFF)
+
+  if(IS_DIRECTORY "/usr/local/deltacast/Include")
+      if(EXISTS "/usr/lib/libvideomasterhd.so")
+          set(ORSI_VIDEO_MASTER_SDK_FOUND ON)
+      endif()
+  endif()
+
+  set(HOLOSCAN_OPERATORS
+          orsi_format_converter
+          orsi_segmentation_postprocessor
+          orsi_segmentation_preprocessor
+          orsi_visualizer
+  )
+
+  if(ORSI_VIDEO_MASTER_SDK_FOUND)
+      list(APPEND HOLOSCAN_OPERATORS deltacast_videomaster)
+  endif()
 
   # Download ORSI sample data from NGC
   if(HOLOHUB_DOWNLOAD_DATASETS)
@@ -53,18 +53,18 @@ if(APP_orsi_multi_ai_ar OR APP_orsi_in_out_body OR APP_orsi_segmentation_ar)
     )
   endif()
 
-  # Only configure the lib if the applications are build
+  # configure the lib for the applicatios's build
   add_subdirectory(lib)
+
+  add_holohub_application(orsi_multi_ai_ar DEPENDS
+                          OPERATORS ${HOLOSCAN_OPERATORS}
+                          OPTIONAL aja_source)
+
+  add_holohub_application(orsi_in_out_body DEPENDS
+                          OPERATORS ${HOLOSCAN_OPERATORS}
+                          OPTIONAL aja_source)
+
+  add_holohub_application(orsi_segmentation_ar DEPENDS
+                          OPERATORS ${HOLOSCAN_OPERATORS}
+                          OPTIONAL aja_source)
 endif()
-
-add_holohub_application(orsi_multi_ai_ar DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS}
-                        OPTIONAL aja_source)
-
-add_holohub_application(orsi_in_out_body DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS}
-                        OPTIONAL aja_source)
-
-add_holohub_application(orsi_segmentation_ar DEPENDS
-                        OPERATORS ${HOLOSCAN_OPERATORS}
-                        OPTIONAL aja_source)
