@@ -30,6 +30,8 @@ SHELL ["/bin/bash", "-eou", "pipefail", "-c"]
 RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         ca-certificates \
+        infiniband-diags \
+        mft \
         gnupg \
         python3-pip \
         git \
@@ -75,18 +77,82 @@ RUN --mount=type=bind,source=${HOLOSCAN_DEB_LOCAL_PATH},target=/tmp/holoscan.deb
 FROM hsdk-${HOLOSCAN_DEB_SRC} AS hsdk-installed
 
 # ==============================================================
-# common-deps: common dependencies for the advanced network lib
+# base-deps: base dependencies for the advanced network lib
 # ==============================================================
-FROM hsdk-installed AS common-deps
+FROM hsdk-installed AS base-deps
 
 ARG TARGETARCH
-ARG DOCA_VERSION=2.8.0
 ARG CACHEBUST=1
 ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /opt
 
-# Configure the DOCA APT repository
+# APT installs for base dependencies (no DOCA/GPUNetIO packages)
+# - libibverbs-dev, librdmacm-dev: RDMA/ibverbs support for Mellanox NICs
+# - libmlx5-1: Mellanox ConnectX driver
+# - ibverbs-utils: utilities
+# - python3-dev: for building python bindings
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libibverbs-dev \
+        librdmacm-dev \
+        libmlx5-1 \
+        ibverbs-utils \
+        python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# PIP installs
+# - pytest: test harness
+# - pyyaml: to parse yaml configs in tests
+# - scapy: for debugging and mocking network packets for tests
+RUN python3 -m pip install --no-cache-dir \
+        pytest \
+        pyyaml \
+        scapy
+
+# ==============================================================
+# dpdk-deps: Build upstream DPDK from source
+# ==============================================================
+FROM base-deps AS dpdk
+
+# DPDK version to download and build
+ARG DPDK_VERSION=24.11.3
+ARG DPDK_BUILD_DIR=/opt/dpdk-build
+ARG DPDK_INSTALL_PREFIX=/usr/local
+ARG DOCA_VERSION=2.8.0
+
+
+# - infiniband-diags for IB diagnostics
+# - mft for Mellanox Flex Transport
+# - ninja-build: for cmake build
+# - pkgconf: to import dpdk in CMake
+# - meson: for building DPDK
+# - python3-pyelftools: required for DPDK build
+# - libnuma-dev: NUMA support for DPDK
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ninja-build \
+        pkgconf \
+        meson \
+        python3-pyelftools \
+        libnuma-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download, build and install DPDK using meson/ninja
+RUN curl -fsSL https://fast.dpdk.org/rel/dpdk-${DPDK_VERSION}.tar.xz -o /tmp/dpdk-${DPDK_VERSION}.tar.xz \
+    && tar xf /tmp/dpdk-${DPDK_VERSION}.tar.xz -C /tmp \
+    && cd /tmp/dpdk-stable-${DPDK_VERSION} \
+    && meson setup ${DPDK_BUILD_DIR} \
+        --prefix=${DPDK_INSTALL_PREFIX} \
+        -Dtests=false \
+        -Denable_docs=false \
+        -Ddisable_drivers=baseband/*,bus/ifpga/*,common/cpt,common/dpaax,common/iavf,common/octeontx,common/octeontx2,crypto/nitrox,net/ark,net/atlantic,net/avp,net/axgbe,net/bnx2x,net/bnxt,net/cxgbe,net/e1000,net/ena,net/enic,net/fm10k,net/hinic,net/hns3,net/i40e,net/ixgbe,vdpa/ifc,net/igc,net/liquidio,net/netvsc,net/nfp,net/qede,net/sfc,net/thunderx,net/vdev_netvsc,net/vmxnet3,regex/octeontx2 \
+    && cd ${DPDK_BUILD_DIR} \
+    && ninja \
+    && meson install \
+    && ldconfig \
+    && rm -rf /tmp/dpdk-stable-${DPDK_VERSION} /tmp/dpdk-stable-${DPDK_VERSION}.tar.xz ${DPDK_BUILD_DIR} /tmp/dpdk_patches
+
+# Configure the DOCA APT repository for mlnx-ofed-kernel-utils
+# (needed for ibdev2netdev utility used by tune_system.py)
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
         DOCA_ARCH="x86_64"; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
@@ -102,65 +168,36 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
     && curl -fsSL ${DOCA_REPO_LINK}/GPG-KEY-Mellanox.pub | gpg --dearmor | tee ${LOCAL_GPG_KEY_PATH} > /dev/null \
     && echo "deb [signed-by=${LOCAL_GPG_KEY_PATH}] ${DOCA_REPO_LINK} ./" | tee /etc/apt/sources.list.d/mellanox.list
 
-# APT installs
-# - cublas, cufft, cusolver, curand dev libs: for matx
-# - ninja-build: for cmake build
-# - pkgconf: to import dpdk and doca in CMake
-# - mlnx-dpdk-dev: for dpdk and gpunetio backends
+# - mlnx-ofed-kernel-utils for utilities including ibdev2netdev used by tune_system.py
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    mlnx-ofed-kernel-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# ==============================================================
+# gpunetio: Add DOCA SDK packages for GPUNetIO support
+# ==============================================================
+FROM dpdk AS gpunetio
+
+# Install DOCA SDK packages required for GPUNetIO
+# (DOCA repo is already configured in dpdk stage)
 # - libdoca-sdk-dma-dev: for gpunetio backend (dependency of doca-gpunetio module)
 # - libdoca-sdk-gpunetio-dev: for gpunetio backend (doca-gpunetio module)
 # - libdoca-sdk-eth-dev: for gpunetio backend (doca-eth module)
 # - libdoca-sdk-flow-dev: for gpunetio backend (doca-flow module)
-# - mlnx-ofed-kernel-utils: utilities, including ibdev2netdev used by tune_system.py
-# - ibverbs-utils: utilities
-# - python3-pyelftools: used by some mlnx tools
-# - python3-dev: for building python bindings
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libcublas-dev-12-6 \
-        libcufft-dev-12-6 \
-        libcusolver-dev-12-6 \
-        libcurand-dev-12-6 \
-        ninja-build \
-        pkgconf \
-        mlnx-dpdk-dev \
         libdoca-sdk-dma-dev \
         libdoca-sdk-gpunetio-dev \
         libdoca-sdk-eth-dev \
         libdoca-sdk-flow-dev \
-        mlnx-ofed-kernel-utils \
-        ibverbs-utils \
-        python3-pyelftools \
-        python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# PIP installs
-# - pytest: test harness
-# - pyyaml: to parse yaml configs in tests
-# - scapy: for debugging and mocking network packets for tests
-RUN python3 -m pip install --no-cache-dir \
-        pytest \
-        pyyaml \
-        scapy
-
-# ==============================
-# DOCA Target
-# This stage is only built when --target doca is specified. It contains any DOCA-specific configurations.
-# ==============================
-FROM common-deps AS doca
-# DOCA-specific installation or steps (if needed)
-
-# ==============================
-# DPDK Target
-# This stage is only built when --target dpdk is specified. It contains any DPDK-specific configurations.
-# ==============================
-FROM common-deps AS dpdk
-# DPDK-specific installation or steps (if needed)
 
 # ==============================
 # Rivermax Target
 # This stage is only built when --target rivermax is specified. It installs and configures Rivermax SDK.
+# Note: Rivermax does not require DPDK - extends from base-deps directly.
 # ==============================
-FROM common-deps AS rivermax
+FROM base-deps AS rivermax
 
 # Define Rivermax-specific build arguments and environment variables
 ARG RIVERMAX_VERSION=1.70.32
@@ -227,7 +264,9 @@ RUN cd rivermax-dev-kit && \
     cmake --build build -j $(nproc)
 
 # ==============================
-# Default stage: common-deps
-# If no target is specified, the common-deps stage will be built by default.
+# Default stage: dpdk
+# If no target is specified, the dpdk stage will be built by default.
+# This provides upstream DPDK support without DOCA dependencies.
+# Use --target gpunetio if you need DOCA GPUNetIO support.
 # ==============================
-FROM common-deps
+FROM dpdk

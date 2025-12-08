@@ -36,8 +36,10 @@ DEFAULT_GIT_REF = "latest"
 PROJECT_PREFIXES = {
     "application": "APP",
     "benchmark": "APP",
+    "gxf_extension": "EXT",
     "operator": "OP",
     "package": "PKG",
+    "tutorial": "APP",
     "workflow": "APP",
     "default": "APP",  # specified type but not recognized
 }
@@ -176,6 +178,25 @@ HOLOHUB_ROOT = _get_holohub_root()
 
 def get_holohub_root() -> Path:
     return HOLOHUB_ROOT
+
+
+def get_component_search_paths(base_dir: Optional[Path] = None) -> tuple[Path, ...]:
+    """Return metadata search paths honoring HOLOHUB_SEARCH_PATH overrides."""
+    base_path = base_dir or HOLOHUB_ROOT
+    tokens = os.environ.get("HOLOHUB_SEARCH_PATH", "").split(",")
+    default_paths = (
+        "applications",
+        "benchmarks",
+        "gxf_extensions",
+        "operators",
+        "pkg",
+        "tutorials",
+        "workflows",
+    )
+    paths = [token.strip() for token in tokens if token.strip()] or default_paths
+    return tuple(
+        (Path(token) if Path(token).is_absolute() else base_path / token) for token in paths
+    )
 
 
 def _slugify(text: str, max_len: int = 63) -> str:
@@ -598,33 +619,6 @@ def get_group_id(group: str) -> Optional[int]:
         return grp.getgrnam(group).gr_gid
     except KeyError:
         return None
-
-
-def normalize_language(language: str | None) -> str:
-    """Normalize language name"""
-    # Handle empty language
-    if not language:
-        return ""
-
-    # Handle invalid language type
-    if not isinstance(language, str):
-        print(f"WARNING: Language must be a string, got {type(language)}: {language}")
-        return ""
-
-    # Normalize language name
-    language = language.lower()
-    if language in ["cpp", "c++"]:
-        return "cpp"
-    if language in ["python", "py"]:
-        return "python"
-    raise ValueError(f"Invalid language: {language}")
-
-
-def list_normalized_languages(language: str | list[str] | None) -> list[str]:
-    """Make list of normalized languages from a single language or list of languages"""
-    if isinstance(language, list):
-        return [normalize_language(lang) for lang in language]
-    return [normalize_language(language)]
 
 
 def determine_project_prefix(project_type: str) -> str:
@@ -1355,6 +1349,7 @@ def collect_environment_variables() -> None:
         "HOLOHUB_CLI_DOCS_URL",
         "HOLOHUB_DATA_PATH",
         "HOLOHUB_SETUP_SCRIPTS_DIR",
+        "HOLOHUB_SEARCH_PATH",
         # Legacy variables
         "HOLOHUB_APP_NAME",
         "HOLOHUB_CONTAINER_BASE_NAME",

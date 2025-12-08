@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,8 @@ from threading import Thread
 import requests
 import yaml
 import zmq
+from llama_index.core.schema import MetadataMode, TextNode
 from llama_index.finetuning import EmbeddingQAFinetuneDataset, SentenceTransformersFinetuneEngine
-from llama_index.schema import MetadataMode, TextNode
 from tqdm import tqdm
 
 from operators.ehr_query_llm.fhir.ehr_query import FHIRQuery
