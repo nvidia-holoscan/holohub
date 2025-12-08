@@ -16,8 +16,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(orsi_sample_apps LANGUAGES NONE)
 
-
-
 # Check if Deltacast is found
 set(ORSI_VIDEO_MASTER_SDK_FOUND OFF)
 
