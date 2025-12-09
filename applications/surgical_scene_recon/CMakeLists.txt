@@ -55,9 +55,9 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF/pulling
     ALL
   )
-  holoscan_download_data(poses_bounds
+  holoscan_download_data(pulling
     URL "https://drive.google.com/file/d/1Oes4whfibIPHQIAzcIzWxjbCBp2ZZ-3e/view"
-    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF/pulling
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF
     DOWNLOAD_NAME poses_bounds.npy
     ALL
   )

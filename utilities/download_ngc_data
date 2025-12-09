@@ -29,6 +29,11 @@ while [[ $# -gt 0 ]]; do
       shift # past argument
       shift # past value
       ;;
+    --dataset_name)
+      DATASET_NAME="$2"
+      shift # past argument
+      shift # past value
+      ;;
     --download_dir)
       DOWNLOAD_DIR="$2"
       shift # past argument
@@ -92,7 +97,7 @@ set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 display_usage() {
 	echo "Usage"
 	echo ""
-	echo "  download_ngc_data [options] --url <url> --download_dir <download_dir> --download_name <download_name>"
+	echo "  download_ngc_data [options] --url <url> --dataset_name <dataset_name> --d ownload_dir <download_dir> --download_name <download_name>"
 	echo ""
 	echo "This script downloads resources from NGC and optionally runs a script to convert video files to GXF entities."
   echo ""
@@ -100,6 +105,7 @@ display_usage() {
 	echo "  -h,--help                 =  Show this usage help."
 	echo "  --url                     =  URL of the NGC resource to download."
 	echo "                               If the URL start with https:// then wget or cURL is used otherwise NGC CLI is used"
+  echo "  --dataset_name            =  Name of the dataset to download"
   echo "  --download_dir            =  Path to download directory where the data will be stored"
   echo "  --download_name           =  Name of the directory where the data will be stored"
   echo "  --md5                     =  MD5 checksum for the downloaded resource. Only works for single archive"
@@ -124,6 +130,13 @@ then
 	exit 1
 fi
 
+if [ ! $DATASET_NAME ]
+then
+	echo "DATASET_NAME not set."
+	echo "Please set the --dataset_name argument when running this script."
+	exit 1
+fi
+
 if [ ! $DOWNLOAD_DIR ]
 then
 	echo "DOWNLOAD_DIR not set."
@@ -140,8 +153,10 @@ fi
 
 # Sets the variables from command line
 url=${URL}
+dataset_name=${DATASET_NAME}
 download_dir=${DOWNLOAD_DIR}
 download_name=${DOWNLOAD_NAME}
+download_dir_fullname="${download_dir}/${dataset_name}"
 
 c_str() {
     local old_color=39
@@ -287,9 +302,6 @@ if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
 
 fi
 
-download_dir_fullname="${download_dir}/${download_name}"
-download_command=ngc
-
 
 # Generate the GXF entities
 if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
@@ -395,11 +407,11 @@ if [ "${download_command}" == "gdown" ]; then
 
     else
         # Download file directly
-        run_command gdown ${url} -O ${download_dir_fullname} --fuzzy
+        run_command gdown ${url} -O ${download_dir_fullname}/${download_name} --fuzzy
         if [ $? -ne 0 ]; then
             fatal R "Unable to download ${url} via gdown."
         else
-          c_echo G "Successfully downloaded file ${url} to ${download_dir_fullname}"
+          c_echo G "Successfully downloaded file ${url} to ${download_dir_fullname}/${download_name}"
           # set the stamp file
           run_command touch ${download_stamp_file}
         fi
@@ -443,9 +455,9 @@ if [ "${download_command}" == "ngc" ]; then
 
     # Expecting the URL to be templated as <ORG>/<TEAM>/<DATA_NAME>:<DATA_TAG>
     dataset_fullname=$(basename ${url})
-    dataset_name=$(echo ${dataset_fullname} | cut -d':' -f1)
-    dataset_version=$(echo ${dataset_fullname} | cut -d':' -f2)
-    outputdir="${dataset_name}_v${dataset_version}"
+    dataset_name_part=$(echo ${dataset_fullname} | cut -d':' -f1)
+    dataset_version_part=$(echo ${dataset_fullname} | cut -d':' -f2)
+    outputdir="${dataset_name_part}_v${dataset_version_part}"
 
     # Rename the directory
     run_command rm -rf ${download_name}
