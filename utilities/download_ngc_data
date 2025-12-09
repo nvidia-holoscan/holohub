@@ -404,9 +404,6 @@ if [ "${download_command}" == "gdown" ]; then
         else
           c_echo G "Successfully downloaded folder ${url} to ${download_dir_fullname}"
         fi
-        # set the stamp file
-        run_command touch ${download_stamp_file}
-
     else
         # Download file directly
         run_command gdown ${url} -O ${download_dir_fullname}/${download_name} --fuzzy
@@ -414,10 +411,11 @@ if [ "${download_command}" == "gdown" ]; then
             fatal R "Unable to download ${url} via gdown."
         else
           c_echo G "Successfully downloaded file ${url} to ${download_dir_fullname}/${download_name}"
-          # set the stamp file
-          run_command touch ${download_stamp_file}
         fi
     fi
+
+    # set the stamp file
+    run_command touch ${download_stamp_file}
 
     # Note: MD5 checking is not reliably supported for Google Drive downloads
     if [ $URL_MD5 ]; then
