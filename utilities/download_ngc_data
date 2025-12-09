@@ -388,7 +388,9 @@ fi
 
 # Google Drive
 if [ "${download_command}" == "gdown" ]; then
-    # print download_dir_fullname
+    # Make the full download directory (if it doesn't exist)
+    run_command mkdir -p ${download_dir_fullname}
+    # Print the full download directory
     c_echo G "Downloading to ${download_dir_fullname}"
 
     # Detect if URL is a folder or file
@@ -398,7 +400,7 @@ if [ "${download_command}" == "gdown" ]; then
         run_command gdown --folder ${url} -O ${download_dir_fullname} --remaining-ok
 
         if [ $? -ne 0 ]; then
-          c_echo_err R "Unable to download ${url} via gdown."
+          fatal R "Unable to download ${url} via gdown."
         else
           c_echo G "Successfully downloaded folder ${url} to ${download_dir_fullname}"
         fi
