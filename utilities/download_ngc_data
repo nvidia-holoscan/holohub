@@ -460,8 +460,8 @@ if [ "${download_command}" == "ngc" ]; then
     outputdir="${dataset_name_part}_v${dataset_version_part}"
 
     # Rename the directory
-    run_command rm -rf ${download_name}
-    run_command mv ${outputdir} ${download_name}
+    run_command rm -rf ${dataset_name}
+    run_command mv ${outputdir} ${dataset_name}
 
     # Go back to the main directory
     cd ${current_working_dir}
