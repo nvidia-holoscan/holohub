@@ -80,7 +80,7 @@ set_target_properties(holocat PROPERTIES
 # Set HOLOCAT_SET_CAPABILITIES=ON to enable this during build
 # Otherwise, set capabilities manually after build:
 #   sudo setcap 'cap_net_raw,cap_sys_nice,cap_ipc_lock=ep' holocat
-option(HOLOCAT_SET_CAPABILITIES "Set Linux capabilities during build" OFF)
+option(HOLOCAT_SET_CAPABILITIES "Set Linux capabilities during build" ON)
 if(HOLOCAT_SET_CAPABILITIES)
     add_custom_command(TARGET holocat POST_BUILD
         COMMAND sudo setcap 'cap_net_raw,cap_sys_nice,cap_ipc_lock=ep' $<TARGET_FILE:holocat>
