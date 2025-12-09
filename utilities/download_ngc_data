@@ -97,7 +97,7 @@ set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 display_usage() {
 	echo "Usage"
 	echo ""
-	echo "  download_ngc_data [options] --url <url> --dataset_name <dataset_name> --d ownload_dir <download_dir> --download_name <download_name>"
+	echo "  download_ngc_data [options] --url <url> --dataset_name <dataset_name> --download_dir <download_dir> --download_name <download_name>"
 	echo ""
 	echo "This script downloads resources from NGC and optionally runs a script to convert video files to GXF entities."
   echo ""
