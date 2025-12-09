@@ -315,7 +315,7 @@ if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
 fi
 
 # Make the download directory
-mkdir -p ${download_dir}
+run_command mkdir -p "${download_dir}"
 
 if [[ ${url} == *"drive.google.com"* ]]; then
     download_command=gdown
@@ -389,7 +389,7 @@ fi
 # Google Drive
 if [ "${download_command}" == "gdown" ]; then
     # Make the full download directory (if it doesn't exist)
-    run_command mkdir -p ${download_dir_fullname}
+    run_command mkdir -p "${download_dir_fullname}"
     # Print the full download directory
     c_echo G "Downloading to ${download_dir_fullname}"
 
@@ -397,7 +397,7 @@ if [ "${download_command}" == "gdown" ]; then
     if [[ ${url} == *"/folders/"* ]]; then
         # Download folder directly
         c_echo G "Downloading folder ${url} to ${download_dir_fullname}"
-        run_command gdown --folder ${url} -O ${download_dir_fullname} --remaining-ok
+        run_command gdown --folder "${url}" -O "${download_dir_fullname}" --remaining-ok
 
         if [ $? -ne 0 ]; then
           fatal R "Unable to download ${url} via gdown."
@@ -406,7 +406,7 @@ if [ "${download_command}" == "gdown" ]; then
         fi
     else
         # Download file directly
-        run_command gdown ${url} -O ${download_dir_fullname}/${download_name} --fuzzy
+        run_command gdown "${url}" -O "${download_dir_fullname}/${download_name}" --fuzzy
         if [ $? -ne 0 ]; then
             fatal R "Unable to download ${url} via gdown."
         else
@@ -415,10 +415,10 @@ if [ "${download_command}" == "gdown" ]; then
     fi
 
     # set the stamp file
-    run_command touch ${download_stamp_file}
+    run_command touch "${download_stamp_file}"
 
     # Note: MD5 checking is not reliably supported for Google Drive downloads
-    if [ $URL_MD5 ]; then
+    if [ -n "${URL_MD5:-}" ]; then
       c_echo Y "Warning: MD5 checking is not supported for Google Drive downloads with gdown"
     fi
 
@@ -431,16 +431,16 @@ if [ "${download_command}" == "ngc" ]; then
     current_working_dir=`pwd`
 
     # Run inside the download_dir
-    cd ${download_dir}
+    cd "${download_dir}"
 
     # Newer version of ngc cli needs the following env settings to print progress bar
     export PYTHONIOENCODING=utf-8
     export LC_ALL=C.UTF-8
 
     if [ "${IS_MODEL}" == "YES" ]; then
-        ngcoutput=$(run_command ngc registry model download-version ${url} --dest .)
+        ngcoutput=$(run_command ngc registry model download-version "${url}" --dest .)
     else
-        ngcoutput=$(run_command ngc registry resource download-version ${url} --dest .)
+        ngcoutput=$(run_command ngc registry resource download-version "${url}" --dest .)
     fi
 
     if [ $? -ne 0 ]; then
@@ -460,14 +460,14 @@ if [ "${download_command}" == "ngc" ]; then
     outputdir="${dataset_name_part}_v${dataset_version_part}"
 
     # Rename the directory
-    run_command rm -rf ${dataset_name}
-    run_command mv ${outputdir} ${dataset_name}
+    run_command rm -rf "${dataset_name}"
+    run_command mv "${outputdir}" "${dataset_name}"
 
     # Go back to the main directory
-    cd ${current_working_dir}
+    cd "${current_working_dir}"
 
     # set the stamp file
-    run_command touch ${download_stamp_file}
+    run_command touch "${download_stamp_file}"
 fi
 
 # Generate the GXF entities
@@ -475,9 +475,9 @@ if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
   # Convert the video file(s)
   for video in ${download_dir_fullname}/*.{mp4,raw,mpeg,avi,264}; do
      [ -f "$video" ] || continue
-     video_basename=$(basename ${video})
-     ffmpeg -loglevel quiet -i ${video} -pix_fmt rgb24 -f rawvideo pipe:1 |\
-     python3 convert_video_to_gxf_entities.py --directory ${download_dir_fullname} --width ${GXF_ENTITIES_WIDTH} --height ${GXF_ENTITIES_HEIGHT}\
-             --channels ${GXF_ENTITIES_CHANNELS} --framerate ${GXF_ENTITIES_FRAMERATE} --basename ${video_basename%.*}
+     video_basename=$(basename "${video}")
+     ffmpeg -loglevel quiet -i "${video}" -pix_fmt rgb24 -f rawvideo pipe:1 |\
+     python3 convert_video_to_gxf_entities.py --directory "${download_dir_fullname}" --width "${GXF_ENTITIES_WIDTH}" --height "${GXF_ENTITIES_HEIGHT}\
+             --channels "${GXF_ENTITIES_CHANNELS}" --framerate "${GXF_ENTITIES_FRAMERATE}" --basename "${video_basename%.*}" --basename "${video_basename%.*}" # remove the extension
   done
 fi
