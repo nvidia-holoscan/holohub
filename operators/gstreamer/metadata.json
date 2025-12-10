@@ -29,7 +29,7 @@
       "streaming",
       "cuda"
     ],
-    "ranking": 5,
+    "ranking": 2,
     "requirements": {
       "system_packages": [
         "libgstreamer1.0-dev",
