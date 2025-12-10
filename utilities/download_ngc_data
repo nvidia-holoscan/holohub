@@ -13,152 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-POSITIONAL_ARGS=()
 
-# Default values
-GXF_ENTITIES_WIDTH=256
-GXF_ENTITIES_HEIGHT=256
-GXF_ENTITIES_CHANNELS=3
-GXF_ENTITIES_FRAMERATE=30
-GXF_ENTITIES_MAXSIZEMB=900
+# Set the script directory
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --url)
-      URL="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --download_dir)
-      DOWNLOAD_DIR="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --download_name)
-      DOWNLOAD_NAME="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --dataset_name)
-      DATASET_NAME="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --md5)
-      URL_MD5="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --model)
-      IS_MODEL=YES
-      shift # past argument
-      ;;
-    --generate_gxf_entities)
-      GENERATE_GXF_ENTITIES=YES
-      shift # past argument
-      ;;
-    --gxf_entities_width)
-      GXF_ENTITIES_WIDTH="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --gxf_entities_height)
-      GXF_ENTITIES_HEIGHT="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --gxf_entities_channels)
-      GXF_ENTITIES_CHANNELS="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --gxf_entities_framerate)
-      GXF_ENTITIES_FRAMERATE="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    -h|--help)
-      HELP=YES
-      shift # past argument
-      ;;
-    -*|--*)
-      echo "Unknown option $1"
-      exit 1
-      ;;
-    *)
-      POSITIONAL_ARGS+=("$1") # save positional arg
-      shift # past argument
-      ;;
-  esac
-done
-
-set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
-
-display_usage() {
-	echo "Usage"
-	echo ""
-	echo "  download_ngc_data [options] --url <url> --download_dir <download_dir> --download_name <download_name> [--dataset_name <dataset_name>] "
-	echo ""
-	echo "This script downloads resources from NGC and optionally runs a script to convert video files to GXF entities."
-  echo ""
-	echo "Options"
-	echo "  -h,--help                 =  Show this usage help."
-	echo "  --url                     =  URL of the NGC resource to download."
-	echo "                               If the URL start with https:// then wget or cURL is used otherwise NGC CLI is used"
-  echo "  --download_dir            =  Path to download directory where the data will be stored"
-  echo "  --download_name           =  Name of the directory where the data will be stored"
-  echo "  --dataset_name            =  Name of the dataset to download (if not provided, defaults to --download_name value)"
-  echo "  --md5                     =  MD5 checksum for the downloaded resource. Only works for single archive"
-  echo "  --model                   =  Download a model instead of a resource"
-  echo "  --generate_gxf_entities   =  Generates the GXF entities after download (this can take some time)"
-  echo "  --gxf_entities_width      =  Width of the GXF entities (default = 256)"
-  echo "  --gxf_entities_height     =  Height of the GXF entities (default = 256)"
-  echo "  --gxf_entities_channels   =  Number of channels of the GXF entities (default = 3)"
-  echo "  --gxf_entities_framerate  =  Framerate of the GXF entities (default = 30)"
-	echo ""
-}
-
-if [ "${HELP}" == "YES" ]; then
-  display_usage
-  exit 1
-fi
-
-if [ ! $URL ]
-then
-	echo "URL not set."
-	echo "Please set the --url argument when running this script."
-	exit 1
-fi
-
-if [ ! $DOWNLOAD_DIR ]
-then
-	echo "DOWNLOAD_DIR not set."
-	echo "Please set the --download_dir argument when running this script."
-	exit 1
-fi
-
-if [ ! $DOWNLOAD_NAME ]
-then
-	echo "DOWNLOAD_NAME not set."
-	echo "Please set the --download_name argument when running this script."
-	exit 1
-fi
-
-# Default DATASET_NAME to DOWNLOAD_NAME if not provided
-if [ ! $DATASET_NAME ]
-then
-	echo "DATASET_NAME not set."
-	echo "Defaulting DATASET_NAME to DOWNLOAD_NAME: ${DOWNLOAD_NAME}"
-	DATASET_NAME=$DOWNLOAD_NAME
-fi
-
-# Sets the variables from command line
-url=${URL}
-dataset_name=${DATASET_NAME}
-download_dir=${DOWNLOAD_DIR}
-download_name=${DOWNLOAD_NAME}
-download_dir_fullname="${download_dir}/${dataset_name}"
-
+# Utility functions
 c_str() {
     local old_color=39
     local old_attr=0
@@ -278,16 +137,157 @@ run_command() {
     return $status
 }
 
+
 fatal() {
     if [ -n "$*" ]; then
         c_echo_err R "$(date -u '+%Y-%m-%d %H:%M:%S') [FATAL] " Z "$@"
     fi
-    if [ -n "${SCRIPT_DIR}" ]; then
-        exit 1
+    if [[ "$BASH_SOURCE" == "$0" ]]; then
+        exit 1 # exit the script if it is the main script
     else
         kill -INT $$  # kill the current process instead of exit in shell environment.
     fi
 }
+
+
+POSITIONAL_ARGS=()
+
+# Default values
+GXF_ENTITIES_WIDTH=256
+GXF_ENTITIES_HEIGHT=256
+GXF_ENTITIES_CHANNELS=3
+GXF_ENTITIES_FRAMERATE=30
+GXF_ENTITIES_MAXSIZEMB=900
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --url)
+      URL="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --download_dir)
+      DOWNLOAD_DIR="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --download_name)
+      DOWNLOAD_NAME="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --dataset_name)
+      DATASET_NAME="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --md5)
+      URL_MD5="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --model)
+      IS_MODEL=YES
+      shift # past argument
+      ;;
+    --generate_gxf_entities)
+      GENERATE_GXF_ENTITIES=YES
+      shift # past argument
+      ;;
+    --gxf_entities_width)
+      GXF_ENTITIES_WIDTH="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --gxf_entities_height)
+      GXF_ENTITIES_HEIGHT="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --gxf_entities_channels)
+      GXF_ENTITIES_CHANNELS="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --gxf_entities_framerate)
+      GXF_ENTITIES_FRAMERATE="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -h|--help)
+      HELP=YES
+      shift # past argument
+      ;;
+    -*|--*)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1") # save positional arg
+      shift # past argument
+      ;;
+  esac
+done
+
+set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
+
+display_usage() {
+	echo "Usage"
+	echo ""
+	echo "  download_ngc_data [options] --url <url> --download_dir <download_dir> --download_name <download_name> [--dataset_name <dataset_name>] "
+	echo ""
+	echo "This script downloads resources from NGC and optionally runs a script to convert video files to GXF entities."
+  echo ""
+	echo "Options"
+	echo "  -h,--help                 =  Show this usage help."
+	echo "  --url                     =  URL of the NGC resource to download."
+	echo "                               If the URL start with https:// then wget or cURL is used otherwise NGC CLI is used"
+  echo "  --download_dir            =  Path to download directory where the data will be stored"
+  echo "  --download_name           =  Name of the directory where the data will be stored"
+  echo "  --dataset_name            =  Name of the dataset to download (if not provided, defaults to --download_name value)"
+  echo "  --md5                     =  MD5 checksum for the downloaded resource. Only works for single archive"
+  echo "  --model                   =  Download a model instead of a resource"
+  echo "  --generate_gxf_entities   =  Generates the GXF entities after download (this can take some time)"
+  echo "  --gxf_entities_width      =  Width of the GXF entities (default = 256)"
+  echo "  --gxf_entities_height     =  Height of the GXF entities (default = 256)"
+  echo "  --gxf_entities_channels   =  Number of channels of the GXF entities (default = 3)"
+  echo "  --gxf_entities_framerate  =  Framerate of the GXF entities (default = 30)"
+	echo ""
+}
+
+if [ "${HELP}" == "YES" ]; then
+  display_usage
+  fatal
+fi
+
+if [ ! $URL ]
+then
+	fatal R "URL not set. Please set the --url argument when running this script."
+fi
+
+if [ ! $DOWNLOAD_DIR ]
+then
+	fatal R "DOWNLOAD_DIR not set. Please set the --download_dir argument when running this script."
+fi
+
+if [ ! $DOWNLOAD_NAME ]
+then
+	fatal R "DOWNLOAD_NAME not set. Please set the --download_name argument when running this script."
+fi
+
+# Default DATASET_NAME to DOWNLOAD_NAME if not provided
+if [ ! $DATASET_NAME ]
+then
+	c_echo Y "DATASET_NAME not set. Defaulting DATASET_NAME to DOWNLOAD_NAME: ${DOWNLOAD_NAME}"
+	DATASET_NAME=$DOWNLOAD_NAME
+fi
+
+# Sets the variables from command line
+url=${URL}
+dataset_name=${DATASET_NAME}
+download_dir=${DOWNLOAD_DIR}
+download_name=${DOWNLOAD_NAME}
+download_dir_fullname="${download_dir}/${dataset_name}"
 
 
 if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
@@ -310,7 +310,7 @@ if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
   for video in ${download_dir_fullname}/*.{mp4,raw,mpeg,avi}; do
      [ -f "$video" ] || continue
      run_command ffmpeg -i ${video} -pix_fmt rgb24 -f rawvideo pipe:1 |\
-         python3 convert_video_to_gxf_entities.py --directory ${download_dir_fullname} --width ${GXF_ENTITIES_WIDTH} --height ${GXF_ENTITIES_HEIGHT}\
+         python3 "${SCRIPT_DIR}/convert_video_to_gxf_entities.py" --directory ${download_dir_fullname} --width ${GXF_ENTITIES_WIDTH} --height ${GXF_ENTITIES_HEIGHT}\
              --channels ${GXF_ENTITIES_CHANNELS} --framerate ${GXF_ENTITIES_FRAMERATE}
   done
 fi
@@ -478,7 +478,7 @@ if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
      [ -f "$video" ] || continue
      video_basename=$(basename "${video}")
      ffmpeg -loglevel quiet -i "${video}" -pix_fmt rgb24 -f rawvideo pipe:1 |\
-     python3 convert_video_to_gxf_entities.py --directory "${download_dir_fullname}" --width "${GXF_ENTITIES_WIDTH}" --height "${GXF_ENTITIES_HEIGHT}"\
+     python3 ${SCRIPT_DIR}/convert_video_to_gxf_entities.py --directory "${download_dir_fullname}" --width "${GXF_ENTITIES_WIDTH}" --height "${GXF_ENTITIES_HEIGHT}"\
              --channels "${GXF_ENTITIES_CHANNELS}" --framerate "${GXF_ENTITIES_FRAMERATE}" --basename "${video_basename%.*}" # remove the extension
   done
 fi
