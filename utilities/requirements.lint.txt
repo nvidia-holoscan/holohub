@@ -1,6 +1,6 @@
 black==24.8.0
 cmakelint==1.4.3
-codespell==2.3.0
+codespell==2.4.1
 cpplint==1.6.1
 isort==5.13.2
 mypy==1.11.1
