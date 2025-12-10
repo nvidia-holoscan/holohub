@@ -518,7 +518,7 @@ def create_sbt(prog_groups):
     formats = [header_format]
     itemsize = get_aligned_itemsize(formats, optix.SBT_RECORD_ALIGNMENT)
     dtype = np.dtype({"names": ["header"], "formats": formats, "itemsize": itemsize, "align": True})
-    h_hitgroup_sbt = np.array([(0)], dtype=dtype)
+    h_hitgroup_sbt = np.array([0], dtype=dtype)
     optix.sbtRecordPackHeader(hitgroup_prog_group, h_hitgroup_sbt)
     global d_hitgroup_sbt
     d_hitgroup_sbt = array_to_device_memory(h_hitgroup_sbt)
