@@ -29,11 +29,6 @@ while [[ $# -gt 0 ]]; do
       shift # past argument
       shift # past value
       ;;
-    --dataset_name)
-      DATASET_NAME="$2"
-      shift # past argument
-      shift # past value
-      ;;
     --download_dir)
       DOWNLOAD_DIR="$2"
       shift # past argument
@@ -41,6 +36,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     --download_name)
       DOWNLOAD_NAME="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --dataset_name)
+      DATASET_NAME="$2"
       shift # past argument
       shift # past value
       ;;
@@ -97,7 +97,7 @@ set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 display_usage() {
 	echo "Usage"
 	echo ""
-	echo "  download_ngc_data [options] --url <url> --dataset_name <dataset_name> --download_dir <download_dir> --download_name <download_name>"
+	echo "  download_ngc_data [options] --url <url> --download_dir <download_dir> --download_name <download_name> [--dataset_name <dataset_name>] "
 	echo ""
 	echo "This script downloads resources from NGC and optionally runs a script to convert video files to GXF entities."
   echo ""
@@ -105,9 +105,9 @@ display_usage() {
 	echo "  -h,--help                 =  Show this usage help."
 	echo "  --url                     =  URL of the NGC resource to download."
 	echo "                               If the URL start with https:// then wget or cURL is used otherwise NGC CLI is used"
-  echo "  --dataset_name            =  Name of the dataset to download"
   echo "  --download_dir            =  Path to download directory where the data will be stored"
   echo "  --download_name           =  Name of the directory where the data will be stored"
+  echo "  --dataset_name            =  Name of the dataset to download (if not provided, defaults to --download_name value)"
   echo "  --md5                     =  MD5 checksum for the downloaded resource. Only works for single archive"
   echo "  --model                   =  Download a model instead of a resource"
   echo "  --generate_gxf_entities   =  Generates the GXF entities after download (this can take some time)"
@@ -130,13 +130,6 @@ then
 	exit 1
 fi
 
-if [ ! $DATASET_NAME ]
-then
-	echo "DATASET_NAME not set."
-	echo "Please set the --dataset_name argument when running this script."
-	exit 1
-fi
-
 if [ ! $DOWNLOAD_DIR ]
 then
 	echo "DOWNLOAD_DIR not set."
@@ -149,6 +142,14 @@ then
 	echo "DOWNLOAD_NAME not set."
 	echo "Please set the --download_name argument when running this script."
 	exit 1
+fi
+
+# Default DATASET_NAME to DOWNLOAD_NAME if not provided
+if [ ! $DATASET_NAME ]
+then
+	echo "DATASET_NAME not set."
+	echo "Defaulting DATASET_NAME to DOWNLOAD_NAME: ${DOWNLOAD_NAME}"
+	DATASET_NAME=$DOWNLOAD_NAME
 fi
 
 # Sets the variables from command line
