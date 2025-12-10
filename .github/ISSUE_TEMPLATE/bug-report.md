@@ -20,11 +20,13 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Environment**
- - Device [e.g. IGX Orin, AGX Thor]
- - OS [e.g Ubuntu 22.04]
- - CUDA Version [e.g. 13.1]
- - NVIDIA Driver Version [e.g. 580]
- - Holoscan SDK Version [e.g. v3.8]
+Please complete the following information and any other relevant information:
+
+- Device [e.g. IGX Orin, AGX Thor]
+- OS [e.g. Ubuntu 22.04]
+- CUDA Version [e.g. 13.1]
+- NVIDIA Driver Version [e.g. 580]
+- Holoscan SDK Version [e.g. v3.8]
 
 **Additional context**
 Add any other context about the problem here.
