@@ -477,7 +477,7 @@ if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
      [ -f "$video" ] || continue
      video_basename=$(basename "${video}")
      ffmpeg -loglevel quiet -i "${video}" -pix_fmt rgb24 -f rawvideo pipe:1 |\
-     python3 convert_video_to_gxf_entities.py --directory "${download_dir_fullname}" --width "${GXF_ENTITIES_WIDTH}" --height "${GXF_ENTITIES_HEIGHT}\
-             --channels "${GXF_ENTITIES_CHANNELS}" --framerate "${GXF_ENTITIES_FRAMERATE}" --basename "${video_basename%.*}" --basename "${video_basename%.*}" # remove the extension
+     python3 convert_video_to_gxf_entities.py --directory "${download_dir_fullname}" --width "${GXF_ENTITIES_WIDTH}" --height "${GXF_ENTITIES_HEIGHT}"\
+             --channels "${GXF_ENTITIES_CHANNELS}" --framerate "${GXF_ENTITIES_FRAMERATE}" --basename "${video_basename%.*}" # remove the extension
   done
 fi
