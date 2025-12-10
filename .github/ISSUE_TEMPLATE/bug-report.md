@@ -31,4 +31,7 @@ Please complete the following information and any other relevant information:
 **Additional context**
 Add any other context about the problem here.
 
+**Suggest a potential fix**
+Tell us how we could fix the bug in this regard.
+
 Thanks for contributing to HoloHub 🎉!
