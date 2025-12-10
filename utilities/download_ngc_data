@@ -257,7 +257,7 @@ display_usage() {
 
 if [ "${HELP}" == "YES" ]; then
   display_usage
-  exit 1
+  fatal
 fi
 
 if [ ! $URL ]
