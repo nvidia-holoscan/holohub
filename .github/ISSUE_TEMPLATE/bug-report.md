@@ -30,3 +30,5 @@ Please complete the following information and any other relevant information:
 
 **Additional context**
 Add any other context about the problem here.
+
+Thanks for contributing to HoloHub 🎉!
