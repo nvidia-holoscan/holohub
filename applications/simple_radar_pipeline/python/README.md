@@ -13,7 +13,7 @@ The output of this demonstration is a measure of the number of pulses per second
  The main objectives of this demonstration are to:
 - Highlight developer productivity in building an end-to-end streaming application with Holoscan and existing GPU-Accelerated Python libraries
 - Demonstrate how to construct and connect isolated units of work via Holoscan operators, particularly with handling multiple inputs and outputs into an Operator
-- Emphasize that operators created for this application can be re-used in other ones doing similar tasks
+- Emphasize that operators created for this application can be reused in other ones doing similar tasks
 
 # Running the Application
 
