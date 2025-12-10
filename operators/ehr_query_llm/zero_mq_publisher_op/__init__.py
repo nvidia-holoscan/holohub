@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 """
 ZeroMQ Publisher Operator Package
 
-This package provides a Holoscan operator for publishing messages to ZeroMQ message queues 
+This package provides a Holoscan operator for publishing messages to ZeroMQ message queues
 using the PUB/SUB pattern.
 """
 
