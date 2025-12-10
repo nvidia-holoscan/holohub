@@ -41,16 +41,15 @@ git clone https://github.com/nvidia-holoscan/holohub.git
 cd holohub
 ```
 
-### Step 2: Download and Place Dataset
+### Step 2: Read and Agree to the Terms and Conditions of the EndoNeRF Sample Dataset
 
-Download the EndoNeRF dataset from the link in the [Data](#data) section, then:
+- Read and agree to the [Terms and Conditions](https://docs.google.com/document/d/1P6q2hXoGpVMKeD-PpjYYdZ0Yx1rKZdJF1rXxpobbFMY/edit?usp=share_link) for the EndoNeRF dataset.
+- EndoNeRF sample dataset is being downloaded automatically when building the application. For manual download, please refer to the [Data](#data) section below.
+- If you do not agree to the terms and conditions, set the `HOLOHUB_DOWNLOAD_DATASETS` environment variable to `OFF` and manually download the dataset and place it in the correct location by following the instructions in the [Data](#data) section below.
 
-```bash
-# Create directory and place dataset
-mkdir -p data/EndoNeRF
-mv ~/Downloads/pulling_soft_tissues data/EndoNeRF/pulling
-
-```
+  ```bash
+  export HOLOHUB_DOWNLOAD_DATASETS=OFF
+  ```
 
 ### Step 3: Run Training
 
