@@ -24,6 +24,44 @@ project(surgical_scene_recon LANGUAGES NONE)
 find_package(holoscan 3.7 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
+# -----------------------------------------------------------------------------
+# Data
+# -----------------------------------------------------------------------------
+# Download the dataset from google drive directly
+if(HOLOHUB_DOWNLOAD_DATASETS)
+  include(holoscan_download_data)
+  holoscan_download_data(depth
+    URL "https://drive.google.com/drive/folders/1JpRO1wDfS5U5A7OG3EK31m3bgbmJ8Ub9"
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF/pulling
+    ALL
+  )
+  holoscan_download_data(gt_masks
+    URL "https://drive.google.com/drive/folders/1aHw1ICEIM6RNV_RGSvF4IOhnvLB7saTI"
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF/pulling
+    ALL
+  )
+  holoscan_download_data(images
+    URL "https://drive.google.com/drive/folders/1vvKkdi0UiA3-7q0NykQEIE3bkbkuwUF5"
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF/pulling
+    ALL
+  )
+  holoscan_download_data(images_right
+    URL "https://drive.google.com/drive/folders/1tUfIrUR4kMXrlUXBk8WhOlymlYXMf1EI"
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF/pulling
+    ALL
+  )
+  holoscan_download_data(masks
+    URL "https://drive.google.com/drive/folders/1xvfAYvklLy3kA1Yly5-Y92v9AhIJihGP"
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF/pulling
+    ALL
+  )
+  holoscan_download_data(pulling
+    URL "https://drive.google.com/file/d/1Oes4whfibIPHQIAzcIzWxjbCBp2ZZ-3e/view"
+    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/EndoNeRF
+    DOWNLOAD_NAME poses_bounds.npy
+    ALL
+  )
+endif()
 
 # -----------------------------------------------------------------------------
 # Testing
