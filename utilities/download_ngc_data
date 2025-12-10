@@ -13,6 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+set -e
+
 POSITIONAL_ARGS=()
 
 # Default values
@@ -472,13 +475,14 @@ if [ "${download_command}" == "ngc" ]; then
 fi
 
 # Generate the GXF entities
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 if [ "${GENERATE_GXF_ENTITIES}" == "YES" ]; then
   # Convert the video file(s)
   for video in ${download_dir_fullname}/*.{mp4,raw,mpeg,avi,264}; do
      [ -f "$video" ] || continue
      video_basename=$(basename "${video}")
      ffmpeg -loglevel quiet -i "${video}" -pix_fmt rgb24 -f rawvideo pipe:1 |\
-     python3 convert_video_to_gxf_entities.py --directory "${download_dir_fullname}" --width "${GXF_ENTITIES_WIDTH}" --height "${GXF_ENTITIES_HEIGHT}"\
+     python3 ${SCRIPT_DIR}/convert_video_to_gxf_entities.py --directory "${download_dir_fullname}" --width "${GXF_ENTITIES_WIDTH}" --height "${GXF_ENTITIES_HEIGHT}"\
              --channels "${GXF_ENTITIES_CHANNELS}" --framerate "${GXF_ENTITIES_FRAMERATE}" --basename "${video_basename%.*}" # remove the extension
   done
 fi
