@@ -17582,10 +17582,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-download-and-place-dataset" class="md-nav__link">
+  <a href="#step-2-read-and-agree-to-the-terms-and-conditions-of-the-endonerf-sample-dataset" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: Download and Place Dataset
+        Step 2: Read and Agree to the Terms and Conditions of the EndoNeRF Sample Dataset
       
     </span>
   </a>
@@ -18063,11 +18063,13 @@
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nvidia-holoscan/holohub.git
 <span class="nb">cd</span><span class="w"> </span>holohub
 </code></pre></div>
-<h3 id="step-2-download-and-place-dataset">Step 2: Download and Place Dataset<a class="headerlink" href="#step-2-download-and-place-dataset" title="Permanent link">#</a></h3>
-<p>Download the EndoNeRF dataset from the link in the <a href="#data">Data</a> section, then:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Create directory and place dataset</span>
-mkdir<span class="w"> </span>-p<span class="w"> </span>data/EndoNeRF
-mv<span class="w"> </span>~/Downloads/pulling_soft_tissues<span class="w"> </span>data/EndoNeRF/pulling
+<h3 id="step-2-read-and-agree-to-the-terms-and-conditions-of-the-endonerf-sample-dataset">Step 2: Read and Agree to the Terms and Conditions of the EndoNeRF Sample Dataset<a class="headerlink" href="#step-2-read-and-agree-to-the-terms-and-conditions-of-the-endonerf-sample-dataset" title="Permanent link">#</a></h3>
+<ul>
+<li>Read and agree to the <a href="https://docs.google.com/document/d/1P6q2hXoGpVMKeD-PpjYYdZ0Yx1rKZdJF1rXxpobbFMY/edit?usp=share_link">Terms and Conditions</a> for the EndoNeRF dataset.</li>
+<li>EndoNeRF sample dataset is being downloaded automatically when building the application. For manual download, please refer to the <a href="#data">Data</a> section below.</li>
+<li>If you do not agree to the terms and conditions, set the <code>HOLOHUB_DOWNLOAD_DATASETS</code> environment variable to <code>OFF</code> and manually download the dataset and place it in the correct location by following the instructions in the <a href="#data">Data</a> section below.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">HOLOHUB_DOWNLOAD_DATASETS</span><span class="o">=</span>OFF
 </code></pre></div>
 <h3 id="step-3-run-training">Step 3: Run Training<a class="headerlink" href="#step-3-run-training" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>surgical_scene_recon<span class="w"> </span>train
