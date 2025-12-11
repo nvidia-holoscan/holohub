@@ -28,6 +28,10 @@ if(BUILD_TESTING)
   set_tests_properties(deltacast_receiver_python_test PROPERTIES
                 PASS_REGULAR_EXPRESSION "Running the graph;"
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+                
+  set_property(TEST deltacast_receiver_python_test PROPERTY ENVIRONMENT
+            "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
+
 endif()
 
 # Install application and dependencies into the install/ directory for packaging
