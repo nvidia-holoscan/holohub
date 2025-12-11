@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# To get the environment path
+find_package(holoscan 1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
 # Add testing
 if(BUILD_TESTING)
-  # To get the environment path
-  find_package(holoscan 1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-
-
+  
   # Configure the yaml file for testing
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/deltacast_transmitter.yaml" CONFIG_FILE)
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
@@ -30,9 +30,6 @@ if(BUILD_TESTING)
            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/deltacast_transmitter.py
                    --config ${CMAKE_CURRENT_BINARY_DIR}/deltacast_transmitter.yaml
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-  set_property(TEST deltacast_transmitter_python_test PROPERTY ENVIRONMENT
-               "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
   set_tests_properties(deltacast_transmitter_python_test PROPERTIES
                 PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"

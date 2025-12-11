@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "holoscan/core/operator.hpp"
-#include "holoscan/core/operator_spec.hpp"
 
 #include "videomaster_base.hpp"
 

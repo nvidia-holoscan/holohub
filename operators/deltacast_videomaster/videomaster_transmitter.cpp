@@ -150,10 +150,9 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
       return;
     } else if (!(_video_master_base->video_format() !=
                  Deltacast::Helper::VideoFormat{})) {  // stream not started yet
-      HOLOSCAN_LOG_INFO("Configuring overlay mode: {}x{} {}p @{}Hz",
+      HOLOSCAN_LOG_INFO("Configuring overlay mode: {}x{} {} @ {} Hz",
                         _width, _height,
-                        _progressive ? "progressive" : "interlaced", _framerate);
-
+                        _progressive ? "p" : "i", _framerate);
       _video_master_base->video_format() = Deltacast::Helper::VideoFormat{
           _width, _height, _progressive, _framerate};
       _video_master_base->video_information()->set_video_format(

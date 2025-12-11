@@ -54,7 +54,6 @@ class DeltacastReceiverApp(Application):
         source = VideoMasterSourceOp(
             self,
             name="deltacast_source",
-            pool=UnboundedAllocator(self, name="source_pool"),
             rdma=use_rdma,
             board=deltacast_kwargs.get("board", 0),
             input=deltacast_kwargs.get("input", 0),
