@@ -196,14 +196,36 @@
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking",
+            "label": "Build endoscopy_tool_tracking (C++)",
             "command": "./holohub",
             "args": [
                 "build",
                 "endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build endoscopy_tool_tracking (Python)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "endoscopy_tool_tracking",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
