@@ -78,7 +78,7 @@ class VideoMasterBase {
  private:
   bool _is_input;
   bool _is_igpu = false;
-  VHD_CHANNELTYPE _channel_type;
+  VHD_CHANNELTYPE _channel_type = NB_VHD_CHANNELTYPE;
   std::unique_ptr<Deltacast::Helper::VideoInformation> _video_information;
   // GPU buffers (always allocated)
   std::array<std::vector<BYTE*>, NB_SLOTS> _gpu_buffers;
