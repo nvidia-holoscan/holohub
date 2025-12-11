@@ -300,7 +300,7 @@ class TimeSeriesApp : public holoscan::Application {
  */
 int main(int argc, char** argv) {
   // Define command-line options
-  // NOLINTBEGIN(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+  // NOLINTBEGIN
   struct option long_options[] = {{"help", no_argument, nullptr, 'h'},
                                   {"disable_logger", no_argument, nullptr, 'd'},
                                   {"config", required_argument, nullptr, 'c'},
@@ -308,7 +308,7 @@ int main(int argc, char** argv) {
                                   {"subject_prefix", required_argument, nullptr, 'p'},
                                   {"publish_rate", required_argument, nullptr, 'r'},
                                   {nullptr, 0, nullptr, 0}};
-  // NOLINTEND(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+  // NOLINTEND
 
   // Set default values for configuration parameters
   bool disable_logger = false;
@@ -320,10 +320,10 @@ int main(int argc, char** argv) {
   // Parse command-line arguments
   while (true) {
     int option_index = 0;
-    // NOLINTBEGIN(concurrency-mt-unsafe)
+    // NOLINTBEGIN
     const int c =
         getopt_long(argc, argv, "hdc:u:p:r:", static_cast<option*>(long_options), &option_index);
-    // NOLINTEND(concurrency-mt-unsafe)
+    // NOLINTEND
 
     // Break when no more options to parse
     if (c == -1) {
