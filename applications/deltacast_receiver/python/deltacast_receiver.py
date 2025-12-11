@@ -41,7 +41,7 @@ class DeltacastReceiverApp(Application):
         use_rdma = deltacast_kwargs.get("rdma", False)
 
         # Calculate source block size and count and define the source pool parameters
-        source_block_size = width * height * 4 * 4
+        source_block_size = width * height * 4
         source_block_count = 3 if use_rdma else 4
 
         source_pool_kwargs = dict(
