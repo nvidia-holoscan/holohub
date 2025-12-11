@@ -35,6 +35,8 @@
 
 namespace holoscan::ops {
 
+namespace {
+
 const std::unordered_map<uint32_t, VHD_GENLOCKSOURCE> id_to_genlock_source = {
     {0, VHD_GENLOCK_RX0}, {1, VHD_GENLOCK_RX1}, {2, VHD_GENLOCK_RX2},   {3, VHD_GENLOCK_RX3},
     {4, VHD_GENLOCK_RX4}, {5, VHD_GENLOCK_RX5}, {6, VHD_GENLOCK_RX6},   {7, VHD_GENLOCK_RX7},
@@ -58,6 +60,8 @@ const std::unordered_map<uint32_t, VHD_KEYER_BOARDPROPERTY> id_to_keyer_anc_outp
     { 2, VHD_KEYER_BP_ANCOUTPUT_TX_2 },
     { 3, VHD_KEYER_BP_ANCOUTPUT_TX_3 },
 };
+
+}  // namespace
 
 
 void VideoMasterTransmitterOp::setup(OperatorSpec& spec) {

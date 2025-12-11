@@ -127,12 +127,13 @@ void VideoMasterSourceOp::compute(InputContext& op_input, OutputContext& op_outp
   ULONG api_result = VHD_WaitSlotFilled(*_video_master_base->stream_handle(),
                                         &slot_handle,
                                         VideoMasterBase::SLOT_TIMEOUT);
-  if (api_result != VHDERR_NOERROR && api_result != VHDERR_TIMEOUT) {
-    throw std::runtime_error("Failed to wait for incoming slot");
-  }
-  if (api_result != VHDERR_NOERROR && api_result == VHDERR_TIMEOUT) {
-    HOLOSCAN_LOG_INFO("Timeout");
-    return;
+  if (api_result != VHDERR_NOERROR) {
+    if(api_result == VHDERR_TIMEOUT) {
+      HOLOSCAN_LOG_INFO("Timeout");
+      return;
+    } else {
+      throw std::runtime_error("Failed to wait for incoming slot");
+    }
   }
 
   BYTE *buffer = nullptr;

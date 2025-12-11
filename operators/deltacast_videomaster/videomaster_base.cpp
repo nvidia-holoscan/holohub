@@ -97,6 +97,10 @@ VideoMasterBase::VideoMasterBase(bool is_input, uint32_t board_index,
         _is_igpu = prop.integrated;
         HOLOSCAN_LOG_INFO("CUDA device initialized: {} (Integrated: {})",
                           prop.name, _is_igpu);
+      if(_is_igpu && _use_rdma) {
+        HOLOSCAN_LOG_WARN("RDMA mode is not supported with integrated GPUs. Disabling RDMA.");
+        _use_rdma = false;
+      }
 }
 
 void VideoMasterBase::stop_stream() {
