@@ -86,8 +86,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /opt
 
-RUN apt-get update && apt-get install -y build-essential
-
 # Configure the DOCA APT repository
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
         DOCA_ARCH="x86_64"; \

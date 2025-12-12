@@ -134,9 +134,6 @@ class DocaRxQueue {
   ~DocaRxQueue();
   doca_error_t create_udp_pipe(const FlowConfig& cfg, struct doca_flow_pipe* rxq_pipe_default,
                                uint16_t& flow_queue_id);
-  // doca_error_t create_semaphore();
-  // doca_error_t destroy_semaphore();
-
   doca_error_t create_rx_packet_list();
   doca_error_t destroy_rx_packet_list();
 
@@ -157,9 +154,6 @@ class DocaRxQueue {
   struct doca_flow_pipe_entry* root_udp_entry; /* DOCA Flow root entry */
   struct adv_doca_rx_gpu_info* pkt_list_gpu;
   struct adv_doca_rx_gpu_info* pkt_list_cpu;
-  // struct doca_gpu_semaphore* sem_cpu;     /* One semaphore per queue to report stats, CPU
-  // handler*/ struct doca_gpu_semaphore_gpu* sem_gpu; /* One semaphore per queue to report stats,
-  // GPU handler*/
   enum doca_gpu_mem_type mtype;
 };
 
@@ -183,8 +177,6 @@ class DocaTxQueue {
   int dmabuf_fd;                        /* GPU memory dmabuf file descriptor */
   int max_pkt_num;
   int max_pkt_size;
-  // struct doca_buf_arr* buf_arr;         /* DOCA buffer array object around GPU memory buffer */
-  // struct doca_gpu_buf_arr* buf_arr_gpu; /* DOCA buffer array GPU handle */
   std::atomic<uint32_t> buff_arr_idx;
   struct doca_pe* pe;
   std::atomic<uint32_t> tx_cmp_posted;
@@ -199,7 +191,6 @@ class DocaMgr : public Manager {
   bool set_config_and_initialize(const NetworkConfig& cfg) override;
   void initialize() override;
   void run() override;
-  // int SetupPoolsAndRings();
   static int rx_core(void* arg);
   static int tx_core(void* arg);
   uint16_t default_num_rx_desc = 8192;

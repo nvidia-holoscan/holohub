@@ -239,7 +239,7 @@ doca_error_t DocaRxQueue::create_udp_pipe(const FlowConfig& cfg,
   }
   result = doca_flow_pipe_cfg_set_is_root(pipe_cfg, false);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg is_root: %s",
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg is_root: {}",
                        doca_error_get_descr(result));
     return result;
   }
@@ -250,7 +250,7 @@ doca_error_t DocaRxQueue::create_udp_pipe(const FlowConfig& cfg,
   }
   result = doca_flow_pipe_cfg_set_monitor(pipe_cfg, &monitor);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg monitor: %s",
+    HOLOSCAN_LOG_ERROR("Failed to set doca_flow_pipe_cfg monitor: {}",
                        doca_error_get_descr(result));
     return result;
   }
