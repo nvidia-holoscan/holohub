@@ -30,8 +30,6 @@ resources:
 
 extensions:
   - lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
-# Uncomment the following extension when using deltacast as a source
-#  - lib/gxf_extensions/libgxf_videomaster.so
 # Uncomment the following extension when using yuan as source
 #  - lib/gxf_extensions/libgxf_qcap_source.so
 
