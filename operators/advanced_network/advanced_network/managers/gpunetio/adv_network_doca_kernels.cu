@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,16 @@
  */
 
 #include <stdio.h>
+#include <doca_gpunetio_dev_eth_rxq.cuh>
+#include <doca_gpunetio_dev_eth_txq.cuh>
+
 #include "adv_network_doca_kernels.h"
+
 #define ETHER_ADDR_LEN 6
 #define DOCA_DEBUG_KERNEL 0
 
 #define BYTE_SWAP16(v) \
-  ((((uint16_t)(v)&UINT16_C(0x00ff)) << 8) | (((uint16_t)(v)&UINT16_C(0xff00)) >> 8))
+  ((((uint16_t)(v) & UINT16_C(0x00ff)) << 8) | (((uint16_t)(v) & UINT16_C(0xff00)) >> 8))
 
 struct ether_hdr {
   uint8_t d_addr_bytes[ETHER_ADDR_LEN]; /* Destination addr bytes in tx order */
@@ -73,79 +77,67 @@ __device__ __inline__ int raw_to_udp(const uintptr_t buf_addr, struct eth_ip_udp
  * @param num_pkts Number of packets
  */
 __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_gpu,
-                                                  uintptr_t* sem_gpu, uint32_t* sem_idx_list,
+                                                  uintptr_t* pkt_gpu_list, uint32_t* pkt_idx_list,
                                                   const uint32_t* batch_list, uint32_t* exit_cond) {
   doca_error_t ret;
-  struct doca_gpu_buf* buf_ptr = NULL;
   uintptr_t buf_addr;
   uint64_t buf_idx;
-  struct doca_gpu_eth_rxq* rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
-  struct doca_gpu_semaphore_gpu* sem = (struct doca_gpu_semaphore_gpu*)sem_gpu[blockIdx.x];
-  int sem_idx = 0;
-  __shared__ struct adv_doca_rx_gpu_info* stats_global;
-#if DOCA_DEBUG_KERNEL == 1
+  struct doca_gpu_eth_rxq* rxq;
+  int pkt_idx = 0;
   struct eth_ip_udp_hdr* hdr;
   uint8_t* payload;
-#endif
-  __shared__ uint32_t rx_pkt_num;
+
+  __shared__ uint64_t out_first_pkt_idx;
+  __shared__ uint32_t out_pkt_num;
   __shared__ uint32_t rx_pkt_bytes;
-  __shared__ uint64_t rx_buf_idx;
-  uint32_t pktb = 0;
   uint32_t tot_pkts_batch = 0;
+  struct adv_doca_rx_gpu_info* packets_stats =
+      ((struct adv_doca_rx_gpu_info*)pkt_gpu_list[blockIdx.x])+pkt_idx;
 
   // Warmup
-  if (eth_rxq_gpu == NULL) return;
+  if (eth_rxq_gpu == NULL)
+    return;
 
-  if (threadIdx.x == 0) {
+  rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
+
+  if (threadIdx.x == 0)
     DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
-    /* Get next semaphore item to pass packets info to the CPU */
-    ret = doca_gpu_dev_semaphore_get_custom_info_addr(sem, sem_idx, (void**)&stats_global);
-    if (ret != DOCA_SUCCESS) {
-      printf("UDP Error %d doca_gpu_dev_semaphore_get_custom_info_addr block %d thread %d\n",
-             ret,
-             blockIdx.x,
-             threadIdx.x);
-      DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
-    }
-  }
   __syncthreads();
 
   do {
-    ret = doca_gpu_dev_eth_rxq_receive_block(
-        rxq, batch_list[blockIdx.x], CUDA_MAX_RX_TIMEOUT_NS, &rx_pkt_num, &rx_buf_idx);
+    ret = doca_gpu_dev_eth_rxq_recv<DOCA_GPUNETIO_ETH_EXEC_SCOPE_BLOCK,
+                                    DOCA_GPUNETIO_ETH_MCST_AUTO,
+                                    DOCA_GPUNETIO_ETH_NIC_HANDLER_AUTO,
+                                    false>(rxq,
+                                           batch_list[blockIdx.x],
+                                           CUDA_MAX_RX_TIMEOUT_NS,
+                                           &out_first_pkt_idx,
+                                           &out_pkt_num,
+                                           NULL);
     /* If any thread returns receive error, the whole execution stops */
     if (ret != DOCA_SUCCESS) {
       if (threadIdx.x == 0) {
-        /*
-         * printf in CUDA kernel may be a good idea only to report critical errors or debugging.
-         * If application prints this message on the console, something bad happened and
-         * applications needs to exit
-         */
-        printf("Receive UDP kernel error %d rxpkts %d error %d\n", ret, rx_pkt_num, ret);
+/*
+ * printf in CUDA kernel may be a good idea only to report critical errors or debugging.
+ * If application prints this message on the console, something bad happened and
+ * applications needs to exit
+ */
+#if DOCA_DEBUG_KERNEL == 1
+        printf("Receive UDP kernel error %d rxpkts %d error %d\n", ret, out_pkt_num, ret);
+#endif
         DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
       }
       break;
     }
 
-    if (rx_pkt_num == 0) continue;
+    if (out_pkt_num == 0)
+      continue;
 
     buf_idx = threadIdx.x;
-    while (buf_idx < rx_pkt_num) {
-      ret = doca_gpu_dev_eth_rxq_get_buf(rxq, rx_buf_idx + buf_idx, &buf_ptr);
-      if (ret != DOCA_SUCCESS) {
-        printf("UDP Error %d doca_gpu_dev_eth_rxq_get_buf thread %d\n", ret, threadIdx.x);
-        DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
-        break;
-      }
-
-      ret = doca_gpu_dev_buf_get_addr(buf_ptr, &buf_addr);
-      if (ret != DOCA_SUCCESS) {
-        printf("UDP Error %d doca_gpu_dev_eth_rxq_get_buf thread %d\n", ret, threadIdx.x);
-        DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
-        break;
-      }
-#if DOCA_DEBUG_KERNEL == 1
+    while (buf_idx < out_pkt_num) {
+      buf_addr = doca_gpu_dev_eth_rxq_get_pkt_addr(rxq, out_first_pkt_idx + buf_idx);
       raw_to_udp(buf_addr, &hdr, &payload);
+#if DOCA_DEBUG_KERNEL == 1
       printf(
           "Queue %d Thread %d received UDP packet with "
           "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
@@ -171,46 +163,39 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
 
       /* Add packet processing/filtering function here. */
 
-      if (threadIdx.x == 0 && buf_idx == 0 && tot_pkts_batch == 0) {
-        DOCA_GPUNETIO_VOLATILE(stats_global->gpu_pkt0_addr) = buf_addr;
-        DOCA_GPUNETIO_VOLATILE(stats_global->gpu_pkt0_idx) = rx_buf_idx;
+      if (threadIdx.x == 0 && buf_idx == 0) {
+        DOCA_GPUNETIO_VOLATILE(packets_stats->gpu_pkt0_addr) = buf_addr;
+        DOCA_GPUNETIO_VOLATILE(packets_stats->gpu_pkt0_idx) = out_first_pkt_idx;
       }
 
-      doca_gpu_dev_eth_rxq_get_buf_bytes(rxq, buf_idx, &pktb);
-      atomicAdd_block(&rx_pkt_bytes, pktb);
-
+      // Eth + IP + (UDP + Payload)
+      atomicAdd_block(
+          &rx_pkt_bytes,
+          DOCA_GPUNETIO_ETH_BSWAP16(hdr->l3_hdr.total_length) + sizeof(struct ether_hdr));
       buf_idx += blockDim.x;
     }
     __syncthreads();
 
-    if (threadIdx.x == 0 && rx_pkt_num > 0) {
-      tot_pkts_batch += rx_pkt_num;
+    if (threadIdx.x == 0 && out_pkt_num > 0) {
+      tot_pkts_batch += out_pkt_num;
 #if DOCA_DEBUG_KERNEL == 1
-      printf("Queue %d tot pkts %d/%d sem_idx %d\n",
+      printf("Queue %d tot pkts %d/%d pkt_idx %d\n",
              blockIdx.x,
              tot_pkts_batch,
              batch_list[blockIdx.x],
-             sem_idx);
+             pkt_idx);
 #endif
+
       if (tot_pkts_batch >= batch_list[blockIdx.x]) {
-        DOCA_GPUNETIO_VOLATILE(stats_global->num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
-        DOCA_GPUNETIO_VOLATILE(stats_global->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
-        __threadfence_system();
-        doca_gpu_dev_semaphore_set_status(sem, sem_idx, DOCA_GPU_SEMAPHORE_STATUS_READY);
-        sem_idx = (sem_idx + 1) % MAX_DEFAULT_SEM_X_QUEUE;
-
-        /* Get next semaphore item to pass packets info to the CPU */
-        ret = doca_gpu_dev_semaphore_get_custom_info_addr(sem, sem_idx, (void**)&stats_global);
-        if (ret != DOCA_SUCCESS) {
-          printf("UDP Error %d doca_gpu_dev_semaphore_get_custom_info_addr block %d thread %d\n",
-                 ret,
-                 blockIdx.x,
-                 threadIdx.x);
-          DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
-        }
-
+        DOCA_GPUNETIO_VOLATILE(packets_stats->num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
+        DOCA_GPUNETIO_VOLATILE(packets_stats->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
+        // Replace the __threadfence_system();
+        doca_gpu_dev_eth_fence_release<DOCA_GPUNETIO_ETH_SYNC_SCOPE_SYS>();
+        DOCA_GPUNETIO_VOLATILE(packets_stats->status) = DOCA_GPU_SEMAPHORE_STATUS_READY;
+        pkt_idx = (pkt_idx + 1) % MAX_DEFAULT_SEM_X_QUEUE;
         DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
         tot_pkts_batch = 0;
+        packets_stats = ((struct adv_doca_rx_gpu_info*)pkt_gpu_list[blockIdx.x]) + pkt_idx;
       }
     }
   } while (DOCA_GPUNETIO_VOLATILE(*exit_cond) == 0);
@@ -219,20 +204,11 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
 
   /* Flush remaining packets in the last partial batch */
   if (threadIdx.x == 0) {
-    DOCA_GPUNETIO_VOLATILE(stats_global->num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
-    DOCA_GPUNETIO_VOLATILE(stats_global->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
-    __threadfence_system();
-    doca_gpu_dev_semaphore_set_status(sem, sem_idx, DOCA_GPU_SEMAPHORE_STATUS_READY);
-
-    /* Get next semaphore item to pass packets info to the CPU */
-    ret = doca_gpu_dev_semaphore_get_custom_info_addr(sem, sem_idx, (void**)&stats_global);
-    if (ret != DOCA_SUCCESS) {
-      printf("UDP Error %d doca_gpu_dev_semaphore_get_custom_info_addr block %d thread %d\n",
-             ret,
-             blockIdx.x,
-             threadIdx.x);
-      DOCA_GPUNETIO_VOLATILE(*exit_cond) = 1;
-    }
+    DOCA_GPUNETIO_VOLATILE(packets_stats->num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
+    DOCA_GPUNETIO_VOLATILE(packets_stats->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
+    // Replace the __threadfence_system();
+    doca_gpu_dev_eth_fence_release<DOCA_GPUNETIO_ETH_SYNC_SCOPE_SYS>();
+    DOCA_GPUNETIO_VOLATILE(packets_stats->status) = DOCA_GPU_SEMAPHORE_STATUS_READY;
   }
 }
 
@@ -246,58 +222,58 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
  * @param num_pkts Number of packets
  */
 __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_rxq_gpu,
-                                                      uintptr_t* sem_gpu, uint32_t* sem_idx_list,
+                                                      uintptr_t* pkt_gpu_list,
+                                                      uint32_t* pkt_idx_list,
                                                       const uint32_t* batch_list) {
   doca_error_t ret;
-  struct doca_gpu_buf* buf_ptr = NULL;
   uintptr_t buf_addr;
   uint64_t buf_idx;
-  struct doca_gpu_eth_rxq* rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
-  struct doca_gpu_semaphore_gpu* sem = (struct doca_gpu_semaphore_gpu*)sem_gpu[blockIdx.x];
-  __shared__ struct adv_doca_rx_gpu_info* stats_global;
-#if DOCA_DEBUG_KERNEL == 1
+  struct doca_gpu_eth_rxq* rxq;
   struct eth_ip_udp_hdr* hdr;
   uint8_t* payload;
-#endif
-  __shared__ uint32_t rx_pkt_num;
+
+  __shared__ uint64_t out_first_pkt_idx;
+  __shared__ uint32_t out_pkt_num;
   __shared__ uint32_t rx_pkt_bytes;
-  __shared__ uint64_t rx_buf_idx;
-  uint32_t pktb = 0;
+  struct adv_doca_rx_gpu_info* packets_stats =
+      ((struct adv_doca_rx_gpu_info*)pkt_gpu_list[blockIdx.x]) + pkt_idx_list[blockIdx.x];
 
   // Warmup
-  if (eth_rxq_gpu == NULL) return;
+  if (eth_rxq_gpu == NULL)
+    return;
 
-  if (threadIdx.x == 0) DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
+  rxq = (struct doca_gpu_eth_rxq*)eth_rxq_gpu[blockIdx.x];
+
+  if (threadIdx.x == 0)
+    DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
   __syncthreads();
 
-  ret = doca_gpu_dev_eth_rxq_receive_block(
-      rxq, batch_list[blockIdx.x], CUDA_MAX_RX_TIMEOUT_NS, &rx_pkt_num, &rx_buf_idx);
+  ret = doca_gpu_dev_eth_rxq_recv<DOCA_GPUNETIO_ETH_EXEC_SCOPE_BLOCK,
+                                  DOCA_GPUNETIO_ETH_MCST_AUTO,
+                                  DOCA_GPUNETIO_ETH_NIC_HANDLER_AUTO,
+                                  false>(
+      rxq, batch_list[blockIdx.x], CUDA_MAX_RX_TIMEOUT_NS, &out_first_pkt_idx, &out_pkt_num, NULL);
   /* If any thread returns receive error, the whole execution stops */
   if (ret != DOCA_SUCCESS) {
-    rx_pkt_num = 0;
+    out_pkt_num = 0;
     if (threadIdx.x == 0) {
-      /*
-       * printf in CUDA kernel may be a good idea only to report critical errors or debugging.
-       * If application prints this message on the console, something bad happened and
-       * applications needs to exit
-       */
-      printf("Receive UDP kernel error %d rxpkts %d error %d\n", ret, rx_pkt_num, ret);
+/*
+ * printf in CUDA kernel may be a good idea only to report critical errors or debugging.
+ * If application prints this message on the console, something bad happened and
+ * applications needs to exit
+ */
+#if DOCA_DEBUG_KERNEL == 1
+      printf("Receive UDP kernel error %d rxpkts %d error %d\n", ret, out_pkt_num, ret);
+#endif
     }
   }
 
   buf_idx = threadIdx.x;
-  while (buf_idx < rx_pkt_num) {
-    ret = doca_gpu_dev_eth_rxq_get_buf(rxq, rx_buf_idx + buf_idx, &buf_ptr);
-    if (ret != DOCA_SUCCESS) {
-      printf("UDP Error %d doca_gpu_dev_eth_rxq_get_buf thread %d\n", ret, threadIdx.x);
-    }
-
-    ret = doca_gpu_dev_buf_get_addr(buf_ptr, &buf_addr);
-    if (ret != DOCA_SUCCESS) {
-      printf("UDP Error %d doca_gpu_dev_eth_rxq_get_buf thread %d\n", ret, threadIdx.x);
-    }
-#if DOCA_DEBUG_KERNEL == 1
+  while (buf_idx < out_pkt_num) {
+    buf_addr = doca_gpu_dev_eth_rxq_get_pkt_addr(rxq, out_first_pkt_idx + buf_idx);
     raw_to_udp(buf_addr, &hdr, &payload);
+
+#if DOCA_DEBUG_KERNEL == 1
     printf(
         "Queue %d Thread %d received UDP packet with "
         "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
@@ -324,40 +300,31 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
     /* Add custom packet processing/filtering function here. */
 
     if (threadIdx.x == 0 && buf_idx == 0) {
-      /* Get next semaphore item to pass packets info to the CPU */
-      ret = doca_gpu_dev_semaphore_get_custom_info_addr(
-          sem, sem_idx_list[blockIdx.x], (void**)&stats_global);
-      if (ret != DOCA_SUCCESS) {
-        printf("UDP Error %d doca_gpu_dev_semaphore_get_custom_info_addr block %d thread %d\n",
-               ret,
-               blockIdx.x,
-               threadIdx.x);
-      }
-
-      DOCA_GPUNETIO_VOLATILE(stats_global->gpu_pkt0_addr) = buf_addr;
-      DOCA_GPUNETIO_VOLATILE(stats_global->gpu_pkt0_idx) = rx_buf_idx;
+      DOCA_GPUNETIO_VOLATILE(packets_stats->gpu_pkt0_addr) = buf_addr;
+      DOCA_GPUNETIO_VOLATILE(packets_stats->gpu_pkt0_idx) = out_first_pkt_idx;
     }
 
-    doca_gpu_dev_eth_rxq_get_buf_bytes(rxq, buf_idx, &pktb);
-    atomicAdd_block(&rx_pkt_bytes, pktb);
+    // Eth + IP + (UDP + Payload)
+    atomicAdd_block(&rx_pkt_bytes,
+                    DOCA_GPUNETIO_ETH_BSWAP16(hdr->l3_hdr.total_length) + sizeof(struct ether_hdr));
 
     buf_idx += blockDim.x;
   }
   __syncthreads();
 
-  if (threadIdx.x == 0 && rx_pkt_num > 0) {
+  if (threadIdx.x == 0 && out_pkt_num > 0) {
 #if DOCA_DEBUG_KERNEL == 1
-    printf("Queue %d tot pkts %d/%d sem_idx_list[blockIdx.x] %d\n",
+    printf("Queue %d tot pkts %d/%d pkt_idx_list[blockIdx.x] %d\n",
            blockIdx.x,
-           rx_pkt_num,
+           out_pkt_num,
            batch_list[blockIdx.x],
-           sem_idx_list[blockIdx.x]);
+           pkt_idx_list[blockIdx.x]);
 #endif
-    DOCA_GPUNETIO_VOLATILE(stats_global->num_pkts) = DOCA_GPUNETIO_VOLATILE(rx_pkt_num);
-    DOCA_GPUNETIO_VOLATILE(stats_global->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
-    __threadfence_system();
-    doca_gpu_dev_semaphore_set_status(
-        sem, sem_idx_list[blockIdx.x], DOCA_GPU_SEMAPHORE_STATUS_READY);
+    DOCA_GPUNETIO_VOLATILE(packets_stats->num_pkts) = DOCA_GPUNETIO_VOLATILE(out_pkt_num);
+    DOCA_GPUNETIO_VOLATILE(packets_stats->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
+    // Replace the __threadfence_system();
+    doca_gpu_dev_eth_fence_release<DOCA_GPUNETIO_ETH_SYNC_SCOPE_SYS>();
+    DOCA_GPUNETIO_VOLATILE(packets_stats->status) = DOCA_GPU_SEMAPHORE_STATUS_READY;
   }
 }
 
@@ -369,52 +336,64 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
  * @param pkt_len Length of each packet. All packets must be same length for this example
  * @param num_pkts Number of packets
  */
-__global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, struct doca_gpu_buf_arr* buf_arr,
-                                    uint32_t gpu_pkt0_idx, const size_t num_pkts, uint32_t max_pkts,
-                                    uint32_t* gpu_pkts_len, const bool set_completion) {
+__global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, uint64_t pkt_buff_addr,
+                                    const uint32_t pkt_buff_mkey, uint32_t gpu_pkt0_idx,
+                                    const size_t num_pkts, uint32_t max_pkts,
+                                    const uint64_t max_pkt_size, uint32_t* gpu_pkts_len,
+                                    const bool set_completion) {
   uint32_t pkt_idx = threadIdx.x;
-  struct doca_gpu_buf* buf = NULL;
-  doca_error_t ret = DOCA_SUCCESS;
+  struct doca_gpu_dev_eth_txq_wqe* wqe_ptr;
+  __shared__ uint64_t base_wqe_idx;
+
 #if DOCA_DEBUG_KERNEL == 2
   struct eth_ip_udp_hdr* hdr;
   uint8_t* payload;
-  uintptr_t buf_addr;
 #endif
-  uint32_t curr_position;
-  uint32_t mask_max_position;
 
   // Warmup
-  if (num_pkts == 0) return;
+  if (num_pkts == 0)
+    return;
 
-  doca_gpu_dev_eth_txq_get_info(txq, &curr_position, &mask_max_position);
+  if (threadIdx.x == 0)
+    base_wqe_idx = doca_gpu_dev_eth_txq_reserve_wq_slots(txq, num_pkts);
+  __syncthreads();
 
   while (pkt_idx < num_pkts) {
-    // Internally the function does the wrap to max_pkts
-    ret = doca_gpu_dev_buf_get_buf(buf_arr, ((pkt_idx + gpu_pkt0_idx) % max_pkts), &buf);
-    if (ret != DOCA_SUCCESS) {
-      printf("Error %d doca_gpu_dev_buf_get_buf thread %d pkt_idx %d gpu_pkt0_idx %d\n",
-             ret,
-             threadIdx.x,
-             pkt_idx,
-             gpu_pkt0_idx);
-      break;
-    }
+    uint64_t addr = ((uint64_t)pkt_buff_addr) +
+                    (max_pkt_size * (uint64_t)(((pkt_idx + gpu_pkt0_idx) % max_pkts)));
+    wqe_ptr = doca_gpu_dev_eth_txq_get_wqe_ptr(txq, base_wqe_idx + pkt_idx);
+
+    if (set_completion && pkt_idx == (num_pkts - 1))
+      doca_gpu_dev_eth_txq_wqe_prepare_send(txq,
+                                            wqe_ptr,
+                                            base_wqe_idx + pkt_idx,
+                                            addr,
+                                            pkt_buff_mkey,
+                                            gpu_pkts_len[pkt_idx],
+                                            DOCA_GPUNETIO_ETH_SEND_FLAG_NOTIFY);
+    else
+      doca_gpu_dev_eth_txq_wqe_prepare_send(txq,
+                                            wqe_ptr,
+                                            base_wqe_idx + pkt_idx,
+                                            addr,
+                                            pkt_buff_mkey,
+                                            gpu_pkts_len[pkt_idx],
+                                            DOCA_GPUNETIO_ETH_SEND_FLAG_NONE);
 
 #if DOCA_DEBUG_KERNEL == 2
-    ret = doca_gpu_dev_buf_get_addr(buf, &buf_addr);
-    if (ret != DOCA_SUCCESS) {
-      printf("UDP Error %d doca_gpu_dev_buf_get_addr thread %d\n", ret, threadIdx.x);
-      break;
-    }
-
-    raw_to_udp(buf_addr, &hdr, &payload);
+    raw_to_udp(addr, &hdr, &payload);
     printf(
-        "Queue %d Thread %d received UDP packet len %d with "
+        "Queue %d Thread %d num_pkts %d base_wqe_idx %ld wqeidx %ld received UDP packet %lx len %d "
+        "with "
         "Eth src %02x:%02x:%02x:%02x:%02x:%02x - "
         "Eth dst %02x:%02x:%02x:%02x:%02x:%02x - "
         "Src port %d - Dst port %d\n",
         blockIdx.x,
         threadIdx.x,
+        (int)num_pkts,
+        base_wqe_idx,
+        base_wqe_idx + pkt_idx,
+        addr,
         gpu_pkts_len[pkt_idx],
         ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[0],
         ((uint8_t*)hdr->l2_hdr.s_addr_bytes)[1],
@@ -431,19 +410,6 @@ __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, struct doca_gp
         hdr->l4_hdr.src_port,
         hdr->l4_hdr.dst_port);
 #endif
-    if (set_completion && pkt_idx == (num_pkts - 1))
-      ret = doca_gpu_dev_eth_txq_send_enqueue_weak(txq,
-                                                   buf,
-                                                   gpu_pkts_len[pkt_idx],
-                                                   ((curr_position + pkt_idx) & mask_max_position),
-                                                   DOCA_GPU_SEND_FLAG_NOTIFY);
-    else
-      ret = doca_gpu_dev_eth_txq_send_enqueue_weak(
-          txq, buf, gpu_pkts_len[pkt_idx], ((curr_position + pkt_idx) & mask_max_position), 0);
-    if (ret != DOCA_SUCCESS) {
-      printf("Error %d doca_gpu_dev_eth_txq_send_enqueue_weak thread %d\n", ret, threadIdx.x);
-      break;
-    }
 
     pkt_idx = (pkt_idx + blockDim.x);
   }
@@ -451,18 +417,27 @@ __global__ void send_packets_kernel(struct doca_gpu_eth_txq* txq, struct doca_gp
   __syncthreads();
 
   if (threadIdx.x == 0) {
-    doca_gpu_dev_eth_txq_commit_weak(txq, num_pkts);
-    doca_gpu_dev_eth_txq_push(txq);
-    __threadfence_system();
-  }
+#if DOCA_DEBUG_KERNEL == 2
+    printf(
+        "Submit base_wqe_idx %ld num_pkts %d sq %x from gpu_pkt0_idx %d max_pkts %d set_completion "
+        "%d\n",
+        base_wqe_idx,
+        (int)num_pkts,
+        txq->sq_num_shift8,
+        gpu_pkt0_idx,
+        max_pkts,
+        set_completion);
+#endif
 
+    doca_gpu_dev_eth_txq_submit(txq, base_wqe_idx + num_pkts);
+  }
   __syncthreads();
 }
 
 extern "C" {
 
 doca_error_t doca_receiver_packet_kernel(cudaStream_t stream, int rxqn, uintptr_t* eth_rxq_gpu,
-                                         uintptr_t* sem_gpu, uint32_t* sem_idx_list,
+                                         uintptr_t* pkt_gpu_list, uint32_t* pkt_idx_list,
                                          uint32_t* batch_list, uint32_t* gpu_exit_condition,
                                          bool persistent) {
   cudaError_t result = cudaSuccess;
@@ -483,10 +458,10 @@ doca_error_t doca_receiver_packet_kernel(cudaStream_t stream, int rxqn, uintptr_
   /* For simplicity launch 1 CUDA block with 32 CUDA threads */
   if (persistent)
     receive_packets_kernel_persistent<<<rxqn, CUDA_BLOCK_THREADS, 0, stream>>>(
-        rxqn, eth_rxq_gpu, sem_gpu, sem_idx_list, batch_list, gpu_exit_condition);
+        rxqn, eth_rxq_gpu, pkt_gpu_list, pkt_idx_list, batch_list, gpu_exit_condition);
   else
     receive_packets_kernel_non_persistent<<<rxqn, CUDA_BLOCK_THREADS, 0, stream>>>(
-        rxqn, eth_rxq_gpu, sem_gpu, sem_idx_list, batch_list);
+        rxqn, eth_rxq_gpu, pkt_gpu_list, pkt_idx_list, batch_list);
 
   result = cudaGetLastError();
   if (cudaSuccess != result) {
@@ -499,8 +474,9 @@ doca_error_t doca_receiver_packet_kernel(cudaStream_t stream, int rxqn, uintptr_
 }
 
 doca_error_t doca_sender_packet_kernel(cudaStream_t stream, struct doca_gpu_eth_txq* txq,
-                                       struct doca_gpu_buf_arr* buf_arr, uint32_t gpu_pkt0_idx,
-                                       const size_t num_pkts, uint32_t max_pkts,
+                                       uint64_t pkt_buff_addr, const uint32_t pkt_buff_mkey,
+                                       uint32_t gpu_pkt0_idx, const size_t num_pkts,
+                                       uint32_t max_pkts, const uint64_t max_pkt_size,
                                        uint32_t* gpu_pkts_len, bool set_completion) {
   cudaError_t result = cudaSuccess;
 
@@ -517,12 +493,16 @@ doca_error_t doca_sender_packet_kernel(cudaStream_t stream, struct doca_gpu_eth_
     return DOCA_ERROR_BAD_STATE;
   }
 
-  // fprintf(stderr, "New send kernel gpu_pkt0_idx %d num_pkts %zd max_pkt %d\n", gpu_pkt0_idx,
-  // num_pkts, max_pkts);
-
   /* For simplicity launch 1 CUDA block with 32 CUDA threads */
-  send_packets_kernel<<<1, CUDA_BLOCK_THREADS, 0, stream>>>(
-      txq, buf_arr, gpu_pkt0_idx, num_pkts, max_pkts, gpu_pkts_len, set_completion);
+  send_packets_kernel<<<1, CUDA_BLOCK_THREADS, 0, stream>>>(txq,
+                                                            pkt_buff_addr,
+                                                            pkt_buff_mkey,
+                                                            gpu_pkt0_idx,
+                                                            num_pkts,
+                                                            max_pkts,
+                                                            max_pkt_size,
+                                                            gpu_pkts_len,
+                                                            set_completion);
   result = cudaGetLastError();
   if (cudaSuccess != result) {
     HOLOSCAN_LOG_ERROR(
