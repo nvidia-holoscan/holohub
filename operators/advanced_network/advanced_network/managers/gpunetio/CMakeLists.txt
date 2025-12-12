@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +51,6 @@ target_compile_definitions(${PROJECT_NAME}
 
 set_target_properties(${PROJECT_NAME}
   PROPERTIES
-    CUDA_SEPARABLE_COMPILATION ON
-    CUDA_RESOLVE_DEVICE_SYMBOLS ON
     CUDA_ARCHITECTURES "80;90"
 )
 
@@ -64,10 +62,7 @@ target_link_directories(${PROJECT_NAME} PUBLIC ${DOCA_LIBRARY_DIRS})
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     holoscan::core
-    CUDA::cudart
-    CUDA::cuda_driver
     -ldoca_gpunetio
-    -ldoca_gpunetio_device # static
     -ldoca_eth
     -ldoca_flow
 )

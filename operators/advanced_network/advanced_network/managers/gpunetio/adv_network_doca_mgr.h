@@ -1,29 +1,28 @@
 /*
-* SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-* SPDX-License-Identifier: Apache-2.0
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #pragma once
 
 #include <stddef.h>
 #include <stdint.h>
 #include <atomic>
+#include <thread>
 #include <tuple>
-#include <thread>
 #include <unordered_map>
-#include <thread>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -32,22 +31,21 @@
 #include <rte_ethdev.h>
 #include <rte_flow.h>
 
-#include <doca_log.h>
+#include <doca_dev.h>
+#include <doca_dpdk.h>
 #include <doca_error.h>
-#include <doca_version.h>
 #include <doca_eth_rxq.h>
 #include <doca_eth_txq.h>
-#include <doca_mmap.h>
-#include <doca_gpunetio.h>
-#include <doca_dpdk.h>
-#include <doca_flow.h>
-#include <doca_dev.h>
-#include <doca_buf_array.h>
-#include <doca_pe.h>
 #include <doca_eth_txq_gpu_data_path.h>
+#include <doca_flow.h>
+#include <doca_gpunetio.h>
+#include <doca_log.h>
+#include <doca_mmap.h>
+#include <doca_pe.h>
+#include <doca_version.h>
 
-#include "advanced_network/manager.h"
 #include "advanced_network/common.h"
+#include "advanced_network/manager.h"
 
 #define FLOW_NB_COUNTERS 524228 /* 1024 x 512 */
 #define MAX_SQ_DESCR_NUM 32768
@@ -63,7 +61,10 @@
 #define MPS_ENABLED 0
 #define RX_PERSISTENT_ENABLED 1
 
+#define ALIGN_SIZE(size, align) size = ((size + (align) - 1) / (align)) * (align);
+
 struct adv_doca_rx_gpu_info {
+  enum doca_gpu_semaphore_status status;
   uint32_t num_pkts;
   uint32_t nbytes;
   uintptr_t gpu_pkt0_addr;
@@ -107,13 +108,17 @@ class DocaLogLevel {
  public:
   static std::string to_description_string(doca_log_level level) {
     auto it = level_to_string_description_map.find(level);
-    if (it != level_to_string_description_map.end()) { return it->second; }
+    if (it != level_to_string_description_map.end()) {
+      return it->second;
+    }
     throw std::logic_error(
         "Unrecognized log level, available options trace/debug/info/warn/error/critical/disable");
   }
   static doca_log_level from_adv_net_log_level(LogLevel::Level log_level) {
     auto it = adv_net_to_doca_log_level_map.find(log_level);
-    if (it != adv_net_to_doca_log_level_map.end()) { return it->second; }
+    if (it != adv_net_to_doca_log_level_map.end()) {
+      return it->second;
+    }
     return DOCA_LOG_LEVEL_DISABLE;
   }
 
@@ -127,9 +132,10 @@ class DocaRxQueue {
   DocaRxQueue(struct doca_dev* dev, struct doca_gpu* gdev, struct doca_flow_port* df_port,
               uint16_t qid, int max_pkt_num, int max_pkt_size, enum doca_gpu_mem_type mtype);
   ~DocaRxQueue();
-  doca_error_t create_udp_pipe(const FlowConfig& cfg, struct doca_flow_pipe* rxq_pipe_default);
-  doca_error_t create_semaphore();
-  doca_error_t destroy_semaphore();
+  doca_error_t create_udp_pipe(const FlowConfig& cfg, struct doca_flow_pipe* rxq_pipe_default,
+                               uint16_t& flow_queue_id);
+  doca_error_t create_rx_packet_list();
+  doca_error_t destroy_rx_packet_list();
 
   uint16_t qid;                         /* Number of queues */
   struct doca_gpu* gdev;                /* GPUNetio handler associated to queues*/
@@ -146,9 +152,8 @@ class DocaRxQueue {
   struct doca_flow_port* df_port;              /* DOCA Flow port */
   struct doca_flow_pipe* rxq_pipe;             /* DOCA Flow receive pipe */
   struct doca_flow_pipe_entry* root_udp_entry; /* DOCA Flow root entry */
-
-  struct doca_gpu_semaphore* sem_cpu;     /* One semaphore per queue to report stats, CPU handler*/
-  struct doca_gpu_semaphore_gpu* sem_gpu; /* One semaphore per queue to report stats, GPU handler*/
+  struct adv_doca_rx_gpu_info* pkt_list_gpu;
+  struct adv_doca_rx_gpu_info* pkt_list_cpu;
   enum doca_gpu_mem_type mtype;
 };
 
@@ -168,11 +173,10 @@ class DocaTxQueue {
   struct doca_mmap* pkt_buff_mmap;      /* DOCA mmap to receive packet with DOCA Ethernet queue */
   void* gpu_pkt_addr;                   /* DOCA mmap GPU memory address */
   void* cpu_pkt_addr;                   /* DOCA mmap CPU pinned memory address */
+  uint32_t pkt_mkey;                    /* DOCA mmap GPU memory address */
   int dmabuf_fd;                        /* GPU memory dmabuf file descriptor */
   int max_pkt_num;
   int max_pkt_size;
-  struct doca_buf_arr* buf_arr;         /* DOCA buffer array object around GPU memory buffer */
-  struct doca_gpu_buf_arr* buf_arr_gpu; /* DOCA buffer array GPU handle */
   std::atomic<uint32_t> buff_arr_idx;
   struct doca_pe* pe;
   std::atomic<uint32_t> tx_cmp_posted;
@@ -187,7 +191,6 @@ class DocaMgr : public Manager {
   bool set_config_and_initialize(const NetworkConfig& cfg) override;
   void initialize() override;
   void run() override;
-  // int SetupPoolsAndRings();
   static int rx_core(void* arg);
   static int tx_core(void* arg);
   uint16_t default_num_rx_desc = 8192;
@@ -203,18 +206,18 @@ class DocaMgr : public Manager {
   Status get_tx_packet_burst(BurstParams* burst) override;
   Status set_eth_header(BurstParams* burst, int idx, char* dst_addr) override;
   Status set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
-                            unsigned int src_host, unsigned int dst_host) override;
+                         unsigned int src_host, unsigned int dst_host) override;
   Status set_udp_header(BurstParams* burst, int idx, int udp_len, uint16_t src_port,
-                           uint16_t dst_port) override;
+                        uint16_t dst_port) override;
   Status set_udp_payload(BurstParams* burst, int idx, void* data, int len) override;
   bool is_tx_burst_available(BurstParams* burst) override;
 
   Status set_packet_lengths(BurstParams* burst, int idx,
                             const std::initializer_list<int>& lens) override;
-  void free_all_segment_packets(BurstParams* burst, int seg) override{};
-  void free_packet_segment(BurstParams* burst, int seg, int pkt) override{};
-  void free_packet(BurstParams* burst, int pkt) override{};
-  void free_all_packets(BurstParams* burst) override{};
+  void free_all_segment_packets(BurstParams* burst, int seg) override {};
+  void free_packet_segment(BurstParams* burst, int seg, int pkt) override {};
+  void free_packet(BurstParams* burst, int pkt) override {};
+  void free_all_packets(BurstParams* burst) override {};
   void free_rx_burst(BurstParams* burst) override;
   void free_tx_burst(BurstParams* burst) override;
 
@@ -237,7 +240,7 @@ class DocaMgr : public Manager {
   doca_error_t init_doca_devices();
   doca_error_t create_root_pipe(int port_id);
   doca_error_t create_default_pipe(int port_id, uint32_t cnt_defq);
-  struct doca_flow_port* init_doca_flow(uint16_t port_id, uint8_t rxq_num);
+  struct doca_flow_port* init_doca_flow(struct doca_dev* dev, uint16_t port_id, uint8_t rxq_num);
   int setup_pools_and_rings(int max_tx_batch);
   std::string GetQueueName(int port, int q, Direction dir);
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
@@ -269,6 +272,8 @@ class DocaMgr : public Manager {
   std::thread worker_th[16];
   int worker_th_idx;
   std::set<int> gpu_mr_devs;
+
+  uint16_t flow_queue_id = 0;
 };
 
 extern DocaMgr doca_mgr;
