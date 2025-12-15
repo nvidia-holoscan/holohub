@@ -15,80 +15,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nvcr.io/nvidia/cuda:12.9.0-base-ubuntu24.04 AS base
 
-ENV DEBIAN_FRONTEND=noninteractive
+############################################################
+# Base image
+############################################################
 
-# Install the dependencies
-# wget, unzip and ffmpeg are needed to download NGC-CLI and generate input data
-# python packages are required for the application
-# libnpp, cuda-nvrtc, cuda-cudart-dev, and libnvinfer are required for Holoscan inference
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        wget \
-        unzip \
-        cmake \
-        make \
-        xvfb \
-        ninja-build \
-        patch \
-        ffmpeg \
-        libnpp-12-9 \
-        cuda-cudart-dev-12-9 \
-        cuda-nvrtc-12-9 \
-        libnvinfer10=*+cuda12.9 \
-        libnvinfer-lean10=*+cuda12.9 \
-        libnvinfer-plugin10=*+cuda12.9 \
-        libnvinfer-vc-plugin10=*+cuda12.9 \
-        libnvinfer-dispatch10=*+cuda12.9 \
-        libnvonnxparsers10=*+cuda12.9 \
-        && rm -rf /var/lib/apt/lists/*
+ARG GPU_TYPE
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
+FROM ${BASE_IMAGE} AS base
 
-RUN if [ $(uname -m) = "aarch64" ]; then ARCH=arm64; else ARCH=linux; fi \
-    && wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_${ARCH}.zip -O ngccli_linux.zip \
-    && unzip -q ngccli_linux.zip \
-    && rm ngccli_linux.zip \
-    && chmod u+x ngc-cli/ngc \
-    && ln -s $(pwd)/ngc-cli/ngc /usr/local/bin/
+ARG DEBIAN_FRONTEND=noninteractive
+ARG CMAKE_BUILD_TYPE=Release
 
-# Install python3 if not present (needed for holohub CLI)
-ARG PYTHON_VERSION=python3
-RUN if ! command -v python3 >/dev/null 2>&1; then \
-        apt-get update \
-        && apt-get install --no-install-recommends -y \
-            software-properties-common curl gpg-agent \
-        && add-apt-repository ppa:deadsnakes/ppa \
-        && apt-get update \
-        && apt-get install --no-install-recommends -y \
-            ${PYTHON_VERSION} \
-        && apt purge -y \
-            python3-pip \
-            software-properties-common \
-        && apt-get autoremove --purge -y \
-        && rm -rf /var/lib/apt/lists/* \
-        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
-        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
-            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
-            ; fi \
-    ; fi
-ENV PIP_BREAK_SYSTEM_PACKAGES=1
-RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
-        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
-    ; fi
+# --------------------------------------------------------------------------
+#
+# Use HoloHub CLI to set up common packages for developing with Holoscan SDK
+#
+# --------------------------------------------------------------------------
+RUN mkdir -p /tmp/scripts
+COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
-RUN set -e \
-    && pip3 install holoscan cupy-cuda12x \
-    && python3 -c "pass"  # dummy command to run wheel-axle-runtime post-installation setup
+# Enable autocomplete
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
-########################################################
-# Build with AJA C++ requirements
-########################################################
-FROM base AS aja_build
+# Set default Holohub data directory
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential gcc g++ git \
-        holoscan \
-        && rm -rf /var/lib/apt/lists/*
+# --------------------------------------------------------------------------
+#
+# Set up packages for developing with AJA Capture Cards
+#
+# --------------------------------------------------------------------------
+RUN apt update \
+    && apt install --no-install-recommends -y \
+        libudev-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt update && apt install -y --no-install-recommends \
-        python3-dev \
-        && rm -rf /var/lib/apt/lists/*
+# --------------------------------------------------------------------------
+#
+# Install application dependencies
+#
+# --------------------------------------------------------------------------
+RUN pip3 install cupy-cuda12x
