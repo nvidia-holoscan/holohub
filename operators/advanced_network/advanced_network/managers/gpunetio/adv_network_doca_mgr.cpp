@@ -261,14 +261,6 @@ doca_error_t DocaMgr::init_doca_devices() {
       return result;
     }
 
-    /* Enable DOCA Flow HWS mode */
-    // result = doca_dpdk_port_probe(ddev[intf.port_id_], "dv_flow_en=2");
-    // if (result != DOCA_SUCCESS) {
-    //   HOLOSCAN_LOG_CRITICAL("Function doca_dpdk_port_probe returned {}",
-    //                         doca_error_get_descr(result));
-    //   return result;
-    // }
-
     rte_eth_macaddr_get(intf.port_id_, &mac_addrs[intf.port_id_]);
     HOLOSCAN_LOG_INFO("DOCA init Port {} -- RX: {} TX: {}",
                       intf.port_id_,
@@ -1188,7 +1180,6 @@ int DocaMgr::rx_core(void* arg) {
   uint32_t *pkt_idx_cpu_list, *pkt_idx_gpu_list;
   uint32_t *batch_cpu_list, *batch_gpu_list;
   uint32_t *cpu_exit_condition, *gpu_exit_condition;
-  // int sem_idx[MAX_NUM_RX_QUEUES] = {0};
   struct adv_doca_rx_gpu_info* packets_stats;
   BurstParams* burst;
 #if MPS_ENABLED == 1
@@ -1283,7 +1274,7 @@ int DocaMgr::rx_core(void* arg) {
                               (void**)&pkt_idx_gpu_list,
                               (void**)&pkt_idx_cpu_list);
   if (result != DOCA_SUCCESS) {
-    HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory pkt_gpu_list before launching kernel {}",
+    HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory pkt_idx_gpu_list before launching kernel {}",
                        doca_error_get_descr(result));
     exit(1);
   }
@@ -1315,7 +1306,7 @@ int DocaMgr::rx_core(void* arg) {
   }
 
   result = doca_gpu_mem_alloc(tparams->gdev,
-                              GPU_PAGE_SIZE,  // sizeof(uint32_t),
+                              sizeof(uint32_t),
                               GPU_PAGE_SIZE,
                               DOCA_GPU_MEM_TYPE_GPU_CPU,
                               (void**)&gpu_exit_condition,
@@ -1327,7 +1318,6 @@ int DocaMgr::rx_core(void* arg) {
 
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
 
-#if ADV_NETWORK_MANAGER_WARMUP_KERNEL
   HOLOSCAN_LOG_INFO("Warmup receive kernel");
   doca_receiver_packet_kernel(rx_stream,
                               tparams->rxqn,
@@ -1336,11 +1326,10 @@ int DocaMgr::rx_core(void* arg) {
                               pkt_idx_gpu_list,
                               batch_gpu_list,
                               gpu_exit_condition,
-                              false);
+                              true);
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 1;
   cudaStreamSynchronize(rx_stream);
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
-#endif
 
   doca_receiver_packet_kernel(rx_stream,
                               tparams->rxqn,
@@ -1359,8 +1348,8 @@ int DocaMgr::rx_core(void* arg) {
     loop_count++;
 
     for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
-      packets_stats = &tparams->rxqw[ridx].rxq->pkt_list_cpu[pkt_idx_cpu_list[ridx]];
-      status = DOCA_GPUNETIO_VOLATILE(packets_stats->status);
+      packets_stats = (struct adv_doca_rx_gpu_info*)tparams->rxqw[ridx].rxq->pkt_list_cpu;
+      status = DOCA_GPUNETIO_VOLATILE(packets_stats[pkt_idx_cpu_list[ridx]].status);
 
       // Log semaphore status periodically unless it's ready
       if (status != DOCA_GPU_SEMAPHORE_STATUS_READY && (loop_count % loop_log_rate == 0)) {
@@ -1378,18 +1367,18 @@ int DocaMgr::rx_core(void* arg) {
           break;
         }
 
-        //  Queue ID for receiver to differentiate
+        // Queue ID for receiver to differentiate
         burst->hdr.hdr.q_id = tparams->rxqw[ridx].queue;
         burst->hdr.hdr.first_pkt_addr = (uintptr_t)tparams->rxqw[ridx].rxq->gpu_pkt_addr;
         burst->hdr.hdr.max_pkt = tparams->rxqw[ridx].rxq->max_pkt_num;
         burst->hdr.hdr.max_pkt_size = tparams->rxqw[ridx].rxq->max_pkt_size;
         burst->hdr.hdr.port_id = tparams->rxqw[ridx].port;
-        burst->hdr.hdr.num_pkts = packets_stats->num_pkts;
-        burst->hdr.hdr.nbytes = packets_stats->nbytes;
-        burst->hdr.hdr.gpu_pkt0_idx = packets_stats->gpu_pkt0_idx;
-        burst->hdr.hdr.gpu_pkt0_addr = packets_stats->gpu_pkt0_addr;
+        burst->hdr.hdr.num_pkts = packets_stats[pkt_idx_cpu_list[ridx]].num_pkts;
+        burst->hdr.hdr.nbytes = packets_stats[pkt_idx_cpu_list[ridx]].nbytes;
+        burst->hdr.hdr.gpu_pkt0_idx = packets_stats[pkt_idx_cpu_list[ridx]].gpu_pkt0_idx;
+        burst->hdr.hdr.gpu_pkt0_addr = packets_stats[pkt_idx_cpu_list[ridx]].gpu_pkt0_addr;
         HOLOSCAN_LOG_DEBUG("sem {} queue {} num_pkts {}",
-                           pkt_cpu_list[pkt_idx_cpu_list[ridx]],
+                           pkt_idx_cpu_list[ridx],
                            ridx,
                            burst->hdr.hdr.num_pkts);
         // Check if the ring pointer assigned during setup is valid
@@ -1397,6 +1386,7 @@ int DocaMgr::rx_core(void* arg) {
           HOLOSCAN_LOG_ERROR("RX Worker: Ring pointer for queue index {} is null. Dropping burst.",
                              ridx);
           rte_mempool_put(tparams->meta_pool, burst);
+
         } else {
           // Enqueue into the specific ring associated with this worker queue
           if (rte_ring_enqueue(tparams->rxqw[ridx].ring, reinterpret_cast<void*>(burst)) != 0) {
@@ -1412,7 +1402,7 @@ int DocaMgr::rx_core(void* arg) {
         stats_rx_tot_batch++;
 
         // Reset semaphore to free
-        DOCA_GPUNETIO_VOLATILE(packets_stats->status) = DOCA_GPU_SEMAPHORE_STATUS_FREE;
+        DOCA_GPUNETIO_VOLATILE(packets_stats[pkt_idx_cpu_list[ridx]].status) = DOCA_GPU_SEMAPHORE_STATUS_FREE;
         pkt_idx_cpu_list[ridx] = (pkt_idx_cpu_list[ridx] + 1) % MAX_DEFAULT_SEM_X_QUEUE;
       }
     }
@@ -1423,13 +1413,13 @@ int DocaMgr::rx_core(void* arg) {
   cudaStreamSynchronize(rx_stream);
 
   for (int ridx = 0; ridx < tparams->rxqn; ridx++) {
-    packets_stats = &tparams->rxqw[ridx].rxq->pkt_list_cpu[pkt_idx_cpu_list[ridx]];
-    status = DOCA_GPUNETIO_VOLATILE(packets_stats->status);
+    packets_stats = (struct adv_doca_rx_gpu_info*)tparams->rxqw[ridx].rxq->pkt_list_cpu;
+    status = DOCA_GPUNETIO_VOLATILE(packets_stats[pkt_idx_cpu_list[ridx]].status);
 
     if (status == DOCA_GPU_SEMAPHORE_STATUS_READY) {
-      last_batch += packets_stats->num_pkts;
-      stats_rx_tot_pkts += packets_stats->num_pkts;
-      stats_rx_tot_bytes += packets_stats->nbytes;
+      last_batch += packets_stats[pkt_idx_cpu_list[ridx]].num_pkts;
+      stats_rx_tot_pkts += packets_stats[pkt_idx_cpu_list[ridx]].num_pkts;
+      stats_rx_tot_bytes += packets_stats[pkt_idx_cpu_list[ridx]].nbytes;
       stats_rx_tot_batch++;
     }
   }

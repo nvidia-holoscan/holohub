@@ -19,7 +19,26 @@ message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 # --- Dependencies ---
 
 pkg_check_modules(DOCA REQUIRED doca-gpunetio doca-eth doca-flow)
-pkg_check_modules(DPDK REQUIRED libdpdk)
+# Try to find DPDK via pkg-config
+# This will find upstream DPDK (installed to /usr/local) or mlnx-dpdk
+pkg_check_modules(DPDK QUIET libdpdk)
+
+if(NOT DPDK_FOUND)
+  # Fallback: try to find mlnx-dpdk in standard Mellanox installation paths
+  message(STATUS "Looking for DPDK in Mellanox installation directories")
+  # Try to find DPDK via pkg-config
+  # Note: adding the following so it can find both upstream DPDK (installed to /usr/local) but also mlnx-dpdk (in `/opt/mellanox/dpdk`)
+  list(APPEND CMAKE_PREFIX_PATH "/opt/mellanox/dpdk/lib/${CMAKE_HOST_SYSTEM_PROCESSOR}-linux-gnu/")
+  pkg_check_modules(DPDK REQUIRED libdpdk)
+  message(STATUS "Found DPDK: ${DPDK_VERSION} in ${DPDK_LIBRARY_DIRS}")
+endif()
+
+# Common DPDK configuration
+target_link_directories(${PROJECT_NAME} PUBLIC ${DPDK_LIBRARY_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${DPDK_INCLUDE_DIRS})
+target_compile_options(${PROJECT_NAME} PUBLIC ${DPDK_CFLAGS_OTHER})
+
+set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl)
 
 # --- Sources ---
 
@@ -31,12 +50,6 @@ target_sources(${PROJECT_NAME}
 )
 
 # --- Compile settings ---
-
-target_include_directories(${PROJECT_NAME}
-  PUBLIC ${DPDK_INCLUDE_DIRS}
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
 target_compile_options(${PROJECT_NAME}
   PUBLIC
     ${DPDK_CFLAGS}
@@ -60,8 +73,13 @@ set_target_properties(${PROJECT_NAME}
 target_link_directories(${PROJECT_NAME} PUBLIC ${DOCA_LIBRARY_DIRS})
 
 target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    ${DPDK_LDFLAGS_OTHER}
+    ${DPDK_LIBRARIES}
+    ${DPDK_EXTRA_LIBS}
   PRIVATE
     holoscan::core
+    CUDA::cuda_driver
     -ldoca_gpunetio
     -ldoca_eth
     -ldoca_flow

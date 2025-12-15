@@ -94,11 +94,21 @@ To run with a different configuration file than the default `adv_networking_benc
 
 ```bash
 # Start the container interactively
-./holohub run-container adv_networking_bench \
-  --docker-opts="-u root --privileged -w /workspace/holohub/build/adv_networking_bench/applications/adv_networking_bench/cpp"
+./holohub run-container adv_networking_bench --language cpp \
+  --docker-opts="-u root --privileged -w /workspace/holohub" --build-args="--target gpunetio"
+
+# To start the GPUNetIO container with GDRCopy feature instead
+./holohub run-container adv_networking_bench --language cpp \
+  --docker-opts="-u root --privileged -w /workspace/holohub --device /dev/gdrdrv -v /opt/mellanox/gdrcopy/src:/opt/mellanox/gdrcopy/src -e LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/mellanox/gdrcopy/src" \
+  --build-args="--target gpunetio"
+
+# Build the app
+./holohub build adv_networking_bench \
+  --configure-args="-D BUILD_TESTING:BOOL=ON -D ANO_MGR:STRING=gpunetio" \
+  --language=cpp --build-args="--target gpunetio"
 
 # Run with GPUNetIO configuration
-./adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
+./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
 
 # Run with Rivermax configuration
 ./adv_networking_bench adv_networking_bench_rmax_rx.yaml

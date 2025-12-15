@@ -83,7 +83,7 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
   uintptr_t buf_addr;
   uint64_t buf_idx;
   struct doca_gpu_eth_rxq* rxq;
-  int pkt_idx = 0;
+  int stats_idx = 0;
   struct eth_ip_udp_hdr* hdr;
   uint8_t* payload;
 
@@ -92,7 +92,7 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
   __shared__ uint32_t rx_pkt_bytes;
   uint32_t tot_pkts_batch = 0;
   struct adv_doca_rx_gpu_info* packets_stats =
-      ((struct adv_doca_rx_gpu_info*)pkt_gpu_list[blockIdx.x])+pkt_idx;
+      ((struct adv_doca_rx_gpu_info*)pkt_gpu_list[blockIdx.x]);
 
   // Warmup
   if (eth_rxq_gpu == NULL)
@@ -106,9 +106,7 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
 
   do {
     ret = doca_gpu_dev_eth_rxq_recv<DOCA_GPUNETIO_ETH_EXEC_SCOPE_BLOCK,
-                                    DOCA_GPUNETIO_ETH_MCST_AUTO,
-                                    DOCA_GPUNETIO_ETH_NIC_HANDLER_AUTO,
-                                    false>(rxq,
+                                    DOCA_GPUNETIO_ETH_MCST_AUTO>(rxq,
                                            batch_list[blockIdx.x],
                                            CUDA_MAX_RX_TIMEOUT_NS,
                                            &out_first_pkt_idx,
@@ -164,8 +162,8 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
       /* Add packet processing/filtering function here. */
 
       if (threadIdx.x == 0 && buf_idx == 0) {
-        DOCA_GPUNETIO_VOLATILE(packets_stats->gpu_pkt0_addr) = buf_addr;
-        DOCA_GPUNETIO_VOLATILE(packets_stats->gpu_pkt0_idx) = out_first_pkt_idx;
+        DOCA_GPUNETIO_VOLATILE(packets_stats[stats_idx].gpu_pkt0_addr) = buf_addr;
+        DOCA_GPUNETIO_VOLATILE(packets_stats[stats_idx].gpu_pkt0_idx) = out_first_pkt_idx;
       }
 
       // Eth + IP + (UDP + Payload)
@@ -179,36 +177,36 @@ __global__ void receive_packets_kernel_persistent(int rxqn, uintptr_t* eth_rxq_g
     if (threadIdx.x == 0 && out_pkt_num > 0) {
       tot_pkts_batch += out_pkt_num;
 #if DOCA_DEBUG_KERNEL == 1
-      printf("Queue %d tot pkts %d/%d pkt_idx %d\n",
+      printf("Queue %d tot pkts %d/%d stats_idx %d\n",
              blockIdx.x,
              tot_pkts_batch,
              batch_list[blockIdx.x],
-             pkt_idx);
+             stats_idx);
 #endif
 
       if (tot_pkts_batch >= batch_list[blockIdx.x]) {
-        DOCA_GPUNETIO_VOLATILE(packets_stats->num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
-        DOCA_GPUNETIO_VOLATILE(packets_stats->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
+        DOCA_GPUNETIO_VOLATILE(packets_stats[stats_idx].num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
+        DOCA_GPUNETIO_VOLATILE(packets_stats[stats_idx].nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
         // Replace the __threadfence_system();
         doca_gpu_dev_eth_fence_release<DOCA_GPUNETIO_ETH_SYNC_SCOPE_SYS>();
-        DOCA_GPUNETIO_VOLATILE(packets_stats->status) = DOCA_GPU_SEMAPHORE_STATUS_READY;
-        pkt_idx = (pkt_idx + 1) % MAX_DEFAULT_SEM_X_QUEUE;
+        DOCA_GPUNETIO_VOLATILE(packets_stats[stats_idx].status) = DOCA_GPU_SEMAPHORE_STATUS_READY;
+        stats_idx = (stats_idx + 1) % MAX_DEFAULT_SEM_X_QUEUE;
         DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes) = 0;
         tot_pkts_batch = 0;
-        packets_stats = ((struct adv_doca_rx_gpu_info*)pkt_gpu_list[blockIdx.x]) + pkt_idx;
       }
     }
+    __syncthreads();
   } while (DOCA_GPUNETIO_VOLATILE(*exit_cond) == 0);
 
   __syncthreads();
 
   /* Flush remaining packets in the last partial batch */
   if (threadIdx.x == 0) {
-    DOCA_GPUNETIO_VOLATILE(packets_stats->num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
-    DOCA_GPUNETIO_VOLATILE(packets_stats->nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
+    DOCA_GPUNETIO_VOLATILE(packets_stats[stats_idx].num_pkts) = DOCA_GPUNETIO_VOLATILE(tot_pkts_batch);
+    DOCA_GPUNETIO_VOLATILE(packets_stats[stats_idx].nbytes) = DOCA_GPUNETIO_VOLATILE(rx_pkt_bytes);
     // Replace the __threadfence_system();
     doca_gpu_dev_eth_fence_release<DOCA_GPUNETIO_ETH_SYNC_SCOPE_SYS>();
-    DOCA_GPUNETIO_VOLATILE(packets_stats->status) = DOCA_GPU_SEMAPHORE_STATUS_READY;
+    DOCA_GPUNETIO_VOLATILE(packets_stats[stats_idx].status) = DOCA_GPU_SEMAPHORE_STATUS_READY;
   }
 }
 
@@ -249,9 +247,7 @@ __global__ void receive_packets_kernel_non_persistent(int rxqn, uintptr_t* eth_r
   __syncthreads();
 
   ret = doca_gpu_dev_eth_rxq_recv<DOCA_GPUNETIO_ETH_EXEC_SCOPE_BLOCK,
-                                  DOCA_GPUNETIO_ETH_MCST_AUTO,
-                                  DOCA_GPUNETIO_ETH_NIC_HANDLER_AUTO,
-                                  false>(
+                                  DOCA_GPUNETIO_ETH_MCST_AUTO>(
       rxq, batch_list[blockIdx.x], CUDA_MAX_RX_TIMEOUT_NS, &out_first_pkt_idx, &out_pkt_num, NULL);
   /* If any thread returns receive error, the whole execution stops */
   if (ret != DOCA_SUCCESS) {
