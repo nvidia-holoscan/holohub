@@ -571,7 +571,7 @@ void DocaMgr::initialize() {
     res_cuda = cudaSetDevice(gpu_dev);
     if (res_cuda != cudaSuccess) {
       HOLOSCAN_LOG_ERROR("Failed to set GPU device {}", gpu_dev);
-      exit(1);
+      return;
     }
     cudaFree(0);
 
@@ -1227,7 +1227,8 @@ int DocaMgr::rx_core(void* arg) {
   res_cuda = cudaSetDevice(tparams->gpu_id);
   if (res_cuda != cudaSuccess) {
     HOLOSCAN_LOG_ERROR("Failed to set GPU device {}", tparams->gpu_id);
-    exit(1);
+    force_quit_doca.store(true);
+    return -1;
   }
   cudaFree(0);
 #if MPS_ENABLED == 1
@@ -1252,7 +1253,8 @@ int DocaMgr::rx_core(void* arg) {
         tparams->rxqn,
         tparams->gpu_id,
         rte_socket_id());
-    exit(1);
+    force_quit_doca.store(true);
+    return -1;
   }
 
   result = doca_gpu_mem_alloc(tparams->gdev,
@@ -1264,7 +1266,8 @@ int DocaMgr::rx_core(void* arg) {
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory pkt_gpu_list before launching kernel {}",
                        doca_error_get_descr(result));
-    exit(1);
+    force_quit_doca.store(true);
+    return -1;
   }
 
   result = doca_gpu_mem_alloc(tparams->gdev,
@@ -1276,7 +1279,8 @@ int DocaMgr::rx_core(void* arg) {
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory pkt_idx_gpu_list before launching kernel {}",
                        doca_error_get_descr(result));
-    exit(1);
+    force_quit_doca.store(true);
+    return -1;
   }
 
   result = doca_gpu_mem_alloc(tparams->gdev,
@@ -1288,7 +1292,8 @@ int DocaMgr::rx_core(void* arg) {
   if (result != DOCA_SUCCESS) {
     HOLOSCAN_LOG_ERROR("Failed to allocate gpu memory batch_gpu_list before launching kernel {}",
                        doca_error_get_descr(result));
-    exit(1);
+    force_quit_doca.store(true);
+    return -1;
   }
 
   for (int idx = 0; idx < tparams->rxqn; idx++) {
@@ -1302,7 +1307,8 @@ int DocaMgr::rx_core(void* arg) {
   if (res_cuda != cudaSuccess) {
     HOLOSCAN_LOG_ERROR("Function cudaStreamCreateWithPriority error {}",
                        static_cast<int>(res_cuda));
-    exit(1);
+    force_quit_doca.store(true);
+    return -1;
   }
 
   result = doca_gpu_mem_alloc(tparams->gdev,
@@ -1313,7 +1319,8 @@ int DocaMgr::rx_core(void* arg) {
                               (void**)&cpu_exit_condition);
   if (result != DOCA_SUCCESS || gpu_exit_condition == nullptr || cpu_exit_condition == nullptr) {
     HOLOSCAN_LOG_ERROR("Function doca_gpu_mem_alloc returned {}", doca_error_get_descr(result));
-    exit(1);
+    force_quit_doca.store(true);
+    return -1;
   }
 
   DOCA_GPUNETIO_VOLATILE(*cpu_exit_condition) = 0;
@@ -1377,10 +1384,8 @@ int DocaMgr::rx_core(void* arg) {
         burst->hdr.hdr.nbytes = packets_stats[pkt_idx_cpu_list[ridx]].nbytes;
         burst->hdr.hdr.gpu_pkt0_idx = packets_stats[pkt_idx_cpu_list[ridx]].gpu_pkt0_idx;
         burst->hdr.hdr.gpu_pkt0_addr = packets_stats[pkt_idx_cpu_list[ridx]].gpu_pkt0_addr;
-        HOLOSCAN_LOG_DEBUG("sem {} queue {} num_pkts {}",
-                           pkt_idx_cpu_list[ridx],
-                           ridx,
-                           burst->hdr.hdr.num_pkts);
+        HOLOSCAN_LOG_DEBUG(
+            "sem {} queue {} num_pkts {}", pkt_idx_cpu_list[ridx], ridx, burst->hdr.hdr.num_pkts);
         // Check if the ring pointer assigned during setup is valid
         if (tparams->rxqw[ridx].ring == nullptr) {
           HOLOSCAN_LOG_ERROR("RX Worker: Ring pointer for queue index {} is null. Dropping burst.",
@@ -1402,7 +1407,8 @@ int DocaMgr::rx_core(void* arg) {
         stats_rx_tot_batch++;
 
         // Reset semaphore to free
-        DOCA_GPUNETIO_VOLATILE(packets_stats[pkt_idx_cpu_list[ridx]].status) = DOCA_GPU_SEMAPHORE_STATUS_FREE;
+        DOCA_GPUNETIO_VOLATILE(packets_stats[pkt_idx_cpu_list[ridx]].status) =
+            DOCA_GPU_SEMAPHORE_STATUS_FREE;
         pkt_idx_cpu_list[ridx] = (pkt_idx_cpu_list[ridx] + 1) % MAX_DEFAULT_SEM_X_QUEUE;
       }
     }

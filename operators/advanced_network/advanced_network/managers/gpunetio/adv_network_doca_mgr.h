@@ -61,7 +61,7 @@
 #define MPS_ENABLED 0
 #define RX_PERSISTENT_ENABLED 1
 
-#define ALIGN_SIZE(size, align) size = ((size + (align) - 1) / (align)) * (align);
+#define ALIGN_SIZE(size, align) size = ((size + (align)-1) / (align)) * (align);
 
 struct adv_doca_rx_gpu_info {
   enum doca_gpu_semaphore_status status;
@@ -214,10 +214,10 @@ class DocaMgr : public Manager {
 
   Status set_packet_lengths(BurstParams* burst, int idx,
                             const std::initializer_list<int>& lens) override;
-  void free_all_segment_packets(BurstParams* burst, int seg) override {};
-  void free_packet_segment(BurstParams* burst, int seg, int pkt) override {};
-  void free_packet(BurstParams* burst, int pkt) override {};
-  void free_all_packets(BurstParams* burst) override {};
+  void free_all_segment_packets(BurstParams* burst, int seg) override{};
+  void free_packet_segment(BurstParams* burst, int seg, int pkt) override{};
+  void free_packet(BurstParams* burst, int pkt) override{};
+  void free_all_packets(BurstParams* burst) override{};
   void free_rx_burst(BurstParams* burst) override;
   void free_tx_burst(BurstParams* burst) override;
 
