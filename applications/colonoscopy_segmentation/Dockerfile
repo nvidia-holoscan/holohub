@@ -55,10 +55,3 @@ RUN apt update \
     && apt install --no-install-recommends -y \
         libudev-dev \
     && rm -rf /var/lib/apt/lists/*
-
-# --------------------------------------------------------------------------
-#
-# Install application dependencies
-#
-# --------------------------------------------------------------------------
-RUN pip3 install cupy-cuda12x
