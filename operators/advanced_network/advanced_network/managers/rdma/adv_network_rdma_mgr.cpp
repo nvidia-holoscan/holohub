@@ -199,8 +199,9 @@ int RdmaMgr::rdma_register_cfg_mrs() {
   }
 
   for (const auto& mr : cfg_.mrs_) {
+    // Allocate 1 more than the user specifies because DPDK can give a capacity of size - 1
     auto ring = rte_ring_create(
-        mr.second.name_.c_str(), rte_align32pow2(mr.second.num_bufs_), rte_socket_id(), 0);
+        mr.second.name_.c_str(), rte_align32pow2(mr.second.num_bufs_ + 1), rte_socket_id(), 0);
 
     if (ring == nullptr) {
       HOLOSCAN_LOG_CRITICAL("Failed to create ring for MR {}", mr.second.name_);
