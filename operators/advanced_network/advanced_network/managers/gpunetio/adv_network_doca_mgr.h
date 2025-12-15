@@ -173,7 +173,7 @@ class DocaTxQueue {
   struct doca_mmap* pkt_buff_mmap;      /* DOCA mmap to receive packet with DOCA Ethernet queue */
   void* gpu_pkt_addr;                   /* DOCA mmap GPU memory address */
   void* cpu_pkt_addr;                   /* DOCA mmap CPU pinned memory address */
-  uint32_t pkt_mkey;                    /* DOCA mmap GPU memory address */
+  uint32_t pkt_mkey;                    /* DOCA mmap GPU memory key */
   int dmabuf_fd;                        /* GPU memory dmabuf file descriptor */
   int max_pkt_num;
   int max_pkt_size;
