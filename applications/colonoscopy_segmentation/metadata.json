@@ -38,7 +38,7 @@
 			"replayer": {
 				"description": "Use a pre-recorded video as input",
 				"build": {
-					"docker_build_args": ["--target", "base"]
+					"docker_build_args": ["--target", "holohub-cli"]
 				},
 				"run": {
 					"command": "python3 colonoscopy_segmentation.py --data <holohub_data_dir>/colonoscopy_segmentation --no-contours",
