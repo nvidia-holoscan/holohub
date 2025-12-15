@@ -23,11 +23,13 @@ If you want to manually convert the video data, please refer to the instructions
 ## Build Instructions
 
 To build the application in a runtime container:
+
 ```bash
 ./holohub build colonoscopy_segmentation
 ```
 
 Or, to build the application in the host environment, install the application dependencies and then run:
+
 ```bash
 ./holohub build --local colonoscopy_segmentation
 ```
@@ -37,11 +39,13 @@ Or, to build the application in the host environment, install the application de
 ### Application Presets
 
 To run the application with the pre-recorded colonoscopy sample video
+
 ```bash
 ./holohub run colonoscopy_segmentation replayer
 ```
 
 To run the application with input from an AJA video capture card:
+
 ```bash
 ./holohub run colonoscopy_segmentation aja
 ```
@@ -49,6 +53,7 @@ To run the application with input from an AJA video capture card:
 ### Application Configurations
 
 To pass runtime arguments to the application:
+
 ```bash
 ./holohub run colonoscopy_segmentation --run-args="--contours --source=\"replayer\""
 ```
