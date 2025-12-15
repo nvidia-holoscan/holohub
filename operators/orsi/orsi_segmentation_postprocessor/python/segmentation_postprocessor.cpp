@@ -75,7 +75,9 @@ class PyOrsiSegmentationPostprocessorOp : public orsi::SegmentationPostprocessor
                                                   Arg{"output_roi_rect", output_roi_rect},
                                                   Arg{"output_img_size", output_img_size},
                                                   Arg{"allocator", allocator}}) {
-    if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
+    if (cuda_stream_pool) {
+      this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool});
+    }
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;

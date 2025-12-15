@@ -23,7 +23,9 @@ __global__ void gen_coords_kernel(unsigned int count, int property_size, const f
                                   float* output) {
   const uint32_t index = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (index >= count) { return; }
+  if (index >= count) {
+    return;
+  }
 
   output[index * property_size + 0] = input[index * 2 + 1];
   output[index * property_size + 1] = input[index * 2 + 0];

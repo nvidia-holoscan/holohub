@@ -42,7 +42,9 @@ template <>
 struct YAML::convert<holoscan::ops::SlangShaderOp::PreprocessorMacros> {
   static Node encode(const holoscan::ops::SlangShaderOp::PreprocessorMacros& preprocessor_macros) {
     Node node;
-    for (const auto& [key, value] : preprocessor_macros) { node[key] = value; }
+    for (const auto& [key, value] : preprocessor_macros) {
+      node[key] = value;
+    }
     return node;
   }
 
@@ -535,13 +537,19 @@ void SlangShaderOp::compute(InputContext& op_input, OutputContext& op_output,
   ScopedPushCuContext cuda_context(impl_->cuda_context_);
 
   // Execute the pre-launch commands
-  for (auto& command : impl_->pre_launch_commands_) { command->execute(workspace); }
+  for (auto& command : impl_->pre_launch_commands_) {
+    command->execute(workspace);
+  }
 
   // Execute the launch commands
-  for (auto& command : impl_->launch_commands_) { command->execute(workspace); }
+  for (auto& command : impl_->launch_commands_) {
+    command->execute(workspace);
+  }
 
   // Execute the post-launch commands
-  for (auto& command : impl_->post_launch_commands_) { command->execute(workspace); }
+  for (auto& command : impl_->post_launch_commands_) {
+    command->execute(workspace);
+  }
 }
 
 }  // namespace holoscan::ops

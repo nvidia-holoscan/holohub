@@ -61,8 +61,12 @@ void print_tensor(const std::shared_ptr<holoscan::Tensor>& tensor, size_t n_prin
                     device.device_id);
   HOLOSCAN_LOG_INFO(
       "dtype.code={}, dtype.bits={}, dtype.lanes={}", dtype.code, dtype.bits, dtype.lanes);
-  for (int i = 0; i < shape.size(); ++i) { HOLOSCAN_LOG_INFO("shape[{}]={}", i, shape[i]); }
-  for (int i = 0; i < strides.size(); ++i) { HOLOSCAN_LOG_INFO("strides[{}]={}", i, strides[i]); }
+  for (int i = 0; i < shape.size(); ++i) {
+    HOLOSCAN_LOG_INFO("shape[{}]={}", i, shape[i]);
+  }
+  for (int i = 0; i < strides.size(); ++i) {
+    HOLOSCAN_LOG_INFO("strides[{}]={}", i, strides[i]);
+  }
   HOLOSCAN_LOG_INFO("size={}", size);
   HOLOSCAN_LOG_INFO("ndim={}", ndim);
   HOLOSCAN_LOG_INFO("itemsize={}", itemsize);
@@ -231,7 +235,9 @@ class DetectionPostprocessorOp : public Operator {
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) {
-    if (source == "aja") { is_aja_source_ = true; }
+    if (source == "aja") {
+      is_aja_source_ = true;
+    }
   }
 
   void set_datapath(const std::string& path) {

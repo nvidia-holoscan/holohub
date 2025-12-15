@@ -56,7 +56,9 @@ struct BufferInfo {
     buffer_ptr = tensor->pointer();
     storage_type = tensor->storage_type();
     bytes_size = tensor->bytes_size();
-    for (uint32_t i = 0; i < rank; ++i) { stride[i] = tensor->stride(i); }
+    for (uint32_t i = 0; i < rank; ++i) {
+      stride[i] = tensor->stride(i);
+    }
 
     return GXF_SUCCESS;
   }

@@ -74,7 +74,9 @@ class SourceOp : public Operator {
     const float sample_time = duration / samples;
     const float omega = 2 * M_PI * frequency_;  // Angular frequency
     std::vector<float> wave(samples);
-    for (uint32_t i = 0; i < samples; i++) { wave[i] = std::sin(omega * i * sample_time); }
+    for (uint32_t i = 0; i < samples; i++) {
+      wave[i] = std::sin(omega * i * sample_time);
+    }
 
     // Gradually increase frequency from 10 to 20 Hz, then wrap back to 10 Hz
     frequency_ += 0.1f;

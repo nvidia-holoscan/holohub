@@ -139,7 +139,9 @@ void BasicNetworkOpTx::compute(InputContext& op_input, [[maybe_unused]] OutputCo
     msg->len -= sent;
     byte_cnt_ += sent;
 
-    if (ipg_.get() > 0) { nanosleep(&ts_, nullptr); }
+    if (ipg_.get() > 0) {
+      nanosleep(&ts_, nullptr);
+    }
   }
 
   byte_cnt_ = 0;

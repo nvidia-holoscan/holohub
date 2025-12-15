@@ -396,8 +396,12 @@ void XrBeginFrameOp::compute(InputContext& input, OutputContext& output,
   }
 
   static const xr::Posef id_pose{xr::Quaternionf{0, 0, 0, 1}, xr::Vector3f{0, 0, 0}};
-  if (!aim_pose_emitted) { output.emit(poseAction(id_pose), "aim_pose"); }
-  if (!grip_pose_emitted) { output.emit(poseAction(id_pose), "grip_pose"); }
+  if (!aim_pose_emitted) {
+    output.emit(poseAction(id_pose), "aim_pose");
+  }
+  if (!grip_pose_emitted) {
+    output.emit(poseAction(id_pose), "grip_pose");
+  }
 
   // emit device state
   xr::Posef head_pose =

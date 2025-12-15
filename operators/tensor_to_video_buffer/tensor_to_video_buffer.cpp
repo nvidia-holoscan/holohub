@@ -117,10 +117,14 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
 
   // Create and pass the GXF video buffer downstream.
   auto out_message = nvidia::gxf::Entity::New(context.context());
-  if (!out_message) { throw std::runtime_error("Failed to allocate message; terminating."); }
+  if (!out_message) {
+    throw std::runtime_error("Failed to allocate message; terminating.");
+  }
 
   auto buffer = out_message.value().add<nvidia::gxf::VideoBuffer>();
-  if (!buffer) { throw std::runtime_error("Failed to allocate video buffer; terminating."); }
+  if (!buffer) {
+    throw std::runtime_error("Failed to allocate video buffer; terminating.");
+  }
 
   auto in_tensor_ptr = static_cast<uint8_t*>(in_tensor_data);
   switch (video_format_type_) {

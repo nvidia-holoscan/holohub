@@ -146,7 +146,9 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
     throw std::runtime_error("Expecting two single-tensor inputs");
   }
 
-  if (!(nChannels == 3)) { throw std::runtime_error("Input tensors expected to have 3 channels"); }
+  if (!(nChannels == 3)) {
+    throw std::runtime_error("Input tensors expected to have 3 channels");
+  }
 
   // wrap tensor buffers in VPIImages
   VPIImage inLeftRGB, inRightRGB, outDisp;
@@ -167,7 +169,9 @@ void VPIStereoOp::compute(InputContext& op_input, OutputContext& op_output,
   // allocate output buffer for F32 disparity
   auto pointerDisp = std::shared_ptr<void*>(new void*, [](void** pointer) {
     if (pointer != nullptr) {
-      if (*pointer != nullptr) { cudaFree(*pointer); }
+      if (*pointer != nullptr) {
+        cudaFree(*pointer);
+      }
       delete pointer;
     }
   });

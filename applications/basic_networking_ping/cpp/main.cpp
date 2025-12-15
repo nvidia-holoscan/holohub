@@ -65,7 +65,9 @@ class BasicNetworkPingRxOp : public Operator {
 
     delete[] in->data;
 
-    if (val == NUM_MSGS - 1) { GxfGraphInterrupt(context.context()); }
+    if (val == NUM_MSGS - 1) {
+      GxfGraphInterrupt(context.context());
+    }
   }
 
  private:

@@ -54,14 +54,18 @@ constexpr std::array<std::pair<std::string_view, nvidia::gxf::EncoderConfig>, 4>
 
 constexpr EncoderInputFormat get_encoder_input_format(std::string_view format) {
   for (const auto& [key, value] : EncoderInputFormatMapping) {
-    if (key == format) { return value; }
+    if (key == format) {
+      return value;
+    }
   }
   return nvidia::gxf::EncoderInputFormat::kUnsupported;
 }
 
 constexpr EncoderConfig get_encoder_config(std::string_view config) {
   for (const auto& [key, value] : EncoderConfigMapping) {
-    if (key == config) { return value; }
+    if (key == config) {
+      return value;
+    }
   }
   return nvidia::gxf::EncoderConfig::kUnsupported;
 }

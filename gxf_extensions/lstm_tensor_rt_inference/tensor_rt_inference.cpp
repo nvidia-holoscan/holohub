@@ -67,22 +67,30 @@ inline bool EndsWith(const std::string& str, const std::string& suffix) {
 
 bool IsValidFile(const std::string& path) {
   struct stat st;
-  if (stat(path.c_str(), &st) != 0) { return false; }
+  if (stat(path.c_str(), &st) != 0) {
+    return false;
+  }
   return static_cast<bool>(st.st_mode & S_IFREG);
 }
 
 bool IsValidDirectory(const std::string& path) {
   struct stat st;
-  if (stat(path.c_str(), &st) != 0) { return false; }
+  if (stat(path.c_str(), &st) != 0) {
+    return false;
+  }
   return static_cast<bool>(st.st_mode & S_IFDIR);
 }
 
 bool ReadEntireBinaryFile(const std::string& file_path, std::vector<char>& buffer) {
   // Make sure we are  opening a valid file.
-  if (!IsValidFile(file_path)) { return false; }
+  if (!IsValidFile(file_path)) {
+    return false;
+  }
   // Open the file in binary mode and seek to the end
   std::ifstream file(file_path, std::ios::binary | std::ios::ate);
-  if (!file) { return false; }
+  if (!file) {
+    return false;
+  }
   // Get the size of the file and seek back to the beginning
   const size_t size = file.tellg();
   file.seekg(0);
@@ -100,7 +108,9 @@ const std::string FormatDims(const std::array<int32_t, gxf::Shape::kMaxRank>& di
   std::ostream stream(&sbuf);
   stream << "[";
   for (int i = 0; i < rank; ++i) {
-    if (i > 0) { stream << ", "; }
+    if (i > 0) {
+      stream << ", ";
+    }
     stream << dimensions[i];
   }
   stream << "]";
@@ -110,7 +120,9 @@ const std::string FormatDims(const std::array<int32_t, gxf::Shape::kMaxRank>& di
 // Formats gxf shape for console spew
 const std::string FormatTensorShape(const gxf::Shape& shape) {
   std::array<int32_t, gxf::Shape::kMaxRank> dimensions;
-  for (uint32_t i = 0; i < shape.rank(); ++i) { dimensions[i] = shape.dimension(i); }
+  for (uint32_t i = 0; i < shape.rank(); ++i) {
+    dimensions[i] = shape.dimension(i);
+  }
   return FormatDims(dimensions, shape.rank());
 }
 
@@ -118,7 +130,9 @@ const std::string FormatTensorShape(const gxf::Shape& shape) {
 std::array<int32_t, gxf::Shape::kMaxRank> Dims2Dimensions(const nvinfer1::Dims& dims) {
   std::array<int32_t, gxf::Shape::kMaxRank> dimensions;
   dimensions.fill(1);
-  for (int32_t i = 0; i < dims.nbDims; i++) { dimensions[i] = dims.d[i]; }
+  for (int32_t i = 0; i < dims.nbDims; i++) {
+    dimensions[i] = dims.d[i];
+  }
   return dimensions;
 }
 
@@ -183,7 +197,9 @@ void TensorRTInferenceLogger::log(ILogger::Severity severity, const char* msg) t
       break;
     }
     case Severity::kVERBOSE: {
-      if (verbose_) { GXF_LOG_DEBUG("TRT VERBOSE: %s", msg); }
+      if (verbose_) {
+        GXF_LOG_DEBUG("TRT VERBOSE: %s", msg);
+      }
       break;
     }
     default: {
@@ -399,7 +415,9 @@ gxf_result_t TensorRtInference::start() {
   infer_runtime_.reset(nvinfer1::createInferRuntime(cuda_logger_));
 
   // Deserialize the CUDA engine
-  if (verbose_.get()) { GXF_LOG_DEBUG("Creating inference runtime."); }
+  if (verbose_.get()) {
+    GXF_LOG_DEBUG("Creating inference runtime.");
+  }
   cuda_engine_.reset(infer_runtime_->deserializeCudaEngine(plan.data(), plan.size()));
 
   // Debug spews
@@ -453,7 +471,9 @@ gxf_result_t TensorRtInference::start() {
 
   // Initialize internal state tensors
   internal_states_ = gxf::Entity::New(context());
-  if (!internal_states_) { return gxf::ToResultCode(internal_states_); }
+  if (!internal_states_) {
+    return gxf::ToResultCode(internal_states_);
+  }
 
   // Keeps record of input bindings
   binding_infos_.clear();
@@ -732,7 +752,9 @@ gxf_result_t TensorRtInference::tick() {
   messages.reserve(rx_.get().size());
   for (auto& rx : rx_.get()) {
     gxf::Expected<gxf::Entity> maybe_message = rx->receive();
-    if (maybe_message) { messages.push_back(std::move(maybe_message.value())); }
+    if (maybe_message) {
+      messages.push_back(std::move(maybe_message.value()));
+    }
   }
   if (messages.empty()) {
     GXF_LOG_ERROR("No message available.");
@@ -749,7 +771,9 @@ gxf_result_t TensorRtInference::tick() {
   gxf::Expected<gxf::Handle<gxf::Timestamp>> maybe_input_timestamp = gxf::Unexpected{GXF_FAILURE};
   for (auto& msg : messages) {
     maybe_input_timestamp = msg.get<gxf::Timestamp>("timestamp");
-    if (maybe_input_timestamp) { break; }
+    if (maybe_input_timestamp) {
+      break;
+    }
   }
   // Populates input tensors
   for (uint32_t input_index = 0; input_index < input_tensor_names_.get().size(); ++input_index) {
@@ -762,7 +786,9 @@ gxf_result_t TensorRtInference::tick() {
                   tensor_name) == input_state_tensor_names_.get().end()) {
       for (auto& msg : messages) {
         maybe_tensor = msg.get<gxf::Tensor>(tensor_name.c_str());
-        if (maybe_tensor) { break; }
+        if (maybe_tensor) {
+          break;
+        }
       }
       if (!maybe_tensor) {
         GXF_LOG_ERROR("Failed to retrieve Tensor %s", tensor_name.c_str());
@@ -788,7 +814,9 @@ gxf_result_t TensorRtInference::tick() {
     const auto& binding_info = binding_infos_[tensor_name];
     nvinfer1::Dims dims;
     dims.nbDims = binding_info.rank;
-    for (int32_t i = 0; i < dims.nbDims; ++i) { dims.d[i] = binding_info.dimensions[i]; }
+    for (int32_t i = 0; i < dims.nbDims; ++i) {
+      dims.d[i] = binding_info.dimensions[i];
+    }
 
     // Checks input tensor element type
     if (input_tensor.element_type() != binding_info.element_type) {
@@ -852,7 +880,9 @@ gxf_result_t TensorRtInference::tick() {
         return GXF_FAILURE;
       }
       for (uint32_t i = 0; i < binding_info.rank; i++) {
-        if (binding_info.dimensions[i] == -1) { dims.d[i] = shape.dimension(i); }
+        if (binding_info.dimensions[i] == -1) {
+          dims.d[i] = shape.dimension(i);
+        }
         if (shape.dimension(i) != binding_info.dimensions[i] && binding_info.dimensions[i] != -1) {
           GXF_LOG_ERROR("Tensor %s bound to %s has mismatching dimension %d:%d (%d required)",
                         tensor_name.c_str(),
@@ -886,7 +916,9 @@ gxf_result_t TensorRtInference::tick() {
 
   // Creates result message entity
   gxf::Expected<gxf::Entity> maybe_result_message = gxf::Entity::New(context());
-  if (!maybe_result_message) { return gxf::ToResultCode(maybe_result_message); }
+  if (!maybe_result_message) {
+    return gxf::ToResultCode(maybe_result_message);
+  }
 
   // Creates tensors for output
 #if NV_TENSORRT_MAJOR < 8 || (NV_TENSORRT_MAJOR == 8 && NV_TENSORRT_MINOR <5)

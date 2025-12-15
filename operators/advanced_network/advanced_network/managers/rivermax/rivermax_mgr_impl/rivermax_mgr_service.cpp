@@ -95,7 +95,9 @@ void RivermaxManagerRxService::run() {
 }
 
 void RivermaxManagerRxService::shutdown() {
-  if (rx_service_) { HOLOSCAN_LOG_INFO("Shutting down Receiver:{}", service_id_); }
+  if (rx_service_) {
+    HOLOSCAN_LOG_INFO("Shutting down Receiver:{}", service_id_);
+  }
   initialized_ = false;
 }
 
@@ -106,7 +108,9 @@ Status RivermaxManagerRxService::get_rx_burst(BurstParams** burst) {
   }
   auto out_burst = rx_bursts_out_queue_->dequeue_burst().get();
   *burst = static_cast<BurstParams*>(out_burst);
-  if (*burst == nullptr) { return Status::NOT_READY; }
+  if (*burst == nullptr) {
+    return Status::NOT_READY;
+  }
   return Status::SUCCESS;
 }
 
@@ -155,7 +159,9 @@ void IPOReceiverService::print_stats(std::stringstream& ss) const {
 
     ss << " dropped: ";
     for (uint32_t s_index = 0; s_index < stream_stats[i].path_stats.size(); ++s_index) {
-      if (s_index > 0) { ss << ", "; }
+      if (s_index > 0) {
+        ss << ", ";
+      }
       ss << stream_stats[i].path_stats[s_index].rx_dropped + stream_stats[i].rx_dropped;
     }
     ss << " |"
@@ -282,7 +288,9 @@ void RivermaxManagerTxService::run() {
 }
 
 void RivermaxManagerTxService::shutdown() {
-  if (tx_service_) { HOLOSCAN_LOG_INFO("Shutting down TX Service:{}", service_id_); }
+  if (tx_service_) {
+    HOLOSCAN_LOG_INFO("Shutting down TX Service:{}", service_id_);
+  }
   initialized_ = false;
 }
 
@@ -525,7 +533,9 @@ Status MediaSenderService::send_tx_burst(BurstParams* burst) {
 }
 
 bool MediaSenderService::is_tx_burst_available(BurstParams* burst) {
-  if (!initialized_ || !tx_media_frame_pool_) { return false; }
+  if (!initialized_ || !tx_media_frame_pool_) {
+    return false;
+  }
   //  Check if we have available frames in the pool and no current processing frame
   return (tx_media_frame_pool_->get_available_frames_count() > 0 && !processing_frame_);
 }
@@ -536,13 +546,21 @@ void MediaSenderService::free_tx_burst(BurstParams* burst) {
   std::lock_guard<std::mutex> lock(mutex_);
   HOLOSCAN_LOG_TRACE(
       "MediaSenderService{}:{}::free_tx_burst(): Processing frame was reset", port_id_, queue_id_);
-  if (processing_frame_) { processing_frame_.reset(); }
+  if (processing_frame_) {
+    processing_frame_.reset();
+  }
 }
 
 void MediaSenderService::shutdown() {
-  if (processing_frame_) { processing_frame_.reset(); }
-  if (tx_media_frame_provider_) { tx_media_frame_provider_->stop(); }
-  if (tx_media_frame_pool_) { tx_media_frame_pool_->stop(); }
+  if (processing_frame_) {
+    processing_frame_.reset();
+  }
+  if (tx_media_frame_provider_) {
+    tx_media_frame_provider_->stop();
+  }
+  if (tx_media_frame_pool_) {
+    tx_media_frame_pool_->stop();
+  }
 }
 
 MediaSenderZeroCopyService::MediaSenderZeroCopyService(
@@ -642,7 +660,9 @@ Status MediaSenderZeroCopyService::send_tx_burst(BurstParams* burst) {
 }
 
 bool MediaSenderZeroCopyService::is_tx_burst_available(BurstParams* burst) {
-  if (!initialized_) { return false; }
+  if (!initialized_) {
+    return false;
+  }
   return (!is_frame_in_process_ &&
     tx_media_frame_provider_->get_queue_size() < MEDIA_FRAME_PROVIDER_SIZE);
 }
@@ -659,7 +679,9 @@ void MediaSenderZeroCopyService::free_tx_burst(BurstParams* burst) {
 }
 
 void MediaSenderZeroCopyService::shutdown() {
-  if (tx_media_frame_provider_) { tx_media_frame_provider_->stop(); }
+  if (tx_media_frame_provider_) {
+    tx_media_frame_provider_->stop();
+  }
 }
 
 }  // namespace holoscan::advanced_network

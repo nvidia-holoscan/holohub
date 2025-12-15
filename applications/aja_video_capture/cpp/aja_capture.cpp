@@ -39,7 +39,9 @@ int main(int argc, char** argv) {
   // Get the configuration
   auto config_path = std::filesystem::canonical(argv[0]).parent_path();
   config_path /= std::filesystem::path("aja_capture.yaml");
-  if (argc >= 2) { config_path = argv[1]; }
+  if (argc >= 2) {
+    config_path = argv[1];
+  }
 
   app.config(config_path);
 

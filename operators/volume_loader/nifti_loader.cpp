@@ -41,7 +41,9 @@ bool load_nifty(const std::string& file_name, Volume& volume) {
 
   std::unique_ptr<nifti_image> image;
   image.reset(nifti_image_read(file_name.c_str(), true));
-  if (!image) { return false; }
+  if (!image) {
+    return false;
+  }
 
   if ((image->ndim != 3) && (image->ndim != 4)) {
     holoscan::log_error("NIFTI unhandled number of dimensions {}, expected 3 or 4", image->ndim);
@@ -145,7 +147,9 @@ bool load_nifty(const std::string& file_name, Volume& volume) {
 
   // allocate the tensor
   std::vector<int32_t> dims;
-  if (image->nt > 1) { dims.push_back(image->nt); }
+  if (image->nt > 1) {
+    dims.push_back(image->nt);
+  }
   dims.push_back(image->nz);
   dims.push_back(image->ny);
   dims.push_back(image->nx);

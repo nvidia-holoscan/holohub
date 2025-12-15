@@ -36,7 +36,9 @@ void VolumeLoaderOp::setup(OperatorSpec& spec) {
       has_file_name_set = arg.has_value() && !std::any_cast<std::string>(arg.value()).empty();
     }
   }
-  if (!has_file_name_set) { spec.input<std::string>("file_name"); }
+  if (!has_file_name_set) {
+    spec.input<std::string>("file_name");
+  }
 
   spec.param(file_name_, "file_name", "FileName", "Volume data file name", {});
   spec.param(allocator_, "allocator", "Allocator", "Allocator used to allocate the volume data");
@@ -53,7 +55,9 @@ void VolumeLoaderOp::setup(OperatorSpec& spec) {
 
 void VolumeLoaderOp::compute(InputContext& input, OutputContext& output,
                              ExecutionContext& context) {
-  if (!allocator_.get()) { throw std::runtime_error("No allocator set."); }
+  if (!allocator_.get()) {
+    throw std::runtime_error("No allocator set.");
+  }
 
   std::string file_name = file_name_.get();
 

@@ -31,7 +31,9 @@ __global__ void filter_binary_mask_kernel(uint32_t width, uint32_t height, uint3
   const uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   const uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if ((x >= width) || (y >= height)) { return; }
+  if ((x >= width) || (y >= height)) {
+    return;
+  }
 
   float value = binary_mask[((index * height) + y) * width + x];
 

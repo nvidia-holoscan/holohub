@@ -193,7 +193,9 @@ void OrsiVis::resizeVideoBufferResources(int width, int height, int channels) {
 
 void OrsiVis::resizeSegmentationMaskResources(int width, int height) {
   // no need to re-allocate if nothing changed
-  if (seg_mask_width_ == width && seg_mask_height_ == height) { return; }
+  if (seg_mask_width_ == width && seg_mask_height_ == height) {
+    return;
+  }
 
   seg_mask_width_ = width;
   seg_mask_height_ = height;
@@ -467,7 +469,9 @@ void OrsiVis::compute(
 
     apply_anonymization_effect_ = sigmoid_result;
 
-    if (!toggle_anonymization_) { apply_anonymization_effect_ = false; }
+    if (!toggle_anonymization_) {
+      apply_anonymization_effect_ = false;
+    }
   } else {
     apply_anonymization_effect_ = false;
   }

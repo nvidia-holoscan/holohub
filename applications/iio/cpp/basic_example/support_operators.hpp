@@ -220,7 +220,9 @@ class BasicIIOBufferPrinterOP : public Operator {
 
     if (enabled_channels == 1) {
       std::cout << "Channel 0: ";
-      for (size_t i = 0; i < max_samples; ++i) { std::cout << buffer[i] << " "; }
+      for (size_t i = 0; i < max_samples; ++i) {
+        std::cout << buffer[i] << " ";
+      }
       std::cout << std::endl;
     } else {
       // Print interleaved samples for each channel

@@ -48,7 +48,9 @@ struct YAML::convert<NTV2Channel> {
     try {
       size_t len;
       const auto index = std::stoi(value, &len);
-      if (index < 1 || index > NTV2_MAX_NUM_CHANNELS || len != value.length()) { return false; }
+      if (index < 1 || index > NTV2_MAX_NUM_CHANNELS || len != value.length()) {
+        return false;
+      }
       rhs = static_cast<NTV2Channel>(index - 1);
       return true;
     } catch (...) { return false; }

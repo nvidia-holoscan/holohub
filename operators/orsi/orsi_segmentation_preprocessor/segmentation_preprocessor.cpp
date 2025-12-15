@@ -167,7 +167,9 @@ void SegmentationPreprocessorOp::compute(InputContext& op_input, OutputContext& 
 
   const std::string out_tensor_name = out_tensor_name_.get();
   auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(out_tensor_name.c_str());
-  if (!out_tensor) { throw std::runtime_error("Failed to allocator_ate output tensor"); }
+  if (!out_tensor) {
+    throw std::runtime_error("Failed to allocator_ate output tensor");
+  }
 
   // Allocate and convert output buffer on the device.
   nvidia::gxf::Shape output_shape{shape.height, shape.width, shape.channels};
@@ -184,7 +186,9 @@ void SegmentationPreprocessorOp::compute(InputContext& op_input, OutputContext& 
   const float* in_tensor_data = static_cast<float*>(in_tensor->data());
 
   nvidia::gxf::Expected<float*> out_tensor_data = out_tensor.value()->data<float>();
-  if (!out_tensor_data) { throw std::runtime_error("Failed to get out tensor data!"); }
+  if (!out_tensor_data) {
+    throw std::runtime_error("Failed to get out tensor data!");
+  }
 
   cuda_preprocess(data_format_value_, shape, in_tensor_data, out_tensor_data.value(), means_cuda_,
                   stds_cuda_);

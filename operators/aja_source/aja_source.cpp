@@ -300,7 +300,9 @@ AJAStatus AJASourceOp::SetupVideo() {
   }
   device_.SetVideoFormat(video_format_, false, false, channel_);
   device_.SetFrameBufferFormat(channel_, pixel_format_);
-  if (use_tsi_) { device_.SetFrameBufferFormat(tsi_channel, pixel_format_); }
+  if (use_tsi_) {
+    device_.SetFrameBufferFormat(tsi_channel, pixel_format_);
+  }
   device_.EnableInputInterrupt(channel_);
   device_.SubscribeInputVerticalEvent(channel_);
 
@@ -440,7 +442,9 @@ void AJASourceOp::FreeBuffers(std::vector<void*>& buffers, bool rdma) {
 AJAStatus AJASourceOp::SetupBuffers() {
   auto size = GetVideoWriteSize(video_format_, pixel_format_);
 
-  if (!AllocateBuffers(buffers_, kNumBuffers, size, use_rdma_)) { return AJA_STATUS_INITIALIZE; }
+  if (!AllocateBuffers(buffers_, kNumBuffers, size, use_rdma_)) {
+    return AJA_STATUS_INITIALIZE;
+  }
 
   if (enable_overlay_) {
     if (!AllocateBuffers(overlay_buffers_, kNumBuffers, size, overlay_rdma_)) {
@@ -462,7 +466,9 @@ void AJASourceOp::initialize() {
     auto& param_wrap = spec()->params()["enable_overlay"];
     ArgumentSetter::set_param(param_wrap, (*enable_overlay_arg));
   }
-  if (!enable_overlay_.has_value()) { enable_overlay_.set_default_value(); }
+  if (!enable_overlay_.has_value()) {
+    enable_overlay_.set_default_value();
+  }
   // If overlay is disabled, insert ConditionType::kNone
   // condition so that its default condition (DownstreamMessageAffordableCondition) is not added
   // during Operator::initialize().
@@ -522,7 +528,9 @@ void AJASourceOp::start() {
   }
 
   status = SetupBuffers();
-  if (AJA_FAILURE(status)) { throw std::runtime_error("Failed to setup AJA buffers."); }
+  if (AJA_FAILURE(status)) {
+    throw std::runtime_error("Failed to setup AJA buffers.");
+  }
 }
 
 void AJASourceOp::compute(InputContext& op_input, OutputContext& op_output,
@@ -628,7 +636,9 @@ void AJASourceOp::stop() {
   device_.UnsubscribeInputVerticalEvent(channel_);
   device_.DMABufferUnlockAll();
 
-  if (enable_overlay_) { device_.SetMixerMode(0, NTV2MIXERMODE_FOREGROUND_OFF); }
+  if (enable_overlay_) {
+    device_.SetMixerMode(0, NTV2MIXERMODE_FOREGROUND_OFF);
+  }
 
   FreeBuffers(buffers_, use_rdma_);
   FreeBuffers(overlay_buffers_, overlay_rdma_);

@@ -649,7 +649,9 @@ void FormatConverterOp::convertTensorFormat(const void* in_tensor_data, void* ou
         if (out_channel_order.size() != 4) {
           throw std::runtime_error("Invalid channel order for RGBA8888.");
         }
-        for (int i = 0; i < 4; i++) { dst_order[i] = out_channel_order[i]; }
+        for (int i = 0; i < 4; i++) {
+          dst_order[i] = out_channel_order[i];
+        }
       }
       status = nppiSwapChannels_8u_C3C4R_Ctx(in_tensor_ptr,
                                              src_step,
@@ -670,7 +672,9 @@ void FormatConverterOp::convertTensorFormat(const void* in_tensor_data, void* ou
         if (out_channel_order.size() != 3) {
           throw std::runtime_error("Invalid channel order for RGB888.");
         }
-        for (int i = 0; i < 3; i++) { dst_order[i] = out_channel_order[i]; }
+        for (int i = 0; i < 3; i++) {
+          dst_order[i] = out_channel_order[i];
+        }
       }
       status = nppiSwapChannels_8u_C4C3R_Ctx(in_tensor_ptr,
                                              src_step,
@@ -706,7 +710,9 @@ void FormatConverterOp::convertTensorFormat(const void* in_tensor_data, void* ou
         if (out_channel_order.size() != 3) {
           throw std::runtime_error("Invalid channel order for RGB888");
         }
-        for (int i = 0; i < 3; i++) { dst_order[i] = out_channel_order[i]; }
+        for (int i = 0; i < 3; i++) {
+          dst_order[i] = out_channel_order[i];
+        }
       }
 
       status = nppiSwapChannels_8u_C4C3R_Ctx(in_tensor_ptr,
@@ -842,7 +848,9 @@ void FormatConverterOp::convertTensorFormat(const void* in_tensor_data, void* ou
               throw std::runtime_error(
                   fmt::format("Invalid channel order for {}", out_dtype_str_.get()));
             }
-            for (int i = 0; i < 3; i++) { dst_order[i] = out_channel_order[i]; }
+            for (int i = 0; i < 3; i++) {
+              dst_order[i] = out_channel_order[i];
+            }
             switch (out_primitive_type_) {
               case nvidia::gxf::PrimitiveType::kUnsigned8: {
                 auto out_tensor_ptr = static_cast<uint8_t*>(out_tensor_data);
@@ -869,7 +877,9 @@ void FormatConverterOp::convertTensorFormat(const void* in_tensor_data, void* ou
               throw std::runtime_error(
                   fmt::format("Invalid channel order for {}", out_dtype_str_.get()));
             }
-            for (int i = 0; i < 4; i++) { dst_order[i] = out_channel_order[i]; }
+            for (int i = 0; i < 4; i++) {
+              dst_order[i] = out_channel_order[i];
+            }
             switch (out_primitive_type_) {
               case nvidia::gxf::PrimitiveType::kUnsigned8: {
                 auto out_tensor_ptr = static_cast<uint8_t*>(out_tensor_data);

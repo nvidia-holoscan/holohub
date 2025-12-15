@@ -33,7 +33,9 @@ void CropOp::compute(InputContext& op_input, OutputContext& op_output, Execution
   auto maybe_tensormap = op_input.receive<holoscan::TensorMap>("input");
   const auto tensormap = maybe_tensormap.value();
 
-  if (tensormap.size() != 1) { throw std::runtime_error("Expecting single tensor input"); }
+  if (tensormap.size() != 1) {
+    throw std::runtime_error("Expecting single tensor input");
+  }
 
   auto tensor = tensormap.begin()->second;
   int orig_height = tensor->shape()[0];
@@ -54,7 +56,9 @@ void CropOp::compute(InputContext& op_input, OutputContext& op_output, Execution
 
   auto pointer = std::shared_ptr<void*>(new void*, [](void** pointer) {
     if (pointer != nullptr) {
-      if (*pointer != nullptr) { cudaFree(*pointer); }
+      if (*pointer != nullptr) {
+        cudaFree(*pointer);
+      }
       delete pointer;
     }
   });

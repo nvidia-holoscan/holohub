@@ -107,7 +107,9 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 #endif
     }
 
-    if (hds_.get()) { assert(gpu_direct_.get()); }
+    if (hds_.get()) {
+      assert(gpu_direct_.get());
+    }
 
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::initialize() complete");
   }
@@ -115,11 +117,21 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   void freeResources() {
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::freeResources() start");
     for (int n = 0; n < num_concurrent; n++) {
-      if (full_batch_data_d_[n]) { cudaFree(full_batch_data_d_[n]); }
-      if (full_batch_data_h_[n]) { cudaFreeHost(full_batch_data_h_[n]); }
-      if (h_dev_ptrs_[n]) { cudaFreeHost(h_dev_ptrs_[n]); }
-      if (streams_[n]) { cudaStreamDestroy(streams_[n]); }
-      if (events_[n]) { cudaEventDestroy(events_[n]); }
+      if (full_batch_data_d_[n]) {
+        cudaFree(full_batch_data_d_[n]);
+      }
+      if (full_batch_data_h_[n]) {
+        cudaFreeHost(full_batch_data_h_[n]);
+      }
+      if (h_dev_ptrs_[n]) {
+        cudaFreeHost(h_dev_ptrs_[n]);
+      }
+      if (streams_[n]) {
+        cudaStreamDestroy(streams_[n]);
+      }
+      if (events_[n]) {
+        cudaEventDestroy(events_[n]);
+      }
     }
     HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::freeResources() complete");
   }

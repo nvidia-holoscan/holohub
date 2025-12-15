@@ -107,13 +107,17 @@ class DocaLogLevel {
  public:
   static std::string to_description_string(doca_log_level level) {
     auto it = level_to_string_description_map.find(level);
-    if (it != level_to_string_description_map.end()) { return it->second; }
+    if (it != level_to_string_description_map.end()) {
+      return it->second;
+    }
     throw std::logic_error(
         "Unrecognized log level, available options trace/debug/info/warn/error/critical/disable");
   }
   static doca_log_level from_adv_net_log_level(LogLevel::Level log_level) {
     auto it = adv_net_to_doca_log_level_map.find(log_level);
-    if (it != adv_net_to_doca_log_level_map.end()) { return it->second; }
+    if (it != adv_net_to_doca_log_level_map.end()) {
+      return it->second;
+    }
     return DOCA_LOG_LEVEL_DISABLE;
   }
 

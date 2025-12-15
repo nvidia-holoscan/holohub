@@ -62,7 +62,9 @@ inline Direction DirectionStringToType(const std::string& dir) {
  * @return int Number of directions enabled
  */
 inline int EnabledDirections(const std::string& dir) {
-  if (dir == "rx" || dir == "tx") { return 1; }
+  if (dir == "rx" || dir == "tx") {
+    return 1;
+  }
 
   return 0;
 }

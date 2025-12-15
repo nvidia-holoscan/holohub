@@ -65,17 +65,23 @@ void IIOConfigurator::parse_device(const YAML::Node& device_node, iio_device* de
   HOLOSCAN_LOG_INFO("DEVICE: {}", iio_device_get_name(dev));
   if (device_node["attrs"]) {
     auto& attrs = device_node["attrs"];
-    for (const auto& attr : attrs) { parse_attribute(attr, dev); }
+    for (const auto& attr : attrs) {
+      parse_attribute(attr, dev);
+    }
   }
 
   if (device_node["debug-attrs"]) {
     auto& debug_attrs = device_node["debug-attrs"];
-    for (const auto& attr : debug_attrs) { parse_attribute(attr, dev, IIODeviceAttrType::DEBUG); }
+    for (const auto& attr : debug_attrs) {
+      parse_attribute(attr, dev, IIODeviceAttrType::DEBUG);
+    }
   }
 
   if (device_node["buffer-attrs"]) {
     auto& debug_attrs = device_node["buffer-attrs"];
-    for (const auto& attr : debug_attrs) { parse_attribute(attr, dev, IIODeviceAttrType::BUFFER); }
+    for (const auto& attr : debug_attrs) {
+      parse_attribute(attr, dev, IIODeviceAttrType::BUFFER);
+    }
   }
 
   if (device_node["channels"]) {
@@ -169,7 +175,9 @@ void IIOConfigurator::parse_attribute(const YAML::Node& attr_node, iio_device* d
 void IIOConfigurator::parse_channel(const YAML::Node& channel_node, iio_channel* chan) {
   auto& channel_attrs = channel_node["attrs"];
   if (channel_attrs) {
-    for (const auto& attr : channel_attrs) { parse_attribute(attr, chan); }
+    for (const auto& attr : channel_attrs) {
+      parse_attribute(attr, chan);
+    }
   }
 }
 

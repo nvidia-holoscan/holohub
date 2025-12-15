@@ -220,9 +220,13 @@ doca_error_t DocaMgr::init_doca_devices() {
   std::string cores = std::to_string(cfg_.common_.master_core_) + ",";  // Master core must be first
 
   for (const auto& intf : cfg_.ifs_) {
-    for (const auto& q : intf.rx_.queues_) { cores += q.common_.cpu_core_ + ","; }
+    for (const auto& q : intf.rx_.queues_) {
+      cores += q.common_.cpu_core_ + ",";
+    }
 
-    for (const auto& q : intf.tx_.queues_) { cores += q.common_.cpu_core_ + ","; }
+    for (const auto& q : intf.tx_.queues_) {
+      cores += q.common_.cpu_core_ + ",";
+    }
   }
 
   cores = cores.substr(0, cores.size() - 1);
@@ -551,7 +555,9 @@ bool DocaMgr::set_config_and_initialize(const NetworkConfig& cfg) {
 }
 
 bool DocaMgr::validate_config() const {
-  if (!Manager::validate_config()) { return false; }
+  if (!Manager::validate_config()) {
+    return false;
+  }
 
   // Don't allow buffer splitting
   for (const auto& intf : cfg_.ifs_) {
@@ -613,7 +619,9 @@ void DocaMgr::initialize() {
 
   // Find all GPUs used in the MRs
   for (const auto& mr : cfg_.mrs_) {
-    if (mr.second.kind_ == MemoryKind::DEVICE) { gpu_mr_devs.emplace(mr.second.affinity_); }
+    if (mr.second.kind_ == MemoryKind::DEVICE) {
+      gpu_mr_devs.emplace(mr.second.affinity_);
+    }
   }
 
   // Populate all GPU device structures
@@ -693,7 +701,9 @@ void DocaMgr::initialize() {
         }
       }
 
-      if (!rte_is_power_of_2(rxq_pkts)) { rxq_pkts = rte_align32pow2(rxq_pkts); }
+      if (!rte_is_power_of_2(rxq_pkts)) {
+        rxq_pkts = rte_align32pow2(rxq_pkts);
+      }
 
       if (q_max_packet_size > THRESHOLD_PKT_SIZE && rxq_pkts > THRESHOLD_BUF_NUM) {
         HOLOSCAN_LOG_WARN("Decreasing num_bufs to {}", THRESHOLD_BUF_NUM);
@@ -781,7 +791,9 @@ void DocaMgr::initialize() {
 
       if (intf.rx_.queues_.size() > 0) {
         doca_ret = create_root_pipe(intf.port_id_);
-        if (doca_ret != DOCA_SUCCESS) { HOLOSCAN_LOG_CRITICAL("Can't create UDP root pipe"); }
+        if (doca_ret != DOCA_SUCCESS) {
+          HOLOSCAN_LOG_CRITICAL("Can't create UDP root pipe");
+        }
       }
 
       /* Create semaphore for GPU - CPU communication per rxq*/
@@ -1087,7 +1099,9 @@ DocaMgr::~DocaMgr() {
   // }
 
   /* Tx burst preallocate */
-  for (int idx = 0; idx < MAX_TX_BURST; idx++) { cudaFreeHost(burst[idx].pkt_lens[0]); }
+  for (int idx = 0; idx < MAX_TX_BURST; idx++) {
+    cudaFreeHost(burst[idx].pkt_lens[0]);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1270,7 +1284,9 @@ int DocaMgr::rx_core(void* arg) {
         queue_ids_str += ", ";
       }
     }
-    if (tparams->rxqn == 0) { queue_ids_str = "none"; }
+    if (tparams->rxqn == 0) {
+      queue_ids_str = "none";
+    }
     HOLOSCAN_LOG_INFO("Starting Rx Core {} (queue IDs: {}), GPU {}",
                       tparams->core_id,
                       queue_ids_str,
@@ -1548,7 +1564,9 @@ int DocaMgr::tx_core(void* arg) {
         queue_ids_str += ", ";
       }
     }
-    if (tparams->txqn == 0) { queue_ids_str = "none"; }
+    if (tparams->txqn == 0) {
+      queue_ids_str = "none";
+    }
     HOLOSCAN_LOG_INFO("Starting Tx Core {} (queue IDs: {}), GPU {}",
                       tparams->core_id,
                       queue_ids_str,
@@ -1707,7 +1725,9 @@ Status DocaMgr::get_tx_packet_burst(BurstParams* burst) {
   // Check if burst->hdr.hdr.num_pkts > max_tx_batch_size
 
   for (const auto& intf : cfg_.ifs_) {
-    if (burst->hdr.hdr.port_id != intf.port_id_) { continue; }
+    if (burst->hdr.hdr.port_id != intf.port_id_) {
+      continue;
+    }
 
     for (auto& q : intf.tx_.queues_) {
       if (q.common_.id_ == burst->hdr.hdr.q_id) {
@@ -1758,7 +1778,9 @@ Status DocaMgr::set_udp_payload(BurstParams* burst, int idx, void* data, int len
 
 bool DocaMgr::is_tx_burst_available(BurstParams* burst) {
   for (const auto& intf : cfg_.ifs_) {
-    if (burst->hdr.hdr.port_id != intf.port_id_) { continue; }
+    if (burst->hdr.hdr.port_id != intf.port_id_) {
+      continue;
+    }
 
     for (auto& q : intf.tx_.queues_) {
       if (q.common_.id_ == burst->hdr.hdr.q_id) {

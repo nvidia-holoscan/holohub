@@ -56,7 +56,9 @@ void TensorProto::gxf_tensor_to_proto(
     google::protobuf::Map<std::string, ::holoscan::entity::Tensor>* tensor_map,
     const cudaStream_t cuda_stream) {
   auto tensors = gxf_entity.findAll<nvidia::gxf::Tensor, 4>();
-  if (!tensors) { throw std::runtime_error("Tensor not found"); }
+  if (!tensors) {
+    throw std::runtime_error("Tensor not found");
+  }
 
   for (auto tensor : tensors.value()) {
     holoscan::entity::Tensor& tensor_proto = (*tensor_map)[tensor->name()];
@@ -107,7 +109,9 @@ void TensorProto::proto_to_gxf_tensor(
   for (auto tensor_entry : tensor_map) {
     const holoscan::entity::Tensor& tensor_proto = tensor_entry.second;
     auto tensor = gxf_entity.add<nvidia::gxf::Tensor>(tensor_entry.first.c_str());
-    if (!tensor) { throw std::runtime_error("Failed to create tensor"); }
+    if (!tensor) {
+      throw std::runtime_error("Failed to create tensor");
+    }
 
     nvidia::gxf::Shape shape({tensor_proto.dimensions().begin(), tensor_proto.dimensions().end()});
     switch (tensor_proto.primitive_type()) {

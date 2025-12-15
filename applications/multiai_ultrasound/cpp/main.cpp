@@ -36,7 +36,9 @@
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) {
-    if (source == "aja") { is_aja_source_ = true; }
+    if (source == "aja") {
+      is_aja_source_ = true;
+    }
   }
 
   enum class Record { NONE, INPUT, VISUALIZER };
@@ -238,7 +240,9 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
     }
   }
 
-  if (optind < argc) { config_name = argv[optind++]; }
+  if (optind < argc) {
+    config_name = argv[optind++];
+  }
   return true;
 }
 
@@ -248,7 +252,9 @@ int main(int argc, char** argv) {
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if (!parse_arguments(argc, argv, config_name, data_path)) { return 1; }
+  if (!parse_arguments(argc, argv, config_name, data_path)) {
+    return 1;
+  }
 
   if (config_name != "") {
     app->config(config_name);

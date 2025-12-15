@@ -53,13 +53,17 @@ HoloscanEntityServiceImpl::EntityStreamInternal::EntityStreamInternal(
 }
 
 HoloscanEntityServiceImpl::EntityStreamInternal::~EntityStreamInternal() {
-  if (writer_thread_.joinable()) { writer_thread_.join(); }
+  if (writer_thread_.joinable()) {
+    writer_thread_.join();
+  }
   HOLOSCAN_LOG_INFO("grpc server: RPC completed");
 }
 
 void HoloscanEntityServiceImpl::EntityStreamInternal::OnWriteDone(bool ok) {
   last_network_activity_ = std::chrono::high_resolution_clock::now();
-  if (!ok) { HOLOSCAN_LOG_WARN("grpc server: write failed, error writing response"); }
+  if (!ok) {
+    HOLOSCAN_LOG_WARN("grpc server: write failed, error writing response");
+  }
   write_mutex_.unlock();
 }
 

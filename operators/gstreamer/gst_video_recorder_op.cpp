@@ -85,7 +85,9 @@ std::string normalize_framerate(const std::string& framerate) {
 
     // Convert to rational: 29.97 = 2997/100
     int denominator = 1;
-    for (int i = 0; i < decimal_places; ++i) { denominator *= 10; }
+    for (int i = 0; i < decimal_places; ++i) {
+      denominator *= 10;
+    }
     int numerator = whole * denominator + fractional;
 
     std::string result = std::to_string(numerator) + "/" + std::to_string(denominator);

@@ -222,7 +222,9 @@ class RivermaxLogLevel {
    */
   static std::string to_description_string(Level level) {
     auto it = level_to_cmd_map.find(level);
-    if (it != level_to_cmd_map.end()) { return std::get<0>(it->second); }
+    if (it != level_to_cmd_map.end()) {
+      return std::get<0>(it->second);
+    }
     throw std::logic_error(
         "Unrecognized log level, available options "
         "debug/info/notice/warn/error/critical/alert/emergency/off");
@@ -236,7 +238,9 @@ class RivermaxLogLevel {
    */
   static std::string to_cmd_string(Level level) {
     auto it = level_to_cmd_map.find(level);
-    if (it != level_to_cmd_map.end()) { return std::get<1>(it->second); }
+    if (it != level_to_cmd_map.end()) {
+      return std::get<1>(it->second);
+    }
     throw std::logic_error(
         "Unrecognized log level, available options "
         "debug/info/notice/warn/error/critical/alert/emergency/off");
@@ -249,7 +253,9 @@ class RivermaxLogLevel {
    */
   static Level from_adv_net_log_level(LogLevel::Level level) {
     auto it = adv_net_to_rivermax_log_level_map.find(level);
-    if (it != adv_net_to_rivermax_log_level_map.end()) { return it->second; }
+    if (it != adv_net_to_rivermax_log_level_map.end()) {
+      return it->second;
+    }
     return OFF;
   }
 

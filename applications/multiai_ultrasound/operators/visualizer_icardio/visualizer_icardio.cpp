@@ -82,7 +82,9 @@ void VisualizerICardioOp::start() {
       std::accumulate(logo_dim.begin(), logo_dim.end(), 1, std::multiplies<size_t>());
 
   logo_image_ = allocator_.get()->allocate(logo_size, holoscan::MemoryStorageType::kDevice);
-  if (!logo_image_) { HoloInfer::raise_error(module_, "Failed to allocate logo memory."); }
+  if (!logo_image_) {
+    HoloInfer::raise_error(module_, "Failed to allocate logo memory.");
+  }
 
   std::string path_to_logo_file = data_dir_.get() + "/" + logo_file_;
   std::ifstream file_logo(path_to_logo_file);
@@ -131,7 +133,9 @@ void VisualizerICardioOp::compute(InputContext& op_input, OutputContext& op_outp
                                                             input_on_cuda_.get(),
                                                             module_,
                                                             cuda_stream);
-    if (stat != GXF_SUCCESS) { HoloInfer::raise_error(module_, "Tick, Data extraction"); }
+    if (stat != GXF_SUCCESS) {
+      HoloInfer::raise_error(module_, "Tick, Data extraction");
+    }
 
     if (tensor_size_map_.find(pc_tensor_name_) == tensor_size_map_.end()) {
       HoloInfer::report_error(module_, "Dimension not found for tensor " + pc_tensor_name_);
@@ -145,10 +149,14 @@ void VisualizerICardioOp::compute(InputContext& op_input, OutputContext& op_outp
     if (transmitters_.get().size() > 0) {
       for (unsigned int a = 0; a < transmitters_.get().size(); ++a) {
         auto out_message = nvidia::gxf::Entity::New(context.context());
-        if (!out_message) { HoloInfer::raise_error(module_, "Tick, Out message allocation"); }
+        if (!out_message) {
+          HoloInfer::raise_error(module_, "Tick, Out message allocation");
+        }
         std::string current_tensor_name{out_tensor_names_.get()[a]};
         auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(current_tensor_name.c_str());
-        if (!out_tensor) { HoloInfer::raise_error(module_, "Tick, Out tensor allocation"); }
+        if (!out_tensor) {
+          HoloInfer::raise_error(module_, "Tick, Out tensor allocation");
+        }
         if (tensor_to_shape_.find(current_tensor_name) == tensor_to_shape_.end()) {
           HoloInfer::raise_error(
               module_, "Tick, Output Tensor shape mapping not found for " + current_tensor_name);

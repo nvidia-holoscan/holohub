@@ -145,8 +145,12 @@ void XrTransformControlOp::compute(InputContext& input, OutputContext& output,
     ui_box_controller_->cursorRelease();
     cursor_down_ = false;
   } else {
-    if (ui_box_.state == holoscan::openxr::INACTIVE) { ui_window_controller_->cursorMove(cursor); }
-    if (ui_window_.state == holoscan::openxr::INACTIVE) { ui_box_controller_->cursorMove(cursor); }
+    if (ui_box_.state == holoscan::openxr::INACTIVE) {
+      ui_window_controller_->cursorMove(cursor);
+    }
+    if (ui_window_.state == holoscan::openxr::INACTIVE) {
+      ui_box_controller_->cursorMove(cursor);
+    }
   }
 
   if (ui_window_.state == holoscan::openxr::INACTIVE) {

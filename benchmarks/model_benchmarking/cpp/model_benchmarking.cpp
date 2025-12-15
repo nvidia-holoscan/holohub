@@ -254,7 +254,9 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
     }
   }
 
-  if (optind < argc) { config_name = argv[optind++]; }
+  if (optind < argc) {
+    config_name = argv[optind++];
+  }
   return true;
 }
 

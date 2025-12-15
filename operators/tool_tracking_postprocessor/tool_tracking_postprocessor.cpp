@@ -86,15 +86,21 @@ void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext&
   }
 
   auto maybe_tensor = in_message.get<Tensor>("probs");
-  if (!maybe_tensor) { throw std::runtime_error("Tensor 'probs' not found in message."); }
+  if (!maybe_tensor) {
+    throw std::runtime_error("Tensor 'probs' not found in message.");
+  }
   auto probs_tensor = maybe_tensor;
 
   maybe_tensor = in_message.get<Tensor>("scaled_coords");
-  if (!maybe_tensor) { throw std::runtime_error("Tensor 'scaled_coords' not found in message."); }
+  if (!maybe_tensor) {
+    throw std::runtime_error("Tensor 'scaled_coords' not found in message.");
+  }
   auto scaled_coords_tensor = maybe_tensor;
 
   maybe_tensor = in_message.get<Tensor>("binary_masks");
-  if (!maybe_tensor) { throw std::runtime_error("Tensor 'binary_masks' not found in message."); }
+  if (!maybe_tensor) {
+    throw std::runtime_error("Tensor 'binary_masks' not found in message.");
+  }
   auto binary_masks_tensor = maybe_tensor;
 
   // get Handle to underlying nvidia::gxf::Allocator from std::shared_ptr<holoscan::Allocator>
@@ -119,7 +125,9 @@ void ToolTrackingPostprocessorOp::compute(InputContext& op_input, OutputContext&
 
   // Create a new tensor for the mask
   auto out_mask_tensor = out_message.value().add<nvidia::gxf::Tensor>("mask");
-  if (!out_mask_tensor) { throw std::runtime_error("Failed to allocate output tensor 'mask'"); }
+  if (!out_mask_tensor) {
+    throw std::runtime_error("Failed to allocate output tensor 'mask'");
+  }
 
   const nvidia::gxf::Shape mask_shape{static_cast<int>(binary_masks_tensor->shape()[2]),
                                       static_cast<int>(binary_masks_tensor->shape()[3]),

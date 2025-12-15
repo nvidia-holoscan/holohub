@@ -83,7 +83,9 @@ void ApriltagDetectorOp::stop() {
 void ApriltagDetectorOp::compute(holoscan::InputContext& input, holoscan::OutputContext& output,
                                  holoscan::ExecutionContext& context) {
   auto maybe_entity = input.receive<holoscan::gxf::Entity>("input");
-  if (!maybe_entity) { throw std::runtime_error("Failed to receive input"); }
+  if (!maybe_entity) {
+    throw std::runtime_error("Failed to receive input");
+  }
 
   auto& entity = maybe_entity.value();
 
@@ -94,13 +96,19 @@ void ApriltagDetectorOp::compute(holoscan::InputContext& input, holoscan::Output
   }
 
   const auto input_tensor = entity.get<holoscan::Tensor>();
-  if (!input_tensor) { throw std::runtime_error("Tensor not found in message"); }
+  if (!input_tensor) {
+    throw std::runtime_error("Tensor not found in message");
+  }
 
   DLDevice input_device = input_tensor->device();
 
-  if (input_device.device_type != kDLCUDA) { throw std::runtime_error("The tensor is not device"); }
+  if (input_device.device_type != kDLCUDA) {
+    throw std::runtime_error("The tensor is not device");
+  }
 
-  if (input_tensor->ndim() != 3) { throw std::runtime_error("Tensor must be an RGB image"); }
+  if (input_tensor->ndim() != 3) {
+    throw std::runtime_error("Tensor must be an RGB image");
+  }
 
   DLDataType dtype = input_tensor->dtype();
   if (dtype.code != kDLUInt || dtype.bits != 8 || dtype.lanes != 1) {

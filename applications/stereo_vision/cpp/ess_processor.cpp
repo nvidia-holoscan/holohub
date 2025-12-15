@@ -59,14 +59,18 @@ void ESSPreprocessorOp::compute(InputContext& op_input, OutputContext& op_output
 
   auto pointerLeft = std::shared_ptr<void*>(new void*, [](void** pointerLeft) {
     if (pointerLeft != nullptr) {
-      if (*pointerLeft != nullptr) { cudaFree(*pointerLeft); }
+      if (*pointerLeft != nullptr) {
+        cudaFree(*pointerLeft);
+      }
       delete pointerLeft;
     }
   });
 
   auto pointerRight = std::shared_ptr<void*>(new void*, [](void** pointerRight) {
     if (pointerRight != nullptr) {
-      if (*pointerRight != nullptr) { cudaFree(*pointerRight); }
+      if (*pointerRight != nullptr) {
+        cudaFree(*pointerRight);
+      }
       delete pointerRight;
     }
   });
@@ -142,7 +146,9 @@ void ESSPostprocessorOp::compute(InputContext& op_input, OutputContext& op_outpu
 
   auto pointer = std::shared_ptr<void*>(new void*, [](void** pointer) {
     if (pointer != nullptr) {
-      if (*pointer != nullptr) { cudaFree(*pointer); }
+      if (*pointer != nullptr) {
+        cudaFree(*pointer);
+      }
       delete pointer;
     }
   });

@@ -56,7 +56,9 @@ __global__ void copy_headers(uint8_t** gpu_bufs, void* header, uint16_t hdr_size
 
 __global__ void print_packets(uint8_t** gpu_bufs) {
   uint8_t* p = gpu_bufs[0];
-  for (int i = 0; i < 64; i++) { printf("%02X ", p[i]); }
+  for (int i = 0; i < 64; i++) {
+    printf("%02X ", p[i]);
+  }
 
   printf("\n");
 }

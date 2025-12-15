@@ -138,7 +138,9 @@ void OpenIGTLinkTxOp::compute(InputContext& op_input, OutputContext& op_output,
       }
 
       // If the buffer is empty, skip processing it
-      if (buffer_info.bytes_size == 0) { continue; }
+      if (buffer_info.bytes_size == 0) {
+        continue;
+      }
 
       // Get time stamp
       time_stamp_->GetTime();

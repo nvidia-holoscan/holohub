@@ -67,7 +67,9 @@ XrCudaInteropSwapchain::XrCudaInteropSwapchain(XrSession& session,
   std::vector<xr::SwapchainImageVulkanKHR> vulkan_images =
       handle_->enumerateSwapchainImagesToVector<xr::SwapchainImageVulkanKHR>();
   images_.resize(vulkan_images.size());
-  for (int i = 0; i < vulkan_images.size(); i++) { images_[i].vk_image = vulkan_images[i].image; }
+  for (int i = 0; i < vulkan_images.size(); i++) {
+    images_[i].vk_image = vulkan_images[i].image;
+  }
 
   // Create a transfer buffer per swapchain image for upstream renderers to
   // write into; buffers are allocated as Vulkan external memory and exported to

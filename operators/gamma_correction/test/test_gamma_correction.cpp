@@ -143,7 +143,9 @@ class GammaCorrectionApp : public holoscan::Application {
     component_count_ = component_count;
 
     input_values_.resize(width_ * component_count_);
-    for (int i = 0; i < width_ * component_count_; i++) { input_values_[i] = 42 + i; }
+    for (int i = 0; i < width_ * component_count_; i++) {
+      input_values_[i] = 42 + i;
+    }
   }
 
   void compose() override {

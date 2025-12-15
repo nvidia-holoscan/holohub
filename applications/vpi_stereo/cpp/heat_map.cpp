@@ -32,7 +32,9 @@ void HeatmapOp::compute(InputContext& op_input, OutputContext& op_output,
   auto maybe_tensormap = op_input.receive<holoscan::TensorMap>("input");
   const auto tensormap = maybe_tensormap.value();
 
-  if (tensormap.size() != 1) { throw std::runtime_error("Expecting single tensor input"); }
+  if (tensormap.size() != 1) {
+    throw std::runtime_error("Expecting single tensor input");
+  }
 
   auto tensor = tensormap.begin()->second;
   int height = tensor->shape()[0];
@@ -46,7 +48,9 @@ void HeatmapOp::compute(InputContext& op_input, OutputContext& op_output,
 
   auto pointer = std::shared_ptr<void*>(new void*, [](void** pointer) {
     if (pointer != nullptr) {
-      if (*pointer != nullptr) { cudaFree(*pointer); }
+      if (*pointer != nullptr) {
+        cudaFree(*pointer);
+      }
       delete pointer;
     }
   });

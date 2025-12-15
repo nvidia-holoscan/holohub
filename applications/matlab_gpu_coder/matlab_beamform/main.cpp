@@ -75,7 +75,9 @@ class MatlabBeamformOp : public Operator {
 
     // Open binary file reader
     std::ifstream is_(path_data_.get(), std::ios::binary);
-    if (!is_) { throw std::runtime_error("Error opening binary file"); }
+    if (!is_) {
+      throw std::runtime_error("Error opening binary file");
+    }
 
     // Read binary data to CUDA buffers
     cudaMalloc(&fast_time_, sizeof(float) * depth);
@@ -131,7 +133,9 @@ class MatlabBeamformOp : public Operator {
 
     // Allocate output buffer on the device.
     auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(out_tensor_name_.get().c_str());
-    if (!out_tensor) { throw std::runtime_error("Failed to allocate output tensor"); }
+    if (!out_tensor) {
+      throw std::runtime_error("Failed to allocate output tensor");
+    }
     out_tensor.value()->reshape<uint8_t>(
         nvidia::gxf::Shape{shape_}, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
     if (!out_tensor.value()->pointer()) {
@@ -139,7 +143,9 @@ class MatlabBeamformOp : public Operator {
     }
     // Get output data
     nvidia::gxf::Expected<uint8_t*> out_tensor_data = out_tensor.value()->data<uint8_t>();
-    if (!out_tensor_data) { throw std::runtime_error("Failed to get out tensor data!"); }
+    if (!out_tensor_data) {
+      throw std::runtime_error("Failed to get out tensor data!");
+    }
 
     // Get windows of data_ and x_axis_
     cudaMemcpy(
@@ -163,7 +169,9 @@ class MatlabBeamformOp : public Operator {
                                   allocator.value());
     // Get temp data
     nvidia::gxf::Expected<uint8_t*> tmp_tensor_data = tmp_tensor->data<uint8_t>();
-    if (!tmp_tensor_data) { throw std::runtime_error("Failed to get temporary tensor data!"); }
+    if (!tmp_tensor_data) {
+      throw std::runtime_error("Failed to get temporary tensor data!");
+    }
 
     // Call MATLAB CUDA function to do beamforming
     matlab_beamform(data_window_, &params_, x_axis_window_, fast_time_, tmp_tensor_data.value());
@@ -245,7 +253,9 @@ int main(int argc, char** argv) {
   // Get the yaml configuration file
   auto config_path = std::filesystem::canonical(argv[0]).parent_path();
   config_path /= std::filesystem::path("matlab_beamform.yaml");
-  if (argc >= 2) { config_path = argv[1]; }
+  if (argc >= 2) {
+    config_path = argv[1];
+  }
 
   auto app = holoscan::make_application<MatlabBeamformApp>();
   app->config(config_path);

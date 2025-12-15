@@ -33,7 +33,9 @@ struct Tex2DFBO {
     int32_t width_, height_;
 
     void resize(const int32_t width, const int32_t height)  {
-        if (fbo_ != 0 && width_ == width && height_ == height) { return; }
+        if (fbo_ != 0 && width_ == width && height_ == height) {
+          return;
+        }
 
         width_ = width;
         height_ = height;
@@ -69,7 +71,9 @@ struct RenderBufferFBO {
     int32_t width_, height_;
 
     void resize(const int32_t width, const int32_t height) {
-        if (fbo_ != 0 && width_ == width && height_ == height) { return; }
+        if (fbo_ != 0 && width_ == width && height_ == height) {
+          return;
+        }
 
         width_ = width;
         height_ = height;

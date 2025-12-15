@@ -61,7 +61,9 @@ __global__ void preprocessing_kernel(Shape shape, const float* input, float* out
   const uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   const uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if ((x >= shape.width) || (y >= shape.height)) { return; }
+  if ((x >= shape.width) || (y >= shape.height)) {
+    return;
+  }
 
   for (uint32_t c = 0; c < shape.channels; c++) {
     output[data_format_to_index<data_format>(shape, y, x, c)] =

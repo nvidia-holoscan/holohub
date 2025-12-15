@@ -50,11 +50,15 @@ void OpenGLRenderer::init() {
     initializeOpenGLFunctions();
 
     vao_ = std::make_unique<QOpenGLVertexArrayObject>();
-    if (!vao_->create()) { qFatal("Failed to create QOpenGLVertexArrayObject"); }
+    if (!vao_->create()) {
+      qFatal("Failed to create QOpenGLVertexArrayObject");
+    }
     vao_->bind();
 
     vertex_buffer_ = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
-    if (!vertex_buffer_->create()) { qFatal("Failed to create QOpenGLBuffer"); }
+    if (!vertex_buffer_->create()) {
+      qFatal("Failed to create QOpenGLBuffer");
+    }
 
     const float vertices[] = {1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f};
     vertex_buffer_->bind();
@@ -62,7 +66,9 @@ void OpenGLRenderer::init() {
     vertex_buffer_->allocate(vertices, sizeof(vertices));
 
     program_ = new QOpenGLShaderProgram();
-    if (!program_->create()) { qFatal("Failed to create QOpenGLShaderProgram"); }
+    if (!program_->create()) {
+      qFatal("Failed to create QOpenGLShaderProgram");
+    }
 
     program_->addCacheableShaderFromSourceCode(
         QOpenGLShader::Vertex,

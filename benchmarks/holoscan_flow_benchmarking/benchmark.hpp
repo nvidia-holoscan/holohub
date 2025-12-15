@@ -42,7 +42,9 @@ class BenchmarkedApplication : public holoscan::Application {
     if (conditioned_nodes_.find(upstream_op) == conditioned_nodes_.end()) {
       // Load the number of source messages from HOLOSCAN_NUM_SOURCE_MESSAGES
       const char* src_frame_str = std::getenv("HOLOSCAN_NUM_SOURCE_MESSAGES");
-      if (src_frame_str) { num_source_messages_ = std::stoi(src_frame_str); }
+      if (src_frame_str) {
+        num_source_messages_ = std::stoi(src_frame_str);
+      }
 
       conditioned_nodes_.insert(upstream_op);
       upstream_op->add_arg(make_condition<holoscan::CountCondition>(num_source_messages_));

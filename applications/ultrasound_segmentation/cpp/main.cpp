@@ -30,7 +30,9 @@
 class App : public holoscan::Application {
  public:
   void set_source(const std::string& source) {
-    if (source == "aja") { is_aja_source_ = true; }
+    if (source == "aja") {
+      is_aja_source_ = true;
+    }
   }
 
   void set_datapath(const std::string& path) {

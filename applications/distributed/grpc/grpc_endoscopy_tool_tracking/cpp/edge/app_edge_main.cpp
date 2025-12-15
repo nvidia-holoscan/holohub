@@ -102,7 +102,9 @@ int main(int argc, char** argv) {
   // Parse the arguments
   std::string config_path = "";
   std::string data_directory = "";
-  if (!parse_arguments(argc, argv, data_directory, config_path)) { return 1; }
+  if (!parse_arguments(argc, argv, data_directory, config_path)) {
+    return 1;
+  }
 
   if (data_directory.empty()) {
     // Get the input data environment variable
@@ -172,7 +174,9 @@ int main(int argc, char** argv) {
       tracker = &app->track();
     }
     app->run();
-    if (benchmarking) { tracker->print(); }
+    if (benchmarking) {
+      tracker->print();
+    }
   }
   return 0;
 }

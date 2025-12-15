@@ -95,7 +95,9 @@ void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
   data_array.element_range_ = element_range;
 
   int32_t frames = 1;
-  if (shape.rank() == 4) { frames = shape.dimension(0); }
+  if (shape.rank() == 4) {
+    frames = shape.dimension(0);
+  }
 
   // copy the data
   const size_t volume_size =

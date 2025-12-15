@@ -142,7 +142,9 @@ void ProhawkOp::compute(InputContext& op_input, OutputContext& op_output, Execut
       p->AFS_Enabled = true;
       selectedFilter = "AFS Enabled";
 
-      if (filter1 == 100) { selectedFilter = "Restoration Disabled"; }
+      if (filter1 == 100) {
+        selectedFilter = "Restoration Disabled";
+      }
   }
 
   p->width = cols;
@@ -166,7 +168,9 @@ void ProhawkOp::compute(InputContext& op_input, OutputContext& op_output, Execut
   p->dstBuffer = output_image.data;
   p->dstStride = static_cast<int>(output_image.step);
 
-  if (prohawkStartFlag == false) { printf("Starting Prohawk Vision Holoscan Operator...\n"); }
+  if (prohawkStartFlag == false) {
+    printf("Starting Prohawk Vision Holoscan Operator...\n");
+  }
   if (filter1 != 100) de.setFrame(p);
   if (prohawkStartFlag == false) {
     printf("Prohawk Vision Holoscan Operator started.\n");

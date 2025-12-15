@@ -58,7 +58,9 @@ static clara::viz::Matrix4x4 to_matrix(const nvidia::gxf::Pose3D& pose) {
 static clara::viz::Matrix4x4 to_matrix(const std::array<float, 16>& array) {
   clara::viz::Matrix4x4 mat;
   for (uint32_t row = 0; row < 4; ++row) {
-    for (uint32_t col = 0; col < 4; ++col) { mat(row, col) = array[row * 4 + col]; }
+    for (uint32_t col = 0; col < 4; ++col) {
+      mat(row, col) = array[row * 4 + col];
+    }
   }
   return mat;
 }
@@ -300,9 +302,15 @@ bool VolumeRendererOp::Impl::receive_volume(InputContext& input, Dataset::Types 
     std::array<uint32_t, 3> permute_axis{0, 1, 2};
     std::array<bool, 3> flip_axes{false, false, false};
 
-    if (spacing_input) { spacing = *spacing_input; }
-    if (permute_axis_input) { permute_axis = *permute_axis_input; }
-    if (flip_axes_input) { flip_axes = *flip_axes_input; }
+    if (spacing_input) {
+      spacing = *spacing_input;
+    }
+    if (permute_axis_input) {
+      permute_axis = *permute_axis_input;
+    }
+    if (flip_axes_input) {
+      flip_axes = *flip_axes_input;
+    }
 
     std::vector<clara::viz::Vector2f> element_range;
 
@@ -318,7 +326,9 @@ bool VolumeRendererOp::Impl::receive_volume(InputContext& input, Dataset::Types 
         range(1) = density_max_.get();
         has_range = true;
       }
-      if (has_range) { element_range.push_back(range); }
+      if (has_range) {
+        element_range.push_back(range);
+      }
     }
 
     dataset_.SetVolume(type, spacing, permute_axis, flip_axes, element_range, volume_tensor);
@@ -600,7 +610,9 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
     messages.push_back(entity);
   } else {
     color_message = holoscan::gxf::Entity::New(&context);
-    if (!color_message) { throw std::runtime_error("Failed to allocate entity; terminating."); }
+    if (!color_message) {
+      throw std::runtime_error("Failed to allocate entity; terminating.");
+    }
     color_buffer = static_cast<nvidia::gxf::Entity&>(color_message.value())
                        .add<nvidia::gxf::VideoBuffer>()
                        .value();
@@ -638,7 +650,9 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
   // apply new JSON settings
   auto settings = input.receive<std::vector<nlohmann::json>>("settings");
   if (settings) {
-    for (const auto& setting : settings.value()) { impl_->json_interface_->SetSettings(setting); }
+    for (const auto& setting : settings.value()) {
+      impl_->json_interface_->SetSettings(setting);
+    }
   }
   auto merge_settings = input.receive<std::vector<nlohmann::json>>("merge_settings");
   if (merge_settings) {
@@ -659,7 +673,9 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
     auto camera = access->GetCamera(camera_name);
 
     auto left_pose = input.receive<nvidia::gxf::Pose3D>("left_camera_pose");
-    if (left_pose) { camera->left_eye_pose = to_matrix(*left_pose); }
+    if (left_pose) {
+      camera->left_eye_pose = to_matrix(*left_pose);
+    }
     auto left_model = input.receive<nvidia::gxf::CameraModel>("left_camera_model");
     if (left_model) {
       camera->left_tangent_x = to_tangent_x(*left_model);
@@ -667,7 +683,9 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
     }
 
     auto right_pose = input.receive<nvidia::gxf::Pose3D>("right_camera_pose");
-    if (right_pose) { camera->right_eye_pose = to_matrix(*right_pose); }
+    if (right_pose) {
+      camera->right_eye_pose = to_matrix(*right_pose);
+    }
     auto right_model = input.receive<nvidia::gxf::CameraModel>("right_camera_model");
     if (right_model) {
       camera->right_tangent_x = to_tangent_x(*right_model);
@@ -820,7 +838,9 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
   // render
   const std::shared_ptr<VideoBufferBlob> color_buffer_blob(new VideoBufferBlob(color_buffer));
   std::shared_ptr<VideoBufferBlob> depth_buffer_blob;
-  if (depth_buffer) { depth_buffer_blob = std::make_shared<VideoBufferBlob>(depth_buffer); }
+  if (depth_buffer) {
+    depth_buffer_blob = std::make_shared<VideoBufferBlob>(depth_buffer);
+  }
   impl_->image_service_->Render(color_buffer->video_frame_info().width,
                                 color_buffer->video_frame_info().height,
                                 color_buffer_blob,
@@ -839,7 +859,9 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
 
     nvidia::gxf::Handle<nvidia::gxf::CudaEvent> cuda_event =
         message->add<nvidia::gxf::CudaEvent>().value();
-    if (!cuda_event->init()) { throw std::runtime_error("Failed to initialize gxf::CudaEvent."); }
+    if (!cuda_event->init()) {
+      throw std::runtime_error("Failed to initialize gxf::CudaEvent.");
+    }
     if (cudaEventRecord(cuda_event->event().value(), cuda_stream) != cudaSuccess) {
       throw std::runtime_error("cudaEventRecord failed");
     }
@@ -859,7 +881,9 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
 
     nvidia::gxf::Handle<nvidia::gxf::CudaEvent> cuda_event =
         message->add<nvidia::gxf::CudaEvent>().value();
-    if (!cuda_event->init()) { throw std::runtime_error("Failed to initialize gxf::CudaEvent."); }
+    if (!cuda_event->init()) {
+      throw std::runtime_error("Failed to initialize gxf::CudaEvent.");
+    }
     if (cudaEventRecord(cuda_event->event().value(), cuda_stream) != cudaSuccess) {
       throw std::runtime_error("cudaEventRecord failed");
     }

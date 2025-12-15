@@ -55,7 +55,9 @@ class threadsafe_queue_t {
 
   bool pop(T& item) {
     std::unique_lock<std::mutex> lock(m_Mutex);
-    if (m_Queue.empty()) { return false; }
+    if (m_Queue.empty()) {
+      return false;
+    }
     item = m_Queue.front();
     m_Queue.pop_front();
     return true;
@@ -64,7 +66,9 @@ class threadsafe_queue_t {
   bool pop_block(T& item) {
     std::unique_lock<std::mutex> lock(m_Mutex);
     m_CV.wait(lock, [&] { return (!m_Queue.empty() || m_bIsQuit || !m_bHasSignal); });
-    if (m_Queue.empty() || m_bIsQuit || !m_bHasSignal) { return false; }
+    if (m_Queue.empty() || m_bIsQuit || !m_bHasSignal) {
+      return false;
+    }
     item = m_Queue.front();
     m_Queue.pop_front();
     return true;

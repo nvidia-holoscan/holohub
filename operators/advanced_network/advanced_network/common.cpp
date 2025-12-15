@@ -499,8 +499,12 @@ bool parse_common_queue_config(const YAML::Node& q_item,
     common.extra_queue_config_ = nullptr;
     if (q_item["memory_regions"].IsDefined()) {
       const auto& mrs = q_item["memory_regions"];
-      if (mrs.size() > 0) { common.mrs_.reserve(mrs.size()); }
-      for (const auto& mr : mrs) { common.mrs_.push_back(mr.as<std::string>()); }
+      if (mrs.size() > 0) {
+        common.mrs_.reserve(mrs.size());
+      }
+      for (const auto& mr : mrs) {
+        common.mrs_.push_back(mr.as<std::string>());
+      }
     }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing CommonQueueConfig: {}", e.what());
@@ -522,7 +526,9 @@ bool parse_common_queue_config(const YAML::Node& q_item,
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_common_config(
     const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& q) {
-  if (!parse_common_queue_config(q_item, q.common_)) { return false; }
+  if (!parse_common_queue_config(q_item, q.common_)) {
+    return false;
+  }
   return true;
 }
 
@@ -540,7 +546,9 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
   try {
     holoscan::advanced_network::ManagerType _manager_type = manager_type;
 
-    if (!parse_rx_queue_common_config(q_item, q)) { return false; }
+    if (!parse_rx_queue_common_config(q_item, q)) {
+      return false;
+    }
 
     if (manager_type == holoscan::advanced_network::ManagerType::DEFAULT) {
       _manager_type = holoscan::advanced_network::ManagerFactory::get_default_manager_type();
@@ -571,12 +579,16 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_common_config(
     const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q) {
-  if (!parse_common_queue_config(q_item, q.common_)) { return false; }
+  if (!parse_common_queue_config(q_item, q.common_)) {
+    return false;
+  }
 #if !ANO_MGR_RIVERMAX
   try {
     const auto& offload = q_item["offloads"];
     q.common_.offloads_.reserve(offload.size());
-    for (const auto& off : offload) { q.common_.offloads_.push_back(off.as<std::string>()); }
+    for (const auto& off : offload) {
+      q.common_.offloads_.push_back(off.as<std::string>());
+    }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
     return false;
@@ -603,7 +615,9 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
       _manager_type = holoscan::advanced_network::ManagerFactory::get_default_manager_type();
     }
 
-    if (!parse_tx_queue_common_config(q_item, q)) { return false; }
+    if (!parse_tx_queue_common_config(q_item, q)) {
+      return false;
+    }
 
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {

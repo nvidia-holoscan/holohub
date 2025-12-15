@@ -55,8 +55,12 @@ class BasicConnectorOpRx : public Operator {
 
   BasicConnectorOpRx() = default;
   ~BasicConnectorOpRx() {
-    if (pkt_buf) { delete pkt_buf; }
-    if (rf_data) { delete rf_data; }
+    if (pkt_buf) {
+      delete pkt_buf;
+    }
+    if (rf_data) {
+      delete rf_data;
+    }
   }
 
   void setup(OperatorSpec& spec) override;

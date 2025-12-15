@@ -105,7 +105,9 @@ class MatlabImageProcessingOp : public Operator {
 
     // Get input tensor data
     uint8_t* in_tensor_data = static_cast<uint8_t*>(in_tensor->data());
-    if (!in_tensor_data) { throw std::runtime_error("Failed to get in tensor data!"); }
+    if (!in_tensor_data) {
+      throw std::runtime_error("Failed to get in tensor data!");
+    }
 
     // Get allocator
     auto allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
@@ -115,7 +117,9 @@ class MatlabImageProcessingOp : public Operator {
     auto out_message = nvidia::gxf::Entity::New(context.context());
     auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(
       out_tensor_name_.get().c_str());
-    if (!out_tensor) { throw std::runtime_error("Failed to allocate output tensor"); }
+    if (!out_tensor) {
+      throw std::runtime_error("Failed to allocate output tensor");
+    }
     out_tensor.value()->reshape<uint8_t>(
         out_tensor_shape, nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
     if (!out_tensor.value()->pointer()) {
@@ -123,7 +127,9 @@ class MatlabImageProcessingOp : public Operator {
     }
     // Get output data
     nvidia::gxf::Expected<uint8_t*> out_tensor_data = out_tensor.value()->data<uint8_t>();
-    if (!out_tensor_data) { throw std::runtime_error("Failed to get out tensor data!"); }
+    if (!out_tensor_data) {
+      throw std::runtime_error("Failed to get out tensor data!");
+    }
 
     // Allocate temporary input tensor (for storing row-to-column converted data)
     auto tmp_tensor_in = make_tensor(in_shape, nvidia::gxf::PrimitiveType::kUnsigned8,
@@ -213,7 +219,9 @@ int main(int argc, char** argv) {
   // Get the yaml configuration file
   auto config_path = std::filesystem::canonical(argv[0]).parent_path();
   config_path /= std::filesystem::path("matlab_image_processing.yaml");
-  if (argc >= 2) { config_path = argv[1]; }
+  if (argc >= 2) {
+    config_path = argv[1];
+  }
 
   auto app = holoscan::make_application<MatlabImageProcessingApp>();
   app->config(config_path);

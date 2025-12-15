@@ -79,7 +79,9 @@ void XrSession::initialize() {
       }
     }
   }
-  for (const char* extension : xr_extensions) { xr_extensions_.emplace(extension); }
+  for (const char* extension : xr_extensions) {
+    xr_extensions_.emplace(extension);
+  }
 
   // Create an OpenXR instance.
   const std::vector<const char*> xr_api_layers = {};
@@ -130,7 +132,9 @@ void XrSession::initialize() {
       system_id, {}, &vkGetInstanceProcAddr, &vk_instance_create_info, nullptr);
   xr_instance_->createVulkanInstanceKHR(
       xr_vk_instance_create_info, &vk_instance, &vk_result, dispatch);
-  if (vk_result != VK_SUCCESS) { throw std::runtime_error("xrCreateVulkanInstanceKHR failed"); }
+  if (vk_result != VK_SUCCESS) {
+    throw std::runtime_error("xrCreateVulkanInstanceKHR failed");
+  }
   vk_instance_ = vk::raii::Instance(vk_context_, vk_instance);
   VkPhysicalDevice vk_physical_device;
   xr_instance_->getVulkanGraphicsDevice2KHR(
@@ -166,7 +170,9 @@ void XrSession::initialize() {
       system_id, {}, &vkGetInstanceProcAddr, vk_physical_device, &vk_device_create_info, nullptr);
   VkDevice vk_device;
   xr_instance_->createVulkanDeviceKHR(xr_vk_device_create_info, &vk_device, &vk_result, dispatch);
-  if (vk_result != VK_SUCCESS) { throw std::runtime_error("xrCreateVulkanDeviceKHR failed"); }
+  if (vk_result != VK_SUCCESS) {
+    throw std::runtime_error("xrCreateVulkanDeviceKHR failed");
+  }
   uint32_t kQueueIndex = 0;
   vk_device_ = vk::raii::Device(vk_physical_device_, vk_device);
   vk_queue_ = vk_device_.getQueue(vk_queue_family_index_, kQueueIndex);
@@ -216,7 +222,9 @@ const XrEventDataBaseHeader* XrSession::try_read_next_event(xr::EventDataBuffer&
     }
     return baseHeader;
   }
-  if (xr == XR_EVENT_UNAVAILABLE) { return nullptr; }
+  if (xr == XR_EVENT_UNAVAILABLE) {
+    return nullptr;
+  }
   throw std::runtime_error(std::string("xrPollEvent Failed!, error code: ") +
                            std::to_string((std::int32_t)xr));
 }
@@ -227,10 +235,14 @@ bool XrSession::transition_state(const xr::SessionState new_state,
   const auto start = std::chrono::steady_clock::now();
   while (session_state_ != new_state) {
     const auto pollResults = poll_events();
-    if (pollResults.exit_render_loop || pollResults.request_reestart) { return false; }
+    if (pollResults.exit_render_loop || pollResults.request_reestart) {
+      return false;
+    }
     const auto end = std::chrono::steady_clock::now();
     const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    if (elapsed >= timeout_ms) { break; }
+    if (elapsed >= timeout_ms) {
+      break;
+    }
     std::this_thread::sleep_for(10ms);
   }
   return session_state_ == new_state;

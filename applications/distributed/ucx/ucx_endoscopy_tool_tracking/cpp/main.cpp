@@ -199,7 +199,9 @@ void parse_config(const std::string& config_path, bool& benchmarking) {
 int main(int argc, char** argv) {
   std::string config_path = "";
   std::string data_directory = "";
-  if (!parse_arguments(argc, argv, data_directory, config_path)) { return 1; }
+  if (!parse_arguments(argc, argv, data_directory, config_path)) {
+    return 1;
+  }
   if (data_directory.empty()) {
     // Get the input data environment variable
     auto input_path = std::getenv("HOLOSCAN_INPUT_PATH");

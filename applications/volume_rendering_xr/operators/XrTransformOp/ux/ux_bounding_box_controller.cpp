@@ -211,9 +211,15 @@ void UxBoundingBoxController::cursorMove(Eigen::Affine3f pose) {
   switch (active_action_) {
     case UNDEFINED: {
       // reset activation range for all widgets
-      for (int i = 0; i < edges_.size(); i++) { edges_[i].state.range = 0; }
-      for (int i = 0; i < faces_.size(); i++) { faces_[i].state.range = 0; }
-      for (int i = 0; i < corners_.size(); i++) { corners_[i].state.range = 0; }
+      for (int i = 0; i < edges_.size(); i++) {
+        edges_[i].state.range = 0;
+      }
+      for (int i = 0; i < faces_.size(); i++) {
+        faces_[i].state.range = 0;
+      }
+      for (int i = 0; i < corners_.size(); i++) {
+        corners_[i].state.range = 0;
+      }
 
       if (!test_box(current_cursor)) {
         // find closest widget
@@ -484,7 +490,9 @@ bool UxBoundingBoxController::test_box(Eigen::Vector3f& cursor) {
   bool inside = cursor(0) > -box_.half_extent[0] && cursor(0) < box_.half_extent[0] &&
                 cursor(1) > -box_.half_extent[1] && cursor(1) < box_.half_extent[1] &&
                 cursor(2) > -box_.half_extent[2] && cursor(2) < box_.half_extent[2];
-  for (int i = 0; i < 8; i++) { corners_[i].state.range = inside ? 1.0 : 0.0; }
+  for (int i = 0; i < 8; i++) {
+    corners_[i].state.range = inside ? 1.0 : 0.0;
+  }
   return inside;
 }
 

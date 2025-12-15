@@ -88,14 +88,18 @@ inline ReturnStatus RivermaxChunkConsumerAno::consume_chunk(const ReceiveChunk& 
   }
 
   auto chunk_size = chunk.get_length();
-  if (chunk_size == 0) { return ReturnStatus::success; }
+  if (chunk_size == 0) {
+    return ReturnStatus::success;
+  }
   if (chunk_size > max_burst_size_) {
     HOLOSCAN_LOG_WARN("Chunk size {} exceeds maximum burst size {}, discarding packets",
       chunk_size, max_burst_size_);
     chunk_size = max_burst_size_;
   }
 
-  for (size_t i = 0; i < chunk_size; ++i) { packet_info_array_[i] = chunk.get_packet_info(i); }
+  for (size_t i = 0; i < chunk_size; ++i) {
+    packet_info_array_[i] = chunk.get_packet_info(i);
+  }
   PacketsChunkParams params = {
       // header_ptr: Pointer to the header data
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(chunk.get_header_ptr())),

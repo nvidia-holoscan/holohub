@@ -80,7 +80,9 @@ class PyToolTrackingPostprocessorOp : public ToolTrackingPostprocessorOp {
       : ToolTrackingPostprocessorOp(ArgList{Arg{"device_allocator", device_allocator},
                                             Arg{"min_prob", min_prob},
                                             Arg{"overlay_img_colors", overlay_img_colors}}) {
-    if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
+    if (cuda_stream_pool) {
+      this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool});
+    }
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;

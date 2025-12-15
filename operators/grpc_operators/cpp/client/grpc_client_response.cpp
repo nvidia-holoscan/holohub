@@ -29,7 +29,9 @@ void GrpcClientResponseOp::stop() {
 }
 
 void GrpcClientResponseOp::initialize() {
-  if (condition_.has_value()) { add_arg(condition_.get()); }
+  if (condition_.has_value()) {
+    add_arg(condition_.get());
+  }
   Operator::initialize();
 }
 

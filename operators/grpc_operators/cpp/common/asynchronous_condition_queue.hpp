@@ -52,7 +52,9 @@ class AsynchronousConditionQueue : public Resource {
   }
 
   DataT pop() {
-    if (empty()) { return nullptr; }
+    if (empty()) {
+      return nullptr;
+    }
     auto item = queue_.front();
     queue_.pop();
     return item;

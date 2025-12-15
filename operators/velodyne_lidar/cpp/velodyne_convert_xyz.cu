@@ -68,7 +68,9 @@ __global__ void ConvertRawPacketToXYZ(data_collection::sensors::RawVelodynePacke
   int j = threadIdx.y;
 
   // out of size
-  if (i >= kVelodyneRecords || j >= kVelodyneBlocks) { return; }
+  if (i >= kVelodyneRecords || j >= kVelodyneBlocks) {
+    return;
+  }
 
   // Convert from the default Velodyne little endian format to the default
   // IGX big endian format.

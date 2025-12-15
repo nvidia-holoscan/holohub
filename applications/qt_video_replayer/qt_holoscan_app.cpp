@@ -22,7 +22,9 @@
 void QtHoloscanApp::set(const QString& op_name, const QString& param_name, const QVariant& value) {
   // get the parameter
   auto param_wrapper = findParam(op_name.toStdString(), param_name.toStdString());
-  if (!param_wrapper) { return; }
+  if (!param_wrapper) {
+    return;
+  }
 
   switch (param_wrapper->arg_type().element_type()) {
     case holoscan::ArgElementType::kBoolean: {
@@ -80,7 +82,9 @@ void QtHoloscanApp::set(const QString& op_name, const QString& param_name, const
 QVariant QtHoloscanApp::get(const QString& op_name, const QString& param_name) {
   // get the parameter
   auto param_wrapper = findParam(op_name.toStdString(), param_name.toStdString());
-  if (!param_wrapper) { return QVariant(); }
+  if (!param_wrapper) {
+    return QVariant();
+  }
 
   switch (param_wrapper->arg_type().element_type()) {
     case holoscan::ArgElementType::kBoolean:
@@ -124,7 +128,9 @@ holoscan::ParameterWrapper* QtHoloscanApp::findParam(const std::string& op_name,
   // get the operator
   holoscan::Operator* op = nullptr;
   auto& app_graph = graph();
-  if (!app_graph.is_empty()) { op = app_graph.find_node(op_name).get(); }
+  if (!app_graph.is_empty()) {
+    op = app_graph.find_node(op_name).get();
+  }
   if (!op) {
     HOLOSCAN_LOG_ERROR("Operator '{}' is not defined in app {}", op_name, name());
     return nullptr;

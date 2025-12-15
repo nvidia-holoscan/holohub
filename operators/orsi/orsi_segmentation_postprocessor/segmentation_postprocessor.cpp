@@ -187,7 +187,9 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
 
   const std::string out_tensor_name = out_tensor_name_.get();
   auto out_tensor = out_message.value().add<nvidia::gxf::Tensor>(out_tensor_name.c_str());
-  if (!out_tensor) { throw std::runtime_error("Failed to allocate output tensor"); }
+  if (!out_tensor) {
+    throw std::runtime_error("Failed to allocate output tensor");
+  }
 
   const bool roi_enabled = output_roi_.width > 0 && output_roi_.height > 0;
   // Allocate and convert output buffer on the device.
@@ -227,12 +229,16 @@ void SegmentationPostprocessorOp::compute(InputContext& op_input, OutputContext&
     throw std::runtime_error("Failed to allocate output tensor buffer.");
   }
   nvidia::gxf::Expected<uint8_t*> out_tensor_data = out_tensor.value()->data<uint8_t>();
-  if (!out_tensor_data) { throw std::runtime_error("Failed to get out tensor data!"); }
+  if (!out_tensor_data) {
+    throw std::runtime_error("Failed to get out tensor data!");
+  }
 
   // choose output buffer for post processing. By default use out tensor buffer
   // When ROI enabled use scratch buffer
   uint8_t* post_process_output_buffer = out_tensor_data.value();
-  if (roi_enabled) { post_process_output_buffer = scratch_buffer_process_->pointer(); }
+  if (roi_enabled) {
+    post_process_output_buffer = scratch_buffer_process_->pointer();
+  }
 
   const float* in_tensor_data = static_cast<float*>(in_tensor->data());
 

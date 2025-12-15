@@ -101,14 +101,18 @@ class RxPacketProcessor : public IPacketProcessor {
     processed_packets = 0;
     Status status = Status::SUCCESS;
 
-    if (params.chunk_size == 0) { return status; }
+    if (params.chunk_size == 0) {
+      return status;
+    }
 
     auto remaining_packets = params.chunk_size;
 
     status = rx_burst_manager_->set_next_chunk_params(
         params.chunk_size, params.hds_on, params.header_stride_size, params.payload_stride_size);
 
-    if (status != Status::SUCCESS) { return status; }
+    if (status != Status::SUCCESS) {
+      return status;
+    }
 
     auto header_ptr = params.header_ptr;
     auto payload_ptr = params.payload_ptr;
@@ -124,7 +128,9 @@ class RxPacketProcessor : public IPacketProcessor {
 
       status = rx_burst_manager_->submit_next_packet(rx_packet_data);
 
-      if (status != Status::SUCCESS) { return status; }
+      if (status != Status::SUCCESS) {
+        return status;
+      }
 
       processed_packets++;
       remaining_packets--;

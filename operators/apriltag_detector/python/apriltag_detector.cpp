@@ -68,7 +68,9 @@ class PyApriltagDetectorOp : public ApriltagDetectorOp {
 // Custom function to convert the array of `float2` to a Python list
 py::list corners_to_list(const ApriltagDetectorOp::output_corners& oc) {
   py::list corners_list;
-  for (const auto& corner : oc.corners) { corners_list.append(py::make_tuple(corner.x, corner.y)); }
+  for (const auto& corner : oc.corners) {
+    corners_list.append(py::make_tuple(corner.x, corner.y));
+  }
   return corners_list;
 }
 

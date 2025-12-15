@@ -124,13 +124,17 @@ class ConcurrentItemBuffer {
     // Wait until an item is available or stop is requested
     cv_.wait(lock, [this] { return !item_queue_.empty() || stop_; });
 
-    if (stop_ && item_queue_.empty()) { return nullptr; }
+    if (stop_ && item_queue_.empty()) {
+      return nullptr;
+    }
 
     auto item = item_queue_.front();
     item_queue_.pop();
 
     // Notify any threads waiting to add items that space is now available
-    if (max_queue_size_ > 0) { cv_.notify_one(); }
+    if (max_queue_size_ > 0) {
+      cv_.notify_one();
+    }
 
     return item;
   }
@@ -143,13 +147,17 @@ class ConcurrentItemBuffer {
   std::shared_ptr<T> get_item_not_blocking() {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    if (item_queue_.empty()) { return nullptr; }
+    if (item_queue_.empty()) {
+      return nullptr;
+    }
 
     auto item = item_queue_.front();
     item_queue_.pop();
 
     // Notify any threads waiting to add items that space is now available
-    if (max_queue_size_ > 0) { cv_.notify_one(); }
+    if (max_queue_size_ > 0) {
+      cv_.notify_one();
+    }
 
     return item;
   }
@@ -161,7 +169,9 @@ class ConcurrentItemBuffer {
    * @return Status of the operation.
    */
   virtual Status add_item(std::shared_ptr<T> item) {
-    if (!item) { return Status::NULL_PTR; }
+    if (!item) {
+      return Status::NULL_PTR;
+    }
 
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -183,7 +193,9 @@ class ConcurrentItemBuffer {
    * @return Status of the operation.
    */
   virtual Status add_item_blocking(std::shared_ptr<T> item) {
-    if (!item) { return Status::NULL_PTR; }
+    if (!item) {
+      return Status::NULL_PTR;
+    }
 
     std::unique_lock<std::mutex> lock(mutex_);
 
@@ -193,7 +205,9 @@ class ConcurrentItemBuffer {
     }
 
     // If we're stopping and don't want to add more items
-    if (stop_) { return Status::NOT_READY; }
+    if (stop_) {
+      return Status::NOT_READY;
+    }
 
     item_queue_.push(std::move(item));
     cv_.notify_one();  // Notify any waiting consumers
@@ -297,7 +311,9 @@ class MediaFileFrameProvider {
    * @return: Status of the operation.
    */
   Status initialize() {
-    if (initialized_) { return Status::SUCCESS; }
+    if (initialized_) {
+      return Status::SUCCESS;
+    }
 
     input_file_.open(file_path_, std::ios::binary);
     if (!input_file_.is_open()) {
@@ -368,7 +384,9 @@ class MediaFileFrameProvider {
 
       if (bytes_read == 0) {
         if (input_file_.eof()) {
-          if (!loop_frames_) { break; }
+          if (!loop_frames_) {
+            break;
+          }
           // Loop the file, start reading from the beginning
           input_file_.clear();
           input_file_.seekg(0, std::ios::beg);
@@ -387,7 +405,9 @@ class MediaFileFrameProvider {
       while (!stop_) {
         auto status = frame_buffer_queue_.add_item_blocking(frame_buffer);
 
-        if (status == Status::SUCCESS) { break; }
+        if (status == Status::SUCCESS) {
+          break;
+        }
         std::this_thread::sleep_for(std::chrono::microseconds(sleep_duration_microseconds_));
       }
     }
@@ -419,8 +439,12 @@ class AdvNetworkingBenchRivermaxTxOp : public Operator {
 
   ~AdvNetworkingBenchRivermaxTxOp() {
     // Stop the provider and join the provider thread
-    if (frame_provider_) { frame_provider_->stop(); }
-    if (provider_thread_.joinable()) { provider_thread_.join(); }
+    if (frame_provider_) {
+      frame_provider_->stop();
+    }
+    if (provider_thread_.joinable()) {
+      provider_thread_.join();
+    }
     HOLOSCAN_LOG_INFO("ANO benchmark Rivermax TX op shutting down");
   }
 

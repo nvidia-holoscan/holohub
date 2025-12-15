@@ -128,8 +128,12 @@ class ManagerFactory {
   static ManagerType get_default_manager_type();
 
   static Manager& get_active_manager() {
-    if (ManagerType_ == ManagerType::UNKNOWN) { throw std::logic_error("ManagerType not set"); }
-    if (!ManagerInstance_) { ManagerInstance_ = create_instance(ManagerType_); }
+    if (ManagerType_ == ManagerType::UNKNOWN) {
+      throw std::logic_error("ManagerType not set");
+    }
+    if (!ManagerInstance_) {
+      ManagerInstance_ = create_instance(ManagerType_);
+    }
     return *ManagerInstance_;
   }
 

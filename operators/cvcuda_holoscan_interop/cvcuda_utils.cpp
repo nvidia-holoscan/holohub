@@ -367,19 +367,25 @@ nvcv::TensorDataStridedCuda::Buffer nhwc_buffer_from_holoscan_tensor(
   if (ndim == 4) {
     // assume tensor has NHWC layout
     // copy strides from in_tensor->strides()
-    for (auto d = 0; d < ndim; d++) { in_buffer.strides[d] = in_strides[d]; }
+    for (auto d = 0; d < ndim; d++) {
+      in_buffer.strides[d] = in_strides[d];
+    }
   } else if (ndim == 3) {
     // assume tensor has HWC layout
     // stride for batch dimension
     in_buffer.strides[0] = in_strides[0] * tensor->shape()[0];
     // remaining strides match in_tensor->strides()
-    for (auto d = 0; d < ndim; d++) { in_buffer.strides[d + 1] = in_strides[d]; }
+    for (auto d = 0; d < ndim; d++) {
+      in_buffer.strides[d + 1] = in_strides[d];
+    }
   } else if (ndim == 2) {
     // assume tensor has HW layout
     // stride for batch dimension
     in_buffer.strides[0] = in_strides[0] * tensor->shape()[0];
     // remaining strides match in_tensor->strides()
-    for (auto d = 0; d < ndim; d++) { in_buffer.strides[d + 1] = in_strides[d]; }
+    for (auto d = 0; d < ndim; d++) {
+      in_buffer.strides[d + 1] = in_strides[d];
+    }
     in_buffer.strides[3] = in_buffer.strides[2];
   } else {
     throw std::runtime_error(

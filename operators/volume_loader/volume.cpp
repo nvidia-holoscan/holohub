@@ -19,7 +19,9 @@
 namespace holoscan::ops {
 
 bool Volume::SetOrientation(const std::string& orientation) {
-  if (orientation.length() != 3) { return false; }
+  if (orientation.length() != 3) {
+    return false;
+  }
 
   uint32_t rl_axis = 4;
   uint32_t is_axis = 4;
@@ -30,21 +32,27 @@ bool Volume::SetOrientation(const std::string& orientation) {
   bool pa_flip = false;
 
   for (int axis = 0; axis < 3; ++axis) {
-    if (orientation[axis] == 'R' || orientation[axis] == 'r') { rl_axis = axis; }
+    if (orientation[axis] == 'R' || orientation[axis] == 'r') {
+      rl_axis = axis;
+    }
 
     if (orientation[axis] == 'L' || orientation[axis] == 'l') {
       rl_axis = axis;
       rl_flip = true;
     }
 
-    if (orientation[axis] == 'I' || orientation[axis] == 'i') { is_axis = axis; }
+    if (orientation[axis] == 'I' || orientation[axis] == 'i') {
+      is_axis = axis;
+    }
 
     if (orientation[axis] == 'S' || orientation[axis] == 's') {
       is_axis = axis;
       is_flip = true;
     }
 
-    if (orientation[axis] == 'P' || orientation[axis] == 'p') { pa_axis = axis; }
+    if (orientation[axis] == 'P' || orientation[axis] == 'p') {
+      pa_axis = axis;
+    }
 
     if (orientation[axis] == 'A' || orientation[axis] == 'a') {
       pa_axis = axis;
@@ -52,7 +60,9 @@ bool Volume::SetOrientation(const std::string& orientation) {
     }
   }
 
-  if ((rl_axis == 4) || (is_axis == 4) || (pa_axis == 4)) { return false; }
+  if ((rl_axis == 4) || (is_axis == 4) || (pa_axis == 4)) {
+    return false;
+  }
 
   permute_axis_ = {rl_axis, is_axis, pa_axis};
   flip_axes_ = {rl_flip, is_flip, pa_flip};

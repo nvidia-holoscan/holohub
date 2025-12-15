@@ -126,7 +126,9 @@ class SourceOp : public Operator {
                          gxf_allocator.value());
 
     std::vector<int> value(tensor->element_count());
-    for (int i = 0; i < value.size(); i++) { value[i] = 42 + i; }
+    for (int i = 0; i < value.size(); i++) {
+      value[i] = 42 + i;
+    }
     std::memcpy(tensor->pointer(), value.data(), value.size() * sizeof(int));
 
     op_output.emit(entity, "output");
@@ -177,7 +179,9 @@ class VideoBufferSourceOp : public Operator {
         false /* stride_align */);
 
     uint8_t value[2 * 3 * 4];
-    for (int i = 0; i < 2 * 3 * 4; i++) { value[i] = 42 + i; }
+    for (int i = 0; i < 2 * 3 * 4; i++) {
+      value[i] = 42 + i;
+    }
     std::memcpy(video_buffer->pointer(), value, sizeof(value));
 
     op_output.emit(entity, "output");

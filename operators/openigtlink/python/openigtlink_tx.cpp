@@ -56,7 +56,9 @@ class PyOpenIGTLinkTxOp : public OpenIGTLinkTxOp {
                                 Arg{"port", port},
                                 Arg{"device_name", device_name},
                                 Arg{"input_names", input_names}}) {
-    if (receivers.size() > 0) { this->add_arg(Arg{"receivers", receivers}); }
+    if (receivers.size() > 0) {
+      this->add_arg(Arg{"receivers", receivers});
+    }
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;

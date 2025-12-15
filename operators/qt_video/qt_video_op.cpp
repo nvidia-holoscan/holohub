@@ -93,7 +93,9 @@ void QtVideoOp::stop() {
 void QtVideoOp::compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
                         holoscan::ExecutionContext& context) {
   auto maybe_entity = op_input.receive<holoscan::gxf::Entity>("input");
-  if (!maybe_entity) { throw std::runtime_error("Failed to receive input"); }
+  if (!maybe_entity) {
+    throw std::runtime_error("Failed to receive input");
+  }
 
   auto& entity = static_cast<nvidia::gxf::Entity&>(maybe_entity.value());
 

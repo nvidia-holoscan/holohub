@@ -75,7 +75,9 @@ class PyOrsiSegmentationPreprocessorOp : public orsi::SegmentationPreprocessorOp
                                                  Arg{"normalize_means", normalize_means},
                                                  Arg{"normalize_stds", normalize_stds},
                                                  Arg{"allocator", allocator}}) {
-    if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
+    if (cuda_stream_pool) {
+      this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool});
+    }
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;

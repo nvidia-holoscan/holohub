@@ -233,7 +233,9 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (stereo_cal.empty()) { stereo_cal = data_directory + "/stereo_calibration.yaml"; }
+  if (stereo_cal.empty()) {
+    stereo_cal = data_directory + "/stereo_calibration.yaml";
+  }
 
   if (config_file.empty()) {
     auto default_path = std::filesystem::canonical(argv[0]).parent_path();
@@ -241,7 +243,9 @@ int main(int argc, char** argv) {
     config_file = default_path.string();
   }
 
-  if (source.empty()) { source = "replayer"; }
+  if (source.empty()) {
+    source = "replayer";
+  }
 
   auto app = holoscan::make_application<VPIStereoApp>(source, stereo_cal);
   app->config(config_file);

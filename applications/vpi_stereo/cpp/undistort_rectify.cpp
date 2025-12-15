@@ -35,8 +35,12 @@ UndistortRectifyOp::RectificationMap::~RectificationMap() {
 }
 void UndistortRectifyOp::RectificationMap::setParameters(float* M, float* d, float* R, float* P,
                                                          int width, int height) {
-  if (mapx_ != NULL) { cudaFree(mapx_); }
-  if (mapy_ != NULL) { cudaFree(mapy_); }
+  if (mapx_ != NULL) {
+    cudaFree(mapx_);
+  }
+  if (mapy_ != NULL) {
+    cudaFree(mapy_);
+  }
   cudaMalloc((void**)&mapx_, height * width * sizeof(float));
   cudaMalloc((void**)&mapy_, height * width * sizeof(float));
   float *d_M, *d_d, *d_R, *d_P;
@@ -229,7 +233,9 @@ void UndistortRectifyOp::compute(InputContext& op_input, OutputContext& op_outpu
   auto maybe_tensormap = op_input.receive<holoscan::TensorMap>("input");
   const auto tensormap = maybe_tensormap.value();
 
-  if (tensormap.size() != 1) { throw std::runtime_error("Expecting single tensor input"); }
+  if (tensormap.size() != 1) {
+    throw std::runtime_error("Expecting single tensor input");
+  }
 
   auto tensor = tensormap.begin()->second;
 
@@ -250,7 +256,9 @@ void UndistortRectifyOp::compute(InputContext& op_input, OutputContext& op_outpu
 
   auto pointer = std::shared_ptr<void*>(new void*, [](void** pointer) {
     if (pointer != nullptr) {
-      if (*pointer != nullptr) { cudaFree(*pointer); }
+      if (*pointer != nullptr) {
+        cudaFree(*pointer);
+      }
       delete pointer;
     }
   });

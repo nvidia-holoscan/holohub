@@ -37,7 +37,9 @@ __global__ void hard_transpose_kernel_3d(T* input, T* output, Shape3 shape) {
   const uint32_t j = blockIdx.y * blockDim.y + threadIdx.y;
   const uint32_t k = blockIdx.z * blockDim.z + threadIdx.z;
 
-  if ((i >= shape.ni) || (j >= shape.nj) || (k >= shape.nk)) { return; }
+  if ((i >= shape.ni) || (j >= shape.nj) || (k >= shape.nk)) {
+    return;
+  }
 
   const uint32_t r = k + shape.nk * (j + i * shape.nj);
   const uint32_t c = i + shape.ni * (j + k * shape.nj);
@@ -50,7 +52,9 @@ __global__ void hard_transpose_kernel_2d(T* input, T* output, Shape2 shape) {
   const uint32_t i = blockIdx.x * blockDim.x + threadIdx.x;
   const uint32_t j = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if ((i >= shape.ni) || (j >= shape.nj)) { return; }
+  if ((i >= shape.ni) || (j >= shape.nj)) {
+    return;
+  }
 
   const uint32_t r = j + i * shape.nj;
   const uint32_t c = i + j * shape.ni;

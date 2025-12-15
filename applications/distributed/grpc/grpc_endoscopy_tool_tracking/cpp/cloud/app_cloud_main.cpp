@@ -51,8 +51,12 @@ bool parse_arguments(int argc, char** argv, uint32_t& port, std::string& data_pa
         case 'p':
           try {
             port = std::stoi(optarg);
-            if (port < 0 || port > 65535) { throw std::out_of_range("port number out of range"); }
-          } catch (const std::exception& e) { std::cerr << e.what() << ":" << optarg << '\n'; }
+            if (port < 0 || port > 65535) {
+              throw std::out_of_range("port number out of range");
+            }
+          } catch (const std::exception& e) {
+            std::cerr << e.what() << ":" << optarg << '\n';
+          }
           break;
         default:
           HOLOSCAN_LOG_ERROR("Unhandled option '{}'", static_cast<char>(c));
@@ -121,7 +125,9 @@ int main(int argc, char** argv) {
   std::string config_path = "";
   std::string data_directory = "";
 
-  if (!parse_arguments(argc, argv, port, data_directory, config_path)) { return 1; }
+  if (!parse_arguments(argc, argv, port, data_directory, config_path)) {
+    return 1;
+  }
 
   if (config_path.empty()) {
     // Get the input data environment variable

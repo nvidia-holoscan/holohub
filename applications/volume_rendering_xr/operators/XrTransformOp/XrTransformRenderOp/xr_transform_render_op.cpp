@@ -99,7 +99,9 @@ void XrTransformRenderOp::start() {
 
 void XrTransformRenderOp::stop() {
   cudaStreamDestroy(cuda_stream_);
-  if (instance_) { viz::Shutdown(instance_); }
+  if (instance_) {
+    viz::Shutdown(instance_);
+  }
 }
 
 void XrTransformRenderOp::compute(InputContext& input, OutputContext& output,

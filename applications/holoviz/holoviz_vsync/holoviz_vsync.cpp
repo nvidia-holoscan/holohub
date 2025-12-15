@@ -65,7 +65,9 @@ class SourceOp : public Operator {
   void setup(OperatorSpec& spec) override { spec.output<holoscan::gxf::Entity>("output"); }
 
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override {
-    if (start_.time_since_epoch().count() == 0) { start_ = std::chrono::steady_clock::now(); }
+    if (start_.time_since_epoch().count() == 0) {
+      start_ = std::chrono::steady_clock::now();
+    }
 
     auto entity = holoscan::gxf::Entity::New(&context);
     auto tensor = static_cast<nvidia::gxf::Entity&>(entity).add<nvidia::gxf::Tensor>("image");
@@ -141,7 +143,9 @@ int main(int argc, char** argv) {
 
     const int c = getopt_long(argc, argv, "hc:", long_options, &option_index);
 
-    if (c == -1) { break; }
+    if (c == -1) {
+      break;
+    }
 
     const std::string argument(optarg ? optarg : "");
     switch (c) {

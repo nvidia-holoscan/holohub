@@ -320,7 +320,9 @@ int main(int argc, char** argv) {
 
     const int c = getopt_long(argc, argv, "hc:w:d:m:e", long_options, &option_index);
 
-    if (c == -1) { break; }
+    if (c == -1) {
+      break;
+    }
 
     const std::string argument(optarg ? optarg : "");
     switch (c) {

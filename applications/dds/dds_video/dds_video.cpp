@@ -227,7 +227,9 @@ int main(int argc, char** argv) {
     int option_index = 0;
 
     const int c = getopt_long(argc, argv, "hpsi:d:", long_options, &option_index);
-    if (c == -1) { break; }
+    if (c == -1) {
+      break;
+    }
 
     const std::string argument(optarg ? optarg : "");
     switch (c) {

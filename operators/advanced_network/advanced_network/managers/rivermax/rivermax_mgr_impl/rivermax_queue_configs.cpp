@@ -49,7 +49,9 @@ RivermaxCommonRxQueueConfig::RivermaxCommonRxQueueConfig(const RivermaxCommonRxQ
 
 RivermaxCommonRxQueueConfig& RivermaxCommonRxQueueConfig::operator=(
     const RivermaxCommonRxQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   BaseQueueConfig::operator=(other);
   max_packet_size = other.max_packet_size;
   max_chunk_size = other.max_chunk_size;
@@ -82,7 +84,9 @@ RivermaxIPOReceiverQueueConfig::RivermaxIPOReceiverQueueConfig(
 
 RivermaxIPOReceiverQueueConfig& RivermaxIPOReceiverQueueConfig::operator=(
     const RivermaxIPOReceiverQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   RivermaxCommonRxQueueConfig::operator=(other);
   local_ips = other.local_ips;
   source_ips = other.source_ips;
@@ -102,7 +106,9 @@ RivermaxRTPReceiverQueueConfig::RivermaxRTPReceiverQueueConfig(
 
 RivermaxRTPReceiverQueueConfig& RivermaxRTPReceiverQueueConfig::operator=(
     const RivermaxRTPReceiverQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   RivermaxCommonRxQueueConfig::operator=(other);
   local_ip = other.local_ip;
   source_ip = other.source_ip;
@@ -134,7 +140,9 @@ RivermaxCommonTxQueueConfig::RivermaxCommonTxQueueConfig(const RivermaxCommonTxQ
 
 RivermaxCommonTxQueueConfig& RivermaxCommonTxQueueConfig::operator=(
     const RivermaxCommonTxQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   gpu_direct = other.gpu_direct;
   gpu_device_id = other.gpu_device_id;
   lock_gpu_clocks = other.lock_gpu_clocks;
@@ -170,7 +178,9 @@ RivermaxMediaSenderQueueConfig::RivermaxMediaSenderQueueConfig(
 
 RivermaxMediaSenderQueueConfig& RivermaxMediaSenderQueueConfig::operator=(
     const RivermaxMediaSenderQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   RivermaxCommonTxQueueConfig::operator=(other);
   video_format = other.video_format;
   bit_depth = other.bit_depth;
@@ -281,9 +291,13 @@ void RivermaxMediaSenderQueueConfig::dump_parameters() const {
 ReturnStatus RivermaxCommonRxQueueValidator::validate(
     const std::shared_ptr<RivermaxCommonRxQueueConfig>& settings) const {
   ReturnStatus rc = ValidatorUtils::validate_core(settings->master_core);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   bool res = ConfigManagerUtilities::validate_cores(settings->cpu_cores);
-  if (!res) { return ReturnStatus::failure; }
+  if (!res) {
+    return ReturnStatus::failure;
+  }
 
   return ReturnStatus::success;
 }
@@ -292,7 +306,9 @@ ReturnStatus RivermaxIPOReceiverQueueValidator::validate(
     const std::shared_ptr<RivermaxIPOReceiverQueueConfig>& settings) const {
   auto validator = std::make_shared<RivermaxCommonRxQueueValidator>();
   ReturnStatus rc = validator->validate(settings);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
 
   if (settings->source_ips.empty()) {
     HOLOSCAN_LOG_ERROR("Source IP addresses are not set for RTP stream");
@@ -317,13 +333,21 @@ ReturnStatus RivermaxIPOReceiverQueueValidator::validate(
   }
 
   rc = ValidatorUtils::validate_ip4_address(settings->source_ips);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->local_ips);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->destination_ips);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_port(settings->destination_ports);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   return ReturnStatus::success;
 }
 
@@ -331,35 +355,55 @@ ReturnStatus RivermaxRTPReceiverQueueValidator::validate(
     const std::shared_ptr<RivermaxRTPReceiverQueueConfig>& settings) const {
   auto validator = std::make_shared<RivermaxCommonRxQueueValidator>();
   ReturnStatus rc = validator->validate(settings);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   if (settings->split_boundary == 0 && settings->gpu_direct) {
     HOLOSCAN_LOG_ERROR("GPU Direct is supported only in header-data split mode");
     return ReturnStatus::failure;
   }
 
   rc = ValidatorUtils::validate_ip4_address(settings->source_ip);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->local_ip);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->destination_ip);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_port(settings->destination_port);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   return ReturnStatus::success;
 }
 
 ReturnStatus RivermaxCommonTxQueueValidator::validate(
     const std::shared_ptr<RivermaxCommonTxQueueConfig>& settings) const {
   ReturnStatus rc = ValidatorUtils::validate_core(settings->master_core);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   bool res = ConfigManagerUtilities::validate_cores(settings->cpu_cores);
-  if (!res) { return ReturnStatus::failure; }
+  if (!res) {
+    return ReturnStatus::failure;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->local_ip);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->destination_ip);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_port(settings->destination_port);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   if (!settings->memory_allocation && settings->memory_registration) {
     HOLOSCAN_LOG_ERROR(
         "Register memory option is supported only with application memory allocation");
@@ -377,7 +421,9 @@ ReturnStatus RivermaxMediaSenderQueueValidator::validate(
     const std::shared_ptr<RivermaxMediaSenderQueueConfig>& settings) const {
   auto validator = std::make_shared<RivermaxCommonTxQueueValidator>();
   ReturnStatus rc = validator->validate(settings);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
 
   return ReturnStatus::success;
 }

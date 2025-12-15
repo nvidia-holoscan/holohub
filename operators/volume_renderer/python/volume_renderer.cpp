@@ -68,9 +68,15 @@ class PyVolumeRendererOp : public VolumeRendererOp {
                                  Arg{"allocator", allocator},
                                  Arg{"alloc_width", alloc_width},
                                  Arg{"alloc_height", alloc_height}}) {
-    if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
-    if (density_min.has_value()) { this->add_arg(Arg{"density_min", density_min.value()}); }
-    if (density_max.has_value()) { this->add_arg(Arg{"density_max", density_max.value()}); }
+    if (cuda_stream_pool) {
+      this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool});
+    }
+    if (density_min.has_value()) {
+      this->add_arg(Arg{"density_min", density_min.value()});
+    }
+    if (density_max.has_value()) {
+      this->add_arg(Arg{"density_max", density_max.value()});
+    }
     name_ = name;
     fragment_ = fragment;
     spec_ = std::make_shared<OperatorSpec>(fragment);

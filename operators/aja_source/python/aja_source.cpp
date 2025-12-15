@@ -58,7 +58,9 @@ constexpr std::array<std::pair<std::string_view, NTV2Channel>, 8> NTV2ChannelMap
 
 constexpr NTV2Channel ToNTV2Channel(std::string_view value) {
   for (const auto& [name, channel] : NTV2ChannelMapping) {
-    if (name == value) { return channel; }
+    if (name == value) {
+      return channel;
+    }
   }
   return NTV2Channel::NTV2_CHANNEL_INVALID;
 }

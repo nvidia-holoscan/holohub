@@ -139,7 +139,9 @@ std::pair<nvidia::gxf::Entity, std::shared_ptr<void*>> create_out_message_with_t
   // Create an out_message entity containing a single GXF tensor corresponding to the output.
   auto element_type = nvcvdatatype_to_gxfprimitivetype(reference_nhwc_tensor.dtype());
   auto shape = reference_nhwc_tensor.shape();
-  if (shape.size() != 4) { throw std::runtime_error("expected 4D tensor (NHWC format)"); }
+  if (shape.size() != 4) {
+    throw std::runtime_error("expected 4D tensor (NHWC format)");
+  }
   nvidia::gxf::Shape out_shape;
   int n = shape[0];
   int h = shape[1];

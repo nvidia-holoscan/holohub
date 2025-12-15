@@ -100,7 +100,9 @@ class CudaStreamHandler {
     } else {
       // if no stream had been found, allocate a stream and use that
       gxf_result_t result = allocateInternalStream();
-      if (result != GXF_SUCCESS) { return result; }
+      if (result != GXF_SUCCESS) {
+        return result;
+      }
       message_cuda_stream_handle_ = cuda_stream_handle_;
     }
     return GXF_SUCCESS;
@@ -116,7 +118,9 @@ class CudaStreamHandler {
   gxf_result_t fromMessages(gxf_context_t context,
                             const std::vector<nvidia::gxf::Entity>& messages) {
     const gxf_result_t result = allocateInternalStream();
-    if (result != GXF_SUCCESS) { return result; }
+    if (result != GXF_SUCCESS) {
+      return result;
+    }
 
     if (!cuda_stream_handle_) {
       // if no CUDA stream can be allocated because no stream pool is set, then don't sync
@@ -194,7 +198,9 @@ class CudaStreamHandler {
    */
   gxf::Handle<gxf::CudaStream> getStreamHandle() {
     // If there is a message stream handle, return this
-    if (message_cuda_stream_handle_) { return message_cuda_stream_handle_; }
+    if (message_cuda_stream_handle_) {
+      return message_cuda_stream_handle_;
+    }
 
     // else allocate an internal CUDA stream and return it
     allocateInternalStream();
@@ -210,7 +216,9 @@ class CudaStreamHandler {
    */
   cudaStream_t getCudaStream() {
     const gxf::Handle<gxf::CudaStream> cuda_stream_handle = getStreamHandle();
-    if (cuda_stream_handle) { return cuda_stream_handle->stream().value(); }
+    if (cuda_stream_handle) {
+      return cuda_stream_handle->stream().value();
+    }
     if (!default_stream_warning_) {
       default_stream_warning_ = true;
       GXF_LOG_WARNING(

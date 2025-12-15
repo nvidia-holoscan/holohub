@@ -201,8 +201,12 @@ Status Manager::allocate_memory_regions() {
  */
 int Manager::get_port_id(const std::string& key) {
   for (const auto& intf : cfg_.ifs_) {
-    if (intf.address_ == key) { return intf.port_id_; }
-    if (intf.name_ == key) { return intf.port_id_; }
+    if (intf.address_ == key) {
+      return intf.port_id_;
+    }
+    if (intf.name_ == key) {
+      return intf.port_id_;
+    }
   }
   return -1;
 }
@@ -213,14 +217,20 @@ bool Manager::validate_config() const {
   std::set<std::string> q_mr_names;
 
   // Verify all memory regions are used in queues and all queue MRs are listed in the MR section
-  for (const auto& mr : cfg_.mrs_) { mr_names.emplace(mr.second.name_); }
+  for (const auto& mr : cfg_.mrs_) {
+    mr_names.emplace(mr.second.name_);
+  }
 
   for (const auto& intf : cfg_.ifs_) {
     for (const auto& rxq : intf.rx_.queues_) {
-      for (const auto& mr : rxq.common_.mrs_) { q_mr_names.emplace(mr); }
+      for (const auto& mr : rxq.common_.mrs_) {
+        q_mr_names.emplace(mr);
+      }
     }
     for (const auto& txq : intf.tx_.queues_) {
-      for (const auto& mr : txq.common_.mrs_) { q_mr_names.emplace(mr); }
+      for (const auto& mr : txq.common_.mrs_) {
+        q_mr_names.emplace(mr);
+      }
     }
   }
 

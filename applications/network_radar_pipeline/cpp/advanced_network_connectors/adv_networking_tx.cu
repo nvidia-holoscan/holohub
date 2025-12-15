@@ -262,7 +262,9 @@ __global__ void populate_packets_kernel(uint8_t** out_ptr, complex_t* rf_data, u
   // Copy over payload
   auto out = reinterpret_cast<complex_t*>(pkt + RFPacket::payload_offset);
   auto in = &rf_data[sample_idx + num_samples * pulse_idx];
-  for (int samp = threadIdx.x; samp < pkt_samples; samp += blockDim.x) { out[samp] = in[samp]; }
+  for (int samp = threadIdx.x; samp < pkt_samples; samp += blockDim.x) {
+    out[samp] = in[samp];
+  }
 }
 
 void AdvConnectorOpTx::populate_packets(uint8_t** out_ptr, complex_t* rf_data, uint16_t waveform_id,
@@ -364,7 +366,9 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
 
     // Send end-of-array message if this is the last channel of the transmit
     const bool send_eoa_msg = rf_data->channel_id == (num_channels_.get() - 1);
-    if (send_eoa_msg) { packets_buf[num_packets_buf - 1].set_end_array(1); }
+    if (send_eoa_msg) {
+      packets_buf[num_packets_buf - 1].set_end_array(1);
+    }
   }
 
   // Setup packets
@@ -372,7 +376,9 @@ void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
     // For HDS mode or CPU mode populate the packet headers
     if (!gpu_direct_ || hds_ > 0) {
       ret = set_cpu_hdr(msg, num_pkt);  // set packet headers
-      if (ret != Status::SUCCESS) { return; }
+      if (ret != Status::SUCCESS) {
+        return;
+      }
 
       // Only set payload on CPU buffer if we're not using GPUDirect
       if (!gpu_direct_) {

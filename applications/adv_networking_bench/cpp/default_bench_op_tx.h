@@ -100,7 +100,9 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       // Fill in with increasing bytes
       uint8_t* cptr = static_cast<uint8_t*>(full_batch_data_h_);
       uint8_t cur = 0;
-      for (int b = 0; b < buf_size; b++) { cptr[b] = cur++; }
+      for (int b = 0; b < buf_size; b++) {
+        cptr[b] = cur++;
+      }
     }
 
     format_eth_addr(eth_dst_, eth_dst_addr_.get());

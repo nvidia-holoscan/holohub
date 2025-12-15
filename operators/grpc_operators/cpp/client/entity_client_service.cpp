@@ -53,10 +53,14 @@ void EntityClientService::start_entity_stream_internal() {
           auto gxf_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
               grpc_request_operator_->executor().context(),
               grpc_request_operator_->allocator()->gxf_cid());
-          if (!gxf_allocator) { throw std::runtime_error("Failed to create GXF allocator"); }
+          if (!gxf_allocator) {
+            throw std::runtime_error("Failed to create GXF allocator");
+          }
 
           auto out_message = nvidia::gxf::Entity::New(grpc_request_operator_->executor().context());
-          if (!out_message) { throw std::runtime_error("Failed to create GXF entity"); }
+          if (!out_message) {
+            throw std::runtime_error("Failed to create GXF entity");
+          }
 
           holoscan::ops::TensorProto::entity_response_to_tensor(
               response,
@@ -71,11 +75,15 @@ void EntityClientService::start_entity_stream_internal() {
     HOLOSCAN_LOG_ERROR("grpc client: EntityStream rpc failed: {}", e.what());
   }
   entity_client_.reset();
-  if (interrupt_) { grpc_request_operator_->executor().interrupt(); }
+  if (interrupt_) {
+    grpc_request_operator_->executor().interrupt();
+  }
 }
 
 void EntityClientService::stop_entity_stream() {
-  if (streaming_thread_.joinable()) { streaming_thread_.join(); }
+  if (streaming_thread_.joinable()) {
+    streaming_thread_.join();
+  }
   HOLOSCAN_LOG_INFO("grpc: Stopping streaming client");
 }
 }  // namespace holoscan::ops

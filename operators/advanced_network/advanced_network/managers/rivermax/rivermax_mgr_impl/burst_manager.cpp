@@ -47,14 +47,18 @@ class NonBlockingQueue : public QueueInterface<T> {
 
  public:
   void enqueue(const T& value) override {
-    if (stop_) { return; }
+    if (stop_) {
+      return;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     queue_.push(value);
   }
 
   bool try_dequeue(T& value) override {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (queue_.empty() || stop_) { return false; }
+    if (queue_.empty() || stop_) {
+      return false;
+    }
     value = queue_.front();
     queue_.pop();
     return true;
@@ -71,7 +75,9 @@ class NonBlockingQueue : public QueueInterface<T> {
 
   void clear() override {
     std::lock_guard<std::mutex> lock(mutex_);
-    while (!queue_.empty()) { queue_.pop(); }
+    while (!queue_.empty()) {
+      queue_.pop();
+    }
   }
 
   void stop() override {
@@ -93,7 +99,9 @@ class BlockingQueue : public QueueInterface<T> {
 
  public:
   void enqueue(const T& value) override {
-    if (stop_) { return; }
+    if (stop_) {
+      return;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     queue_.push(value);
     cond_.notify_one();
@@ -102,7 +110,9 @@ class BlockingQueue : public QueueInterface<T> {
   bool try_dequeue(T& value) override {
     std::unique_lock<std::mutex> lock(mutex_);
     cond_.wait(lock, [this] { return !queue_.empty() || stop_; });
-    if (stop_) { return false; }
+    if (stop_) {
+      return false;
+    }
     value = queue_.front();
     queue_.pop();
     return true;
@@ -113,7 +123,9 @@ class BlockingQueue : public QueueInterface<T> {
     if (!cond_.wait_for(lock, timeout, [this] { return !queue_.empty() || stop_; })) {
        return false;
     }
-    if (stop_) { return false; }
+    if (stop_) {
+      return false;
+    }
     value = queue_.front();
     queue_.pop();
     return true;
@@ -126,7 +138,9 @@ class BlockingQueue : public QueueInterface<T> {
 
   void clear() override {
     std::lock_guard<std::mutex> lock(mutex_);
-    while (!queue_.empty()) { queue_.pop(); }
+    while (!queue_.empty()) {
+      queue_.pop();
+    }
   }
 
   void stop() override {
@@ -407,7 +421,9 @@ RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int que
 }
 
 RxBurstsManager::~RxBurstsManager() {
-  if (using_shared_out_queue_) { return; }
+  if (using_shared_out_queue_) {
+    return;
+  }
 
   std::shared_ptr<RivermaxBurst> burst;
   // Get all bursts from the queue and return them to the memory pool

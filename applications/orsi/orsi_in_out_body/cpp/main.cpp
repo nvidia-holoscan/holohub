@@ -118,7 +118,9 @@ int main(int argc, char** argv) {
 
   auto app = holoscan::make_application<App>();
   // Parse the arguments, set source, datapath, config file
-  if (!app->init(argc, argv)) { return 1; }
+  if (!app->init(argc, argv)) {
+    return 1;
+  }
 
   auto& tracker = app->track();
   app->run();

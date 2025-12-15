@@ -136,7 +136,9 @@ class ConfigBuilderContainer {
    */
   std::shared_ptr<ConfigBuilderHolder> get_holder(uint32_t config_num) const {
     auto it = holders_.find(config_num);
-    if (it != holders_.end()) { return it->second; }
+    if (it != holders_.end()) {
+      return it->second;
+    }
     return nullptr;
   }
 
@@ -153,7 +155,9 @@ class ConfigBuilderContainer {
     auto holder = get_holder(config_num);
     if (holder) {
       auto typed_holder = dynamic_cast<TypedConfigBuilderHolder<ConfigBuilderType>*>(holder.get());
-      if (typed_holder) { return typed_holder->get_config_builder(); }
+      if (typed_holder) {
+        return typed_holder->get_config_builder();
+      }
     }
     return nullptr;
   }
@@ -173,7 +177,9 @@ class ConfigBuilderContainer {
       if (pair.second->get_type() == type) {
         auto typed_holder =
             dynamic_cast<TypedConfigBuilderHolder<ConfigBuilderType>*>(pair.second.get());
-        if (typed_holder) { result.emplace_back(pair.first, typed_holder->get_config_builder()); }
+        if (typed_holder) {
+          result.emplace_back(pair.first, typed_holder->get_config_builder());
+        }
       }
     }
     return result;
@@ -197,7 +203,9 @@ class ConfigBuilderContainer {
   std::vector<uint32_t> get_config_nums() const {
     std::vector<uint32_t> keys;
     keys.reserve(holders_.size());
-    for (const auto& pair : holders_) { keys.push_back(pair.first); }
+    for (const auto& pair : holders_) {
+      keys.push_back(pair.first);
+    }
     return keys;
   }
 
@@ -526,7 +534,9 @@ class RivermaxConfigContainer {
 
   std::shared_ptr<IConfigManager> get_config_manager(ConfigType type) const {
     auto it = config_managers_.find(type);
-    if (it != config_managers_.end()) { return it->second; }
+    if (it != config_managers_.end()) {
+      return it->second;
+    }
     return nullptr;
   }
 

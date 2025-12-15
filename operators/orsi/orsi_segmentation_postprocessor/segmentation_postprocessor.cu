@@ -36,7 +36,9 @@ __global__ void resizing_kernel(Shape input_shape, Shape output_shape, const uin
   const uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
   const uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if ((x >= input_shape.width) || (y >= input_shape.height)) { return; }
+  if ((x >= input_shape.width) || (y >= input_shape.height)) {
+    return;
+  }
 
   output[hw1_to_index(output_shape, y + offset_y, x  + offset_x)] =
                                                           input[hw1_to_index(input_shape, y, x)];

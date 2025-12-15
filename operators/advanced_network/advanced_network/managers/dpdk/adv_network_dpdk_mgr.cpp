@@ -249,7 +249,9 @@ Status DpdkMgr::register_mrs() {
     auto ext_mem = std::make_shared<struct rte_pktmbuf_extmem>();
     const auto& mr = cfg_.mrs_[ar.second.mr_name_];
 
-    if (mr.kind_ == MemoryKind::HUGE) { continue; }
+    if (mr.kind_ == MemoryKind::HUGE) {
+      continue;
+    }
 
     ext_mem->buf_len = mr.ttl_size_;
     ext_mem->buf_iova = RTE_BAD_IOVA;
@@ -277,7 +279,9 @@ Status DpdkMgr::register_mrs() {
 
 void DpdkMgr::setup_accurate_send_scheduling_mask() {
   static bool done = false;
-  if (done) { return; }
+  if (done) {
+    return;
+  }
 
   static const rte_mbuf_dynfield dynfield_desc = {
       RTE_MBUF_DYNFIELD_TIMESTAMP_NAME,
@@ -327,7 +331,9 @@ std::string DpdkMgr::generate_random_string(int len) {
   const char tokens[] = "abcdefghijklmnopqrstuvwxyz";
   std::string tmp;
 
-  for (int i = 0; i < len; i++) { tmp += tokens[rand() % (sizeof(tokens) - 1)]; }
+  for (int i = 0; i < len; i++) {
+    tmp += tokens[rand() % (sizeof(tokens) - 1)];
+  }
 
   return tmp;
 }
@@ -398,14 +404,18 @@ void DpdkMgr::initialize() {
     }
   }
 
-  for (auto& conf : local_port_conf) { conf = conf_eth_port; }
+  for (auto& conf : local_port_conf) {
+    conf = conf_eth_port;
+  }
 
   /* Initialize DPDK params */
   constexpr int max_nargs = 32;
   constexpr int max_arg_size = 64;
   char** _argv;
   _argv = (char**)malloc(sizeof(char*) * max_nargs);
-  for (int i = 0; i < max_nargs; i++) { _argv[i] = (char*)malloc(max_arg_size); }
+  for (int i = 0; i < max_nargs; i++) {
+    _argv[i] = (char*)malloc(max_arg_size);
+  }
 
   int arg = 0;
   std::string cores = std::to_string(cfg_.common_.master_core_) + ",";  // Master core must be first
@@ -416,9 +426,13 @@ void DpdkMgr::initialize() {
   // Get GPU PCIe BDFs since they're needed to pass to DPDK
   for (const auto& intf : cfg_.ifs_) {
     ifs.emplace(intf.address_);
-    for (const auto& q : intf.rx_.queues_) { cores += q.common_.cpu_core_ + ","; }
+    for (const auto& q : intf.rx_.queues_) {
+      cores += q.common_.cpu_core_ + ",";
+    }
 
-    for (const auto& q : intf.tx_.queues_) { cores += q.common_.cpu_core_ + ","; }
+    for (const auto& q : intf.tx_.queues_) {
+      cores += q.common_.cpu_core_ + ",";
+    }
   }
 
   cores = cores.substr(0, cores.size() - 1);
@@ -453,7 +467,9 @@ void DpdkMgr::initialize() {
 
   _argv[arg] = nullptr;
   std::string dpdk_args = "";
-  for (int ac = 0; ac < arg; ac++) { dpdk_args += std::string(_argv[ac]) + " "; }
+  for (int ac = 0; ac < arg; ac++) {
+    dpdk_args += std::string(_argv[ac]) + " ";
+  }
 
   HOLOSCAN_LOG_INFO("DPDK EAL arguments: {}", dpdk_args);
 
@@ -1648,7 +1664,9 @@ DpdkMgr::~DpdkMgr() {
 }
 
 bool DpdkMgr::validate_config() const {
-  if (!Manager::validate_config()) { return false; }
+  if (!Manager::validate_config()) {
+    return false;
+  }
 
   HOLOSCAN_LOG_INFO("Config validated successfully");
   return true;
@@ -1764,13 +1782,17 @@ void DpdkMgr::run() {
 void DpdkMgr::flush_packets(int port) {
   struct rte_mbuf* rx_mbuf;
   HOLOSCAN_LOG_INFO("Flushing packet on port {}", port);
-  while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
+  while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) {
+    rte_pktmbuf_free(rx_mbuf);
+  }
 }
 
 void DpdkMgr::flush_port_queue(int port, int queue) {
   struct rte_mbuf* rx_mbuf;
   HOLOSCAN_LOG_INFO("Flushing packets on port {} queue {}", port, queue);
-  while (rte_eth_rx_burst(port, queue, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
+  while (rte_eth_rx_burst(port, queue, &rx_mbuf, 1) != 0) {
+    rte_pktmbuf_free(rx_mbuf);
+  }
 }
 
 /*
@@ -2247,7 +2269,9 @@ int DpdkMgr::tx_core_worker(void* arg) {
                     (void*)tparams->ring);
 
   while (!force_quit.load()) {
-    if (rte_ring_dequeue(tparams->ring, reinterpret_cast<void**>(&msg)) != 0) { continue; }
+    if (rte_ring_dequeue(tparams->ring, reinterpret_cast<void**>(&msg)) != 0) {
+      continue;
+    }
 
     // Scatter mode needs to chain all the buffers
     if (msg->hdr.hdr.num_segs > 1) {
@@ -2470,7 +2494,9 @@ bool DpdkMgr::is_tx_burst_available(BurstParams* burst) {
 
   const auto& q = item->second;
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
-    if (rte_mempool_avail_count(q->pools[seg]) < burst->hdr.hdr.num_pkts * 2) { return false; }
+    if (rte_mempool_avail_count(q->pools[seg]) < burst->hdr.hdr.num_pkts * 2) {
+      return false;
+    }
   }
 
   return true;

@@ -29,7 +29,9 @@ namespace holoscan::ops {
 bool is_mhd(const std::string& file_name) {
   std::filesystem::path path(file_name);
 
-  if (path.extension() == ".mhd") { return true; }
+  if (path.extension() == ".mhd") {
+    return true;
+  }
 
   return false;
 }
@@ -65,7 +67,9 @@ bool load_mhd(const std::string& file_name, Volume& volume) {
       std::getline(meta_header, value);
       // remove leading spaces
       auto it = value.begin();
-      while ((it != value.end()) && (std::isspace(*it))) { it = value.erase(it); }
+      while ((it != value.end()) && (std::isspace(*it))) {
+        it = value.erase(it);
+      }
 
       if (parameter == "NDims") {
         int dims = std::stoi(value);

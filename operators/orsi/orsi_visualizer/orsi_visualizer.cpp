@@ -56,38 +56,52 @@ static void glfwProcessInput(GLFWwindow* window) {
 // ---------------------------------------------------------------------------------------------
 static void glfwFramebufferSizeCallback(GLFWwindow* window, int width, int height) {
   OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
-  if (op) {  op->onFramebufferSizeCallback(width, height); }
+  if (op) {
+    op->onFramebufferSizeCallback(width, height);
+  }
 }
 
 static void glfwSetWindowFocusCallback(GLFWwindow* window, int focused) {
   OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
-  if (op) {  op->onWindowFocusCallback(focused); }
+  if (op) {
+    op->onWindowFocusCallback(focused);
+  }
 }
 
 static void glfwCharCallback(GLFWwindow* window, unsigned int codepoint) {
   OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
-  if (op) {  op->onChar(codepoint); }
+  if (op) {
+    op->onChar(codepoint);
+  }
 }
 
 static void glfwCursorPosCallback(GLFWwindow* window, double x, double y) {
   OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
-  if (op) {  op->onMouseMove(x, y); }
+  if (op) {
+    op->onMouseMove(x, y);
+  }
 }
 
 static void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
   OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
-  if (op) {  op->onMouseButtonCallback(button, action, mods); }
+  if (op) {
+    op->onMouseButtonCallback(button, action, mods);
+  }
 }
 
 static void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
   OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
-  if (op) {  op->onScrollCallback(xoffset, yoffset); }
+  if (op) {
+    op->onScrollCallback(xoffset, yoffset);
+  }
 }
 
 // GLFW Key Events
 static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   OrsiVisualizationOp * op = static_cast<OrsiVisualizationOp*>(glfwGetWindowUserPointer(window));
-  if (op) {  op->onKeyCallback(key, scancode, action, mods); }
+  if (op) {
+    op->onKeyCallback(key, scancode, action, mods);
+  }
 }
 
 // --------------------------------------------------------------------------------------------

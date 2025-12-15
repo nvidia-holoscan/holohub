@@ -249,7 +249,9 @@ class LogLevel {
 
   static std::string to_string(Level level) {
     auto it = level_to_string_map.find(level);
-    if (it != level_to_string_map.end()) { return it->second; }
+    if (it != level_to_string_map.end()) {
+      return it->second;
+    }
     return "warn";
   }
 
@@ -260,7 +262,9 @@ class LogLevel {
     });
 
     auto it = string_to_level_map.find(lower_str);
-    if (it != string_to_level_map.end()) { return it->second; }
+    if (it != string_to_level_map.end()) {
+      return it->second;
+    }
     throw std::logic_error(
         "Unrecognized log level, available options trace/debug/info/warn/error/critical/off");
   }
@@ -442,8 +446,12 @@ auto get_rx_tx_configs_enabled(const Config& config) {
   for (const auto& yaml_node : yaml_nodes) {
     auto node = yaml_node["advanced_network"]["cfg"]["interfaces"];
     for (const auto& intf : node) {
-      if (intf["rx"]) { rx = true; }
-      if (intf["tx"]) { tx = true; }
+      if (intf["rx"]) {
+        rx = true;
+      }
+      if (intf["tx"]) {
+        tx = true;
+      }
     }
   }
 

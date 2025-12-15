@@ -35,7 +35,9 @@
 namespace holoscan::orsi {  // namespace visualizer_orsi
 
 void convert(const double* src, std::vector<double>& dst) {
-  for (int i = 0; i != dst.size(); ++i) { dst[i] = src[i]; }
+  for (int i = 0; i != dst.size(); ++i) {
+    dst[i] = src[i];
+  }
 }
 
 struct VtkProp3DTransformParams {
@@ -174,7 +176,9 @@ void VtkView::start() {
   //
 
   vtk_renderer_ = vtkSmartPointer<vtkRenderer>::New();
-  if (!vtk_renderer_) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk renderer"); }
+  if (!vtk_renderer_) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize vtk renderer");
+  }
   vtk_renderer_->SetBackground(colors->GetColor3d("BkgColor").GetData());
   vtk_renderer_->SetBackgroundAlpha(0.0);
   vtk_renderer_->AddActor(assembly_);
@@ -184,14 +188,18 @@ void VtkView::start() {
   // VTK render window
   //
   vtk_render_wnd_ = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-  if (!vtk_render_wnd_) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk render window"); }
+  if (!vtk_render_wnd_) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize vtk render window");
+  }
 
   int viewportSize[2] = {static_cast<int>(vp_width_), static_cast<int>(vp_height_)};
   vtk_render_wnd_->SetSize(viewportSize);
 
   vtkSmartPointer<vtkCallbackCommand> isCurrentCallback =
       vtkSmartPointer<vtkCallbackCommand>::New();
-  if (!isCurrentCallback) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk callback"); }
+  if (!isCurrentCallback) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize vtk callback");
+  }
   isCurrentCallback->SetCallback(&isCurrentCallbackFn);
   vtk_render_wnd_->AddObserver(vtkCommand::WindowIsCurrentEvent, isCurrentCallback);
 
@@ -214,7 +222,9 @@ void VtkView::start() {
   //
 
   vtk_interactor_ = vtkSmartPointer<vtkGenericRenderWindowInteractor>::New();
-  if (!vtk_interactor_) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk interactor"); }
+  if (!vtk_interactor_) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize vtk interactor");
+  }
   vtk_interactor_->SetRenderWindow(vtk_render_wnd_);
   vtk_interactor_->EnableRenderOff();
 
@@ -224,7 +234,9 @@ void VtkView::start() {
   //
 
   vtk_interactor_style_ = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
-  if (!vtk_interactor_style_) { HOLOSCAN_LOG_ERROR("Failed to initialize vtk interactor style"); }
+  if (!vtk_interactor_style_) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize vtk interactor style");
+  }
   vtk_interactor_->SetInteractorStyle(vtk_interactor_style_);
   vtk_renderer_->ResetCamera();
 
@@ -233,7 +245,9 @@ void VtkView::start() {
 
 void VtkView::render() {
   // skip frames with invalid dimensions
-  if (vp_width_ <= 0 || vp_height_ <= 0) { return; }
+  if (vp_width_ <= 0 || vp_height_ <= 0) {
+    return;
+  }
 
   if (!update_frame_) {
     vtk_render_wnd_->WaitForCompletion();
@@ -461,7 +475,9 @@ int VtkView::onKey(GLFWwindow* wnd, int key, int scancode, int action, int mods)
       while (getline(t, s)) {
         iss.clear();
         iss.str(s);
-        while (getline(iss, ss, ' ')) { params.push_back(std::stod(ss)); }
+        while (getline(iss, ss, ' ')) {
+          params.push_back(std::stod(ss));
+        }
       }
       if (!params.empty()) {
         transform_params.origin_ = {params.begin(), params.begin() + 3};
@@ -488,7 +504,9 @@ int VtkView::onSize(GLFWwindow* wnd, int w, int h) {
     realloc_texture = true;
   }
 
-  if (!vtk_interactor_) { return 0; }
+  if (!vtk_interactor_) {
+    return 0;
+  }
   update();
 
   vtk_interactor_->UpdateSize(w, h);

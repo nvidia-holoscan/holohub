@@ -122,7 +122,9 @@ class QtHoloscanApp : public QObject, public holoscan::Application {
   void setParam(const std::string& op_name, const std::string& param_name, T const& value) {
     // get the parameter
     auto param_wrapper = findParam(op_name, param_name);
-    if (!param_wrapper) { return; }
+    if (!param_wrapper) {
+      return;
+    }
 
     // set the parameter
     if constexpr (std::is_same_v<T, QString>) {
@@ -147,7 +149,9 @@ class QtHoloscanApp : public QObject, public holoscan::Application {
   T getParam(const std::string& op_name, const std::string& param_name) {
     // get the parameter
     auto param_wrapper = findParam(op_name, param_name);
-    if (!param_wrapper) { return T(); }
+    if (!param_wrapper) {
+      return T();
+    }
 
     if constexpr (std::is_same_v<T, QString>) {
       // special handling of std::string to QString conversion
@@ -172,7 +176,9 @@ class QtHoloscanApp : public QObject, public holoscan::Application {
   Q_PROPERTY(TYPE PARAM_NAME READ PARAM_NAME WRITE set##PARAM_NAME NOTIFY PARAM_NAME##Changed) \
  public:                                                                                       \
   void set##PARAM_NAME(const TYPE& new_value) {                                                \
-    if (PARAM_NAME##_ == new_value) { return; }                                                \
+    if (PARAM_NAME##_ == new_value) {                                                \
+      return;                                                                          \
+    }                                                \
                                                                                                \
     PARAM_NAME##_ = new_value;                                                                 \
                                                                                                \

@@ -40,10 +40,14 @@ std::string trim(const std::string& str) {
   std::string result(str);
   // remove leading spaces
   auto it = result.begin();
-  while ((it != result.end()) && (std::isspace(*it))) { it = result.erase(it); }
+  while ((it != result.end()) && (std::isspace(*it))) {
+    it = result.erase(it);
+  }
   // remove trailing spaces
   it = --result.end();
-  while ((it != result.begin()) && (std::isspace(*it))) { it = result.erase(it); }
+  while ((it != result.begin()) && (std::isspace(*it))) {
+    it = result.erase(it);
+  }
   return result;
 }
 
@@ -58,7 +62,9 @@ std::vector<double> parse_vector(std::string str) {
 
   std::stringstream ss(str);
   std::string token;
-  while (std::getline(ss, token, ',')) { result.push_back(std::stod(token)); }
+  while (std::getline(ss, token, ',')) {
+    result.push_back(std::stod(token));
+  }
   return result;
 }
 
@@ -66,10 +72,14 @@ std::vector<std::string> split_string_by_space(std::string str) {
   std::vector<std::string> result;
   size_t start_index = 0;
   while (true) {
-    while ((start_index < str.length()) && isspace(str[start_index])) { start_index++; }
+    while ((start_index < str.length()) && isspace(str[start_index])) {
+      start_index++;
+    }
     if (start_index >= str.length()) return result;
     size_t end_index = start_index;
-    while ((end_index < str.length()) && !isspace(str[end_index])) { end_index++; }
+    while ((end_index < str.length()) && !isspace(str[end_index])) {
+      end_index++;
+    }
     result.push_back(str.substr(start_index, end_index - start_index));
     start_index = end_index;
   }
@@ -78,7 +88,9 @@ std::vector<std::string> split_string_by_space(std::string str) {
 bool is_nrrd(const std::string& file_name) {
   std::filesystem::path path(file_name);
 
-  if (path.extension() == ".nhdr" || path.extension() == ".nrrd") { return true; }
+  if (path.extension() == ".nhdr" || path.extension() == ".nrrd") {
+    return true;
+  }
 
   return false;
 }
@@ -241,17 +253,25 @@ bool load_nrrd(const std::string& file_name, Volume& volume) {
   // get the parameters
   std::string line;
   while (std::getline(file, line)) {
-    if (file.tellg() != -1) { byte_skip = file.tellg(); }
+    if (file.tellg() != -1) {
+      byte_skip = file.tellg();
+    }
 
     // After the header, there is a single blank line containing zero characters. This separates the
     // header from the data, which follows
-    if (line.empty()) { break; }
+    if (line.empty()) {
+      break;
+    }
 
     // Comment lines start with a pound, "#", with no proceeding whitespace, ignore.
-    if (line.substr(0, 1) == "#") { continue; }
+    if (line.substr(0, 1) == "#") {
+      continue;
+    }
 
     size_t delimiterPos = line.find(':');
-    if (delimiterPos == std::string::npos) { continue; }
+    if (delimiterPos == std::string::npos) {
+      continue;
+    }
     std::string key = remove_all_spaces(line.substr(0, delimiterPos));
     std::string value = trim(line.substr(delimiterPos + 1));
 

@@ -279,7 +279,9 @@ void QCAPSource::destroyImage(struct Image* image) {
 }
 
 void QCAPSource::initCuda() {
-  if (cuInit(0) != CUDA_SUCCESS) { throw std::runtime_error("cuInit failed."); }
+  if (cuInit(0) != CUDA_SUCCESS) {
+    throw std::runtime_error("cuInit failed.");
+  }
 
   if (cuDevicePrimaryCtxRetain(&m_CudaContext, 0) != CUDA_SUCCESS) {
     throw std::runtime_error("cuDevicePrimaryCtxRetain failed.");
@@ -432,7 +434,9 @@ gxf_result_t QCAPSource::stop() {
       }
     }
 
-    for (int i = 0; i < kDefaultColorConvertBufferSize; i++) { cudaFree((void**)&m_pRGBBUffer[i]); }
+    for (int i = 0; i < kDefaultColorConvertBufferSize; i++) {
+      cudaFree((void**)&m_pRGBBUffer[i]);
+    }
 
     destroyImage(&m_iNoDeviceImage);
     destroyImage(&m_iNoSignalImage);

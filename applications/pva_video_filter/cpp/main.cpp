@@ -71,9 +71,13 @@ class PVAVideoFilterExecutor : public Operator {
               nvidia::gxf::PrimitiveTypeSize(nvidia::gxf::PrimitiveType::kUnsigned8))}},
         false);
 
-    if (!out_message) { std::runtime_error("failed to create out_message"); }
+    if (!out_message) {
+      std::runtime_error("failed to create out_message");
+    }
     const auto output_tensor = out_message.value().get<nvidia::gxf::Tensor>();
-    if (!output_tensor) { std::runtime_error("failed to create out_tensor"); }
+    if (!output_tensor) {
+      std::runtime_error("failed to create out_tensor");
+    }
 
     uint8_t* input_tensor_data = static_cast<uint8_t*>(input_tensor->data());
     uint8_t* output_tensor_data = static_cast<uint8_t*>(output_tensor.value()->pointer());

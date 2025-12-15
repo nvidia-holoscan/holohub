@@ -362,7 +362,9 @@ RivermaxMgr::RivermaxMgrImpl::~RivermaxMgrImpl() {}
 
 void RivermaxMgr::RivermaxMgrImpl::run() {
   std::size_t num_services = rx_services_.size();
-  if (num_services > 0) { HOLOSCAN_LOG_INFO("Starting {} RX Services", num_services); }
+  if (num_services > 0) {
+    HOLOSCAN_LOG_INFO("Starting {} RX Services", num_services);
+  }
 
   for (const auto& entry : rx_services_) {
     uint32_t key = entry.first;
@@ -372,7 +374,9 @@ void RivermaxMgr::RivermaxMgrImpl::run() {
   }
 
   num_services = tx_services_.size();
-  if (num_services > 0) { HOLOSCAN_LOG_INFO("Starting {} TX Services", num_services); }
+  if (num_services > 0) {
+    HOLOSCAN_LOG_INFO("Starting {} TX Services", num_services);
+  }
 
   for (const auto& entry : tx_services_) {
     uint32_t key = entry.first;
@@ -518,7 +522,9 @@ Status RivermaxMgr::RivermaxMgrImpl::get_rx_burst(BurstParams** burst, int port,
   }
 
   auto out_burst_shared = queue_it->second->dequeue_burst();
-  if (out_burst_shared == nullptr) { return Status::NULL_PTR; }
+  if (out_burst_shared == nullptr) {
+    return Status::NULL_PTR;
+  }
   *burst = out_burst_shared.get();
   return Status::SUCCESS;
 }
@@ -546,16 +552,22 @@ Status RivermaxMgr::RivermaxMgrImpl::send_tx_burst(BurstParams* burst) {
 }
 
 void RivermaxMgr::RivermaxMgrImpl::shutdown() {
-  if (force_quit.load()) { return; }
+  if (force_quit.load()) {
+    return;
+  }
   HOLOSCAN_LOG_INFO("Advanced Network Rivermax manager shutting down");
   force_quit.store(true);
   print_stats();
   kill(getpid(), SIGINT);
 
   // Shut down all services
-  for (auto& service_pair : rx_services_) { service_pair.second->shutdown(); }
+  for (auto& service_pair : rx_services_) {
+    service_pair.second->shutdown();
+  }
 
-  for (auto& service_pair : tx_services_) { service_pair.second->shutdown(); }
+  for (auto& service_pair : tx_services_) {
+    service_pair.second->shutdown();
+  }
 
   for (auto& [service_id, rx_bursts_out_queue] : rx_bursts_out_queues_map_) {
     rx_bursts_out_queue->stop();
@@ -563,10 +575,14 @@ void RivermaxMgr::RivermaxMgrImpl::shutdown() {
   }
 
   for (auto& rx_service_thread : rx_service_threads_) {
-    if (rx_service_thread.joinable()) { rx_service_thread.join(); }
+    if (rx_service_thread.joinable()) {
+      rx_service_thread.join();
+    }
   }
   for (auto& tx_service_thread : tx_service_threads_) {
-    if (tx_service_thread.joinable()) { tx_service_thread.join(); }
+    if (tx_service_thread.joinable()) {
+      tx_service_thread.join();
+    }
   }
   HOLOSCAN_LOG_INFO("All service threads finished");
   rx_services_.clear();
@@ -583,7 +599,9 @@ void RivermaxMgr::RivermaxMgrImpl::print_stats() {
   ss << "Service Statistics" << std::endl;
   ss << "----------------" << std::endl;
 
-  for (const auto& entry : rx_services_) { entry.second->print_stats(ss); }
+  for (const auto& entry : rx_services_) {
+    entry.second->print_stats(ss);
+  }
 
   HOLOSCAN_LOG_INFO(ss.str());
 }

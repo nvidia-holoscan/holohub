@@ -42,7 +42,9 @@ void SplitVideoOp::compute(InputContext& op_input, OutputContext& op_output,
   auto maybe_tensormap = op_input.receive<holoscan::TensorMap>("input");
   const auto tensormap = maybe_tensormap.value();
 
-  if (tensormap.size() != 1) { throw std::runtime_error("Expecting single tensor input"); }
+  if (tensormap.size() != 1) {
+    throw std::runtime_error("Expecting single tensor input");
+  }
 
   auto tensor = tensormap.begin()->second;
   int height = tensor->shape()[0];
@@ -54,14 +56,18 @@ void SplitVideoOp::compute(InputContext& op_input, OutputContext& op_output,
   int element_size = nvidia::gxf::PrimitiveTypeSize(data_type);
   auto pointer1 = std::shared_ptr<void*>(new void*, [](void** pointer1) {
     if (pointer1 != nullptr) {
-      if (*pointer1 != nullptr) { cudaFree(*pointer1); }
+      if (*pointer1 != nullptr) {
+        cudaFree(*pointer1);
+      }
       delete pointer1;
     }
   });
 
   auto pointer2 = std::shared_ptr<void*>(new void*, [](void** pointer2) {
     if (pointer2 != nullptr) {
-      if (*pointer2 != nullptr) { cudaFree(*pointer2); }
+      if (*pointer2 != nullptr) {
+        cudaFree(*pointer2);
+      }
       delete pointer2;
     }
   });
@@ -179,7 +185,9 @@ void MergeVideoOp::compute(InputContext& op_input, OutputContext& op_output,
 
   auto pointer = std::shared_ptr<void*>(new void*, [](void** pointer) {
     if (pointer != nullptr) {
-      if (*pointer != nullptr) { cudaFree(*pointer); }
+      if (*pointer != nullptr) {
+        cudaFree(*pointer);
+      }
       delete pointer;
     }
   });

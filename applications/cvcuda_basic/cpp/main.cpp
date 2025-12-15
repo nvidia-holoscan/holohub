@@ -52,8 +52,12 @@ class ImageProcessingOp : public holoscan::Operator {
 
     // cv_in_tensor will be in NHWC format
     int num_batch = cv_in_tensor.shape()[0];
-    if (num_batch > 1) { HOLOSCAN_LOG_ERROR("batch_size > 1 is not supported"); }
-    if (cv_in_tensor.rank() > 4) { HOLOSCAN_LOG_ERROR("rank > 4 is not supported"); }
+    if (num_batch > 1) {
+      HOLOSCAN_LOG_ERROR("batch_size > 1 is not supported");
+    }
+    if (cv_in_tensor.rank() > 4) {
+      HOLOSCAN_LOG_ERROR("rank > 4 is not supported");
+    }
 
     // this has two components: strides and basePtr
     nvcv::TensorDataStridedCuda::Buffer cv_out_buffer;
@@ -157,7 +161,9 @@ bool parse_arguments(int argc, char** argv, std::string& config_name, std::strin
     }
   }
 
-  if (optind < argc) { config_name = argv[optind++]; }
+  if (optind < argc) {
+    config_name = argv[optind++];
+  }
   return true;
 }
 
@@ -168,7 +174,9 @@ int main(int argc, char** argv) {
   // Parse the arguments
   std::string data_path = "";
   std::string config_name = "";
-  if (!parse_arguments(argc, argv, config_name, data_path)) { return 1; }
+  if (!parse_arguments(argc, argv, config_name, data_path)) {
+    return 1;
+  }
 
   if (config_name != "") {
     app->config(config_name);

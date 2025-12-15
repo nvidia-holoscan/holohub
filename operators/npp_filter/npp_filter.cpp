@@ -81,7 +81,9 @@ void NppFilterOp::setup(OperatorSpec& spec) {
 void NppFilterOp::compute(InputContext& op_input, OutputContext& op_output,
                           ExecutionContext& context) {
   auto maybe_entity = op_input.receive<holoscan::gxf::Entity>("input");
-  if (!maybe_entity) { throw std::runtime_error("Failed to receive input"); }
+  if (!maybe_entity) {
+    throw std::runtime_error("Failed to receive input");
+  }
 
   auto& entity = static_cast<nvidia::gxf::Entity&>(maybe_entity.value());
 
@@ -156,7 +158,9 @@ void NppFilterOp::compute(InputContext& op_input, OutputContext& op_output,
   if (maybe_video_buffer) {
     // if we received a video buffer allocate a video buffer as output as well
     out_message = nvidia::gxf::Entity::New(context.context());
-    if (!out_message) { throw std::runtime_error("Failed to allocate message for the output."); }
+    if (!out_message) {
+      throw std::runtime_error("Failed to allocate message for the output.");
+    }
 
     auto video_buffer = out_message.value().add<nvidia::gxf::VideoBuffer>("output");
 
@@ -188,9 +192,13 @@ void NppFilterOp::compute(InputContext& op_input, OutputContext& op_output,
               shape, nvidia::gxf::PrimitiveTypeSize(nvidia::gxf::PrimitiveType::kUnsigned8))}},
         false);
 
-    if (!out_message) { std::runtime_error("failed to create out_message"); }
+    if (!out_message) {
+      std::runtime_error("failed to create out_message");
+    }
     const auto tensor = out_message.value().get<nvidia::gxf::Tensor>();
-    if (!tensor) { std::runtime_error("failed to create out_tensor"); }
+    if (!tensor) {
+      std::runtime_error("failed to create out_tensor");
+    }
 
     void* out_tensor_data = tensor.value()->pointer();
     if (out_tensor_data == nullptr) {

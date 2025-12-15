@@ -88,7 +88,9 @@ class PyLSTMTensorRTInferenceOp : public LSTMTensorRTInferenceOp {
                                         Arg{"relaxed_dimension_check", relaxed_dimension_check},
                                         Arg{"max_workspace_size", max_workspace_size},
                                         Arg{"max_batch_size", max_batch_size}}) {
-    if (dla_core.has_value()) { add_arg(Arg{"dla_core", dla_core.value()}); }
+    if (dla_core.has_value()) {
+      add_arg(Arg{"dla_core", dla_core.value()});
+    }
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;

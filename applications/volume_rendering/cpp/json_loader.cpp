@@ -33,7 +33,9 @@ void JsonLoaderOp::compute(InputContext& input, OutputContext& output, Execution
   nlohmann::json json;
   for (auto&& file_name : file_names_.get()) {
     std::ifstream input_file_stream(file_name);
-    if (!input_file_stream) { throw std::runtime_error("Could not open JSON file for reading"); }
+    if (!input_file_stream) {
+      throw std::runtime_error("Could not open JSON file for reading");
+    }
 
     json.update(nlohmann::json::parse(input_file_stream));
   }

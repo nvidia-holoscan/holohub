@@ -72,10 +72,14 @@ __global__ void place_packet_data_kernel(complex_t* out, const void* const* cons
 #endif
 
   // Make sure this isn't wrapping the buffer - drop if it is
-  if (meta->waveform_id >= buffer_pos + buffer_size || meta->waveform_id < buffer_pos) { return; }
+  if (meta->waveform_id >= buffer_pos + buffer_size || meta->waveform_id < buffer_pos) {
+    return;
+  }
 
   const uint16_t buffer_idx = meta->waveform_id % buffer_size;
-  if (meta->end_array && threadIdx.x == 0) { received_end[buffer_idx] = true; }
+  if (meta->end_array && threadIdx.x == 0) {
+    received_end[buffer_idx] = true;
+  }
 
   // Compute pointer in buffer memory
   const uint32_t idx_offset = meta->sample_idx + meta->pulse_idx * num_samples +
@@ -262,7 +266,9 @@ std::vector<AdvConnectorOpRx::RxMsg> AdvConnectorOpRx::free_bufs() {
 
 void AdvConnectorOpRx::free_bufs_and_emit_arrays(OutputContext& op_output) {
   std::vector<AdvConnectorOpRx::RxMsg> completed_msgs = free_bufs();
-  if (completed_msgs.empty()) { return; }
+  if (completed_msgs.empty()) {
+    return;
+  }
   cudaStream_t stream = completed_msgs[0].stream;
 
   buffer_track.transfer(cudaMemcpyDeviceToHost, stream);
@@ -270,7 +276,9 @@ void AdvConnectorOpRx::free_bufs_and_emit_arrays(OutputContext& op_output) {
 
   for (size_t i = 0; i < buffer_track.buffer_size; i++) {
     const size_t pos_wrap = (buffer_track.pos + i) % buffer_track.buffer_size;
-    if (!buffer_track.received_end_h[pos_wrap]) { continue; }
+    if (!buffer_track.received_end_h[pos_wrap]) {
+      continue;
+    }
 
     // Received End-of-Array (EOA) message, emit to downstream operators
     auto params =

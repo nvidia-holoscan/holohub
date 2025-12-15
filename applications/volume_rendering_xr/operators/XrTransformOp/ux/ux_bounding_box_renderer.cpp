@@ -248,7 +248,9 @@ void UxBoundingBoxRenderer::showAll(UxBoundingBox& box) {
   float hy = box.half_extent[1];
   float hz = box.half_extent[2];
 
-  for (int i = 0; i < 6; i++) { box.faces[i].range = 1; }
+  for (int i = 0; i < 6; i++) {
+    box.faces[i].range = 1;
+  }
   box.faces[0].projection = Eigen::Vector2f(0.3f, 0.3);
   box.faces[1].projection = Eigen::Vector2f(0.3f, 0.3);
   box.faces[2].projection = Eigen::Vector2f(0.3f, 0.3);
@@ -261,7 +263,9 @@ void UxBoundingBoxRenderer::showAll(UxBoundingBox& box) {
     box.edges[i].projection = 0.3;
   }
 
-  for (int i = 0; i < 8; i++) { box.corners[i].range = 1; }
+  for (int i = 0; i < 8; i++) {
+    box.corners[i].range = 1;
+  }
 }
 
 }  // namespace holoscan::openxr
