@@ -2,12 +2,12 @@ langchain==0.1.11
 sentence_transformers~=4.1.0
 GitPython~=3.1.0
 gradio==5.35.*
-pypdf~=6.4.1
+pypdf~=3.17.4
 requests==2.*
 chromadb~=1.0.8
 openai~=1.30.2
 tiktoken~=0.6.0
-mcp==1.23.*
+mcp==1.10.*
 pydantic-core==2.27.2
 starlette>=0.36.0
 uvicorn>=0.27.0
