@@ -1,8 +1,8 @@
 black==25.12.0
 cmakelint==1.4.3
 codespell==2.4.1
-cpplint==1.6.1
+cpplint==2.0.2
 isort==7.0.0
-mypy==1.19.0
-ruff==0.14.8
-clang-format==14.*
+mypy==1.19.1
+ruff==0.14.9
+clang-format==21.*
