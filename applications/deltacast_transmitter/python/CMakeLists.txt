@@ -18,7 +18,7 @@ find_package(holoscan 1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspa
 
 # Add testing
 if(BUILD_TESTING)
-  
+
   # Configure the yaml file for testing
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/deltacast_transmitter.yaml" CONFIG_FILE)
   string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
