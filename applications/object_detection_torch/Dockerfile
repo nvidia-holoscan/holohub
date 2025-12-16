@@ -49,16 +49,10 @@ RUN if [ "${GPU_TYPE}" = "igpu" ]; then \
     else \
         CUDA_MAJOR=$(nvcc --version | grep -o "release [0-9]*" | awk '{print $2}'); \
         if [ "$CUDA_MAJOR" = "13" ]; then \
-            # Reflect observed Torchvision nightly wheel dependencies for CUDA 13
-            if [ $(uname -m) = "aarch64" ]; then \
-                PYTORCH_WHEEL_VERSION="2.9.0"; \
-                TORCHVISION_WHEEL_VERSION="0.24.0"; \
-                INDEX_URL="https://download.pytorch.org/whl/test/cu130"; \
-            else \
-                PYTORCH_WHEEL_VERSION="2.9.0.dev20250829+cu130"; \
-                TORCHVISION_WHEEL_VERSION="0.24.0.dev20250829"; \
-                INDEX_URL="https://download.pytorch.org/whl/nightly/cu130"; \
-                fi; \
+            # Reflect observed Torchvision wheel dependencies for CUDA 13
+            PYTORCH_WHEEL_VERSION="2.9.0+cu130"; \
+            TORCHVISION_WHEEL_VERSION="0.24.0"; \
+            INDEX_URL="https://download.pytorch.org/whl/"; \
         else \
             PYTORCH_WHEEL_VERSION="2.8.0+cu129"; \
             TORCHVISION_WHEEL_VERSION="0.23.0+cu129"; \
