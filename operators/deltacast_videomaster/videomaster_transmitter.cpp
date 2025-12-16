@@ -37,6 +37,10 @@ namespace holoscan::ops {
 
 namespace {
 
+void sleep_ms(uint32_t value) {
+  std::this_thread::sleep_for(std::chrono::milliseconds(value));
+}
+
 const std::unordered_map<uint32_t, VHD_GENLOCKSOURCE> id_to_genlock_source = {
     {0, VHD_GENLOCK_RX0}, {1, VHD_GENLOCK_RX1}, {2, VHD_GENLOCK_RX2},   {3, VHD_GENLOCK_RX3},
     {4, VHD_GENLOCK_RX4}, {5, VHD_GENLOCK_RX5}, {6, VHD_GENLOCK_RX6},   {7, VHD_GENLOCK_RX7},
@@ -102,13 +106,13 @@ void VideoMasterTransmitterOp::start() {
     throw std::runtime_error("Failed to open stream");
 
   if (!_overlay) {
-    _video_master_base->video_format() = Deltacast::Helper::VideoFormat{
+    _video_master_base->video_format = Deltacast::Helper::VideoFormat{
         _width, _height, _progressive, _framerate};
-    _video_master_base->video_information()->set_video_format(
-        _video_master_base->stream_handle(), _video_master_base->video_format());
+    _video_master_base->video_information->set_video_format(
+        _video_master_base->stream_handle(), _video_master_base->video_format);
 
     auto opt_sync_source_property =
-        _video_master_base->video_information()->get_sync_source_properties();
+        _video_master_base->video_information->get_sync_source_properties();
     if (opt_sync_source_property)
       VHD_SetBoardProperty(*_video_master_base->board_handle(),
                            *opt_sync_source_property, VHD_GENLOCK_LOCAL);
@@ -152,15 +156,15 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
 
       _has_lost_signal = true;
       return;
-    } else if (!(_video_master_base->video_format() !=
+    } else if (!(_video_master_base->video_format !=
                  Deltacast::Helper::VideoFormat{})) {  // stream not started yet
       HOLOSCAN_LOG_INFO("Configuring overlay mode: {}x{} {} @ {} Hz",
                         _width, _height,
                         _progressive ? "p" : "i", _framerate);
-      _video_master_base->video_format() = Deltacast::Helper::VideoFormat{
+      _video_master_base->video_format = Deltacast::Helper::VideoFormat{
           _width, _height, _progressive, _framerate};
-      _video_master_base->video_information()->set_video_format(
-          _video_master_base->stream_handle(), _video_master_base->video_format());
+      _video_master_base->video_information->set_video_format(
+          _video_master_base->stream_handle(), _video_master_base->video_format);
 
       HOLOSCAN_LOG_DEBUG("Configuring board for overlay...");
       if (!configure_board_for_overlay())
@@ -192,8 +196,8 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
 
   HANDLE slot_handle;
   HOLOSCAN_LOG_DEBUG("Getting slot handle - slot_count: {}, available slots: {}",
-                     _slot_count, _video_master_base->slot_handles().size());
-  if (_slot_count >= _video_master_base->slot_handles().size()) {
+                     _slot_count, _video_master_base->slot_handles.size());
+  if (_slot_count >= _video_master_base->slot_handles.size()) {
     HOLOSCAN_LOG_DEBUG("Waiting for slot to be sent (slot_count >= available slots)");
     if (!_video_master_base->holoscan_log_on_error(
         Deltacast::Helper::ApiSuccess{
@@ -205,7 +209,7 @@ void VideoMasterTransmitterOp::compute(InputContext& op_input, OutputContext& op
     HOLOSCAN_LOG_DEBUG("Successfully waited for slot to be sent - slot_handle: {}",
                        static_cast<void*>(slot_handle));
   } else {
-    slot_handle = _video_master_base->slot_handles()[_slot_count %
+    slot_handle = _video_master_base->slot_handles[_slot_count %
                                                      VideoMasterBase::NB_SLOTS];
     HOLOSCAN_LOG_DEBUG("Using available slot handle - index: {}, slot_handle: {}",
                        _slot_count % VideoMasterBase::NB_SLOTS,
@@ -278,12 +282,12 @@ bool VideoMasterTransmitterOp::configure_board_for_overlay() {
   HOLOSCAN_LOG_INFO("Configuring board for overlay with keyer on channel {}",
                      _channel_index);
 
-  if (!_video_master_base->video_information()->configure_sync(
+  if (!_video_master_base->video_information->configure_sync(
       _video_master_base->board_handle(), _channel_index)) {
     return false;
   }
 
-  auto keyer_props = _video_master_base->video_information()->get_keyer_properties(
+  auto keyer_props = _video_master_base->video_information->get_keyer_properties(
       _video_master_base->board_handle());
 
   if (!_video_master_base->holoscan_log_on_error(
@@ -368,7 +372,7 @@ bool VideoMasterTransmitterOp::configure_stream_for_overlay() {
   }
 
   auto opt_sync_tx_property =
-      _video_master_base->video_information()->get_sync_tx_properties();
+      _video_master_base->video_information->get_sync_tx_properties();
   if (opt_sync_tx_property) {
     if (!_video_master_base->holoscan_log_on_error(
         Deltacast::Helper::ApiSuccess{

@@ -35,7 +35,7 @@ The following parameters can be configured for this operator:
 | `height`         | uint32_t | The height of the output stream                                                                      | 1080    |
 | `progressive`    | bool     | interleaved or progressive                                                                           | true    |
 | `framerate`      | uint32_t | The framerate of the output stream                                                                   | 60      |
-| `enable_overlay` | bool     | Is overlay is add by card or not                                                                     | false   |
+| `enable_overlay` | bool     | Is overlay provided by the card or not                                                               | false   |
 
 ## Building the operator
 

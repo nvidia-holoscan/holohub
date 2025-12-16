@@ -19,20 +19,12 @@
 #include <array>
 #include <string>
 #include <vector>
-#include <optional>
 
 #include "holoscan/holoscan.hpp"
 
 #include "VideoMasterHD_Core.h"
 #include "VideoMasterAPIHelper/handle_manager.hpp"
 #include "VideoMasterAPIHelper/VideoInformation/core.hpp"
-
-#include <chrono>
-#include <thread>
-
-inline void sleep_ms(uint32_t value) {
-  std::this_thread::sleep_for(std::chrono::milliseconds(value));
-}
 
 namespace holoscan::ops {
 
@@ -57,39 +49,21 @@ class VideoMasterBase {
 
   Deltacast::Helper::BoardHandle& board_handle() { return *_board_handle; }
   Deltacast::Helper::StreamHandle& stream_handle() { return *_stream_handle; }
-
-  // Getters for private members
-  std::unique_ptr<Deltacast::Helper::VideoInformation>& video_information() {
-    return _video_information;
-  }
-  const std::unique_ptr<Deltacast::Helper::VideoInformation>& video_information() const {
-    return _video_information;
-  }
-  std::array<std::vector<BYTE*>, NB_SLOTS>& gpu_buffers() { return _gpu_buffers; }
-  const std::array<std::vector<BYTE*>, NB_SLOTS>& gpu_buffers() const { return _gpu_buffers; }
-  std::array<std::vector<BYTE*>, NB_SLOTS>& system_buffers() { return _system_buffers; }
-  const std::array<std::vector<BYTE*>, NB_SLOTS>& system_buffers() const { return _system_buffers; }
-  std::array<HANDLE, NB_SLOTS>& slot_handles() { return _slot_handles; }
-  const std::array<HANDLE, NB_SLOTS>& slot_handles() const { return _slot_handles; }
-  Deltacast::Helper::VideoFormat& video_format() { return _video_format; }
-  const Deltacast::Helper::VideoFormat& video_format() const { return _video_format; }
   const bool is_igpu() const { return _is_igpu; }
+
+  std::unique_ptr<Deltacast::Helper::VideoInformation> video_information;
+  std::array<std::vector<BYTE*>, NB_SLOTS> gpu_buffers;
+  std::array<std::vector<BYTE*>, NB_SLOTS> system_buffers;
+  std::array<HANDLE, NB_SLOTS> slot_handles;
+  Deltacast::Helper::VideoFormat video_format;
 
  private:
   bool _is_input;
   bool _is_igpu = false;
   VHD_CHANNELTYPE _channel_type = NB_VHD_CHANNELTYPE;
-  std::unique_ptr<Deltacast::Helper::VideoInformation> _video_information;
-  // GPU buffers (always allocated)
-  std::array<std::vector<BYTE*>, NB_SLOTS> _gpu_buffers;
-  // System buffers (only in non-RDMA mode)
-  std::array<std::vector<BYTE*>, NB_SLOTS> _system_buffers;
-  std::array<HANDLE, NB_SLOTS> _slot_handles;
   uint32_t _board_index;
   uint32_t _channel_index;
   bool _use_rdma;
-
-  Deltacast::Helper::VideoFormat _video_format;
 
   void free_buffers();
   std::unique_ptr<Deltacast::Helper::BoardHandle> _board_handle;
