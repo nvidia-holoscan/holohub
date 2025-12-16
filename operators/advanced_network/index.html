@@ -17748,17 +17748,16 @@ is available in userspace, thus bypassing the kernel's networking stack entirely
 <h4 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h4>
 <ul>
 <li>Linux</li>
-<li>An NVIDIA NIC with a ConnectX-6 or later chip</li>
+<li>An NVIDIA NIC with a ConnectX6-Dx or later chip</li>
 <li>System tuning as described <a href="../../tutorials/high_performance_networking/">here</a></li>
-<li>MOFED 5.8-1.0.1.1 or later (included with DOCA package)</li>
-<li>MLNX5/IB drivers with peermem support - either through:</li>
-<li>Inbox drivers (ubuntu kernel &gt;= 5.4 and <a href="https://discourse.ubuntu.com/t/nvidia-gpudirect-over-infiniband-migration-paths/44425">&lt; 6.8</a>)</li>
-<li>NVIDIA optimized kernels (IGX OS, DGX BaseOS)</li>
-<li>MLNX-OFED drivers, either from:<ul>
-<li><a href="https://developer.nvidia.com/doca-archive">DOCA-Host</a> 2.8 or later (install <code>mlnx-ofed-kernel-dkms</code> package or the <code>doca-ofed</code> meta-package for extra tooling)</li>
-<li><em>(deprecated)</em> <a href="https://network.nvidia.com/products/infiniband-drivers/linux/mlnx_ofed/">MOFED</a> 23.10 or later (<code>sudo ./mlnxofedinstall --kernel-only</code>)</li>
-</ul>
-</li>
+<li>For DPDK, Rivermax: MLNX5/IB drivers with peermem support - either through:</li>
+<li>Inbox (i.e. standard) drivers on Ubuntu kernel versions &gt;= 5.4 and <a href="https://discourse.ubuntu.com/t/nvidia-gpudirect-over-infiniband-migration-paths/44425">&lt; 6.8</a>, or</li>
+<li>NVIDIA optimized kernels (IGX OS, DGX BaseOS), or</li>
+<li>OFED drivers from <a href="https://developer.nvidia.com/doca-archive">DOCA-Host</a> 2.8 or later (install the <code>mlnx-ofed-kernel-dkms</code> package or the <code>doca-ofed</code> meta-package for extra tooling), or</li>
+<li><em>(deprecated)</em> OFED drivers from <a href="https://network.nvidia.com/products/infiniband-drivers/linux/mlnx_ofed/">MOFED</a> 23.10 or later (<code>sudo ./mlnxofedinstall --kernel-only</code>).</li>
+<li>For GPUNetIO:</li>
+<li>The <a href="https://docs.nvidia.com/doca/sdk/doca-gpunetio/index.html#src-4410845379_id-.DOCAGPUNetIOv3.2.0LC-GDRCopyInstallation">GDRCopy <code>gdrdrv</code> kernel module</a> must be loaded on the bare-metal system.</li>
+<li>DOCA-OFED drivers from <a href="https://developer.nvidia.com/doca-archive">DOCA-Host</a> 3.2.1 or later (install the <code>doca-ofed</code> package).</li>
 </ul>
 <blockquote>
 <p>User-space libraries are included in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/advanced_network/Dockerfile">Dockerfile</a> for each networking backend. Inspect this file if you wish to know what is needed to build and run on baremetal instead.</p>
@@ -17921,11 +17920,11 @@ buffer. A smaller number reduces end-to-end latency but can also reduce throughp
     full path: <code>cfg\interfaces\rx\flex_items</code></p>
 <ul>
 <li><strong><code>name</code></strong>: Name of flow item<ul>
-<li>type: <code>string</code>    </li>
+<li>type: <code>string</code></li>
 </ul>
 </li>
 <li><strong><code>id</code></strong>: ID of the flow item<ul>
-<li>type: <code>integer</code>   </li>
+<li>type: <code>integer</code></li>
 </ul>
 </li>
 <li><strong><code>offset</code></strong>: Offset in bytes of where to match after the UDP header. Must be a multiple of 4 and &lt; 28<ul>
@@ -17968,7 +17967,7 @@ buffer. A smaller number reduces end-to-end latency but can also reduce throughp
 <li><strong><code>val</code></strong>: 32b value to match on</li>
 <li>type: <code>integer</code></li>
 <li><strong><code>mask</code></strong>: 32b mask to apply before the match</li>
-<li>type: <code>integer</code>   </li>
+<li>type: <code>integer</code></li>
 </ul>
 </li>
 </ul>

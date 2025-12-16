@@ -17590,6 +17590,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Build Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dpdk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DPDK
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gpunetio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPUNetIO
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rivermax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rivermax
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -17600,6 +17639,45 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Run Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dpdk_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DPDK
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gpunetio_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPUNetIO
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rivermax_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rivermax
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -17806,43 +17884,77 @@ found in this directory.</p>
   Size of the payload to send after all L2-L4 headers</li>
 </ul>
 <h3 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h3>
-<p>This application requires all configuration and requirements from the <a href="../../operators/advanced_network/">Advanced Network library</a>.</p>
+<p>This application requires all configuration and requirements from the <a href="../../operators/advanced_network/">Advanced Network library</a> first.</p>
 <h3 id="build-instructions">Build Instructions<a class="headerlink" href="#build-instructions" title="Permanent link">#</a></h3>
-<p>Please refer to the top level Holohub README.md file for information on how to build this application.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Regular build with DPDK and GPUNetIO support</span>
-./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--build-args<span class="o">=</span><span class="s2">&quot;--target gpunetio&quot;</span><span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D ANO_MGR:STRING=gpunetio&quot;</span>
+<h4 id="dpdk">DPDK<a class="headerlink" href="#dpdk" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--language<span class="o">=</span>cpp
 </code></pre></div>
-<p>For <strong>Rivermax</strong> support, follow the prerequisites from the <a href="../../operators/advanced_network/">operators/advanced_network/README.md</a> README, then build the application with the following command:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--build-args<span class="o">=</span><span class="s2">&quot;--target rivermax&quot;</span><span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D ANO_MGR:STRING=rivermax&quot;</span>
+<h4 id="gpunetio">GPUNetIO<a class="headerlink" href="#gpunetio" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--build-args<span class="o">=</span><span class="s2">&quot;--target gpunetio&quot;</span><span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D ANO_MGR:STRING=gpunetio&quot;</span>
+</code></pre></div>
+<h4 id="rivermax">Rivermax<a class="headerlink" href="#rivermax" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--build-args<span class="o">=</span><span class="s2">&quot;--target rivermax&quot;</span><span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D ANO_MGR:STRING=rivermax&quot;</span>
 </code></pre></div>
 <h3 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h3>
+<h4 id="dpdk_1">DPDK<a class="headerlink" href="#dpdk_1" title="Permanent link">#</a></h4>
 <p>First, edit the <code>adv_networking_bench_default_tx_rx.yaml</code> file to set the <code>eth_dst_addr</code> and <code>address</code> fields (fields with the <code>&lt;&gt;</code> placeholders) based on your system interfaces.</p>
 <p>Then:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>adv_networking_bench<span class="w"> </span>--docker-opts<span class="w"> </span><span class="s2">&quot;-u root --privileged&quot;</span><span class="w"> </span>--language<span class="w"> </span>cpp
 </code></pre></div>
-<p>To run with a different configuration file than the default <code>adv_networking_bench_default_tx_rx</code>, you need to call the application explicitly:</p>
+<p>To run with a different configuration file than the default <code>adv_networking_bench_default_tx_rx</code>, you need to call the application explicitly at this point:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the container interactively</span>
 ./holohub<span class="w"> </span>run-container<span class="w"> </span>adv_networking_bench<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root --privileged -w /workspace/holohub/build/adv_networking_bench/applications/adv_networking_bench/cpp&quot;</span>
+--language<span class="w"> </span>cpp<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root --privileged -w /workspace/holohub/&quot;</span>
+
+<span class="c1"># &lt;- Now in the container environment -&gt;</span>
+
+<span class="c1"># Build the app if you made any changes</span>
+./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--language<span class="o">=</span>cpp
+
+<span class="c1"># Run with another configuration</span>
+./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench<span class="w"> </span>adv_networking_bench_default_rx_multi_q.yaml
+</code></pre></div>
+<h4 id="gpunetio_1">GPUNetIO<a class="headerlink" href="#gpunetio_1" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Ensure the gdrdrv kernel module is loaded on the system</span>
+lsmod<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>gdrdrv
+
+<span class="c1"># Start the container interactively</span>
+./holohub<span class="w"> </span>run-container<span class="w"> </span>adv_networking_bench<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--language<span class="w"> </span>cpp<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--build-args<span class="o">=</span><span class="s2">&quot;--target gpunetio&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root --privileged --device /dev/gdrdrv -w /workspace/holohub&quot;</span>
+
+<span class="c1"># &lt;- Now in the container environment -&gt;</span>
+
+<span class="c1"># Build the app if you made any changes</span>
+./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D ANO_MGR:STRING=gpunetio&quot;</span>
 
 <span class="c1"># Run with GPUNetIO configuration</span>
-./adv_networking_bench<span class="w"> </span>adv_networking_bench_gpunetio_tx_rx.yaml
-
-<span class="c1"># Run with Rivermax configuration</span>
-./adv_networking_bench<span class="w"> </span>adv_networking_bench_rmax_rx.yaml
+./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench<span class="w"> </span>adv_networking_bench_gpunetio_tx_rx.yaml
 </code></pre></div>
-<p>For Rivermax, you will need extra flags:</p>
+<h4 id="rivermax_1">Rivermax<a class="headerlink" href="#rivermax_1" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the container with the right target and the license file</span>
 ./holohub<span class="w"> </span>run-container<span class="w"> </span>adv_networking_bench<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--build-args<span class="o">=</span><span class="s2">&quot;--target rivermax&quot;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">&quot;\</span>
 <span class="s2">    -u root --privileged \</span>
 <span class="s2">    -v /opt/mellanox/rivermax/rivermax.lic:/opt/mellanox/rivermax/rivermax.lic \</span>
-<span class="s2">    -w /workspace/holohub/build/adv_networking_bench/applications/adv_networking_bench/cpp \</span>
+<span class="s2">    -w /workspace/holohub/ \</span>
 <span class="s2">  &quot;</span>
 
+<span class="c1"># &lt;- Now in the container environment -&gt;</span>
+
+<span class="c1"># Build the app if you made any changes</span>
+./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D ANO_MGR:STRING=rivermax&quot;</span>
+
 <span class="c1"># Run with Rivermax configuration</span>
-./adv_networking_bench<span class="w"> </span>adv_networking_bench_rmax_rx.yaml
+./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench<span class="w"> </span>adv_networking_bench_rmax_rx.yaml
 </code></pre></div>
 <h3 id="test-instructions">Test Instructions<a class="headerlink" href="#test-instructions" title="Permanent link">#</a></h3>
 <p>To run the tests, you need to build the application with testing enabled:</p>
