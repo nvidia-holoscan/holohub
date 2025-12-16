@@ -65,6 +65,8 @@ found in this directory.
 
 This application requires all configuration and requirements from the [Advanced Network library](/operators/advanced_network/README.md).
 
+For performance improvements, the [GDRCopy `gdrdrv` kernel module](https://docs.nvidia.com/doca/sdk/doca-gpunetio/index.html#src-4410845379_id-.DOCAGPUNetIOv3.2.0LC-GDRCopyInstallation) must be launched on the bare-metal system before starting the Docker container.
+
 ### Build Instructions
 
 Please refer to the top level Holohub README.md file for information on how to build this application.
@@ -93,14 +95,9 @@ Then:
 To run with a different configuration file than the default `adv_networking_bench_default_tx_rx`, you need to call the application explicitly:
 
 ```bash
-# Start the container interactively
+# Start the container interactively, assuming gdrdrv has been already launched on the system
 ./holohub run-container adv_networking_bench --language cpp \
-  --docker-opts="-u root --privileged -w /workspace/holohub" --build-args="--target gpunetio"
-
-# To start the GPUNetIO container with GDRCopy feature instead
-./holohub run-container adv_networking_bench --language cpp \
-  --docker-opts="-u root --privileged -w /workspace/holohub --device /dev/gdrdrv -v /opt/mellanox/gdrcopy/src:/opt/mellanox/gdrcopy/src -e LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/mellanox/gdrcopy/src" \
-  --build-args="--target gpunetio"
+  --docker-opts="-u root --privileged -w /workspace/holohub --device /dev/gdrdrv" --build-args="--target gpunetio"
 
 # Build the app
 ./holohub build adv_networking_bench \
