@@ -63,26 +63,31 @@ found in this directory.
 
 ### Requirements
 
-This application requires all configuration and requirements from the [Advanced Network library](/operators/advanced_network/README.md).
-
-For performance improvements, the [GDRCopy `gdrdrv` kernel module](https://docs.nvidia.com/doca/sdk/doca-gpunetio/index.html#src-4410845379_id-.DOCAGPUNetIOv3.2.0LC-GDRCopyInstallation) must be launched on the bare-metal system before starting the Docker container.
+This application requires all configuration and requirements from the [Advanced Network library](/operators/advanced_network/README.md) first.
 
 ### Build Instructions
 
-Please refer to the top level Holohub README.md file for information on how to build this application.
+#### DPDK
 
 ```bash
-# Regular build with DPDK and GPUNetIO support
-./holohub build adv_networking_bench --build-args="--target gpunetio" --configure-args="-D ANO_MGR:STRING=gpunetio"
+./holohub build adv_networking_bench --language=cpp
 ```
 
-For **Rivermax** support, follow the prerequisites from the [operators/advanced_network/README.md](/operators/advanced_network/README.md) README, then build the application with the following command:
+#### GPUNetIO
 
 ```bash
-./holohub build adv_networking_bench --build-args="--target rivermax" --configure-args="-D ANO_MGR:STRING=rivermax"
+./holohub build adv_networking_bench --language=cpp --build-args="--target gpunetio" --configure-args="-D ANO_MGR:STRING=gpunetio"
+```
+
+#### Rivermax
+
+```bash
+./holohub build adv_networking_bench --language=cpp --build-args="--target rivermax" --configure-args="-D ANO_MGR:STRING=rivermax"
 ```
 
 ### Run Instructions
+
+#### DPDK
 
 First, edit the `adv_networking_bench_default_tx_rx.yaml` file to set the `eth_dst_addr` and `address` fields (fields with the `<>` placeholders) based on your system interfaces.
 
@@ -92,39 +97,68 @@ Then:
 ./holohub run adv_networking_bench --docker-opts "-u root --privileged" --language cpp
 ```
 
-To run with a different configuration file than the default `adv_networking_bench_default_tx_rx`, you need to call the application explicitly:
+To run with a different configuration file than the default `adv_networking_bench_default_tx_rx`, you need to call the application explicitly at this point:
 
 ```bash
-# Start the container interactively, assuming gdrdrv has been already launched on the system
-./holohub run-container adv_networking_bench --language cpp \
-  --docker-opts="-u root --privileged -w /workspace/holohub --device /dev/gdrdrv" --build-args="--target gpunetio"
+# Start the container interactively
+./holohub run-container adv_networking_bench \
+--language cpp \
+  --docker-opts="-u root --privileged -w /workspace/holohub/"
 
-# Build the app
+# <- Now in the container environment ->
+
+# Build the app if you made any changes
+./holohub build adv_networking_bench --language=cpp
+
+# Run with another configuration
+./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_default_rx_multi_q.yaml
+```
+
+#### GPUNetIO
+
+```bash
+# Ensure the gdrdrv kernel module is loaded on the system
+lsmod | grep gdrdrv
+
+# Start the container interactively
+./holohub run-container adv_networking_bench \
+  --language cpp \
+  --build-args="--target gpunetio" \
+  --docker-opts="-u root --privileged --device /dev/gdrdrv -w /workspace/holohub"
+
+# <- Now in the container environment ->
+
+# Build the app if you made any changes
 ./holohub build adv_networking_bench \
-  --configure-args="-D BUILD_TESTING:BOOL=ON -D ANO_MGR:STRING=gpunetio" \
-  --language=cpp --build-args="--target gpunetio"
+  --language=cpp \
+  --configure-args="-D ANO_MGR:STRING=gpunetio"
 
 # Run with GPUNetIO configuration
 ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
-
-# Run with Rivermax configuration
-./adv_networking_bench adv_networking_bench_rmax_rx.yaml
 ```
 
-For Rivermax, you will need extra flags:
+#### Rivermax
 
 ```bash
 # Start the container with the right target and the license file
 ./holohub run-container adv_networking_bench \
+  --language=cpp \
   --build-args="--target rivermax" \
   --docker-opts="\
     -u root --privileged \
     -v /opt/mellanox/rivermax/rivermax.lic:/opt/mellanox/rivermax/rivermax.lic \
-    -w /workspace/holohub/build/adv_networking_bench/applications/adv_networking_bench/cpp \
+    -w /workspace/holohub/ \
   "
 
+# <- Now in the container environment ->
+
+# Build the app if you made any changes
+./holohub build adv_networking_bench \
+  --language=cpp \
+  --configure-args="-D ANO_MGR:STRING=rivermax"
+
 # Run with Rivermax configuration
-./adv_networking_bench adv_networking_bench_rmax_rx.yaml
+./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_rmax_rx.yaml
 ```
 
 ### Test Instructions

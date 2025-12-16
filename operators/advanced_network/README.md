@@ -26,10 +26,14 @@ is available in userspace, thus bypassing the kernel's networking stack entirely
 - Linux
 - An NVIDIA NIC with a ConnectX6-Dx or later chip
 - System tuning as described [here](/tutorials/high_performance_networking/README.md)
-- MLNX5/IB drivers with peermem support - either through:
-  - Inbox drivers (ubuntu kernel >= 5.4 and [< 6.8](https://discourse.ubuntu.com/t/nvidia-gpudirect-over-infiniband-migration-paths/44425))
-  - NVIDIA optimized kernels (IGX OS, DGX BaseOS)
-  - DOCA-OFED drivers from [DOCA-Host](https://developer.nvidia.com/doca-archive) 3.2.1 or later (install the `doca-ofed` package)
+- For DPDK, Rivermax: MLNX5/IB drivers with peermem support - either through:
+  - Inbox (i.e. standard) drivers on Ubuntu kernel versions >= 5.4 and [< 6.8](https://discourse.ubuntu.com/t/nvidia-gpudirect-over-infiniband-migration-paths/44425), or
+  - NVIDIA optimized kernels (IGX OS, DGX BaseOS), or
+  - OFED drivers from [DOCA-Host](https://developer.nvidia.com/doca-archive) 2.8 or later (install the `mlnx-ofed-kernel-dkms` package or the `doca-ofed` meta-package for extra tooling), or
+  - _(deprecated)_ OFED drivers from [MOFED](https://network.nvidia.com/products/infiniband-drivers/linux/mlnx_ofed/) 23.10 or later (`sudo ./mlnxofedinstall --kernel-only`).
+- For GPUNetIO:
+  - The [GDRCopy `gdrdrv` kernel module](https://docs.nvidia.com/doca/sdk/doca-gpunetio/index.html#src-4410845379_id-.DOCAGPUNetIOv3.2.0LC-GDRCopyInstallation) must be loaded on the bare-metal system.
+  - DOCA-OFED drivers from [DOCA-Host](https://developer.nvidia.com/doca-archive) 3.2.1 or later (install the `doca-ofed` package).
 
 > User-space libraries are included in the [Dockerfile](./Dockerfile) for each networking backend. Inspect this file if you wish to know what is needed to build and run on baremetal instead.
 
@@ -192,9 +196,9 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 	type: `list`
 	full path: `cfg\interfaces\rx\flex_items`
 	- **`name`**: Name of flow item
-  		- type: `string`	
+  		- type: `string`
 	- **`id`**: ID of the flow item
-  		- type: `integer`	
+  		- type: `integer`
 	- **`offset`**: Offset in bytes of where to match after the UDP header. Must be a multiple of 4 and < 28
   		- type: `integer`
 	- **`udp_dst_port`**: UDP destination port for flex item match
@@ -226,8 +230,8 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 		- **`val`**: 32b value to match on
 	  	- type: `integer`
 		- **`mask`**: 32b mask to apply before the match
-	  	- type: `integer`	
-			
+	  	- type: `integer`
+
 
 ##### Extended Receive Configuration for Rivermax manager
 
@@ -323,7 +327,7 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 ```
 
 ##### Transmit Configuration (tx)
- 
+
 - **`queues`**: List of queues on NIC
 	type: `list`
 	full path: `cfg\interfaces\tx\queues`
