@@ -62,7 +62,7 @@ RUN if [ "${GPU_TYPE}" = "igpu" ]; then \
     python3 -m pip install --force-reinstall \
         --index-url $INDEX_URL \
         torch==${PYTORCH_WHEEL_VERSION} \
-        torchvision==${TORCHVISION_WHEEL_VERSION}\
+        torchvision==${TORCHVISION_WHEEL_VERSION} \
         torchaudio; \
     if ! find /usr/local/lib/python3.12/dist-packages/torch -name libtorch_cuda.so | grep -q .; then \
         echo "libtorch_cuda.so not found, torch installation failed"; \
