@@ -2,7 +2,7 @@
 name: 🐛 Bug report
 about: Create a bug report to help us improve
 title: ''
-labels: bug
+type: bug
 assignees: ''
 
 ---
@@ -22,11 +22,11 @@ If applicable, add screenshots to help explain your problem.
 **Environment**
 Please complete the following information and any other relevant information:
 
-- Device [e.g. IGX Orin, AGX Thor]
-- OS [e.g. Ubuntu 22.04]
-- CUDA Version [e.g. 13.1]
-- NVIDIA Driver Version [e.g. 580]
-- Holoscan SDK Version [e.g. v3.8]
+- Device: [e.g. IGX Orin, AGX Thor]
+- OS: [e.g. Ubuntu 22.04]
+- CUDA Version: [e.g. 13.1]
+- NVIDIA Driver Version: [e.g. 580]
+- Holoscan SDK Version: [e.g. v3.8]
 
 **Additional context**
 Add any other context about the problem here.
