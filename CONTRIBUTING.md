@@ -236,7 +236,7 @@ In the `metadata.json` file, the following directories can be referenced:
 
 - `holohub_app_bin`: The directory containing the built application binary (e.g. `<holohub_root>/build/myapp/applications/myapp/cpp`)
 - `holohub_app_source`: The directory containing the source code of the application (e.g. `<holohub_root>/applications/myapp/cpp/`)
-- `holohub_bin`: The directory containing the built binary of the application (e.g. `<holohub_root>/build/`)
+- `holohub_bin`: The root build directory containing built binaries (e.g. `<holohub_root>/build/`)
 - `holohub_data_dir`: The directory containing the data for the application (e.g. `<holohub_root>/data/`)
 
 #### Ranking Levels for metadata.json
