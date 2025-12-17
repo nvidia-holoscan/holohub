@@ -94,6 +94,7 @@ Before getting started:
 3. **Develop Your Contribution**
 
    - Follow the specific guidelines for your [contribution type](#types-of-contributions)
+   - If you are developing a new application, you can use the `./holohub create <application_name>` command to generate the initial project scaffolding. This command sets up a new project with the appropriate directory structure and necessary files.
    - Ensure your code meets [HoloHub standards](#preparing-your-submission)
    - Test your changes locally
 
@@ -230,6 +231,13 @@ Schemas are available for different contribution types:
     }
 }
 ```
+
+In the `metadata.json` file, the following directories can be referenced:
+
+- `holohub_app_bin`: The directory containing the built application binary (e.g. `<holohub_root>/build/myapp/applications/myapp/cpp`)
+- `holohub_app_source`: The directory containing the source code of the application (e.g. `<holohub_root>/applications/myapp/cpp/`)
+- `holohub_bin`: The directory containing the built binary of the application (e.g. `<holohub_root>/build/`)
+- `holohub_data_dir`: The directory containing the data for the application (e.g. `<holohub_root>/data/`)
 
 #### Ranking Levels for metadata.json
 
