@@ -15,53 +15,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG BASE_IMAGE
-ARG GPU_TYPE
-ARG COMPUTE_CAPACITY
-############################################################
-# Torch image (Used to extract the ARM64 dGPU pytorch wheel)
-############################################################
-FROM nvcr.io/nvidia/pytorch:23.10-py3 as pytorch
 
 ############################################################
 # Base image
 ############################################################
-FROM ${BASE_IMAGE} as base
+
+ARG GPU_TYPE
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
+FROM ${BASE_IMAGE} AS base
+
 ARG DEBIAN_FRONTEND=noninteractive
+ARG CMAKE_BUILD_TYPE=Release
 
-# Copy over app-specific requirements
+# --------------------------------------------------------------------------
+# Holohub setup
+# --------------------------------------------------------------------------
+RUN mkdir -p /tmp/scripts
+COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
+
+# Enable autocomplete
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
+
+# Set default Holohub data directory
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
+
+# --------------------------------------------------------------------------
+# Install PyPI Dependencies
+# --------------------------------------------------------------------------
 COPY applications/holochat/requirements.txt /tmp/requirements.txt
+RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Install setuptools prior to all other requirements to avoid install errors
-RUN python3 -m pip install --no-cache-dir setuptools && \
-    python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
-
-# Copy the Torch wheel from the PyTorch image. This is necessary because the PyTorch wheel is not available for ARM64 on PyPI.
-WORKDIR /tmp/pip/
-COPY --from=pytorch /tmp/pip/torch*.whl /tmp/pip/
-
-# Install the Torch wheel based on the target architecture
-ARG TARGETARCH
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-        echo "Building for x86 (AMD64) architecture"; \
-        python3 -m pip install torch==2.4.*; \
-    elif [ "$TARGETARCH" = "arm64" ]; then \
-        echo "Building for ARM64 architecture"; \
-        python3 -m pip install /tmp/pip/torch-2.1.0a0+32f93b1-cp310-cp310-linux_aarch64.whl; \
-    else \
-        echo "Unknown architecture: $TARGETARCH"; \
-        exit 1; \
-    fi
-
+# --------------------------------------------------------------------------
+# Clone and build Llama.cpp
+# --------------------------------------------------------------------------
 WORKDIR /workspace
-
-# Clone Llama.cpp and checkout a stable commit
-RUN git clone https://github.com/ggerganov/llama.cpp.git \
+RUN git clone https://github.com/ggml-org/llama.cpp.git \
     && cd llama.cpp \
-    && git checkout be36bb946a6336238e92706464de6a30495fe825 \
-    && mkdir build \
-    && cd build \
-    && cmake .. -DLLAMA_CUBLAS=ON \
-    && LLAMA_CUDA_F16=true cmake --build . --config Release
+    && git checkout 4b2a4778f81f222c12271ce3b1997990b3071faf \
+    && cmake -B build -DGGML_CUDA=ON -DGGML_CUDA_FORCE_CUBLAS=true \
+    && cmake --build build --config Release
 
 WORKDIR /workspace/holohub
