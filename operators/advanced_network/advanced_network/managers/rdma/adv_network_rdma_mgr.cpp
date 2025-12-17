@@ -40,7 +40,7 @@ bool RdmaMgr::set_config_and_initialize(const NetworkConfig& cfg) {
   cfg_ = cfg;
   initialize();
 
-  return true;
+  return initialized_;
 }
 
 // Common ANO functions
@@ -618,7 +618,7 @@ void RdmaMgr::rdma_thread(bool is_server, rdma_thread_params* tparams) {
         break;
       }
       case RDMAOpCode::RDMA_WRITE:
-        [[fall_through]];
+        [[fallthrough]];
       case RDMAOpCode::RDMA_WRITE_IMM: {
         break;
       }
@@ -687,7 +687,8 @@ Status RdmaMgr::rdma_get_server_conn_id(const std::string& server_addr, uint16_t
   }
 
   HOLOSCAN_LOG_CRITICAL(
-      "Couldn't find an available queue ID for server {}:{}", server_addr, server_port);
+    "Couldn't find an available queue ID for server {}:{}. "
+    "Maybe no clients have tried to connect yet?", server_addr, server_port);
   return Status::NO_SPACE_AVAILABLE;
 }
 
@@ -810,12 +811,19 @@ Status RdmaMgr::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst
   inet_ntop(AF_INET, &source_addr->sa_data[2], source_addr_str, INET_ADDRSTRLEN);
   HOLOSCAN_LOG_INFO("Client source address: {}", source_addr_str);
 
-  int client_port;
+  int client_port = -1;
   for (const auto& port : cfg_.ifs_) {
     if (port.address_ == std::string(source_addr_str)) {
       client_port = port.port_id_;
       break;
     }
+  }
+
+  if (client_port < 0) {
+    HOLOSCAN_LOG_ERROR("No configured interface matches source address {}", source_addr_str);
+    rdma_destroy_id(cm_id);
+    rdma_destroy_event_channel(ec);
+    return Status::INVALID_PARAMETER;
   }
 
   // Construct the params directly in the map using try_emplace
@@ -1208,14 +1216,14 @@ void RdmaMgr::run() {
                                 (void*)cm_event->id);
         }
 
+        ack_event(cm_event);
         break;
       }
       default: {
         HOLOSCAN_LOG_INFO("Cannot handle event type {}", rdma_event_str(cm_event->event));
+        ack_event(cm_event);
         break;
       }
-
-        ack_event(cm_event);
     }
   }
 
@@ -1367,7 +1375,22 @@ void RdmaMgr::initialize() {
   constexpr int max_arg_size = 64;
   char** _argv;
   _argv = (char**)malloc(sizeof(char*) * max_nargs);
-  for (int i = 0; i < max_nargs; i++) { _argv[i] = (char*)malloc(max_arg_size); }
+  if (_argv == nullptr) {
+    HOLOSCAN_LOG_CRITICAL("Failed to allocate memory for DPDK arguments");
+    return;
+  }
+
+  for (int i = 0; i < max_nargs; i++) {
+    _argv[i] = (char*)malloc(max_arg_size);
+    if (_argv[i] == nullptr) {
+      HOLOSCAN_LOG_CRITICAL("Failed to allocate memory for DPDK argument {}", i);
+      for (int j = 0; j < i; j++) {
+        free(_argv[j]);
+      }
+      free(_argv);
+      return;
+    }
+  }
 
   int arg = 0;
   std::string cores = std::to_string(cfg_.common_.master_core_) + ",";  // Master core must be first
@@ -1529,7 +1552,69 @@ void RdmaMgr::print_stats() {
 
 // Also need destructor implementation
 RdmaMgr::~RdmaMgr() {
-  // TODO: Implement cleanup logic
+  // Ensure all threads are joined
+  {
+    std::lock_guard<std::mutex> lock(threads_mutex_);
+    for (auto& thread_pair : worker_threads_) {
+      if (thread_pair.second.joinable()) {
+        thread_pair.second.join();
+      }
+    }
+    worker_threads_.clear();
+  }
+
+  // Destroy event channel
+  if (cm_event_channel_ != nullptr) {
+    rdma_destroy_event_channel(cm_event_channel_);
+    cm_event_channel_ = nullptr;
+  }
+
+  // Deallocate PDs
+  for (auto& entry : pd_map_) {
+    if (entry.second != nullptr) {
+      ibv_dealloc_pd(entry.second);
+    }
+  }
+  pd_map_.clear();
+
+  // Free DPDK pools and rings
+  while (!rx_rings_.empty()) {
+    auto ring = rx_rings_.front();
+    rx_rings_.pop();
+    rte_ring_free(ring);
+  }
+  while (!tx_rings_.empty()) {
+    auto ring = tx_rings_.front();
+    tx_rings_.pop();
+    rte_ring_free(ring);
+  }
+  // Free mapped rings
+  rx_rings_map_.clear();
+  tx_rings_map_.clear();
+
+  // Free DPDK mempools (pkt_len_pool_, rx_meta, tx_meta and those in mem_pools_)
+  if (pkt_len_pool_) {
+    rte_mempool_free(pkt_len_pool_);
+    pkt_len_pool_ = nullptr;
+  }
+  if (rx_meta) {
+    rte_mempool_free(rx_meta);
+    rx_meta = nullptr;
+  }
+  if (tx_meta) {
+    rte_mempool_free(tx_meta);
+    tx_meta = nullptr;
+  }
+  if (tx_burst_pool_) {
+    rte_mempool_free(tx_burst_pool_);
+    tx_burst_pool_ = nullptr;
+  }
+  for (auto& entry : mem_pools_) {
+    if (entry.second) {
+      rte_ring_free(entry.second);
+    }
+  }
+  mem_pools_.clear();
 }
 
 // RDMA-specific functions that were declared but not implemented

@@ -542,10 +542,12 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rdma_config
  *
  * @param q_item The YAML node containing the queue configuration.
  * @param common The CommonQueueConfig object to populate.
+ * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
  * @return true if parsing was successful, false otherwise.
  */
 bool parse_common_queue_config(const YAML::Node& q_item,
-                               holoscan::advanced_network::CommonQueueConfig& common) {
+                               holoscan::advanced_network::CommonQueueConfig& common,
+                               bool parse_memory_regions) {
   try {
     common.name_ = q_item["name"].as<std::string>();
     common.id_ = q_item["id"].as<int>();
@@ -553,15 +555,21 @@ bool parse_common_queue_config(const YAML::Node& q_item,
     common.batch_size_ = q_item["batch_size"].as<int>();
     common.extra_queue_config_ = nullptr;
     if (q_item["memory_regions"].IsDefined()) {
-      const auto& mrs = q_item["memory_regions"];
-      if (mrs.size() > 0) { common.mrs_.reserve(mrs.size()); }
-      for (const auto& mr : mrs) { common.mrs_.push_back(mr.as<std::string>()); }
+      if (!parse_memory_regions) {
+        HOLOSCAN_LOG_WARN("Memory regions in queue section not used in RDMA backend for queue: {}",
+          common.name_);
+      }
+      else {
+        const auto& mrs = q_item["memory_regions"];
+        if (mrs.size() > 0) { common.mrs_.reserve(mrs.size()); }
+        for (const auto& mr : mrs) { common.mrs_.push_back(mr.as<std::string>()); }
+      }
     }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing CommonQueueConfig: {}", e.what());
     return false;
   }
-  if (common.mrs_.empty()) {
+  if (parse_memory_regions && common.mrs_.empty()) {
     HOLOSCAN_LOG_ERROR("No memory regions defined for queue: {}", common.name_);
     return false;
   }
@@ -576,8 +584,9 @@ bool parse_common_queue_config(const YAML::Node& q_item,
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_common_config(
-    const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& q) {
-  if (!parse_common_queue_config(q_item, q.common_)) { return false; }
+    const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& q,
+    bool parse_memory_regions) {
+  if (!parse_common_queue_config(q_item, q.common_, parse_memory_regions)) { return false; }
   return true;
 }
 
@@ -587,15 +596,16 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
  * @param q_item The YAML node containing the RX queue configuration.
  * @param manager_type The manager type.
  * @param q The RxQueueConfig object to populate.
+ * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_config(
     const YAML::Node& q_item, const holoscan::advanced_network::ManagerType& manager_type,
-    holoscan::advanced_network::RxQueueConfig& q) {
+    holoscan::advanced_network::RxQueueConfig& q, bool parse_memory_regions) {
   try {
     holoscan::advanced_network::ManagerType _manager_type = manager_type;
 
-    if (!parse_rx_queue_common_config(q_item, q)) { return false; }
+    if (!parse_rx_queue_common_config(q_item, q, parse_memory_regions)) { return false; }
 
     if (manager_type == holoscan::advanced_network::ManagerType::DEFAULT) {
       _manager_type = holoscan::advanced_network::ManagerFactory::get_default_manager_type();
@@ -625,9 +635,9 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_common_config(
-    const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q) {
-  if (!parse_common_queue_config(q_item, q.common_)) { return false; }
-#if !ANO_MGR_RIVERMAX
+    const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q,
+    bool parse_memory_regions) {
+  if (!parse_common_queue_config(q_item, q.common_, parse_memory_regions)) { return false; }
   try {
     if (q_item["offloads"].IsDefined()) {
       const auto& offload = q_item["offloads"];
@@ -654,7 +664,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_config(
     const YAML::Node& q_item, const holoscan::advanced_network::ManagerType& manager_type,
-    holoscan::advanced_network::TxQueueConfig& q) {
+    holoscan::advanced_network::TxQueueConfig& q, bool parse_memory_regions) {
   try {
     holoscan::advanced_network::ManagerType _manager_type = manager_type;
 
@@ -662,7 +672,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
       _manager_type = holoscan::advanced_network::ManagerFactory::get_default_manager_type();
     }
 
-    if (!parse_tx_queue_common_config(q_item, q)) { return false; }
+    if (!parse_tx_queue_common_config(q_item, q, parse_memory_regions)) { return false; }
 
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {

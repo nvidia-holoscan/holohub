@@ -1,5 +1,12 @@
 # Holoscan Advanced Network library Changelog
 
+## 🚧 holoscan-networking 0.3
+
+### Non-Breaking
+
+-   **RDMA Backend**
+  - Added RDMA backend supporting both client/server with RDMA-CM. SEND/RECV supported currently
+
 ## 🚧 holoscan-networking 0.2
 
 **Release Date**: TBD

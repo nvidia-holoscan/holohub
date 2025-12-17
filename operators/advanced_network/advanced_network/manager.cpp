@@ -416,7 +416,7 @@ int Manager::numa_from_mem(const MemoryRegionConfig& mr) const {
  * @brief Generic implementation of get_port_id that looks up port in config
  * This is a final method that cannot be overridden by subclasses.
  *
- * @param key PCIe address or config name of the interface to look up
+ * @param key PCIe address, IP address, or config name of the interface to look up
  * @return int Port ID or -1 if not found
  */
 int Manager::get_port_id(const std::string& key) {

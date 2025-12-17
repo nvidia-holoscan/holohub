@@ -57,7 +57,7 @@ advanced_network:
       buf_size: 90000000
 
     interfaces:
-    - name: my_client
+    - name: my_client             # Do not change! Referenced in code
       rdma_config:
         mode: client
         transport_mode: RC
@@ -74,7 +74,7 @@ advanced_network:
           id: 0
           cpu_core: 7
           batch_size: 1
-    - name: my_server
+    - name: my_server             # Do not change! Referenced in code
       rdma_config:
         mode: server
         transport_mode: RC
@@ -90,8 +90,8 @@ advanced_network:
         queues:
         - name: "Server_TX_Queue"
           id: 0
+          cpu_core: 8
           batch_size: 1
-          cpu_core: 8         
 
 rdma_bench_server:
   server_address: 192.168.10.2

@@ -469,8 +469,8 @@ Status get_rx_burst(BurstParams** burst);
  * @brief Get a RX burst
  *
  * @param burst Burst structure
- * @param conn_id Connection ID
- * @param server True if server, false if client
+ * @param conn_id Connection ID representing a unique ID for a client/server connection
+ * @param server True if server, false if client. Used to determine which ring to dequeue from.
  */
 Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server);
 
@@ -601,11 +601,13 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    *
    * @param q_item The YAML node containing the RX queue configuration.
    * @param q The RxQueueConfig object to populate.
+   * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_rx_queue_config(const YAML::Node& q_item,
                                     const holoscan::advanced_network::ManagerType& manager_type,
-                                    holoscan::advanced_network::RxQueueConfig& rx_queue_config);
+                                    holoscan::advanced_network::RxQueueConfig& rx_queue_config,
+                                    bool parse_memory_regions = true);
 
   /**
    * @brief Parse RX queue configuration from a YAML node.
@@ -613,21 +615,25 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    * @param q_item The YAML node containing the RX queue configuration.
    * @param manager_type The manager type.
    * @param q The RxQueueConfig object to populate.
+   * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_rx_queue_common_config(
-      const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& rx_queue_config);
+      const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& rx_queue_config,
+      bool parse_memory_regions);
 
   /**
    * @brief Parse common TX queue configuration from a YAML node.
    *
    * @param q_item The YAML node containing the TX queue configuration.
    * @param q The TxQueueConfig object to populate.
+   * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_tx_queue_config(const YAML::Node& q_item,
                                     const holoscan::advanced_network::ManagerType& manager_type,
-                                    holoscan::advanced_network::TxQueueConfig& tx_queue_config);
+                                    holoscan::advanced_network::TxQueueConfig& tx_queue_config,
+                                    bool parse_memory_regions);
 
   /**
    * @brief Parse TX queue configuration from a YAML node.
@@ -635,10 +641,12 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    * @param q_item The YAML node containing the TX queue configuration.
    * @param manager_type The manager type.
    * @param q The TxQueueConfig object to populate.
+   * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_tx_queue_common_config(
-      const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& tx_queue_config);
+      const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& tx_queue_config,
+      bool parse_memory_regions);
 
   /**
    * @brief Decode the YAML node into an NetworkConfig object.
@@ -678,6 +686,8 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
           return false;
         }
       } catch (const std::exception& e) {}
+      
+      bool rdma_used = input_spec.common_.manager_type == holoscan::advanced_network::ManagerType::RDMA;
 
       try {
         input_spec.debug_ = node["debug"].as<bool>(false);
@@ -749,7 +759,7 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
 
             for (const auto& q_item : rx["queues"]) {
               holoscan::advanced_network::RxQueueConfig q;
-              if (!parse_rx_queue_config(q_item, input_spec.common_.manager_type, q)) {
+              if (!parse_rx_queue_config(q_item, input_spec.common_.manager_type, q, !rdma_used)) {
                 HOLOSCAN_LOG_ERROR("Failed to parse RxQueueConfig");
                 return false;
               }
@@ -794,7 +804,7 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
 
             for (const auto& q_item : tx["queues"]) {
               holoscan::advanced_network::TxQueueConfig q;
-              if (!parse_tx_queue_config(q_item, input_spec.common_.manager_type, q)) {
+              if (!parse_tx_queue_config(q_item, input_spec.common_.manager_type, q, !rdma_used)) {
                 HOLOSCAN_LOG_ERROR("Failed to parse TxQueueConfig");
                 return false;
               }
