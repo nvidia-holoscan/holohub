@@ -17563,6 +17563,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#known-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known Issues
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -17759,6 +17770,20 @@ python3<span class="w"> </span>applications/object_detection_torch/generate_resn
 <h2 id="containerize-the-application">Containerize the application<a class="headerlink" href="#containerize-the-application" title="Permanent link">#</a></h2>
 <p>To containerize the application using <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html">Holoscan CLI</a>, first build the application using <code>./holohub install object_detection_torch</code>, run the <code>package-app.sh</code> script and then follow the generated output to package and run the application.</p>
 <p>Refer to the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html">Packaging Holoscan Applications</a> section of the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/">Holoscan User Guide</a> to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.</p>
+<h2 id="known-issues">Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">#</a></h2>
+<p><strong>Limited platform support</strong>: The Faster R-CNN PyTorch model in this example relies on symbols available only in <code>torchvision&lt;=0.23.0</code>. arm64 SBSA platforms and x86_64 platforms with CUDA Toolkit &gt;= 13.0 are currently not supported as no compatible combination of Holoscan SDK, PyTorch (CUDA), and torchvision (CUDA) are available for these platforms.</p>
+<p>At the time of writing, the supported configuration based on PyTorch components availability is as follows:
+1. x86_64 with CUDA Toolkit &lt;=12.9
+  - Latest Holoscan SDK (&gt;=v3.9.0)
+  - PyTorch 2.8.0 with CUDA 12.9 support
+  - torchvision 0.23.0 with CUDA 12.9 support
+2. NVIDIA Orin platform running in integrated GPU mode (iGPU)
+  - Latest Holoscan SDK (&gt;=v3.9.0)
+  - PyTorch 2.8.0 with CUDA 12.9 support
+  - torchvision 0.23.0 with CUDA 12.9 support</p>
+<p>The application container will fail to build on other platforms with the error:
+<div class="highlight"><pre><span></span><code>ERROR:<span class="w"> </span>No<span class="w"> </span>matching<span class="w"> </span>distribution<span class="w"> </span>found
+</code></pre></div></p>
 
 
 
