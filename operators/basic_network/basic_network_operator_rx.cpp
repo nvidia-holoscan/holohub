@@ -34,7 +34,8 @@ void BasicNetworkOpRx::setup(OperatorSpec& spec) {
   spec.param<uint64_t>(max_burst_interval_,
                        "max_burst_interval",
                        "Max burst interval",
-                       "Maximum time interval between bursts (ms)");
+                       "Maximum time interval between bursts (ms)",
+                       0UL);
 }
 
 BasicNetworkOpRx::~BasicNetworkOpRx() {
