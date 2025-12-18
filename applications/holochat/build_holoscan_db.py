@@ -20,9 +20,9 @@ from types import SimpleNamespace
 
 import yaml
 from langchain_community.document_loaders import PyPDFLoader  # for loading the pdf
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
+from langchain_huggingface import HuggingFaceEmbeddings
 from utils import clone_repository, get_source_chunks
 
 current_dir = os.path.dirname(__file__)
@@ -107,7 +107,7 @@ def main():
     encode_kwargs = {"normalize_embeddings": True}  # set True to compute cosine similarity
 
     # Create local embedding model cached at ./models
-    embedding_model = HuggingFaceBgeEmbeddings(
+    embedding_model = HuggingFaceEmbeddings(
         model_name=model_name,
         model_kwargs=model_kwargs,
         encode_kwargs=encode_kwargs,
@@ -128,7 +128,6 @@ def main():
             embedding=embedding_model,
             persist_directory=chroma_db_path,
         )
-        chroma_db.persist()
     print("Done!")
 
 
