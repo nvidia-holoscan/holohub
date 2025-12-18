@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 """
 FHIR Utilities Package
 
-This package provides utilities for working with FHIR (Fast Healthcare Interoperability Resources) 
+This package provides utilities for working with FHIR (Fast Healthcare Interoperability Resources)
 data including query construction, response handling, resource sanitization, and token management.
 """
 

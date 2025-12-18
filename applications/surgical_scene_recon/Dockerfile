@@ -86,3 +86,6 @@ FROM holohub-cli AS application-dependencies
 
 COPY applications/surgical_scene_recon/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Install gdown for downloading datasets from google drive
+RUN pip install gdown

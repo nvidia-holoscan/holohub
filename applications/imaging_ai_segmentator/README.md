@@ -15,7 +15,7 @@ The input is a DICOM CT series, and the segmentation results are saved as both D
 - Selecting series with application-defined rules
 - Converting DICOM pixel data to a 3D volume image
 - Using the MONAI SDK to transform input/output and perform inference
-- Writing results as a DICOM Segmentation OID instance, re-using study-level metadata from the original DICOM study
+- Writing results as a DICOM Segmentation OID instance, reusing study-level metadata from the original DICOM study
 
 ![DICOM Segmentation Slice](resources/segments_DICOM_slice.png)  
 _Fig. 2: A slice of the segmentation saved in a DICOM segmentation instance (without color coding the segments)_

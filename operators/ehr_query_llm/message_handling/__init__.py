@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 """
 EHR Query LLM Operator Package
 
-This package provides operators and utilities for querying and processing Electronic Health Records (EHR) 
+This package provides operators and utilities for querying and processing Electronic Health Records (EHR)
 using the FHIR (Fast Healthcare Interoperability Resources) standard with LLM integration.
 """
 

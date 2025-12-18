@@ -23,7 +23,7 @@ destination UDP socket.
 | NIC     | Network Interface Card                                             |
 | PSD     | Power Spectral Display                                             |
 | VITA 49 | Standard for interoperability between RF (radio frequency) devices |
-| VRT     | VITA Radio Tansport (transport-layer protocol)                     |
+| VRT     | VITA Radio Transport (transport-layer protocol)                    |
 
 ## Requirements
 

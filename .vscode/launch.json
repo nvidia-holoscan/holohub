@@ -337,7 +337,7 @@
             "name": "(gdb) endoscopy_tool_tracking/cpp",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking",
+            "preLaunchTask": "Build endoscopy_tool_tracking (C++)",
             "program": "${workspaceFolder}/build/endoscopy_tool_tracking/applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking",
             "args": [
                 "--data",
@@ -365,7 +365,7 @@
             "name": "(debugpy) endoscopy_tool_tracking/python",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build endoscopy_tool_tracking",
+            "preLaunchTask": "Build endoscopy_tool_tracking (Python)",
             "program": "${workspaceFolder}/applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.py",
             "args": [
                 "--data",
