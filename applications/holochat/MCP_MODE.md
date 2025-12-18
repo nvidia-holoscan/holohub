@@ -11,10 +11,10 @@ The [Model Context Protocol](https://modelcontextprotocol.io/) is a standardized
 To start HoloChat in MCP mode:
 
 ```bash
-./holohub run holochat --run-args=--mcp
+./holohub run holochat mcp
 ```
 
-The server will start on port 8090 (configured in `config.yaml`).
+The server will start on port 8090 (configured in `config.yaml`). You can change the port by editing the `mcp_server_port` in `config.yaml`.
 
 ## Using with Cursor
 
