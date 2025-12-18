@@ -120,14 +120,13 @@ def main():
     print(f"Building Holoscan Embeddings Chroma DB at {chroma_db_path}...")
     print("Building Chroma DB (This may take a few minutes)...")
 
+    # Create/load the persistent Chroma collection once, then append documents in batches.
+    chroma_db = Chroma(persist_directory=chroma_db_path, embedding_function=embedding_model)
+
     max_batch_size = 5461  # 5461 is the max batch size for the BAAI/bge-large-en model
     for i in range(0, len(source_chunks), max_batch_size):
         batch = source_chunks[i : i + max_batch_size]
-        Chroma.add_documents(
-            documents=batch,
-            embedding=embedding_model,
-            persist_directory=chroma_db_path,
-        )
+        chroma_db.add_documents(documents=batch)
     print("Done!")
 
 
