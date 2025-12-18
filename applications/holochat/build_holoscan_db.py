@@ -123,7 +123,7 @@ def main():
     max_batch_size = 5461  # 5461 is the max batch size for the BAAI/bge-large-en model
     for i in range(0, len(source_chunks), max_batch_size):
         batch = source_chunks[i : i + max_batch_size]
-        chroma_db = Chroma.from_documents(
+        Chroma.add_documents(
             documents=batch,
             embedding=embedding_model,
             persist_directory=chroma_db_path,
