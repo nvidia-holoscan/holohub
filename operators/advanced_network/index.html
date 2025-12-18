@@ -17875,7 +17875,7 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
     full path: <code>cfg\interfaces\</code><ul>
 <li><strong><code>name</code></strong>: Name of the interfaca</li>
 <li>type: <code>string</code></li>
-<li><strong><code>address</code></strong>: PCIe BDF address (lspci) or linux link name (ip link)</li>
+<li><strong><code>address</code></strong>: PCIe BDF address (lspci) or linux interface name for DPDK/GPUNetIO/RiverMax or IP address for RDMA</li>
 <li>type: <code>string</code></li>
 <li><strong><code>rx|tx</code></strong> category of queues below
 full path: <code>cfg\interfaces\[rx|tx]</code></li>
