@@ -180,7 +180,7 @@ uint32_t GetMemoryAccessPropertiesFromList(const T& list) {
     } else if (str == "rdma_write") {
       access |= MEM_ACCESS_RDMA_WRITE;
     } else if (str == "rdma_read") {
-      access |= MEM_ACCESS_RDMA_WRITE;
+      access |= MEM_ACCESS_RDMA_READ;
     } else {
       return 0;
     }

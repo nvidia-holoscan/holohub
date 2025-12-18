@@ -829,8 +829,9 @@ Status RdmaMgr::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst
   // Construct the params directly in the map using try_emplace
   client_params_mutex_.lock();
   auto [iter, inserted] = client_q_params_.try_emplace(cm_id);
-  client_params_mutex_.unlock();
+
   if (!inserted) {
+    client_params_mutex_.unlock();
     HOLOSCAN_LOG_CRITICAL("Failed to insert client params into map");
     return Status::CONNECT_FAILURE;
   }
@@ -839,7 +840,8 @@ Status RdmaMgr::rdma_connect_to_server(const std::string& dst_addr, uint16_t dst
   params.client_id = cm_id;
   params.pd = pd_map_[cm_id->verbs];
   params.if_idx = client_port;
-  params.queue_idx = client_q_params_.size() - 1;  // Fix this race condition
+  params.queue_idx = client_q_params_.size() - 1;
+  client_params_mutex_.unlock();
   setup_thread_params(&params, false);
 
   // Set up connection parameters
