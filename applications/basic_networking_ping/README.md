@@ -56,7 +56,7 @@ There are three launch profiles configured for this application:
 1. **(gdb) basic_networking_ping/cpp RX**: Launch Basic Networking Ping with the [RX configurations](basic_networking_ping_rx.yaml).
 2. **(gdb) basic_networking_ping/cpp TX**: Launch Basic Networking Ping with the [TX configurations](basic_networking_ping_tx.yaml).
 3. **(compound) basic_networking_ping/cpp TX & RX**: Launch both 1 and 2 in parallel.
-   This launch profile launches the receiver follow by the transmitter.
+   This launch profile launches the receiver followed by the transmitter.
 
 ### Python
 
@@ -71,4 +71,4 @@ There are several launch profiles configured for this application:
 4. **(pythoncpp) basic_networking_ping/python TX**: Launch Basic Networking Ping with the [TX configurations](basic_networking_ping_tx.yaml).
    This launch profile enables debugging of Python and C++ code.
 5. **(compound) basic_networking_ping/python TX & RX**: Launch both 1 and 2 in parallel.
-   This launch profile launches the receiver follow by the transmitter.
+   This launch profile launches the receiver followed by the transmitter.
