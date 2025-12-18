@@ -60,7 +60,7 @@ If connecting to your machine via SSH, be sure to forward the appropriate ports:
 ssh <user_name>@<IP address> -L 7860:localhost:7860 -L 8080:localhost:8080 -L 8090:localhost:8090
 ```
 
-### Running w/ Local LLM 💻
+### Running w/ Local LLM
 
 **To build and start the app:**
 
@@ -70,7 +70,7 @@ ssh <user_name>@<IP address> -L 7860:localhost:7860 -L 8080:localhost:8080 -L 80
 
 Once the LLM is loaded on the GPU and the Gradio app is running, HoloChat should be available at <http://127.0.0.1:7860/>.
 
-### Running w/ NIM API ☁️
+### Running w/ NIM API
 
 To use the NIM API you must create a .env file at:
 
@@ -92,15 +92,15 @@ NVIDIA_API_KEY=<api_key_here>
 
 Once the Gradio app is running, HoloChat should be available at <http://127.0.0.1:7860/>.
 
-## Usage Notes: 🗒️
+## Usage Notes
 
-### Intended use: 🎯
-  >
+### Intended use
+
   >HoloChat is developed to accelerate and assist Holoscan developers’ learning and development. HoloChat serves as an intuitive chat interface, enabling users to pose natural language queries related to the Holoscan SDK. Whether seeking general information about the SDK or specific coding insights, users can obtain immediate responses thanks to the underlying Large Language Model (LLM) and vector database.
   >
   >HoloChat is given access to the Holoscan SDK repository, the HoloHub repository, and the Holoscan SDK user guide. This essentially allows users to engage in natural language conversations with these documents, gaining instant access to the information they need, thus sparing them the task of sifting through vast amounts of documentation themselves.
 
-### Known Limitations: ⚠️🚧
+### Known Limitations
 
 Before diving into how to make the most of HoloChat, it's crucial to understand and acknowledge its known limitations. These limitations can guide you in adopting the best practices below, which will help you navigate and mitigate these issues effectively.
 
@@ -108,7 +108,7 @@ Before diving into how to make the most of HoloChat, it's crucial to understand 
 - **Memory Loss:** LLM's limited attention window may lead to the loss of previous conversation history. To mitigate this, consider restarting the application to clear the chat history when necessary.
 - **Limited Support for Stack Traces**: HoloChat's knowledge is based on the Holoscan repository and the user guide, which lack large collections of stack trace data. Consequently, HoloChat may face challenges when assisting with stack traces.
 
-### Best Practices: ✅👍
+### Best Practices
 
 While users should be aware of the above limitations, following the recommended tips will drastically minimize these possible shortcomings. In general, the more detailed and precise a question is, the better the results will be. Some best practices when asking questions are:
 
@@ -120,23 +120,23 @@ While users should be aware of the above limitations, following the recommended 
 In order to demonstrate how to get the most out of HoloChat two example questions are posed below. These examples illustrate how a user can refine their questions and as a result, improve the responses they receive:
 
 ---
-**Worst👎:**
+**Worst:**
 “Create an app that predicts the labels associated with a video”
 
-**Better👌:**
+**Better:**
 “Create a Python app that takes video input and sends it through a model for inference.”
 
-**Best🙌:**
+**Best:**
 “Create a Python Holoscan application that receives streaming video input, and passes that video input into a pytorch classification model for inference. Then, collect the model’s predicted class and use Holoviz to display the class label on each video frame.”
 
 ---
-**Worst👎:**
+**Worst:**
 “What os can I use?”
 
-**Better👌:**
+**Better:**
 “What operating system can I use with Holoscan?”
 
-**Best🙌:**
+**Best:**
 “Can I use MacOS with the Holoscan SDK?”
 
 ## Appendix
@@ -146,7 +146,7 @@ In order to demonstrate how to get the most out of HoloChat two example question
 By using the Code-Llama model, you are agreeing to the terms and conditions of the [license](https://ai.meta.com/llama/license/), [acceptable use policy](https://ai.meta.com/llama/use-policy/) and Meta’s [privacy policy](https://www.facebook.com/privacy/policy/).
 
 ### Implementation Details
-  >
+
   >HoloChat operates by taking user input and comparing it to the text stored within the vector database, which is comprised of Holoscan SDK information. The most relevant text segments from SDK code and the user guide are then appended to the user's query. This approach allows the chosen LLM to answer questions about the Holoscan SDK, without being explicitly trained on SDK data.
   >
   >However, there is a drawback to this method - the most relevant documentation is not always found within the vector database. Since the user's question serves as the search query, queries that are too simplistic or abbreviated may fail to extract the most relevant documents from the vector database. As a consequence, the LLM will then lack the necessary context, leading to poor and potentially inaccurate responses. This occurs because LLMs strive to provide the most probable response to a question, and without adequate context, they hallucinate to fill in these knowledge gaps.
