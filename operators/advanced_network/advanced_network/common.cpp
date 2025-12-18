@@ -533,7 +533,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rdma_config
       rdma_item["mode"].template as<std::string>());
     rdma.xmode_ = holoscan::advanced_network::GetRDMATransportModeFromString(
       rdma_item["transport_mode"].template as<std::string>());
-    if (rdma_item["port"].IsDefined()) { // Port is optional
+    if (rdma_item["port"].IsDefined()) {  // Port is optional
       rdma.port_ = rdma_item["port"].as<uint16_t>();
     } else {
       rdma.port_ = 0;

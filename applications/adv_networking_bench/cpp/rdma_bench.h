@@ -131,7 +131,7 @@ class AdvNetworkingRdmaOp : public Operator {
               HOLOSCAN_LOG_ERROR("Failed to set packet length for {}: {}", mr_name, (int)ret);
               free_tx_burst(msg);
               return ret;
-            }         
+            }
 
             ret = send_tx_burst(msg);
             if (ret != Status::SUCCESS) {

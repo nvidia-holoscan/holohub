@@ -23,7 +23,7 @@
 #include "advanced_network/types.h"
 
 namespace holoscan::advanced_network {
-  
+
 
 class DpdkLogLevel {
  public:
