@@ -243,6 +243,14 @@ Clear cache directories using the `clear-cache` command:
 The goal of this repository is to allow engineering teams to easily contribute and share new functionalities
 and to demonstrate applications. Please review the [Contributing Guidelines](./CONTRIBUTING.md) for more information.
 
+> [!TIP]
+>
+> If you are developing a new application, you can use the `./holohub create <application_name>` command to generate the initial project scaffolding. This command sets up a new project with the appropriate directory structure and necessary files.
+>
+>```sh
+> ./holohub create <application_name>
+>```
+
 ## Glossary
 
 Many applications use the following keyword definitions in their README descriptions:
