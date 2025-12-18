@@ -357,8 +357,14 @@ class LLM:
             os.makedirs(chroma_dir, exist_ok=True)
             if os.access(chroma_dir, os.W_OK):
                 return chroma_dir
-        except Exception:
-            pass
+            else:
+                raise PermissionError(f"Chroma directory '{chroma_dir}' is not writable.")
+        except Exception as e:
+            self._logger.debug(
+                f"Failed to prepare Chroma directory '{chroma_dir}'. "
+                "Using cache root for fallback Chroma directory. "
+                f"Error: {e}"
+            )
 
         # Fallback: copy to cache root
         fallback_dir = os.path.join(self._cache_root, "chroma", "holoscan")
