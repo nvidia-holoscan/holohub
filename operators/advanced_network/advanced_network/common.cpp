@@ -638,6 +638,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
     const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q,
     bool parse_memory_regions) {
   if (!parse_common_queue_config(q_item, q.common_, parse_memory_regions)) { return false; }
+#if !ANO_MGR_RIVERMAX  
   try {
     if (q_item["offloads"].IsDefined()) {
       const auto& offload = q_item["offloads"];
