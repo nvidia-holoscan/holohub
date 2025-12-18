@@ -1,23 +1,5 @@
 # HoloChat
 
-### Table of Contents
-
-- [HoloChat](#holochat)
-    - [Table of Contents](#table-of-contents)
-  - [Hardware Requirements (Running Locally)](#hardware-requirements-running-locally)
-  - [Quick Start Guide](#quick-start-guide)
-    - [Build Notes](#build-notes)
-  - [Running Instructions](#running-instructions)
-    - [Running w/ Local LLM 💻](#running-w-local-llm-)
-    - [Running w/ NIM API ☁️](#running-w-nim-api-️)
-  - [Usage Notes: 🗒️](#usage-notes-️)
-    - [Intended use: 🎯](#intended-use-)
-    - [Known Limitations: ⚠️🚧](#known-limitations-️)
-    - [Best Practices: ✅👍](#best-practices-)
-  - [Appendix](#appendix)
-    - [Meta Terms of Use](#meta-terms-of-use)
-    - [Implementation Details](#implementation-details)
-
 HoloChat is an AI-driven chatbot, built on top of a **locally hosted Code-Llama model** *OR* a remote **NIM API for Llama-3-70b**, which acts as developer's copilot in Holoscan development. The LLM leverages a vector database comprised of the Holoscan SDK repository and user guide, enabling HoloChat to answer general questions about Holoscan, as well act as a Holoscan SDK coding assistant.
 
 <p align="center">
@@ -26,20 +8,13 @@ HoloChat is an AI-driven chatbot, built on top of a **locally hosted Code-Llama 
   </kbd>
 </p>
 
-## Hardware Requirements (Running Locally)
-
-- **GPU**: NVIDIA dGPU w/ >= 28 GB VRAM
-- **Memory**: \>= 28 GB of available disk memory, needed to download [fine-tuned Code Llama 34B](https://huggingface.co/TheBloke/Phind-CodeLlama-34B-v2-GGUF) and [BGE-Large](https://huggingface.co/BAAI/bge-large-en) embedding model
-
-_Tested using [NVIDIA IGX Orin](https://www.nvidia.com/en-us/edge-computing/products/igx/) w/ RTX A6000 and Dell Precision 5820 Workstation w/ RTX A6000_
-
 ## Quick Start Guide
 
 **Choose one of the following modes to run HoloChat:**
 
-- **NVIDIA NIM API (cloud)**:  Uses the [NVIDIA NIM API](https://build.nvidia.com/explore/discover) with [Llama-3-70b-Instruct](https://build.nvidia.com/meta/llama3-70b) model.
+- **NVIDIA NIM API (cloud)**:  Uses the [NVIDIA NIM API](https://build.nvidia.com/explore/discover) with [Llama-3.3-70b-instruct](https://build.nvidia.com/meta/llama-3_3-70b-instruct) model.
   > [!IMPORTANT]
-  > For this mode, you must create a `.env` file in the `holochat` directory with your NVIDIA API key. If you don't have an API key, you can create one on [build.nvidia.com](https://build.nvidia.com/settings/api-keys) using your NVIDIA developer account.
+  > For cloud mode, you must create a `.env` file in the `holochat` directory with your NVIDIA API key. If you don't have an API key, you can create one on [build.nvidia.com](https://build.nvidia.com/settings/api-keys) using your NVIDIA developer account.
   >
   > ```bash
   > echo "NVIDIA_API_KEY=<api_key_here>" > ./applications/holochat/.env
@@ -55,6 +30,9 @@ _Tested using [NVIDIA IGX Orin](https://www.nvidia.com/en-us/edge-computing/prod
   ./holohub run holochat standalone
   ```
 
+  > [!NOTE]
+  > First local run will likely take ~45 minutes (container + model downloads), and expect ~28 GB of model data under `holochat/models`, so use a disk with plenty of free space.
+
 - **MCP server (mcp)**: Runs as a [Model Context Protocol](https://modelcontextprotocol.io/) server that provides Holoscan documentation and code context to upstream LLMs like Claude
 
   ```bash
@@ -63,15 +41,12 @@ _Tested using [NVIDIA IGX Orin](https://www.nvidia.com/en-us/edge-computing/prod
 
   See [MCP_MODE.md](MCP_MODE.md) for more details on using MCP mode.
 
-### Build Notes
+## Hardware Requirements (Running Locally)
 
-**Build Time:**
+- **GPU**: NVIDIA dGPU w/ >= 28 GB VRAM
+- **Memory**: \>= 28 GB of available disk memory, needed to download [fine-tuned Code Llama 34B](https://huggingface.co/TheBloke/Phind-CodeLlama-34B-v2-GGUF) and [BGE-Large](https://huggingface.co/BAAI/bge-large-en) embedding model
 
-- HoloChat uses a [PyTorch container](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch) from [NGC](https://catalog.ngc.nvidia.com/?filters=&orderBy=weightPopularDESC&query=) and may also download the [~23 GB Phind LLM](https://huggingface.co/TheBloke/Phind-CodeLlama-34B-v2-GGUF) from HuggingFace. As such, the first time building this application **will likely take ~45 minutes** depending on your internet speeds. However, this is a one-time set-up and subsequent runs of HoloChat should take seconds to launch.
-
-**Build Location:**
-
-- If running locally: HoloChat downloads ~28 GB of model data to the `holochat/models` directory. As such, it is **recommended** to only run this application on a disk drive with ample storage (ex: the 500 GB SSD included with NVIDIA IGX Orin).
+*Tested using [NVIDIA IGX Orin](https://www.nvidia.com/en-us/edge-computing/products/igx/) w/ RTX A6000 and Dell Precision 5820 Workstation w/ RTX A6000*
 
 ## Running Instructions
 
