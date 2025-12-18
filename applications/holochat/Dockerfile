@@ -16,17 +16,13 @@
 # limitations under the License.
 
 
-############################################################
+# --------------------------------------------------------------------------
 # Base image
-############################################################
-
+# --------------------------------------------------------------------------
 ARG GPU_TYPE
 ARG BASE_SDK_VERSION
 ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 FROM ${BASE_IMAGE} AS base
-
-ARG DEBIAN_FRONTEND=noninteractive
-ARG CMAKE_BUILD_TYPE=Release
 
 # --------------------------------------------------------------------------
 # Holohub setup
@@ -53,11 +49,19 @@ RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 # --------------------------------------------------------------------------
 # Clone and build Llama.cpp
 # --------------------------------------------------------------------------
+# Clone Llama.cpp (at a specific commit to avoid breaking changes)
 WORKDIR /workspace
 RUN git clone https://github.com/ggml-org/llama.cpp.git \
     && cd llama.cpp \
-    && git checkout 4b2a4778f81f222c12271ce3b1997990b3071faf \
-    && cmake -B build -DGGML_CUDA=ON -DGGML_CUDA_FORCE_CUBLAS=true \
+    && git checkout 4b2a4778f81f222c12271ce3b1997990b3071faf
+
+# Build Llama.cpp (with CUDA support)
+WORKDIR /workspace/llama.cpp
+RUN cmake -B build \
+        -DGGML_CUDA:BOOL=ON \
+        -DGGML_CUDA_FORCE_CUBLAS:BOOL=ON \
+        -DLLAMA_CURL:BOOL=OFF \
     && cmake --build build --config Release
 
+# Set working directory back to holohub
 WORKDIR /workspace/holohub
