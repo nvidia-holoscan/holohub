@@ -687,7 +687,8 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
         }
       } catch (const std::exception& e) {}
 
-      bool rdma_used = input_spec.common_.manager_type == holoscan::advanced_network::ManagerType::RDMA;
+      bool rdma_used =
+        input_spec.common_.manager_type == holoscan::advanced_network::ManagerType::RDMA;
 
       try {
         input_spec.debug_ = node["debug"].as<bool>(false);

@@ -424,7 +424,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     std::string ipv4_src = flow_item["match"]["ipv4_src"].as<std::string>();
     if (inet_pton(AF_INET, ipv4_src.c_str(), &addr) != 1) {
       HOLOSCAN_LOG_ERROR("Error parsing ipv4_src : {}", ipv4_src);
-      return false; 
+      return false;
     } else {
       flow.match_.ipv4_src_ = addr.s_addr;
     }
@@ -529,8 +529,10 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_memory_regi
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rdma_config(
     const YAML::Node& rdma_item, holoscan::advanced_network::RDMAConfig& rdma) {
   try {
-    rdma.mode_ = holoscan::advanced_network::GetRDMAModeFromString(rdma_item["mode"].template as<std::string>());
-    rdma.xmode_ = holoscan::advanced_network::GetRDMATransportModeFromString(rdma_item["transport_mode"].template as<std::string>());
+    rdma.mode_ = holoscan::advanced_network::GetRDMAModeFromString(
+      rdma_item["mode"].template as<std::string>());
+    rdma.xmode_ = holoscan::advanced_network::GetRDMATransportModeFromString(
+      rdma_item["transport_mode"].template as<std::string>());
     if (rdma_item["port"].IsDefined()) { // Port is optional
       rdma.port_ = rdma_item["port"].as<uint16_t>();
     } else {
@@ -644,7 +646,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
     const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q,
     bool parse_memory_regions) {
   if (!parse_common_queue_config(q_item, q.common_, parse_memory_regions)) { return false; }
-#if !ANO_MGR_RIVERMAX  
+#if !ANO_MGR_RIVERMAX
   try {
     if (q_item["offloads"].IsDefined()) {
       const auto& offload = q_item["offloads"];
@@ -657,7 +659,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
     HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
     return false;
   }
-#endif  
+#endif
   return true;
 }
 

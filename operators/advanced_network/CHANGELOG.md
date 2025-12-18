@@ -6,7 +6,7 @@
 
 RDMA Backend:
 -   **New RDMA backend**
-    - Added RDMA backend supporting both client/server with RDMA-CM. SEND/RECV supported currently
+     -   Added RDMA backend supporting both client/server with RDMA-CM. SEND/RECV supported currently
 
 ## 🚧 holoscan-networking 0.2
 
