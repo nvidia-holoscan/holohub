@@ -61,16 +61,80 @@ function download_llama {
     fi
 }
 
+# Wait for llama.cpp server to become reachable
+function wait_for_llama_server {
+    local url="http://127.0.0.1:8080"
+    local timeout_s="${1:-60}"
+    local start
+    start="$(date +%s)"
+    while true; do
+        if curl -fsS --max-time 2 "$url" >/dev/null 2>&1; then
+            return 0
+        fi
+        if [ $(( "$(date +%s)" - start )) -ge "$timeout_s" ]; then
+            return 1
+        fi
+        sleep 1
+    done
+}
+
+# Start llama.cpp server and verify it stays up; auto-redownload model once if corrupted/incomplete
+function start_llama_server_checked {
+    local model_path="$BASE_DIR/models/phind-codellama-34b-v2.Q5_K_M.gguf"
+    local log_path="$BASE_DIR/llama_server.log"
+    : > "$log_path"
+
+    /workspace/llama.cpp/build/bin/llama-server \
+        -m "$model_path" \
+        --host 0.0.0.0 \
+        -ngl 1000 \
+        -c 4096 \
+        -n 1024 \
+        >"$log_path" 2>&1 &
+    local pid=$!
+    bg_pids+=($pid)
+
+    # Give it a moment; if it dies fast, surface why and retry once on corruption.
+    sleep 2
+    if ! kill -0 "$pid" 2>/dev/null; then
+        echo "llama-server failed to start. Last logs:"
+        tail -n 50 "$log_path" || true
+        if grep -qiE "model is corrupted|corrupted or incomplete|data is not within the file bounds" "$log_path"; then
+            echo "Detected corrupted/incomplete GGUF. Re-downloading model and retrying once..."
+            rm -f "$model_path"
+            download_llama
+            : > "$log_path"
+            /workspace/llama.cpp/build/bin/llama-server \
+                -m "$model_path" \
+                --host 0.0.0.0 \
+                -ngl 1000 \
+                -c 4096 \
+                -n 1024 \
+                >"$log_path" 2>&1 &
+            pid=$!
+            bg_pids+=($pid)
+            sleep 2
+            if ! kill -0 "$pid" 2>/dev/null; then
+                echo "llama-server still failed after re-download. Last logs:"
+                tail -n 80 "$log_path" || true
+                exit 1
+            fi
+        else
+            exit 1
+        fi
+    fi
+
+    if ! wait_for_llama_server 60; then
+        echo "llama-server did not become reachable within timeout. Last logs:"
+        tail -n 80 "$log_path" || true
+        exit 1
+    fi
+}
+
 # Function that starts the appropriate server based on flags
 function start_holochat {
     if [[ "$LAUNCH_LOCAL" == "true" ]]; then
-        /workspace/llama.cpp/build/bin/server \
-            -m "$BASE_DIR/models/phind-codellama-34b-v2.Q5_K_M.gguf" \
-            --host 0.0.0.0 \
-            -ngl 1000 \
-            -c 4096 \
-            -n 1024 \
-        & bg_pids+=($!)
+        start_llama_server_checked
         python3 -u "$BASE_DIR/chatbot.py" --local \
         & bg_pids+=($!)
     elif [[ "$LAUNCH_MCP" == "true" ]]; then

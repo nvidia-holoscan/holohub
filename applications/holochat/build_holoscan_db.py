@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +19,10 @@ import re
 from types import SimpleNamespace
 
 import yaml
-from langchain.docstore.document import Document
 from langchain_community.document_loaders import PyPDFLoader  # for loading the pdf
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_core.documents import Document
 from utils import clone_repository, get_source_chunks
 
 current_dir = os.path.dirname(__file__)
@@ -123,7 +123,11 @@ def main():
     max_batch_size = 5461  # 5461 is the max batch size for the BAAI/bge-large-en model
     for i in range(0, len(source_chunks), max_batch_size):
         batch = source_chunks[i : i + max_batch_size]
-        chroma_db = Chroma.from_documents(batch, embedding_model, persist_directory=chroma_db_path)
+        chroma_db = Chroma.from_documents(
+            documents=batch,
+            embedding=embedding_model,
+            persist_directory=chroma_db_path,
+        )
         chroma_db.persist()
     print("Done!")
 
