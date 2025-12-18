@@ -38,7 +38,7 @@ class AdvNetworkingRdmaOp : public Operator {
         ttl_bytes_sent_,
         ttl_pkts_sent_);
 
-    HOLOSCAN_LOG_INFO("ANO benchmark client op shutting down");
+    HOLOSCAN_LOG_INFO("ANO benchmark RDMA op shutting down");
     freeResources();
   }
 
@@ -110,12 +110,18 @@ class AdvNetworkingRdmaOp : public Operator {
 
     // SEND and RECEIVE use almost the same code, so we can use a lambda to handle both
     auto process_post_msg =
-        [&](int& completion_cnt, uint64_t& wr_id, RDMAOpCode opcode, const std::string& mr_name) {
+        [&](int& completion_cnt, uint64_t& wr_id, RDMAOpCode opcode, const std::string& mr_name)
+            -> Status {
           if (completion_cnt < MAX_OUTSTANDING_COMPLETIONS) {
             auto msg = create_burst_params();
 
-            Status ret =
-                rdma_set_header(msg, opcode, conn_id_, server_.get(), 1, wr_id, mr_name.c_str());
+            Status ret = rdma_set_header(
+              msg, opcode, conn_id_, server_.get(), 1, wr_id, mr_name.c_str());
+            if (ret != Status::SUCCESS) {
+              HOLOSCAN_LOG_ERROR("Failed to set RDMA header for {}: {}", mr_name, (int)ret);
+              free_tx_burst(msg);
+              return ret;
+            }
 
             while ((ret = get_tx_packet_burst(msg)) != Status::SUCCESS) {}
 
@@ -126,15 +132,28 @@ class AdvNetworkingRdmaOp : public Operator {
             completion_cnt++;
             wr_id++;
           }
+
+          // We want to return success even if we have too many outstanding completions so that the
+          // code below still checks the completions.
+          return Status::SUCCESS;
         };
 
     if (send_.get()) {
-      process_post_msg(outstanding_send_completions, send_wr_id, RDMAOpCode::SEND, send_mr_name_);
+      Status ret = process_post_msg(
+          outstanding_send_completions, send_wr_id, RDMAOpCode::SEND, send_mr_name_);
+      if (ret != Status::SUCCESS) {
+        HOLOSCAN_LOG_ERROR("Failed to perform RDMA SEND burst: {}", (int)ret);
+        return;
+      }
     }
 
     if (receive_.get()) {
-      process_post_msg(
+      Status ret = process_post_msg(
           outstanding_receive_completions, receive_wr_id, RDMAOpCode::RECEIVE, receive_mr_name_);
+      if (ret != Status::SUCCESS) {
+        HOLOSCAN_LOG_ERROR("Failed to perform RDMA RECEIVE burst: {}", (int)ret);
+        return;
+      }
     }
 
     // Process any completions

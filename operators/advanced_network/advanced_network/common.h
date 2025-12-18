@@ -136,7 +136,7 @@ uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
  *
  * @param burst Burst structure containing packets
  * @param idx Index of packet
- * @return uint16_t Length of packet
+ * @return uint32_t Length of packet
  */
 uint32_t get_packet_length(BurstParams* burst, int idx);
 
@@ -686,7 +686,7 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
           return false;
         }
       } catch (const std::exception& e) {}
-      
+
       bool rdma_used = input_spec.common_.manager_type == holoscan::advanced_network::ManagerType::RDMA;
 
       try {
