@@ -19,30 +19,28 @@ find_package(holoscan 1.0 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan" "/workspa
 # Add testing
 if(BUILD_TESTING)
 
-  # Configure the yaml file for testing
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/deltacast_transmitter.yaml" CONFIG_FILE)
-  string(REPLACE "count: 0" "count: 10" CONFIG_FILE ${CONFIG_FILE})
-
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/deltacast_transmitter.yaml" ${CONFIG_FILE})
-
   # Add test
-  add_test(NAME deltacast_transmitter_python_test
-           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/deltacast_transmitter.py
-                   --config ${CMAKE_CURRENT_BINARY_DIR}/deltacast_transmitter.yaml
+  add_test(NAME deltacast_receiver_python_test
+           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/deltacast_receiver.py
+                   --config ${CMAKE_CURRENT_SOURCE_DIR}/deltacast_receiver.yaml
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-  set_tests_properties(deltacast_transmitter_python_test PROPERTIES
-                PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
+  set_tests_properties(deltacast_receiver_python_test PROPERTIES
+                PASS_REGULAR_EXPRESSION "Running the graph;"
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+
+  set_property(TEST deltacast_receiver_python_test PROPERTY ENVIRONMENT
+            "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
+
 endif()
 
 # Install application and dependencies into the install/ directory for packaging
 install(
-  FILES deltacast_transmitter.py
-  DESTINATION bin/deltacast_transmitter/python
+  FILES deltacast_receiver.py
+  DESTINATION bin/deltacast_receiver/python
 )
 
 install(
-  FILES deltacast_transmitter.yaml
-  DESTINATION bin/deltacast_transmitter/python
+  FILES deltacast_receiver.yaml
+  DESTINATION bin/deltacast_receiver/python
 )
