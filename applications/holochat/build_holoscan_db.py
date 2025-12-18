@@ -19,8 +19,8 @@ import re
 from types import SimpleNamespace
 
 import yaml
-from langchain_community.document_loaders import PyPDFLoader
 from langchain_chroma import Chroma
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from utils import clone_repository, get_source_chunks
