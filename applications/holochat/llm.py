@@ -56,7 +56,7 @@ class LLM:
             self._logger.info("Using local Llama.cpp server")
             self.model = self.config.local_model
             base_url = self.config.local_llm_url
-        else:
+        elif not is_mcp:
             self._logger.info("Using NVIDIA NIM API")
             assert (
                 api_key != "N/A"

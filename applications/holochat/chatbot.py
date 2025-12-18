@@ -92,7 +92,7 @@ def main():
     # If --mcp flag is set, run as MCP server
     if args.mcp:
         # Initialize the LLM to get access to the database and embedding model
-        llm = LLM(is_local=False)
+        llm = LLM(is_local=False, is_mcp=True)
         # Start the MCP server
         start_mcp_server(llm.config, llm.db)
         return
