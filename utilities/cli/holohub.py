@@ -37,6 +37,7 @@ import shutil
 import subprocess
 import tempfile
 from collections import defaultdict
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import List, Optional
 
@@ -1733,13 +1734,15 @@ class HoloHubCLI:
             print(Color.blue("Linting CMake"))
             cmake_files = list(Path(args.path).rglob("CMakeLists.txt"))
             cmake_files.extend(Path(args.path).rglob("*.cmake"))
-            excluded_paths = ["build", "install", "tmp"]
+            excluded_paths = ["build", "install", "data", "build-*", "install-*", "data-*", "tmp"]
+
             cmake_files = [
                 f
                 for f in cmake_files
                 if not any(
-                    excluded_dir in f.parts or any(part.startswith(".") for part in f.parts)
-                    for excluded_dir in excluded_paths
+                    part.startswith(".")
+                    or any(fnmatch(part, pattern) for pattern in excluded_paths)
+                    for part in f.parts
                 )
             ]
             if cmake_files:
