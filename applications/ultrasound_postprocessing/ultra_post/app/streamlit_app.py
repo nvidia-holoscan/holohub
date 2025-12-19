@@ -27,7 +27,7 @@ if str(PROJECT_ROOT) not in sys.path:
 import cupy as cp
 import streamlit as st
 
-from ultra_post.app.gui.components import render_add_operator_controls, render_operator_controls
+from ultra_post.app.components import render_add_filter_controls, render_filter_controls
 from ultra_post.core.display import (
     DisplayCompressionSettings,
     run_pipeline_colormap_last,
@@ -35,7 +35,7 @@ from ultra_post.core.display import (
 )
 from ultra_post.core.loader import load_uff_frame
 from ultra_post.core.pipeline import Pipeline, create_node, pipeline_to_yaml
-from ultra_post.ops.registry import OPS
+from ultra_post.filters.registry import FILTERS
 
 DEFAULT_UFF = PROJECT_ROOT / "ultra_post/examples/demo.uff"
 
@@ -45,7 +45,7 @@ def init_state() -> None:
 
     if "pipeline" not in st.session_state:
         pipe: Pipeline = []
-        if "gamma_compression" in OPS:
+        if "gamma_compression" in FILTERS:
             pipe.append(create_node("gamma_compression"))
         st.session_state["pipeline"] = pipe
 
@@ -67,9 +67,9 @@ def main() -> None:
     with st.sidebar:
         st.header("Pipeline")
         pipeline = st.session_state["pipeline"]
-        render_operator_controls(st, pipeline, OPS)
+        render_filter_controls(st, pipeline, FILTERS)
         st.divider()
-        render_add_operator_controls(st, pipeline, OPS)
+        render_add_filter_controls(st, pipeline, FILTERS)
         st.divider()
 
         st.header("Display Settings")

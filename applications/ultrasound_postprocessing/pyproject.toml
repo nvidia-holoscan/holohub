@@ -19,7 +19,6 @@ dev = [
     "pytest",
     "ruff",
     "mypy",
-    "pytest",
     "gdown"
 ]
 # Optional Holoscan runtime integration (Step 6+). Not required for Streamlit UI.

@@ -19,16 +19,16 @@ import unittest
 from pathlib import Path
 
 from ultra_post.core.pipeline import pipeline_from_yaml
-from ultra_post.ops.registry import OPS
+from ultra_post.filters.registry import FILTERS
 
 
 class PresetTests(unittest.TestCase):
     def test_all_presets_load(self) -> None:
         presets_dir = Path("presets")
-        ops = OPS
+        filters = FILTERS
         for preset in presets_dir.glob("*.y*ml"):
             text = preset.read_text(encoding="utf-8")
-            pipeline_from_yaml(text, ops=ops)
+            pipeline_from_yaml(text, filters=filters)
 
 
 if __name__ == "__main__":  # pragma: no cover

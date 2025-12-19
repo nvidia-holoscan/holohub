@@ -22,15 +22,15 @@ import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
 from ultra_post.core.pipeline import Pipeline, create_node
-from ultra_post.ops.registry import DEFAULT_PARAMS
+from ultra_post.filters.registry import DEFAULT_PARAMS
 
 
-def render_operator_controls(container: DeltaGenerator, pipeline: Pipeline, ops: Mapping[str, Any]) -> None:
-    """Render active operators with edit/move/remove controls."""
+def render_filter_controls(container: DeltaGenerator, pipeline: Pipeline, filters: Mapping[str, Any]) -> None:
+    """Render active filters with edit/move/remove controls."""
 
-    container.markdown("**Operators**")
+    container.markdown("**Filters**")
     if not pipeline:
-        container.info("Pipeline is empty. Add an operator below.")
+        container.info("Pipeline is empty. Add a filter below.")
         return
 
     for i, node in enumerate(list(pipeline)):
@@ -40,7 +40,7 @@ def render_operator_controls(container: DeltaGenerator, pipeline: Pipeline, ops:
 
         with container.expander(label, expanded=True):
             defaults = DEFAULT_PARAMS.get(op_name, {})
-            if not ops.get(op_name):
+            if not filters.get(op_name):
                 st.error(f"Operator '{op_name}' is missing.")
             else:
                 node["params"] = _render_params(st, node.get("params", {}), defaults, key_prefix)
@@ -61,11 +61,11 @@ def render_operator_controls(container: DeltaGenerator, pipeline: Pipeline, ops:
                 st.rerun()
 
 
-def render_add_operator_controls(container: DeltaGenerator, pipeline: Pipeline, ops: Mapping[str, Any]) -> None:
-    """Render selector to append new operators."""
+def render_add_filter_controls(container: DeltaGenerator, pipeline: Pipeline, filters: Mapping[str, Any]) -> None:
+    """Render selector to append new filters."""
 
-    container.markdown("**Add Operator**")
-    names = sorted(ops.keys())
+    container.markdown("**Add Filter**")
+    names = sorted(filters.keys())
     if not names:
         return
 

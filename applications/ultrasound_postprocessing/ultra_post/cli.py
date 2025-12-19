@@ -21,24 +21,24 @@ from pathlib import Path
 from typing import Any
 
 from ultra_post.core.pipeline import pipeline_from_yaml
-from ultra_post.ops.registry import DEFAULT_PARAMS, OPS
+from ultra_post.filters.registry import DEFAULT_PARAMS, FILTERS
 
 
-def _load_ops() -> dict[str, Any] | None:
-    return dict(OPS)
+def _load_filters() -> dict[str, Any] | None:
+    return dict(FILTERS)
 
 
-def _cmd_list_ops(_args: argparse.Namespace) -> int:
-    ops = _load_ops()
+def _cmd_list_filters(_args: argparse.Namespace) -> int:
+    filters = _load_filters()
     exit_code = 1
-    if ops:
-        for name in sorted(ops):
+    if filters:
+        for name in sorted(filters):
             defaults = DEFAULT_PARAMS.get(name, {})
             sig = defaults if defaults else "(no defaults)"
             print(f"{name}: {sig}")
         exit_code = 0
     else:
-        print("No operators found.")
+        print("No filters found.")
     return exit_code
 
 
@@ -48,11 +48,11 @@ def _cmd_validate_preset(args: argparse.Namespace) -> int:
     if not path.exists():
         print(f"Preset not found: {path}", file=sys.stderr)
     else:
-        ops = _load_ops()
-        if ops:
+        filters = _load_filters()
+        if filters:
             try:
                 text = path.read_text(encoding="utf-8")
-                pipeline_from_yaml(text, ops=ops)
+                pipeline_from_yaml(text, filters=filters)
                 print(f"Preset '{path}' is valid.")
                 exit_code = 0
             except Exception as exc:  # pragma: no cover - CLI validation path
@@ -65,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ultrasound post-processing CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("list-ops", help="List discovered operators").set_defaults(func=_cmd_list_ops)
+    sub.add_parser("list-filters", help="List discovered operators").set_defaults(func=_cmd_list_filters)
 
     validate = sub.add_parser("validate-preset", help="Validate a pipeline preset YAML")
     validate.add_argument("path", type=str, help="Path to preset YAML")

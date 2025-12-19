@@ -43,7 +43,7 @@ from ultra_post.app.holoscan_operators import (
     make_uff_source_op,
 )
 from ultra_post.core.pipeline import Pipeline, create_node, pipeline_from_yaml
-from ultra_post.ops.registry import OPS
+from ultra_post.filters.registry import FILTERS
 
 if TYPE_CHECKING:
     from ultra_post.sim.raysim_source import RaysimFrameGenerator
@@ -129,16 +129,16 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
 
 
 def _load_pipeline_from_yaml(path: Optional[str]) -> Pipeline:
-    ops = OPS
+    filters = FILTERS
     if not path:
         pipeline: Pipeline = []
-        if ops:
-            op_name = "gamma_compression" if "gamma_compression" in ops else next(iter(ops.keys()))
-            pipeline.append(create_node(op_name))
+        if filters:
+            filter_name = "gamma_compression" if "gamma_compression" in filters else next(iter(filters.keys()))
+            pipeline.append(create_node(filter_name))
         return pipeline
 
     yaml_text = Path(path).read_text(encoding="utf-8")
-    return pipeline_from_yaml(yaml_text, ops=ops)
+    return pipeline_from_yaml(yaml_text, filters=filters)
 
 
 def _build_raysim_generator(
@@ -228,7 +228,7 @@ def run_holoscan_app(args: argparse.Namespace) -> None:
 
                 op_name = node["op"]
                 params = node.get("params", {})
-                func = OPS.get(op_name)
+                func = FILTERS.get(op_name)
                 if not func:
                     print(f"Warning: Op '{op_name}' not found, skipping.")
                     continue
