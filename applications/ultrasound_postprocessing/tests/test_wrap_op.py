@@ -24,7 +24,7 @@ except ImportError:  # pragma: no cover
     cp = None  # type: ignore
 
 from ultra_post.app.holoscan_operators import FuncOp
-from ultra_post.ops.registry import OPS
+from ultra_post.filters.registry import FILTERS
 
 _HOLOSCAN_AVAILABLE = importlib.util.find_spec("holoscan") is not None
 
@@ -35,7 +35,7 @@ class FuncOpTests(unittest.TestCase):
         from holoscan.core import Application, Operator
 
         app = Application()
-        op_instance = FuncOp(app, name="gamma_op", fn=OPS["gamma_compression"], params={"gamma": 2.0})
+        op_instance = FuncOp(app, name="gamma_op", fn=FILTERS["gamma_compression"], params={"gamma": 2.0})
 
         self.assertIsInstance(op_instance, Operator)
 
@@ -43,7 +43,7 @@ class FuncOpTests(unittest.TestCase):
         data = cp.asarray([0.25, 1.0], dtype=cp.float32)
         # We can't easily call op_instance compute logic without running the graph,
         # but we can verify the function it wraps works as expected.
-        fn = OPS["gamma_compression"]
+        fn = FILTERS["gamma_compression"]
         out = fn(data, gamma=2.0)
         expected = cp.asarray([0.5, 1.0], dtype=cp.float32)
         self.assertTrue(cp.allclose(out, expected))

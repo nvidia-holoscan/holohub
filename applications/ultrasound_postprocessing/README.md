@@ -22,6 +22,8 @@ The included Holoscan Runner tool enables you to run those configurations in rea
 - Streamlit
 - CUDA Driver R580 or later
 
+![docs/assets/designer.png]
+
 ### Holoscan Runner Application
 
 - Holoscan SDK 3.9.0
@@ -40,7 +42,7 @@ Then, run the containerized application:
 ./holohub run ultrasound_postprocessing designer
 ```
 ```bash
-./holohub run ultrasound_segmentation realtime
+./holohub run ultrasound_postprocessing realtime
 ```
 
 ## Install and Run with Python Packaging
@@ -54,13 +56,22 @@ uv -m pip install git+ssh://git@gitlab-master.nvidia.com:12051/holoscan/holohub-
 
 Then run your application of choice:
 ```bash
-uv run streamlit run applications/ultrasound_postprocessing/ultra_post/app/gui/streamlit_app.py
+uv run streamlit run applications/ultrasound_postprocessing/ultra_post/app/streamlit_app.py
 ```
 
 ```bash
 uv run python -m ultra_post.app.holoscan_app [--uff path/to/myfile.uff] [--fps 10]
 ```
 
+## Key Concepts
+
+### Glossary
+
+- **Filters** are stateful, CuPy-based Python functions that operate on ultrasound images.
+- The **Filter Registry** is a collection of pre-defined filters for use in apps such as the Filter Designer and in Holoscan SDK pipelines.
+- **Pipelines** are a set of one or more filter objects assembled into a serialized graph or "chain".
+- **Presets** are instructions for configuring a pipeline out of specific filters.
+- **Operators** are Holoscan SDK "nodes" wrapping filter definitions for real-time serial execution.
 
 ## Development
 
@@ -85,7 +96,7 @@ ultrasound_postprocessing
 ### Review Existing Operators
 
 ```bash
-./holohub run ultrasound_postprocessing list-ops
+./holohub run ultrasound_postprocessing list-filters
 ```
 
 ### Validate a preset
@@ -108,10 +119,12 @@ We welcome contributions that align with our mission to enable the ultrasound co
 
 1.  **Presets**: Create a processing pipeline preset (YAML) and save it to `presets/`.
 2.  **Filters**:
-    -   Add your filter implementation to `ultra_post/ops/`.
-    -   Register it in `ultra_post/ops/registry.py` (add to `OPS` and `DEFAULT_PARAMS`).
+    -   Add your filter implementation to `ultra_post/filters/`.
+    -   Register it in `ultra_post/filters/registry.py` (add to `FILTERS` and `DEFAULT_PARAMS`).
 3.  **Improvements**: Bug fixes and performance optimizations are highly encouraged.
     -   Our goal is to have code that is easy to understand and highly performant.
+
+Please see the [HoloHub Contributing Guide](/CONTRIBUTING.md) for developer guidance.
 
 ## Code Style
 
@@ -122,14 +135,6 @@ We welcome contributions that align with our mission to enable the ultrasound co
 ## License
 
 This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ## Authors
 

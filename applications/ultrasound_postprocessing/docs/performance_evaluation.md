@@ -61,7 +61,7 @@ The analysis tool reports:
 ## optimizing Presets
 
 If a preset is too slow:
-1.  **Disable heavy operators**: Edit the YAML to set `enable: false` for expensive ops (e.g., `non_local_means`).
+1.  **Disable heavy operators**: Edit the YAML to set `enable: false` for expensive operators (e.g., `non_local_means`).
 2.  **Adjust parameters**: Reduce `patch_size` or search window sizes in the YAML preset.
 3.  **Re-run the profile**: Generate a new log and compare.
 
