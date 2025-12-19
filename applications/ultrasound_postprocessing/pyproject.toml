@@ -1,0 +1,43 @@
+[project]
+name = "us-post-processing"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "cupy-cuda13x",
+    "cucim",
+    "scipy>=1.10",
+    "pyuff-ustb",
+    "streamlit",
+    "pyyaml",
+    "holoscan>=3.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "mypy",
+]
+# Optional HoloScan runtime integration (Step 6+). Not required for Streamlit UI.
+holoscan = [
+    "holoscan>=2.3.0; platform_system == 'Linux'",
+]
+
+# Convenience meta-extra to install all optionals used by developers
+all = [
+    "holoscan>=2.3.0; platform_system == 'Linux'",
+]
+
+[project.scripts]
+uspp = "ultra_post.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ultra_post*"]
+exclude = ["plans*"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
