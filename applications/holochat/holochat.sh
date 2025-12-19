@@ -45,7 +45,7 @@ cleanup() {
 function build_db {
     mkdir -p "$BASE_DIR/embeddings"
     mkdir -p "$BASE_DIR/models"
-    wget -nc --content-disposition  -P "$BASE_DIR/docs/" "https://developer.nvidia.com/downloads/holoscan-sdk-user-guide"
+    wget -nc --content-disposition -P "$BASE_DIR/docs/" "https://developer.nvidia.com/downloads/holoscan-sdk-user-guide"
     if [ ! -f "$BASE_DIR/embeddings/holoscan/chroma.sqlite3" ]; then
         python3 build_holoscan_db.py
     fi
