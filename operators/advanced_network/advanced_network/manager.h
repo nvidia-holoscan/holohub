@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <rte_ring.h>
+#include <rte_mbuf.h>
 #include "advanced_network/types.h"
 #include <optional>
 
@@ -42,9 +44,9 @@ class Manager {
 
   // Common free functions to override
   virtual void* get_packet_ptr(BurstParams* burst, int idx) = 0;
-  virtual uint16_t get_packet_length(BurstParams* burst, int idx) = 0;
+  virtual uint32_t get_packet_length(BurstParams* burst, int idx) = 0;
   virtual void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx) = 0;
-  virtual uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) = 0;
+  virtual uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx) = 0;
   virtual uint16_t get_packet_flow_id(BurstParams* burst, int idx) = 0;
   virtual void* get_packet_extra_info(BurstParams* burst, int idx) = 0;
   virtual Status get_tx_packet_burst(BurstParams* burst) = 0;
@@ -69,6 +71,7 @@ class Manager {
   virtual void print_stats() = 0;
   virtual uint64_t get_burst_tot_byte(BurstParams* burst) = 0;
   virtual BurstParams* create_tx_burst_params() = 0;
+  virtual Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server);
   virtual Status get_rx_burst(BurstParams** burst, int port, int q) = 0;
   virtual Status get_rx_burst(BurstParams** burst, int port_id);
   virtual Status get_rx_burst(BurstParams** burst);
@@ -84,6 +87,23 @@ class Manager {
   virtual uint16_t get_num_rx_queues(int port_id) const;
   virtual void flush_port_queue(int port, int queue);
 
+  virtual Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port,
+                                        uintptr_t* conn_id);
+  virtual Status rdma_connect_to_server(const std::string& dst_addr, uint16_t dst_port,
+                                        const std::string& src_addr, uintptr_t* conn_id);
+  virtual Status rdma_get_port_queue(uintptr_t conn_id, uint16_t* port, uint16_t* queue);
+  virtual Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port,
+                                         uintptr_t* conn_id);
+  virtual Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id,
+                                 bool is_server, int num_pkts, uint64_t wr_id,
+                                 const std::string& local_mr_name);
+  virtual RDMAOpCode rdma_get_opcode(BurstParams* burst);
+  int numa_from_mem(const MemoryRegionConfig& mr) const;
+  Status register_memory_regions();
+  Status map_memory_regions();
+  struct rte_mempool* create_pktmbuf_pool(const std::string& name, const MemoryRegionConfig& mr);
+  struct rte_mempool* create_generic_pool(const std::string& name, const MemoryRegionConfig& mr);
+
   virtual ~Manager() = default;
 
  protected:
@@ -96,6 +116,7 @@ class Manager {
   bool initialized_ = false;
   NetworkConfig cfg_;
   std::unordered_map<std::string, AllocRegion> ar_;
+  std::unordered_map<std::string, std::shared_ptr<struct rte_pktmbuf_extmem>> ext_pktmbufs_;
   std::unordered_map<uint32_t, std::vector<std::pair<uint16_t, uint16_t>>> rx_core_q_map;
 
   // State for round-robin burst retrieval
@@ -105,6 +126,8 @@ class Manager {
   virtual Status allocate_memory_regions();
   virtual void adjust_memory_regions() {}
   void init_rx_core_q_map();
+  size_t get_alignment(MemoryKind kind);
+  Status populate_pool(struct rte_ring* ring, const std::string& mr_name);
 };
 
 class ManagerFactory {

@@ -49,7 +49,7 @@ target_link_libraries(adv_networking_bench
 if(NOT DEFINED ANO_MGR)
     # Initialize ANO_MGR with a default if not provided
     # Note: rivermax not added to the default list yet since it requires licensing
-    set(ANO_MGR "dpdk gpunetio" CACHE STRING "Manager type(s) list")
+    set(ANO_MGR "dpdk rdma" CACHE STRING "Manager type(s) list")
 endif()
 separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
 foreach(MGR IN LISTS ANO_MGR_LIST)
