@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-import re
 import subprocess
 import sys
 import unittest
@@ -26,24 +25,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 class TestBuildHoloscanDB(unittest.TestCase):
     """Test cases for the build_holoscan_db module"""
 
-    def _extract_pdf_url_from_holochat_sh(self):
-        """Extract PDF URL from holochat.sh file"""
-        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        holochat_sh_path = os.path.join(current_dir, "holochat.sh")
-        with open(holochat_sh_path, "r") as f:
-            content = f.read()
-        pattern = r"wget.*?(?:-P\s+\S+\s+)?(https://[^\s]+\.pdf)"
-        match = re.search(pattern, content)
-        if match:
-            return match.group(1)
-
     def _download_pdf_if_needed(self, pdf_url, pdf_path):
         """Download PDF if it doesn't exist"""
         if os.path.exists(pdf_path):
             return
         os.makedirs(os.path.dirname(pdf_path), exist_ok=True)
         try:
-            subprocess.run(["wget", "-nc", "-O", pdf_path, pdf_url], check=True)
+            subprocess.run(
+                ["wget", "-nc", "--content-disposition", "-O", pdf_path, pdf_url], check=True
+            )
             print(f"Downloaded PDF from {pdf_url} to {pdf_path}")
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Failed to download PDF from {pdf_url}: {e}")
@@ -53,8 +43,8 @@ class TestBuildHoloscanDB(unittest.TestCase):
     def test_pdf_loading_functionality(self):
         """Test that the PDF can be loaded successfully by PyPDFLoader"""
         current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        pdf_url = self._extract_pdf_url_from_holochat_sh()
-        pdf_path = os.path.join(current_dir, "docs", os.path.basename(pdf_url))
+        pdf_url = "https://developer.nvidia.com/downloads/holoscan-sdk-user-guide"
+        pdf_path = os.path.join(current_dir, "docs", os.path.basename(pdf_url) + ".pdf")
         self._download_pdf_if_needed(pdf_url, pdf_path)
         self.assertTrue(os.path.exists(pdf_path), f"PDF not found {pdf_path} -- {pdf_url}.")
         try:
@@ -66,18 +56,16 @@ class TestBuildHoloscanDB(unittest.TestCase):
         except Exception as e:
             self.fail(f"Failed to load PDF: {e}")
 
-    @patch("build_holoscan_db.clone_repository")
     @patch("build_holoscan_db.get_source_chunks")
     @patch("os.walk")
-    def test_build_db_with_pdf_integration(
-        self,
-        mock_walk,
-        mock_chunks,
-        mock_clone,
-    ):
+    def test_build_db_with_pdf_integration(self, mock_walk, mock_chunks):
         """Test building database with PDF integration"""
         mock_walk.return_value = []
-        mock_chunks.return_value = [Mock(page_content="test chunk", metadata={"source": "test"})]
+        from langchain_core.documents import Document
+
+        mock_chunks.return_value = [
+            Document(page_content="test chunk", metadata={"source": "test"})
+        ]
 
         with patch("build_holoscan_db.PyPDFLoader") as mock_pdf_loader:
             mock_pages = [
