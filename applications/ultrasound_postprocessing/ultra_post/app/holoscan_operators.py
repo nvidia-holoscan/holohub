@@ -52,7 +52,7 @@ class _UffSourceState:
 
 
 def make_uff_source_op(config: UffSourceConfig):
-    """Create a HoloScan operator that emits a GPU tensor from a UFF file."""
+    """Create a Holoscan operator that emits a GPU tensor from a UFF file."""
 
     state = _UffSourceState(config)
 
@@ -85,7 +85,7 @@ class FuncOp(Operator):
 
 
 def make_raysim_source_op(generator: "RaysimFrameGenerator"):
-    """Create a HoloScan operator that emits frames from a Raysim generator."""
+    """Create a Holoscan operator that emits frames from a Raysim generator."""
 
     return create_op(outputs="out")(lambda: generator.next_frame())
 
