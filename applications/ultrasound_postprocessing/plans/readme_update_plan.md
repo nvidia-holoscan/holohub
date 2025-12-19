@@ -17,13 +17,13 @@ Update `README.md` to accurately reflect the current codebase capabilities, stru
 2.  **Quick Start**:
     *   Simplify installation instructions (using `uv`).
     *   Clear commands for running the Streamlit GUI.
-    *   Clear commands for running the HoloScan app (with optional synthetic data).
+    *   Clear commands for running the Holoscan app (with optional synthetic data).
 
 3.  **Project Structure**:
     *   Add a section describing the key directories:
         *   `ultra_post/core`: Pipeline logic and data loading.
         *   `ultra_post/ops`: Image processing operators.
-        *   `ultra_post/app`: Streamlit and HoloScan applications.
+        *   `ultra_post/app`: Streamlit and Holoscan applications.
         *   `presets`: YAML configurations for pipelines.
 
 4.  **Core Concepts**:

@@ -1,0 +1,66 @@
+{
+	"application": {
+		"name": "Ultrasound Post-Processing Filter Design",
+		"description": "A collection of tools for developing and deploying realtime ultrasound post-processing filters.",
+		"authors": [
+			{
+				"name": "Walter Simson",
+				"affiliation": "NVIDIA Holoscan Team"
+			}
+		],
+		"language": "python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.9.0",
+			"tested_versions": [
+				"3.9.0"
+			]
+		},
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["Ultrasound", "Filter", "Designer", "Operator", "Real-Time", "Academia", "Industry", "UFF", "Beamform", "Dynamic", "Tools"],
+		"ranking": 1,
+		"requirements": {
+			"example_requirement_1": {
+				"type": "data",
+				"name": "Example Data",
+				"description": "Example data dependency - remove or replace with actual requirements"
+			}
+		},
+		"default_mode": "designer",
+		"modes": {
+			"designer": {
+				"description": "Design ultrasound post-processing filters in Streamlit web user interface",
+				"requirements": [],
+				"run": {
+					"command": "streamlit run ultra_post/app/gui/streamlit_app.py",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"realtime": {
+				"description": "Run a real-time ultrasound filter pipeline with Holoscan SDK",
+				"requirements": [],
+				"run": {
+					"command": "python3 -m ultra_post.app.holoscan_app",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"list-ops": {
+				"description": "List all registered ultrasound post-processing operators",
+				"run": {
+					"command": "uspp list-ops",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"validate": {
+				"description": "Validate a filter preset",
+				"run": {
+					"command": "uspp validate-preset ",
+					"workdir": "holohub_app_source"
+				}
+			}
+		}
+	}
+}

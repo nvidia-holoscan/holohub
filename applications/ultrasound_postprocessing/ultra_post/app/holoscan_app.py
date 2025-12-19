@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 """
-Minimal HoloScan app using reusable source/pipeline operators (UFF or raysim).
+Minimal Holoscan app using reusable source/pipeline operators (UFF or raysim).
 
 Graph layout: Source -> PipelineOp -> RGBA formatter -> Holoviz/FPS logger.
 Assumptions: Holoscan SDK, Holoviz, and CuPy are installed and available.
@@ -30,6 +30,7 @@ Run with the i4h-sensor-simulation raysim backend:
 """
 
 import argparse
+import os
 import sys
 from pathlib import Path
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING
@@ -49,14 +50,16 @@ if TYPE_CHECKING:
 
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Ultrasound post-processing via HoloScan")
+    p = argparse.ArgumentParser(description="Ultrasound post-processing via Holoscan")
     p.add_argument(
         "--source",
         choices=("uff", "raysim"),
         default="uff",
         help="Frame source to use (default: uff).",
     )
-    p.add_argument("--uff", type=str, default=None, help="Path to UFF file when --source=uff")
+    DEFAULT_UFF_PATH = os.path.join(os.environ.get("HOLOHUB_DATA_PATH", "../data"), "ultrasound_postprocessing/demo.uff")
+    p.add_argument("--uff", type=str,
+        default=DEFAULT_UFF_PATH, help="Path to UFF file when --source=uff")
     p.add_argument("--dataset", type=str, default=None, help="Dataset name inside UFF (optional)")
     p.add_argument("--fps", type=float, default=30.0, help="Target frame rate")
     p.add_argument(
@@ -177,6 +180,8 @@ def run_holoscan_app(args: argparse.Namespace) -> None:
     from holoscan.conditions import PeriodicCondition  # type: ignore
     from holoscan.operators import HolovizOp  # type: ignore
 
+    if args.preset is None:
+        print("No preset provided. Using default preset")
     pipeline = _load_pipeline_from_yaml(args.preset)
     to_rgba = make_rgba_formatter_op()
 

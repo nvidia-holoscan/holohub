@@ -11,7 +11,7 @@ dependencies = [
     "pyuff-ustb",
     "streamlit",
     "pyyaml",
-    "holoscan>=3.7.0",
+    "holoscan-cu13>=3.9.0",
 ]
 
 [project.optional-dependencies]
@@ -19,15 +19,18 @@ dev = [
     "pytest",
     "ruff",
     "mypy",
+    "pytest",
+    "gdown"
 ]
-# Optional HoloScan runtime integration (Step 6+). Not required for Streamlit UI.
+# Optional Holoscan runtime integration (Step 6+). Not required for Streamlit UI.
 holoscan = [
-    "holoscan>=2.3.0; platform_system == 'Linux'",
+    "holoscan-cu13>=3.9.0; platform_system == 'Linux'",
 ]
 
 # Convenience meta-extra to install all optionals used by developers
 all = [
-    "holoscan>=2.3.0; platform_system == 'Linux'",
+    "us-post-processing[dev]",
+    "us-post-processing[holoscan]",
 ]
 
 [project.scripts]
