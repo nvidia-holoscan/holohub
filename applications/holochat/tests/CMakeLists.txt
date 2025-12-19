@@ -23,12 +23,12 @@ add_test(NAME holochat_build_db_test
 set_tests_properties(holochat_llm_test
   PROPERTIES
   PASS_REGULAR_EXPRESSION "llm - INFO - Retrieving Holoscan embeddings vector DB.*Ran 4 tests.*OK"
-  FAIL_REGULAR_EXPRESSION "FAILED(?!.*telemetry event)|ERROR(?!.*telemetry event)|Exception")
+  FAIL_REGULAR_EXPRESSION "Traceback|FAILED|Exception")
 set_tests_properties(holochat_chatbot_test
   PROPERTIES
   PASS_REGULAR_EXPRESSION ".*Ran 3 tests.*OK"
-  FAIL_REGULAR_EXPRESSION "FAILED(?!.*telemetry event)|ERROR(?!.*telemetry event)|Exception")
+  FAIL_REGULAR_EXPRESSION "Traceback|FAILED|Exception")
 set_tests_properties(holochat_build_db_test
   PROPERTIES
   PASS_REGULAR_EXPRESSION "Ran 2 tests.*OK.*Building Holoscan Embeddings Chroma DB"
-  FAIL_REGULAR_EXPRESSION "FAILED(?!.*telemetry event)|ERROR(?!.*telemetry event)|Exception")
+  FAIL_REGULAR_EXPRESSION "Traceback|FAILED|Exception")
