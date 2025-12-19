@@ -37,6 +37,7 @@ import shutil
 import subprocess
 import tempfile
 from collections import defaultdict
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import List, Optional
 
@@ -1734,7 +1735,6 @@ class HoloHubCLI:
             cmake_files = list(Path(args.path).rglob("CMakeLists.txt"))
             cmake_files.extend(Path(args.path).rglob("*.cmake"))
             excluded_paths = ["build", "install", "data", "build-*", "install-*", "data-*", "tmp"]
-            from fnmatch import fnmatch
 
             cmake_files = [
                 f
