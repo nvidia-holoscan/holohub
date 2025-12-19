@@ -23,21 +23,21 @@ except ImportError:  # pragma: no cover - optional GPU dependency
     cp = None  # type: ignore
 
 from ultra_post.core.pipeline import Pipeline, create_node, pipeline_from_yaml, pipeline_to_yaml, run_pipeline
-from ultra_post.ops.registry import OPS
+from ultra_post.filters.registry import FILTERS
 
 
 @unittest.skipIf(cp is None, "CuPy is required for pipeline tests.")
 class PipelineCoreTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.ops = OPS
+        self.filters = FILTERS
 
     def test_registry_includes_gamma(self) -> None:
-        self.assertIn("gamma_compression", self.ops)
+        self.assertIn("gamma_compression", self.filters)
 
     def test_pipeline_yaml_round_trip(self) -> None:
         pipeline: Pipeline = [create_node("gamma_compression", {"gamma": 1.2})]
         yaml_text = pipeline_to_yaml(pipeline)
-        loaded = pipeline_from_yaml(yaml_text, ops=self.ops)
+        loaded = pipeline_from_yaml(yaml_text, filters=self.filters)
         self.assertEqual(len(loaded), 1)
         self.assertAlmostEqual(loaded[0]["params"]["gamma"], 1.2)
 

@@ -19,21 +19,21 @@ from typing import Any
 
 import cupy as cp
 
-from ultra_post.ops.utils import apply_fill, get_fill_indices, get_matte_mask
+from ultra_post.filters.utils import apply_fill, get_fill_indices, get_matte_mask
 
 
 class AutoMatte:
     """Wrapper that hides matte regions before running a sub-pipeline."""
 
-    def __init__(self, ops: list[dict[str, Any]] | None = None) -> None:
+    def __init__(self, filters: list[dict[str, Any]] | None = None) -> None:
         self._mask: cp.ndarray | None = None
         self._indices: cp.ndarray | None = None
         self._pipe: list = []
 
-        if ops:
+        if filters:
             from ultra_post.core.pipeline import CONFIG_VERSION, pipeline_from_dict
 
-            self._pipe = pipeline_from_dict({"version": CONFIG_VERSION, "graph": list(ops)})
+            self._pipe = pipeline_from_dict({"version": CONFIG_VERSION, "graph": list(filters)})
 
     def __call__(self, image: cp.ndarray, **kwargs: Any) -> cp.ndarray:
         img = cp.asarray(image)

@@ -21,7 +21,7 @@ from typing import Any, Iterable, Mapping, Optional, Tuple, Union
 
 import yaml
 
-from ultra_post.ops.registry import DEFAULT_PARAMS, OPS
+from ultra_post.filters.registry import DEFAULT_PARAMS, FILTERS
 
 CONFIG_VERSION = "1"
 
@@ -39,24 +39,27 @@ def create_node(op: str, params: Mapping[str, Any] | None = None, *, enabled: bo
     return {"op": op, "params": base, "enabled": enable_flag}
 
 
-def run_pipeline(pipeline: Pipeline, tensor: Tensor, *, ops: Mapping[str, Any] | None = None) -> Tensor:
-    """Apply enabled ops in sequence."""
+def run_pipeline(pipeline: Pipeline, tensor: Tensor, *, filters: Mapping[str, Any] | None = None) -> Tensor:
+    """Apply enabled filters in sequence.
+    
+    :note: This function does not rely on Holoscan SDK.
+    """
 
-    registry = ops if ops is not None else OPS
+    registry = filters if filters is not None else FILTERS
     result = tensor
     for node in pipeline:
         if not node.get("enabled", True):
             continue
-        op_name = node.get("op")
-        if not isinstance(op_name, str):
-            raise ValueError("Pipeline node missing 'op' string.")
-        func = registry.get(op_name)
+        filter_name = node.get("op")
+        if not isinstance(filter_name, str):
+            raise ValueError("Pipeline node missing 'filter_name' string.")
+        func = registry.get(filter_name)
         if func is None:
-            raise KeyError(f"Operator '{op_name}' not found.")
+            raise KeyError(f"Filter '{filter_name}' not found.")
         params = node.get("params") or {}
         kwargs = _params_to_kwargs(params)
 
-        # Instantiate stateful operators stored as classes in the registry.
+        # Instantiate stateful filters stored as classes in the registry.
         # Cache the instance on the node to preserve state across frames.
         if isinstance(func, type):
             inst_key = "__instance__"
@@ -80,7 +83,7 @@ def pipeline_to_dict(pipeline: Iterable[PipelineNode], *, display: Optional[dict
     return data
 
 
-def pipeline_from_dict(data: Mapping[str, Any], *, ops: Mapping[str, Any] | None = None) -> Pipeline:
+def pipeline_from_dict(data: Mapping[str, Any], *, filters: Mapping[str, Any] | None = None) -> Pipeline:
     """Create a pipeline from a parsed configuration dictionary."""
 
     if not isinstance(data, Mapping):
@@ -95,7 +98,7 @@ def pipeline_from_dict(data: Mapping[str, Any], *, ops: Mapping[str, Any] | None
         raise ValueError("Pipeline configuration missing 'graph' list.")
 
     nodes: Pipeline = []
-    registry = ops if ops is not None else OPS
+    registry = filters if filters is not None else FILTERS
     for node in graph:
         if not isinstance(node, Mapping):
             raise ValueError("Each pipeline node must be a mapping.")
@@ -109,7 +112,7 @@ def pipeline_from_dict(data: Mapping[str, Any], *, ops: Mapping[str, Any] | None
         enabled = bool(node.get("enabled", params.pop("enable", True)))
 
         if op_name not in registry:
-            raise KeyError(f"Operator '{op_name}' is not available.")
+            raise KeyError(f"Filter '{op_name}' is not available.")
 
         nodes.append(create_node(op_name, params, enabled=enabled))
 
@@ -127,7 +130,7 @@ def dump_pipeline_config(
     resolved.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
 
 
-def load_pipeline_config(path: str | Path, *, ops: Mapping[str, Any] | None = None) -> Pipeline:
+def load_pipeline_config(path: str | Path, *, filters: Mapping[str, Any] | None = None) -> Pipeline:
     """Load a pipeline from a YAML file."""
 
     resolved = Path(path)
@@ -135,7 +138,7 @@ def load_pipeline_config(path: str | Path, *, ops: Mapping[str, Any] | None = No
         raise FileNotFoundError(f"Pipeline config not found: {resolved}")
 
     text = resolved.read_text(encoding="utf-8")
-    return pipeline_from_yaml(text, ops=ops)
+    return pipeline_from_yaml(text, filters=filters)
 
 
 def pipeline_to_yaml(pipeline: Iterable[PipelineNode], *, display: Optional[dict[str, Any]] = None) -> str:
@@ -145,7 +148,7 @@ def pipeline_to_yaml(pipeline: Iterable[PipelineNode], *, display: Optional[dict
 
 
 def pipeline_from_yaml(
-    data: str | bytes, *, ops: Mapping[str, Any] | None = None, include_config: bool = False
+    data: str | bytes, *, filters: Mapping[str, Any] | None = None, include_config: bool = False
 ) -> Union[Pipeline, Tuple[Pipeline, Mapping[str, Any]]]:
     """Parse a pipeline YAML string into a pipeline list.
 
@@ -163,7 +166,7 @@ def pipeline_from_yaml(
     if not isinstance(parsed, Mapping):
         raise ValueError("Pipeline YAML must describe a mapping.")
 
-    pipeline = pipeline_from_dict(parsed, ops=ops)
+    pipeline = pipeline_from_dict(parsed, filters=filters)
     result: Union[Pipeline, Tuple[Pipeline, Mapping[str, Any]]] = pipeline
     if include_config:
         result = (pipeline, dict(parsed))

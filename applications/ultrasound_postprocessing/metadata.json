@@ -5,7 +5,7 @@
 		"authors": [
 			{
 				"name": "Walter Simson",
-				"affiliation": "NVIDIA Holoscan Team"
+				"affiliation": "NVIDIA"
 			}
 		],
 		"language": "python",
@@ -23,10 +23,10 @@
 		"tags": ["Ultrasound", "Filter", "Designer", "Operator", "Real-Time", "Academia", "Industry", "UFF", "Beamform", "Dynamic", "Tools"],
 		"ranking": 1,
 		"requirements": {
-			"example_requirement_1": {
+			"demo_data": {
 				"type": "data",
-				"name": "Example Data",
-				"description": "Example data dependency - remove or replace with actual requirements"
+				"name": "Demo UFF file",
+				"description": "Ultrasound File Format demo data for testing filter pipelines"
 			}
 		},
 		"default_mode": "designer",
@@ -35,7 +35,7 @@
 				"description": "Design ultrasound post-processing filters in Streamlit web user interface",
 				"requirements": [],
 				"run": {
-					"command": "streamlit run ultra_post/app/gui/streamlit_app.py",
+					"command": "streamlit run ultra_post/app/streamlit_app.py",
 					"workdir": "holohub_app_source"
 				}
 			},
@@ -47,10 +47,10 @@
 					"workdir": "holohub_app_source"
 				}
 			},
-			"list-ops": {
-				"description": "List all registered ultrasound post-processing operators",
+			"list-filters": {
+				"description": "List all registered ultrasound post-processing filters available for Holoscan SDK operator wrappings",
 				"run": {
-					"command": "uspp list-ops",
+					"command": "uspp list-filters",
 					"workdir": "holohub_app_source"
 				}
 			},
