@@ -1,0 +1,191 @@
+Holoscan SDK
+Copyright (c) 2021-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This product includes software developed at NVIDIA CORPORATION (https://www.nvidia.com/).
+
+Holoscan uses the following open source software:
+
+CLI11   (https://github.com/CLIUtils/CLI11)
+Copyright (c) 2017-2023 University of Cincinnati, developed by Henry Schreiner under NSF AWARD 1414736. All rights reserved.
+Licensed under BSD-3-clause (https://github.com/CLIUtils/CLI11/blob/v2.3.2/LICENSE)
+
+cloudpickle (https://github.com/cloudpipe/cloudpickle)
+Copyright (c) 2015, Cloudpickle contributors.
+Copyright (c) 2012, Regents of the University of California.
+Copyright (c) 2009 PiCloud, Inc. Copyright
+Licensed under BSD-3-clause (https://github.com/cloudpipe/cloudpickle/blob/master/LICENSE)
+
+moodycamel::ConcurrentQueue (https://github.com/cameron314/concurrentqueue)
+Copyright (c) 2013 - 2016 Cameron Desrochers
+Licensed under BSD-2-clause (https://github.com/cameron314/concurrentqueue/blob/v1.0.4/LICENSE.md)
+
+dear_imgui (https://github.com/ocornut/imgui)
+Copyright (c) 2014-2023 Omar Cornut
+Licensed under MIT (https://github.com/ocornut/imgui/blob/master/LICENSE.txt)
+
+DLPack (https://github.com/dmlc/dlpack)
+Licensed under Apache-2.0 (https://github.com/dmlc/dlpack/blob/v0.7/LICENSE)
+
+eigen (https://gitlab.com/libeigen/eigen)
+Copyright (c) 2006-2025, Eigen authors
+Licensed under Mozilla Public License Version 2.0 (https://gitlab.com/libeigen/eigen/-/blob/3.4.0/COPYING.MPL2)
+The source code for Eigen is available at <https://edge.urm.nvidia.com/artifactory/sw-holoscan-thirdparty-generic-local/eigen/eigen-3.4.0.tar.gz>. In compliance with the MPL 2.0 license, you may also obtain a copy of the Source Code Form by reasonable means in a timely manner, at a charge no more than the cost of distribution to the recipient.
+
+expected (https://github.com/TartanLlama/expected)
+Licensed under CC0-1.0 (https://github.com/TartanLlama/expected/blob/v1.1.0/COPYING)
+
+fmt (https://github.com/fmtlib/fmt)
+Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
+Licensed under MIT (https://github.com/fmtlib/fmt/blob/11.0.2/LICENSE)
+
+GLFW (https://www.glfw.org/)
+Copyright (c) 2002-2006 Marcus Geelnard
+Copyright (c) 2006-2019 Camilla Löwy
+Licensed under Zlib (https://github.com/glfw/glfw/blob/3.4/LICENSE.md)
+
+gRPC (https://github.com/grpc/grpc)
+Copyright 2014 gRPC authors.
+Licensed under Apache-2.0 (https://github.com/grpc/grpc/blob/v1.54.2/LICENSE)
+
+grpc-health-probe (https://github.com/grpc-ecosystem/grpc-health-probe)
+Copyright gRPC Authors.
+Licensed under Apache-2.0 (https://github.com/grpc-ecosystem/grpc-health-probe/raw/master/LICENSE)
+
+GXF
+Copyright 2021-2022, NVIDIA CORPORATION
+Licensed under Apache-2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+hwloc (https://github.com/open-mpi/hwloc)
+Copyright © 2004-2006 The Trustees of Indiana University and Indiana University Research and Technology Corporation.  All rights reserved.
+Copyright © 2004-2005 The University of Tennessee and The University of Tennessee Research Foundation.  All rights reserved.
+Copyright © 2004-2005 High Performance Computing Center Stuttgart, University of Stuttgart.  All rights reserved.
+Copyright © 2004-2005 The Regents of the University of California. All rights reserved.
+Copyright © 2009      CNRS
+Copyright © 2009-2016 Inria.  All rights reserved.
+Copyright © 2009-2015 Université Bordeaux
+Copyright © 2009-2015 Cisco Systems, Inc.  All rights reserved.
+Copyright © 2009-2012 Oracle and/or its affiliates.  All rights reserved.
+Copyright © 2010      IBM
+Copyright © 2010      Jirka Hladky
+Copyright © 2012      Aleksej Saushev, The NetBSD Foundation
+Copyright © 2012      Blue Brain Project, EPFL. All rights reserved.
+Copyright © 2013-2014 University of Wisconsin-La Crosse. All rights reserved.
+Copyright © 2015      Research Organization for Information Science and Technology (RIST). All rights reserved.
+Copyright © 2015-2016 Intel, Inc.  All rights reserved.
+Licensed under BSD-3-clause (https://github.com/open-mpi/hwloc/blob/hwloc-2.9.0/COPYING)
+
+jq (https://github.com/jqlang/jq)
+Copyright (C) 2012 Stephen Dolan authors.
+Licensed under MIT (https://github.com/jqlang/jq/raw/master/COPYING)
+
+libdecor-0-plugin-1-cairo (https://packages.ubuntu.com/jammy/libdecor-0-plugin-1-cairo)
+2010 Intel Corporation
+2011 Benjamin Franzke
+2017-2018 Red Hat Inc
+2018-2019 Jonas Ã…dahl
+2019 Christian Rauch
+2021 Christian Rauch
+2021 Marco Trevisan
+Licensed under MIT (http://changelogs.ubuntu.com/changelogs/pool/main/libd/libdecor-0/libdecor-0_0.1.0-3build1/copyright)
+
+libwayland-client (https://packages.ubuntu.com/jammy/libwayland-client++0)
+Copyright: 2014-2019, Nils Christopher Brause
+Copyright: 2014-2019, Nils Christopher Brause, Philipp Kerling
+Copyright: 2014-2019, Philipp Kerling, Nils Christopher Brause
+Copyright: 2015-2016, Red Hat Inc.
+Copyright: 2013-2014, Collabora, Ltd.
+Copyright: 2017-2019, Philipp Kerling
+Copyright: 2014-2019, Nils Christopher Brause, Philipp Kerling, Zsolt BÃ¶lÃ¶ny
+Copyright: 2012-2013, Intel Corporation
+Copyright: 2014, Jonas Ã…dahl
+Copyright: 2014, Stephen "Lyude" Chandler Paul
+Copyright: 2014-2019, Philipp Kerling, Nils Christopher Brause, Craig Andrews, Tobias Kortkamp, Balint Reczey
+Copyright: 2014-2019, Nils Christopher Brause, Philipp Kerling, Bernd Kuhls
+Copyright: 2012-2013, Intel Corporation
+Copyright: 2016, The Chromium Authors.
+Copyright: 2008-2011, Kristian HÃ¸gsberg
+Copyright: 2008-2013, Kristian HÃƒÂ¸gsberg
+Copyright: 2008-2013, Kristian HÃƒÂ¸gsberg
+Copyright: 2015, Jason Ekstrand
+Copyright: 2015-2016, Red Hat
+Copyright: 2015, Samsung Electronics Co., Ltd
+Copyright: 2018, Simon Ser
+Copyright: 2017 wsnipex <wsnipex@a1.net> 2019 Balint Reczey <rbalint@ubuntu.com>
+Licensed under MIT, BSD-2 (https://changelogs.ubuntu.com/changelogs/pool/universe/w/waylandpp/waylandpp_0.2.8-2/copyright)
+
+libwayland-egl1 (https://packages.ubuntu.com/jammy/libwayland-egl1)
+Copyright 2011 Cyril Brulebois <kibi@debian.org>
+Copyright: 1999 SuSE, Inc.
+Copyright: 2002 Keith Packard
+Copyright: 2006, 2008 Junio C Hamano
+Copyright: 2008-2012 Kristian HÃ¸gsberg
+Copyright: 2010-2012 Intel Corporation
+Copyright: 2011 Benjamin Franzke
+Copyright: 2012-2013, 2016 Collabora, Ltd
+Copyright: 2012-2013 Jason Ekstrand
+Copyright: 2012-2014 Jonas Ã…dahl
+Copyright: 2013 Marek Chalupa
+Copyright: 2014-2015 Red Hat, Inc.
+Copyright: 2015 Giulio Camuffo
+Copyright: 2016 KlarÃ¤lvdalens Datakonsult AB
+Copyright: 2016 Yong Bakos
+Copyright: 2017 NVIDIA CORPORATION
+Copyright: 2017 Samsung Electronics Co., Ltd
+Licensed under X11 (https://changelogs.ubuntu.com/changelogs/pool/main/w/wayland/wayland_1.20.0-1ubuntu0.1/copyright)
+
+magic_enum (https://github.com/Neargye/magic_enum)
+Copyright (c) 2019 - 2023 Daniil Goncharov
+Licensed under MIT (https://github.com/Neargye/magic_enum/blob/v0.9.3/LICENSE)
+
+MatX (https://github.com/NVIDIA/MatX)
+Copyright (c) 2021, NVIDIA Corporation
+Licensed under BSD-3-clause (https://github.com/NVIDIA/MatX/blob/v0.9.3/LICENSE)
+
+nvpro_core (https://github.com/nvpro-samples/nvpro_core)
+Copyright (c) 2014-2023, NVIDIA CORPORATION.  All rights reserved.
+Licensed under Apache 2.0 (https://github.com/nvpro-samples/nvpro_core/blob/master/LICENSE)
+
+NVTX
+Copyright 2009-2022, NVIDIA CORPORATION
+Licensed under Apache-2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+pytest (https://github.com/pytest-dev/pytest)
+Copyright (c) 2004 Holger Krekel and others
+Licensed under MIT (https://github.com/pytest-dev/pytest/blob/main/LICENSE)
+
+python-on-whales (https://github.com/gabrieldemarmiesse/python-on-whales)
+Copyright (c) 2020 Gabriel de Marmiesse de Lussan
+Licensed under MIT (https://github.com/gabrieldemarmiesse/python-on-whales/raw/master/LICENSE)
+
+RMM (https://github.com/rapidsai/rmm)
+Copyright (c) 2018-2024, NVIDIA CORPORATION.
+Licensed under Apache 2.0 (https://github.com/rapidsai/rmm/blob/branch-24.04/LICENSE)
+
+Google Fonts Roboto (https://github.com/googlefonts/roboto/releases/download/v2.138/roboto-android.zip)
+Licensed under Apache-2.0 (https://github.com/googlefonts/roboto/blob/v2.138/LICENSE)
+
+spdlog (https://github.com/gabime/spdlog)
+Copyright (c) 2016 Gabi Melman.
+Licensed under MIT (https://github.com/gabime/spdlog/blob/v1.12.0/LICENSE)
+
+UCX (https://openucx.org/)
+Copyright (c) 2014-2015      UT-Battelle, LLC. All rights reserved.
+Copyright (c) 2014-2020      NVIDIA corporation & affiliates. All rights reserved.
+Copyright (C) 2014-2015      The University of Houston System. All rights reserved.
+Copyright (C) 2015           The University of Tennessee and The University
+                             of Tennessee Research Foundation. All rights reserved.
+Copyright (C) 2016-2020      ARM Ltd. All rights reserved.
+Copyright (c) 2016           Los Alamos National Security, LLC. All rights reserved.
+Copyright (C) 2016-2020      Advanced Micro Devices, Inc.  All rights reserved.
+Copyright (C) 2019           UChicago Argonne, LLC.  All rights reserved.
+Copyright (C) 2020           Huawei Technologies Co., Ltd. All rights reserved.
+Copyright (C) 2016-2020      Stony Brook University. All rights reserved.
+Licensed under BSD-3-clause (https://github.com/openucx/ucx/blob/v1.17.0/LICENSE)
+
+UCXX (https://github.com/rapidsai/ucxx)
+Copyright (c) 2022-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+Licensed under BSD-3-clause (https://github.com/rapidsai/ucxx/blob/v0.44.00/LICENSE)
+
+yaml-cpp (https://github.com/jbeder/yaml-cpp)
+Copyright (c) 2008-2015 Jesse Beder.
+Licensed under MIT (https://github.com/jbeder/yaml-cpp/blob/yaml-cpp-0.8.0/LICENSE)

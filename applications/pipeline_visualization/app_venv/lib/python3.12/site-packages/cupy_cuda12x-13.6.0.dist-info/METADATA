@@ -1,0 +1,58 @@
+Metadata-Version: 2.4
+Name: cupy-cuda12x
+Version: 13.6.0
+Summary: CuPy: NumPy & SciPy for GPU
+Author-email: Seiya Tokui <tokui@preferred.jp>
+Maintainer: CuPy Developers
+License-Expression: MIT
+Project-URL: Homepage, https://cupy.dev/
+Project-URL: Documentation, https://docs.cupy.dev/
+Project-URL: Bug Tracker, https://github.com/cupy/cupy/issues
+Project-URL: Source Code, https://github.com/cupy/cupy
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Cython
+Classifier: Topic :: Software Development
+Classifier: Topic :: Scientific/Engineering
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: Microsoft :: Windows
+Requires-Python: >=3.9
+Description-Content-Type: text/x-rst
+License-File: LICENSE
+License-File: docs/source/license.rst
+Requires-Dist: numpy<2.6,>=1.22
+Requires-Dist: fastrlock>=0.5
+Provides-Extra: all
+Requires-Dist: scipy<1.17,>=1.7; extra == "all"
+Requires-Dist: Cython>=3; extra == "all"
+Requires-Dist: optuna>=2.0; extra == "all"
+Provides-Extra: test
+Requires-Dist: packaging; extra == "test"
+Requires-Dist: pytest>=7.2; extra == "test"
+Requires-Dist: hypothesis<6.55.0,>=6.37.2; extra == "test"
+Requires-Dist: mpmath; extra == "test"
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: license-file
+
+.. image:: https://raw.githubusercontent.com/cupy/cupy/main/docs/image/cupy_logo_1000px.png
+   :width: 400
+
+CuPy : NumPy & SciPy for GPU
+============================
+
+`CuPy <https://cupy.dev/>`_ is a NumPy/SciPy-compatible array library for GPU-accelerated computing with Python.
+
+This is a CuPy wheel (precompiled binary) package for CUDA 12.x.
+You need to install `CUDA Toolkit 12.x <https://developer.nvidia.com/cuda-toolkit-archive>`_ to use these packages.
+
+If you have another version of CUDA, or want to build from source, refer to the `Installation Guide <https://docs.cupy.dev/en/latest/install.html>`_ for instructions.

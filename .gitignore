@@ -36,6 +36,7 @@ ci/
 ngc-cli/
 CTestConfig.cmake
 .ngc
+applications/my_pipeline_visualizer/app_venv/
 
 # Cache and temporary directories
 .cache/

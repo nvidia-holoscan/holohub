@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+My Signal Processor Application - Based on Pipeline Visualization
+
+This example showcases a Holoscan pipeline that:
+1. Generates a synthetic sine wave signal with time-varying frequency (10-20 Hz)
+2. Adds high-frequency modulation (300 Hz) to simulate measurement noise
+3. Processes the resulting signal through a sink operator
+
+The application demonstrates tensor manipulation, operator chaining capabilities
+in the Holoscan SDK.
+"""
+
+import argparse
+from pathlib import Path
+
+import numpy as np
+from holoscan import as_tensor
+from holoscan.conditions import PeriodicCondition
+from holoscan.core import Application, Operator, OperatorSpec
+
+
+class SourceOp(Operator):
+    """Source operator that generates a sine wave signal.
+
+    This operator produces a synthetic time-series signal consisting of a sine wave
+    with a gradually increasing frequency (10-20 Hz). It outputs 3000 samples per compute cycle.
+    """
+
+    def __init__(self, fragment, *args, **kwargs):
+        super().__init__(fragment, *args, **kwargs)
+        self.frequency = 10.0  # Current frequency of the sine wave in Hz
+
+    def setup(self, spec: OperatorSpec):
+        spec.output("out")
+
+    def compute(self, op_input, op_output, context):
+        """Generate a sine wave signal with time-varying frequency."""
+        # Generate a sine wave signal with time-varying frequency
+        samples = 3000  # Number of samples in the signal
+        duration = 1.0  # Duration of signal in seconds
+        sample_time = duration / samples
+        omega = 2 * np.pi * self.frequency  # Angular frequency
+
+        # Generate the sine wave
+        t = np.arange(samples, dtype=np.float32) * sample_time
+        wave = np.sin(omega * t)
+
+        # Reshape to (samples, 1) to match C++ implementation
+        wave = wave.reshape(samples, 1)
+
+        # Gradually increase frequency from 10 to 20 Hz, then wrap back to 10 Hz
+        self.frequency += 0.1
+        if self.frequency > 20.0:
+            self.frequency = 10.0
+
+        # Emit the tensor to the output port
+        op_output.emit(dict(wave=as_tensor(wave)), "out")
+
+
+class ModulateOp(Operator):
+    """Modulation operator that adds high-frequency noise to the input signal.
+
+    This operator receives a time-series signal and adds a 300 Hz sinusoidal modulation
+    with small amplitude (0.05) to simulate measurement noise or signal perturbation.
+    """
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+        spec.output("out")
+
+    def compute(self, op_input, op_output, context):
+        """Add high-frequency modulation to the input signal."""
+        # Receive the input tensor from the source operator
+        input_tensor = op_input.receive("in").get("wave")
+        samples = input_tensor.shape[0]
+
+        # Parameters for high-frequency modulation/noise
+        frequency = 300.0  # Modulation frequency in Hz
+        amplitude = 0.05  # Amplitude of the modulation
+        duration = 1.0  # Duration of signal in seconds
+        sample_time = duration / samples
+        omega = 2 * np.pi * frequency  # Angular frequency
+
+        # Add modulation to the input signal
+        t = np.arange(samples, dtype=np.float32) * sample_time
+        modulation = amplitude * np.sin(omega * t).reshape(samples, 1)
+        modulated_signal = input_tensor + modulation
+
+        # Emit the modulated signal to the output port
+        op_output.emit(dict(modulated_signal=as_tensor(modulated_signal)), "out")
+
+
+class SinkOp(Operator):
+    """Sink operator that consumes the processed signal.
+
+    This operator acts as the terminal node in the pipeline, receiving the modulated
+    signal. In this example, it simply receives the data without additional processing,
+    but could be extended to perform analysis or visualization.
+    """
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+
+    def compute(self, op_input, op_output, context):
+        """Receive and process the modulated signal."""
+        # Receive the modulated signal from the previous operator
+        tensormap = op_input.receive("in")
+        _tensor = next(iter(tensormap.values()))  # get first tensor regardless of name
+        # Note: In this example, we simply receive the tensor. Additional processing
+        # or visualization could be added here.
+
+
+class MySignalProcessorApp(Application):
+    """Main application class for my signal processor.
+
+    This application creates a pipeline that generates a time-varying sine wave,
+    adds high-frequency modulation to it, and processes the result.
+
+    Pipeline flow: SourceOp -> ModulateOp -> SinkOp
+    """
+
+    def compose(self):
+        """Compose the application pipeline."""
+        # Create the three operators in the pipeline
+        source_op = SourceOp(
+            self,
+            # Limit the rate of the source operator
+            PeriodicCondition(self, name="periodic-condition", recess_period=0.05),
+            name="source",
+        )
+        modulate_op = ModulateOp(self, name="modulate")
+        sink_op = SinkOp(self, name="sink")
+
+        # Connect the operators: source -> modulate -> sink
+        self.add_flow(source_op, modulate_op, {("out", "in")})
+        self.add_flow(modulate_op, sink_op, {("out", "in")})
+
+
+def main():
+    """Main entry point for the signal processor application.
+
+    Parses command-line arguments, configures the application, and runs the pipeline.
+    """
+    # Set up command-line argument parser
+    parser = argparse.ArgumentParser(
+        description="My Signal Processor Demo",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        default="",
+        help="Path to configuration file",
+    )
+
+    args = parser.parse_args()
+
+    # Determine config file path
+    if args.config:
+        config_path = args.config
+    else:
+        # Use default config file in the same directory as this script (if exists)
+        config_path = Path(__file__).parent / "config.yaml"
+
+    # Create the application instance
+    app = MySignalProcessorApp()
+
+    # Load configuration from YAML file if it exists
+    if config_path and Path(config_path).exists():
+        app.config(str(config_path))
+
+    # Execute the application pipeline
+    app.run()
+
+
+if __name__ == "__main__":
+    main()

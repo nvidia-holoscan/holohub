@@ -139,4 +139,8 @@
         "/workspace/holoscan-sdk/python/",
         "/workspace/holohub/operators",
     ],
+    "cursorpyright.analysis.extraPaths": [
+        "/workspace/holoscan-sdk/python/",
+        "/workspace/holohub/operators"
+    ],
 }

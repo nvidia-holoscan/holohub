@@ -1,0 +1,243 @@
+NVIDIA AI PRODUCT AGREEMENT
+
+IMPORTANT NOTICE – PLEASE READ AND AGREE BEFORE USING NVIDIA AI PRODUCTS.
+
+This AI Product Agreement is entered into between the entity you represent or you individually if you do not designate an entity (“Customer”) and NVIDIA Corporation (“NVIDIA”). This AI Product Agreement consists of the terms and conditions below and all documents attached to or referenced in this AI Product Agreement (together, the “Agreement”). The AI Product catalogs include products that can be used without payment and paid products and services. Key terms are defined in Section 17.
+
+By using or registering to use AI Products, Customer is affirming that Customer has read the Agreement and agrees to its terms. If Customer does not have the required authority to enter into the Agreement or if Customer does not accept all the terms and conditions below, do not use (or register to use) AI Products.
+
+1. AI PRODUCTS OFFERINGS.
+
+1.1 Grant. Subject to the terms of the Agreement, Customer’s Order Agreement and Subscription or Perpetual license parameters, and payment of applicable fees, NVIDIA grants Customer a non-exclusive, non-transferable, non-sublicensable (except as expressly provided in the Agreement) license to do the following for the duration of the license:
+
+1.1.1 install and use copies of AI Products,
+
+1.1.2 create Derivative Samples and Derivative Models to develop and test services and applications,
+
+1.1.3 configure the AI Product using the configuration files provided (as applicable),
+
+1.1.4 deploy AI Products, and Derivative Samples and Derivative Models Customer develops as authorized in Section 1.1.2, on infrastructure Customer owns or leases to offer a service, without distributing AI Products, Derivative Samples and Derivative Models, and
+
+1.1.5 develop and extend AI Products, and Derivative Samples and Derivative Models Customer develops as authorized in Section 1.1.2, to develop Compatible Applications, and deploy and distribute such Compatible Applications.
+
+Notwithstanding the grants above, users that receive an Enterprise Product identified as “not for resale” or “NFR”, typically a license to a distributor or reseller, may exercise the grants in Section 1.1.1, Section 1.1.2 and Section 1.1.3 above solely for internal evaluation or to demonstrate the Enterprise Product to others, and the grants in Section 1.1.4 and Section 1.1.5 are excluded such that no production deployment or distribution is authorized.
+
+Notwithstanding the grants above, NVIDIA DGX Software is only licensed for use in NVIDIA DGX systems.
+
+1.2 Authorized Users. Customer’s and its subsidiaries’ employees and contractors may access and use the AI Products from Customer devices to perform work authorized by the Agreement on Customer’s behalf. If Customer is an academic institution, Customer may allow users enrolled or employed by the academic institution to access and use the AI Products as authorized by the Agreement from Customer’s devices. Customer is responsible for the compliance with the terms of the Agreement by Customer’s authorized users. Any act or omission that if committed by Customer would constitute a breach of the Agreement will be deemed to constitute a breach of the Agreement if committed by Customer’s authorized users.
+
+1.3 License Types. The terms in this Section 1.3 apply only to Enterprise Products, not to Community Products. The license types below describe features that may be part of an Enterprise Product; and not all license types may be available for each Enterprise Product. Enterprise Products are licensed under the following license types: Subscription per CPU Socket, Subscription per GPU, Subscription per Node, Usage Based Subscription, or Perpetual license. Once a certain Enterprise Product is under a paid Subscription or Perpetual license, all Customer’s licenses to such Enterprise Product must be under a paid Subscription or Perpetual license. Customer’s order, license key or the product description will indicate the parameters of Customer’s license.
+
+NVIDIA may offer and sell, with different prices and terms, Enterprise Product Subscriptions for a subset of the NVIDIA NGC AI Enterprise catalog. For example, NVIDIA may indicate in the NVIDIA NGC AI Enterprise catalog that a subset of AI Products is supported in a certain platform (e.g., a Subscription for the IGX platform) and offer and sell a dedicated Enterprise Product Subscription for the applicable AI Products in the identified platform.
+
+1.4 Replacement Products. NVIDIA may, from time to time at its discretion, give Customer the option to replace a certain Enterprise Product, subject to payment of applicable fees. In such cases, Customer must discontinue use of the replaced Enterprise Product timely upon the start of use of the replacement Enterprise Product. If requested in writing by NVIDIA, Customer will provide a written certificate signed by an authorized officer affirming Customer’s compliance with the replacement terms.
+
+1.5 Promotional Offerings. NVIDIA may, from time to time, offer free or discounted pricing programs covering certain uses of Enterprise Products, as examples having different license parameters or fees for evaluation or academic use. NVIDIA may stop accepting new sign-ups or discontinue a promotional offering at any time. Standard charges will apply after a promotional offering ends or if Customer exceeds the promotional offering use terms. Customer must comply with any additional terms, restrictions, or limitations (e.g., limitations on the total amount of usage) for a promotional offering as described in the corresponding offer terms.
+
+1.5.1 NVIDIA Riva offer. NVIDIA Riva is a Community Product for up to 90 days, and beyond this limit, requires an Enterprise Product Subscription. This is a one-time offer and subsequent use of NVIDIA Riva without an Enterprise Product Subscription requires a written agreement with NVIDIA.
+
+2 REQUIREMENTS. The requirements in this section apply for AI Products, and Derivative Samples and Derivative Models Customer develops as authorized in Section 1.1.2, that Customer deploys as a service and for Customer to exercise the distribution grants:
+
+2.1 Additional Functionality. A service or application to third parties must have material additional functionality, beyond the included portions of AI Products.
+
+2.2 Notification of Misuse. Customer agrees to notify NVIDIA in writing of any known or suspected use or distribution of AI Products, and Derivative Samples and Derivative Models Customer develops as authorized in Section 1.1.2, not in compliance with the terms and conditions the Agreement, and to enforce the terms of Customer’s agreements with respect to AI Products.
+
+2.3 NVIDIA Works Notice. The following notice must be included in Derivative Samples and Derivative Models distributed: “This software contains source code provided by NVIDIA Corporation.”
+
+2.4 Customer Agreements. The terms under which Customer deploys as a service or distributes the AI Products, and Derivative Samples and Derivative Models Customer develops as authorized in Section 1.1.2, must be at least as protective as the terms of the Agreement (including, but not limited to, terms relating to the grant, restrictions and protection of Intellectual Property Rights).
+
+2.5 Use Report. Customer must report upon NVIDIA’s email request, no more than monthly, the AI Products in use by all users Customer enabled, quantity, start and end dates, and any other reasonably requested information for NVIDIA to determine the fees due.
+
+2.6 Enterprise Support. Subject to the terms of the Agreement NVIDIA will provide Enterprise Support to Customer for the duration indicated in the Order Agreement, and Enterprise Support does not extend to any other parties.
+
+2.7 License Administration. Customer will be responsible for the administration of licenses and services to Customer’s users during their use period.
+
+2.8 Use of TAO Toolkit. If Customer intends to deploy as a service or distribute AI Products that include “unpruned”, “trainable” or “train-ready” Models or Derivative Models, such Models are only distributable or deployable after trained using the NVIDIA TAO Toolkit, which is separately available.
+
+3 AI ETHICS. Technology can have a profound impact on people and the world, and NVIDIA is committed to enabling trust and transparency in AI development. NVIDIA encourages Customer to adopt principles of AI ethics and trustworthiness to guide Customer’s business decisions by doing the following:
+
+3.1 Ethical Use. Ensure the product or service Customer develops, uses, offers as a service or distributes meets the ethical requirements of the relevant industry or use case and that Customer has taken reasonable measures to address bias and inform users of the limitations of the product or service.
+
+3.2 Development Practices. Ensure that in developing Customer’s product or service, Customer adopts adequate measures to mitigate the risk of harming more vulnerable groups, especially those that have been historically disadvantaged or are at risk of exclusion.
+
+3.3 Transparency. Communicate information to stakeholders about the capabilities and limitations of Customer’s product or service, including transparency about the fact that stakeholders are dealing with an AI system.
+
+3.4 Distributor or Reseller Duty. If Customer is a distributor or reseller, ensure Customer does not sell to anyone who Customer believes will use Customer’s products or services for an improper purpose.
+
+3.5 Prohibited Uses. NVIDIA expressly prohibits the use of AI Products (a) for surveillance in unauthorized private places, (b) for facial recognition in public places or by law enforcement agencies, (c) for collecting or processing biometric information without the consent of the subject, (d) to conduct activities that infringe on or violate the rights of others, (e) to violate any applicable law including, but not limited to, the General Data Protection Regulation (GDPR), California Consumer Privacy Act (CCPA), California Privacy Rights Act (CPRA),  Health Insurance Portability and Accountability Act (HIPAA), and China’s rules and regulations applicable to generative artificial intelligence services and deep synthesis services.
+
+4 PRE-RELEASE VERSIONS AND FEATURES. The AI Products versions and features identified as alpha, beta, preview or otherwise in pre-release may not be fully functional, may contain errors or design flaws, and may have reduced or different security, privacy, accessibility, availability, and reliability standards relative to commercially provided NVIDIA software, materials and services. Use of a pre-release version or feature may result in unexpected results, such as loss of use or loss of content. Customer may use a pre-release version or feature at Customer’s risk, understanding that such versions are not intended for use in business-critical systems and Customer may stop using pre-release versions at Customer’s convenience. NVIDIA may choose not to provide Enterprise Support for such pre-release versions and NVIDIA may choose not to make available a commercial version of any pre-release AI Product. NVIDIA may also choose to abandon development and terminate the availability of a pre-release AI Product at any time without liability. Pre-release versions are provided “as-is,” “with all faults,” and “as-available,” and are excluded from ENTERPRISE support and all limited warranties provided in thE Agreement.
+
+5 ENTERPRISE SUPPORT. Enterprise Support is included as part of a Subscription and may be sold separately for Perpetual licenses. Except if pursuant to an accepted Order Agreement, NVIDIA is under no obligation to provide any Enterprise Support. Unless revisions to software or materials are provided with their separate governing terms, they are deemed part of the applicable AI Products offering and governed by the Agreement.
+
+6 USERNAME AND PASSWORD. Customer is responsible for securely maintaining log-in information for Customer authorized users’ use, and for all activities under Customer’s account(s). Customer agrees to notify NVIDIA at enterprisesupport@nvidia.com immediately of any known or suspected security incidents or unauthorized use of Customer’s account(s) or the AI Products.
+
+7 COMPONENTS UNDER OTHER LICENSES.
+
+7.1 Component Licenses. The AI Products may include or be distributed with Separate Components. The Separate Components are subject to the applicable OSS Licenses or other license terms, including any proprietary notices, disclaimers, requirements and extended use rights; except that the Agreement will prevail regarding the use of third-party open source software, unless NVIDIA components are provided under an OSS License or a third-party OSS License requires its license terms to prevail.
+
+7.2 No License Provided. Customer acknowledges and agrees that it is Customer’s sole responsibility to obtain any additional third-party licenses required to make, have made, use, have used, sell, import, and offer for sale Customer’s products or services that include or incorporate any Separate Components, including, without limitation, audio and/or video encoders and decoders and implementations of technical standards. NVIDIA does not grant to Customer under the Agreement any necessary patent or other rights, including standard essential patent rights, with respect to any Separate Components.
+
+8 PAYMENT TERMS AND TAXES.
+
+8.1 Fees and Taxes. Customer may be able to purchase a Subscription or Perpetual license directly from NVIDIA, or via a reseller (in some cases a cloud marketplace reseller), as available. When purchasing directly from NVIDIA, the following terms apply: Fees for the Subscriptions or Perpetual licenses are set forth in the associated Order Agreement and are payable pursuant to the terms of such Order Agreement. Unless otherwise expressly indicated in an Order Agreement, fees will be invoiced upon Customer’s purchase, are payable upon invoice and are expressed in U.S. Dollars. Each Order Agreement placed are non-cancelable and fees received are non-refundable. All amounts not paid when due will accrue interest (without the requirement of a notice) at the lower of 1.5% per month or the highest rate permissible by law until the unpaid amounts are paid in full. Fees do not include any taxes, duties or similar charges. If NVIDIA is required to pay sales, use, property, value-added or other taxes based on the payments provided under the Agreement and if NVIDIA is required to collect and remit such taxes, then such taxes will be billed to and paid by Customer or Customer’s reseller, unless NVIDIA receives a valid exemption or resale certificate. If Customer is not billed the applicable tax under the Order Agreement, then it is Customer’s responsibility to properly remit the tax directly to the applicable tax jurisdiction. Further, Customer acknowledges that the payments to NVIDIA under the Agreement will be made in full without reduction for withholding taxes, if applicable. This section will not apply to taxes based on NVIDIA’s net income or payroll taxes.
+
+8.2 Overdue Payment. If any payment is overdue from Customer or a reseller, NVIDIA reserves the right to suspend or terminate Subscriptions or Perpetual licenses, in addition to any other remedies it may have, until the payment delinquency is corrected. Payment obligations survive any expiration or termination of the Agreement.
+
+8.3 Price Changes. Any price change will only apply to purchases after the price change.
+
+9 LIMITATIONS.  The following limitations and restrictions apply to the AI Products, and Derivative Samples and Derivative Models Customer develops as authorized in Section 1.1.2, and Customer is responsible for the consequences of non-conformance with these limitations:
+
+9.1 Customer will use the AI Products exclusively for authorized and legal purposes, consistent with the Agreement’s terms and all applicable laws, regulations and the rights of others, including, without limitation, export and import, security and data privacy, including health information privacy, laws, rules and regulations.
+
+9.2 The AI Products, and Derivative Samples and Derivative Models Customer develops as authorized in Section 1.1.2, may run on any computing system with or without NVIDIA GPUs, except that NVIDIA proprietary software (such as drivers, CUDA and TensorRT software) is licensed only to run on systems with NVIDIA GPUs. For clarity, NVIDIA proprietary software may be present on systems without NVIDIA GPUs, if not running on such systems.
+
+9.3 Customer may not combine the use of paid and unpaid AI Products, Derivative Samples and Derivative Models in a way intended to avoid incurring fees or exceeding use limits or quotas; and the grant to make copies does not change or increase the number of Enterprise Product licenses Customer has, or their license parameters.
+
+9.4 Customer may not reverse engineer, decompile, disassemble AI Product components provided in binary form, nor attempt in any other manner to obtain source code of such AI Product components.
+
+9.5 Except as expressly granted in the Agreement, Customer may not copy, sell, resell, rent, sublicense, transfer, assign, timeshare, distribute, modify, or create derivative works of any portion of the AI Products, including, without limitation, in any publicly accessible software repositories. Unless Customer is an authorized distributor or reseller, Customer may not distribute or sublicense the AI Products on a stand-alone basis.
+
+9.6 Customer may not indicate that a product or service developed with the AI Products is sponsored or endorsed by NVIDIA.
+
+9.7 Customer may not bypass, disable, or circumvent any technical limitation, encryption, security, digital rights management or authentication mechanism contained in the AI Products.
+
+9.8 Customer may not use the AI Products in any manner that would cause components to become subject to an OSS License or other shareware license.
+
+9.9 Customer may not distribute or disclose to third parties results of benchmarking, competitive analysis, regression or performance data relating to the AI Products without the prior written permission from NVIDIA.
+
+9.10 Customer may not replace any NVIDIA software components in the AI Products that are governed by the Agreement with other software that implements NVIDIA application programming interfaces (APIs).
+
+9.11 Customer may not reverse engineer, decompile or disassemble any portion of the output generated using the NVIDIA proprietary software for the purpose of translating such output artifacts to target a non-NVIDIA platform.
+
+9.12 Customer may not use the AI Products for the purpose of developing competing products or technologies or assisting a third party in such activities.
+
+9.13 Customer may not share any of your training dataset, training results or contents collected from China, including but not limited to personal information, road data, geospatial data, state secrets or any national security related data, with NVIDIA in any form.
+
+9.14 Customer acknowledges that the AI Products as delivered under the Agreement are not tested or certified by NVIDIA for use in any Critical Application. Examples of Critical Applications include, without limitation, use in avionics, navigation, autonomous vehicle applications, AI solutions for automotive products, military, medical, or life support or other life or mission critical application. Beyond NVIDIA delivering the AI Products in accordance with the Agreement, NVIDIA will not be liable to Customer or any third party, in whole or in part, for any claims or damages arising from such uses. Customer is solely responsible for ensuring that systems and applications developed or deployed with the AI Products include sufficient safety and redundancy features and comply with all applicable legal and regulatory standards and requirements.
+
+9.15 Customer agrees to defend, indemnify and hold harmless NVIDIA and its Affiliates, and their respective employees, contractors, agents, officers and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, fines, restitutions and expenses (including but not limited to attorney’s fees and costs incident to establishing the right of indemnification) arising out of or related to (i) products or services that have been developed or deployed with or use the AI Products (including results or data generated from such use), or claims that they violate laws, or infringe, violate, or misappropriate any third party right; or (ii) a violation of the terms and conditions of the Agreement. If Customer is prohibited by law from entering into the indemnification obligation above, then Customer assumes, to the extent permitted by law, all liability for all claims, demands, actions, losses, liabilities, and expenses (including attorneys’ fees, costs and expert witnesses’ fees) that are the stated subject matter of the indemnification obligation above.
+
+10 TERMINATION.
+
+10.1 Automatic License Termination. For Enterprise Products indicated by NVIDIA to be Perpetual or Subscription based, Customer license terminates automatically without notice from NVIDIA at the earlier of the expiration or termination of the applicable license or the Agreement, and either party may terminate licenses for other AI Products for convenience with thirty (30) days prior written notice to the other party.
+
+10.2 Early Termination of the Agreement. NVIDIA may at any time with advance written notice terminate the Agreement or an Order Agreement (i) if use of an AI Product, Derivative Sample or Derivative Model materially breaches the terms of the Agreement, or violates the rights of others, or violates applicable laws and regulations, (ii) if Customer commences or participates in any legal proceeding against NVIDIA with respect to an AI Product, Derivative Samples or Derivative Models, or (iii) as needed, in NVIDIA’s reasonable judgment, to comply with laws and regulations. Customer may terminate at any time the Agreement or an Order Agreement if NVIDIA does not timely cure a material breach of the Agreement. If the termination basis is breach and the breach is curable, the other party will have thirty (30) days from the date of notification to cure the breach, or five (5) days to cure if the breach is of a payment obligation.
+
+10.3 Effects of Termination. Upon any expiration or termination of the Agreement or an Order Agreement, any fees owed to NVIDIA become immediately due and payable even if longer terms have been agreed earlier. NVIDIA or an NVIDIA reseller will also bill Customer for any minimum commitment during a committed period in the event of early termination for any reason other than for NVIDIA’s uncured material breach. Customer agrees to promptly discontinue use of the affected AI Products, Derivative Samples and Derivative Models, and destroy all copies in Customer’s possession or control (including any licenses in use by Customer’s authorized users). Upon written request, Customer will certify in writing that Customer has complied with Customer’s commitments under this section.
+
+10.4 Enterprise Support Termination. Enterprise Support ends (i) at the earlier of the expiration or termination of an AI Product Subscription, and (ii) upon termination of a Perpetual license, and in either case no credit or refund will be provided.
+
+10.5 Survival. All provisions of the Agreement which by their nature should survive termination will survive termination, including, without limitation, the terms in Sections 8 through 17.
+
+11 DATA COLLECTION.
+
+11.1 Collection Purposes. Customer hereby acknowledges that AI Products may collect data for the following purposes: (a) properly configure and optimize products for use with AI Products; (b) deliver content or service through AI Products; (c) check for compliance with the license or detect fraud or other malicious activity; and (d) improve NVIDIA products and services. Information collected may include: (i) configuration data; (ii) operating system; (iii) installed applications and drivers used with AI Products; and (iv) application settings, performance and usage data. With Customer’s consent, diagnostic data, including crash reports, may be collected. Further, NVIDIA may require certain personal information such as name, email address and entitlement information to deliver or provide AI Products to Customer.  Please review documentation accompanying the relevant AI Products for data collection specific to the AI Product.
+
+11.2 Third Party Privacy Practices. The AI Products may contain links to third party websites and services, and Customer’s use of third party products and services may be subject to such third party privacy statements or practices. NVIDIA is not responsible for the privacy statements or practices of third parties.
+
+11.3 Privacy Policy. The NVIDIA Privacy Policy, located at https://www.nvidia.com/en-us/about-nvidia/privacy-policy/, explains NVIDIA’s policy for collecting and using data, and Customer can visit the NVIDIA Privacy Center, located at https://www.nvidia.com/en-us/privacy-center, to manage Customer’s consent and privacy preferences. If Customer accesses the AI Products through Customer’s enterprise organization, please contact Customer’s systems administrator with any questions relating to the collection and processing of Customer’s data.  If Customer is its enterprise organization’s systems administrator, please contact enterprisesupport@nvidia.com to manage the organization’s privacy preferences.
+
+12 OWNERSHIP, ATTRIBUTION AND FEEDBACK.
+
+12.1 NVIDIA Ownership. The AI Products, including all Intellectual Property Rights, are and will remain the sole and exclusive property of NVIDIA or its licensors. Except as expressly granted in the Agreement, (i) NVIDIA reserves all rights, interests and remedies in connection with the AI Products, and (ii) no other license or right is granted to Customer by implication, estoppel or otherwise.
+
+12.2 Customer Ownership. Subject to the rights of NVIDIA and its suppliers in AI Products, Customer holds all rights, title and interest in and to Customer’s services, applications and Derivative Samples and Derivative Models Customer develops as permitted in the Agreement including their respective Intellectual Property Rights.
+
+12.3 Attribution. Customer may not change or remove copyright or other proprietary notices in the AI Products or misrepresent the authorship of the AI Products, and Customer must cause any modified files to carry prominent notices stating that Customer changed the files such that modifications are not misrepresented as an original AI Product. Except as necessary to give attribution to works as described in this section, Customer is not granted any trademark license under the Agreement.
+
+12.4 Feedback. Customer may, but is not obligated to, provide Feedback to NVIDIA or an NVIDIA Affiliate. Feedback, even if designated as confidential by Customer, will not create any confidentiality obligation for NVIDIA or its Affiliates. If Customer provides Feedback, Customer hereby grants NVIDIA, its Affiliates and its designees a non-exclusive, perpetual, irrevocable, sublicensable, worldwide, royalty-free, fully paid-up, and transferable license, under Customer’s Intellectual Property Rights, to publicly perform, publicly display, reproduce, use, make, have made, sell, offer for sale, distribute (through multiple tiers of distribution), import, create derivative works of, and otherwise commercialize and exploit the Feedback for any purpose at NVIDIA’s discretion. Customer agrees that Customer will not give Feedback (i) that Customer has reason to believe is subject to any restriction that impairs the exercise of the grant stated in this section, such as third-party Intellectual Property Rights; or (ii) subject to license terms which seek to require any product incorporating or developed using such Feedback, or other intellectual property of NVIDIA or its Affiliates, to be licensed to or otherwise shared with any third party. Customer represents and warrants that Customer has sufficient rights in any Feedback that Customer provides to grant the rights described above.
+
+13 WARRANTY DISCLAIMER.  THE AI PRODUCTS ARE PROVIDED BY NVIDIA AS-IS AND WITH ALL FAULTS. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, NVIDIA DISCLAIMS ALL WARRANTIES AND REPRESENTATIONS OF ANY KIND, WHETHER EXPRESS, IMPLIED OR STATUTORY, RELATING TO OR ARISING UNDER THE AGREEMENT, INCLUDING, WITHOUT LIMITATION, THE WARRANTIES OF TITLE, NONINFRINGEMENT, MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, USAGE OF TRADE AND COURSE OF DEALING. WITHOUT LIMITING THE FOREGOING, NVIDIA DOES NOT WARRANT THAT THE AI PRODUCTS WILL MEET CUSTOMER’S REQUIREMENTS; THAT ANY DEFECTS OR ERRORS WILL BE CORRECTED; THAT ANY CERTAIN CONTENT WILL BE AVAILABLE; OR THAT AI PRODUCTS ARE FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS. NO INFORMATION OR ADVICE GIVEN BY NVIDIA WILL IN ANY WAY INCREASE THE SCOPE OF ANY WARRANTY EXPRESSLY PROVIDED IN THE AGREEMENT.
+
+14 LIMITATION OF LIABILITY.
+
+14.1 Disclaimers. TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT WILL NVIDIA BE LIABLE FOR ANY (I) INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, OR (II) DAMAGES FOR THE (A) COST OF PROCURING SUBSTITIVE GOODS, OR (B) LOST PROFITS, REVENUE, USE, DATA OR GOODWILL ARISING OUT OF OR IN CONNECTION WITH THE AGREEMENT OR THE USE OR THE PERFORMANCE OF AI PRODUCTS WHETHER BASED ON BREACH OF CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY, OR OTHERWISE, AND EVEN IF NVIDIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES AND EVEN IF A PARTY’S REMEDIES FAIL THEIR ESSENTIAL PURPOSE.
+
+14.2 Damages Capped. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, NVIDIA’S TOTAL CUMULATIVE AGGREGATE LIABILITY FOR ANY AND ALL LIABILITIES, OBLIGATIONS OR CLAIMS ARISING OUT OF OR RELATED TO THE AGREEMENT WILL NOT EXCEED THE NET AMOUNT PAID FOR CUSTOMER’S USE UNDER AN ACTIVE LICENSE FOR THE PARTICULAR AI PRODUCT GIVING RISE TO THE CLAIM BEFORE THE LIABILITY AROSE (or up to US$10.00 if Customer obtained such AI Product at no charge).
+
+15 GOVERNING LAW. The Agreement will be governed in all respects by the laws of the United States and the laws of the State of Delaware, without regard to conflict of laws principles or the United Nations Convention on Contracts for the International Sale of Goods. The state and federal courts residing in Santa Clara County, California will have exclusive jurisdiction over any dispute or claim arising out of or related to the Agreement, and the parties irrevocably consent to personal jurisdiction and venue in those courts; except that either party may apply for injunctive remedies or an equivalent type of urgent legal relief in any jurisdiction.
+
+16 GENERAL.
+
+16.1 Assignment. NVIDIA may assign, delegate or transfer its rights or obligations under the Agreement by any means or operation of law. Customer agrees that Customer will not transfer or assign the Agreement or Customer’s rights and obligations by any means or operation of law without NVIDIA’s permission. Any attempted assignment not approved by NVIDIA in a signed writing will be void and of no effect.
+
+16.2 Subcontracting. NVIDIA may subcontract obligations under the Agreement but will remain liable to Customer for any subcontracted obligations.
+
+16.3 Notices. If NVIDIA needs to contact Customer about the AI Products, Customer consents to receive notices electronically. Customer is responsible for keeping Customer’s notification email current. The parties agree that electronic notice will satisfy any legal communication requirements, and that email notices will be treated as received when the email is sent. Customer is required to send legal notices to NVIDIA Corporation, 2788 San Tomas Expressway, Santa Clara, California 95051, United States of America, Attention: Legal Department, with an emailed copy to legalnotices@nvidia.com.
+
+16.4 Trade and Compliance. Customer agrees to comply with all applicable export, import, trade and economic sanctions laws and regulations, including U.S. Export Administration Regulations and Office of Foreign Assets Control regulations. Customer confirms that Customer will not export or reexport any products or technology, directly or indirectly, without first obtaining any required license or other approval from appropriate authorities, (i) to any countries that are subject to any U.S. or local export restrictions (currently including, but not necessarily limited to, Cuba, Iran, North Korea, Syria, the Region of Crimea, Donetsk People’s Republic Region and Luhansk People’s Republic Region); (ii) to any end user who it knows or has reason to know will utilize them in the design, development or production of nuclear, chemical or biological weapons, missiles, rocket systems, unmanned air vehicles, or any weapons of mass destruction; (iii) to any end-user who has been prohibited from participating in the U.S. or local export transactions by any governing authority; or (iv) to any known military or military-intelligence end-user or for any known military or military-intelligence end-use in accordance with U.S. trade compliance laws and regulations. Use of the AI Products under the Agreement must be consistent with NVIDIA’s Human Right Policy located at https://www.nvidia.com/content/dam/en-zz/Solutions/about-us/documents/HumanRightsPolicy.pdf.
+
+16.5 Government Rights. The AI Products, documentation and technology (“Protected Items”) are “Commercial products” as this term is defined at 48 C.F.R. 2.101, consisting of “commercial computer software” and “commercial computer software documentation” as such terms are used in, respectively, 48 C.F.R. 12.212 and 48 C.F.R. 227.7202 & 252.227-7014(a)(1). Before any Protected Items are supplied to the U.S. Government, Customer will (i) inform the U.S. Government in writing that the Protected Items are and must be treated as commercial computer software and commercial computer software documentation developed at private expense; (ii) inform the U.S. Government that the Protected Items are provided subject to the terms of the Agreement; and (iii) mark the Protected Items as commercial computer software and commercial computer software documentation developed at private expense. In no event will Customer permit the U.S. Government to acquire rights in Protected Items beyond those specified in 48 C.F.R. 52.227-19(b)(1)-(2) or 252.227-7013(c) except as expressly approved by NVIDIA in writing.
+
+16.6 Force Majeure. Except for payment of fees or taxes, neither party will be liable during an instance of Force Majeure.
+
+16.7 Audit. During the term of the Agreement and for a period of three (3) years thereafter, Customer will maintain complete and accurate information regarding Customer’s activities under the Agreement and NVIDIA or an independent auditor will have the right to audit Customer during regular business hours to validate and confirm Customer’s information and compliance with the terms of the Agreement. Audits will be conducted no more frequently than annually, unless non-compliance was previously found. If an audit reveals an underpayment, Customer will promptly remit the full amount of such underpayment to NVIDIA including interest that will accrue (without the requirement of a notice) at the lower of 1.5% per month or the highest rate permissible by law. If the underpaid amount exceeds five percent (5%) of the amounts payable to NVIDIA during the audited period or if the audit reveals a material non-conformance with the terms of the Agreement, then Customer will reimburse NVIDIA’s reasonable audit costs. Further, Customer agrees that the party transacting to sell AI Products to Customer may share with NVIDIA information regarding Customer’s compliance with the Agreement.
+
+16.8 Entire Agreement. Regarding the subject matter of the Agreement, the parties agree that (i) the Agreement constitutes the entire and exclusive agreement between the parties and supersedes all prior and contemporaneous communications and (ii) any additional or different terms or conditions, whether contained in purchase orders, order acknowledgments, invoices or otherwise, will not be binding and are null and void.
+
+16.9 Severability. If any provision of the Agreement is deemed invalid by a court of competent jurisdiction, the invalidity of such provision will not affect the validity of the remaining provisions of the Agreement, which will remain in full force and effect.
+
+16.10 No Waiver. No waiver of any term of the Agreement will be deemed a further or continuing waiver of such term or any other term, and NVIDIA’s failure to assert any right or provision under the Agreement will not constitute a waiver of such right or provision.
+
+16.11 Independent Contractors. The parties are independent contractors, and the Agreement does not create a joint venture, partnership, agency or other form of business association between the parties. Neither party will have the power to bind the other party or incur any obligation on its behalf without the other party’s prior written consent.
+
+16.12 Independent Development. Nothing in the Agreement will be construed to limit or restrict either party from independently developing, providing, or acquiring any materials, services, products or technology that are similar to the subject of the Agreement, provided that the party does not breach its obligations under the Agreement in doing so.
+
+16.13 Construction. The parties and their respective counsel have negotiated the Agreement and it will be interpreted fairly in accordance with its terms and without any strict construction in favor of or against either party. The headings in the Agreement are included solely for convenience and are not intended to affect the meaning or interpretation of the Agreement. As required by the context of the Agreement, the singular of a term includes the plural and vice versa.
+
+16.14 Licensing. If the terms in the Agreement are not suitable for Customer’s organization, or for any questions regarding the Agreement, please contact NVIDIA at aienterprise-questions@nvidia.com.
+
+17 Definitions.
+
+17.1 “Affiliate” means an entity that owns or controls, is owned or controlled by, or is under common ownership or control with a party, where “control” is the possession, directly or indirectly, of the power to direct or cause the direction of the management and policies of an entity, whether through ownership of voting securities, by contract or otherwise.
+
+17.2 “AI Products” means all Community Products and Enterprise Products.
+
+17.3 ”Community Products” means the offerings in the NVIDIA NGC AI catalog at https://ngc.nvidia.com/, as updated from time to time, and such offerings are exclusive of Enterprise Support.
+
+17.4 “Compatible Application” means an application that is an extension to an AI Product that does not adversely affect the functionality of the other components in an AI Product.
+
+17.5 “CPU Socket” means (i) for on-premise deployments, the number of physical processors in the computing environment on which the Enterprise Product is installed, or (ii) in a cloud computing environment, the compute instance on which the Enterprise Product is installed. For per CPU Socket licenses, NVIDIA requires one Enterprise Product license per compute instance.
+
+17.6 “Critical Application” means any system or application where the use or failure of such system or application could result in injury, death, or catastrophic damage.
+
+17.7 “Derivative Samples” means all modifications, derivatives, adaptations, extensions or enhancements to sample or example source code delivered by NVIDIA.
+
+17.8 “Derivative Models” means all modifications, derivatives, adaptations, extensions or enhancements to a Model, works based on a Model, or any other model which is created or initialized by transfer of patterns of the weights, parameters, activations or output of a Model, to the other model, in order to cause the other model to perform similarly to the Model, including (but not limited to) distillation methods entailing the use of intermediate data representations or methods based on the generation of synthetic data by the Model for training the other model.
+
+17.9 “Enterprise Products” means those offerings in the NVIDIA NGC AI Enterprise catalog at https://ngc.nvidia.com/nvaie-supported, as updated from time to time, the NVIDIA Base Command Manager product and NVIDIA DGX Software.
+
+17.10 “Enterprise Support” means the services described at https://docs.nvidia.com/enterprise-services-policy.pdf, as updated from time to time, for AI Products.
+
+17.11 “Feedback” means suggestions, fixes, modifications, enhancements, techniques, requests, other feedback or materials, whether oral or in writing, relating to or in connection with the AI Products.
+
+17.12 “Force Majeure” means an event or circumstance that prevents or delays a party from performing its obligations under the Agreement and that event or circumstance: (i) is not within the reasonable control of that party and is not the result of that party’s negligence (including, without limitation, acts of God, natural disaster, acts of government, flood, fire, earthquakes, pandemics, civil unrest, acts of terror or general labor disturbances such as strikes), and (ii) cannot be overcome or avoided by that party using reasonably diligent efforts.
+
+17.13 “GPU” means (I) for on-premise deployments, the number of physical GPUs in the computing environment which is accessed by the Enterprise Product, or (ii) in a cloud computing environment, the number and type of GPUs attached to the compute instance on which the Enterprise Product is installed. For per GPU licenses, NVIDIA requires one Enterprise Product license for each GPU. For Enterprise Products that are licensed under the Agreement to run on computing environments or compute instances without an NVIDIA GPU, NVIDIA requires one Enterprise Product license for each computing environment, or compute instance.
+
+17.14 “Intellectual Property Rights” means all intellectual property rights, including all patents, trademarks, trade dress, copyrights, database rights, trade secrets, know-how, mask works, and any other similar protected rights in any country including all related applications for and registrations of these rights.
+
+17.15 “Model” means any AI Product that is a machine-learning based assembly (including checkpoints), consisting of learnt weights, parameters (including optimizer states) and configuration files that may be trained or tuned, in whole or in part, on data.
+
+17.16 “NVIDIA NGC” is the website at ngc.nvidia.com and its subdomains.
+
+17.17 “NVIDIA DGX Software” means NVIDIA provided operating system and software specific for NVIDIA DGX systems as indicated by NVIDIA in documentation.
+
+17.18 “NVIDIA Riva” means add-on AI Products identified as part of the Riva collection at NVIDIA’s discretion.
+
+17.19 “Node” means (i) for on-premise deployments, the number of physical servers in the computing environment on which the Enterprise Product is installed, or (ii) in a cloud computing environment, the number of compute instances on which the Enterprise Product runs. For per Node licenses, NVIDIA requires one Enterprise Product license per Node.
+
+17.20 “Order Agreement” means a marketplace private offer issued by NVIDIA and accepted by Customer or a direct agreement with NVIDIA for the purchase of Subscriptions or Perpetual licenses.
+
+17.21 “OSS License” means any software, data or documentation subject to any license identified as an open source license by the Open Source Initiative (http://opensource.org), Free Software Foundation (http://www.fsf.org) or other similar open source organization or listed by the Software Package Data Exchange (SPDX) Workgroup under the Linux Foundation (http://www.spdx.org).
+
+17.22 “Perpetual” means a license to an Enterprise Product that is exclusive of Enterprise Support, however NVIDIA may require Customer to separately purchase certain Enterprise Support for a minimum period. After the expiration of Enterprise Support, Customer retains the right to use a Perpetual license at the last-supported level subject to the terms of the Agreement.
+
+17.23 “Separate Component” means a component provided with separate legal notices or terms that accompany the components, such as OSS Licenses and other license terms.
+
+17.24 “Subscription” means Customer’s license to an AI Product, inclusive of Enterprise Support, for a fixed duration.
+
+17.25 “Usage Based” means a license to an Enterprise Product that is metered and billed based on consumption, such as by the hour, and is inclusive of certain Enterprise Support for the duration of the license.
+
+(v. September 1, 2023)
