@@ -44,7 +44,7 @@ class TestBuildHoloscanDB(unittest.TestCase):
         """Test that the PDF can be loaded successfully by PyPDFLoader"""
         current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         pdf_url = "https://developer.nvidia.com/downloads/holoscan-sdk-user-guide"
-        pdf_path = os.path.join(current_dir, "docs", os.path.basename(pdf_url) + ".pdf")
+        pdf_path = os.path.join(current_dir, "docs", "holoscan-sdk-user-guide.pdf")
         self._download_pdf_if_needed(pdf_url, pdf_path)
         self.assertTrue(os.path.exists(pdf_path), f"PDF not found {pdf_path} -- {pdf_url}.")
         try:
