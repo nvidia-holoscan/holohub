@@ -26,11 +26,11 @@ function(holoscan_download_data dataname)
                              "" ${ARGN})
 
   if(NOT DATA_URL)
-    message(FATAL "No URL set for holoscan_download_data. Please set the URL.")
+    message(FATAL_ERROR "No URL set for holoscan_download_data. Please set the URL.")
   endif()
 
   if(NOT DATA_DOWNLOAD_DIR)
-    message(FATAL "No DOWNLOAD_DIR set for holoscan_download_data. Please set the DOWNLOAD_DIR.")
+    message(FATAL_ERROR "No DOWNLOAD_DIR set for holoscan_download_data. Please set the DOWNLOAD_DIR.")
   endif()
 
   if(NOT DATA_DOWNLOAD_NAME)
