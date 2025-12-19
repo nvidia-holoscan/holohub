@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -108,7 +108,7 @@ void XrSession::initialize() {
   view_configuration_depth_range_.maxFarZ = std::numeric_limits<float>::infinity();
 
   // Create a Vulkan instance using the XR_KHR_vulkan_enable2 extension.
-  xr::GraphicsRequirementsVulkanKHR graphics_requirements_vulkan =
+  [[maybe_unused]] xr::GraphicsRequirementsVulkanKHR graphics_requirements_vulkan =
       xr_instance_->getVulkanGraphicsRequirements2KHR(system_id, dispatch_);
   vk::ApplicationInfo applicationInfo{
       .pApplicationName = application_name_.get().c_str(),
