@@ -23,6 +23,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -792,10 +793,41 @@ class HoloHubContainer:
 
         # Handle SSH X11 forwarding
         if ssh_x11:
-            xauth_file = "/tmp/.docker.xauth"
-            # xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
-            # chmod 777 $XAUTH
-            options.extend(["-v", f"{xauth_file}:{xauth_file}", "-e", f"XAUTHORITY={xauth_file}"])
+            if "DISPLAY" not in os.environ:
+                warn(
+                    "SSH X11 forwarding requested but DISPLAY environment variable is not set; skipping SSH X11 forwarding setup."
+                )
+            else:
+                if not shutil.which("xauth"):
+                    warn(
+                        "SSH X11 forwarding requested but xauth was not found; skipping xauth setup."
+                    )
+                else:
+                    result = run_command(
+                        ["xauth", "nlist", os.environ["DISPLAY"]],
+                        check=False,
+                        capture_output=True,
+                        text=True,
+                        dry_run=self.dryrun,
+                    )
+                    if result.stdout and result.returncode == 0:
+                        xauth_file = "/tmp/.docker.xauth"
+                        with tempfile.NamedTemporaryFile(mode="w+t", delete=True) as tmp:
+                            for line in result.stdout.splitlines(True):
+                                tmp.write("ffff" + line[4:])
+                            tmp.flush()
+
+                            if not self.dryrun:
+                                Path(xauth_file).touch(mode=0o600)
+
+                            run_command(
+                                ["xauth", "-f", xauth_file, "nmerge", tmp.name],
+                                check=False,
+                                dry_run=self.dryrun,
+                            )
+                        options.extend(
+                            ["-v", f"{xauth_file}:{xauth_file}", "-e", f"XAUTHORITY={xauth_file}"]
+                        )
 
         return options
 
