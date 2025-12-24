@@ -1,0 +1,58 @@
+{
+	"application": {
+		"name": "my_pipeline_visualizer",
+		"description": "A signal processing pipeline that generates and modulates synthetic sine waves",
+		"authors": [
+			{
+				"name": "Your Name",
+				"affiliation": "Your Organization"
+			}
+		],
+		"language": "python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release - Basic signal generation and modulation"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.8.0",
+			"tested_versions": [
+				"3.8.0",
+				"3.9.0"
+			]
+		},
+		"platforms": ["x86_64", "aarch64"],
+		"tags": ["signal_processing", "tensor", "visualization", "demo"],
+		"ranking": 1,
+	"requirements": {},
+	"default_mode": "app",
+	"modes": {
+		"web_static": {
+			"description": "Run the static web dashboard visualizer for Ising model",
+			"run": {
+				"command": "python3 <holohub_app_source>/visualizer/visualizer_static.py --ising",
+				"env": {
+					"PYTHONPATH": "<holohub_app_bin>/python/../flatbuffers:<PYTHONPATH>"
+				},
+				"workdir": "holohub_app_source"
+			}
+		},
+		"web_dynamic": {
+			"description": "Run the dynamic web dashboard visualizer",
+			"run": {
+				"command": "python3 <holohub_app_source>/visualizer/visualizer_dynamic.py",
+				"env": {
+					"PYTHONPATH": "<holohub_app_bin>/python/../flatbuffers:<PYTHONPATH>"
+				},
+				"workdir": "holohub_app_source"
+			}
+		},
+		"app": {
+			"description": "Run the Ising model pipeline application",
+			"run": {
+				"command": "python3 <holohub_app_source>/python/pipeline_visualization.py",
+				"workdir": "holohub_app_bin"
+			}
+		}
+	}
+	}
+}
