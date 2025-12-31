@@ -55,7 +55,8 @@ void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
                         const std::array<uint32_t, 3>& permute_axis,
                         const std::array<bool, 3>& flip_axes,
                         const std::vector<clara::viz::Vector2f>& element_range,
-                        const nvidia::gxf::Handle<nvidia::gxf::Tensor>& tensor) {
+                        const nvidia::gxf::Handle<nvidia::gxf::Tensor>& tensor,
+                        cudaStream_t cuda_stream) {
   DataArray data_array;
 
   switch (tensor->element_type()) {
@@ -140,10 +141,14 @@ void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
           return;
       }
 
-      if (cudaMemcpy3D(&copy_params) != cudaSuccess) {
+      if (cudaMemcpy3DAsync(&copy_params, cuda_stream) != cudaSuccess) {
         holoscan::log_error("Failed to copy to GPU memory");
         return;
       }
+
+      // FIXME(Mimi): Explicitly synchronizing the CUDA stream before rendering, w/o this, it renders empty volume sometimes.
+      // TODO: handle synchronization more elegantly elsewhere in the pipeline.
+      cudaStreamSynchronize(cuda_stream);
     }
 
     switch (type) {

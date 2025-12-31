@@ -225,7 +225,7 @@ class ImageService : public clara::viz::MessageReceiver, public clara::viz::Mess
 
 class VolumeRendererOp::Impl {
  public:
-  bool receive_volume(InputContext& input, Dataset::Types type);
+  bool receive_volume(InputContext& input, ExecutionContext& context,Dataset::Types type);
 
   Parameter<std::vector<IOSpec*>> settings_;
   Parameter<std::vector<IOSpec*>> merge_settings_;
@@ -281,9 +281,12 @@ class VolumeRendererOp::Impl {
   bool default_enable_foveation_ = false;
   float default_warp_full_resolution_size_ = 1.f;
   float default_warp_resolution_scale_ = 1.f;
+  /// Cached camera pose for use when no new camera pose input is received.
+  /// Initialized to identity by default.
+  clara::viz::Matrix4x4 cached_camera_pose_;
 };
 
-bool VolumeRendererOp::Impl::receive_volume(InputContext& input, Dataset::Types type) {
+bool VolumeRendererOp::Impl::receive_volume(InputContext& input, ExecutionContext& context, Dataset::Types type) {
   std::string name(type == Dataset::Types::Density ? "density" : "mask");
 
   auto volume = input.receive<holoscan::gxf::Entity>((name + "_volume").c_str());
@@ -293,8 +296,24 @@ bool VolumeRendererOp::Impl::receive_volume(InputContext& input, Dataset::Types 
   auto flip_axes_input = input.receive<std::array<bool, 3>>((name + "_flip_axes").c_str());
 
   if (volume) {
-    nvidia::gxf::Handle<nvidia::gxf::Tensor> volume_tensor =
-        static_cast<nvidia::gxf::Entity>(volume.value()).get<nvidia::gxf::Tensor>("volume").value();
+    nvidia::gxf::Expected<nvidia::gxf::Entity> entity = volume.value();
+    const gxf_result_t result = cuda_stream_handler_.fromMessage(context.context(), entity);
+    if (result != GXF_SUCCESS) {
+      throw std::runtime_error("Failed to get the CUDA stream from incoming messages");
+    }
+    const cudaStream_t cuda_stream = cuda_stream_handler_.getCudaStream(context.context());
+
+    // MEMORY LEAK FIX: Clear old volumes before receiving new ones for streaming mode
+    // The Dataset class accumulates frames in a vector, which causes unbounded memory growth
+    // For real-time streaming (BCI visualization), we only need the latest frame
+    dataset_.ResetVolume(type);
+    
+    auto maybe_tensor = static_cast<nvidia::gxf::Entity>(volume.value()).get<nvidia::gxf::Tensor>("volume");
+    if (!maybe_tensor) {
+      throw std::runtime_error("VolumeRendererOp: No volume tensor found");
+    }
+    
+    nvidia::gxf::Handle<nvidia::gxf::Tensor> volume_tensor = maybe_tensor.value();
 
     std::array<float, 3> spacing{1.f, 1.f, 1.f};
     std::array<uint32_t, 3> permute_axis{0, 1, 2};
@@ -320,8 +339,7 @@ bool VolumeRendererOp::Impl::receive_volume(InputContext& input, Dataset::Types 
       }
       if (has_range) { element_range.push_back(range); }
     }
-
-    dataset_.SetVolume(type, spacing, permute_axis, flip_axes, element_range, volume_tensor);
+    dataset_.SetVolume(type, spacing, permute_axis, flip_axes, element_range, volume_tensor, cuda_stream);
 
     return true;
   }
@@ -521,7 +539,7 @@ void VolumeRendererOp::setup(OperatorSpec& spec) {
   spec.input<std::array<uint32_t, 3>>("mask_permute_axis").condition(ConditionType::kNone);
   spec.input<std::array<bool, 3>>("mask_flip_axes").condition(ConditionType::kNone);
 
-  spec.output<holoscan::gxf::Entity>("color_buffer_out");
+  spec.output<holoscan::gxf::Entity>("color_buffer_out").condition(ConditionType::kNone); // (Mimi): remove backpressure to avoid deadlock when running in a loop
   spec.output<holoscan::gxf::Entity>("depth_buffer_out").condition(ConditionType::kNone);
 
   impl_->cuda_stream_handler_.defineParams(spec);
@@ -530,15 +548,15 @@ void VolumeRendererOp::setup(OperatorSpec& spec) {
 void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
                                ExecutionContext& context) {
   // get the density volumes
-  bool new_volume = impl_->receive_volume(input, Dataset::Types::Density);
-  if (!impl_->receive_volume(input, Dataset::Types::Segmentation)) {
-    // there are datasets without segmentation volume, if we receive a density volume
-    // only, reset the segmentation volume
+  bool new_volume = impl_->receive_volume(input, context,Dataset::Types::Density);
+  bool new_mask = impl_->receive_volume(input, context,Dataset::Types::Segmentation);
+  
+  // there are datasets without mask volume, if we receive a density volume
+  // only, reset the mask volume
+  if (new_volume && !new_mask) {
     impl_->dataset_.ResetVolume(Dataset::Types::Segmentation);
-  } else {
-    new_volume = true;
   }
-  if (new_volume) {
+  if (new_volume || new_mask) {
     impl_->dataset_.Configure(impl_->data_config_interface_);
     impl_->dataset_.Set(*impl_->data_interface_.get());
 
@@ -714,7 +732,7 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
     }
 
     // Two types for the camera pose are supported, either a 4x4 matrix, or a nvidia::gxf::Pose3D
-    // object
+    // object. Matrix4x4 is initialized to identity by default.
     clara::viz::Matrix4x4 pose;
     auto camera_pose_input = input.receive<std::any>("camera_pose");
     if (camera_pose_input) {
@@ -744,6 +762,12 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
         impl_->initial_inv_matrix_set_ = true;
       }
       pose = impl_->initial_inv_matrix_ * pose;
+
+      // Cache the pose for use when no input is received
+      impl_->cached_camera_pose_ = pose;
+    } else {
+      // Use the cached pose when no camera pose input is received
+      pose = impl_->cached_camera_pose_;
     }
 
     // apply the initial pose from the configuration file
@@ -817,17 +841,24 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
     }
   }
 
-  // render
   const std::shared_ptr<VideoBufferBlob> color_buffer_blob(new VideoBufferBlob(color_buffer));
   std::shared_ptr<VideoBufferBlob> depth_buffer_blob;
-  if (depth_buffer) { depth_buffer_blob = std::make_shared<VideoBufferBlob>(depth_buffer); }
-  impl_->image_service_->Render(color_buffer->video_frame_info().width,
-                                color_buffer->video_frame_info().height,
-                                color_buffer_blob,
-                                depth_buffer_blob);
+  if (impl_->dataset_.GetNumberFrames() > 0) {
+    // render
+    if (depth_buffer) { depth_buffer_blob = std::make_shared<VideoBufferBlob>(depth_buffer); }
+    impl_->image_service_->Render(color_buffer->video_frame_info().width,
+                                  color_buffer->video_frame_info().height,
+                                  color_buffer_blob,
+                                  depth_buffer_blob);
 
-  // then wait for the message with the encoded data
-  const auto image = impl_->image_service_->WaitForRenderedImage();
+    // then wait for the message with the encoded data
+    const auto image = impl_->image_service_->WaitForRenderedImage();
+  } else {
+    // no density volume, sleep for the time slot
+    clara::viz::RenderSettingsInterface::AccessGuard access(impl_->render_settings_interface_);
+    HOLOSCAN_LOG_INFO("No density volume, sleeping for {} milliseconds", access->time_slot.Get());
+    std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(access->time_slot.Get())));
+  }
 
   // Add both a CUDA event and the CUDA stream to the outgoing message,
   // some operators expect an event and some a stream to synchronize with
