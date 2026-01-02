@@ -1,23 +1,21 @@
 import logging
 from types import ModuleType
 
-import numpy as np
-from numpy.typing import NDArray
-
 logger = logging.getLogger(__name__)
 
-_HESSIAN_CACHE: dict[int, np.ndarray] = {}  # by wavelength index
+# Cache holds CuPy arrays when running GPU-only. (Keyed by wavelength index.)
+_HESSIAN_CACHE: dict[int, object] = {}
 
 MAX_REASONABLE_COND_RATIO = 10
 
 
 def solve_regularized_system(
     xp: ModuleType,
-    data_jacobians: NDArray[np.float32],
-    data_rhs: NDArray[np.float32],
+    data_jacobians,
+    data_rhs,
     wavelength_idx: int,
     reg: float,
-) -> NDArray[np.float32]:
+) -> object:
     """
     Parameters
     ----------
@@ -54,10 +52,10 @@ def solve_regularized_system(
 
 def _build_regularized_system(
     xp: ModuleType,
-    data_jacobians: NDArray[np.float32],
+    data_jacobians,
     wavelength_idx: int,
     reg: float,
-) -> NDArray[np.float32]:
+) -> object:
     """Build regularized system matrix.
 
     Parameters
@@ -97,9 +95,9 @@ def _build_regularized_system(
 
 def _solve_square_system(
     xp: ModuleType,
-    A: NDArray[np.float32],
-    b: NDArray[np.float32],
-) -> NDArray[np.float32]:
+    A,
+    b,
+) -> object:
     """
     Parameters
     ----------

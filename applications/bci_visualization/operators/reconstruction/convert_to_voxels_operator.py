@@ -4,6 +4,7 @@ import logging
 from types import ModuleType
 from typing import Any, Tuple, cast
 
+import cupy as cp
 import numpy as np
 from numpy.typing import NDArray
 
@@ -120,33 +121,34 @@ class ConvertToVoxelsOperator(Operator):
         op_output: OutputContext,
         context: ExecutionContext,
     ) -> None:
-        del context
-
         result: SolverResult = op_input.receive("result")
+        cuda_stream = op_input.receive_cuda_stream("result")
 
-        xp = gpu.get_array_module(self._use_gpu)[0]  # either cupy or numpy
+        with cp.cuda.ExternalStream(cuda_stream):
+            # GPU-only: always use CuPy.
+            xp = cp
 
-        data_mua_full = _convert_to_full_voxels(
-            xp,
-            result.data_mua,
-            result.num_full_voxels,
-            result.idxs_significant_voxels,
-        )
+            data_mua_full = _convert_to_full_voxels(
+                xp,
+                result.data_mua,
+                result.num_full_voxels,
+                result.idxs_significant_voxels,
+            )
 
-        data_hbo, data_hbr = self._hbo.convert_mua_to_hb(
-            data_mua_full,
-            result.wavelengths,
-            result.idxs_significant_voxels,
-        )
+            data_hbo, data_hbr = self._hbo.convert_mua_to_hb(
+                data_mua_full,
+                result.wavelengths,
+                result.idxs_significant_voxels,
+            )
 
-        self._cum_hbo = data_hbo if self._cum_hbo is None else self._cum_hbo + data_hbo
-        self._cum_hbr = data_hbr if self._cum_hbr is None else self._cum_hbr + data_hbr
+            self._cum_hbo = data_hbo if self._cum_hbo is None else self._cum_hbo + data_hbo
+            self._cum_hbr = data_hbr if self._cum_hbr is None else self._cum_hbr + data_hbr
+
+
+            layout = self._compute_voxel_layout(xp, result.voxel_metadata)
+            hb_volume = self._voxelize_hbo(xp, self._cum_hbo, layout)
 
         self._emit_affine_once(op_output)
-
-        layout = self._compute_voxel_layout(xp, result.voxel_metadata)
-        hb_volume = self._voxelize_hbo(xp, self._cum_hbo, layout)
-
         op_output.emit(hb_volume, "hb_voxel_data")
 
     def _emit_affine_once(self, op_output: OutputContext) -> None:
