@@ -4,6 +4,7 @@ import logging
 from types import ModuleType
 from typing import Any, List, Tuple
 
+import cupy as cp
 import numpy as np
 from numpy.typing import NDArray
 
@@ -14,7 +15,6 @@ from holoscan.core import (
     OperatorSpec,
     OutputContext,
 )
-from processing.reconstruction.gpu import get_array_module
 from .types import BuildRHSOutput, NormalizedSolveBatch, WavelengthSystem
 
 logger = logging.getLogger(__name__)
@@ -54,16 +54,17 @@ class NormalizeOperator(Operator):
         op_output: OutputContext,
         context: ExecutionContext,
     ) -> None:
-        del context
-
         batch = op_input.receive("batch")
         if not isinstance(batch, BuildRHSOutput):
             raise TypeError(f"NormalizeOperator expected BuildRHSOutput, got {type(batch)}")
 
-        result = self._normalize_batch(batch)
-        if result is None:
-            logger.info("Skipping normalization for frame because max_rhs is all zeros")
-            return
+        cuda_stream = op_input.receive_cuda_stream("batch")
+
+        with cp.cuda.ExternalStream(cuda_stream):
+            result = self._normalize_batch(batch)
+            if result is None:
+                logger.info("Skipping normalization for frame because max_rhs is all zeros")
+                return
 
         systems, num_absorbers = result
 
@@ -152,7 +153,8 @@ class NormalizeOperator(Operator):
         num_absorbers, remainder = divmod(num_cols, num_significant)
         assert not remainder
 
-        xp = get_array_module(self._use_gpu)[0]  # either cupy or numpy
+        # GPU-only: always use CuPy, and rely on upstream CUDA stream propagation for correctness.
+        xp = cp
 
         # normalize rows
         rhs = xp.asarray(batch.data_rhs, dtype=xp.float32)

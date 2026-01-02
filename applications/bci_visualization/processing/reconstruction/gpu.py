@@ -1,8 +1,6 @@
 import logging
 from types import ModuleType
 
-import numpy
-
 logger = logging.getLogger(__name__)
 
 try:
@@ -11,7 +9,7 @@ try:
     logger.info("CuPy is available for GPU computations.")
 except ImportError:
     cupy = None
-    logger.info("CuPy is not available; falling back to NumPy for CPU computations.")
+    logger.info("CuPy is not available.")
 
 
 def get_array_module(use_gpu: bool = False) -> tuple[ModuleType, bool]:
@@ -21,11 +19,12 @@ def get_array_module(use_gpu: bool = False) -> tuple[ModuleType, bool]:
     Returns:
         A tuple containing the array module and a boolean indicating if GPU is used.
     """
-    if use_gpu and cupy is not None:
-        device_count = cupy.cuda.runtime.getDeviceCount()
-        if device_count > 0:
-            return cupy, True
-        else:
-            logger.warning("No GPU devices found; using NumPy instead.")
-
-    return numpy, False
+    # GPU-only refactor: reconstruction pipeline should always run on CuPy when requested.
+    if not use_gpu:
+        raise ValueError("GPU-only pipeline: get_array_module(use_gpu=False) is not supported")
+    if cupy is None:
+        raise ImportError("GPU-only pipeline requires CuPy, but it is not installed")
+    device_count = cupy.cuda.runtime.getDeviceCount()
+    if device_count <= 0:
+        raise RuntimeError("GPU-only pipeline requested, but no CUDA devices were found")
+    return cupy, True

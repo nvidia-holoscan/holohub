@@ -3,9 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import numpy as np
-
-from processing.reconstruction import REG_DEFAULT, RESHAPING_ORDER, gpu
+import cupy as cp
+from processing.reconstruction import REG_DEFAULT, RESHAPING_ORDER
 from processing.reconstruction.reg_inv import solve_regularized_system
 from holoscan.core import (
     ExecutionContext,
@@ -43,18 +42,20 @@ class RegularizedSolverOperator(Operator):
         op_output: OutputContext,
         context: ExecutionContext,
     ) -> None:
-        del context
-
         batch: NormalizedSolveBatch = op_input.receive("batch")
-        result = self._solve_batch(batch)
-        op_output.emit(result, "result")
+        cuda_stream = op_input.receive_cuda_stream("batch")
+
+        with cp.cuda.ExternalStream(cuda_stream):
+            result = self._solve_batch(batch)
+            op_output.emit(result, "result")
 
     def _solve_batch(self, batch: NormalizedSolveBatch) -> SolverResult:
         num_wavelengths = len(batch.systems)
         num_significant_voxels = int(batch.idxs_significant_voxels.size)
         num_cols_expected = batch.num_absorbers * num_significant_voxels
 
-        xp = gpu.get_array_module(self._use_gpu)[0]  # either cupy or numpy
+        # GPU-only: always use CuPy.
+        xp = cp
         result = xp.zeros(
             (num_cols_expected, num_wavelengths),
             dtype=batch.systems[0].jacobian.dtype,

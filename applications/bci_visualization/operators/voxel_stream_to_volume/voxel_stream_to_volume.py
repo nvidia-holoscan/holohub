@@ -100,6 +100,7 @@ class VoxelStreamToVolumeOp(Operator):
     def compute(self, op_input, op_output, context):
         # Receive Hb voxel data (cupy array)
         hb_voxel = op_input.receive("hb_voxel_data")  # (I, J, K)
+        cuda_stream = op_input.receive_cuda_stream("hb_voxel_data")
 
         # Check voxel data is valid
         if not isinstance(hb_voxel, cp.ndarray):
@@ -121,18 +122,12 @@ class VoxelStreamToVolumeOp(Operator):
         if self.affine is None:
             raise ValueError("VoxelStreamToVolume: No affine matrix received")
 
-        # Ensure contiguous device array to avoid stride/pitch mismatches on ARM
-        stream = context.allocate_cuda_stream("cupy_stream")
-        with cp.cuda.ExternalStream(stream):
-            print("VoxelStreamToVolume: before normalize: ", cp.min(hb_voxel).get(), cp.max(hb_voxel).get())
+        # Run on the propagated CUDA stream (no per-operator stream creation).
+        # NOTE: Avoid using `.get()` / `cp.asnumpy()` in this operator: they synchronize the stream.
+        with cp.cuda.ExternalStream(cuda_stream):
             # Note: set to -99 to 99 to add a buffer avoiding edge case.
             hb_voxel_normalized = self._normalize_and_process_activated_voxels(
                 hb_voxel, normalize_min_value=-99, normalize_max_value=99
-            )
-            print(
-                "VoxelStreamToVolume: after normalize: ",
-                cp.min(hb_voxel_normalized).get(),
-                cp.max(hb_voxel_normalized).get(),
             )
 
             # Resample to mask's size
@@ -143,19 +138,14 @@ class VoxelStreamToVolumeOp(Operator):
             volume_gpu = cp.transpose(volume_gpu, (2, 1, 0))
             volume_gpu = cp.ascontiguousarray(volume_gpu, dtype=cp.float32)
 
-        print("VoxelStreamToVolume: volume_gpu shape: ", volume_gpu.shape)
-
-        # configure to emit a stream ID component when emitting from the "out" port
-        op_output.set_cuda_stream(stream, "volume")
+        print("VoxelStreamToVolume:  hb_voxel range:", np.min(hb_voxel), np.max(hb_voxel))
 
         # If we have a mask, emit oriented mask every frame for the renderer
         if self.mask_volume_gpu is None:
-            stream2 = context.allocate_cuda_stream("cupy_stream2")
-            with cp.cuda.ExternalStream(stream2):
+            with cp.cuda.ExternalStream(cuda_stream):
                 self.mask_volume_gpu = cp.asarray(self.mask_voxel_raw, dtype=cp.uint8)
                 self.mask_volume_gpu = cp.transpose(self.mask_volume_gpu, (2, 1, 0))
                 self.mask_volume_gpu = cp.ascontiguousarray(self.mask_volume_gpu)
-            op_output.set_cuda_stream(stream2, "mask_volume")
 
         
         # Emit mask outputs
