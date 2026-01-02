@@ -138,6 +138,18 @@ RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/ja
 
 # --------------------------------------------------------------------------
 #
+# Set up packages for developing with AJA Capture Cards
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli AS holohub-aja
+
+RUN apt update \
+    && apt install --no-install-recommends -y \
+        libudev-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# --------------------------------------------------------------------------
+#
 # Default development stage. Use "--target <layer>" to build a different stage above
 # as the environment for project development.
 #

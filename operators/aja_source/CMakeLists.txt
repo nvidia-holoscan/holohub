@@ -23,7 +23,7 @@ include(FetchContent)
 FetchContent_Declare(
     ajantv2
     GIT_REPOSITORY https://github.com/nvidia-holoscan/libajantv2.git
-    GIT_TAG d4250c556bcf1ebade627a3ef7a2027de7dc85ee
+    GIT_TAG f74a9cab77a3bdb9f448b3eacc493fe63d363e9f
 )
 
 set(ENV{NTV2_VERSION_BUILD} 1)
