@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ vk::ImageLayout original_image_layout(XrSwapchainCuda::Format format);
 XrSwapchainUsageFlags swapchain_usage_flags(XrSwapchainCuda::Format format);
 
 XrSwapchainCuda::XrSwapchainCuda(XrSession& session, Format format, uint32_t width,
-                                 uint32_t height) noexcept
+                                 uint32_t height)
     : session_(session),
       format_(format),
       width_(width),
