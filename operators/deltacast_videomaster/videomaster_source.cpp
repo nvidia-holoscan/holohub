@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025, DELTACAST.TV. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -128,7 +128,7 @@ void VideoMasterSourceOp::compute(InputContext& op_input, OutputContext& op_outp
                                         &slot_handle,
                                         VideoMasterBase::SLOT_TIMEOUT);
   if (api_result != VHDERR_NOERROR) {
-    if(api_result == VHDERR_TIMEOUT) {
+    if (api_result == VHDERR_TIMEOUT) {
       HOLOSCAN_LOG_INFO("Timeout");
       return;
     } else {
