@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,12 +21,12 @@ ARG COMPUTE_CAPACITY
 ############################################################
 # Torch image (Used to extract the ARM64 dGPU pytorch wheel)
 ############################################################
-FROM nvcr.io/nvidia/pytorch:24.06-py3 as pytorch
+FROM nvcr.io/nvidia/pytorch:24.06-py3 AS pytorch
 
 ############################################################
 # Base image
 ############################################################
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Holohub dev setup
