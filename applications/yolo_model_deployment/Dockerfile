@@ -18,11 +18,11 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-FROM base as holohub-setup
+FROM base AS holohub-setup
 
 # --------------------------------------------------------------------------
 #
@@ -39,7 +39,7 @@ RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 #
 # Install required apt packages and python modules
 #
-FROM holohub-setup as holohub-yolo
+FROM holohub-setup AS holohub-yolo
 
 RUN apt-get update \
     && apt-get install -y libgl1

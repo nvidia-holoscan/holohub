@@ -16,14 +16,14 @@
 # limitations under the License.
 
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 
 #############################################################
 # Install common dependencies via HoloHub CLI
 #############################################################
 ENV DEBIAN_FRONTEND=noninteractive
 
-FROM base as holohub-setup
+FROM base AS holohub-setup
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
@@ -34,7 +34,7 @@ RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 #############################################################
 # Install Runtime Dependencies
 #############################################################
-FROM holohub-setup as run
+FROM holohub-setup AS run
 
 RUN apt-get update && apt-get install -y build-essential cmake git \
     libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev \

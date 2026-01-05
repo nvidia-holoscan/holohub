@@ -16,7 +16,7 @@
 # limitations under the License.
 
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 
 # Install Debian packages
 # Note: ffmpeg is not required for debugging and is not used in the tutorial.

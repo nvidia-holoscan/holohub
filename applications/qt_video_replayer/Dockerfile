@@ -19,7 +19,7 @@ ARG BASE_IMAGE
 ARG GPU_TYPE
 
 # Pin to Holoscan 3.2 since application requires CUDA Driver 550+ for Holoscan 3.3+
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu as base
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 

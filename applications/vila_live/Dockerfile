@@ -19,7 +19,7 @@ ARG BASE_IMAGE
 ARG GPU_TYPE
 ARG COMPUTE_CAPACITY
 
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 
 # ------------------------------------------------------------------------
 # Holohub setup

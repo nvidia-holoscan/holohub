@@ -43,7 +43,7 @@ RUN rm -f /etc/apt/sources.list.d/cuda.list
 ############################################################
 # Build tools
 ############################################################
-FROM base as build-tools
+FROM base AS build-tools
 
 # Install build tools, including newer CMake (https://apt.kitware.com/)
 RUN rm -rf \
@@ -74,7 +74,7 @@ ARG CMAKE_BUILD_TYPE=Release
 ############################################################
 # NGC CLI
 ############################################################
-FROM base as ngc-cli-downloader
+FROM base AS ngc-cli-downloader
 
 WORKDIR /opt/ngc-cli
 
@@ -87,7 +87,7 @@ RUN if [ $(uname -m) = "aarch64" ]; then ARCH=arm64; else ARCH=linux; fi \
 ############################################################
 # ONNX Runtime
 ############################################################
-FROM base as onnxruntime-downloader
+FROM base AS onnxruntime-downloader
 ARG ONNX_RUNTIME_VERSION=1.12.1
 
 WORKDIR /opt/onnxruntime
@@ -101,7 +101,7 @@ RUN if [ $(uname -m) = "aarch64" ]; then ARCH=aarch64; else ARCH=x64-gpu; fi \
 ############################################################
 # Libtorch (x86_64)
 ############################################################
-FROM build-tools as torch-downloader-amd64
+FROM build-tools AS torch-downloader-amd64
 ARG BUILD_LIBTORCH
 ARG LIBTORCH_VERSION
 
@@ -129,7 +129,7 @@ RUN if [ ${BUILD_LIBTORCH} = true ]; then \
 ############################################################
 # Libtorch (aarch64)
 ############################################################
-FROM base as torch-downloader-arm64
+FROM base AS torch-downloader-arm64
 ARG BUILD_LIBTORCH
 ARG LIBTORCH_VERSION
 
@@ -145,12 +145,12 @@ RUN if [ ${BUILD_LIBTORCH} = true ]; then \
 ############################################################
 # Libtorch
 ############################################################
-FROM torch-downloader-${TARGETARCH} as torch-downloader
+FROM torch-downloader-${TARGETARCH} AS torch-downloader
 
 ############################################################
 # TorchVision (x86_64)
 ############################################################
-FROM torch-downloader-amd64 as torchvision-builder-amd64
+FROM torch-downloader-amd64 AS torchvision-builder-amd64
 ARG BUILD_LIBTORCH
 ARG TORCHVISION_VERSION
 ARG LIBTORCH_VERSION
@@ -173,7 +173,7 @@ RUN if [ ${BUILD_LIBTORCH} = true ]; then \
 ############################################################
 # TorchVision (aarch64)
 ############################################################
-FROM base as torchvision-builder-arm64
+FROM base AS torchvision-builder-arm64
 ARG BUILD_LIBTORCH
 ARG TORCHVISION_VERSION
 
@@ -189,7 +189,7 @@ RUN if [ ${BUILD_LIBTORCH} = true ]; then \
 ############################################################
 # TorchVision
 ############################################################
-FROM torchvision-builder-${TARGETARCH} as torchvision-builder
+FROM torchvision-builder-${TARGETARCH} AS torchvision-builder
 
 ############################################################
 # Vulkan SDK
@@ -199,7 +199,7 @@ FROM torchvision-builder-${TARGETARCH} as torchvision-builder
 # and the Vulkan validation layer as runtime components provided by Ubuntu packages because that's
 # what the user will have on their installations.
 ############################################################
-FROM build-tools as vulkansdk-builder
+FROM build-tools AS vulkansdk-builder
 ARG VULKAN_SDK_VERSION
 
 WORKDIR /opt/vulkansdk
@@ -217,7 +217,7 @@ RUN if [ $(uname -m) = "aarch64" ]; then \
 ############################################################
 # gRPC libraries and binaries
 ############################################################
-FROM build-tools as grpc-builder
+FROM build-tools AS grpc-builder
 ARG GRPC_VERSION
 
 WORKDIR /opt/grpc
@@ -234,7 +234,7 @@ RUN cmake --install build --prefix /opt/grpc/${GRPC_VERSION}
 ############################################################
 # UCX
 ############################################################
-FROM build-tools as ucx-builder
+FROM build-tools AS ucx-builder
 ARG UCX_VERSION
 
 # Clone
@@ -272,7 +272,7 @@ RUN patchelf --set-rpath '$ORIGIN/../lib' bin/*
 ############################################################
 # GXF
 ############################################################
-FROM base as gxf-downloader
+FROM base AS gxf-downloader
 ARG GXF_VERSION
 
 WORKDIR /opt/nvidia/gxf
@@ -294,7 +294,7 @@ RUN mv ${GXF_VERSION}/gxf/std/complex.hpp ${GXF_VERSION}/gxf/std/complex.hpp.ori
 # dev image
 # Dev (final)
 ############################################################
-FROM build-tools as dev
+FROM build-tools AS dev
 
 ## INSTALLS
 

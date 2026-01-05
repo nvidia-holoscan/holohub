@@ -23,7 +23,7 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 

@@ -18,7 +18,7 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM ${BASE_IMAGE} as base-img
+FROM ${BASE_IMAGE} AS base-img
 ARG DEBIAN_FRONTEND=noninteractive
 
 ENV WORKDIR=/opt/nvidia

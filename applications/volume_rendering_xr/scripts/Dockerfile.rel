@@ -18,7 +18,7 @@
 ARG DEBIAN_FRONTEND=noninteractive
 
 ARG BASE_IMAGE=nvcr.io/nvidia/cuda:12.4.1-runtime-ubuntu22.04
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 
 # Perform base setup shared with build container
 COPY /applications/volume_rendering_xr/scripts/base-setup.sh \
