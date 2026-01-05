@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +64,7 @@ RUN if [ "${GPU_TYPE}" = "igpu" ]; then \
         torch==${PYTORCH_WHEEL_VERSION} \
         torchvision==${TORCHVISION_WHEEL_VERSION} \
         torchaudio; \
-    if ! find /usr/local/lib/python3.12/dist-packages/torch -name libtorch_cuda.so | grep -q .; then \
+    if ! find $(python3 -c "import torch; print(torch.__path__[0])") -name libtorch_cuda.so | grep -q .; then \
         echo "libtorch_cuda.so not found, torch installation failed"; \
         exit 1; \
     fi
