@@ -1,3 +1,8 @@
+"""
+SPDX-FileCopyrightText: Copyright (c) 2026 Kernel.
+SPDX-License-Identifier: Apache-2.0
+"""
+
 from __future__ import annotations
 
 import logging
@@ -55,8 +60,7 @@ class RegularizedSolverOperator(Operator):
         num_cols_expected = batch.num_absorbers * num_significant_voxels
 
         # GPU-only: always use CuPy.
-        xp = cp
-        result = xp.zeros(
+        result = cp.zeros(
             (num_cols_expected, num_wavelengths),
             dtype=batch.systems[0].jacobian.dtype,
         )
@@ -65,7 +69,6 @@ class RegularizedSolverOperator(Operator):
             assert system.jacobian.shape[1] == num_cols_expected
 
             solution = solve_regularized_system(
-                xp,
                 system.jacobian,
                 system.rhs,
                 wavelength_idx,

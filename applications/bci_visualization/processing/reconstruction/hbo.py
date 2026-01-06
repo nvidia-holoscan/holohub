@@ -1,16 +1,22 @@
+"""
+SPDX-FileCopyrightText: Copyright (c) 2026 Kernel.
+SPDX-License-Identifier: Apache-2.0
+"""
+
 from __future__ import annotations
 
 import csv
 from pathlib import Path
-from typing import NamedTuple, Tuple
+from typing import Dict, NamedTuple, Tuple
 
-import numpy as np
-from numpy.typing import NDArray
-
-from .gpu import get_array_module
+import cupy as cp
 
 class ExtinctionCoefficient(NamedTuple):
-    Wavelength: float
+    """
+    Matches the row structure of the extinction coefficient CSV asset.
+    Provides the molar extinction coefficients for various chromophores at specific wavelengths.
+    """
+    Wavelength: int
     HbO: float
     deoxyHb: float
     Water: float
@@ -19,10 +25,10 @@ class ExtinctionCoefficient(NamedTuple):
     GdTex: float
 
     @classmethod
-    def from_csv(cls, path: Path) -> list[ExtinctionCoefficient]:
-        return [
-            cls(
-                Wavelength=float(row["Wavelength"]),
+    def from_csv(cls, path: Path) -> Dict[int, ExtinctionCoefficient]:
+        return {
+            int(row["Wavelength"]): cls(
+                Wavelength=int(row["Wavelength"]),
                 HbO=float(row["HbO"]),
                 deoxyHb=float(row["deoxyHb"]),
                 Water=float(row["Water"]),
@@ -31,22 +37,22 @@ class ExtinctionCoefficient(NamedTuple):
                 GdTex=float(row["GdTex"]),
             )
             for row in csv.DictReader(open(path))
-        ]
+        }
 
-    def get_oxy_deoxy_coefficients(self) -> NDArray[np.float32]:
-        return np.array(
+    def get_oxy_deoxy_coefficients(self) -> cp.ndarray:
+        return cp.array(
             [
                 self.HbO,
                 self.deoxyHb,
             ],
-            dtype=np.float32,
+            dtype=cp.float32,
         )
 
 
 class HbO:
-    def __init__(self, coefficients: list[ExtinctionCoefficient], use_gpu: bool = False) -> None:
+    def __init__(self, coefficients: Dict[int, ExtinctionCoefficient], use_gpu: bool = False) -> None:
         self._coefficients = coefficients
-        self._cached_coefficients: NDArray[np.float32] | None = None
+        self._cached_coefficients: cp.ndarray | None = None
         self._use_gpu = use_gpu
 
     def _get_molar_extinction_coefficients(self, wavelength: int) -> ExtinctionCoefficient:
@@ -70,24 +76,20 @@ class HbO:
             Extinction coefficients in [m^-1 / µM] for oxy and deoxy-hemoglobin, water, lipids, LuTex, and GdTex.
         """
 
-        wavelength_rows = [ext for ext in self._coefficients if ext.Wavelength == round(wavelength)]
-        if len(wavelength_rows) == 0:
+        coefficient = self._coefficients.get(round(wavelength))
+        if coefficient is None:
             raise ValueError(
                 f"No entry found for {wavelength} nm. Please enter a valid integer wavelength between 600-1000 nm."
             )
-        if len(wavelength_rows) > 1:
-            raise RuntimeError(
-                f"Multiple entries found for {wavelength} nm. Please correct the dataset."
-            )
 
-        return wavelength_rows[0]
+        return coefficient
 
     def convert_mua_to_hb(
         self,
-        data_mua: NDArray[np.float32],
+        data_mua: cp.ndarray,
         wavelengths: tuple,
-        idxs_significant_voxels: NDArray[np.int_],
-    ) -> Tuple[NDArray[np.float32], NDArray[np.float32]]:
+        idxs_significant_voxels: cp.ndarray,
+    ) -> Tuple[cp.ndarray, cp.ndarray]:
         """Converts mua to Hb in voxel space.
 
         Parameters
@@ -97,31 +99,30 @@ class HbO:
         wavelengths : tuple
             Wavelengths (nm).
         idxs_significant_voxels
-            Indices of significant voxels.
+            Indices of significant voxels over the threshold of
+            max sensitivity (jacobian) across voxels.
 
         Returns
         -------
         data_hbo : NDArray[np.float32]
-            Oxygenated hemoglobin in voxel space.
+            Oxygenated hemoglobin in voxel space (µM).
         data_hbr : NDArray[np.float32]
-            Deoxygenated hemoglobin in voxel space.
+            Deoxygenated hemoglobin in voxel space (µM).
         """
         num_voxels, _ = data_mua.shape
 
-        xp = get_array_module(self._use_gpu)[0]  # either cupy or numpy
-
         if self._cached_coefficients is None:
-            self._cached_coefficients = xp.asarray(
+            self._cached_coefficients = cp.asarray(
                 [
                     self._get_molar_extinction_coefficients(wavelength).get_oxy_deoxy_coefficients()
                     for wavelength in wavelengths
                 ]
             )
 
-        idxs_significant_voxels = xp.asarray(idxs_significant_voxels)
-        sample_mua = xp.zeros((len(wavelengths), num_voxels))
+        idxs_significant_voxels = cp.asarray(idxs_significant_voxels)
+        sample_mua = cp.zeros((len(wavelengths), num_voxels))
         sample_mua[:, idxs_significant_voxels] = data_mua[idxs_significant_voxels, :].T
-        sample_hb = xp.linalg.solve(self._cached_coefficients, sample_mua)
+        sample_hb = cp.linalg.solve(self._cached_coefficients, sample_mua)
 
         assert sample_hb.shape == (len(wavelengths), num_voxels)
         data_hbo = sample_hb[0]

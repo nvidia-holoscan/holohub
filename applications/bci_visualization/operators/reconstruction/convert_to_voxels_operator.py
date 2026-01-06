@@ -1,14 +1,18 @@
+"""
+SPDX-FileCopyrightText: Copyright (c) 2026 Kernel.
+SPDX-License-Identifier: Apache-2.0
+"""
+
 from __future__ import annotations
 
 import logging
-from types import ModuleType
-from typing import Any, Tuple, cast
+from typing import Any, Dict, Tuple, cast
 
 import cupy as cp
 import numpy as np
 from numpy.typing import NDArray
 
-from processing.reconstruction import ExtinctionCoefficient, HbO, gpu
+from processing.reconstruction import ExtinctionCoefficient, HbO
 from holoscan.core import (
     ExecutionContext,
     InputContext,
@@ -22,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 
 def _convert_to_full_voxels(
-    xp: ModuleType,  # np or cp
     array: NDArray[np.float32],
     num_voxels: int,
     idxs_significant_voxels: NDArray[np.int_],
@@ -43,7 +46,7 @@ def _convert_to_full_voxels(
     array_full_voxels : NDArray[np.float32]
         The input array converted to full voxel space.
     """
-    array_full_voxels = xp.zeros((num_voxels, array.shape[1]))
+    array_full_voxels = cp.zeros((num_voxels, array.shape[1]))
     array_full_voxels[idxs_significant_voxels, :] = array
 
     return array_full_voxels
@@ -94,7 +97,7 @@ class ConvertToVoxelsOperator(Operator):
     def __init__(
         self,
         *,
-        coefficients: list[ExtinctionCoefficient],
+        coefficients: Dict[int, ExtinctionCoefficient],
         ijk: NDArray[np.float32],
         xyz: NDArray[np.float32],
         fragment: Any | None = None,
@@ -125,11 +128,7 @@ class ConvertToVoxelsOperator(Operator):
         cuda_stream = op_input.receive_cuda_stream("result")
 
         with cp.cuda.ExternalStream(cuda_stream):
-            # GPU-only: always use CuPy.
-            xp = cp
-
             data_mua_full = _convert_to_full_voxels(
-                xp,
                 result.data_mua,
                 result.num_full_voxels,
                 result.idxs_significant_voxels,
@@ -145,8 +144,8 @@ class ConvertToVoxelsOperator(Operator):
             self._cum_hbr = data_hbr if self._cum_hbr is None else self._cum_hbr + data_hbr
 
 
-            layout = self._compute_voxel_layout(xp, result.voxel_metadata)
-            hb_volume = self._voxelize_hbo(xp, self._cum_hbo, layout)
+            layout = self._compute_voxel_layout(result.voxel_metadata)
+            hb_volume = self._voxelize_hbo(self._cum_hbo, layout)
 
         self._emit_affine_once(op_output)
         op_output.emit(hb_volume, "hb_voxel_data")
@@ -160,7 +159,6 @@ class ConvertToVoxelsOperator(Operator):
 
     def _voxelize_hbo(
         self,
-        xp: ModuleType,
         data_hbo: NDArray[np.float32],
         layout: Tuple[NDArray[np.int_], Tuple[int, int, int], NDArray[np.int_]],
     ) -> NDArray[np.float32]:
@@ -171,7 +169,7 @@ class ConvertToVoxelsOperator(Operator):
         assert num_voxels == scatter_coords.shape[0]
 
         # scatter ijk to full voxel grid
-        volume_small: NDArray[np.float32] = xp.zeros(normalized_shape, dtype=data_hbo.dtype)
+        volume_small: NDArray[np.float32] = cp.zeros(normalized_shape, dtype=data_hbo.dtype)
         x_idx, y_idx, z_idx = scatter_coords.T
         volume_small[x_idx, y_idx, z_idx] = data_hbo
 
@@ -179,16 +177,15 @@ class ConvertToVoxelsOperator(Operator):
 
     def _compute_voxel_layout(
         self,
-        xp: ModuleType,
         metadata: VoxelMetadata,
     ) -> Tuple[NDArray[np.int_], Tuple[int, int, int], NDArray[np.int_]]:
         """
         Compute normalized voxel coordinates and grid shape from metadata.
         """
-        ijk = xp.asarray(metadata.ijk)
+        ijk = cp.asarray(metadata.ijk)
         assert ijk.ndim == 2 and ijk.shape[1] == 3
 
-        ijk_int = xp.rint(ijk)
+        ijk_int = cp.rint(ijk)
         min_idx = ijk_int.min(axis=0)
         normalized = ijk_int - min_idx
         shape = tuple(int(axis_max) + 1 for axis_max in normalized.max(axis=0))
