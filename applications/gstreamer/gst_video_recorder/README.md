@@ -192,7 +192,7 @@ Practical, copy-paste examples for common use cases.
     ./holohub run gst_video_recorder --run-args="--source v4l2 --width 640 --height 480 --pixel-format YUYV --count 300 -o camera_yuyv.mp4"
     ```
 
-* High quality recording with custom encoder settings:
+* High-quality recording with custom encoder settings:
     ```bash
     ./holohub run gst_video_recorder --run-args="--source v4l2 --property bitrate=12000 --property preset=1 --count 900 -o high_quality.mp4"
     ```
