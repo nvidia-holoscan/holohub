@@ -37,7 +37,7 @@ For more information about this application, refer to:
 - **[Quick Start](#quick-start)** - Run with default settings.
 - **[Installation Guide](#installation-guide)** - Requirements and building.
 - **[Testing](#testing)** - Integration tests to validate the pipeline execution.
-- **[Examples](#usage-reference)** - Examples for common use cases.
+- **[Examples](#usage-examples)** - Examples for common use cases.
 - **[Architecture](#architecture)** - Technical details and design.
 
 
