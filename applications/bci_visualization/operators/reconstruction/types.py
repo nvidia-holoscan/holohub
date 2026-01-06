@@ -1,3 +1,8 @@
+"""
+SPDX-FileCopyrightText: Copyright (c) 2026 Kernel.
+SPDX-License-Identifier: Apache-2.0
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -1,3 +1,8 @@
+"""
+SPDX-FileCopyrightText: Copyright (c) 2026 Kernel.
+SPDX-License-Identifier: Apache-2.0
+"""
+
 from __future__ import annotations
 
 import logging
@@ -5,7 +10,6 @@ from typing import Any, List, Tuple
 
 import cupy as cp
 import numpy as np
-from numpy.typing import NDArray
 
 from processing.reconstruction import (
     Assets,
@@ -24,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class BuildRHSOperator(Operator):
-    """Convert realtime moments tensors into trimmed RHS/Jacobian batches."""
+    """Convert realtime moments tensors into trimmed Right-Hand Side (RHS)/Jacobian batches."""
 
     def __init__(
         self,
@@ -155,7 +159,7 @@ class BuildRHSOperator(Operator):
 
                 # swap axes so it's features, channels first
                 jacobians = jacobians.transpose(1, 0, 2, 3, 4)
-                # reshape to 3d and use F ordering
+                # reshape to 3d and use Fortran-style ordering
                 jacobians = cp.reshape(
                     jacobians,
                     (

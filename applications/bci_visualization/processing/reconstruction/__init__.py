@@ -1,14 +1,18 @@
+"""
+SPDX-FileCopyrightText: Copyright (c) 2026 Kernel.
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import json
 import logging
 import pathlib
 from dataclasses import dataclass
-from typing import Tuple, cast
+from typing import Dict, Tuple, cast
 
 import numpy as np
 from numpy.typing import NDArray
 
 # reexport
-from .data_utils import get_channel_mask
 from .hbo import ExtinctionCoefficient, HbO 
 from .types import ChannelHeadsetMapping
 
@@ -27,7 +31,7 @@ class Assets:
     xyz: NDArray[np.float32]  # voxel xyz coordinates
     wavelengths: NDArray[np.int_]  # wavelengths
     resolution: Tuple[float, float, float]
-    extinction_coefficients: list[ExtinctionCoefficient]  # HbO and HbR extinction coefficients
+    extinction_coefficients: Dict[int, ExtinctionCoefficient]  # HbO and HbR extinction coefficients
 
 
 _assets: Assets | None = None

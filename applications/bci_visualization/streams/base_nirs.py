@@ -1,3 +1,8 @@
+"""
+SPDX-FileCopyrightText: Copyright (c) 2026 Kernel.
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import abc
 from typing import Iterator, NamedTuple
 
@@ -6,14 +11,13 @@ from numpy.typing import NDArray
 
 
 class ChannelInfo(NamedTuple):
-    sds: NDArray[np.float32]
     detector_module: NDArray[np.int_]
     detector_number: NDArray[np.int_]
     source_module: NDArray[np.int_]
     source_number: NDArray[np.int_]
 
     def __len__(self) -> int:
-        return len(self.sds)
+        return len(self.source_module)
 
 
 class BaseNirsStream(abc.ABC):

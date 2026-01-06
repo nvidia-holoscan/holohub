@@ -1,3 +1,8 @@
+"""
+SPDX-FileCopyrightText: Copyright (c) 2026 Kernel.
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import logging
 from pathlib import Path
 from typing import Dict, Iterator, List, NamedTuple, cast
@@ -7,7 +12,6 @@ import numpy as np
 
 from streams.base_nirs import ChannelInfo
 
-from . import dist3d
 from .base_nirs import BaseNirsStream
 
 logger = logging.getLogger(__name__)
@@ -17,16 +21,22 @@ NUM_WAVELENGTHS = 2
 
 
 class SNIRFChannel(NamedTuple):
+    """
+    Represents a single channel in a SNIRF file.
+    """
     moment: int
     wavelength: int
     source_module: int
     source_number: int
     detector_module: int
     detector_number: int
-    sds: float
 
 
 class SNIRFStream(BaseNirsStream):
+    """
+    Streams data from a SNIRF file.
+    See more about the spec at https://github.com/fNIRS/snirf
+    """
     def __init__(self, snirf_file: Path | str) -> None:
         self._snirf_file_path = Path(snirf_file)
         if not self._snirf_file_path.exists():
@@ -47,7 +57,6 @@ class SNIRFStream(BaseNirsStream):
             source_number=np.array([ch.source_number for ch in self._unique_channels]),
             detector_module=np.array([ch.detector_module for ch in self._unique_channels]),
             detector_number=np.array([ch.detector_number for ch in self._unique_channels]),
-            sds=np.array([ch.sds for ch in self._unique_channels]),
         )
 
     def _get_channels(self) -> List[SNIRFChannel]:
@@ -93,10 +102,6 @@ class SNIRFStream(BaseNirsStream):
                     source_number=int(source),
                     detector_module=int(detector_module),
                     detector_number=int(detector),
-                    sds=dist3d(
-                        *source_pos_3d_map[(int(source_module), int(source))],
-                        *detector_pos_3d_map[(int(detector_module), int(detector))],
-                    ),
                 )
             )
 

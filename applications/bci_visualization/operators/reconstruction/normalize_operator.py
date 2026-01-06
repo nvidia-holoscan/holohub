@@ -1,7 +1,11 @@
+"""
+SPDX-FileCopyrightText: Copyright (c) 2026 Kernel.
+SPDX-License-Identifier: Apache-2.0
+"""
+
 from __future__ import annotations
 
 import logging
-from types import ModuleType
 from typing import Any, List, Tuple
 
 import cupy as cp
@@ -82,7 +86,6 @@ class NormalizeOperator(Operator):
 
     def _get_hard_coded_row_normalizers(
         self,
-        xp: ModuleType,
         num_rows: int,
         num_features: int,
         num_wavelengths: int,
@@ -90,61 +93,15 @@ class NormalizeOperator(Operator):
         if self._hard_coded_row_normalizers_cache is not None:
             return self._hard_coded_row_normalizers_cache
 
-        row_normalizers = xp.full((num_rows, num_wavelengths), xp.nan)
+        row_normalizers = cp.full((num_rows, num_wavelengths), cp.nan)
         for wavelength_idx in range(num_wavelengths):
             for idx_feature in range(num_features):
                 row_normalizers[idx_feature::num_features, wavelength_idx] = HARD_CODED_NORMALIZERS[
                     wavelength_idx
                 ][idx_feature]
 
-        assert not xp.any(xp.isnan(row_normalizers))
+        assert not cp.any(cp.isnan(row_normalizers))
         self._hard_coded_row_normalizers_cache = row_normalizers
-        return row_normalizers
-
-    def _compute_row_normalizers(
-        self,
-        xp: ModuleType,
-        rhs: NDArray[np.float32],
-        num_rows: int,
-        num_features: int,
-        num_wavelengths: int,
-    ) -> NDArray[np.float32] | None:
-        if self._use_hard_coded_normalizers:
-            return self._get_hard_coded_row_normalizers(
-                xp,
-                num_rows,
-                num_features,
-                num_wavelengths,
-            )
-
-        # We store ONE max value per wavelength/feature type to preserve relative contrast
-        if self._max_rhs is None:
-            self._max_rhs = xp.zeros((num_features, num_wavelengths), dtype=xp.float32)
-            return None  # early return because normalizer of all 0 is invalid for solving
-
-        # Iterate through features to pool the max across all relevant rows
-        for wavelength_idx in range(num_wavelengths):
-            for idx_feature in range(num_features):
-                # Extract all rows and wavelengths for this feature
-                # Shape: (subset_rows, wavelengths)
-                feature_data = xp.abs(rhs[idx_feature::num_features, wavelength_idx])
-
-                # Find the single highest value in this batch for this entire feature type
-                batch_feature_max = xp.max(feature_data)
-
-                # Update the historical running max
-                self._max_rhs[idx_feature, wavelength_idx] = max(
-                    self._max_rhs[idx_feature, wavelength_idx], batch_feature_max
-                )
-
-        # build normalizer with rolling max, per feature and wavelength
-        row_normalizers = xp.full((num_rows, num_wavelengths), xp.nan)
-        for wavelength_idx in range(num_wavelengths):
-            for idx_feature in range(num_features):
-                row_normalizers[idx_feature::num_features, wavelength_idx] = self._max_rhs[
-                    idx_feature, wavelength_idx
-                ]
-
         return row_normalizers
 
     def _normalize_batch(self, batch: BuildRHSOutput) -> Tuple[List[WavelengthSystem], int] | None:
@@ -153,19 +110,14 @@ class NormalizeOperator(Operator):
         num_absorbers, remainder = divmod(num_cols, num_significant)
         assert not remainder
 
-        # GPU-only: always use CuPy, and rely on upstream CUDA stream propagation for correctness.
-        xp = cp
-
         # normalize rows
-        rhs = xp.asarray(batch.data_rhs, dtype=xp.float32)
+        rhs = cp.asarray(batch.data_rhs, dtype=cp.float32)
         num_wavelengths = batch.data_rhs.shape[-1]
-        row_normalizers = self._compute_row_normalizers(
-            xp, rhs, batch.data_jacobians.shape[0], batch.num_features, num_wavelengths
+        row_normalizers = self._get_hard_coded_row_normalizers(
+            batch.data_jacobians.shape[0], batch.num_features, num_wavelengths
         )
-        if row_normalizers is None:
-            return  # early exit if max_rhs is all zeros
 
-        jacobian_template = self._get_template_jacobians(xp, batch)
+        jacobian_template = self._get_template_jacobians(batch)
         if (
             self._use_hard_coded_normalizers
             and self._hard_coded_normalized_jacobian_cache is not None
@@ -182,9 +134,9 @@ class NormalizeOperator(Operator):
 
         systems: List[WavelengthSystem] = []
         for idx_wavelength in range(num_wavelengths):
-            background_payload = xp.asarray(
+            background_payload = cp.asarray(
                 batch.model_optical_properties[:, idx_wavelength],
-                dtype=xp.float32,
+                dtype=cp.float32,
             )
             systems.append(
                 WavelengthSystem(
@@ -198,7 +150,6 @@ class NormalizeOperator(Operator):
 
     def _get_template_jacobians(
         self,
-        xp: ModuleType,
         batch: BuildRHSOutput,
     ) -> NDArray[np.float32]:
         """
@@ -207,10 +158,10 @@ class NormalizeOperator(Operator):
         if self._jacobian_cache is not None:
             return self._jacobian_cache
 
-        template = xp.asarray(batch.data_jacobians, dtype=xp.float32).copy()
-        background = xp.asarray(batch.model_optical_properties, dtype=xp.float32)
+        template = cp.asarray(batch.data_jacobians, dtype=cp.float32).copy()
+        background = cp.asarray(batch.model_optical_properties, dtype=cp.float32)
 
-        background_T = xp.swapaxes(background, 0, 1)
+        background_T = cp.swapaxes(background, 0, 1)
         template *= background_T[None, :, :]
 
         self._jacobian_cache = template
