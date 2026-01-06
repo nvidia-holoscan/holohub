@@ -87,9 +87,6 @@ Reference for running `gst_video_recorder` that includes:
 
 - [Running the Application](#running-the-application)
 - [Command-Line Options](#command-line-options)
-- [Encoder Properties](#encoder-properties)
-- [Output Formats](#output-formats)
-- [Supported Encoders](#supported-encoders)
 
 ### Running the Application
 
