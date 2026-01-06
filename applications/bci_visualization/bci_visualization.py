@@ -14,36 +14,66 @@ from holoscan.core import Application
 from holoscan.operators import HolovizOp
 from holoscan.resources import CudaStreamPool, UnboundedAllocator
 from holoscan.schedulers import EventBasedScheduler, MultiThreadScheduler
+from holoscan.core import ConditionType
+
 # Import local operators
 from operators.voxel_stream_to_volume import VoxelStreamToVolumeOp
+from operators.reconstruction import (
+    BuildRHSOperator,
+    ConvertToVoxelsOperator,
+    NormalizeOperator,
+    RegularizedSolverOperator,
+)
+from operators.stream import StreamOperator
+
+# Import processing utilities
+from processing.reconstruction import REG_DEFAULT, get_assets
+from streams.base_nirs import BaseNirsStream
+from streams.snirf import SNIRFStream
 
 from holohub.color_buffer_passthrough import ColorBufferPassthroughOp
 from holohub.volume_renderer import VolumeRendererOp
 
+
 class BciVisualizationApp(Application):
-    """BCI Visualization Application with ClaraViz."""
+    """BCI Visualization Application with ClaraViz.
+    
+    This application integrates the full pipeline from NIRS data streaming through
+    reconstruction to 3D volume rendering and visualization.
+    """
 
     def __init__(self, 
         argv=None,
         *args,
         render_config_file,
-        density_min,
-        density_max,
-        label_path=None,
-        roi_labels=None,
+        stream: BaseNirsStream,
+        jacobian_path: Path | str,
+        channel_mapping_path: Path | str,
+        voxel_info_dir: Path | str,
+        coefficients_path: Path | str,
         mask_path=None,
+        reg: float = REG_DEFAULT,
+        tol: float = 1e-4,
+        use_gpu: bool = False,
         **kwargs,
     ):
         self._rendering_config = render_config_file
-        self._density_min = density_min
-        self._density_max = density_max
-        self._label_path = label_path
-        self._roi_labels = roi_labels
         self._mask_path = mask_path
+        
+        # Reconstruction pipeline parameters
+        self._stream = stream
+        self._reg = reg
+        self._jacobian_path = Path(jacobian_path)
+        self._channel_mapping_path = Path(channel_mapping_path)
+        self._coefficients_path = Path(coefficients_path)
+        self._voxel_info_dir = Path(voxel_info_dir)
+        self._tol = tol
+        self._use_gpu = use_gpu
 
         super().__init__(argv, *args, **kwargs)
 
     def compose(self):
+        # Resources
         volume_allocator = UnboundedAllocator(self, name="allocator")
         cuda_stream_pool = CudaStreamPool(
             self,
@@ -55,42 +85,66 @@ class BciVisualizationApp(Application):
             max_size=5,
         )
 
-        # Selection
-        selected_channel = 0  # 0: HbO, 1: HbR
+        # Get reconstruction pipeline assets
+        pipeline_assets = get_assets(
+            jacobian_path=self._jacobian_path,
+            channel_mapping_path=self._channel_mapping_path,
+            voxel_info_dir=self._voxel_info_dir,
+            coefficients_path=self._coefficients_path,
+        )
 
-        # Operators
-        voxel_to_volume_args = {
-            "selected_channel": selected_channel,
-        }
-        if self._label_path:
-            voxel_to_volume_args["label_path"] = self._label_path
-        if self._roi_labels:
-            voxel_to_volume_args["roi_labels"] = self._roi_labels
-        if self._mask_path:
-            voxel_to_volume_args["mask_nifti_path"] = self._mask_path
-            
+        # ========== Reconstruction Pipeline Operators ==========
+        stream_operator = StreamOperator(stream=self._stream, fragment=self)
+        
+        build_rhs_operator = BuildRHSOperator(
+            assets=pipeline_assets,
+            fragment=self,
+        )
+        
+        normalize_operator = NormalizeOperator(
+            fragment=self,
+            use_gpu=self._use_gpu,
+        )
+        
+        regularized_solver_operator = RegularizedSolverOperator(
+            reg=self._reg,
+            use_gpu=self._use_gpu,
+            fragment=self,
+        )
+        
+        convert_to_voxels_operator = ConvertToVoxelsOperator(
+            fragment=self,
+            coefficients=pipeline_assets.extinction_coefficients,
+            ijk=pipeline_assets.ijk,
+            xyz=pipeline_assets.xyz,
+            use_gpu=self._use_gpu,
+        )
+
+        # ========== Visualization Pipeline Operators ==========
         voxel_to_volume = VoxelStreamToVolumeOp(
             self,
             name="voxel_to_volume",
             pool=volume_allocator,
-            **voxel_to_volume_args,
+            mask_nifti_path=self._mask_path,
         )
-
-        volume_renderer_args = {}
-        if self._density_min:
-            volume_renderer_args["density_min"] = self._density_min
-        if self._density_max:
-            volume_renderer_args["density_max"] = self._density_max
 
         volume_renderer = VolumeRendererOp(
             self,
             name="volume_renderer",
             config_file=self._rendering_config,
             allocator=volume_allocator,
-            alloc_width=1024,
-            alloc_height=768,
             cuda_stream_pool=cuda_stream_pool,
-            **volume_renderer_args,
+            **self.kwargs("volume_renderer"),
+        )
+
+        # IMPORTANT changes to avoid deadlocks of volume_renderer and holoviz 
+        # when running in multi-threading mode
+        # 1. Set the output port condition to NONE to remove backpressure
+        volume_renderer.spec.outputs["color_buffer_out"].condition(ConditionType.NONE)
+        # 2. Use a passthrough operator to configure queue policy as POP to use latest frame
+        color_buffer_passthrough = ColorBufferPassthroughOp(
+            self,
+            name="color_buffer_passthrough",
         )
 
         holoviz = HolovizOp(
@@ -101,27 +155,25 @@ class BciVisualizationApp(Application):
             cuda_stream_pool=cuda_stream_pool,
         )
 
-        color_buffer_passthrough = ColorBufferPassthroughOp(
-            self,
-            name="color_buffer_passthrough",
-        )
+        # ========== Connect Reconstruction Pipeline ==========
+        self.add_flow(stream_operator, build_rhs_operator, {
+            ("samples", "moments"),
+        })
+        self.add_flow(build_rhs_operator, normalize_operator, {
+            ("batch", "batch"),
+        })
+        self.add_flow(normalize_operator, regularized_solver_operator, {
+            ("normalized", "batch"),
+        })
+        self.add_flow(regularized_solver_operator, convert_to_voxels_operator, {
+            ("result", "result"),
+        })
+        self.add_flow(convert_to_voxels_operator, voxel_to_volume, {
+            ("affine_4x4", "affine_4x4"),
+            ("hb_voxel_data", "hb_voxel_data"),
+        })
 
-        # Connect operators
-
-        kernel_data = Path("/workspace/holohub/data/kernel")
-        from streams.snirf import SNIRFStream
-        stream = SNIRFStream(kernel_data / "data.snirf")
-        from reconstruction import ReconstructionApplication
-        reconstruction_application = ReconstructionApplication(
-            stream=stream,
-            jacobian_path=kernel_data / "flow_mega_jacobian.npy",
-            channel_mapping_path=kernel_data / "flow_channel_map.json",
-            voxel_info_dir=kernel_data / "voxel_info",
-            coefficients_path=kernel_data / "extinction_coefficients_mua.csv",
-            use_gpu=True,
-        )
-        reconstruction_application.compose(self, voxel_to_volume)
-
+        # ========== Connect Visualization Pipeline ==========
         # voxel_to_volume → volume_renderer
         self.add_flow(voxel_to_volume, volume_renderer, {
             ("volume", "density_volume"),
@@ -145,56 +197,16 @@ class BciVisualizationApp(Application):
 
 
 def main():
-    
-    
     parser = argparse.ArgumentParser(description="BCI Visualization Application", add_help=False)
+    
     parser.add_argument(
         "-c",
-        "--config",
+        "--renderer_config",
         action="store",
-        dest="config",
-        help="Name of the renderer JSON configuration file to load",
+        dest="renderer_config",
+        help="Path to the renderer JSON configuration file to load",
     )
 
-    parser.add_argument(
-        "-i",
-        "--density_min",
-        action="store",
-        type=int,
-        dest="density_min",
-        help="Set the minimum of the density element values. If not set this is calculated from the"
-        "volume data. In practice CT volumes have a minimum value of -1024 which corresponds to"
-        "the lower value of the Hounsfield scale range usually used.",
-    )
-    parser.add_argument(
-        "-a",
-        "--density_max",
-        action="store",
-        type=int,
-        dest="density_max",
-        help="Set the maximum of the density element values. If not set this is calculated from the"
-        "volume data. In practice CT volumes have a maximum value of 3071 which corresponds to"
-        "the upper value of the Hounsfield scale range usually used.",
-    )
-    
-    parser.add_argument(
-        "-l",
-        "--label_path",
-        action="store",
-        type=str,
-        dest="label_path",
-        help="Path to the NPZ file containing brain anatomy labels. If not provided, uses default path.",
-    )
-    
-    parser.add_argument(
-        "-r",
-        "--roi_labels",
-        action="store",
-        type=str,
-        dest="roi_labels",
-        help="Comma-separated list of label values to use as ROI (e.g., '3,4'). Default is '3,4'.",
-    )
-    
     parser.add_argument(
         "-m",
         "--mask_path",
@@ -210,24 +222,27 @@ def main():
     
     args = parser.parse_args()
     
-    # Parse roi_labels from comma-separated string to list of integers
-    roi_labels = None
-    if args.roi_labels:
-        try:
-            roi_labels = [int(label.strip()) for label in args.roi_labels.split(',')]
-        except ValueError:
-            print(f"Warning: Invalid roi_labels format '{args.roi_labels}'. Expected comma-separated integers.")
-            roi_labels = None
-
+    # Setup data paths
+    default_data_path = os.path.join(os.getcwd(), "data/bci_visualization")
+    kernel_data = Path(os.environ.get("HOLOSCAN_INPUT_PATH", default_data_path))
+    
+    stream = SNIRFStream(kernel_data / "data.snirf")
     app = BciVisualizationApp(
-        render_config_file=args.config,
-        density_min=args.density_min,
-        density_max=args.density_max,
-        label_path=args.label_path,
-        roi_labels=roi_labels,
+        render_config_file=args.renderer_config,
+        stream=stream,
+        jacobian_path=kernel_data / "flow_mega_jacobian.npy",
+        channel_mapping_path=kernel_data / "flow_channel_map.json",
+        voxel_info_dir=kernel_data / "voxel_info",
+        coefficients_path=kernel_data / "extinction_coefficients_mua.csv",
         mask_path=args.mask_path,
+        reg=REG_DEFAULT,
+        use_gpu=True,
     )
 
+    # Load YAML configuration
+    config_file = os.path.join(os.path.dirname(__file__), "bci_visualization.yaml")
+
+    app.config(config_file)
     app.scheduler(EventBasedScheduler(app, worker_thread_number=5, stop_on_deadlock=True))
 
     app.run()

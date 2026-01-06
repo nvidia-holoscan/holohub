@@ -1,10 +1,22 @@
 {
 	"application": {
-		"name": "BCI Visualization with ClaraViz",
+		"name": "BCI Visualization with Kernel Flow2",
 		"authors": [
 			{
 				"name": "Holoscan Team",
 				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Kernel Team",
+				"affiliation": "Kernel"
+			},
+			{
+				"name": "Mimi Liao",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Gabe Lerner",
+				"affiliation": "Kernel"
 			}
 		],
 		"language": "Python",
@@ -13,25 +25,23 @@
 			"1.0": "Initial Python Release"
 		},
 		"holoscan_sdk": {
-			"minimum_required_version": "0.6.0",
+			"minimum_required_version": "3.7.0",
 			"tested_versions": [
-				"0.6.0",
-				"1.0.0",
-				"2.0.0",
-				"2.1.0"
+				"3.7.0",
+				"3.9.0"
 			]
 		},
 		"platforms": [
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Healthcare AI", "Visualization", "BCI", "Hemodynamic", "Volume Rendering", "Neuroscience", "Python"],
+		"tags": ["Visualization", "BCI", "Hemodynamic", "Volume Rendering", "Neuroscience"],
 		"ranking": 1,
 		"requirements": {
 			"python": ["numpy", "cupy"]
 		},
 		"run": {
-			"command": "python3 bci_visualization.py --config <holohub_data_dir>/bci_visualization/config.json --density_min -100 --density_max 100 --mask_path <holohub_data_dir>/bci_visualization/anatomy_labels_high_res.nii.gz",
+			"command": "python3 bci_visualization.py --renderer_config <holohub_data_dir>/bci_visualization/config.json --mask_path <holohub_data_dir>/bci_visualization/anatomy_labels_high_res.nii.gz",
 			"workdir": "holohub_app_source"
 		}
 	}
