@@ -49,7 +49,6 @@ To run the application with the default settings, run one of the following comma
 |--|--|
 | ```./holohub  run  gst_video_recorder  v4l2``` |  ```./holohub  run  gst_video_recorder  pattern```|
 
-
 These commands build and run the customized container for this application with all the dependencies installed (defined by `Dockerfile`), and then build and start the application using the default settings. The output video will be saved in the build directory as `output.mp4`.
 
 Run `gst-video-recorder --help` for command-line options.
