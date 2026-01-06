@@ -7,7 +7,7 @@ VoxelStreamToVolume operator: converts streaming voxel data to dense 3D volume.
 
 import cupy as cp
 import cupyx.scipy.ndimage
-import nibabel as nib  # Only needed for debug NIfTI saving
+import nibabel as nib
 import numpy as np
 from holoscan.core import ConditionType, Operator, OperatorSpec
 from nibabel.orientations import aff2axcodes
@@ -29,7 +29,6 @@ class VoxelStreamToVolumeOp(Operator):
     """
 
     def __init__(self, fragment, *args, **kwargs):
-        self.selected_channel = kwargs.pop("selected_channel", 0)  # Default showing HbO channel
         self.mask_nifti_path = kwargs.pop("mask_nifti_path", None)  # Anatomy mask NIfTI file
 
         # Global normalization range
@@ -48,13 +47,6 @@ class VoxelStreamToVolumeOp(Operator):
         self.permute_axis = None  # np.ndarray uint32 (3,)
         self.flip_axes = None  # np.ndarray bool (3,)
         self.roi_mask = None  # np.ndarray bool (I, J, K)
-
-        # Labels for brain anatomy (DEPRECATED)
-        self.label_path = kwargs.pop(
-            "label_path", "/workspace/holohub/data/bci_visualization/resampled_labels.npz"
-        )
-        self.roi_labels = kwargs.pop("roi_labels", [3, 4])  # List of label values to consider as ROI
-        self.labels = None  # np.ndarray (I, J, K)
 
         # Raw incoming mask (I, J, K) for pass-through emission (loaded from file if provided)
         self.mask_voxel_raw = None
@@ -137,8 +129,6 @@ class VoxelStreamToVolumeOp(Operator):
             
             volume_gpu = cp.transpose(volume_gpu, (2, 1, 0))
             volume_gpu = cp.ascontiguousarray(volume_gpu, dtype=cp.float32)
-
-        print("VoxelStreamToVolume:  hb_voxel range:", np.min(hb_voxel), np.max(hb_voxel))
 
         # If we have a mask, emit oriented mask every frame for the renderer
         if self.mask_volume_gpu is None:

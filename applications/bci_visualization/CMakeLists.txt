@@ -20,7 +20,3 @@ find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_subdirectory(operators)
-
-# Enable the operators
-add_library(bci_visualization INTERFACE)
-target_link_libraries(bci_visualization INTERFACE holoscan::core holoscan::ops::holoviz color_buffer_passthrough)

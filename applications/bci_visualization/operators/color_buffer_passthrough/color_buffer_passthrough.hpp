@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#ifndef BCI_VISUALIZATION_COLOR_BUFFER_PASSTHROUGH_HPP
-#define BCI_VISUALIZATION_COLOR_BUFFER_PASSTHROUGH_HPP
+#pragma once
 
 #include "holoscan/holoscan.hpp"
 
@@ -37,9 +36,5 @@ class ColorBufferPassthroughOp : public Operator {
 };
 
 }  // namespace holoscan::ops
-
-#endif  // BCI_VISUALIZATION_COLOR_BUFFER_PASSTHROUGH_HPP
-
-
 
 

@@ -110,7 +110,7 @@ void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
         std::make_unique<clara::viz::CudaMemory>(volume_size));
 
     {
-      std::unique_ptr<clara::viz::IBlob::AccessGuard> access_gpu = cur_data_array->blob_->Access();
+      std::unique_ptr<clara::viz::IBlob::AccessGuard> access_gpu = cur_data_array->blob_->Access(cuda_stream);
 
       cudaMemcpy3DParms copy_params = {0};
 
@@ -145,10 +145,6 @@ void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
         holoscan::log_error("Failed to copy to GPU memory");
         return;
       }
-
-      // FIXME(Mimi): Explicitly synchronizing the CUDA stream before rendering, w/o this, it renders empty volume sometimes.
-      // TODO: handle synchronization more elegantly elsewhere in the pipeline.
-      cudaStreamSynchronize(cuda_stream);
     }
 
     switch (type) {

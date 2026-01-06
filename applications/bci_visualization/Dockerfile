@@ -24,14 +24,9 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install curl for downloading data files
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Add schemas directory to PYTHONPATH to enable importing operators
-ENV PYTHONPATH=$PYTHONPATH:/workspace/holohub
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data/bci_visualization
 
 # Install Python dependencies
-RUN pip install nibabel nilearn
-
-# Install Kernel's dependencies
-RUN pip install \
-    numpy \
-    scipy \
-    h5py
+COPY applications/bci_visualization/requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt --no-cache-dir
+    

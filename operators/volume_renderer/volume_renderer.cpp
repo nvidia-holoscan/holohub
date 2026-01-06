@@ -225,7 +225,7 @@ class ImageService : public clara::viz::MessageReceiver, public clara::viz::Mess
 
 class VolumeRendererOp::Impl {
  public:
-  bool receive_volume(InputContext& input, ExecutionContext& context,Dataset::Types type);
+  bool receive_volume(InputContext& input, ExecutionContext& context, Dataset::Types type);
 
   Parameter<std::vector<IOSpec*>> settings_;
   Parameter<std::vector<IOSpec*>> merge_settings_;
@@ -303,9 +303,7 @@ bool VolumeRendererOp::Impl::receive_volume(InputContext& input, ExecutionContex
     }
     const cudaStream_t cuda_stream = cuda_stream_handler_.getCudaStream(context.context());
 
-    // MEMORY LEAK FIX: Clear old volumes before receiving new ones for streaming mode
-    // The Dataset class accumulates frames in a vector, which causes unbounded memory growth
-    // For real-time streaming (BCI visualization), we only need the latest frame
+    // MEMORY LEAK FIX: Clear old volumes if we receive a new volume to avoid unbounded memory growth
     dataset_.ResetVolume(type);
     
     auto maybe_tensor = static_cast<nvidia::gxf::Entity>(volume.value()).get<nvidia::gxf::Tensor>("volume");
@@ -539,7 +537,7 @@ void VolumeRendererOp::setup(OperatorSpec& spec) {
   spec.input<std::array<uint32_t, 3>>("mask_permute_axis").condition(ConditionType::kNone);
   spec.input<std::array<bool, 3>>("mask_flip_axes").condition(ConditionType::kNone);
 
-  spec.output<holoscan::gxf::Entity>("color_buffer_out").condition(ConditionType::kNone); // (Mimi): remove backpressure to avoid deadlock when running in a loop
+  spec.output<holoscan::gxf::Entity>("color_buffer_out");
   spec.output<holoscan::gxf::Entity>("depth_buffer_out").condition(ConditionType::kNone);
 
   impl_->cuda_stream_handler_.defineParams(spec);
@@ -548,8 +546,8 @@ void VolumeRendererOp::setup(OperatorSpec& spec) {
 void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
                                ExecutionContext& context) {
   // get the density volumes
-  bool new_volume = impl_->receive_volume(input, context,Dataset::Types::Density);
-  bool new_mask = impl_->receive_volume(input, context,Dataset::Types::Segmentation);
+  bool new_volume = impl_->receive_volume(input, context, Dataset::Types::Density);
+  bool new_mask = impl_->receive_volume(input, context, Dataset::Types::Segmentation);
   
   // there are datasets without mask volume, if we receive a density volume
   // only, reset the mask volume
