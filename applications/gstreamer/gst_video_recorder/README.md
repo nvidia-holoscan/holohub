@@ -32,13 +32,12 @@ This application showcases how to:
   - USB webcams, MIPI CSI cameras, or any V4L2 video device
   - Use `v4l2-ctl --list-devices` to see available cameras
 
-
 For more information about this application, refer to:
 
 - **[Quick Start](#quick-start)** - Run with default settings.
-- **[Installation Guide](#installation-guide)** - Requirements, building, and testing.
-- **[Usage Reference](#usage-reference)** - Complete command-line options reference.
-- **[Examples](#usage-examples)** - Practical examples for common use cases.
+- **[Installation Guide](#installation-guide)** - Requirements and building.
+- **[Testing](#testing)** - Integration tests to validate the pipeline execution.
+- **[Examples](#usage-reference)** - Examples for common use cases.
 - **[Architecture](#architecture)** - Technical details and design.
 
 
@@ -49,19 +48,19 @@ To run the application with the default settings, run one of the following comma
 | Using the V4L2 Camera | Generating Test Patterns |
 |--|--|
 | ```./holohub  run  gst_video_recorder  v4l2``` |  ```./holohub  run  gst_video_recorder  pattern```|
-|--|--|
+
 
 These commands build and run the customized container for this application with all the dependencies installed (defined by `Dockerfile`), and then build and start the application using the default settings. The output video will be saved in the build directory as `output.mp4`.
 
 Run `gst-video-recorder --help` for command-line options.
 
 
-# Installation Guide
+## Installation Guide
 
 This guide covers requirements, building, and testing the GStreamer Video Recorder application.
 
 
-## Building the Application
+### Building the Application
 
 There are two options that you can choose from to build the application. The recommended option is the containerized build, because all dependencies are included in the container and there is no setup. The other option is a local build, which can be best for faster builds and easier debugging. Building locally, requires the installation of some dependencies.
 
@@ -82,17 +81,16 @@ Choose one of the following options to build the application:
 
 
 
-## Usage Reference
+### Usage Reference
 
 Reference for running `gst_video_recorder` that includes:
 
 - [Running the Application](#running-the-application)
 - [Command-Line Options](#command-line-options)
-- [Encoder Properties](#encoder-properties)
-- [Output Formats](#output-formats)
-- [Supported Encoders](#supported-encoders)
 
-### Running the Application
+
+
+#### Running the Application
 
 The recommended way to run the application is through the `holohub` launcher:
 
@@ -106,7 +104,7 @@ Alternatively, if you know the binary location, you can run it directly:
 gst-video-recorder [OPTIONS]
 ```
 
-## Command-Line Options
+#### Command-Line Options
 
 The command line options include the following main categories:
 - [General Options](#general-options)
@@ -114,7 +112,7 @@ The command line options include the following main categories:
 - [V4L2 Camera Options](#v4l2-camera-options)
 - [Pattern Generator Options](#pattern-generator-options)
 
-### General Options
+##### General Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
@@ -126,21 +124,21 @@ The command line options include the following main categories:
 | `--property <key=value>` | Set encoder property (can be used multiple times, for example, `--property bitrate=8000 --property preset=1`). Property types are automatically detected and converted | - |
 | `--help` | Show help message | - |
 
-### Resolution Options
+##### Resolution Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
 | `-w, --width <pixels>` | Frame width. For V4L2: Must match a supported camera resolution. For the pattern: any reasonable resolution (64-8192 pixels) | `1920` |
 | `-h, --height <pixels>` | Frame height. For V4L2: Must match a supported camera resolution. For the pattern: any reasonable resolution (64-8192 pixels) | `1080` |
 
-### V4L2 Camera Options
+##### V4L2 Camera Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--device <path>` | V4L2 device path | `/dev/video0` |
 | `--pixel-format <format>` | V4L2 pixel format (`YUYV`, `MJPEG`, `auto`) | `auto` |
 
-### Pattern Generator Options
+##### Pattern Generator Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
