@@ -9,7 +9,6 @@ import logging
 from typing import Any
 
 import cupy as cp
-from processing.reconstruction import REG_DEFAULT, RESHAPING_ORDER
 from processing.reconstruction.reg_inv import solve_regularized_system
 from holoscan.core import (
     ExecutionContext,
@@ -22,9 +21,9 @@ from .types import NormalizedSolveBatch, SolverResult
 
 logger = logging.getLogger(__name__)
 
-
 class RegularizedSolverOperator(Operator):
     """Run a regularized inverse solver per wavelength system."""
+    REG_DEFAULT = 0.1
 
     def __init__(
         self,
@@ -83,7 +82,7 @@ class RegularizedSolverOperator(Operator):
         # Reshape result to separate absorbers into mua/musp
         reshaped = result.reshape(
             (-1, batch.num_absorbers, num_wavelengths),
-            order=RESHAPING_ORDER,
+            order="F",
         )
         data_mua = reshaped[:, 0, :]
         data_musp = reshaped[:, 1, :]

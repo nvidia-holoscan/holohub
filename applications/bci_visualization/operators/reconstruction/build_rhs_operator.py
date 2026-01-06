@@ -11,7 +11,7 @@ from typing import Any, List, Tuple
 import cupy as cp
 import numpy as np
 
-from processing.reconstruction import (
+from processing.reconstruction.assets import (
     Assets,
 )
 from holoscan.core import (

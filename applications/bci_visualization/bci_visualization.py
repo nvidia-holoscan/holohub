@@ -27,7 +27,7 @@ from operators.reconstruction import (
 from operators.stream import StreamOperator
 
 # Import processing utilities
-from processing.reconstruction import REG_DEFAULT, get_assets
+from processing.reconstruction.assets import get_assets
 from streams.base_nirs import BaseNirsStream
 from streams.snirf import SNIRFStream
 
@@ -52,7 +52,7 @@ class BciVisualizationApp(Application):
         voxel_info_dir: Path | str,
         coefficients_path: Path | str,
         mask_path=None,
-        reg: float = REG_DEFAULT,
+        reg: float = RegularizedSolverOperator.REG_DEFAULT,
         tol: float = 1e-4,
         use_gpu: bool = False,
         **kwargs,
@@ -235,7 +235,7 @@ def main():
         voxel_info_dir=kernel_data / "voxel_info",
         coefficients_path=kernel_data / "extinction_coefficients_mua.csv",
         mask_path=args.mask_path,
-        reg=REG_DEFAULT,
+        reg=RegularizedSolverOperator.REG_DEFAULT,
         use_gpu=True,
     )
 
