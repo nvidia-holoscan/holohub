@@ -1,0 +1,4 @@
+LIBRARY gxf_lstm_tensor_rt_inference
+EXPORTS
+    GxfExtensionFactory
+

@@ -23,6 +23,11 @@ add_library(lstm_tensor_rt_inference SHARED
   lstm_tensor_rt_inference.hpp
   )
 
+set_target_properties(lstm_tensor_rt_inference PROPERTIES
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
+)
+
+target_link_directories(lstm_tensor_rt_inference PUBLIC "${holoscan_DIR}/../..")
 target_link_libraries(lstm_tensor_rt_inference holoscan::core)
 target_include_directories(lstm_tensor_rt_inference INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
