@@ -8,9 +8,9 @@ This example demonstrates real-time visualization of data from Holoscan applicat
 
 The example consists of three main components:
 
-1. **C++ Data Producer**: A Holoscan application that generates data (sine waves) and publishes it to NATS
-2. **NATS Server**: A message broker that handles real-time data streaming
-3. **Python Web Visualizers**: Dash-based web applications that subscribe to NATS streams and display live plots
+* **C++ Data Producer**: A Holoscan application that generates data (sine waves) and publishes it to NATS
+* **NATS Server**: A message broker that handles real-time data streaming
+* **Python Web Visualizers**: Dash-based web applications that subscribe to NATS streams and display live plots
 
 ## Quick Start
 
@@ -41,16 +41,20 @@ The web interface will be available at: [http://localhost:8050](http://localhost
 
 In a third terminal, run the application:
 
-```bash
-# Run the Python version (default when --language is not specified)
-./holohub run pipeline_visualization
+1. Run the Python version (default when `--language` is not specified):
 
-# Or explicitly specify the language:
-./holohub run pipeline_visualization --language python
-./holohub run pipeline_visualization --language cpp
-```
+    ```bash
+    ./holohub run pipeline_visualization
+    ```
 
-**Command-line Options:**
+1. Or explicitly specify the language:
+
+    ```bash
+    ./holohub run pipeline_visualization --language python
+    ./holohub run pipeline_visualization --language cpp
+    ```
+
+Command-line options for `pipeline_visualization`:
 
 ```text
 Usage: ./pipeline_visualization [options]
@@ -63,7 +67,7 @@ Options:
   -r, --publish_rate    Publish rate in Hz (default: 2.0)
 ```
 
-**Example with custom settings:**
+Example with custom settings:
 
 ```bash
 ./holohub run pipeline_visualization --nats_url nats://0.0.0.0:4222 --subject_prefix my_demo --publish_rate 5.0
@@ -71,10 +75,10 @@ Options:
 
 ### Step 4: Visualize the Data
 
-1. Open your web browser to [http://localhost:8050](http://localhost:8050)
-2. Enter the subject name (default: `nats_demo`)
-3. Click **Connect**
-4. Watch the real-time data plots update!
+1. Open your web browser to [http://localhost:8050](http://localhost:8050).
+2. Enter the subject name (default: `nats_demo`).
+3. Click **Connect**.
+4. Watch the real-time data plots update.
 
 The visualizer will display:
 
@@ -87,7 +91,7 @@ The visualizer will display:
 
 ### NATS Logger Configuration (`pipeline_visualization.yaml`)
 
-The NATS logger behavior can be configured via YAML:
+The NATS logger behavior can be configured using YAML:
 
 ```yaml
 nats_logger:
@@ -134,7 +138,7 @@ flowchart TB
 
 ### Application (`cpp/` and `python/`)
 
-The C++ and Python applications demonstrates a simple Holoscan pipeline with data logging:
+The C++ and Python applications demonstrates a basic Holoscan pipeline with data logging:
 
 - **SourceOp**: Generates sine waves with varying frequencies (10-20 Hz)
 - **ModulateOp**: Adds high-frequency modulation (300 Hz) to the signal
@@ -145,31 +149,33 @@ The applications log both inputs and outputs of operators, allowing visualizatio
 
 ### Python Visualizers (`visualizer/`)
 
-Two visualization options are provided:
-
-#### 1. Static Visualizer (`visualizer_static.py`)
-
-- Displays predefined data streams: `source.out`, `modulate.in`, `modulate.out`, `sink.in`
-- Best for applications with known, fixed operator topology
-- All graphs are created upfront and updated as data arrives
-
-The static visualizer can be used when the output data and format of the Holoscan pipeline is known or some data needs special formatting.
-
-#### 2. Dynamic Visualizer (`visualizer_dynamic.py`)
-
-- Automatically discovers and creates graphs for new data streams
-- Ideal for applications with dynamic or unknown operator configurations
-- Graphs are created on-the-fly as new unique IDs are detected
-
-There is a script `start_visualizer.sh` which sets the required Python path to the flatbuffers definitions and starts the visualizer. The script takes a parameter, `dynamic` starts the dynamic visualizer and `static` starts the static visualizer.
-
-Both visualizers display:
+There are two Python visualizers. One is [static](#static-visualizer-visualizer_staticpy) and one is [dynamic](#dynamic-visualizer-visualizer_dynamicpy) and they both display:
 
 - Real-time line plots of tensor data
 - Stream name (operator.port format)
 - IO type (Input/Output)
 - Acquisition timestamp (nanoseconds)
 - Publish timestamp (nanoseconds)
+
+Use `start_visualizer.sh` to set the required Python path to the [flatbuffers](#flatbuffers-schemas-schemas) definitions and starts the visualizer. The script takes one parameter, its values are:
+
+- `dynamic`, to start the dynamic visualizer.
+- `static`, to start the static visualizer.
+
+#### Static Visualizer (`visualizer_static.py`)
+
+The static visualizer can be used when the output data and format of the Holoscan pipeline is known or some data needs special formatting.
+
+- Displays predefined data streams: `source.out`, `modulate.in`, `modulate.out`, `sink.in`
+- Best for applications with known, fixed operator topology
+- All graphs are created upfront and updated as data arrives
+
+#### Dynamic Visualizer (`visualizer_dynamic.py`)
+
+- Automatically discovers and creates graphs for new data streams
+- Ideal for applications with dynamic or unknown operator configurations
+- Graphs are created on-the-fly as new unique IDs are detected
+
 
 ### FlatBuffers Schemas (`schemas/`)
 
@@ -178,15 +184,13 @@ The data format is defined using FlatBuffers for efficient serialization:
 - **message.fbs**: Top-level message structure with metadata
 - **tensor.fbs**: Tensor data structure based on DLPack
 
-## Prerequisites
+## Visualizer Python Prerequisites
 
 All dependencies to run the application are installed automatically when using the `holohub run` command inside
-the Holohub container. Since the visualizer is run outside the Holohub container, its dependencies must be
-installed separately. See the next section for details.
+the Holohub container. Because the visualizer is run outside the Holohub container, its [dependencies](#visualizer-python-dependencies) must be
+installed separately.
 
-### Visualizer Python Dependencies
-
-Install the required Python packages:
+Install the required Python packages dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -205,7 +209,7 @@ Required packages:
 
 ### NATS Message Structure
 
-Messages are published to the subject: `<subject_prefix>.data` (e.g., `nats_demo.data`)
+Messages are published to the subject: `<subject_prefix>.data` (for example, `nats_demo.data`)
 
 Each message is a FlatBuffer-serialized `Message` containing:
 
@@ -250,7 +254,7 @@ Examples:
 
 1. Check that the C++ application is running
 2. Verify the subject name matches (default: `nats_demo`)
-3. Click the "Connect" button in the web interface
+3. Click the **Connect** button in the web interface
 4. Check browser console for JavaScript errors
 
 ### FlatBuffers Import Errors
@@ -259,14 +263,14 @@ Examples:
 
 **Solution**:
 
-- Ensure the FlatBuffers files were generated during build
-- Set PYTHONPATH correctly:
+1. Ensure the FlatBuffers files were generated during build.
+1. Set `PYTHONPATH` correctly:
 
-  ```bash
-  export PYTHONPATH=$PYTHONPATH:/path/to/build/applications/pipeline_visualization/flatbuffers/
-  ```
+    ```bash
+    export PYTHONPATH=$PYTHONPATH:/path/to/build/applications/pipeline_visualization/flatbuffers/
+    ```
 
-- Verify the files exist in the build directory
+1. Verify that the files exist in the build directory.
 
 ### No Data Displayed
 
@@ -274,9 +278,9 @@ Examples:
 
 **Solution**:
 
-- Check that `log_tensor_data_content: true` in the YAML config
-- Verify the operator names match between the app and visualizer
-- For static visualizer, ensure the unique IDs in the code match your operators
+- Verify that `log_tensor_data_content: true` is in the YAML config
+- Verify that the operator names match, between the app and visualizer
+- For static visualizer, ensure that the unique IDs in the code match your operators
 - For dynamic visualizer, wait a few seconds for auto-discovery
 
 ## Customization
@@ -301,7 +305,7 @@ To visualize data from your own Holoscan operators:
    self._unique_ids = ["my_op.out", "my_other_op.in"]
    ```
 
-3. For dynamic visualizer, no changes needed - it will auto-discover!
+3. For dynamic visualizer, no changes needed - it will auto-discover.
 
 ### Customizing Visualizations
 
@@ -346,13 +350,13 @@ To access the visualizer from another machine:
 
 1. Start the visualizer with host `0.0.0.0` (already configured)
 2. Ensure port 8050 is accessible through firewall
-3. Access via: `http://<server-ip>:8050`
+3. Access using: `http://<server-ip>:8050`
 
 ### Multiple Applications
 
 To run multiple Holoscan apps simultaneously:
 
-1. Use different subject prefixes for each app
+1. Use different subject prefixes for each app.
 2. Start multiple visualizer instances on different ports:
 
    ```python
