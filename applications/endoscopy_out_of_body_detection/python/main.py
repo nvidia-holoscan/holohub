@@ -27,8 +27,6 @@ from holoscan.operators import (
 )
 from holoscan.resources import UnboundedAllocator
 
-from holohub.aja_source import AJASourceOp
-
 
 class EndoscopyOutOfBodyDetectionApp(Application):
     """Endoscopy Out-of-Body Detection"""
@@ -50,6 +48,8 @@ class EndoscopyOutOfBodyDetectionApp(Application):
         # Select the input source
         is_aja = self.source == "aja"
         if is_aja:
+            from holohub.aja_source import AJASourceOp
+
             source = AJASourceOp(self, name="aja_source", **self.kwargs("aja"))
         else:
             replayer_config = "analytics_replayer" if self.enable_analytics else "replayer"

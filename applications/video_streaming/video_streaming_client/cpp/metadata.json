@@ -1,6 +1,7 @@
 {
     "application": {
-        "name": "Video Streaming Client",
+        "name": "Video Streaming Client Demo (C++)",
+        "description": "C++ implementation of video streaming client using Holoscan SDK streaming operators",
         "authors": [
             {
                 "name": "Holoscan Team",
@@ -8,14 +9,14 @@
             }
         ],
         "language": "C++",
-        "version": "1.0",
+        "version": "1.0.0",
         "changelog": {
-            "1.0": "Initial Release"
+            "1.0.0": "Initial release of video streaming client with V4L2 and video replay support"
         },
         "holoscan_sdk": {
-            "minimum_required_version": "3.2.0",
+            "minimum_required_version": "3.5.0",
             "tested_versions": [
-                "3.2.0"
+                "3.5.0"
             ]
         },
         "platforms": [
@@ -24,14 +25,38 @@
         ],
         "tags": [
             "Streaming",
+            "Video",
             "Client",
-            "Demo"
+            "Real-time",
+            "Network",
+            "V4L2"
         ],
-        "ranking": 1,
-        "requirements": {},
-        "run": {
-            "command": "<holohub_app_bin>/video_streaming_client",
-            "workdir": "holohub_bin"
+        "ranking": 2,
+        "requirements": {
+            "operators": [
+                {
+                    "name": "video_streaming_client",
+                    "version": "1.1.0"
+                }
+            ]
+        },
+        "dockerfile": "applications/video_streaming/Dockerfile",
+        "default_mode": "replayer",
+        "modes": {
+            "replayer": {
+                "description": "Streaming client using video file replay",
+                "run": {
+                    "command": "<holohub_app_bin>/video_streaming_client_demo_wrapper.sh --config video_streaming_client_demo_replayer.yaml",
+                    "workdir": "holohub_bin"
+                }
+            },
+            "v4l2": {
+                "description": "Streaming client using V4L2 camera (webcam)",
+                "run": {
+                    "command": "<holohub_app_bin>/video_streaming_client_demo_wrapper.sh --config video_streaming_client_demo.yaml",
+                    "workdir": "holohub_bin"
+                }
+            }
         }
     }
-} 
+}

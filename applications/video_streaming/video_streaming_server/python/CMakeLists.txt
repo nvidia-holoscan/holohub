@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,16 +13,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Copy streaming_server_demo application file to both locations
-add_custom_target(python_streaming_server_demo ALL
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.py" ${CMAKE_CURRENT_BINARY_DIR}
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/streaming_server_demo.py" ${CMAKE_BINARY_DIR}
-  DEPENDS "streaming_server_demo.py"
-  BYPRODUCTS "streaming_server_demo.py"
+# Copy video_streaming_server_demo application file
+
+# Copy video_streaming_server_demo application file to both locations
+add_custom_target(python_video_streaming_server_demo ALL
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.py"
+          "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_server_demo.py"
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.py"
+          "${CMAKE_BINARY_DIR}/video_streaming_server_demo.py"
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.py"
+  BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_server_demo.py"
+             "${CMAKE_BINARY_DIR}/video_streaming_server_demo.py"
 )
 
-# Install application and dependencies into the install/ directory for packaging
+# Copy YAML configuration files if they exist
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.yaml")
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.yaml"
+    "${CMAKE_CURRENT_BINARY_DIR}/video_streaming_server_demo.yaml"
+    COPYONLY
+  )
+endif()
+
+# Install Python application
 install(
-  FILES streaming_server_demo.py
-  DESTINATION bin
+  FILES video_streaming_server_demo.py
+  DESTINATION bin/video_streaming/python
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
+
+# Install configuration files
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/video_streaming_server_demo.yaml")
+  install(
+    FILES video_streaming_server_demo.yaml
+    DESTINATION bin/video_streaming/python
+  )
+endif()

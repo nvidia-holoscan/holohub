@@ -22,6 +22,7 @@ from ._xr import (
     XrBeginFrameOp,
     XrCompositionLayerProjectionStorage,
     XrCompositionLayerProjectionView,
+    XrEmptyCompositionLayerOp,
     XrEndFrameOp,
     XrFovf,
     XrFrameState,
@@ -37,6 +38,7 @@ from ._xr import (
 __all__ = [
     "XrSession",
     "XrBeginFrameOp",
+    "XrEmptyCompositionLayerOp",
     "XrEndFrameOp",
     "XrSwapchainCuda",
     "XrSwapchainCudaFormat",

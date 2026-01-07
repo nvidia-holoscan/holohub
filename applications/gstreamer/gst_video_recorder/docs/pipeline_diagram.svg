@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 680" width="680" height="680">
+  <defs>
+    <style>
+      .box { fill: #4A90E2; stroke: #2E5C8A; stroke-width: 2; }
+      .green-box { fill: #7CB342; stroke: #558B2F; stroke-width: 2; }
+      .orange-box { fill: #FF9800; stroke: #E65100; stroke-width: 2; }
+      .purple-box { fill: #9C27B0; stroke: #6A1B9A; stroke-width: 2; }
+      .text { fill: white; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; text-anchor: middle; }
+      .title { fill: #333; font-family: Arial, sans-serif; font-size: 20px; font-weight: bold; text-anchor: middle; }
+      .subtitle { fill: #666; font-family: Arial, sans-serif; font-size: 14px; text-anchor: middle; }
+      .arrow { stroke: #333; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .label { fill: #333; font-family: Arial, sans-serif; font-size: 12px; text-anchor: middle; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333" />
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="340" y="30" class="title">GStreamer Video Recorder Application</text>
+  <text x="340" y="50" class="subtitle">Holoscan + GStreamer Integration</text>
+  
+  <!-- V4L2 Camera Source -->
+  <rect x="150" y="100" width="140" height="60" rx="5" class="green-box"/>
+  <text x="220" y="125" class="text">V4L2 Camera</text>
+  <text x="220" y="145" class="text">Source</text>
+  
+  <!-- Pattern Generator -->
+  <rect x="410" y="100" width="140" height="60" rx="5" class="green-box"/>
+  <text x="480" y="125" class="text">Pattern</text>
+  <text x="480" y="145" class="text">Generator</text>
+  
+  <!-- Format Converter -->
+  <rect x="270" y="250" width="140" height="60" rx="5" class="box"/>
+  <text x="340" y="275" class="text">Format</text>
+  <text x="340" y="295" class="text">Converter</text>
+  
+  <!-- GStreamer Video Recorder -->
+  <rect x="40" y="380" width="600" height="150" rx="5" style="fill: #F5F5F5; stroke: #9C27B0; stroke-width: 3; stroke-dasharray: 5,5;"/>
+  <text x="340" y="410" style="fill: #9C27B0; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-anchor: middle;">GStreamer Video Recorder (GstVideoRecorderOp)</text>
+  
+  <!-- Pipeline components -->
+  <rect x="95" y="430" width="100" height="50" rx="3" style="fill: #FFF; stroke: #9C27B0; stroke-width: 1.5;"/>
+  <text x="145" y="450" style="fill: #9C27B0; font-family: Arial, sans-serif; font-size: 11px; text-anchor: middle;">appsrc</text>
+  <text x="145" y="465" style="fill: #666; font-family: Arial, sans-serif; font-size: 10px; text-anchor: middle;">(data input)</text>
+  
+  <rect x="225" y="430" width="100" height="50" rx="3" style="fill: #FFF; stroke: #9C27B0; stroke-width: 1.5;"/>
+  <text x="275" y="450" style="fill: #9C27B0; font-family: Arial, sans-serif; font-size: 11px; text-anchor: middle;">encoder</text>
+  <text x="275" y="465" style="fill: #666; font-family: Arial, sans-serif; font-size: 10px; text-anchor: middle;">(H.264/H.265)</text>
+  
+  <rect x="355" y="430" width="100" height="50" rx="3" style="fill: #FFF; stroke: #9C27B0; stroke-width: 1.5;"/>
+  <text x="405" y="450" style="fill: #9C27B0; font-family: Arial, sans-serif; font-size: 11px; text-anchor: middle;">parser</text>
+  <text x="405" y="465" style="fill: #666; font-family: Arial, sans-serif; font-size: 10px; text-anchor: middle;">(auto)</text>
+  
+  <rect x="485" y="430" width="100" height="50" rx="3" style="fill: #FFF; stroke: #9C27B0; stroke-width: 1.5;"/>
+  <text x="535" y="450" style="fill: #9C27B0; font-family: Arial, sans-serif; font-size: 11px; text-anchor: middle;">muxer</text>
+  <text x="535" y="465" style="fill: #666; font-family: Arial, sans-serif; font-size: 10px; text-anchor: middle;">(MP4/MKV)</text>
+  
+  <!-- Output file -->
+  <rect x="280" y="600" width="120" height="60" rx="5" class="orange-box"/>
+  <text x="340" y="625" class="text">Video File</text>
+  <text x="340" y="645" class="text">(.mp4/.mkv)</text>
+  
+  <!-- Arrows from sources -->
+  <path d="M 220 160 L 340 250" class="arrow"/>
+  <path d="M 480 160 L 340 250" class="arrow"/>
+  
+  <!-- Arrow from format converter into GStreamer box -->
+  <path d="M 340 310 L 340 380" class="arrow"/>
+  
+  <!-- Arrows within pipeline -->
+  <path d="M 195 455 L 225 455" class="arrow"/>
+  <path d="M 325 455 L 355 455" class="arrow"/>
+  <path d="M 455 455 L 485 455" class="arrow"/>
+  
+  <!-- Arrow from GStreamer Video Recorder box to video file -->
+  <path d="M 340 530 L 340 600" class="arrow"/>
+  
+  <!-- Labels -->
+  <text x="200" y="200" class="label">RGBA frames</text>
+  <text x="470" y="200" class="label">RGBA frames</text>
+  <text x="400" y="345" class="label">RGBA frames</text>
+  <text x="400" y="565" class="label">Encoded frames</text>
+
+</svg>
+

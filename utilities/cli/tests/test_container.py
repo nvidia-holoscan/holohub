@@ -15,7 +15,9 @@
 # limitations under the License.
 
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -29,12 +31,36 @@ from utilities.cli.util import get_cuda_tag, get_default_cuda_version
 
 class TestHoloHubContainer(unittest.TestCase):
     def setUp(self):
+        # make a temporary directory for the test
+        self.test_dir = tempfile.mkdtemp()
+        self.test_dir_path = Path(self.test_dir)
+        self.dockerfile_path = self.test_dir_path / "Dockerfile"
+
+        # create a Dockerfile in the test directory
+        self.dockerfile_path.write_text(
+            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:3.9.0-cuda12-dgpu"
+        )
+
+        # create project metadata
         self.project_metadata = {
             "project_name": "test_project",
-            "source_folder": Path("/test/path"),
+            "source_folder": self.test_dir_path,
             "metadata": {"language": "cpp", "dockerfile": "<holohub_app_source>/Dockerfile"},
         }
         self.container = HoloHubContainer(project_metadata=self.project_metadata)
+
+    def tearDown(self):
+        """Clean up temporary directory after each test"""
+        # Check if test_dir_path exists and remove it
+        if hasattr(self, "test_dir_path") and self.test_dir_path.exists():
+            try:
+                shutil.rmtree(self.test_dir_path)
+            except FileNotFoundError:
+                # Directory was already removed, ignore
+                pass
+            except Exception as e:
+                # Log but don't fail the test cleanup
+                print(f"Warning: Failed to clean up {self.test_dir_path}: {e}")
 
     def test_default_base_image(self):
         """Test that default base image is correctly formatted"""
@@ -49,7 +75,7 @@ class TestHoloHubContainer(unittest.TestCase):
     def test_dockerfile_path(self):
         """Test that Dockerfile path is correctly determined"""
         dockerfile_path = self.container.dockerfile_path
-        self.assertEqual(str(dockerfile_path), "/test/path/Dockerfile")
+        self.assertEqual(str(dockerfile_path), str(self.dockerfile_path))
 
     def test_image_name(self):
         """Test that image name is correctly determined"""
@@ -72,6 +98,42 @@ class TestHoloHubContainer(unittest.TestCase):
             self.container.image_name in " ".join(cmd),
             f"Image name {self.container.image_name} not found in command: {cmd}",
         )
+
+    @patch("utilities.cli.container.get_current_branch_slug", return_value="main-branch")
+    @patch("utilities.cli.container.get_git_short_sha", return_value="abcdef123456")
+    def test_image_names_contains_sha_branch_legacy(self, mock_sha, mock_branch):
+        """Test that image_names returns sha, branch, and legacy tags in order"""
+        names = self.container.image_names
+        mock_sha.assert_called_once()
+        mock_branch.assert_called_once()
+        self.assertGreaterEqual(len(names), 3)
+        self.assertEqual(names[0], "holohub-test_project:abcdef123456")
+        self.assertEqual(names[1], "holohub-test_project:main-branch")
+        self.assertEqual(names[2], "holohub:test_project")
+
+    @patch("utilities.cli.container.get_current_branch_slug", return_value="dev-branch")
+    @patch("utilities.cli.container.get_git_short_sha", return_value="feedfacebabe")
+    @patch("subprocess.run")
+    def test_build_applies_all_default_tags(self, mock_run, mock_sha, mock_branch):
+        """When --img is omitted, build should tag with sha, branch, and legacy tags."""
+        self.container.build()
+        mock_sha.assert_called()
+        mock_branch.assert_called()
+        cmd = mock_run.call_args[0][0]
+        cmd_str = " ".join(str(x) for x in cmd)
+        self.assertIn("-t holohub-test_project:feedfacebabe", cmd_str)
+        self.assertIn("-t holohub-test_project:dev-branch", cmd_str)
+        self.assertIn("-t holohub:test_project", cmd_str)
+
+    @patch("subprocess.run")
+    def test_build_with_explicit_img_uses_only_that_tag(self, mock_run):
+        """When --img is provided, only that tag should be applied."""
+        self.container.build(img="custom:tag")
+        cmd = mock_run.call_args[0][0]
+        cmd_str = " ".join(str(x) for x in cmd)
+        self.assertIn("-t custom:tag", cmd_str)
+        self.assertNotIn("-t holohub-test_project:", cmd_str)
+        self.assertNotIn("-t holohub:test_project", cmd_str)
 
     @patch("utilities.cli.container.check_nvidia_ctk")
     @patch("utilities.cli.container.get_image_pythonpath")
@@ -96,7 +158,7 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertTrue("docker" in docker_run_call)
         self.assertTrue("run" in docker_run_call)
         self.assertTrue("--runtime" in docker_run_call and "nvidia" in docker_run_call)
-        self.assertTrue(self.container.image_name in docker_run_call)
+        self.assertIn(self.container.image_names[0], docker_run_call)
 
     @patch("subprocess.CompletedProcess")
     def test_dry_run(self, mock_completed_process):
@@ -104,7 +166,7 @@ class TestHoloHubContainer(unittest.TestCase):
         self.container.dryrun = True
         self.container.run()
         cmd = mock_completed_process.call_args[0][0]
-        self.assertTrue(self.container.image_name in cmd)
+        self.assertIn(self.container.image_names[0], cmd)
         self.assertIn("c 81:* rmw", cmd)
         self.container.dryrun = False
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,5 +16,10 @@
 cmake_minimum_required(VERSION 3.20)
 project(h264_endoscopy_tool_tracking_apps LANGUAGES NONE)
 
-add_subdirectory(cpp)
-add_subdirectory(python)
+if(HOLOHUB_BUILD_CPP)
+  add_subdirectory(cpp)
+endif()
+
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

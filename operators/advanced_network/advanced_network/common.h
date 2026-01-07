@@ -76,7 +76,7 @@ inline int EnabledDirections(const std::string& dir) {
  *    INVALID_CONFIG: Invalid configuration
  *    INTERNAL_ERROR: Internal error
  */
-Status adv_net_init(NetworkConfig &config);
+Status adv_net_init(NetworkConfig& config);
 
 /**
  * @brief Returns a manager type
@@ -129,16 +129,16 @@ void* get_packet_ptr(BurstParams* burst, int idx);
  * @param idx Index of packet
  * @return uint16_t Length of packet
  */
-uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
+uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx);
 
 /**
  * @brief Get packet length of an entire packet
  *
  * @param burst Burst structure containing packets
  * @param idx Index of packet
- * @return uint16_t Length of packet
+ * @return uint32_t Length of packet
  */
-uint16_t get_packet_length(BurstParams* burst, int idx);
+uint32_t get_packet_length(BurstParams* burst, int idx);
 
 /**
  * @brief Get flow ID of a packet
@@ -383,6 +383,30 @@ int64_t get_q_id(BurstParams* burst);
 Status get_mac_addr(int port, char* mac);
 
 /**
+ * @brief Drop all traffic on a port
+ *
+ * Creates a high-priority flow rule that drops all incoming traffic on the specified port.
+ * This acts as a "kill switch" for traffic. Use allow_all_traffic() to remove the drop rule.
+ *
+ * @param port Port number of interface
+ *
+ * @returns Status::SUCCESS on success, error status on failure
+ */
+Status drop_all_traffic(int port);
+
+/**
+ * @brief Allow all traffic on a port
+ *
+ * Removes a previously installed drop rule created by drop_all_traffic(), restoring
+ * normal traffic flow on the port.
+ *
+ * @param port Port number of interface
+ *
+ * @returns Status::SUCCESS on success, error status on failure
+ */
+Status allow_all_traffic(int port);
+
+/**
  * @brief Get port number from interface name
  *
  * @param key PCIe address or config name of the interface to look up
@@ -442,6 +466,15 @@ Status get_rx_burst(BurstParams** burst, int port);
 Status get_rx_burst(BurstParams** burst);
 
 /**
+ * @brief Get a RX burst
+ *
+ * @param burst Burst structure
+ * @param conn_id Connection ID representing a unique ID for a client/server connection
+ * @param server True if server, false if client. Used to determine which ring to dequeue from.
+ */
+Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server);
+
+/**
  * @brief Set the header fields in a burst
  *
  * @param burst Burst structure
@@ -482,6 +515,29 @@ void print_stats();
  */
 uint16_t get_num_rx_queues(int port_id);
 
+/**
+ * @brief Flush all packets from a specific port/queue
+ *
+ * Drains and discards all packets currently in the specified queue on the specified port.
+ * This is useful for clearing stale packets from a queue before starting operations.
+ *
+ * @param port Port number of interface
+ * @param queue Queue ID on the port
+ */
+void flush_port_queue(int port, int queue);
+
+// RDMA functions
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              uintptr_t* conn_id);
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              const std::string& src_addr, uintptr_t* conn_id);
+Status rdma_get_port_queue(uintptr_t conn_id, uint16_t* port, uint16_t* queue);
+Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port,
+                               uintptr_t* conn_id);
+Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server,
+                       int num_pkts, uint64_t wr_id, const std::string& local_mr_name);
+RDMAOpCode rdma_get_opcode(BurstParams* burst);
+
 };  // namespace holoscan::advanced_network
 
 template <>
@@ -511,6 +567,16 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
                                 holoscan::advanced_network::FlowConfig& flow);
 
   /**
+   * @brief Parse flex item configuration from a YAML node.
+   *
+   * @param flex_item The YAML node containing the flex item configuration.
+   * @param flex_item_config The FlexItemConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_flex_item_config(const YAML::Node& flex_item,
+                                     holoscan::advanced_network::FlexItemConfig& flex_item_config);
+
+  /**
    * @brief Parse memory region configuration from a YAML node.
    *
    * @param mr The YAML node containing the memory region configuration.
@@ -521,15 +587,27 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
       const YAML::Node& mr, holoscan::advanced_network::MemoryRegionConfig& memory_region);
 
   /**
+   * @brief Parse RDMA configuration from a YAML node.
+   *
+   * @param rdma_item The YAML node containing the RDMA configuration.
+   * @param rdma The RDMAConfig object to populate.
+   * @return true if parsing was successful, false otherwise.
+   */
+  static bool parse_rdma_config(
+      const YAML::Node& rdma_item, holoscan::advanced_network::RDMAConfig& rdma);
+
+  /**
    * @brief Parse common RX queue configuration from a YAML node.
    *
    * @param q_item The YAML node containing the RX queue configuration.
    * @param q The RxQueueConfig object to populate.
+   * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_rx_queue_config(const YAML::Node& q_item,
                                     const holoscan::advanced_network::ManagerType& manager_type,
-                                    holoscan::advanced_network::RxQueueConfig& rx_queue_config);
+                                    holoscan::advanced_network::RxQueueConfig& rx_queue_config,
+                                    bool parse_memory_regions = true);
 
   /**
    * @brief Parse RX queue configuration from a YAML node.
@@ -537,21 +615,25 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    * @param q_item The YAML node containing the RX queue configuration.
    * @param manager_type The manager type.
    * @param q The RxQueueConfig object to populate.
+   * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_rx_queue_common_config(
-      const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& rx_queue_config);
+      const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& rx_queue_config,
+      bool parse_memory_regions);
 
   /**
    * @brief Parse common TX queue configuration from a YAML node.
    *
    * @param q_item The YAML node containing the TX queue configuration.
    * @param q The TxQueueConfig object to populate.
+   * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_tx_queue_config(const YAML::Node& q_item,
                                     const holoscan::advanced_network::ManagerType& manager_type,
-                                    holoscan::advanced_network::TxQueueConfig& tx_queue_config);
+                                    holoscan::advanced_network::TxQueueConfig& tx_queue_config,
+                                    bool parse_memory_regions);
 
   /**
    * @brief Parse TX queue configuration from a YAML node.
@@ -559,11 +641,12 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
    * @param q_item The YAML node containing the TX queue configuration.
    * @param manager_type The manager type.
    * @param q The TxQueueConfig object to populate.
+   * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
    * @return true if parsing was successful, false otherwise.
    */
   static bool parse_tx_queue_common_config(
-      const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& tx_queue_config);
-
+      const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& tx_queue_config,
+      bool parse_memory_regions);
 
   /**
    * @brief Decode the YAML node into an NetworkConfig object.
@@ -603,6 +686,9 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
           return false;
         }
       } catch (const std::exception& e) {}
+
+      bool rdma_used =
+        input_spec.common_.manager_type == holoscan::advanced_network::ManagerType::RDMA;
 
       try {
         input_spec.debug_ = node["debug"].as<bool>(false);
@@ -657,6 +743,13 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
           ifcfg.name_ = intf["name"].as<std::string>();
           ifcfg.address_ = intf["address"].as<std::string>();
 
+          // RDMA config
+          holoscan::advanced_network::RDMAConfig rdma;
+          if (!parse_rdma_config(intf["rdma_config"], rdma)) {
+            HOLOSCAN_LOG_DEBUG("Failed to parse RDMA config");
+          }
+          ifcfg.rdma_ = rdma;
+
           try {
             const auto& rx = intf["rx"];
             holoscan::advanced_network::RxConfig rx_cfg;
@@ -667,7 +760,7 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
 
             for (const auto& q_item : rx["queues"]) {
               holoscan::advanced_network::RxQueueConfig q;
-              if (!parse_rx_queue_config(q_item, input_spec.common_.manager_type, q)) {
+              if (!parse_rx_queue_config(q_item, input_spec.common_.manager_type, q, !rdma_used)) {
                 HOLOSCAN_LOG_ERROR("Failed to parse RxQueueConfig");
                 return false;
               }
@@ -688,6 +781,17 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
               rx_cfg.flows_.emplace_back(std::move(flow));
             }
 
+            try {
+              for (const auto& flex_item : rx["flex_items"]) {
+                holoscan::advanced_network::FlexItemConfig flex_item_config;
+                if (!parse_flex_item_config(flex_item, flex_item_config)) {
+                  HOLOSCAN_LOG_ERROR("Failed to parse FlexItemConfig");
+                  return false;
+                }
+                rx_cfg.flex_items_.emplace_back(std::move(flex_item_config));
+              }
+            } catch (const std::exception& e) {}  // No flex_items defined for this interface.
+
             ifcfg.rx_ = rx_cfg;
           } catch (const std::exception& e) {}  // No RX queues defined for this interface.
 
@@ -701,7 +805,7 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
 
             for (const auto& q_item : tx["queues"]) {
               holoscan::advanced_network::TxQueueConfig q;
-              if (!parse_tx_queue_config(q_item, input_spec.common_.manager_type, q)) {
+              if (!parse_tx_queue_config(q_item, input_spec.common_.manager_type, q, !rdma_used)) {
                 HOLOSCAN_LOG_ERROR("Failed to parse TxQueueConfig");
                 return false;
               }

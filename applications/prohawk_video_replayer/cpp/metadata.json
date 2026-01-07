@@ -12,6 +12,7 @@
 		"changelog": {
 			"1.0": "Added watermark to the Prohawk restoration engine"
 		},
+		"dockerfile": "applications/prohawk_video_replayer/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.5.1",
 			"tested_versions": [

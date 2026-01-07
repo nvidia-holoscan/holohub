@@ -21,7 +21,7 @@ OpenUSD serves as the backbone of the [NVIDIA Omniverse](https://www.nvidia.com/
 
 Download the [NVIDIA Omniverse](https://www.nvidia.com/en-us/omniverse/foundation-apps/) launcher to get started with Omniverse. See [NVIDIA OpenUSD Tutorials](https://developer.nvidia.com/usd/tutorials) for getting started with the OpenUSD Python libraries we use in this tutorial.
 
-### [MONAI Deploy](https://monai.io/deploy.html) + [Holoscan](https://developer.nvidia.com/holoscan-sdk) Pipeline
+### [MONAI Deploy](https://project-monai.github.io/deploy.html) + [Holoscan](https://developer.nvidia.com/holoscan-sdk) Pipeline
 
 The MONAI Deploy App SDK provides a series of operators to load and select DICOM instances and then decode the pixel data into in-memory NumPy data objects. MONAI Deploy integrates seamlessly with Holoscan pipelines.
 

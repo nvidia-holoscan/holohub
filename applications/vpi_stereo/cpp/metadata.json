@@ -12,6 +12,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"dockerfile": "applications/vpi_stereo/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "2.4.0",
 			"tested_versions": [

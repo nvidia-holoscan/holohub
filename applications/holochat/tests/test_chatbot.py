@@ -46,8 +46,12 @@ class TestChatbot(unittest.TestCase):
         chat_history = None
         result_message, result_history = ask_question(message, chat_history)
         self.assertEqual(result_message, "")
-        self.assertEqual(len(result_history), 1)
-        self.assertIn("Welcome to HoloChat", result_history[0][1])
+        # Gradio 6.x "messages" format: list of {"role": ..., "content": ...}
+        self.assertEqual(len(result_history), 2)
+        self.assertEqual(result_history[0]["role"], "assistant")
+        self.assertIn("Welcome to HoloChat", result_history[0]["content"])
+        self.assertEqual(result_history[1]["role"], "user")
+        self.assertEqual(result_history[1]["content"], message)
 
     @patch("chatbot.start_mcp_server")
     @patch("chatbot.LLM")
@@ -65,7 +69,7 @@ class TestChatbot(unittest.TestCase):
             from chatbot import main
 
             main()
-            mock_llm.assert_called_once_with(is_local=False)
+            mock_llm.assert_called_once_with(is_local=False, is_mcp=True)
             mock_start_mcp_server.assert_called_once_with(
                 mock_llm_instance.config, mock_llm_instance.db
             )

@@ -1,0 +1,67 @@
+{
+	"application": {
+		"name": "Live Streaming Data Web Dashboard with NATS",
+		"description": "Real-time visualization of data from Holoscan applications using NATS messaging and web-based dashboards",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.8.0",
+			"tested_versions": [
+				"3.8.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Visualization",
+			"NATS",
+			"Streaming",
+			"Real-time",
+			"Tensor",
+			"Signal Processing"
+		],
+		"ranking": 2,
+		"requirements": {},
+		"default_mode": "app",
+		"modes": {
+			"web_static": {
+				"description": "Run the static web dashboard visualizer",
+				"run": {
+					"command": "python3 <holohub_app_source>/../visualizer/visualizer_static.py",
+					"env": {
+						"PYTHONPATH": "<holohub_app_bin>/../flatbuffers:<PYTHONPATH>"
+					},
+					"workdir": "holohub_app_source"
+				}
+			},
+			"web_dynamic": {
+				"description": "Run the dynamic web dashboard visualizer",
+				"run": {
+					"command": "python3 <holohub_app_source>/../visualizer/visualizer_dynamic.py",
+					"env": {
+						"PYTHONPATH": "<holohub_app_bin>/../flatbuffers:<PYTHONPATH>"
+					},
+					"workdir": "holohub_app_source"
+				}
+			},
+			"app": {
+				"description": "Run the pipeline application",
+				"run": {
+					"command": "python3 <holohub_app_source>/pipeline_visualization.py",
+					"workdir": "holohub_app_bin"
+				}
+			}
+		}
+	}
+}

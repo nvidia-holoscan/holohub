@@ -63,7 +63,7 @@ if(BUILD_TESTING)
 
   # Add test
   add_test(NAME colonoscopy_segmentation_python_test
-           COMMAND python3 ${CMAKE_CURRENT_BINARY_DIR}/colonoscopy_segmentation_test.py
+           COMMAND ${PYTHON_EXECUTABLE_TEST} ${CMAKE_CURRENT_BINARY_DIR}/colonoscopy_segmentation_test.py
                    --config ${CMAKE_CURRENT_BINARY_DIR}/colonoscopy_segmentation_testing.yaml
                    --data "${HOLOHUB_DATA_DIR}/colonoscopy_segmentation"
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -76,12 +76,12 @@ if(BUILD_TESTING)
 
   # Add a test to check the validity of the frames
   add_test(NAME colonoscopy_segmentation_python_render_test
-    COMMAND python3 ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
+    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/utilities/video_validation.py
     --source_video_dir ${RECORDING_DIR}
     --source_video_basename ${SOURCE_VIDEO_BASENAME}
     --output_dir ${RECORDING_DIR}
     --validation_frames_dir ${VALIDATION_FRAMES_DIR}
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   )
 
   set_tests_properties(colonoscopy_segmentation_python_render_test PROPERTIES

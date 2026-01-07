@@ -18,6 +18,7 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <arpa/inet.h>
 
 #include "advanced_network/manager.h"
 #include "advanced_network/common.h"
@@ -58,8 +59,7 @@ const std::unordered_map<std::string, LogLevel::Level> LogLevel::string_to_level
     {"off", OFF},
 };
 
-[[deprecated("Use create_tx_burst_params() instead")]]
-BurstParams* create_burst_params() {
+[[deprecated("Use create_tx_burst_params() instead")]] BurstParams* create_burst_params() {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->create_tx_burst_params();
 }
@@ -98,7 +98,7 @@ void free_packet_segment(BurstParams* burst, int seg, int pkt) {
   g_ano_mgr->free_packet_segment(burst, seg, pkt);
 }
 
-uint16_t get_packet_length(BurstParams* burst, int idx) {
+uint32_t get_packet_length(BurstParams* burst, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_packet_length(burst, idx);
 }
@@ -113,7 +113,7 @@ uint64_t get_burst_tot_byte(BurstParams* burst) {
   return g_ano_mgr->get_burst_tot_byte(burst);
 }
 
-uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_segment_packet_length(burst, seg, idx);
 }
@@ -165,6 +165,16 @@ void format_eth_addr(char* dst, std::string addr) {
 Status get_mac_addr(int port, char* mac) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_mac_addr(port, mac);
+}
+
+Status drop_all_traffic(int port) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->drop_all_traffic(port);
+}
+
+Status allow_all_traffic(int port) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->allow_all_traffic(port);
 }
 
 bool is_tx_burst_available(BurstParams* burst) {
@@ -292,9 +302,19 @@ Status get_rx_burst(BurstParams** burst) {
   return g_ano_mgr->get_rx_burst(burst);
 }
 
+Status get_rx_burst(BurstParams** burst, uintptr_t conn_id, bool server) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->get_rx_burst(burst, conn_id, server);
+}
+
 uint16_t get_num_rx_queues(int port_id) {
   ASSERT_ANO_MGR_INITIALIZED();
   return g_ano_mgr->get_num_rx_queues(port_id);
+}
+
+void flush_port_queue(int port, int queue) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  g_ano_mgr->flush_port_queue(port, queue);
 }
 
 void print_stats() {
@@ -302,14 +322,12 @@ void print_stats() {
   g_ano_mgr->print_stats();
 }
 
-Status adv_net_init(NetworkConfig &config) {
+Status adv_net_init(NetworkConfig& config) {
   ManagerFactory::set_manager_type(config.common_.manager_type);
 
   auto mgr = &(ManagerFactory::get_active_manager());
 
-  if (!mgr->set_config_and_initialize(config)) {
-    return Status::INTERNAL_ERROR;
-  }
+  if (!mgr->set_config_and_initialize(config)) { return Status::INTERNAL_ERROR; }
 
   for (const auto& intf : config.ifs_) {
     const auto& rx = intf.rx_;
@@ -323,6 +341,41 @@ Status adv_net_init(NetworkConfig &config) {
   return Status::SUCCESS;
 }
 
+// RDMA Functions
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              uintptr_t* conn_id) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, conn_id);
+}
+
+Status rdma_connect_to_server(const std::string& server_addr, uint16_t server_port,
+                              const std::string& src_addr, uintptr_t* conn_id) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->rdma_connect_to_server(server_addr, server_port, src_addr, conn_id);
+}
+
+Status rdma_get_port_queue(uintptr_t conn_id, uint16_t* port, uint16_t* queue) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->rdma_get_port_queue(conn_id, port, queue);
+}
+
+Status rdma_get_server_conn_id(const std::string& server_addr, uint16_t server_port,
+                               uintptr_t* conn_id) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->rdma_get_server_conn_id(server_addr, server_port, conn_id);
+}
+
+Status rdma_set_header(BurstParams* burst, RDMAOpCode op_code, uintptr_t conn_id, bool is_server,
+                       int num_pkts, uint64_t wr_id, const std::string& local_mr_name) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->rdma_set_header(
+      burst, op_code, conn_id, is_server, num_pkts, wr_id, local_mr_name);
+}
+
+RDMAOpCode rdma_get_opcode(BurstParams* burst) {
+  ASSERT_ANO_MGR_INITIALIZED();
+  return g_ano_mgr->rdma_get_opcode(burst);
+}
 
 };  // namespace holoscan::advanced_network
 
@@ -335,6 +388,7 @@ Status adv_net_init(NetworkConfig &config) {
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config(
     const YAML::Node& flow_item, holoscan::advanced_network::FlowConfig& flow) {
+  struct in_addr addr;
   try {
     flow.name_ = flow_item["name"].as<std::string>();
     flow.id_ = flow_item["id"].as<int>();
@@ -345,11 +399,18 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     return false;
   }
 
+  memset(&flow.match_, 0, sizeof(flow.match_));
+  flow.match_.type_ = holoscan::advanced_network::FlowMatchType::NORMAL;
+
   try {
     flow.match_.udp_src_ = flow_item["match"]["udp_src"].as<uint16_t>();
-    flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
   } catch (const std::exception& e) {
     flow.match_.udp_src_ = 0;
+  }
+
+  try {
+    flow.match_.udp_dst_ = flow_item["match"]["udp_dst"].as<uint16_t>();
+  } catch (const std::exception& e) {
     flow.match_.udp_dst_ = 0;
   }
 
@@ -357,6 +418,74 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flow_config
     flow.match_.ipv4_len_ = flow_item["match"]["ipv4_len"].as<uint16_t>();
   } catch (const std::exception& e) {
     flow.match_.ipv4_len_ = 0;
+  }
+
+  try {
+    std::string ipv4_src = flow_item["match"]["ipv4_src"].as<std::string>();
+    if (inet_pton(AF_INET, ipv4_src.c_str(), &addr) != 1) {
+      HOLOSCAN_LOG_ERROR("Error parsing ipv4_src : {}", ipv4_src);
+      return false;
+    } else {
+      flow.match_.ipv4_src_ = addr.s_addr;
+    }
+  } catch (const std::exception& e) {
+    flow.match_.ipv4_src_ = INADDR_ANY;
+  }
+
+  try {
+    std::string ipv4_dst = flow_item["match"]["ipv4_dst"].as<std::string>();
+    if (inet_pton(AF_INET, ipv4_dst.c_str(), &addr) != 1) {
+      HOLOSCAN_LOG_ERROR("Error parsing ipv4_dst : {}", ipv4_dst);
+      return false;
+    } else {
+      flow.match_.ipv4_dst_ = addr.s_addr;
+    }
+  } catch (const std::exception& e) {
+    flow.match_.ipv4_dst_ = INADDR_ANY;
+  }
+
+  // if none of the normal match criteria are defined, use flex item match
+  if (   flow.match_.udp_src_  == 0
+      && flow.match_.udp_dst_  == 0
+      && flow.match_.ipv4_len_ == 0
+      && flow.match_.ipv4_src_ == INADDR_ANY
+      && flow.match_.ipv4_dst_ == INADDR_ANY
+    ) {
+    // No match criteria defined, use flex item match
+    flow.match_.flex_item_match_.flex_item_id_ = flow_item["match"]["flex_item_id"].as<uint16_t>();
+    flow.match_.flex_item_match_.val_ = flow_item["match"]["val"].as<uint32_t>();
+    flow.match_.flex_item_match_.mask_ = flow_item["match"]["mask"].as<uint32_t>();
+    flow.match_.type_ = holoscan::advanced_network::FlowMatchType::FLEX_ITEM;
+    HOLOSCAN_LOG_INFO("Using flex item match: flex_item_id={}, val={}, mask={}",
+                       flow.match_.flex_item_match_.flex_item_id_,
+                       flow.match_.flex_item_match_.val_,
+                       flow.match_.flex_item_match_.mask_);
+  }
+
+  return true;
+}
+
+/**
+ * @brief Parse flex item configuration from a YAML node.
+ *
+ * @param flex_item The YAML node containing the flex item configuration.
+ * @param flex_item_config The FlexItemConfig object to populate.
+ * @return true if parsing was successful, false otherwise.
+ */
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_flex_item_config(
+    const YAML::Node& flex_item, holoscan::advanced_network::FlexItemConfig& flex_item_config) {
+  try {
+    flex_item_config.name_ = flex_item["name"].as<std::string>();
+    flex_item_config.id_ = flex_item["id"].as<uint16_t>();
+    flex_item_config.udp_dst_port_ = flex_item["udp_dst_port"].as<uint16_t>();
+    flex_item_config.offset_ = flex_item["offset"].as<uint16_t>();
+    if ((flex_item_config.offset_ % 4) != 0 || flex_item_config.offset_ > 28) {
+      HOLOSCAN_LOG_CRITICAL("Flex item offset (in bytes) must be a multiple of 4 and less than 28");
+      return false;
+    }
+  } catch (const std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Error parsing FlexItemConfig: {}", e.what());
+    return false;
   }
   return true;
 }
@@ -377,9 +506,9 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_memory_regi
     tmr.buf_size_ = mr["buf_size"].as<size_t>();
     tmr.num_bufs_ = mr["num_bufs"].as<size_t>();
     tmr.affinity_ = mr["affinity"].as<uint32_t>();
-    try {
-      tmr.access_ = holoscan::advanced_network::GetMemoryAccessPropertiesFromList(mr["access"]);
-    } catch (const std::exception& e) {
+    if (mr["access"].IsDefined()) {
+        tmr.access_ = holoscan::advanced_network::GetMemoryAccessPropertiesFromList(mr["access"]);
+    } else {
       tmr.access_ = holoscan::advanced_network::MEM_ACCESS_LOCAL;
     }
     tmr.owned_ = mr["owned"].template as<bool>(true);
@@ -391,14 +520,42 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_memory_regi
 }
 
 /**
+ * @brief Parse RDMA configuration from a YAML node.
+ *
+ * @param rdma_item The YAML node containing the RDMA configuration.
+ * @param rdma The RDMAConfig object to populate.
+ * @return true if parsing was successful, false otherwise.
+ */
+bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rdma_config(
+    const YAML::Node& rdma_item, holoscan::advanced_network::RDMAConfig& rdma) {
+  try {
+    rdma.mode_ = holoscan::advanced_network::GetRDMAModeFromString(
+      rdma_item["mode"].template as<std::string>());
+    rdma.xmode_ = holoscan::advanced_network::GetRDMATransportModeFromString(
+      rdma_item["transport_mode"].template as<std::string>());
+    if (rdma_item["port"].IsDefined()) {  // Port is optional
+      rdma.port_ = rdma_item["port"].as<uint16_t>();
+    } else {
+      rdma.port_ = 0;
+    }
+  } catch (const std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Error parsing RDMAConfig: {}", e.what());
+    return false;
+  }
+  return true;
+}
+
+/**
  * @brief Parse common queue configuration from a YAML node.
  *
  * @param q_item The YAML node containing the queue configuration.
  * @param common The CommonQueueConfig object to populate.
+ * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
  * @return true if parsing was successful, false otherwise.
  */
 bool parse_common_queue_config(const YAML::Node& q_item,
-                               holoscan::advanced_network::CommonQueueConfig& common) {
+                               holoscan::advanced_network::CommonQueueConfig& common,
+                               bool parse_memory_regions) {
   try {
     common.name_ = q_item["name"].as<std::string>();
     common.id_ = q_item["id"].as<int>();
@@ -406,15 +563,21 @@ bool parse_common_queue_config(const YAML::Node& q_item,
     common.batch_size_ = q_item["batch_size"].as<int>();
     common.extra_queue_config_ = nullptr;
     if (q_item["memory_regions"].IsDefined()) {
-      const auto& mrs = q_item["memory_regions"];
-      if (mrs.size() > 0) { common.mrs_.reserve(mrs.size()); }
-      for (const auto& mr : mrs) { common.mrs_.push_back(mr.as<std::string>()); }
+      if (!parse_memory_regions) {
+        HOLOSCAN_LOG_WARN("Memory regions in queue section not used in RDMA backend for queue: {}",
+          common.name_);
+      }
+      else {
+        const auto& mrs = q_item["memory_regions"];
+        if (mrs.size() > 0) { common.mrs_.reserve(mrs.size()); }
+        for (const auto& mr : mrs) { common.mrs_.push_back(mr.as<std::string>()); }
+      }
     }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing CommonQueueConfig: {}", e.what());
     return false;
   }
-  if (common.mrs_.empty()) {
+  if (parse_memory_regions && common.mrs_.empty()) {
     HOLOSCAN_LOG_ERROR("No memory regions defined for queue: {}", common.name_);
     return false;
   }
@@ -429,8 +592,9 @@ bool parse_common_queue_config(const YAML::Node& q_item,
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_common_config(
-    const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& q) {
-  if (!parse_common_queue_config(q_item, q.common_)) { return false; }
+    const YAML::Node& q_item, holoscan::advanced_network::RxQueueConfig& q,
+    bool parse_memory_regions) {
+  if (!parse_common_queue_config(q_item, q.common_, parse_memory_regions)) { return false; }
   return true;
 }
 
@@ -440,15 +604,16 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
  * @param q_item The YAML node containing the RX queue configuration.
  * @param manager_type The manager type.
  * @param q The RxQueueConfig object to populate.
+ * @param parse_memory_regions True if memory regions should be parsed, false otherwise.
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_config(
     const YAML::Node& q_item, const holoscan::advanced_network::ManagerType& manager_type,
-    holoscan::advanced_network::RxQueueConfig& q) {
+    holoscan::advanced_network::RxQueueConfig& q, bool parse_memory_regions) {
   try {
     holoscan::advanced_network::ManagerType _manager_type = manager_type;
 
-    if (!parse_rx_queue_common_config(q_item, q)) { return false; }
+    if (!parse_rx_queue_common_config(q_item, q, parse_memory_regions)) { return false; }
 
     if (manager_type == holoscan::advanced_network::ManagerType::DEFAULT) {
       _manager_type = holoscan::advanced_network::ManagerFactory::get_default_manager_type();
@@ -478,13 +643,18 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_rx_queue_co
  * @return true if parsing was successful, false otherwise.
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_common_config(
-    const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q) {
-  if (!parse_common_queue_config(q_item, q.common_)) { return false; }
+    const YAML::Node& q_item, holoscan::advanced_network::TxQueueConfig& q,
+    bool parse_memory_regions) {
+  if (!parse_common_queue_config(q_item, q.common_, parse_memory_regions)) { return false; }
 #if !ANO_MGR_RIVERMAX
   try {
-    const auto& offload = q_item["offloads"];
-    q.common_.offloads_.reserve(offload.size());
-    for (const auto& off : offload) { q.common_.offloads_.push_back(off.as<std::string>()); }
+    if (q_item["offloads"].IsDefined()) {
+      const auto& offload = q_item["offloads"];
+      q.common_.offloads_.reserve(offload.size());
+      for (const auto& off : offload) {
+        q.common_.offloads_.push_back(off.as<std::string>());
+      }
+    }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Error parsing TxQueueConfig: {}", e.what());
     return false;
@@ -503,7 +673,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
  */
 bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_config(
     const YAML::Node& q_item, const holoscan::advanced_network::ManagerType& manager_type,
-    holoscan::advanced_network::TxQueueConfig& q) {
+    holoscan::advanced_network::TxQueueConfig& q, bool parse_memory_regions) {
   try {
     holoscan::advanced_network::ManagerType _manager_type = manager_type;
 
@@ -511,7 +681,7 @@ bool YAML::convert<holoscan::advanced_network::NetworkConfig>::parse_tx_queue_co
       _manager_type = holoscan::advanced_network::ManagerFactory::get_default_manager_type();
     }
 
-    if (!parse_tx_queue_common_config(q_item, q)) { return false; }
+    if (!parse_tx_queue_common_config(q_item, q, parse_memory_regions)) { return false; }
 
 #if ANO_MGR_RIVERMAX
     if (_manager_type == holoscan::advanced_network::ManagerType::RIVERMAX) {

@@ -7,9 +7,9 @@
                 "affiliation": "NVIDIA"
             }
         ],
-        "version": "3.5.0",
+        "version": "1.1.0",
         "changelog": {
-            "3.5.0": "Unified video streaming operators with client and server components"
+            "1.1.0": "Unified video streaming operators with client and server components"
         },
         "language": ["C++"],
         "platforms": ["x86_64", "aarch64"],
@@ -20,7 +20,7 @@
                 "3.5.0"
             ]
         },
-        "ranking": 1,
+        "ranking": 2,
         "requirements": {
             "system_packages": [
                 {

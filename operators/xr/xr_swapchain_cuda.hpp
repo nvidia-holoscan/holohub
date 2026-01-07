@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ class XrSwapchainCuda {
     D32_SFLOAT,
   };
 
-  XrSwapchainCuda(XrSession& session, Format format, uint32_t width, uint32_t height) noexcept;
+  XrSwapchainCuda(XrSession& session, Format format, uint32_t width, uint32_t height);
   ~XrSwapchainCuda();
 
   // Acquires a CUDA swapchain image to write into.

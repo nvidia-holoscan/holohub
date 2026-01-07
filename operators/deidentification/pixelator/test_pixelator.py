@@ -19,9 +19,9 @@ from holoscan.core import Operator
 from .pixelator import PixelatorOp
 
 try:
-    from holoscan.code import BaseOperator
+    from holoscan.core import BaseOperator
 except ImportError:
-    from holoscan.code import _Operator as BaseOperator
+    from holoscan.core import _Operator as BaseOperator
 
 
 def test_pixelator_op_init(fragment):

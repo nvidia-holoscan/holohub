@@ -1,0 +1,111 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+multithreaded: true
+num_delay_ops: 32
+delay: 0.1
+delay_step: 0.01
+
+scheduler:
+  check_recession_period_ms: 0
+  worker_thread_number: 5
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+  # max_duration_ms: 20000
+
+advanced_network:
+  cfg:
+    version: 1
+    manager: "rdma"
+    master_core: 3
+    debug: false
+    log_level: "info"
+
+    memory_regions:
+    - name: "DATA_RX_GPU_SERVER"
+      kind: "device"
+      affinity: 0
+      num_bufs: 20
+      buf_size: 9000000
+    - name: "DATA_TX_GPU_SERVER"
+      kind: "device"
+      affinity: 0
+      num_bufs: 20
+      buf_size: 9000000
+    - name: "DATA_TX_GPU_CLIENT"
+      kind: "device"
+      affinity: 0
+      num_bufs: 20
+      buf_size: 90000000
+    - name: "DATA_RX_GPU_CLIENT"
+      kind: "device"
+      affinity: 0
+      num_bufs: 20
+      buf_size: 90000000
+
+    interfaces:
+    - name: my_client             # Do not change! Referenced in code
+      rdma_config:
+        mode: client
+        transport_mode: RC
+      address: 192.168.11.2       # The address to use, or leave blank for route lookup
+      tx:
+        queues:
+        - name: "Client_TX_Queue"
+          id: 0
+          batch_size: 1
+          cpu_core: 7
+      rx:
+        queues:
+        - name: "Client_RX_Queue"
+          id: 0
+          cpu_core: 7
+          batch_size: 1
+    - name: my_server             # Do not change! Referenced in code
+      rdma_config:
+        mode: server
+        transport_mode: RC
+        port: 4096
+      address: 192.168.10.2       # The IP address of the interface to bind to
+      rx:
+        queues:
+        - name: "Server_RX_Queue"
+          id: 0
+          cpu_core: 8
+          batch_size: 1
+      tx:
+        queues:
+        - name: "Server_TX_Queue"
+          id: 0
+          cpu_core: 8
+          batch_size: 1
+
+rdma_bench_server:
+  server_address: 192.168.10.2
+  server_port: 4096
+  message_size: 8000000
+  send: true
+  receive: true
+  server: true
+
+rdma_bench_client:
+  message_size: 8000000
+  client_address: 192.168.11.2
+  server_address: 192.168.10.2
+  server_port: 4096
+  receive: true
+  send: true
+  server: false

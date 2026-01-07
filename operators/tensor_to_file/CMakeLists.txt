@@ -34,4 +34,7 @@ target_include_directories(tensor_to_file PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
 
-add_subdirectory(python)
+# Python module
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

@@ -16,5 +16,5 @@
 # Combined Video Streaming Operators (Client + Server)
 # This builds both streaming client and server components in their original structure
 
-add_subdirectory(streaming_client_enhanced)
-add_subdirectory(streaming_server_enhanced)
+add_holohub_operator(video_streaming_client)
+add_holohub_operator(video_streaming_server)

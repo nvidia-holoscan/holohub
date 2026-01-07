@@ -38,7 +38,7 @@ target_link_libraries(adv_networking_bench
 if(NOT DEFINED ANO_MGR)
     # Initialize ANO_MGR with a default if not provided
     # Note: rivermax not added to the default list yet since it requires licensing
-    set(ANO_MGR "dpdk gpunetio" CACHE STRING "Manager type(s) list")
+    set(ANO_MGR "dpdk rdma" CACHE STRING "Manager type(s) list")
 endif()
 separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
 foreach(MGR IN LISTS ANO_MGR_LIST)
@@ -101,6 +101,18 @@ add_custom_target(adv_networking_bench_rivermax_tx_rx_yaml
 )
 add_dependencies(adv_networking_bench adv_networking_bench_rivermax_tx_rx_yaml)
 
+add_custom_target(adv_networking_bench_rx_arb_match_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx_arb_match.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx_arb_match.yaml"
+)
+add_dependencies(adv_networking_bench adv_networking_bench_rx_arb_match_yaml)
+
+add_custom_target(adv_networking_bench_rdma_tx_rx_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rdma_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rdma_tx_rx.yaml"
+)
+add_dependencies(adv_networking_bench adv_networking_bench_rdma_tx_rx_yaml)
+
 # Installation
 install(TARGETS adv_networking_bench
         DESTINATION examples/adv_networking_bench
@@ -116,6 +128,7 @@ install(
     ../adv_networking_bench_rivermax_rx.yaml
     ../adv_networking_bench_rivermax_tx.yaml
     ../adv_networking_bench_rivermax_tx_rx.yaml
+    ../adv_networking_bench_rdma_tx_rx.yaml
   DESTINATION examples/adv_networking_bench
   COMPONENT adv_networking_bench-configs
   PERMISSIONS OWNER_READ OWNER_WRITE
@@ -154,6 +167,7 @@ install(
 if(BUILD_TESTING)
   # Copy the test files to the build directory
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/benchmark_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/io_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/process_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/test_ano_bench.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/conftest.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
@@ -164,6 +178,7 @@ if(BUILD_TESTING)
   include(add_python_tests)
   add_python_tests(
     INPUT "testing"
+    ENVIRONMENT "ANO_MANAGER_LIST=${ANO_MGR_LIST}"
     PYTEST_ARGS "-v" "-s" "--log-cli-level=DEBUG" "--show-capture=no"
   )
 endif()

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -41,7 +41,9 @@ RUN apt update \
     && apt install --no-install-recommends -y \
         librealsense2-dev \
         libudev-dev \
-        libusb-1.0-0-dev
+        libusb-1.0-0-dev \
+        libfastcdr-dev \
+        libfastrtps-dev
 
 # --------------------------------------------------------------------------
 #

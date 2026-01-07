@@ -35,9 +35,18 @@
 					}
 			]
 		},
-		"run": {
-			"command": "<holohub_app_bin>/endoscopy_tool_tracking --data <holohub_data_dir>/endoscopy",
-			"workdir": "holohub_bin"
+		"default_mode": "replayer",
+        "modes": {
+			"replayer": {
+				"description": "Run the application in replayer mode",
+				"build": {
+					"cmake_options": ["-DHOLOHUB_BUILD_PYTHON=OFF"]
+					},
+				"run": {
+					"command": "<holohub_app_bin>/endoscopy_tool_tracking --data <holohub_data_dir>/endoscopy",
+					"workdir": "holohub_bin"
+				}
+			}
 		}
 	}
 }

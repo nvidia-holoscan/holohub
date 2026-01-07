@@ -82,8 +82,10 @@ class TestVLM(unittest.TestCase):
     def test_generate_response(self):
         """Test the generate_response method"""
         app = V4L2toVLM("none", "replayer", "none")
-        testing_yaml = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "vila_live_testing.yaml"
+        # Use environment variable if set, otherwise fallback to source directory location
+        testing_yaml = os.environ.get(
+            "VILA_LIVE_TEST_CONFIG",
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "vila_live_testing.yaml"),
         )
         if not os.path.exists(testing_yaml):
             raise FileNotFoundError(f"Testing YAML file not found: {testing_yaml}")

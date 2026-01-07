@@ -12,6 +12,7 @@
 		"changelog": {
 			"1.0": "Enable Python support"
 		},
+		"dockerfile": "applications/prohawk_video_replayer/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [

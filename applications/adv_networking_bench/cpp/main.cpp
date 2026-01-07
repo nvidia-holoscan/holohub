@@ -26,6 +26,9 @@
 #include "doca_bench_op_rx.h"
 #include "doca_bench_op_tx.h"
 #endif
+#if ANO_MGR_RDMA
+#include "rdma_bench.h"
+#endif
 #include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <assert.h>
@@ -43,6 +46,8 @@ class App : public holoscan::Application {
     }
     HOLOSCAN_LOG_INFO("Configured the Advanced Network manager");
 
+    const auto [rdma_server_en, rdma_client_en] =
+        holoscan::advanced_network::get_rdma_configs_enabled(config());
     const auto [rx_en, tx_en] = advanced_network::get_rx_tx_configs_enabled(config());
     const auto mgr_type = advanced_network::get_manager_type(config());
 
@@ -108,6 +113,28 @@ class App : public holoscan::Application {
       }
 #else
       HOLOSCAN_LOG_ERROR("RIVERMAX manager/backend is not supported");
+      exit(1);
+#endif
+    } else if (mgr_type == holoscan::advanced_network::ManagerType::RDMA) {
+#if ANO_MGR_RDMA
+      if (rdma_server_en) {
+        auto bench_server = make_operator<ops::AdvNetworkingRdmaOp>(
+            "rdma_bench_server",
+            from_config("rdma_bench_server"),
+            make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_server);
+      }
+
+      if (rdma_client_en) {
+        auto bench_client = make_operator<ops::AdvNetworkingRdmaOp>(
+            "rdma_bench_client",
+            from_config("rdma_bench_client"),
+            make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_client);
+      }
+
+#else
+      HOLOSCAN_LOG_ERROR("RDMA ANO manager/backend is not supported");
       exit(1);
 #endif
     } else {

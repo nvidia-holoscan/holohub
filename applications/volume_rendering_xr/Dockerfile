@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu as base
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.2.0-dgpu AS base
 
 
 ############################################################
@@ -43,7 +43,7 @@ RUN /tmp/base-setup.sh
 ############################################################
 # OpenXR dev dependencies
 ############################################################
-FROM base as dev
+FROM base AS dev
 
 ARG DEBIAN_FRONTEND=noninteractive
 

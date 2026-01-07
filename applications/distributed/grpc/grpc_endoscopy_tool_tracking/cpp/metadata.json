@@ -12,6 +12,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
+		"dockerfile": "applications/distributed/grpc/grpc_endoscopy_tool_tracking/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "2.7.0",
 			"tested_versions": [

@@ -46,6 +46,19 @@ set(HOLOLINK_LIB_DIRS
 
 link_directories(${HOLOLINK_LIB_DIRS})
 
+add_library(hololink STATIC IMPORTED)
+set_target_properties(hololink PROPERTIES
+    IMPORTED_LOCATION "${HOLOLINK_BUILD_DIR}/src/hololink/common/libhololink.a"
+    INTERFACE_LINK_LIBRARIES "CUDA::nvrtc"
+)
+add_library(hololink::hololink ALIAS hololink)
+add_library(csi_to_bayer STATIC IMPORTED)
+set_target_properties(csi_to_bayer PROPERTIES
+    IMPORTED_LOCATION "${HOLOLINK_BUILD_DIR}/src/hololink/operators/csi_to_bayer/libcsi_to_bayer.a"
+    INTERFACE_LINK_LIBRARIES "hololink::hololink"
+)
+add_library(hololink::csi_to_bayer ALIAS csi_to_bayer)
+
 # Publisher executable
 add_executable(holoscan_ros2_vb1940_publisher
     vb1940_publisher.cpp
@@ -62,18 +75,17 @@ target_link_libraries(holoscan_ros2_vb1940_publisher PRIVATE
     CUDA::cudart
     CUDA::cuda_driver
     # Hololink libraries
+    hololink::hololink
+    hololink::csi_to_bayer
     hololink_core
-    hololink
     hololink_sensor
     hololink_camera_sensor
     native_vb1940_camera_sensor
     base_receiver_op
-    csi_to_bayer
     roce_receiver
     image_processor
     # System libraries needed by hololink
     ibverbs
-    nvrtc
     fmt
 )
 
@@ -93,11 +105,10 @@ target_link_libraries(holoscan_ros2_vb1940_subscriber
     holoscan::ops::holoviz
     ${rclcpp_LIBRARIES}
     ${sensor_msgs_LIBRARIES}
-    ${CUDA_LIBRARIES}
-    cuda
+    CUDA::cuda_driver
     # Hololink libraries for argument parsing
     hololink_core
-    hololink
+    hololink::hololink
 )
 target_include_directories(holoscan_ros2_vb1940_subscriber PRIVATE
     ${rclcpp_INCLUDE_DIRS}

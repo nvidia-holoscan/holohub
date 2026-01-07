@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ ImplicitVRLittleEndian, _ = optional_import("pydicom.uid", name="ImplicitVRLittl
 Dataset, _ = optional_import("pydicom.dataset", name="Dataset")
 FileDataset, _ = optional_import("pydicom.dataset", name="FileDataset")
 Sequence, _ = optional_import("pydicom.sequence", name="Sequence")
-PdfReader, _ = optional_import("PyPDF2", name="PdfReader")
+PdfReader, _ = optional_import("pypdf", name="PdfReader")
 
 
 class DICOMEncapsulatedPDFWriterOperator(Operator):
@@ -266,14 +266,14 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         return True
 
 
-# Commenting out the following as pttype complains about the constructor for no reason
+# Commenting out the following which is used for integration testing
 # def test(test_copy_tags: bool = True):
-#     from operators.medical_imaging.operators.dicom_data_loader_operator import DICOMDataLoaderOperator
-#     from operators.medical_imaging.operators.dicom_series_selector_operator import DICOMSeriesSelectorOperator
+#     from operators.medical_imaging import DICOMDataLoaderOperator
+#     from operators.medical_imaging import DICOMSeriesSelectorOperator
 
 #     current_file_dir = Path(__file__).parent.resolve()
-#     dcm_folder = current_file_dir.joinpath("../../../inputs/livertumor_ct/dcm/1-CT_series_liver_tumor_from_nii014")
-#     pdf_file = current_file_dir.joinpath("../../../inputs/pdf/TestPDF.pdf")
+#     dcm_folder = current_file_dir.joinpath("/tmp/inputs/livertumor_ct/dcm/1-CT_series_liver_tumor_from_nii014")
+#     pdf_file = current_file_dir.joinpath("/tmp/inputs/pdf/TestPDF.pdf")
 #     out_path = Path("output_pdf_op").absolute()
 #     pdf_bytes = b"Not PDF bytes."
 

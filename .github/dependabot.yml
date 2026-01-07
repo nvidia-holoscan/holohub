@@ -1,0 +1,8 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/" # Scans the entire repository
+    schedule:
+      interval: "weekly"
+    exclude-paths:
+      - "applications/ehr_query_llm/lmm/**" # Excludes the lmm directory

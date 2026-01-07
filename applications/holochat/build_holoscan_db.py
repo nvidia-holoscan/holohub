@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +19,10 @@ import re
 from types import SimpleNamespace
 
 import yaml
-from langchain.docstore.document import Document
-from langchain_community.document_loaders import PyPDFLoader  # for loading the pdf
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_core.documents import Document
+from langchain_huggingface import HuggingFaceEmbeddings
 from utils import clone_repository, get_source_chunks
 
 current_dir = os.path.dirname(__file__)
@@ -107,7 +107,7 @@ def main():
     encode_kwargs = {"normalize_embeddings": True}  # set True to compute cosine similarity
 
     # Create local embedding model cached at ./models
-    embedding_model = HuggingFaceBgeEmbeddings(
+    embedding_model = HuggingFaceEmbeddings(
         model_name=model_name,
         model_kwargs=model_kwargs,
         encode_kwargs=encode_kwargs,
@@ -120,11 +120,13 @@ def main():
     print(f"Building Holoscan Embeddings Chroma DB at {chroma_db_path}...")
     print("Building Chroma DB (This may take a few minutes)...")
 
+    # Create/load the persistent Chroma collection once, then append documents in batches.
+    chroma_db = Chroma(persist_directory=chroma_db_path, embedding_function=embedding_model)
+
     max_batch_size = 5461  # 5461 is the max batch size for the BAAI/bge-large-en model
     for i in range(0, len(source_chunks), max_batch_size):
         batch = source_chunks[i : i + max_batch_size]
-        chroma_db = Chroma.from_documents(batch, embedding_model, persist_directory=chroma_db_path)
-        chroma_db.persist()
+        chroma_db.add_documents(documents=batch)
     print("Done!")
 
 

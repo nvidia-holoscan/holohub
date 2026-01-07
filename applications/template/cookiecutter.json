@@ -3,7 +3,10 @@
     "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_') }}",
     "full_name": "HoloHub User",
     "affiliation": "Holoscan",
-    "language": "{{ cookiecutter.language }}",
+    "language": [
+        "cpp",
+        "python"
+    ],
     "version": "0.1.0",
     "holoscan_version": "2.3",
     "platforms": "",
@@ -18,13 +21,13 @@
         "full_name": "Author full name",
         "affiliation": "Author institution or organization",
         "language": {
-            "prompt": "Primary programming language (python, cpp)",
-            "validator": "^(python|cpp)$",
-            "error_message": "Language must be either 'python' or 'cpp'"
+            "__prompt__": "Primary programming language",
+            "cpp": "C++",
+            "python": "Python"
         },
         "version": "Initial version number",
         "holoscan_version": "Holoscan SDK version",
-        "platforms": "Supported platforms (comma-separated)",
+        "platforms": "Supported platforms (comma-separated, allowed: x86_64, aarch64)",
         "tags": "Tags for your application (comma-separated)",
         "license": "License (such as MIT, Apache-2.0, BSD-3-Clause)"
     }

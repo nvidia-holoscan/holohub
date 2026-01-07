@@ -45,4 +45,6 @@ target_include_directories(nv_video_encoder PUBLIC
   ${NVC_SDK_PATH}/NvEncoder
 )
 
-add_subdirectory(python)
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

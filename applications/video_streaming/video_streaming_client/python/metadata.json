@@ -1,6 +1,7 @@
 {
     "application": {
-        "name": "Video Streaming Client",
+        "name": "Video Streaming Client Demo (Python)",
+        "description": "Python implementation of video streaming client using Holoscan SDK streaming operators",
         "authors": [
             {
                 "name": "Holoscan Team",
@@ -8,14 +9,14 @@
             }
         ],
         "language": "Python",
-        "version": "1.0",
+        "version": "1.0.0",
         "changelog": {
-            "1.0": "Initial Release"
+            "1.0.0": "Initial release of Python video streaming client"
         },
         "holoscan_sdk": {
-            "minimum_required_version": "3.2.0",
+            "minimum_required_version": "3.5.0",
             "tested_versions": [
-                "3.2.0"
+                "3.5.0"
             ]
         },
         "platforms": [
@@ -24,21 +25,38 @@
         ],
         "tags": [
             "Streaming",
+            "Video",
             "Client",
-            "Demo"
+            "Real-time",
+            "Demo",
+            "V4L2"
         ],
-        "ranking": 1,
+        "ranking": 2,
         "requirements": {
             "operators": [
                 {
-                    "name": "streaming_client",
-                    "version": "1.0"
+                    "name": "video_streaming_client",
+                    "version": "1.1.0"
                 }
             ]
         },
-        "run": {
-            "command": "python3 <holohub_app_source>/streaming_client_demo.py",
-            "workdir": "holohub_app_bin"
+        "dockerfile": "applications/video_streaming/Dockerfile",
+        "default_mode": "replayer",
+        "modes": {
+            "replayer": {
+                "description": "Streaming client (Python implementation) - Video replayer",
+                "run": {
+                    "command": "python3 video_streaming_client_demo.py --source replayer",
+                    "workdir": "holohub_bin"
+                }
+            },
+            "v4l2": {
+                "description": "Streaming client (Python implementation) - V4L2 camera",
+                "run": {
+                    "command": "python3 video_streaming_client_demo.py --source v4l2 --width 640 --height 480",
+                    "workdir": "holohub_bin"
+                }
+            }
         }
     }
 }
