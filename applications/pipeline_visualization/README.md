@@ -190,7 +190,7 @@ All dependencies to run the application are installed automatically when using t
 the Holohub container. Because the visualizer is run outside the Holohub container, its [dependencies](#visualizer-python-dependencies) must be
 installed separately.
 
-Install the required Python packages dependencies:
+Install the required Python packages:
 
 ```bash
 pip install -r requirements.txt
