@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ class TestHoloHubContainer(unittest.TestCase):
 
         # create a Dockerfile in the test directory
         self.dockerfile_path.write_text(
-            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:3.9.0-cuda12-dgpu"
+            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:3.10.0-cuda12-dgpu"
         )
 
         # create project metadata
