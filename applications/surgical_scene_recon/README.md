@@ -123,39 +123,55 @@ Verify that your dataset has this structure:
             └── poses_bounds.npy     # Camera poses (8.5 KB)
 ```
 
-## Model
+## Models Used by the `surgical_scene_recon` Application
 
-The application uses **3D Gaussian Splatting** with a **temporal deformation network** for dynamic scene reconstruction:
+The `surgical_scene_recon` application uses a **3D Gaussian Splatting** model with a **temporal deformation network** for dynamic scene reconstruction. 
 
-### Gaussian Splatting
 
-- **Architecture:** 3D Gaussians with learned position, scale, rotation, opacity, and color
-- **Initialization:** Multi-frame point cloud (~30,000-50,000 points from all frames)
-- **Renderer:** `gsplat` library (CUDA-accelerated differentiable rasterization)
-- **Spherical Harmonics:** Degree 3 (16 coefficients per gaussian for view-dependent color)
-- **Resolution:** 640×512 pixels (RGB, three channels)
+- Gaussian Splatting Model
 
-### Temporal Deformation Network
+  Each portion of the application makes use of different aspects of the Gaussian Splatting Model.
 
-- **Architecture:** HexPlane 4D spatiotemporal grid + MLP decoder
-- **Input:** 3D position + normalized time value [0, 1]
-- **Output:** Deformed position, scale, rotation, and opacity changes
-- **Training:** Two-stage process (coarse: static, fine: with deformation)
-- **Inference:** Direct PyTorch (no conversion, full precision)
+  - Architecture: 3D Gaussian with learned position, scale, rotation, opacity, and color
+  - Initialization: Multi-frame point cloud (~30,000-50,000 points from all frames)
+  - Renderer: `gsplat` library (CUDA-accelerated differentiable rasterization)
+  - Spherical Harmonics: Degree 3 (16 coefficients per gaussian for view-dependent color)
+  - Resolution: 640×512 pixels (RGB, three channels)
 
-### Training Process
+- Temporal Deformation Network model
+
+  Temporal Generative Network (TGN) model generates data that integrates bidirectional deformation estimation with temporal prediction to interpolate missing MRI data and forecast future frames.
+
+
+  - **Architecture:** HexPlane 4D spatiotemporal grid + MLP decoder
+  - **Input:** 3D position + normalized time value [0, 1]
+  - **Output:** Deformed position, scale, rotation, and opacity changes
+  - **Training:** Two-stage process (coarse: static, fine: with deformation)
+  - **Inference:** Direct PyTorch (no conversion, full precision)
+
+## About the Model Training Process
 
 The application trains in two stages:
 
-1. **Coarse Stage:** Learn base static Gaussians without deformation
-2. **Fine Stage:** Add temporal deformation network for dynamic tissue modeling
+1. The Coarse Stage where the application learns the base static Gaussian models without deformation.
+2. The Fine Stage where a temporal deformation network model is added for dynamic tissue modeling.
 
 The training uses:
 
-- **Multi-modal Data:** RGB images, depth maps, tool segmentation masks
-- **Loss Functions:** RGB loss, depth loss, TV loss, masking losses
-- **Optimization:** Adam optimizer with batch-size scaled learning rates
-- **Tool Removal:** Segmentation masks applied during training for tissue-only reconstruction
+- Multi-modal Data: RGB images, depth maps, tool segmentation masks
+- Loss Functions: RGB loss, depth loss, TV loss, masking losses
+- Optimization: Adam optimizer with batch-size scaled learning rates
+- Tool Removal: Segmentation masks applied during training for tissue-only reconstruction
+
+The **training pipeline** (`gsplat_train.py`) runs in the following order:
+
+1. Data Loading using EndoNeRF parser loads RGB, depth, masks, and poses.
+2. Initialization uses Multi-frame point cloud (~30k points).
+3. Training happens in two stages:
+   - Coarse
+   - Fine
+4. Optimization is done by the Adam (Adaptive Moment Estimation) optimizer with batch-size scaled learning rates.
+5. Regularization, for depth loss, TV loss, and masking losses, is performed on the data.
 
 The default training command trains a model on all 63 frames with 2000 iterations, producing smooth temporal deformation and high-quality reconstruction.
 
@@ -183,60 +199,49 @@ EndoNeRFLoaderOp → GsplatLoaderOp → GsplatRenderOp → HolovizOp
                                               ImageSaverOp
 ```
 
-**Components:**
-
 - **EndoNeRFLoaderOp:** Streams camera poses and timestamps
 - **GsplatLoaderOp:** Loads checkpoint and deformation network
 - **GsplatRenderOp:** Applies temporal deformation and renders
 - **HolovizOp:** Real-time GPU-accelerated visualization
 - **ImageSaverOp:** Optional frame saving
 
-## Requirements
+## Requirements for the `surgical_scene_recon` Application
 
 - **Hardware:**
   - NVIDIA GPU (RTX 3000+ series recommended, tested on RTX 6000 Ada Generation)
-  - ~2 GB free disk space (dataset)
-  - ~30 GB free disk space (Docker container)
+  - ~2 GB free disk space (for the dataset)
+  - ~30 GB free disk space (for Docker containers)
 - **Software:**
   - Docker with NVIDIA GPU support
   - X11 display server (for visualization)
-  - Holoscan SDK 3.7.0 or later (automatically provided in container)
+  - Holoscan SDK 3.7.0 or later (automatically provided in containers)
 
-## Testing
+## Application Integration Testing
 
-We provide integration tests that can be run with the following command to test the application for training and inference:
+We provide integration tests.
+
+To test the application for training and inference, run:
 
 ```bash
 ./holohub test surgical_scene_recon --verbose
 ```
 
-## Technical Details
 
-### Training Pipeline (gsplat_train.py)
+## Performance
 
-1. **Data Loading:** EndoNeRF parser loads RGB, depth, masks, poses
-2. **Initialization:** Multi-frame point cloud (~30k points)
-3. **Two-Stage Training:**
-   - **Coarse:** Learn base Gaussians (no deformation)
-   - **Fine:** Add temporal deformation network
-4. **Optimization:** Adam with batch-size scaled learning rates
-5. **Regularization:** Depth loss, TV loss, masking losses
+Tested Configuration:
 
-### Performance
+- GPU: NVIDIA RTX 6000 Ada Generation
+- Container: Holoscan SDK 3.7.0
+- Training Time: ~5 minutes (63 frames, 2000 iterations)
+- Rendering: Real-time >30 FPS
 
-**Tested Configuration:**
+Quality Metrics (train mode):
 
-- **GPU:** NVIDIA RTX 6000 Ada Generation
-- **Container:** Holoscan SDK 3.7.0
-- **Training Time:** ~5 minutes (63 frames, 2000 iterations)
-- **Rendering:** Real-time >30 FPS
-
-**Quality Metrics (train mode):**
-
-- **PSNR:** ~36-38 dB
-- **SSIM:** ~0.80
-- **Gaussians:** ~50,000 splats
-- **Deformation:** Smooth temporal consistency
+- PSNR: ~36-38 dB
+- SSIM: ~0.80
+- Gaussian functions: ~50,000 splats
+- Deformation: Smooth temporal consistency
 
 ## Troubleshooting
 
@@ -268,40 +273,40 @@ We provide integration tests that can be run with the following command to test 
 
 ### Citation
 
-If you use this work, please cite:
+If you use this work, cite the following:
 
-**EndoNeRF:**
+* EndoNeRF:
 
-```bibtex
-@inproceedings{wang2022endonerf,
-  title={EndoNeRF: Neural Rendering for Stereo 3D Reconstruction of Deformable Tissues in Robotic Surgery},
-  author={Wang, Yuehao and Yifan, Wang and Tao, Rui and others},
-  booktitle={MICCAI},
-  year={2022}
-}
-```
+  ```bibtex
+  @inproceedings{wang2022endonerf,
+    title={EndoNeRF: Neural Rendering for Stereo 3D Reconstruction of Deformable Tissues in Robotic Surgery},
+    author={Wang, Yuehao and Yifan, Wang and Tao, Rui and others},
+    booktitle={MICCAI},
+    year={2022}
+  }
+  ```
 
-**3D Gaussian Splatting:**
+* 3D Gaussian Splatting:
 
-```bibtex
-@article{kerbl20233d,
-  title={3d gaussian splatting for real-time radiance field rendering},
-  author={Kerbl, Bernhard and Kopanas, Georgios and Leimk{\"u}hler, Thomas and Drettakis, George},
-  journal={ACM Transactions on Graphics},
-  year={2023}
-}
-```
+  ```bibtex
+  @article{kerbl20233d,
+    title={3d gaussian splatting for real-time radiance field rendering},
+    author={Kerbl, Bernhard and Kopanas, Georgios and Leimk{\"u}hler, Thomas and Drettakis, George},
+    journal={ACM Transactions on Graphics},
+    year={2023}
+  }
+  ```
 
-**gsplat Library:**
+* `gsplat` Library:
 
-```bibtex
-@software{ye2024gsplat,
-  title={gsplat},
-  author={Ye, Vickie and Turkulainen, Matias and others},
-  year={2024},
-  url={https://github.com/nerfstudio-project/gsplat}
-}
-```
+  ```bibtex
+  @software{ye2024gsplat,
+    title={gsplat},
+    author={Ye, Vickie and Turkulainen, Matias and others},
+    year={2024},
+    url={https://github.com/nerfstudio-project/gsplat}
+  }
+  ```
 
 ### License
 
