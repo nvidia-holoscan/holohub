@@ -13,6 +13,7 @@ _HESSIAN_CACHE: dict[int, object] = {}
 
 MAX_REASONABLE_COND_RATIO = 10
 
+import cupy as cp
 
 def solve_regularized_system(
     data_jacobians,

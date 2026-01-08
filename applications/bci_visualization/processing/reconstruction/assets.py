@@ -41,7 +41,6 @@ class Assets:
     wavelengths: NDArray[np.int_]  # wavelengths
     resolution: Tuple[float, float, float]
     extinction_coefficients: Dict[int, ExtinctionCoefficient]  # HbO and HbR extinction coefficients
-https://github.com/nvidia-holoscan/holohub/pull/1322/files
 
 _assets: Assets | None = None
 
