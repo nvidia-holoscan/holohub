@@ -131,7 +131,7 @@ The `surgical_scene_recon` application uses a **3D Gaussian Splatting** model wi
 - Gaussian Splatting Model
 
   Each portion of the application makes use of different aspects of the Gaussian Splatting Model.
-
+  - Architecture: 3D Gaussians with learned position, scale, rotation, opacity, and color
   - Architecture: 3D Gaussian with learned position, scale, rotation, opacity, and color
   - Initialization: Multi-frame point cloud (~30,000-50,000 points from all frames)
   - Renderer: `gsplat` library (CUDA-accelerated differentiable rasterization)
