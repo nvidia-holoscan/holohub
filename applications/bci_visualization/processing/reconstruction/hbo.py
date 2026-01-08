@@ -26,9 +26,14 @@ class ExtinctionCoefficient(NamedTuple):
 
     @classmethod
     def from_csv(cls, path: Path) -> Dict[int, ExtinctionCoefficient]:
+        def _parse_wavelength(value: str) -> int:
+            # Some datasets store wavelength as scientific notation (e.g. "6.0000000e+02").
+            # Parse as float then round to nearest integer nm.
+            return int(round(float(value)))
+
         return {
-            int(row["Wavelength"]): cls(
-                Wavelength=int(row["Wavelength"]),
+            _parse_wavelength(row["Wavelength"]): cls(
+                Wavelength=_parse_wavelength(row["Wavelength"]),
                 HbO=float(row["HbO"]),
                 deoxyHb=float(row["deoxyHb"]),
                 Water=float(row["Water"]),
