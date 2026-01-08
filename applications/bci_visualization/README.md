@@ -9,8 +9,11 @@
 
 This Holohub application demonstrates how to perform real-time source reconstruction and visualization of streaming functional brain data from the Kernel Flow 2 system. The application was developed and tested on an NVIDIA Jetson Thor paired with a Kernel Flow 2 headset. To lower the barrier to entry, we also provide recorded datasets and a data replayer, enabling developers to build and experiment with visualization and classification pipelines within the Holoscan framework without requiring access to the hardware.
 
-This example processes streaming [moments from the distribution of time-of-flight histograms](https://doi.org/10.1117/1.NPh.10.1.013504). These moments can originate either from the [Kernel Flow SDK](https://docs.kernel.com/docs/kernel-sdk-install) when connected to the Kernel hardware, or from the included [shared near-infrared spectroscopy format (SNIRF)](https://github.com/fNIRS/snirf) replayer. The moments are then combined with the sensors' spatial geometry and an average anatomical head model to produce source-reconstructed outputs similar to what was [published in previous work](https://direct.mit.edu/imag/article/doi/10.1162/imag_a_00475/127769/A-Compact-Time-Domain-Diffuse-Optical-Tomography). The
-resulting 3D volumes are displayed using the Holoviz framework.
+This example processes streaming [moments from the distribution of time-of-flight histograms](https://doi.org/10.1117/1.NPh.10.1.013504). These moments can originate either from the [Kernel Flow SDK](https://docs.kernel.com/docs/kernel-sdk-install) when connected to the Kernel hardware, or from the included [shared near-infrared spectroscopy format (SNIRF)](https://github.com/fNIRS/snirf) replayer. The moments are then combined with the sensors' spatial geometry and an average anatomical head model to produce source-reconstructed outputs similar to what was [published in previous work](https://direct.mit.edu/imag/article/doi/10.1162/imag_a_00475/127769/A-Compact-Time-Domain-Diffuse-Optical-Tomography). 
+
+To visualize the reconstructed 3D volumes, this application utilizes both the [VolumeRendererOp](../../holohub/volume_renderer.py) operator and HolovizOp for real-time 3D rendering and interactive visualization.
+
+For optimal efficiency and smooth user experience, we employ an event-based scheduler that decouples the reconstruction and visualization pipelines. This allows each stage to run on separate threads, resulting in higher rendering quality and more responsive interaction.
 
 ## Background
 
@@ -56,52 +59,174 @@ To run the application you need a streaming Kernel Flow data source. This can be
    wget -0 data/examples/data.snirf "https://s3.amazonaws.com/openneuro.org/ds006545/sub-bed8fefe/ses-1/nirs/sub-bed8fefe_ses-1_task-audio_nirs.snirf?versionId=sYFJNjlNNlf8xVOMsIde5hpWZE2clsiu"
    ```
 
-## Running
-1. Download data
-   * Please download data from [here](https://drive.google.com/drive/folders/1RpQ6UzjIZAr90FdW9VIbtTFYR6-up7w2) and put everything under `data/bci_visualization`.
-   * Includes an activation volume and a segmentation volume.
-2. Run application
-   ```bash
-   ./holohub run bci_visualization
-   ```
-   This command will build the docker and run the application.
+## Quick Start
 
-### Components
+### 1. Download Required Data
 
-1. **VoxelStreamToVolumeOp** (`operators/voxel_stream_to_volume/voxel_stream_to_volume.py`): Bridge operator that converts sparse voxel data to dense volume
-   - Inputs: `affine_4x4`, `hb_voxel_data`
-   - Outputs: `volume`, `spacing`, `permute_axis`, `flip_axes`, `mask_volume`, `mask_spacing`, `mask_permute_axis`, `mask_flip_axes`
+Download the example dataset from [Google Drive](https://drive.google.com/drive/folders/1RpQ6UzjIZAr90FdW9VIbtTFYR6-up7w2) and extract it to `data/bci_visualization` in your holohub directory. The dataset includes:
+- **SNIRF data file** (`data.snirf`): Recorded brain activity measurements
+- **Anatomy masks** (`anatomy_labels_*.nii.gz`): Brain tissue segmentation (skin, skull, CSF, gray matter, white matter)
+- **Reconstruction matrices**: Pre-computed Jacobian and voxel information
+- **Volume renderer config** (`config.json`): 3D visualization settings
 
-2. **VolumeRendererOp**: ClaraViz-based volume renderer
-   - Renders the 3D volume with transfer functions
-   - Supports interactive camera control
+### 2. Run the Application
+```bash
+./holohub run bci_visualization
+```
 
-3. **HolovizOp**: Interactive visualization
-   - Displays the rendered volume
-   - Provides camera pose feedback
+### Expected Data Folder Structure
 
-
-## Data Flow
+After downloading and extracting the dataset, your `data/bci_visualization` folder should have this structure:
 
 ```
-Reconstruction → VoxelStreamToVolume → VolumeRenderer → Holoviz
-                                             ↑               ↓
-                                             └─── camera ────┘
+data/bci_visualization/
+├── anatomy_labels_high_res.nii.gz      # Brain segmentation
+├── config.json                          # Volume renderer configuration
+├── data.snirf                          # SNIRF format brain activity data
+├── extinction_coefficients_mua.csv     # Absorption coefficients for HbO/HbR
+├── flow_channel_map.json               # Sensor-source channel mapping
+├── flow_mega_jacobian.npy              # Pre-computed sensitivity matrix (channels → voxels)
+└── voxel_info/                         # Voxel geometry and optical properties
+    ├── affine.npy                      # 4x4 affine transformation matrix
+    ├── idxs_significant_voxels.npy     # Indices of voxels with sufficient sensitivity
+    ├── ijk.npy                         # Voxel coordinates in volume space
+    ├── mua.npy                         # Absorption coefficient per voxel
+    ├── musp.npy                        # Reduced scattering coefficient per voxel
+    ├── resolution.npy                  # Voxel resolution (mm)
+    ├── wavelengths.npy                 # Measurement wavelengths (690nm, 905nm)
+    └── xyz.npy                         # Voxel coordinates in anatomical space (mm)
 ```
+
+## Pipeline Overview
+
+The application consists of two main pipelines running on separate threads:
+
+### Reconstruction Pipeline
+Transforms sensor-space measurements into 3D brain activity maps:
+
+```mermaid
+graph LR
+    A[SNIRF Stream] --> B[Stream Operator]
+    B --> C[Build RHS]
+    C --> D[Normalize]
+    D --> E[Regularized Solver]
+    E --> F[Convert to Voxels]
+    F --> G[Voxel to Volume]
+    
+    style A fill:#e1f5ff
+    style G fill:#ffe1f5
+```
+
+**Key Steps:**
+1. **Stream Operator**: Reads SNIRF data and emits time-of-flight moments
+2. **Build RHS**: Constructs the right-hand side of the inverse problem using channel mapping and Jacobian
+3. **Normalize**: Normalizes measurements for numerical stability
+4. **Regularized Solver**: Solves the ill-posed inverse problem with Tikhonov regularization
+5. **Convert to Voxels**: Maps solution to 3D voxel coordinates with HbO/HbR conversion
+6. **Voxel to Volume**: Resamples to match anatomy mask, applies adaptive normalization
+
+### Visualization Pipeline
+Renders 3D brain volumes with real-time interaction:
+
+```mermaid
+graph LR
+    G[Voxel to Volume] --> H[Volume Renderer]
+    H --> I[Color Buffer Passthrough]
+    I --> J[HolovizOp]
+    J --> H
+    
+    style G fill:#ffe1f5
+    style J fill:#e1ffe1
+```
+
+**Key Steps:**
+1. **Volume Renderer**: GPU-accelerated ray-casting with ClaraViz (tissue segmentation + activation overlay)
+2. **Color Buffer Passthrough**: Queue management with POP policy to prevent frame stacking
+3. **HolovizOp**: Interactive 3D display with camera controls (bidirectional camera pose feedback)
 
 ## Volume Renderer Configuration
-Here are some of the important config:
-1. `timeSlot`: Rendering time in ms. The longer the better the quality.
-2. `TransferFunction`
 
-   a. `activeRegions`:  (0: SKIN, 1: SKULL, 2: CSF, 3: GRAY MATER, 4: WHITE MATTER, 5: AIR). Here, we select [3, 4] for our ROI. Set everything else as opacity=0 (default).
-   
-   b. `blendingProfile`: If there're overlapping components configured, how to blend.
+The `config.json` file in the data folder configures the ClaraViz volume renderer. For detailed documentation, see the [VolumeRenderer operator documentation](../../operators/volume_renderer/) and [ClaraViz proto definitions](https://github.com/NVIDIA/clara-viz/blob/main/src/protos/nvidia/claraviz/cinematic/v1/render_server.proto).
 
-   c. `range`: Volume's value within this range to be configured. 
+### Key Configuration Parameters
 
-   d. `opacityProfile`: How opacity is being applied within this range. Select `Square` for constant.
+#### 1. Rendering Quality
+```json
+{
+  "timeSlot": 100
+}
+```
+- **`timeSlot`** (milliseconds): Rendering time budget per frame
+  - Higher values = better quality
+  - Lower values = faster rendering
 
-   e. `diffuseStart/End`: The component's color. Linear interpolation between start/end.
+#### 2. Transfer Functions
+The transfer function maps voxel values to colors and opacity. This application uses **three components**.
 
-   Note: there are three components configured. First is for overall ROI, set color as white. Second is for positive activation, set as red. Third is for negative activation, set as blue.
+##### Component 1: Brain Tissue Base (Gray/White Matter)
+```json
+{
+  "activeRegions": [3, 4],
+  "range": { "min": 0, "max": 1 },
+  "opacity": 0.5,
+  "opacityProfile": "SQUARE",
+  "diffuseStart": { "x": 1, "y": 1, "z": 1 },
+  "diffuseEnd": { "x": 1, "y": 1, "z": 1 }
+}
+```
+- **`activeRegions`**: Tissue types to render
+  - `0`: Skin, `1`: Skull, `2`: CSF, `3`: Gray matter, `4`: White matter, `5`: Air
+  - Here: `[3, 4]` = gray and white matter only
+- **`range`**: `[0, 1]` = full normalized value range
+- **`opacity`**: `0.5` = semi-transparent base layer
+- **`opacityProfile`**: `"SQUARE"` = constant opacity throughout range
+- **`diffuseStart/End`**: `[1, 1, 1]` = white base color
+
+##### Component 2: Negative Activation / Deactivation (Blue)
+```json
+{
+  "activeRegions": [3, 4],
+  "range": { "min": 0, "max": 0.4 },
+  "opacity": 1.0,
+  "opacityProfile": "SQUARE",
+  "diffuseStart": { "x": 0.0, "y": 0.0, "z": 1.0 },
+  "diffuseEnd": { "x": 0.0, "y": 0.0, "z": 0.5 }
+}
+```
+- **`range`**: `[0, 0.4]` = lower 40% of normalized range (deactivation)
+- **`opacity`**: `1.0` = fully opaque
+- **`opacityProfile`**: `"SQUARE"` = constant opacity
+- **`diffuseStart/End`**: `[0, 0, 1]` → `[0, 0, 0.5]` = bright blue to dark blue gradient
+
+##### Component 3: Positive Activation (Red)
+```json
+{
+  "activeRegions": [3, 4],
+  "range": { "min": 0.6, "max": 1 },
+  "opacity": 1.0,
+  "opacityProfile": "SQUARE",
+  "diffuseStart": { "x": 0.5, "y": 0.0, "z": 0.0 },
+  "diffuseEnd": { "x": 1.0, "y": 0.0, "z": 0.0 }
+}
+```
+- **`range`**: `[0.6, 1]` = upper 40% of normalized range (activation)
+- **`opacity`**: `1.0` = fully opaque
+- **`opacityProfile`**: `"SQUARE"` = constant opacity
+- **`diffuseStart/End`**: `[0.5, 0, 0]` → `[1, 0, 0]` = dark red to bright red gradient
+
+#### 3. Blending
+```json
+{
+  "blendingProfile": "BLENDED_OPACITY"
+}
+```
+- **`blendingProfile`**: How overlapping components combine
+  
+### Visualization Strategy
+
+The three-component approach creates a layered visualization:
+
+1. **Base layer** (white, 50% opacity): Shows overall brain structure (gray + white matter) throughout the full range [0, 1]
+2. **Blue overlay** (100% opacity): Highlights low values [0, 0.4] representing decreased hemoglobin.
+3. **Red overlay** (100% opacity): Highlights high values [0.6, 1] representing increased hemoglobin.
+4. **Neutral range** [0.4, 0.6]: Only shows the white base layer (no significant change)
