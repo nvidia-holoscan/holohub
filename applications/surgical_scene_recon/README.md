@@ -139,7 +139,7 @@ The `surgical_scene_recon` application uses a **3D Gaussian Splatting** model wi
 
 - Temporal Deformation Network model
 
-  Temporal Generative Network (TGN) model generates data that integrates bidirectional deformation estimation with temporal prediction to interpolate missing MRI data and forecast future frames.
+  The Temporal Deformation Network deforms 3D Gaussians over time to model dynamic tissue movement during surgery.
 
 
   - **Architecture:** HexPlane 4D spatiotemporal grid + MLP decoder
