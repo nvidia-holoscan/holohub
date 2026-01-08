@@ -50,7 +50,8 @@ cd holohub
 
 To run the virtual surgical training:
 
-  ```bash
+```bash
+./holohub run surgical_scene_recon train
   ./holohub run surgical_scene_recon train
   ```
 
