@@ -29,12 +29,22 @@ class VoxelStreamToVolumeOp(Operator):
     """
 
     def __init__(self, fragment, *args, **kwargs):
-        self.mask_nifti_path = kwargs.pop("mask_nifti_path", None)  # Anatomy mask NIfTI file
+        # Anatomy mask NIfTI file
+        self.mask_nifti_path = kwargs.pop("mask_nifti_path", None)  
+        
+        # Exponential moving average factor for running statistics (0 < alpha <= 1)
+        # Higher alpha = faster adaptation, lower alpha = more stable
+        self.stats_alpha = kwargs.pop("stats_alpha", 0.1)
+        
+        # Visualization scale factor for amplifying activations
+        # Needed because global min/max includes the whole brain (larger values),
+        # but we only visualize white/gray matter (smaller activations).
+        # Higher scale = more sensitive visualization of small activations
+        self.visualization_scale = kwargs.pop("visualization_scale", 10)
 
-        # Global normalization range
-        # TODO: Based on the data range
-        self.global_min = kwargs.pop("global_min", -1e-4)
-        self.global_max = kwargs.pop("global_max", 1e-4)
+        # Density range, must be same as the VolumeRendererOp's density range
+        self.density_min = kwargs.pop("density_min", -100)
+        self.density_max = kwargs.pop("density_max", 100)
 
         super().__init__(fragment, *args, **kwargs)
 
@@ -53,6 +63,11 @@ class VoxelStreamToVolumeOp(Operator):
         self.mask_volume_gpu = None
         self.mask_affine = None
         self.mask_shape = None
+        
+        # Running statistics for adaptive normalization (initialized from first frame)
+        self.global_min = None
+        self.global_max = None
+        self.frame_count = 0
 
     def start(self):
         if not self.mask_nifti_path:
@@ -76,7 +91,7 @@ class VoxelStreamToVolumeOp(Operator):
 
     def setup(self, spec: OperatorSpec):
         spec.input("affine_4x4").condition(ConditionType.NONE)  # (4, 4), only emit at the first frame
-        spec.input("hb_voxel_data")  # (I, J, K, n_channels)
+        spec.input("hb_voxel_data")  # (I, J, K)
 
         spec.output("volume")
         spec.output("spacing")
@@ -96,7 +111,7 @@ class VoxelStreamToVolumeOp(Operator):
 
         # Check voxel data is valid
         if not isinstance(hb_voxel, cp.ndarray):
-            raise ValueError("VoxelStreamToVolume: Invalid voxel data, expected cupy array")
+            raise TypeError(f"VoxelStreamToVolume: Invalid voxel data type: {type(hb_voxel)}, expected cupy array")
         if hb_voxel.ndim != 3:
             raise ValueError(f"VoxelStreamToVolume: Invalid voxel data shape: {hb_voxel.shape}, expected 3D")
 
@@ -114,12 +129,13 @@ class VoxelStreamToVolumeOp(Operator):
         if self.affine is None:
             raise ValueError("VoxelStreamToVolume: No affine matrix received")
 
-        # Run on the propagated CUDA stream (no per-operator stream creation).
-        # NOTE: Avoid using `.get()` / `cp.asnumpy()` in this operator: they synchronize the stream.
         with cp.cuda.ExternalStream(cuda_stream):
-            # Note: set to -99 to 99 to add a buffer avoiding edge case.
+            # Update running statistics from incoming data
+            self._update_running_statistics(hb_voxel)
+            
+            # Note: +-1 to add a buffer avoiding edge case in ClaraViz boundaries.
             hb_voxel_normalized = self._normalize_and_process_activated_voxels(
-                hb_voxel, normalize_min_value=-99, normalize_max_value=99
+                hb_voxel, normalize_min_value=self.density_min + 1, normalize_max_value=self.density_max - 1
             )
 
             # Resample to mask's size
@@ -164,33 +180,14 @@ class VoxelStreamToVolumeOp(Operator):
         # Avoid zeros
         spacing_ijk[spacing_ijk == 0] = 1.0
 
-        # 1. Get the Orientation String
+        # 1. Get the Orientation String from Nibabel
         # nibabel returns where the axis points TO (e.g., 'RAS')
-        to_codes = aff2axcodes(affine_4x4)
-        print("to_codes: ", to_codes)
+        orientation_codes = aff2axcodes(affine_4x4)
+        print(f"Detected Orientation: {''.join(orientation_codes)}")
 
-        # EXPLANATION OF MAPPING:
-        # NIfTI API (nifti_dmat44_to_orientation) returns constants like NIFTI_L2R ("Left to Right").
-        # The C++ code maps NIFTI_L2R -> 'L' (The "From" direction).
-        # Nibabel returns 'R' (The "To" direction) for that same axis.
-        # Therefore, to generate the string the C++ code expects, we must invert the Nibabel codes.
-        mapping = {
-            "R": "L",  # Axis points to Right -> Starts from Left
-            "L": "R",  # Axis points to Left -> Starts from Right
-            "A": "P",  # Axis points to Anterior -> Starts from Posterior
-            "P": "A",  # Axis points to Posterior -> Starts from Anterior
-            "S": "I",  # Axis points to Superior -> Starts from Inferior
-            "I": "S",  # Axis points to Inferior -> Starts from Superior
-        }
-
-        # Generate the string exactly as the C++ code would (e.g., "LPI")
-        orientation_string = "".join([mapping[code] for code in to_codes])
-
-        print(f"Detected Orientation (Nibabel 'To'): {''.join(to_codes)}")
-        print(f"Converted Orientation (C++ 'From'):  {orientation_string}")
-
-        # 2. Logic mimicking Volume::SetOrientation
-        # Use orientation string to determine the axis and flip
+        # 2. Parse orientation codes to determine axis assignment and flips
+        # Nibabel convention: codes indicate the direction each axis points TO
+        # Flip is needed when axis points in the negative direction (L, P, I)
         rl_axis = 4
         is_axis = 4
         pa_axis = 4
@@ -200,31 +197,34 @@ class VoxelStreamToVolumeOp(Operator):
         pa_flip = False
 
         # Iterate through the codes (0=x, 1=y, 2=z in data array)
-        for axis, code in enumerate(orientation_string):
+        for axis, code in enumerate(orientation_codes):
             # --- Right-Left Axis ---
             if code in ["R", "r"]:
                 rl_axis = axis
+                rl_flip = False  # Points right (positive direction)
             elif code in ["L", "l"]:
                 rl_axis = axis
-                rl_flip = True
+                rl_flip = True   # Points left (negative direction, needs flip)
 
             # --- Inferior-Superior Axis ---
-            elif code in ["I", "i"]:
-                is_axis = axis
             elif code in ["S", "s"]:
                 is_axis = axis
-                is_flip = True
+                is_flip = False  # Points superior (positive direction)
+            elif code in ["I", "i"]:
+                is_axis = axis
+                is_flip = True   # Points inferior (negative direction, needs flip)
 
             # --- Posterior-Anterior Axis ---
-            elif code in ["P", "p"]:
-                pa_axis = axis
             elif code in ["A", "a"]:
                 pa_axis = axis
-                pa_flip = True
+                pa_flip = False  # Points anterior (positive direction)
+            elif code in ["P", "p"]:
+                pa_axis = axis
+                pa_flip = True   # Points posterior (negative direction, needs flip)
 
         # Validation
-        if 4 in [rl_axis, is_axis, pa_axis]:
-            raise ValueError(f"Could not determine all axes from string: {orientation_string}")
+        if 4 in [rl_axis, is_axis, pa_axis]: # 4 is a sentinel to indicate any axis that was not set
+            raise ValueError(f"Could not determine all axes from orientation: {''.join(orientation_codes)}")
 
         # 3. Construct the final parameters
         permute = [rl_axis, is_axis, pa_axis]
@@ -237,24 +237,73 @@ class VoxelStreamToVolumeOp(Operator):
 
         return spacing_xyz, permute, flips
 
+    def _update_running_statistics(self, hb_voxel: cp.ndarray):
+        """
+        Update running min/max statistics using exponential moving average.
+        Initializes from first frame with valid data.
+        
+        Args:
+            hb_voxel: Current voxel data (cupy array)
+        """
+        self.frame_count += 1
+        
+        # Compute current frame statistics from all voxels
+        current_min = float(cp.min(hb_voxel))
+        current_max = float(cp.max(hb_voxel))
+        
+        # Initialize on first frame
+        if (self.global_min is None or self.global_max is None) and \
+            current_min != 0 and current_max != 0:
+            self.global_min = current_min
+            self.global_max = current_max
+            print(
+                f"VoxelStreamToVolume: Initialized statistics from first frame - "
+                f"min={self.global_min:.6f}, max={self.global_max:.6f}"
+            )
+            return
+        
+        # Use exponential moving average for smooth adaptation
+        # For first few frames, use larger alpha for faster convergence
+        alpha = self.stats_alpha if self.frame_count > 10 else 0.3
+        
+        # Update running statistics
+        self.global_min = (1 - alpha) * self.global_min + alpha * current_min
+        self.global_max = (1 - alpha) * self.global_max + alpha * current_max
+        
+        # Log statistics every 100 frames for debugging
+        if self.frame_count % 10 == 0:
+            print(
+                f"VoxelStreamToVolume: Frame {self.frame_count} - "
+                f"Running stats: min={self.global_min:.6f}, max={self.global_max:.6f} "
+                f"(current: min={current_min:.6f}, max={current_max:.6f})"
+            )
+
     def _normalize_and_process_activated_voxels(
-        self, hb_voxel: np.ndarray, normalize_min_value: float = -100, normalize_max_value: float = 100
+        self, hb_voxel: np.ndarray, normalize_min_value: float, normalize_max_value: float
     ):
         """
         Normalize the volume to [normalize_min_value, normalize_max_value] while preserving 0 as baseline.
+        Applies visualization scale factor to amplify small activations in white/gray matter.
         """
+        # If statistics not initialized yet, return zeros (waiting for first valid frame)
+        if self.global_min is None or self.global_max is None:
+            print("VoxelStreamToVolume: Waiting for statistics initialization...")
+            return cp.zeros_like(hb_voxel, dtype=cp.float32)
 
         # Step 1/2: Normalize while preserving 0 as baseline.
         hb = hb_voxel.astype(cp.float32, copy=False)
         hb_voxel_normalized = cp.zeros_like(hb, dtype=cp.float32)
 
         if self.global_max > 0:
-            pos_scale = float(normalize_max_value) / float(self.global_max)
+            # Apply visualization scale to amplify small activations
+            # Global max includes whole brain, but we visualize white/gray matter (smaller values)
+            pos_scale = (float(normalize_max_value) / float(self.global_max)) * self.visualization_scale
             pos_mask = hb >= 0
             hb_voxel_normalized[pos_mask] = hb[pos_mask] * pos_scale
 
         if self.global_min < 0:
-            neg_scale = float(abs(normalize_min_value)) / float(abs(self.global_min))
+            # Apply visualization scale to amplify small deactivations
+            neg_scale = (float(abs(normalize_min_value)) / float(abs(self.global_min))) * self.visualization_scale
             neg_mask = hb < 0
             hb_voxel_normalized[neg_mask] = hb[neg_mask] * neg_scale
 

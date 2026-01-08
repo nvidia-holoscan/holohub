@@ -12,7 +12,7 @@ import cupy as cp
 import numpy as np
 from numpy.typing import NDArray
 
-from processing.reconstruction.hbo import ExtinctionCoefficient, HbO
+from utils.reconstruction.hbo import ExtinctionCoefficient, HbO
 from holoscan.core import (
     ExecutionContext,
     InputContext,

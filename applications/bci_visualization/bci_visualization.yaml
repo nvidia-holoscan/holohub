@@ -2,6 +2,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES.
 # SPDX-License-Identifier: Apache-2.0
 ---
+voxel_stream_to_volume:
+  visualization_scale: 10.0
+
 volume_renderer:
   alloc_width: 1024
   alloc_height: 768

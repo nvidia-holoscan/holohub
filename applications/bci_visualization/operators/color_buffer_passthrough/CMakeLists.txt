@@ -20,8 +20,8 @@ find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_library(color_buffer_passthrough SHARED
-  color_buffer_passthrough.cpp
-  color_buffer_passthrough.hpp
+  cpp/color_buffer_passthrough.cpp
+  cpp/color_buffer_passthrough.hpp
 )
 
 target_link_libraries(color_buffer_passthrough
@@ -29,7 +29,12 @@ target_link_libraries(color_buffer_passthrough
   holoscan::core
 )
 
-target_include_directories(color_buffer_passthrough INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(color_buffer_passthrough 
+  PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpp
+  INTERFACE 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 install(
   TARGETS color_buffer_passthrough

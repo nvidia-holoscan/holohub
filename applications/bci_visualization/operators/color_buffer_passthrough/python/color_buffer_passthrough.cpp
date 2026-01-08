@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "../color_buffer_passthrough.hpp"
+#include "../cpp/color_buffer_passthrough.hpp"
 
 #include <memory>
 #include <string>
