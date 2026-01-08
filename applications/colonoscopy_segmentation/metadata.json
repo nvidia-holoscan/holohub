@@ -16,7 +16,8 @@
 			"minimum_required_version": "3.0.0",
 			"tested_versions": [
 				"3.0.0",
-				"3.9.0"
+				"3.9.0",
+				"3.10.0"
 			]
 		},
 		"platforms": [
