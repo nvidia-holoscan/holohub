@@ -11,7 +11,7 @@ This Holohub application demonstrates how to perform real-time source reconstruc
 
 This example processes streaming [moments from the distribution of time-of-flight histograms](https://doi.org/10.1117/1.NPh.10.1.013504). These moments can originate either from the [Kernel Flow SDK](https://docs.kernel.com/docs/kernel-sdk-install) when connected to the Kernel hardware, or from the included [shared near-infrared spectroscopy format (SNIRF)](https://github.com/fNIRS/snirf) replayer. The moments are then combined with the sensors' spatial geometry and an average anatomical head model to produce source-reconstructed outputs similar to what was [published in previous work](https://direct.mit.edu/imag/article/doi/10.1162/imag_a_00475/127769/A-Compact-Time-Domain-Diffuse-Optical-Tomography). 
 
-To visualize the reconstructed 3D volumes, this application utilizes both the [VolumeRendererOp](../../holohub/volume_renderer.py) operator and HolovizOp for real-time 3D rendering and interactive visualization.
+To visualize the reconstructed 3D volumes, this application utilizes both the [VolumeRendererOp](../../operators/volume_renderer/) operator and HolovizOp for real-time 3D rendering and interactive visualization.
 
 For optimal efficiency and smooth user experience, we employ an event-based scheduler that decouples the reconstruction and visualization pipelines. This allows each stage to run on separate threads, resulting in higher rendering quality and more responsive interaction.
 
@@ -44,8 +44,7 @@ With the Kernel Flow headset we have combined 120 laser sources and 240 of our c
 We call each of these measurement paths a "channel" and the measurement is made in "sensor space" (i.e. from the perspective of the detector). In order to have a more anatomical representation of the data, it is common to transform the
 sensor-space data into source-space (i.e. where the changes in hemoglobin concentrations likely occurred in the brain, based on what was observed at the sensor) by solving an inverse problem, commonly called source reconstruction. This inverse problem requires complex modeling that is computationally expensive but highly parallelizable. 
 
-In this Holohub application, we demonstrate a real-time source reconstruction pipeline that runs on a Jetson Thor at the native framerate of the Kernel Flow system (4.75 Hz) and visualizes the data in 3D using Holoviz. We did this by X, Y,
-and Z (@Gabe or @Mimi to add high-level).
+In this Holohub application, we demonstrate a real-time source reconstruction pipeline that runs on a Jetson Thor at the native framerate of the Kernel Flow system (4.75 Hz) and visualizes the 3D data using volume rendering techniques.
 
 ## Requirements
 

@@ -9,20 +9,17 @@ import logging
 from typing import Any
 
 import cupy as cp
+from holoscan.core import ExecutionContext, InputContext, Operator, OperatorSpec, OutputContext
 from utils.reconstruction.reg_inv import solve_regularized_system
-from holoscan.core import (
-    ExecutionContext,
-    InputContext,
-    Operator,
-    OperatorSpec,
-    OutputContext,
-)
+
 from .types import NormalizedSolveBatch, SolverResult
 
 logger = logging.getLogger(__name__)
 
+
 class RegularizedSolverOperator(Operator):
     """Run a regularized inverse solver per wavelength system."""
+
     REG_DEFAULT = 0.1
 
     def __init__(

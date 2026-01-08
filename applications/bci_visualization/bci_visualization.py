@@ -1,23 +1,18 @@
 """
-SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES.
+SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES.
 SPDX-License-Identifier: Apache-2.0
 
 BCI Visualization Application - streams synthetic voxel data and renders as 3D volume.
 """
 
-import os
 import argparse
+import os
 from pathlib import Path
 
-
-from holoscan.core import Application
+from holoscan.core import Application, ConditionType
 from holoscan.operators import HolovizOp
 from holoscan.resources import CudaStreamPool, UnboundedAllocator
-from holoscan.schedulers import EventBasedScheduler, MultiThreadScheduler
-from holoscan.core import ConditionType
-
-# Import local operators
-from operators.voxel_stream_to_volume import VoxelStreamToVolumeOp
+from holoscan.schedulers import EventBasedScheduler
 from operators.reconstruction import (
     BuildRHSOperator,
     ConvertToVoxelsOperator,
@@ -25,24 +20,28 @@ from operators.reconstruction import (
     RegularizedSolverOperator,
 )
 from operators.stream import StreamOperator
+from streams.base_nirs import BaseNirsStream
+from streams.snirf import SNIRFStream
 
 # Import reconstruction utilities
 from utils.reconstruction.assets import get_assets
-from streams.base_nirs import BaseNirsStream
-from streams.snirf import SNIRFStream
 
 from holohub.color_buffer_passthrough import ColorBufferPassthroughOp
 from holohub.volume_renderer import VolumeRendererOp
 
+# Import local operators
+from operators.voxel_stream_to_volume import VoxelStreamToVolumeOp
+
 
 class BciVisualizationApp(Application):
     """Kernel Flow BCI Real-Time Reconstruction and Visualization
-    
+
     This application integrates the full pipeline from NIRS data streaming through
     reconstruction to 3D volume rendering and visualization.
     """
 
-    def __init__(self, 
+    def __init__(
+        self,
         argv=None,
         *args,
         render_config_file,
@@ -59,7 +58,7 @@ class BciVisualizationApp(Application):
     ):
         self._rendering_config = render_config_file
         self._mask_path = mask_path
-        
+
         # Reconstruction pipeline parameters
         self._stream = stream
         self._reg = reg
@@ -95,23 +94,23 @@ class BciVisualizationApp(Application):
 
         # ========== Reconstruction Pipeline Operators ==========
         stream_operator = StreamOperator(stream=self._stream, fragment=self)
-        
+
         build_rhs_operator = BuildRHSOperator(
             assets=pipeline_assets,
             fragment=self,
         )
-        
+
         normalize_operator = NormalizeOperator(
             fragment=self,
             use_gpu=self._use_gpu,
         )
-        
+
         regularized_solver_operator = RegularizedSolverOperator(
             reg=self._reg,
             use_gpu=self._use_gpu,
             fragment=self,
         )
-        
+
         convert_to_voxels_operator = ConvertToVoxelsOperator(
             fragment=self,
             coefficients=pipeline_assets.extinction_coefficients,
@@ -125,7 +124,7 @@ class BciVisualizationApp(Application):
         volume_renderer_kwargs = self.kwargs("volume_renderer")
         density_min = volume_renderer_kwargs.get("density_min", -100.0)
         density_max = volume_renderer_kwargs.get("density_max", 100.0)
-        
+
         voxel_to_volume = VoxelStreamToVolumeOp(
             self,
             name="voxel_to_volume",
@@ -145,7 +144,7 @@ class BciVisualizationApp(Application):
             **volume_renderer_kwargs,
         )
 
-        # IMPORTANT changes to avoid deadlocks of volume_renderer and holoviz 
+        # IMPORTANT changes to avoid deadlocks of volume_renderer and holoviz
         # when running in multi-threading mode
         # 1. Set the output port condition to NONE to remove backpressure
         volume_renderer.spec.outputs["color_buffer_out"].condition(ConditionType.NONE)
@@ -164,49 +163,80 @@ class BciVisualizationApp(Application):
         )
 
         # ========== Connect Reconstruction Pipeline ==========
-        self.add_flow(stream_operator, build_rhs_operator, {
-            ("samples", "moments"),
-        })
-        self.add_flow(build_rhs_operator, normalize_operator, {
-            ("batch", "batch"),
-        })
-        self.add_flow(normalize_operator, regularized_solver_operator, {
-            ("normalized", "batch"),
-        })
-        self.add_flow(regularized_solver_operator, convert_to_voxels_operator, {
-            ("result", "result"),
-        })
-        self.add_flow(convert_to_voxels_operator, voxel_to_volume, {
-            ("affine_4x4", "affine_4x4"),
-            ("hb_voxel_data", "hb_voxel_data"),
-        })
+        self.add_flow(
+            stream_operator,
+            build_rhs_operator,
+            {
+                ("samples", "moments"),
+            },
+        )
+        self.add_flow(
+            build_rhs_operator,
+            normalize_operator,
+            {
+                ("batch", "batch"),
+            },
+        )
+        self.add_flow(
+            normalize_operator,
+            regularized_solver_operator,
+            {
+                ("normalized", "batch"),
+            },
+        )
+        self.add_flow(
+            regularized_solver_operator,
+            convert_to_voxels_operator,
+            {
+                ("result", "result"),
+            },
+        )
+        self.add_flow(
+            convert_to_voxels_operator,
+            voxel_to_volume,
+            {
+                ("affine_4x4", "affine_4x4"),
+                ("hb_voxel_data", "hb_voxel_data"),
+            },
+        )
 
         # ========== Connect Visualization Pipeline ==========
         # voxel_to_volume → volume_renderer
-        self.add_flow(voxel_to_volume, volume_renderer, {
-            ("volume", "density_volume"),
-            ("spacing", "density_spacing"),
-            ("permute_axis", "density_permute_axis"),
-            ("flip_axes", "density_flip_axes"),
-        })
+        self.add_flow(
+            voxel_to_volume,
+            volume_renderer,
+            {
+                ("volume", "density_volume"),
+                ("spacing", "density_spacing"),
+                ("permute_axis", "density_permute_axis"),
+                ("flip_axes", "density_flip_axes"),
+            },
+        )
         # Add mask connections to VolumeRendererOp
-        self.add_flow(voxel_to_volume, volume_renderer, {
-            ("mask_volume", "mask_volume"),
-            ("mask_spacing", "mask_spacing"),
-            ("mask_permute_axis", "mask_permute_axis"),
-            ("mask_flip_axes", "mask_flip_axes"),
-        })
+        self.add_flow(
+            voxel_to_volume,
+            volume_renderer,
+            {
+                ("mask_volume", "mask_volume"),
+                ("mask_spacing", "mask_spacing"),
+                ("mask_permute_axis", "mask_permute_axis"),
+                ("mask_flip_axes", "mask_flip_axes"),
+            },
+        )
 
         # volume_renderer ↔ holoviz
-        self.add_flow(volume_renderer, color_buffer_passthrough,
-                      {("color_buffer_out", "color_buffer_in")})
+        self.add_flow(
+            volume_renderer, color_buffer_passthrough, {("color_buffer_out", "color_buffer_in")}
+        )
         self.add_flow(color_buffer_passthrough, holoviz, {("color_buffer_out", "receivers")})
         self.add_flow(holoviz, volume_renderer, {("camera_pose_output", "camera_pose")})
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Kernel Flow BCI Real-Time Reconstruction and Visualization", add_help=False)
-    
+    parser = argparse.ArgumentParser(
+        description="Kernel Flow BCI Real-Time Reconstruction and Visualization", add_help=False
+    )
+
     parser.add_argument(
         "-c",
         "--renderer_config",
@@ -227,13 +257,13 @@ def main():
     parser.add_argument(
         "-h", "--help", action="help", default=argparse.SUPPRESS, help="Help message"
     )
-    
+
     args = parser.parse_args()
-    
+
     # Setup data paths
     default_data_path = os.path.join(os.getcwd(), "data/bci_visualization")
     kernel_data = Path(os.environ.get("HOLOSCAN_INPUT_PATH", default_data_path))
-    
+
     stream = SNIRFStream(kernel_data / "data.snirf")
     app = BciVisualizationApp(
         render_config_file=args.renderer_config,
@@ -254,10 +284,9 @@ def main():
     app.scheduler(EventBasedScheduler(app, worker_thread_number=5, stop_on_deadlock=True))
 
     app.run()
-    
+
     print("App has finished running.")
 
 
 if __name__ == "__main__":
     main()
-

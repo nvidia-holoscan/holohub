@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights
+/* SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -286,7 +286,9 @@ class VolumeRendererOp::Impl {
   clara::viz::Matrix4x4 cached_camera_pose_;
 };
 
-bool VolumeRendererOp::Impl::receive_volume(InputContext& input, ExecutionContext& context, Dataset::Types type) {
+bool VolumeRendererOp::Impl::receive_volume(InputContext& input,
+                                            ExecutionContext& context,
+                                            Dataset::Types type) {
   std::string name(type == Dataset::Types::Density ? "density" : "mask");
 
   auto volume = input.receive<holoscan::gxf::Entity>((name + "_volume").c_str());
@@ -303,14 +305,16 @@ bool VolumeRendererOp::Impl::receive_volume(InputContext& input, ExecutionContex
     }
     const cudaStream_t cuda_stream = cuda_stream_handler_.getCudaStream(context.context());
 
-    // MEMORY LEAK FIX: Clear old volumes if we receive a new volume to avoid unbounded memory growth
+    // MEMORY LEAK FIX: Clear old volumes if we receive a new volume
+    // to avoid unbounded memory growth
     dataset_.ResetVolume(type);
-    
-    auto maybe_tensor = static_cast<nvidia::gxf::Entity>(volume.value()).get<nvidia::gxf::Tensor>("volume");
+
+    auto maybe_tensor =
+        static_cast<nvidia::gxf::Entity>(volume.value()).get<nvidia::gxf::Tensor>("volume");
     if (!maybe_tensor) {
       throw std::runtime_error("VolumeRendererOp: No volume tensor found");
     }
-    
+
     nvidia::gxf::Handle<nvidia::gxf::Tensor> volume_tensor = maybe_tensor.value();
 
     std::array<float, 3> spacing{1.f, 1.f, 1.f};
@@ -337,7 +341,8 @@ bool VolumeRendererOp::Impl::receive_volume(InputContext& input, ExecutionContex
       }
       if (has_range) { element_range.push_back(range); }
     }
-    dataset_.SetVolume(type, spacing, permute_axis, flip_axes, element_range, volume_tensor, cuda_stream);
+    dataset_.SetVolume(type, spacing, permute_axis, flip_axes, element_range,
+                       volume_tensor, cuda_stream);
 
     return true;
   }
@@ -548,7 +553,7 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
   // get the density volumes
   bool new_volume = impl_->receive_volume(input, context, Dataset::Types::Density);
   bool new_mask = impl_->receive_volume(input, context, Dataset::Types::Segmentation);
-  
+
   // there are datasets without mask volume, if we receive a density volume
   // only, reset the mask volume
   if (new_volume && !new_mask) {
@@ -853,9 +858,12 @@ void VolumeRendererOp::compute(InputContext& input, OutputContext& output,
     const auto image = impl_->image_service_->WaitForRenderedImage();
   } else {
     // no density volume, sleep for the time slot
-    clara::viz::RenderSettingsInterface::AccessGuard access(impl_->render_settings_interface_);
-    HOLOSCAN_LOG_INFO("No density volume, sleeping for {} milliseconds", access->time_slot.Get());
-    std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(access->time_slot.Get())));
+    clara::viz::RenderSettingsInterface::AccessGuard access(
+        impl_->render_settings_interface_);
+    HOLOSCAN_LOG_INFO("No density volume, sleeping for {} milliseconds",
+                      access->time_slot.Get());
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(static_cast<int>(access->time_slot.Get())));
   }
 
   // Add both a CUDA event and the CUDA stream to the outgoing message,

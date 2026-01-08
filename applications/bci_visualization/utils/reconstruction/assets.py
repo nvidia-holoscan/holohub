@@ -27,12 +27,12 @@ class Assets:
     # voxels: all voxels in the reconstruction volume
     # simulation_types: mua and musp
     mega_jacobian: NDArray[np.float32]
-    
+
     channel_mapping: ChannelHeadsetMapping  # mapping of channels to jacobian channel indices
     mua: NDArray[np.float32]  # absorption coefficients
     musp: NDArray[np.float32]  # reduced scattering coefficients
     idxs_significant_voxels: NDArray[np.int_]  # indices of significant voxels in mega_jacobian
-    
+
     # these are used for creating the affine
     # they do not contain all the voxels in the cube, just chosen ones
     ijk: NDArray[np.float32]  # voxel ijk coordinates
@@ -41,6 +41,7 @@ class Assets:
     wavelengths: NDArray[np.int_]  # wavelengths
     resolution: Tuple[float, float, float]
     extinction_coefficients: Dict[int, ExtinctionCoefficient]  # HbO and HbR extinction coefficients
+
 
 _assets: Assets | None = None
 

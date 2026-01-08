@@ -11,11 +11,13 @@ from typing import Dict, NamedTuple, Tuple
 
 import cupy as cp
 
+
 class ExtinctionCoefficient(NamedTuple):
     """
     Matches the row structure of the extinction coefficient CSV asset.
     Provides the molar extinction coefficients for various chromophores at specific wavelengths.
     """
+
     Wavelength: int
     HbO: float
     deoxyHb: float
@@ -57,7 +59,9 @@ class ExtinctionCoefficient(NamedTuple):
 
 
 class HbO:
-    def __init__(self, coefficients: Dict[int, ExtinctionCoefficient], use_gpu: bool = False) -> None:
+    def __init__(
+        self, coefficients: Dict[int, ExtinctionCoefficient], use_gpu: bool = False
+    ) -> None:
         self._coefficients = coefficients
         self._cached_coefficients: cp.ndarray | None = None
         self._use_gpu = use_gpu

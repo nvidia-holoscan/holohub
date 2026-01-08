@@ -10,17 +10,9 @@ from typing import Any, List, Tuple
 
 import cupy as cp
 import numpy as np
+from holoscan.core import ExecutionContext, InputContext, Operator, OperatorSpec, OutputContext
+from utils.reconstruction.assets import Assets
 
-from utils.reconstruction.assets import (
-    Assets,
-)
-from holoscan.core import (
-    ExecutionContext,
-    InputContext,
-    Operator,
-    OperatorSpec,
-    OutputContext,
-)
 from ..stream import SampleOutput
 from .types import BuildRHSOutput, VoxelMetadata
 
