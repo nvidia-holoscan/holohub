@@ -240,7 +240,7 @@ Quality Metrics (train mode):
 
 - PSNR: ~36-38 dB
 - SSIM: ~0.80
-- Gaussian functions: ~50,000 splats
+- Gaussians: ~50,000 splats
 - Deformation: Smooth temporal consistency
 
 ## Troubleshooting
