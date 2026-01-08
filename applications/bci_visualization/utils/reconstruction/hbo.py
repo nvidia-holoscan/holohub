@@ -31,18 +31,20 @@ class ExtinctionCoefficient(NamedTuple):
             # Parse as float then round to nearest integer nm.
             return int(round(float(value)))
 
-        return {
-            _parse_wavelength(row["Wavelength"]): cls(
-                Wavelength=_parse_wavelength(row["Wavelength"]),
-                HbO=float(row["HbO"]),
-                deoxyHb=float(row["deoxyHb"]),
-                Water=float(row["Water"]),
-                Lipids=float(row["Lipids"]),
-                LuTex=float(row["LuTex"]),
-                GdTex=float(row["GdTex"]),
-            )
-            for row in csv.DictReader(open(path))
-        }
+        with open(path, "r") as f:
+            csv_reader = csv.DictReader(f)
+            return {
+                _parse_wavelength(row["Wavelength"]): cls(
+                    Wavelength=_parse_wavelength(row["Wavelength"]),
+                    HbO=float(row["HbO"]),
+                    deoxyHb=float(row["deoxyHb"]),
+                    Water=float(row["Water"]),
+                    Lipids=float(row["Lipids"]),
+                    LuTex=float(row["LuTex"]),
+                    GdTex=float(row["GdTex"]),
+                )
+                for row in csv_reader
+            }
 
     def get_oxy_deoxy_coefficients(self) -> cp.ndarray:
         return cp.array(

@@ -26,8 +26,8 @@ from operators.reconstruction import (
 )
 from operators.stream import StreamOperator
 
-# Import processing utilities
-from processing.reconstruction.assets import get_assets
+# Import reconstruction utilities
+from utils.reconstruction.assets import get_assets
 from streams.base_nirs import BaseNirsStream
 from streams.snirf import SNIRFStream
 
@@ -121,11 +121,19 @@ class BciVisualizationApp(Application):
         )
 
         # ========== Visualization Pipeline Operators ==========
+        # Get volume_renderer kwargs from YAML config to extract density range
+        volume_renderer_kwargs = self.kwargs("volume_renderer")
+        density_min = volume_renderer_kwargs.get("density_min", -100.0)
+        density_max = volume_renderer_kwargs.get("density_max", 100.0)
+        
         voxel_to_volume = VoxelStreamToVolumeOp(
             self,
             name="voxel_to_volume",
             pool=volume_allocator,
             mask_nifti_path=self._mask_path,
+            density_min=density_min,
+            density_max=density_max,
+            **self.kwargs("voxel_stream_to_volume"),
         )
 
         volume_renderer = VolumeRendererOp(
@@ -134,7 +142,7 @@ class BciVisualizationApp(Application):
             config_file=self._rendering_config,
             allocator=volume_allocator,
             cuda_stream_pool=cuda_stream_pool,
-            **self.kwargs("volume_renderer"),
+            **volume_renderer_kwargs,
         )
 
         # IMPORTANT changes to avoid deadlocks of volume_renderer and holoviz 

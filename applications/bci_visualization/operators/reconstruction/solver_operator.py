@@ -9,7 +9,7 @@ import logging
 from typing import Any
 
 import cupy as cp
-from processing.reconstruction.reg_inv import solve_regularized_system
+from utils.reconstruction.reg_inv import solve_regularized_system
 from holoscan.core import (
     ExecutionContext,
     InputContext,
