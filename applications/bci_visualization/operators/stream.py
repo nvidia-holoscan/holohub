@@ -9,15 +9,8 @@ import logging
 from typing import Any, NamedTuple
 
 import numpy as np
-
+from holoscan.core import ExecutionContext, InputContext, Operator, OperatorSpec, OutputContext
 from streams.base_nirs import BaseNirsStream, ChannelInfo
-from holoscan.core import (
-    ExecutionContext,
-    InputContext,
-    Operator,
-    OperatorSpec,
-    OutputContext,
-)
 
 logger = logging.getLogger(__name__)
 

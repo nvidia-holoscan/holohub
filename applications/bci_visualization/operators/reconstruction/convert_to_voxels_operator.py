@@ -10,16 +10,10 @@ from typing import Any, Dict, Tuple, cast
 
 import cupy as cp
 import numpy as np
+from holoscan.core import ExecutionContext, InputContext, Operator, OperatorSpec, OutputContext
 from numpy.typing import NDArray
-
 from utils.reconstruction.hbo import ExtinctionCoefficient, HbO
-from holoscan.core import (
-    ExecutionContext,
-    InputContext,
-    Operator,
-    OperatorSpec,
-    OutputContext,
-)
+
 from .types import SolverResult, VoxelMetadata
 
 logger = logging.getLogger(__name__)
@@ -83,7 +77,10 @@ def _compute_affine(xyz: NDArray[np.float32], ijk: NDArray[np.float32]) -> NDArr
     if np.linalg.det(B) == 0:
         raise RuntimeError("Cannot compute affine, algorithm failed after 100 attempts")
     D = 1.0 / np.linalg.det(B)
-    entry = lambda r, d: np.linalg.det(np.delete(np.vstack([r, B]), (d + 1), axis=0))
+
+    def entry(r, d):
+        return np.linalg.det(np.delete(np.vstack([r, B]), (d + 1), axis=0))
+
     M = [[(-1) ** i * D * entry(R, i) for i in range(n)] for R in np.transpose(out)]
 
     affine = np.concatenate((M, np.array([0, 0, 0, 1]).reshape(1, -1)), axis=0)
@@ -142,7 +139,6 @@ class ConvertToVoxelsOperator(Operator):
 
             self._cum_hbo = data_hbo if self._cum_hbo is None else self._cum_hbo + data_hbo
             self._cum_hbr = data_hbr if self._cum_hbr is None else self._cum_hbr + data_hbr
-
 
             layout = self._compute_voxel_layout(result.voxel_metadata)
             hb_volume = self._voxelize_hbo(self._cum_hbo, layout)

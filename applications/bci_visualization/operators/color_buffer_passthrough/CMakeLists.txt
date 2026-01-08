@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,10 +29,10 @@ target_link_libraries(color_buffer_passthrough
   holoscan::core
 )
 
-target_include_directories(color_buffer_passthrough 
-  PUBLIC 
+target_include_directories(color_buffer_passthrough
+  PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/cpp
-  INTERFACE 
+  INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

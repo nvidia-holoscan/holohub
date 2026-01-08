@@ -9,7 +9,6 @@ from typing import Dict, Iterator, List, NamedTuple, cast
 
 import h5py
 import numpy as np
-
 from streams.base_nirs import ChannelInfo
 
 from .base_nirs import BaseNirsStream
@@ -24,6 +23,7 @@ class SNIRFChannel(NamedTuple):
     """
     Represents a single channel in a SNIRF file.
     """
+
     moment: int
     wavelength: int
     source_module: int
@@ -37,6 +37,7 @@ class SNIRFStream(BaseNirsStream):
     Streams data from a SNIRF file.
     See more about the spec at https://github.com/fNIRS/snirf
     """
+
     def __init__(self, snirf_file: Path | str) -> None:
         self._snirf_file_path = Path(snirf_file)
         if not self._snirf_file_path.exists():

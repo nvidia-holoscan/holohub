@@ -4,7 +4,8 @@ SPDX-License-Identifier: Apache-2.0
 """
 
 import logging
-from types import ModuleType
+
+import cupy as cp
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,6 @@ _HESSIAN_CACHE: dict[int, object] = {}
 
 MAX_REASONABLE_COND_RATIO = 10
 
-import cupy as cp
 
 def solve_regularized_system(
     data_jacobians,

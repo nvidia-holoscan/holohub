@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+/* SPDX-FileCopyrightText: Copyright (c) 2023-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -110,7 +110,8 @@ void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
         std::make_unique<clara::viz::CudaMemory>(volume_size));
 
     {
-      std::unique_ptr<clara::viz::IBlob::AccessGuard> access_gpu = cur_data_array->blob_->Access(cuda_stream);
+      std::unique_ptr<clara::viz::IBlob::AccessGuard> access_gpu =
+          cur_data_array->blob_->Access(cuda_stream);
 
       cudaMemcpy3DParms copy_params = {0};
 

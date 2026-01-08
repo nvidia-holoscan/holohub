@@ -10,15 +10,9 @@ from typing import Any, List, Tuple
 
 import cupy as cp
 import numpy as np
+from holoscan.core import ExecutionContext, InputContext, Operator, OperatorSpec, OutputContext
 from numpy.typing import NDArray
 
-from holoscan.core import (
-    ExecutionContext,
-    InputContext,
-    Operator,
-    OperatorSpec,
-    OutputContext,
-)
 from .types import BuildRHSOutput, NormalizedSolveBatch, WavelengthSystem
 
 logger = logging.getLogger(__name__)
@@ -28,6 +22,7 @@ HARD_CODED_NORMALIZERS = [  # for each feature type (moment)
     np.array([1, 5e2, 5e5]),
     np.array([0.5, 2.5e2, 2.5e5]),
 ]
+
 
 class NormalizeOperator(Operator):
     """Apply Jacobian/RHS normalization before solver execution."""
