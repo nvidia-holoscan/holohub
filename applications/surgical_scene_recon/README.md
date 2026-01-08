@@ -20,7 +20,7 @@ Features of this application include:
 
 It takes input from EndoNeRF surgical datasets (RGB images + stereo depth + camera poses + tool masks). It processes the input using multi-frame Gaussian Splatting with a 4D spatiotemporal deformation network. And it outputs real-time 3D tissue reconstruction without surgical instruments.
 
-It is ideal for uses cases, such as:
+It is ideal for use cases, such as:
 
 - Surgical scene understanding and visualization
 - Tool-free tissue reconstruction for analysis
