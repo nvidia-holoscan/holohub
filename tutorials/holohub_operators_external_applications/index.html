@@ -17841,6 +17841,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#applying-patches-to-operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Applying Patches to Operators
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -18270,7 +18281,7 @@
 <h3 id="3-the-fetchholohuboperatorcmake-utility">3. The FetchHolohubOperator.cmake Utility<a class="headerlink" href="#3-the-fetchholohuboperatorcmake-utility" title="Permanent link">#</a></h3>
 <p>The <code>FetchHolohubOperator.cmake</code> file provides a convenient way to fetch specific operators from the Holohub repository. It uses Git sparse checkout to download only the required operator, making the process efficient.</p>
 <h4 id="function-signature">Function Signature<a class="headerlink" href="#function-signature" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">OPERATOR_NAME</span><span class="w"> </span><span class="s">[PATH</span><span class="w"> </span><span class="s">path]</span><span class="w"> </span><span class="s">[REPO_URL</span><span class="w"> </span><span class="s">url]</span><span class="w"> </span><span class="s">[BRANCH</span><span class="w"> </span><span class="s">branch]</span><span class="w"> </span><span class="s">[DISABLE_PYTHON]</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">OPERATOR_NAME</span><span class="w"> </span><span class="s">[PATH</span><span class="w"> </span><span class="s">path]</span><span class="w"> </span><span class="s">[REPO_URL</span><span class="w"> </span><span class="s">url]</span><span class="w"> </span><span class="s">[BRANCH</span><span class="w"> </span><span class="s">branch]</span><span class="w"> </span><span class="s">[DEPTH</span><span class="w"> </span><span class="s">depth]</span><span class="w"> </span><span class="s">[DISABLE_PYTHON]</span><span class="w"> </span><span class="s">[PATCH_COMMAND</span><span class="w"> </span><span class="s">command]</span><span class="p">)</span>
 </code></pre></div>
 <h4 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h4>
 <ul>
@@ -18278,7 +18289,9 @@
 <li><code>PATH</code> (optional): The path to the operator within the Holohub repository (defaults to OPERATOR_NAME)</li>
 <li><code>REPO_URL</code> (optional): The URL of the Holohub repository (defaults to the official Holohub repo)</li>
 <li><code>BRANCH</code> (optional): The branch to checkout (defaults to "main")</li>
+<li><code>DEPTH</code> (optional): Git clone depth (defaults to 1 for shallow clone, use 0 for full history)</li>
 <li><code>DISABLE_PYTHON</code> (optional): Flag to disable Python bindings build (Python bindings are enabled by default)</li>
+<li><code>PATCH_COMMAND</code> (optional): Custom command to run after checkout (e.g., to apply patches)</li>
 </ul>
 <h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c"># Fetch the aja_source operator</span>
@@ -18293,8 +18306,25 @@
 <span class="c"># Fetch from a specific branch</span>
 <span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">custom_operator</span><span class="w"> </span><span class="s">BRANCH</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">)</span>
 
+<span class="c"># Fetch with full git history</span>
+<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">custom_operator</span><span class="w"> </span><span class="s">DEPTH</span><span class="w"> </span><span class="s">0</span><span class="p">)</span>
+
 <span class="c"># Fetch an operator without Python bindings</span>
 <span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span><span class="w"> </span><span class="s">DISABLE_PYTHON</span><span class="p">)</span>
+
+<span class="c"># Fetch and apply a patch</span>
+<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span><span class="w"> </span><span class="s">PATCH_COMMAND</span><span class="w"> </span><span class="s">git</span><span class="w"> </span><span class="s">apply</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span><span class="s">/fix.patch</span><span class="p">)</span>
+
+<span class="c"># Combine multiple parameters</span>
+<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">custom_operator</span>
+<span class="w">    </span><span class="s">PATH</span><span class="w"> </span><span class="s">operators/custom</span>
+<span class="w">    </span><span class="s">REPO_URL</span><span class="w"> </span><span class="s2">&quot;https://github.com/my-org/custom-holohub.git&quot;</span>
+<span class="w">    </span><span class="s">BRANCH</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span>
+<span class="w">    </span><span class="s">DEPTH</span><span class="w"> </span><span class="s">0</span>
+<span class="w">    </span><span class="s">DISABLE_PYTHON</span>
+<span class="w">    </span><span class="s">PATCH_COMMAND</span><span class="w"> </span><span class="s">git</span><span class="w"> </span><span class="s">apply</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span><span class="s">/fix1.patch</span>
+<span class="w">                  </span><span class="s">&amp;&amp;</span><span class="w"> </span><span class="s">git</span><span class="w"> </span><span class="s">apply</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span><span class="s">/fix2.patch</span>
+<span class="p">)</span>
 </code></pre></div>
 <h3 id="4-choosing-the-right-approach">4. Choosing the Right Approach<a class="headerlink" href="#4-choosing-the-right-approach" title="Permanent link">#</a></h3>
 <p>When deciding which approach to use for including <code>FetchHolohubOperator.cmake</code>, consider your specific requirements:</p>
@@ -18443,6 +18473,19 @@ python3<span class="w"> </span>../main.py
 <h3 id="using-different-branches">Using Different Branches<a class="headerlink" href="#using-different-branches" title="Permanent link">#</a></h3>
 <p>To use operators from a specific branch:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">experimental_operator</span><span class="w"> </span><span class="s">BRANCH</span><span class="w"> </span><span class="s2">&quot;experimental&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="applying-patches-to-operators">Applying Patches to Operators<a class="headerlink" href="#applying-patches-to-operators" title="Permanent link">#</a></h3>
+<p>You can apply custom patches to operators using the <code>PATCH_COMMAND</code> parameter:</p>
+<div class="highlight"><pre><span></span><code><span class="c"># Apply a patch file</span>
+<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span><span class="w"> </span>
+<span class="w">    </span><span class="s">PATCH_COMMAND</span><span class="w"> </span><span class="s">git</span><span class="w"> </span><span class="s">apply</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span><span class="s">/fix.patch</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><strong>Note</strong>: If applying patches created from older commits, you may need to fetch full git history:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span><span class="w"> </span>
+<span class="w">    </span><span class="s">DEPTH</span><span class="w"> </span><span class="s">0</span>
+<span class="w">    </span><span class="s">PATCH_COMMAND</span><span class="w"> </span><span class="s">git</span><span class="w"> </span><span class="s">apply</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span><span class="s">/fix.patch</span>
+<span class="p">)</span>
 </code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">#</a></h3>
