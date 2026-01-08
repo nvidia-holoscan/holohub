@@ -36,7 +36,7 @@ from holohub.volume_renderer import VolumeRendererOp
 
 
 class BciVisualizationApp(Application):
-    """BCI Visualization Application with ClaraViz.
+    """Kernel Flow BCI Real-Time Reconstruction and Visualization
     
     This application integrates the full pipeline from NIRS data streaming through
     reconstruction to 3D volume rendering and visualization.
@@ -158,7 +158,7 @@ class BciVisualizationApp(Application):
         holoviz = HolovizOp(
             self,
             name="holoviz",
-            window_title="BCI Visualization with ClaraViz",
+            window_title="Kernel Flow BCI Real-Time Reconstruction and Visualization",
             enable_camera_pose_output=True,
             cuda_stream_pool=cuda_stream_pool,
         )
@@ -205,7 +205,7 @@ class BciVisualizationApp(Application):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="BCI Visualization Application", add_help=False)
+    parser = argparse.ArgumentParser(description="Kernel Flow BCI Real-Time Reconstruction and Visualization", add_help=False)
     
     parser.add_argument(
         "-c",
@@ -255,7 +255,7 @@ def main():
 
     app.run()
     
-    print("BCI Visualization Application has finished running.")
+    print("App has finished running.")
 
 
 if __name__ == "__main__":
