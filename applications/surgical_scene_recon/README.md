@@ -48,7 +48,7 @@ cd holohub
 
 ### Step 3: Run Training
 
-To run the virtual surgical training:
+To run the model training:
 
 ```bash
 ./holohub run surgical_scene_recon train
