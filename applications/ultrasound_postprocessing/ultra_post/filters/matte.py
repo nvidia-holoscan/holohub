@@ -18,7 +18,6 @@ from __future__ import annotations
 from typing import Any
 
 import cupy as cp
-
 from ultra_post.filters.utils import apply_fill, get_fill_indices, get_matte_mask
 
 

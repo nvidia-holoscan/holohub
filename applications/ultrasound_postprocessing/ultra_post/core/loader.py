@@ -28,7 +28,9 @@ try:
     from pyuff_ustb import Uff
     from pyuff_ustb.readers.base import ReaderKeyError
 except ImportError as exc:  # pragma: no cover - handled at runtime
-    raise ImportError("pyuff_ustb is required to read UFF files (`pip install pyuff-ustb`).") from exc
+    raise ImportError(
+        "pyuff_ustb is required to read UFF files (`pip install pyuff-ustb`)."
+    ) from exc
 
 
 STREAMLIT_MAX_DIM = 65000
@@ -157,7 +159,9 @@ def _select_frame(
     while current.ndim > 2:
         axis = min(range(current.ndim), key=lambda ax: current.shape[ax])
         if frame_index >= current.shape[axis]:
-            raise IndexError(f"Frame index {frame_index} out of bounds for axis {axis} with size {current.shape[axis]}.")
+            raise IndexError(
+                f"Frame index {frame_index} out of bounds for axis {axis} with size {current.shape[axis]}."
+            )
         current = cp.take(current, indices=frame_index, axis=axis)
         axes_taken.append(axis)
 

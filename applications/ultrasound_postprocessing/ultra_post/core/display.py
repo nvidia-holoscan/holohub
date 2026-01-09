@@ -18,7 +18,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import cupy as cp
-
 from ultra_post.core.pipeline import Pipeline, run_pipeline
 
 

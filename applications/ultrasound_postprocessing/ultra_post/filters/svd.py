@@ -30,20 +30,20 @@ def svd_denoise(
 
     img = cp.asarray(image, dtype=cp.float32, order="C")
     U, s, Vt = cp.linalg.svd(img, full_matrices=False)
-    
+
     n = s.shape[0]
     k = min(max(1, int(rank)), n)
-    
+
     if n > 0:
         indices = cp.arange(n)
         keep = indices < k if suppress == "low" else indices >= max(0, n - k)
-        
+
         if not keep.any():
             keep[0 if suppress != "high" else -1] = True
-            
+
         filtered_s = cp.where(keep, s, float(shrink) * s)
         return cp.matmul(U * filtered_s[None, :], Vt)
-        
+
     return img
 
 

@@ -17,12 +17,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Optional
 
 import cupy as cp
 from holoscan.core import Operator
 from holoscan.decorator import Input, create_op  # type: ignore
-
 from ultra_post.core.display import ensure_rgba
 from ultra_post.core.loader import load_uff_frame
 

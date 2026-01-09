@@ -65,7 +65,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ultrasound post-processing CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("list-filters", help="List discovered operators").set_defaults(func=_cmd_list_filters)
+    sub.add_parser("list-filters", help="List discovered operators").set_defaults(
+        func=_cmd_list_filters
+    )
 
     validate = sub.add_parser("validate-preset", help="Validate a pipeline preset YAML")
     validate.add_argument("path", type=str, help="Path to preset YAML")

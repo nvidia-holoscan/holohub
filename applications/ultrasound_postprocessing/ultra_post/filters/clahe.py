@@ -28,7 +28,7 @@ def clahe(
     """Contrast Limited Adaptive Histogram Equalization."""
 
     data = cp.asarray(image, dtype=cp.float32, order="C")
-    
+
     # 'tiles' param implies grid count (e.g., 8x8 grid).
     # cucim/skimage expects 'kernel_size' in pixels (e.g., 512/8 = 64px).
     h, w = data.shape[:2]

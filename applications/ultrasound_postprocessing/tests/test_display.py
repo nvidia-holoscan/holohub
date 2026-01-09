@@ -47,14 +47,18 @@ class DisplayTests(unittest.TestCase):
         self.assertEqual(out.shape, (2, 3, 4))
 
     def test_compression_gamma(self) -> None:
-        settings = DisplayCompressionSettings(mode="gamma", dynamic_range_db=40.0, gamma=2.0, partial_log_mix=0.5)
+        settings = DisplayCompressionSettings(
+            mode="gamma", dynamic_range_db=40.0, gamma=2.0, partial_log_mix=0.5
+        )
         data = cp.asarray([0.25, 1.0], dtype=cp.float32)
         out = compress_grayscale(data, settings)
         expected = cp.asarray([0.5, 1.0], dtype=cp.float32)
         self.assertTrue(cp.allclose(out, expected))
 
     def test_tensor_to_display_modes(self) -> None:
-        settings = DisplayCompressionSettings(mode="power", dynamic_range_db=20.0, gamma=1.0, partial_log_mix=0.5)
+        settings = DisplayCompressionSettings(
+            mode="power", dynamic_range_db=20.0, gamma=1.0, partial_log_mix=0.5
+        )
         img = cp.asarray([[1.0, 0.1]], dtype=cp.float32)
         out = tensor_to_display(img, settings, apply_compression=True)
         self.assertEqual(out.shape, img.shape)

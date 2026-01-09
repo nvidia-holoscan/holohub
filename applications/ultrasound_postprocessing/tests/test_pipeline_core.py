@@ -22,7 +22,13 @@ try:
 except ImportError:  # pragma: no cover - optional GPU dependency
     cp = None  # type: ignore
 
-from ultra_post.core.pipeline import Pipeline, create_node, pipeline_from_yaml, pipeline_to_yaml, run_pipeline
+from ultra_post.core.pipeline import (
+    Pipeline,
+    create_node,
+    pipeline_from_yaml,
+    pipeline_to_yaml,
+    run_pipeline,
+)
 from ultra_post.filters.registry import FILTERS
 
 

@@ -20,7 +20,6 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional, Tuple, Union
 
 import yaml
-
 from ultra_post.filters.registry import DEFAULT_PARAMS, FILTERS
 
 CONFIG_VERSION = "1"
@@ -30,7 +29,9 @@ PipelineNode = dict[str, Any]
 Pipeline = list[PipelineNode]
 
 
-def create_node(op: str, params: Mapping[str, Any] | None = None, *, enabled: bool = True) -> PipelineNode:
+def create_node(
+    op: str, params: Mapping[str, Any] | None = None, *, enabled: bool = True
+) -> PipelineNode:
     """Merge defaults with params and produce a plain pipeline node dict."""
 
     base = dict(DEFAULT_PARAMS.get(op, {}))
@@ -39,9 +40,11 @@ def create_node(op: str, params: Mapping[str, Any] | None = None, *, enabled: bo
     return {"op": op, "params": base, "enabled": enable_flag}
 
 
-def run_pipeline(pipeline: Pipeline, tensor: Tensor, *, filters: Mapping[str, Any] | None = None) -> Tensor:
+def run_pipeline(
+    pipeline: Pipeline, tensor: Tensor, *, filters: Mapping[str, Any] | None = None
+) -> Tensor:
     """Apply enabled filters in sequence.
-    
+
     :note: This function does not rely on Holoscan SDK.
     """
 
@@ -73,7 +76,9 @@ def run_pipeline(pipeline: Pipeline, tensor: Tensor, *, filters: Mapping[str, An
     return result
 
 
-def pipeline_to_dict(pipeline: Iterable[PipelineNode], *, display: Optional[dict[str, Any]] = None) -> dict[str, Any]:
+def pipeline_to_dict(
+    pipeline: Iterable[PipelineNode], *, display: Optional[dict[str, Any]] = None
+) -> dict[str, Any]:
     """Convert a pipeline into a serializable dictionary."""
 
     graph = [_node_to_config(node) for node in pipeline]
@@ -83,7 +88,9 @@ def pipeline_to_dict(pipeline: Iterable[PipelineNode], *, display: Optional[dict
     return data
 
 
-def pipeline_from_dict(data: Mapping[str, Any], *, filters: Mapping[str, Any] | None = None) -> Pipeline:
+def pipeline_from_dict(
+    data: Mapping[str, Any], *, filters: Mapping[str, Any] | None = None
+) -> Pipeline:
     """Create a pipeline from a parsed configuration dictionary."""
 
     if not isinstance(data, Mapping):
@@ -141,7 +148,9 @@ def load_pipeline_config(path: str | Path, *, filters: Mapping[str, Any] | None 
     return pipeline_from_yaml(text, filters=filters)
 
 
-def pipeline_to_yaml(pipeline: Iterable[PipelineNode], *, display: Optional[dict[str, Any]] = None) -> str:
+def pipeline_to_yaml(
+    pipeline: Iterable[PipelineNode], *, display: Optional[dict[str, Any]] = None
+) -> str:
     """Return a YAML string representing the pipeline."""
 
     return yaml.safe_dump(pipeline_to_dict(list(pipeline), display=display), sort_keys=False)

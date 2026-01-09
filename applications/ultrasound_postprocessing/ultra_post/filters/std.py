@@ -27,16 +27,22 @@ def _ensure_odd(value: int) -> int:
 def median_filter(image: cp.ndarray, size: int = 3) -> cp.ndarray:
     """Median filter for impulse/speckle reduction."""
 
-    return cndimage.median_filter(cp.asarray(image, dtype=cp.float32), size=_ensure_odd(size), mode="reflect")
+    return cndimage.median_filter(
+        cp.asarray(image, dtype=cp.float32), size=_ensure_odd(size), mode="reflect"
+    )
 
 
 def gaussian_filter(image: cp.ndarray, sigma: float = 1.0) -> cp.ndarray:
     """Gaussian blur with configurable sigma."""
 
-    return cndimage.gaussian_filter(cp.asarray(image, dtype=cp.float32), sigma=float(sigma), mode="reflect")
+    return cndimage.gaussian_filter(
+        cp.asarray(image, dtype=cp.float32), sigma=float(sigma), mode="reflect"
+    )
 
 
-def unsharp_mask(image: cp.ndarray, sigma: float = 1.0, amount: float = 1.5, threshold: float = 0.0) -> cp.ndarray:
+def unsharp_mask(
+    image: cp.ndarray, sigma: float = 1.0, amount: float = 1.5, threshold: float = 0.0
+) -> cp.ndarray:
     """Sharpening via blurred subtraction."""
 
     data = cp.asarray(image, dtype=cp.float32)

@@ -24,18 +24,20 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import cupy as cp
-import streamlit as st
-
-from ultra_post.app.components import render_add_filter_controls, render_filter_controls
-from ultra_post.core.display import (
+import cupy as cp  # noqa: E402
+import streamlit as st  # noqa: E402
+from ultra_post.app.components import (  # noqa: E402
+    render_add_filter_controls,
+    render_filter_controls,
+)
+from ultra_post.core.display import (  # noqa: E402
     DisplayCompressionSettings,
     run_pipeline_colormap_last,
     tensor_to_display,
 )
-from ultra_post.core.loader import load_uff_frame
-from ultra_post.core.pipeline import Pipeline, create_node, pipeline_to_yaml
-from ultra_post.filters.registry import FILTERS
+from ultra_post.core.loader import load_uff_frame  # noqa: E402
+from ultra_post.core.pipeline import Pipeline, create_node, pipeline_to_yaml  # noqa: E402
+from ultra_post.filters.registry import FILTERS  # noqa: E402
 
 DEFAULT_UFF = PROJECT_ROOT / "ultra_post/examples/demo.uff"
 
