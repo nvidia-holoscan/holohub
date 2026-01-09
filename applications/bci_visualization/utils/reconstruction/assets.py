@@ -96,13 +96,13 @@ def _load_assets(
     wavelengths_path = pathlib.Path(voxel_info_dir) / "wavelengths.npy"
     resolution_path = pathlib.Path(voxel_info_dir) / "resolution.npy"
 
-    _mua = np.load(pathlib.Path(mua_path))
-    _musp = np.load(pathlib.Path(musp_path))
-    _idxs_significant_voxels = np.load(pathlib.Path(idxs_significant_voxels_path))
-    _ijk = np.load(pathlib.Path(ijk_path))
-    _xyz = np.load(pathlib.Path(xyz_path))
-    _wavelengths = np.load(pathlib.Path(wavelengths_path))
-    _resolution = tuple(np.load(pathlib.Path(resolution_path)).tolist())
+    _mua = np.load(mua_path)
+    _musp = np.load(musp_path)
+    _idxs_significant_voxels = np.load(idxs_significant_voxels_path)
+    _ijk = np.load(ijk_path)
+    _xyz = np.load(xyz_path)
+    _wavelengths = np.load(wavelengths_path)
+    _resolution = tuple(np.load(resolution_path).tolist())
 
     logger.info("Reconstruction assets initialization complete.")
 

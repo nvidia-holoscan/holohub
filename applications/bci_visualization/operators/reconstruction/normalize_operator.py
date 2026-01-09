@@ -31,12 +31,10 @@ class NormalizeOperator(Operator):
         self,
         *,
         fragment: Any | None = None,
-        use_gpu: bool = False,
         use_hard_coded_normalizers: bool = True,
     ) -> None:
         super().__init__(fragment, name=self.__class__.__name__)
         self._jacobian_cache: NDArray[np.float32] | None = None
-        self._use_gpu = use_gpu
         self._max_rhs: NDArray[np.float32] | None = None
 
         self._use_hard_coded_normalizers = use_hard_coded_normalizers

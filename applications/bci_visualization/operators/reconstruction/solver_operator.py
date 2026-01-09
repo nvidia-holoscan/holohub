@@ -26,12 +26,10 @@ class RegularizedSolverOperator(Operator):
         self,
         *,
         reg: float = REG_DEFAULT,
-        use_gpu: bool = False,
         fragment: Any | None = None,
     ) -> None:
         super().__init__(fragment, name=self.__class__.__name__)
         self._reg = reg
-        self._use_gpu = use_gpu
 
     def setup(self, spec: OperatorSpec) -> None:
         spec.input("batch")

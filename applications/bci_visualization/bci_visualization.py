@@ -52,8 +52,6 @@ class BciVisualizationApp(Application):
         coefficients_path: Path | str,
         mask_path=None,
         reg: float = RegularizedSolverOperator.REG_DEFAULT,
-        tol: float = 1e-4,
-        use_gpu: bool = False,
         **kwargs,
     ):
         self._rendering_config = render_config_file
@@ -66,8 +64,6 @@ class BciVisualizationApp(Application):
         self._channel_mapping_path = Path(channel_mapping_path)
         self._coefficients_path = Path(coefficients_path)
         self._voxel_info_dir = Path(voxel_info_dir)
-        self._tol = tol
-        self._use_gpu = use_gpu
 
         super().__init__(argv, *args, **kwargs)
 
@@ -102,12 +98,10 @@ class BciVisualizationApp(Application):
 
         normalize_operator = NormalizeOperator(
             fragment=self,
-            use_gpu=self._use_gpu,
         )
 
         regularized_solver_operator = RegularizedSolverOperator(
             reg=self._reg,
-            use_gpu=self._use_gpu,
             fragment=self,
         )
 
@@ -116,7 +110,6 @@ class BciVisualizationApp(Application):
             coefficients=pipeline_assets.extinction_coefficients,
             ijk=pipeline_assets.ijk,
             xyz=pipeline_assets.xyz,
-            use_gpu=self._use_gpu,
         )
 
         # ========== Visualization Pipeline Operators ==========
@@ -274,7 +267,6 @@ def main():
         coefficients_path=kernel_data / "extinction_coefficients_mua.csv",
         mask_path=args.mask_path,
         reg=RegularizedSolverOperator.REG_DEFAULT,
-        use_gpu=True,
     )
 
     # Load YAML configuration

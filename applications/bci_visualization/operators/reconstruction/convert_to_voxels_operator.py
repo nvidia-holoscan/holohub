@@ -57,8 +57,8 @@ def _compute_affine(xyz: NDArray[np.float32], ijk: NDArray[np.float32]) -> NDArr
         Voxel indexes
     Returns
     -------
-    affine: np.nsarray
-        Affine matrix defineg the given space.
+    affine: np.ndarray
+        Affine matrix defining the given space.
     """
     rng = np.random.default_rng(0)
 
@@ -98,13 +98,11 @@ class ConvertToVoxelsOperator(Operator):
         ijk: NDArray[np.float32],
         xyz: NDArray[np.float32],
         fragment: Any | None = None,
-        use_gpu: bool = False,
     ) -> None:
-        self._hbo = HbO(coefficients, use_gpu=use_gpu)
+        self._hbo = HbO(coefficients)
         self._affine = np.round(_compute_affine(xyz, ijk), 6)
         self._affine_sent: bool = False
         self._cached_affine: NDArray[np.float32] | None = None
-        self._use_gpu = use_gpu
         self._cum_hbo: NDArray[np.float32] | None = None
         self._cum_hbr: NDArray[np.float32] | None = None
 

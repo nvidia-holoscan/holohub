@@ -50,7 +50,7 @@ class SNIRFStream(BaseNirsStream):
         self._unique_channels = [
             ch for ch in self._channels if ch.moment == 0 and ch.wavelength == 0
         ]
-        print("Got {} unique channels".format(len(self._unique_channels)))
+        logger.info("Got {} unique channels".format(len(self._unique_channels)))
 
     def get_channels(self) -> ChannelInfo:
         return ChannelInfo(
@@ -142,7 +142,7 @@ class SNIRFStream(BaseNirsStream):
                     "unique_channel_idxs": [uniq_idx for _, uniq_idx in channel_order],
                 }
 
-        print("Streaming {} samples from SNIRF".format(len(data)))
+        logger.info("Streaming {} samples from SNIRF".format(len(data)))
         for ts, sample in zip(times, data):
             # sample is shape (n_channels,)
             # send (n_moments, n_unique_channels, n_wavelengths)

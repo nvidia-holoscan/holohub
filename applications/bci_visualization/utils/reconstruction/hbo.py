@@ -60,11 +60,10 @@ class ExtinctionCoefficient(NamedTuple):
 
 class HbO:
     def __init__(
-        self, coefficients: Dict[int, ExtinctionCoefficient], use_gpu: bool = False
+        self, coefficients: Dict[int, ExtinctionCoefficient]
     ) -> None:
         self._coefficients = coefficients
         self._cached_coefficients: cp.ndarray | None = None
-        self._use_gpu = use_gpu
 
     def _get_molar_extinction_coefficients(self, wavelength: int) -> ExtinctionCoefficient:
         """Get the molar extinction coefficients for a specific wavelength. These have been converted to µa values and
