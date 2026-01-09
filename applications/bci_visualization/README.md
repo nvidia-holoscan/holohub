@@ -62,25 +62,18 @@ To run the application you need a streaming Kernel Flow data source. This can be
 
 ### 1. Download Required Data
 
-Download the example dataset from [Google Drive](https://drive.google.com/drive/folders/1RpQ6UzjIZAr90FdW9VIbtTFYR6-up7w2) and extract it to `data/bci_visualization` in your holohub directory. The dataset includes:
+The required data can be found on [Hugging Face](https://huggingface.co/datasets/KernelCo/holohub_bci_visualization/tree/main). The dataset includes:
 - **SNIRF data file** (`data.snirf`): Recorded brain activity measurements
-- **Anatomy masks** (`anatomy_labels_*.nii.gz`): Brain tissue segmentation (skin, skull, CSF, gray matter, white matter)
+- **Anatomy masks** (`anatomy_labels_high_res.nii.gz`): Brain tissue segmentation (skin, skull, CSF, gray matter, white matter)
 - **Reconstruction matrices**: Pre-computed Jacobian and voxel information
-- **Volume renderer config** (`config.json`): 3D visualization settings
-
-### 2. Run the Application
-```bash
-./holohub run bci_visualization
-```
 
 ### Expected Data Folder Structure
 
-After downloading and extracting the dataset, your `data/bci_visualization` folder should have this structure:
+Download the correct folder matching your device type along with the other files into `data/bci_visualization`. Your `data/bci_visualization` folder should have the following structure:
 
 ```
 data/bci_visualization/
 ├── anatomy_labels_high_res.nii.gz      # Brain segmentation
-├── config.json                          # Volume renderer configuration
 ├── data.snirf                          # SNIRF format brain activity data
 ├── extinction_coefficients_mua.csv     # Absorption coefficients for HbO/HbR
 ├── flow_channel_map.json               # Sensor-source channel mapping
@@ -94,6 +87,11 @@ data/bci_visualization/
     ├── resolution.npy                  # Voxel resolution (mm)
     ├── wavelengths.npy                 # Measurement wavelengths (690nm, 905nm)
     └── xyz.npy                         # Voxel coordinates in anatomical space (mm)
+```
+
+### 2. Run the Application
+```bash
+./holohub run bci_visualization
 ```
 
 ## Pipeline Overview
@@ -118,9 +116,9 @@ graph LR
 
 **Key Steps:**
 1. **Stream Operator**: Reads SNIRF data and emits time-of-flight moments
-2. **Build RHS**: Constructs the right-hand side of the inverse problem using channel mapping and Jacobian
-3. **Normalize**: Normalizes measurements for numerical stability
-4. **Regularized Solver**: Solves the ill-posed inverse problem with Tikhonov regularization
+2. **Build RHS**: Constructs the right-hand side of the inverse problem from the streaming moments taking into account the channel mapping
+3. **Normalize**: Normalizes the moments to hard-coded upper bounds
+4. **Regularized Solver**: Solves the inverse problem
 5. **Convert to Voxels**: Maps solution to 3D voxel coordinates with HbO/HbR conversion
 6. **Voxel to Volume**: Resamples to match anatomy mask, applies adaptive normalization
 

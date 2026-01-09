@@ -18,7 +18,9 @@ from .types import BuildRHSOutput, NormalizedSolveBatch, WavelengthSystem
 logger = logging.getLogger(__name__)
 
 
-HARD_CODED_NORMALIZERS = [  # for each feature type (moment)
+# You can adjust these hard-coded values by taking the max value
+# of each moment and wavelength from a SNIRF file.
+HARD_CODED_NORMALIZERS = [  # for each feature type (moment and wavelength)
     np.array([1, 5e2, 5e5]),
     np.array([0.5, 2.5e2, 2.5e5]),
 ]
