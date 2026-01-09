@@ -1,0 +1,8 @@
+version: "1"
+graph:
+  - op: gamma_compression
+    params: {gamma: 1.1, enable: true}
+  - op: median_filter
+    params: {size: 3, enable: true}
+  - op: unsharp_mask
+    params: {sigma: 1.0, amount: 1.5, threshold: 0.02, enable: true}
