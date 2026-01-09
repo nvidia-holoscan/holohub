@@ -35,7 +35,9 @@ class FuncOpTests(unittest.TestCase):
         from holoscan.core import Application, Operator
 
         app = Application()
-        op_instance = FuncOp(app, name="gamma_op", fn=FILTERS["gamma_compression"], params={"gamma": 2.0})
+        op_instance = FuncOp(
+            app, name="gamma_op", fn=FILTERS["gamma_compression"], params={"gamma": 2.0}
+        )
 
         self.assertIsInstance(op_instance, Operator)
 

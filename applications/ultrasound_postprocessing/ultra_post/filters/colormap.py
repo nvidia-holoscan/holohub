@@ -83,7 +83,9 @@ def color_map(
 
     if isinstance(mode, str):
         token = mode.split(".")[-1]
-        selected = MapChoice[token] if token in MapChoice.__members__ else MapChoice(token.capitalize())
+        selected = (
+            MapChoice[token] if token in MapChoice.__members__ else MapChoice(token.capitalize())
+        )
     else:
         selected = MapChoice(mode)
     colored = _apply_blue_hue(y) if selected == MapChoice.blue else _apply_orange_hue(y)
