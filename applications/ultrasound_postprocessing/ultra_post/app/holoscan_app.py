@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-
 """
 Minimal Holoscan app using reusable source/pipeline operators (UFF or raysim).
 
@@ -29,11 +27,13 @@ Run with the i4h-sensor-simulation raysim backend:
   python -m ultra_post.app.holoscan_app --source raysim --sim-range -20 20
 """
 
+from __future__ import annotations
+
 import argparse
 import os
 import sys
 from pathlib import Path
-from typing import Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Sequence, Tuple
 
 from ultra_post.app.holoscan_operators import (
     FuncOp,
@@ -57,9 +57,12 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
         default="uff",
         help="Frame source to use (default: uff).",
     )
-    DEFAULT_UFF_PATH = os.path.join(os.environ.get("HOLOHUB_DATA_PATH", "../data"), "ultrasound_postprocessing/demo.uff")
-    p.add_argument("--uff", type=str,
-        default=DEFAULT_UFF_PATH, help="Path to UFF file when --source=uff")
+    DEFAULT_UFF_PATH = os.path.join(
+        os.environ.get("HOLOHUB_DATA_PATH", "../data"), "ultrasound_postprocessing/demo.uff"
+    )
+    p.add_argument(
+        "--uff", type=str, default=DEFAULT_UFF_PATH, help="Path to UFF file when --source=uff"
+    )
     p.add_argument("--dataset", type=str, default=None, help="Dataset name inside UFF (optional)")
     p.add_argument("--fps", type=float, default=30.0, help="Target frame rate")
     p.add_argument(
@@ -68,7 +71,9 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
         default=None,
         help="Pipeline preset YAML (optional; default = just Gamma)",
     )
-    p.add_argument("--headless", action="store_true", help="Run without display (offscreen Holoviz)")
+    p.add_argument(
+        "--headless", action="store_true", help="Run without display (offscreen Holoviz)"
+    )
     p.add_argument(
         "--log",
         type=str,
@@ -133,7 +138,11 @@ def _load_pipeline_from_yaml(path: Optional[str]) -> Pipeline:
     if not path:
         pipeline: Pipeline = []
         if filters:
-            filter_name = "gamma_compression" if "gamma_compression" in filters else next(iter(filters.keys()))
+            filter_name = (
+                "gamma_compression"
+                if "gamma_compression" in filters
+                else next(iter(filters.keys()))
+            )
             pipeline.append(create_node(filter_name))
         return pipeline
 
@@ -176,8 +185,9 @@ def _pair(values: Sequence[float], default: Tuple[float, float]) -> Tuple[float,
 def run_holoscan_app(args: argparse.Namespace) -> None:
     import os
     from pathlib import Path as _Path
-    from holoscan.core import Application, Tracker  # type: ignore
+
     from holoscan.conditions import PeriodicCondition  # type: ignore
+    from holoscan.core import Application, Tracker  # type: ignore
     from holoscan.operators import HolovizOp  # type: ignore
 
     if args.preset is None:
@@ -248,7 +258,8 @@ def run_holoscan_app(args: argparse.Namespace) -> None:
 
             # Always log FPS; attempt Holoviz with offscreen fallback when no display.
             gpu_present = any(
-                _Path(p).exists() for p in ("/dev/nvidiactl", "/dev/nvidia0", "/proc/driver/nvidia/version")
+                _Path(p).exists()
+                for p in ("/dev/nvidiactl", "/dev/nvidia0", "/proc/driver/nvidia/version")
             )
             display_present = bool(os.environ.get("DISPLAY"))
             headless_mode = bool(args.headless or (not display_present) or (not gpu_present))
@@ -265,7 +276,7 @@ def run_holoscan_app(args: argparse.Namespace) -> None:
     # Enable Data Flow Tracking and save logs
     print(f"Initializing Tracker with log file: {args.log}")
     try:
-        with Tracker(app, filename=args.log) as tracker:
+        with Tracker(app, filename=args.log) as tracker:  # noqa: F841
             print("Tracker started. Running app...")
             app.run()
             print("App run finished.")

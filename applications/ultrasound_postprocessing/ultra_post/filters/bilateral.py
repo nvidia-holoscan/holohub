@@ -22,7 +22,9 @@ def _positive_radius(value: int) -> int:
     return max(1, int(value))
 
 
-def _bilateral_gray(image: cp.ndarray, radius: int, spatial_sigma: float, range_sigma: float) -> cp.ndarray:
+def _bilateral_gray(
+    image: cp.ndarray, radius: int, spatial_sigma: float, range_sigma: float
+) -> cp.ndarray:
     r = _positive_radius(radius)
     spatial_sig, range_sig = float(spatial_sigma), float(range_sigma)
 
@@ -63,7 +65,10 @@ def bilateral_filter(
 
     if img.ndim == 3:
         if per_channel:
-            channels = [_bilateral_gray(img[..., i], radius, spatial_sigma, range_sigma) for i in range(img.shape[-1])]
+            channels = [
+                _bilateral_gray(img[..., i], radius, spatial_sigma, range_sigma)
+                for i in range(img.shape[-1])
+            ]
         else:
             # Luminance guidance (simple RGB approx)
             guidance = 0.299 * img[..., 0] + 0.587 * img[..., 1] + 0.114 * img[..., 2]

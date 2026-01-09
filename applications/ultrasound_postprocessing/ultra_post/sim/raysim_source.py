@@ -23,7 +23,9 @@ import numpy as np
 try:  # pragma: no cover - GPU runtime dependency
     import cupy as cp
 except ImportError as exc:  # pragma: no cover - handled lazily at runtime
-    raise ImportError("CuPy is required to run the simulated pipeline (`pip install cupy-cuda12x`).") from exc
+    raise ImportError(
+        "CuPy is required to run the simulated pipeline (`pip install cupy-cuda12x`)."
+    ) from exc
 
 try:  # pragma: no cover - optional dependency for simulation
     import raysim.cuda as rs

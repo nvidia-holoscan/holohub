@@ -28,10 +28,12 @@ def _box_filter(img: cp.ndarray, radius: int) -> cp.ndarray:
     return uniform_filter(img, size=(k, k), mode="reflect")
 
 
-def _guided_filter_channel(p: cp.ndarray, I: cp.ndarray, radius: int, eps: float) -> cp.ndarray:
+def _guided_filter_channel(
+    p: cp.ndarray, I: cp.ndarray, radius: int, eps: float  # noqa: E741
+) -> cp.ndarray:
     mean_I, mean_p = _box_filter(I, radius), _box_filter(p, radius)
     mean_Ip, mean_II = _box_filter(I * p, radius), _box_filter(I * I, radius)
-    
+
     a = (mean_Ip - mean_I * mean_p) / (mean_II - mean_I * mean_I + eps)
     b = mean_p - a * mean_I
     return _box_filter(a, radius) * I + _box_filter(b, radius)
@@ -56,8 +58,11 @@ def guided_filter(
         if use_luminance and img.shape[-1] >= 3:
             lum = 0.299 * img[..., 0] + 0.587 * img[..., 1] + 0.114 * img[..., 2]
             guidance = cp.stack([lum] * img.shape[-1], axis=-1)
-        
-        channels = [_guided_filter_channel(img[..., i], guidance[..., i], r, eps) for i in range(img.shape[-1])]
+
+        channels = [
+            _guided_filter_channel(img[..., i], guidance[..., i], r, eps)
+            for i in range(img.shape[-1])
+        ]
         return cp.clip(cp.stack(channels, axis=-1), 0.0, 1.0)
 
     return img

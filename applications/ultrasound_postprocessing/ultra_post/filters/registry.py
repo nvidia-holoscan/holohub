@@ -15,7 +15,20 @@
 
 from __future__ import annotations
 
-from . import adaptive_gray, anisotropic, bilateral, clahe, colormap, std, gamma, guided, matte, nlm, svd, temporal
+from . import (
+    adaptive_gray,
+    anisotropic,
+    bilateral,
+    clahe,
+    colormap,
+    gamma,
+    guided,
+    matte,
+    nlm,
+    std,
+    svd,
+    temporal,
+)
 
 FILTERS = {
     "adaptive_gray_map": adaptive_gray.adaptive_gray_map,
@@ -36,10 +49,26 @@ FILTERS = {
 }
 
 DEFAULT_PARAMS = {
-    "adaptive_gray_map": {"radius": 5, "beta": 1.0, "ref_level": 0.5, "auto_ref": True, "preserve_mean": True},
-    "anisotropic_diffusion": {"num_iter": 10, "kappa": 0.1, "gamma": 0.1, "function": "exponential"},
+    "adaptive_gray_map": {
+        "radius": 5,
+        "beta": 1.0,
+        "ref_level": 0.5,
+        "auto_ref": True,
+        "preserve_mean": True,
+    },
+    "anisotropic_diffusion": {
+        "num_iter": 10,
+        "kappa": 0.1,
+        "gamma": 0.1,
+        "function": "exponential",
+    },
     "auto_matte": {"filters": []},
-    "bilateral_filter": {"radius": 3, "spatial_sigma": 2.0, "range_sigma": 0.1, "per_channel": True},
+    "bilateral_filter": {
+        "radius": 3,
+        "spatial_sigma": 2.0,
+        "range_sigma": 0.1,
+        "per_channel": True,
+    },
     "clahe": {"tiles": (8, 8), "clip_limit": 0.01, "nbins": 256},
     "color_map": {"mode": colormap.MapChoice.blue, "blend": 1.0, "enable": True},
     "median_filter": {"size": 3},

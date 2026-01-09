@@ -20,12 +20,13 @@ from typing import Any, Dict, Mapping
 
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
-
 from ultra_post.core.pipeline import Pipeline, create_node
 from ultra_post.filters.registry import DEFAULT_PARAMS
 
 
-def render_filter_controls(container: DeltaGenerator, pipeline: Pipeline, filters: Mapping[str, Any]) -> None:
+def render_filter_controls(
+    container: DeltaGenerator, pipeline: Pipeline, filters: Mapping[str, Any]
+) -> None:
     """Render active filters with edit/move/remove controls."""
 
     container.markdown("**Filters**")
@@ -61,7 +62,9 @@ def render_filter_controls(container: DeltaGenerator, pipeline: Pipeline, filter
                 st.rerun()
 
 
-def render_add_filter_controls(container: DeltaGenerator, pipeline: Pipeline, filters: Mapping[str, Any]) -> None:
+def render_add_filter_controls(
+    container: DeltaGenerator, pipeline: Pipeline, filters: Mapping[str, Any]
+) -> None:
     """Render selector to append new filters."""
 
     container.markdown("**Add Filter**")
@@ -70,14 +73,19 @@ def render_add_filter_controls(container: DeltaGenerator, pipeline: Pipeline, fi
         return
 
     cols = container.columns([3, 1])
-    selected = cols[0].selectbox("Type", options=names, label_visibility="collapsed", key="add_op_select")
+    selected = cols[0].selectbox(
+        "Type", options=names, label_visibility="collapsed", key="add_op_select"
+    )
     if cols[1].button("Add", key="add_op_btn"):
         pipeline.append(create_node(selected))
         st.rerun()
 
 
 def _render_params(
-    container: DeltaGenerator, params: Mapping[str, Any], defaults: Mapping[str, Any], key_prefix: str
+    container: DeltaGenerator,
+    params: Mapping[str, Any],
+    defaults: Mapping[str, Any],
+    key_prefix: str,
 ) -> Dict[str, Any]:
     """Render controls for parameters based on default values."""
 
@@ -105,7 +113,9 @@ def _render_params(
                         current_val = opt
                         break
             try:
-                idx = options.index(current_val) if current_val in options else options.index(default)
+                idx = (
+                    options.index(current_val) if current_val in options else options.index(default)
+                )
             except ValueError:
                 idx = 0
             selected = container.selectbox(
@@ -116,7 +126,11 @@ def _render_params(
                 key=key,
             )
             updated[name] = selected
-        elif isinstance(default, tuple) and len(default) == 2 and all(isinstance(x, int) for x in default):
+        elif (
+            isinstance(default, tuple)
+            and len(default) == 2
+            and all(isinstance(x, int) for x in default)
+        ):
             c1, c2 = container.columns(2)
             v1 = c1.number_input(f"{label} X", value=value[0], key=f"{key}_0")
             v2 = c2.number_input(f"{label} Y", value=value[1], key=f"{key}_1")
