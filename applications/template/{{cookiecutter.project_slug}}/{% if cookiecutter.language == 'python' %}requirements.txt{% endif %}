@@ -5,7 +5,7 @@
 
 # Core Holoscan Python dependencies
 # NOTE: The base Holoscan container already includes the holoscan package
-# holoscan>=3.10.0
+# holoscan>=3.9.0
 
 # Common dependencies for Holoscan applications
 numpy>=1.21.0
