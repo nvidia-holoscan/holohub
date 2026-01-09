@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
 #include "holoscan/core/resources/gxf/cuda_stream_pool.hpp"
+#include <holoscan/python/core/emitter_receiver_registry.hpp>
 
 using std::string_literals::operator""s;
 using pybind11::literals::operator""_a;
@@ -120,6 +121,12 @@ PYBIND11_MODULE(_volume_renderer, m) {
            "name"_a = "volume_renderer"s,
            doc::VolumeRendererOp::doc_VolumeRendererOp_python)
       .def("setup", &VolumeRendererOp::setup, "spec"_a, doc::VolumeRendererOp::doc_setup);
+
+  // Register custom types with the emitter/receiver registry
+  m.def("register_types", [](EmitterReceiverRegistry& registry) {
+    registry.add_emitter_receiver<std::array<uint32_t, 3>>("std::array<uint32_t, 3>"s);
+    registry.add_emitter_receiver<std::array<bool, 3>>("std::array<bool, 3>"s);
+  });
 }  // PYBIND11_MODULE
 
 }  // namespace holoscan::ops
