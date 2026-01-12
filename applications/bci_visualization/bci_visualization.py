@@ -20,13 +20,13 @@ from operators.reconstruction import (
     RegularizedSolverOperator,
 )
 from operators.stream import StreamOperator
+from operators.voxel_stream_to_volume import VoxelStreamToVolumeOp
 from streams.base_nirs import BaseNirsStream
 from streams.snirf import SNIRFStream
 from utils.reconstruction.assets import get_assets
 
 from holohub.color_buffer_passthrough import ColorBufferPassthroughOp
 from holohub.volume_renderer import VolumeRendererOp
-from operators.voxel_stream_to_volume import VoxelStreamToVolumeOp
 
 
 class BciVisualizationApp(Application):
