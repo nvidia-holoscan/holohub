@@ -17,14 +17,16 @@
 			"tested_versions": [
 				"0.5.0",
 				"2.9.0",
-				"3.0.0"
+				"3.0.0",
+				"3.6.0"
 			]
 		},
 		"videomaster_sdk": {
 			"minimum_required_version": "6.26.0",
 			"tested_versions": [
 				"6.29.0",
-				"6.30.0"
+				"6.30.0",
+				"6.32.0"
 			]
 		},
 		"platforms": [
