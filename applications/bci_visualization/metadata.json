@@ -43,7 +43,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Visualization", "BCI", "Hemodynamic", "Volume Rendering", "Neuroscience"],
+		"tags": ["Visualization", "BCI", "Hemodynamics", "Volume Rendering", "Neuroscience", "Optical Sensing"],
 		"ranking": 2,
 		"requirements": {
 			"python": ["numpy", "cupy"]
@@ -54,4 +54,3 @@
 		}
 	}
 }
-
