@@ -19,7 +19,7 @@
 ############################################################
 
 ARG BASE_SDK_VERSION
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-cuda13 as base
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-cuda13 AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 

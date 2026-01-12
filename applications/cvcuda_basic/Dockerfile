@@ -26,7 +26,7 @@ ARG GPU_TYPE
 ############################################################
 # CV-CUDA Downloader
 ############################################################
-FROM ${BASE_IMAGE} as cvcuda-install
+FROM ${BASE_IMAGE} AS cvcuda-install
 
 ARG DEBIAN_FRONTEND=noninteractive
 

@@ -21,7 +21,7 @@ ARG COMPUTE_CAPACITY
 ############################################################
 # Base image
 ############################################################
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 ARG DEBIAN_FRONTEND=noninteractive
 
 #
