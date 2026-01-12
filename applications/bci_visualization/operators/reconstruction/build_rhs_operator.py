@@ -128,7 +128,11 @@ class BuildRHSOperator(Operator):
         # Validate that jacobian features dimension matches realtime moments
         # 5D jacobian shape: (channels, features, wavelengths, voxels, simulation_types)
         num_features = realtime_moments.shape[0]
-        assert self._mega_jacobians_cpu.shape[1] == num_features
+        if self._mega_jacobians_cpu.shape[1] != num_features:
+            raise ValueError(
+                f"Jacobian features dimension mismatch: expected {self._mega_jacobians_cpu.shape[1]}, "
+                f"got {num_features} from moments data. Check SNIRF file format."
+            )
 
         with cp.cuda.ExternalStream(cuda_stream):
             # One-time GPU uploads of large static assets.
