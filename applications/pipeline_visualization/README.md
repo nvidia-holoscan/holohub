@@ -187,7 +187,7 @@ The data format is defined using FlatBuffers for efficient serialization:
 ## Visualizer Python Prerequisites
 
 All dependencies to run the application are installed automatically when using the `holohub run` command inside
-the Holohub container. Because the visualizer is run outside the Holohub container, its [dependencies](#visualizer-python-dependencies) must be
+the Holohub container. Because the visualizer is run outside the Holohub container, its [dependencies](#visualizer-python-prerequisites) must be
 installed separately.
 
 Install the required Python packages:
