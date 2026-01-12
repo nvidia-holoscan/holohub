@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025 DELTACAST.TV. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ class App : public holoscan::Application {
 
     uint32_t width = from_config("deltacast.width").as<uint32_t>();
     uint32_t height = from_config("deltacast.height").as<uint32_t>();
-    uint64_t source_block_size = width * height * 4 * 4;
+    uint64_t source_block_size = width * height * 4;
     uint64_t source_num_blocks = from_config("deltacast.rdma").as<bool>() ? 3 : 4;
 
     auto source = make_operator<ops::VideoStreamReplayerOp>("replayer", from_config("replayer"),
@@ -49,8 +49,7 @@ class App : public holoscan::Application {
 
     auto visualizer = make_operator<ops::VideoMasterTransmitterOp>(
         "deltacast",
-        from_config("deltacast"),
-        Arg("pool") = make_resource<UnboundedAllocator>("pool"));
+        from_config("deltacast"));
 
     add_flow(source, format_converter);
     add_flow(format_converter, visualizer);

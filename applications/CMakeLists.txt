@@ -41,6 +41,10 @@ add_holohub_application(deltacast_transmitter DEPENDS
                         OPERATORS deltacast_videomaster
                         )
 
+add_holohub_application(deltacast_receiver DEPENDS
+                        OPERATORS deltacast_videomaster
+                        )
+
 add_holohub_application(depth_anything_v2)
 
 add_subdirectory(distributed)
