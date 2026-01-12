@@ -95,7 +95,11 @@ class NormalizeOperator(Operator):
                     wavelength_idx
                 ][idx_feature]
 
-        assert not cp.any(cp.isnan(row_normalizers))
+        if cp.any(cp.isnan(row_normalizers)):
+            raise RuntimeError(
+                f"NaN values detected in row normalizers. Check HARD_CODED_NORMALIZERS configuration "
+                f"for num_features={num_features}, num_wavelengths={num_wavelengths}"
+            )
         self._hard_coded_row_normalizers_cache = row_normalizers
         return row_normalizers
 
