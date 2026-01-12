@@ -1,0 +1,264 @@
+{
+    "BackgroundLight": {
+     "bottomColor": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+     },
+     "castLight": false,
+     "enable": false,
+     "horizonColor": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+     },
+     "intensity": 1,
+     "show": true,
+     "topColor": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+     }
+    },
+    "Camera": {
+     "eye": {
+      "x": -0.26613375709170434,
+      "y": 0.18896026836330537,
+      "z": 0.12506341747625926
+     },
+     "fieldOfView": 55,
+     "lookAt": {
+      "x": 0.00025000300956889987,
+      "y": 0.0002500034752301872,
+      "z": 0.0002499971888028085
+     },
+     "pixelAspectRatio": 1,
+     "up": {
+      "x": 0.3602252996858582,
+      "y": 0.8121067525713994,
+      "z": -0.4590428693425827
+     }
+    },
+    "CameraAperture": {
+     "autoFocus": true,
+     "focusDistance": 1
+    },
+    "Light": [
+     {
+      "color": {
+       "x": 1.0,
+       "y": 1.0,
+       "z": 1.0
+      },
+      "direction": {
+       "x": -0.15643446504023087,
+       "y": -0.9876883405951378,
+       "z": 0.0
+      },
+      "enable": true,
+      "index": 0,
+      "intensity": 3.630780547701013,
+      "position": {
+       "x": 0.15643446504023087,
+       "y": 0.9876883405951378,
+       "z": 0.0
+      },
+      "show": false,
+      "size": 1.0
+     },
+     {
+        "color": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+        },
+        "direction": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": -1.0
+        },
+        "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0
+        },
+        "intensity": 1,
+        "index": 1,
+        "enable": true,
+        "show": false,
+        "size": 1
+    }
+    ],
+    "PostProcessDenoise": {
+     "depthWeight": 3,
+     "enableIterationLimit": false,
+     "iterationLimit": 40,
+     "method": "KNN",
+     "noiseThreshold": 0.2,
+     "radius": 1,
+     "spatialWeight": 0.05
+    },
+    "PostProcessTonemap": {
+     "enable": true,
+     "exposure": 0.5
+    },
+    "RenderSettings": {
+     "enableFoveation": false,
+     "enableReproject": false,
+     "enableWarp": false,
+     "interpolationMode": "CATMULLROM",
+     "maxIterations": 10000,
+     "shadowStepSize": 1,
+     "stepSize": 1,
+     "timeSlot": 100,
+     "warpFullResolutionSize": 0.3,
+     "warpResolutionScale": 0.3
+    },
+    "TransferFunction": {
+     "blendingProfile": "BLENDED_OPACITY",
+     "components": [
+        {
+            "activeRegions": [3, 4],
+            "diffuseEnd": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "diffuseStart": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "specularEnd": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "specularStart": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "emissiveEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "emissiveStart": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "emissiveStrength": 0,
+            "opacity": 0.5,
+            "opacityProfile": "SQUARE",
+            "opacityTransition": 0.2,
+            "range": {
+                "min": 0,
+                "max": 1
+            },
+            "roughness": 0
+        },
+        {
+            "activeRegions": [3, 4],
+            "diffuseEnd": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.5
+            },
+            "diffuseStart": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+            },
+            "specularEnd": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "specularStart": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "emissiveEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "emissiveStart": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "emissiveStrength": 0,
+            "opacity": 1.0,
+            "opacityProfile": "SQUARE",
+            "opacityTransition": 0.2,
+            "range": {
+                "min": 0,
+                "max": 0.4
+            },
+            "roughness": 0
+        },
+        {
+            "activeRegions": [3, 4],
+            "diffuseEnd": {
+                "x": 1.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "diffuseStart": {
+                "x": 0.5,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "specularEnd": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "specularStart": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
+            "emissiveEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "emissiveStart": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "emissiveStrength": 0,
+            "opacity": 1.0,
+            "opacityProfile": "SQUARE",
+            "opacityTransition": 0.2,
+            "range": {
+                "min": 0.6,
+                "max": 1
+            },
+            "roughness": 0
+        }
+    ],
+     "densityScale": 1000,
+     "globalOpacity": 1,
+     "gradientScale": 10,
+     "shadingProfile": "HYBRID"
+    },
+    "VolumeCrop": {
+     "max": {
+      "x": 1,
+      "y": 1,
+      "z": 1
+     },
+     "min": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+     }
+    }
+}

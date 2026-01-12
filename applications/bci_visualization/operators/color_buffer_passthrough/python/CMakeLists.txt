@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,13 @@
 # limitations under the License.
 
 include(pybind11_add_holohub_module)
+
 pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET volume_renderer
-    CLASS_NAME "VolumeRendererOp"
-    SOURCES volume_renderer.cpp
+  CPP_CMAKE_TARGET color_buffer_passthrough
+  CLASS_NAME "ColorBufferPassthroughOp"
+  SOURCES color_buffer_passthrough.cpp
 )
+
+
+
+

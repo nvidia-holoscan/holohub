@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,9 @@ add_holohub_application(async_buffer_deadline)
 
 add_holohub_application(basic_networking_ping DEPENDS
                         OPERATORS basic_network)
+
+add_holohub_application(bci_visualization DEPENDS
+                        OPERATORS volume_renderer)
 
 add_holohub_application(body_pose_estimation DEPENDS
                         OPERATORS OPTIONAL dds_video_subscriber dds_video_publisher)
