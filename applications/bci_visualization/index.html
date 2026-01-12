@@ -5,12 +5,12 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<link href="https://nvidia-holoscan.github.io/holohub/tutorials/async_buffer_deadline_tutorial/" rel="canonical"/>
-<link href="../" rel="prev"/>
-<link href="../gui_for_python_applications/" rel="next"/>
+<link href="https://nvidia-holoscan.github.io/holohub/applications/bci_visualization/" rel="canonical"/>
+<link href="../isaac_sim_holoscan_bridge/" rel="prev"/>
+<link href="../laser_detection_latency/evt_cam_calibration/" rel="next"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.7.1" name="generator"/>
-<title>Asynchronous Lock-free Buffer (latest) - NVIDIA Holoscan Reference Applications</title>
+<title>Kernel Flow BCI Real-Time Reconstruction and Visualization (latest) - NVIDIA Holoscan Reference Applications</title>
 <link href="../../assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -30,7 +30,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#a-study-using-asynchronous-lock-free-buffer-with-sched_deadline">
+<a class="md-skip" href="#kernel-flow-bci-real-time-reconstruction-and-visualization">
           Skip to content
         </a>
 </div>
@@ -65,7 +65,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              Asynchronous Lock-free Buffer (latest)
+              Kernel Flow BCI Real-Time Reconstruction and Visualization (latest)
             
           </span>
 </div>
@@ -151,8 +151,8 @@
 
         </a>
 </li>
-<li class="md-tabs__item">
-<a class="md-tabs__link" href="../../applications/">
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="../">
           
   
   
@@ -173,8 +173,8 @@
 
         </a>
 </li>
-<li class="md-tabs__item md-tabs__item--active">
-<a class="md-tabs__link" href="../">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../tutorials/">
           
   
   
@@ -299,10 +299,10 @@
 </ul>
 </nav>
 </li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/">
+<a class="md-nav__link" href="../">
 <span class="md-ellipsis">
     
   
@@ -312,11 +312,11 @@
     
   </span>
 </a>
-<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
 <span class="md-nav__icon md-icon"></span>
 </label>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
 <label class="md-nav__title" for="__nav_3">
 <span class="md-nav__icon md-icon"></span>
             
@@ -329,7 +329,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/adv_networking_bench/">
+<a class="md-nav__link" href="../adv_networking_bench/">
 <span class="md-ellipsis">
     
   
@@ -356,7 +356,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/aja_video_capture/">
+<a class="md-nav__link" href="../aja_video_capture/">
 <span class="md-ellipsis">
     
   
@@ -383,7 +383,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_4" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/async_buffer_deadline/">
+<a class="md-nav__link" href="../async_buffer_deadline/">
 <span class="md-ellipsis">
     
   
@@ -410,7 +410,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_5" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/basic_networking_ping/">
+<a class="md-nav__link" href="../basic_networking_ping/">
 <span class="md-ellipsis">
     
   
@@ -437,7 +437,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_6" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/simple_pdw_pipeline/">
+<a class="md-nav__link" href="../simple_pdw_pipeline/">
 <span class="md-ellipsis">
     
   
@@ -464,7 +464,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_7" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/body_pose_estimation/">
+<a class="md-nav__link" href="../body_pose_estimation/">
 <span class="md-ellipsis">
     
   
@@ -491,7 +491,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/colonoscopy_segmentation/">
+<a class="md-nav__link" href="../colonoscopy_segmentation/">
 <span class="md-ellipsis">
     
   
@@ -518,7 +518,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_9" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/cuda_quantum/">
+<a class="md-nav__link" href="../cuda_quantum/">
 <span class="md-ellipsis">
     
   
@@ -568,7 +568,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_10_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/dds/dds_video/">
+<a class="md-nav__link" href="../dds/dds_video/">
 <span class="md-ellipsis">
     
   
@@ -598,7 +598,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/deltacast_receiver/">
+<a class="md-nav__link" href="../deltacast_receiver/">
 <span class="md-ellipsis">
     
   
@@ -625,7 +625,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_12" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/deltacast_transmitter/">
+<a class="md-nav__link" href="../deltacast_transmitter/">
 <span class="md-ellipsis">
     
   
@@ -652,7 +652,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_13" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/depth_anything_v2/">
+<a class="md-nav__link" href="../depth_anything_v2/">
 <span class="md-ellipsis">
     
   
@@ -725,7 +725,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_14_1_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/distributed/grpc/grpc_endoscopy_tool_tracking/">
+<a class="md-nav__link" href="../distributed/grpc/grpc_endoscopy_tool_tracking/">
 <span class="md-ellipsis">
     
   
@@ -752,7 +752,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_14_1_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/">
+<a class="md-nav__link" href="../distributed/grpc/grpc_h264_endoscopy_tool_tracking/">
 <span class="md-ellipsis">
     
   
@@ -805,7 +805,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_14_2_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/distributed/ucx/ucx_h264_endoscopy_tool_tracking/">
+<a class="md-nav__link" href="../distributed/ucx/ucx_h264_endoscopy_tool_tracking/">
 <span class="md-ellipsis">
     
   
@@ -832,7 +832,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_14_2_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/">
+<a class="md-nav__link" href="../distributed/ucx/ucx_endoscopy_tool_tracking/">
 <span class="md-ellipsis">
     
   
@@ -859,7 +859,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_14_2_2_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/cpp/">
+<a class="md-nav__link" href="../distributed/ucx/ucx_endoscopy_tool_tracking/cpp/">
 <span class="md-ellipsis">
     
   
@@ -886,7 +886,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_14_2_2_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/python/">
+<a class="md-nav__link" href="../distributed/ucx/ucx_endoscopy_tool_tracking/python/">
 <span class="md-ellipsis">
     
   
@@ -945,7 +945,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_15_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/ehr_query_llm/lmm/">
+<a class="md-nav__link" href="../ehr_query_llm/lmm/">
 <span class="md-ellipsis">
     
   
@@ -972,7 +972,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_15_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/ehr_query_llm/fhir/">
+<a class="md-nav__link" href="../ehr_query_llm/fhir/">
 <span class="md-ellipsis">
     
   
@@ -1002,7 +1002,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_16" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/endoscopy_depth_estimation/">
+<a class="md-nav__link" href="../endoscopy_depth_estimation/">
 <span class="md-ellipsis">
     
   
@@ -1029,7 +1029,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_17" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/endoscopy_out_of_body_detection/">
+<a class="md-nav__link" href="../endoscopy_out_of_body_detection/">
 <span class="md-ellipsis">
     
   
@@ -1056,7 +1056,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_17_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/endoscopy_out_of_body_detection/cpp/">
+<a class="md-nav__link" href="../endoscopy_out_of_body_detection/cpp/">
 <span class="md-ellipsis">
     
   
@@ -1083,7 +1083,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_17_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/endoscopy_out_of_body_detection/python/">
+<a class="md-nav__link" href="../endoscopy_out_of_body_detection/python/">
 <span class="md-ellipsis">
     
   
@@ -1113,7 +1113,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_18" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/monai_endoscopic_tool_seg/">
+<a class="md-nav__link" href="../monai_endoscopic_tool_seg/">
 <span class="md-ellipsis">
     
   
@@ -1140,7 +1140,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_19" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/endoscopy_tool_tracking/">
+<a class="md-nav__link" href="../endoscopy_tool_tracking/">
 <span class="md-ellipsis">
     
   
@@ -1167,7 +1167,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_19_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/endoscopy_tool_tracking/cpp/">
+<a class="md-nav__link" href="../endoscopy_tool_tracking/cpp/">
 <span class="md-ellipsis">
     
   
@@ -1194,7 +1194,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_19_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/endoscopy_tool_tracking/python/">
+<a class="md-nav__link" href="../endoscopy_tool_tracking/python/">
 <span class="md-ellipsis">
     
   
@@ -1224,7 +1224,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_20" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/florence-2-vision/">
+<a class="md-nav__link" href="../florence-2-vision/">
 <span class="md-ellipsis">
     
   
@@ -1251,7 +1251,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_21" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/fm_asr/">
+<a class="md-nav__link" href="../fm_asr/">
 <span class="md-ellipsis">
     
   
@@ -1278,7 +1278,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_22" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/orthorectification_with_optix/">
+<a class="md-nav__link" href="../orthorectification_with_optix/">
 <span class="md-ellipsis">
     
   
@@ -1328,7 +1328,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_23_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/gstreamer/gst_video_recorder/">
+<a class="md-nav__link" href="../gstreamer/gst_video_recorder/">
 <span class="md-ellipsis">
     
   
@@ -1381,7 +1381,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_24_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/h264/h264_endoscopy_tool_tracking/">
+<a class="md-nav__link" href="../h264/h264_endoscopy_tool_tracking/">
 <span class="md-ellipsis">
     
   
@@ -1408,7 +1408,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_24_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/h264/h264_video_decode/">
+<a class="md-nav__link" href="../h264/h264_video_decode/">
 <span class="md-ellipsis">
     
   
@@ -1438,7 +1438,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_25" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/high_speed_endoscopy/">
+<a class="md-nav__link" href="../high_speed_endoscopy/">
 <span class="md-ellipsis">
     
   
@@ -1465,7 +1465,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_25_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/high_speed_endoscopy/cpp/">
+<a class="md-nav__link" href="../high_speed_endoscopy/cpp/">
 <span class="md-ellipsis">
     
   
@@ -1492,7 +1492,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_25_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/high_speed_endoscopy/python/">
+<a class="md-nav__link" href="../high_speed_endoscopy/python/">
 <span class="md-ellipsis">
     
   
@@ -1522,7 +1522,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_26" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/holochat/">
+<a class="md-nav__link" href="../holochat/">
 <span class="md-ellipsis">
     
   
@@ -1572,7 +1572,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_27_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/holoscan_ros2/pubsub/">
+<a class="md-nav__link" href="../holoscan_ros2/pubsub/">
 <span class="md-ellipsis">
     
   
@@ -1599,7 +1599,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_27_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/holoscan_ros2/vb1940/">
+<a class="md-nav__link" href="../holoscan_ros2/vb1940/">
 <span class="md-ellipsis">
     
   
@@ -1652,7 +1652,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_28_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/holoviz/holoviz_hdr/">
+<a class="md-nav__link" href="../holoviz/holoviz_hdr/">
 <span class="md-ellipsis">
     
   
@@ -1679,7 +1679,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_28_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/holoviz/holoviz_srgb/">
+<a class="md-nav__link" href="../holoviz/holoviz_srgb/">
 <span class="md-ellipsis">
     
   
@@ -1706,7 +1706,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_28_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/holoviz/holoviz_ui/">
+<a class="md-nav__link" href="../holoviz/holoviz_ui/">
 <span class="md-ellipsis">
     
   
@@ -1733,7 +1733,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_28_4" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/holoviz/holoviz_vsync/">
+<a class="md-nav__link" href="../holoviz/holoviz_vsync/">
 <span class="md-ellipsis">
     
   
@@ -1760,7 +1760,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_28_5" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/holoviz/holoviz_yuv/">
+<a class="md-nav__link" href="../holoviz/holoviz_yuv/">
 <span class="md-ellipsis">
     
   
@@ -1790,7 +1790,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_29" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/hyperspectral_segmentation/">
+<a class="md-nav__link" href="../hyperspectral_segmentation/">
 <span class="md-ellipsis">
     
   
@@ -1817,7 +1817,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_30" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/imaging_ai_segmentator/">
+<a class="md-nav__link" href="../imaging_ai_segmentator/">
 <span class="md-ellipsis">
     
   
@@ -1844,7 +1844,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_31" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/iio/">
+<a class="md-nav__link" href="../iio/">
 <span class="md-ellipsis">
     
   
@@ -1871,7 +1871,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_32" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/realsense_visualizer/">
+<a class="md-nav__link" href="../realsense_visualizer/">
 <span class="md-ellipsis">
     
   
@@ -1898,7 +1898,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_33" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/isaac_sim_holoscan_bridge/">
+<a class="md-nav__link" href="../isaac_sim_holoscan_bridge/">
 <span class="md-ellipsis">
     
   
@@ -1922,10 +1922,10 @@
 </ul>
 </nav>
 </li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_3_34" type="checkbox"/>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_34" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/bci_visualization/">
+<a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
     
   
@@ -1936,7 +1936,7 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_3_34_label" class="md-nav" data-md-level="2">
+<nav aria-expanded="true" aria-labelledby="__nav_3_34_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_3_34">
 <span class="md-nav__icon md-icon"></span>
             
@@ -1975,7 +1975,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_35_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/laser_detection_latency/evt_cam_calibration/">
+<a class="md-nav__link" href="../laser_detection_latency/evt_cam_calibration/">
 <span class="md-ellipsis">
     
   
@@ -2002,7 +2002,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_35_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/laser_detection_latency/laser_detection/">
+<a class="md-nav__link" href="../laser_detection_latency/laser_detection/">
 <span class="md-ellipsis">
     
   
@@ -2029,7 +2029,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_35_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/laser_detection_latency/usb_cam_calibration/">
+<a class="md-nav__link" href="../laser_detection_latency/usb_cam_calibration/">
 <span class="md-ellipsis">
     
   
@@ -2059,7 +2059,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_36" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/pipeline_visualization/">
+<a class="md-nav__link" href="../pipeline_visualization/">
 <span class="md-ellipsis">
     
   
@@ -2109,7 +2109,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_37_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/matlab_gpu_coder/matlab_image_processing/">
+<a class="md-nav__link" href="../matlab_gpu_coder/matlab_image_processing/">
 <span class="md-ellipsis">
     
   
@@ -2136,7 +2136,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_37_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/matlab_gpu_coder/matlab_beamform/">
+<a class="md-nav__link" href="../matlab_gpu_coder/matlab_beamform/">
 <span class="md-ellipsis">
     
   
@@ -2166,7 +2166,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_38" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering_xr/">
+<a class="md-nav__link" href="../volume_rendering_xr/">
 <span class="md-ellipsis">
     
   
@@ -2216,7 +2216,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_38_2_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering_xr/operators/XrTransformOp/">
+<a class="md-nav__link" href="../volume_rendering_xr/operators/XrTransformOp/">
 <span class="md-ellipsis">
     
   
@@ -2243,7 +2243,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_38_2_1_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering_xr/operators/XrTransformOp/XrTransformControlOp/">
+<a class="md-nav__link" href="../volume_rendering_xr/operators/XrTransformOp/XrTransformControlOp/">
 <span class="md-ellipsis">
     
   
@@ -2270,7 +2270,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_38_2_1_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering_xr/operators/XrTransformOp/XrTransformRenderOp/">
+<a class="md-nav__link" href="../volume_rendering_xr/operators/XrTransformOp/XrTransformRenderOp/">
 <span class="md-ellipsis">
     
   
@@ -2300,7 +2300,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_38_2_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering_xr/operators/XrFrameOp/">
+<a class="md-nav__link" href="../volume_rendering_xr/operators/XrFrameOp/">
 <span class="md-ellipsis">
     
   
@@ -2327,7 +2327,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_38_2_2_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering_xr/operators/XrFrameOp/convert_depth/">
+<a class="md-nav__link" href="../volume_rendering_xr/operators/XrFrameOp/convert_depth/">
 <span class="md-ellipsis">
     
   
@@ -2354,7 +2354,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_38_2_2_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering_xr/operators/XrFrameOp/begin_frame/">
+<a class="md-nav__link" href="../volume_rendering_xr/operators/XrFrameOp/begin_frame/">
 <span class="md-ellipsis">
     
   
@@ -2381,7 +2381,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_38_2_2_4" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering_xr/operators/XrFrameOp/end_frame/">
+<a class="md-nav__link" href="../volume_rendering_xr/operators/XrFrameOp/end_frame/">
 <span class="md-ellipsis">
     
   
@@ -2437,7 +2437,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_38_3_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering_xr/utils/xr_hello_holoscan/">
+<a class="md-nav__link" href="../volume_rendering_xr/utils/xr_hello_holoscan/">
 <span class="md-ellipsis">
     
   
@@ -2464,7 +2464,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_38_3_1_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering_xr/utils/xr_hello_holoscan/xr_basic_render/">
+<a class="md-nav__link" href="../volume_rendering_xr/utils/xr_hello_holoscan/xr_basic_render/">
 <span class="md-ellipsis">
     
   
@@ -2500,7 +2500,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_39" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/multiai_endoscopy/">
+<a class="md-nav__link" href="../multiai_endoscopy/">
 <span class="md-ellipsis">
     
   
@@ -2527,7 +2527,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_40" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/multiai_ultrasound/">
+<a class="md-nav__link" href="../multiai_ultrasound/">
 <span class="md-ellipsis">
     
   
@@ -2554,7 +2554,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_40_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/multiai_ultrasound/cpp/">
+<a class="md-nav__link" href="../multiai_ultrasound/cpp/">
 <span class="md-ellipsis">
     
   
@@ -2581,7 +2581,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_40_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/multiai_ultrasound/python/">
+<a class="md-nav__link" href="../multiai_ultrasound/python/">
 <span class="md-ellipsis">
     
   
@@ -2631,7 +2631,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_40_4_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/multiai_ultrasound/operators/visualizer_icardio/">
+<a class="md-nav__link" href="../multiai_ultrasound/operators/visualizer_icardio/">
 <span class="md-ellipsis">
     
   
@@ -2687,7 +2687,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_41_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/nvidia_nim/nvidia_nim_chat/">
+<a class="md-nav__link" href="../nvidia_nim/nvidia_nim_chat/">
 <span class="md-ellipsis">
     
   
@@ -2714,7 +2714,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_41_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/nvidia_nim/nvidia_nim_imaging/">
+<a class="md-nav__link" href="../nvidia_nim/nvidia_nim_imaging/">
 <span class="md-ellipsis">
     
   
@@ -2741,7 +2741,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_41_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/nvidia_nim/nvidia_nim_nvclip/">
+<a class="md-nav__link" href="../nvidia_nim/nvidia_nim_nvclip/">
 <span class="md-ellipsis">
     
   
@@ -2794,7 +2794,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_42_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/nvidia_video_codec/nvc_encode_decode/">
+<a class="md-nav__link" href="../nvidia_video_codec/nvc_encode_decode/">
 <span class="md-ellipsis">
     
   
@@ -2821,7 +2821,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_42_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/nvidia_video_codec/nvc_endoscopy_tool_tracking/">
+<a class="md-nav__link" href="../nvidia_video_codec/nvc_endoscopy_tool_tracking/">
 <span class="md-ellipsis">
     
   
@@ -2848,7 +2848,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_42_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/nvidia_video_codec/nvc_decode/">
+<a class="md-nav__link" href="../nvidia_video_codec/nvc_decode/">
 <span class="md-ellipsis">
     
   
@@ -2875,7 +2875,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_42_4" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/nvidia_video_codec/nvc_encode_writer/">
+<a class="md-nav__link" href="../nvidia_video_codec/nvc_encode_writer/">
 <span class="md-ellipsis">
     
   
@@ -2905,7 +2905,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_43" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/object_detection_torch/">
+<a class="md-nav__link" href="../object_detection_torch/">
 <span class="md-ellipsis">
     
   
@@ -2932,7 +2932,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_44" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/openigtlink_3dslicer/">
+<a class="md-nav__link" href="../openigtlink_3dslicer/">
 <span class="md-ellipsis">
     
   
@@ -2982,7 +2982,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_45_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/orsi/orsi_in_out_body/">
+<a class="md-nav__link" href="../orsi/orsi_in_out_body/">
 <span class="md-ellipsis">
     
   
@@ -3009,7 +3009,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_45_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/orsi/orsi_multi_ai_ar/">
+<a class="md-nav__link" href="../orsi/orsi_multi_ai_ar/">
 <span class="md-ellipsis">
     
   
@@ -3036,7 +3036,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_45_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/orsi/orsi_segmentation_ar/">
+<a class="md-nav__link" href="../orsi/orsi_segmentation_ar/">
 <span class="md-ellipsis">
     
   
@@ -3066,7 +3066,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_46" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/polyp_detection/">
+<a class="md-nav__link" href="../polyp_detection/">
 <span class="md-ellipsis">
     
   
@@ -3093,7 +3093,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_47" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/cunumeric_integration/">
+<a class="md-nav__link" href="../cunumeric_integration/">
 <span class="md-ellipsis">
     
   
@@ -3120,7 +3120,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_48" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/prohawk_video_replayer/">
+<a class="md-nav__link" href="../prohawk_video_replayer/">
 <span class="md-ellipsis">
     
   
@@ -3147,7 +3147,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_49" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/pva_video_filter/">
+<a class="md-nav__link" href="../pva_video_filter/">
 <span class="md-ellipsis">
     
   
@@ -3174,7 +3174,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_50" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/qt_video_replayer/">
+<a class="md-nav__link" href="../qt_video_replayer/">
 <span class="md-ellipsis">
     
   
@@ -3201,7 +3201,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_51" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/network_radar_pipeline/">
+<a class="md-nav__link" href="../network_radar_pipeline/">
 <span class="md-ellipsis">
     
   
@@ -3228,7 +3228,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_52" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/video_deidentification/">
+<a class="md-nav__link" href="../video_deidentification/">
 <span class="md-ellipsis">
     
   
@@ -3255,7 +3255,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_53" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/asr_to_llm/">
+<a class="md-nav__link" href="../asr_to_llm/">
 <span class="md-ellipsis">
     
   
@@ -3282,7 +3282,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_54" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/sam2/">
+<a class="md-nav__link" href="../sam2/">
 <span class="md-ellipsis">
     
   
@@ -3309,7 +3309,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_55" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/cvcuda_basic/">
+<a class="md-nav__link" href="../cvcuda_basic/">
 <span class="md-ellipsis">
     
   
@@ -3359,7 +3359,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_56_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/simple_radar_pipeline/cpp/">
+<a class="md-nav__link" href="../simple_radar_pipeline/cpp/">
 <span class="md-ellipsis">
     
   
@@ -3386,7 +3386,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_56_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/simple_radar_pipeline/python/">
+<a class="md-nav__link" href="../simple_radar_pipeline/python/">
 <span class="md-ellipsis">
     
   
@@ -3439,7 +3439,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_57_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/slang/slang_gamma_correction/">
+<a class="md-nav__link" href="../slang/slang_gamma_correction/">
 <span class="md-ellipsis">
     
   
@@ -3466,7 +3466,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_57_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/slang/slang_simple/">
+<a class="md-nav__link" href="../slang/slang_simple/">
 <span class="md-ellipsis">
     
   
@@ -3496,7 +3496,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_58" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/sdr_fm_demodulation/">
+<a class="md-nav__link" href="../sdr_fm_demodulation/">
 <span class="md-ellipsis">
     
   
@@ -3523,7 +3523,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_59" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/speech_to_text_llm/">
+<a class="md-nav__link" href="../speech_to_text_llm/">
 <span class="md-ellipsis">
     
   
@@ -3550,7 +3550,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_60" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/ssd_detection_endoscopy_tools/">
+<a class="md-nav__link" href="../ssd_detection_endoscopy_tools/">
 <span class="md-ellipsis">
     
   
@@ -3577,7 +3577,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_61" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/stereo_vision/">
+<a class="md-nav__link" href="../stereo_vision/">
 <span class="md-ellipsis">
     
   
@@ -3604,7 +3604,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_62" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/synthetic_aperture_radar/">
+<a class="md-nav__link" href="../synthetic_aperture_radar/">
 <span class="md-ellipsis">
     
   
@@ -3631,7 +3631,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_63" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/surgical_scene_recon/">
+<a class="md-nav__link" href="../surgical_scene_recon/">
 <span class="md-ellipsis">
     
   
@@ -3658,7 +3658,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_64" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/tao_peoplenet/">
+<a class="md-nav__link" href="../tao_peoplenet/">
 <span class="md-ellipsis">
     
   
@@ -3685,7 +3685,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_65" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/ultrasound_segmentation/">
+<a class="md-nav__link" href="../ultrasound_segmentation/">
 <span class="md-ellipsis">
     
   
@@ -3712,7 +3712,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_65_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/ultrasound_segmentation/cpp/">
+<a class="md-nav__link" href="../ultrasound_segmentation/cpp/">
 <span class="md-ellipsis">
     
   
@@ -3739,7 +3739,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_65_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/ultrasound_segmentation/python/">
+<a class="md-nav__link" href="../ultrasound_segmentation/python/">
 <span class="md-ellipsis">
     
   
@@ -3769,7 +3769,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_66" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/velodyne_lidar_app/">
+<a class="md-nav__link" href="../velodyne_lidar_app/">
 <span class="md-ellipsis">
     
   
@@ -3796,7 +3796,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_67" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/vila_live/">
+<a class="md-nav__link" href="../vila_live/">
 <span class="md-ellipsis">
     
   
@@ -3823,7 +3823,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_68" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/psd_pipeline/">
+<a class="md-nav__link" href="../psd_pipeline/">
 <span class="md-ellipsis">
     
   
@@ -3850,7 +3850,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_68_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/psd_pipeline/data_writer/">
+<a class="md-nav__link" href="../psd_pipeline/data_writer/">
 <span class="md-ellipsis">
     
   
@@ -3880,7 +3880,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_69" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/video_streaming/">
+<a class="md-nav__link" href="../video_streaming/">
 <span class="md-ellipsis">
     
   
@@ -3907,7 +3907,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_69_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/video_streaming/video_streaming_client/">
+<a class="md-nav__link" href="../video_streaming/video_streaming_client/">
 <span class="md-ellipsis">
     
   
@@ -3934,7 +3934,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_69_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/video_streaming/video_streaming_server/">
+<a class="md-nav__link" href="../video_streaming/video_streaming_server/">
 <span class="md-ellipsis">
     
   
@@ -3964,7 +3964,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_70" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/volume_rendering/">
+<a class="md-nav__link" href="../volume_rendering/">
 <span class="md-ellipsis">
     
   
@@ -3991,7 +3991,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_71" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/vpi_stereo/">
+<a class="md-nav__link" href="../vpi_stereo/">
 <span class="md-ellipsis">
     
   
@@ -4018,7 +4018,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_72" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/webrtc_holoviz_server/">
+<a class="md-nav__link" href="../webrtc_holoviz_server/">
 <span class="md-ellipsis">
     
   
@@ -4045,7 +4045,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_73" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/webrtc_video_client/">
+<a class="md-nav__link" href="../webrtc_video_client/">
 <span class="md-ellipsis">
     
   
@@ -4072,7 +4072,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_74" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/webrtc_video_server/">
+<a class="md-nav__link" href="../webrtc_video_server/">
 <span class="md-ellipsis">
     
   
@@ -4099,7 +4099,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_75" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/xr_gsplat/">
+<a class="md-nav__link" href="../xr_gsplat/">
 <span class="md-ellipsis">
     
   
@@ -4126,7 +4126,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_76" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/xr_holoviz/">
+<a class="md-nav__link" href="../xr_holoviz/">
 <span class="md-ellipsis">
     
   
@@ -4153,7 +4153,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_3_77" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../../applications/yolo_model_deployment/">
+<a class="md-nav__link" href="../yolo_model_deployment/">
 <span class="md-ellipsis">
     
   
@@ -6163,10 +6163,10 @@
 </ul>
 </nav>
 </li>
-<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../">
+<a class="md-nav__link" href="../../tutorials/">
 <span class="md-ellipsis">
     
   
@@ -6176,11 +6176,11 @@
     
   </span>
 </a>
-<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
 <span class="md-nav__icon md-icon"></span>
 </label>
 </div>
-<nav aria-expanded="true" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
 <label class="md-nav__title" for="__nav_5">
 <span class="md-nav__icon md-icon"></span>
             
@@ -6190,10 +6190,10 @@
 
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
-<li class="md-nav__item md-nav__item--active md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link md-nav__link--active" href="./">
+<a class="md-nav__link" href="../../tutorials/async_buffer_deadline_tutorial/">
 <span class="md-ellipsis">
     
   
@@ -6204,7 +6204,7 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="true" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_5_2">
 <span class="md-nav__icon md-icon"></span>
             
@@ -6220,7 +6220,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../gui_for_python_applications/">
+<a class="md-nav__link" href="../../tutorials/gui_for_python_applications/">
 <span class="md-ellipsis">
     
   
@@ -6247,7 +6247,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../integrate_external_libs_into_pipeline/">
+<a class="md-nav__link" href="../../tutorials/integrate_external_libs_into_pipeline/">
 <span class="md-ellipsis">
     
   
@@ -6274,7 +6274,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../creating-multi-node-applications/">
+<a class="md-nav__link" href="../../tutorials/creating-multi-node-applications/">
 <span class="md-ellipsis">
     
   
@@ -6301,7 +6301,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_6" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../cuda_mps/">
+<a class="md-nav__link" href="../../tutorials/cuda_mps/">
 <span class="md-ellipsis">
     
   
@@ -6351,7 +6351,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_7_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../debugging/holoscan_container_vscode/">
+<a class="md-nav__link" href="../../tutorials/debugging/holoscan_container_vscode/">
 <span class="md-ellipsis">
     
   
@@ -6378,7 +6378,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_7_2" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../debugging/cli_debugging/">
+<a class="md-nav__link" href="../../tutorials/debugging/cli_debugging/">
 <span class="md-ellipsis">
     
   
@@ -6408,7 +6408,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../local-llama/">
+<a class="md-nav__link" href="../../tutorials/local-llama/">
 <span class="md-ellipsis">
     
   
@@ -6435,7 +6435,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../high_performance_networking/">
+<a class="md-nav__link" href="../../tutorials/high_performance_networking/">
 <span class="md-ellipsis">
     
   
@@ -6460,7 +6460,7 @@
           </label>
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="../high_performance_networking/0.1/">
+<a class="md-nav__link" href="../../tutorials/high_performance_networking/0.1/">
 <span class="md-ellipsis">
     
   
@@ -6477,7 +6477,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../holoscan-playground-on-aws/">
+<a class="md-nav__link" href="../../tutorials/holoscan-playground-on-aws/">
 <span class="md-ellipsis">
     
   
@@ -6504,7 +6504,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../holoscan_response_time_analysis/">
+<a class="md-nav__link" href="../../tutorials/holoscan_response_time_analysis/">
 <span class="md-ellipsis">
     
   
@@ -6531,7 +6531,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_12" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../windows_vm/">
+<a class="md-nav__link" href="../../tutorials/windows_vm/">
 <span class="md-ellipsis">
     
   
@@ -6558,7 +6558,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_13" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../holoscan-bootcamp/">
+<a class="md-nav__link" href="../../tutorials/holoscan-bootcamp/">
 <span class="md-ellipsis">
     
   
@@ -6608,7 +6608,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_14_1" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../pretrained_foundational_models/self_supervised_training/">
+<a class="md-nav__link" href="../../tutorials/pretrained_foundational_models/self_supervised_training/">
 <span class="md-ellipsis">
     
   
@@ -6638,7 +6638,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../dicom_to_usd_with_monai_and_holoscan/">
+<a class="md-nav__link" href="../../tutorials/dicom_to_usd_with_monai_and_holoscan/">
 <span class="md-ellipsis">
     
   
@@ -6665,7 +6665,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../cloudxr_runtime_for_xr_applications/">
+<a class="md-nav__link" href="../../tutorials/cloudxr_runtime_for_xr_applications/">
 <span class="md-ellipsis">
     
   
@@ -6692,7 +6692,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_17" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../gpu_direct_storage_on_holoscan/">
+<a class="md-nav__link" href="../../tutorials/gpu_direct_storage_on_holoscan/">
 <span class="md-ellipsis">
     
   
@@ -6719,7 +6719,7 @@
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../holohub_operators_external_applications/">
+<a class="md-nav__link" href="../../tutorials/holohub_operators_external_applications/">
 <span class="md-ellipsis">
     
   
@@ -6953,30 +6953,65 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#application-configuration">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
       
-        Application Configuration
+        Overview
       
     </span>
 </a>
-<nav aria-label="Application Configuration" class="md-nav">
-<ul class="md-nav__list">
+</li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#experiment-run-instructions">
+<a class="md-nav__link" href="#background">
 <span class="md-ellipsis">
       
-        Experiment Run Instructions
+        Background
       
     </span>
 </a>
-<nav aria-label="Experiment Run Instructions" class="md-nav">
-<ul class="md-nav__list">
+</li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#experiment-scripts">
+<a class="md-nav__link" href="#requirements">
 <span class="md-ellipsis">
       
-        Experiment Scripts
+        Requirements
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-start">
+<span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+</a>
+<nav aria-label="Quick Start" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-download-required-data">
+<span class="md-ellipsis">
+      
+        1. Download Required Data
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#expected-data-folder-structure">
+<span class="md-ellipsis">
+      
+        Expected Data Folder Structure
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-run-the-application">
+<span class="md-ellipsis">
+      
+        2. Run the Application
       
     </span>
 </a>
@@ -6984,69 +7019,92 @@
 </ul>
 </nav>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipeline-overview">
+<span class="md-ellipsis">
+      
+        Pipeline Overview
+      
+    </span>
+</a>
+<nav aria-label="Pipeline Overview" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reconstruction-pipeline">
+<span class="md-ellipsis">
+      
+        Reconstruction Pipeline
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#visualization-pipeline">
+<span class="md-ellipsis">
+      
+        Visualization Pipeline
+      
+    </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#experimental-setup">
+<a class="md-nav__link" href="#volume-renderer-configuration">
 <span class="md-ellipsis">
       
-        Experimental Setup
+        Volume Renderer Configuration
       
     </span>
 </a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#results">
-<span class="md-ellipsis">
-      
-        Results
-      
-    </span>
-</a>
-<nav aria-label="Results" class="md-nav">
+<nav aria-label="Volume Renderer Configuration" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#tx1-message-latency-vs-tx2-period">
+<a class="md-nav__link" href="#key-configuration-parameters">
 <span class="md-ellipsis">
       
-        TX1 Message Latency vs. TX2 Period
+        Key Configuration Parameters
+      
+    </span>
+</a>
+<nav aria-label="Key Configuration Parameters" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-rendering-quality">
+<span class="md-ellipsis">
+      
+        1. Rendering Quality
       
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#in1-message-interval-vs-tx2-period">
+<a class="md-nav__link" href="#2-transfer-functions">
 <span class="md-ellipsis">
       
-        IN1 Message Interval vs. TX2 Period
+        2. Transfer Functions
       
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#tx2-message-latency-vs-tx1-period">
+<a class="md-nav__link" href="#3-blending">
 <span class="md-ellipsis">
       
-        TX2 Message Latency vs. TX1 Period
+        3. Blending
       
     </span>
 </a>
 </li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#in2-message-interval-vs-tx1-period">
-<span class="md-ellipsis">
-      
-        IN2 Message Interval vs. TX1 Period
-      
-    </span>
-</a>
+</ul>
+</nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#conclusion-and-guidance">
+<a class="md-nav__link" href="#visualization-strategy">
 <span class="md-ellipsis">
       
-        Conclusion and Guidance
+        Visualization Strategy
       
     </span>
 </a>
@@ -7072,14 +7130,14 @@
 <li class="md-path__item">
 <a class="md-path__link" href="../">
 <span class="md-ellipsis">
-    Tutorials
+    Applications
   </span>
 </a>
 </li>
 <li class="md-path__item">
 <a class="md-path__link" href="./">
 <span class="md-ellipsis">
-    A Study using Asynchronous Lock-free Buffer with SCHED_DEADLINE
+    Kernel Flow BCI Real-Time Reconstruction and Visualization
   </span>
 </a>
 </li>
@@ -7087,139 +7145,191 @@
 </nav>
 <article class="md-content__inner md-typeset">
 <nav class="md-tags">
-<a class="md-tag" href="../../tags/#tag:buffer">Buffer</a>
-<a class="md-tag" href="../../tags/#tag:latency">Latency</a>
-<a class="md-tag" href="../../tags/#tag:linux">Linux</a>
-<a class="md-tag" href="../../tags/#tag:optimization">Optimization</a>
-<a class="md-tag" href="../../tags/#tag:performance">Performance</a>
-<a class="md-tag" href="../../tags/#tag:real-time">Real-Time</a>
-<a class="md-tag" href="../../tags/#tag:sched_deadline">SCHED_DEADLINE</a>
+<a class="md-tag" href="../../tags/#tag:bci">BCI</a>
+<a class="md-tag" href="../../tags/#tag:hemodynamics">Hemodynamics</a>
+<a class="md-tag" href="../../tags/#tag:neuroscience">Neuroscience</a>
+<a class="md-tag" href="../../tags/#tag:optical-sensing">Optical Sensing</a>
+<a class="md-tag" href="../../tags/#tag:visualization">Visualization</a>
+<a class="md-tag" href="../../tags/#tag:volume-rendering">Volume Rendering</a>
 </nav>
-<h1 id="a-study-using-asynchronous-lock-free-buffer-with-sched_deadline"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/async_buffer_deadline_tutorial">A Study using Asynchronous Lock-free Buffer with SCHED_DEADLINE</a><a class="headerlink" href="#a-study-using-asynchronous-lock-free-buffer-with-sched_deadline" title="Permanent link">#</a></h1>
-<p><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"></path></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"></path></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"></path><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"></path></svg></span> <strong>Last modified:</strong> November 25, 2025<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"></path><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"></path></svg></span> <strong>Latest version:</strong> 1.0.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"></path><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.5.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"></path></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.5.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"></path></svg></span> <strong>Contribution metric:</strong> Level 3 - Developmental<br/><br/></p>
-<p>This tutorial demonstrates the impact of using an 
-<a href="https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1fragment.html#exhale-class-classholoscan-1-1fragment:~:text=Add%20a%20flow%20between%20two%20operators%20with%20a%20connector%20type.">asynchronous lock-free buffer</a> 
-with
-<code>SCHED_DEADLINE</code> scheduling policy in Linux on the message latency in a Holoscan
-SDK application and compares it with the default buffer.</p>
-<h2 id="application-configuration">Application Configuration<a class="headerlink" href="#application-configuration" title="Permanent link">#</a></h2>
-<p>The application source code is provided in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/async_buffer_deadline">application directory</a>.</p>
-<p>The application consists of two <code>PingTxOp</code> operators (<code>tx1</code> and <code>tx2</code>) and one <code>PingRxOp</code> operator (<code>rx</code>). Both <code>tx1</code> and <code>tx2</code> generate messages and send them to <code>rx</code>.</p>
-<pre class="mermaid"><code>graph TD;
-    tx1("tx1") --&gt;|out -&gt; in1| rx("rx");
-    tx2("tx2") --&gt;|out -&gt; in2| rx("rx");</code></pre>
-<ul>
-<li><strong><code>tx1</code></strong>: Sends messages after busy-waiting for 5ms. The busy-wait is
-  representative of reading sensor data and a brief processing time.</li>
-<li><strong><code>tx2</code></strong>: Sends messages after busy-waiting for 10ms. The busy-wait is
-  representative of reading sensor data and a brief processing time.</li>
-<li><strong><code>rx</code></strong>: Receives messages from both <code>tx1</code> and <code>tx2</code>, and calculates
-  message latency and inter-message interval period.
-  Then, it waits for a brief
-  1 ms which could be representative of acutating a signal after a brief
-  processing time.</li>
-</ul>
-<p>The connection between the operators is configured to use either a default
-buffer (<code>DoubleBuffer</code>) or an async lock-free buffer.</p>
-<h3 id="experiment-run-instructions">Experiment Run Instructions<a class="headerlink" href="#experiment-run-instructions" title="Permanent link">#</a></h3>
-<p>Application-specific run instructions are provided in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/async_buffer_deadline">application
-directory</a>.</p>
-<p>The following is an example application run instruction:</p>
-<div class="highlight"><pre><span></span><code>./holohub run async_buffer_deadline_tutorial --as-root --docker-opts='--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'
+<h1 id="kernel-flow-bci-real-time-reconstruction-and-visualization"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/bci_visualization">Kernel Flow BCI Real-Time Reconstruction and Visualization</a><a class="headerlink" href="#kernel-flow-bci-real-time-reconstruction-and-visualization" title="Permanent link">#</a></h1>
+<p><button class="run-locally-button" data-app-language="Python" data-app-name="Kernel Flow BCI Real-Time Reconstruction and Visualization" data-app-short-name="bci_visualization" data-component-type="application" data-modes="[]" data-needs-language-flag="false">
+    ▶ Run Locally
+</button>
+<span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"></path></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA), Kernel Team (Kernel), Mimi Liao (NVIDIA), Julien Dubois (Kernel), Victor Szczepanski (Kernel), Gabe Lerner (Kernel)<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"></path></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"></path><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"></path></svg></span> <strong>Language:</strong> Python<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"></path><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"></path></svg></span> <strong>Last modified:</strong> January 13, 2026<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"></path><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"></path></svg></span> <strong>Latest version:</strong> 1.0.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"></path><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.7.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"></path></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.7.0, 3.9.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"></path></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br/><br/></p>
+<p align="center">
+<img alt="Example output for BCI Visualization" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/bci_visualization/docs/brain_activity_example.gif?raw=true" width="400"/><br/>
+<em>Example 3D visualization</em>
+</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p>This Holohub application demonstrates how to perform real-time source reconstruction and visualization of streaming functional brain data from the Kernel Flow 2 system. The application was developed and tested on an NVIDIA Jetson Thor paired with a Kernel Flow 2 headset. To lower the barrier to entry, we also provide recorded datasets and a data replayer, enabling developers to build and experiment with visualization and classification pipelines within the Holoscan framework without requiring access to the hardware.</p>
+<p>This example processes streaming <a href="https://doi.org/10.1117/1.NPh.10.1.013504">moments from the distribution of time-of-flight histograms</a>. These moments can originate either from the <a href="https://docs.kernel.com/docs/kernel-sdk-install">Kernel Flow SDK</a> when connected to the Kernel hardware, or from the included <a href="https://github.com/fNIRS/snirf">shared near-infrared spectroscopy format (SNIRF)</a> replayer. The moments are then combined with the sensors' spatial geometry and an average anatomical head model to produce source-reconstructed outputs similar to what was <a href="https://direct.mit.edu/imag/article/doi/10.1162/imag_a_00475/127769/A-Compact-Time-Domain-Diffuse-Optical-Tomography">published in previous work</a>. </p>
+<p>To visualize the reconstructed 3D volumes, this application utilizes both the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/volume_renderer">VolumeRendererOp</a> operator and HolovizOp for real-time 3D rendering and interactive visualization.</p>
+<p>For optimal efficiency and smooth user experience, we employ an event-based scheduler that decouples the reconstruction and visualization pipelines. This allows each stage to run on separate threads, resulting in higher rendering quality and more responsive interaction.</p>
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">#</a></h2>
+<p>Kernel Flow is a multimodal non-invasive brain measurement system. It combines the relatively high resolution of time-domain functional near-infrared spectroscopy (TD-fNIRS) with the fast temporal resolution of electroencephalography (EEG)
+into a compact and scalable form factor that enables a new class of non-invasive Brain-Computer Interface (BCI) applications. </p>
+<p>The differentiating technology underlying the performance of the Kernel Flow system is the time-resolved detectors and high-speed laser drivers. Short (~100ps) pulses of near-infrared laser light (690nm &amp; 905nm) are emitted into the user's head with a repetition rate of 20 MHz. The photons in these laser pulses scatter through the scalp, skull, and cerebrospinal fluid before reaching the brain and then scattering back out. When the photons emerge from
+the scalp, we use single-photon sensitive detectors to timestamp exactly how much time the photon took to traverse through the head. The amount of time photons take to reach the detector is proportional to the path length traveled by the photon and the average depth it was able to reach. </p>
+<p>This simulation shows the relationship between photon scattering paths (black lines) and the measured time of flight (blue sections).  </p>
+<p align="center">
+<img alt="Monte Carlo simulation of photon scattering events." src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/bci_visualization/docs/photon_simulation.gif?raw=true" width="400"/><br/>
+<em>The relationship between photon path lengths and measured time</em>
+</p>
+<p>As you can see, later times correspond to photons that have travelled farther into the tissue. In a given second, we are timestamping over 10 billion individual photons, which generates an enormous amount of data. After compression, the data production rate of Kernel Flow is ~1GB/min.</p>
+<p>As the photons scatter through the tissue, many of the photons are absorbed by cells and molecules in the tissue. In particular, the wavelengths we use are particularly sensitive to hemoglobin and its two states: oxyhemoglobin and deoxyhemoglobin, which allow us to follow the locations in the brain that are demanding and consuming oxygen and is an indirect measure of neuronal activity. These same biophysical principles are behind the pulse oximeters that are found in smart watches and finger-clip sensors! For more detailed information about the biophysics, <a href="https://www.mdpi.com/2076-3417/9/8/1612">see this review article</a>.</p>
+<p>With the Kernel Flow headset we have combined 120 laser sources and 240 of our custom sensors to collect over 3000 measurement paths that criss-cross the head with a frame rate of 4.75Hz. When visualized, these paths resemble this:</p>
+<p align="center">
+<img alt="Flow's 3000+ channels" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/bci_visualization/docs/flow_channel_map.png?raw=true" width="400"/><br/>
+<em>The 3000+ measurements that are made with a Kernel Flow</em>
+</p>
+<p>We call each of these measurement paths a "channel" and the measurement is made in "sensor space" (i.e. from the perspective of the detector). In order to have a more anatomical representation of the data, it is common to transform the
+sensor-space data into source-space (i.e. where the changes in hemoglobin concentrations likely occurred in the brain, based on what was observed at the sensor) by solving an inverse problem, commonly called source reconstruction. This inverse problem requires complex modeling that is computationally expensive but highly parallelizable. </p>
+<p>In this Holohub application, we demonstrate a real-time source reconstruction pipeline that runs on a Jetson Thor at the native framerate of the Kernel Flow system (4.75 Hz) and visualizes the 3D data using volume rendering techniques.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
+<p>This application was developed to run on an NVIDIA Jetson Thor Developer kit. Any Holoscan SDK supported platform should work. </p>
+<p>To run the application you need a streaming Kernel Flow data source. This can be either:</p>
+<div class="highlight"><pre><span></span><code>* Kernel Flow hardware and SDK
+* Recorded `.snirf` files running with our data replayer.
 </code></pre></div>
-<p>We need to run the application with root privileges and other flags as
-<code>SCHED_DEADLINE</code> Linux scheduling policy requires those flags.</p>
-<h4 id="experiment-scripts">Experiment Scripts<a class="headerlink" href="#experiment-scripts" title="Permanent link">#</a></h4>
-<p>To run all the experiments in this tutorial:</p>
-<div class="highlight"><pre><span></span><code>./tutorials/async_buffer_deadline_tutorial/run_experiment.sh
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
+<h3 id="1-download-required-data">1. Download Required Data<a class="headerlink" href="#1-download-required-data" title="Permanent link">#</a></h3>
+<p>The required data can be found on <a href="https://huggingface.co/datasets/KernelCo/holohub_bci_visualization/tree/main">Hugging Face</a>. The dataset includes:
+- <strong>SNIRF data file</strong> (<code>data.snirf</code>): Recorded brain activity measurements. More recorded snirf file can be found on <a href="https://openneuro.org/datasets/ds006545">OpenNeuro</a>.
+- <strong>Anatomy masks</strong> (<code>anatomy_labels_high_res.nii.gz</code>): Brain tissue segmentation (skin, skull, CSF, gray matter, white matter)
+- <strong>Reconstruction matrices</strong>: Pre-computed Jacobian and voxel information</p>
+<p>To prepare the required data for this application, download the dataset into <code>holohub/data/bci_visualization</code> as described in the <a href="#expected-data-folder-structure">expected data folder structure</a>.</p>
+<p>From the <code>holohub</code> directory, use the following command:
+<div class="highlight"><pre><span></span><code>hf download KernelCo/holohub_bci_visualization --repo-type dataset --local-dir data/bci_visualization
+</code></pre></div></p>
+<h3 id="expected-data-folder-structure">Expected Data Folder Structure<a class="headerlink" href="#expected-data-folder-structure" title="Permanent link">#</a></h3>
+<p>Download the correct folder matching your device type along with the other files into <code>data/bci_visualization</code>. Your <code>data/bci_visualization</code> folder should have the following structure:</p>
+<div class="highlight"><pre><span></span><code>holohub/data/bci_visualization/
+├── anatomy_labels_high_res.nii.gz      # Brain segmentation
+├── data.snirf                          # SNIRF format brain activity data
+├── extinction_coefficients_mua.csv     # Absorption coefficients for HbO/HbR
+├── flow_channel_map.json               # Sensor-source channel mapping
+├── flow_mega_jacobian.npy              # Pre-computed sensitivity matrix (channels → voxels)
+└── voxel_info/                         # Voxel geometry and optical properties
+    ├── affine.npy                      # 4x4 affine transformation matrix
+    ├── idxs_significant_voxels.npy     # Indices of voxels with sufficient sensitivity
+    ├── ijk.npy                         # Voxel coordinates in volume space
+    ├── mua.npy                         # Absorption coefficient per voxel
+    ├── musp.npy                        # Reduced scattering coefficient per voxel
+    ├── resolution.npy                  # Voxel resolution (mm)
+    ├── wavelengths.npy                 # Measurement wavelengths (690nm, 905nm)
+    └── xyz.npy                         # Voxel coordinates in anatomical space (mm)
 </code></pre></div>
-<p>The above script will run the experiment and generate the plots in
-<code>period_variation</code> under this directory.</p>
-<h2 id="experimental-setup">Experimental Setup<a class="headerlink" href="#experimental-setup" title="Permanent link">#</a></h2>
-<p>The experiment demonstrates how an async lock-free buffer can allow Holoscan SDK
-operators to be run with different <code>SCHED_DEADLINE</code> periods independently
-without being affected by each other's periods or runtimes.</p>
-<p>We measure two key metrics:
-- <strong>Max Message Latency</strong>: The highest latency observed for messages being
-  generated at <code>tx1</code> (or at <code>tx2</code>) and then received at <code>rx</code>.
-- <strong>Max Message Interval</strong>: The longest time interval between two consecutive
-  messages from <code>tx1</code> (or from <code>tx2</code>) and then received at <code>rx</code>.</p>
-<p>We run two main scenarios with fixed <code>rx</code> period of 10ms:</p>
+<h3 id="2-run-the-application">2. Run the Application<a class="headerlink" href="#2-run-the-application" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>bci_visualization
+</code></pre></div>
+<h2 id="pipeline-overview">Pipeline Overview<a class="headerlink" href="#pipeline-overview" title="Permanent link">#</a></h2>
+<p>The application consists of two main pipelines running on separate threads:</p>
+<h3 id="reconstruction-pipeline">Reconstruction Pipeline<a class="headerlink" href="#reconstruction-pipeline" title="Permanent link">#</a></h3>
+<p>Transforms sensor-space measurements into 3D brain activity maps:</p>
+<pre class="mermaid"><code>graph LR
+    A[SNIRF Stream] --&gt; B[Stream Operator]
+    B --&gt; C[Build RHS]
+    C --&gt; D[Normalize]
+    D --&gt; E[Regularized Solver]
+    E --&gt; F[Convert to Voxels]
+    F --&gt; G[Voxel to Volume]
+
+    style A fill:#e1f5ff
+    style G fill:#ffe1f5</code></pre>
+<p><strong>Key Steps:</strong>
+1. <strong>Stream Operator</strong>: Reads SNIRF data and emits time-of-flight moments
+2. <strong>Build RHS</strong>: Constructs the right-hand side of the inverse problem from the streaming moments taking into account the channel mapping
+3. <strong>Normalize</strong>: Normalizes the moments to hard-coded upper bounds
+4. <strong>Regularized Solver</strong>: Solves the inverse problem
+5. <strong>Convert to Voxels</strong>: Maps solution to 3D voxel coordinates with HbO/HbR conversion
+6. <strong>Voxel to Volume</strong>: Resamples to match anatomy mask, applies adaptive normalization</p>
+<h3 id="visualization-pipeline">Visualization Pipeline<a class="headerlink" href="#visualization-pipeline" title="Permanent link">#</a></h3>
+<p>Renders 3D brain volumes with real-time interaction:</p>
+<pre class="mermaid"><code>graph LR
+    G[Voxel to Volume] --&gt; H[Volume Renderer]
+    H --&gt; I[Color Buffer Passthrough]
+    I --&gt; J[HolovizOp]
+    J --&gt; H
+
+    style G fill:#ffe1f5
+    style J fill:#e1ffe1</code></pre>
+<p><strong>Key Steps:</strong>
+1. <strong>Volume Renderer</strong>: GPU-accelerated ray-casting with ClaraViz (tissue segmentation + activation overlay)
+2. <strong>Color Buffer Passthrough</strong>: Queue management with POP policy to prevent frame stacking
+3. <strong>HolovizOp</strong>: Interactive 3D display with camera controls (bidirectional camera pose feedback)</p>
+<h2 id="volume-renderer-configuration">Volume Renderer Configuration<a class="headerlink" href="#volume-renderer-configuration" title="Permanent link">#</a></h2>
+<p>The <code>config.json</code> file in the data folder configures the ClaraViz volume renderer. For detailed documentation, see the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/volume_renderer">VolumeRenderer operator documentation</a> and <a href="https://github.com/NVIDIA/clara-viz/blob/main/src/protos/nvidia/claraviz/cinematic/v1/render_server.proto">ClaraViz proto definitions</a>.</p>
+<h3 id="key-configuration-parameters">Key Configuration Parameters<a class="headerlink" href="#key-configuration-parameters" title="Permanent link">#</a></h3>
+<h4 id="1-rendering-quality">1. Rendering Quality<a class="headerlink" href="#1-rendering-quality" title="Permanent link">#</a></h4>
+<p><div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"timeSlot"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span>
+<span class="p">}</span>
+</code></pre></div>
+- <strong><code>timeSlot</code></strong> (milliseconds): Rendering time budget per frame
+  - Higher values = better quality
+  - Lower values = faster rendering</p>
+<h4 id="2-transfer-functions">2. Transfer Functions<a class="headerlink" href="#2-transfer-functions" title="Permanent link">#</a></h4>
+<p>The transfer function maps voxel values to colors and opacity. This application uses <strong>three components</strong>.</p>
+<h5 id="component-1-brain-tissue-base-graywhite-matter">Component 1: Brain Tissue Base (Gray/White Matter)<a class="headerlink" href="#component-1-brain-tissue-base-graywhite-matter" title="Permanent link">#</a></h5>
+<p><div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"activeRegions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"range"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"min"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"max"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"opacity"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"opacityProfile"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SQUARE"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"diffuseStart"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"x"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"y"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"z"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"diffuseEnd"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"x"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"y"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"z"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+- <strong><code>activeRegions</code></strong>: Tissue types to render
+  - <code>0</code>: Skin, <code>1</code>: Skull, <code>2</code>: CSF, <code>3</code>: Gray matter, <code>4</code>: White matter, <code>5</code>: Air
+  - Here: <code>[3, 4]</code> = gray and white matter only
+- <strong><code>range</code></strong>: <code>[0, 1]</code> = full normalized value range
+- <strong><code>opacity</code></strong>: <code>0.5</code> = semi-transparent base layer
+- <strong><code>opacityProfile</code></strong>: <code>"SQUARE"</code> = constant opacity throughout range
+- <strong><code>diffuseStart/End</code></strong>: <code>[1, 1, 1]</code> = white base color</p>
+<h5 id="component-2-negative-activation-deactivation-blue">Component 2: Negative Activation / Deactivation (Blue)<a class="headerlink" href="#component-2-negative-activation-deactivation-blue" title="Permanent link">#</a></h5>
+<p><div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"activeRegions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"range"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"min"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"max"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.4</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"opacity"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"opacityProfile"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SQUARE"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"diffuseStart"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"x"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"y"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"z"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"diffuseEnd"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"x"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"y"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"z"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+- <strong><code>range</code></strong>: <code>[0, 0.4]</code> = lower 40% of normalized range (deactivation)
+- <strong><code>opacity</code></strong>: <code>1.0</code> = fully opaque
+- <strong><code>opacityProfile</code></strong>: <code>"SQUARE"</code> = constant opacity
+- <strong><code>diffuseStart/End</code></strong>: <code>[0, 0, 1]</code> → <code>[0, 0, 0.5]</code> = bright blue to dark blue gradient</p>
+<h5 id="component-3-positive-activation-red">Component 3: Positive Activation (Red)<a class="headerlink" href="#component-3-positive-activation-red" title="Permanent link">#</a></h5>
+<p><div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"activeRegions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"range"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"min"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.6</span><span class="p">,</span><span class="w"> </span><span class="nt">"max"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"opacity"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"opacityProfile"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SQUARE"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"diffuseStart"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"x"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="nt">"y"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"z"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"diffuseEnd"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"x"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"y"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"z"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+- <strong><code>range</code></strong>: <code>[0.6, 1]</code> = upper 40% of normalized range (activation)
+- <strong><code>opacity</code></strong>: <code>1.0</code> = fully opaque
+- <strong><code>opacityProfile</code></strong>: <code>"SQUARE"</code> = constant opacity
+- <strong><code>diffuseStart/End</code></strong>: <code>[0.5, 0, 0]</code> → <code>[1, 0, 0]</code> = dark red to bright red gradient</p>
+<h4 id="3-blending">3. Blending<a class="headerlink" href="#3-blending" title="Permanent link">#</a></h4>
+<p><div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"blendingProfile"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BLENDED_OPACITY"</span>
+<span class="p">}</span>
+</code></pre></div>
+- <strong><code>blendingProfile</code></strong>: How overlapping components combine</p>
+<h3 id="visualization-strategy">Visualization Strategy<a class="headerlink" href="#visualization-strategy" title="Permanent link">#</a></h3>
+<p>The three-component approach creates a layered visualization:</p>
 <ol>
-<li>
-<p><strong>Fixed <code>tx1</code> Period, Varying <code>tx2</code> Period</strong>:</p>
-<ul>
-<li><code>tx1</code> period is fixed at 20ms.</li>
-<li><code>tx2</code> period is varied from 20ms to 100ms.</li>
-<li>We measure the impact on <code>tx1</code>'s latency and message interval.</li>
-<li>Since the periods <code>tx1</code> and <code>rx</code> are fixed, the message timings of <code>tx1</code>
-  must ideally not be impacted with varying <code>tx2</code> periods.</li>
-</ul>
-</li>
-<li>
-<p><strong>Fixed <code>tx2</code> Period, Varying <code>tx1</code> Period</strong>:</p>
-<ul>
-<li><code>tx2</code> period is fixed at 20ms.</li>
-<li><code>tx1</code> period is varied from 20ms to 100ms.</li>
-<li>We measure the impact on <code>tx2</code>'s latency and message interval.</li>
-<li>Since the periods <code>tx2</code> and <code>rx</code> are fixed, the message timings of <code>tx2</code>
-  must ideally not be impacted with varying <code>tx1</code> periods.</li>
-</ul>
-</li>
+<li><strong>Base layer</strong> (white, 50% opacity): Shows overall brain structure (gray + white matter) throughout the full range [0, 1]</li>
+<li><strong>Blue overlay</strong> (100% opacity): Highlights low values [0, 0.4] representing decreased hemoglobin.</li>
+<li><strong>Red overlay</strong> (100% opacity): Highlights high values [0.6, 1] representing increased hemoglobin.</li>
+<li><strong>Neutral range</strong> [0.4, 0.6]: Only shows the white base layer (no significant change)</li>
 </ol>
-<h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">#</a></h2>
-<p>The results show that with the default buffer, the performance of one operator
-is heavily dependent on the other. However, with the async lock-free buffer,
-they are decoupled enabling true asynchronous execution of the operators.</p>
-<h3 id="tx1-message-latency-vs-tx2-period">TX1 Message Latency vs. TX2 Period<a class="headerlink" href="#tx1-message-latency-vs-tx2-period" title="Permanent link">#</a></h3>
-<p><img alt="TX1 Latency vs. TX2 Period" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/async_buffer_deadline_tutorial/tx1_latency_vs_tx2_period.png?raw=true"/></p>
-<p>With the default buffer, as <code>tx2</code>'s period increases, <code>tx1</code>'s maximum latency
-also increases linearly. Since <code>rx</code> cannot run before both the upstream
-operators (<code>tx1</code> and <code>tx2</code>) have written messages for it, the latency of <code>tx1</code>
-is affected by <code>tx2</code>. With the async lock-free buffer, <code>tx1</code>'s latency 
-remains consistent and low, regardless of <code>tx2</code>'s period. Therefore, async
-lock-free buffer unlocks independent connection between <code>tx1</code> and <code>rx</code>
-irrespective of the behavior of <code>tx2</code>.</p>
-<h3 id="in1-message-interval-vs-tx2-period">IN1 Message Interval vs. TX2 Period<a class="headerlink" href="#in1-message-interval-vs-tx2-period" title="Permanent link">#</a></h3>
-<p><img alt="IN1 Message Interval vs. TX2 Period" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/async_buffer_deadline_tutorial/in1_period_vs_tx2_period.png?raw=true"/></p>
-<p>Similarly, the maximum message interval for <code>tx1</code> (at the <code>in1</code> port of <code>rx</code>)
-increases with <code>tx2</code>'s period when using the default buffer.
-The async lock-free buffer keeps the interval stable.</p>
-<h3 id="tx2-message-latency-vs-tx1-period">TX2 Message Latency vs. TX1 Period<a class="headerlink" href="#tx2-message-latency-vs-tx1-period" title="Permanent link">#</a></h3>
-<p><img alt="TX2 Latency vs. TX1 Period" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/async_buffer_deadline_tutorial/tx2_latency_vs_tx1_period.png?raw=true"/></p>
-<p>The same trend is visible here. <code>tx2</code>'s message latency is affected by <code>tx1</code>'s period with the default buffer, but not with the async lock-free buffer.</p>
-<h3 id="in2-message-interval-vs-tx1-period">IN2 Message Interval vs. TX1 Period<a class="headerlink" href="#in2-message-interval-vs-tx1-period" title="Permanent link">#</a></h3>
-<p><img alt="IN2 Message Interval vs. TX1 Period" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/async_buffer_deadline_tutorial/in2_period_vs_tx1_period.png?raw=true"/></p>
-<p>The message interval for <code>tx2</code> (at the <code>in2</code> port of <code>rx</code>) remains stable with the async lock-free buffer, independent of <code>tx1</code>'s period.</p>
-<h3 id="conclusion-and-guidance">Conclusion and Guidance<a class="headerlink" href="#conclusion-and-guidance" title="Permanent link">#</a></h3>
-<p>The asynchronous lock-free buffer connection between operators enables true
-independent execution when using <code>SCHED_DEADLINE</code> Linux scheduling policy. 
-This buffer type allows each operator to maintain its specified runtime and 
-period without interference from other operators in the pipeline.</p>
-<p><strong>Key Insights:</strong>
-- <strong>With async lock-free buffer</strong>: Operators run independently with their 
-  configured <code>SCHED_DEADLINE</code> runtime and periods, achieving predictable real-time performance
-- <strong>With default buffer (DoubleBuffer)</strong>: Operators become coupled, where one 
-  operator's performance can be impacted by another operator's 
-  behavior, even when <code>SCHED_DEADLINE</code> policy is applied</p>
-<p><strong>Developer Recommendations:</strong>
-1. <strong>Use async lock-free buffers</strong> when implementing soft real-time applications 
-   with <code>SCHED_DEADLINE</code> scheduling to ensure predictable operator performance
-2. <strong>Avoid default buffers</strong> in <code>SCHED_DEADLINE</code> scenarios where operator 
-   independence is critical for meeting real-time constraints
-3. <strong>Using default buffer with <code>SCHED_DEADLINE</code> policy</strong> means satisfying both
-   the constraints of the double buffer and periodic execution of
-   <code>SCHED_DEADLINE</code>. Depending on the application, this may not be desirable.
-4. <strong>Using <code>SCHED_DEADLINE</code> for a chosen few operators</strong> (for example, source
-   operators in a DAG) along with default
-   buffer may provide a good balance because this provides predictable execution
-   for chosen few <code>SCHED_DEADLINE</code> operators while allowing applications to run
-   normally otherwise.
-3. <strong>Test both buffer types</strong> during development to understand the performance 
-   implications in your specific use case, especially when using <code>SCHED_DEADLINE</code>
-   policy
-4. <strong>Monitor message latency and intervals</strong> to verify that operators maintain 
-   their intended timing characteristics</p>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
@@ -7231,7 +7341,7 @@ period without interference from other operators in the pipeline.</p>
 </main>
 <footer class="md-footer">
 <nav aria-label="Footer" class="md-footer__inner md-grid">
-<a aria-label="Previous: Tutorials" class="md-footer__link md-footer__link--prev" href="../">
+<a aria-label="Previous: Isaac Sim Holoscan Bridge (latest)" class="md-footer__link md-footer__link--prev" href="../isaac_sim_holoscan_bridge/">
 <div class="md-footer__button md-icon">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
 </div>
@@ -7240,17 +7350,17 @@ period without interference from other operators in the pipeline.</p>
                 Previous
               </span>
 <div class="md-ellipsis">
-                Tutorials
+                Isaac Sim Holoscan Bridge (latest)
               </div>
 </div>
 </a>
-<a aria-label="Next: Adding a GUI to Holoscan Python Applications (latest)" class="md-footer__link md-footer__link--next" href="../gui_for_python_applications/">
+<a aria-label="Next: EVT Camera Calibration (latest)" class="md-footer__link md-footer__link--next" href="../laser_detection_latency/evt_cam_calibration/">
 <div class="md-footer__title">
 <span class="md-footer__direction">
                 Next
               </span>
 <div class="md-ellipsis">
-                Adding a GUI to Holoscan Python Applications (latest)
+                EVT Camera Calibration (latest)
               </div>
 </div>
 <div class="md-footer__button md-icon">
