@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 DELTACAST.TV. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, DELTACAST.TV. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-extensions:
- - lib/gxf_extensions/libgxf_videomaster.so
 
 replayer:
   basename: "surgical_video"
@@ -36,7 +34,7 @@ deltacast:
   width: 1920
   height: 1080
   progressive: true
-  framerate: 25
+  framerate: 30
   board: 0
   output: 0
   rdma: false
