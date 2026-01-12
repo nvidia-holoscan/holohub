@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 DELTACAST.TV. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,37 +22,47 @@
 #include <utility>
 #include <vector>
 
-#include "holoscan/core/gxf/gxf_operator.hpp"
+#include "holoscan/holoscan.hpp"
+
+#include "videomaster_base.hpp"
 
 namespace holoscan::ops {
 
 /**
  * @brief Operator class to get the video stream from Deltacast capture card.
  *
- * This wraps a GXF Codelet(`nvidia::holoscan::videomaster::VideoMasterSource`).
  */
-class VideoMasterSourceOp : public holoscan::ops::GXFOperator {
+class VideoMasterSourceOp : public holoscan::Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoMasterSourceOp, holoscan::ops::GXFOperator)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(VideoMasterSourceOp)
 
   VideoMasterSourceOp() = default;
 
-  const char* gxf_typename() const override {
-    return "nvidia::holoscan::videomaster::VideoMasterSource";
-  }
-
   void setup(OperatorSpec& spec) override;
 
+  void initialize() override;
+  void start() override;
+  void compute(InputContext& op_input, OutputContext& op_output,
+               ExecutionContext& context) override;
+  void stop() override;
+
  private:
+  void transmit_buffer_data(void* buffer, uint32_t buffer_size,
+                            OutputContext& op_output, ExecutionContext& context);
+
   Parameter<holoscan::IOSpec*> _signal;
   Parameter<bool> _use_rdma;
   Parameter<uint32_t> _board_index;
   Parameter<uint32_t> _channel_index;
-  Parameter<std::shared_ptr<Allocator>> _pool;
   Parameter<uint32_t> _width;
   Parameter<uint32_t> _height;
   Parameter<bool> _progressive;
   Parameter<uint32_t> _framerate;
+
+  bool _has_lost_signal = false;
+  uint64_t _slot_count = 0;
+
+  std::unique_ptr<VideoMasterBase> _video_master_base;
 };
 
 }  // namespace holoscan::ops

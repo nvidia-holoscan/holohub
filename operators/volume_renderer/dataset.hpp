@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+/* SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,11 +56,12 @@ class Dataset {
    * then the range is calculated form the data. For example a full range of a uint8 data type is
    * defined by {0.f, 255.f}.
    * @param tensor volume data
+   * @param cuda_stream CUDA stream
    */
   void SetVolume(Types type, const std::array<float, 3>& spacing,
                  const std::array<uint32_t, 3>& permute_axis, const std::array<bool, 3>& flip_axes,
                  const std::vector<clara::viz::Vector2f>& element_range,
-                 const nvidia::gxf::Handle<nvidia::gxf::Tensor>& tensor);
+                 const nvidia::gxf::Handle<nvidia::gxf::Tensor>& tensor, cudaStream_t cuda_stream);
 
   /**
    * Reset a volume of the dataset.
