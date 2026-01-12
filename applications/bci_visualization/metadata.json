@@ -44,7 +44,7 @@
 			"aarch64"
 		],
 		"tags": ["Visualization", "BCI", "Hemodynamic", "Volume Rendering", "Neuroscience"],
-		"ranking": 1,
+		"ranking": 2,
 		"requirements": {
 			"python": ["numpy", "cupy"]
 		},
