@@ -55,7 +55,7 @@ def run_pipeline(
             continue
         filter_name = node.get("op")
         if not isinstance(filter_name, str):
-            raise ValueError("Pipeline node missing 'filter_name' string.")
+            raise ValueError("Pipeline node missing 'op' string.")
         func = registry.get(filter_name)
         if func is None:
             raise KeyError(f"Filter '{filter_name}' not found.")

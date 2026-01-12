@@ -22,7 +22,7 @@ The included Holoscan Runner tool enables you to run those configurations in rea
 - Streamlit
 - CUDA Driver R580 or later
 
-![docs/assets/designer.png]
+![Designer UI](docs/assets/designer.png)
 
 ### Holoscan Runner Application
 
@@ -51,7 +51,7 @@ As an alternative to HoloHub CLI, you can instead design and run filters with pr
 
 Install this project with your Python package manager:
 ```bash
-uv -m pip install git+ssh://git@gitlab-master.nvidia.com:12051/holoscan/holohub-internal.git@tbirdsong/us-postprocessing#subdirectory=applications/ultrasound_postprocessing
+uv -m pip install git+ssh://github.com/nvidia-holoscan/holohub.git@main#subdirectory=applications/ultrasound_postprocessing
 ```
 
 Then run your application of choice:
