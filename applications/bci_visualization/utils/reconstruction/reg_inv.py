@@ -131,4 +131,3 @@ def _solve_square_system(
             "Check regularization parameter or input data quality."
         )
     return result
-    return result
