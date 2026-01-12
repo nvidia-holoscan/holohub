@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/applications/vpi_stereo/">
+        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/applications/deltacast_receiver/">
       
       
-        <link rel="prev" href="../volume_rendering/">
+        <link rel="prev" href="../dds/dds_video/">
       
       
-        <link rel="next" href="../webrtc_holoviz_server/">
+        <link rel="next" href="../deltacast_transmitter/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>VPI Stereo Vision (latest) - NVIDIA Holoscan Reference Applications</title>
+        <title>Deltacast Videomaster Receiver (latest) - NVIDIA Holoscan Reference Applications</title>
       
     
     
@@ -96,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#vpi-stereo-vision" class="md-skip">
+        <a href="#deltacast-videomaster-receiver" class="md-skip">
           Skip to content
         </a>
       
@@ -142,7 +142,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              VPI Stereo Vision (latest)
+              Deltacast Videomaster Receiver (latest)
             
           </span>
         </div>
@@ -1500,6 +1500,8 @@
                 
   
   
+    
+  
   
   
     
@@ -1516,15 +1518,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_11" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_11" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../deltacast_receiver/" class="md-nav__link ">
+            <a href="./" class="md-nav__link md-nav__link--active">
               
   
   
@@ -1543,7 +1545,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_11_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_11_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_11">
             <span class="md-nav__icon md-icon"></span>
             
@@ -9978,8 +9980,6 @@
                 
   
   
-    
-  
   
   
     
@@ -9996,15 +9996,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_70" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_70" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
+            <a href="../vpi_stereo/" class="md-nav__link ">
               
   
   
@@ -10023,7 +10023,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_70_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_70_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_70">
             <span class="md-nav__icon md-icon"></span>
             
@@ -17579,39 +17579,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#description" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Description
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#input-video" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Input Video
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#requirements" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -17623,13 +17590,52 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#build-and-run-instructions" class="md-nav__link">
+  <a href="#build-instructions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Build and Run Instructions
+        Build Instructions
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Instructions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++ Application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Application
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -17697,7 +17703,7 @@
         <a href="./" class="md-path__link">
           
   <span class="md-ellipsis">
-    VPI Stereo Vision
+    Deltacast Videomaster Receiver
   </span>
 
         </a>
@@ -17720,28 +17726,42 @@
       
       
       
-        <a href="../../tags/#tag:camera" class="md-tag">Camera</a>
+        <a href="../../tags/#tag:deltacast" class="md-tag">Deltacast</a>
       
     
       
       
       
       
-        <a href="../../tags/#tag:computer-vision-and-perception" class="md-tag">Computer Vision and Perception</a>
+        <a href="../../tags/#tag:display" class="md-tag">Display</a>
       
     
       
       
       
       
-        <a href="../../tags/#tag:depth" class="md-tag">Depth</a>
+        <a href="../../tags/#tag:gpudirect" class="md-tag">GPUDirect</a>
       
     
       
       
       
       
-        <a href="../../tags/#tag:stereo-vision" class="md-tag">Stereo Vision</a>
+        <a href="../../tags/#tag:holoviz" class="md-tag">Holoviz</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:rdma" class="md-tag">RDMA</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:receiver" class="md-tag">Receiver</a>
       
     
       
@@ -17751,56 +17771,39 @@
         <a href="../../tags/#tag:video" class="md-tag">Video</a>
       
     
-      
-      
-      
-      
-        <a href="../../tags/#tag:visualization" class="md-tag">Visualization</a>
-      
-    
   </nav>
 
 
 
-<h1 id="vpi-stereo-vision"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/vpi_stereo">VPI Stereo Vision</a><a class="headerlink" href="#vpi-stereo-vision" title="Permanent link">#</a></h1>
+<h1 id="deltacast-videomaster-receiver"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/deltacast_receiver">Deltacast Videomaster Receiver</a><a class="headerlink" href="#deltacast-videomaster-receiver" title="Permanent link">#</a></h1>
 <p><button class="run-locally-button"
-    data-app-name="VPI Stereo Vision"
-    data-app-short-name="vpi_stereo"
-    data-app-language="C++"
+    data-app-name="Deltacast Videomaster Receiver"
+    data-app-short-name="deltacast_receiver"
+    data-app-language="Python"
     data-component-type="application"
     data-needs-language-flag="false"
     data-modes="[]">
     ▶ Run Locally
 </button>
-<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> October 29, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 2.4.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 2.4.0, 2.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
-<p align="center">
-  <img src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/vpi_stereo/images/vpi_stereo.gif?raw=true" alt="Stereo vision using VPI">
-</p>
-
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
-<p>Demo pipeline showing stereo disparity estimation using the
-Vision Programming Interface <a href="https://developer.nvidia.com/embedded/vpi">VPI</a>.</p>
-<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">#</a></h2>
-<p>This pipeline takes video from a stereo camera and uses VPI's
-<a href="https://docs.nvidia.com/vpi/algo_stereo_disparity.html">stereo disparity estimation algorithm</a>.
-The input video and estimate disparity map are displayed using Holoviz.</p>
-<p>The application will select accelerator backends if available (OFA, PVA and VIC). This demonstrates
-how VPI can be used to offload stereo disparity processing from the GPU on supported devices such as
-NVIDIA IGX, AGX, or NX platforms.</p>
-<h2 id="input-video">Input Video<a class="headerlink" href="#input-video" title="Permanent link">#</a></h2>
-<p>Requires a V4L2 stereo camera, or recorded stereo video, and matching calibration data. By default,
-the application will share the same source data as <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/stereo_vision">stereo_vision</a>.</p>
+<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Laurent Radoux (DELTACAST), Pierre PERICK (DELTACAST)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python, C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> January 12, 2026<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br><br></p>
+<p>This application demonstrates the use of videomaster_source to receive and display video streams from a Deltacast capture card using Holoviz for visualization.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
-<p>This demo requires VPI version 3.2 or greater. The included Dockerfile will install VPI and its
-dependencies for either an amd64 target (with discrete NVIDIA GPU), or arm64 target (NVIDIA IGX,
-AGX, or NX).</p>
-<h2 id="build-and-run-instructions">Build and Run Instructions<a class="headerlink" href="#build-and-run-instructions" title="Permanent link">#</a></h2>
-<p>Using default video source (same as stereo_vision application):
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>vpi_stereo
+<p>This application uses the DELTACAST.TV capture card for input stream. Contact <a href="https://www.deltacast.tv/">DELTACAST.TV</a> for more details on how to access the SDK and setup your environment.</p>
+<h2 id="build-instructions">Build Instructions<a class="headerlink" href="#build-instructions" title="Permanent link">#</a></h2>
+<p>See instructions from the top level README on how to build this application.
+Note that this application requires to provide the VideoMaster_SDK_DIR if it is not located in a default location on the system.
+This can be done with the following command, from the top level Holohub source directory:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>--local<span class="w"> </span>deltacast_receiver<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DVideoMaster_SDK_DIR=&lt;Path to VideoMasterSDK&gt;&quot;</span>
 </code></pre></div>
-Using a v4l2 video source (live camera or loopback device):
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>vpi_stereo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2&quot;</span>
-</code></pre></div></p>
+<h2 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h2>
+<h3 id="c-application">C++ Application<a class="headerlink" href="#c-application" title="Permanent link">#</a></h3>
+<p>From the build directory, run the command:</p>
+<div class="highlight"><pre><span></span><code>./applications/deltacast_receiver/cpp/deltacast_receiver
+</code></pre></div>
+<h3 id="python-application">Python Application<a class="headerlink" href="#python-application" title="Permanent link">#</a></h3>
+<p>From the build directory, run the command:</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>applications/deltacast_receiver/python/deltacast_receiver.py
+</code></pre></div>
 
 
 
@@ -17841,7 +17844,7 @@ Using a v4l2 video source (live camera or loopback device):
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../volume_rendering/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Volume rendering using ClaraViz (latest)">
+          <a href="../dds/dds_video/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Real-time Video Streaming with DDS (latest)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -17851,20 +17854,20 @@ Using a v4l2 video source (live camera or loopback device):
                 Previous
               </span>
               <div class="md-ellipsis">
-                Volume rendering using ClaraViz (latest)
+                Real-time Video Streaming with DDS (latest)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../webrtc_holoviz_server/" class="md-footer__link md-footer__link--next" aria-label="Next: WebRTC Holoviz Server (latest)">
+          <a href="../deltacast_transmitter/" class="md-footer__link md-footer__link--next" aria-label="Next: Deltacast Videomaster Transmitter (latest)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                WebRTC Holoviz Server (latest)
+                Deltacast Videomaster Transmitter (latest)
               </div>
             </div>
             <div class="md-footer__button md-icon">
