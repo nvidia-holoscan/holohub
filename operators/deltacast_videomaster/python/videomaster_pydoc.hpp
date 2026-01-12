@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025 DELTACAST.TV. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, DELTACAST.TV. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ PYDOC(VideoMasterSourceOp_python, R"doc(
     board : int, optional
         The board to target (e.g., "0" for board 0). Default value is ``0``.
     input : int, optional
-        The RX channel of the baords (e.g., "1" for input 1). Default value is ``0``.
+        The RX channel of the boards (e.g., "1" for input 1). Default value is ``0``.
     width : int, optional
         Width of the video stream. Default value is ``1920``.
     height : int, optional
@@ -51,20 +51,9 @@ PYDOC(VideoMasterSourceOp_python, R"doc(
         Whether or not the video is an interlaced format. Default value is ``True``.
     framerate : int, optional
         Frame rate of the video stream. Default value is ``60``.
-    pool : Allocator of type UnboundedAllocator
-        The pool to use for memory allocation.
     name : str, optional
         The name of the operator.
     )doc")
-
-PYDOC(gxf_typename, R"doc(
-The GXF type name of the resource.
-
-Returns
--------
-str
-    The GXF type name of the resource
-)doc")
 
 PYDOC(setup, R"doc(
 Define the operator specification.
@@ -102,7 +91,7 @@ PYDOC(VideoMasterTransmitterOp_python, R"doc(
     board : int, optional
         The board to target (e.g., "0" for board 0). Default value is ``0``.
     output : int, optional
-        The TX channel of the baords (e.g., "1" for input 1). Default value is ``0``.
+        The TX channel of the boards (e.g., "1" for input 1). Default value is ``0``.
     width : int, optional
         Width of the video stream. Default value is ``1920``.
     height : int, optional
@@ -111,22 +100,11 @@ PYDOC(VideoMasterTransmitterOp_python, R"doc(
         Whether or not the video is an interlaced format. Default value is ``True``.
     framerate : int, optional
         Frame rate of the video stream. Default value is ``60``.
-    pool : Allocator of type UnboundedAllocator
-        The pool to use for memory allocation.
     enable_overlay : bool, optional
-        Boolean indicating whether a overlay processing is done by the board or not. Default value is ``False``.
+        Boolean indicating whether an overlay processing is done by the board or not. Default value is ``False``.
     name : str, optional
         The name of the operator.
  )doc")
-
-PYDOC(gxf_typename, R"doc(
-The GXF type name of the resource.
-
-Returns
--------
-str
-    The GXF type name of the resource
-)doc")
 
 PYDOC(setup, R"doc(
 Define the operator specification.
@@ -148,4 +126,4 @@ and uses a light-weight initialization.
 
 }  // namespace holoscan::doc
 
-#endif /* PYHOLOSCAN_OPERATORS_AJA_SOURCE_PYDOC_HPP */
+#endif /* PYHOLOSCAN_OPERATORS_VIDEOMASTER_SOURCE_PYDOC_HPP */
