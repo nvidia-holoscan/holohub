@@ -20,7 +20,7 @@
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],
-		"tags": ["Ultrasound", "Filter", "Designer", "Operator", "Real-Time", "Academia", "Industry", "UFF", "Beamform", "Dynamic", "Tools"],
+		"tags": ["Medical Imaging", "Ultrasound", "Filter", "Designer", "Operator", "Real-Time", "Academia", "Industry", "UFF", "Beamform", "Dynamic", "Tools"],
 		"ranking": 1,
 		"requirements": {
 			"demo_data": {
