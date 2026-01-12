@@ -59,9 +59,7 @@ class ExtinctionCoefficient(NamedTuple):
 
 
 class HbO:
-    def __init__(
-        self, coefficients: Dict[int, ExtinctionCoefficient]
-    ) -> None:
+    def __init__(self, coefficients: Dict[int, ExtinctionCoefficient]) -> None:
         self._coefficients = coefficients
         self._cached_coefficients: cp.ndarray | None = None
 

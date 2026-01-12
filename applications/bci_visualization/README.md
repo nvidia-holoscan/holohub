@@ -51,28 +51,33 @@ In this Holohub application, we demonstrate a real-time source reconstruction pi
 This application was developed to run on an NVIDIA Jetson Thor Developer kit. Any Holoscan SDK supported platform should work. 
 
 To run the application you need a streaming Kernel Flow data source. This can be either:
-    - Kernel Flow hardware and SDK
-    - Downloaded `.snirf` files for use with the included data replayer. Example data can be found on [OpenNeuro](https://openneuro.org/datasets/ds006545) and copied locally to be run through the replayer. 
     
-   ```bash
-   wget -0 data/examples/data.snirf "https://s3.amazonaws.com/openneuro.org/ds006545/sub-bed8fefe/ses-1/nirs/sub-bed8fefe_ses-1_task-audio_nirs.snirf?versionId=sYFJNjlNNlf8xVOMsIde5hpWZE2clsiu"
-   ```
-
+    * Kernel Flow hardware and SDK
+    * Recorded `.snirf` files running with our data replayer.
+    
 ## Quick Start
 
 ### 1. Download Required Data
 
 The required data can be found on [Hugging Face](https://huggingface.co/datasets/KernelCo/holohub_bci_visualization/tree/main). The dataset includes:
-- **SNIRF data file** (`data.snirf`): Recorded brain activity measurements
+- **SNIRF data file** (`data.snirf`): Recorded brain activity measurements. More recorded snirf file can be found on [OpenNeuro](https://openneuro.org/datasets/ds006545).
 - **Anatomy masks** (`anatomy_labels_high_res.nii.gz`): Brain tissue segmentation (skin, skull, CSF, gray matter, white matter)
 - **Reconstruction matrices**: Pre-computed Jacobian and voxel information
+
+To prepare the required data for this application, download the dataset into `holohub/data/bci_visualization` as described in the [expected data folder structure](#expected-data-folder-structure).
+
+From the `holohub` directory, use the following command:
+```
+hf download KernelCo/holohub_bci_visualization --repo-type dataset --local-dir data/bci_visualization
+```
+
 
 ### Expected Data Folder Structure
 
 Download the correct folder matching your device type along with the other files into `data/bci_visualization`. Your `data/bci_visualization` folder should have the following structure:
 
 ```
-data/bci_visualization/
+holohub/data/bci_visualization/
 ├── anatomy_labels_high_res.nii.gz      # Brain segmentation
 ├── data.snirf                          # SNIRF format brain activity data
 ├── extinction_coefficients_mua.csv     # Absorption coefficients for HbO/HbR

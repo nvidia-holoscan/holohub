@@ -1,5 +1,5 @@
 """
-SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES.
+SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES.
 SPDX-License-Identifier: Apache-2.0
 
 VoxelStreamToVolume operator: converts streaming voxel data to dense 3D volume.
@@ -287,7 +287,7 @@ class VoxelStreamToVolumeOp(Operator):
         self.global_max = (1 - alpha) * self.global_max + alpha * current_max
 
         # Log statistics every 100 frames for debugging
-        if self.frame_count % 10 == 0:
+        if self.frame_count % 100 == 0:
             print(
                 f"VoxelStreamToVolume: Frame {self.frame_count} - "
                 f"Running stats: min={self.global_min:.6f}, max={self.global_max:.6f} "

@@ -22,14 +22,10 @@ from operators.reconstruction import (
 from operators.stream import StreamOperator
 from streams.base_nirs import BaseNirsStream
 from streams.snirf import SNIRFStream
-
-# Import reconstruction utilities
 from utils.reconstruction.assets import get_assets
 
 from holohub.color_buffer_passthrough import ColorBufferPassthroughOp
 from holohub.volume_renderer import VolumeRendererOp
-
-# Import local operators
 from operators.voxel_stream_to_volume import VoxelStreamToVolumeOp
 
 

@@ -49,7 +49,7 @@
 			"python": ["numpy", "cupy"]
 		},
 		"run": {
-			"command": "python3 bci_visualization.py --renderer_config <holohub_data_dir>/bci_visualization/config.json --mask_path <holohub_data_dir>/bci_visualization/anatomy_labels_high_res.nii.gz",
+			"command": "python3 bci_visualization.py --renderer_config <holohub_app_source>/config.json --mask_path <holohub_data_dir>/bci_visualization/anatomy_labels_high_res.nii.gz",
 			"workdir": "holohub_app_source"
 		}
 	}
