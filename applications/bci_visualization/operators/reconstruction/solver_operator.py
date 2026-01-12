@@ -76,7 +76,10 @@ class RegularizedSolverOperator(Operator):
 
             solution *= system.background
 
-            assert solution.shape == (num_cols_expected,)
+            if solution.shape != (num_cols_expected,):
+                raise ValueError(
+                    f"Solution must be 1D array with {num_cols_expected} elements, got shape {solution.shape}"
+                )
             result[:, wavelength_idx] = solution
 
         # Reshape result to separate absorbers into mua/musp

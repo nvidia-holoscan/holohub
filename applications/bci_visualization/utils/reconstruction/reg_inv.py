@@ -127,8 +127,8 @@ def _solve_square_system(
     result = cp.linalg.solve(A, b)
     if not cp.all(cp.isfinite(result)):
         raise RuntimeError(
-            f"Solver produced non-finite values. This may indicate numerical instability. "
-            f"Check regularization parameter (current: {reg}) or input data quality."
+            "Solver produced non-finite values. This may indicate numerical instability. "
+            "Check regularization parameter or input data quality."
         )
     return result
     return result

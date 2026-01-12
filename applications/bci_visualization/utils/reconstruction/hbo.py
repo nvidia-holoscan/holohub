@@ -132,7 +132,10 @@ class HbO:
         sample_mua[:, idxs_significant_voxels] = data_mua[idxs_significant_voxels, :].T
         sample_hb = cp.linalg.solve(self._cached_coefficients, sample_mua)
 
-        assert sample_hb.shape == (len(wavelengths), num_voxels)
+        if sample_hb.shape != (len(wavelengths), num_voxels):
+            raise ValueError(
+                f"Sample Hb must be 2D array with {len(wavelengths)} rows and {num_voxels} columns, got shape {sample_hb.shape}"
+            )
         data_hbo = sample_hb[0]
         data_hbr = sample_hb[1]
         return data_hbo, data_hbr

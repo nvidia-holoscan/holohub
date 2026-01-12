@@ -84,7 +84,8 @@ def _compute_affine(xyz: NDArray[np.float32], ijk: NDArray[np.float32]) -> NDArr
     M = [[(-1) ** i * D * entry(R, i) for i in range(n)] for R in np.transpose(out)]
 
     affine = np.concatenate((M, np.array([0, 0, 0, 1]).reshape(1, -1)), axis=0)
-    assert affine.shape == (4, 4)
+    if affine.shape != (4, 4):
+        raise ValueError(f"Affine must be 4x4 matrix, got shape {affine.shape}")
     return affine
 
 
@@ -160,7 +161,10 @@ class ConvertToVoxelsOperator(Operator):
         scatter_coords = scatter_coords.astype(np.int32, copy=False)  # for indexing
 
         num_voxels = data_hbo.shape[0]
-        assert num_voxels == scatter_coords.shape[0]
+        if num_voxels != scatter_coords.shape[0]:
+            raise ValueError(
+                f"Number of voxels must match, got {num_voxels} and {scatter_coords.shape[0]}"
+            )
 
         # scatter ijk to full voxel grid
         volume_small: NDArray[np.float32] = cp.zeros(normalized_shape, dtype=data_hbo.dtype)
@@ -177,11 +181,13 @@ class ConvertToVoxelsOperator(Operator):
         Compute normalized voxel coordinates and grid shape from metadata.
         """
         ijk = cp.asarray(metadata.ijk)
-        assert ijk.ndim == 2 and ijk.shape[1] == 3
+        if ijk.ndim != 2 or ijk.shape[1] != 3:
+            raise ValueError(f"IJK must be 2D array with 3 columns, got shape {ijk.shape}")
 
         ijk_int = cp.rint(ijk)
         min_idx = ijk_int.min(axis=0)
         normalized = ijk_int - min_idx
         shape = tuple(int(axis_max) + 1 for axis_max in normalized.max(axis=0))
-        assert all(dim > 0 for dim in shape)
+        if not all(dim > 0 for dim in shape):
+            raise ValueError(f"Shape must be positive, got shape {shape}")
         return normalized, cast(Tuple[int, int, int], shape), ijk_int

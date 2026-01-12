@@ -107,7 +107,10 @@ class NormalizeOperator(Operator):
         num_cols = batch.data_jacobians.shape[-1]
         num_significant = int(batch.idxs_significant_voxels.size)
         num_absorbers, remainder = divmod(num_cols, num_significant)
-        assert not remainder
+        if remainder != 0:
+            raise ValueError(
+                f"Number of columns must be divisible by number of significant voxels, got {num_cols} and {num_significant}"
+            )
 
         # normalize rows
         rhs = cp.asarray(batch.data_rhs, dtype=cp.float32)
