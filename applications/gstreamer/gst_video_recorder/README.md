@@ -2,7 +2,7 @@
 
 A Holoscan application that demonstrates video recording using the GStreamer encoding pipeline.
 
-![GStreamer Video Recorder Pipeline](docs/pipeline_diagram.png)</br>
+![GStreamer Video Recorder Pipeline](docs/pipeline_diagram.png)  
 *Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's encoding pipeline*
 
 This application showcases how to:
