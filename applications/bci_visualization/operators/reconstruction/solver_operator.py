@@ -59,8 +59,13 @@ class RegularizedSolverOperator(Operator):
             dtype=batch.systems[0].jacobian.dtype,
         )
         for wavelength_idx, system in enumerate(batch.systems):
-            assert system.rhs.ndim == 1
-            assert system.jacobian.shape[1] == num_cols_expected
+            if system.rhs.ndim != 1:
+                raise ValueError(f"Expected 1D RHS vector, got shape {system.rhs.shape}")
+            if system.jacobian.shape[1] != num_cols_expected:
+                raise ValueError(
+                    f"Jacobian column mismatch: expected {num_cols_expected}, "
+                    f"got {system.jacobian.shape[1]} for wavelength {wavelength_idx}"
+                )
 
             solution = solve_regularized_system(
                 system.jacobian,
