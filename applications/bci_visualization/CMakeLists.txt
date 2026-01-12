@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include(pybind11_add_holohub_module)
-pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET volume_renderer
-    CLASS_NAME "VolumeRendererOp"
-    SOURCES volume_renderer.cpp
-)
+cmake_minimum_required(VERSION 3.20)
+project(bci_visualization LANGUAGES NONE)
+
+find_package(holoscan 2.0 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+add_subdirectory(operators)

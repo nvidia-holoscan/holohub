@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+/* SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-#ifndef VOLUME_RENDERER_VOLUME_RENDERER
-#define VOLUME_RENDERER_VOLUME_RENDERER
+#pragma once
 
 #include "holoscan/holoscan.hpp"
 
 namespace holoscan::ops {
 
-class VolumeRendererOp : public Operator {
+/**
+ * @brief Pass-through operator for rendered color buffers.
+ *
+ * This operator exists to control the input port queue policy (size=1, pop),
+ * preventing backpressure/deadlock when downstream visualization runs slower
+ * than the producer.
+ */
+class ColorBufferPassthroughOp : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(VolumeRendererOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(ColorBufferPassthroughOp)
 
-  void initialize() override;
-  void start() override;
   void setup(OperatorSpec& spec) override;
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override;
-
- private:
-  struct Impl;
-  std::shared_ptr<Impl> impl_;
 };
 
 }  // namespace holoscan::ops
 
-#endif /* VOLUME_RENDERER_VOLUME_RENDERER */
+

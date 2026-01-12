@@ -1,4 +1,6 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# syntax=docker/dockerfile:1
+
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include(pybind11_add_holohub_module)
-pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET volume_renderer
-    CLASS_NAME "VolumeRendererOp"
-    SOURCES volume_renderer.cpp
-)
+
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE} AS base
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install curl for downloading data files
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data/bci_visualization
+
+# Install Python dependencies
+COPY applications/bci_visualization/requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt --no-cache-dir
+    

@@ -13,7 +13,7 @@ mcp==1.24.*
 numpy==2.3.*
 openai==2.13.*
 pydantic-core==2.41.*
-pypdf==6.4.*
+pypdf==6.6.*
 PyYAML==6.0.*
 requests==2.32.*
 safetensors==0.7.*
