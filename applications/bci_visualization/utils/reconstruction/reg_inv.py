@@ -111,10 +111,14 @@ def _solve_square_system(
     """
 
     # Validate input
-    assert (A.ndim == 2) and (A.shape[0] == A.shape[1])
-    assert b.ndim in {1, 2} and b.shape[0] == A.shape[0]
-    assert cp.all(cp.isfinite(A))
-    assert cp.all(cp.isfinite(b))
+    if A.ndim != 2 or A.shape[0] != A.shape[1]:
+        raise ValueError(f"Expected square matrix, got shape {A.shape}")
+    if b.ndim not in {1, 2} or b.shape[0] != A.shape[0]:
+        raise ValueError(f"Incompatible shapes: A={A.shape}, b={b.shape}")
+    if not cp.all(cp.isfinite(A)):
+        raise ValueError("Matrix A contains non-finite values")
+    if not cp.all(cp.isfinite(b)):
+        raise ValueError("Vector b contains non-finite values")
 
     # Ensure symmetry for numerical stability
     A = 0.5 * (A + A.T)
