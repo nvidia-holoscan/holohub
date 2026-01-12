@@ -125,5 +125,10 @@ def _solve_square_system(
 
     # Regular inverse
     result = cp.linalg.solve(A, b)
-    assert cp.all(cp.isfinite(result))
+    if not cp.all(cp.isfinite(result)):
+        raise RuntimeError(
+            f"Solver produced non-finite values. This may indicate numerical instability. "
+            f"Check regularization parameter (current: {reg}) or input data quality."
+        )
+    return result
     return result
