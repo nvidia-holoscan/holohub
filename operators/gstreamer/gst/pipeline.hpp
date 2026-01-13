@@ -82,6 +82,18 @@ class BinBase : public ElementBase<Derived, NativeType> {
     gst_bin_add_many(GST_BIN(this->get()), get_gst_element(elements)..., nullptr);
   }
 
+  /**
+   * @brief Get an element from the bin by name
+   * @param name The name of the element to retrieve
+   * @return Element wrapper for the found element, or empty Element if not found
+   * @note Returns owned reference from gst_bin_get_by_name (no sinking needed)
+   *
+   * Example: auto element = bin.get_by_name("my_element");
+   */
+  Element get_by_name(const std::string& name) const {
+    return Element(gst_bin_get_by_name(GST_BIN(this->get()), name.c_str()));
+  }
+
  private:
   // Helper function to extract GstElement* from ElementBase-derived classes or raw pointers
   template <typename T>

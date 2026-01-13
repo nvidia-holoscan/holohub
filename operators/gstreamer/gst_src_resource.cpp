@@ -82,10 +82,11 @@ bool GstSrcResource::push_buffer(gst::Buffer buffer) {
   return bridge_ ? bridge_->push_buffer(std::move(buffer)) : false;
 }
 
-void GstSrcResource::send_eos() {
+bool GstSrcResource::send_eos() {
   if (bridge_) {
-    bridge_->send_eos();
+    return bridge_->send_eos();
   }
+  return false;
 }
 
 gst::Buffer GstSrcResource::create_buffer_from_tensor_map(const TensorMap& tensor_map) const {

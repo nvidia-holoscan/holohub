@@ -364,14 +364,10 @@ class GStreamerApp {
     pipeline_.ref_sink();
 
     // Add src element to pipeline
-    // Note: gst_bin_add() properly handles reference counting - it adds a new reference
-    // when the element doesn't have a floating reference (which was already sunk in GstSrcBridge).
     pipeline_.add(src_element_);
 
     // Find and link the "first" element
-    // Note: gst_bin_get_by_name returns a new reference, so wrap it in a guard
-    auto first_element = holoscan::gst::Element(
-        gst_bin_get_by_name(GST_BIN(pipeline_.get()), "first"));
+    auto first_element = pipeline_.get_by_name("first");
     if (!first_element) {
       HOLOSCAN_LOG_ERROR("Could not find element named 'first' in pipeline");
       HOLOSCAN_LOG_ERROR("Please name your first pipeline element as 'first', "
@@ -380,12 +376,11 @@ class GStreamerApp {
                                "connect from source");
     }
 
-    HOLOSCAN_LOG_INFO("Linking source to {}",
-                      gst_element_get_name(first_element.get()));
+    HOLOSCAN_LOG_INFO("Linking source to {}", first_element.get_name());
 
-    if (!gst_element_link(src_element_.get(), first_element.get())) {
+    if (!src_element_.link(first_element)) {
       HOLOSCAN_LOG_ERROR("Failed to link source to {}",
-                         gst_element_get_name(first_element.get()));
+                         first_element.get_name());
       throw std::runtime_error("Failed to link source to pipeline");
     }
 
@@ -482,7 +477,7 @@ class GstSrcApp : public Application {
     HOLOSCAN_LOG_INFO("Source caps: {}", full_caps);
 
     // Create the GStreamer source resource for data bridging
-    holoscan_gst_src_ = make_resource<GstSrcResource>("holoscan_src",
+    holoscan_gst_src_resource_ = make_resource<GstSrcResource>("holoscan_src",
         Arg("caps", full_caps),
         Arg("max_buffers", DEFAULT_MAX_BUFFERS));
 
@@ -496,7 +491,7 @@ class GstSrcApp : public Application {
     // Create the GStreamer source operator (common to both sources)
     auto gst_src_op = make_operator<GstSrcOp>(
         "gst_src_op",
-        Arg("gst_src_resource", holoscan_gst_src_));
+        Arg("gst_src_resource", holoscan_gst_src_resource_));
 
     if (source_ == "v4l2") {
       // Create V4L2 camera capture operator
@@ -546,7 +541,7 @@ class GstSrcApp : public Application {
   }
 
   std::shared_ptr<GstSrcResource> get_src_resource() const {
-    return holoscan_gst_src_;
+    return holoscan_gst_src_resource_;
   }
 
  private:
@@ -560,7 +555,7 @@ class GstSrcApp : public Application {
   std::string source_;
   std::string v4l2_device_;
   std::string v4l2_pixel_format_;
-  std::shared_ptr<GstSrcResource> holoscan_gst_src_;
+  std::shared_ptr<GstSrcResource> holoscan_gst_src_resource_;
 };
 
 }  // namespace holoscan
