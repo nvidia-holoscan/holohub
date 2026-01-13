@@ -24,7 +24,8 @@ find_package(holoscan 3.9.0 REQUIRED CONFIG
 add_executable(ucxx_endoscopy_tool_tracking
     main.cpp
     publisher.cpp
-    subscriber.cpp
+    subscriber_holoviz.cpp
+    subscriber_overlay.cpp
 )
 
 target_include_directories(ucxx_endoscopy_tool_tracking

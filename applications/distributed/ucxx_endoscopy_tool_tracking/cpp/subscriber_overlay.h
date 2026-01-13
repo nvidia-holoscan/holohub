@@ -23,15 +23,13 @@
 namespace holoscan::apps {
 
 /**
- * @brief Subscriber application that receives and displays rendered frames
+ * @brief Subscriber that receives original frames and sends a frame-counter overlay back
  *
- * This application:
- * - Connects to the publisher via UCXX
- * - Receives pre-rendered frames with tool tracking overlays
- * - Displays the frames with HolovizOp (simple image display)
- * - Optionally records received frames for validation (if recorder config exists in YAML)
+ * Implementation detail: sends a standalone frame-counter overlay entity back to the publisher.
+ * The publisher composites it into a full-frame overlay tensor for rendering. Optionally, it
+ * can also visualize the frame counter value on the frame.
  */
-class UcxxEndoscopySubscriberApp : public holoscan::Application {
+class UcxxEndoscopySubscriberOverlayApp : public holoscan::Application {
  public:
   void set_hostname(const std::string& hostname) { hostname_ = hostname; }
   void set_port(int port) { port_ = port; }
@@ -40,7 +38,7 @@ class UcxxEndoscopySubscriberApp : public holoscan::Application {
 
  private:
   std::string hostname_ = "127.0.0.1";
-  int port_ = 50008;
+  int port_ = 50009;
 };
 
 }  // namespace holoscan::apps

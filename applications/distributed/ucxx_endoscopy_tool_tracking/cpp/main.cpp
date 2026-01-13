@@ -21,11 +21,12 @@
 #include <string>
 
 #include "publisher.h"
-#include "subscriber.h"
+#include "subscriber_holoviz.h"
+#include "subscriber_overlay.h"
 
 /** Helper function to parse command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& data_path, std::string& config_path,
-                     std::string& hostname, int& port, std::string& mode) {
+                     std::string& hostname, int& port, bool& port_set, std::string& mode) {
   static struct option long_options[] = {
       {"data", required_argument, 0, 'd'},
       {"config", required_argument, 0, 'c'},
@@ -50,11 +51,14 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
         break;
       case 'p':
         port = std::stoi(optarg);
+        port_set = true;
         break;
       case 'm':
         mode = optarg;
-        if (mode != "publish" && mode != "subscribe") {
-          HOLOSCAN_LOG_ERROR("Invalid mode '{}'. Must be 'publish' or 'subscribe'", mode);
+        if (mode != "publish" && mode != "subscribe_holoviz" && mode != "subscribe_overlay") {
+          HOLOSCAN_LOG_ERROR(
+              "Invalid mode '{}'. Must be 'publish', 'subscribe_holoviz', or 'subscribe_overlay'",
+              mode);
           return false;
         }
         break;
@@ -68,19 +72,26 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
                   << "  -d, --data <path>        Path to data directory (required for publisher)\n"
                   << "  -c, --config <path>      Path to config file (optional)\n"
                   << "  -h, --hostname <host>    Hostname (default: 0.0.0.0 for publisher,\n"
-                  << "                           127.0.0.1 for subscriber)\n"
-                  << "  -p, --port <port>        Port number (default: 50008)\n"
-                  << "  -m, --mode <mode>        Mode: 'publish' or 'subscribe' (required)\n"
+                  << "                           127.0.0.1 for subscribers)\n"
+                  << "  -p, --port <port>        Port number (default: 50008 for holoviz subscriber, "
+                     "50009 for overlay subscriber)\n"
+                  << "  -m, --mode <mode>        Mode: 'publish', 'subscribe_holoviz', "
+                     "or 'subscribe_overlay' (required)\n"
                   << "  -?, --help               Show this help message\n"
                   << "\n"
                   << "Description:\n"
                   << "  Publisher: Processes video, renders with overlays, and broadcasts\n"
-                  << "          rendered frames\n"
-                  << "  Subscriber: Receives pre-rendered frames from publisher and displays them\n"
+                  << "          rendered frames. Listens on --port for subscriber_holoviz and "
+                     "--port+1 for subscriber_overlay.\n"
+                  << "  subscriber_holoviz: Receives pre-rendered frames and displays them\n"
+                  << "  subscriber_overlay: Receives frames and draws a frame counter overlay\n"
                   << "\n"
                   << "Examples:\n"
                   << "  Publisher: " << argv[0] << " --mode publish --data /path/to/data\n"
-                  << "  Subscriber: " << argv[0] << " --mode subscribe --hostname publisher_ip\n"
+                  << "  Holoviz subscriber: " << argv[0]
+                  << " --mode subscribe_holoviz --hostname publisher_ip --port 50008\n"
+                  << "  Overlay subscriber: " << argv[0]
+                  << " --mode subscribe_overlay --hostname publisher_ip --port 50009\n"
                   << "\n";
         return false;
     }
@@ -96,26 +107,32 @@ int main(int argc, char** argv) {
   std::string data_directory = "";
   std::string hostname = "";
   int port = 50008;
+  bool port_set = false;
   std::string mode = "";
 
-  if (!parse_arguments(argc, argv, data_directory, config_path, hostname, port, mode)) {
+  if (!parse_arguments(argc, argv, data_directory, config_path, hostname, port, port_set, mode)) {
     return 1;
   }
 
   // Validate mode is specified
   if (mode.empty()) {
-    HOLOSCAN_LOG_ERROR("Mode must be specified. Use --mode publish or --mode subscribe");
+    HOLOSCAN_LOG_ERROR(
+        "Mode must be specified. Use --mode publish, --mode subscribe_holoviz, or --mode "
+        "subscribe_overlay");
     return 1;
   }
 
   // Set default hostname based on mode if not specified
   if (hostname.empty()) {
-    if (mode == "subscribe") {
+    if (mode == "subscribe_holoviz" || mode == "subscribe_overlay") {
       hostname = "127.0.0.1";  // Default to localhost for subscriber
     } else {
       hostname = "0.0.0.0";  // Default to all interfaces for publisher
     }
   }
+
+  // Default port for overlay subscriber if not explicitly set
+  if (!port_set && mode == "subscribe_overlay") { port = 50009; }
 
   // For publisher mode, validate data directory
   if (mode == "publish") {
@@ -179,13 +196,22 @@ int main(int argc, char** argv) {
     HOLOSCAN_LOG_INFO("Starting PUBLISHER: Processing video and broadcasting to subscribers");
     app->run();
 
-  } else if (mode == "subscribe") {
-    auto app = holoscan::make_application<holoscan::apps::UcxxEndoscopySubscriberApp>();
+  } else if (mode == "subscribe_holoviz") {
+    auto app = holoscan::make_application<holoscan::apps::UcxxEndoscopySubscriberHolovizApp>();
     app->config(config_path);
     app->set_hostname(hostname);
     app->set_port(port);
 
-    HOLOSCAN_LOG_INFO("Starting SUBSCRIBER: Receiving processed frames from publisher");
+    HOLOSCAN_LOG_INFO("Starting SUBSCRIBER_HOLOVIZ: Receiving processed frames from publisher");
+    app->run();
+  } else if (mode == "subscribe_overlay") {
+    auto app = holoscan::make_application<holoscan::apps::UcxxEndoscopySubscriberOverlayApp>();
+    app->config(config_path);
+    app->set_hostname(hostname);
+    app->set_port(port);
+
+    HOLOSCAN_LOG_INFO(
+        "Starting SUBSCRIBER_OVERLAY: Receiving frames and drawing a frame counter overlay");
     app->run();
   }
 
