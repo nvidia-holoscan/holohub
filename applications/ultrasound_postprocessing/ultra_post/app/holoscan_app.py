@@ -196,7 +196,8 @@ def run_holoscan_app(args: argparse.Namespace) -> None:
     to_rgba = make_rgba_formatter_op()
 
     if args.source == "uff":
-        assert args.uff, "UFF path must be provided when --source=uff"
+        if not args.uff:
+            raise ValueError("--uff path must be provided when --source=uff")
         source_op = make_uff_source_op(
             UffSourceConfig(path=Path(args.uff), dataset=args.dataset, frame_index=0)
         )

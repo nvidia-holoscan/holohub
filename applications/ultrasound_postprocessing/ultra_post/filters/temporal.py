@@ -61,3 +61,6 @@ class TemporalSVD:
         # Reconstruct only the current (last) frame: U * S * Vt[:, -1]
         reconst = cp.dot(U * s, Vt[:, -1])
         return reconst.reshape(image.shape)
+
+
+__all__ = ["Persistence", "TemporalSVD"]

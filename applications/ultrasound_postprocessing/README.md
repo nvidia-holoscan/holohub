@@ -51,16 +51,16 @@ As an alternative to HoloHub CLI, you can instead design and run filters with pr
 
 Install this project with your Python package manager:
 ```bash
-uv -m pip install git+ssh://github.com/nvidia-holoscan/holohub.git@main#subdirectory=applications/ultrasound_postprocessing
+python3 -m pip install git+ssh://github.com/nvidia-holoscan/holohub.git@main#subdirectory=applications/ultrasound_postprocessing
 ```
 
 Then run your application of choice:
 ```bash
-uv run streamlit run applications/ultrasound_postprocessing/ultra_post/app/streamlit_app.py
+python3 -m streamlit run applications/ultrasound_postprocessing/ultra_post/app/streamlit_app.py
 ```
 
 ```bash
-uv run python -m ultra_post.app.holoscan_app [--uff path/to/myfile.uff] [--fps 10]
+python3 -m ultra_post.app.holoscan_app [--uff path/to/myfile.uff] [--fps 10]
 ```
 
 ## Key Concepts
