@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "subscriber_overlay.h"
+#include "overlay.h"
 
 #include <cstdint>
 #include <string>
@@ -117,11 +117,11 @@ class FrameCounterOverlayOp : public holoscan::Operator {
 };
 
 // Helper operator to drop frame entity when visualization is disabled.
-class DropEntityOp : public holoscan::Operator {
+class SinkOp : public holoscan::Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(DropEntityOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(SinkOp)
 
-  DropEntityOp() = default;
+  SinkOp() = default;
 
   void setup(holoscan::OperatorSpec& spec) override { spec.input<holoscan::gxf::Entity>("in"); }
 
@@ -133,15 +133,15 @@ class DropEntityOp : public holoscan::Operator {
 
 }  // namespace
 
-void UcxxEndoscopySubscriberOverlayApp::compose() {
+void UcxxEndoscopyOverlayApp::compose() {
   using namespace holoscan;
 
   const uint32_t width = 854;
   const uint32_t height = 480;
-  const bool visualize = from_config("subscriber_overlay.visualize").as<bool>();
+  const bool visualize = from_config("overlay.visualize").as<bool>();
 
   HOLOSCAN_LOG_INFO(
-      "Composing SUBSCRIBER_OVERLAY - receiving frames and sending frame-counter overlay "
+      "Composing overlay - receiving frames and sending frame-counter overlay "
       "back");
 
   auto allocator =
@@ -178,7 +178,7 @@ void UcxxEndoscopySubscriberOverlayApp::compose() {
   if (visualize) {
     auto holoviz = make_operator<ops::HolovizOp>(
         "holoviz",
-        from_config("holoviz_subscriber_overlay"),
+        from_config("overlay.holoviz"),
         Arg("width") = width,
         Arg("height") = height,
         Arg("allocator") = allocator,
@@ -204,13 +204,14 @@ void UcxxEndoscopySubscriberOverlayApp::compose() {
                 })));
     add_flow(frame_counter_overlay, holoviz, {{"frame_out", "receivers"}});
   } else {
-    // Drop the frame_out stream so both output entities of `frame_counter_overlay` are always fully connected.
-    auto drop = make_operator<DropEntityOp>("drop_frame_out");
+    // Drop the frame_out stream so both output entities of
+    // `frame_counter_overlay` are always fully connected.
+    auto drop = make_operator<SinkOp>("sink_frame_out");
     add_flow(frame_counter_overlay, drop, {{"frame_out", "in"}});
   }
 
   HOLOSCAN_LOG_INFO(
-      "Subscriber_overlay pipeline: Receive(tag=1) → CountFrames → SendBack(tag=2) (+ optional "
+      "Overlay pipeline: Receive(tag=1) → CountFrames → SendBack(tag=2) (+ optional "
       "local text)");
 }
 

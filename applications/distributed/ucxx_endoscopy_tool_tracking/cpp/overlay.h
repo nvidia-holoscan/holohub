@@ -23,13 +23,13 @@
 namespace holoscan::apps {
 
 /**
- * @brief Subscriber that receives original frames and sends a frame-counter overlay back
+ * @brief Application that subscribes to original frames and publishes a frame-counter overlay
  *
  * Implementation detail: sends a standalone frame-counter overlay entity back to the publisher.
  * The publisher composites it into a full-frame overlay tensor for rendering. Optionally, it
  * can also visualize the frame counter value on the frame.
  */
-class UcxxEndoscopySubscriberOverlayApp : public holoscan::Application {
+class UcxxEndoscopyOverlayApp : public holoscan::Application {
  public:
   void set_hostname(const std::string& hostname) { hostname_ = hostname; }
   void set_port(int port) { port_ = port; }

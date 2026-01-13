@@ -1,6 +1,6 @@
 # UCXX Endoscopy Tool Tracking - Distributed Application
 
-A distributed implementation of the Endoscopy Tool Tracking application using UCXX (C++ interface to Unified Communication X) for high-performance network communication between nodes.
+A distributed implementation of the [HoloHub Endoscopy Tool Tracking application](/applications/endoscopy_tool_tracking) using [UCXX](https://github.com/rapidsai/ucxx) (C++ interface to Unified Communication X) for high-performance network communication between nodes.
 
 ## Overview
 
@@ -8,9 +8,11 @@ This application demonstrates a distributed Holoscan pipeline that splits proces
 
 - **Publisher node**: Processes endoscopy video with LSTM-based tool tracking, renders the result, and broadcasts frames
 - **Subscriber node (Holoviz)**: Receives and displays the pre-rendered frames
-- **Subscriber node (Overlay)**: Receives original frames from publisher and adds an overlay onto each frame (frame-counter, simulating a per-frame processing application). The subscriber can optionally display received frame with overlay.
+- **Overlay node**: Receives original frames from publisher, adds an overlay onto each frame (frame-counter, simulating a per-frame processing application), and sends the overlay back to the publisher. The node can optionally display received frames with overlay.
 
 Each node is a Holoscan application.
+
+![Endoscopy Image](docs/endoscopy_with_counter.png)
 
 ## Architecture
 
@@ -70,11 +72,11 @@ Each node is a Holoscan application.
 └─────────────────────────────────────┘
 ```
 
-### Overlay Subscriber Node (`subscribe_overlay`, default port 50009)
+### Overlay Publisher + Subscriber Node (`overlay`, default port 50009)
 
 ```text
 ┌────────────────────────────────────────────────┐
-│          OVERLAY SUBSCRIBER NODE               │
+│                OVERLAY NODE                    │
 │                                                │
 │  Network ───► UCXX Receiver (tag=1)            │
 │  (port 50009)      │                           │
@@ -104,8 +106,8 @@ Each node is a Holoscan application.
 ### Software
 
 - Holoscan SDK 3.9.0 or later
-- UCXX library (included with Holoscan)
-- CUDA Toolkit
+- UCXX 0.46 library (included with Holoscan)
+- CUDA Toolkit >= 12
 - CMake 3.20+
 
 ### Hardware
@@ -125,19 +127,13 @@ Each node is a Holoscan application.
 
 ### Build the Application
 
-Clone Holohub repository:
+Clone the Holohub repository:
 
 ```bash
 git clone https://github.com/nvidia-holoscan/holohub.git
 ```
 
-Build and run holohub container:
-
-```bash
-cd holohub && ./holohub run-container
-```
-
-Inside holohub container, build the applications
+Then, build and run the containerized application:
 
 ```bash
 ./holohub build ucxx_endoscopy_tool_tracking
@@ -148,7 +144,6 @@ Inside holohub container, build the applications
 Start the publisher on the machine with the video data and GPU for processing:
 
 ```bash
-# Inside holohub container
 ./holohub run ucxx_endoscopy_tool_tracking publish
 ```
 
@@ -163,30 +158,34 @@ Modify these options by adding `--run-args='<options>'` to the `./holohub run` c
 
 ### Run Subscriber Node
 
-This application provides two subscriber modes:
-
-- `subscribe_holoviz`: receives pre-rendered frames and displays them (default port: 50008)
-- `subscribe_overlay`: receives original frames and sends a frame-counter overlay back to the publisher for display (default port: 50009). Optional local visualization is controlled by `subscriber_overlay.visualize` in the YAML.
-
-Start a subscriber on the display machine:
+Start the holoviz subscriber to receive and display pre-rendered frames:
 
 ```bash
-# Example connecting to localhost
-
-# Inside holohub container
-
-# Starting holoviz subscriber
-./holohub run ucxx_endoscopy_tool_tracking subscribe_holoviz
-
-# Starting overlay subscriber
-./holohub run ucxx_endoscopy_tool_tracking subscribe_overlay
+./holohub run ucxx_endoscopy_tool_tracking subscribe_holoviz \
+    [--no-docker-build] [--no-local-build]
 ```
 
-**Subscriber options (both modes):**
+**Subscriber Options:**
 
-- `--mode <subscribe_holoviz|subscribe_overlay>` - Subscriber mode
 - `--hostname <host>` - Publisher hostname/IP (default: 127.0.0.1)
-- `--port <port>` - Publisher port (default: 50008 for `subscribe_holoviz`, 50009 for `subscribe_overlay`)
+- `--port <port>` - Publisher port (default: 50008)
+- `--config <path>` - Optional custom configuration file
+
+Modify these options by adding `--run-args='<options>'` to the `./holohub run` command.
+
+### Run Overlay Node
+
+Start the overlay node to receive original frames, add a frame-counter overlay, and send the overlay back to the publisher for display. Optional local visualization is controlled by `overlay.visualize` in the YAML.
+
+```bash
+./holohub run ucxx_endoscopy_tool_tracking overlay \
+    [--no-docker-build] [--no-local-build]
+```
+
+**Overlay Options:**
+
+- `--hostname <host>` - Publisher hostname/IP (default: 127.0.0.1)
+- `--port <port>` - Publisher port (default: 50009)
 - `--config <path>` - Optional custom configuration file
 
 Modify these options by adding `--run-args='<options>'` to the `./holohub run` command.
@@ -200,8 +199,8 @@ Modify these options by adding `--run-args='<options>'` to the `./holohub run` c
 # Terminal 2: Start holohub container and holoviz subscriber
 ./holohub run ucxx_endoscopy_tool_tracking subscribe_holoviz
 
-# Terminal 3: Start holohub container and overlay subscriber
-./holohub run ucxx_endoscopy_tool_tracking subscribe_overlay
+# Terminal 3: Start holohub container and overlay node
+./holohub run ucxx_endoscopy_tool_tracking overlay
 ```
 
 ## Troubleshooting
@@ -217,6 +216,20 @@ Modify these options by adding `--run-args='<options>'` to the `./holohub run` c
 3. Verify port is not blocked: `telnet <publisher_ip> 50008`
 4. Check firewall rules allow port 50008
 5. Ensure both nodes use same port number
+6. Try running applications within the same HoloHub container to minimize networking requirements:
+```sh
+# Terminal 1
+./holohub run-container ucxx_endoscopy_tool_tracking
+./holohub run ucxx_endoscopy_tool_tracking publish
+
+# Terminal 2, same machine
+docker exec -it $(docker ps -q | head -n 1) \
+  ./holohub run ucxx_endoscopy_tool_tracking subscribe_holoviz
+
+# Terminal 3, same machine
+docker exec -it $(docker ps -q | head -n 1) \
+  ./holohub run ucxx_endoscopy_tool_tracking overlay
+```
 
 ### No frames displayed
 
@@ -231,9 +244,11 @@ Modify these options by adding `--run-args='<options>'` to the `./holohub run` c
 
 ## Related Applications
 
-- **endoscopy_tool_tracking**: Single-node version
-- **holoviz**: Visualization examples
-- **ucxx_send_receive**: UCXX operator examples
+- [**endoscopy_tool_tracking**](/applications/endoscopy_tool_tracking/README.md): Single-node version
+- [**ucx_endoscopy_tool_tracking**](/applications/distributed/ucxx_endoscopy_tool_tracking/): Two-node implementation with Holoscan SDK Fragments
+- [**holoviz**](/applications/holoviz/): Visualization examples
+- [**ucxx_send_receive**](/operators/ucxx_send_receive/): UCXX operator examples
+
 
 ## References
 

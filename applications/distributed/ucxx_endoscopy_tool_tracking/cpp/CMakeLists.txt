@@ -25,7 +25,7 @@ add_executable(ucxx_endoscopy_tool_tracking
     main.cpp
     publisher.cpp
     subscriber_holoviz.cpp
-    subscriber_overlay.cpp
+    overlay.cpp
 )
 
 target_include_directories(ucxx_endoscopy_tool_tracking

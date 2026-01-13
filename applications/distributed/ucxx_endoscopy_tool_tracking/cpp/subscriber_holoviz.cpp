@@ -61,7 +61,7 @@ void UcxxEndoscopySubscriberHolovizApp::compose() {
   // Subscriber-side visualization - simple image display
   auto holoviz = make_operator<ops::HolovizOp>(
       "holoviz",
-      from_config("holoviz_subscriber_holoviz"),
+      from_config("subscriber_holoviz.holoviz"),
       Arg("width") = width,
       Arg("height") = height,
       Arg("allocator") = allocator);
@@ -72,19 +72,19 @@ void UcxxEndoscopySubscriberHolovizApp::compose() {
   bool enable_recording = false;
 
   // Check record_type to determine if recording should be enabled
-  auto record_type = from_config("record_type").as<std::string>();
+  auto record_type = from_config("subscriber_holoviz.record_type").as<std::string>();
   if (record_type == "subscriber") {
     enable_recording = true;
     HOLOSCAN_LOG_INFO("Subscriber recording enabled (record_type=subscriber)");
 
     recorder_format_converter = make_operator<ops::FormatConverterOp>(
         "recorder_format_converter",
-        from_config("recorder_format_converter"),
+        from_config("subscriber_holoviz.recorder_format_converter"),
         Arg("pool") =
             make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks));
 
     recorder = make_operator<ops::VideoStreamRecorderOp>(
-        "recorder_subscriber", from_config("recorder_subscriber"));
+        "recorder_subscriber", from_config("subscriber_holoviz.recorder"));
   } else {
     HOLOSCAN_LOG_INFO("Subscriber recording disabled (record_type={})", record_type);
   }

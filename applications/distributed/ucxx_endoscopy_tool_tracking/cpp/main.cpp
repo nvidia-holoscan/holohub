@@ -22,7 +22,7 @@
 
 #include "publisher.h"
 #include "subscriber_holoviz.h"
-#include "subscriber_overlay.h"
+#include "overlay.h"
 
 /** Helper function to parse command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& data_path, std::string& config_path,
@@ -55,9 +55,9 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
         break;
       case 'm':
         mode = optarg;
-        if (mode != "publish" && mode != "subscribe_holoviz" && mode != "subscribe_overlay") {
+        if (mode != "publish" && mode != "subscribe_holoviz" && mode != "overlay") {
           HOLOSCAN_LOG_ERROR(
-              "Invalid mode '{}'. Must be 'publish', 'subscribe_holoviz', or 'subscribe_overlay'",
+              "Invalid mode '{}'. Must be 'publish', 'subscribe_holoviz', or 'overlay'",
               mode);
           return false;
         }
@@ -73,25 +73,25 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
                   << "  -c, --config <path>      Path to config file (optional)\n"
                   << "  -h, --hostname <host>    Hostname (default: 0.0.0.0 for publisher,\n"
                   << "                           127.0.0.1 for subscribers)\n"
-                  << "  -p, --port <port>        Port number (default: 50008 for holoviz subscriber, "
-                     "50009 for overlay subscriber)\n"
+                  << "  -p, --port <port>        Port number "
+                  << "(default: 50008 for holoviz subscriber,  50009 for overlay subscriber)\n"
                   << "  -m, --mode <mode>        Mode: 'publish', 'subscribe_holoviz', "
-                     "or 'subscribe_overlay' (required)\n"
+                     "or 'overlay' (required)\n"
                   << "  -?, --help               Show this help message\n"
                   << "\n"
                   << "Description:\n"
                   << "  Publisher: Processes video, renders with overlays, and broadcasts\n"
                   << "          rendered frames. Listens on --port for subscriber_holoviz and "
-                     "--port+1 for subscriber_overlay.\n"
+                     "--port+1 for overlay.\n"
                   << "  subscriber_holoviz: Receives pre-rendered frames and displays them\n"
-                  << "  subscriber_overlay: Receives frames and draws a frame counter overlay\n"
+                  << "  overlay: Receives frames and publishes a frame counter overlay\n"
                   << "\n"
                   << "Examples:\n"
                   << "  Publisher: " << argv[0] << " --mode publish --data /path/to/data\n"
                   << "  Holoviz subscriber: " << argv[0]
                   << " --mode subscribe_holoviz --hostname publisher_ip --port 50008\n"
                   << "  Overlay subscriber: " << argv[0]
-                  << " --mode subscribe_overlay --hostname publisher_ip --port 50009\n"
+                  << " --mode overlay --hostname publisher_ip --port 50009\n"
                   << "\n";
         return false;
     }
@@ -118,13 +118,13 @@ int main(int argc, char** argv) {
   if (mode.empty()) {
     HOLOSCAN_LOG_ERROR(
         "Mode must be specified. Use --mode publish, --mode subscribe_holoviz, or --mode "
-        "subscribe_overlay");
+        "overlay");
     return 1;
   }
 
   // Set default hostname based on mode if not specified
   if (hostname.empty()) {
-    if (mode == "subscribe_holoviz" || mode == "subscribe_overlay") {
+    if (mode == "subscribe_holoviz" || mode == "overlay") {
       hostname = "127.0.0.1";  // Default to localhost for subscriber
     } else {
       hostname = "0.0.0.0";  // Default to all interfaces for publisher
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
   }
 
   // Default port for overlay subscriber if not explicitly set
-  if (!port_set && mode == "subscribe_overlay") { port = 50009; }
+  if (!port_set && mode == "overlay") { port = 50009; }
 
   // For publisher mode, validate data directory
   if (mode == "publish") {
@@ -204,14 +204,15 @@ int main(int argc, char** argv) {
 
     HOLOSCAN_LOG_INFO("Starting SUBSCRIBER_HOLOVIZ: Receiving processed frames from publisher");
     app->run();
-  } else if (mode == "subscribe_overlay") {
-    auto app = holoscan::make_application<holoscan::apps::UcxxEndoscopySubscriberOverlayApp>();
+  } else if (mode == "overlay") {
+    auto app = holoscan::make_application<holoscan::apps::UcxxEndoscopyOverlayApp>();
     app->config(config_path);
     app->set_hostname(hostname);
     app->set_port(port);
 
     HOLOSCAN_LOG_INFO(
-        "Starting SUBSCRIBER_OVERLAY: Receiving frames and drawing a frame counter overlay");
+        "Starting OVERLAY subscribe/publish: Receiving frames and" \
+        " publishing a frame counter overlay");
     app->run();
   }
 

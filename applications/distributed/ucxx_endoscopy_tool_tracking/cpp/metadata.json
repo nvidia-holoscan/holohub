@@ -16,7 +16,8 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "3.8.0",
 			"tested_versions": [
-				"3.8.0"
+				"3.8.0",
+				"3.10.0"
 			]
 		},
 		"platforms": "amd64",
@@ -47,11 +48,11 @@
 					"workdir": "holohub_bin"
 				}
 			},
-			"subscribe_overlay": {
+			"overlay": {
 				"description": "Subscriber that draws a frame counter overlay and sends it back to publisher (connect to publisher port+1)",
 				"requirements": [],
 				"run": {
-					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode subscribe_overlay --port 50009",
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode overlay --port 50009",
 					"workdir": "holohub_bin"
 				}
 			}
