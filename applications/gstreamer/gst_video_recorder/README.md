@@ -211,7 +211,7 @@ Practical, copy-paste examples for common use cases.
   ./holohub  run  gst_video_recorder  --run-args="--source pattern --count 300 --width 1280 --height 720 -o video_720p.mp4"
   ```
 
-- Different Patterns; Record checkerboard pattern:
+- Record checkerboard pattern:
 
   ```bash
   ./holohub  run  gst_video_recorder  --run-args="--source pattern --count 300 --pattern 1 -o checkerboard.mp4"
