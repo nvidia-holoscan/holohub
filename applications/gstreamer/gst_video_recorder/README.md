@@ -72,7 +72,7 @@ Choose one of the following options to build the application:
 | Install the application: | Install dependencies, from the `gst_video_recorder` directory:  |
 | ```./holohub  build  gst_video_recorder``` | ```./install_deps.sh``` |
 |  | Then build locally: |
-|  | ```./holohub  build  --local  gst_video_recorder``` |
+|  | ```./holohub build --local gst_video_recorder``` |
 
 ### Usage Reference
 
