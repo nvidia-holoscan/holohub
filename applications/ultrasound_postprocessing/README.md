@@ -144,3 +144,10 @@ This project is licensed under the Apache-2.0 License. See the HoloHub [LICENSE]
 
 - NVIDIA Holoscan Team
 - Open source community contributors
+
+
+## Reference Data
+
+This project uses UFF sample data hosted by the [Ultrasound Toolbox](https://www.ustb.no/).
+
+> H. Liebgott, A. Rodriguez-Molares, F. Cervenansky, J. A. Jensen and O. Bernard, "Plane-Wave Imaging Challenge in Medical Ultrasound," 2016 IEEE International Ultrasonics Symposium (IUS), Tours, France, 2016, pp. 1-4, doi: 10.1109/ULTSYM.2016.7728908.

@@ -25,7 +25,7 @@ def analyze_text_log(filename, discard=0):
     if discard > 0:
         print(f"Discarding first and last {discard} samples for stability.")
 
-    # Format: (op_name, start_ns, end_ns) -> (next_op, start_ns, end_ns)
+    # Format: (op_name, start_us, end_us) -> (next_op, start_us, end_us)
     # Regex to capture: (name,start,end)
     # We can calculate execution time = end - start
 
