@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1623,7 +1623,7 @@ uint64_t DocaMgr::get_burst_tot_byte(BurstParams* burst) {
   return burst->hdr.hdr.nbytes;
 }
 
-uint16_t DocaMgr::get_packet_length(BurstParams* burst, int idx) {
+uint32_t DocaMgr::get_packet_length(BurstParams* burst, int idx) {
   return 0;
 }
 
@@ -1631,7 +1631,7 @@ uint16_t DocaMgr::get_packet_flow_id(BurstParams* burst, int idx) {
   return 0;
 }
 
-uint16_t DocaMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+uint32_t DocaMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   return 0;
 }
 

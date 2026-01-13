@@ -1,5 +1,5 @@
-#  Copyright 2025 NVIDIA CORPORATION & AFFILIATES (modifications).
-#  Copyright 2021 The PlenOctree Authors.
+#  Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES (modifications).
+#  Copyright (c) 2025-2026, The PlenOctree Authors.
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions are met:
 #

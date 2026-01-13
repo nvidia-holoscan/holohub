@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_sources(${PROJECT_NAME} PRIVATE adv_network_dpdk_mgr.cpp adv_network_dpdk_stats.cpp)
+target_sources(${PROJECT_NAME} PRIVATE adv_network_dpdk_mgr.cpp adv_network_dpdk_stats.cpp adv_network_dpdk_log.cpp)
 
 # Try to find DPDK via pkg-config
 # This will find upstream DPDK (installed to /usr/local) or mlnx-dpdk

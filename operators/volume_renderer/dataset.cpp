@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+/* SPDX-FileCopyrightText: Copyright (c) 2023-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +55,8 @@ void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
                         const std::array<uint32_t, 3>& permute_axis,
                         const std::array<bool, 3>& flip_axes,
                         const std::vector<clara::viz::Vector2f>& element_range,
-                        const nvidia::gxf::Handle<nvidia::gxf::Tensor>& tensor) {
+                        const nvidia::gxf::Handle<nvidia::gxf::Tensor>& tensor,
+                        cudaStream_t cuda_stream) {
   DataArray data_array;
 
   switch (tensor->element_type()) {
@@ -109,7 +110,8 @@ void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
         std::make_unique<clara::viz::CudaMemory>(volume_size));
 
     {
-      std::unique_ptr<clara::viz::IBlob::AccessGuard> access_gpu = cur_data_array->blob_->Access();
+      std::unique_ptr<clara::viz::IBlob::AccessGuard> access_gpu =
+          cur_data_array->blob_->Access(cuda_stream);
 
       cudaMemcpy3DParms copy_params = {0};
 
@@ -140,7 +142,7 @@ void Dataset::SetVolume(Types type, const std::array<float, 3>& spacing,
           return;
       }
 
-      if (cudaMemcpy3D(&copy_params) != cudaSuccess) {
+      if (cudaMemcpy3DAsync(&copy_params, cuda_stream) != cudaSuccess) {
         holoscan::log_error("Failed to copy to GPU memory");
         return;
       }

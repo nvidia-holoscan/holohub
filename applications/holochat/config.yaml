@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ max_prompt_tokens: 3000
 local_llm_url: "http://127.0.0.1:8080/v1"
 nim_url: "https://integrate.api.nvidia.com/v1"
 
-nim_model: "meta/llama3-70b-instruct"
+nim_model: "meta/llama-3.3-70b-instruct"
 local_model: "phind/phind-codellama-34b-v2"
 
 server_timeout: 60

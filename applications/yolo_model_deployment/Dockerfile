@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,11 +18,11 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 
-FROM ${BASE_IMAGE} as base
+FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-FROM base as holohub-setup
+FROM base AS holohub-setup
 
 # --------------------------------------------------------------------------
 #
@@ -39,7 +39,7 @@ RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 #
 # Install required apt packages and python modules
 #
-FROM holohub-setup as holohub-yolo
+FROM holohub-setup AS holohub-yolo
 
 RUN apt-get update \
     && apt-get install -y libgl1

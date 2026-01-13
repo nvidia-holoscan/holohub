@@ -190,7 +190,7 @@ The `FetchHolohubOperator.cmake` file provides a convenient way to fetch specifi
 
 #### Function Signature
 ```cmake
-fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch] [DISABLE_PYTHON])
+fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch] [DEPTH depth] [DISABLE_PYTHON] [PATCH_COMMAND command])
 ```
 
 #### Parameters
@@ -198,7 +198,9 @@ fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch] 
 - `PATH` (optional): The path to the operator within the Holohub repository (defaults to OPERATOR_NAME)
 - `REPO_URL` (optional): The URL of the Holohub repository (defaults to the official Holohub repo)
 - `BRANCH` (optional): The branch to checkout (defaults to "main")
+- `DEPTH` (optional): Git clone depth (defaults to 1 for shallow clone, use 0 for full history)
 - `DISABLE_PYTHON` (optional): Flag to disable Python bindings build (Python bindings are enabled by default)
+- `PATCH_COMMAND` (optional): Custom command to run after checkout (e.g., to apply patches)
 
 #### Examples
 ```cmake
@@ -214,8 +216,25 @@ fetch_holohub_operator(custom_operator REPO_URL "https://github.com/custom/holoh
 # Fetch from a specific branch
 fetch_holohub_operator(custom_operator BRANCH "dev")
 
+# Fetch with full git history
+fetch_holohub_operator(custom_operator DEPTH 0)
+
 # Fetch an operator without Python bindings
 fetch_holohub_operator(aja_source DISABLE_PYTHON)
+
+# Fetch and apply a patch
+fetch_holohub_operator(aja_source PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/fix.patch)
+
+# Combine multiple parameters
+fetch_holohub_operator(custom_operator
+    PATH operators/custom
+    REPO_URL "https://github.com/my-org/custom-holohub.git"
+    BRANCH "dev"
+    DEPTH 0
+    DISABLE_PYTHON
+    PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/fix1.patch
+                  && git apply ${CMAKE_CURRENT_SOURCE_DIR}/fix2.patch
+)
 ```
 
 ### 4. Choosing the Right Approach
@@ -405,6 +424,26 @@ To use operators from a specific branch:
 
 ```cmake
 fetch_holohub_operator(experimental_operator BRANCH "experimental")
+```
+
+### Applying Patches to Operators
+
+You can apply custom patches to operators using the `PATCH_COMMAND` parameter:
+
+```cmake
+# Apply a patch file
+fetch_holohub_operator(aja_source 
+    PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/fix.patch
+)
+```
+
+**Note**: If applying patches created from older commits, you may need to fetch full git history:
+
+```cmake
+fetch_holohub_operator(aja_source 
+    DEPTH 0
+    PATCH_COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/fix.patch
+)
 ```
 
 ## Troubleshooting

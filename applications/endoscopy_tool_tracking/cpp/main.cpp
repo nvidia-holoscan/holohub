@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,8 +127,7 @@ class App : public holoscan::Application {
           Arg("width") = width,
           Arg("height") = height,
           Arg("progressive") = from_config("deltacast.progressive").as<bool>(),
-          Arg("framerate") = from_config("deltacast.framerate").as<uint32_t>(),
-          Arg("pool") = make_resource<UnboundedAllocator>("pool"));
+          Arg("framerate") = from_config("deltacast.framerate").as<uint32_t>());
 #endif
       source_block_size = width * height * 4 * 4;
       source_num_blocks = use_rdma ? 3 : 4;
@@ -269,7 +268,6 @@ class App : public holoscan::Application {
             Arg("height") = height,
             Arg("progressive") = from_config("deltacast.progressive").as<bool>(),
             Arg("framerate") = from_config("deltacast.framerate").as<uint32_t>(),
-            Arg("pool") = make_resource<UnboundedAllocator>("pool"),
             Arg("enable_overlay") = overlay_enabled);
         auto overlay_format_converter_videomaster = make_operator<ops::FormatConverterOp>(
             "overlay_format_converter",

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 DELTACAST.TV. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, DELTACAST.TV. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ from argparse import ArgumentParser
 
 from holoscan.core import Application
 from holoscan.operators import FormatConverterOp, VideoStreamReplayerOp
-from holoscan.resources import BlockMemoryPool, MemoryStorageType, UnboundedAllocator
+from holoscan.resources import BlockMemoryPool, MemoryStorageType
 
 from holohub.videomaster import VideoMasterTransmitterOp
 
@@ -44,7 +44,7 @@ class DeltacastTransmitterApp(Application):
         height = videomaster_kwargs.get("height", 1080)
 
         # Calculate source block size and count and define the source pool parameters
-        source_block_size = width * height * 4 * 4
+        source_block_size = width * height * 4
         source_block_count = 3 if videomaster_kwargs.get("rdma") else 4
 
         source_pool_kwargs = dict(
@@ -68,7 +68,6 @@ class DeltacastTransmitterApp(Application):
         visualizer = VideoMasterTransmitterOp(
             self,
             name="videomaster",
-            pool=UnboundedAllocator(self, name="pool"),
             rdma=videomaster_kwargs.get("rdma", False),
             board=videomaster_kwargs.get("board", 0),
             width=width,

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 DELTACAST.TV. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, DELTACAST.TV. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,28 +22,32 @@
 #include <utility>
 #include <vector>
 
-#include "holoscan/core/gxf/gxf_operator.hpp"
+#include "holoscan/core/operator.hpp"
+
+#include "videomaster_base.hpp"
 
 namespace holoscan::ops {
 
 /**
- * @brief Operator class to get the video stream from Deltacast capture card.
- *
- * This wraps a GXF Codelet(`nvidia::holoscan::videomaster::VideoMasterTransmitter`).
+ * @brief Operator class to transmit video stream to Deltacast capture card.
  */
-class VideoMasterTransmitterOp : public holoscan::ops::GXFOperator {
+class VideoMasterTransmitterOp : public holoscan::Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(VideoMasterTransmitterOp, holoscan::ops::GXFOperator)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(VideoMasterTransmitterOp)
 
   VideoMasterTransmitterOp() = default;
 
-  const char* gxf_typename() const override {
-    return "nvidia::holoscan::videomaster::VideoMasterTransmitter";
-  }
-
   void setup(OperatorSpec& spec) override;
+  void initialize() override;
+  void start() override;
+  void compute(InputContext& op_input, OutputContext& op_output,
+               ExecutionContext& context) override;
+  void stop() override;
 
  private:
+  bool configure_board_for_overlay();
+  bool configure_stream_for_overlay();
+
   Parameter<holoscan::IOSpec*> _source;
   Parameter<bool> _use_rdma;
   Parameter<uint32_t> _board_index;
@@ -53,7 +57,11 @@ class VideoMasterTransmitterOp : public holoscan::ops::GXFOperator {
   Parameter<bool> _progressive;
   Parameter<uint32_t> _framerate;
   Parameter<bool> _overlay;
-  Parameter<std::shared_ptr<Allocator>> _pool;
+
+  bool _has_lost_signal = false;
+  uint64_t _slot_count = 0;
+
+  std::unique_ptr<VideoMasterBase> _video_master_base;
 };
 
 }  // namespace holoscan::ops
