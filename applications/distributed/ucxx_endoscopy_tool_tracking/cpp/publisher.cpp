@@ -180,7 +180,7 @@ void UcxxEndoscopyPublisherApp::compose() {
   // Note: the current UCXX endpoint implementation supports a single connection per listening
   // port. To support two parallel subscribers, we listen on two ports:
   // - port_      : subscriber_holoviz
-  // - port_ + 1  : subscriber_overlay
+  // - port_ + 1  : "overlay" application subscriber
   auto ucxx_endpoint_holoviz = make_resource<holoscan::ops::UcxxEndpoint>(
       "ucxx_endpoint_holoviz", Arg("hostname", hostname_), Arg("port", port_), Arg("listen", true));
   auto ucxx_endpoint_overlay =
@@ -197,12 +197,12 @@ void UcxxEndoscopyPublisherApp::compose() {
   auto replayer = make_operator<ops::VideoStreamReplayerOp>("replayer",
                                                             Arg("allocator") = replayer_allocator,
                                                             Arg("directory", datapath_),
-                                                            from_config("replayer"));
+                                                            from_config("publisher.replayer"));
 
   // Format converter for inference input
   auto format_converter = make_operator<ops::FormatConverterOp>(
       "format_converter",
-      from_config("format_converter"),
+      from_config("publisher.format_converter"),
       Arg("pool") = make_resource<BlockMemoryPool>("pool", 1, source_block_size, source_num_blocks),
       Arg("cuda_stream_pool") = cuda_stream_pool);
 
@@ -214,7 +214,7 @@ void UcxxEndoscopyPublisherApp::compose() {
 
   auto lstm_inferer = make_operator<ops::LSTMTensorRTInferenceOp>(
       "lstm_inferer",
-      from_config("lstm_inference"),
+      from_config("publisher.lstm_inference"),
       Arg("model_file_path", model_file_path),
       Arg("engine_cache_dir", engine_cache_dir),
       Arg("pool") = make_resource<BlockMemoryPool>(
@@ -242,7 +242,7 @@ void UcxxEndoscopyPublisherApp::compose() {
   // Use Holoviz layer_callback to draw the frame counter value on the frame.
   auto holoviz = make_operator<ops::HolovizOp>(
       "holoviz",
-      from_config("holoviz"),
+      from_config("publisher.holoviz"),
       Arg("width") = width,
       Arg("height") = height,
       Arg("enable_render_buffer_output") = true,
