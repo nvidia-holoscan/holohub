@@ -95,8 +95,15 @@ holohub/data/bci_visualization/
 ```
 
 ### 2. Run the Application
+
+Stream moments from data.snirf
 ```bash
 ./holohub run bci_visualization
+```
+
+Stream moments from Flow headset via Kernel SDK
+```bash
+./holohub run bci_visualization --docker-opts="-e KERNEL_SDK=1 -v /etc/kernel.com/kortex.json:/etc/kernel.com/kortex.json"
 ```
 
 ## Pipeline Overview

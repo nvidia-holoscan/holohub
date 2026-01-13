@@ -22,6 +22,7 @@ from operators.reconstruction import (
 from operators.stream import StreamOperator
 from operators.voxel_stream_to_volume import VoxelStreamToVolumeOp
 from streams.base_nirs import BaseNirsStream
+from streams.kernel_sdk import KernelSDKStream
 from streams.snirf import SNIRFStream
 from utils.reconstruction.assets import get_assets
 
@@ -253,7 +254,12 @@ def main():
     default_data_path = os.path.join(os.getcwd(), "data/bci_visualization")
     kernel_data = Path(os.environ.get("HOLOSCAN_INPUT_PATH", default_data_path))
 
-    stream = SNIRFStream(kernel_data / "data.snirf")
+    stream = None
+    if os.environ.get("KERNEL_SDK") == "1":
+        stream = KernelSDKStream()
+    else:
+        stream = SNIRFStream(kernel_data / "data.snirf")
+
     app = BciVisualizationApp(
         render_config_file=args.renderer_config,
         stream=stream,
