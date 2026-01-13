@@ -17978,8 +17978,12 @@
 <h2 id="environment-setup">Environment Setup<a class="headerlink" href="#environment-setup" title="Permanent link">#</a></h2>
 <h3 id="holohub-docker-container-recommended">Holohub Docker Container (recommended)<a class="headerlink" href="#holohub-docker-container-recommended" title="Permanent link">#</a></h3>
 <p>All dependencies are automatically managed by the Holohub Docker container. You can simply run:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span><span class="o">[</span>&lt;application_name&gt;<span class="o">]</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--build-args<span class="w"> </span><span class="s2">&quot;--target benchmarking-setup&quot;</span><span class="w"> </span><span class="o">[</span>&lt;application_name&gt;<span class="o">]</span>
 </code></pre></div>
+<blockquote>
+<p>[!NOTE]
+By default, this command will build and run the Holohub Docker container with benchmarking tools enabled, unless the application already provides its own Dockerfile.  If the application has a custom Dockerfile, the <code>benchmarking-setup</code> target may not be available within its container image. For further details or special instructions, please consult the README of the respective application.</p>
+</blockquote>
 <h3 id="bare-metal-installation">Bare-metal Installation<a class="headerlink" href="#bare-metal-installation" title="Permanent link">#</a></h3>
 <p>If not using the Holohub Docker container, apart from the holoscan and application's specific dependencies, additional Python packages should be installed:</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/requirements.txt
