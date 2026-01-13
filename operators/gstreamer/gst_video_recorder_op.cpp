@@ -204,59 +204,6 @@ std::string get_parser_from_encoder(GstElement* encoder) {
 }
 
 /**
- * @brief Monitor the GStreamer pipeline bus for errors, EOS, and state changes
- *
- * This function runs in a separate thread and processes bus messages until
- * an EOS, error, or stop signal is received.
- *
- * @param pipeline The GStreamer pipeline to monitor (C++ wrapper)
- * @param stop_flag Atomic flag to signal the thread to stop (reference)
- */
-void monitor_pipeline_bus(holoscan::gst::Pipeline& pipeline, std::atomic<bool>& stop_flag) {
-  holoscan::gst::Bus bus = pipeline.get_bus();
-
-  while (!stop_flag.load()) {
-    holoscan::gst::Message msg =
-        bus.timed_pop_filtered(100 * GST_MSECOND,
-                               static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS |
-                                                           GST_MESSAGE_STATE_CHANGED));
-
-    if (msg) {
-      switch (GST_MESSAGE_TYPE(msg.get())) {
-        case GST_MESSAGE_ERROR: {
-          std::string debug_info;
-          auto error = msg.parse_error(debug_info);
-          HOLOSCAN_LOG_ERROR("GStreamer error: {}", error->message);
-          if (!debug_info.empty()) {
-            HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
-          }
-          return;
-        }
-        case GST_MESSAGE_EOS:
-          HOLOSCAN_LOG_INFO("End of stream reached");
-          return;
-        case GST_MESSAGE_STATE_CHANGED: {
-          // Only check state changes from the pipeline (not individual elements)
-          if (GST_MESSAGE_SRC(msg.get()) == GST_OBJECT(pipeline.get())) {
-            GstState old_state, new_state, pending_state;
-            msg.parse_state_changed(&old_state, &new_state, &pending_state);
-
-            // If pipeline transitions to NULL, stop monitoring
-            if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
-              HOLOSCAN_LOG_INFO("Pipeline transitioned to NULL state");
-              return;
-            }
-          }
-          break;
-        }
-        default:
-          break;
-      }
-    }
-  }
-}
-
-/**
  * @brief Create GstSrcBridge from tensor map by detecting video parameters
  *
  * Inspects the tensor map to extract video parameters from the first tensor
@@ -453,9 +400,6 @@ void GstVideoRecorderOp::start() {
   // Initialize frame counter
   frame_count_ = 0;
 
-  // Ensure bus monitor stop flag is cleared for a fresh run
-  stop_bus_monitor_.store(false);
-
   HOLOSCAN_LOG_INFO("GstVideoRecorderOp - Starting");
   HOLOSCAN_LOG_INFO("Output filename: '{}'", filename_.get());
   HOLOSCAN_LOG_INFO("Encoder: {}enc", encoder_name_.get());
@@ -556,8 +500,8 @@ void GstVideoRecorderOp::start() {
   HOLOSCAN_LOG_INFO("GStreamer pipeline started (waiting for source to be added)");
 
   // Start bus monitoring in a background thread
-  bus_monitor_future_ = std::async(
-      std::launch::async, monitor_pipeline_bus, std::ref(pipeline_), std::ref(stop_bus_monitor_));
+  bus_monitor_ = std::make_unique<gst::PipelineBusMonitor>(pipeline_);
+  bus_monitor_->start();
 
   HOLOSCAN_LOG_INFO("GstVideoRecorderOp::start() - Pipeline setup complete");
 }
@@ -626,18 +570,15 @@ void GstVideoRecorderOp::stop() {
   }
 
   // Wait for the bus monitor thread to complete (it will exit when EOS is received)
-  // Do NOT signal stop_bus_monitor_ - let it exit naturally on EOS
-  if (bus_monitor_future_.valid()) {
+  if (bus_monitor_) {
     HOLOSCAN_LOG_INFO("GstVideoRecorderOp::stop() - Waiting for EOS to be processed");
-    auto status = bus_monitor_future_.wait_for(kEosTimeoutSeconds);
+    auto status = bus_monitor_->get_completion_future().wait_for(kEosTimeoutSeconds);
     if (status == std::future_status::ready) {
       HOLOSCAN_LOG_INFO("EOS processed, pipeline finished cleanly");
     } else {
       HOLOSCAN_LOG_WARN("EOS not processed within {} seconds, forcing shutdown",
                         kEosTimeoutSeconds.count());
-      stop_bus_monitor_.store(true);  // Force stop as fallback only
-      // Give it a bit more time to exit gracefully
-      bus_monitor_future_.wait_for(std::chrono::seconds(2));
+      bus_monitor_->stop();  // Force stop as fallback only
     }
   }
 

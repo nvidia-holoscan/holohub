@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_VIDEO_RECORDER_OPERATOR_HPP
-#define GST_VIDEO_RECORDER_OPERATOR_HPP
+#ifndef GST_VIDEO_RECORDER_OP_HPP
+#define GST_VIDEO_RECORDER_OP_HPP
 
 #include <atomic>
 #include <future>
@@ -32,6 +32,7 @@
 #include "gst/object.hpp"
 #include "gst/pipeline.hpp"
 #include "gst_src_bridge.hpp"
+#include "gst_pipeline_bus_monitor.hpp"
 
 namespace holoscan {
 
@@ -131,8 +132,7 @@ class GstVideoRecorderOp : public Operator {
   gst::Element encoder_;  // Keep reference to link dynamically created converter to it
 
   // Bus monitoring
-  std::future<void> bus_monitor_future_;
-  std::atomic<bool> stop_bus_monitor_{false};
+  std::unique_ptr<gst::PipelineBusMonitor> bus_monitor_;
 
   // Frame tracking
   size_t frame_count_ = 0;
@@ -140,4 +140,4 @@ class GstVideoRecorderOp : public Operator {
 
 }  // namespace holoscan
 
-#endif /* GST_VIDEO_RECORDER_OPERATOR_HPP */
+#endif /* GST_VIDEO_RECORDER_OP_HPP */
