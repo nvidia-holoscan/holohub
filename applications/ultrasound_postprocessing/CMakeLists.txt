@@ -18,10 +18,38 @@ cmake_minimum_required(VERSION 3.20)
 project(ultrasound_postprocessing)
 
 if(HOLOHUB_DOWNLOAD_DATASETS)
-    include(holoscan_download_data)
-    holoscan_download_data(demo.uff
-        URL "https://drive.google.com/file/d/1hQYZ4ccDusMeX2CKNV49E3iLbsxb41Pf/view?usp=drive_link"
-        DOWNLOAD_DIR "${HOLOHUB_DATA_DIR}/ultrasound_postprocessing"
+    # Custom target for downloading raw .uff file
+    set(UFF_URL "http://www.ustb.no/datasets/PICMUS_simulation_contrast_speckle.uff")
+    set(UFF_SHA256 "be3d1efb0104dc499826e981187bea5520d17373aad69370961ae6318dd877f9")
+
+    set(UFF_DOWNLOAD_DIR "${HOLOHUB_DATA_DIR}/ultrasound_postprocessing")
+    set(UFF_OUTPUT_FILE "${UFF_DOWNLOAD_DIR}/demo.uff")
+    set(UFF_STAMP_FILE "${UFF_DOWNLOAD_DIR}/demo.uff.stamp")
+
+    # Find download command
+    find_program(WGET_COMMAND wget)
+    find_program(CURL_COMMAND curl)
+    find_program(SHA256_COMMAND sha256sum)
+
+    if(WGET_COMMAND)
+        set(DOWNLOAD_CMD ${WGET_COMMAND} -q --show-progress -O ${UFF_OUTPUT_FILE} ${UFF_URL})
+    elseif(CURL_COMMAND)
+        set(DOWNLOAD_CMD ${CURL_COMMAND} -S -L -o ${UFF_OUTPUT_FILE} ${UFF_URL})
+    else()
+        message(FATAL_ERROR "wget or curl is required to download datasets")
+    endif()
+
+    add_custom_command(
+        OUTPUT ${UFF_STAMP_FILE}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${UFF_DOWNLOAD_DIR}
+        COMMAND ${DOWNLOAD_CMD}
+        COMMAND ${CMAKE_COMMAND} -E touch ${UFF_STAMP_FILE}
+        COMMAND ${SHA256_COMMAND} ${UFF_OUTPUT_FILE} | grep -q ${UFF_SHA256} || (echo "UFF download checksum failed!" && exit 1)
+        COMMENT "Downloading demo.uff from ustb.no"
+    )
+
+    add_custom_target(ultrasound_postprocessing_data ALL
+        DEPENDS ${UFF_STAMP_FILE}
     )
 endif()
 
