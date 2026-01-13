@@ -14,4 +14,5 @@
 # limitations under the License.
 
 add_holohub_application(gst_video_recorder DEPENDS OPERATORS gstreamer)
+add_holohub_application(holo_to_gst DEPENDS OPERATORS gstreamer)
 

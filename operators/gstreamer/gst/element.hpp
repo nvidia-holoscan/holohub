@@ -60,6 +60,16 @@ class ElementBase : public ObjectBase<Derived, NativeType> {
     return gst_element_set_state(GST_ELEMENT(this->get()), state);
   }
 
+  /// @brief Get the state of this element
+  /// @param state Pointer to store the current state (can be nullptr)
+  /// @param pending Pointer to store the pending state (can be nullptr)
+  /// @param timeout Timeout in nanoseconds (GST_CLOCK_TIME_NONE for infinite, 0 for immediate)
+  /// @returns The result of the state query operation
+  GstStateChangeReturn get_state(GstState* state, GstState* pending,
+                                  GstClockTime timeout = GST_CLOCK_TIME_NONE) const {
+    return gst_element_get_state(GST_ELEMENT(this->get()), state, pending, timeout);
+  }
+
   /// @brief Link this element to another element
   /// @param dest The destination element to link to
   /// @returns true if linking was successful, false otherwise

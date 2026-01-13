@@ -48,6 +48,22 @@ class BinBase : public ElementBase<Derived, NativeType> {
       : ElementBase<Derived, NativeType>(std::move(other)) {}
 
   /**
+   * @brief Add a single element to the bin
+   * @tparam Element Template for Element type
+   * @param element Element object to add
+   * @return true if the element was successfully added, false otherwise
+   *
+   * This is a type-safe C++ wrapper around gst_bin_add().
+   * Accepts an Element wrapper object or raw GstElement* pointer.
+   *
+   * Example: bin.add(element);
+   */
+  template <typename Element>
+  bool add(const Element& element) {
+    return gst_bin_add(GST_BIN(this->get()), get_gst_element(element));
+  }
+
+  /**
    * @brief Add multiple elements to the bin
    * @tparam Elements Variadic template for Element types
    * @param elements Variable number of Element objects to add
@@ -58,19 +74,18 @@ class BinBase : public ElementBase<Derived, NativeType> {
    * Example: bin.add_many(element1, element2, element3);
    */
   template <typename... Elements>
-  void add_many(Elements&&... elements) {
+  void add_many(const Elements&... elements) {
     static_assert(sizeof...(elements) > 0, "add_many requires at least one element");
 
     // Extract raw GstElement* from each Element wrapper and call gst_bin_add_many
     // The function expects a NULL-terminated list
-    gst_bin_add_many(
-        GST_BIN(this->get()), get_gst_element(std::forward<Elements>(elements))..., nullptr);
+    gst_bin_add_many(GST_BIN(this->get()), get_gst_element(elements)..., nullptr);
   }
 
  private:
   // Helper function to extract GstElement* from ElementBase-derived classes or raw pointers
   template <typename T>
-  static ::GstElement* get_gst_element(T&& element) {
+  static ::GstElement* get_gst_element(const T& element) {
     using DecayedT = std::decay_t<T>;
 
     // If it's a raw ::GstElement* pointer, use directly

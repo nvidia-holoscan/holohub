@@ -43,6 +43,15 @@ class Message : public MiniObjectBase<Message, ::GstMessage> {
   explicit Message(::GstMessage* message = nullptr) : MiniObjectBase(message) {}
 
   /**
+   * @brief Get the type of this message
+   * @return The GstMessageType (e.g., GST_MESSAGE_ERROR, GST_MESSAGE_EOS)
+   * @note Returns GST_MESSAGE_UNKNOWN if the message is null
+   */
+  GstMessageType get_type() const {
+    return this->get() ? GST_MESSAGE_TYPE(this->get()) : GST_MESSAGE_UNKNOWN;
+  }
+
+  /**
    * @brief Parse error message and extract error information.
    * @return Error object containing the GError (automatically freed on destruction).
    * @throws std::runtime_error if the underlying GstMessage is null
