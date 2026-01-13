@@ -2,7 +2,7 @@
 
 A Holoscan application that demonstrates video recording using the GStreamer encoding pipeline.
 
-![GStreamer Video Recorder Pipeline](docs/pipeline_diagram.png)  
+![GStreamer Video Recorder Pipeline](docs/pipeline_diagram.png) 
 *Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's encoding pipeline*
 
 This application showcases how to:
@@ -13,31 +13,32 @@ This application showcases how to:
 - Use different video codecs (H.264, H.265, and other GStreamer-supported codecs)
 - Support both host and CUDA device memory for zero-copy operation
 
-### Supported Video Sources
+The application supports these video sources:
 
 - **V4L2 Camera** - Capture from any V4L2-compatible camera (USB webcams, MIPI cameras)
 - **Pattern Generator** - Generate animated test patterns (gradient, checkerboard, color bars)
 
-### Requirements
-
-- NVIDIA Holoscan SDK
-- GStreamer 1.0 with the following plugins:
-  - `gstreamer1.0-plugins-base` (`videoconvert` for host memory support)
-  - `gstreamer1.0-plugins-bad` (`cudaconvert`, `nvh264enc`, `nvh265enc` for NVIDIA hardware encoding)
-  - `gstreamer1.0-plugins-good` (`mp4mux` and `matroskamux` for container formats)
-  - `gstreamer1.0-plugins-ugly` (`x264enc` for CPU-based H.264 encoding)
-  - `gstreamer1.0-libav` (for additional codecs, if needed)
-- V4L2-compatible camera (optional, for camera capture mode)
-  - USB webcams, MIPI CSI cameras, or any V4L2 video device
-  - Use `v4l2-ctl --list-devices` to see available cameras
-
 For more information about this application, refer to:
 
+- **[Requirements](#requirements)** - Lists requirements for the application.
 - **[Quick Start](#quick-start)** - Run with default settings.
 - **[Installation Guide](#installation-guide)** - Requirements and building.
 - **[Testing](#testing)** - Integration tests to validate the pipeline execution.
 - **[Examples](#usage-examples)** - Examples for common use cases.
 - **[Architecture](#architecture)** - Technical details and design.
+
+## Requirements
+
+- NVIDIA Holoscan SDK
+- GStreamer 1.0 with the following plugins:
+  - `gstreamer1.0-plugins-base` use `videoconvert` for host memory support
+  - `gstreamer1.0-plugins-bad` use `cudaconvert`, `nvh264enc`, or `nvh265enc` for NVIDIA hardware encoding
+  - `gstreamer1.0-plugins-good` use `mp4mux` and `matroskamux` for container formats
+  - `gstreamer1.0-plugins-ugly` use `x264enc` for CPU-based H.264 encoding
+  - `gstreamer1.0-libav` for additional codecs, if needed
+- V4L2-compatible camera, optional, for camera capture mode
+  - USB webcams, MIPI CSI cameras, or any V4L2 video device
+  - Use `v4l2-ctl --list-devices` to see available cameras
 
 ## Quick Start
 
@@ -70,7 +71,7 @@ Choose one of the following options to build the application:
 |Containerized Build (Recommended)  | Local Build |
 |--|--|
 | Install the application: | Install dependencies, from the `gst_video_recorder` directory:  |
-| ```./holohub  build  gst_video_recorder``` | ```./install_deps.sh``` |
+| ```./holohub build gst_video_recorder``` | ```./install_deps.sh``` |
 |  | Then build locally: |
 |  | ```./holohub build --local gst_video_recorder``` |
 
@@ -161,72 +162,72 @@ Practical, copy-paste examples for common use cases.
 
 ### V4L2 Camera Examples
 
-- Record from default V4L2 camera at 1920x1080 (30 seconds at 30 FPS):
+- Record from the default V4L2 camera at 1920x1080 (30 seconds at 30 FPS):
 
   ```bash
-  ./holohub  run  gst_video_recorder  --run-args="--source v4l2 --width 1920 --height 1080 --count 900 -o camera.mp4"
+  ./holohub run gst_video_recorder --run-args="--source v4l2 --width 1920 --height 1080 --count 900 -o camera.mp4"
   ```
 
-- Record from specific V4L2 device with H.265:
+- Record from a specific V4L2 device with H.265:
 
   ```bash
-  ./holohub  run  gst_video_recorder  --run-args="--source v4l2 --device /dev/video1 --width 1920 --height 1080 --encoder nvh265 --count 600 -o camera_h265.mp4"
+  ./holohub run gst_video_recorder --run-args="--source v4l2 --device /dev/video1 --width 1920 --height 1080 --encoder nvh265 --count 600 -o camera_h265.mp4"
   ```
 
 - Record at 720p resolution:
 
   ```bash
-  ./holohub  run  gst_video_recorder  --run-args="--source v4l2 --width 1280 --height 720 --count 300 -o camera_720p.mp4"
+  ./holohub run gst_video_recorder --run-args="--source v4l2 --width 1280 --height 720 --count 300 -o camera_720p.mp4"
   ```
 
-- Record with specific pixel format (YUYV):
+- Record with a specific pixel format (YUYV):
 
-    ```bash
-    ./holohub run gst_video_recorder --run-args="--source v4l2 --width 640 --height 480 --pixel-format YUYV --count 300 -o camera_yuyv.mp4"
-    ```
+  ```bash
+  ./holohub run gst_video_recorder --run-args="--source v4l2 --width 640 --height 480 --pixel-format YUYV --count 300 -o camera_yuyv.mp4"
+  ```
 
 - High-quality recording with custom encoder settings:
 
-    ```bash
-    ./holohub run gst_video_recorder --run-args="--source v4l2 --property bitrate=12000 --property preset=1 --count 900 -o high_quality.mp4"
-    ```
+  ```bash
+  ./holohub run gst_video_recorder --run-args="--source v4l2 --property bitrate=12000 --property preset=1 --count 900 -o high_quality.mp4"
+  ```
 
 ### Pattern Generator Examples
 
-- Basic Recording of ten seconds of animated gradient (300 frames at 30 FPS):
+- Basic recording of ten seconds of animated gradient (300 frames at 30 FPS):
 
   ```bash
-  ./holohub  run  gst_video_recorder  --run-args="--source pattern --count 300 -o video.mp4"
+  ./holohub run gst_video_recorder --run-args="--source pattern --count 300 -o video.mp4"
   ```
 
-- H.265 Encoding or how to record high-quality H.265 video:
+- Record high-quality H.265 video:
 
   ```bash
-  ./holohub  run  gst_video_recorder  --run-args="--source pattern --count 300 --encoder nvh265 --property bitrate=10000 -o video.mp4"
+  ./holohub run gst_video_recorder --run-args="--source pattern --count 300 --encoder nvh265 --property bitrate=10000 -o video.mp4"
   ```
 
-- Different Resolutions; Record 720p video:
+- Record a 720p resolution video:
 
   ```bash
-  ./holohub  run  gst_video_recorder  --run-args="--source pattern --count 300 --width 1280 --height 720 -o video_720p.mp4"
+  ./holohub run gst_video_recorder --run-args="--source pattern --count 300 --width 1280 --height 720 -o video_720p.mp4"
   ```
 
-- Record checkerboard pattern:
+- Record the checkerboard pattern:
 
   ```bash
-  ./holohub  run  gst_video_recorder  --run-args="--source pattern --count 300 --pattern 1 -o checkerboard.mp4"
+  ./holohub run gst_video_recorder --run-args="--source pattern --count 300 --pattern 1 -o checkerboard.mp4"
   ```
 
 - Record color bars:
 
   ```bash
-  ./holohub  run  gst_video_recorder  --run-args="--source pattern --count 300 --pattern 2 -o colorbars.mp4"
+  ./holohub run gst_video_recorder --run-args="--source pattern --count 300 --pattern 2 -o colorbars.mp4"
   ```
 
-- CPU Encoding; Record using host memory (CPU):
+- Record using host memory (CPU encoding):
 
   ```bash
-  ./holohub  run  gst_video_recorder  --run-args="--source pattern --count 300 --storage 0 --encoder x264 -o video.mp4"
+  ./holohub run gst_video_recorder --run-args="--source pattern --count 300 --storage 0 --encoder x264 -o video.mp4"
   ```
 
 ## Architecture
@@ -246,15 +247,15 @@ The application supports two video sources and uses a common encoding backend:
 
 - V4L2 Camera Pipeline:
 
-```text
-V4L2VideoCaptureOp → FormatConverterOp → GstVideoRecorderOp → GStreamer Pipeline → File
-```
+  ```text
+  V4L2VideoCaptureOp → FormatConverterOp → GstVideoRecorderOp → GStreamer Pipeline → File
+  ```
 
 - Pattern Generator Pipeline:
 
-```text
-PatternGenOperator → GstVideoRecorderOp → GStreamer Pipeline → File
-```
+  ```text
+  PatternGenOperator → GstVideoRecorderOp → GStreamer Pipeline → File
+  ```
 
 The GStreamer encoding pipeline is automatically constructed based on the encoder and file format:
 
