@@ -36,6 +36,9 @@ All dependencies are automatically managed by the Holohub Docker container. You 
 ./holohub run-container --build-args "--target benchmarking-setup" [<application_name>]
 ```
 
+> [!NOTE]
+> By default, this command will build and run the Holohub Docker container with benchmarking tools enabled, unless the application already provides its own Dockerfile.  If the application has a custom Dockerfile, the `benchmarking-setup` target may not be available within its container image. For further details or special instructions, please consult the README of the respective application.
+
 ### Bare-metal Installation
 
 If not using the Holohub Docker container, apart from the holoscan and application's specific dependencies, additional Python packages should be installed:
