@@ -18,7 +18,6 @@
 #ifndef GST_SRC_RESOURCE_HPP
 #define GST_SRC_RESOURCE_HPP
 
-#include <chrono>
 #include <memory>
 #include <string>
 
@@ -64,8 +63,10 @@ class GstSrcResource : public Resource {
    *
    * Note: This function returns immediately after sending EOS. The caller should
    * wait for the EOS message on the pipeline bus to know when processing is complete.
+   *
+   * @return true if EOS was successfully sent (GST_FLOW_OK), false otherwise
    */
-  void send_eos();
+  bool send_eos();
 
   /**
    * @brief Push a buffer into the GStreamer pipeline

@@ -364,5 +364,5 @@ The container mounts your workspace root at `/workspace/holohub`, so files writt
 ## See Also
 
 - `gst_video_recorder` - Records video to files using GStreamer encoding
-- GStreamer documentation: https://gstreamer.freedesktop.org/documentation/
-- Holoscan SDK documentation: https://docs.nvidia.com/holoscan/
+- [GStreamer documentation](https://gstreamer.freedesktop.org/documentation/)
+- [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/)

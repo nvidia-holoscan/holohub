@@ -61,9 +61,11 @@ void GstSrcOp::stop() {
 
   // Send EOS to signal end of stream
   // The application should wait for the EOS message on the pipeline bus
-  gst_src_resource_.get()->send_eos();
-
-  HOLOSCAN_LOG_INFO("GstSrcOp::stop() - EOS sent");
+  if (gst_src_resource_.get()->send_eos()) {
+    HOLOSCAN_LOG_INFO("GstSrcOp::stop() - EOS sent successfully");
+  } else {
+    HOLOSCAN_LOG_ERROR("GstSrcOp::stop() - Failed to send EOS to GStreamer pipeline");
+  }
 }
 
 }  // namespace holoscan

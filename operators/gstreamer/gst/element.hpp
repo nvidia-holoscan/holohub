@@ -95,6 +95,19 @@ class ElementBase : public ObjectBase<Derived, NativeType> {
         GST_ELEMENT(this->get()), get_gst_element(std::forward<Elements>(elements))..., nullptr);
   }
 
+  /// @brief Get the name of this element
+  /// @returns The name of the element as a string
+  /// @note Properly handles memory allocation from gst_element_get_name()
+  std::string get_name() const {
+    gchar* name = gst_element_get_name(GST_ELEMENT(this->get()));
+    if (!name) {
+      return "";
+    }
+    std::string result(name);
+    g_free(name);
+    return result;
+  }
+
   /// @brief Get a static pad from this element
   /// @param name The name of the pad (e.g., "src", "sink")
   /// @returns A Pad wrapper for the static pad, or empty Pad if not found

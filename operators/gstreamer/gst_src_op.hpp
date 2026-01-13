@@ -34,6 +34,8 @@ class GstSrcOp : public Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(GstSrcOp)
 
+  GstSrcOp() = default;
+
   /**
    * @brief Setup the operator specification
    * 
