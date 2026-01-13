@@ -17,7 +17,11 @@
 
 #pragma once
 
+#include <atomic>
+#include <functional>
+#include <mutex>
 #include <string>
+#include <vector>
 
 #include "holoscan/holoscan.hpp"
 #include "ucxx/api.h"
@@ -35,10 +39,18 @@ class UcxxEndpoint : public holoscan::Resource {
   void setup(holoscan::ComponentSpec& spec) override;
   void initialize() override;
 
-  std::shared_ptr<ucxx::Endpoint> endpoint() const { return endpoint_; }
+  // Thread-safe snapshot of the underlying UCXX endpoint.
+  //
+  // Note: `endpoint_` can be reset from UCXX's progress thread in the close callback. Using
+  // atomic_load/store avoids data races on the shared_ptr object itself.
+  std::shared_ptr<::ucxx::Endpoint> endpoint() const { return std::atomic_load(&endpoint_); }
   std::shared_ptr<ucxx::Worker> worker() const { return worker_; }
 
   std::shared_ptr<holoscan::Condition> is_alive_condition() const { return is_alive_condition_; }
+
+  // Register a callback invoked when the underlying UCXX endpoint closes.
+  // Note: the callback may be invoked from UCXX's progress thread.
+  void add_close_callback(std::function<void(ucs_status_t)> callback);
 
  private:
   void on_connection_request(ucp_conn_request_h conn_request);
@@ -51,9 +63,12 @@ class UcxxEndpoint : public holoscan::Resource {
   std::shared_ptr<ucxx::Context> context_{nullptr};
   std::shared_ptr<ucxx::Worker> worker_{nullptr};
   std::shared_ptr<ucxx::Listener> listener_{nullptr};
-  std::shared_ptr<ucxx::Endpoint> endpoint_{nullptr};
+  std::shared_ptr<::ucxx::Endpoint> endpoint_{nullptr};
 
   std::shared_ptr<holoscan::AsynchronousCondition> is_alive_condition_;
+
+  mutable std::mutex close_callbacks_mutex_;
+  std::vector<std::function<void(ucs_status_t)>> close_callbacks_;
 };
 
 }  // namespace holoscan::ops

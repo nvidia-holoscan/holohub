@@ -19,6 +19,11 @@
 
 namespace holoscan::ops {
 
+void UcxxEndpoint::add_close_callback(std::function<void(ucs_status_t)> callback) {
+  std::scoped_lock lock(close_callbacks_mutex_);
+  close_callbacks_.push_back(std::move(callback));
+}
+
 UcxxEndpoint::~UcxxEndpoint() {
   if (worker_) {
     worker_->stopProgressThread();
@@ -38,14 +43,14 @@ void UcxxEndpoint::setup(holoscan::ComponentSpec& spec) {
 }
 
 void UcxxEndpoint::on_connection_request(ucp_conn_request_h conn_request) {
-  endpoint_ =
-      listener_->createEndpointFromConnRequest(conn_request, /*endpoint_error_handling=*/true);
+  auto ep = listener_->createEndpointFromConnRequest(conn_request, /*endpoint_error_handling=*/true);
+  std::atomic_store(&endpoint_, ep);
   HOLOSCAN_LOG_INFO("Endpoint connected");
 
   // Mark operators ready to execute.
   is_alive_condition_->event_state(holoscan::AsynchronousEventState::EVENT_DONE);
 
-  endpoint_->setCloseCallback(
+  ep->setCloseCallback(
       [this](ucs_status_t status, std::shared_ptr<void>) { on_endpoint_closed(status); }, nullptr);
 }
 
@@ -69,13 +74,14 @@ void UcxxEndpoint::initialize() {
         this);
     HOLOSCAN_LOG_INFO("Listening on: {}", port_);
   } else {
-    endpoint_ = worker_->createEndpointFromHostname(hostname_, port_, true);
+    auto ep = worker_->createEndpointFromHostname(hostname_, port_, true);
+    std::atomic_store(&endpoint_, ep);
     HOLOSCAN_LOG_INFO("Connecting to: {}:{}", hostname_, port_);
 
     // Mark operators ready to execute.
     is_alive_condition_->event_state(holoscan::AsynchronousEventState::EVENT_DONE);
 
-    endpoint_->setCloseCallback(
+    ep->setCloseCallback(
         [this](ucs_status_t status, std::shared_ptr<void>) { on_endpoint_closed(status); },
         nullptr);
   }
@@ -86,8 +92,30 @@ void UcxxEndpoint::initialize() {
 void UcxxEndpoint::on_endpoint_closed(ucs_status_t status) {
   HOLOSCAN_LOG_INFO("Endpoint closed");
   if (status != UCS_OK) {
-    HOLOSCAN_LOG_ERROR("Endpoint closed with status: {}", ucs_status_string(status));
+    // These are expected when subscriber disconnects/restarts.
+    if (status == UCS_ERR_CONNECTION_RESET || status == UCS_ERR_NOT_CONNECTED ||
+        status == UCS_ERR_UNREACHABLE || status == UCS_ERR_CANCELED) {
+      HOLOSCAN_LOG_WARN("Endpoint closed (likely disconnect/reconnect) with status: {}",
+                        ucs_status_string(status));
+    } else {
+      HOLOSCAN_LOG_ERROR("Endpoint closed with status: {}", ucs_status_string(status));
+    }
   }
+
+  // Notify any registered callbacks. (May be invoked from UCXX progress thread.)
+  {
+    std::vector<std::function<void(ucs_status_t)>> callbacks_copy;
+    {
+      std::scoped_lock lock(close_callbacks_mutex_);
+      callbacks_copy = close_callbacks_;
+    }
+    for (auto& cb : callbacks_copy) {
+      if (cb) { cb(status); }
+    }
+  }
+
+  // Clear the endpoint so operators can quickly detect disconnection.
+  std::atomic_store(&endpoint_, std::shared_ptr<::ucxx::Endpoint>{});
 
   // Prevent operators from executing until a new connection is established (server mode)
   // or indefinitely (client mode).

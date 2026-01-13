@@ -29,21 +29,29 @@
 				"description": "Example data dependency - remove or replace with actual requirements"
 			}
 		},
-		"default_mode": "subscribe",
+		"default_mode": "subscribe_holoviz",
 		"modes": {
 			"publish": {
 				"description": "Publisher mode",
 				"requirements": [],
 				"run": {
-					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode publish",
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode publish --data <holohub_data_dir>/endoscopy --port 50008",
 					"workdir": "holohub_bin"
 				}
 			},
-			"subscribe": {
-				"description": "Subscriber mode",
+			"subscribe_holoviz": {
+				"description": "Subscriber that receives and displays frames",
 				"requirements": [],
 				"run": {
-					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode subscribe",
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode subscribe_holoviz --port 50008",
+					"workdir": "holohub_bin"
+				}
+			},
+			"subscribe_overlay": {
+				"description": "Subscriber that draws a frame counter overlay and sends it back to publisher (connect to publisher port+1)",
+				"requirements": [],
+				"run": {
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode subscribe_overlay --port 50009",
 					"workdir": "holohub_bin"
 				}
 			}

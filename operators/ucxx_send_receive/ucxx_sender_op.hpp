@@ -40,6 +40,7 @@ class UcxxSenderOp : public holoscan::Operator {
   holoscan::Parameter<uint64_t> tag_;
   holoscan::Parameter<std::shared_ptr<UcxxEndpoint>> endpoint_;
   holoscan::Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
+  holoscan::Parameter<bool> blocking_;
 
   struct SendRequest {
     std::shared_ptr<ucxx::Request> request;

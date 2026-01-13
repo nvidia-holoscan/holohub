@@ -26,20 +26,36 @@ void UcxxSenderOp::setup(holoscan::OperatorSpec& spec) {
   spec.param(tag_, "tag", "Tag", "UCX tag number", 0ul);
   spec.param(endpoint_, "endpoint", "Endpoint", "UcxxEndpoint resource");
   spec.param(allocator_, "allocator", "Allocator", "Allocator for staging buffers");
+  spec.param(blocking_,
+             "blocking",
+             "Blocking",
+             "If true, do not execute until endpoint is connected. If false (default), drain "
+             "inputs and drop sends while disconnected (prevents upstream backpressure).",
+             false);
   spec.input<holoscan::gxf::Entity>("in");
 
-  // Add the endpoint's is_alive_condition to this operator so that it will only execute when the
-  // endpoint is alive.
+  bool blocking_value = false;
   for (auto arg : args()) {
-    if (arg.name() == "endpoint") {
-      auto resource = std::any_cast<std::shared_ptr<holoscan::Resource>>(arg.value());
-      auto endpoint = std::dynamic_pointer_cast<UcxxEndpoint>(resource);
-      if (endpoint) {
-        add_arg(endpoint->is_alive_condition());
-      } else {
-        HOLOSCAN_LOG_ERROR("Failed to cast endpoint resource to UcxxEndpoint");
-      }
+    if (arg.name() == "blocking") {
+      blocking_value = std::any_cast<bool>(arg.value());
       break;
+    }
+  }
+
+  // If blocking == true: add the endpoint's is_alive_condition to this operator so that it will
+  // only execute when the endpoint is alive.
+  if (blocking_value) {
+    for (auto arg : args()) {
+      if (arg.name() == "endpoint") {
+        auto resource = std::any_cast<std::shared_ptr<holoscan::Resource>>(arg.value());
+        auto endpoint = std::dynamic_pointer_cast<UcxxEndpoint>(resource);
+        if (endpoint) {
+          add_arg(endpoint->is_alive_condition());
+        } else {
+          HOLOSCAN_LOG_ERROR("Failed to cast endpoint resource to UcxxEndpoint");
+        }
+        break;
+      }
     }
   }
 }
@@ -47,6 +63,42 @@ void UcxxSenderOp::setup(holoscan::OperatorSpec& spec) {
 void UcxxSenderOp::compute(holoscan::InputContext& input, holoscan::OutputContext&,
                            holoscan::ExecutionContext&) {
   auto in_message = input.receive<holoscan::gxf::Entity>("in").value();
+
+  // Always clean up completed requests (even when disconnected).
+  for (auto it = requests_.begin(); it != requests_.end();) {
+    if (!it->request || !it->request->isCompleted()) {
+      ++it;
+      continue;
+    }
+    if (ucs_status_t status = it->request->getStatus(); status != UCS_OK) {
+      // Connection reset is expected when the subscriber disconnects/restarts.
+      if (status == UCS_ERR_CONNECTION_RESET || status == UCS_ERR_NOT_CONNECTED ||
+          status == UCS_ERR_UNREACHABLE || status == UCS_ERR_CANCELED) {
+        HOLOSCAN_LOG_WARN("Send failed (likely disconnect/reconnect) with status: {}",
+                          ucs_status_string(status));
+      } else {
+        HOLOSCAN_LOG_ERROR("Send failed with status: {}", ucs_status_string(status));
+      }
+    }
+    it = requests_.erase(it);
+  }
+
+  // Snapshot the UCXX endpoint for the duration of this tick.
+  //
+  // This avoids a race where the endpoint is reset concurrently (e.g., when the subscriber closes)
+  // after the connectivity check but before tagSend() is invoked, which can otherwise lead to
+  // calling tagSend() with a null endpoint.
+  auto endpoint_resource = endpoint_.get();
+  std::shared_ptr<::ucxx::Endpoint> ucxx_endpoint =
+      endpoint_resource ? endpoint_resource->endpoint() : nullptr;
+
+  // If not connected (waiting for subscriber to connect, or after disconnect),
+  // drop the message to avoid stalling upstream operators like Holoviz.
+  if (!ucxx_endpoint) {
+    // Ensure we don't keep stale in-flight requests around while disconnected.
+    requests_.clear();
+    return;
+  }
 
   // Try to get tensor - first as holoscan::Tensor, then as nvidia::gxf::Tensor
   // Use a pointer to handle both cases uniformly
@@ -96,20 +148,8 @@ void UcxxSenderOp::compute(holoscan::InputContext& input, holoscan::OutputContex
   }
 
   // Send the serialized tensor buffer
-  send.request = endpoint_->endpoint()->tagSend(
-      send.buffer.data(), result.value(), ::ucxx::Tag{tag_.get()});
-
-  // Clean up completed requests
-  for (auto it = requests_.begin(); it != requests_.end();) {
-    if (!it->request->isCompleted()) {
-      it++;
-      continue;
-    }
-    if (ucs_status_t status = it->request->getStatus(); status != UCS_OK) {
-      HOLOSCAN_LOG_ERROR("Send failed with status: {}", ucs_status_string(status));
-    }
-    it = requests_.erase(it);
-  }
+  send.request =
+      ucxx_endpoint->tagSend(send.buffer.data(), result.value(), ::ucxx::Tag{tag_.get()});
 }
 
 }  // namespace holoscan::ops

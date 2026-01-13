@@ -89,8 +89,14 @@ void UcxxReceiverOp::compute([[maybe_unused]] holoscan::InputContext& input,
 
   // Post a new request if none is pending.
   if (!request_) {
+    // Snapshot the UCXX endpoint for the duration of this tick to avoid races with disconnects.
+    auto endpoint_resource = endpoint_.get();
+    std::shared_ptr<::ucxx::Endpoint> ucxx_endpoint =
+        endpoint_resource ? endpoint_resource->endpoint() : nullptr;
+    if (!ucxx_endpoint) { return; }
+
     async_condition()->event_state(holoscan::AsynchronousEventState::EVENT_WAITING);
-    request_ = endpoint_->endpoint()->tagRecv(
+    request_ = ucxx_endpoint->tagRecv(
         buffer_.data(), buffer_.size(), ::ucxx::Tag{tag_.get()}, ::ucxx::TagMaskFull,
         /*enablePythonFuture=*/false, [this](ucs_status_t, std::shared_ptr<void>) {
           async_condition()->event_state(holoscan::AsynchronousEventState::EVENT_DONE);

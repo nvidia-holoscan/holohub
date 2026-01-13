@@ -32,6 +32,16 @@ extensions:
 
 record_type: "none"   # "none" or "subscriber" - enables recording of received frames on subscriber side
 
+publisher:
+  # Controls whether the publisher's UCXX sender blocks the pipeline until a subscriber connects.
+  # - true: blocking until connected (may stall upstream rendering)
+  # - false: non-blocking; drop outgoing frames until connected
+  blocking: false
+
+subscriber_overlay:
+  # Controls if the subscriber_overlay node opens a Holoviz UI for visualization.
+  visualize: false
+
 replayer:
   basename: "surgical_video"
   frame_rate: 0   # as specified in timestamps
@@ -108,7 +118,15 @@ holoviz:
         - Spec.Bag
   headless: false
 
-holoviz_subscriber:
+holoviz_subscriber_holoviz:
+  tensors:
+    - name: ""
+      type: color
+      opacity: 1.0
+      priority: 0
+  headless: false
+
+holoviz_subscriber_overlay:
   tensors:
     - name: ""
       type: color

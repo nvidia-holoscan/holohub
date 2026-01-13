@@ -22,6 +22,7 @@ Sends messages through a configured UcxxEndpoint. This operator serializes Holos
 **Parameters:**
 - `endpoint`: Shared pointer to a UcxxEndpoint resource
 - `tag`: Message tag for identifying message types (uint64_t)
+- `blocking`: If true, the operator does not execute until the endpoint is connected. If false, it will drain inputs and drop sends while disconnected.
 
 ### 3. **UcxxReceiverOp** (Operator)
 Receives messages through a configured UcxxEndpoint. This operator listens for incoming messages, deserializes them, and outputs them to downstream operators.
