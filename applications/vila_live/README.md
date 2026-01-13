@@ -83,6 +83,6 @@ This application downloads a pre-recorded video from [Pexels](https://www.pexels
     ffmpeg -stream_loop -1 -re -i <your_video_path> -pix_fmt yuyv422 -f v4l2 /dev/video3
     ```
 ## 🙌 Acknowledgements
-- Jetson AI Lab, [Live LLaVA](https://www.jetson-ai-lab.com/tutorial_live-llava.html): for the inspiration to create this app
+- Jetson AI Lab, [Live LLaVA](https://www.jetson-ai-lab.com/archive/tutorial_live-llava.html): for the inspiration to create this app
 - [Jetson-Containers](https://github.com/dusty-nv/jetson-containers/tree/master/packages/llm/llamaspeak) repo: For the Flask web-app with WebSockets
 - [LLM-AWQ](https://github.com/mit-han-lab/llm-awq) repo: For the example code to create AWQ-powered LLM servers
