@@ -33,7 +33,7 @@ For detailed information, refer to:
 All dependencies are automatically managed by the Holohub Docker container. You can simply run:
 
 ```bash
-./holohub run-container [<application_name>]
+./holohub run-container --build-args "--target benchmarking-setup" [<application_name>]
 ```
 
 ### Bare-metal Installation
