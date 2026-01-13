@@ -5,12 +5,12 @@ description = "Tools to design and deploy ultrasound post-processing filters wit
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "cupy-cuda13x",
-    "cucim",
-    "scipy>=1.10",
-    "pyuff-ustb",
-    "streamlit",
-    "pyyaml",
+    "cupy-cuda13x~=13.6",
+    "cucim-cu13~=25.10",
+    "scipy~=1.17",
+    "pyuff-ustb~=3.0",
+    "streamlit~=1.52.2",
+    "pyyaml~=6.0.3",
 ]
 
 [project.optional-dependencies]
@@ -22,7 +22,7 @@ dev = [
 ]
 # Optional Holoscan runtime integration (Step 6+). Not required for Streamlit UI.
 holoscan = [
-    "holoscan-cu13>=3.9.0; platform_system == 'Linux'",
+    "holoscan-cu13>=3.9.0",
 ]
 
 # Convenience meta-extra to install all optionals used by developers

@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional, Tuple
 try:
     import cupy as cp
 except ImportError as exc:  # pragma: no cover - handled at runtime
-    raise ImportError("CuPy is required for GPU processing (`pip install cupy-cuda12x`).") from exc
+    raise ImportError("CuPy is required for GPU processing (`pip install cupy-cuda13x`).") from exc
 
 try:
     from pyuff_ustb import Uff
