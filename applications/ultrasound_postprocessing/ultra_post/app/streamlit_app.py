@@ -39,7 +39,7 @@ from ultra_post.core.loader import load_uff_frame  # noqa: E402
 from ultra_post.core.pipeline import Pipeline, create_node, pipeline_to_yaml  # noqa: E402
 from ultra_post.filters.registry import FILTERS  # noqa: E402
 
-DEFAULT_UFF = PROJECT_ROOT / "ultra_post/examples/demo.uff"
+DEFAULT_UFF = PROJECT_ROOT / "../data/ultrasound_postprocessing/demo.uff"
 
 
 def init_state() -> None:

@@ -61,6 +61,16 @@ def _cmd_validate_preset(args: argparse.Namespace) -> int:
     return exit_code
 
 
+def _cmd_designer(_args: argparse.Namespace) -> int:
+    """Launch the Streamlit designer app."""
+    from streamlit.web import cli as stcli
+
+    app_path = Path(__file__).parent / "app" / "streamlit_app.py"
+
+    sys.argv = ["streamlit", "run", str(app_path), "--server.headless=true"]
+    return stcli.main()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ultrasound post-processing CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -72,6 +82,10 @@ def main(argv: list[str] | None = None) -> int:
     validate = sub.add_parser("validate-preset", help="Validate a pipeline preset YAML")
     validate.add_argument("path", type=str, help="Path to preset YAML")
     validate.set_defaults(func=_cmd_validate_preset)
+
+    sub.add_parser("designer", help="Launch the Streamlit pipeline designer UI").set_defaults(
+        func=_cmd_designer
+    )
 
     args = parser.parse_args(argv)
     return int(args.func(args))

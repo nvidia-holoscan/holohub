@@ -295,8 +295,7 @@ def main(argv: Optional[list[str]] = None) -> None:
         if not args.uff:
             print("Specify --uff when using --source=uff", file=sys.stderr)
             raise SystemExit(2)
-        iff = Path(args.uff)
-        if not iff.exists():
+        if not Path(args.uff).exists():
             print(f"UFF file not found: {args.uff}", file=sys.stderr)
             raise SystemExit(2)
     run_holoscan_app(args)
