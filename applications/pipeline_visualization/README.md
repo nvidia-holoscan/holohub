@@ -41,13 +41,13 @@ The web interface will be available at: [http://localhost:8050](http://localhost
 
 In a third terminal, run the application:
 
-1. Run the Python version (default when `--language` is not specified):
+* Run the Python version (default when `--language` is not specified):
 
     ```bash
     ./holohub run pipeline_visualization
     ```
 
-1. Or explicitly specify the language:
+* Or explicitly specify the language:
 
     ```bash
     ./holohub run pipeline_visualization --language python
@@ -87,9 +87,9 @@ The visualizer will display:
 - **modulate.out**: Modulated signal with high-frequency component
 - **sink.in**: Final processed signal (same as modulate.out)
 
-## Configuration
 
-### NATS Logger Configuration (`pipeline_visualization.yaml`)
+
+## NATS Logger Configuration (`pipeline_visualization.yaml`)
 
 The NATS logger behavior can be configured using YAML:
 
@@ -106,7 +106,7 @@ nats_logger:
   log_tensor_data_content: true # Include actual tensor data
 ```
 
-### Architecture
+## Architecture
 
 ```mermaid
 %%{init: {'flowchart':{'subGraphTitleMargin':{'top':10, 'bottom':40}}}}%%
@@ -134,11 +134,32 @@ flowchart TB
     nats -->|Subscribe| viz
 ```
 
+## Visualizer Python Prerequisites
+
+All dependencies to run the application are installed automatically when using the `holohub run` command inside the Holohub container.
+
+If you are running the visualizer outside the Holohub container, its dependencies must be installed separately.
+
+Install the required Python packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+The packages that get installed are:
+
+- `numpy>=1.24.0,<3.0` - Numerical computing
+- `dash>=3.0.0,<4.0` - Web application framework
+- `plotly>=6.0.0,<7.0` - Interactive plotting
+- `nats-py>=2.0.0,<3.0` - NATS messaging client
+- `flatbuffers>=25.9.23,<26.0.0` - FlatBuffers
+- `pandas>=2.3.3,<3.0` - Data manipulation
+
 ## Components
 
 ### Application (`cpp/` and `python/`)
 
-The C++ and Python applications demonstrates a basic Holoscan pipeline with data logging:
+The C++ and Python applications demonstrate a basic Holoscan pipeline with data logging:
 
 - **SourceOp**: Generates sine waves with varying frequencies (10-20 Hz)
 - **ModulateOp**: Adds high-frequency modulation (300 Hz) to the signal
@@ -157,7 +178,7 @@ There are two Python visualizers. One is [static](#static-visualizer-visualizer_
 - Acquisition timestamp (nanoseconds)
 - Publish timestamp (nanoseconds)
 
-Use `start_visualizer.sh` to set the required Python path to the [flatbuffers](#flatbuffers-schemas-schemas) definitions and starts the visualizer. The script takes one parameter, its values are:
+Use `start_visualizer.sh` to set the required Python path to the [flatbuffers](#flatbuffers-schemas-schemas) definitions and start the visualizer. The script takes one parameter, its values are:
 
 - `dynamic`, to start the dynamic visualizer.
 - `static`, to start the static visualizer.
@@ -184,30 +205,11 @@ The data format is defined using FlatBuffers for efficient serialization:
 - **message.fbs**: Top-level message structure with metadata
 - **tensor.fbs**: Tensor data structure based on DLPack
 
-## Visualizer Python Prerequisites
+FlatBuffers access the data directly without unpacking or parsing it and allows the the schema to evolve over time while still maintaining forwards and backwards.
 
-All dependencies to run the application are installed automatically when using the `holohub run` command inside
-the Holohub container. Because the visualizer is run outside the Holohub container, its [dependencies](#visualizer-python-prerequisites) must be
-installed separately.
 
-Install the required Python packages:
 
-```bash
-pip install -r requirements.txt
-```
-
-Required packages:
-
-- `numpy>=1.24.0,<3.0` - Numerical computing
-- `dash>=3.0.0,<4.0` - Web application framework
-- `plotly>=6.0.0,<7.0` - Interactive plotting
-- `nats-py>=2.0.0,<3.0` - NATS messaging client
-- `flatbuffers>=25.9.23,<26.0.0` - FlatBuffers
-- `pandas>=2.3.3,<3.0` - Data manipulation
-
-## Data Format
-
-### NATS Message Structure
+## NATS Message Structure and Data Format
 
 Messages are published to the subject: `<subject_prefix>.data` (for example, `nats_demo.data`)
 
@@ -234,54 +236,6 @@ Examples:
 - `modulate.out` - Output port of the modulate operator
 - `sink.in` - Input port of the sink operator
 
-## Troubleshooting
-
-### NATS Connection Issues
-
-**Problem**: `Cannot connect to NATS` error
-
-**Solution**:
-
-- Ensure the NATS server is running: `docker ps | grep nats`
-- Check if port 4222 is available: `netstat -an | grep 4222`
-- Verify the NATS URL matches in both the C++ app and visualizer
-
-### Visualizer Not Updating
-
-**Problem**: Web page loads but graphs don't update
-
-**Solution**:
-
-1. Check that the C++ application is running
-2. Verify the subject name matches (default: `nats_demo`)
-3. Click the **Connect** button in the web interface
-4. Check browser console for JavaScript errors
-
-### FlatBuffers Import Errors
-
-**Problem**: `ModuleNotFoundError: No module named 'pipeline_visualization.flatbuffers'`
-
-**Solution**:
-
-1. Ensure the FlatBuffers files were generated during build.
-1. Set `PYTHONPATH` correctly:
-
-    ```bash
-    export PYTHONPATH=$PYTHONPATH:/path/to/build/applications/pipeline_visualization/flatbuffers/
-    ```
-
-1. Verify that the files exist in the build directory.
-
-### No Data Displayed
-
-**Problem**: Graphs are empty or show no data
-
-**Solution**:
-
-- Verify that `log_tensor_data_content: true` is in the YAML config
-- Verify that the operator names match, between the app and visualizer
-- For static visualizer, ensure that the unique IDs in the code match your operators
-- For dynamic visualizer, wait a few seconds for auto-discovery
 
 ## Customization
 
@@ -362,3 +316,58 @@ To run multiple Holoscan apps simultaneously:
    ```python
    self._app.run(debug=True, host="0.0.0.0", port=8051)
    ```
+
+
+
+
+
+
+
+## Troubleshooting
+
+### NATS Connection Issues
+
+**Problem**: `Cannot connect to NATS` error
+
+**Solution**:
+
+- Ensure the NATS server is running: `docker ps | grep nats`
+- Check if port 4222 is available: `netstat -an | grep 4222`
+- Verify the NATS URL matches in both the C++ app and visualizer
+
+### Visualizer Not Updating
+
+**Problem**: Web page loads but graphs don't update
+
+**Solution**:
+
+1. Check that the C++ application is running
+2. Verify the subject name matches (default: `nats_demo`)
+3. Click the **Connect** button in the web interface
+4. Check browser console for JavaScript errors
+
+### FlatBuffers Import Errors
+
+**Problem**: `ModuleNotFoundError: No module named 'pipeline_visualization.flatbuffers'`
+
+**Solution**:
+
+1. Ensure the FlatBuffers files were generated during build.
+2. Set `PYTHONPATH` correctly:
+
+    ```bash
+    export PYTHONPATH=$PYTHONPATH:/path/to/build/applications/pipeline_visualization/flatbuffers/
+    ```
+
+3. Verify that the files exist in the build directory.
+
+### No Data Displayed
+
+**Problem**: Graphs are empty or show no data
+
+**Solution**:
+
+- Verify that `log_tensor_data_content: true` is in the YAML config
+- Verify that the operator names match between the app and visualizer
+- For static visualizer, ensure that the unique IDs in the code match your operators
+- For dynamic visualizer, wait a few seconds for auto-discovery
