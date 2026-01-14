@@ -30,7 +30,7 @@ void UcxxReceiverOp::setup(holoscan::OperatorSpec& spec) {
   spec.param(allocator_, "allocator", "Allocator", "Allocator for staging buffers");
   spec.output<holoscan::gxf::Entity>("out");
 
-  // Add the endpoint's is_alive_condition to this operator so that it will only execute only when
+  // Add the endpoint's is_alive_condition to this operator so that it will execute only when
   // the endpoint is alive.
   for (auto arg : args()) {
     if (arg.name() == "endpoint") {
