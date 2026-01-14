@@ -1,0 +1,42 @@
+{
+  "application": {
+    "name": "ST2110 Test Application",
+    "authors": [
+      {
+        "name": "XRlabs",
+        "affiliation": "XRlabs"
+      }
+    ],
+    "language": "Python",
+    "version": "1.0.0",
+    "changelog": {
+      "1.0.0": "Initial release - ST 2110-20 reception with Linux sockets and Holoviz display"
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["Networking and Distributed Computing", "Video", "ST 2110", "Broadcasting"],
+    "description": "Test application for ST 2110-20 video reception using Linux sockets with CUDA pinned memory",
+    "holoscan_sdk": {
+      "minimum_required_version": "3.7.0",
+      "tested_versions": [
+        "3.7.0"
+      ]
+    },
+    "ranking": 1,
+    "requirements": {
+      "operators": [
+        {
+          "name": "st2110_source",
+          "version": "1.0"
+        },
+        {
+          "name": "holoviz",
+          "version": "2.0"
+        }
+      ]
+    },
+    "run": {
+      "command": "python3 <holohub_app_source>/st2110_test_app.py",
+      "workdir": "holohub_app_bin"
+    }
+  }
+}
