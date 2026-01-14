@@ -70,7 +70,7 @@ The following Python libraries have adopted the [CUDA Array Interface](https://n
   - [cuDF](https://docs.rapids.ai/api/cudf/stable/user_guide/10min/)
   - [cuML](https://docs.rapids.ai/api/cuml/nightly/)
   - [cuSignal](https://github.com/rapidsai/cusignal)
-  - [RMM](https://docs.rapids.ai/api/rmm/stable/guide/)
+  - [RMM](https://docs.rapids.ai/api/rmm/stable/)
 
 For more details on using the CUDA Array Interface and DLPack with various libraries, see [CuPy's Interoperability guide](https://docs.cupy.dev/en/stable/user_guide/interoperability.html#).
 
