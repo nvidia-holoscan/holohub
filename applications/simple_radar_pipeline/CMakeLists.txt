@@ -18,4 +18,9 @@
 #  - Python application doesn't have anything to build.
 if(NOT HOLOHUB_BUILD_PYTHON)
   add_subdirectory(cpp)
+else()
+  # Find holoscan to ensure CMAKE_CUDA_COMPILER is consumed when building
+  # Python-only (the python/ subdirectory has no CMakeLists.txt to build)
+  find_package(holoscan 1.0 REQUIRED CONFIG
+               PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 endif()

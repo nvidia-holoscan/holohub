@@ -15,6 +15,11 @@
 
 project(ColonoscopySegmentation NONE)
 
+# Find holoscan to ensure CMAKE_CUDA_COMPILER is consumed (silences CMake warning
+# about unused variable for Python-only apps with project(NONE))
+find_package(holoscan 1.0 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
 # Default to download datasets
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 

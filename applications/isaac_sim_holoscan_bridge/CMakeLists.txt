@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,11 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(isaac_sim_holoscan_bridge LANGUAGES NONE)
+
+# Find holoscan to ensure CMAKE_CUDA_COMPILER is consumed (silences CMake warning
+# about unused variable for Python-only apps with project(NONE))
+find_package(holoscan 1.0 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # Add testing
 if(BUILD_TESTING)
