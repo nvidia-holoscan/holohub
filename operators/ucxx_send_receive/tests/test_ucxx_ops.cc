@@ -70,7 +70,14 @@ class TensorTxOp : public holoscan::Operator {
     }
 
     // Copy data to device
-    cudaMemcpy(tensor->pointer(), host_data.data(), tensor_size, cudaMemcpyHostToDevice);
+    cudaError_t err = cudaMemcpy(tensor->pointer(),
+      host_data.data(),
+      tensor_size,
+      cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+      HOLOSCAN_LOG_ERROR("cudaMemcpy failed with error: {}", cudaGetErrorString(err));
+      throw std::runtime_error("cudaMemcpy failed in TensorTxOp");
+    }
 
     output.emit(out_message, "out");
   }
@@ -147,7 +154,7 @@ class UcxxTestApp : public holoscan::Application {
         holoscan::Arg("buffer_size", (4 << 10) + kImageWidth * kImageHeight * kImageChannels),
         holoscan::Arg("endpoint", ucxx_server_endpoint),
         holoscan::Arg("allocator", rx_allocator),
-        make_condition<holoscan::CountCondition>(11));
+        make_condition<holoscan::CountCondition>(11));  // 0th call initiates receive request
 
     auto tensor_rx = make_operator<TensorRxOp>(
         "tensor_rx",

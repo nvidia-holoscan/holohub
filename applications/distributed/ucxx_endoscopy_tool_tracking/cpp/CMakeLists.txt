@@ -109,7 +109,7 @@ if(OFF)  # TODO: Implement frame count cutoff in subscriber application for test
              PUBLISHER_PID=$!; \
              sleep 2; \
              ${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking \
-               --mode subscriber \
+               --mode subscribe_holoviz \
                --config ${CMAKE_CURRENT_BINARY_DIR}/ucxx_endoscopy_tool_tracking_testing.yaml \
                --hostname 127.0.0.1 \
                --port 50008 & \
