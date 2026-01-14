@@ -17651,17 +17651,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#description" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Description
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#requirements" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -17684,22 +17673,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#building" class="md-nav__link">
+  <a href="#installation-guide" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Building
+        Installation Guide
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Building">
+    <nav class="md-nav" aria-label="Installation Guide">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-1-containerized-build-recommended" class="md-nav__link">
+  <a href="#building-the-application" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 1: Containerized Build (Recommended)
+        Building the Application
       
     </span>
   </a>
@@ -17707,10 +17696,33 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-2-local-build" class="md-nav__link">
+  <a href="#usage-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 2: Local Build
+        Usage Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running the Application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-line-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command-Line Options
       
     </span>
   </a>
@@ -17721,41 +17733,45 @@
     </nav>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
+  <a href="#testing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Usage
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Usage">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#options" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Options
+        Testing
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Examples
+        Usage Examples
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Examples">
+    <nav class="md-nav" aria-label="Usage Examples">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tips
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#v4l2-camera-examples" class="md-nav__link">
@@ -17781,22 +17797,6 @@
         
       </ul>
     </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Testing
-      
-    </span>
-  </a>
   
 </li>
       
@@ -17845,12 +17845,7 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
+          <li class="md-nav__item">
   <a href="#performance" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -17860,8 +17855,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#notes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -17892,6 +17887,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -18060,175 +18060,332 @@
 </button>
 <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> aarch64, x86_64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> December 4, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.8.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.8.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br><br></p>
 <p>A Holoscan application that demonstrates video recording using the GStreamer encoding pipeline.</p>
-<p><img alt="GStreamer Video Recorder Pipeline" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/gstreamer/gst_video_recorder/docs/pipeline_diagram.png?raw=true" />
+<p><img alt="GStreamer Video Recorder Pipeline" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/gstreamer/gst_video_recorder/docs/pipeline_diagram.png?raw=true" /><br />
 <em>Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's encoding pipeline</em></p>
-<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">#</a></h2>
 <p>This application showcases how to:</p>
 <ul>
-<li>Capture video from V4L2 cameras (USB webcams, MIPI cameras, etc.) or generate test patterns</li>
+<li>Capture video from V4L2 cameras (USB webcams, MIPI cameras) or generate test patterns</li>
 <li>Feed video frames to GStreamer for encoding</li>
 <li>Record encoded video to files in various formats (MP4, MKV)</li>
 <li>Use different video codecs (H.264, H.265, and other GStreamer-supported codecs)</li>
 <li>Support both host and CUDA device memory for zero-copy operation</li>
 </ul>
-<p><strong>Supported Video Sources:</strong></p>
+<p>The application supports these video sources:</p>
 <ul>
-<li><strong>V4L2 Camera</strong> - Capture from any V4L2-compatible camera (USB webcams, MIPI cameras, etc.)</li>
+<li><strong>V4L2 Camera</strong> - Capture from any V4L2-compatible camera (USB webcams, MIPI cameras)</li>
 <li><strong>Pattern Generator</strong> - Generate animated test patterns (gradient, checkerboard, color bars)</li>
+</ul>
+<p>For more information about this application, refer to:</p>
+<ul>
+<li><strong><a href="#requirements">Requirements</a></strong> - Lists requirements for the application.</li>
+<li><strong><a href="#quick-start">Quick Start</a></strong> - Run with default settings.</li>
+<li><strong><a href="#installation-guide">Installation Guide</a></strong> - Requirements and building.</li>
+<li><strong><a href="#testing">Testing</a></strong> - Integration tests to validate the pipeline execution.</li>
+<li><strong><a href="#usage-examples">Examples</a></strong> - Examples for common use cases.</li>
+<li><strong><a href="#architecture">Architecture</a></strong> - Technical details and design.</li>
 </ul>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <ul>
 <li>NVIDIA Holoscan SDK</li>
 <li>GStreamer 1.0 with the following plugins:</li>
-<li>gstreamer1.0-plugins-base (videoconvert for host memory support)</li>
-<li>gstreamer1.0-plugins-bad (cudaconvert, nvh264enc, nvh265enc for NVIDIA hardware encoding)</li>
-<li>gstreamer1.0-plugins-good (mp4mux, matroskamux for container formats)</li>
-<li>gstreamer1.0-plugins-ugly (x264enc for CPU-based H.264 encoding)</li>
-<li>Additional codecs available through gstreamer1.0-libav if needed</li>
-<li>V4L2-compatible camera (optional, for camera capture mode)</li>
+<li><code>gstreamer1.0-plugins-base</code> use <code>videoconvert</code> for host memory support</li>
+<li><code>gstreamer1.0-plugins-bad</code> use <code>cudaconvert</code>, <code>nvh264enc</code>, or <code>nvh265enc</code> for NVIDIA hardware encoding</li>
+<li><code>gstreamer1.0-plugins-good</code> use <code>mp4mux</code> and <code>matroskamux</code> for container formats</li>
+<li><code>gstreamer1.0-plugins-ugly</code> use <code>x264enc</code> for CPU-based H.264 encoding</li>
+<li><code>gstreamer1.0-libav</code> for additional codecs, if needed</li>
+<li>V4L2-compatible camera, optional, for camera capture mode</li>
 <li>USB webcams, MIPI CSI cameras, or any V4L2 video device</li>
 <li>Use <code>v4l2-ctl --list-devices</code> to see available cameras</li>
 </ul>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
-<p>To run the application with the default settings, simply run one of the following commands:</p>
-<p>A. Using the <strong>V4L2 camera</strong>:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>v4l2
-</code></pre></div>
-<p>B. Generating test patterns:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>pattern
-</code></pre></div>
-<p>These single-line commands will build and run the customized container for this application with all the dependencies installed (defined by <code>Dockerfile</code>), and then build and start the application using the default settings. The output video will be saved in the build directory as <code>output.mp4</code>.</p>
-<h2 id="building">Building<a class="headerlink" href="#building" title="Permanent link">#</a></h2>
-<h3 id="option-1-containerized-build-recommended">Option 1: Containerized Build (Recommended)<a class="headerlink" href="#option-1-containerized-build-recommended" title="Permanent link">#</a></h3>
-<p>No setup required - all dependencies are included in the container:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>gst_video_recorder
-</code></pre></div>
-<h3 id="option-2-local-build">Option 2: Local Build<a class="headerlink" href="#option-2-local-build" title="Permanent link">#</a></h3>
-<p>For faster builds and easier debugging. First install dependencies:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># From the gst_video_recorder directory</span>
-./install_deps.sh
-
-<span class="c1"># Then build locally</span>
-./holohub<span class="w"> </span>build<span class="w"> </span>--local<span class="w"> </span>gst_video_recorder
-</code></pre></div>
+<p>To run the application with the default settings, run one of the following commands:</p>
+<table>
+<thead>
+<tr>
+<th>Using the V4L2 Camera</th>
+<th>Generating Test Patterns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>./holohub run gst_video_recorder v4l2</code></td>
+<td><code>./holohub run gst_video_recorder pattern</code></td>
+</tr>
+</tbody>
+</table>
+<p>These commands build and run the customized container for this application with all the dependencies installed (defined by <code>Dockerfile</code>), and then build and start the application using the default settings. The output video will be saved in the build directory as <code>output.mp4</code>.</p>
+<p>Run <code>gst-video-recorder --help</code> for command-line options.</p>
+<h2 id="installation-guide">Installation Guide<a class="headerlink" href="#installation-guide" title="Permanent link">#</a></h2>
+<p>This guide covers requirements, building, and testing the GStreamer Video Recorder application.</p>
+<h3 id="building-the-application">Building the Application<a class="headerlink" href="#building-the-application" title="Permanent link">#</a></h3>
+<p>There are two options that you can choose from to build the application. The recommended option is the containerized build, because all dependencies are included in the container and there is no setup. The other option is a local build, which can be best for faster builds and easier debugging. Building locally, requires the installation of some dependencies.</p>
 <p>The <code>install_deps.sh</code> script installs:</p>
 <ul>
-<li>pkg-config (required for CMake)</li>
+<li><code>pkg-config</code> (required for CMake)</li>
 <li>GStreamer development libraries</li>
 <li>All necessary GStreamer plugins for encoding</li>
 </ul>
-<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
+<p>Choose one of the following options to build the application:</p>
+<table>
+<thead>
+<tr>
+<th>Containerized Build (Recommended)</th>
+<th>Local Build</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Install the application:</td>
+<td>Install dependencies, from the <code>gst_video_recorder</code> directory:</td>
+</tr>
+<tr>
+<td><code>./holohub build gst_video_recorder</code></td>
+<td><code>./install_deps.sh</code></td>
+</tr>
+<tr>
+<td></td>
+<td>Then build locally:</td>
+</tr>
+<tr>
+<td></td>
+<td><code>./holohub build --local gst_video_recorder</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-reference">Usage Reference<a class="headerlink" href="#usage-reference" title="Permanent link">#</a></h3>
+<p>Reference for running <code>gst_video_recorder</code> that includes:</p>
+<ul>
+<li><a href="#running-the-application">Running the Application</a></li>
+<li><a href="#command-line-options">Command-Line Options</a></li>
+</ul>
+<h4 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h4>
 <p>The recommended way to run the application is through the <code>holohub</code> launcher:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;[OPTIONS]&quot;</span>
 </code></pre></div>
 <p>Alternatively, if you know the binary location, you can run it directly:</p>
 <div class="highlight"><pre><span></span><code>gst-video-recorder<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </code></pre></div>
-<h3 id="options">Options<a class="headerlink" href="#options" title="Permanent link">#</a></h3>
-<p><strong>General Options:</strong></p>
+<h4 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">#</a></h4>
+<p>The command line options include the following main categories:</p>
 <ul>
-<li><code>--source &lt;type&gt;</code> - Video source: <code>pattern</code> or <code>v4l2</code> (default: pattern)</li>
-<li><code>-o, --output &lt;filename&gt;</code> - Output video filename (default: output.mp4)</li>
-<li>Supported formats: .mp4, .mkv</li>
-<li>If no extension, defaults to .mp4</li>
-<li><code>-e, --encoder &lt;name&gt;</code> - Encoder base name (default: nvh264)</li>
-<li>Examples: nvh264, nvh265, x264, x265</li>
-<li>Note: 'enc' suffix is automatically appended</li>
-<li><code>-c, --count &lt;number&gt;</code> - Number of frames to capture/generate (default: unlimited)</li>
-<li><code>-f, --framerate &lt;rate&gt;</code> - Frame rate as fraction or decimal (default: 30/1)</li>
-<li>Examples: '30/1', '30000/1001', '29.97', '60'</li>
-<li>Use '0/1' for live mode (no throttling, real-time timestamps)</li>
-<li><code>--property &lt;key=value&gt;</code> - Set encoder property (can be used multiple times)</li>
-<li>Examples: --property bitrate=8000 --property preset=1</li>
-<li>Property types are automatically detected and converted</li>
-<li><code>--help</code> - Show help message</li>
+<li><a href="#general-options">General Options</a></li>
+<li><a href="#resolution-options">Resolution Options</a></li>
+<li><a href="#v4l2-camera-options">V4L2 Camera Options</a></li>
+<li><a href="#pattern-generator-options">Pattern Generator Options</a></li>
 </ul>
-<p><strong>Resolution Options:</strong></p>
+<h5 id="general-options">General Options<a class="headerlink" href="#general-options" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--source &lt;type&gt;</code></td>
+<td>Video source: <code>pattern</code> or <code>v4l2</code></td>
+<td><code>pattern</code></td>
+</tr>
+<tr>
+<td><code>-o, --output &lt;filename&gt;</code></td>
+<td>Output video filename. Supported formats: <code>.mp4</code>, <code>.mkv</code>. If no extension, defaults to <code>.mp4</code></td>
+<td><code>output.mp4</code></td>
+</tr>
+<tr>
+<td><code>-e, --encoder &lt;name&gt;</code></td>
+<td>Encoder base name (for example, <code>nvh264</code>, <code>nvh265</code>, <code>x264</code>, <code>x265</code>). Note: 'enc' suffix is automatically appended</td>
+<td><code>nvh264</code></td>
+</tr>
+<tr>
+<td><code>-c, --count &lt;number&gt;</code></td>
+<td>Number of frames to capture or generate</td>
+<td>unlimited</td>
+</tr>
+<tr>
+<td><code>-f, --framerate &lt;rate&gt;</code></td>
+<td>Frame rate as fraction or decimal (for example, <code>30/1</code>, <code>30000/1001</code>, <code>29.97</code>, <code>60</code>). Use <code>0/1</code> for live mode (no throttling, real-time timestamps)</td>
+<td><code>30/1</code></td>
+</tr>
+<tr>
+<td><code>--property &lt;key=value&gt;</code></td>
+<td>Set encoder property (can be used multiple times, for example, <code>--property bitrate=8000 --property preset=1</code>). Property types are automatically detected and converted</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>Show help message</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h5 id="resolution-options">Resolution Options<a class="headerlink" href="#resolution-options" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-w, --width &lt;pixels&gt;</code></td>
+<td>Frame width. For V4L2: Must match a supported camera resolution. For the pattern: any reasonable resolution (64-8192 pixels)</td>
+<td><code>1920</code></td>
+</tr>
+<tr>
+<td><code>-h, --height &lt;pixels&gt;</code></td>
+<td>Frame height. For V4L2: Must match a supported camera resolution. For the pattern: any reasonable resolution (64-8192 pixels)</td>
+<td><code>1080</code></td>
+</tr>
+</tbody>
+</table>
+<h5 id="v4l2-camera-options">V4L2 Camera Options<a class="headerlink" href="#v4l2-camera-options" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--device &lt;path&gt;</code></td>
+<td>V4L2 device path</td>
+<td><code>/dev/video0</code></td>
+</tr>
+<tr>
+<td><code>--pixel-format &lt;format&gt;</code></td>
+<td>V4L2 pixel format (<code>YUYV</code>, <code>MJPEG</code>, <code>auto</code>)</td>
+<td><code>auto</code></td>
+</tr>
+</tbody>
+</table>
+<h5 id="pattern-generator-options">Pattern Generator Options<a class="headerlink" href="#pattern-generator-options" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--pattern &lt;type&gt;</code></td>
+<td>Pattern type: <code>0</code> = animated gradient, <code>1</code> = animated checkerboard, <code>2</code> = color bars (SMPTE style)</td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>--storage &lt;type&gt;</code></td>
+<td>Memory storage type: <code>0</code> = host memory, <code>1</code> = device or CUDA memory</td>
+<td><code>1</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">#</a></h2>
+<p>The application includes integration tests to validate the pipeline execution and recording file creation.</p>
+<p>To run the tests, use the following command:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>gst_video_recorder<span class="w"> </span>--verbose
+</code></pre></div>
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">#</a></h2>
+<p>Practical, copy-paste examples for common use cases.</p>
+<h3 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">#</a></h3>
 <ul>
-<li><code>-w, --width &lt;pixels&gt;</code> - Frame width (default: 1920)</li>
-<li>For V4L2: Must match a supported camera resolution</li>
-<li>For pattern: Any reasonable resolution (64-8192 pixels)</li>
-<li><code>-h, --height &lt;pixels&gt;</code> - Frame height (default: 1080)</li>
-<li>For V4L2: Must match a supported camera resolution</li>
-<li>For pattern: Any reasonable resolution (64-8192 pixels)</li>
+<li>Use <code>v4l2-ctl --list-formats-ext</code> to see supported camera resolutions</li>
+<li>Use absolute paths (for example, <code>/workspace/holohub/video.mp4</code>) for predictable output locations</li>
+<li>Higher bitrates produce better quality but larger files</li>
+<li>NVIDIA hardware encoders (<code>nvh264</code>, <code>nvh265</code>) require CUDA and provide better performance</li>
+<li>CPU encoders (<code>x264</code>, <code>x265</code>) work with <code>--storage 0</code> (host memory)</li>
 </ul>
-<p><strong>V4L2 Camera Options:</strong></p>
+<h3 id="v4l2-camera-examples">V4L2 Camera Examples<a class="headerlink" href="#v4l2-camera-examples" title="Permanent link">#</a></h3>
 <ul>
-<li><code>--device &lt;path&gt;</code> - V4L2 device path (default: /dev/video0)</li>
-<li><code>--pixel-format &lt;format&gt;</code> - V4L2 pixel format (default: auto)</li>
-<li>Examples: YUYV, MJPEG, auto</li>
+<li>Record from the default V4L2 camera at 1920x1080 (30 seconds at 30 FPS):</li>
 </ul>
-<p><strong>Pattern Generator Options:</strong></p>
-<ul>
-<li><code>--pattern &lt;type&gt;</code> - Pattern type (default: 0)</li>
-<li>0 = animated gradient</li>
-<li>1 = animated checkerboard</li>
-<li>2 = color bars (SMPTE style)</li>
-<li><code>--storage &lt;type&gt;</code> - Memory storage type (default: 1)</li>
-<li>0 = host memory</li>
-<li>1 = device/CUDA memory</li>
-</ul>
-<h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h3>
-<h4 id="v4l2-camera-examples">V4L2 Camera Examples<a class="headerlink" href="#v4l2-camera-examples" title="Permanent link">#</a></h4>
-<p><strong>Record from default V4L2 camera at 1920x1080 (30 seconds at 30 FPS):</strong></p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2 --width 1920 --height 1080 --count 900 -o camera.mp4&quot;</span>
 </code></pre></div>
-<p><strong>Record from specific V4L2 device with H.265:</strong></p>
+<ul>
+<li>Record from a specific V4L2 device with H.265:</li>
+</ul>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2 --device /dev/video1 --width 1920 --height 1080 --encoder nvh265 --count 600 -o camera_h265.mp4&quot;</span>
 </code></pre></div>
-<p><strong>Record at 720p resolution:</strong></p>
+<ul>
+<li>Record at 720p resolution:</li>
+</ul>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2 --width 1280 --height 720 --count 300 -o camera_720p.mp4&quot;</span>
 </code></pre></div>
-<p><strong>Record with specific pixel format (YUYV):</strong></p>
+<ul>
+<li>Record with a specific pixel format (YUYV):</li>
+</ul>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2 --width 640 --height 480 --pixel-format YUYV --count 300 -o camera_yuyv.mp4&quot;</span>
 </code></pre></div>
-<p><strong>Record with custom encoder settings:</strong></p>
+<ul>
+<li>High-quality recording with custom encoder settings:</li>
+</ul>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2 --property bitrate=12000 --property preset=1 --count 900 -o high_quality.mp4&quot;</span>
 </code></pre></div>
-<h4 id="pattern-generator-examples">Pattern Generator Examples<a class="headerlink" href="#pattern-generator-examples" title="Permanent link">#</a></h4>
-<p><strong>Record 10 seconds of animated gradient (300 frames at 30 FPS):</strong></p>
+<h3 id="pattern-generator-examples">Pattern Generator Examples<a class="headerlink" href="#pattern-generator-examples" title="Permanent link">#</a></h3>
+<ul>
+<li>Basic recording of ten seconds of animated gradient (300 frames at 30 FPS):</li>
+</ul>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 -o video.mp4&quot;</span>
 </code></pre></div>
-<p><strong>Record high-quality H.265 video:</strong></p>
+<ul>
+<li>Record high-quality H.265 video:</li>
+</ul>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --encoder nvh265 --property bitrate=10000 -o video.mp4&quot;</span>
 </code></pre></div>
-<p><strong>Record 720p video:</strong></p>
+<ul>
+<li>Record a 720p resolution video:</li>
+</ul>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --width 1280 --height 720 -o video_720p.mp4&quot;</span>
 </code></pre></div>
-<p><strong>Record checkerboard pattern:</strong></p>
+<ul>
+<li>Record the checkerboard pattern:</li>
+</ul>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --pattern 1 -o checkerboard.mp4&quot;</span>
 </code></pre></div>
-<p><strong>Record using host memory (CPU):</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --storage 0 --encoder x264 -o video.mp4&quot;</span>
+<ul>
+<li>Record color bars:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --pattern 2 -o colorbars.mp4&quot;</span>
 </code></pre></div>
-<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">#</a></h2>
-<p>The application includes integration tests to validate the pipeline execution and recording file creation. To run the tests, use the following command:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>gst_video_recorder<span class="w"> </span>--verbose
+<ul>
+<li>Record using host memory (CPU encoding):</li>
+</ul>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --storage 0 --encoder x264 -o video.mp4&quot;</span>
 </code></pre></div>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
 <p>The application supports two video sources and uses a common encoding backend:</p>
 <h3 id="video-sources">Video Sources<a class="headerlink" href="#video-sources" title="Permanent link">#</a></h3>
-<ol>
-<li><strong>V4L2VideoCaptureOp</strong>: Captures video from V4L2-compatible cameras (USB webcams, MIPI CSI cameras, etc.)</li>
+<ul>
+<li><strong>V4L2VideoCaptureOp</strong>: Captures video from V4L2-compatible cameras (USB webcams, MIPI CSI cameras)</li>
 <li><strong>PatternGenOperator</strong>: Generates animated test patterns as Holoscan entities with tensors</li>
-</ol>
+</ul>
 <h3 id="encoding-backend">Encoding Backend<a class="headerlink" href="#encoding-backend" title="Permanent link">#</a></h3>
 <ul>
 <li><strong>GstVideoRecorderOp</strong>: Receives video frames, manages the GStreamer pipeline, and handles encoding</li>
 </ul>
 <h3 id="pipeline-flow">Pipeline Flow<a class="headerlink" href="#pipeline-flow" title="Permanent link">#</a></h3>
-<p><strong>V4L2 Camera Pipeline:</strong></p>
+<ul>
+<li>V4L2 Camera Pipeline:</li>
+</ul>
 <div class="highlight"><pre><span></span><code>V4L2VideoCaptureOp → FormatConverterOp → GstVideoRecorderOp → GStreamer Pipeline → File
 </code></pre></div>
-<p><strong>Pattern Generator Pipeline:</strong></p>
+<ul>
+<li>Pattern Generator Pipeline:</li>
+</ul>
 <div class="highlight"><pre><span></span><code>PatternGenOperator → GstVideoRecorderOp → GStreamer Pipeline → File
 </code></pre></div>
 <p>The GStreamer encoding pipeline is automatically constructed based on the encoder and file format:</p>
 <ul>
 <li><strong>Pipeline structure</strong>: <code>[converter] ! [encoder]enc ! [parser] ! [muxer] ! filesink</code></li>
 <li><strong>Converter</strong>: Automatically selected based on memory type (videoconvert for host, cudaconvert for device)</li>
-<li><strong>Encoder</strong>: Specified via <code>--encoder</code> option (nvh264, nvh265, x264, x265, etc.)</li>
-<li><strong>Parser</strong>: Automatically determined from encoder (h264parse, h265parse, etc.)</li>
+<li><strong>Encoder</strong>: Specified via <code>--encoder</code> option (nvh264, nvh265, x264, x265)</li>
+<li><strong>Parser</strong>: Automatically determined from encoder (h264parse, h265parse)</li>
 <li><strong>Muxer</strong>: Automatically determined from file extension (mp4mux for .mp4, matroskamux for .mkv)</li>
 </ul>
 <p>Example pipelines:</p>
@@ -18237,36 +18394,46 @@
 <li><strong>NVIDIA H.265 to MKV</strong>: <code>cudaconvert ! nvh265enc ! h265parse ! matroskamux ! filesink</code></li>
 <li><strong>CPU x264 to MP4</strong>: <code>videoconvert ! x264enc ! h264parse ! mp4mux ! filesink</code></li>
 </ul>
-<h2 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">#</a></h2>
+<h3 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">#</a></h3>
 <p>The application supports both host and device (CUDA) memory:</p>
 <ul>
 <li><strong>Device memory</strong> (<code>--storage 1</code>, default): Zero-copy operation for better performance when using NVIDIA hardware encoders (nvh264enc, nvh265enc)</li>
 <li><strong>Host memory</strong> (<code>--storage 0</code>): Required for CPU encoders (x264, x265) but involves memory copies</li>
 </ul>
-<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h2>
-<h3 id="video-sources_1">Video Sources<a class="headerlink" href="#video-sources_1" title="Permanent link">#</a></h3>
-<p><strong>V4L2 Camera:</strong></p>
+<h3 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h3>
+<h4 id="video-sources_1">Video Sources<a class="headerlink" href="#video-sources_1" title="Permanent link">#</a></h4>
 <ul>
-<li>Supports any V4L2-compatible camera (USB webcams, MIPI CSI cameras)</li>
+<li>
+<p>V4L2 Camera:</p>
+</li>
+<li>
+<p>Supports any V4L2-compatible camera (USB webcams, MIPI CSI cameras)</p>
+</li>
 <li>Camera resolution must be explicitly specified with <code>--width</code> and <code>--height</code></li>
 <li>Use <code>v4l2-ctl --list-formats-ext</code> to see supported resolutions and formats</li>
-<li>FormatConverterOp automatically converts camera output to the format expected by the recorder</li>
-</ul>
-<p><strong>Pattern Generator:</strong></p>
+<li>
+<p>FormatConverterOp automatically converts camera output to the format expected by the recorder</p>
+</li>
+<li>
+<p>Pattern Generator:</p>
+</li>
+<li>
+<p>Supports three test patterns:</p>
 <ul>
-<li>Supports three test patterns:</li>
 <li>Animated gradient (default): Colorful sine wave patterns</li>
 <li>Animated checkerboard: Moving checkerboard with variable square size</li>
-<li>Color bars: SMPTE-style color bars (7 colors)</li>
+<li>Color bars: SMPTE-style color bars (seven colors)</li>
+</ul>
+</li>
 <li>Useful for testing the encoding pipeline without hardware dependencies</li>
 </ul>
-<h3 id="recording">Recording<a class="headerlink" href="#recording" title="Permanent link">#</a></h3>
+<h4 id="recording">Recording<a class="headerlink" href="#recording" title="Permanent link">#</a></h4>
 <ul>
-<li>The application waits for encoding to complete before exiting to ensure proper file finalization</li>
-<li>EOS (End-Of-Stream) signal is sent automatically when recording completes</li>
-<li>Video parameters (width, height, format, storage) are automatically detected from incoming frames</li>
-<li>Frame count can be limited with <code>--count</code> or runs indefinitely if not specified</li>
-<li>Output files are written to the holohub workspace directory when using <code>./holohub run</code> (use absolute paths like <code>/workspace/holohub/video.mp4</code> for predictable output locations)</li>
+<li>The application waits for encoding to complete before exiting to ensure proper file finalization.</li>
+<li>EOS (End-Of-Stream) signal is sent automatically when recording completes.</li>
+<li>Video parameters (width, height, format, storage) are automatically detected from incoming frames.</li>
+<li>Frame count can be limited with <code>--count</code> or runs indefinitely if not specified.</li>
+<li>Output files are written to the Holohub workspace directory when using <code>./holohub run</code>. Use absolute paths like <code>/workspace/holohub/video.mp4</code> for predictable output locations.</li>
 </ul>
 
 
