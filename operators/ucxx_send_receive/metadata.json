@@ -24,7 +24,7 @@
                 "x86_64",
                 "aarch64"
             ],
-            "tags": [],
+            "tags": ["Distributed", "UCXX", "Serialization"],
             "ranking": 2,
             "requirements": {}
         }
@@ -54,7 +54,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [],
+		"tags": ["Distributed", "UCXX", "Serialization"],
 		"ranking": 2,
 		"requirements": {}
 	}
