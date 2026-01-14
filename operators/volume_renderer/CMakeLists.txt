@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@ project(volume_renderer)
 
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+find_package(ZLIB REQUIRED)
 
 # we don't need the gRPC interface, OpenH264 and the examples
 set(CLARA_VIZ_WITH_GRPC OFF CACHE INTERNAL "")
@@ -91,6 +93,7 @@ target_link_libraries(volume_renderer
     clara::viz::core
     clara::viz::core::hw
     GXF::multimedia
+    ZLIB::ZLIB
 )
 
 target_include_directories(volume_renderer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

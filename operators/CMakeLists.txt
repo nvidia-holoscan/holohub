@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +21,12 @@ add_holohub_operator(basic_network)
 add_holohub_operator(cvcuda_holoscan_interop)
 add_subdirectory(deidentification)
 add_subdirectory(dds)
-add_holohub_operator(deltacast_videomaster DEPENDS EXTENSIONS deltacast_videomaster)
+add_holohub_operator(deltacast_videomaster)
 add_holohub_operator(emergent_source DEPENDS EXTENSIONS emergent_source)
 add_holohub_operator(fft)
 add_holohub_operator(gamma_correction DEPENDS OPERATORS slang_shader)
 add_holohub_operator(grpc_operators)
+add_holohub_operator(gstreamer)
 add_holohub_operator(high_rate_psd)
 add_holohub_operator(holoscan_ros2)
 add_holohub_operator(iio_controller)

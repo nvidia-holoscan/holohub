@@ -196,14 +196,36 @@
         },
         {
             "type": "shell",
-            "label": "Build endoscopy_tool_tracking",
+            "label": "Build endoscopy_tool_tracking (C++)",
             "command": "./holohub",
             "args": [
                 "build",
                 "endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build endoscopy_tool_tracking (Python)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "endoscopy_tool_tracking",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -517,6 +539,26 @@
         },
         {
             "type": "shell",
+            "label": "Build pipeline_visualization",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "pipeline_visualization",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "python"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
             "label": "Build slang_simple",
             "command": "./holohub",
             "args": [
@@ -553,14 +595,36 @@
         },
         {
             "type": "shell",
-            "label": "Build volume_rendering",
+            "label": "Build volume_rendering (cpp)",
             "command": "./holohub",
             "args": [
                 "build",
                 "volume_rendering",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build volume_rendering (Python)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "volume_rendering",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"

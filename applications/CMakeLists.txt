@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,9 @@ add_holohub_application(async_buffer_deadline)
 add_holohub_application(basic_networking_ping DEPENDS
                         OPERATORS basic_network)
 
+add_holohub_application(bci_visualization DEPENDS
+                        OPERATORS volume_renderer)
+
 add_holohub_application(body_pose_estimation DEPENDS
                         OPERATORS OPTIONAL dds_video_subscriber dds_video_publisher)
 
@@ -35,6 +38,10 @@ add_holohub_application(cvcuda_basic DEPENDS OPERATORS cvcuda_holoscan_interop)
 add_subdirectory(dds)
 
 add_holohub_application(deltacast_transmitter DEPENDS
+                        OPERATORS deltacast_videomaster
+                        )
+
+add_holohub_application(deltacast_receiver DEPENDS
                         OPERATORS deltacast_videomaster
                         )
 
@@ -55,6 +62,8 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
                                   slang_shader
                                   yuan_qcap
                                   vtk_renderer)
+
+add_subdirectory(gstreamer)
 
 add_subdirectory(h264)
 
@@ -92,6 +101,8 @@ add_holohub_application(object_detection_torch DEPENDS
 
 add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
 
+add_holohub_application(pipeline_visualization)
+
 add_holohub_application(polyp_detection)
 
 add_holohub_application(pva_video_filter)
@@ -103,6 +114,8 @@ add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
 add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)
 
 add_holohub_application(stereo_vision)
+
+add_holohub_application(surgical_scene_recon)
 
 add_holohub_application(tao_peoplenet)
 

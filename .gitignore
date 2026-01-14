@@ -33,6 +33,7 @@ ci/
 # Development environment
 .venv/
 .vscode-server/
+.vscode/
 ngc-cli/
 CTestConfig.cmake
 .ngc
@@ -46,6 +47,7 @@ CTestConfig.cmake
 .config/
 .local/
 .ros/
+.nv/
 tmp/
 
 # History and user files
@@ -61,3 +63,6 @@ rti_license.dat
 # Holoscan streaming client and server binaries and libraries
 **/holoscan_client_cloud_streaming/
 **/holoscan_server_cloud_streaming/
+
+# CLI update check
+.cli_commit_hash

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,84 +64,6 @@ struct DropTrafficConfig {
   struct rte_flow *drop;
 };
 
-class DpdkLogLevel {
- public:
-  enum Level {
-    OFF = 0,
-    EMERGENCY = 1,
-    ALERT = 2,
-    CRITICAL = 3,
-    ERROR = 4,
-    WARN = 5,
-    NOTICE = 6,
-    INFO = 7,
-    DEBUG = 8,
-  };
-
-  static std::string to_description_string(Level level) {
-    auto it = level_to_cmd_map.find(level);
-    if (it != level_to_cmd_map.end()) { return std::get<0>(it->second); }
-    throw std::logic_error(
-        "Unrecognized log level, available options "
-        "debug/info/notice/warn/error/critical/alert/emergency/off");
-  }
-
-  static std::string to_cmd_string(Level level) {
-    auto it = level_to_cmd_map.find(level);
-    if (it != level_to_cmd_map.end()) { return std::get<1>(it->second); }
-    throw std::logic_error(
-        "Unrecognized log level, available options "
-        "debug/info/notice/warn/error/critical/alert/emergency/off");
-  }
-
-  static Level from_adv_net_log_level(LogLevel::Level log_level) {
-    auto it = adv_net_to_dpdk_log_level_map.find(log_level);
-    if (it != adv_net_to_dpdk_log_level_map.end()) { return it->second; }
-    return OFF;
-  }
-
- private:
-  /**
-   * A map of log level to a tuple of the description and command strings.
-   */
-  static const std::unordered_map<Level, std::tuple<std::string, std::string>> level_to_cmd_map;
-  static const std::unordered_map<LogLevel::Level, Level> adv_net_to_dpdk_log_level_map;
-};
-
-/**
- * @class DpdkLogLevelCommandBuilder
- * @brief Concrete class for building DPDK log level commands.
- *
- * This class implements the ManagerLogLevelCommandBuilder interface to provide
- * specific command flag strings for managing DPDK log levels.
- */
-class DpdkLogLevelCommandBuilder : public ManagerLogLevelCommandBuilder {
- public:
-  /**
-   * @brief Constructor for DpdkLogLevelCommandBuilder.
-   *
-   * @param log_level The log level from advanced_network to be converted to DPDK log level.
-   */
-  explicit DpdkLogLevelCommandBuilder(LogLevel::Level log_level)
-      : level_(DpdkLogLevel::from_adv_net_log_level(log_level)) {}
-
-  /**
-   * @brief Get the command flag strings for DPDK log levels.
-   *
-   * This function returns the specific command flag strings required to set
-   * the DPDK log levels.
-   *
-   * @return A vector of command flag strings.
-   */
-  std::vector<std::string> get_cmd_flags_strings() const override {
-    return {"--log-level=" + DpdkLogLevel::to_cmd_string(DpdkLogLevel::Level::OFF),
-            "--log-level=pmd.net.mlx5:" + DpdkLogLevel::to_cmd_string(level_)};
-  }
-
- private:
-  DpdkLogLevel::Level level_;  ///< The DPDK log level.
-};
-
 class DpdkMgr : public Manager {
  public:
   static_assert(MAX_INTERFACES <= RTE_MAX_ETHPORTS, "Too many interfaces configured");
@@ -153,7 +75,8 @@ class DpdkMgr : public Manager {
   void run() override;
   static constexpr int JUMBOFRAME_SIZE = 9100;
   static constexpr int DEFAULT_NUM_TX_BURST = 256;
-  static constexpr uint16_t DEFAULT_NUM_RX_BURST = 64;
+  static constexpr int DEFAULT_NUM_RX_BURST = 64;
+  static constexpr int MAX_NUM_RX_QUEUES = 64;
   uint16_t default_num_rx_desc = 8192;
   uint16_t default_num_tx_desc = 8192;
   int num_ports = 0;
@@ -167,8 +90,8 @@ class DpdkMgr : public Manager {
 
   void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx) override;
   void* get_packet_ptr(BurstParams* burst, int idx) override;
-  uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) override;
-  uint16_t get_packet_length(BurstParams* burst, int idx) override;
+  uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx) override;
+  uint32_t get_packet_length(BurstParams* burst, int idx) override;
   uint16_t get_packet_flow_id(BurstParams* burst, int idx) override;
   void* get_packet_extra_info(BurstParams* burst, int idx) override;
   Status get_tx_packet_burst(BurstParams* burst) override;
@@ -220,10 +143,7 @@ class DpdkMgr : public Manager {
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
   struct rte_flow* add_flow(int port, const FlowConfig& cfg);
-  Status register_mrs();
-  Status map_mrs();
   void create_dummy_rx_q();
-  int numa_from_mem(const MemoryRegionConfig& mr);
   struct rte_flow* add_modify_flow_set(int port, int queue, const char* buf, int len,
                                        Direction direction);
 
@@ -239,7 +159,6 @@ class DpdkMgr : public Manager {
   std::unordered_map<uint16_t, struct rte_flow_item_flex_handle*> flex_item_handles_;
   std::unordered_map<uint32_t, struct rte_ring*> tx_rings;
   std::unordered_map<uint32_t, struct rte_mempool*> tx_burst_buffers;
-  std::unordered_map<std::string, std::shared_ptr<struct rte_pktmbuf_extmem>> ext_pktmbufs_;
   std::unordered_map<uint32_t, DPDKQueueConfig*> rx_dpdk_q_map_;
   std::unordered_map<uint32_t, DPDKQueueConfig*> tx_dpdk_q_map_;
   std::unordered_map<uint32_t, const RxQueueConfig*> rx_cfg_q_map_;

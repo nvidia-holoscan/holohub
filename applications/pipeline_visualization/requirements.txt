@@ -1,0 +1,19 @@
+# Requirements for Data Visualization Example
+
+# Core numerical computing
+numpy>=1.24.0,<3.0
+
+# Web application framework
+dash>=3.0.0,<4.0
+
+# Interactive plotting
+plotly>=6.0.0,<7.0
+
+# NATS messaging client
+nats-py>=2.0.0,<3.0
+
+# FlatBuffers
+flatbuffers>=25.9.23,<26.0.0
+
+# Data manipulation
+pandas>=2.3.3,<3.0

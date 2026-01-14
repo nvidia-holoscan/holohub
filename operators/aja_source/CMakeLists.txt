@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ include(FetchContent)
 FetchContent_Declare(
     ajantv2
     GIT_REPOSITORY https://github.com/nvidia-holoscan/libajantv2.git
-    GIT_TAG d4250c556bcf1ebade627a3ef7a2027de7dc85ee
+    GIT_TAG f74a9cab77a3bdb9f448b3eacc493fe63d363e9f
 )
 
 set(ENV{NTV2_VERSION_BUILD} 1)

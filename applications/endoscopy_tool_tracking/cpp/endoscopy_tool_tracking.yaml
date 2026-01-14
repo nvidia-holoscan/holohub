@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,8 +30,6 @@ resources:
 
 extensions:
   - lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
-# Uncomment the following extension when using deltacast as a source
-#  - lib/gxf_extensions/libgxf_videomaster.so
 # Uncomment the following extension when using yuan as source
 #  - lib/gxf_extensions/libgxf_qcap_source.so
 

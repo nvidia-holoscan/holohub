@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,8 +28,6 @@ from holoscan.operators import (
     VideoStreamReplayerOp,
 )
 from holoscan.resources import UnboundedAllocator
-
-from holohub.aja_source import AJASourceOp
 
 
 class DetectionPostprocessorOp(Operator):
@@ -156,7 +154,12 @@ class MultiAIDetectionSegmentation(Application):
 
         # start constructing app
         is_aja = self.source.lower() == "aja"
-        SourceClass = AJASourceOp if is_aja else VideoStreamReplayerOp
+        if is_aja:
+            from holohub.aja_source import AJASourceOp
+
+            SourceClass = AJASourceOp
+        else:
+            SourceClass = VideoStreamReplayerOp
         source_kwargs = self.kwargs(self.source)
         if self.source == "replayer":
             video_dir = os.path.join(self.sample_data_path, "endoscopy")

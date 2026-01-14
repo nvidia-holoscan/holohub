@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,14 +65,14 @@ NUM_MSGS = 10
 class App(Application):
     def compose(self):
         # Define the tx and rx operators, allowing the tx operator to execute 10 times
-        if len(self.kwargs("network_tx")) > 0:
+        if self.kwargs("network_tx"):
             basic_net_tx = BasicNetworkOpTx(self, name="basic_net_tx", **self.kwargs("network_tx"))
             tx = BasicNetworkPingTxOp(self, CountCondition(self, NUM_MSGS), name="tx")
             self.add_flow(tx, basic_net_tx, {("msg_out", "burst_in")})
         else:
             logger.info("No TX config found")
 
-        if len(self.kwargs("network_rx")) > 0:
+        if self.kwargs("network_rx"):
             basic_net_rx = BasicNetworkOpRx(self, name="basic_net_rx", **self.kwargs("network_rx"))
             rx = BasicNetworkPingRxOp(self, name="rx")
             self.add_flow(basic_net_rx, rx, {("burst_out", "msg_in")})
@@ -84,7 +84,7 @@ def main():
     if len(sys.argv) != 2:
         logger.error(
             "Must specify configuration file as second argument. "
-            "If using the 'run' script, use --extra_args <config_name>"
+            "If using the 'run' script, use --run-args <config_name>"
         )
         sys.exit(-1)
 

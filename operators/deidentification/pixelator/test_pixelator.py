@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +19,9 @@ from holoscan.core import Operator
 from .pixelator import PixelatorOp
 
 try:
-    from holoscan.code import BaseOperator
+    from holoscan.core import BaseOperator
 except ImportError:
-    from holoscan.code import _Operator as BaseOperator
+    from holoscan.core import _Operator as BaseOperator
 
 
 def test_pixelator_op_init(fragment):

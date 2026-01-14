@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ pybind11_add_holohub_module(
 )
 
 # Custom __init__.py with all three classes explicitly listed
-set(INIT_PY_CONTENT "# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+set(INIT_PY_CONTENT "# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 import holoscan.core
@@ -73,3 +73,14 @@ file(GENERATE
     OUTPUT "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/video_streaming_server/__init__.py"
     CONTENT "${INIT_PY_CONTENT}"
 )
+
+# Add Python binding tests if testing is enabled and Python bindings are built
+if(BUILD_TESTING AND HOLOHUB_BUILD_PYTHON)
+    include(add_python_tests)
+    add_python_tests(
+        INPUT "tests"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        PREFIX "video_streaming_server_pytest"
+        PYTEST_ARGS "-v"
+    )
+endif()

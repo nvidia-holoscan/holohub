@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,8 +38,8 @@ class RivermaxMgr : public Manager {
 
   void* get_segment_packet_ptr(BurstParams* burst, int seg, int idx) override;
   void* get_packet_ptr(BurstParams* burst, int idx) override;
-  uint16_t get_segment_packet_length(BurstParams* burst, int seg, int idx) override;
-  uint16_t get_packet_length(BurstParams* burst, int idx) override;
+  uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx) override;
+  uint32_t get_packet_length(BurstParams* burst, int idx) override;
   uint16_t get_packet_flow_id(BurstParams* burst, int idx) override;
   void* get_packet_extra_info(BurstParams* burst, int idx) override;
   Status get_tx_packet_burst(BurstParams* burst) override;

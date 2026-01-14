@@ -55,9 +55,29 @@
 				}
 			]
 		},
-		"run": {
-			"command": "python3 <holohub_app_source>/ai_surgical_video.py --source replayer --config <holohub_app_source>/config.yaml --data <holohub_data_dir>",
-			"workdir": "holohub_bin"
+		"default_mode": "replayer",
+		"modes": {
+			"replayer": {
+				"description": "Use a pre-recorded video as input",
+				"build": {
+					"docker_build_args": ["--target", "holohub-cli"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/ai_surgical_video.py --source replayer --config <holohub_app_source>/config.yaml --data <holohub_data_dir>",
+					"workdir": "holohub_bin"
+				}
+			},
+			"aja": {
+				"description": "Use an AJA device for video input",
+				"build": {
+					"depends": ["aja_source"],
+					"docker_build_args": ["--target", "holohub-aja"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/ai_surgical_video.py --source aja --config <holohub_app_source>/config.yaml --data <holohub_data_dir>",
+					"workdir": "holohub_bin"
+				}
+			}
 		}
 	}
 }

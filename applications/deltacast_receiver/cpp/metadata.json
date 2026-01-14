@@ -1,0 +1,43 @@
+{
+	"application": {
+		"name": "Deltacast Videomaster Receiver",
+		"authors": [
+			{
+				"name": "Laurent Radoux",
+				"affiliation": "DELTACAST"
+			},
+			{
+				"name": "Pierre PERICK",
+				"affiliation": "DELTACAST"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release - Simplified receiver application for video display without AI processing"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.0.0",
+			"tested_versions": [
+				"3.6.0"
+			]
+		},
+		"videomaster_sdk": {
+			"minimum_required_version": "6.26.0",
+			"tested_versions": [
+				"6.32.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Video", "Deltacast", "Receiver", "Display", "Holoviz", "RDMA", "GPUDirect"],
+		"ranking": 2,
+		"requirements": {},
+		"run": {
+			"command": "<holohub_app_bin>/deltacast_receiver",
+			"workdir": "holohub_bin"
+		}
+	}
+}

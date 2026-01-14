@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@ add_library(
   xr
   xr_begin_frame_op.cpp
   xr_composition_layers.cpp
+  xr_empty_composition_layer_op.cpp
   xr_end_frame_op.cpp
   xr_hand_tracker.cpp
   xr_composition_layer_manager.cpp

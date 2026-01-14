@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ import subprocess
 import sys
 import unittest
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -29,16 +29,18 @@ class TestLLM(unittest.TestCase):
     """Test cases for the LLM module"""
 
     def setUp(self):
-        self.server_path = "/workspace/llama.cpp/build/bin/server"
+        self.server_path = "/workspace/llama.cpp/build/bin/llama-server"
         self.timeout = 10  # 10 second timeout
 
     def test_llm_initialization(self):
         """Test LLM initialization"""
-        llm = LLM(is_mcp=False, is_local=False)
-        self.assertIsNotNone(llm)
-        self.assertEqual(llm.config.max_prompt_tokens, 3000)
-        self.assertEqual(llm.config.nim_url, "https://integrate.api.nvidia.com/v1")
-        self.assertEqual(llm.config.nim_model, "meta/llama3-70b-instruct")
+        # os.environ is a dict-like mapping, not an object with attributes, so use patch.dict.
+        with patch.dict(os.environ, {"NVIDIA_API_KEY": "DUMMY_FOR_TESTS"}, clear=False):
+            llm = LLM(is_mcp=False, is_local=False)
+            self.assertIsNotNone(llm)
+            self.assertEqual(llm.config.max_prompt_tokens, 3000)
+            self.assertEqual(llm.config.nim_url, "https://integrate.api.nvidia.com/v1")
+            self.assertEqual(llm.config.nim_model, "meta/llama-3.3-70b-instruct")
 
     def test_token_calculation(self):
         """Test token usage calculation using actual LLM class"""

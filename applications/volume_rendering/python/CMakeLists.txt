@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,9 +37,8 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
 endif()
 
 if(BUILD_TESTING)
-
   add_test(NAME volume_rendering_python_test
-           COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/volume_rendering.py
+           COMMAND ${PYTHON_EXECUTABLE_TEST} ${CMAKE_CURRENT_SOURCE_DIR}/volume_rendering.py
              --count=100
              -c "${HOLOHUB_DATA_DIR}/volume_rendering/config.json"
              -d "${HOLOHUB_DATA_DIR}/volume_rendering/highResCT.mhd"

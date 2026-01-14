@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved. ..* SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved. ..* SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,8 @@ void BasicNetworkOpRx::setup(OperatorSpec& spec) {
   spec.param<uint64_t>(max_burst_interval_,
                        "max_burst_interval",
                        "Max burst interval",
-                       "Maximum time interval between bursts (ms)");
+                       "Maximum time interval between bursts (ms)",
+                       0UL);
 }
 
 BasicNetworkOpRx::~BasicNetworkOpRx() {

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,9 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <arpa/inet.h>
 
+#include "adv_network_dpdk_log.h"
 #include "adv_network_dpdk_mgr.h"
 #include "holoscan/holoscan.hpp"
 
@@ -130,30 +132,6 @@ struct ExtraRxPacketInfo {
   uint16_t flow_id;
 };
 
-/**
- * A map of log level to a tuple of the description and command strings.
- */
-const std::unordered_map<DpdkLogLevel::Level, std::tuple<std::string, std::string>>
-    DpdkLogLevel::level_to_cmd_map = {{OFF, {"Disabled", "9"}},
-                                      {EMERGENCY, {"Emergency", "emergency"}},
-                                      {ALERT, {"Alert", "alert"}},
-                                      {CRITICAL, {"Critical", "critical"}},
-                                      {ERROR, {"Error", "error"}},
-                                      {WARN, {"Warning", "warning"}},
-                                      {NOTICE, {"Notice", "notice"}},
-                                      {INFO, {"Info", "info"}},
-                                      {DEBUG, {"Debug", "debug"}}};
-
-const std::unordered_map<LogLevel::Level, DpdkLogLevel::Level>
-    DpdkLogLevel::adv_net_to_dpdk_log_level_map = {
-        {LogLevel::TRACE, DEBUG},
-        {LogLevel::DEBUG, DEBUG},
-        {LogLevel::INFO, INFO},
-        {LogLevel::WARN, WARN},
-        {LogLevel::ERROR, ERROR},
-        {LogLevel::CRITICAL, CRITICAL},
-        {LogLevel::OFF, OFF},
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -211,68 +189,6 @@ void DpdkMgr::adjust_memory_regions() {
   }
 }
 
-Status DpdkMgr::map_mrs() {
-  // Map every MR to every device for now
-  for (const auto& intf : cfg_.ifs_) {
-    struct rte_eth_dev_info dev_info;
-    int ret = rte_eth_dev_info_get(intf.port_id_, &dev_info);
-    if (ret != 0) {
-      HOLOSCAN_LOG_CRITICAL("Failed to get device info for port {}", intf.port_id_);
-      return Status::NULL_PTR;
-    }
-
-    for (const auto& ext_mem_el : ext_pktmbufs_) {
-      const auto& ext_mem = ext_mem_el.second;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-      ret = rte_dev_dma_map(dev_info.device, ext_mem->buf_ptr, ext_mem->buf_iova, ext_mem->buf_len);
-#pragma GCC diagnostic pop
-
-      if (ret) {
-        HOLOSCAN_LOG_CRITICAL(
-            "Could not DMA map EXT memory: {} err={}", ret, rte_strerror(rte_errno));
-        return Status::NULL_PTR;
-      }
-
-      HOLOSCAN_LOG_INFO(
-          "Mapped external memory descriptor for {} to device {}", ext_mem->buf_ptr, intf.port_id_);
-    }
-  }
-
-  return Status::SUCCESS;
-}
-
-Status DpdkMgr::register_mrs() {
-  for (const auto& ar : ar_) {
-    auto ext_mem = std::make_shared<struct rte_pktmbuf_extmem>();
-    const auto& mr = cfg_.mrs_[ar.second.mr_name_];
-
-    if (mr.kind_ == MemoryKind::HUGE) { continue; }
-
-    ext_mem->buf_len = mr.ttl_size_;
-    ext_mem->buf_iova = RTE_BAD_IOVA;
-    ext_mem->buf_ptr = ar.second.ptr_;
-    ext_mem->elt_size = mr.adj_size_;
-
-    // GPUs have the largest page size vs CPUs, so just use that
-    int ret = rte_extmem_register(
-        ext_mem->buf_ptr, ext_mem->buf_len, NULL, ext_mem->buf_iova, GPU_PAGE_SIZE);
-    if (ret) {
-      HOLOSCAN_LOG_CRITICAL("Unable to register addr {}, ret {} errno {}",
-                            ext_mem->buf_ptr,
-                            ret,
-                            rte_strerror(rte_errno));
-      return Status::NULL_PTR;
-    } else {
-      HOLOSCAN_LOG_INFO("Successfully registered external memory for {}", mr.name_);
-    }
-
-    ext_pktmbufs_[mr.name_] = ext_mem;
-  }
-
-  return Status::SUCCESS;
-}
 
 void DpdkMgr::setup_accurate_send_scheduling_mask() {
   static bool done = false;
@@ -308,19 +224,6 @@ void DpdkMgr::setup_accurate_send_scheduling_mask() {
   done = true;
 }
 
-int DpdkMgr::numa_from_mem(const MemoryRegionConfig& mr) {
-  if (mr.kind_ == MemoryKind::DEVICE) {
-    int val;
-    if (cudaDeviceGetAttribute(&val, cudaDevAttrHostNumaId, mr.affinity_) != cudaSuccess) {
-      HOLOSCAN_LOG_ERROR("Failed to get NUMA node from device {}", mr.affinity_);
-      return -1;
-    }
-
-    return val;
-  } else {
-    return mr.affinity_;
-  }
-}
 
 std::string DpdkMgr::generate_random_string(int len) {
   const char tokens[] = "abcdefghijklmnopqrstuvwxyz";
@@ -434,7 +337,7 @@ void DpdkMgr::initialize() {
 
   HOLOSCAN_LOG_INFO(
       "Setting DPDK log level to: {}",
-      DpdkLogLevel::to_description_string(DpdkLogLevel::from_adv_net_log_level(cfg_.log_level_)));
+      DpdkLogLevel::to_description_string(DpdkLogLevel::from_ano_log_level(cfg_.log_level_)));
 
   DpdkLogLevelCommandBuilder cmd(cfg_.log_level_);
   for (auto& c : cmd.get_cmd_flags_strings()) {
@@ -490,13 +393,13 @@ void DpdkMgr::initialize() {
     return;
   }
 
-  if (register_mrs() != Status::SUCCESS) {
+  if (register_memory_regions() != Status::SUCCESS) {
     HOLOSCAN_LOG_CRITICAL("Failed to register MRs");
     return;
   }
 
   if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {
-    if (map_mrs() != Status::SUCCESS) {
+    if (map_memory_regions() != Status::SUCCESS) {
       HOLOSCAN_LOG_CRITICAL("Failed to map MRs");
       return;
     }
@@ -543,32 +446,14 @@ void DpdkMgr::initialize() {
         std::string pool_name = std::string("RXP") + append;
         const auto& mr = cfg_.mrs_[q.common_.mrs_[mr_num]];
 
-        struct rte_mempool* pool = nullptr;
         if (loopback_ != LoopbackType::LOOPBACK_TYPE_SW) {  // Loopback needs no RX pools
           if (mr.num_bufs_ < default_num_rx_desc) {
             HOLOSCAN_LOG_CRITICAL("Must have at least {} buffers in each RX MR",
                                   default_num_rx_desc);
               return;
-            }
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-          if (mr.kind_ == MemoryKind::HUGE) {
-            pool = rte_pktmbuf_pool_create(
-                pool_name.c_str(), mr.num_bufs_, 0, 0, mr.adj_size_, numa_from_mem(mr));
-          } else {
-            auto pktmbuf = ext_pktmbufs_[q.common_.mrs_[mr_num]];
-            pool = rte_pktmbuf_pool_create_extbuf(pool_name.c_str(),
-                                                  mr.num_bufs_,
-                                                  0,
-                                                  0,
-                                                  mr.adj_size_,
-                                                  numa_from_mem(mr),
-                                                  pktmbuf.get(),
-                                                  1);
           }
-#pragma GCC diagnostic pop
 
+          struct rte_mempool* pool = create_pktmbuf_pool(pool_name, mr);
           if (pool == nullptr) {
             HOLOSCAN_LOG_CRITICAL(
                   "Could not create external memory mempool {}: mbufs={} elsize={} ptr={}",
@@ -578,16 +463,16 @@ void DpdkMgr::initialize() {
                   (void*)pool);
             return;
           }
+
+          q_backend->pools.push_back(pool);
+          HOLOSCAN_LOG_INFO("Created mempool {} : mbufs={} elsize={} ptr={}",
+                            pool_name,
+                            mr.num_bufs_,
+                            mr.adj_size_,
+                            (void*)pool);
+
+          q_packet_size += mr.buf_size_;
         }
-
-        q_backend->pools.push_back(pool);
-        HOLOSCAN_LOG_INFO("Created mempool {} : mbufs={} elsize={} ptr={}",
-                          pool_name,
-                          mr.num_bufs_,
-                          mr.adj_size_,
-                          (void*)pool);
-
-        q_packet_size += mr.buf_size_;
       }
 
       max_pkt_size = std::max(max_pkt_size, q_packet_size);
@@ -651,24 +536,7 @@ void DpdkMgr::initialize() {
           return;
         }
 
-        struct rte_mempool* pool;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        if (mr.kind_ == MemoryKind::HUGE) {
-          pool = rte_pktmbuf_pool_create(
-              pool_name.c_str(), mr.num_bufs_, 0, 0, mr.buf_size_, numa_from_mem(mr));
-        } else {
-          auto pktmbuf = ext_pktmbufs_[q.common_.mrs_[mr_num]];
-          pool = rte_pktmbuf_pool_create_extbuf(pool_name.c_str(),
-                                                mr.num_bufs_,
-                                                0,
-                                                0,
-                                                mr.buf_size_,
-                                                numa_from_mem(mr),
-                                                pktmbuf.get(),
-                                                1);
-        }
-#pragma GCC diagnostic pop
+        struct rte_mempool* pool = create_pktmbuf_pool(pool_name, mr);
         if (pool == nullptr) {
           HOLOSCAN_LOG_CRITICAL("Could not create external memory mempool");
           return;
@@ -1186,7 +1054,7 @@ struct rte_flow* DpdkMgr::add_flex_item_flow(
   /* Define the new protocol header structure */
   struct rte_udp_flex_hdr {
     rte_be32_t my_header;    /* my header */
-  } __rte_packed;
+  } __attribute__((packed));
 
   struct rte_udp_flex_hdr flex_spec;
   flex_spec.my_header = match_info.val_;
@@ -1253,7 +1121,6 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   struct rte_flow_item_udp udp_mask;
   struct rte_flow_item_ipv4  ip_spec;
   struct rte_flow_item_ipv4  ip_mask;
-  struct rte_flow_item udp_item;
   int res;
 
   // HWS requires using a non-zero group, so we make a jump event to group 3 for all ethernet
@@ -1289,6 +1156,8 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   memset(&attr, 0, sizeof(struct rte_flow_attr));
   memset(&ip_spec, 0, sizeof(struct rte_flow_item_ipv4));
   memset(&ip_mask, 0, sizeof(struct rte_flow_item_ipv4));
+  memset(&udp_spec, 0, sizeof(struct rte_flow_item_udp));
+  memset(&udp_mask, 0, sizeof(struct rte_flow_item_udp));
 
   action[0].type = RTE_FLOW_ACTION_TYPE_MARK;
   action[0].conf = &mark;
@@ -1300,34 +1169,64 @@ struct rte_flow* DpdkMgr::add_flow(int port, const FlowConfig& cfg) {
   pattern[1].type = RTE_FLOW_ITEM_TYPE_IPV4;
   pattern[2].type = RTE_FLOW_ITEM_TYPE_UDP;
 
+  bool has_ip_match = false;
+
   if (cfg.match_.ipv4_len_ > 0) {
     ip_spec.hdr.total_length = htons(cfg.match_.ipv4_len_);
     ip_mask.hdr.total_length = 0xffff;
-    pattern[1].spec = &ip_spec;
-    pattern[1].mask = &ip_mask;
+    has_ip_match = true;
     HOLOSCAN_LOG_INFO("Adding IPv4 length match for {}", cfg.match_.ipv4_len_);
   }
 
+  if (cfg.match_.ipv4_src_ != INADDR_ANY) {
+    char str_ip[INET_ADDRSTRLEN];
+    ip_spec.hdr.src_addr = cfg.match_.ipv4_src_;
+    ip_mask.hdr.src_addr = 0xffffffff;
+    has_ip_match = true;
+    inet_ntop(AF_INET, &ip_spec.hdr.src_addr, str_ip, INET_ADDRSTRLEN);
+    HOLOSCAN_LOG_INFO("Adding IPv4 source IP match for {}", str_ip);
+  }
+
+  if (cfg.match_.ipv4_dst_ != INADDR_ANY) {
+    char str_ip[INET_ADDRSTRLEN];
+    ip_spec.hdr.dst_addr = cfg.match_.ipv4_dst_;
+    ip_mask.hdr.dst_addr = 0xffffffff;
+    has_ip_match = true;
+    inet_ntop(AF_INET, &ip_spec.hdr.dst_addr, str_ip, INET_ADDRSTRLEN);
+    HOLOSCAN_LOG_INFO("Adding IPv4 destination IP match for {}", str_ip);
+  }
+
+  if (has_ip_match == true) {
+    pattern[1].spec = &ip_spec;
+    pattern[1].mask = &ip_mask;
+  }
+
+  bool has_udp_match = false;
+
   if (cfg.match_.udp_src_ > 0) {
     udp_spec.hdr.src_port = htons(cfg.match_.udp_src_);
+    udp_mask.hdr.src_port = 0xffff;
+    has_udp_match = true;
+    HOLOSCAN_LOG_INFO("Adding UDP port match for src {}", cfg.match_.udp_src_);
+  }
+
+  if (cfg.match_.udp_dst_ > 0) {
     udp_spec.hdr.dst_port = htons(cfg.match_.udp_dst_);
+    udp_mask.hdr.dst_port = 0xffff;
+    has_udp_match = true;
+    HOLOSCAN_LOG_INFO("Adding UDP port match for dst {}", cfg.match_.udp_dst_);
+  }
+
+  if (has_udp_match == true) {
     udp_spec.hdr.dgram_len = 0;
     udp_spec.hdr.dgram_cksum = 0;
-
-    udp_mask.hdr.src_port = 0xffff;
-    udp_mask.hdr.dst_port = 0xffff;
     udp_mask.hdr.dgram_len = 0;
     udp_mask.hdr.dgram_cksum = 0;
 
-    udp_item.type = RTE_FLOW_ITEM_TYPE_UDP;
-    udp_item.spec = &udp_spec;
-    udp_item.mask = &udp_mask;
-    udp_item.last = NULL;
-
-    pattern[2] = udp_item;
-    HOLOSCAN_LOG_INFO("Adding UDP port match for src/dst {}/{}",
-      cfg.match_.udp_src_, cfg.match_.udp_dst_);
+    pattern[2].spec = &udp_spec;
+    pattern[2].mask = &udp_mask;
   }
+
 
   attr.ingress = 1;
   attr.priority = 1;  // Lower priority to allow drop_traffic (priority 0) to take precedence
@@ -2220,11 +2119,13 @@ int DpdkMgr::tx_core_worker(void* arg) {
     // Scatter mode needs to chain all the buffers
     if (msg->hdr.hdr.num_segs > 1) {
       for (size_t p = 0; p < msg->hdr.hdr.num_pkts; p++) {
-        for (int seg = 0; seg < msg->hdr.hdr.num_segs; seg++) {
+        for (int seg = 0; seg < msg->hdr.hdr.num_segs - 1; seg++) {
           auto* mbuf = reinterpret_cast<struct rte_mbuf*>(msg->pkts[seg][p]);
           mbuf->next = reinterpret_cast<struct rte_mbuf*>(msg->pkts[seg + 1][p]);
         }
 
+        // The next pointer of the last segment should be nullptr
+        reinterpret_cast<struct rte_mbuf*>(msg->pkts[msg->hdr.hdr.num_segs - 1][p])->next = nullptr;
         reinterpret_cast<struct rte_mbuf*>(msg->pkts[0][p])->nb_segs = msg->hdr.hdr.num_segs;
       }
     }
@@ -2324,11 +2225,11 @@ void* DpdkMgr::get_packet_ptr(BurstParams* burst, int idx) {
   return rte_pktmbuf_mtod(reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx]), void*);
 }
 
-uint16_t DpdkMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+uint32_t DpdkMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   return reinterpret_cast<rte_mbuf*>(burst->pkts[seg][idx])->data_len;
 }
 
-uint16_t DpdkMgr::get_packet_length(BurstParams* burst, int idx) {
+uint32_t DpdkMgr::get_packet_length(BurstParams* burst, int idx) {
   return reinterpret_cast<rte_mbuf*>(burst->pkts[0][idx])->pkt_len;
 }
 
