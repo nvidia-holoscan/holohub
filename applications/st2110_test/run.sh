@@ -71,11 +71,11 @@ echo
 docker run --rm --runtime=nvidia --network=host \
   --cap-add CAP_SYS_PTRACE --ipc=host \
   --ulimit memlock=-1 --ulimit stack=67108864 \
-  -v ${HOLOHUB_ROOT}:/workspace \
+  -v "${HOLOHUB_ROOT}:/workspace" \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v /run/user/$(id -u):/run/user/$(id -u) \
-  -e DISPLAY=$DISPLAY \
-  -e XDG_RUNTIME_DIR=/run/user/$(id -u) \
+  -v "/run/user/$(id -u):/run/user/$(id -u)" \
+  -e "DISPLAY=$DISPLAY" \
+  -e "XDG_RUNTIME_DIR=/run/user/$(id -u)" \
   -e PYTHONPATH=/opt/nvidia/holoscan/python/lib:/workspace/build/st2110_source/python/lib \
   -e LD_LIBRARY_PATH=/workspace/build/st2110_source/operators/st2110_source:/opt/nvidia/holoscan/lib \
   nvcr.io/nvidia/clara-holoscan/holoscan:v3.8.0-cuda13 \

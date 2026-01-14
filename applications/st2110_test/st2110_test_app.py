@@ -24,8 +24,7 @@ try:
 except ImportError as e:
     print(f"Error: Could not import ST2110SourceOp: {e}")
     print("\nMake sure the operator is built:")
-    print("  cd /home/thor/Source/holohub/operators/st2110_source")
-    print("  ./build.sh")
+    print("  ./holohub build st2110_source --configure-args '-DHOLOHUB_BUILD_PYTHON=ON'")
     sys.exit(1)
 
 logging.basicConfig(level=logging.INFO)
@@ -162,7 +161,7 @@ def main():
     print("Each output has its own monitoring operator that logs frame reception.")
     print("You should see frame counters for all enabled outputs.")
     print()
-    print("Configuration: st2110_test_config.yaml")
+    print(f"Configuration: {args.config}")
     print("  - Set enable_rgba_output: true/false")
     print("  - Set enable_nv12_output: true/false")
     print()

@@ -22,7 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Video Ingestion", "Network", "ST 2110", "Sockets", "Broadcast"],
+		"tags": ["Video Capture", "Network", "ST 2110", "Sockets", "Broadcast"],
 		"ranking": 1,
 		"requirements": {
 			"hardware": [

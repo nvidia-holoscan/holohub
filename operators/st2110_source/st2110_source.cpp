@@ -743,16 +743,23 @@ void ST2110SourceOp::mark_frame_emitted(int buffer_index) {
 
 void ST2110SourceOp::drain_socket() {
   constexpr int MAX_BATCH = 256;
-  struct mmsghdr msgs[MAX_BATCH];
-  struct iovec iovecs[MAX_BATCH];
-  uint8_t packet_buffers[MAX_BATCH][2048];
+  constexpr size_t PACKET_BUFFER_SIZE = 2048;
 
-  memset(msgs, 0, sizeof(msgs));
-  for (int i = 0; i < MAX_BATCH; i++) {
-    iovecs[i].iov_base = packet_buffers[i];
-    iovecs[i].iov_len = sizeof(packet_buffers[i]);
-    msgs[i].msg_hdr.msg_iov = &iovecs[i];
-    msgs[i].msg_hdr.msg_iovlen = 1;
+  // Use thread_local storage to avoid large stack allocations (~512KB)
+  static thread_local std::vector<uint8_t> packet_storage(MAX_BATCH * PACKET_BUFFER_SIZE);
+  static thread_local struct mmsghdr msgs[MAX_BATCH];
+  static thread_local struct iovec iovecs[MAX_BATCH];
+  static thread_local bool initialized = false;
+
+  if (!initialized) {
+    memset(msgs, 0, sizeof(msgs));
+    for (int i = 0; i < MAX_BATCH; i++) {
+      iovecs[i].iov_base = &packet_storage[i * PACKET_BUFFER_SIZE];
+      iovecs[i].iov_len = PACKET_BUFFER_SIZE;
+      msgs[i].msg_hdr.msg_iov = &iovecs[i];
+      msgs[i].msg_hdr.msg_iovlen = 1;
+    }
+    initialized = true;
   }
 
   uint32_t total_to_receive = batch_size_.get();
@@ -778,7 +785,7 @@ void ST2110SourceOp::drain_socket() {
 
     // Process all received packets
     for (int i = 0; i < num_received; i++) {
-      parse_and_copy_packet(packet_buffers[i], msgs[i].msg_len);
+      parse_and_copy_packet(&packet_storage[i * PACKET_BUFFER_SIZE], msgs[i].msg_len);
     }
 
     total_received += num_received;

@@ -87,12 +87,24 @@ __global__ void st2110_simple_reorder_kernel(
 
   const void* in_pkt = in[pkt_idx];
 
-  // Copy packet data to output at appropriate offset
-  for (int pos = threadIdx.x; pos < pkt_len / 4; pos += blockDim.x) {
+  // Copy packet data to output at appropriate offset (4-byte aligned chunks)
+  const int num_words = pkt_len / 4;
+  for (int pos = threadIdx.x; pos < num_words; pos += blockDim.x) {
     const uint32_t* in_ptr = static_cast<const uint32_t*>(in_pkt) + pos;
     uint32_t* out_ptr = reinterpret_cast<uint32_t*>(
         static_cast<uint8_t*>(out) + pkt_idx * pkt_len) + pos;
     *out_ptr = *in_ptr;
+  }
+
+  // Handle remaining bytes (if payload not 4-byte aligned)
+  const int remainder = pkt_len % 4;
+  if (remainder > 0 && threadIdx.x == 0) {
+    const int offset = num_words * 4;
+    const uint8_t* in_bytes = static_cast<const uint8_t*>(in_pkt);
+    uint8_t* out_bytes = static_cast<uint8_t*>(out) + pkt_idx * pkt_len;
+    for (int i = 0; i < remainder; i++) {
+      out_bytes[offset + i] = in_bytes[offset + i];
+    }
   }
 }
 
