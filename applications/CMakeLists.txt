@@ -131,6 +131,11 @@ add_holohub_application(psd_pipeline DEPENDS
                                   vita49_psd_packetizer
                                   data_writer)
 
+add_holohub_application(st2110_test DEPENDS
+                        OPERATORS st2110_source
+                                  holoviz
+                                  )
+
 add_holohub_application(ultrasound_segmentation DEPENDS
                         OPERATORS OPTIONAL aja_source)
 
