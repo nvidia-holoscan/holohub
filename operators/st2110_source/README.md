@@ -45,7 +45,7 @@ UDP Socket (multicast)
 The operator provides three output ports:
 
 | Port | Format | Description |
-|------|--------|-------------|
+| ---- | ------ | ----------- |
 | `raw_output` | YCbCr-4:2:2-10bit | Raw ST 2110-20 frame data (always emitted) |
 | `rgba_output` | RGBA 8-bit | Converted frame for visualization (optional) |
 | `nv12_output` | NV12 8-bit | Converted frame for video encoding (optional) |
@@ -69,11 +69,13 @@ The operator provides three output ports:
 ## Requirements
 
 ### Hardware
+
 - CUDA-capable NVIDIA GPU
 - Network interface with multicast support
 - ST 2110-compliant video source (e.g., Blackmagic Design equipment)
 
 ### Software
+
 - Holoscan SDK 3.7.0 or later
 - CUDA Toolkit 12.x or later
 - Linux with multicast routing configured
@@ -209,6 +211,7 @@ The operator supports ST 2110-20 uncompressed video at various resolutions:
 - UHD/4K (3840x2160, 4096x2160)
 
 Supported input formats:
+
 - **YCbCr-4:2:2-10bit**: 2.5 bytes per pixel (default, common for broadcast)
 - **YCbCr-4:2:2-8bit**: 2 bytes per pixel
 - **RGBA-8bit**: 4 bytes per pixel
@@ -216,17 +219,20 @@ Supported input formats:
 ## Troubleshooting
 
 ### No packets received
+
 - Verify multicast address and port match your ST 2110 source
 - Check interface name is correct (`ip link show`)
 - Ensure multicast routing is configured
 - Check firewall allows UDP traffic: `sudo ufw allow 5004/udp`
 
 ### Packet drops / frame tearing
+
 - Increase socket buffer size (see Network Configuration)
 - Reduce other network traffic on the interface
 - Check CPU load - ensure sufficient cores available
 
 ### Color issues
+
 - Verify `stream_format` matches your source (10-bit vs 8-bit)
 - Check source colorimetry settings (BT.709 assumed)
 
