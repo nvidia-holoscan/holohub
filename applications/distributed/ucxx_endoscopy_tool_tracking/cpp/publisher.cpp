@@ -30,9 +30,9 @@
 
 #include "gxf/std/timestamp.hpp"
 
-#include "operators/ucxx_send_receive/ucxx_endpoint.hpp"
-#include "operators/ucxx_send_receive/ucxx_receiver_op.hpp"
-#include "operators/ucxx_send_receive/ucxx_sender_op.hpp"
+#include <operators/ucxx_send_receive/ucxx_endpoint.hpp>
+#include <operators/ucxx_send_receive/receiver_op/ucxx_receiver_op.hpp>
+#include <operators/ucxx_send_receive/sender_op/ucxx_sender_op.hpp>
 
 namespace holoscan::apps {
 

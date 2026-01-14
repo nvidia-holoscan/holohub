@@ -22,7 +22,7 @@
 #include <holoscan/operators/video_stream_recorder/video_stream_recorder.hpp>
 
 #include "operators/ucxx_send_receive/ucxx_endpoint.hpp"
-#include "operators/ucxx_send_receive/ucxx_receiver_op.hpp"
+#include "operators/ucxx_send_receive/receiver_op/ucxx_receiver_op.hpp"
 
 namespace holoscan::apps {
 
