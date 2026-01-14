@@ -16,9 +16,10 @@
  */
 
 #include "ucxx_sender_op.hpp"
-#include "serialize_tensor.hpp"
 
 #include <holoscan/holoscan.hpp>
+
+#include <operators/ucxx_send_receive/serialize_tensor.hpp>
 
 namespace holoscan::ops {
 

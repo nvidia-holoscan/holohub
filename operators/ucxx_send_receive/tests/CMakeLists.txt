@@ -27,7 +27,6 @@ target_link_libraries(test_ucxx_ops
   PRIVATE
     holoscan::core
     holoscan::ops::ucxx
-    ucxx
 )
 
 add_test(NAME test_ucxx_ops

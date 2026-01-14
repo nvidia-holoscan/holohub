@@ -19,25 +19,34 @@ project(ucxx_send_receive_operators LANGUAGES CXX)
 
 find_package(holoscan 3.8 REQUIRED CONFIG)
 
-add_library(ucxx_send_receive SHARED
+add_library(ucxx_common STATIC
   ucxx_endpoint.cpp
-  ucxx_receiver_op.cpp
-  ucxx_sender_op.cpp
   serialize_tensor.cpp
 )
-add_library(holoscan::ops::ucxx ALIAS ucxx_send_receive)
+add_library(holoscan::ops::ucxx_common ALIAS ucxx_common)
 
-target_include_directories(ucxx_send_receive
+target_include_directories(ucxx_common
   PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
 
-target_link_libraries(ucxx_send_receive
+target_link_libraries(ucxx_common
   PUBLIC
     holoscan::core
     ucs
     ucxx
 )
+
+add_subdirectory(receiver_op)
+add_subdirectory(sender_op)
+
+add_library(ucxx_send_receive INTERFACE)
+target_link_libraries(ucxx_send_receive INTERFACE
+  holoscan::ops::ucxx_sender_op
+  holoscan::ops::ucxx_receiver_op
+)
+add_library(holoscan::ops::ucxx_send_receive ALIAS ucxx_send_receive)
+add_library(holoscan::ops::ucxx ALIAS ucxx_send_receive)
 
 if(BUILD_TESTING)
   add_subdirectory(tests)

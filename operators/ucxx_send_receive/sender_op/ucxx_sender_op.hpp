@@ -17,36 +17,36 @@
 
 #pragma once
 
-#include <optional>
+#include <list>
 #include <string>
 #include <vector>
 
 #include "holoscan/holoscan.hpp"
-#include "ucxx/api.h"
 
-#include "ucxx_endpoint.hpp"
+#include <operators/ucxx_send_receive/ucxx_endpoint.hpp>
 
 namespace holoscan::ops {
 
-// Receives messages through a UcxxEndpoint.
-class UcxxReceiverOp : public holoscan::Operator {
+// Sends messages through a UcxxEndpoint.
+class UcxxSenderOp : public holoscan::Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(UcxxReceiverOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(UcxxSenderOp)
 
   void setup(holoscan::OperatorSpec& spec) override;
-  void start() override;
-  void stop() override;
   void compute(holoscan::InputContext& input, holoscan::OutputContext& output,
                holoscan::ExecutionContext& context) override;
 
  private:
   holoscan::Parameter<uint64_t> tag_;
-  holoscan::Parameter<int> buffer_size_;
   holoscan::Parameter<std::shared_ptr<UcxxEndpoint>> endpoint_;
   holoscan::Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
+  holoscan::Parameter<bool> blocking_;
 
-  std::vector<uint8_t> buffer_;
-  std::shared_ptr<ucxx::Request> request_;
+  struct SendRequest {
+    std::shared_ptr<ucxx::Request> request;
+    std::vector<uint8_t> buffer;
+  };
+  std::list<SendRequest> requests_;
 };
 
 }  // namespace holoscan::ops
