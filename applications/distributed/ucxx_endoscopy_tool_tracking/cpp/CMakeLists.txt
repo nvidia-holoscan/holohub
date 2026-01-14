@@ -143,7 +143,7 @@ if(OFF)  # TODO: Implement frame count cutoff in subscriber application for test
   )
 
   set_tests_properties(ucxx_endoscopy_tool_tracking_cpp_render_test PROPERTIES
-    DEPENDS ucxx_endoscopy_tool_tracking_subscriber_test
+    DEPENDS ucxx_endoscopy_tool_tracking_cpp_test
     PASS_REGULAR_EXPRESSION "Valid video output!"
   )
 
