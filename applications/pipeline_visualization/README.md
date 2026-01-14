@@ -205,7 +205,7 @@ The data format is defined using FlatBuffers for efficient serialization:
 - **message.fbs**: Top-level message structure with metadata
 - **tensor.fbs**: Tensor data structure based on DLPack
 
-FlatBuffers access the data directly without unpacking or parsing it and allows the the schema to evolve over time while still maintaining forwards and backwards.
+FlatBuffers access the data directly without unpacking or parsing it and allow the schema to evolve over time while maintaining forward and backward compatibility.
 
 
 
