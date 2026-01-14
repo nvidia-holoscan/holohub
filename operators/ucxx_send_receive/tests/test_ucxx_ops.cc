@@ -162,7 +162,7 @@ class UcxxTestApp : public holoscan::Application {
 int main(int argc, char** argv) {
   auto app = holoscan::make_application<UcxxTestApp>();
 
-  if (argc > 2) {
+  if (argc >= 2) {
     app->config(argv[1]);
   }
 

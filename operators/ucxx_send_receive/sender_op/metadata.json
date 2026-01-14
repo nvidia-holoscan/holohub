@@ -23,7 +23,7 @@
             "x86_64",
             "aarch64"
         ],
-        "tags": ["Distributed", "UCXX", "Serialization"],
+        "tags": ["Networking and Distributed Computing", "Distributed", "UCXX", "Serialization"],
         "ranking": 2,
         "requirements": {}
     }
