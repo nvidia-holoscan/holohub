@@ -52,6 +52,9 @@ class SNIRFStream(BaseNirsStream):
         ]
         logger.info("Got {} unique channels".format(len(self._unique_channels)))
 
+    def stop(self) -> None:
+        self._snirf_file.close()
+
     def get_channels(self) -> ChannelInfo:
         return ChannelInfo(
             source_module=np.array([ch.source_module for ch in self._unique_channels]),

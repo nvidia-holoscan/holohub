@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 import logging
 from queue import Empty, Full, Queue
-from threading import Thread
+from threading import Thread, Event as ThreadingEvent
 from typing import Iterator, List
 
 import numpy as np
@@ -26,6 +26,7 @@ class KernelSDKReceiver(SdkClient):
     """
     A class to receive data from the Flow device using the Kernel SDK.
     """
+    _receiver_stop_event = ThreadingEvent()
 
     @property
     @check_faulted_on_command_failure
@@ -37,16 +38,13 @@ class KernelSDKReceiver(SdkClient):
 
         subscribes to nirs data and yields samples
         """
-        yield from self._iter_full_moments()
-
-    def _iter_full_moments(self) -> Iterator[np.ndarray]:
         data_queue: Queue[np.ndarray] = Queue(5)
         moment_ids = [MomentNumber.Zeroth, MomentNumber.First, MomentNumber.Second]
         wavelengths = [Wavelength.Red, Wavelength.IR]
 
         # need to yield  (num_modules, num_sources, num_modules, num_detectors, num_moments, num_wavelengths) shaped data into data_queue
 
-        def multi_moments_callback(data_dict: dict):
+        def _multi_moments_callback(data_dict: dict):
             logger.debug("NIRS data callback triggered")
 
             moment_slices = []
@@ -88,17 +86,24 @@ class KernelSDKReceiver(SdkClient):
         ]
         logger.info(f"Subscribing to NIRS data URNs: {urns}")
         nirs_future = self._sdk.new_event(
-            Event(device="flow", field_urns=urns), multi_moments_callback
+            Event(device="flow", field_urns=urns), _multi_moments_callback
         )
 
         try:
-            while True:
+            while not self._receiver_stop_event.is_set():
                 # Block until data is available in the queue
                 logger.debug("Waiting for NIRS data...")
                 yield data_queue.get()
                 logger.debug("NIRS data received. queue size: %d", data_queue.qsize())
         finally:
             nirs_future.cancel()
+
+    def stop(self) -> None:
+        """
+        Stop the receiver.
+        """
+        self._receiver_stop_event.set()
+        super().stop()
 
 
 class KernelSDKStream(BaseNirsStream):
@@ -133,6 +138,27 @@ class KernelSDKStream(BaseNirsStream):
         )
         self._receiver_thread.start()
         self._channels = self._build_all_channels()
+
+    def stop(self) -> None:
+        """Stop threads and clean up resources."""
+        if self._receiver_queue is not None:
+            # Signal thread to stop by setting queue to None
+            queue = self._receiver_queue
+            self._receiver_queue = None
+            # Drain the queue to unblock the thread
+            try:
+                while True:
+                    queue.get_nowait()
+            except Empty:
+                pass
+        
+        if self._receiver_thread is not None and self._receiver_thread.is_alive():
+            self._receiver_thread.join(timeout=2.0)
+            self._receiver_thread = None
+
+        if self._receiver is not None:
+            self._receiver.stop()
+            self._receiver = None
 
     def _build_all_channels(self) -> ChannelInfo:
         nirs_data: np.ndarray
@@ -217,7 +243,11 @@ class KernelSDKStream(BaseNirsStream):
                 # nirs_data is (num_modules, num_sources, num_modules, num_detectors, num_moments, num_wavelengths) = (48, 3, 48, 6, 3, 2)
                 nirs_data = self._receiver_queue.get(timeout=1.0)
             except Empty:
-                continue
+                raise RuntimeError(
+                    "Timeout waiting for NIRS data from Kernel SDK. "
+                    "Ensure the device is connected and streaming."
+                )
+
             logger.debug("Received new NIRS data frame")
 
             # flatten first 4 dimensions into one dimension
