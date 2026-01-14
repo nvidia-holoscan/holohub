@@ -15,7 +15,8 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "3.7.0",
 			"tested_versions": [
-				"3.7.0"
+				"3.7.0",
+				"3.10.0"
 			]
 		},
 		"platforms": [
@@ -26,7 +27,11 @@
 		"ranking": 1,
 		"requirements": {
 			"hardware": [
-				"Network interface with multicast support (including NVIDIA Thor AGX MGBE)"
+				{
+					"name": "NVIDIA Thor AGX with MGBE",
+					"description": "Network interface with multicast support"
+
+				}
 			],
 			"software": []
 		}
