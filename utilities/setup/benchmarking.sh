@@ -22,15 +22,15 @@ set -e
 # =========================================================
 
 # Install APT dependencies
-apt-get update
-apt-get install --no-install-recommends -y \
+apt update
+apt install --no-install-recommends -y \
     libcairo2-dev \
     libgirepository1.0-dev \
     gobject-introspection \
     libgtk-3-dev \
     libcanberra-gtk-module \
     graphviz
-rm -rf /var/lib/apt/lists/*
+apt clean && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 python3 -m pip install \
