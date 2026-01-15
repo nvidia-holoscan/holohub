@@ -38,9 +38,9 @@ cd holohub
 ### Step 2: Read and Agree to the Terms and Conditions of the EndoNeRF Sample Dataset
 
 1. Read and agree to the [Terms and Conditions](https://docs.google.com/document/d/1P6q2hXoGpVMKeD-PpjYYdZ0Yx1rKZdJF1rXxpobbFMY/edit?usp=share_link) for the EndoNeRF dataset.
-1. EndoNeRF sample dataset is being downloaded automatically when building the application. 
-1. Optionally, for manual download of the dataset, refer to the [Data](#pulling-soft-tissues-dataset) section below.
-1. Optionally, if you do not agree to the terms and conditions, set the `HOLOHUB_DOWNLOAD_DATASETS` environment variable to `OFF` and manually download the dataset and place it in the correct location by following the instructions in the [Data](#pulling-soft-tissues-dataset) section below.
+2. EndoNeRF sample dataset is being downloaded automatically when building the application. 
+3. Optionally, for manual download of the dataset, refer to the [Data](#pulling-soft-tissues-dataset) section below.
+4. Optionally, if you do not agree to the terms and conditions, set the `HOLOHUB_DOWNLOAD_DATASETS` environment variable to `OFF` and manually download the dataset and place it in the correct location by following the instructions in the [Data](#pulling-soft-tissues-dataset) section below.
 
     ```bash
     export HOLOHUB_DOWNLOAD_DATASETS=OFF
@@ -52,8 +52,7 @@ To run the model training:
 
 ```bash
 ./holohub run surgical_scene_recon train
-  ./holohub run surgical_scene_recon train
-  ```
+```
 
 ### Step 4: Dynamic Rendering with a Trained Model
 
@@ -65,7 +64,7 @@ After training completes, to visualize your results in real-time, run the surgic
 
 ![Dynamic Rendering Visualization](surg_recon_inference.gif)
 
-## Pulling Soft Tissues Dataset
+## Obtaining the Pulling Soft Tissues Dataset
 
 This application uses the **EndoNeRF "pulling_soft_tissues" dataset**, which contains:
 
@@ -85,7 +84,7 @@ You can download the dataset from one of the following locations:
       - `cutting_tissues_twice`
       - `pulling_soft_tissues`
   
-  1. Download `pulling_soft_tissues`.
+  2. Download `pulling_soft_tissues`.
 
 * Visit the [EndoNeRF repository](https://github.com/med-air/EndoNeRF).
 
@@ -100,7 +99,7 @@ To place the dataset at `<HOLOHUB_ROOT>/data/EndoNeRF/pulling/`:
     mkdir -p data/EndoNeRF
     ```
 
-1. Extract and move (or copy) the downloaded dataset: 
+2. Extract and move (or copy) the downloaded dataset: 
 
     ```bash
     mv /path/to/pulling_soft_tissues data/EndoNeRF/pulling
@@ -129,17 +128,17 @@ The `surgical_scene_recon` application uses a **3D Gaussian Splatting** model wi
 
 - Gaussian Splatting Model
 
-  Each portion of the application makes use of different aspects of the Gaussian Splatting Model.
+  The Gaussian Splatting model can be described as:
 
   - Architecture: 3D Gaussians with learned position, scale, rotation, opacity, and color
   - Initialization: Multi-frame point cloud (~30,000-50,000 points from all frames)
   - Renderer: `gsplat` library (CUDA-accelerated differentiable rasterization)
-  - Spherical Harmonics: Degree 3 (16 coefficients per gaussian for view-dependent color)
+  - Spherical Harmonics of degree 3 (16 coefficients per gaussian for view-dependent color)
   - Resolution: 640×512 pixels (RGB, three channels)
 
 - Temporal Deformation Network Model
 
-  The Temporal Deformation Network deforms 3D Gaussians over time to model dynamic tissue movement during surgery.
+  The Temporal Deformation Network model deforms 3D Gaussians and can be described as:
 
   - Architecture: HexPlane 4D spatiotemporal grid + MLP decoder
   - Input: 3D position + normalized time value [0, 1]
