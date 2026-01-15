@@ -27,9 +27,33 @@
 		"requirements": {
 			"libraries": []
 		},
-		"run": {
-			"command": "python3 <holohub_app_source>/tool_segmentation.py --data <holohub_data_dir>",
-			"workdir": "holohub_bin"
+		"default_mode": "default",
+		"modes": {
+			"default": {
+				"description": "Use the default source (replayer)",
+				"run": {
+					"command": "python3 <holohub_app_source>/tool_segmentation.py --data <holohub_data_dir>",
+					"workdir": "holohub_bin"
+				}
+			},
+			"replayer": {
+				"description": "Use a pre-recorded video as input",
+				"run": {
+					"command": "python3 <holohub_app_source>/tool_segmentation.py --source=replayer --data <holohub_data_dir>",
+					"workdir": "holohub_bin"
+				}
+			},
+			"aja": {
+				"description": "Use an AJA device for video input",
+				"build": {
+					"depends": ["aja_source"],
+					"docker_build_args": ["--target", "holohub-aja"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/tool_segmentation.py --source=aja --data <holohub_data_dir>",
+					"workdir": "holohub_bin"
+				}
+			}
 		}
 	}
 }
