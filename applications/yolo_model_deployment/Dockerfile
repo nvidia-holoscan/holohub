@@ -46,7 +46,7 @@ RUN apt-get update \
 
 RUN pip3 install \
     ultralytics \
-    onnx \
+    onnx==1.19.1 \
     onnx-graphsurgeon
 
 ARG GPU_TYPE
