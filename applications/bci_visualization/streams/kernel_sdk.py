@@ -223,6 +223,8 @@ class KernelSDKStream(BaseNirsStream):
         if self._receiver_queue is None:
             return
         try:
+            if self._receiver is None:
+                return
             for frame in self._receiver.iter:
                 queue = self._receiver_queue
                 if queue is None:
