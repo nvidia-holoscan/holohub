@@ -16,15 +16,23 @@ For detailed information, refer to:
 
 ## Table of Contents
 
-- [Environment Setup](#environment-setup)
-  - [Holohub Docker Container (recommended)](#holohub-docker-container-recommended)
-  - [Bare-metal Installation](#bare-metal-installation)
-- [Step-by-step Guide to Holoscan Flow Benchmarking](#step-by-step-guide-to-holoscan-flow-benchmarking)
-  - [1. Build Applications](#1-build-applications)
-  - [2. Run Benchmarks](#2-run-benchmarks)
-  - [3. Analyze Results](#3-analyze-results)
-- [Generate Application Graph with Latency Numbers](#generate-application-graph-with-latency-numbers)
-  - [Monitor Application Performance in Real-time](#monitor-application-performance-in-real-time)
+- [Holoscan Flow Benchmarking for HoloHub](#holoscan-flow-benchmarking-for-holohub)
+  - [Table of Contents](#table-of-contents)
+  - [Environment Setup](#environment-setup)
+    - [Holohub Docker Container (recommended)](#holohub-docker-container-recommended)
+    - [Bare-metal Installation](#bare-metal-installation)
+  - [Step-by-step Guide to Holoscan Flow Benchmarking](#step-by-step-guide-to-holoscan-flow-benchmarking)
+    - [1. Build Applications](#1-build-applications)
+      - [Automatic Build with Benchmarking](#automatic-build-with-benchmarking)
+      - [Manual Patching \[only if need to\]](#manual-patching-only-if-need-to)
+    - [Important notes](#important-notes)
+    - [2. Run Benchmarks](#2-run-benchmarks)
+    - [3. Analyze Results](#3-analyze-results)
+      - [3.1 Basic Analysis](#31-basic-analysis)
+      - [3.2 Generate CDF Plot](#32-generate-cdf-plot)
+      - [3.3 Historical Analysis](#33-historical-analysis)
+  - [Generate Application Graph with Latency Numbers](#generate-application-graph-with-latency-numbers)
+    - [Monitor application performance in real-time](#monitor-application-performance-in-real-time)
 
 ## Environment Setup
 
@@ -33,11 +41,11 @@ For detailed information, refer to:
 All dependencies are automatically managed by the Holohub Docker container. You can simply run:
 
 ```bash
-./holohub run-container --build-args "--target benchmarking-setup" [<application_name>]
+./holohub run-container --extra-script benchmarking [<application_name>]
 ```
 
-> [!NOTE]
-> By default, this command will build and run the Holohub Docker container with benchmarking tools enabled, unless the application already provides its own Dockerfile.  If the application has a custom Dockerfile, the `benchmarking-setup` target may not be available within its container image. For further details or special instructions, please consult the README of the respective application.
+  > [!NOTE]
+  > This command will set up the benchmarking environment on top of the default Holohub container image if the application's name is not provided or the application does not come with a custom Dockerfile. If the application has a custom Dockerfile, the benchmarking environment will be set up on top of the custom Dockerfile.
 
 ### Bare-metal Installation
 
@@ -52,7 +60,6 @@ These python dependencies include:
 - numpy: Data processing
 - matplotlib: Graph generation
 - nvitop: GPU monitoring
-- argparse: CLI handling
 - pydot: Graph creation
 - xdot: Graph visualization
 
