@@ -789,20 +789,30 @@ class HoloHubContainer:
                     ["-v", f"{os.environ['XDG_RUNTIME_DIR']}:{os.environ['XDG_RUNTIME_DIR']}"]
                 )
 
-        warn("--------------------------------------------------------")
-        warn(f"Enable X11: {enable_x11} or SSH X11: {ssh_x11}")
-        warn(f"DISPLAY: {os.environ.get('DISPLAY')}")
-        warn(f"XDG_SESSION_TYPE: {os.environ.get('XDG_SESSION_TYPE')}")
-        warn(f"XDG_RUNTIME_DIR: {os.environ.get('XDG_RUNTIME_DIR')}")
-        warn(f"XAUTHORITY: {os.environ.get('XAUTHORITY')}")
-        warn(f"DISPLAY: {os.environ.get('DISPLAY')}")
-        warn(f"XDG_SESSION_TYPE: {os.environ.get('XDG_SESSION_TYPE')}")
-        warn(f"XDG_RUNTIME_DIR: {os.environ.get('XDG_RUNTIME_DIR')}")
-        warn(f"XAUTHORITY: {os.environ.get('XAUTHORITY')}")
-        warn(f"xhost: {shutil.which('xhost')}")
-        warn(f"xauth: {shutil.which('xauth')}")
-        warn(f"xauth list: {run_command(['xauth', 'nlist', os.environ['DISPLAY']], check=False, capture_output=True, text=True, dry_run=self.dryrun)}")
-        warn("--------------------------------------------------------")
+        try:
+            warn("--------------------------------------------------------")
+            warn(f"Enable X11: {enable_x11} or SSH X11: {ssh_x11}")
+            warn(f"DISPLAY: {os.environ.get('DISPLAY')}")
+            warn(f"XDG_SESSION_TYPE: {os.environ.get('XDG_SESSION_TYPE')}")
+            warn(f"XDG_RUNTIME_DIR: {os.environ.get('XDG_RUNTIME_DIR')}")
+            warn(f"XAUTHORITY: {os.environ.get('XAUTHORITY')}")
+            warn(f"DISPLAY: {os.environ.get('DISPLAY')}")
+            warn(f"XDG_SESSION_TYPE: {os.environ.get('XDG_SESSION_TYPE')}")
+            warn(f"XDG_RUNTIME_DIR: {os.environ.get('XDG_RUNTIME_DIR')}")
+            warn(f"XAUTHORITY: {os.environ.get('XAUTHORITY')}")
+            warn(f"xhost: {shutil.which('xhost')}")
+            warn(f"xauth: {shutil.which('xauth')}")
+            warn(f"xauth list: {run_command(['xauth', 'nlist', os.environ['DISPLAY']], check=False, capture_output=True, text=True, dry_run=self.dryrun)}")
+            warn("--------------------------------------------------------")
+        except Exception as e:
+            warn(f"Error getting display options: {e}")
+            warn("--------------------------------------------------------")
+            try:
+                warn(f"Traceback: {traceback.format_exc()}")
+                warn("--------------------------------------------------------")
+            except Exception as e:
+                pass
+
         # Handle X11 forwarding
         if enable_x11 or ssh_x11:
             # Enable X11 access for Docker containers
