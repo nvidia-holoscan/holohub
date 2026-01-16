@@ -5,7 +5,8 @@ SPDX-License-Identifier: Apache-2.0
 
 import logging
 from queue import Empty, Full, Queue
-from threading import Thread, Event as ThreadingEvent
+from threading import Event as ThreadingEvent
+from threading import Thread
 from typing import Iterator, List
 
 import numpy as np
@@ -26,6 +27,7 @@ class KernelSDKReceiver(SdkClient):
     """
     A class to receive data from the Flow device using the Kernel SDK.
     """
+
     def __init__(self):
         super().__init__()
         self._receiver_stop_event = ThreadingEvent()
@@ -144,6 +146,10 @@ class KernelSDKStream(BaseNirsStream):
 
     def stop(self) -> None:
         """Stop threads and clean up resources."""
+        receiver = self._receiver
+        if receiver is not None:
+            receiver.stop()
+
         if self._receiver_queue is not None:
             # Signal thread to stop by setting queue to None
             queue = self._receiver_queue
@@ -154,14 +160,11 @@ class KernelSDKStream(BaseNirsStream):
                     queue.get_nowait()
             except Empty:
                 pass
-        
+
         if self._receiver_thread is not None and self._receiver_thread.is_alive():
             self._receiver_thread.join(timeout=2.0)
             self._receiver_thread = None
-
-        if self._receiver is not None:
-            self._receiver.stop()
-            self._receiver = None
+        self._receiver = None
 
     def _build_all_channels(self) -> ChannelInfo:
         nirs_data: np.ndarray
