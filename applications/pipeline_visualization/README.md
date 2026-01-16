@@ -8,9 +8,9 @@ This example demonstrates real-time visualization of data from Holoscan applicat
 
 The example consists of three main components:
 
-* **C++ Data Producer**: A Holoscan application that generates data (sine waves) and publishes it to NATS
-* **NATS Server**: A message broker that handles real-time data streaming
-* **Python Web Visualizers**: Dash-based web applications that subscribe to NATS streams and display live plots
+- **C++ Data Producer**: A Holoscan application that generates data (sine waves) and publishes it to NATS
+- **NATS Server**: A message broker that handles real-time data streaming
+- **Python Web Visualizers**: Dash-based web applications that subscribe to NATS streams and display live plots
 
 ## Quick Start
 
@@ -41,13 +41,13 @@ The web interface will be available at: [http://localhost:8050](http://localhost
 
 In a third terminal, run the application:
 
-* Run the Python version (default when `--language` is not specified):
+- Run the Python version (default when `--language` is not specified):
 
     ```bash
     ./holohub run pipeline_visualization
     ```
 
-* Or explicitly specify the language:
+- Or explicitly specify the language:
 
     ```bash
     ./holohub run pipeline_visualization --language python
@@ -86,8 +86,6 @@ The visualizer will display:
 - **modulate.in**: Input to the modulate operator (same as source.out)
 - **modulate.out**: Modulated signal with high-frequency component
 - **sink.in**: Final processed signal (same as modulate.out)
-
-
 
 ## NATS Logger Configuration (`pipeline_visualization.yaml`)
 
@@ -197,7 +195,6 @@ The static visualizer can be used when the output data and format of the Holosca
 - Ideal for applications with dynamic or unknown operator configurations
 - Graphs are created on-the-fly as new unique IDs are detected
 
-
 ### FlatBuffers Schemas (`schemas/`)
 
 The data format is defined using FlatBuffers for efficient serialization:
@@ -206,8 +203,6 @@ The data format is defined using FlatBuffers for efficient serialization:
 - **tensor.fbs**: Tensor data structure based on DLPack
 
 FlatBuffers access the data directly without unpacking or parsing it and allow the schema to evolve over time while maintaining forward and backward compatibility.
-
-
 
 ## NATS Message Structure and Data Format
 
@@ -235,7 +230,6 @@ Examples:
 - `modulate.in` - Input port of the modulate operator
 - `modulate.out` - Output port of the modulate operator
 - `sink.in` - Input port of the sink operator
-
 
 ## Customization
 
@@ -316,12 +310,6 @@ To run multiple Holoscan apps simultaneously:
    ```python
    self._app.run(debug=True, host="0.0.0.0", port=8051)
    ```
-
-
-
-
-
-
 
 ## Troubleshooting
 
