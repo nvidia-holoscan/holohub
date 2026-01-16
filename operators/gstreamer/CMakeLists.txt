@@ -39,7 +39,10 @@ add_library(holoscan_gstreamer_bridge SHARED
   gst/message.cpp
   gst/video_info.cpp
   gst_src_bridge.cpp
+  gst_src_op.cpp
+  gst_src_resource.cpp
   gst_video_recorder_op.cpp
+  gst_pipeline_bus_monitor.cpp
 )
 
 # Create alias for consistent naming
@@ -132,7 +135,10 @@ install(FILES
   gst/pipeline.hpp
   gst/video_info.hpp
   gst_src_bridge.hpp
+  gst_src_op.hpp
+  gst_src_resource.hpp
   gst_video_recorder_op.hpp
+  gst_pipeline_bus_monitor.hpp
   DESTINATION include/holoscan/operators/gstreamer)
 
 # Export the library for use by other CMake projects
