@@ -26,7 +26,9 @@ class KernelSDKReceiver(SdkClient):
     """
     A class to receive data from the Flow device using the Kernel SDK.
     """
-    _receiver_stop_event = ThreadingEvent()
+    def __init__(self):
+        super().__init__()
+        self._receiver_stop_event = ThreadingEvent()
 
     @property
     @check_faulted_on_command_failure
@@ -121,6 +123,7 @@ class KernelSDKStream(BaseNirsStream):
         self._receiver_queue_size = int(receiver_queue_size)
         self._receiver_queue: Queue[np.ndarray] | None = None
         self._receiver_thread: Thread | None = None
+        self._receiver: KernelSDKReceiver | None = None
         self._channels: ChannelInfo | None = None
         self._good_channels: List[int] = []
 
