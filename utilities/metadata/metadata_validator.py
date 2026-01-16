@@ -146,7 +146,9 @@ def validate_json(json_data, directory):
     validator = Draft4Validator(execute_api_schema, registry=registry)
 
     try:
-        validator.validate(json_data)
+        json_data_entries = json_data if isinstance(json_data, list) else [json_data]
+        for json_data_entry in json_data_entries:
+            validator.validate(json_data_entry)
     except jsonschema.exceptions.ValidationError as err:
         return False, err
 
