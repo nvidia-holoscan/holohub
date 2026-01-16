@@ -17965,24 +17965,38 @@
 </ul>
 <h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">#</a></h2>
 <ul>
-<li><a href="#environment-setup">Environment Setup</a></li>
+<li><a href="#holoscan-flow-benchmarking-for-holohub">Holoscan Flow Benchmarking for HoloHub</a></li>
+<li><a href="#table-of-contents">Table of Contents</a></li>
+<li><a href="#environment-setup">Environment Setup</a><ul>
 <li><a href="#holohub-docker-container-recommended">Holohub Docker Container (recommended)</a></li>
 <li><a href="#bare-metal-installation">Bare-metal Installation</a></li>
-<li><a href="#step-by-step-guide-to-holoscan-flow-benchmarking">Step-by-step Guide to Holoscan Flow Benchmarking</a></li>
+</ul>
+</li>
+<li><a href="#step-by-step-guide-to-holoscan-flow-benchmarking">Step-by-step Guide to Holoscan Flow Benchmarking</a><ul>
 <li><a href="#1-build-applications">1. Build Applications</a></li>
+<li><a href="#automatic-build-with-benchmarking">Automatic Build with Benchmarking</a></li>
+<li><a href="#manual-patching-only-if-need-to">Manual Patching [only if need to]</a></li>
+<li><a href="#important-notes">Important notes</a></li>
 <li><a href="#2-run-benchmarks">2. Run Benchmarks</a></li>
 <li><a href="#3-analyze-results">3. Analyze Results</a></li>
-<li><a href="#generate-application-graph-with-latency-numbers">Generate Application Graph with Latency Numbers</a></li>
-<li><a href="#monitor-application-performance-in-real-time">Monitor Application Performance in Real-time</a></li>
+<li><a href="#31-basic-analysis">3.1 Basic Analysis</a></li>
+<li><a href="#32-generate-cdf-plot">3.2 Generate CDF Plot</a></li>
+<li><a href="#33-historical-analysis">3.3 Historical Analysis</a></li>
+</ul>
+</li>
+<li><a href="#generate-application-graph-with-latency-numbers">Generate Application Graph with Latency Numbers</a><ul>
+<li><a href="#monitor-application-performance-in-real-time">Monitor application performance in real-time</a></li>
+</ul>
+</li>
 </ul>
 <h2 id="environment-setup">Environment Setup<a class="headerlink" href="#environment-setup" title="Permanent link">#</a></h2>
 <h3 id="holohub-docker-container-recommended">Holohub Docker Container (recommended)<a class="headerlink" href="#holohub-docker-container-recommended" title="Permanent link">#</a></h3>
 <p>All dependencies are automatically managed by the Holohub Docker container. You can simply run:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--build-args<span class="w"> </span><span class="s2">&quot;--target benchmarking-setup&quot;</span><span class="w"> </span><span class="o">[</span>&lt;application_name&gt;<span class="o">]</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--extra-script<span class="w"> </span>benchmarking<span class="w"> </span><span class="o">[</span>&lt;application_name&gt;<span class="o">]</span>
 </code></pre></div>
 <blockquote>
 <p>[!NOTE]
-By default, this command will build and run the Holohub Docker container with benchmarking tools enabled, unless the application already provides its own Dockerfile.  If the application has a custom Dockerfile, the <code>benchmarking-setup</code> target may not be available within its container image. For further details or special instructions, please consult the README of the respective application.</p>
+This command sets up the benchmarking environment on top of the default Holohub container image, unless you specify an application with a custom Dockerfile. In that case, the benchmarking environment attempts to extend the application's Dockerfile. However, this process hasn't been fully tested for every possible custom Dockerfile, and success depends on how the Dockerfile is authored. Some Dockerfiles may already include the required benchmarking support and may work even without the <code>--extra-script benchmarking</code> option; in other cases, there may be conflicts or additional manual steps needed. Always refer to the relevant application's README for any application-specific benchmarking instructions or compatibility considerations.</p>
 </blockquote>
 <h3 id="bare-metal-installation">Bare-metal Installation<a class="headerlink" href="#bare-metal-installation" title="Permanent link">#</a></h3>
 <p>If not using the Holohub Docker container, apart from the holoscan and application's specific dependencies, additional Python packages should be installed:</p>
@@ -17993,7 +18007,6 @@ By default, this command will build and run the Holohub Docker container with be
 <li>numpy: Data processing</li>
 <li>matplotlib: Graph generation</li>
 <li>nvitop: GPU monitoring</li>
-<li>argparse: CLI handling</li>
 <li>pydot: Graph creation</li>
 <li>xdot: Graph visualization</li>
 </ul>
