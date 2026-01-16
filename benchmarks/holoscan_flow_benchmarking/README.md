@@ -45,7 +45,7 @@ All dependencies are automatically managed by the Holohub Docker container. You 
 ```
 
   > [!NOTE]
-  > This command will set up the benchmarking environment on top of the default Holohub container image if the application's name is not provided or the application does not come with a custom Dockerfile. If the application has a custom Dockerfile, the benchmarking environment will be set up on top of the custom Dockerfile.
+  > This command sets up the benchmarking environment on top of the default Holohub container image, unless you specify an application with a custom Dockerfile. In that case, the benchmarking environment attempts to extend the application's Dockerfile. Please note that this process has not been extensively tested with all custom Dockerfiles—compatibility depends on how the Dockerfile is configured, so conflicts or issues could occur or the Dockerfile may already have the support for benchamrking and could work without `--extra-script benchmarking`. For specific instructions consult the corresponding application's README.
 
 ### Bare-metal Installation
 
