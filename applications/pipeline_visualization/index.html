@@ -7011,16 +7011,6 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#configuration">
-<span class="md-ellipsis">
-      
-        Configuration
-      
-    </span>
-</a>
-<nav aria-label="Configuration" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
 <a class="md-nav__link" href="#nats-logger-configuration-pipeline_visualizationyaml">
 <span class="md-ellipsis">
       
@@ -7038,8 +7028,14 @@
     </span>
 </a>
 </li>
-</ul>
-</nav>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#visualizer-python-prerequisites">
+<span class="md-ellipsis">
+      
+        Visualizer Python Prerequisites
+      
+    </span>
+</a>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#components">
@@ -7071,19 +7067,19 @@
 <nav aria-label="Python Visualizers (visualizer/)" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#1-static-visualizer-visualizer_staticpy">
+<a class="md-nav__link" href="#static-visualizer-visualizer_staticpy">
 <span class="md-ellipsis">
       
-        1. Static Visualizer (visualizer_static.py)
+        Static Visualizer (visualizer_static.py)
       
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#2-dynamic-visualizer-visualizer_dynamicpy">
+<a class="md-nav__link" href="#dynamic-visualizer-visualizer_dynamicpy">
 <span class="md-ellipsis">
       
-        2. Dynamic Visualizer (visualizer_dynamic.py)
+        Dynamic Visualizer (visualizer_dynamic.py)
       
     </span>
 </a>
@@ -7104,100 +7100,20 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#prerequisites">
+<a class="md-nav__link" href="#nats-message-structure-and-data-format">
 <span class="md-ellipsis">
       
-        Prerequisites
+        NATS Message Structure and Data Format
       
     </span>
 </a>
-<nav aria-label="Prerequisites" class="md-nav">
+<nav aria-label="NATS Message Structure and Data Format" class="md-nav">
 <ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#visualizer-python-dependencies">
-<span class="md-ellipsis">
-      
-        Visualizer Python Dependencies
-      
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#data-format">
-<span class="md-ellipsis">
-      
-        Data Format
-      
-    </span>
-</a>
-<nav aria-label="Data Format" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#nats-message-structure">
-<span class="md-ellipsis">
-      
-        NATS Message Structure
-      
-    </span>
-</a>
-</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#unique-id-format">
 <span class="md-ellipsis">
       
         Unique ID Format
-      
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#troubleshooting">
-<span class="md-ellipsis">
-      
-        Troubleshooting
-      
-    </span>
-</a>
-<nav aria-label="Troubleshooting" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#nats-connection-issues">
-<span class="md-ellipsis">
-      
-        NATS Connection Issues
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#visualizer-not-updating">
-<span class="md-ellipsis">
-      
-        Visualizer Not Updating
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#flatbuffers-import-errors">
-<span class="md-ellipsis">
-      
-        FlatBuffers Import Errors
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#no-data-displayed">
-<span class="md-ellipsis">
-      
-        No Data Displayed
       
     </span>
 </a>
@@ -7285,6 +7201,55 @@
 </ul>
 </nav>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+</a>
+<nav aria-label="Troubleshooting" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#nats-connection-issues">
+<span class="md-ellipsis">
+      
+        NATS Connection Issues
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#visualizer-not-updating">
+<span class="md-ellipsis">
+      
+        Visualizer Not Updating
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flatbuffers-import-errors">
+<span class="md-ellipsis">
+      
+        FlatBuffers Import Errors
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#no-data-displayed">
+<span class="md-ellipsis">
+      
+        No Data Displayed
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
 </ul>
 </nav>
 </div>
@@ -7334,11 +7299,11 @@
 <p><img alt="Pipeline Visualization in Browser" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/pipeline_visualization/pipeline_visualization.png?raw=true"/></p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
 <p>The example consists of three main components:</p>
-<ol>
+<ul>
 <li><strong>C++ Data Producer</strong>: A Holoscan application that generates data (sine waves) and publishes it to NATS</li>
 <li><strong>NATS Server</strong>: A message broker that handles real-time data streaming</li>
 <li><strong>Python Web Visualizers</strong>: Dash-based web applications that subscribe to NATS streams and display live plots</li>
-</ol>
+</ul>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
 <h3 id="step-1-start-the-nats-server">Step 1: Start the NATS Server<a class="headerlink" href="#step-1-start-the-nats-server" title="Permanent link">#</a></h3>
 <p>In a terminal, start the NATS server using Docker:</p>
@@ -7354,14 +7319,20 @@
 <p>The web interface will be available at: <a href="http://localhost:8050">http://localhost:8050</a></p>
 <h3 id="step-3-run-the-holoscan-application">Step 3: Run the Holoscan Application<a class="headerlink" href="#step-3-run-the-holoscan-application" title="Permanent link">#</a></h3>
 <p>In a third terminal, run the application:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Run the Python version (default when --language is not specified)</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>pipeline_visualization
-
-<span class="c1"># Or explicitly specify the language:</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>pipeline_visualization<span class="w"> </span>--language<span class="w"> </span>python
+<ul>
+<li>
+<p>Run the Python version (default when <code>--language</code> is not specified):</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>pipeline_visualization
+</code></pre></div>
+</li>
+<li>
+<p>Or explicitly specify the language:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>pipeline_visualization<span class="w"> </span>--language<span class="w"> </span>python
 ./holohub<span class="w"> </span>run<span class="w"> </span>pipeline_visualization<span class="w"> </span>--language<span class="w"> </span>cpp
 </code></pre></div>
-<p><strong>Command-line Options:</strong></p>
+</li>
+</ul>
+<p>Command-line options for <code>pipeline_visualization</code>:</p>
 <div class="highlight"><pre><span></span><code>Usage: ./pipeline_visualization [options]
 Options:
   -h, --help            Display help information
@@ -7371,15 +7342,15 @@ Options:
   -p, --subject_prefix  NATS subject prefix (default: nats_demo)
   -r, --publish_rate    Publish rate in Hz (default: 2.0)
 </code></pre></div>
-<p><strong>Example with custom settings:</strong></p>
+<p>Example with custom settings:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>pipeline_visualization<span class="w"> </span>--nats_url<span class="w"> </span>nats://0.0.0.0:4222<span class="w"> </span>--subject_prefix<span class="w"> </span>my_demo<span class="w"> </span>--publish_rate<span class="w"> </span><span class="m">5</span>.0
 </code></pre></div>
 <h3 id="step-4-visualize-the-data">Step 4: Visualize the Data<a class="headerlink" href="#step-4-visualize-the-data" title="Permanent link">#</a></h3>
 <ol>
-<li>Open your web browser to <a href="http://localhost:8050">http://localhost:8050</a></li>
-<li>Enter the subject name (default: <code>nats_demo</code>)</li>
-<li>Click <strong>Connect</strong></li>
-<li>Watch the real-time data plots update!</li>
+<li>Open your web browser to <a href="http://localhost:8050">http://localhost:8050</a>.</li>
+<li>Enter the subject name (default: <code>nats_demo</code>).</li>
+<li>Click <strong>Connect</strong>.</li>
+<li>Watch the real-time data plots update.</li>
 </ol>
 <p>The visualizer will display:</p>
 <ul>
@@ -7388,9 +7359,8 @@ Options:
 <li><strong>modulate.out</strong>: Modulated signal with high-frequency component</li>
 <li><strong>sink.in</strong>: Final processed signal (same as modulate.out)</li>
 </ul>
-<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
-<h3 id="nats-logger-configuration-pipeline_visualizationyaml">NATS Logger Configuration (<code>pipeline_visualization.yaml</code>)<a class="headerlink" href="#nats-logger-configuration-pipeline_visualizationyaml" title="Permanent link">#</a></h3>
-<p>The NATS logger behavior can be configured via YAML:</p>
+<h2 id="nats-logger-configuration-pipeline_visualizationyaml">NATS Logger Configuration (<code>pipeline_visualization.yaml</code>)<a class="headerlink" href="#nats-logger-configuration-pipeline_visualizationyaml" title="Permanent link">#</a></h2>
+<p>The NATS logger behavior can be configured using YAML:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">nats_logger</span><span class="p">:</span>
 <span class="w">  </span><span class="c1"># Filter which operators to log (regex patterns)</span>
 <span class="w">  </span><span class="nt">allowlist_patterns</span><span class="p">:</span>
@@ -7402,7 +7372,7 @@ Options:
 <span class="w">  </span><span class="nt">log_metadata</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">            </span><span class="c1"># Include metadata in messages</span>
 <span class="w">  </span><span class="nt">log_tensor_data_content</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># Include actual tensor data</span>
 </code></pre></div>
-<h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h3>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
 <pre class="mermaid"><code>%%{init: {'flowchart':{'subGraphTitleMargin':{'top':10, 'bottom':40}}}}%%
 flowchart TB
     subgraph holoscan["Holoscan Application&lt;br/&gt;(C++ Producer)"]
@@ -7426,55 +7396,13 @@ flowchart TB
 
     holoscan --&gt;|NATS Messages&lt;br/&gt;#40;FlatBuffers#41;| nats
     nats --&gt;|Subscribe| viz</code></pre>
-<h2 id="components">Components<a class="headerlink" href="#components" title="Permanent link">#</a></h2>
-<h3 id="application-cpp-and-python">Application (<code>cpp/</code> and <code>python/</code>)<a class="headerlink" href="#application-cpp-and-python" title="Permanent link">#</a></h3>
-<p>The C++ and Python applications demonstrates a simple Holoscan pipeline with data logging:</p>
-<ul>
-<li><strong>SourceOp</strong>: Generates sine waves with varying frequencies (10-20 Hz)</li>
-<li><strong>ModulateOp</strong>: Adds high-frequency modulation (300 Hz) to the signal</li>
-<li><strong>SinkOp</strong>: Receives the processed data</li>
-<li><strong>NatsLogger</strong>: A custom data logger that publishes tensor data to NATS using FlatBuffers serialization</li>
-</ul>
-<p>The applications log both inputs and outputs of operators, allowing visualization of data at each stage of the pipeline.</p>
-<h3 id="python-visualizers-visualizer">Python Visualizers (<code>visualizer/</code>)<a class="headerlink" href="#python-visualizers-visualizer" title="Permanent link">#</a></h3>
-<p>Two visualization options are provided:</p>
-<h4 id="1-static-visualizer-visualizer_staticpy">1. Static Visualizer (<code>visualizer_static.py</code>)<a class="headerlink" href="#1-static-visualizer-visualizer_staticpy" title="Permanent link">#</a></h4>
-<ul>
-<li>Displays predefined data streams: <code>source.out</code>, <code>modulate.in</code>, <code>modulate.out</code>, <code>sink.in</code></li>
-<li>Best for applications with known, fixed operator topology</li>
-<li>All graphs are created upfront and updated as data arrives</li>
-</ul>
-<p>The static visualizer can be used when the output data and format of the Holoscan pipeline is known or some data needs special formatting.</p>
-<h4 id="2-dynamic-visualizer-visualizer_dynamicpy">2. Dynamic Visualizer (<code>visualizer_dynamic.py</code>)<a class="headerlink" href="#2-dynamic-visualizer-visualizer_dynamicpy" title="Permanent link">#</a></h4>
-<ul>
-<li>Automatically discovers and creates graphs for new data streams</li>
-<li>Ideal for applications with dynamic or unknown operator configurations</li>
-<li>Graphs are created on-the-fly as new unique IDs are detected</li>
-</ul>
-<p>There is a script <code>start_visualizer.sh</code> which sets the required Python path to the flatbuffers definitions and starts the visualizer. The script takes a parameter, <code>dynamic</code> starts the dynamic visualizer and <code>static</code> starts the static visualizer.</p>
-<p>Both visualizers display:</p>
-<ul>
-<li>Real-time line plots of tensor data</li>
-<li>Stream name (operator.port format)</li>
-<li>IO type (Input/Output)</li>
-<li>Acquisition timestamp (nanoseconds)</li>
-<li>Publish timestamp (nanoseconds)</li>
-</ul>
-<h3 id="flatbuffers-schemas-schemas">FlatBuffers Schemas (<code>schemas/</code>)<a class="headerlink" href="#flatbuffers-schemas-schemas" title="Permanent link">#</a></h3>
-<p>The data format is defined using FlatBuffers for efficient serialization:</p>
-<ul>
-<li><strong>message.fbs</strong>: Top-level message structure with metadata</li>
-<li><strong>tensor.fbs</strong>: Tensor data structure based on DLPack</li>
-</ul>
-<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
-<p>All dependencies to run the application are installed automatically when using the <code>holohub run</code> command inside
-the Holohub container. Since the visualizer is run outside the Holohub container, its dependencies must be
-installed separately. See the next section for details.</p>
-<h3 id="visualizer-python-dependencies">Visualizer Python Dependencies<a class="headerlink" href="#visualizer-python-dependencies" title="Permanent link">#</a></h3>
+<h2 id="visualizer-python-prerequisites">Visualizer Python Prerequisites<a class="headerlink" href="#visualizer-python-prerequisites" title="Permanent link">#</a></h2>
+<p>All dependencies to run the application are installed automatically when using the <code>holohub run</code> command inside the Holohub container.</p>
+<p>If you are running the visualizer outside the Holohub container, its dependencies must be installed separately.</p>
 <p>Install the required Python packages:</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
 </code></pre></div>
-<p>Required packages:</p>
+<p>The packages that get installed are:</p>
 <ul>
 <li><code>numpy&gt;=1.24.0,&lt;3.0</code> - Numerical computing</li>
 <li><code>dash&gt;=3.0.0,&lt;4.0</code> - Web application framework</li>
@@ -7483,9 +7411,52 @@ installed separately. See the next section for details.</p>
 <li><code>flatbuffers&gt;=25.9.23,&lt;26.0.0</code> - FlatBuffers</li>
 <li><code>pandas&gt;=2.3.3,&lt;3.0</code> - Data manipulation</li>
 </ul>
-<h2 id="data-format">Data Format<a class="headerlink" href="#data-format" title="Permanent link">#</a></h2>
-<h3 id="nats-message-structure">NATS Message Structure<a class="headerlink" href="#nats-message-structure" title="Permanent link">#</a></h3>
-<p>Messages are published to the subject: <code>&lt;subject_prefix&gt;.data</code> (e.g., <code>nats_demo.data</code>)</p>
+<h2 id="components">Components<a class="headerlink" href="#components" title="Permanent link">#</a></h2>
+<h3 id="application-cpp-and-python">Application (<code>cpp/</code> and <code>python/</code>)<a class="headerlink" href="#application-cpp-and-python" title="Permanent link">#</a></h3>
+<p>The C++ and Python applications demonstrate a basic Holoscan pipeline with data logging:</p>
+<ul>
+<li><strong>SourceOp</strong>: Generates sine waves with varying frequencies (10-20 Hz)</li>
+<li><strong>ModulateOp</strong>: Adds high-frequency modulation (300 Hz) to the signal</li>
+<li><strong>SinkOp</strong>: Receives the processed data</li>
+<li><strong>NatsLogger</strong>: A custom data logger that publishes tensor data to NATS using FlatBuffers serialization</li>
+</ul>
+<p>The applications log both inputs and outputs of operators, allowing visualization of data at each stage of the pipeline.</p>
+<h3 id="python-visualizers-visualizer">Python Visualizers (<code>visualizer/</code>)<a class="headerlink" href="#python-visualizers-visualizer" title="Permanent link">#</a></h3>
+<p>There are two Python visualizers. One is <a href="#static-visualizer-visualizer_staticpy">static</a> and one is <a href="#dynamic-visualizer-visualizer_dynamicpy">dynamic</a> and they both display:</p>
+<ul>
+<li>Real-time line plots of tensor data</li>
+<li>Stream name (operator.port format)</li>
+<li>IO type (Input/Output)</li>
+<li>Acquisition timestamp (nanoseconds)</li>
+<li>Publish timestamp (nanoseconds)</li>
+</ul>
+<p>Use <code>start_visualizer.sh</code> to set the required Python path to the <a href="#flatbuffers-schemas-schemas">flatbuffers</a> definitions and start the visualizer. The script takes one parameter, its values are:</p>
+<ul>
+<li><code>dynamic</code>, to start the dynamic visualizer.</li>
+<li><code>static</code>, to start the static visualizer.</li>
+</ul>
+<h4 id="static-visualizer-visualizer_staticpy">Static Visualizer (<code>visualizer_static.py</code>)<a class="headerlink" href="#static-visualizer-visualizer_staticpy" title="Permanent link">#</a></h4>
+<p>The static visualizer can be used when the output data and format of the Holoscan pipeline is known or some data needs special formatting.</p>
+<ul>
+<li>Displays predefined data streams: <code>source.out</code>, <code>modulate.in</code>, <code>modulate.out</code>, <code>sink.in</code></li>
+<li>Best for applications with known, fixed operator topology</li>
+<li>All graphs are created upfront and updated as data arrives</li>
+</ul>
+<h4 id="dynamic-visualizer-visualizer_dynamicpy">Dynamic Visualizer (<code>visualizer_dynamic.py</code>)<a class="headerlink" href="#dynamic-visualizer-visualizer_dynamicpy" title="Permanent link">#</a></h4>
+<ul>
+<li>Automatically discovers and creates graphs for new data streams</li>
+<li>Ideal for applications with dynamic or unknown operator configurations</li>
+<li>Graphs are created on-the-fly as new unique IDs are detected</li>
+</ul>
+<h3 id="flatbuffers-schemas-schemas">FlatBuffers Schemas (<code>schemas/</code>)<a class="headerlink" href="#flatbuffers-schemas-schemas" title="Permanent link">#</a></h3>
+<p>The data format is defined using FlatBuffers for efficient serialization:</p>
+<ul>
+<li><strong>message.fbs</strong>: Top-level message structure with metadata</li>
+<li><strong>tensor.fbs</strong>: Tensor data structure based on DLPack</li>
+</ul>
+<p>FlatBuffers access the data directly without unpacking or parsing it and allow the schema to evolve over time while maintaining forward and backward compatibility.</p>
+<h2 id="nats-message-structure-and-data-format">NATS Message Structure and Data Format<a class="headerlink" href="#nats-message-structure-and-data-format" title="Permanent link">#</a></h2>
+<p>Messages are published to the subject: <code>&lt;subject_prefix&gt;.data</code> (for example, <code>nats_demo.data</code>)</p>
 <p>Each message is a FlatBuffer-serialized <code>Message</code> containing:</p>
 <div class="highlight"><pre><span></span><code>Message {
   unique_id: string          // Format: "operator_name.port_name"
@@ -7503,45 +7474,6 @@ installed separately. See the next section for details.</p>
 <li><code>modulate.in</code> - Input port of the modulate operator</li>
 <li><code>modulate.out</code> - Output port of the modulate operator</li>
 <li><code>sink.in</code> - Input port of the sink operator</li>
-</ul>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
-<h3 id="nats-connection-issues">NATS Connection Issues<a class="headerlink" href="#nats-connection-issues" title="Permanent link">#</a></h3>
-<p><strong>Problem</strong>: <code>Cannot connect to NATS</code> error</p>
-<p><strong>Solution</strong>:</p>
-<ul>
-<li>Ensure the NATS server is running: <code>docker ps | grep nats</code></li>
-<li>Check if port 4222 is available: <code>netstat -an | grep 4222</code></li>
-<li>Verify the NATS URL matches in both the C++ app and visualizer</li>
-</ul>
-<h3 id="visualizer-not-updating">Visualizer Not Updating<a class="headerlink" href="#visualizer-not-updating" title="Permanent link">#</a></h3>
-<p><strong>Problem</strong>: Web page loads but graphs don't update</p>
-<p><strong>Solution</strong>:</p>
-<ol>
-<li>Check that the C++ application is running</li>
-<li>Verify the subject name matches (default: <code>nats_demo</code>)</li>
-<li>Click the "Connect" button in the web interface</li>
-<li>Check browser console for JavaScript errors</li>
-</ol>
-<h3 id="flatbuffers-import-errors">FlatBuffers Import Errors<a class="headerlink" href="#flatbuffers-import-errors" title="Permanent link">#</a></h3>
-<p><strong>Problem</strong>: <code>ModuleNotFoundError: No module named 'pipeline_visualization.flatbuffers'</code></p>
-<p><strong>Solution</strong>:</p>
-<ul>
-<li>Ensure the FlatBuffers files were generated during build</li>
-<li>Set PYTHONPATH correctly:</li>
-</ul>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:/path/to/build/applications/pipeline_visualization/flatbuffers/
-</code></pre></div>
-<ul>
-<li>Verify the files exist in the build directory</li>
-</ul>
-<h3 id="no-data-displayed">No Data Displayed<a class="headerlink" href="#no-data-displayed" title="Permanent link">#</a></h3>
-<p><strong>Problem</strong>: Graphs are empty or show no data</p>
-<p><strong>Solution</strong>:</p>
-<ul>
-<li>Check that <code>log_tensor_data_content: true</code> in the YAML config</li>
-<li>Verify the operator names match between the app and visualizer</li>
-<li>For static visualizer, ensure the unique IDs in the code match your operators</li>
-<li>For dynamic visualizer, wait a few seconds for auto-discovery</li>
 </ul>
 <h2 id="customization">Customization<a class="headerlink" href="#customization" title="Permanent link">#</a></h2>
 <h3 id="adding-custom-operators">Adding Custom Operators<a class="headerlink" href="#adding-custom-operators" title="Permanent link">#</a></h3>
@@ -7561,7 +7493,7 @@ installed separately. See the next section for details.</p>
 <div class="highlight"><pre><span></span><code><span class="bp">self</span><span class="o">.</span><span class="n">_unique_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"my_op.out"</span><span class="p">,</span> <span class="s2">"my_other_op.in"</span><span class="p">]</span>
 </code></pre></div>
 <ol>
-<li>For dynamic visualizer, no changes needed - it will auto-discover!</li>
+<li>For dynamic visualizer, no changes needed - it will auto-discover.</li>
 </ol>
 <h3 id="customizing-visualizations">Customizing Visualizations<a class="headerlink" href="#customizing-visualizations" title="Permanent link">#</a></h3>
 <p>The Plotly graphs can be customized by modifying the <code>px.line()</code> calls in the visualizer code:</p>
@@ -7598,16 +7530,57 @@ installed separately. See the next section for details.</p>
 <ol>
 <li>Start the visualizer with host <code>0.0.0.0</code> (already configured)</li>
 <li>Ensure port 8050 is accessible through firewall</li>
-<li>Access via: <code>http://&lt;server-ip&gt;:8050</code></li>
+<li>Access using: <code>http://&lt;server-ip&gt;:8050</code></li>
 </ol>
 <h3 id="multiple-applications">Multiple Applications<a class="headerlink" href="#multiple-applications" title="Permanent link">#</a></h3>
 <p>To run multiple Holoscan apps simultaneously:</p>
 <ol>
-<li>Use different subject prefixes for each app</li>
+<li>Use different subject prefixes for each app.</li>
 <li>Start multiple visualizer instances on different ports:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">"0.0.0.0"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8051</span><span class="p">)</span>
 </code></pre></div>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
+<h3 id="nats-connection-issues">NATS Connection Issues<a class="headerlink" href="#nats-connection-issues" title="Permanent link">#</a></h3>
+<p><strong>Problem</strong>: <code>Cannot connect to NATS</code> error</p>
+<p><strong>Solution</strong>:</p>
+<ul>
+<li>Ensure the NATS server is running: <code>docker ps | grep nats</code></li>
+<li>Check if port 4222 is available: <code>netstat -an | grep 4222</code></li>
+<li>Verify the NATS URL matches in both the C++ app and visualizer</li>
+</ul>
+<h3 id="visualizer-not-updating">Visualizer Not Updating<a class="headerlink" href="#visualizer-not-updating" title="Permanent link">#</a></h3>
+<p><strong>Problem</strong>: Web page loads but graphs don't update</p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Check that the C++ application is running</li>
+<li>Verify the subject name matches (default: <code>nats_demo</code>)</li>
+<li>Click the <strong>Connect</strong> button in the web interface</li>
+<li>Check browser console for JavaScript errors</li>
+</ol>
+<h3 id="flatbuffers-import-errors">FlatBuffers Import Errors<a class="headerlink" href="#flatbuffers-import-errors" title="Permanent link">#</a></h3>
+<p><strong>Problem</strong>: <code>ModuleNotFoundError: No module named 'pipeline_visualization.flatbuffers'</code></p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Ensure the FlatBuffers files were generated during build.</li>
+<li>
+<p>Set <code>PYTHONPATH</code> correctly:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:/path/to/build/applications/pipeline_visualization/flatbuffers/
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the files exist in the build directory.</p>
+</li>
+</ol>
+<h3 id="no-data-displayed">No Data Displayed<a class="headerlink" href="#no-data-displayed" title="Permanent link">#</a></h3>
+<p><strong>Problem</strong>: Graphs are empty or show no data</p>
+<p><strong>Solution</strong>:</p>
+<ul>
+<li>Verify that <code>log_tensor_data_content: true</code> is in the YAML config</li>
+<li>Verify that the operator names match between the app and visualizer</li>
+<li>For static visualizer, ensure that the unique IDs in the code match your operators</li>
+<li>For dynamic visualizer, wait a few seconds for auto-discovery</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

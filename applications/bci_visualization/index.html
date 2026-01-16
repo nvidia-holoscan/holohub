@@ -7221,8 +7221,12 @@ sensor-space data into source-space (i.e. where the changes in hemoglobin concen
     └── xyz.npy                         # Voxel coordinates in anatomical space (mm)
 </code></pre></div>
 <h3 id="2-run-the-application">2. Run the Application<a class="headerlink" href="#2-run-the-application" title="Permanent link">#</a></h3>
+<p>Stream moments from data.snirf
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>bci_visualization
-</code></pre></div>
+</code></pre></div></p>
+<p>Stream moments from Flow headset via Kernel SDK
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>bci_visualization<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"-e KERNEL_SDK=1 -v /etc/kernel.com/kortex.json:/etc/kernel.com/kortex.json"</span>
+</code></pre></div></p>
 <h2 id="pipeline-overview">Pipeline Overview<a class="headerlink" href="#pipeline-overview" title="Permanent link">#</a></h2>
 <p>The application consists of two main pipelines running on separate threads:</p>
 <h3 id="reconstruction-pipeline">Reconstruction Pipeline<a class="headerlink" href="#reconstruction-pipeline" title="Permanent link">#</a></h3>
