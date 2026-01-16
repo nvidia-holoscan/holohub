@@ -197,6 +197,28 @@ class EndoNeRFLoaderOp(Operator):
         print(f"  - Depths: {len(self.depth_paths)}")
         print(f"  - Masks: {len(self.mask_paths)}")
 
+        # Determine actual number of usable frames (minimum across all data sources)
+        num_poses = self.num_frames  # Set by _load_poses
+        num_images = len(self.image_paths)
+        num_depths = len(self.depth_paths)
+        num_masks = len(self.mask_paths)
+
+        usable_frames = min(num_poses, num_images, num_depths, num_masks)
+
+        if usable_frames < num_poses:
+            print(
+                f"[EndoNeRFLoader] WARNING: Poses ({num_poses}) > available frames. "
+                f"Using first {usable_frames} frames."
+            )
+            # Truncate to usable frames
+            self.poses = self.poses[:usable_frames]
+            self.image_paths = self.image_paths[:usable_frames]
+            self.depth_paths = self.depth_paths[:usable_frames]
+            self.mask_paths = self.mask_paths[:usable_frames]
+            self.num_frames = usable_frames
+
+        print(f"[EndoNeRFLoader] Using {usable_frames} frames")
+
     def compute(self, op_input, op_output, context):
         """Load and emit one frame of data."""
         # Check if we've reached the max_frames limit (hard stop)

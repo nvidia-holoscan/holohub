@@ -135,15 +135,22 @@ class EndoNeRF_Dataset(object):
             raise ValueError(f"{self.mode} has not been implemented.")
         self.masks_paths = get_file_paths("masks")
 
-        assert (
-            len(self.image_paths) == poses.shape[0]
-        ), "the number of images should equal to the number of poses"
-        assert (
-            len(self.depth_paths) == poses.shape[0]
-        ), "the number of depth images should equal to number of poses"
-        assert (
-            len(self.masks_paths) == poses.shape[0]
-        ), "the number of masks should equal to the number of poses"
+        # Determine usable frame count (minimum across all data sources)
+        num_poses = poses.shape[0]
+        num_images = len(self.image_paths)
+        num_depths = len(self.depth_paths)
+        num_masks = len(self.masks_paths)
+        usable_frames = min(num_poses, num_images, num_depths, num_masks)
+
+        if usable_frames != num_poses or usable_frames != num_images:
+            # Truncate to usable frames
+            self.image_poses = self.image_poses[:usable_frames]
+            self.image_times = self.image_times[:usable_frames]
+            self.image_paths = self.image_paths[:usable_frames]
+            self.depth_paths = self.depth_paths[:usable_frames]
+            self.masks_paths = self.masks_paths[:usable_frames]
+
+        print(f"Using {usable_frames} frames")
 
     def format_infos(self, split):
         cameras = []
