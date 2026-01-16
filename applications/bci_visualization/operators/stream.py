@@ -39,6 +39,9 @@ class StreamOperator(Operator):
         self._channels = self._stream.get_channels()
         self._iter = self._stream.stream_nirs()
 
+    def stop(self) -> None:
+        self._stream.stop()
+
     def compute(
         self, op_input: InputContext, op_output: OutputContext, context: ExecutionContext
     ) -> None:
