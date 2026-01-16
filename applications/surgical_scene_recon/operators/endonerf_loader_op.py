@@ -205,9 +205,9 @@ class EndoNeRFLoaderOp(Operator):
 
         usable_frames = min(num_poses, num_images, num_depths, num_masks)
 
-        if usable_frames < num_poses:
+        if usable_frames < max(num_poses, num_images, num_depths, num_masks):
             print(
-                f"[EndoNeRFLoader] WARNING: Poses ({num_poses}) > available frames. "
+                f"[EndoNeRFLoader] WARNING: Data source count mismatch detected. "
                 f"Using first {usable_frames} frames."
             )
             # Truncate to usable frames

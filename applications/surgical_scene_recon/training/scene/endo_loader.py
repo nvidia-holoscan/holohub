@@ -142,7 +142,11 @@ class EndoNeRF_Dataset(object):
         num_masks = len(self.masks_paths)
         usable_frames = min(num_poses, num_images, num_depths, num_masks)
 
-        if usable_frames != num_poses or usable_frames != num_images:
+        if usable_frames < max(num_poses, num_images, num_depths, num_masks):
+            print(
+                f"WARNING: Data source count mismatch"
+                f"Using first {usable_frames} frames."
+            )
             # Truncate to usable frames
             self.image_poses = self.image_poses[:usable_frames]
             self.image_times = self.image_times[:usable_frames]
