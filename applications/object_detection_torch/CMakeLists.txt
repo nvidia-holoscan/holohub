@@ -19,7 +19,7 @@ project(object_detection_torch CXX)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-if(holoscan_VERSION GREATER 3.5)
+if(holoscan_VERSION VERSION_GREATER 3.5)
   # Torchvision is required for loading FRCNN ResNet 50 and similar models
   # with the Holoinfer Libtorch backend.
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
@@ -70,7 +70,7 @@ target_link_libraries(object_detection_torch
     $<TARGET_NAME_IF_EXISTS:holoscan::aja>
 )
 
-if(holoscan_VERSION GREATER 3.5)
+if(holoscan_VERSION VERSION_GREATER 3.5)
   # Forcibly link torchvision and its required Python symbols to prevent ResNet runtime import failure
   target_link_libraries(object_detection_torch
     PRIVATE
