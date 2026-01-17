@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <holoscan/core/execution_context.hpp>
+#include <holoscan/core/io_context.hpp>
 
 #include <gxf/std/tensor.hpp>
 
