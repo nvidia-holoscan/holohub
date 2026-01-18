@@ -24,6 +24,9 @@ class BaseNirsStream(abc.ABC):
     def start(self) -> None:
         pass
 
+    def stop(self) -> None:
+        pass
+
     @abc.abstractmethod
     def get_channels(self) -> ChannelInfo:
         pass
