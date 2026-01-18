@@ -25,6 +25,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import cupy as cp  # noqa: E402
+import cupyx.scipy.ndimage  # noqa: E402
 import streamlit as st  # noqa: E402
 from ultra_post.app.components import (  # noqa: E402
     render_add_filter_controls,
@@ -126,15 +127,23 @@ def main() -> None:
         partial_log_mix=float(mix),
     )
 
+    def _resize(img):
+        spacing = frame.get("meta", {}).get("spacing")
+        if spacing and abs((dz := spacing[0]) - (dx := spacing[1])) >= 1e-6:
+            base = min(dx, dz)
+            zoom = (dz / base, dx / base)
+            img = cupyx.scipy.ndimage.zoom(img, (*zoom, 1) if img.ndim == 3 else zoom, order=1)
+        return img
+
     col1, col2 = st.columns(2)
     with col1:
         st.subheader(f"Original ({st.session_state['source']})")
         disp = tensor_to_display(source, settings, apply_compression=apply_orig)
-        st.image(cp.asnumpy(disp), use_container_width=True, clamp=True)
+        st.image(cp.asnumpy(_resize(disp)), use_container_width=True, clamp=True)
     with col2:
         st.subheader("Processed")
         disp = tensor_to_display(processed, settings, apply_compression=True)
-        st.image(cp.asnumpy(disp), use_container_width=True, clamp=True)
+        st.image(cp.asnumpy(_resize(disp)), use_container_width=True, clamp=True)
 
 
 if __name__ == "__main__":

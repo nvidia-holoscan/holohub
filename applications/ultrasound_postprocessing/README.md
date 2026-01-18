@@ -22,7 +22,7 @@ The included Holoscan Runner tool enables you to run those configurations in rea
 - Streamlit
 - CUDA Driver R580 or later
 
-![Designer UI](docs/assets/designer.png)
+![Designer UI](docs/assets/designer.jpg)
 
 ### Holoscan Runner Application
 
