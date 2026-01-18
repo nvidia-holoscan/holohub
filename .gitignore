@@ -66,3 +66,6 @@ rti_license.dat
 
 # CLI update check
 .cli_commit_hash
+
+# Streamlit web GUI
+.streamlit/
