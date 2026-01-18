@@ -293,7 +293,26 @@ def _extract_metadata(payload: Any) -> Dict[str, Any]:
         meta["probe"] = getattr(payload, "probe")
     if hasattr(payload, "sequence"):
         meta["sequence"] = getattr(payload, "sequence")
+
+    scan = getattr(payload, "scan", None)
+    if scan:
+        try:
+            dx = _calculate_spacing(getattr(scan, "x_axis", None))
+            dz = _calculate_spacing(getattr(scan, "z_axis", None))
+            if dx and dz:
+                meta["spacing"] = (dz, dx)
+        except Exception:
+            pass
+
     return meta
+
+
+def _calculate_spacing(axis: Any) -> Optional[float]:
+    try:
+        arr = cp.unique(cp.asarray(axis))
+        return float(arr[1] - arr[0]) if arr.size > 1 else None
+    except Exception:
+        return None
 
 
 __all__ = ["load_uff_frame"]
