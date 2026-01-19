@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,8 +24,8 @@ warnings.filterwarnings(
     "ignore",
     message="UserWarning: Failed to load image Python extension: 'libnvjpeg.so.12: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?",
 )
-from torchvision.models import ResNet50_Weights, detection
-from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights
+from torchvision.models import ResNet50_Weights, detection # noqa: E402
+from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights # noqa: E402
 
 os.environ["TORCH_HOME"] = os.getcwd()
 
