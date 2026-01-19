@@ -15,11 +15,15 @@
 
 import os
 import sys
+import warnings
 from typing import List
 
 import torch
-import warnings
-warnings.filterwarnings("ignore", message="UserWarning: Failed to load image Python extension: 'libnvjpeg.so.12: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?")
+
+warnings.filterwarnings(
+    "ignore",
+    message="UserWarning: Failed to load image Python extension: 'libnvjpeg.so.12: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?",
+)
 from torchvision.models import ResNet50_Weights, detection
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights
 
