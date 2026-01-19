@@ -62,7 +62,11 @@ RUN set -eux; \
             exit 1; \
         else \
             PYTORCH_WHEEL_VERSION="2.8.0+cu129"; \
-            TORCHVISION_WHEEL_VERSION="0.23.0"; \
+            if [ "$(uname -m)" = "x86_64" ]; then \
+                TORCHVISION_WHEEL_VERSION="0.23.0+cu129"; \
+            else \
+                TORCHVISION_WHEEL_VERSION="0.23.0"; \
+            fi; \
             INDEX_URL="https://download.pytorch.org/whl/"; \
         fi; \
     fi; \
