@@ -29,7 +29,12 @@ if(holoscan_VERSION VERSION_GREATER 3.5)
     OUTPUT_VARIABLE TORCH_ROOT_DIR
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
+
+  # Suppress PyTorch's CUDA hash computation warning
+  set(_CMAKE_MESSAGE_LOG_LEVEL ${CMAKE_MESSAGE_LOG_LEVEL})
+  set(CMAKE_MESSAGE_LOG_LEVEL ERROR)
   find_package(Torch PATHS ${TORCH_ROOT_DIR} REQUIRED)
+  set(CMAKE_MESSAGE_LOG_LEVEL ${_CMAKE_MESSAGE_LOG_LEVEL})
 
   execute_process(
     COMMAND ${Python3_EXECUTABLE} -c "import torchvision; print(';'.join(torchvision.__path__))"
