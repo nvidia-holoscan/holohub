@@ -37,6 +37,37 @@ COMPONENT_TYPES = ["workflows", "applications", "operators", "tutorials", "bench
 HOLOHUB_REPO_URL = "https://github.com/nvidia-holoscan/holohub"
 
 
+def expand_metadata_entries(metadata_obj: dict | list) -> list[tuple[str, dict]]:
+    """Normalize metadata.json contents to a list of (project_type, metadata) tuples.
+
+    Supports:
+    - Single-project dicts: {"application": {...}}
+    - Multi-project dicts: {"application": {...}, "operator": {...}}
+    - List forms (including {"projects": [...]}) where each item is a dict
+      containing one or more project_type keys.
+    """
+
+    entries: list[tuple[str, dict]] = []
+
+    def add_from_dict(obj: dict) -> None:
+        for key, value in obj.items():
+            if key == "projects" and isinstance(value, list):
+                for project in value:
+                    if isinstance(project, dict):
+                        add_from_dict(project)
+                continue
+            entries.append((key, value))
+
+    if isinstance(metadata_obj, dict):
+        add_from_dict(metadata_obj)
+    elif isinstance(metadata_obj, list):
+        for item in metadata_obj:
+            if isinstance(item, dict):
+                add_from_dict(item)
+
+    return entries
+
+
 def get_current_git_ref() -> str:
     """Get the current git branch, tag, or commit hash being built.
 
@@ -96,11 +127,21 @@ def get_git_root() -> Path:
 
 
 def parse_metadata_file(metadata_path: Path) -> dict:
-    """Parse metadata.json file and extract relevant information."""
+    """Parse metadata.json file and extract the first project entry.
+
+    Supports single-project dicts ({"application": {...}}), multi-project dicts,
+    list-wrapped forms (including {"projects": [...]}) by picking the first
+    valid (component_type, metadata) tuple encountered.
+    """
+
     with metadata_path.open("r") as f:
         data = json.load(f)
-    component_type = list(data.keys())[0]
-    metadata = data[component_type]
+
+    entries = expand_metadata_entries(data)
+    if not entries:
+        raise ValueError(f"No valid project entries found in {metadata_path}")
+
+    component_type, metadata = entries[0]
     return metadata, component_type
 
 

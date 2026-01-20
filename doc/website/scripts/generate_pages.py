@@ -27,6 +27,8 @@ from pathlib import Path
 
 import mkdocs_gen_files
 
+from common_utils import expand_metadata_entries
+
 # log stuff
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -921,37 +923,6 @@ def write_nav_file(nav_path: Path, nav_content: str) -> None:
         nav_file.write(nav_content)
 
 
-def _expand_metadata_entries(metadata_obj) -> list[tuple[str, dict]]:
-    """Normalize metadata.json contents to a list of (project_type, metadata) tuples.
-
-    Supports:
-    - Single-project dicts: {"application": {...}}
-    - Multi-project dicts: {"application": {...}, "operator": {...}}
-    - List forms (including {"projects": [...]}) where each item is a dict
-      containing one or more project_type keys.
-    """
-
-    entries: list[tuple[str, dict]] = []
-
-    def add_from_dict(obj: dict) -> None:
-        for key, value in obj.items():
-            if key == "projects" and isinstance(value, list):
-                for project in value:
-                    if isinstance(project, dict):
-                        add_from_dict(project)
-                continue
-            entries.append((key, value))
-
-    if isinstance(metadata_obj, dict):
-        add_from_dict(metadata_obj)
-    elif isinstance(metadata_obj, list):
-        for item in metadata_obj:
-            if isinstance(item, dict):
-                add_from_dict(item)
-
-    return entries
-
-
 def parse_metadata_path(
     metadata_path: Path, components, git_repo_path: Path, processed_parent_readmes=None
 ) -> None:
@@ -979,7 +950,7 @@ def parse_metadata_path(
     with metadata_path.open("r") as metadata_file:
         metadata_obj = json.load(metadata_file)
 
-    metadata_entries = _expand_metadata_entries(metadata_obj)
+    metadata_entries = expand_metadata_entries(metadata_obj)
     if not metadata_entries:
         logger.error(f"Skipping {metadata_rel_path}: no valid projects found")
         return
