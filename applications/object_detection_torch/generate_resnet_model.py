@@ -20,6 +20,7 @@ from typing import List
 
 import torch
 
+# Suppress PyTorch's UserWarning: Failed to load image Python extension: 'libnvjpeg.so.12: cannot open shared object file: No such file or directory'
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", UserWarning)
     from torchvision.models import ResNet50_Weights, detection  # noqa: E402
