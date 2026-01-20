@@ -2,6 +2,8 @@
 
 A collection of tools for developing and deploying realtime ultrasound post-processing filters.
 
+![Designer UI](docs/assets/designer.jpg)
+
 ## Mission
 
 Enable the ultrasound community (academia and industry) to have reproducible, real-time post-processing.
@@ -16,19 +18,15 @@ The included Holoscan Runner tool enables you to run those configurations in rea
 
 ## Prerequisites
 
-### Filter Designer Application
+### Hardware
 
-- Linux workstation with NVIDIA GPU
-- Streamlit
+- Linux device with NVIDIA GPU
+  - Tested with x86_64 workstation + RTX Ampere 6000 GPU
+
+### Software
+
 - CUDA Driver R580 or later
-
-![Designer UI](docs/assets/designer.jpg)
-
-### Holoscan Runner Application
-
-- Holoscan SDK 3.9.0
-- CUDA (if using GPU acceleration)
-- Docker (for containerized deployment)
+- See additional HoloHub CLI prerequisites [here](https://github.com/nvidia-holoscan/holohub?tab=readme-ov-file#software-prerequisites)
 
 ## Quick Start
 
@@ -37,10 +35,14 @@ First, clone this repository:
 git clone https://github.com/nvidia-holoscan/holohub.git
 ```
 
-Then, run the containerized application:
+Then, run the containerized application.
+
+To run the filter designer webpage for assembling filter pipelines and tuning filter parameters:
 ```bash
 ./holohub run ultrasound_postprocessing designer
 ```
+
+To run a filter pipeline preset in real time with Holoscan SDK:
 ```bash
 ./holohub run ultrasound_postprocessing realtime
 ```
@@ -62,6 +64,8 @@ python3 -m streamlit run applications/ultrasound_postprocessing/ultra_post/app/s
 ```bash
 python3 -m ultra_post.app.holoscan_app [--uff path/to/myfile.uff] [--fps 10]
 ```
+
+The sample dataset used in this project is available at http://www.ustb.no/datasets.
 
 ## Key Concepts
 
