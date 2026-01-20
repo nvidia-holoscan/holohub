@@ -30,7 +30,7 @@ The included Holoscan Runner tool enables you to run those configurations in rea
 - CUDA (if using GPU acceleration)
 - Docker (for containerized deployment)
 
-## Quick Start with Holoscan CLI
+## Quick Start
 
 First, clone this repository:
 ```bash
@@ -90,10 +90,10 @@ ultrasound_postprocessing
 ├── README.md
 ├── tests
 ├── tools
-├── ultra_post (Python module)
+└── ultra_post (Python module)
 ```
 
-### Review Existing Operators
+### Review Existing Filters
 
 ```bash
 ./holohub run ultrasound_postprocessing list-filters
@@ -117,19 +117,19 @@ We welcome contributions that align with our mission to enable the ultrasound co
 
 ## Ways to Contribute
 
-1.  **Presets**: Create a processing pipeline preset (YAML) and save it to `presets/`.
-2.  **Filters**:
-    -   Add your filter implementation to `ultra_post/filters/`.
-    -   Register it in `ultra_post/filters/registry.py` (add to `FILTERS` and `DEFAULT_PARAMS`).
-3.  **Improvements**: Bug fixes and performance optimizations are highly encouraged.
-    -   Our goal is to have code that is easy to understand and highly performant.
+1. **Presets**: Create a processing pipeline preset (YAML) and save it to `presets/`.
+2. **Filters**:
+    - Add your filter implementation to `ultra_post/filters/`.
+    - Register it in `ultra_post/filters/registry.py` (add to `FILTERS` and `DEFAULT_PARAMS`).
+3. **Improvements**: Bug fixes and performance optimizations are highly encouraged.
+    - Our goal is to have code that is easy to understand and highly performant.
 
 Please see the [HoloHub Contributing Guide](/CONTRIBUTING.md) for developer guidance.
 
 ## Code Style
 
--   **Concise & Approachable**: We prioritize readability so new users can quickly understand the post-processing logic.
--   **Performant**: We aim for code that is both expressive and performant, enabling real-time processing.
+- **Concise & Approachable**: We prioritize readability so new users can quickly understand the post-processing logic.
+- **Performant**: We aim for code that is both expressive and performant, enabling real-time processing.
 
 
 ## License
