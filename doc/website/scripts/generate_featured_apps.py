@@ -277,12 +277,10 @@ def generate_featured_content_html(component_type: str, output_path: str, count:
 
     # Generate browse links for each component type
     browse_links = []
-    browse_links.append(
-        f"""
+    browse_links.append(f"""
                 <a href="{component_type}" title="Browse all {component_type}" class="md-button md-button--primary" style="padding-top: 0.7rem; padding-bottom: 0.7rem; margin-right: 0.5rem;">
                   Browse all {component_type} (#{component_type})
-               </a>"""
-    )
+               </a>""")
 
     browse_links_html = "".join(browse_links)
     featured_content_html = f"""

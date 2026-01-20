@@ -237,7 +237,7 @@ def check_copyright_main():
         help="If set, ignore year mismatches in copyright headers (when current year is not within the copyright year range).",
     )
 
-    (args, dirs) = argparser.parse_known_args()
+    args, dirs = argparser.parse_known_args()
 
     # Read excludes from config file if specified
     config_excludes = []

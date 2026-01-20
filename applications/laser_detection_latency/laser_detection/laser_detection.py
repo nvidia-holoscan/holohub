@@ -209,10 +209,10 @@ class AddViewOperator(holoscan.core.Operator):
     def compute(self, op_input, op_output, context):
         # Get input message
         in_message_1 = op_input.receive("input1")
-        (X1, Y1) = in_message_1.get("coords_1")
+        X1, Y1 = in_message_1.get("coords_1")
 
         in_message_2 = op_input.receive("input2")
-        (X2, Y2) = in_message_2.get("coords_2")
+        X2, Y2 = in_message_2.get("coords_2")
 
         out_message = {
             "video": self.background,

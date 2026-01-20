@@ -172,12 +172,8 @@ def create_graph(
 
 # add graph labels
 def add_graph_labels(graph, num_samples):
-    graph.set_label(
-        "Application Performance Graph (latency in ms)\n\
-        Number of messages at sink: {}".format(
-            num_samples
-        )
-    )
+    graph.set_label("Application Performance Graph (latency in ms)\n\
+        Number of messages at sink: {}".format(num_samples))
     graph.set_fontname("Arial")
     graph.set_fontsize(20)
     graph.set_fontcolor("black")
@@ -227,31 +223,19 @@ def parse_arguments():
                 sys.exit()
     else:
         directory = args.filenames[0]
-        print(
-            "In live mode. The program will keep updating the graph with new \
+        print("In live mode. The program will keep updating the graph with new \
                 performance data in the provided folder {}.\
-                Press Ctrl+C to stop.".format(
-                directory
-            )
-        )
+                Press Ctrl+C to stop.".format(directory))
         if len(args.filenames) > 1:
-            print(
-                "\033[91mfilenames arguments has {} values. In live mode,\
+            print("\033[91mfilenames arguments has {} values. In live mode,\
                     only one folder is acceptable. Provide one folder as filenames\
-                    in live mode. Exiting.\033[0m".format(
-                    len(args.filenames)
-                )
-            )
+                    in live mode. Exiting.\033[0m".format(len(args.filenames)))
             parser.print_help()
             sys.exit()
         # check if directory is a folder
         if not os.path.isdir(directory):
-            print(
-                "\033[91mThe folder {} does not exist or is not a folder.\
-                    In live mode, a folder needs to be provided. Exiting.\033[0m".format(
-                    directory
-                )
-            )
+            print("\033[91mThe folder {} does not exist or is not a folder.\
+                    In live mode, a folder needs to be provided. Exiting.\033[0m".format(directory))
             parser.print_help()
             sys.exit()
 

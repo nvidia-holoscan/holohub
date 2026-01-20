@@ -132,7 +132,7 @@ class WebAppThread(Thread):
     async def _offer(self, request):
         params = await request.json()
 
-        (sdp, type) = await self._webrtc_server_op.offer(params["sdp"], params["type"])
+        sdp, type = await self._webrtc_server_op.offer(params["sdp"], params["type"])
 
         return web.Response(
             content_type="application/json",

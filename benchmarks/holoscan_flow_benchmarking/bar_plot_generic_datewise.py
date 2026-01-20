@@ -67,11 +67,9 @@ def main():
     plt.tight_layout()
     # plt.show()
     plt.savefig(f"{current_metric_name}_{dates[-1]}.png")
-    print(
-        f'<CTestMeasurementFile type="image/png" \
+    print(f'<CTestMeasurementFile type="image/png" \
           name="{current_metric_name}">{current_metric_name}_{dates[-1]}.\
-          png</CTestMeasurementFile>'
-    )
+          png</CTestMeasurementFile>')
 
 
 if __name__ == "__main__":
