@@ -70,7 +70,8 @@ if(BUILD_TESTING)
 
   set_tests_properties(colonoscopy_segmentation_python_test
                 PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
-                FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+                FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed"
+                TIMEOUT 1000)
 
   # Add a test to check the validity of the frames
   add_test(NAME colonoscopy_segmentation_python_render_test
