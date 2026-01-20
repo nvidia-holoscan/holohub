@@ -921,6 +921,37 @@ def write_nav_file(nav_path: Path, nav_content: str) -> None:
         nav_file.write(nav_content)
 
 
+def _expand_metadata_entries(metadata_obj) -> list[tuple[str, dict]]:
+    """Normalize metadata.json contents to a list of (project_type, metadata) tuples.
+
+    Supports:
+    - Single-project dicts: {"application": {...}}
+    - Multi-project dicts: {"application": {...}, "operator": {...}}
+    - List forms (including {"projects": [...]}) where each item is a dict
+      containing one or more project_type keys.
+    """
+
+    entries: list[tuple[str, dict]] = []
+
+    def add_from_dict(obj: dict) -> None:
+        for key, value in obj.items():
+            if key == "projects" and isinstance(value, list):
+                for project in value:
+                    if isinstance(project, dict):
+                        add_from_dict(project)
+                continue
+            entries.append((key, value))
+
+    if isinstance(metadata_obj, dict):
+        add_from_dict(metadata_obj)
+    elif isinstance(metadata_obj, list):
+        for item in metadata_obj:
+            if isinstance(item, dict):
+                add_from_dict(item)
+
+    return entries
+
+
 def parse_metadata_path(
     metadata_path: Path, components, git_repo_path: Path, processed_parent_readmes=None
 ) -> None:
@@ -946,153 +977,170 @@ def parse_metadata_path(
 
     # Parse the metadata
     with metadata_path.open("r") as metadata_file:
-        metadata = json.load(metadata_file)
+        metadata_obj = json.load(metadata_file)
 
-    project_type = list(metadata.keys())[0]
-    metadata = metadata[project_type]
-
-    # Check valid component type
-    component_type = f"{project_type}s"
-    if component_type not in COMPONENT_TYPES:
-        logger.error(f"Skipping {metadata_rel_path}: unknown type '{component_type}'")
+    metadata_entries = _expand_metadata_entries(metadata_obj)
+    if not metadata_entries:
+        logger.error(f"Skipping {metadata_rel_path}: no valid projects found")
         return
 
-    # Dirs & Paths
-    metadata_dir = metadata_path.parent
-    readme_dir = metadata_dir
-    md_search_dir = readme_dir
-    while md_search_dir.name not in COMPONENT_TYPES and md_search_dir != git_repo_path.parent:
-        if (md_search_dir / "README.md").exists():
-            readme_dir = md_search_dir
-            break  # Found the relevant README, stop searching
-        md_search_dir = md_search_dir.parent  # Not found, try parent
-    readme_path = readme_dir / "README.md"
-    dest_dir = readme_dir.relative_to(git_repo_path)
-    language_agnostic_dir = metadata_dir
-    nbr_language_dirs = 0
-    if metadata_dir.name in ["cpp", "python"]:
-        language_agnostic_dir = metadata_dir.parent
-        nbr_language_dirs = len(list(language_agnostic_dir.glob("*/metadata.json")))
+    for project_type, metadata in metadata_entries:
+        if not isinstance(metadata, dict):
+            logger.error(
+                f"Skipping {metadata_rel_path}: invalid metadata format for {project_type}"
+            )
+            continue
 
-    # Track language agnostic components if in adequate directories
-    # Ex:
-    # - don't track operators under application folders
-    # - only track once for cpp and python
-    # - don't track metadata.json in parent directories of multiple operators
-    if component_type == metadata_rel_path.parts[0]:
-        if "Operators" not in metadata["name"]:
-            components[component_type].add(language_agnostic_dir)
+        # Check valid component type
+        component_type = f"{project_type}s"
+        if component_type not in COMPONENT_TYPES:
+            logger.error(f"Skipping {metadata_rel_path}: unknown type '{component_type}'")
+            continue
 
-    # Process the README content and extract title
-    readme_text = ""
-    readme_title = metadata["name"] if "name" in metadata else metadata_path.name
+        # Dirs & Paths
+        metadata_dir = metadata_path.parent
+        readme_dir = metadata_dir
+        md_search_dir = readme_dir
+        while md_search_dir.name not in COMPONENT_TYPES and md_search_dir != git_repo_path.parent:
+            if (md_search_dir / "README.md").exists():
+                readme_dir = md_search_dir
+                break  # Found the relevant README, stop searching
+            md_search_dir = md_search_dir.parent  # Not found, try parent
+        readme_path = readme_dir / "README.md"
+        dest_dir = readme_dir.relative_to(git_repo_path)
+        language_agnostic_dir = metadata_dir
+        nbr_language_dirs = 0
+        if metadata_dir.name in ["cpp", "python"]:
+            language_agnostic_dir = metadata_dir.parent
+            nbr_language_dirs = len(list(language_agnostic_dir.glob("*/metadata.json")))
 
-    if readme_path.exists():
-        with readme_path.open("r") as readme_file:
-            readme_text = readme_file.read()
+        # Track language agnostic components if in adequate directories
+        # Ex:
+        # - don't track operators under application folders
+        # - only track once for cpp and python
+        # - don't track metadata.json in parent directories of multiple operators
+        if component_type == metadata_rel_path.parts[0]:
+            if "Operators" not in metadata.get("name", ""):
+                components[component_type].add(language_agnostic_dir)
 
-        # Extract title from README content
-        header_info = extract_markdown_header(readme_text)
-        if header_info:
-            readme_title = header_info[1]  # header_text from the tuple
-    else:
-        logger.warning(f"No README available for {metadata_path}")
-        readme_text = f"# {readme_title}\n\nNo documentation found."
+        # Process the README content and extract title
+        readme_text = ""
+        readme_title = metadata["name"] if "name" in metadata else metadata_path.name
 
-    # Prepare suffix with language info if it's a language-specific component
-    suffix = ""
-    if readme_dir == metadata_dir and nbr_language_dirs > 1:
-        suffix = "C++" if metadata_dir.name == "cpp" else f"{metadata_dir.name.capitalize()}"
-        suffix = f" ({suffix})"
-    logger.debug(f"suffix: {suffix}")
+        if readme_path.exists():
+            with readme_path.open("r") as readme_file:
+                readme_text = readme_file.read()
 
-    title = create_title_from_readme_title(readme_title, suffix)
+            # Extract title from README content
+            header_info = extract_markdown_header(readme_text)
+            if header_info:
+                readme_title = header_info[1]  # header_text from the tuple
+        else:
+            logger.warning(f"No README available for {metadata_path}")
+            readme_text = f"# {readme_title}\n\nNo documentation found."
 
-    # Generate page
-    dest_path = dest_dir / "README.md"
-    last_modified = get_last_modified_date(metadata_path, git_repo_path)
-    # Check for archives in metadata for version selector
-    archives = metadata["archives"] if "archives" in metadata else None
-    create_page(metadata, readme_text, dest_path, last_modified, git_repo_path, archives=archives)
+        # Prepare suffix with language info if it's a language-specific component
+        suffix = ""
+        if readme_dir == metadata_dir and nbr_language_dirs > 1:
+            suffix = "C++" if metadata_dir.name == "cpp" else f"{metadata_dir.name.capitalize()}"
+            suffix = f" ({suffix})"
+        logger.debug(f"suffix: {suffix}")
 
-    # Initialize nav file content to set title
-    nav_path = dest_dir / ".nav.yml"
-    nav_content = f"""
+        title = create_title_from_readme_title(readme_title, suffix)
+
+        # Generate page
+        dest_path = dest_dir / "README.md"
+        last_modified = get_last_modified_date(metadata_path, git_repo_path)
+        # Check for archives in metadata for version selector
+        archives = metadata["archives"] if "archives" in metadata else None
+        create_page(
+            metadata, readme_text, dest_path, last_modified, git_repo_path, archives=archives
+        )
+
+        # Initialize nav file content to set title
+        nav_path = dest_dir / ".nav.yml"
+        nav_content = f"""
 title: "{title}"
 """
 
-    # Check for archives in metadata
-    archives = metadata["archives"] if "archives" in metadata else None
-    if archives:
-        nav_content += process_archived_versions(
-            archives, metadata, metadata_path, readme_path, dest_dir, project_type, git_repo_path
-        )
-
-    # Write nav file
-    write_nav_file(nav_path, nav_content)
-
-    # If we're in a language-specific directory (cpp/python) and processed a language-specific README,
-    # also check if there's a parent README to process as a language-agnostic page
-    if (
-        metadata_dir.name in ["cpp", "python"]
-        and readme_dir == metadata_dir
-        and nbr_language_dirs > 1
-    ):
-
-        parent_readme_path = language_agnostic_dir / "README.md"
-        parent_readme_key = str(parent_readme_path.relative_to(git_repo_path))
-
-        # Only process if parent README exists and hasn't been processed yet
-        if parent_readme_path.exists() and parent_readme_key not in processed_parent_readmes:
-            processed_parent_readmes.add(parent_readme_key)
-            logger.info(f"Also processing parent README: {parent_readme_key}")
-
-            # Read parent README
-            with parent_readme_path.open("r") as parent_readme_file:
-                parent_readme_text = parent_readme_file.read()
-
-            # Extract title from parent README
-            parent_readme_title = metadata["name"]
-            parent_header_info = extract_markdown_header(parent_readme_text)
-            if parent_header_info:
-                parent_readme_title = parent_header_info[1]
-
-            # Create title without language suffix (language-agnostic)
-            parent_title = create_title_from_readme_title(parent_readme_title)
-
-            # Generate parent page
-            parent_dest_dir = language_agnostic_dir.relative_to(git_repo_path)
-            parent_dest_path = parent_dest_dir / "README.md"
-            parent_last_modified = get_last_modified_date(metadata_path, git_repo_path)
-            create_page(
+        # Check for archives in metadata
+        archives = metadata["archives"] if "archives" in metadata else None
+        if archives:
+            nav_content += process_archived_versions(
+                archives,
                 metadata,
-                parent_readme_text,
-                parent_dest_path,
-                parent_last_modified,
+                metadata_path,
+                readme_path,
+                dest_dir,
+                project_type,
                 git_repo_path,
-                archives=archives,
             )
 
-            # Write parent nav file
-            parent_nav_path = parent_dest_dir / ".nav.yml"
-            parent_nav_content = f"""
+        # Write nav file
+        write_nav_file(nav_path, nav_content)
+
+        # If we're in a language-specific directory (cpp/python) and processed a language-specific README,
+        # also check if there's a parent README to process as a language-agnostic page
+        if (
+            metadata_dir.name in ["cpp", "python"]
+            and readme_dir == metadata_dir
+            and nbr_language_dirs > 1
+        ):
+
+            parent_readme_path = language_agnostic_dir / "README.md"
+            parent_readme_key = str(parent_readme_path.relative_to(git_repo_path))
+
+            # Only process if parent README exists and hasn't been processed yet
+            if parent_readme_path.exists() and parent_readme_key not in processed_parent_readmes:
+                processed_parent_readmes.add(parent_readme_key)
+                logger.info(f"Also processing parent README: {parent_readme_key}")
+
+                # Read parent README
+                with parent_readme_path.open("r") as parent_readme_file:
+                    parent_readme_text = parent_readme_file.read()
+
+                # Extract title from parent README
+                parent_readme_title = metadata["name"]
+                parent_header_info = extract_markdown_header(parent_readme_text)
+                if parent_header_info:
+                    parent_readme_title = parent_header_info[1]
+
+                # Create title without language suffix (language-agnostic)
+                parent_title = create_title_from_readme_title(parent_readme_title)
+
+                # Generate parent page
+                parent_dest_dir = language_agnostic_dir.relative_to(git_repo_path)
+                parent_dest_path = parent_dest_dir / "README.md"
+                parent_last_modified = get_last_modified_date(metadata_path, git_repo_path)
+                create_page(
+                    metadata,
+                    parent_readme_text,
+                    parent_dest_path,
+                    parent_last_modified,
+                    git_repo_path,
+                    archives=archives,
+                )
+
+                # Write parent nav file
+                parent_nav_path = parent_dest_dir / ".nav.yml"
+                parent_nav_content = f"""
 title: "{parent_title}"
 """
 
-            # Check for archives in metadata (parent page uses same metadata)
-            if archives:
-                parent_nav_content += process_archived_versions(
-                    archives,
-                    metadata,
-                    metadata_path,
-                    parent_readme_path,
-                    parent_dest_dir,
-                    project_type,
-                    git_repo_path,
-                )
+                # Check for archives in metadata (parent page uses same metadata)
+                if archives:
+                    parent_nav_content += process_archived_versions(
+                        archives,
+                        metadata,
+                        metadata_path,
+                        parent_readme_path,
+                        parent_dest_dir,
+                        project_type,
+                        git_repo_path,
+                    )
 
-            # Write parent nav file
-            write_nav_file(parent_nav_path, parent_nav_content)
+                # Write parent nav file
+                write_nav_file(parent_nav_path, parent_nav_content)
 
 
 def generate_pages() -> None:
