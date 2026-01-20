@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -174,14 +174,12 @@ def stop(signum=None, frame=None):
 
 
 def show_prompt():
-    print(
-        f"""Enter an option:
+    print(f"""Enter an option:
         [1] all records
         [2] {start_date_default} to {end_date_Default}
         [3] {start_date_default} to {end_date_Default} Observation, ImagingStudy, FamilyMemberHistory, Condition, DiagnosticReport, DocumentReference (default)
         [4] Procedure & DiagnosticReport for {patient_name}
-        """
-    )
+        """)
 
 
 if __name__ == "__main__":

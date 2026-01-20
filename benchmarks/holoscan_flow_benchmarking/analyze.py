@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -144,14 +144,10 @@ def shorten_path(path, operator_legends, path_separator="→ "):
             operator_legends[modified_operator_name] = operator
         else:
             if operator_legends[modified_operator_name] != operator:
-                print(
-                    f"\033[91mERROR: Operator {operator} has the same first 3 letters\
-                      as {operator_legends[modified_operator_name]}\033[0m"
-                )
-                print(
-                    "\033[91mCDF Curve legends for operators cannot be created. \
-                    CDF Curve creation aborted.\033[0m"
-                )
+                print(f"\033[91mERROR: Operator {operator} has the same first 3 letters\
+                      as {operator_legends[modified_operator_name]}\033[0m")
+                print("\033[91mCDF Curve legends for operators cannot be created. \
+                    CDF Curve creation aborted.\033[0m")
                 sys.exit(1)
         modified_operators.append(modified_operator_name)
     return path_separator.join(modified_operators)
@@ -352,7 +348,7 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.max(latency), 2)))
-            (path, latency) = next(iter(paths_latencies.items()))
+            path, latency = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
                     f'<CTestMeasurement type="numeric/double" name="maximum_latency_{group_name}">'
@@ -372,7 +368,7 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.mean(latency), 2)))
-            (path, latency) = next(iter(paths_latencies.items()))
+            path, latency = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
                     f'<CTestMeasurement type="numeric/double" name="average_latency_{group_name}">'
@@ -392,7 +388,7 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.median(latency), 2)))
-            (path, latency) = next(iter(paths_latencies.items()))
+            path, latency = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
                     f'<CTestMeasurement type="numeric/double" name="median_latency_{group_name}">'
@@ -412,7 +408,7 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(np.std(latency), 2)))
-            (path, latency) = next(iter(paths_latencies.items()))
+            path, latency = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
                     f'<CTestMeasurement type="numeric/double" name="stddev_latency_{group_name}">'
@@ -432,7 +428,7 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, str(round(min(latency), 2)))
-            (path, latency) = next(iter(paths_latencies.items()))
+            path, latency = next(iter(paths_latencies.items()))
             if args.cdash:
                 print(
                     f'<CTestMeasurement type="numeric/double" name="min_latency_{group_name}">'
@@ -452,7 +448,7 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, get_latency_difference(latency, 95, 100))
-            (path, latency) = next(iter(paths_latencies.items()))
+            path, latency = next(iter(paths_latencies.items()))
             latency_tail_one_path = str(get_latency_difference(latency, 95, 100))
             if args.cdash:
                 print(
@@ -473,7 +469,7 @@ def main():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
                 print_path_metric_ms(path, get_latency_difference(latency, 10, 90))
-            (path, latency) = next(iter(paths_latencies.items()))
+            path, latency = next(iter(paths_latencies.items()))
             latency_flatness_one_path = str(get_latency_difference(latency, 10, 90))
             if args.cdash:
                 print(
@@ -500,7 +496,7 @@ def main():
                         latency_percentile(latency, float(percentile))
                     )
                     print_path_metric_ms(path, latency_percentile_str)
-                (path, latency) = next(iter(paths_latencies.items()))
+                path, latency = next(iter(paths_latencies.items()))
                 latency_percentile_filtered_one_path = "{:.2f}".format(
                     latency_percentile(latency, float(percentile))
                 )
