@@ -476,7 +476,7 @@ def create_pipeline(ctx, program_groups, pipeline_compile_options):
 def create_sbt(prog_groups):
     # print( "Creating sbt ... " )
 
-    (raygen_prog_group, miss_prog_group, hitgroup_prog_group) = prog_groups
+    raygen_prog_group, miss_prog_group, hitgroup_prog_group = prog_groups
 
     global d_raygen_sbt
     global d_miss_sbt
