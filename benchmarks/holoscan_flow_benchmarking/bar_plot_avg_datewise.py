@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,17 +26,13 @@ import matplotlib.pyplot as plt
 # Assumed that first half of the files are avg files and second half are stddev files
 def main():
     if len(sys.argv) < 3:
-        print(
-            "Usage: python bar_plot_avg_datewise <avg filename1> \
-             <avg filename2> ... <stddev filename1> <stddev filename2>"
-        )
+        print("Usage: python bar_plot_avg_datewise <avg filename1> \
+             <avg filename2> ... <stddev filename1> <stddev filename2>")
         return
     filenames = sys.argv[1:]
     if len(filenames) % 2 != 0:
-        print(
-            "Usage: python bar_plot_avg_datewise <avg filename1> \
-             <avg filename2> ... <stddev filename1> <stddev filename2>"
-        )
+        print("Usage: python bar_plot_avg_datewise <avg filename1> \
+             <avg filename2> ... <stddev filename1> <stddev filename2>")
         return
     filenames.sort(key=lambda x: x.split("_")[-1].split(".")[0])
     # read all the avg and stddev values
@@ -79,10 +75,8 @@ def main():
     plt.tight_layout()
     # plt.show()
     plt.savefig(f"avg_{dates[-1]}.png")
-    print(
-        f'<CTestMeasurementFile type="image/png" name="average">\
-          avg_{dates[-1]}.png</CTestMeasurementFile>'
-    )
+    print(f'<CTestMeasurementFile type="image/png" name="average">\
+          avg_{dates[-1]}.png</CTestMeasurementFile>')
 
 
 if __name__ == "__main__":
