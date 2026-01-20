@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -209,10 +209,10 @@ class AddViewOperator(holoscan.core.Operator):
     def compute(self, op_input, op_output, context):
         # Get input message
         in_message_1 = op_input.receive("input1")
-        (X1, Y1) = in_message_1.get("coords_1")
+        X1, Y1 = in_message_1.get("coords_1")
 
         in_message_2 = op_input.receive("input2")
-        (X2, Y2) = in_message_2.get("coords_2")
+        X2, Y2 = in_message_2.get("coords_2")
 
         out_message = {
             "video": self.background,
