@@ -21,9 +21,9 @@ from typing import List
 import torch
 
 with warnings.catch_warnings():
-  warnings.simplefilter("ignore", UserWarning)
-  from torchvision.models import ResNet50_Weights, detection  # noqa: E402
-  from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights  # noqa: E402
+    warnings.simplefilter("ignore", UserWarning)
+    from torchvision.models import ResNet50_Weights, detection  # noqa: E402
+    from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights  # noqa: E402
 
 os.environ["TORCH_HOME"] = os.getcwd()
 
