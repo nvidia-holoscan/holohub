@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -132,7 +132,7 @@ class WebAppThread(Thread):
     async def _offer(self, request):
         params = await request.json()
 
-        (sdp, type) = await self._webrtc_server_op.offer(params["sdp"], params["type"])
+        sdp, type = await self._webrtc_server_op.offer(params["sdp"], params["type"])
 
         return web.Response(
             content_type="application/json",
