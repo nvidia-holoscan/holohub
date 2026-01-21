@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/applications/vila_live/">
+        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/applications/ultrasound_postprocessing/">
       
       
-        <link rel="prev" href="../velodyne_lidar_app/">
+        <link rel="prev" href="../ultrasound_segmentation/python/">
       
       
-        <link rel="next" href="../psd_pipeline/">
+        <link rel="next" href="../velodyne_lidar_app/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>VILA Live (latest) - NVIDIA Holoscan Reference Applications</title>
+        <title>Ultrasound Post-Processing Filter Design (latest) - NVIDIA Holoscan Reference Applications</title>
       
     
     
@@ -96,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#vila-live" class="md-skip">
+        <a href="#ultrasound-post-processing-filter-design" class="md-skip">
           Skip to content
         </a>
       
@@ -142,7 +142,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              VILA Live (latest)
+              Ultrasound Post-Processing Filter Design (latest)
             
           </span>
         </div>
@@ -9490,6 +9490,8 @@
                 
   
   
+    
+  
   
   
     
@@ -9506,15 +9508,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_66" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_66" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../ultrasound_postprocessing/" class="md-nav__link ">
+            <a href="./" class="md-nav__link md-nav__link--active">
               
   
   
@@ -9533,7 +9535,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_66_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_66_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_66">
             <span class="md-nav__icon md-icon"></span>
             
@@ -9626,8 +9628,6 @@
                 
   
   
-    
-  
   
   
     
@@ -9644,15 +9644,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_68" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_68" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
+            <a href="../vila_live/" class="md-nav__link ">
               
   
   
@@ -9671,7 +9671,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_68_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_68_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_68">
             <span class="md-nav__icon md-icon"></span>
             
@@ -17719,10 +17719,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#setup-instructions" class="md-nav__link">
+  <a href="#mission" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ⚙️ Setup Instructions
+        Mission
       
     </span>
   </a>
@@ -17730,10 +17730,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#build-and-run-instructions" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        🚀 Build and Run Instructions
+        Overview
       
     </span>
   </a>
@@ -17741,10 +17741,49 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#supported-hardware" class="md-nav__link">
+  <a href="#prerequisites" class="md-nav__link">
     <span class="md-ellipsis">
       
-        💻 Supported Hardware
+        Prerequisites
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#software" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Software
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
       
     </span>
   </a>
@@ -17752,10 +17791,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#video-options" class="md-nav__link">
+  <a href="#install-and-run-with-python-packaging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        📷⚙️ Video Options
+        Install and Run with Python Packaging
       
     </span>
   </a>
@@ -17763,10 +17802,165 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#acknowledgements" class="md-nav__link">
+  <a href="#key-concepts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        🙌 Acknowledgements
+        Key Concepts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Concepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#glossary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Glossary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#review-existing-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Review Existing Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate-a-preset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validate a preset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contributing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contributing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ways-to-contribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ways to Contribute
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Style
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Acknowledgments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference Data
       
     </span>
   </a>
@@ -17837,7 +18031,7 @@
         <a href="./" class="md-path__link">
           
   <span class="md-ellipsis">
-    VILA Live
+    Ultrasound Post-Processing Filter Design
   </span>
 
         </a>
@@ -17860,128 +18054,213 @@
       
       
       
-        <a href="../../tags/#tag:computer-vision-and-perception" class="md-tag">Computer Vision and Perception</a>
+        <a href="../../tags/#tag:academia" class="md-tag">Academia</a>
       
     
       
       
       
       
-        <a href="../../tags/#tag:llm" class="md-tag">LLM</a>
+        <a href="../../tags/#tag:beamform" class="md-tag">Beamform</a>
       
     
       
       
       
       
-        <a href="../../tags/#tag:large-vision-model" class="md-tag">Large Vision Model</a>
+        <a href="../../tags/#tag:designer" class="md-tag">Designer</a>
       
     
       
       
       
       
-        <a href="../../tags/#tag:multimodal-model" class="md-tag">Multimodal Model</a>
+        <a href="../../tags/#tag:dynamic" class="md-tag">Dynamic</a>
       
     
       
       
       
       
-        <a href="../../tags/#tag:video" class="md-tag">Video</a>
+        <a href="../../tags/#tag:filter" class="md-tag">Filter</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:industry" class="md-tag">Industry</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:medical-imaging" class="md-tag">Medical Imaging</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:operator" class="md-tag">Operator</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:real-time" class="md-tag">Real-Time</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:tools" class="md-tag">Tools</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:uff" class="md-tag">UFF</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:ultrasound" class="md-tag">Ultrasound</a>
       
     
   </nav>
 
 
 
-<h1 id="vila-live"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/vila_live">VILA Live</a><a class="headerlink" href="#vila-live" title="Permanent link">#</a></h1>
+<h1 id="ultrasound-post-processing-filter-design"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ultrasound_postprocessing">Ultrasound Post-Processing Filter Design</a><a class="headerlink" href="#ultrasound-post-processing-filter-design" title="Permanent link">#</a></h1>
 <p><button class="run-locally-button"
-    data-app-name="VILA Live"
-    data-app-short-name="vila_live"
-    data-app-language="Python"
+    data-app-name="Ultrasound Post-Processing Filter Design"
+    data-app-short-name="ultrasound_postprocessing"
+    data-app-language="python"
     data-component-type="application"
     data-needs-language-flag="false"
-    data-modes="[]">
+    data-modes="[{&quot;name&quot;: &quot;realtime&quot;, &quot;description&quot;: &quot;Run a real-time ultrasound filter pipeline with Holoscan SDK&quot;}, {&quot;name&quot;: &quot;list-filters&quot;, &quot;description&quot;: &quot;List all registered ultrasound post-processing filters available for Holoscan SDK operator wrappings&quot;}, {&quot;name&quot;: &quot;validate&quot;, &quot;description&quot;: &quot;Validate a filter preset&quot;}]">
     ▶ Run Locally
 </button>
-<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> August 5, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 2.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 2.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
-<p>This application demonstrates how to run <a href="https://github.com/Efficient-Large-Model/VILA">VILA 1.5</a> models on live video feed with the possibility of changing the prompt in real time.</p>
-<p>VILA 1.5 is a family of Vision Language Models (VLM) created by NVIDIA &amp; MIT. It uses SigLIP to encode images into tokens which are fed into an LLM with an accompanying prompt. This application collects video frames from the V4L2 operator and feeds them to an AWQ-quantized VILA 1.5 for inference using the <a href="https://github.com/mit-han-lab/llm-awq/blob/main/tinychat/README.md">TinyChat</a> library. This allows users to interact with a Generative AI model that is "watching" a chosen video stream in real-time.</p>
-<p><img alt="Holoscan VILA Live" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/vila_live/screenshot.png?raw=true" />
-Note: This demo currently uses <a href="https://huggingface.co/Efficient-Large-Model/Llama-3-VILA1.5-8b-Fix-AWQ">Llama-3-VILA1.5-8b-AWQ</a>, but any of the following AWQ-quantized models from the VILA 1.5 family should work as long as the file names are changed in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/vila_live/Dockerfile">Dockerfile</a> and <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/vila_live/run_vila_live.sh">run_vila_live.sh</a>:
-- <a href="https://huggingface.co/Efficient-Large-Model/VILA1.5-3b-AWQ">VILA1.5-3b-AWQ</a>
-- <a href="https://huggingface.co/Efficient-Large-Model/VILA1.5-3b-s2-AWQ">VILA1.5-3b-s2-AWQ</a>
-- <a href="https://huggingface.co/Efficient-Large-Model/Llama-3-VILA1.5-8b-AWQ">Llama-3-VILA1.5-8b-AWQ</a>
-- <a href="https://huggingface.co/Efficient-Large-Model/VILA1.5-13b-AWQ">VILA1.5-13b-AWQ</a>
-- <a href="https://huggingface.co/Efficient-Large-Model/VILA1.5-40b-AWQ">VILA1.5-40b-AWQ</a></p>
-<h2 id="setup-instructions">⚙️ Setup Instructions<a class="headerlink" href="#setup-instructions" title="Permanent link">#</a></h2>
-<p>The app defaults to using the video device at <code>/dev/video0</code></p>
-<blockquote>
-<p>Note: You can use a USB webcam as the video source, or an MP4 video by following the instructions for the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices">V4L2_Camera</a> example app.</p>
-</blockquote>
-<p>To debug if this is the correct device download <code>v4l2-ctl</code>:
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>v4l-utils
-</code></pre></div>
-To check for your devices run:
-<div class="highlight"><pre><span></span><code>v4l2-ctl<span class="w"> </span>--list-devices
-</code></pre></div>
-This command will output something similar to this:
-<div class="highlight"><pre><span></span><code>NVIDIA<span class="w"> </span>Tegra<span class="w"> </span>Video<span class="w"> </span>Input<span class="w"> </span>Device<span class="w"> </span><span class="o">(</span>platform:tegra-camrtc-ca<span class="o">)</span>:
-<span class="w">        </span>/dev/media0
-
-vi-output,<span class="w"> </span>lt6911uxc<span class="w"> </span><span class="m">2</span>-0056<span class="w"> </span><span class="o">(</span>platform:tegra-capture-vi:0<span class="o">)</span>:
-<span class="w">        </span>/dev/video0
-
-Dummy<span class="w"> </span>video<span class="w"> </span>device<span class="w"> </span><span class="o">(</span>0x0000<span class="o">)</span><span class="w"> </span><span class="o">(</span>platform:v4l2loopback-000<span class="o">)</span>:
-<span class="w">        </span>/dev/video3
-</code></pre></div>
-Determine your desired video device and edit the source device in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/vila_live/vila_live.yaml">vila_live.yaml</a></p>
-<h2 id="build-and-run-instructions">🚀 Build and Run Instructions<a class="headerlink" href="#build-and-run-instructions" title="Permanent link">#</a></h2>
-<p>From the Holohub main directory run the following command:
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>vila_live
-</code></pre></div>
-or running with a replayer:
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>vila_live<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source replayer&quot;</span>
-</code></pre></div>
-Note: The first build will take <strong>~1.5 hours</strong> if you're on ARM64. This is largely due to building <a href="https://github.com/Dao-AILab/flash-attention">Flash Attention 2</a> since pre-built wheels are not distributed for ARM64 platforms.</p>
-<p>Once the main LMM-based app is running, you will see a link for the app at <code>http://127.0.0.1:8050</code>.
-To receive the video stream, please also ensure port 49000 is open.</p>
-<h2 id="supported-hardware">💻 Supported Hardware<a class="headerlink" href="#supported-hardware" title="Permanent link">#</a></h2>
+<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Walter Simson (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> January 21, 2026<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 0.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.9.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.9.0, 3.10.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
+<p>A collection of tools for developing and deploying realtime ultrasound post-processing filters.</p>
+<p><img alt="Designer UI" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ultrasound_postprocessing/docs/assets/designer.jpg?raw=true" /></p>
+<h2 id="mission">Mission<a class="headerlink" href="#mission" title="Permanent link">#</a></h2>
+<p>Enable the ultrasound community (academia and industry) to have reproducible, real-time post-processing.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p>This project includes an Ultrasound Post-Processing Filter Designer and light-weight library that enables you to design and run your ultrasound post-processing filter collection in Holoscan, all from a small and simple YAML config file.</p>
+<p>The Filter Designer enables you to create the YAML configs working on Ultrasound File Format (<a href="https://ieeexplore.ieee.org/document/8579642">UFF</a>) files (beamformed but not log compressed). You can load and filter your own data locally.</p>
+<p>The included Holoscan Runner tool enables you to run those configurations in real-time using the Holoscan SDK.</p>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
+<h3 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">#</a></h3>
 <ul>
-<li>IGX w/ dGPU</li>
-<li>x86 w/ dGPU</li>
-<li>IGX w/ iGPU and Jetson AGX supported with workaround<br>
-  There is a known issue running this application on IGX w/ iGPU and on Jetson AGX (see <a href="https://github.com/nvidia-holoscan/holohub/issues/500">#500</a>).
-  The workaround is to update the device to avoid picking up the libnvv4l2.so library.</li>
+<li>Linux device with NVIDIA GPU</li>
+<li>Tested with x86_64 workstation + RTX Ampere 6000 GPU</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/usr/lib/aarch64-linux-gnu/
-ls<span class="w"> </span>-l<span class="w"> </span>libv4l2.so.0.0.999999
-sudo<span class="w"> </span>rm<span class="w"> </span>libv4l2.so.0.0.999999
-sudo<span class="w"> </span>ln<span class="w"> </span>-s<span class="w"> </span>libv4l2.so.0.0.0.0<span class="w">  </span>libv4l2.so.0.0.999999
-</code></pre></div>
-<h2 id="video-options">📷⚙️ Video Options<a class="headerlink" href="#video-options" title="Permanent link">#</a></h2>
-<p>There are three options to ingest video data.</p>
-<ol>
-<li>use a physical device or capture card, such as a v4l2 device as described in the <a href="##-⚙️-Setup-Instructions">Setup Instructions</a>. Make sure the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/vila_live/vila_live.yaml">vila_live.yaml</a> contains the v4l2_source group and specifies the device correctly (<code>pixel_format</code> may be tuned accordingly, e.g. <code>pixel_format: "auto"</code>).</li>
-<li>
-<p>convert a video file to a gxf-compatible format using the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy">convert_video_to_gxf_entities.py</a> script. See the <a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/yolo_model_deployment#step-2-deployment">yolo_model_deployment</a> application for a detailed example. When using the replayer, configure the replayer_source in the yaml file and launch the application with:
-    <div class="highlight"><pre><span></span><code>./run_vila_live.sh<span class="w"> </span>--source<span class="w"> </span><span class="s2">&quot;replayer&quot;</span>
-</code></pre></div>
-This application downloads a pre-recorded video from <a href="https://www.pexels.com/video/a-group-of-people-introduces-oneself-to-each-other-by-shaking-hands-3252919/">Pexels</a> when the application is built.  Please review the <a href="https://www.pexels.com/license/">license terms</a> from Pexels.</p>
-</li>
-<li>
-<p>create a virtual video device, that mounts a video file and replays it, as detailed in the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices">v4l2_camera examples in holoscan-sdk</a>. This approach may require signing the <a href="https://github.com/umlaeute/v4l2loopback">v4l2loopback kernel module</a>, when using a system with secure-boot enabled. Make sure the vila_live.yaml contains the v4l2_source group and specifies the virtual device correctly. replay the video, using for example:
-    <div class="highlight"><pre><span></span><code>ffmpeg<span class="w"> </span>-stream_loop<span class="w"> </span>-1<span class="w"> </span>-re<span class="w"> </span>-i<span class="w"> </span>&lt;your_video_path&gt;<span class="w"> </span>-pix_fmt<span class="w"> </span>yuyv422<span class="w"> </span>-f<span class="w"> </span>v4l2<span class="w"> </span>/dev/video3
+<h3 id="software">Software<a class="headerlink" href="#software" title="Permanent link">#</a></h3>
+<ul>
+<li>CUDA Driver R580 or later</li>
+<li>See additional HoloHub CLI prerequisites <a href="https://github.com/nvidia-holoscan/holohub?tab=readme-ov-file#software-prerequisites">here</a></li>
+</ul>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
+<p>First, clone this repository:
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nvidia-holoscan/holohub.git
 </code></pre></div></p>
+<p>Then, run the containerized application.</p>
+<p>To run the filter designer webpage for assembling filter pipelines and tuning filter parameters:
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ultrasound_postprocessing<span class="w"> </span>designer
+</code></pre></div></p>
+<p>To run a filter pipeline preset in real time with Holoscan SDK:
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ultrasound_postprocessing<span class="w"> </span>realtime
+</code></pre></div></p>
+<h2 id="install-and-run-with-python-packaging">Install and Run with Python Packaging<a class="headerlink" href="#install-and-run-with-python-packaging" title="Permanent link">#</a></h2>
+<p>As an alternative to HoloHub CLI, you can instead design and run filters with project Python entrypoints.</p>
+<p>Install this project with your Python package manager:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>git+ssh://github.com/nvidia-holoscan/holohub.git@main#subdirectory<span class="o">=</span>applications/ultrasound_postprocessing
+</code></pre></div></p>
+<p>Then run your application of choice:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>streamlit<span class="w"> </span>run<span class="w"> </span>applications/ultrasound_postprocessing/ultra_post/app/streamlit_app.py
+</code></pre></div></p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>ultra_post.app.holoscan_app<span class="w"> </span><span class="o">[</span>--uff<span class="w"> </span>path/to/myfile.uff<span class="o">]</span><span class="w"> </span><span class="o">[</span>--fps<span class="w"> </span><span class="m">10</span><span class="o">]</span>
+</code></pre></div>
+<p>The sample dataset used in this project is available at http://www.ustb.no/datasets.</p>
+<h2 id="key-concepts">Key Concepts<a class="headerlink" href="#key-concepts" title="Permanent link">#</a></h2>
+<h3 id="glossary">Glossary<a class="headerlink" href="#glossary" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Filters</strong> are stateful, CuPy-based Python functions that operate on ultrasound images.</li>
+<li>The <strong>Filter Registry</strong> is a collection of pre-defined filters for use in apps such as the Filter Designer and in Holoscan SDK pipelines.</li>
+<li><strong>Pipelines</strong> are a set of one or more filter objects assembled into a serialized graph or "chain".</li>
+<li><strong>Presets</strong> are instructions for configuring a pipeline out of specific filters.</li>
+<li><strong>Operators</strong> are Holoscan SDK "nodes" wrapping filter definitions for real-time serial execution.</li>
+</ul>
+<h2 id="development">Development<a class="headerlink" href="#development" title="Permanent link">#</a></h2>
+<h3 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>ultrasound_postprocessing
+├── CMakeLists.txt
+├── Dockerfile
+├── docs
+├── external
+├── metadata.json
+├── plans
+├── presets
+├── pyproject.toml
+├── README.md
+├── tests
+├── tools
+└── ultra_post (Python module)
+</code></pre></div>
+<h3 id="review-existing-filters">Review Existing Filters<a class="headerlink" href="#review-existing-filters" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ultrasound_postprocessing<span class="w"> </span>list-filters
+</code></pre></div>
+<h3 id="validate-a-preset">Validate a preset<a class="headerlink" href="#validate-a-preset" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ultrasound_postprocessing<span class="w"> </span>validate<span class="w"> </span>&lt;presets/my-preset.yml&gt;
+</code></pre></div>
+<h3 id="run-tests">Run Tests<a class="headerlink" href="#run-tests" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>ultrasound_postprocessing
+</code></pre></div>
+<h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">#</a></h2>
+<p>We welcome contributions that align with our mission to enable the ultrasound community to have reproducible, real-time post-processing.</p>
+<h2 id="ways-to-contribute">Ways to Contribute<a class="headerlink" href="#ways-to-contribute" title="Permanent link">#</a></h2>
+<ol>
+<li><strong>Presets</strong>: Create a processing pipeline preset (YAML) and save it to <code>presets/</code>.</li>
+<li><strong>Filters</strong>:<ul>
+<li>Add your filter implementation to <code>ultra_post/filters/</code>.</li>
+<li>Register it in <code>ultra_post/filters/registry.py</code> (add to <code>FILTERS</code> and <code>DEFAULT_PARAMS</code>).</li>
+</ul>
+</li>
+<li><strong>Improvements</strong>: Bug fixes and performance optimizations are highly encouraged.<ul>
+<li>Our goal is to have code that is easy to understand and highly performant.</li>
+</ul>
 </li>
 </ol>
-<h2 id="acknowledgements">🙌 Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permanent link">#</a></h2>
+<p>Please see the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/CONTRIBUTING.md">HoloHub Contributing Guide</a> for developer guidance.</p>
+<h2 id="code-style">Code Style<a class="headerlink" href="#code-style" title="Permanent link">#</a></h2>
 <ul>
-<li>Jetson AI Lab, <a href="https://www.jetson-ai-lab.com/archive/tutorial_live-llava.html">Live LLaVA</a>: for the inspiration to create this app</li>
-<li><a href="https://github.com/dusty-nv/jetson-containers/tree/master/packages/llm/llamaspeak">Jetson-Containers</a> repo: For the Flask web-app with WebSockets</li>
-<li><a href="https://github.com/mit-han-lab/llm-awq">LLM-AWQ</a> repo: For the example code to create AWQ-powered LLM servers</li>
+<li><strong>Concise &amp; Approachable</strong>: We prioritize readability so new users can quickly understand the post-processing logic.</li>
+<li><strong>Performant</strong>: We aim for code that is both expressive and performant, enabling real-time processing.</li>
 </ul>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">#</a></h2>
+<p>This project is licensed under the Apache-2.0 License. See the HoloHub <a href="https://github.com/nvidia-holoscan/holohub/blob/main/LICENSE">LICENSE</a> file for details.</p>
+<h2 id="authors">Authors<a class="headerlink" href="#authors" title="Permanent link">#</a></h2>
+<ul>
+<li>Walter Simson - NVIDIA Holoscan Team</li>
+</ul>
+<h2 id="acknowledgments">Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link">#</a></h2>
+<ul>
+<li>NVIDIA Holoscan Team</li>
+<li>Open source community contributors</li>
+</ul>
+<h2 id="reference-data">Reference Data<a class="headerlink" href="#reference-data" title="Permanent link">#</a></h2>
+<p>This project uses UFF sample data hosted by the <a href="https://www.ustb.no/">Ultrasound Toolbox</a>.</p>
+<blockquote>
+<p>H. Liebgott, A. Rodriguez-Molares, F. Cervenansky, J. A. Jensen and O. Bernard, "Plane-Wave Imaging Challenge in Medical Ultrasound," 2016 IEEE International Ultrasonics Symposium (IUS), Tours, France, 2016, pp. 1-4, doi: 10.1109/ULTSYM.2016.7728908.</p>
+</blockquote>
 
 
 
@@ -18022,7 +18301,7 @@ This application downloads a pre-recorded video from <a href="https://www.pexels
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../velodyne_lidar_app/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Velodyne VLP-16 Lidar Viewer (latest)">
+          <a href="../ultrasound_segmentation/python/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Ultrasound Bone Scoliosis Segmentation (latest)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -18032,20 +18311,20 @@ This application downloads a pre-recorded video from <a href="https://www.pexels
                 Previous
               </span>
               <div class="md-ellipsis">
-                Velodyne VLP-16 Lidar Viewer (latest)
+                Ultrasound Bone Scoliosis Segmentation (latest)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../psd_pipeline/" class="md-footer__link md-footer__link--next" aria-label="Next: VITA 49 Power Spectral Density (latest)">
+          <a href="../velodyne_lidar_app/" class="md-footer__link md-footer__link--next" aria-label="Next: Velodyne VLP-16 Lidar Viewer (latest)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                VITA 49 Power Spectral Density (latest)
+                Velodyne VLP-16 Lidar Viewer (latest)
               </div>
             </div>
             <div class="md-footer__button md-icon">
