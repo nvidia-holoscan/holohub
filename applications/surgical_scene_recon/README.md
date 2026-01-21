@@ -40,7 +40,7 @@ cd holohub
 1. Read and agree to the [Terms and Conditions](https://docs.google.com/document/d/1P6q2hXoGpVMKeD-PpjYYdZ0Yx1rKZdJF1rXxpobbFMY/edit?usp=share_link) for the EndoNeRF dataset.
 2. EndoNeRF sample dataset is being downloaded automatically when building the application. 
 3. Optionally, for manual download of the dataset, refer to the [Data](#obtaining-the-pulling-soft-tissues-dataset) section below.
-4. Optionally, if you do not agree to the terms and conditions, set the `HOLOHUB_DOWNLOAD_DATASETS` environment variable to `OFF` and manually download the dataset and place it in the correct location by following the instructions in the [Data](#pulling-soft-tissues-dataset) section below.
+4. Optionally, if you do not agree to the terms and conditions, set the `HOLOHUB_DOWNLOAD_DATASETS` environment variable to `OFF` and manually download the dataset and place it in the correct location by following the instructions in the [Data](#obtaining-the-pulling-soft-tissues-dataset) section below.
 
     ```bash
     export HOLOHUB_DOWNLOAD_DATASETS=OFF
