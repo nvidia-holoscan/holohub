@@ -124,7 +124,10 @@ Verify that your dataset has this structure:
 
 ## Models Used by the `surgical_scene_recon` Application
 
-The `surgical_scene_recon` application uses a **3D Gaussian Splatting** model with a **temporal deformation network** for dynamic scene reconstruction. 
+The `surgical_scene_recon` application uses a 4D Dynamic Gaussian Splatting model that combines:
+
+* **3D Gaussian Splatting** model - A point-based neural scene representation
+* **HexPlane Temporal Deformation Network** - A spatiotemporal feature grid with MLPs for modeling tissue dynamics
 
 - Gaussian Splatting Model
 
