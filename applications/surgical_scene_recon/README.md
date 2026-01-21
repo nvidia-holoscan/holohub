@@ -136,7 +136,7 @@ The `surgical_scene_recon` application uses a 4D Dynamic Gaussian Splatting mode
   - Architecture: 3D Gaussians with learned position, scale, rotation, opacity, and color
   - Initialization: Multi-frame point cloud (~30,000-50,000 points from all frames)
   - Renderer: `gsplat` library (CUDA-accelerated differentiable rasterization)
-  - Spherical Harmonics of degree 3 (16 coefficients per gaussian for view-dependent color)
+  - Spherical Harmonics of degree 3 (16 coefficients per Gaussian for view-dependent color)
   - Resolution: 640×512 pixels (RGB, three channels)
 
 - Temporal Deformation Network Model
