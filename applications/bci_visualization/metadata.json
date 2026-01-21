@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Kernel Flow BCI Real-Time Reconstruction and Visualization",
+		"name": "Kernel Flow BCI Real-Time Visualization",
 		"authors": [
 			{
 				"name": "Holoscan Team",
