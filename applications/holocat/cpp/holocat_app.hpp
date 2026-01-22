@@ -7,6 +7,7 @@
 
 #include <holoscan/holoscan.hpp>
 #include "holocat_op.hpp"
+#include "holocat_config.hpp"
 
 namespace holocat {
 

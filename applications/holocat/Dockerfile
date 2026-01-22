@@ -1,6 +1,6 @@
 # HoloCat EtherCAT Application Dockerfile
 
-ARG BASE_SDK_VERSION
+ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
 # Install system dependencies for EtherCAT and real-time operation

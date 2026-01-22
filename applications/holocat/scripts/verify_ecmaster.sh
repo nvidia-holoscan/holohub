@@ -35,7 +35,6 @@ if [ -z "$ECMASTER_ROOT" ]; then
     print_status "ERROR" "ECMASTER_ROOT environment variable not set"
     echo "   Set it to your EC-Master installation path:"
     echo "   export ECMASTER_ROOT=/path/to/ecm"
-    echo "   Example: export ECMASTER_ROOT=/home/hking/devel/ethercat/ecm"
     exit 1
 else
     print_status "OK" "ECMASTER_ROOT set to: $ECMASTER_ROOT"

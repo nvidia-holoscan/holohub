@@ -17,25 +17,9 @@
 #include <cstdint>
 #include <future>
 #include <holoscan/holoscan.hpp>
+#include "holocat_config.hpp"
 
 namespace holocat {
-
-// Configuration structure for Holoscan integration
-struct HolocatConfig {
-    std::string adapter_name;
-    std::string eni_file;
-    uint64_t cycle_time_us;
-    uint32_t rt_priority;
-    uint32_t job_thread_priority;
-    bool enable_rt;
-    uint32_t dio_out_offset;
-    uint32_t dio_in_offset;
-    uint32_t max_acyc_frames;
-    uint32_t job_thread_stack_size;
-    std::string log_level;
-    // For validation error reporting
-    std::string error_message;
-};
 
 /**
  * @brief HoloCat EtherCAT Operator
@@ -99,7 +83,6 @@ class HolocatOp : public holoscan::Operator {
   
   // EtherCAT state variables
   EC_T_BOOL bHasConfig_ = EC_FALSE;
-  EC_T_VOID* pvCycFrameReceivedEvent_ = EC_NULL;
   
   // Startup state machine variables
   enum class StartupState {

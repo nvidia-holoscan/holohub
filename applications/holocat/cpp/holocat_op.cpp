@@ -1,8 +1,8 @@
-//-----------------------------------------------------------------------------
+/**
 // holocat_op.cpp
-// HoloCat EtherCAT Operator Implementation
-// Based on EC-Master demo application from acontis technologies GmbH
-//-----------------------------------------------------------------------------
+ * HoloCat EtherCAT Operator Implementation
+ * Based on EC-Master demo application from acontis technologies GmbH
+ */
 
 // System includes
 #include <chrono>
@@ -37,8 +37,10 @@ EC_T_DWORD HolocatOp::LogWrapper(struct _EC_T_LOG_CONTEXT* pContext,
     
     char buffer[1024];
     const char* prefix = "[EC-Master] ";
-    strcpy(buffer, prefix);
-    vsnprintf(buffer + strlen(prefix), sizeof(buffer) - strlen(prefix), szFormat, vaArgs);
+    size_t prefix_len = strlen(prefix);
+    strncpy(buffer, prefix, sizeof(buffer) - 1);
+    vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len - 1, szFormat, vaArgs);
+    buffer[sizeof(buffer) - 1] = '\0'; // Ensure null termination
     EC_VAEND(vaArgs);
     
     if (dwLogMsgSeverity == EC_LOG_LEVEL_SILENT) {
@@ -162,7 +164,6 @@ void HolocatOp::start()
         HOLOSCAN_LOG_ERROR("Cannot initialize EtherCAT-Master: {} (0x{:x})", 
                 ecatGetText(dwRes), dwRes);
         throw std::runtime_error("Cannot initialize EtherCAT-Master: " + std::string(ecatGetText(dwRes)));
-        return;
     }
     HOLOSCAN_LOG_INFO("Master initialized");
 
@@ -176,7 +177,9 @@ void HolocatOp::stop()
         return ecatSetMasterState(kEthercatStateChangeTimeout_, eEcatState_INIT);
     });
 
+    // Don't wait for state transition to complete, since that may never happen.
     sleep(1);
+
     // deinitialize master
     ecatDeinitMaster();
 }

@@ -24,7 +24,4 @@ if(EcMaster_FOUND)
     add_subdirectory(cpp)
 else()
     message(FATAL_ERROR "EC-Master SDK not found")
-
-    # Exit with failure
-    exit(1)
 endif()

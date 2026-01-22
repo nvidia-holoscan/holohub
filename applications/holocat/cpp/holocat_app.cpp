@@ -74,6 +74,7 @@ HolocatConfig HolocatApp::extract_config() {
       target = from_config(key).as<std::decay_t<decltype(target)>>();
     } catch (...) {
       // Key not found or conversion failed - target remains uninitialized
+      HOLOSCAN_LOG_WARN("Missing configuration key {}", key);
     }
   };
   
@@ -119,6 +120,18 @@ bool HolocatApp::validate_config(HolocatConfig& config) {
   if (config.adapter_name.empty()) {
     config.error_message = "EtherCAT adapter name cannot be empty";
     return false;
+  }
+  
+  // Resolve ENI file path relative to config file directory if it's a relative path
+  std::filesystem::path eni_path(config.eni_file);
+  if (eni_path.is_relative()) {
+    // Get the directory containing the config file
+    std::filesystem::path config_dir = std::filesystem::path(this->config().config_file()).parent_path();
+    // Resolve the ENI file path relative to the config directory
+    eni_path = config_dir / eni_path;
+    // Update config with the resolved absolute path
+    config.eni_file = eni_path.string();
+    HOLOSCAN_LOG_INFO("Resolved relative ENI path to: {}", config.eni_file);
   }
   
   // Validate ENI file exists

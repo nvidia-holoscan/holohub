@@ -1,8 +1,7 @@
 # HoloCat - EtherCAT Real-time Integration
 
-![HoloCat Logo](docs/holocat_logo.png)
-
-HoloCat is an EtherCAT master application that integrates the acontis EC-Master SDK with NVIDIA's Holoscan platform.
+HoloCat is an EtherCAT master application that integrates the acontis EC-Master SDK with NVIDIA's Holoscan platform.  
+As of this version it is a proof-of concept using user-space Acontis drivers, which is not performance optimized.
 
 ## Overview
 
@@ -23,7 +22,7 @@ HoloCat provides deterministic EtherCAT communication capabilities within the Ho
 ### Prerequisites
 ```bash
 # Set EC-Master SDK path
-export ECMASTER_ROOT=/home/hking/devel/ethercat/ecm
+export ECMASTER_ROOT=/path/to/ecmaster/root
 
 # Verify installation (optional)
 ./applications/holocat/scripts/verify_ecmaster.sh
@@ -38,7 +37,7 @@ export ECMASTER_ROOT=/home/hking/devel/ethercat/ecm
 ### Run
 ```bash
 # Run with configuration file
-./build/holocat/applications/holocat/cpp/holocat --config ./applications/holocat/configs/holocat_config.yaml
+./build/holocat/applications/holocat/holocat --config ./applications/holocat/configs/holocat_config.yaml
 ```
 
 ## Configuration
@@ -86,7 +85,7 @@ Use EtherCAT configuration tools to generate your ENI file.
    sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
    ```
 
-3. **EC-Master SDK Not Found**
+2. **EC-Master SDK Not Found**
    ```bash
    # Verify ECMASTER_ROOT environment variable
    echo $ECMASTER_ROOT
