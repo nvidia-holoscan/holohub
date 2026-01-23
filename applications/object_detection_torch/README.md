@@ -89,15 +89,7 @@ Refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/
 
 **Limited platform support**: The Faster R-CNN PyTorch model in this example relies on symbols available only in `torchvision<=0.23.0`. arm64 SBSA platforms and x86_64 platforms with CUDA Toolkit >= 13.0 are currently not supported as no compatible combination of Holoscan SDK, PyTorch (CUDA), and torchvision (CUDA) are available for these platforms.
 
-At the time of writing, the supported configuration based on PyTorch components availability is as follows:
-1. x86_64 with CUDA Toolkit <=12.9
-  - Latest Holoscan SDK (>=v3.9.0)
-  - PyTorch 2.8.0 with CUDA 12.9 support
-  - torchvision 0.23.0 with CUDA 12.9 support
-2. NVIDIA Orin platform running in integrated GPU mode (iGPU)
-  - Latest Holoscan SDK (>=v3.9.0)
-  - PyTorch 2.8.0 with CUDA 12.9 support
-  - torchvision 0.23.0 with CUDA 12.9 support
+Please refer to the docker file for information about the torchvision version on different platforms.
 
 The application container will fail to build on other platforms with the error:
 ```bash
