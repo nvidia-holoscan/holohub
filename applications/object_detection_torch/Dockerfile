@@ -42,6 +42,8 @@ RUN echo $(python3 -c "import torch; print(torch.__path__[0])")/lib > /etc/ld.so
 
 ARG GPU_TYPE
 ARG CUDA_MAJOR
+ARG GPU_TYPE
+ARG CUDA_MAJOR
 RUN INDEX_URL=""; \
     if [ "${GPU_TYPE}" = "igpu" ]; then \
         INDEX_URL="https://pypi.jetson-ai-lab.io/jp6/cu126"; \
@@ -49,5 +51,8 @@ RUN INDEX_URL=""; \
         INDEX_URL="https://download.pytorch.org/whl/cu129"; \
     elif [ "${CUDA_MAJOR}" = "13" ]; then \
         INDEX_URL="https://download.pytorch.org/whl/cu130"; \
+    else \
+        echo "Error: Unsupported GPU_TYPE=${GPU_TYPE} or CUDA_MAJOR=${CUDA_MAJOR}"; \
+        exit 1; \
     fi \
     && python3 -m pip install torchvision --no-cache-dir --index-url ${INDEX_URL}
