@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -493,12 +493,10 @@ class TestHoloHubCLI(unittest.TestCase):
                 # Create a custom wrapper script that sets HOLOHUB_CMD_NAME
                 custom_script = Path(temp_dir) / custom_name
                 with open(custom_script, "w") as f:
-                    f.write(
-                        f"""#!/bin/bash
+                    f.write(f"""#!/bin/bash
 export HOLOHUB_CMD_NAME='{custom_name}'
 exec {holohub_script} "$@"
-"""
-                    )
+""")
                 custom_script.chmod(0o755)
 
                 result_help = subprocess.run(

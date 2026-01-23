@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +26,11 @@ function(holoscan_download_data dataname)
                              "" ${ARGN})
 
   if(NOT DATA_URL)
-    message(FATAL "No URL set for holoscan_download_data. Please set the URL.")
+    message(FATAL_ERROR "No URL set for holoscan_download_data. Please set the URL.")
   endif()
 
   if(NOT DATA_DOWNLOAD_DIR)
-    message(FATAL "No DOWNLOAD_DIR set for holoscan_download_data. Please set the DOWNLOAD_DIR.")
+    message(FATAL_ERROR "No DOWNLOAD_DIR set for holoscan_download_data. Please set the DOWNLOAD_DIR.")
   endif()
 
   if(NOT DATA_DOWNLOAD_NAME)

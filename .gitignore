@@ -33,6 +33,7 @@ ci/
 # Development environment
 .venv/
 .vscode-server/
+.vscode/
 ngc-cli/
 CTestConfig.cmake
 .ngc
@@ -65,3 +66,6 @@ rti_license.dat
 
 # CLI update check
 .cli_commit_hash
+
+# Streamlit web GUI
+.streamlit/

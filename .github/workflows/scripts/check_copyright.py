@@ -1,5 +1,5 @@
 """
-SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -237,7 +237,7 @@ def check_copyright_main():
         help="If set, ignore year mismatches in copyright headers (when current year is not within the copyright year range).",
     )
 
-    (args, dirs) = argparser.parse_known_args()
+    args, dirs = argparser.parse_known_args()
 
     # Read excludes from config file if specified
     config_excludes = []

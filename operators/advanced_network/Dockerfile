@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -118,7 +118,7 @@ FROM base-deps AS dpdk
 ARG DPDK_VERSION=24.11.3
 ARG DPDK_BUILD_DIR=/opt/dpdk-build
 ARG DPDK_INSTALL_PREFIX=/usr/local
-ARG DOCA_VERSION=2.8.0
+ARG DOCA_VERSION=3.2.1
 
 
 # - infiniband-diags for IB diagnostics
@@ -180,17 +180,22 @@ FROM dpdk AS gpunetio
 
 # Install DOCA SDK packages required for GPUNetIO
 # (DOCA repo is already configured in dpdk stage)
-# - libdoca-sdk-dma-dev: for gpunetio backend (dependency of doca-gpunetio module)
 # - libdoca-sdk-gpunetio-dev: for gpunetio backend (doca-gpunetio module)
 # - libdoca-sdk-eth-dev: for gpunetio backend (doca-eth module)
 # - libdoca-sdk-flow-dev: for gpunetio backend (doca-flow module)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libdoca-sdk-dma-dev \
+        mlnx-dpdk-dev \
         libdoca-sdk-gpunetio-dev \
         libdoca-sdk-eth-dev \
         libdoca-sdk-flow-dev \
+        mlnx-ofed-kernel-utils \
     && rm -rf /var/lib/apt/lists/*
 
+RUN git clone https://github.com/NVIDIA/gdrcopy.git /opt/mellanox/gdrcopy \
+    && cd /opt/mellanox/gdrcopy \
+    && make lib
+
+ENV GDRCOPY_PATH_L=/opt/mellanox/gdrcopy/src
 
 # ==============================
 # Rivermax Target

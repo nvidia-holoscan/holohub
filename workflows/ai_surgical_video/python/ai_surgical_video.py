@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,6 @@ from holoscan.operators import (
 from holoscan.resources import BlockMemoryPool, UnboundedAllocator
 from import_utils import lazy_import
 
-from holohub.aja_source import AJASourceOp
 from holohub.orsi_format_converter import OrsiFormatConverterOp
 from holohub.orsi_segmentation_preprocessor import OrsiSegmentationPreprocessorOp
 from operators.deidentification.pixelator import PixelatorOp
@@ -382,6 +381,8 @@ class AISurgicalVideoWorkflow(Application):
         # ------------------------------------------------------------------------------------------
         source_dtype = "rgb888"
         if self.source == "aja":
+            from holohub.aja_source import AJASourceOp
+
             aja = AJASourceOp(self, name="aja_source", **self.kwargs("aja"))
             # Convert VideoBuffer from AJA to Tensor (drop alpha channel for downstream compatibility)
             aja_format_converter = FormatConverterOp(

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,13 +59,13 @@ args = parse_args()
 
 
 def ask_question(message, chat_history):
-    if chat_history is None:
-        return "", [[None, initial_prompt]]
-    if chat_history[-1][0] == initial_prompt:
-        chat_history[-1][1] = message
-        return "", chat_history
-
-    return "", chat_history + [[message, None]]
+    # Gradio 6.x Chatbot expects "messages" format:
+    # [{"role": "user"|"assistant", "content": "..."}]
+    if not chat_history:
+        chat_history = [{"role": "assistant", "content": initial_prompt}]
+    chat_history = list(chat_history)  # avoid mutating Gradio's internal value unexpectedly
+    chat_history.append({"role": "user", "content": message})
+    return "", chat_history
 
 
 def stream_response(chat_history, llm):
@@ -92,7 +92,7 @@ def main():
     # If --mcp flag is set, run as MCP server
     if args.mcp:
         # Initialize the LLM to get access to the database and embedding model
-        llm = LLM(is_local=False)
+        llm = LLM(is_local=False, is_mcp=True)
         # Start the MCP server
         start_mcp_server(llm.config, llm.db)
         return
@@ -103,15 +103,12 @@ def main():
         button_primary_background_fill="#76b900",
         button_primary_background_fill_dark="#AAAAAA",
     )
-
-    with gr.Blocks(
-        css="""#col_container { margin-left: auto; margin-right: auto;} 
+    css = """#col_container { margin-left: auto; margin-right: auto;}
         #chatbot {height: 740px; overflow: auto;}
-        .gr-image { display: block; margin-left: auto; margin-right: auto; max-width: 50px }""",
-        theme=theme,
-        title=title,
-        fill_height=True,
-    ) as demo:
+        .gr-image { display: block; margin-left: auto; margin-right: auto; max-width: 50px }"""
+
+    # Gradio 6.0+: theme/css moved from Blocks() to launch()
+    with gr.Blocks(title=title, fill_height=True) as demo:
         llm = gr.State()
         with gr.Row(variant="compact"):
             current_dir = os.path.dirname(__file__)
@@ -122,7 +119,7 @@ def main():
             with gr.Row():
                 with gr.Column(scale=60):
                     chatbot = gr.Chatbot(
-                        value=[(None, initial_prompt)],
+                        value=[{"role": "assistant", "content": initial_prompt}],
                         label="HoloChat",
                         elem_id="chatbot",
                     )
@@ -159,7 +156,14 @@ def main():
             stream_response, [chatbot, llm], [chatbot, llm]
         )
 
-    demo.queue(max_size=99).launch(server_name="0.0.0.0", debug=False, share=False, inbrowser=True)
+    demo.queue(max_size=99).launch(
+        server_name="0.0.0.0",
+        debug=False,
+        share=False,
+        inbrowser=True,
+        theme=theme,
+        css=css,
+    )
 
 
 if __name__ == "__main__":

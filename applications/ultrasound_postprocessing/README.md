@@ -1,0 +1,157 @@
+# Ultrasound Post-Processing Filter Design
+
+A collection of tools for developing and deploying realtime ultrasound post-processing filters.
+
+![Designer UI](docs/assets/designer.jpg)
+
+## Mission
+
+Enable the ultrasound community (academia and industry) to have reproducible, real-time post-processing.
+
+## Overview
+
+This project includes an Ultrasound Post-Processing Filter Designer and light-weight library that enables you to design and run your ultrasound post-processing filter collection in Holoscan, all from a small and simple YAML config file.
+
+The Filter Designer enables you to create the YAML configs working on Ultrasound File Format ([UFF](https://ieeexplore.ieee.org/document/8579642)) files (beamformed but not log compressed). You can load and filter your own data locally.
+
+The included Holoscan Runner tool enables you to run those configurations in real-time using the Holoscan SDK.
+
+## Prerequisites
+
+### Hardware
+
+- Linux device with NVIDIA GPU
+  - Tested with x86_64 workstation + RTX Ampere 6000 GPU
+
+### Software
+
+- CUDA Driver R580 or later
+- See additional HoloHub CLI prerequisites [here](https://github.com/nvidia-holoscan/holohub?tab=readme-ov-file#software-prerequisites)
+
+## Quick Start
+
+First, clone this repository:
+```bash
+git clone https://github.com/nvidia-holoscan/holohub.git
+```
+
+Then, run the containerized application.
+
+To run the filter designer webpage for assembling filter pipelines and tuning filter parameters:
+```bash
+./holohub run ultrasound_postprocessing designer
+```
+
+To run a filter pipeline preset in real time with Holoscan SDK:
+```bash
+./holohub run ultrasound_postprocessing realtime
+```
+
+## Install and Run with Python Packaging
+
+As an alternative to HoloHub CLI, you can instead design and run filters with project Python entrypoints.
+
+Install this project with your Python package manager:
+```bash
+python3 -m pip install git+ssh://github.com/nvidia-holoscan/holohub.git@main#subdirectory=applications/ultrasound_postprocessing
+```
+
+Then run your application of choice:
+```bash
+python3 -m streamlit run applications/ultrasound_postprocessing/ultra_post/app/streamlit_app.py
+```
+
+```bash
+python3 -m ultra_post.app.holoscan_app [--uff path/to/myfile.uff] [--fps 10]
+```
+
+The sample dataset used in this project is available at http://www.ustb.no/datasets.
+
+## Key Concepts
+
+### Glossary
+
+- **Filters** are stateful, CuPy-based Python functions that operate on ultrasound images.
+- The **Filter Registry** is a collection of pre-defined filters for use in apps such as the Filter Designer and in Holoscan SDK pipelines.
+- **Pipelines** are a set of one or more filter objects assembled into a serialized graph or "chain".
+- **Presets** are instructions for configuring a pipeline out of specific filters.
+- **Operators** are Holoscan SDK "nodes" wrapping filter definitions for real-time serial execution.
+
+## Development
+
+### Project Structure
+
+```
+ultrasound_postprocessing
+├── CMakeLists.txt
+├── Dockerfile
+├── docs
+├── external
+├── metadata.json
+├── plans
+├── presets
+├── pyproject.toml
+├── README.md
+├── tests
+├── tools
+└── ultra_post (Python module)
+```
+
+### Review Existing Filters
+
+```bash
+./holohub run ultrasound_postprocessing list-filters
+```
+
+### Validate a preset
+
+```bash
+./holohub run ultrasound_postprocessing validate <presets/my-preset.yml>
+```
+
+### Run Tests
+
+```bash
+./holohub test ultrasound_postprocessing
+```
+
+## Contributing
+
+We welcome contributions that align with our mission to enable the ultrasound community to have reproducible, real-time post-processing.
+
+## Ways to Contribute
+
+1. **Presets**: Create a processing pipeline preset (YAML) and save it to `presets/`.
+2. **Filters**:
+    - Add your filter implementation to `ultra_post/filters/`.
+    - Register it in `ultra_post/filters/registry.py` (add to `FILTERS` and `DEFAULT_PARAMS`).
+3. **Improvements**: Bug fixes and performance optimizations are highly encouraged.
+    - Our goal is to have code that is easy to understand and highly performant.
+
+Please see the [HoloHub Contributing Guide](/CONTRIBUTING.md) for developer guidance.
+
+## Code Style
+
+- **Concise & Approachable**: We prioritize readability so new users can quickly understand the post-processing logic.
+- **Performant**: We aim for code that is both expressive and performant, enabling real-time processing.
+
+
+## License
+
+This project is licensed under the Apache-2.0 License. See the HoloHub [LICENSE](/LICENSE) file for details.
+
+## Authors
+
+- Walter Simson - NVIDIA Holoscan Team
+
+## Acknowledgments
+
+- NVIDIA Holoscan Team
+- Open source community contributors
+
+
+## Reference Data
+
+This project uses UFF sample data hosted by the [Ultrasound Toolbox](https://www.ustb.no/).
+
+> H. Liebgott, A. Rodriguez-Molares, F. Cervenansky, J. A. Jensen and O. Bernard, "Plane-Wave Imaging Challenge in Medical Ultrasound," 2016 IEEE International Ultrasonics Symposium (IUS), Tours, France, 2016, pp. 1-4, doi: 10.1109/ULTSYM.2016.7728908.

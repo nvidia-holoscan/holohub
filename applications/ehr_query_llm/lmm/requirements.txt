@@ -10,7 +10,7 @@ pyzmq~=26.0
 chromadb==0.6.3
 langchain==0.3.27
 langchain-community==0.3.31
-langchain-core==0.3.80
+langchain-core==0.3.81
 sentence-transformers==4.0.1
 jq==1.6.0
 ragas==0.2.14
@@ -18,10 +18,10 @@ llama_index==0.14.8
 simsimd==3.7.7
 pdf2image==1.17.0
 pdfminer==20191125
-pdfminer.six==20250324
+pdfminer.six==20260107
 opencv-python==4.11.0.86
 pikepdf==9.5.2
-pypdf==6.4.0
+pypdf==6.6.0
 poppler-utils==0.1.0
 markdown==3.5.2
 fhir.resources~=7.1.0

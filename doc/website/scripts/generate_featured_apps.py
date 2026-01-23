@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: LicenseRef-Apache2
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -277,12 +277,10 @@ def generate_featured_content_html(component_type: str, output_path: str, count:
 
     # Generate browse links for each component type
     browse_links = []
-    browse_links.append(
-        f"""
+    browse_links.append(f"""
                 <a href="{component_type}" title="Browse all {component_type}" class="md-button md-button--primary" style="padding-top: 0.7rem; padding-bottom: 0.7rem; margin-right: 0.5rem;">
                   Browse all {component_type} (#{component_type})
-               </a>"""
-    )
+               </a>""")
 
     browse_links_html = "".join(browse_links)
     featured_content_html = f"""

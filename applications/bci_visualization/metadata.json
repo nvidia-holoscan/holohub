@@ -1,0 +1,77 @@
+{
+	"application": {
+		"name": "Kernel Flow BCI Real-Time Visualization",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Kernel Team",
+				"affiliation": "Kernel"
+			},
+			{
+				"name": "Mimi Liao",
+				"affiliation": "NVIDIA"
+			},
+			{
+				"name": "Julien Dubois",
+				"affiliation": "Kernel"
+			},
+			{
+				"name": "Victor Szczepanski",
+				"affiliation": "Kernel"
+			},
+			{
+				"name": "Gabe Lerner",
+				"affiliation": "Kernel"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0": "Initial Python Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.7.0",
+			"tested_versions": [
+				"3.7.0",
+				"3.9.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Visualization", "BCI", "Hemodynamics", "Volume Rendering", "Neuroscience", "Optical Sensing"],
+		"ranking": 2,
+		"requirements": {
+			"python-packages": [
+				{
+					"name": "numpy",
+					"version": "2.3.3"
+				},
+				{
+					"name": "cupy",
+					"version": "13.6.0"
+				},
+				{
+					"name": "nibabel",
+					"version": "5.3.2"
+				},
+				{
+					"name": "scipy",
+					"version": "1.16.3"
+				},
+				{
+					"name": "h5py",
+					"version": "3.15.1"
+				}
+			]
+		},
+		"run": {
+			"command": "python3 bci_visualization.py --renderer_config <holohub_app_source>/config.json --mask_path <holohub_data_dir>/bci_visualization/anatomy_labels_high_res.nii.gz",
+			"workdir": "holohub_app_source"
+		}
+	}
+}

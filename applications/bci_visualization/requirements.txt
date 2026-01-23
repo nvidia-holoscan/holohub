@@ -1,0 +1,5 @@
+nibabel==5.3.2
+numpy==2.3.3
+scipy==1.16.3
+h5py==3.15.1
+kernel-sdk==6.6.0

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ project(object_detection_torch CXX)
 find_package(holoscan 0.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-if(holoscan_VERSION GREATER 3.5)
+if(holoscan_VERSION VERSION_GREATER 3.5)
   # Torchvision is required for loading FRCNN ResNet 50 and similar models
   # with the Holoinfer Libtorch backend.
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
@@ -29,7 +29,12 @@ if(holoscan_VERSION GREATER 3.5)
     OUTPUT_VARIABLE TORCH_ROOT_DIR
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
+
+  # Suppress PyTorch's CUDA hash computation warning
+  set(_CMAKE_MESSAGE_LOG_LEVEL ${CMAKE_MESSAGE_LOG_LEVEL})
+  set(CMAKE_MESSAGE_LOG_LEVEL ERROR)
   find_package(Torch PATHS ${TORCH_ROOT_DIR} REQUIRED)
+  set(CMAKE_MESSAGE_LOG_LEVEL ${_CMAKE_MESSAGE_LOG_LEVEL})
 
   execute_process(
     COMMAND ${Python3_EXECUTABLE} -c "import torchvision; print(';'.join(torchvision.__path__))"
@@ -70,7 +75,7 @@ target_link_libraries(object_detection_torch
     $<TARGET_NAME_IF_EXISTS:holoscan::aja>
 )
 
-if(holoscan_VERSION GREATER 3.5)
+if(holoscan_VERSION VERSION_GREATER 3.5)
   # Forcibly link torchvision and its required Python symbols to prevent ResNet runtime import failure
   target_link_libraries(object_detection_torch
     PRIVATE

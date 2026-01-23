@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +14,7 @@
 # limitations under the License.
 
 # Make sure to order by alphabetical list
-set(HOLOSCAN_OPERATORS
-        aja_source
-        orsi_format_converter
-        orsi_segmentation_preprocessor
-)
-add_holohub_application(ai_surgical_video DEPENDS OPERATORS ${HOLOSCAN_OPERATORS})
+add_holohub_application(ai_surgical_video DEPENDS
+                        OPERATORS orsi_format_converter
+                                  orsi_segmentation_preprocessor
+                        OPTIONAL  aja_source)

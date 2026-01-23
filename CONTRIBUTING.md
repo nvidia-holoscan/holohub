@@ -40,28 +40,6 @@ HoloHub is a collaborative ecosystem for the NVIDIA Holoscan SDK, featuring comm
 
 Whether you're fixing a bug, adding a new feature, or sharing a complete application, this guide will help you contribute effectively to the HoloHub community.
 
-## Types of Contributions
-
-Choose the right contribution type based on what you want to share:
-
-### Decision Tree
-
-```text
-What are you contributing?
-├── 🔄 Complete end-to-end pipeline (sensor → insight)?
-│   └── → Submit as a "Workflow"
-├── 🎯 Focused application for specific use case?
-│   └── → Submit as an "Application"
-├── 🧩 Reusable component for multiple use cases?
-│   └── → Submit as an "Operator" + demo Application
-├── 📚 Educational content or tutorial?
-│   └── → Submit as a "Tutorial"
-└── 🔧 Bug fix or enhancement to existing code?
-    └── → Submit a "Pull Request"
-```
-
-> **Important**: Workflows are _end-to-end_ reference applications demonstrating complete "sensor-to-insight" pipelines. They integrate multiple components to solve entire use cases, while applications may focus on specific functionality.
-
 ## Developer Process
 
 ### Prerequisites
@@ -94,6 +72,7 @@ Before getting started:
 3. **Develop Your Contribution**
 
    - Follow the specific guidelines for your [contribution type](#types-of-contributions)
+   - If you are developing a new application, you can use the `./holohub create <application_name>` command to generate the initial project scaffolding. This command sets up a new project with the appropriate directory structure and necessary files.
    - Ensure your code meets [HoloHub standards](#preparing-your-submission)
    - Test your changes locally
 
@@ -124,6 +103,30 @@ Before getting started:
    - Once approved, your contribution will be merged
 
 Thanks in advance for your patience as we review your contributions. We do appreciate them!
+
+
+## Types of Contributions
+
+Choose the right contribution type based on what you want to share:
+
+### Decision Tree
+
+```text
+What are you contributing?
+├── 🔄 Complete end-to-end pipeline (sensor → insight)?
+│   └── → Submit as a "Workflow"
+├── 🎯 Focused application for specific use case?
+│   └── → Submit as an "Application"
+├── 🧩 Reusable component for multiple use cases?
+│   └── → Submit as an "Operator" + demo Application
+├── 📚 Educational content or tutorial?
+│   └── → Submit as a "Tutorial"
+└── 🔧 Bug fix or enhancement to existing code?
+    └── → Submit a "Pull Request"
+```
+
+> **Important**: Workflows are _end-to-end_ reference applications demonstrating complete "sensor-to-insight" pipelines. They integrate multiple components to solve entire use cases, while applications may focus on specific functionality.
+
 
 ## Preparing Your Submission
 
@@ -230,6 +233,13 @@ Schemas are available for different contribution types:
     }
 }
 ```
+
+In the `metadata.json` file, the `workdir` is where the run command is executed from. The following directories can be referenced:
+
+- `holohub_app_bin`: The directory containing the built application binary (e.g. `<holohub_root>/build/myapp/applications/myapp/cpp`)
+- `holohub_app_source`: The directory containing the source code of the application (e.g. `<holohub_root>/applications/myapp/cpp/`)
+- `holohub_bin`: The root build directory containing built binaries (e.g. `<holohub_root>/build/`)
+- `holohub_data_dir`: The directory containing the data for the application (e.g. `<holohub_root>/data/`)
 
 #### Ranking Levels for metadata.json
 

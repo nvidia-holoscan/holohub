@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ import shutil
 import subprocess
 import tempfile
 from collections import defaultdict
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import List, Optional
 
@@ -1628,20 +1629,9 @@ class HoloHubCLI:
                     sys.executable,
                     "-m",
                     "cpplint",
-                    "--exclude",
-                    "build",
-                    "--exclude",
-                    "install",
-                    "--exclude",
-                    "build-*",
-                    "--exclude",
-                    "install-*",
+                    "--quiet",
                     "--exclude",
                     "applications/holoviz/template/cookiecutter*",
-                    "--exclude",
-                    ".ruff_cache",
-                    "--exclude",
-                    ".local",
                     "--recursive",
                     args.path,
                 ]
@@ -1709,21 +1699,7 @@ class HoloHubCLI:
                         "cpplint",
                         "--quiet",
                         "--exclude",
-                        "build",
-                        "--exclude",
-                        "install",
-                        "--exclude",
-                        "build-*",
-                        "--exclude",
-                        "install-*",
-                        "--exclude",
-                        ".vscode-server",
-                        "--exclude",
                         "applications/holoviz/template/cookiecutter*",
-                        "--exclude",
-                        ".ruff_cache",
-                        "--exclude",
-                        ".local",
                         "--recursive",
                         args.path,
                     ],
@@ -1758,13 +1734,15 @@ class HoloHubCLI:
             print(Color.blue("Linting CMake"))
             cmake_files = list(Path(args.path).rglob("CMakeLists.txt"))
             cmake_files.extend(Path(args.path).rglob("*.cmake"))
-            excluded_paths = ["build", "install", "tmp"]
+            excluded_paths = ["build", "install", "data", "build-*", "install-*", "data-*", "tmp"]
+
             cmake_files = [
                 f
                 for f in cmake_files
                 if not any(
-                    excluded_dir in f.parts or any(part.startswith(".") for part in f.parts)
-                    for excluded_dir in excluded_paths
+                    part.startswith(".")
+                    or any(fnmatch(part, pattern) for pattern in excluded_paths)
+                    for part in f.parts
                 )
             ]
             if cmake_files:

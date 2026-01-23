@@ -15,7 +15,9 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "0.5.0",
 			"tested_versions": [
-				"0.5.0"
+				"0.5.0",
+				"3.9.0",
+				"3.10.0"
 			]
 		},
 		"platforms": [
@@ -32,9 +34,29 @@
 				}
 			]
 		},
-		"run": {
-			"command": "<holohub_app_bin>/basic_networking_ping",
-			"workdir": "holohub_app_bin"
+		"default_mode": "flexible",
+		"modes": {
+			"flexible": {
+				"description": "Start the receiver or transmitter with the specified arguments",
+				"run": {
+					"command": "<holohub_app_bin>/basic_networking_ping",
+					"workdir": "holohub_app_bin"
+				}
+			},
+			"rx": {
+				"description": "Start the receiver",
+				"run": {
+					"command": "<holohub_app_bin>/basic_networking_ping basic_networking_ping_rx.yaml",
+					"workdir": "holohub_app_bin"
+				}
+			},
+			"tx": {
+				"description": "Start the transmitter",
+				"run": {
+					"command": "<holohub_app_bin>/basic_networking_ping basic_networking_ping_tx.yaml",
+					"workdir": "holohub_app_bin"
+				}
+			}
 		}
 	}
 }

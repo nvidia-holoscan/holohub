@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,7 +70,7 @@ if(NOT DEFINED ANO_MGR)
     # Default: dpdk only (no DOCA dependency)
     # Add "gpunetio" to enable GPU-accelerated networking (requires DOCA)
     # Note: rivermax not added to the default list since it requires licensing
-    set(ANO_MGR "dpdk" CACHE STRING "Manager type(s) list")
+    set(ANO_MGR "dpdk rdma" CACHE STRING "Manager type(s) list")
 endif()
 separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
 
