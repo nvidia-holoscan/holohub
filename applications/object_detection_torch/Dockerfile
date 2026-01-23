@@ -31,7 +31,6 @@ COPY utilities /tmp/scripts/utilities/
 RUN chmod +x /tmp/scripts/holohub
 RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
-# Set up Holoscan SDK container libtorch to be found with ldconfig for app C++ build and runtime
 # Verify PyTorch is available in base image
 RUN python3 -c "import torch; print(f'PyTorch {torch.__version__} found')"
 
