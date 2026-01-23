@@ -55,8 +55,10 @@ RUN INDEX_URL=""; \
     && echo "Detected PyTorch version: ${TORCH_VERSION}" \
     && if [ "${TORCH_VERSION}" = "2.8.0" ]; then \
         TORCHVISION_VERSION="0.23.0"; \
+    elif [ "${TORCH_VERSION}" = "2.9.0" ]; then \
+        TORCHVISION_VERSION="0.24.0"; \
     else \
-        TORCHVISION_VERSION="0.24.1"; \
+        echo "Error: Unsupported PyTorch version ${TORCH_VERSION}" && exit 1; \
     fi \
     && echo "Installing torchvision ${TORCHVISION_VERSION}" \
     && python3 -m pip install torchvision==${TORCHVISION_VERSION} --no-cache-dir --index-url ${INDEX_URL}
