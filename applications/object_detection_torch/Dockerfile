@@ -42,11 +42,6 @@ RUN echo $(python3 -c "import torch; print(torch.__path__[0])")/lib > /etc/ld.so
 
 ARG GPU_TYPE
 ARG CUDA_MAJOR
-ARG GPU_TYPE
-ARG CUDA_MAJOR
-RUN INDEX_URL=""; \
-    if [ "${GPU_TYPE}" = "igpu" ]; then \
-        INDEX_URL="https://pypi.jetson-ai-lab.io/jp6/cu126"; \
 RUN INDEX_URL=""; \
     if [ "${GPU_TYPE}" = "igpu" ]; then \
         INDEX_URL="https://pypi.jetson-ai-lab.io/jp6/cu126"; \
