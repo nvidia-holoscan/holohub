@@ -57,6 +57,8 @@ RUN INDEX_URL=""; \
         TORCHVISION_VERSION="0.23.0"; \
     elif [ "${TORCH_VERSION}" = "2.9.0" ]; then \
         TORCHVISION_VERSION="0.24.0"; \
+    elif [ "${TORCH_VERSION}" = "2.9.1" ]; then \
+        TORCHVISION_VERSION="0.24.0"; \
     else \
         echo "Error: Unsupported PyTorch version ${TORCH_VERSION}" && exit 1; \
     fi \
