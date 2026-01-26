@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_application(gst_video_recorder DEPENDS OPERATORS gstreamer)
-add_holohub_application(gst_to_holo DEPENDS OPERATORS gstreamer)
-add_holohub_application(holo_to_gst DEPENDS OPERATORS gstreamer)
+project(gst_to_holo CXX)
 
+find_package(holoscan REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+add_executable(gst-to-holo
+  gst_to_holo.cpp
+)
+
+target_include_directories(gst-to-holo
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../common
+)
+
+target_link_libraries(gst-to-holo
+  PRIVATE
+  holoscan::core
+  holoscan::ops::holoviz
+  holoscan::ops::gstreamer_bridge
+)
+
+# Install target
+install(TARGETS gst-to-holo DESTINATION bin/gst_to_holo)
