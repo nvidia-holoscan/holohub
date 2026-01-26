@@ -401,7 +401,5 @@ class MplVisualizationOperator(Operator):
 
         self._axes.set_title(f"HbO Frame {self._frame_count}")
 
-        # Force display update
-        self._fig.canvas.draw_idle()
+        # Process GUI events to update display
         self._fig.canvas.flush_events()
-        plt.pause(0.001)
