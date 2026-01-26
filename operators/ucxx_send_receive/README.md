@@ -17,21 +17,38 @@ A Holoscan Resource that manages a UCXX endpoint for UCX communication. It handl
 - `listen`: Boolean flag indicating whether to listen for connections (server mode) or connect to a remote endpoint (client mode)
 
 ### 2. **UcxxSenderOp** (Operator)
-Sends messages through a configured UcxxEndpoint. This operator serializes Holoscan messages and transmits them over the network using UCX.
+Sends tensor messages through a configured `UcxxEndpoint` using UCXX/UCX. The sender uses a two-phase protocol:
+1) send a small CPU header containing tensor metadata, then
+2) send the tensor payload from the tensor’s underlying pointer (CPU or GPU).
 
 **Parameters:**
-- `endpoint`: Shared pointer to a UcxxEndpoint resource
-- `tag`: Message tag for identifying message types (uint64_t)
-- `blocking`: If true, the operator does not execute until the endpoint is connected. If false, it will drain inputs and drop sends while disconnected.
+- `endpoint`: Shared pointer to a `UcxxEndpoint` resource
+- `tag`: Base message tag for identifying message types (`uint64_t`). Note: this operator consumes two tags: `tag` (header) and `tag+1` (payload).
+- `blocking`: If true, the operator does not execute until the endpoint is connected. If false (default), it drains inputs and drops sends while disconnected.
+- `max_in_flight`: Maximum number of in-flight async send requests to retain (default: 1). When exceeded, new inputs are dropped to bound memory retention if the network/receiver stalls.
+
+**Async send lifetime and backpressure behavior:**
+- Sends are asynchronous. Any buffers passed to UCX must remain valid until the corresponding UCX request completes.
+- The sender retains a keepalive handle to the input entity (and any temporary tensor wrapper) until both header and payload requests complete, preventing pooled buffers from being recycled while UCX is still reading them.
+- On disconnect, the sender requests cancellation of any in-flight sends but retains keepalive state until UCX reports completion. While disconnected, new inputs are dropped when `blocking` is false.
+
+**Zero-copy and transport selection (UCX-managed):**
+- The operator itself does not copy the payload into a staging buffer; it hands UCX the original CPU/GPU pointer. Whether the transfer is truly “zero-copy” end-to-end depends on UCX’s selected protocol and transports.
+- UCX may choose eager vs rendezvous and may use GPU-aware transports when available (for example, same-node CUDA IPC, or GPUDirect RDMA on capable systems), but it may also internally stage/copy depending on configuration, message size, and transport support.
 
 ### 3. **UcxxReceiverOp** (Operator)
 Receives messages through a configured UcxxEndpoint. This operator listens for incoming messages, deserializes them, and outputs them to downstream operators.
 
 **Parameters:**
-- `endpoint`: Shared pointer to a UcxxEndpoint resource
-- `tag`: Message tag for filtering received messages (uint64_t)
-- `schema_name`: Name of the message schema for deserialization
-- `buffer_size`: Size of the receive buffer
+- `endpoint`: Shared pointer to a `UcxxEndpoint` resource
+- `tag`: Base message tag for filtering received messages (`uint64_t`). Note: this operator consumes two tags: `tag` (header) and `tag+1` (payload).
+- `buffer_size`: Tensor payload buffer size in bytes (required)
+- `receive_on_device`: Allocate the payload buffer on device (GPU) if true, host (CPU) if false (default: true)
+- `allocator`: Allocator used for the receive buffer allocation
+
+**Async receive behavior:**
+- The receiver posts two receives in parallel: one for the CPU header (tensor metadata) and one for the tensor payload.
+- The receiver allocates a payload buffer (GPU or CPU) and receives into it; it then wraps that buffer into an output tensor and releases it when downstream is done.
 
 ## Key Features
 

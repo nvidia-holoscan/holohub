@@ -18,12 +18,11 @@
 #pragma once
 
 #include <list>
-#include <string>
-#include <vector>
 
 #include "holoscan/holoscan.hpp"
 
-#include <operators/ucxx_send_receive/ucxx_endpoint.hpp>
+#include "operators/ucxx_send_receive/serialize_tensor.hpp"
+#include "operators/ucxx_send_receive/ucxx_endpoint.hpp"
 
 namespace holoscan::ops {
 
@@ -33,18 +32,26 @@ class UcxxSenderOp : public holoscan::Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(UcxxSenderOp)
 
   void setup(holoscan::OperatorSpec& spec) override;
+  void stop() override;
   void compute(holoscan::InputContext& input, holoscan::OutputContext& output,
                holoscan::ExecutionContext& context) override;
 
  private:
   holoscan::Parameter<uint64_t> tag_;
   holoscan::Parameter<std::shared_ptr<UcxxEndpoint>> endpoint_;
-  holoscan::Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
   holoscan::Parameter<bool> blocking_;
+  // Cap number of in-flight requests to bound memory retention when the network/receiver stalls.
+  holoscan::Parameter<uint64_t> max_in_flight_;
 
   struct SendRequest {
-    std::shared_ptr<ucxx::Request> request;
-    std::vector<uint8_t> buffer;
+    std::shared_ptr<::ucxx::Request> header_request;  // For header
+    std::shared_ptr<::ucxx::Request> data_request;    // For tensor data
+    holoscan::ops::ucxx::TensorHeader header;       // Header storage (must outlive header_request)
+    bool cancel_requested = false;
+
+    // Keepalive handle to ensure any buffers passed to UCX remain valid until both requests
+    // are completed.
+    holoscan::gxf::Entity keepalive_entity;
   };
   std::list<SendRequest> requests_;
 };

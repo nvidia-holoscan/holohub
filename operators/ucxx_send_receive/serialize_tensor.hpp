@@ -18,10 +18,11 @@
 #pragma once
 
 #include <cstdint>
-#include <cstddef>
+#include <optional>
 
 #include "holoscan/holoscan.hpp"
 #include "gxf/std/tensor.hpp"
+#include "gxf/multimedia/video.hpp"
 
 namespace holoscan::ops::ucxx {
 
@@ -40,53 +41,37 @@ struct TensorHeader {
 };
 #pragma pack(pop)
 
-// Serializes a tensor object into the given buffer.
+// Build TensorHeader from tensor metadata (no data copy).
 //
-// This function converts a nvidia::gxf::Tensor into a raw binary buffer
-// format consisting of a TensorHeader followed by contiguous tensor data.
-// It copies shape/stride information into the header and copies the tensor
-// data based on storage type, using a staging buffer for device memory.
+// This function creates a TensorHeader containing the tensor's shape, stride,
+// and type information without copying the actual tensor data. This is useful
+// for zero-copy transfers where the header is sent separately from the data.
 //
 // Args:
-//   tensor: The tensor to serialize.
-//   buffer: Pointer to the destination buffer (must be pre-allocated).
-//   buffer_size: Size of the destination buffer in bytes.
-//   allocator: Pointer to an allocator to use for staging buffers.
+//   tensor: The tensor to build the header from.
 //
 // Returns:
-//   holoscan::expected<size_t> containing the number of bytes written,
-//   or an error if serialization fails.
-//
-// Based on nvidia::gxf::StdComponentSerializer::serializeTensor.
-holoscan::expected<size_t, holoscan::RuntimeError> serializeTensor(
-    const nvidia::gxf::Tensor& tensor,
-    uint8_t* buffer,
-    size_t buffer_size,
-    holoscan::Allocator* allocator);
+//   TensorHeader containing the tensor's metadata.
+TensorHeader buildTensorHeader(const nvidia::gxf::Tensor& tensor);
 
-// Deserializes a tensor object from the given buffer.
-//
-// This function reconstructs a nvidia::gxf::Tensor from a raw binary buffer
-// that contains a serialized TensorHeader followed by contiguous tensor data.
-// The function performs sanity checks on the header, copies shape/stride
-// information, allocates the tensor using the provided holoscan::Allocator,
-// and copies the tensor data based on storage type.
-//
-// Args:
-//   buffer: Pointer to the start of the serialized tensor buffer.
-//   buffer_size: Size of the buffer in bytes.
-//   context: GXF context for creating allocator handles.
-//   allocator: Pointer to an allocator to use for tensor memory.
-//
-// Returns:
-//   holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> containing
-//   the deserialized tensor, or an error if deserialization fails.
-//
-// Based on nvidia::gxf::StdComponentSerializer::deserializeTensor.
-holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> deserializeTensor(
-    const uint8_t* buffer,
-    size_t buffer_size,
-    gxf_context_t context,
-    holoscan::Allocator* allocator);
+// Build TensorHeader from holoscan::Tensor (DLPack) metadata.
+TensorHeader buildTensorHeader(const holoscan::Tensor& tensor);
+
+// Build TensorHeader from VideoBuffer metadata (packed RGB/RGBA only).
+// Returns header with dims[2]==0 for unsupported formats.
+TensorHeader buildTensorHeader(const nvidia::gxf::VideoBuffer& video_buffer);
+
+// Uniform descriptor for any sendable buffer in an entity.
+struct BufferDescriptor {
+  TensorHeader header;
+  void* data_ptr;
+  size_t data_size;
+};
+
+// Resolve a sendable buffer from a Holoscan entity.
+// Tries: holoscan::Tensor, nvidia::gxf::Tensor, nvidia::gxf::VideoBuffer (packed).
+// The entity must outlive the descriptor (data_ptr points into entity-owned memory).
+std::optional<BufferDescriptor> resolveEntityBuffer(
+    holoscan::gxf::Entity& entity, const char* tensor_name = "");
 
 }  // namespace holoscan::ops::ucxx

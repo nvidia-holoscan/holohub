@@ -17,178 +17,157 @@
 
 #include "serialize_tensor.hpp"
 
-#include <array>
-#include <cstring>
-#include <cuda_runtime.h>
-
 namespace holoscan::ops::ucxx {
 
-holoscan::expected<size_t, holoscan::RuntimeError> serializeTensor(
-    const nvidia::gxf::Tensor& tensor,
-    uint8_t* buffer,
-    size_t buffer_size,
-    holoscan::Allocator* allocator) {
+namespace {
 
-  const size_t tensor_size = tensor.element_count() * tensor.bytes_per_element();
-  const size_t required_size = sizeof(TensorHeader) + tensor_size;
-
-  if (buffer == nullptr || buffer_size < required_size) {
-    HOLOSCAN_LOG_ERROR("Buffer size %zu is too small for tensor serialization (need %zu)",
-                       buffer_size, required_size);
-    return holoscan::make_unexpected(holoscan::RuntimeError("Buffer size too small"));
-  }
-
-  // Write header to buffer.
-  TensorHeader* header = reinterpret_cast<TensorHeader*>(buffer);
-  header->storage_type = tensor.storage_type();
-  header->element_type = tensor.element_type();
-  header->bytes_per_element = tensor.bytes_per_element();
-  header->rank = tensor.rank();
-
-  for (size_t i = 0; i < Shape::kMaxRank; i++) {
-    header->dims[i] = tensor.shape().dimension(i);
-    header->strides[i] = tensor.stride(i);
-  }
-
-  // Data pointer is immediately after the header.
-  uint8_t* tensor_data = buffer + sizeof(TensorHeader);
-
-  switch (tensor.storage_type()) {
-    case MemoryStorageType::kHost:
-    case MemoryStorageType::kSystem:
-    case MemoryStorageType::kCudaManaged:
-      std::memcpy(tensor_data, tensor.pointer(), tensor_size);
+// Map DLDataType to nvidia::gxf::PrimitiveType
+PrimitiveType dlTypeToPrimitive(DLDataType dtype) {
+  if (dtype.lanes != 1) { return PrimitiveType::kCustom; }
+  switch (dtype.code) {
+    case kDLUInt:
+      if (dtype.bits == 8) return PrimitiveType::kUnsigned8;
+      if (dtype.bits == 16) return PrimitiveType::kUnsigned16;
+      if (dtype.bits == 32) return PrimitiveType::kUnsigned32;
+      if (dtype.bits == 64) return PrimitiveType::kUnsigned64;
       break;
-    case MemoryStorageType::kDevice: {
-      // Use allocator to get a staging buffer (pinned host memory) for faster transfer
-      auto staging_buffer = allocator->allocate(tensor_size, holoscan::MemoryStorageType::kHost);
-      if (!staging_buffer) {
-        HOLOSCAN_LOG_ERROR("Failed to allocate staging buffer for device memory copy");
-        return holoscan::make_unexpected(
-            holoscan::RuntimeError("Failed to allocate staging buffer"));
-      }
-
-      // Copy from device memory to staging buffer
-      const cudaError_t error = cudaMemcpy(staging_buffer, tensor.pointer(), tensor_size,
-                                           cudaMemcpyDeviceToHost);
-      if (error != cudaSuccess) {
-        HOLOSCAN_LOG_ERROR("Failure in CudaMemcpy. cuda_error: %s, error_str: %s",
-                           cudaGetErrorName(error), cudaGetErrorString(error));
-        allocator->free(staging_buffer);
-        return holoscan::make_unexpected(
-            holoscan::RuntimeError("Failed to copy data to staging buffer"));
-      }
-
-      // Copy from staging buffer to output buffer
-      std::memcpy(tensor_data, staging_buffer, tensor_size);
-
-      // Free the staging buffer
-      allocator->free(staging_buffer);
+    case kDLInt:
+      if (dtype.bits == 8) return PrimitiveType::kInt8;
+      if (dtype.bits == 16) return PrimitiveType::kInt16;
+      if (dtype.bits == 32) return PrimitiveType::kInt32;
+      if (dtype.bits == 64) return PrimitiveType::kInt64;
       break;
-    }
-    default:
-      HOLOSCAN_LOG_ERROR("Invalid memory storage type %d specified for tensor storage",
-                         static_cast<int>(tensor.storage_type()));
-      return holoscan::make_unexpected(holoscan::RuntimeError("Invalid memory storage type"));
+    case kDLFloat:
+      if (dtype.bits == 16) return PrimitiveType::kFloat16;
+      if (dtype.bits == 32) return PrimitiveType::kFloat32;
+      if (dtype.bits == 64) return PrimitiveType::kFloat64;
+      break;
+    default: break;
   }
-
-  return required_size;
+  return PrimitiveType::kCustom;
 }
 
-holoscan::expected<nvidia::gxf::Tensor, holoscan::RuntimeError> deserializeTensor(
-    const uint8_t* buffer, size_t buffer_size,
-    gxf_context_t context,
-    holoscan::Allocator* allocator) {
-  if (buffer == nullptr || buffer_size < sizeof(TensorHeader)) {
-    return holoscan::make_unexpected(holoscan::RuntimeError("Invalid buffer or buffer size"));
-  }
-
-  // Read header from buffer.
-  const TensorHeader* header = reinterpret_cast<const TensorHeader*>(buffer);
-
-  // Safety checks for header fields.
-  if (sizeof(header->dims) > Shape::kMaxRank * sizeof(int32_t)) {
-    HOLOSCAN_LOG_ERROR("Header size exceeds limit of %lu.",
-                  Shape::kMaxRank * sizeof(int32_t));
-    return holoscan::make_unexpected(holoscan::RuntimeError("Header size exceeds limit"));
-  }
-  if (sizeof(header->strides) > Shape::kMaxRank * sizeof(int64_t)) {
-    HOLOSCAN_LOG_ERROR("Header size exceeds limit of %lu.",
-                  Shape::kMaxRank * sizeof(int64_t));
-    return holoscan::make_unexpected(holoscan::RuntimeError("Header size exceeds limit"));
-  }
-
-  std::array<int32_t, Shape::kMaxRank> dims;
-  std::memcpy(dims.data(), header->dims, sizeof(header->dims));
-  nvidia::gxf::Tensor::stride_array_t strides;
-  std::memcpy(strides.data(), header->strides, sizeof(header->strides));
-
-  // Convert holoscan::Allocator to nvidia::gxf::Handle<nvidia::gxf::Allocator>
-  auto gxf_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
-      context, allocator->gxf_cid());
-  if (!gxf_allocator) {
-    HOLOSCAN_LOG_ERROR("Failed to create GXF allocator handle");
-    return holoscan::make_unexpected(
-        holoscan::RuntimeError("Failed to create GXF allocator handle"));
-  }
-
-  nvidia::gxf::Tensor tensor;
-  auto result = tensor.reshapeCustom(Shape(dims, header->rank),
-                                     header->element_type, header->bytes_per_element, strides,
-                                     header->storage_type, gxf_allocator.value());
-  if (!result) {
-    return holoscan::make_unexpected(holoscan::RuntimeError("Failed to reshape tensor"));
-  }
-
-  const size_t tensor_size = tensor.element_count() * tensor.bytes_per_element();
-
-  // Data pointer is immediately after the header.
-  const uint8_t* tensor_data = buffer + sizeof(TensorHeader);
-  size_t remaining = buffer_size - sizeof(TensorHeader);
-  if (remaining < tensor_size) {
-    HOLOSCAN_LOG_ERROR("Buffer size %zu is too small to contain tensor data of size %zu",
-                  buffer_size, tensor_size);
-    return holoscan::make_unexpected(holoscan::RuntimeError("Buffer size is too small"));
-  }
-
-  switch (tensor.storage_type()) {
-    case MemoryStorageType::kHost:
-    case MemoryStorageType::kSystem:
-    case MemoryStorageType::kCudaManaged:
-      std::memcpy(tensor.pointer(), tensor_data, tensor_size);
-      break;
-    case MemoryStorageType::kDevice: {
-      // Use allocator to get a staging buffer (pinned host memory) for faster transfer
-      auto staging_buffer = allocator->allocate(tensor_size, holoscan::MemoryStorageType::kHost);
-      if (!staging_buffer) {
-        HOLOSCAN_LOG_ERROR("Failed to allocate staging buffer for device memory copy");
-        return holoscan::make_unexpected(
-            holoscan::RuntimeError("Failed to allocate staging buffer"));
-      }
-
-      // Copy data to staging buffer
-      std::memcpy(staging_buffer, tensor_data, tensor_size);
-
-      // Copy from staging buffer to device memory
-      const cudaError_t error = cudaMemcpy(tensor.pointer(), staging_buffer, tensor_size,
-                                           cudaMemcpyHostToDevice);
-      if (error != cudaSuccess) {
-        HOLOSCAN_LOG_ERROR("Failure in CudaMemcpy. cuda_error: %s, error_str: %s",
-                      cudaGetErrorName(error), cudaGetErrorString(error));
-        allocator->free(staging_buffer);
-        return holoscan::make_unexpected(
-            holoscan::RuntimeError("Failed to copy data to staging buffer"));
-      }
-
-      // Free the staging buffer
-      allocator->free(staging_buffer);
-      break;
-    }
+// Map DLDevice to nvidia::gxf::MemoryStorageType
+MemoryStorageType dlDeviceToStorage(DLDevice device) {
+  switch (device.device_type) {
+    case kDLCUDA:
+    case kDLCUDAManaged:
+      return MemoryStorageType::kDevice;
     default:
-      return holoscan::make_unexpected(holoscan::RuntimeError("Invalid memory storage type"));
+      return MemoryStorageType::kHost;
+  }
+}
+
+// Compute the memory span (in bytes) from data pointer to end of last element.
+// Handles contiguous, padded, and permuted positive-stride layouts.
+// Header strides must be in bytes. Returns 0 if any dimension is non-positive.
+size_t computeMemorySpan(const TensorHeader& header) {
+  if (header.rank == 0) { return header.bytes_per_element; }
+  if (header.rank > Shape::kMaxRank) { return 0; }
+  size_t span = 0;
+  for (uint32_t i = 0; i < header.rank; ++i) {
+    if (header.dims[i] <= 0) { return 0; }
+    span += static_cast<size_t>(header.dims[i] - 1) * header.strides[i];
+  }
+  return span + header.bytes_per_element;
+}
+
+}  // namespace
+
+TensorHeader buildTensorHeader(const nvidia::gxf::Tensor& tensor) {
+  TensorHeader header{};
+  header.storage_type = tensor.storage_type();
+  header.element_type = tensor.element_type();
+  header.bytes_per_element = tensor.bytes_per_element();
+  if (tensor.rank() > Shape::kMaxRank) { return header; }
+  header.rank = tensor.rank();
+  for (uint32_t i = 0; i < header.rank; ++i) {
+    header.dims[i] = tensor.shape().dimension(i);
+    header.strides[i] = tensor.stride(i);
+  }
+  return header;
+}
+
+TensorHeader buildTensorHeader(const holoscan::Tensor& tensor) {
+  TensorHeader header{};
+  header.storage_type = dlDeviceToStorage(tensor.device());
+  header.element_type = dlTypeToPrimitive(tensor.dtype());
+  header.bytes_per_element = (tensor.dtype().bits * tensor.dtype().lanes + 7) / 8;
+  if (tensor.ndim() < 0 || static_cast<uint32_t>(tensor.ndim()) > Shape::kMaxRank) {
+    return header;
+  }
+  header.rank = static_cast<uint32_t>(tensor.ndim());
+  for (uint32_t i = 0; i < header.rank; ++i) {
+    header.dims[i] = static_cast<int32_t>(tensor.shape()[i]);
+    // DLPack strides are int64_t; reject negative strides (flipped views not supported)
+    if (tensor.strides()[i] < 0) {
+      header.dims[0] = 0;
+      return header;
+    }
+    header.strides[i] = static_cast<uint64_t>(tensor.strides()[i]) * header.bytes_per_element;
+  }
+  return header;
+}
+
+TensorHeader buildTensorHeader(const nvidia::gxf::VideoBuffer& video_buffer) {
+  const auto& info = video_buffer.video_frame_info();
+
+  uint32_t channels = 0;
+  switch (info.color_format) {
+    case nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA: channels = 4; break;
+    case nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGB:  channels = 3; break;
+    default: break;  // channels stays 0, computeMemorySpan returns 0 (dims <= 0)
   }
 
-  return tensor;
+  TensorHeader header{};
+  header.storage_type = video_buffer.storage_type();
+  header.element_type = PrimitiveType::kUnsigned8;
+  header.bytes_per_element = 1;
+  header.rank = 3;
+  header.dims[0] = static_cast<int32_t>(info.height);
+  header.dims[1] = static_cast<int32_t>(info.width);
+  header.dims[2] = static_cast<int32_t>(channels);
+  const auto& plane = info.color_planes[0];
+  header.strides[0] = plane.stride;
+  header.strides[1] = channels;  // bytes per pixel
+  header.strides[2] = 1;
+  return header;
+}
+
+std::optional<BufferDescriptor> resolveEntityBuffer(
+    holoscan::gxf::Entity& entity, const char* tensor_name) {
+  // 1. Try holoscan::Tensor (DLPack, data owned by entity)
+  auto maybe_hl_tensor = entity.get<holoscan::Tensor>(tensor_name, false);
+  if (maybe_hl_tensor) {
+    auto& t = *maybe_hl_tensor;
+    TensorHeader header = buildTensorHeader(t);
+    size_t size = computeMemorySpan(header);
+    if (size == 0) { return std::nullopt; }
+    return BufferDescriptor{header, t.data(), size};
+  }
+
+  // 2. Try nvidia::gxf::Tensor (owned by entity)
+  auto& gxf_entity = static_cast<nvidia::gxf::Entity&>(entity);
+  auto maybe_tensor = gxf_entity.get<nvidia::gxf::Tensor>(tensor_name);
+  if (maybe_tensor) {
+    auto* t = maybe_tensor.value().get();
+    TensorHeader header = buildTensorHeader(*t);
+    size_t size = computeMemorySpan(header);
+    if (size == 0) { return std::nullopt; }
+    return BufferDescriptor{header, t->pointer(), size};
+  }
+
+  // 3. Try nvidia::gxf::VideoBuffer (packed RGB/RGBA, owned by entity)
+  auto maybe_vb = gxf_entity.get<nvidia::gxf::VideoBuffer>();
+  if (maybe_vb) {
+    auto* vb = maybe_vb.value().get();
+    TensorHeader header = buildTensorHeader(*vb);
+    size_t size = computeMemorySpan(header);
+    if (size == 0) { return std::nullopt; }
+    return BufferDescriptor{header, vb->pointer(), size};
+  }
+
+  return std::nullopt;
 }
 
 }  // namespace holoscan::ops::ucxx
