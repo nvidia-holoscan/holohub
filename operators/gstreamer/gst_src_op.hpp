@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_SRC_OP_HPP
-#define GST_SRC_OP_HPP
+#ifndef HOLOSCAN__GSTREAMER__GST_SRC_OP_HPP
+#define HOLOSCAN__GSTREAMER__GST_SRC_OP_HPP
 
 #include <holoscan/holoscan.hpp>
 #include "gst_src_resource.hpp"
@@ -73,5 +73,4 @@ class GstSrcOp : public Operator {
 
 }  // namespace holoscan
 
-#endif /* GST_SRC_OP_HPP */
-
+#endif /* HOLOSCAN__GSTREAMER__GST_SRC_OP_HPP */

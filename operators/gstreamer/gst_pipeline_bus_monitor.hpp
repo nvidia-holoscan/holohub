@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_PIPELINE_BUS_MONITOR_HPP
-#define GST_PIPELINE_BUS_MONITOR_HPP
+#ifndef HOLOSCAN__GSTREAMER__GST_PIPELINE_BUS_MONITOR_HPP
+#define HOLOSCAN__GSTREAMER__GST_PIPELINE_BUS_MONITOR_HPP
 
 #include <atomic>
 #include <future>
@@ -140,7 +140,8 @@ class PipelineBusMonitor {
    * @param new_state The new pipeline state
    * @param pending_state The pending pipeline state (if any)
    */
-  virtual void on_state_changed(GstState old_state, GstState new_state, GstState pending_state);
+  virtual void on_state_changed(::GstState old_state, ::GstState new_state,
+                                 ::GstState pending_state);
 
   /**
    * @brief Get a reference to the monitored pipeline
@@ -167,5 +168,5 @@ class PipelineBusMonitor {
 
 }  // namespace holoscan::gst
 
-#endif  // GST_PIPELINE_BUS_MONITOR_HPP
+#endif  // HOLOSCAN__GSTREAMER__GST_PIPELINE_BUS_MONITOR_HPP
 

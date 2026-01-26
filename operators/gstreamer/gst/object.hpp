@@ -31,6 +31,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "wrapper_base.hpp"
+
 namespace holoscan {
 namespace gst {
 
@@ -103,7 +105,7 @@ To static_object_cast(const From& from) {
  * mini_object.hpp. This class is designed for internal use only and has no virtual functions.
  */
 template <typename DerivedT, typename NativeTypeT>
-class ObjectBase {
+class ObjectBase : public GstWrapperBase {
  public:
   // Local type aliases for cleaner code inside the class
   using Derived = DerivedT;
@@ -193,22 +195,32 @@ class ObjectBase {
 
  private:
   /**
-   * @brief Helper to convert std::string to const char*, leave other types unchanged
+   * @brief Helper to convert arguments for g_object_set
    * @tparam T Argument type (automatically deduced)
    * @param arg Argument to potentially convert
-   * @return const char* for std::string arguments, forwarded original argument for all other types
+   * @return Converted argument suitable for g_object_set:
+   *         - const char* for std::string arguments
+   *         - Raw pointer for GStreamer wrapper objects (e.g., gst::Caps, gst::Element)
+   *         - Forwarded original argument for all other types
    *
    * @note std::string arguments must be lvalues to avoid dangling pointers (temporaries are rejected
    *       at compile time). Conversions are resolved via `if constexpr` with minimal overhead.
    */
   template <typename T>
   static constexpr auto convert_for_gobject(T&& arg) {
-    if constexpr (std::is_same_v<std::decay_t<T>, std::string>) {
+    using DecayT = std::decay_t<T>;
+
+    if constexpr (std::is_same_v<DecayT, std::string>) {
+      // Convert std::string to const char* (must be lvalue to avoid dangling pointer)
       static_assert(std::is_lvalue_reference_v<T&&>,
                     "std::string arguments to set_properties must be lvalues; use a named "
                     "variable or .c_str() for temporaries.");
       return arg.c_str();
+    } else if constexpr (std::is_base_of_v<GstWrapperBase, DecayT>) {
+      // Automatically unwrap GStreamer wrapper objects (e.g., gst::Caps, gst::Element)
+      return arg.get();
     } else {
+      // Forward all other types unchanged
       return std::forward<T>(arg);
     }
   }
@@ -222,6 +234,7 @@ class ObjectBase {
    * @note This variadic template function mimics g_object_set behavior:
    *       - Accepts any number of property name-value pairs
    *       - Automatically converts std::string to const char* at compile time
+   *       - Automatically unwraps GStreamer wrapper objects (e.g., gst::Caps)
    *       - Supports all types that g_object_set can handle
    *       - Property names can be const char* or std::string (must be lvalues)
    *       - Values can be any supported GObject property type
@@ -238,6 +251,10 @@ class ObjectBase {
    *   std::string prop = "bitrate";
    *   std::string name = "test";
    *   element.set_properties(prop, 2000000, "name", name.c_str());
+   *
+   *   // Automatically unwraps GStreamer wrapper objects
+   *   gst::Caps caps("video/x-raw,format=RGBA");
+   *   element.set_properties("caps", caps);  // Automatically calls caps.get()
    */
   template <typename... Args>
   void set_properties(Args&&... args) {

@@ -47,7 +47,7 @@ class Message : public MiniObjectBase<Message, ::GstMessage> {
    * @return The GstMessageType (e.g., GST_MESSAGE_ERROR, GST_MESSAGE_EOS)
    * @note Returns GST_MESSAGE_UNKNOWN if the message is null
    */
-  GstMessageType get_type() const {
+  ::GstMessageType get_type() const {
     return this->get() ? GST_MESSAGE_TYPE(this->get()) : GST_MESSAGE_UNKNOWN;
   }
 
@@ -76,7 +76,7 @@ class Message : public MiniObjectBase<Message, ::GstMessage> {
    * @note All parameters can be nullptr if the information is not needed
    * @throws std::runtime_error if the underlying GstMessage is null
    */
-  void parse_state_changed(GstState* oldstate, GstState* newstate, GstState* pending) const;
+  void parse_state_changed(::GstState* oldstate, ::GstState* newstate, ::GstState* pending) const;
 
   static constexpr auto ref_func = gst_message_ref;
   static constexpr auto unref_func = gst_message_unref;

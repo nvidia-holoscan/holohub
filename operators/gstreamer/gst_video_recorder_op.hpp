@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_VIDEO_RECORDER_OP_HPP
-#define GST_VIDEO_RECORDER_OP_HPP
+#ifndef HOLOSCAN__GSTREAMER__GST_VIDEO_RECORDER_OP_HPP
+#define HOLOSCAN__GSTREAMER__GST_VIDEO_RECORDER_OP_HPP
 
 #include <atomic>
 #include <future>
@@ -140,4 +140,4 @@ class GstVideoRecorderOp : public Operator {
 
 }  // namespace holoscan
 
-#endif /* GST_VIDEO_RECORDER_OP_HPP */
+#endif /* HOLOSCAN__GSTREAMER__GST_VIDEO_RECORDER_OP_HPP */

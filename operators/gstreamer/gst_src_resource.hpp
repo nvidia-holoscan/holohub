@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_SRC_RESOURCE_HPP
-#define GST_SRC_RESOURCE_HPP
+#ifndef HOLOSCAN__GSTREAMER__GST_SRC_RESOURCE_HPP
+#define HOLOSCAN__GSTREAMER__GST_SRC_RESOURCE_HPP
 
 #include <memory>
 #include <string>
@@ -112,4 +112,4 @@ class GstSrcResource : public Resource {
 
 }  // namespace holoscan
 
-#endif /* GST_SRC_RESOURCE_HPP */
+#endif /* HOLOSCAN__GSTREAMER__GST_SRC_RESOURCE_HPP */
