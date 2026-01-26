@@ -13,7 +13,7 @@ from holoscan.core import Application, ConditionType
 from holoscan.operators import HolovizOp
 from holoscan.resources import CudaStreamPool, UnboundedAllocator
 from holoscan.schedulers import EventBasedScheduler
-from operators.nilearn_visualization_operator import NilearnVisualizationOperator
+from operators.mpl_visualization_operator import MplVisualizationOperator
 from operators.reconstruction import (
     BuildRHSOperator,
     ConvertToVoxelsOperator,
@@ -110,7 +110,7 @@ class BciVisualizationApp(Application):
             xyz=pipeline_assets.xyz,
         )
 
-        nilearn_visualization_operator = NilearnVisualizationOperator(fragment=self)
+        mpl_visualization_operator = MplVisualizationOperator(fragment=self)
 
         # # ========== Visualization Pipeline Operators ==========
         # # Get volume_renderer kwargs from YAML config to extract density range
@@ -186,7 +186,7 @@ class BciVisualizationApp(Application):
         )
         self.add_flow(
             convert_to_voxels_operator,
-            nilearn_visualization_operator,
+            mpl_visualization_operator,
             {
                 ("affine_4x4", "affine_4x4"),
                 ("hb_voxel_data", "hb_voxel_data"),

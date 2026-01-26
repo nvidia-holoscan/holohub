@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import gzip
 import logging
-import nibabel as nib
 import scipy.ndimage
-from nilearn.plotting import plot_surf_stat_map
 import struct
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Tuple
@@ -164,12 +163,58 @@ def _load_surface_mesh(
     return vertices, faces
 
 
-class NilearnVisualizationOperator(Operator):
+def _decimate_mesh(
+    vertices: NDArray[np.float32],
+    faces: NDArray[np.int32],
+    target_faces: int = 10000,
+) -> Tuple[NDArray[np.float32], NDArray[np.int32]]:
+    """Decimate a mesh to reduce face count for faster rendering.
+
+    Uses uniform random sampling of faces. This is a simple approach
+    that works well for visualization purposes.
+
+    Parameters
+    ----------
+    vertices : NDArray[np.float32]
+        Vertex coordinates with shape (n_vertices, 3).
+    faces : NDArray[np.int32]
+        Face indices with shape (n_faces, 3).
+    target_faces : int
+        Target number of faces after decimation.
+
+    Returns
+    -------
+    vertices : NDArray[np.float32]
+        Vertex coordinates (may be reduced).
+    faces : NDArray[np.int32]
+        Decimated face indices.
+    """
+    n_faces = faces.shape[0]
+    if n_faces <= target_faces:
+        return vertices, faces
+
+    # Randomly sample faces
+    rng = np.random.default_rng(42)  # Fixed seed for reproducibility
+    selected_idx = rng.choice(n_faces, size=target_faces, replace=False)
+    selected_faces = faces[selected_idx]
+
+    # Find unique vertices used by selected faces
+    unique_verts, inverse = np.unique(selected_faces.ravel(), return_inverse=True)
+    new_vertices = vertices[unique_verts]
+    new_faces = inverse.reshape(-1, 3).astype(np.int32)
+
+    return new_vertices, new_faces
+
+
+class MplVisualizationOperator(Operator):
     """Operator that visualizes HbO voxel data on a brain surface.
 
-    This operator uses nilearn's vol_to_surf to project voxel data onto
-    a brain surface mesh and renders it using matplotlib in real-time.
+    This operator projects voxel data onto a decimated brain surface mesh
+    and renders it using matplotlib's Poly3DCollection for real-time updates.
     """
+
+    # Target face count for decimated mesh (controls performance vs quality)
+    TARGET_FACES = 12000
 
     def __init__(
         self,
@@ -192,6 +237,8 @@ class NilearnVisualizationOperator(Operator):
         # Matplotlib state for real-time updates
         self._fig: Any = None
         self._axes: Any = None
+        self._poly_collection: Poly3DCollection | None = None
+        self._colormap = plt.cm.RdBu_r
         self._initialized_plot: bool = False
 
     def setup(self, spec: OperatorSpec) -> None:
@@ -200,14 +247,22 @@ class NilearnVisualizationOperator(Operator):
         spec.input("affine_4x4").condition(ConditionType.NONE)
 
     def _ensure_mesh_loaded(self) -> Tuple[NDArray[np.float32], NDArray[np.int32]]:
-        """Lazy-load the surface mesh."""
+        """Lazy-load and decimate the surface mesh."""
         if self._surface_mesh is None:
             logger.info("Loading MNI152 surface mesh...")
-            self._surface_mesh = _load_surface_mesh()
+            vertices, faces = _load_surface_mesh()
             logger.info(
-                "Surface mesh loaded: %d vertices, %d faces",
-                self._surface_mesh[0].shape[0],
-                self._surface_mesh[1].shape[0],
+                "Original mesh: %d vertices, %d faces",
+                vertices.shape[0],
+                faces.shape[0],
+            )
+            # Decimate for real-time performance
+            vertices, faces = _decimate_mesh(vertices, faces, self.TARGET_FACES)
+            self._surface_mesh = (vertices, faces)
+            logger.info(
+                "Decimated mesh: %d vertices, %d faces",
+                vertices.shape[0],
+                faces.shape[0],
             )
         return self._surface_mesh
 
@@ -302,40 +357,51 @@ class NilearnVisualizationOperator(Operator):
             logger.warning("Visualization mapping failed: %s. Skipping frame.", e)
             return
 
-        # Check for valid data
-        if np.all(np.isnan(surface_data)):
-            logger.warning("All surface data is NaN, skipping visualization")
-            return
+        # Compute per-face colors by averaging vertex values
+        face_values = surface_data[faces].mean(axis=1)
 
-        # Initialize figure on first frame
+        # Normalize to [0, 1] for colormap
+        vmin, vmax = np.nanmin(face_values), np.nanmax(face_values)
+        if vmax - vmin < 1e-10:
+            vmax = vmin + 1e-10
+        normalized = (face_values - vmin) / (vmax - vmin)
+        face_colors = self._colormap(normalized)
+
+        # Initialize figure and mesh on first frame
         if not self._initialized_plot:
-            plt.ion()  # Enable interactive mode for real-time updates
+            plt.ion()
             self._fig, self._axes = plt.subplots(
                 subplot_kw={"projection": "3d"}, figsize=(10, 8)
             )
+
+            # Build polygon vertices for each face: (n_faces, 3, 3)
+            triangles = coords[faces]
+
+            self._poly_collection = Poly3DCollection(
+                triangles,
+                facecolors=face_colors,
+                edgecolors="none",
+                linewidths=0,
+            )
+            self._axes.add_collection3d(self._poly_collection)
+
+            # Set axis limits based on mesh bounds
+            self._axes.set_xlim(coords[:, 0].min(), coords[:, 0].max())
+            self._axes.set_ylim(coords[:, 1].min(), coords[:, 1].max())
+            self._axes.set_zlim(coords[:, 2].min(), coords[:, 2].max())
+            self._axes.set_box_aspect([1, 1, 1])
+            self._axes.axis("off")
+            self._axes.view_init(elev=0, azim=-90)  # Lateral view
+
             self._initialized_plot = True
+            logger.info("Initialized real-time visualization")
         else:
-            # Clear axes but preserve camera view
-            elev = self._axes.elev
-            azim = self._axes.azim
-            self._axes.clear()
-            self._axes.view_init(elev=elev, azim=azim)
+            # Update only face colors (fast path)
+            self._poly_collection.set_facecolors(face_colors)
 
-        # Create the surface plot, reusing existing figure/axes
-        plot_surf_stat_map(
-            surf_mesh=surf_mesh,
-            stat_map=surface_data,
-            hemi="left",  # The MNI152 mesh is a full brain, but we view from left
-            view="lateral",
-            cmap="RdBu_r",
-            colorbar=False,  # Disable to avoid accumulating colorbars
-            title=f"HbO Frame {self._frame_count}",
-            threshold=None,  # Show all values
-            figure=self._fig,
-            axes=self._axes,
-        )
+        self._axes.set_title(f"HbO Frame {self._frame_count}")
 
-        # Force display update for real-time visualization
+        # Force display update
         self._fig.canvas.draw_idle()
         self._fig.canvas.flush_events()
         plt.pause(0.001)
