@@ -26,6 +26,7 @@
 #include "holoscan/core/execution_context.hpp"
 #include "holoscan/core/executor.hpp"
 #include "holoscan/core/gxf/entity.hpp"
+#include "holoscan/core/io_context.hpp"
 
 #include "gxf/core/entity.hpp"    // nvidia::gxf::Entity::Shared
 #include "gxf/std/allocator.hpp"  // nvidia::gxf::Allocator, nvidia::gxf::MemoryStorageType
