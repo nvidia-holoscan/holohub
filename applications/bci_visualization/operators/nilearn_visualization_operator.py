@@ -5,8 +5,8 @@ from __future__ import annotations
 import gzip
 import logging
 import nibabel as nib
+import scipy.ndimage
 from nilearn.plotting import plot_surf_stat_map
-from nilearn.surface import vol_to_surf
 import struct
 from pathlib import Path
 from time import perf_counter
@@ -188,6 +188,7 @@ class NilearnVisualizationOperator(Operator):
         self._frame_count = 0
         self._surface_mesh: Tuple[NDArray[np.float32], NDArray[np.int32]] | None = None
         self._affine: NDArray[np.float32] | None = None
+        self._voxel_coords: NDArray[np.float32] | None = None
         # Matplotlib state for real-time updates
         self._fig: Any = None
         self._axes: Any = None
@@ -257,20 +258,48 @@ class NilearnVisualizationOperator(Operator):
             logger.warning("No affine matrix received yet, skipping visualization")
             return
 
+        # Ensure we have a numpy array (handle CuPy arrays from GPU-based operators)
+        if hasattr(hb_volume, "get"):
+            hb_volume = hb_volume.get()
+
         # Load the surface mesh
         coords, faces = self._ensure_mesh_loaded()
-
-        # Create a NIfTI image from the volume
-        nifti_img = nib.nifti1.Nifti1Image(hb_volume.astype(np.float32), self._affine)
-
-        # Project volume to surface using vol_to_surf with default args
-        # surf_mesh can be a tuple of (coordinates, faces) or a mesh object
         surf_mesh = (coords, faces)
 
+        # Precompute voxel coordinates for the mesh vertices if not done yet
+        if self._voxel_coords is None:
+            try:
+                inv_affine = np.linalg.inv(self._affine)
+
+                # Transform vertices to voxel space: [x, y, z, 1] . inv_affine.T
+                # coords is (N, 3)
+                ones = np.ones((coords.shape[0], 1), dtype=coords.dtype)
+                vertices_homo = np.hstack((coords, ones))  # (N, 4)
+
+                # Result is (N, 4)
+                voxel_coords_homo = vertices_homo @ inv_affine.T
+
+                # Store (3, N) for map_coordinates
+                self._voxel_coords = voxel_coords_homo[:, :3].T
+
+                logger.info("Precomputed voxel mapping for %d vertices", coords.shape[0])
+
+            except Exception as e:
+                logger.error("Failed to compute voxel coordinates: %s", e)
+                return
+
         try:
-            surface_data = vol_to_surf(nifti_img, surf_mesh)
+            # Map volume data to surface using trilinear interpolation
+            # map_coordinates expects (ndim, n_points) coords
+            surface_data = scipy.ndimage.map_coordinates(
+                hb_volume.astype(np.float32),
+                self._voxel_coords,
+                order=1,
+                mode="constant",
+                cval=0.0,
+            )
         except Exception as e:
-            logger.warning("vol_to_surf failed: %s. Skipping frame.", e)
+            logger.warning("Visualization mapping failed: %s. Skipping frame.", e)
             return
 
         # Check for valid data
