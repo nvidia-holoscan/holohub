@@ -13,39 +13,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project(holo_to_gst CXX)
+project(gst_to_holo CXX)
 
 find_package(holoscan REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_executable(holo-to-gst
-  ../common/pattern_generator.cpp
-  holo_to_gst.cpp
+add_executable(gst-to-holo
+  gst_to_holo.cpp
 )
 
-target_include_directories(holo-to-gst
+target_include_directories(gst-to-holo
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/../common
 )
 
-target_link_libraries(holo-to-gst
+target_link_libraries(gst-to-holo
   PRIVATE
   holoscan::core
+  holoscan::ops::holoviz
   holoscan::ops::gstreamer_bridge
-  holoscan::ops::v4l2
-  holoscan::ops::format_converter
 )
 
 # Install target
-install(TARGETS holo-to-gst DESTINATION bin/holo_to_gst)
+install(TARGETS gst-to-holo DESTINATION bin/gst_to_holo)
 
-# Add test
+# Test
 if(BUILD_TESTING)
-  add_test(NAME holo_to_gst_test
-           COMMAND $<TARGET_FILE:holo-to-gst> --count 100 --pipeline "cudadownload name=src ! fakesink sync=false"
+  add_test(NAME gst_to_holo_test
+           COMMAND gst-to-holo --count 100
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-  set_tests_properties(holo_to_gst_test PROPERTIES
+  set_tests_properties(gst_to_holo_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "Application finished successfully"
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 endif()
-
