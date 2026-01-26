@@ -1,0 +1,312 @@
+"""Visualization operator for HbO voxel data on brain surface."""
+
+from __future__ import annotations
+
+import gzip
+import logging
+import nibabel as nib
+from nilearn.plotting import plot_surf_stat_map
+from nilearn.surface import vol_to_surf
+import struct
+from pathlib import Path
+from time import perf_counter
+from typing import Any, Tuple
+from urllib.request import urlretrieve
+import matplotlib.pyplot as plt
+
+import numpy as np
+from numpy.typing import NDArray
+
+from holoscan.core import (
+    ConditionType,
+    ExecutionContext,
+    InputContext,
+    Operator,
+    OperatorSpec,
+    OutputContext,
+)
+
+logger = logging.getLogger(__name__)
+
+# URL to the MNI152 surface mesh
+MNI152_SURFACE_URL = (
+    "https://raw.githubusercontent.com/neurolabusc/surf-ice/master/sample/mni152_2009.mz3"
+)
+
+# Default cache directory for downloaded assets
+_CACHE_DIR = Path.home() / ".cache" / "myelin"
+
+
+def _read_mz3(filepath: Path) -> Tuple[NDArray[np.int32], NDArray[np.float32]]:
+    """Read an MZ3 mesh file and return faces and vertices.
+
+    Parameters
+    ----------
+    filepath : Path
+        Path to the MZ3 file.
+
+    Returns
+    -------
+    faces : NDArray[np.int32]
+        Face indices with shape (n_faces, 3).
+    vertices : NDArray[np.float32]
+        Vertex coordinates with shape (n_vertices, 3).
+
+    Raises
+    ------
+    ValueError
+        If the file is not a valid MZ3 file.
+    """
+    hdr_bytes = 16
+
+    # First, try to read as raw binary
+    with open(filepath, "rb") as f:
+        data = f.read(hdr_bytes)
+        hdr = struct.unpack_from("<HHIII", data)
+
+    # Check if gzip compressed (magic bytes 0x1f8b) or raw MZ3 (0x4D5A = 23117)
+    is_gzip = hdr[0] != 23117
+
+    if is_gzip:
+        # Re-open with gzip
+        f = gzip.open(filepath, "rb")
+        data = f.read(hdr_bytes)
+        hdr = struct.unpack_from("<HHIII", data)
+        if hdr[0] != 23117:
+            f.close()
+            raise ValueError(f"Not a valid MZ3 file: {filepath}")
+    else:
+        f = open(filepath, "rb")
+        f.read(hdr_bytes)  # Skip header we already read
+
+    try:
+        attr = hdr[1]
+        n_face = hdr[2]
+        n_vert = hdr[3]
+        n_skip = hdr[4]
+
+        is_face = (attr & 1) != 0
+        is_vert = (attr & 2) != 0
+
+        if attr > 127:
+            raise ValueError("Unable to read future version of MZ3 file")
+        if n_vert < 1:
+            raise ValueError("Unable to read MZ3 files without vertices")
+        if n_face < 1 and is_face:
+            raise ValueError("MZ3 files with isFACE must specify NFACE")
+
+        # Read faces
+        f.seek(hdr_bytes + n_skip)
+        faces = np.zeros((0, 3), dtype=np.int32)
+        if is_face:
+            face_data = f.read(12 * n_face)  # 3 * 4 bytes per face
+            faces_flat = np.array(
+                struct.unpack_from(f"<{3 * n_face}I", face_data), dtype=np.int32
+            )
+            faces = faces_flat.reshape((n_face, 3))
+
+        # Read vertices
+        f.seek(hdr_bytes + n_skip + (is_face * n_face * 12))
+        vertices = np.zeros((0, 3), dtype=np.float32)
+        if is_vert:
+            vert_data = f.read(12 * n_vert)  # 3 * 4 bytes per vertex
+            verts_flat = np.array(
+                struct.unpack_from(f"<{3 * n_vert}f", vert_data), dtype=np.float32
+            )
+            vertices = verts_flat.reshape((n_vert, 3))
+    finally:
+        f.close()
+
+    return faces, vertices
+
+
+def _ensure_surface_mesh(cache_dir: Path | None = None) -> Path:
+    """Download the MNI152 surface mesh if not already cached.
+
+    Parameters
+    ----------
+    cache_dir : Path or None
+        Directory to cache the mesh. Defaults to ~/.cache/myelin
+
+    Returns
+    -------
+    Path
+        Path to the cached mesh file.
+    """
+    if cache_dir is None:
+        cache_dir = _CACHE_DIR
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    mesh_path = cache_dir / "mni152_2009.mz3"
+
+    if not mesh_path.exists():
+        logger.info("Downloading MNI152 surface mesh to %s", mesh_path)
+        urlretrieve(MNI152_SURFACE_URL, mesh_path)
+        logger.info("Download complete")
+
+    return mesh_path
+
+
+def _load_surface_mesh(
+    cache_dir: Path | None = None,
+) -> Tuple[NDArray[np.float32], NDArray[np.int32]]:
+    """Load the MNI152 surface mesh.
+
+    Returns
+    -------
+    coordinates : NDArray[np.float32]
+        Vertex coordinates with shape (n_vertices, 3).
+    faces : NDArray[np.int32]
+        Face indices with shape (n_faces, 3).
+    """
+    mesh_path = _ensure_surface_mesh(cache_dir)
+    faces, vertices = _read_mz3(mesh_path)
+    return vertices, faces
+
+
+class NilearnVisualizationOperator(Operator):
+    """Operator that visualizes HbO voxel data on a brain surface.
+
+    This operator uses nilearn's vol_to_surf to project voxel data onto
+    a brain surface mesh and renders it using matplotlib in real-time.
+    """
+
+    def __init__(
+        self,
+        *,
+        fragment: Any | None = None,
+    ) -> None:
+        """Initialize the visualization operator.
+
+        Parameters
+        ----------
+        fragment : Any or None
+            Parent fragment (Application) for Holoscan wiring.
+        """
+        super().__init__(fragment, name=self.__class__.__name__)
+        self._last_frame_time: float | None = None
+        self._frame_count = 0
+        self._surface_mesh: Tuple[NDArray[np.float32], NDArray[np.int32]] | None = None
+        self._affine: NDArray[np.float32] | None = None
+        # Matplotlib state for real-time updates
+        self._fig: Any = None
+        self._axes: Any = None
+        self._initialized_plot: bool = False
+
+    def setup(self, spec: OperatorSpec) -> None:
+        """Configure operator inputs."""
+        spec.input("hb_voxel_data")
+        spec.input("affine_4x4").condition(ConditionType.NONE)
+
+    def _ensure_mesh_loaded(self) -> Tuple[NDArray[np.float32], NDArray[np.int32]]:
+        """Lazy-load the surface mesh."""
+        if self._surface_mesh is None:
+            logger.info("Loading MNI152 surface mesh...")
+            self._surface_mesh = _load_surface_mesh()
+            logger.info(
+                "Surface mesh loaded: %d vertices, %d faces",
+                self._surface_mesh[0].shape[0],
+                self._surface_mesh[1].shape[0],
+            )
+        return self._surface_mesh
+
+    def compute(
+        self,
+        op_input: InputContext,
+        op_output: OutputContext,
+        context: ExecutionContext,
+    ) -> None:
+        """Receive voxel data and render on surface."""
+        del op_output, context
+
+        hb_frame = op_input.receive("hb_voxel_data")
+        affine = op_input.receive("affine_4x4")
+
+        # Store affine on first frame
+        if affine is not None and self._affine is None:
+            self._affine = np.asarray(affine)
+            logger.info("Received affine matrix with shape %s", self._affine.shape)
+
+        now = perf_counter()
+        prev = self._last_frame_time
+        self._last_frame_time = now
+
+        if prev is None:
+            logger.info(
+                "Visualizer received HbO voxel frame with shape %s",
+                getattr(hb_frame, "shape", None),
+            )
+        else:
+            logger.debug(
+                "Visualizer received frame after %.2f ms",
+                (now - prev) * 1000.0,
+            )
+
+        self._frame_count += 1
+        self._render_frame(hb_frame)
+
+    def _render_frame(self, hb_volume: NDArray[np.float32]) -> None:
+        """Render the HbO volume on the brain surface.
+
+        Parameters
+        ----------
+        hb_volume : NDArray[np.float32]
+            3D volume of HbO values.
+        """
+        if self._affine is None:
+            logger.warning("No affine matrix received yet, skipping visualization")
+            return
+
+        # Load the surface mesh
+        coords, faces = self._ensure_mesh_loaded()
+
+        # Create a NIfTI image from the volume
+        nifti_img = nib.nifti1.Nifti1Image(hb_volume.astype(np.float32), self._affine)
+
+        # Project volume to surface using vol_to_surf with default args
+        # surf_mesh can be a tuple of (coordinates, faces) or a mesh object
+        surf_mesh = (coords, faces)
+
+        try:
+            surface_data = vol_to_surf(nifti_img, surf_mesh)
+        except Exception as e:
+            logger.warning("vol_to_surf failed: %s. Skipping frame.", e)
+            return
+
+        # Check for valid data
+        if np.all(np.isnan(surface_data)):
+            logger.warning("All surface data is NaN, skipping visualization")
+            return
+
+        # Initialize figure on first frame
+        if not self._initialized_plot:
+            plt.ion()  # Enable interactive mode for real-time updates
+            self._fig, self._axes = plt.subplots(
+                subplot_kw={"projection": "3d"}, figsize=(10, 8)
+            )
+            self._initialized_plot = True
+        else:
+            # Clear axes but preserve camera view
+            elev = self._axes.elev
+            azim = self._axes.azim
+            self._axes.clear()
+            self._axes.view_init(elev=elev, azim=azim)
+
+        # Create the surface plot, reusing existing figure/axes
+        plot_surf_stat_map(
+            surf_mesh=surf_mesh,
+            stat_map=surface_data,
+            hemi="left",  # The MNI152 mesh is a full brain, but we view from left
+            view="lateral",
+            cmap="RdBu_r",
+            colorbar=False,  # Disable to avoid accumulating colorbars
+            title=f"HbO Frame {self._frame_count}",
+            threshold=None,  # Show all values
+            figure=self._fig,
+            axes=self._axes,
+        )
+
+        # Force display update for real-time visualization
+        self._fig.canvas.draw_idle()
+        self._fig.canvas.flush_events()
+        plt.pause(0.001)
