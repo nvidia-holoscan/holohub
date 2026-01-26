@@ -15,15 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-############################################################
-# Base image
-############################################################
-
 ARG BASE_IMAGE
-ARG GPU_TYPE
-
-FROM ${BASE_IMAGE} AS base
+FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -38,56 +31,38 @@ COPY utilities /tmp/scripts/utilities/
 RUN chmod +x /tmp/scripts/holohub
 RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
-FROM base AS torch
-
-# Install libraries
-ARG GPU_TYPE
-RUN set -eux; \
-    if [ "${GPU_TYPE}" = "igpu" ]; then \
-        # Install cuDNN for PyTorch
-        # Some cuDNN libraries have been intentionally removed from the base image, so we need to reinstall them
-        apt-get update && \
-        apt-get install -y --reinstall --no-install-recommends \
-            libcudnn9-cuda-12 \
-            libcudnn9-dev-cuda-12 && \
-        rm -rf /var/lib/apt/lists/* && \
-        PYTORCH_WHEEL_VERSION="2.8.0"; \
-        TORCHVISION_WHEEL_VERSION="0.23.0"; \
-        INDEX_URL="https://pypi.jetson-ai-lab.io/jp6/cu129"; \
-    else \
-        CUDA_MAJOR=$(nvcc --version | grep -o "release [0-9]*" | awk '{print $2}'); \
-        if [ "$CUDA_MAJOR" = "13" ]; then \
-            echo "ERROR: Missing support for CUDA 13.x with PyTorch 2.9.0, torchvision 0.24.0." \
-                " Please refer to the README for more information."; \
-            exit 1; \
-        else \
-            PYTORCH_WHEEL_VERSION="2.8.0+cu129"; \
-            if [ "$(uname -m)" = "x86_64" ]; then \
-                TORCHVISION_WHEEL_VERSION="0.23.0+cu129"; \
-            else \
-                TORCHVISION_WHEEL_VERSION="0.23.0"; \
-            fi; \
-            INDEX_URL="https://download.pytorch.org/whl/"; \
-        fi; \
-    fi; \
-    echo "Installing torch==${PYTORCH_WHEEL_VERSION} from $INDEX_URL"; \
-    python3 -m pip install --force-reinstall \
-        --index-url $INDEX_URL \
-        torch==${PYTORCH_WHEEL_VERSION} \
-        torchvision==${TORCHVISION_WHEEL_VERSION} \
-        torchaudio; \
-    if ! find $(python3 -c "import torch; print(torch.__path__[0])") -name libtorch_cuda.so | grep -q .; then \
-        echo "libtorch_cuda.so not found, torch installation failed"; \
-        exit 1; \
-    fi
-
-RUN rm -rf /opt/libtorch/* && \
-    mkdir -p /opt/libtorch && \
-    LIBTORCH_PATH=$(python3 -c "import torch; print(torch.__path__[0])") && \
-    ln -sf "${LIBTORCH_PATH}/lib" /opt/libtorch/lib
-
+# Verify PyTorch is available in base image
+RUN python3 -c "import torch; print(f'PyTorch {torch.__version__} found')"
 
 # Set up Holoscan SDK container libtorch to be found with ldconfig for app C++ build and runtime
 RUN echo $(python3 -c "import torch; print(torch.__path__[0])")/lib > /etc/ld.so.conf.d/libtorch.conf \
     && ldconfig \
     && ldconfig -p | grep -q "libtorch.so"
+
+ARG GPU_TYPE
+ARG CUDA_MAJOR
+RUN INDEX_URL=""; \
+    if [ "${GPU_TYPE}" = "igpu" ]; then \
+        INDEX_URL="https://pypi.jetson-ai-lab.io/jp6/cu126"; \
+    elif [ "${CUDA_MAJOR}" = "12" ]; then \
+        INDEX_URL="https://download.pytorch.org/whl/cu129"; \
+    elif [ "${CUDA_MAJOR}" = "13" ]; then \
+        INDEX_URL="https://download.pytorch.org/whl/cu130"; \
+    else \
+        echo "Error: Unsupported GPU_TYPE (${GPU_TYPE}) or CUDA_MAJOR (${CUDA_MAJOR})" && exit 1; \
+    fi \
+    && TORCH_VERSION=$(python3 -c "import torch; print(torch.__version__.split('+')[0])") \
+    && echo "Detected PyTorch version: ${TORCH_VERSION}" \
+    && if [ "${TORCH_VERSION}" = "2.8.0" ]; then \
+        TORCHVISION_VERSION="0.23.0"; \
+    elif [ "${TORCH_VERSION}" = "2.9.0" ]; then \
+        TORCHVISION_VERSION="0.24.0"; \
+    elif [ "${TORCH_VERSION}" = "2.9.1" ]; then \
+        TORCHVISION_VERSION="0.24.0"; \
+    else \
+        echo "Error: Unsupported PyTorch version ${TORCH_VERSION}" && exit 1; \
+    fi \
+    && echo "Installing torchvision ${TORCHVISION_VERSION}" \
+    && python3 -m pip install torchvision==${TORCHVISION_VERSION} --no-cache-dir --index-url ${INDEX_URL}
+
+    
