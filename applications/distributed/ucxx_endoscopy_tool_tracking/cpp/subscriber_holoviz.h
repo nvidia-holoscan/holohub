@@ -44,5 +44,3 @@ class UcxxEndoscopySubscriberHolovizApp : public holoscan::Application {
 };
 
 }  // namespace holoscan::apps
-
-

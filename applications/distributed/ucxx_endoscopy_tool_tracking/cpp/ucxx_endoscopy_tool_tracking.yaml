@@ -56,7 +56,7 @@ subscriber_holoviz:
     in_dtype: "rgba8888"
     out_dtype: "rgb888"
 
-  recorder_subscriber:
+  recorder:
     directory: "/tmp"
     basename: "ucxx_subscriber_received"
 

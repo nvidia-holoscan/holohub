@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,9 @@
 
 #include "gxf/std/timestamp.hpp"
 
-#include <operators/ucxx_send_receive/ucxx_endpoint.hpp>
 #include <operators/ucxx_send_receive/receiver_op/ucxx_receiver_op.hpp>
 #include <operators/ucxx_send_receive/sender_op/ucxx_sender_op.hpp>
+#include <operators/ucxx_send_receive/ucxx_endpoint.hpp>
 
 namespace holoscan::apps {
 
@@ -49,7 +49,9 @@ class FrameCounterState : public holoscan::Resource {
     // Use an atomic to ensure counter starts from 1. Discard previous UCXX in-flight
     // values when UCXX endpoint reconnects.
     if (waiting_for_reset_.load(std::memory_order_acquire)) {
-      if (v != 1) { return; }
+      if (v != 1) {
+        return;
+      }
       waiting_for_reset_.store(false, std::memory_order_release);
     }
     value_.store(v, std::memory_order_release);
@@ -166,7 +168,7 @@ void UcxxEndoscopyPublisherApp::compose() {
   const uint32_t width = 854;
   const uint32_t height = 480;
   const uint64_t source_block_size = width * height * 3 * 4;
-  const uint64_t source_num_blocks = 2;
+  const uint64_t source_num_blocks = 3;
 
   // Create allocators
   auto replayer_allocator =
@@ -235,7 +237,8 @@ void UcxxEndoscopyPublisherApp::compose() {
                                          tool_tracking_postprocessor_num_blocks));
 
   // Holoviz for visualization with render buffer output enabled for UCXX transmission
-  const uint64_t render_buffer_size = width * height * 4 * 4;  // RGBA, 4 bytes per channel
+  // HolovizOp render buffer is a VideoBuffer with 256-byte aligned row stride
+  const uint64_t render_buffer_size = static_cast<uint64_t>(((width * 4 + 255) & ~255)) * height;
   auto visualizer_allocator =
       make_resource<BlockMemoryPool>("allocator", 1, render_buffer_size, source_num_blocks);
 
@@ -274,22 +277,11 @@ void UcxxEndoscopyPublisherApp::compose() {
   // ---------------------------- Holoviz Subscriber -------------------------------------------
   // -------------------------------------------------------------------------------------------
 
-  // Format converter to convert HolovizOp's VideoBuffer output to Tensor for UCXX
-  auto render_buffer_converter =
-      make_operator<ops::FormatConverterOp>("render_buffer_converter",
-                                            Arg("in_dtype") = std::string("rgba8888"),
-                                            Arg("out_dtype") = std::string("rgba8888"),
-                                            Arg("out_tensor_name") = std::string(""),
-                                            Arg("pool") = make_resource<BlockMemoryPool>(
-                                                "pool", 1, render_buffer_size, source_num_blocks),
-                                            Arg("cuda_stream_pool") = cuda_stream_pool);
-
   // UCXX sender to broadcast rendered frames for holoviz subscriber.
   auto ucxx_sender_holoviz = make_operator<holoscan::ops::UcxxSenderOp>(
       "ucxx_sender_holoviz",
       Arg("tag", 1ul),
       Arg("endpoint") = ucxx_endpoint_holoviz,
-      Arg("allocator") = replayer_allocator,
       Arg("blocking") = from_config("publisher.blocking").as<bool>());
 
   // -------------------------------------------------------------------------------------------
@@ -299,21 +291,11 @@ void UcxxEndoscopyPublisherApp::compose() {
   // Frame counter value state.
   auto frame_counter_state = make_resource<FrameCounterState>("frame_counter_state");
 
-  // Convert original frame for UCXX transmission for overlay subscriber.
-  auto source_to_ucxx = make_operator<ops::FormatConverterOp>(
-      "source_rgba_to_ucxx",
-      Arg("out_dtype") = std::string("rgba8888"),
-      Arg("out_tensor_name") = std::string(""),
-      Arg("pool") = make_resource<BlockMemoryPool>(
-          "source_rgba_pool", 1, width * height * 4, source_num_blocks),
-      Arg("cuda_stream_pool") = cuda_stream_pool);
-
-  // UCXX sender to broadcast format-converted original frames for overlay subscriber.
+  // UCXX sender to broadcast original frames for overlay subscriber.
   auto ucxx_sender_overlay = make_operator<holoscan::ops::UcxxSenderOp>(
       "ucxx_sender_overlay",
       Arg("tag", 1ul),
       Arg("endpoint") = ucxx_endpoint_overlay,
-      Arg("allocator") = replayer_allocator,
       Arg("blocking") = from_config("publisher.blocking").as<bool>());
 
   // UCXX receiver to receive frame-counter overlay from overlay subscriber.
@@ -321,7 +303,8 @@ void UcxxEndoscopyPublisherApp::compose() {
   auto ucxx_receiver_overlay = make_operator<holoscan::ops::UcxxReceiverOp>(
       "ucxx_receiver_overlay",
       Arg("tag", 2ul),
-      Arg("buffer_size", 4 << 10),  // 4 KiB for scalar uint64 counter + header.
+      Arg("buffer_size", 4 << 10),      // 4 KiB for scalar uint64 counter + header.
+      Arg("receive_on_device", false),  // Receive on host for small CPU-bound counter
       Arg("endpoint") = ucxx_endpoint_overlay,
       Arg("allocator") = overlay_rx_allocator);
 
@@ -354,20 +337,18 @@ void UcxxEndoscopyPublisherApp::compose() {
   add_flow(frame_counter_attach, holoviz, {{"out", "receivers"}});
 
   // Path 3: UCXX transmission for Holoviz subscriber. Follows Path 1 and Path 2.
-  add_flow(holoviz, render_buffer_converter, {{"render_buffer_output", "source_video"}});
-  add_flow(render_buffer_converter, ucxx_sender_holoviz, {{"", "in"}});
+  add_flow(holoviz, ucxx_sender_holoviz, {{"render_buffer_output", "in"}});
 
   // Path 4: UCXX transmission for overlay subscriber. From source directly.
-  add_flow(replayer, source_to_ucxx, {{"output", "source_video"}});
-  add_flow(source_to_ucxx, ucxx_sender_overlay, {{"", "in"}});
+  add_flow(replayer, ucxx_sender_overlay, {{"output", "in"}});
 
   // Path 5: UCXX receiver for frame-counter overlay update. Independent of other paths.
   add_flow(ucxx_receiver_overlay, frame_counter_update, {{"out", "in"}});
 
   HOLOSCAN_LOG_INFO(
       "Publisher pipeline: Replayer → "
-      "(Format→LSTM→Postprocess→Holoviz→Convert→Send(tag=1,port=50008)) "
-      "+ (Source→Convert→Send(tag=1,port=50009)) "
+      "(Format→LSTM→Postprocess→Holoviz→Send(tag=1,port=50008)) "
+      "+ (Source→Send(tag=1,port=50009)) "
       "+ (Recv(tag=2,port=50009)→UpdateCounterState→HolovizTextLayer)");
 }
 

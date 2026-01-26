@@ -31,7 +31,7 @@ void UcxxEndoscopySubscriberHolovizApp::compose() {
 
   const uint32_t width = 854;
   const uint32_t height = 480;
-  const uint64_t source_block_size = width * height * 4 * 4;
+  const uint64_t source_block_size = width * height * 3;  // recorder output: rgb888
   const uint64_t source_num_blocks = 2;
 
   HOLOSCAN_LOG_INFO("Composing SUBSCRIBER_HOLOVIZ - receiving and displaying rendered frames");
@@ -49,8 +49,8 @@ void UcxxEndoscopySubscriberHolovizApp::compose() {
       Arg("listen", false));
 
   // UCXX receiver to get rendered frames from publisher as Tensor
-  // Buffer size for RGBA frame: width * height * 4 channels + metadata overhead
-  const int buffer_size = (4 << 10) + width * height * 4;
+  // HolovizOp render buffer is a VideoBuffer with 256-byte aligned row stride
+  const int buffer_size = ((width * 4 + 255) & ~255) * height;
   auto ucxx_receiver = make_operator<holoscan::ops::UcxxReceiverOp>(
       "ucxx_receiver",
       Arg("tag", 1ul),
@@ -103,5 +103,3 @@ void UcxxEndoscopySubscriberHolovizApp::compose() {
 }
 
 }  // namespace holoscan::apps
-
-

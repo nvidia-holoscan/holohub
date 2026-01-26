@@ -26,7 +26,12 @@ namespace holoscan::ops {
 void UcxxSenderOp::setup(holoscan::OperatorSpec& spec) {
   spec.param(tag_, "tag", "Tag", "UCX tag number", 0ul);
   spec.param(endpoint_, "endpoint", "Endpoint", "UcxxEndpoint resource");
-  spec.param(allocator_, "allocator", "Allocator", "Allocator for staging buffers");
+  spec.param(max_in_flight_,
+             "max_in_flight",
+             "Max in-flight",
+             "Maximum number of in-flight UCX send requests to retain. When exceeded, new inputs "
+             "are dropped to bound memory retention. Defaults to 1.",
+             1ul);
   spec.param(blocking_,
              "blocking",
              "Blocking",
@@ -61,26 +66,42 @@ void UcxxSenderOp::setup(holoscan::OperatorSpec& spec) {
   }
 }
 
+void UcxxSenderOp::stop() {
+  for (auto& req : requests_) {
+    if (req.header_request) { req.header_request->cancel(); }
+    if (req.data_request) { req.data_request->cancel(); }
+  }
+}
+
 void UcxxSenderOp::compute(holoscan::InputContext& input, holoscan::OutputContext&,
                            holoscan::ExecutionContext&) {
   auto in_message = input.receive<holoscan::gxf::Entity>("in").value();
 
   // Always clean up completed requests (even when disconnected).
   for (auto it = requests_.begin(); it != requests_.end();) {
-    if (!it->request || !it->request->isCompleted()) {
+    // Check if both header and data requests are completed
+    bool header_done = !it->header_request || it->header_request->isCompleted();
+    bool data_done = !it->data_request || it->data_request->isCompleted();
+    if (!header_done || !data_done) {
       ++it;
       continue;
     }
-    if (ucs_status_t status = it->request->getStatus(); status != UCS_OK) {
-      // Connection reset is expected when the subscriber disconnects/restarts.
-      if (status == UCS_ERR_CONNECTION_RESET || status == UCS_ERR_NOT_CONNECTED ||
-          status == UCS_ERR_UNREACHABLE || status == UCS_ERR_CANCELED) {
-        HOLOSCAN_LOG_WARN("Send failed (likely disconnect/reconnect) with status: {}",
-                          ucs_status_string(status));
-      } else {
-        HOLOSCAN_LOG_ERROR("Send failed with status: {}", ucs_status_string(status));
+
+    // Check status of both requests
+    auto check_status = [](const std::shared_ptr<::ucxx::Request>& req, const char* name) {
+      if (!req) return;
+      if (ucs_status_t status = req->getStatus(); status != UCS_OK) {
+        if (status == UCS_ERR_CONNECTION_RESET || status == UCS_ERR_NOT_CONNECTED ||
+            status == UCS_ERR_UNREACHABLE || status == UCS_ERR_CANCELED) {
+          HOLOSCAN_LOG_WARN("{} send failed (likely disconnect/reconnect) with status: {}",
+                            name, ucs_status_string(status));
+        } else {
+          HOLOSCAN_LOG_ERROR("{} send failed with status: {}", name, ucs_status_string(status));
+        }
       }
-    }
+    };
+    check_status(it->header_request, "Header");
+    check_status(it->data_request, "Data");
     it = requests_.erase(it);
   }
 
@@ -96,61 +117,42 @@ void UcxxSenderOp::compute(holoscan::InputContext& input, holoscan::OutputContex
   // If not connected (waiting for subscriber to connect, or after disconnect),
   // drop the message to avoid stalling upstream operators like Holoviz.
   if (!ucxx_endpoint) {
-    // Ensure we don't keep stale in-flight requests around while disconnected.
-    requests_.clear();
+    // Cancel any in-flight sends.
+    for (auto& req : requests_) {
+      if (req.cancel_requested) { continue; }
+      if (req.header_request && !req.header_request->isCompleted()) {
+        req.header_request->cancel();
+      }
+      if (req.data_request && !req.data_request->isCompleted()) { req.data_request->cancel(); }
+      req.cancel_requested = true;
+    }
     return;
   }
 
-  // Try to get tensor - first as holoscan::Tensor, then as nvidia::gxf::Tensor
-  // Use a pointer to handle both cases uniformly
-  nvidia::gxf::Tensor* gxf_tensor_ptr = nullptr;
-  std::shared_ptr<nvidia::gxf::Tensor> gxf_tensor_storage;  // For holoscan::Tensor case
-
-  const char* tensor_name = "";
-
-  auto maybe_holoscan_tensor = in_message.get<holoscan::Tensor>(tensor_name);
-  if (maybe_holoscan_tensor) {
-    // Convert holoscan::Tensor to nvidia::gxf::Tensor for serialization
-    gxf_tensor_storage = std::make_shared<nvidia::gxf::Tensor>(maybe_holoscan_tensor->dl_ctx());
-    if (!gxf_tensor_storage) {
-      HOLOSCAN_LOG_ERROR("Failed to convert holoscan::Tensor to nvidia::gxf::Tensor");
-      return;
-    }
-    gxf_tensor_ptr = gxf_tensor_storage.get();
-  } else {
-    // Try to get nvidia::gxf::Tensor directly by casting to nvidia::gxf::Entity
-    auto maybe_gxf_tensor =
-        static_cast<nvidia::gxf::Entity&>(in_message).get<nvidia::gxf::Tensor>(tensor_name);
-    if (!maybe_gxf_tensor) {
-      HOLOSCAN_LOG_ERROR("Failed to get tensor from input message (tried both "
-                         "holoscan::Tensor and nvidia::gxf::Tensor)");
-      return;
-    }
-    // Use the GXF tensor directly (Handle provides pointer-like access)
-    gxf_tensor_ptr = maybe_gxf_tensor.value().get();
+  // Bound outstanding buffer retention in case the network/receiver is slow.
+  if (requests_.size() >= static_cast<size_t>(max_in_flight_.get())) {
+    HOLOSCAN_LOG_WARN(
+        "Dropping input: too many in-flight sends ({} >= max_in_flight={})",
+        requests_.size(),
+        max_in_flight_.get());
+    return;
   }
 
-  // Calculate required buffer size for serialization
-  const size_t tensor_size =
-      gxf_tensor_ptr->element_count() * gxf_tensor_ptr->bytes_per_element();
-  const size_t buffer_size = sizeof(holoscan::ops::ucxx::TensorHeader) + tensor_size;
+  auto resolved = holoscan::ops::ucxx::resolveEntityBuffer(in_message);
+  if (!resolved) {
+    HOLOSCAN_LOG_ERROR("No sendable buffer found in input message");
+    return;
+  }
 
-  // Create a send request with pre-allocated buffer
   SendRequest& send = requests_.emplace_back();
-  send.buffer.resize(buffer_size);
+  send.keepalive_entity = in_message;
+  send.header = resolved->header;
 
-  // Serialize the tensor into the buffer
-  auto result = holoscan::ops::ucxx::serializeTensor(
-      *gxf_tensor_ptr, send.buffer.data(), send.buffer.size(), allocator_.get().get());
-  if (!result.has_value()) {
-    HOLOSCAN_LOG_ERROR("Failed to serialize tensor: {}", result.error().what());
-    requests_.pop_back();
-    return;
-  }
-
-  // Send the serialized tensor buffer
-  send.request =
-      ucxx_endpoint->tagSend(send.buffer.data(), result.value(), ::ucxx::Tag{tag_.get()});
+  const uint64_t tag_base = tag_.get();
+  send.header_request = ucxx_endpoint->tagSend(
+      &send.header, sizeof(holoscan::ops::ucxx::TensorHeader), ::ucxx::Tag{tag_base});
+  send.data_request = ucxx_endpoint->tagSend(
+      resolved->data_ptr, resolved->data_size, ::ucxx::Tag{tag_base + 1});
 }
 
 }  // namespace holoscan::ops

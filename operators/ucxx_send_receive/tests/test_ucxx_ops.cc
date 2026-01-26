@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-#include <thread>
 #include <random>
 
 #include <holoscan/holoscan.hpp>
@@ -145,8 +144,7 @@ class UcxxTestApp : public holoscan::Application {
     auto ucxx_tx = make_operator<holoscan::ops::UcxxSenderOp>(
         "ucxx_tx",
         holoscan::Arg("tag", 777ul),
-        holoscan::Arg("endpoint", ucxx_client_endpoint),
-        holoscan::Arg("allocator", tx_allocator));
+        holoscan::Arg("endpoint", ucxx_client_endpoint));
 
     auto ucxx_rx = make_operator<holoscan::ops::UcxxReceiverOp>(
         "ucxx_rx",
