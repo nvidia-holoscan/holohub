@@ -31,79 +31,16 @@
 #include <gst/pipeline.hpp>
 #include <gst_pipeline_bus_monitor.hpp>
 #include "pattern_generator.hpp"
+#include "../common/arg_parser.hpp"
 
 namespace {
-
-/**
- * @brief Convert string to numeric type (template specializations)
- *
- * @tparam T Numeric type to convert to
- * @param str String to convert
- * @param pos Pointer to size_t to store position after conversion
- * @return Converted value
- * @throws std::invalid_argument or std::out_of_range on conversion failure
- */
-template<typename T>
-T string_to(const std::string& str, size_t* pos);
-
-// Specialization for int
-template<>
-int string_to<int>(const std::string& str, size_t* pos) {
-  return std::stoi(str, pos);
-}
-
-// Specialization for int64_t
-template<>
-int64_t string_to<int64_t>(const std::string& str, size_t* pos) {
-  return std::stoll(str, pos);
-}
-
-/**
- * @brief Safely parse a numeric value with validation
- *
- * @tparam T Numeric type to parse (int, int64_t, etc.)
- * @param value_str String to parse
- * @param param_name Parameter name for error messages
- * @param min_value Minimum allowed value (inclusive)
- * @param max_value Maximum allowed value (inclusive)
- * @return Parsed and validated value
- * @throws std::invalid_argument if parsing fails or value is out of range
- */
-template<typename T>
-T parse_validated(const std::string& value_str, const std::string& param_name,
-                  T min_value, T max_value) {
-  try {
-    size_t pos = 0;
-    T value = string_to<T>(value_str, &pos);
-
-    // Check if entire string was consumed
-    if (pos != value_str.length()) {
-      throw std::invalid_argument("Invalid characters in value");
-    }
-
-    // Validate range
-    if (value < min_value || value > max_value) {
-      throw std::invalid_argument(
-          "Value " + std::to_string(value) + " is out of range [" +
-          std::to_string(min_value) + ", " + std::to_string(max_value) + "]");
-    }
-
-    return value;
-  } catch (const std::invalid_argument& e) {
-    throw std::invalid_argument(
-        "Invalid " + param_name + ": " + value_str + " (" + e.what() + ")");
-  } catch (const std::out_of_range& e) {
-    throw std::invalid_argument(
-        param_name + " value is too large: " + value_str);
-  }
-}
 
 /**
  * @brief Configuration parameters for the Holoscan to GStreamer bridge
  */
 struct AppConfig {
   int64_t iteration_count = INT64_MAX;  // Default: run forever
-  std::string pipeline_desc = "cudadownload name=first ! videoconvert ! autovideosink sync=false";
+  std::string pipeline_desc = "cudadownload name=src ! videoconvert ! autovideosink sync=false";
   std::string caps = "video/x-raw,format=RGBA";
   int width = 1920;
   int height = 1080;
@@ -147,10 +84,10 @@ void print_usage(const char* program_name) {
                  "(default: 1)\n";
     std::cout << "                            Only used when source=pattern\n";
     std::cout << "  -p, --pipeline <desc>    GStreamer pipeline description\n";
-    std::cout << "                            (default: cudadownload name=first ! "
+    std::cout << "                            (default: cudadownload name=src ! "
                  "videoconvert ! autovideosink sync=false)\n";
     std::cout << "                            IMPORTANT: Your pipeline MUST name the "
-                 "first element as 'first'\n";
+                 "first element as 'src'\n";
     std::cout << "  --caps <caps_string>     GStreamer capabilities string for the source\n";
     std::cout << "                            (default: video/x-raw,format=RGBA)\n";
     std::cout << "  --help                   Show this help message\n\n";
@@ -166,7 +103,7 @@ void print_usage(const char* program_name) {
                  "than uncompressed formats\n\n";
     std::cout << "Pipeline Requirements:\n";
     std::cout << "  - The first element in your pipeline MUST be "
-                 "named 'first'\n";
+                 "named 'src'\n";
     std::cout << "  - You can construct ANY GStreamer pipeline using "
                  "1000+ available plugins\n";
     std::cout << "  - The examples shown are just starting points for "
@@ -187,7 +124,7 @@ void print_usage(const char* program_name) {
     std::cout << "    " << program_name
                  << " --source v4l2 --width 3840 --height 2160 "
                  "--pixel-format MJPG --count 300 --pipeline "
-                 "\"cudaconvert name=first ! nvh264enc ! h264parse ! mp4mux ! "
+                 "\"cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! "
                  "filesink location=output_4k.mp4\"\n\n";
     std::cout << "  Display checkerboard pattern:\n";
     std::cout << "    " << program_name << " --pattern 1\n\n";
@@ -198,20 +135,20 @@ void print_usage(const char* program_name) {
                  << " --width 1280 --height 720 --framerate 60\n\n";
     std::cout << "  Save pattern to file (CPU-based encoding):\n";
     std::cout << "    " << program_name << " --count 300 --pipeline "
-                 "\"cudadownload name=first ! videoconvert ! x264enc ! mp4mux ! "
+                 "\"cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! "
                  "filesink location=/workspace/holohub/output.mp4\"\n\n";
     std::cout << "  Save pattern to file (GPU-based encoding):\n";
     std::cout << "    " << program_name << " --count 300 --pipeline "
-                 "\"cudaconvert name=first ! nvh264enc ! h264parse ! mp4mux ! "
+                 "\"cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! "
                  "filesink location=/workspace/holohub/output.mp4\"\n\n";
     std::cout << "  Record from V4L2 camera to file (1080p):\n";
     std::cout << "    " << program_name << " --source v4l2 --count 300 "
-                 "--pipeline \"cudadownload name=first ! videoconvert ! "
+                 "--pipeline \"cudadownload name=src ! videoconvert ! "
                  "x264enc ! mp4mux ! filesink "
                  "location=/workspace/holohub/camera.mp4\"\n\n";
     std::cout << "  Stream over network (RTP):\n";
     std::cout << "    " << program_name << " --pipeline "
-                 "\"cudaconvert name=first ! nvh264enc ! h264parse ! rtph264pay ! "
+                 "\"cudaconvert name=src ! nvh264enc ! h264parse ! rtph264pay ! "
                  "udpsink host=127.0.0.1 port=5000\"\n";
     std::cout << "  Receive stream: gst-launch-1.0 udpsrc port=5000 "
                  "caps=\\\"application/x-rtp,encoding-name=H264\\\" ! "
@@ -228,6 +165,8 @@ void print_usage(const char* program_name) {
  * @return true if parsing succeeded, false on error (prints error message internally)
  */
 bool parse_arguments(int argc, char** argv, AppConfig& config) {
+  using holoscan::gstreamer::common::parse_validated;
+
   try {
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
@@ -321,7 +260,8 @@ class AppPipelineBusMonitor : public holoscan::gst::PipelineBusMonitor {
     std::raise(SIGINT);
   }
 
-  void on_state_changed(GstState old_state, GstState new_state, GstState pending_state) override {
+  void on_state_changed(::GstState old_state, ::GstState new_state,
+                         ::GstState pending_state) override {
     // Call base implementation
     holoscan::gst::PipelineBusMonitor::on_state_changed(old_state, new_state, pending_state);
 
@@ -366,22 +306,22 @@ class GStreamerApp {
     // Add src element to pipeline
     pipeline_.add(src_element_);
 
-    // Find and link the "first" element
-    auto first_element = pipeline_.get_by_name("first");
-    if (!first_element) {
-      HOLOSCAN_LOG_ERROR("Could not find element named 'first' in pipeline");
-      HOLOSCAN_LOG_ERROR("Please name your first pipeline element as 'first', "
-                         "e.g.: 'videoconvert name=first'");
-      throw std::runtime_error("Could not find element named 'first' to "
-                               "connect from source");
+    // Find and link the "src" element
+    auto pipeline_src = pipeline_.get_by_name("src");
+    if (!pipeline_src) {
+      HOLOSCAN_LOG_ERROR("Could not find element named 'src' in pipeline");
+      HOLOSCAN_LOG_ERROR("Please name your first pipeline element as 'src', "
+                         "e.g.: 'videoconvert name=src'");
+      throw std::runtime_error("Could not find element named 'src' to "
+                               "connect from appsrc");
     }
 
-    HOLOSCAN_LOG_INFO("Linking source to {}", first_element.get_name());
+    HOLOSCAN_LOG_INFO("Linking appsrc to {}", pipeline_src.get_name());
 
-    if (!src_element_.link(first_element)) {
-      HOLOSCAN_LOG_ERROR("Failed to link source to {}",
-                         first_element.get_name());
-      throw std::runtime_error("Failed to link source to pipeline");
+    if (!src_element_.link(pipeline_src)) {
+      HOLOSCAN_LOG_ERROR("Failed to link appsrc to {}",
+                         pipeline_src.get_name());
+      throw std::runtime_error("Failed to link appsrc to pipeline");
     }
 
     HOLOSCAN_LOG_INFO("Pipeline setup complete");
@@ -396,7 +336,7 @@ class GStreamerApp {
 
     // Check pipeline state (non-fatal - pipeline may not reach PLAYING until data flows)
     // This is normal for appsrc-based pipelines, especially with file sinks
-    GstState state;
+    ::GstState state;
     auto state_result = pipeline_.get_state(&state, nullptr, 2 * GST_SECOND);
     if (state_result == GST_STATE_CHANGE_ASYNC || state == GST_STATE_PLAYING) {
       HOLOSCAN_LOG_INFO("GStreamer pipeline is PLAYING or transitioning to "
@@ -606,7 +546,8 @@ int main(int argc, char** argv) {
     }
 
     // Wait for the element to be ready with timeout
-    if (src_element_future.wait_for(std::chrono::seconds(1)) !=
+    // Use a reasonable timeout to account for GPU initialization, cold starts, etc.
+    if (src_element_future.wait_for(std::chrono::seconds(2)) !=
         std::future_status::ready) {
       throw std::runtime_error("Timeout waiting for source element "
                                "initialization");
@@ -622,12 +563,14 @@ int main(int argc, char** argv) {
         config.pipeline_desc, src_element);
 
     // Wait for Holoscan to finish generating frames
-    app_future.wait();
+    // Use get() instead of wait() to re-throw any exceptions from the async task
+    app_future.get();
     HOLOSCAN_LOG_INFO("Holoscan frame generation complete");
 
     // Wait for GStreamer to finish processing (EOS message on bus)
     HOLOSCAN_LOG_INFO("Waiting for GStreamer pipeline to finish");
-    gstreamer_app->get_bus_monitor_future().wait();
+    // Use get() to re-throw any exceptions from the bus monitor
+    gstreamer_app->get_bus_monitor_future().get();
 
     // Clean up GStreamer first (this stops the bus monitor and pipeline)
     // This must be done BEFORE Holoscan app goes out of scope to avoid

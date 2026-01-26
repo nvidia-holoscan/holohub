@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +15,17 @@
  * limitations under the License.
  */
 
-#include "app_src.hpp"
+#include "sample.hpp"
 
 namespace holoscan {
 namespace gst {
 
-// Currently no additional implementation needed beyond the header definitions
+Buffer Sample::get_buffer() const {
+  ::GstBuffer* buffer = nullptr;
+  if (!get() || !(buffer = gst_sample_get_buffer(get()))) return Buffer();
+  // Reference the buffer since gst_sample_get_buffer doesn't transfer ownership.
+  return Buffer(gst_buffer_ref(buffer));
+}
 
 }  // namespace gst
 }  // namespace holoscan

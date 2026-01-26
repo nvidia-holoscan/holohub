@@ -148,13 +148,13 @@ std::string get_muxer_from_extension(std::string& filename) {
  * @param encoder The encoder element (e.g., nvh264enc, x265enc)
  * @return The corresponding parser element name (e.g., "h264parse", "h265parse")
  */
-std::string get_parser_from_encoder(GstElement* encoder) {
+std::string get_parser_from_encoder(::GstElement* encoder) {
   if (!encoder) {
     throw std::runtime_error("Encoder element is null");
   }
 
   // Get the encoder factory from the element
-  GstElementFactory* factory = gst_element_get_factory(encoder);
+  ::GstElementFactory* factory = gst_element_get_factory(encoder);
   if (!factory) {
     throw std::runtime_error("Could not get factory from encoder element");
   }
@@ -164,7 +164,7 @@ std::string get_parser_from_encoder(GstElement* encoder) {
   // Get the src pad template (encoder output)
   const GList* pad_templates = gst_element_factory_get_static_pad_templates(factory);
   for (const GList* item = pad_templates; item != nullptr; item = item->next) {
-    GstStaticPadTemplate* templ = static_cast<GstStaticPadTemplate*>(item->data);
+    ::GstStaticPadTemplate* templ = static_cast<::GstStaticPadTemplate*>(item->data);
 
     // Look for src pad (output)
     if (templ->direction != GST_PAD_SRC) {
@@ -176,7 +176,7 @@ std::string get_parser_from_encoder(GstElement* encoder) {
 
     // Get the first structure (media type)
     if (caps.get_size() > 0) {
-      GstStructure* structure = caps.get_structure(0);
+      ::GstStructure* structure = caps.get_structure(0);
       const char* media_type = gst_structure_get_name(structure);
 
       if (media_type) {
@@ -326,7 +326,7 @@ void add_and_link_source_converter(holoscan::gst::Pipeline& pipeline,
   pipeline.add_many(src_element, converter);
 
   // Set elements to PLAYING state to match the pipeline
-  GstStateChangeReturn ret = src_element.set_state(GST_STATE_PLAYING);
+  ::GstStateChangeReturn ret = src_element.set_state(GST_STATE_PLAYING);
   if (ret == GST_STATE_CHANGE_FAILURE) {
     throw std::runtime_error("Failed to set source element to PLAYING state");
   }
@@ -491,7 +491,7 @@ void GstVideoRecorderOp::start() {
       "detected storage type");
 
   // Start the GStreamer pipeline
-  GstStateChangeReturn ret = pipeline_.set_state(GST_STATE_PLAYING);
+  ::GstStateChangeReturn ret = pipeline_.set_state(GST_STATE_PLAYING);
   if (ret == GST_STATE_CHANGE_FAILURE) {
     HOLOSCAN_LOG_ERROR("Failed to start GStreamer pipeline");
     throw std::runtime_error("Failed to start GStreamer pipeline");
@@ -524,14 +524,27 @@ void GstVideoRecorderOp::compute(InputContext& input, OutputContext& output,
   if (!src_bridge_) {
     HOLOSCAN_LOG_INFO("Frame #{} - First frame, detecting video parameters from tensor",
                       frame_count_);
+
+    // Validate tensor map is not empty
+    if (tensor_map.empty()) {
+      HOLOSCAN_LOG_ERROR("Frame #{} - Received empty TensorMap, cannot initialize bridge",
+                         frame_count_);
+      return;
+    }
+
+    // Check tensor device type before creating bridge
+    // (caps negotiation hasn't happened yet, so we can't rely on current caps)
+    const auto& first_tensor_ptr = tensor_map.begin()->second;
+    auto device = first_tensor_ptr->device();
+    bool is_device_memory = (device.device_type == kDLCUDA || device.device_type == kDLCUDAManaged);
+
     // Create bridge from tensor map (detects video parameters automatically)
     src_bridge_ = create_src_bridge_from_tensor_map(
         tensor_map, name(), format_.get(), framerate_.get(), max_buffers_.get(), block_.get());
     HOLOSCAN_LOG_INFO("Bridge created");
 
-    // Create appropriate converter based on storage type and add to pipeline
-    auto converter = create_converter_element(
-        src_bridge_->get_caps().has_feature(GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY));
+    // Create appropriate converter based on tensor storage type
+    auto converter = create_converter_element(is_device_memory);
     // Add source and converter to pipeline and link them to encoder
     gst::Element src_element = src_bridge_->get_gst_element();
     add_and_link_source_converter(pipeline_, src_element, converter, encoder_);
@@ -585,7 +598,7 @@ void GstVideoRecorderOp::stop() {
   // Now it's safe to set pipeline to NULL
   if (pipeline_) {
     HOLOSCAN_LOG_INFO("Setting pipeline to NULL state");
-    GstStateChangeReturn ret = pipeline_.set_state(GST_STATE_NULL);
+    ::GstStateChangeReturn ret = pipeline_.set_state(GST_STATE_NULL);
     if (ret == GST_STATE_CHANGE_FAILURE) {
       HOLOSCAN_LOG_WARN("Failed to set pipeline to NULL state");
     }

@@ -4,7 +4,7 @@ A Holoscan application that pushes video data from Holoscan operators into GStre
 
 ![Holoscan to GStreamer Bridge Pipeline](docs/pipeline_diagram.png)
 
-*Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's flexible processing pipeline*
+Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's flexible processing pipeline
 
 ## Description
 
@@ -17,7 +17,7 @@ This application showcases how to:
 - Use different video codecs and effects through GStreamer plugins
 - Support both host and CUDA device memory for zero-copy operation
 
-**Key Feature: Custom Pipeline Construction**
+### Key Feature: Custom Pipeline Construction
 
 The application provides a flexible bridge between Holoscan and GStreamer. You can construct **any GStreamer pipeline** you want - the examples provided are just demonstrations. This enables unlimited possibilities:
 - Video encoding (H.264, H.265, VP8, VP9, AV1, etc.)
@@ -78,8 +78,8 @@ No setup required - all dependencies are included in the container:
 For faster builds and easier debugging. First install dependencies, then build locally:
 
 ```bash
-# From the holo_to_gst directory
-./install_deps.sh
+# Install dependencies (from workspace root)
+./applications/gstreamer/install_deps.sh
 
 # Then build locally
 ./holohub build --local holo_to_gst
@@ -122,8 +122,8 @@ holo-to-gst [OPTIONS]
 - `--source <type>` - Video source: `pattern` or `v4l2` (default: pattern)
 - `-c, --count <number>` - Number of frames to capture/generate (default: unlimited)
 - `-f, --framerate <fps>` - Frame rate in frames per second (default: 30)
-- `-p, --pipeline <desc>` - GStreamer pipeline description (default: `cudadownload name=first ! videoconvert ! autovideosink sync=false`)
-  - **IMPORTANT**: Your pipeline MUST name the first element as 'first'
+- `-p, --pipeline <desc>` - GStreamer pipeline description (default: `cudadownload name=src ! videoconvert ! autovideosink sync=false`)
+  - **IMPORTANT**: Your pipeline MUST name the first element as 'src'
   - **Build any pipeline you want**: The examples are just suggestions - you have full access to GStreamer's 1000+ plugins
   - **Examples**: encoding, streaming, effects, filters, multi-output, custom plugins, etc.
 - `--caps <caps_string>` - GStreamer capabilities for the source (default: `video/x-raw,format=RGBA`)
@@ -177,7 +177,7 @@ holo-to-gst [OPTIONS]
 **Record from default V4L2 camera (30 seconds at 30 FPS, 1080p):**
 
 ```bash
-./holohub run holo_to_gst v4l2 --run-args="--count 900 --pipeline 'cudadownload name=first ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/camera.mp4'"
+./holohub run holo_to_gst v4l2 --run-args="--count 900 --pipeline 'cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/camera.mp4'"
 ```
 
 The output file will be available at `holohub/camera.mp4` on your host.
@@ -185,13 +185,13 @@ The output file will be available at `holohub/camera.mp4` on your host.
 **Record at 720p resolution with GPU encoder:**
 
 ```bash
-./holohub run holo_to_gst v4l2 --run-args="--width 1280 --height 720 --count 600 --pipeline 'cudaconvert name=first ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/camera_720p.mp4'"
+./holohub run holo_to_gst v4l2 --run-args="--width 1280 --height 720 --count 600 --pipeline 'cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/camera_720p.mp4'"
 ```
 
 **Record in 4K (may require MJPG format for high resolution):**
 
 ```bash
-./holohub run holo_to_gst v4l2 --run-args="--width 3840 --height 2160 --pixel-format MJPG --count 300 --pipeline 'cudaconvert name=first ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/camera_4k.mp4'"
+./holohub run holo_to_gst v4l2 --run-args="--width 3840 --height 2160 --pixel-format MJPG --count 300 --pipeline 'cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/camera_4k.mp4'"
 ```
 
 **Stream camera over network (RTP):**
@@ -205,7 +205,7 @@ gst-launch-1.0 udpsrc port=5000 caps="application/x-rtp,encoding-name=H264" ! rt
 
 Terminal 2 - Then start streaming (no --count for continuous streaming):
 ```bash
-./holohub run holo_to_gst v4l2 --run-args="--pipeline 'cudaconvert name=first ! nvh264enc ! h264parse ! rtph264pay ! udpsink host=127.0.0.1 port=5000'"
+./holohub run holo_to_gst v4l2 --run-args="--pipeline 'cudaconvert name=src ! nvh264enc ! h264parse ! rtph264pay ! udpsink host=127.0.0.1 port=5000'"
 ```
 
 **Checking Camera Capabilities:**
@@ -237,13 +237,13 @@ v4l2-ctl --list-formats-ext -d /dev/video0
 **Record pattern to file (10 seconds at 30 FPS):**
 
 ```bash
-./holohub run holo_to_gst pattern --run-args="--count 300 --pipeline 'cudadownload name=first ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output.mp4'"
+./holohub run holo_to_gst pattern --run-args="--count 300 --pipeline 'cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output.mp4'"
 ```
 
 **Record 720p video:**
 
 ```bash
-./holohub run holo_to_gst pattern --run-args="--width 1280 --height 720 --count 300 --pipeline 'cudadownload name=first ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output_720p.mp4'"
+./holohub run holo_to_gst pattern --run-args="--width 1280 --height 720 --count 300 --pipeline 'cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output_720p.mp4'"
 ```
 
 **Stream pattern over network:**
@@ -255,7 +255,7 @@ gst-launch-1.0 udpsrc port=5000 caps="application/x-rtp,encoding-name=H264" ! rt
 
 Terminal 2 - Then start streaming:
 ```bash
-./holohub run holo_to_gst pattern --run-args="--pipeline 'cudadownload name=first ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000'"
+./holohub run holo_to_gst pattern --run-args="--pipeline 'cudadownload name=src ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000'"
 ```
 
 ## Architecture
@@ -287,12 +287,12 @@ PatternGenOperator → GstSrcOp → GStreamer Pipeline → Output
 
 The GStreamer pipeline is user-defined and can include any GStreamer elements:
 
-- **Display**: `cudadownload ! videoconvert ! autovideosink`
-- **CPU Encoding**: `cudadownload ! videoconvert ! x264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/output.mp4`
-- **GPU Encoding**: `cudaconvert ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/output.mp4`
-- **Streaming**: `cudaconvert ! nvh264enc ! h264parse ! rtph264pay ! udpsink host=<ip> port=<port>`
-- **Effects**: `cudadownload ! videoconvert ! videoflip ! videobalance ! autovideosink`
-- **Multi-output**: `cudadownload ! videoconvert ! tee ! [multiple outputs]`
+- **Display**: `cudadownload name=src ! videoconvert ! autovideosink`
+- **CPU Encoding**: `cudadownload name=src ! videoconvert ! x264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/output.mp4`
+- **GPU Encoding**: `cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/output.mp4`
+- **Streaming**: `cudaconvert name=src ! nvh264enc ! h264parse ! rtph264pay ! udpsink host=<ip> port=<port>`
+- **Effects**: `cudadownload name=src ! videoconvert ! videoflip ! videobalance ! autovideosink`
+- **Multi-output**: `cudadownload name=src ! videoconvert ! tee ! [multiple outputs]`
 - **Custom**: Any combination of GStreamer plugins - the possibilities are endless!
 
 **Pipeline Flexibility**: You have full access to GStreamer's ecosystem of 1000+ plugins. Build complex pipelines for your specific needs - these examples just scratch the surface.
@@ -339,7 +339,7 @@ The application supports both host and device (CUDA) memory:
 
 ### GStreamer Pipeline
 
-- **Pipeline element naming**: The first element MUST be named 'first' for proper linking
+- **Pipeline element naming**: The first element MUST be named 'src' for proper linking
 - **Full customization**: You can use ANY GStreamer elements and build any pipeline you need
 - **Examples provided are starting points**: Modify, combine, or create entirely new pipelines
 - **GPU pipelines**: Use `cudaconvert` to keep data on GPU (best for GPU encoders)
@@ -357,12 +357,12 @@ The application supports both host and device (CUDA) memory:
 
 When running through `holohub run` (in a container), use absolute paths for file output:
 - Inside container: `/workspace/holohub/filename.mp4`
-- On your host: `/home/ubuntu/repos/holohub/filename.mp4` (or your workspace path)
+- On your host: `<workspace_path>/filename.mp4` (wherever your holohub workspace is located)
 
 The container mounts your workspace root at `/workspace/holohub`, so files written there are accessible on your host.
 
 ## See Also
 
 - `gst_video_recorder` - Records video to files using GStreamer encoding
-- [GStreamer documentation](https://gstreamer.freedesktop.org/documentation/)
+- [GStreamer documentation](https://gstreamer.freedesktop.org/)
 - [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/)

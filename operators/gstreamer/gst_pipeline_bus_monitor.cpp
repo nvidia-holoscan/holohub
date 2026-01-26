@@ -86,8 +86,8 @@ void PipelineBusMonitor::on_eos() {
   HOLOSCAN_LOG_INFO("End of stream reached");
 }
 
-void PipelineBusMonitor::on_state_changed(GstState old_state, GstState new_state,
-                                          GstState pending_state) {
+void PipelineBusMonitor::on_state_changed(::GstState old_state, ::GstState new_state,
+                                          ::GstState pending_state) {
   // Default implementation: check for unexpected NULL state transition
   if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
     HOLOSCAN_LOG_INFO("Pipeline transitioned to NULL state");
@@ -100,7 +100,7 @@ void PipelineBusMonitor::monitor_loop() {
   while (!stop_flag_.load()) {
     Message msg = bus.timed_pop_filtered(
         100 * GST_MSECOND,
-        static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS |
+        static_cast<::GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS |
                                     GST_MESSAGE_STATE_CHANGED));
 
     if (msg) {
@@ -111,6 +111,7 @@ void PipelineBusMonitor::monitor_loop() {
           on_error(error, debug_info);
 
           // Error terminates monitoring
+          stop_flag_.store(true);
           completion_promise_.set_value();
           return;
         }
@@ -119,19 +120,21 @@ void PipelineBusMonitor::monitor_loop() {
           on_eos();
 
           // EOS terminates monitoring
+          stop_flag_.store(true);
           completion_promise_.set_value();
           return;
 
         case GST_MESSAGE_STATE_CHANGED: {
           // Only handle state changes from the pipeline itself (not individual elements)
           if (GST_MESSAGE_SRC(msg.get()) == GST_OBJECT(pipeline_.get())) {
-            GstState old_state, new_state, pending_state;
+            ::GstState old_state, new_state, pending_state;
             msg.parse_state_changed(&old_state, &new_state, &pending_state);
 
             on_state_changed(old_state, new_state, pending_state);
 
             // If pipeline transitions to NULL, stop monitoring
             if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
+              stop_flag_.store(true);
               completion_promise_.set_value();
               return;
             }

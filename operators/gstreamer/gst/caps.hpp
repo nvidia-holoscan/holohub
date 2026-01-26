@@ -77,7 +77,7 @@ class Caps : public MiniObjectBase<Caps, ::GstCaps> {
    * nullptr/empty/invalid or index is out of bounds
    * @note The returned structure is owned by the caps and should not be freed
    */
-  GstStructure* get_structure(guint index = 0) const;
+  ::GstStructure* get_structure(guint index = 0) const;
 
   /**
    * @brief Extract video format information from caps

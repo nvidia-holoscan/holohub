@@ -56,7 +56,7 @@ class ElementBase : public ObjectBase<Derived, NativeType> {
   /// @brief Set the state of this element
   /// @param state The target GstState (e.g., GST_STATE_NULL, GST_STATE_PLAYING)
   /// @returns The result of the state change operation
-  GstStateChangeReturn set_state(GstState state) {
+  ::GstStateChangeReturn set_state(::GstState state) {
     return gst_element_set_state(GST_ELEMENT(this->get()), state);
   }
 
@@ -65,8 +65,8 @@ class ElementBase : public ObjectBase<Derived, NativeType> {
   /// @param pending Pointer to store the pending state (can be nullptr)
   /// @param timeout Timeout in nanoseconds (GST_CLOCK_TIME_NONE for infinite, 0 for immediate)
   /// @returns The result of the state query operation
-  GstStateChangeReturn get_state(GstState* state, GstState* pending,
-                                  GstClockTime timeout = GST_CLOCK_TIME_NONE) const {
+  ::GstStateChangeReturn get_state(::GstState* state, ::GstState* pending,
+                                  ::GstClockTime timeout = GST_CLOCK_TIME_NONE) const {
     return gst_element_get_state(GST_ELEMENT(this->get()), state, pending, timeout);
   }
 

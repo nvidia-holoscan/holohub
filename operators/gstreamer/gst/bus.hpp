@@ -45,11 +45,18 @@ class BusBase : public ObjectBase<Derived, NativeType> {
   explicit BusBase(ObjectBase<Derived, NativeType>&& other)
       : ObjectBase<Derived, NativeType>(std::move(other)) {}
 
+  /// @brief Pop a message from the bus with filtering (non-blocking)
+  /// @param types Bitwise OR of ::GstMessageType values to filter for
+  /// @returns A Message wrapper for the popped message (may be empty if no matching message)
+  Message pop_filtered(::GstMessageType types) const {
+    return Message(gst_bus_pop_filtered(GST_BUS(this->get()), types));
+  }
+
   /// @brief Pop a message from the bus with timeout and filtering
   /// @param timeout Timeout in nanoseconds (use GST_MSECOND, GST_SECOND macros)
-  /// @param types Bitwise OR of GstMessageType values to filter for
+  /// @param types Bitwise OR of ::GstMessageType values to filter for
   /// @returns A Message wrapper for the popped message (may be empty if timeout/no match)
-  Message timed_pop_filtered(GstClockTime timeout, GstMessageType types) const {
+  Message timed_pop_filtered(::GstClockTime timeout, ::GstMessageType types) const {
     return Message(gst_bus_timed_pop_filtered(GST_BUS(this->get()), timeout, types));
   }
 };

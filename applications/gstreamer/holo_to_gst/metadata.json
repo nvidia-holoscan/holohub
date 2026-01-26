@@ -36,33 +36,33 @@
 			"aarch64",
 			"x86_64"
 		],
-	"tags": ["Video", "GStreamer", "Streaming", "Source", "Camera", "V4L2"],
-	"ranking": 2,
-	"description": "Push Holoscan video data into GStreamer pipelines. Supports V4L2 cameras and pattern generators. Bridge data from Holoscan to GStreamer for encoding, streaming, or processing.",
-	"default_mode": "help",
-	"modes": {
-		"help": {
-			"description": "Show usage information and available options",
-			"run": {
-				"command": "applications/gstreamer/holo_to_gst/holo-to-gst --help",
-				"workdir": "holohub_bin"
-			}
-		},
-		"pattern": {
-			"description": "Stream pattern generator video to GStreamer",
-			"run": {
-				"command": "applications/gstreamer/holo_to_gst/holo-to-gst --source pattern --storage 1 --framerate 30 --pipeline 'cudadownload name=first ! videoconvert ! autovideosink sync=false'",
-				"workdir": "holohub_bin"
-			}
-		},
-		"v4l2": {
-			"description": "Stream video from a V4L2 camera to GStreamer",
-			"run": {
-				"command": "applications/gstreamer/holo_to_gst/holo-to-gst --source v4l2 --storage 1 --pipeline 'cudadownload name=first ! videoconvert ! autovideosink'",
-				"workdir": "holohub_bin"
+		"tags": ["Video", "GStreamer", "Streaming", "Source", "Camera", "V4L2"],
+		"ranking": 2,
+		"description": "Push Holoscan video data into GStreamer pipelines. Supports V4L2 cameras and pattern generators. Bridge data from Holoscan to GStreamer for encoding, streaming, or processing.",
+		"default_mode": "help",
+		"modes": {
+			"help": {
+				"description": "Show usage information and available options",
+				"run": {
+					"command": "applications/gstreamer/holo_to_gst/holo-to-gst --help",
+					"workdir": "holohub_bin"
+				}
+			},
+			"pattern": {
+				"description": "Stream pattern generator video to GStreamer",
+				"run": {
+					"command": "applications/gstreamer/holo_to_gst/holo-to-gst --source pattern --storage 1 --framerate 30 --pipeline 'cudadownload name=src ! videoconvert ! autovideosink sync=false'",
+					"workdir": "holohub_bin"
+				}
+			},
+			"v4l2": {
+				"description": "Stream video from a V4L2 camera to GStreamer",
+				"run": {
+					"command": "applications/gstreamer/holo_to_gst/holo-to-gst --source v4l2 --storage 1 --pipeline 'cudadownload name=src ! videoconvert ! autovideosink'",
+					"workdir": "holohub_bin"
+				}
 			}
 		}
-	}
 	}
 }
 
