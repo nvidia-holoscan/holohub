@@ -1,0 +1,39 @@
+{
+	"operator": {
+		"name": "ST2110SourceOp",
+		"authors": [
+			{
+				"name": "Oliver Cleveley-Jones",
+				"affiliation": "XRlabs"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release - SMPTE ST 2110-20 video ingestion via Linux sockets"
+		},
+		"language": ["C++", "Python"],
+		"holoscan_sdk": {
+			"minimum_required_version": "3.7.0",
+			"tested_versions": [
+				"3.7.0",
+				"3.10.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Video Capture", "Network", "ST 2110", "Sockets", "Broadcast"],
+		"ranking": 1,
+		"requirements": {
+			"hardware": [
+				{
+					"name": "NVIDIA Thor AGX with MGBE",
+					"description": "Network interface with multicast support"
+
+				}
+			],
+			"software": []
+		}
+	}
+}
