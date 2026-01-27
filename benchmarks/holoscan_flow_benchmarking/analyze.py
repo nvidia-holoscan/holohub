@@ -372,7 +372,8 @@ def main():
                     print_path_metric_ms(path, str(round(np.max(latency), 2)))
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
-            if paths_latencies and len(latency) > 0:
+                if len(latency) == 0:
+                    continue
                 if args.cdash:
                     print(
                         f'<CTestMeasurement type="numeric/double" name="maximum_latency_{group_name}">'
