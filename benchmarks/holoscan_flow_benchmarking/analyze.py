@@ -370,8 +370,9 @@ def main():
                     print_path_metric_ms(path, "Not enough samples", unit="")
                 else:
                     print_path_metric_ms(path, str(round(np.max(latency), 2)))
-            path, latency = next(iter(paths_latencies.items()))
-            if len(latency) > 0:
+            if paths_latencies:
+                path, latency = next(iter(paths_latencies.items()))
+            if paths_latencies and len(latency) > 0:
                 if args.cdash:
                     print(
                         f'<CTestMeasurement type="numeric/double" name="maximum_latency_{group_name}">'
@@ -394,8 +395,9 @@ def main():
                     print_path_metric_ms(path, "Not enough samples", unit="")
                 else:
                     print_path_metric_ms(path, str(round(np.mean(latency), 2)))
-            path, latency = next(iter(paths_latencies.items()))
-            if len(latency) > 0:
+            if paths_latencies:
+                path, latency = next(iter(paths_latencies.items()))
+            if paths_latencies and len(latency) > 0:
                 if args.cdash:
                     print(
                         f'<CTestMeasurement type="numeric/double" name="average_latency_{group_name}">'
@@ -418,8 +420,9 @@ def main():
                     print_path_metric_ms(path, "Not enough samples", unit="")
                 else:
                     print_path_metric_ms(path, str(round(np.median(latency), 2)))
-            path, latency = next(iter(paths_latencies.items()))
-            if len(latency) > 0:
+            if paths_latencies:
+                path, latency = next(iter(paths_latencies.items()))
+            if paths_latencies and len(latency) > 0:
                 if args.cdash:
                     print(
                         f'<CTestMeasurement type="numeric/double" name="median_latency_{group_name}">'
@@ -442,8 +445,9 @@ def main():
                     print_path_metric_ms(path, "Not enough samples", unit="")
                 else:
                     print_path_metric_ms(path, str(round(np.std(latency), 2)))
-            path, latency = next(iter(paths_latencies.items()))
-            if len(latency) > 0:
+            if paths_latencies:
+                path, latency = next(iter(paths_latencies.items()))
+            if paths_latencies and len(latency) > 0:
                 if args.cdash:
                     print(
                         f'<CTestMeasurement type="numeric/double" name="stddev_latency_{group_name}">'
@@ -466,8 +470,9 @@ def main():
                     print_path_metric_ms(path, "Not enough samples", unit="")
                 else:
                     print_path_metric_ms(path, str(round(min(latency), 2)))
-            path, latency = next(iter(paths_latencies.items()))
-            if len(latency) > 0:
+            if paths_latencies:
+                path, latency = next(iter(paths_latencies.items()))
+            if paths_latencies and len(latency) > 0:
                 if args.cdash:
                     print(
                         f'<CTestMeasurement type="numeric/double" name="min_latency_{group_name}">'
@@ -490,8 +495,9 @@ def main():
                     print_path_metric_ms(path, "Not enough samples", unit="")
                 else:
                     print_path_metric_ms(path, get_latency_difference(latency, 95, 100))
-            path, latency = next(iter(paths_latencies.items()))
-            if len(latency) > 0:
+            if paths_latencies:
+                path, latency = next(iter(paths_latencies.items()))
+            if paths_latencies and len(latency) > 0:
                 latency_tail_one_path = str(get_latency_difference(latency, 95, 100))
                 if args.cdash:
                     print(
@@ -515,8 +521,9 @@ def main():
                     print_path_metric_ms(path, "Not enough samples", unit="")
                 else:
                     print_path_metric_ms(path, get_latency_difference(latency, 10, 90))
-            path, latency = next(iter(paths_latencies.items()))
-            if len(latency) > 0:
+            if paths_latencies:
+                path, latency = next(iter(paths_latencies.items()))
+            if paths_latencies and len(latency) > 0:
                 latency_flatness_one_path = str(get_latency_difference(latency, 10, 90))
                 if args.cdash:
                     print(
@@ -546,8 +553,9 @@ def main():
                             latency_percentile(latency, float(percentile))
                         )
                         print_path_metric_ms(path, latency_percentile_str)
-                path, latency = next(iter(paths_latencies.items()))
-                if len(latency) > 0:
+                if paths_latencies:
+                    path, latency = next(iter(paths_latencies.items()))
+                if paths_latencies and len(latency) > 0:
                     latency_percentile_filtered_one_path = "{:.2f}".format(
                         latency_percentile(latency, float(percentile))
                     )
@@ -565,7 +573,10 @@ def main():
     if args.draw_cdf:
         fig, ax = init_cdf_plot()
         for group_name, paths_latencies in grouped_path_latencies.items():
-            draw_cdf(ax, paths_latencies[list(paths_latencies.keys())[0]], group_name)
+            if paths_latencies:
+                first_path_latency = paths_latencies[list(paths_latencies.keys())[0]]
+                if len(first_path_latency) > 0:
+                    draw_cdf(ax, first_path_latency, group_name)
         complete_cdf_plot(fig, ax)
         plt.tight_layout()
         plt.savefig(args.draw_cdf, bbox_inches="tight")
@@ -585,7 +596,8 @@ def main():
         operator_legends = {}
         for group_name, paths_latencies in grouped_path_latencies.items():
             for path, latency in paths_latencies.items():
-                draw_cdf(ax, latency, group_name + "-" + shorten_path(path, operator_legends))
+                if len(latency) > 0:
+                    draw_cdf(ax, latency, group_name + "-" + shorten_path(path, operator_legends))
         complete_cdf_plot(fig, ax, operator_legends=operator_legends)
         plt.tight_layout()
         plt.savefig(args.draw_cdf_paths, bbox_inches="tight")
