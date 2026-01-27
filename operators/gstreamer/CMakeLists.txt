@@ -32,14 +32,17 @@ pkg_check_modules(GSTREAMER_APP REQUIRED gstreamer-app-1.0)
 
 # Create the Holoscan GStreamer Bridge library
 add_library(holoscan_gstreamer_bridge SHARED
-  gst/app_src.cpp
   gst/buffer.cpp
   gst/caps.cpp
   gst/memory.cpp
   gst/message.cpp
+  gst/sample.cpp
   gst/video_info.cpp
   gst_src_bridge.cpp
+  gst_src_op.cpp
+  gst_src_resource.cpp
   gst_video_recorder_op.cpp
+  gst_pipeline_bus_monitor.cpp
 )
 
 # Create alias for consistent naming
@@ -130,9 +133,13 @@ install(FILES
   gst/object.hpp
   gst/pad.hpp
   gst/pipeline.hpp
+  gst/sample.hpp
   gst/video_info.hpp
   gst_src_bridge.hpp
+  gst_src_op.hpp
+  gst_src_resource.hpp
   gst_video_recorder_op.hpp
+  gst_pipeline_bus_monitor.hpp
   DESTINATION include/holoscan/operators/gstreamer)
 
 # Export the library for use by other CMake projects
