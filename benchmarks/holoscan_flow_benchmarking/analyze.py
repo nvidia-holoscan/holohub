@@ -42,7 +42,17 @@ def merge_path_latencies(multiple_path_latencies, skip_begin_messages=10, discar
     merged_path_latencies = {}
     for path_latencies in multiple_path_latencies:
         for path, latencies in path_latencies.items():
-            modified_latencies = latencies[skip_begin_messages:-discard_last_messages]
+            total_to_remove = skip_begin_messages + discard_last_messages
+            if len(latencies) <= total_to_remove:
+                # Not enough samples, keep path but with empty list
+                if path not in merged_path_latencies:
+                    merged_path_latencies[path] = []
+                continue
+            # Handle slicing: -0 equals 0, so latencies[x:-0] would be empty
+            if discard_last_messages == 0:
+                modified_latencies = latencies[skip_begin_messages:]
+            else:
+                modified_latencies = latencies[skip_begin_messages:-discard_last_messages]
             if path in merged_path_latencies:
                 merged_path_latencies[path].extend(modified_latencies)
             else:
@@ -144,10 +154,14 @@ def shorten_path(path, operator_legends, path_separator="→ "):
             operator_legends[modified_operator_name] = operator
         else:
             if operator_legends[modified_operator_name] != operator:
-                print(f"\033[91mERROR: Operator {operator} has the same first 3 letters\
-                      as {operator_legends[modified_operator_name]}\033[0m")
-                print("\033[91mCDF Curve legends for operators cannot be created. \
-                    CDF Curve creation aborted.\033[0m")
+                print(
+                    f"\033[91mERROR: Operator {operator} has the same first 3 letters\
+                      as {operator_legends[modified_operator_name]}\033[0m"
+                )
+                print(
+                    "\033[91mCDF Curve legends for operators cannot be created. \
+                    CDF Curve creation aborted.\033[0m"
+                )
                 sys.exit(1)
         modified_operators.append(modified_operator_name)
     return path_separator.join(modified_operators)
@@ -176,10 +190,13 @@ def print_group_name_with_log_files(group_name, log_files):
     print("--------------------")
 
 
-def print_path_metric_ms(path, metric_ms):
+def print_path_metric_ms(path, metric_ms, unit="ms"):
     # print path in blue background
     # print metric_ms in bold and blue foregoround color
-    print("\033[1mPath:" + "\033[0m " + path + ": \033[1m\033[94m" + str(metric_ms) + " ms\033[0m")
+    suffix = f" {unit}" if unit else ""
+    print(
+        "\033[1mPath:" + "\033[0m " + path + ": \033[1m\033[94m" + str(metric_ms) + suffix + "\033[0m"
+    )
 
 
 def print_metric(metric_title, metric_value):
@@ -211,9 +228,7 @@ def main():
         help="show the standard deviation of latencies for all paths",
     )
 
-    parser.add_argument(
-        "--min", action="store_true", help="show the minimum latencies for all paths"
-    )
+    parser.add_argument("--min", action="store_true", help="show the minimum latencies for all paths")
 
     parser.add_argument(
         "--tail",
@@ -329,9 +344,7 @@ def main():
             current_group_name = group[-1]
             current_log_files = group[:-1]
         if len(current_log_files) == 0:
-            print(
-                "\033[91mError: No log files provided for group: " + current_group_name + "\033[0m"
-            )
+            print("\033[91mError: No log files provided for group: " + current_group_name + "\033[0m")
             sys.exit(1)
         parsed_latencies_per_file = []
         for log_file in current_log_files:
@@ -347,17 +360,21 @@ def main():
         for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
-                print_path_metric_ms(path, str(round(np.max(latency), 2)))
+                if len(latency) == 0:
+                    print_path_metric_ms(path, "Not enough samples", unit="")
+                else:
+                    print_path_metric_ms(path, str(round(np.max(latency), 2)))
             path, latency = next(iter(paths_latencies.items()))
-            if args.cdash:
-                print(
-                    f'<CTestMeasurement type="numeric/double" name="maximum_latency_{group_name}">'
-                    + str(round(np.max(latency), 2))
-                    + "</CTestMeasurement>"
-                )
-            if args.save_csv:
-                with open("max_values.csv", "a") as f:
-                    f.write(str(round(np.max(latency), 2)) + ",")
+            if len(latency) > 0:
+                if args.cdash:
+                    print(
+                        f'<CTestMeasurement type="numeric/double" name="maximum_latency_{group_name}">'
+                        + str(round(np.max(latency), 2))
+                        + "</CTestMeasurement>"
+                    )
+                if args.save_csv:
+                    with open("max_values.csv", "a") as f:
+                        f.write(str(round(np.max(latency), 2)) + ",")
 
     if args.avg:
         if args.save_csv:
@@ -367,17 +384,21 @@ def main():
         for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
-                print_path_metric_ms(path, str(round(np.mean(latency), 2)))
+                if len(latency) == 0:
+                    print_path_metric_ms(path, "Not enough samples", unit="")
+                else:
+                    print_path_metric_ms(path, str(round(np.mean(latency), 2)))
             path, latency = next(iter(paths_latencies.items()))
-            if args.cdash:
-                print(
-                    f'<CTestMeasurement type="numeric/double" name="average_latency_{group_name}">'
-                    + str(round(np.mean(latency), 2))
-                    + "</CTestMeasurement>"
-                )
-            if args.save_csv:
-                with open("avg_values.csv", "a") as f:
-                    f.write(str(round(np.mean(latency), 2)) + ",")
+            if len(latency) > 0:
+                if args.cdash:
+                    print(
+                        f'<CTestMeasurement type="numeric/double" name="average_latency_{group_name}">'
+                        + str(round(np.mean(latency), 2))
+                        + "</CTestMeasurement>"
+                    )
+                if args.save_csv:
+                    with open("avg_values.csv", "a") as f:
+                        f.write(str(round(np.mean(latency), 2)) + ",")
 
     if args.median:
         if args.save_csv:
@@ -387,17 +408,21 @@ def main():
         for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
-                print_path_metric_ms(path, str(round(np.median(latency), 2)))
+                if len(latency) == 0:
+                    print_path_metric_ms(path, "Not enough samples", unit="")
+                else:
+                    print_path_metric_ms(path, str(round(np.median(latency), 2)))
             path, latency = next(iter(paths_latencies.items()))
-            if args.cdash:
-                print(
-                    f'<CTestMeasurement type="numeric/double" name="median_latency_{group_name}">'
-                    + str(round(np.median(latency), 2))
-                    + "</CTestMeasurement>"
-                )
-            if args.save_csv:
-                with open("median_values.csv", "a") as f:
-                    f.write(str(round(np.median(latency), 2)) + ",")
+            if len(latency) > 0:
+                if args.cdash:
+                    print(
+                        f'<CTestMeasurement type="numeric/double" name="median_latency_{group_name}">'
+                        + str(round(np.median(latency), 2))
+                        + "</CTestMeasurement>"
+                    )
+                if args.save_csv:
+                    with open("median_values.csv", "a") as f:
+                        f.write(str(round(np.median(latency), 2)) + ",")
 
     if args.stddev:
         if args.save_csv:
@@ -407,17 +432,21 @@ def main():
         for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
-                print_path_metric_ms(path, str(round(np.std(latency), 2)))
+                if len(latency) == 0:
+                    print_path_metric_ms(path, "Not enough samples", unit="")
+                else:
+                    print_path_metric_ms(path, str(round(np.std(latency), 2)))
             path, latency = next(iter(paths_latencies.items()))
-            if args.cdash:
-                print(
-                    f'<CTestMeasurement type="numeric/double" name="stddev_latency_{group_name}">'
-                    + str(round(np.std(latency), 2))
-                    + "</CTestMeasurement>"
-                )
-            if args.save_csv:
-                with open("stddev_values.csv", "a") as f:
-                    f.write(str(round(np.std(latency), 2)) + ",")
+            if len(latency) > 0:
+                if args.cdash:
+                    print(
+                        f'<CTestMeasurement type="numeric/double" name="stddev_latency_{group_name}">'
+                        + str(round(np.std(latency), 2))
+                        + "</CTestMeasurement>"
+                    )
+                if args.save_csv:
+                    with open("stddev_values.csv", "a") as f:
+                        f.write(str(round(np.std(latency), 2)) + ",")
 
     if args.min:
         if args.save_csv:
@@ -427,17 +456,21 @@ def main():
         for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
-                print_path_metric_ms(path, str(round(min(latency), 2)))
+                if len(latency) == 0:
+                    print_path_metric_ms(path, "Not enough samples", unit="")
+                else:
+                    print_path_metric_ms(path, str(round(min(latency), 2)))
             path, latency = next(iter(paths_latencies.items()))
-            if args.cdash:
-                print(
-                    f'<CTestMeasurement type="numeric/double" name="min_latency_{group_name}">'
-                    + str(round(min(latency), 2))
-                    + "</CTestMeasurement>"
-                )
-            if args.save_csv:
-                with open("min_values.csv", "a") as f:
-                    f.write(str(round(min(latency), 2)) + ",")
+            if len(latency) > 0:
+                if args.cdash:
+                    print(
+                        f'<CTestMeasurement type="numeric/double" name="min_latency_{group_name}">'
+                        + str(round(min(latency), 2))
+                        + "</CTestMeasurement>"
+                    )
+                if args.save_csv:
+                    with open("min_values.csv", "a") as f:
+                        f.write(str(round(min(latency), 2)) + ",")
 
     if args.tail:
         if args.save_csv:
@@ -447,18 +480,22 @@ def main():
         for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
-                print_path_metric_ms(path, get_latency_difference(latency, 95, 100))
+                if len(latency) == 0:
+                    print_path_metric_ms(path, "Not enough samples", unit="")
+                else:
+                    print_path_metric_ms(path, get_latency_difference(latency, 95, 100))
             path, latency = next(iter(paths_latencies.items()))
-            latency_tail_one_path = str(get_latency_difference(latency, 95, 100))
-            if args.cdash:
-                print(
-                    f'<CTestMeasurement type="numeric/double" name="distribution_tail_{group_name}">'
-                    + latency_tail_one_path
-                    + "</CTestMeasurement>"
-                )
-            if args.save_csv:
-                with open("tail_values.csv", "a") as f:
-                    f.write(latency_tail_one_path + ",")
+            if len(latency) > 0:
+                latency_tail_one_path = str(get_latency_difference(latency, 95, 100))
+                if args.cdash:
+                    print(
+                        f'<CTestMeasurement type="numeric/double" name="distribution_tail_{group_name}">'
+                        + latency_tail_one_path
+                        + "</CTestMeasurement>"
+                    )
+                if args.save_csv:
+                    with open("tail_values.csv", "a") as f:
+                        f.write(latency_tail_one_path + ",")
 
     if args.flatness:
         if args.save_csv:
@@ -468,19 +505,23 @@ def main():
         for group_name, paths_latencies in grouped_path_latencies.items():
             print_group_name_with_log_files(group_name, grouped_log_files[group_name])
             for path, latency in paths_latencies.items():
-                print_path_metric_ms(path, get_latency_difference(latency, 10, 90))
+                if len(latency) == 0:
+                    print_path_metric_ms(path, "Not enough samples", unit="")
+                else:
+                    print_path_metric_ms(path, get_latency_difference(latency, 10, 90))
             path, latency = next(iter(paths_latencies.items()))
-            latency_flatness_one_path = str(get_latency_difference(latency, 10, 90))
-            if args.cdash:
-                print(
-                    f'<CTestMeasurement type="numeric/double" name="\
-                      distribution_flatness_{group_name}">'
-                    + latency_flatness_one_path
-                    + "</CTestMeasurement>"
-                )
-            if args.save_csv:
-                with open("flatness_values.csv", "a") as f:
-                    f.write(latency_flatness_one_path + ",")
+            if len(latency) > 0:
+                latency_flatness_one_path = str(get_latency_difference(latency, 10, 90))
+                if args.cdash:
+                    print(
+                        f'<CTestMeasurement type="numeric/double" name="\
+                          distribution_flatness_{group_name}">'
+                        + latency_flatness_one_path
+                        + "</CTestMeasurement>"
+                    )
+                if args.save_csv:
+                    with open("flatness_values.csv", "a") as f:
+                        f.write(latency_flatness_one_path + ",")
 
     if args.percentile:
         for percentile in args.percentile:
@@ -492,24 +533,28 @@ def main():
             for group_name, paths_latencies in grouped_path_latencies.items():
                 print_group_name_with_log_files(group_name, grouped_log_files[group_name])
                 for path, latency in paths_latencies.items():
-                    latency_percentile_str = "{:.2f}".format(
+                    if len(latency) == 0:
+                        print_path_metric_ms(path, "Not enough samples", unit="")
+                    else:
+                        latency_percentile_str = "{:.2f}".format(
+                            latency_percentile(latency, float(percentile))
+                        )
+                        print_path_metric_ms(path, latency_percentile_str)
+                path, latency = next(iter(paths_latencies.items()))
+                if len(latency) > 0:
+                    latency_percentile_filtered_one_path = "{:.2f}".format(
                         latency_percentile(latency, float(percentile))
                     )
-                    print_path_metric_ms(path, latency_percentile_str)
-                path, latency = next(iter(paths_latencies.items()))
-                latency_percentile_filtered_one_path = "{:.2f}".format(
-                    latency_percentile(latency, float(percentile))
-                )
-                if args.cdash:
-                    print(
-                        f'<CTestMeasurement type="numeric/double" name\
-                          ="percentile_{percentile}_{group_name}">'
-                        + latency_percentile_filtered_one_path
-                        + "</CTestMeasurement>"
-                    )
-                if args.save_csv:
-                    with open(percentile_file, "a") as f:
-                        f.write(latency_percentile_filtered_one_path + ",")
+                    if args.cdash:
+                        print(
+                            f'<CTestMeasurement type="numeric/double" name\
+                              ="percentile_{percentile}_{group_name}">'
+                            + latency_percentile_filtered_one_path
+                            + "</CTestMeasurement>"
+                        )
+                    if args.save_csv:
+                        with open(percentile_file, "a") as f:
+                            f.write(latency_percentile_filtered_one_path + ",")
 
     if args.draw_cdf:
         fig, ax = init_cdf_plot()
