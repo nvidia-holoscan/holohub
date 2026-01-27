@@ -1,0 +1,2 @@
+cookiecutter>=2.6.0
+jsonschema>=4.21.1
