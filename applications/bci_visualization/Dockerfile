@@ -24,6 +24,9 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install curl for downloading data files
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
+# Install python3-tk
+RUN apt-get update && apt-get install -y python3-tk && rm -rf /var/lib/apt/lists/*
+
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data/bci_visualization
 
 # Install Python dependencies
