@@ -398,7 +398,7 @@ def main():
                     print_path_metric_ms(path, str(round(np.mean(latency), 2)))
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
-            if paths_latencies and len(latency) > 0:
+                if len(latency) > 0:
                 if args.cdash:
                     print(
                         f'<CTestMeasurement type="numeric/double" name="average_latency_{group_name}">'
@@ -423,7 +423,7 @@ def main():
                     print_path_metric_ms(path, str(round(np.median(latency), 2)))
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
-            if paths_latencies and len(latency) > 0:
+                if len(latency) > 0:
                 if args.cdash:
                     print(
                         f'<CTestMeasurement type="numeric/double" name="median_latency_{group_name}">'
@@ -448,7 +448,7 @@ def main():
                     print_path_metric_ms(path, str(round(np.std(latency), 2)))
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
-            if paths_latencies and len(latency) > 0:
+                if len(latency) > 0:
                 if args.cdash:
                     print(
                         f'<CTestMeasurement type="numeric/double" name="stddev_latency_{group_name}">'
@@ -473,7 +473,7 @@ def main():
                     print_path_metric_ms(path, str(round(min(latency), 2)))
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
-            if paths_latencies and len(latency) > 0:
+                if len(latency) > 0:
                 if args.cdash:
                     print(
                         f'<CTestMeasurement type="numeric/double" name="min_latency_{group_name}">'
@@ -498,7 +498,7 @@ def main():
                     print_path_metric_ms(path, get_latency_difference(latency, 95, 100))
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
-            if paths_latencies and len(latency) > 0:
+                if len(latency) > 0:
                 latency_tail_one_path = str(get_latency_difference(latency, 95, 100))
                 if args.cdash:
                     print(
@@ -524,7 +524,7 @@ def main():
                     print_path_metric_ms(path, get_latency_difference(latency, 10, 90))
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
-            if paths_latencies and len(latency) > 0:
+                if len(latency) > 0:
                 latency_flatness_one_path = str(get_latency_difference(latency, 10, 90))
                 if args.cdash:
                     print(
@@ -554,9 +554,9 @@ def main():
                             latency_percentile(latency, float(percentile))
                         )
                         print_path_metric_ms(path, latency_percentile_str)
-                if paths_latencies:
-                    path, latency = next(iter(paths_latencies.items()))
-                if paths_latencies and len(latency) > 0:
+            if paths_latencies:
+                path, latency = next(iter(paths_latencies.items()))
+                if len(latency) > 0:
                     latency_percentile_filtered_one_path = "{:.2f}".format(
                         latency_percentile(latency, float(percentile))
                     )
