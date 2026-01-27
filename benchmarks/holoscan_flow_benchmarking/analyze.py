@@ -399,15 +399,15 @@ def main():
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
                 if len(latency) > 0:
-                if args.cdash:
-                    print(
-                        f'<CTestMeasurement type="numeric/double" name="average_latency_{group_name}">'
-                        + str(round(np.mean(latency), 2))
-                        + "</CTestMeasurement>"
-                    )
-                if args.save_csv:
-                    with open("avg_values.csv", "a") as f:
-                        f.write(str(round(np.mean(latency), 2)) + ",")
+                    if args.cdash:
+                        print(
+                            f'<CTestMeasurement type="numeric/double" name="average_latency_{group_name}">'
+                            + str(round(np.mean(latency), 2))
+                            + "</CTestMeasurement>"
+                        )
+                    if args.save_csv:
+                        with open("avg_values.csv", "a") as f:
+                            f.write(str(round(np.mean(latency), 2)) + ",")
 
     if args.median:
         if args.save_csv:
@@ -424,15 +424,15 @@ def main():
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
                 if len(latency) > 0:
-                if args.cdash:
-                    print(
-                        f'<CTestMeasurement type="numeric/double" name="median_latency_{group_name}">'
-                        + str(round(np.median(latency), 2))
-                        + "</CTestMeasurement>"
-                    )
-                if args.save_csv:
-                    with open("median_values.csv", "a") as f:
-                        f.write(str(round(np.median(latency), 2)) + ",")
+                    if args.cdash:
+                        print(
+                            f'<CTestMeasurement type="numeric/double" name="median_latency_{group_name}">'
+                            + str(round(np.median(latency), 2))
+                            + "</CTestMeasurement>"
+                        )
+                    if args.save_csv:
+                        with open("median_values.csv", "a") as f:
+                            f.write(str(round(np.median(latency), 2)) + ",")
 
     if args.stddev:
         if args.save_csv:
@@ -449,15 +449,15 @@ def main():
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
                 if len(latency) > 0:
-                if args.cdash:
-                    print(
-                        f'<CTestMeasurement type="numeric/double" name="stddev_latency_{group_name}">'
-                        + str(round(np.std(latency), 2))
-                        + "</CTestMeasurement>"
-                    )
-                if args.save_csv:
-                    with open("stddev_values.csv", "a") as f:
-                        f.write(str(round(np.std(latency), 2)) + ",")
+                    if args.cdash:
+                        print(
+                            f'<CTestMeasurement type="numeric/double" name="stddev_latency_{group_name}">'
+                            + str(round(np.std(latency), 2))
+                            + "</CTestMeasurement>"
+                        )
+                    if args.save_csv:
+                        with open("stddev_values.csv", "a") as f:
+                            f.write(str(round(np.std(latency), 2)) + ",")
 
     if args.min:
         if args.save_csv:
@@ -474,15 +474,15 @@ def main():
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
                 if len(latency) > 0:
-                if args.cdash:
-                    print(
-                        f'<CTestMeasurement type="numeric/double" name="min_latency_{group_name}">'
-                        + str(round(min(latency), 2))
-                        + "</CTestMeasurement>"
-                    )
-                if args.save_csv:
-                    with open("min_values.csv", "a") as f:
-                        f.write(str(round(min(latency), 2)) + ",")
+                    if args.cdash:
+                        print(
+                            f'<CTestMeasurement type="numeric/double" name="min_latency_{group_name}">'
+                            + str(round(min(latency), 2))
+                            + "</CTestMeasurement>"
+                        )
+                    if args.save_csv:
+                        with open("min_values.csv", "a") as f:
+                            f.write(str(round(min(latency), 2)) + ",")
 
     if args.tail:
         if args.save_csv:
@@ -499,16 +499,16 @@ def main():
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
                 if len(latency) > 0:
-                latency_tail_one_path = str(get_latency_difference(latency, 95, 100))
-                if args.cdash:
-                    print(
-                        f'<CTestMeasurement type="numeric/double" name="distribution_tail_{group_name}">'
-                        + latency_tail_one_path
-                        + "</CTestMeasurement>"
-                    )
-                if args.save_csv:
-                    with open("tail_values.csv", "a") as f:
-                        f.write(latency_tail_one_path + ",")
+                    latency_tail_one_path = str(get_latency_difference(latency, 95, 100))
+                    if args.cdash:
+                        print(
+                            f'<CTestMeasurement type="numeric/double" name="distribution_tail_{group_name}">'
+                            + latency_tail_one_path
+                            + "</CTestMeasurement>"
+                        )
+                    if args.save_csv:
+                        with open("tail_values.csv", "a") as f:
+                            f.write(latency_tail_one_path + ",")
 
     if args.flatness:
         if args.save_csv:
@@ -525,17 +525,17 @@ def main():
             if paths_latencies:
                 path, latency = next(iter(paths_latencies.items()))
                 if len(latency) > 0:
-                latency_flatness_one_path = str(get_latency_difference(latency, 10, 90))
-                if args.cdash:
-                    print(
-                        f'<CTestMeasurement type="numeric/double" name="\
-                          distribution_flatness_{group_name}">'
-                        + latency_flatness_one_path
-                        + "</CTestMeasurement>"
-                    )
-                if args.save_csv:
-                    with open("flatness_values.csv", "a") as f:
-                        f.write(latency_flatness_one_path + ",")
+                    latency_flatness_one_path = str(get_latency_difference(latency, 10, 90))
+                    if args.cdash:
+                        print(
+                            f'<CTestMeasurement type="numeric/double" name="\
+                              distribution_flatness_{group_name}">'
+                            + latency_flatness_one_path
+                            + "</CTestMeasurement>"
+                        )
+                    if args.save_csv:
+                        with open("flatness_values.csv", "a") as f:
+                            f.write(latency_flatness_one_path + ",")
 
     if args.percentile:
         for percentile in args.percentile:
