@@ -154,14 +154,10 @@ def shorten_path(path, operator_legends, path_separator="→ "):
             operator_legends[modified_operator_name] = operator
         else:
             if operator_legends[modified_operator_name] != operator:
-                print(
-                    f"\033[91mERROR: Operator {operator} has the same first 3 letters\
-                      as {operator_legends[modified_operator_name]}\033[0m"
-                )
-                print(
-                    "\033[91mCDF Curve legends for operators cannot be created. \
-                    CDF Curve creation aborted.\033[0m"
-                )
+                print(f"\033[91mERROR: Operator {operator} has the same first 3 letters\
+                      as {operator_legends[modified_operator_name]}\033[0m")
+                print("\033[91mCDF Curve legends for operators cannot be created. \
+                    CDF Curve creation aborted.\033[0m")
                 sys.exit(1)
         modified_operators.append(modified_operator_name)
     return path_separator.join(modified_operators)
@@ -195,7 +191,13 @@ def print_path_metric_ms(path, metric_ms, unit="ms"):
     # print metric_ms in bold and blue foregoround color
     suffix = f" {unit}" if unit else ""
     print(
-        "\033[1mPath:" + "\033[0m " + path + ": \033[1m\033[94m" + str(metric_ms) + suffix + "\033[0m"
+        "\033[1mPath:"
+        + "\033[0m "
+        + path
+        + ": \033[1m\033[94m"
+        + str(metric_ms)
+        + suffix
+        + "\033[0m"
     )
 
 
@@ -228,7 +230,9 @@ def main():
         help="show the standard deviation of latencies for all paths",
     )
 
-    parser.add_argument("--min", action="store_true", help="show the minimum latencies for all paths")
+    parser.add_argument(
+        "--min", action="store_true", help="show the minimum latencies for all paths"
+    )
 
     parser.add_argument(
         "--tail",
@@ -344,7 +348,9 @@ def main():
             current_group_name = group[-1]
             current_log_files = group[:-1]
         if len(current_log_files) == 0:
-            print("\033[91mError: No log files provided for group: " + current_group_name + "\033[0m")
+            print(
+                "\033[91mError: No log files provided for group: " + current_group_name + "\033[0m"
+            )
             sys.exit(1)
         parsed_latencies_per_file = []
         for log_file in current_log_files:
