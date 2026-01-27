@@ -259,7 +259,7 @@ gxf_result_t TensorRtInference::registerInterface(gxf::Registrar* registrar) {
                                  "max_workspace_size",
                                  "Max Workspace Size",
                                  "Size of working space in bytes. Default to 64MB",
-                                 67108864l);
+                                 int64_t(67108864));
   result &= registrar->parameter(dla_core_,
                                  "dla_core",
                                  "DLA Core",
@@ -428,19 +428,17 @@ gxf_result_t TensorRtInference::start() {
   const uint64_t output_number = output_tensor_names_.get().size();
   const int64_t total_bindings_number = input_number + output_number;
 #if NV_TENSORRT_MAJOR < 8 || (NV_TENSORRT_MAJOR == 8 && NV_TENSORRT_MINOR <5)
-  if (cuda_engine_->getNbBindings() != static_cast<int>(total_bindings_number)) {
+  const int nb_bindings = cuda_engine_->getNbBindings();
+  if (nb_bindings != static_cast<int>(total_bindings_number)) {
 #else
-  if (cuda_engine_->getNbIOTensors() != static_cast<int>(total_bindings_number)) {
+  const int nb_bindings = cuda_engine_->getNbIOTensors();
+  if (nb_bindings != static_cast<int>(total_bindings_number)) {
 #endif
     GXF_LOG_ERROR(
         "Numbers of CUDA bindings mismatch: configured for %lu vs model requires %d. "
         "Please check TensorRTInference codelet configuration.\n",
         total_bindings_number,
-#if NV_TENSORRT_MAJOR < 8 || (NV_TENSORRT_MAJOR == 8 && NV_TENSORRT_MINOR <5)
-        cuda_engine_->getNbBindings());
-#else
-        cuda_engine_->getNbIOTensors());
-#endif
+        nb_bindings);
     return GXF_ARGUMENT_INVALID;
   }
 
@@ -988,12 +986,12 @@ gxf_result_t TensorRtInference::tick() {
     }
 
     // Copy output state tensor to input state tensor
-    cudaError_t cuda_status = CUDA_TRY(cudaMemcpyAsync(in_state_tensor_ptr,
-                                                       out_tensor_ptr,
-                                                       state_tensor_size,
-                                                       cudaMemcpyDeviceToDevice,
-                                                       cuda_stream_handler_.getCudaStream()));
-    if (cuda_status) {
+    cudaError_t cuda_status = cudaMemcpyAsync(in_state_tensor_ptr,
+                                              out_tensor_ptr,
+                                              state_tensor_size,
+                                              cudaMemcpyDeviceToDevice,
+                                              cuda_stream_handler_.getCudaStream());
+    if (cuda_status != cudaSuccess) {
       GXF_LOG_ERROR("Failed to copy output tensor %s to input tensor %s: %s",
                     output_state_tensor_names_.get()[0].c_str(),
                     input_state_tensor_names_.get()[0].c_str(),
