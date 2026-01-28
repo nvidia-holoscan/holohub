@@ -128,7 +128,7 @@ class MplVisualizationOperator(Operator):
         self._fig: Any = None
         self._axes: Any = None
         self._poly_collection: Poly3DCollection | None = None
-        self._colormap = plt.cm.RdBu_r
+        self._colormap = plt.cm.coolwarm
 
     def setup(self, spec: OperatorSpec) -> None:
         """Configure operator inputs."""
