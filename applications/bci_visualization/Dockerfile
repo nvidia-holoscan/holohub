@@ -24,12 +24,16 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install curl for downloading data files
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Install python3-tk
-RUN apt-get update && apt-get install -y python3-tk && rm -rf /var/lib/apt/lists/*
+# Install python3-tk (needed for matplotlib GUI support)
+ARG WITH_MATPLOTLIB=no
+RUN if [ "$WITH_MATPLOTLIB" = "yes" ]; then apt-get update && apt-get install -y python3-tk && rm -rf /var/lib/apt/lists/*; fi
 
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data/bci_visualization
 
 # Install Python dependencies
 COPY applications/bci_visualization/requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt --no-cache-dir
-    
+
+# Install optional matplotlib dependencies
+COPY applications/bci_visualization/requirements-matplotlib.txt /tmp/requirements-matplotlib.txt
+RUN if [ "$WITH_MATPLOTLIB" = "yes" ]; then pip install -r /tmp/requirements-matplotlib.txt --no-cache-dir; fi
