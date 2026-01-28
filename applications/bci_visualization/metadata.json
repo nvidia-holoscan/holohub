@@ -69,9 +69,26 @@
 				}
 			]
 		},
-		"run": {
-			"command": "python3 bci_visualization.py --renderer_config <holohub_app_source>/config.json --mask_path <holohub_data_dir>/bci_visualization/anatomy_labels_high_res.nii.gz",
-			"workdir": "holohub_app_source"
+		"default_mode": "clara_viz",
+		"modes": {
+			"clara_viz": {
+				"description": "Run the application with ClaraViz for volume rendering.",
+				"run": {
+					"command": "python3 bci_visualization.py --renderer_config <holohub_app_source>/config.json --mask_path <holohub_data_dir>/bci_visualization/anatomy_labels_high_res.nii.gz",
+					"workdir": "holohub_app_source"
+				}
+			},
+			"matplotlib": {
+				"description": "Run the application with matplotlib for volume rendering.",
+				"build": {
+					"docker_build_args": ["--build-arg", "WITH_MATPLOTLIB=yes"]
+				},
+				"run": {
+					"command": "python3 bci_visualization.py --renderer_config <holohub_app_source>/config.json --mask_path <holohub_data_dir>/bci_visualization/anatomy_labels_high_res.nii.gz --viz matplotlib",
+					"workdir": "holohub_app_source"
+				}
+			}
 		}
+		
 	}
 }

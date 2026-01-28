@@ -49,10 +49,12 @@ class BciVisualizationApp(Application):
         coefficients_path: Path | str,
         mask_path=None,
         reg: float = RegularizedSolverOperator.REG_DEFAULT,
+        viz: str = "clara_viz",
         **kwargs,
     ):
         self._rendering_config = render_config_file
         self._mask_path = mask_path
+        self._viz = viz
 
         # Reconstruction pipeline parameters
         self._stream = stream
@@ -109,40 +111,44 @@ class BciVisualizationApp(Application):
             xyz=pipeline_assets.xyz,
         )
 
-        # ========== Visualization Pipeline Operators ==========
-        # Get volume_renderer kwargs from YAML config to extract density range
-        volume_renderer_kwargs = self.kwargs("volume_renderer")
-        density_min = volume_renderer_kwargs.get("density_min", -100.0)
-        density_max = volume_renderer_kwargs.get("density_max", 100.0)
+        if self._viz == "matplotlib":
+            from operators.mpl_visualization_operator import MplVisualizationOperator
+            mpl_visualization_operator = MplVisualizationOperator(fragment=self)
+        else:
+            # ========== Visualization Pipeline Operators ==========
+            # Get volume_renderer kwargs from YAML config to extract density range
+            volume_renderer_kwargs = self.kwargs("volume_renderer")
+            density_min = volume_renderer_kwargs.get("density_min", -100.0)
+            density_max = volume_renderer_kwargs.get("density_max", 100.0)
 
-        voxel_to_volume = VoxelStreamToVolumeOp(
-            self,
-            name="voxel_to_volume",
-            pool=volume_allocator,
-            mask_nifti_path=self._mask_path,
-            density_min=density_min,
-            density_max=density_max,
-            **self.kwargs("voxel_stream_to_volume"),
-        )
+            voxel_to_volume = VoxelStreamToVolumeOp(
+                self,
+                name="voxel_to_volume",
+                pool=volume_allocator,
+                mask_nifti_path=self._mask_path,
+                density_min=density_min,
+                density_max=density_max,
+                **self.kwargs("voxel_stream_to_volume"),
+            )
 
-        volume_renderer = VolumeRendererOp(
-            self,
-            name="volume_renderer",
-            config_file=self._rendering_config,
-            allocator=volume_allocator,
-            cuda_stream_pool=cuda_stream_pool,
-            **volume_renderer_kwargs,
-        )
+            volume_renderer = VolumeRendererOp(
+                self,
+                name="volume_renderer",
+                config_file=self._rendering_config,
+                allocator=volume_allocator,
+                cuda_stream_pool=cuda_stream_pool,
+                **volume_renderer_kwargs,
+            )
 
-        # IMPORTANT changes to avoid deadlocks of volume_renderer and holoviz
-        # when running in multi-threading mode
-        # 1. Set the output port condition to NONE to remove backpressure
-        volume_renderer.spec.outputs["color_buffer_out"].condition(ConditionType.NONE)
-        # 2. Use a passthrough operator to configure queue policy as POP to use latest frame
-        color_buffer_passthrough = ColorBufferPassthroughOp(
-            self,
-            name="color_buffer_passthrough",
-        )
+            # IMPORTANT changes to avoid deadlocks of volume_renderer and holoviz
+            # when running in multi-threading mode
+            # 1. Set the output port condition to NONE to remove backpressure
+            volume_renderer.spec.outputs["color_buffer_out"].condition(ConditionType.NONE)
+            # 2. Use a passthrough operator to configure queue policy as POP to use latest frame
+            color_buffer_passthrough = ColorBufferPassthroughOp(
+                self,
+                name="color_buffer_passthrough",
+            )
 
         holoviz = HolovizOp(
             self,
@@ -181,45 +187,56 @@ class BciVisualizationApp(Application):
                 ("result", "result"),
             },
         )
-        self.add_flow(
-            convert_to_voxels_operator,
-            voxel_to_volume,
-            {
-                ("affine_4x4", "affine_4x4"),
-                ("hb_voxel_data", "hb_voxel_data"),
-            },
-        )
 
-        # ========== Connect Visualization Pipeline ==========
-        # voxel_to_volume → volume_renderer
-        self.add_flow(
-            voxel_to_volume,
-            volume_renderer,
-            {
-                ("volume", "density_volume"),
-                ("spacing", "density_spacing"),
-                ("permute_axis", "density_permute_axis"),
-                ("flip_axes", "density_flip_axes"),
-            },
-        )
-        # Add mask connections to VolumeRendererOp
-        self.add_flow(
-            voxel_to_volume,
-            volume_renderer,
-            {
-                ("mask_volume", "mask_volume"),
-                ("mask_spacing", "mask_spacing"),
-                ("mask_permute_axis", "mask_permute_axis"),
-                ("mask_flip_axes", "mask_flip_axes"),
-            },
-        )
+        if self._viz == "matplotlib":
+            self.add_flow(
+                convert_to_voxels_operator,
+                mpl_visualization_operator,
+                {
+                    ("affine_4x4", "affine_4x4"),
+                    ("hb_voxel_data", "hb_voxel_data"),
+                },
+            )
+        else:
+            self.add_flow(
+                convert_to_voxels_operator,
+                voxel_to_volume,
+                {
+                    ("affine_4x4", "affine_4x4"),
+                    ("hb_voxel_data", "hb_voxel_data"),
+                },
+            )
 
-        # volume_renderer ↔ holoviz
-        self.add_flow(
-            volume_renderer, color_buffer_passthrough, {("color_buffer_out", "color_buffer_in")}
-        )
-        self.add_flow(color_buffer_passthrough, holoviz, {("color_buffer_out", "receivers")})
-        self.add_flow(holoviz, volume_renderer, {("camera_pose_output", "camera_pose")})
+            # ========== Connect Visualization Pipeline ==========
+            # voxel_to_volume → volume_renderer
+            self.add_flow(
+                voxel_to_volume,
+                volume_renderer,
+                {
+                    ("volume", "density_volume"),
+                    ("spacing", "density_spacing"),
+                    ("permute_axis", "density_permute_axis"),
+                    ("flip_axes", "density_flip_axes"),
+                },
+            )
+            # Add mask connections to VolumeRendererOp
+            self.add_flow(
+                voxel_to_volume,
+                volume_renderer,
+                {
+                    ("mask_volume", "mask_volume"),
+                    ("mask_spacing", "mask_spacing"),
+                    ("mask_permute_axis", "mask_permute_axis"),
+                    ("mask_flip_axes", "mask_flip_axes"),
+                },
+            )
+
+            # volume_renderer ↔ holoviz
+            self.add_flow(
+                volume_renderer, color_buffer_passthrough, {("color_buffer_out", "color_buffer_in")}
+            )
+            self.add_flow(color_buffer_passthrough, holoviz, {("color_buffer_out", "receivers")})
+            self.add_flow(holoviz, volume_renderer, {("camera_pose_output", "camera_pose")})
 
 
 def main():
@@ -242,6 +259,16 @@ def main():
         type=str,
         dest="mask_path",
         help="Path to the mask NIfTI file containing 3D integer labels (I, J, K). Optional.",
+    )
+
+    parser.add_argument(
+        "-v",
+        "--viz",
+        action="store",
+        type=str,
+        dest="viz",
+        default="clara_viz",
+        help="Visualization backend to use (e.g., 'clara_viz', 'matplotlib'). Optional.",
     )
 
     parser.add_argument(
@@ -269,6 +296,7 @@ def main():
         coefficients_path=kernel_data / "extinction_coefficients_mua.csv",
         mask_path=args.mask_path,
         reg=RegularizedSolverOperator.REG_DEFAULT,
+        viz=args.viz,
     )
 
     # Load YAML configuration
