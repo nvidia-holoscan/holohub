@@ -372,7 +372,11 @@ def main():
                         print_path_metric_ms(path, "Not enough samples", unit="")
                     else:
                         print_path_metric_ms(path, str(round(np.max(latency), 2)))
-                        cdash_csv_latency = str(round(np.max(latency), 2)) if cdash_csv_latency is None else cdash_csv_latency
+                        cdash_csv_latency = (
+                            str(round(np.max(latency), 2))
+                            if cdash_csv_latency is None
+                            else cdash_csv_latency
+                        )
                 # if there is any non-empty latency, write to CDash and CSV
                 if cdash_csv_latency is not None:
                     if args.cdash:
@@ -399,7 +403,11 @@ def main():
                         print_path_metric_ms(path, "Not enough samples", unit="")
                     else:
                         print_path_metric_ms(path, str(round(np.mean(latency), 2)))
-                        cdash_csv_latency = str(round(np.mean(latency), 2)) if cdash_csv_latency is None else cdash_csv_latency
+                        cdash_csv_latency = (
+                            str(round(np.mean(latency), 2))
+                            if cdash_csv_latency is None
+                            else cdash_csv_latency
+                        )
                 # if there is any non-empty latency, write to CDash and CSV
                 if cdash_csv_latency is not None:
                     if args.cdash:
@@ -426,7 +434,11 @@ def main():
                         print_path_metric_ms(path, "Not enough samples", unit="")
                     else:
                         print_path_metric_ms(path, str(round(np.median(latency), 2)))
-                        cdash_csv_latency = str(round(np.median(latency), 2)) if cdash_csv_latency is None else cdash_csv_latency
+                        cdash_csv_latency = (
+                            str(round(np.median(latency), 2))
+                            if cdash_csv_latency is None
+                            else cdash_csv_latency
+                        )
                 # if there is any non-empty latency, write to CDash and CSV
                 if cdash_csv_latency is not None:
                     if args.cdash:
@@ -453,7 +465,11 @@ def main():
                         print_path_metric_ms(path, "Not enough samples", unit="")
                     else:
                         print_path_metric_ms(path, str(round(np.std(latency), 2)))
-                        cdash_csv_latency = str(round(np.std(latency), 2)) if cdash_csv_latency is None else cdash_csv_latency
+                        cdash_csv_latency = (
+                            str(round(np.std(latency), 2))
+                            if cdash_csv_latency is None
+                            else cdash_csv_latency
+                        )
                 # if there is any non-empty latency, write to CDash and CSV
                 if cdash_csv_latency is not None:
                     if args.cdash:
@@ -480,7 +496,11 @@ def main():
                         print_path_metric_ms(path, "Not enough samples", unit="")
                     else:
                         print_path_metric_ms(path, str(round(min(latency), 2)))
-                        cdash_csv_latency = str(round(min(latency), 2)) if cdash_csv_latency is None else cdash_csv_latency
+                        cdash_csv_latency = (
+                            str(round(min(latency), 2))
+                            if cdash_csv_latency is None
+                            else cdash_csv_latency
+                        )
                 # if there is any non-empty latency, write to CDash and CSV
                 if cdash_csv_latency is not None:
                     if args.cdash:
@@ -507,7 +527,11 @@ def main():
                         print_path_metric_ms(path, "Not enough samples", unit="")
                     else:
                         print_path_metric_ms(path, get_latency_difference(latency, 95, 100))
-                        cdash_csv_latency = str(get_latency_difference(latency, 95, 100)) if cdash_csv_latency is None else cdash_csv_latency
+                        cdash_csv_latency = (
+                            str(get_latency_difference(latency, 95, 100))
+                            if cdash_csv_latency is None
+                            else cdash_csv_latency
+                        )
                 # if there is any non-empty latency, write to CDash and CSV
                 if cdash_csv_latency is not None:
                     if args.cdash:
@@ -534,7 +558,11 @@ def main():
                         print_path_metric_ms(path, "Not enough samples", unit="")
                     else:
                         print_path_metric_ms(path, get_latency_difference(latency, 10, 90))
-                        cdash_csv_latency = str(get_latency_difference(latency, 10, 90)) if cdash_csv_latency is None else cdash_csv_latency
+                        cdash_csv_latency = (
+                            str(get_latency_difference(latency, 10, 90))
+                            if cdash_csv_latency is None
+                            else cdash_csv_latency
+                        )
                 # if there is any non-empty latency, write to CDash and CSV
                 if cdash_csv_latency is not None:
                     if args.cdash:
@@ -567,7 +595,11 @@ def main():
                                 latency_percentile(latency, float(percentile))
                             )
                             print_path_metric_ms(path, latency_percentile_str)
-                            cdash_csv_latency = latency_percentile_str if cdash_csv_latency is None else cdash_csv_latency
+                            cdash_csv_latency = (
+                                latency_percentile_str
+                                if cdash_csv_latency is None
+                                else cdash_csv_latency
+                            )
                     # if there is any non-empty latency, write to CDash and CSV
                     if cdash_csv_latency is not None:
                         if args.cdash:
