@@ -51,7 +51,8 @@ ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 RUN apt update && \
     apt install -y \
         libglvnd-dev \
-        ninja-build
+        ninja-build && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create directories
 RUN mkdir -p /tmp/vtk/ && \
