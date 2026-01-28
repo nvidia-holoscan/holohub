@@ -13,20 +13,22 @@ overcome this limitation.
 
 ## How to build this operator
 
-Build the HoloHub container as described at the root [README.md](../../README.md)
-
-You need to create a docker image which includes VTK with the provided
-`Dockerfile`:
-
-```bash
-docker build -t vtk:latest -f Dockerfile .
-```
-
-Then, you can build the tool tracking application with the provided `Dockerfile` as follows:
+Using Holohub CLI, you can create and run a container, which includes VTK,
+by running the following command from the root directory of Holohub:
 
 ```bash
 ./holohub run-container vtk_renderer
 ```
+
+This command will create  and run a container based on the provided [`Dockerfile`](./Dockerfile).
+
+> [!NOTE]
+> If you want to only build the docker image without running it, you can use the following command,
+> which will create the image and tag it as `holohub:vtk_renderer`.
+>
+> ```bash
+> ./holohub build-container vtk_renderer
+> ```
 
 Inside the container you can build the holohub application with:
 
