@@ -840,13 +840,13 @@ class HoloHubContainer:
         """Get NGC-related options"""
         options = []
         if os.environ.get("NGC_API_KEY"):
-            options.extend(["-e", f"NGC_API_KEY={os.environ.get('NGC_API_KEY')}"])
+            options.extend(["-e", "NGC_API_KEY"])
         if os.environ.get("NGC_CLI_API_KEY"):
-            options.extend(["-e", f"NGC_CLI_API_KEY={os.environ.get('NGC_CLI_API_KEY')}"])
+            options.extend(["-e", "NGC_CLI_API_KEY"])
         if os.environ.get("NGC_CLI_ORG"):
-            options.extend(["-e", f"NGC_CLI_ORG={os.environ.get('NGC_CLI_ORG')}"])
+            options.extend(["-e", "NGC_CLI_ORG"])
         if os.environ.get("NGC_CLI_TEAM"):
-            options.extend(["-e", f"NGC_CLI_TEAM={os.environ.get('NGC_CLI_TEAM')}"])
+            options.extend(["-e", "NGC_CLI_TEAM"])
         return options
 
     def get_nsys_options(self, nsys_profile: bool, nsys_location: str) -> List[str]:
