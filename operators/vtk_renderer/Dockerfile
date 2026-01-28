@@ -68,4 +68,4 @@ RUN curl --remote-name https://gitlab.kitware.com/vtk/vtk/-/archive/v9.3.0/vtk-v
         -DVTK_MODULE_ENABLE_RenderingOpenGL2=YES && \
     cmake --build vtk-build && \
     cmake --install vtk-build --prefix=/opt/vtk && \
-    rm -rf vtk-build
+    rm -rf vtk-build vtk-v9.3.0

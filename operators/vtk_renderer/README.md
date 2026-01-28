@@ -22,11 +22,10 @@ You need to create a docker image which includes VTK with the provided
 docker build -t vtk:latest -f Dockerfile .
 ```
 
-Then, you can build the tool tracking application with the provided
-`Dockerfile`:
+Then, you can build the tool tracking application with the provided `Dockerfile` as follows:
 
 ```bash
-./holohub run-container --img vtk:latest
+./holohub run-container vtk_renderer
 ```
 
 Inside the container you can build the holohub application with:
