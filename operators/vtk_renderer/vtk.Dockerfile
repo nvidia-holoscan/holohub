@@ -21,7 +21,6 @@ ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU
 FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG CMAKE_BUILD_TYPE=Release
 
 # --------------------------------------------------------------------------
 #
