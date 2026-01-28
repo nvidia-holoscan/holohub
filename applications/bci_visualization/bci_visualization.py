@@ -13,7 +13,6 @@ from holoscan.core import Application, ConditionType
 from holoscan.operators import HolovizOp
 from holoscan.resources import CudaStreamPool, UnboundedAllocator
 from holoscan.schedulers import EventBasedScheduler
-from operators.mpl_visualization_operator import MplVisualizationOperator
 from operators.reconstruction import (
     BuildRHSOperator,
     ConvertToVoxelsOperator,
@@ -113,6 +112,7 @@ class BciVisualizationApp(Application):
         )
 
         if self._viz == "matplotlib":
+            from operators.mpl_visualization_operator import MplVisualizationOperator
             mpl_visualization_operator = MplVisualizationOperator(fragment=self)
         else:
             # ========== Visualization Pipeline Operators ==========

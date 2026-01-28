@@ -193,7 +193,7 @@ class MplVisualizationOperator(Operator):
                 getattr(hb_frame, "shape", None),
             )
         else:
-            logger.info(
+            logger.debug(
                 "Visualizer received frame after %.2f ms",
                 (now - prev) * 1000.0,
             )
@@ -216,8 +216,6 @@ class MplVisualizationOperator(Operator):
         # Ensure we have a numpy array (handle CuPy arrays from GPU-based operators)
         if hasattr(hb_volume, "get"):
             hb_volume = hb_volume.get()
-
-        print("hb_volume", hb_volume.min(), hb_volume.max())
 
         # Load the surface mesh
         coords, faces = self._ensure_mesh_loaded()
@@ -262,7 +260,6 @@ class MplVisualizationOperator(Operator):
         face_values = surface_data[faces].mean(axis=1)
 
         # Normalize to [0, 1] for colormap
-        print("face_values", face_values.min(), face_values.max())
         clamped = np.clip(face_values, HB_MIN, HB_MAX)
         normalized = (clamped - HB_MIN) / HB_RANGE
         face_colors = self._colormap(normalized)
