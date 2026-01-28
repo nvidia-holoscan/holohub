@@ -20,11 +20,11 @@ by running the following command from the root directory of Holohub:
 ./holohub run-container vtk_renderer
 ```
 
-This command will create  and run a container based on the provided [`Dockerfile`](./Dockerfile).
+This command will create and run a container based on the provided [`Dockerfile`](./Dockerfile).
 
 > [!NOTE]
 > If you want to only build the docker image without running it, you can use the following command,
-> which will create the image and tag it as `holohub:vtk_renderer`.
+> which will only create the image and tag it as `holohub:vtk_renderer`.
 >
 > ```bash
 > ./holohub build-container vtk_renderer
