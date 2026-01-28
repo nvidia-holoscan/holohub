@@ -198,6 +198,15 @@ class BciVisualizationApp(Application):
                 },
             )
         else:
+            self.add_flow(
+                convert_to_voxels_operator,
+                voxel_to_volume,
+                {
+                    ("affine_4x4", "affine_4x4"),
+                    ("hb_voxel_data", "hb_voxel_data"),
+                },
+            )
+
             # ========== Connect Visualization Pipeline ==========
             # voxel_to_volume → volume_renderer
             self.add_flow(
