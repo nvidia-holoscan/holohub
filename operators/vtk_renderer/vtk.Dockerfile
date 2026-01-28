@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,26 +15,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG BASE_IMAGE=
-FROM ${BASE_IMAGE}
+ARG GPU_TYPE
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
+FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
+ARG CMAKE_BUILD_TYPE=Release
 
 # --------------------------------------------------------------------------
 #
-# Holohub run setup 
+# Use HoloHub CLI to set up common packages for developing with Holoscan SDK
 #
+# --------------------------------------------------------------------------
 
 RUN mkdir -p /tmp/scripts
-COPY run /tmp/scripts/
+COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
-COPY utilities/holohub_autocomplete /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/run
-RUN /tmp/scripts/run setup
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
+# Set default Holohub data directory
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
+
+# --------------------------------------------------------------------------
+#
+# Set up VTK 9.3.0
+#
+# --------------------------------------------------------------------------
 
 # Install dependencies
 RUN apt update && \
