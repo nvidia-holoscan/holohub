@@ -16,10 +16,10 @@ overcome this limitation.
 Build the HoloHub container as described at the root [README.md](../../README.md)
 
 You need to create a docker image which includes VTK with the provided
-`vtk.Dockerfile`:
+`Dockerfile`:
 
 ```bash
-docker build -t vtk:latest -f vtk.Dockerfile .
+docker build -t vtk:latest -f Dockerfile .
 ```
 
 Then, you can build the tool tracking application with the provided
