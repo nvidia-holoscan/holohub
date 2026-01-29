@@ -38,6 +38,10 @@ ngc-cli/
 CTestConfig.cmake
 .ngc
 
+# AI coding assistants
+.cursor/
+CLAUDE.md
+
 # Cache and temporary directories
 .cache/
 .cargo/
