@@ -160,14 +160,36 @@
         },
         {
             "type": "shell",
-            "label": "Build cvcuda_basic",
+            "label": "Build cvcuda_basic (Python)",
             "command": "./holohub",
             "args": [
                 "build",
                 "cvcuda_basic",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build cvcuda_basic (C++)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "cvcuda_basic",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"

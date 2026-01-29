@@ -244,7 +244,7 @@
             "name": "(gdb) cvcuda_basic/cpp",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build cvcuda_basic",
+            "preLaunchTask": "Build cvcuda_basic (C++)",
             "program": "${workspaceFolder}/build/cvcuda_basic/applications/cvcuda_basic/cpp/cvcuda_basic",
             "args": [
                 "--data",
@@ -271,7 +271,7 @@
             "name": "(debugpy) cvcuda_basic/python",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build cvcuda_basic",
+            "preLaunchTask": "Build cvcuda_basic (Python)",
             "program": "${workspaceFolder}/applications/cvcuda_basic/python/cvcuda_basic.py",
             "args": [
                 "--data",
@@ -1071,7 +1071,7 @@
             "cppConfig": "default (gdb) Attach",
             "presentation": {
                 "hidden": false,
-                "group": "grpc_endoscopy_tool_tracking",,
+                "group": "grpc_endoscopy_tool_tracking",
                 "order": 3
             }
         },
