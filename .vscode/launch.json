@@ -9,7 +9,7 @@
             "name": "(gdb) basic_networking_ping/cpp TX",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build basic_networking_ping (delay 3s)",
+            "preLaunchTask": "Build basic_networking_ping (C++, delay 3s)",
             "program": "${workspaceFolder}/build/basic_networking_ping/applications/basic_networking_ping/cpp/basic_networking_ping",
             "args": [
                 "./applications/basic_networking_ping/cpp/basic_networking_ping_tx.yaml"
@@ -36,7 +36,7 @@
             "name": "(gdb) basic_networking_ping/cpp RX",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build basic_networking_ping",
+            "preLaunchTask": "Build basic_networking_ping (C++)",
             "program": "${workspaceFolder}/build/basic_networking_ping/applications/basic_networking_ping/cpp/basic_networking_ping",
             "args": [
                 "./applications/basic_networking_ping/cpp/basic_networking_ping_rx.yaml"
@@ -63,7 +63,7 @@
             "name": "(debugpy) basic_networking_ping/python TX",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build basic_networking_ping (delay 3s)",
+            "preLaunchTask": "Build basic_networking_ping (Python, delay 3s)",
             "program": "${workspaceFolder}/applications/basic_networking_ping/python/basic_networking_ping.py",
             "cwd": "${workspaceFolder}/applications/basic_networking_ping/",
             "env": {
@@ -94,7 +94,7 @@
             "name": "(debugpy) basic_networking_ping/python RX",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build basic_networking_ping",
+            "preLaunchTask": "Build basic_networking_ping (Python)",
             "program": "${workspaceFolder}/applications/basic_networking_ping/python/basic_networking_ping.py",
             "cwd": "${workspaceFolder}/applications/basic_networking_ping/",
             "env": {
@@ -1505,7 +1505,7 @@
                 "(gdb) basic_networking_ping/cpp RX",
                 "(gdb) basic_networking_ping/cpp TX"
             ],
-            "preLaunchTask": "Build basic_networking_ping",
+            "preLaunchTask": "Build basic_networking_ping (C++)",
             "stopAll": true,
             "presentation": {
                 "hidden": false,
@@ -1519,7 +1519,7 @@
                 "(debugpy) basic_networking_ping/python RX",
                 "(debugpy) basic_networking_ping/python TX"
             ],
-            "preLaunchTask": "Build basic_networking_ping",
+            "preLaunchTask": "Build basic_networking_ping (Python)",
             "stopAll": true,
             "presentation": {
                 "hidden": false,

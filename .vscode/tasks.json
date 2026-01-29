@@ -38,16 +38,18 @@
             "group": "none",
             "detail": "Clean the build cache"
         },
-        {
+       {
             "type": "shell",
-            "label": "Build basic_networking_ping",
+            "label": "Build basic_networking_ping (Python)",
             "command": "./holohub",
             "args": [
                 "build",
                 "basic_networking_ping",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -67,12 +69,62 @@
         },
         {
             "type": "shell",
-            "label": "Build basic_networking_ping (delay 3s)",
+            "label": "Build basic_networking_ping (C++)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "basic_networking_ping",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "cpp"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "basic_networking_ping"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build basic_networking_ping (Python, delay 3s)",
             "command": "sleep 3",
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
-            "dependsOn": "Build basic_networking_ping",
+            "dependsOn": "Build basic_networking_ping (Python)",
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "basic_networking_ping"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build basic_networking_ping (C++, delay 3s)",
+            "command": "sleep 3",
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "dependsOn": "Build basic_networking_ping (C++)",
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task",
