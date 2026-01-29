@@ -209,6 +209,28 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertEqual(get_cuda_tag("12", "3.7.0"), "cuda12-igpu")
         self.assertEqual(get_cuda_tag("12", "3.6.0"), "igpu")
 
+    @patch.dict(os.environ, {"NGC_CLI_API_KEY": "token"}, clear=True)
+    def test_get_ngc_options_defaults_org_when_missing(self):
+        """Default NGC org when API key set and org missing."""
+        options = self.container.get_ngc_options()
+        self.assertListEqual(["-e", "NGC_CLI_API_KEY", "-e", "NGC_CLI_ORG=nvidia"], options)
+
+    @patch.dict(
+        os.environ,
+        {"NGC_CLI_API_KEY": "token", "NGC_CLI_ORG": "custom-org"},
+        clear=True,
+    )
+    def test_get_ngc_options_prefers_user_org(self):
+        """Prefer user org when API key and org are set."""
+        options = self.container.get_ngc_options()
+        self.assertListEqual(["-e", "NGC_CLI_API_KEY", "-e", "NGC_CLI_ORG"], options)
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_ngc_options_no_default_without_api_key(self):
+        """No default org when API key is missing."""
+        options = self.container.get_ngc_options()
+        self.assertListEqual([], options)
+
     @patch("utilities.cli.util.run_info_command")
     @patch("utilities.cli.util.shutil.which")
     def test_get_default_cuda_version(self, mock_which, mock_run_info_command):
