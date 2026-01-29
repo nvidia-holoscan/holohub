@@ -143,6 +143,11 @@ foreach(METADATA_FILE ${METADATA_FILES})
     set(TEST_COMMAND ${HOLOHUB_ROOT}/holohub ${HOLOHUB_COMMAND} ${APP_NAME} --language ${LANGUAGE})
   endif()
 
+  # When building only, disable BUILD_TESTING to skip test targets
+  if(BUILD_ONLY)
+    list(APPEND TEST_COMMAND --configure-args=-DBUILD_TESTING=OFF)
+  endif()
+
   # Add test for the application
   message("  Adding test: ${TEST_NAME}")
   add_test(
