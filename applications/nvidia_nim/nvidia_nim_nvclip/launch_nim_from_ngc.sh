@@ -34,7 +34,7 @@ mkdir -p "$LOCAL_NIM_CACHE"
 docker run -it --rm --name=$CONTAINER_NAME \
   --runtime=nvidia \
   --gpus all \
-  -e NGC_API_KEY=$NGC_API_KEY \
+  -e NGC_CLI_API_KEY=$NGC_CLI_API_KEY \
   -v "$LOCAL_NIM_CACHE:/opt/nim/.cache" \
   -u $(id -u) \
   -p 8000:8000 \
