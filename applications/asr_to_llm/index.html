@@ -18034,7 +18034,7 @@ Suggest follow-up steps.
 <span class="gd">-    docker run -it -d --rm -v $riva_model_loc:/data \</span>
 <span class="gi">+if [[ $riva_target_gpu_family == &quot;non-tegra&quot; ]]; then</span>
 <span class="gi">+            docker run -it -d --rm --gpus &#39;&quot;&#39;$gpus_to_use&#39;&quot;&#39; -v $riva_model_loc:/data \</span>
-<span class="w"> </span>               -e &quot;NGC_CLI_API_KEY=$NGC_API_KEY&quot; \
+<span class="w"> </span>               -e &quot;NGC_CLI_API_KEY=$NGC_CLI_API_KEY&quot; \
 </code></pre></div>
 Then in <code>riva_start.sh</code> make the changes below to ensure your Riva server has access to your sound devices:
 <div class="highlight"><pre><span></span><code>docker rm $riva_daemon_speech &amp;&gt; /dev/null
