@@ -17846,15 +17846,18 @@ While this is a strong limitation for VTK we believe that VTK can still be a
 good addition and VTK is an evolving project. Perhaps in the future we could
 overcome this limitation.</p>
 <h2 id="how-to-build-this-operator">How to build this operator<a class="headerlink" href="#how-to-build-this-operator" title="Permanent link">#</a></h2>
-<p>Build the HoloHub container as described at the root <a href="https://github.com/nvidia-holoscan/holohub/blob/main/README.md">README.md</a></p>
-<p>You need to create a docker image which includes VTK with the provided
-<code>vtk.Dockerfile</code>:</p>
-<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>vtk:latest<span class="w"> </span>-f<span class="w"> </span>vtk.Dockerfile<span class="w"> </span>.
+<p>Using Holohub CLI, you can create and run a container, which includes VTK,
+by running the following command from the root directory of Holohub:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>vtk_renderer
 </code></pre></div>
-<p>Then, you can build the tool tracking application with the provided
-<code>Dockerfile</code>:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>vtk:latest
+<p>This command will create and run a container based on the provided <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/vtk_renderer/Dockerfile"><code>Dockerfile</code></a>.</p>
+<blockquote>
+<p>[!NOTE]
+If you want to only build the docker image without running it, you can use the following command,
+which will only create the image and tag it as <code>holohub:vtk_renderer</code>.</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build-container<span class="w"> </span>vtk_renderer
 </code></pre></div>
+</blockquote>
 <p>Inside the container you can build the holohub application with:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>&lt;application&gt;<span class="w"> </span>--build-with<span class="w"> </span>vtk_renderer
 </code></pre></div>

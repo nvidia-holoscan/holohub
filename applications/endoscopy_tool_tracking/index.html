@@ -18072,15 +18072,15 @@ sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><
 
 <span class="c1"># build and launch the application</span>
 <span class="c1"># C++</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--build-with<span class="o">=</span><span class="s2">&quot;vtk_renderer&quot;</span><span class="w"> </span>--docker-file<span class="o">=</span><span class="s2">&quot;operators/vtk_renderer/vtk.Dockerfile&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub:endoscopy_tool_tracking_vtk<span class="w"> </span>--language<span class="o">=</span><span class="s2">&quot;cpp&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--build-with<span class="o">=</span><span class="s2">&quot;vtk_renderer&quot;</span><span class="w"> </span>--docker-file<span class="o">=</span><span class="s2">&quot;operators/vtk_renderer/Dockerfile&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub:endoscopy_tool_tracking_vtk<span class="w"> </span>--language<span class="o">=</span><span class="s2">&quot;cpp&quot;</span>
 
 <span class="c1"># Python (see below for additional steps)</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--build-with<span class="o">=</span><span class="s2">&quot;vtk_renderer&quot;</span><span class="w"> </span>--docker-file<span class="o">=</span><span class="s2">&quot;operators/vtk_renderer/vtk.Dockerfile&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub:endoscopy_tool_tracking_vtk<span class="w"> </span>--language<span class="o">=</span><span class="s2">&quot;python&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--build-with<span class="o">=</span><span class="s2">&quot;vtk_renderer&quot;</span><span class="w"> </span>--docker-file<span class="o">=</span><span class="s2">&quot;operators/vtk_renderer/Dockerfile&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub:endoscopy_tool_tracking_vtk<span class="w"> </span>--language<span class="o">=</span><span class="s2">&quot;python&quot;</span>
 </code></pre></div>
 <p>Arguments:</p>
 <ul>
 <li><code>--build-with</code> : instructs the script to build the application with the <code>vtk_renderer</code> operator</li>
-<li><code>--docker-file</code>: instructs the script to use the <code>operators/vtk_renderer/vtk.Dockerfile</code> that includes VTK libraries</li>
+<li><code>--docker-file</code>: instructs the script to use the <code>operators/vtk_renderer/Dockerfile</code> that includes VTK libraries</li>
 </ul>
 <h2 id="dev-container">Dev Container<a class="headerlink" href="#dev-container" title="Permanent link">#</a></h2>
 <p>To start the the Dev Container, run the following command from the root directory of Holohub:</p>
