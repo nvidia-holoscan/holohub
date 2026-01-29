@@ -243,7 +243,9 @@
                 "ucx_endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
