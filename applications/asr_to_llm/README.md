@@ -56,7 +56,7 @@ In `riva_init.sh` make the following changes to ensure the ARM64 version of [NGC
 -    docker run -it -d --rm -v $riva_model_loc:/data \
 +if [[ $riva_target_gpu_family == "non-tegra" ]]; then
 +            docker run -it -d --rm --gpus '"'$gpus_to_use'"' -v $riva_model_loc:/data \
-                -e "NGC_CLI_API_KEY=$NGC_CLIAPI_KEY" \
+                -e "NGC_CLI_API_KEY=$NGC_CLI_API_KEY" \
 ```
 Then in `riva_start.sh` make the changes below to ensure your Riva server has access to your sound devices:
 ```diff
