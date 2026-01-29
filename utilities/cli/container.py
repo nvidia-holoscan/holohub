@@ -610,6 +610,7 @@ class HoloHubContainer:
         cmd.extend(self.get_display_options(enable_x11, ssh_x11))
         cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
         cmd.extend(self.get_pythonpath_options(local_sdk_root, img))
+        cmd.extend(self.get_ngc_options())
 
         if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
@@ -833,6 +834,19 @@ class HoloHubContainer:
                             ["-v", f"{xauth_file}:{xauth_file}", "-e", f"XAUTHORITY={xauth_file}"]
                         )
 
+        return options
+
+    def get_ngc_options(self) -> List[str]:
+        """Get NGC-related options"""
+        options = []
+        if os.environ.get("NGC_API_KEY"):
+            options.extend(["-e", "NGC_API_KEY"])
+        if os.environ.get("NGC_CLI_API_KEY"):
+            options.extend(["-e", "NGC_CLI_API_KEY"])
+        if os.environ.get("NGC_CLI_ORG"):
+            options.extend(["-e", "NGC_CLI_ORG"])
+        if os.environ.get("NGC_CLI_TEAM"):
+            options.extend(["-e", "NGC_CLI_TEAM"])
         return options
 
     def get_nsys_options(self, nsys_profile: bool, nsys_location: str) -> List[str]:
