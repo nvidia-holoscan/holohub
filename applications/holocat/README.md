@@ -1,0 +1,149 @@
+# HoloCat - EtherCAT Real-time Integration
+
+HoloCat is an EtherCAT master application that integrates the acontis EC-Master SDK with NVIDIA's Holoscan platform.  
+As of this version it is a proof-of concept using user-space Acontis drivers, which is not performance optimized.
+
+## Overview
+
+HoloCat provides deterministic EtherCAT communication capabilities within the Holoscan ecosystem, enabling:
+
+- **Real-time Control**
+- **Holoscan Native**
+
+## Architecture Overview
+
+HoloCat implements a three-operator architecture that bridges Holoscan applications with EtherCAT slave devices through the acontis EC-Master SDK:
+
+### Operator Components
+
+- **HolocatOp**: Core lifecycle manager that initializes and coordinates the EtherCAT master. It interfaces directly with the acontis EC-Master SDK to handle master initialization, ENI configuration loading, and cycle scheduling. This operator orchestrates the real-time communication loop and manages the overall EtherCAT master state machine.
+
+- **HcDataTxOp**: Transmit operator responsible for handling outgoing process data from the Holoscan application to EtherCAT slaves. It manages timing control to ensure data is sent within the configured cycle boundaries and synchronizes with the EtherCAT master's scheduling.
+
+- **HcDataRxOp**: Receive operator that handles incoming process data from EtherCAT slaves. It processes received data and publishes it to downstream Holoscan operators, enabling the application to react to slave device inputs and status.
+
+### Data Flow
+
+```
+Holoscan Application
+       |
+       v
+   HolocatOp (acontis EC-Master SDK Interface)
+       |
+       +-- ENI Configuration Loading
+       +-- Master Initialization
+       +-- Cycle Scheduling
+       |
+       +--[TX Path]---------------+      +--[RX Path]---------------+
+       |                          |      |                          |
+       v                          |      v                          |
+   HcDataTxOp                     |   HcDataRxOp                    |
+       |                          |      ^                          |
+       | (Process Data Out)       |      | (Process Data In)        |
+       v                          |      |                          |
+   EtherCAT Master ---------------+------+                          |
+       |                                                            |
+       v                                                            |
+   EtherCAT Network                                                 |
+       |                                                            |
+       v                                                            |
+   Slave Devices ---------------------------------------------------+
+```
+
+### Real-Time Considerations
+
+HoloCat operates with strict real-time requirements:
+
+- **Cycle Timing**: Configurable cycle time (default 1000 μs) determines the master update rate
+- **Priority Scheduling**: Separate priority levels for the EtherCAT master thread (`rt_priority`) and job processing thread (`job_thread_priority`) ensure deterministic behavior
+- **Synchronization**: TX and RX operations are synchronized with the EtherCAT cycle to maintain timing coherence
+
+### Configuration Points
+
+The architecture is configured through three primary parameters:
+
+- **`adapter_name`**: Network interface name for EtherCAT communication (e.g., "eth0")
+- **`eni_file`**: Path to the EtherCAT Network Information (ENI) XML file defining the slave topology and process data mapping
+- **`cycle_time_us`**: EtherCAT cycle time in microseconds, defining the real-time update rate
+
+## Prerequisites
+
+### Required Dependencies
+
+1. **acontis EC-Master SDK** (Commercial License)
+   - Version 3.2.3 or later
+
+## Usage
+
+### Prerequisites
+```bash
+# Set EC-Master SDK path
+export ECMASTER_ROOT=/path/to/ecmaster/root
+
+# Verify installation (optional)
+./applications/holocat/scripts/verify_ecmaster.sh
+```
+
+### Build
+```bash
+# Build using HoloHub CLI (recommended)
+./holohub build holocat --local
+```
+
+### Run
+```bash
+# Run with configuration file
+./build/holocat/applications/holocat/holocat --config ./applications/holocat/configs/holocat_config.yaml
+```
+
+## Configuration
+
+### Basic Configuration
+
+Create `holocat_config.yaml`:
+
+```yaml
+holocat:
+  # Network adapter for EtherCAT
+  adapter_name: "eth0"  # Change to your EtherCAT interface
+  
+  # EtherCAT configuration file
+  eni_file: "/tmp/holocat_config.xml"
+  
+  # Cycle time in microseconds
+  cycle_time_us: 1000  # 1ms cycle time
+  
+  # Real-time priorities (1-99)
+  rt_priority: 39
+  job_thread_priority: 98
+  
+  # Enable real-time scheduling
+  enable_rt: true
+
+# Holoscan application configuration
+holoscan:
+  logging:
+    level: "info"
+```
+
+### ENI File Generation
+
+Use EtherCAT configuration tools to generate your ENI file.
+
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Permission Denied**
+   ```bash
+   # Ensure capabilities are set
+   sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
+   ```
+
+2. **EC-Master SDK Not Found**
+   ```bash
+   # Verify ECMASTER_ROOT environment variable
+   echo $ECMASTER_ROOT
+   ls -la $ECMASTER_ROOT/SDK/INC/EcMaster.h
+   ```
