@@ -161,8 +161,7 @@ void HolocatOp::start()
     EC_T_DWORD dwRes = ecatInitMaster(&ec_master_init_parms_);
     if (dwRes != EC_E_NOERROR)
     {
-        HOLOSCAN_LOG_ERROR("Cannot initialize EtherCAT-Master: {} (0x{:x})", 
-                ecatGetText(dwRes), dwRes);
+        HOLOSCAN_LOG_ERROR("Cannot initialize EtherCAT-Master: {} (0x{:x})", ecatGetText(dwRes), dwRes);
         throw std::runtime_error("Cannot initialize EtherCAT-Master: " + std::string(ecatGetText(dwRes)));
     }
     HOLOSCAN_LOG_INFO("Master initialized");

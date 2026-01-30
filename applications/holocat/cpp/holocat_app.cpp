@@ -36,7 +36,7 @@ void HolocatApp::compose() {
   std::shared_ptr<HolocatOp> holocat_op = make_operator<HolocatOp>("holocat_op", ecat_bus_periodic_cond);
   holocat_op->set_config(config);
   add_operator(holocat_op);
-  HOLOSCAN_LOG_INFO("HoloCat operator created with %dus periodic condition", config.cycle_time_us);
+  HOLOSCAN_LOG_INFO("HoloCat operator created with {}us periodic condition", config.cycle_time_us);
   
   // Create and configure the HcDataTxOp operator
   auto counter_update_periodic_cond = make_condition<holoscan::PeriodicCondition>(
