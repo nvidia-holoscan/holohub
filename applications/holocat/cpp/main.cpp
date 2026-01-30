@@ -124,11 +124,12 @@ int main(int argc, char** argv) {
     HOLOSCAN_LOG_INFO("Starting HoloCat application...");
     app->run();
     
-    
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Application error: {}", e.what());
     std::cerr << "Error: " << e.what() << std::endl;
     return 1;
   }
+  HOLOSCAN_LOG_INFO("HoloCat application finished");
+  return 0;
 }
 

@@ -110,7 +110,7 @@ FOUND_LIBS=0
 for lib in "${LINK_LIBS[@]}"; do
     if [ -f "$LIB_DIR/$lib" ]; then
         print_status "OK" "$lib found"
-        ((FOUND_LIBS++))
+        FOUND_LIBS=$((FOUND_LIBS + 1)((FOUND_LIBS++))
     else
         print_status "WARN" "$lib not found (may be optional)"
     fi

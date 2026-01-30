@@ -72,8 +72,7 @@ class HolocatOp : public holoscan::Operator {
   // EtherCAT constants
   static constexpr int kWagoDioOutOffset = 10 * 8;  // Bit offset for Wago DIO output
   static constexpr int kWagoDioInOffset = 18 * 8;   // Bit offset for Wago DIO input
-  static constexpr uint64_t kUsPerMs = 1000000;     // Microseconds per millisecond
-  static constexpr int kTwoBytes = 16;               // 2 bytes bit length
+  static constexpr int kTwoBytes = 16;              // 2 bytes bit length
   
   // EtherCAT parameter structs (moved from global)
   EC_T_LOG_PARMS log_parms_;

@@ -22,9 +22,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": [
-			"EtherCAT"
-		],
+		"tags": ["Networking and Distributed Computing", "Robotics"],
 		"ranking": 2,
 		"requirements": {
 			"external": {
