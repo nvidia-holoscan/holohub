@@ -129,6 +129,8 @@ int main(int argc, char** argv) {
     std::cerr << "Error: " << e.what() << std::endl;
     return 1;
   }
+
+  return 0;
   
   HOLOSCAN_LOG_INFO("HoloCat application finished");
   return 0;
