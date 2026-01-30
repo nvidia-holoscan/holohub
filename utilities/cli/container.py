@@ -839,14 +839,16 @@ class HoloHubContainer:
     def get_ngc_options(self) -> List[str]:
         """Get NGC-related options"""
         options = []
-        if os.environ.get("NGC_API_KEY"):
-            options.extend(["-e", "NGC_API_KEY"])
         if os.environ.get("NGC_CLI_API_KEY"):
             options.extend(["-e", "NGC_CLI_API_KEY"])
         if os.environ.get("NGC_CLI_ORG"):
             options.extend(["-e", "NGC_CLI_ORG"])
         if os.environ.get("NGC_CLI_TEAM"):
             options.extend(["-e", "NGC_CLI_TEAM"])
+        # If NGC_CLI_API_KEY is set, the org is required even for public resources
+        # Thus, set a default org if NGC_CLI_ORG is not set.
+        if os.environ.get("NGC_CLI_API_KEY") and not os.environ.get("NGC_CLI_ORG"):
+            options.extend(["-e", "NGC_CLI_ORG=nvidia"])
         return options
 
     def get_nsys_options(self, nsys_profile: bool, nsys_location: str) -> List[str]:
