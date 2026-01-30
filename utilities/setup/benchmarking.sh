@@ -30,7 +30,6 @@ apt install --no-install-recommends -y \
     libgtk-3-dev \
     libcanberra-gtk-module \
     graphviz
-apt clean && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 python3 -m pip install \
