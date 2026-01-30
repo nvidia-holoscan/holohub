@@ -39,8 +39,8 @@ class HcDataRxOp : public holoscan::Operator {
   
   /**
    * @brief Compute method called on each execution cycle
-   * @param op_input Input context (unused for this source operator)
-   * @param op_output Output context for emitting counter data
+   * @param op_input Input context for receiving process data from EtherCAT
+   * @param op_output Output context (unused for this receiver operator)
    * @param context Execution context
    */
   void compute(holoscan::InputContext& op_input, 
