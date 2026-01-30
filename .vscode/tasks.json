@@ -635,14 +635,16 @@
         },
         {
             "type": "shell",
-            "label": "Build slang_simple",
+            "label": "Build slang_simple (C++)",
             "command": "./holohub",
             "args": [
                 "build",
                 "slang_simple",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -653,14 +655,56 @@
         },
         {
             "type": "shell",
-            "label": "Build slang_gamma_correction",
+            "label": "Build slang_simple (Python)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "slang_simple",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "python"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build slang_gamma_correction (Python)",
             "command": "./holohub",
             "args": [
                 "build",
                 "slang_gamma_correction",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build slang_gamma_correction (C++)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "slang_gamma_correction",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
