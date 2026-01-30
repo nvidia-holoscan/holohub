@@ -17,9 +17,9 @@ namespace holocat {
 /**
  * @brief HoloCat Data Transmit Operator
  * 
- * A Holoscan operator that generates incrementing counter data from 0 to 256.
+ * A Holoscan operator that generates incrementing counter data from 0 to 255.
  * This operator acts as a data source, emitting integer values that increment
- * on each compute cycle. When the counter reaches 256, it wraps back to 0.
+ * on each compute cycle. When the counter reaches 255, it wraps back to 0.
  * 
  * The operator runs as a source operator and can be used for testing data
  * flow in Holoscan applications or as a simple data generator.
