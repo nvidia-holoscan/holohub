@@ -10,6 +10,62 @@ HoloCat provides deterministic EtherCAT communication capabilities within the Ho
 - **Real-time Control**
 - **Holoscan Native**
 
+## Architecture Overview
+
+HoloCat implements a three-operator architecture that bridges Holoscan applications with EtherCAT slave devices through the acontis EC-Master SDK:
+
+### Operator Components
+
+- **HolocatOp**: Core lifecycle manager that initializes and coordinates the EtherCAT master. It interfaces directly with the acontis EC-Master SDK to handle master initialization, ENI configuration loading, and cycle scheduling. This operator orchestrates the real-time communication loop and manages the overall EtherCAT master state machine.
+
+- **HcDataTxOp**: Transmit operator responsible for handling outgoing process data from the Holoscan application to EtherCAT slaves. It manages timing control to ensure data is sent within the configured cycle boundaries and synchronizes with the EtherCAT master's scheduling.
+
+- **HcDataRxOp**: Receive operator that handles incoming process data from EtherCAT slaves. It processes received data and publishes it to downstream Holoscan operators, enabling the application to react to slave device inputs and status.
+
+### Data Flow
+
+```
+Holoscan Application
+       |
+       v
+   HolocatOp (acontis EC-Master SDK Interface)
+       |
+       +-- ENI Configuration Loading
+       +-- Master Initialization
+       +-- Cycle Scheduling
+       |
+       +--[TX Path]---------------+      +--[RX Path]---------------+
+       |                          |      |                          |
+       v                          |      v                          |
+   HcDataTxOp                     |   HcDataRxOp                    |
+       |                          |      ^                          |
+       | (Process Data Out)       |      | (Process Data In)        |
+       v                          |      |                          |
+   EtherCAT Master ---------------+------+                          |
+       |                                                            |
+       v                                                            |
+   EtherCAT Network                                                 |
+       |                                                            |
+       v                                                            |
+   Slave Devices ---------------------------------------------------+
+```
+
+### Real-Time Considerations
+
+HoloCat operates with strict real-time requirements:
+
+- **Cycle Timing**: Configurable cycle time (default 1000 μs) determines the master update rate
+- **Priority Scheduling**: Separate priority levels for the EtherCAT master thread (`rt_priority`) and job processing thread (`job_thread_priority`) ensure deterministic behavior
+- **Synchronization**: TX and RX operations are synchronized with the EtherCAT cycle to maintain timing coherence
+
+### Configuration Points
+
+The architecture is configured through three primary parameters:
+
+- **`adapter_name`**: Network interface name for EtherCAT communication (e.g., "eth0")
+- **`eni_file`**: Path to the EtherCAT Network Information (ENI) XML file defining the slave topology and process data mapping
+- **`cycle_time_us`**: EtherCAT cycle time in microseconds, defining the real-time update rate
+
 ## Prerequisites
 
 ### Required Dependencies

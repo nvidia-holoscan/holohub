@@ -2,7 +2,7 @@
  * hc_data_rx_op.cpp
  * HoloCat Data Receive Operator
  * 
- * This file implements the HcDataTxOp operator that generates incrementing
+ * This file implements the HcDataRxOp operator that receives counter data
  * counter data for testing and demonstration purposes.
  *---------------------------------------------------------------------------*/
 
