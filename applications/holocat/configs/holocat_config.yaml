@@ -3,6 +3,7 @@
 holocat:
   # EtherCAT network adapter name
   adapter_name: "enx6c6e071e9c45"
+  #adapter_name: "enx6c6e071e9c45"
   
   # EtherCAT Network Information (ENI) file path
   # Use environment variable HOLOCAT_ENI_FILE to override, or falls back to config dir

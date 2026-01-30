@@ -362,6 +362,8 @@ void HolocatOp::compute(holoscan::InputContext& op_input,
     }
 
     // Calculate sample delay with wraparound handling at 256
+    // enforce inval in range 0-255
+    inval = inval % 256;
     int sample_delay = outval_ - inval;
     if (sample_delay < 0) {
         sample_delay += 256;
