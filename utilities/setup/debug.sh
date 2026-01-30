@@ -23,4 +23,3 @@ apt update
 apt install --no-install-recommends -y \
     gdb \
     valgrind
-apt clean && rm -rf /var/lib/apt/lists/*
