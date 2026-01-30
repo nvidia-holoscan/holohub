@@ -147,7 +147,9 @@
                 "asr_to_llm",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -165,7 +167,9 @@
                 "sam2",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -183,7 +187,9 @@
                 "colonoscopy_segmentation",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -201,7 +207,9 @@
                 "cuda_quantum",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -259,7 +267,9 @@
                 "endoscopy_depth_estimation",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -409,7 +419,9 @@
                 "h264_endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -427,7 +439,9 @@
                 "ucx_h264_endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -454,7 +468,9 @@
                 "h264_video_decode",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -472,7 +488,9 @@
                 "grpc_endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -520,7 +538,9 @@
                 "grpc_h264_endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -568,7 +588,9 @@
                 "${input:remember_holoviz_example_name}",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -586,7 +608,9 @@
                 "multiai_ultrasound",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -604,7 +628,9 @@
                 "nvidia_nim_nvclip",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -762,7 +788,9 @@
                 "build",
                 "${input:app_name}",
                 "--benchmark",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
