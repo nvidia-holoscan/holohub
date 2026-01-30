@@ -3,7 +3,7 @@
  * HoloCat Data Receive Operator
  * 
  * This file implements the HcDataRxOp operator that receives counter data
- * counter data for testing and demonstration purposes.
+ * for testing and demonstration purposes.
  *---------------------------------------------------------------------------*/
 
 #include <holoscan/holoscan.hpp>
