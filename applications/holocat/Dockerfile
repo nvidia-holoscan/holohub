@@ -1,7 +1,7 @@
 # HoloCat EtherCAT Application Dockerfile
 
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE}
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:${BASE_SDK_VERSION}
 
 # Install system dependencies for EtherCAT and real-time operation
 RUN apt-get update && apt-get install -y \
@@ -27,9 +27,7 @@ ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/acontis/ecmaster/lib:/opt/acontis/ec
 
 # Create holocat user with necessary privileges
 RUN useradd -m -s /bin/bash holocat && \
-    usermod -aG sudo holocat && \
-    echo "holocat ALL=(ALL) NOPASSWD: /usr/sbin/setcap" >> /etc/sudoers
-
+    usermod -aG sudo holocat
 # Create directories for configuration, logs, and scripts
 RUN mkdir -p /opt/holocat/config /opt/holocat/logs /opt/holocat/scripts && \
     chown -R holocat:holocat /opt/holocat
