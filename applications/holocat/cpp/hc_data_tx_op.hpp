@@ -50,7 +50,7 @@ class HcDataTxOp : public holoscan::Operator {
                holoscan::ExecutionContext& context) override;
 
  private:
-    // coutner from 0 to maxcount for output on ECat bus
+    // counter from 0 to maxcount for output on ECat bus
   int counter_ = 0;
   static constexpr int kMaxCount = 256;
 };
