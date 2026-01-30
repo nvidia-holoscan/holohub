@@ -12,6 +12,7 @@ import cupy as cp
 import numpy as np
 from holoscan.core import ExecutionContext, InputContext, Operator, OperatorSpec, OutputContext
 from utils.reconstruction.assets import Assets
+from utils.reconstruction.ema_high_pass import EmaHighPass
 
 from ..stream import SampleOutput
 from .types import BuildRHSOutput, VoxelMetadata
@@ -41,6 +42,8 @@ class BuildRHSOperator(Operator):
             ijk=assets.ijk, xyz=assets.xyz, resolution=assets.resolution
         )
         self._wavelengths = assets.wavelengths
+
+        self._ema_high_pass = EmaHighPass()
 
         # GPU caches (CuPy arrays on the propagated CUDA stream)
         self._mega_jacobians_gpu = None
@@ -109,6 +112,9 @@ class BuildRHSOperator(Operator):
             # take log of moment 0 to convert to optical density
             # shape is (moments, channels, wavelengths)
             cp.log(realtime_moments[0], out=realtime_moments[0])
+
+            # apply EMA high-pass filter
+            realtime_moments = self._ema_high_pass.step(realtime_moments)
 
             realtime_moments = self._apply_baseline(realtime_moments)
             if realtime_moments is None:
