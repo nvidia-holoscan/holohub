@@ -18,6 +18,7 @@
 #include <future>
 #include <holoscan/holoscan.hpp>
 #include "holocat_config.hpp"
+#include <time.h>
 
 namespace holocat {
 
@@ -63,12 +64,6 @@ class HolocatOp : public holoscan::Operator {
   // Job task member variables (moved from global)
   EC_T_MEMREQ_DESC oPdMemorySize_{0,0};
 
-  // Member function for job task
-  void EcMasterJobTask();
-  
-  // Static function to interface with OsCreateThread
-  static EC_T_VOID EcMasterJobTaskStatic(EC_T_VOID* pvAppContext);
-  
   // EtherCAT constants
   static constexpr int kWagoDioOutOffset = 10 * 8;  // Bit offset for Wago DIO output
   static constexpr int kWagoDioInOffset = 18 * 8;   // Bit offset for Wago DIO input
@@ -109,6 +104,9 @@ class HolocatOp : public holoscan::Operator {
 
   // Process data output value
   int outval_ = 0;
+
+  // Performance tracking
+  struct timespec t_last;
 };
 
 }

@@ -146,6 +146,8 @@ EC_T_DWORD HolocatOp::ConfigureNetwork()
 
 
 void HolocatOp::setup(holoscan::OperatorSpec& spec) {
+    t_last.tv_sec = 0;
+    t_last.tv_nsec = 0;
     spec.input<int>("count_in")
         .condition(holoscan::ConditionType::kNone);  // Make input optional
     spec.output<int>("count_out")
@@ -314,7 +316,7 @@ void HolocatOp::compute(holoscan::InputContext& op_input,
     EC_UNREFPARM(dwRes);
 
     EC_T_BYTE* pbyPdIn = ecatGetProcessImageInputPtr();
-    if (pbyPdIn)
+    if (pbyPdIn != EC_NULL)
     {
         EC_COPYBITS((EC_T_BYTE*)&inval, 0, pbyPdIn, kWagoDioInOffset, 16);
         has_inval = true;
@@ -352,7 +354,12 @@ void HolocatOp::compute(holoscan::InputContext& op_input,
     // Performance monitoring and diagnostics
     struct timespec t_now;
     clock_gettime(CLOCK_MONOTONIC, &t_now);     
-    static struct timespec t_last{t_now.tv_sec, t_now.tv_nsec};
+    
+    // Only initialize t_last on first run (if it is zeroed)
+    if (t_last.tv_sec == 0 && t_last.tv_nsec == 0) {
+        t_last.tv_sec = t_now.tv_sec;
+        t_last.tv_nsec = t_now.tv_nsec;
+    }
 
     // Calculate sample delay with wraparound handling at 256
     int sample_delay = outval_ - inval;

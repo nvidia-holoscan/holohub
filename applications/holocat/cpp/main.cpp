@@ -94,28 +94,29 @@ int main(int argc, char** argv) {
     std::filesystem::path config_path;
     if (!args.config_file.empty()) {
         config_path = args.config_file;
+    }  else if (!std::filesystem::exists(config_path)) {
+      throw std::runtime_error("Configuration file not found: " + config_path.string());
     } else {
         config_path = std::filesystem::canonical(argv[0]).parent_path() / "holocat_config.yaml";
     }
     
-    if (!std::filesystem::exists(config_path)) {
-        throw std::runtime_error("Configuration file not found: " + config_path.string());
-    }
+    
     app->config(config_path.string());
     
 
     // Handle configuration printing request
     if (args.print_config_only) {
       try {
-          auto config = app->extract_config();
-          std::cout << "HoloCat Configuration:\n";
-          std::cout << "  Adapter: " << config.adapter_name << "\n";
-          std::cout << "  ENI File: " << config.eni_file << "\n";
-          std::cout << "  Cycle Time: " << config.cycle_time_us << " μs\n";
-          std::cout << "  RT Priority: " << config.rt_priority << "\n";
-          // ... print other fields
+        // TODO: Move this to compose() function
+        auto config = app->extract_config();
+        std::cout << "HoloCat Configuration:\n";
+        std::cout << "  Adapter: " << config.adapter_name << "\n";
+        std::cout << "  ENI File: " << config.eni_file << "\n";
+        std::cout << "  Cycle Time: " << config.cycle_time_us << " μs\n";
+        std::cout << "  RT Priority: " << config.rt_priority << "\n";
+        // ... print other fields
       } catch (const std::exception& e) {
-          throw std::runtime_error("Configuration error: " + std::string(e.what()));
+        throw std::runtime_error("Configuration error: " + std::string(e.what()));
       }
       return 0;
     }

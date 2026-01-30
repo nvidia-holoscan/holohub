@@ -10,6 +10,7 @@
 #define INC_HOLOCAT_CONFIG_H 1
 
 #include <string>
+#include <cstdint>
 
 namespace holocat {
 
