@@ -58,7 +58,17 @@ class DynamicRenderingVizApp(Application):
        Holoviz     ImageSaver
     """
 
-    def __init__(self, data_dir, output_dir, checkpoint_path, num_frames=-1, loop=True):
+    def __init__(
+        self,
+        data_dir,
+        output_dir,
+        checkpoint_path,
+        num_frames=-1,
+        loop=True,
+        export_ply=False,
+        export_ply_frame=1,
+        export_ply_path="",
+    ):
         super().__init__()
         self.name = "Dynamic Rendering Visualization"
         self.data_dir = data_dir
@@ -66,6 +76,9 @@ class DynamicRenderingVizApp(Application):
         self.checkpoint_path = checkpoint_path
         self.num_frames = num_frames
         self.loop = loop
+        self.export_ply = export_ply
+        self.export_ply_frame = export_ply_frame
+        self.export_ply_path = export_ply_path
 
     def compose(self):
         """Build the visualization pipeline."""
@@ -76,6 +89,10 @@ class DynamicRenderingVizApp(Application):
         print(f"Checkpoint: {self.checkpoint_path}")
         print(f"Frames to render: {self.num_frames}")
         print(f"Loop playback: {self.loop}")
+        print(f"Export PLY: {self.export_ply}")
+        if self.export_ply:
+            print(f"  - Export at frame: {self.export_ply_frame}")
+            print(f"  - Export path: {self.export_ply_path or 'auto-generated'}")
         print("Mode: DYNAMIC (with temporal deformation)")
         print(f"{'='*70}\n")
 
@@ -115,6 +132,9 @@ class DynamicRenderingVizApp(Application):
             render_mode="RGB",
             near_plane=0.01,
             far_plane=1000.0,
+            export_ply=self.export_ply,
+            export_ply_frame=self.export_ply_frame,
+            export_ply_path=self.export_ply_path,
         )
 
         # Holoviz operator for visualization (with allocator like reference apps)
@@ -193,6 +213,24 @@ def main():
     parser.add_argument(
         "--no-loop", dest="loop", action="store_false", help="Disable loop playback"
     )
+    parser.add_argument(
+        "--export_ply",
+        action="store_true",
+        default=False,
+        help="Export gaussians to PLY file",
+    )
+    parser.add_argument(
+        "--export_ply_frame",
+        type=int,
+        default=1,
+        help="Frame number at which to export PLY (default: 1)",
+    )
+    parser.add_argument(
+        "--export_ply_path",
+        type=str,
+        default="",
+        help="Output path for PLY file (default: auto-generated in output_dir)",
+    )
     args = parser.parse_args()
 
     # Validate paths
@@ -204,6 +242,11 @@ def main():
         print(f"ERROR: Checkpoint does not exist: {args.checkpoint}")
         return 1
 
+    # Handle default PLY export path
+    export_ply_path = args.export_ply_path
+    if args.export_ply and not export_ply_path:
+        export_ply_path = os.path.join(args.output_dir, "gaussians.ply")
+
     # Create and run application
     try:
         app = DynamicRenderingVizApp(
@@ -212,6 +255,9 @@ def main():
             checkpoint_path=args.checkpoint,
             num_frames=args.num_frames,
             loop=args.loop,
+            export_ply=args.export_ply,
+            export_ply_frame=args.export_ply_frame,
+            export_ply_path=export_ply_path,
         )
         app.run()
 

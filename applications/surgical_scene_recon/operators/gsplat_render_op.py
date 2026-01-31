@@ -25,14 +25,17 @@ Adapted from: holohub/applications/xr_gsplat/xr_gsplat.py::XrGsplatOp
 """
 
 import math
+import os
 import traceback
 
 import cupy as cp
 import holoscan as hs
+import numpy as np
 import torch
 from gsplat.rendering import rasterization
 from holoscan.core import Operator, OperatorSpec
 from holoscan.gxf import Entity
+from plyfile import PlyData, PlyElement
 
 
 class GsplatRenderOp(Operator):
@@ -53,6 +56,7 @@ class GsplatRenderOp(Operator):
     def __init__(self, fragment, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
         self.frame_count = 0
+        self.ply_exported = False
 
         # Initialize parameters with defaults (will be overridden by spec.param values)
         self.width = 640
@@ -60,6 +64,9 @@ class GsplatRenderOp(Operator):
         self.render_mode = "RGB"
         self.near_plane = 0.01
         self.far_plane = 1000.0
+        self.export_ply = False
+        self.export_ply_frame = 1
+        self.export_ply_path = ""
 
     def setup(self, spec: OperatorSpec):
         """Define operator interface."""
@@ -73,6 +80,9 @@ class GsplatRenderOp(Operator):
         spec.param("render_mode", "RGB")  # "RGB" or "RGB+D" or "RGB+ED"
         spec.param("near_plane", 0.01)
         spec.param("far_plane", 1000.0)
+        spec.param("export_ply", False)  # Whether to export PLY
+        spec.param("export_ply_frame", 1)  # Frame at which to export (default: 2nd frame)
+        spec.param("export_ply_path", "")  # Output path for PLY file
 
     def compute(self, op_input, op_output, context):
         """Render one frame."""
@@ -98,6 +108,11 @@ class GsplatRenderOp(Operator):
         else:
             # Phase 1.2a - static rendering
             params = self._get_static_params(splats)
+
+        # Export PLY at specified frame (if enabled)
+        if self.export_ply and not self.ply_exported and self.frame_count == self.export_ply_frame:
+            self._export_ply(params, splats)
+            self.ply_exported = True
 
         # Extract camera parameters
         R = torch.as_tensor(pose_data.get("R"), device="cuda")
@@ -273,6 +288,119 @@ class GsplatRenderOp(Operator):
             print(f"  {e}")
             traceback.print_exc()
             raise
+
+    def _export_ply(self, params, splats):
+        """
+        Export gaussian splat parameters to PLY format.
+
+        The PLY format follows the standard 3DGS convention:
+        - x, y, z: positions
+        - nx, ny, nz: normals (set to 0)
+        - f_dc_0, f_dc_1, f_dc_2: DC component of SH (RGB)
+        - f_rest_0 ... f_rest_N: higher-order SH coefficients
+        - opacity: opacity value (in logit space for compatibility)
+        - scale_0, scale_1, scale_2: scales (in log space for compatibility)
+        - rot_0, rot_1, rot_2, rot_3: quaternion rotation
+        """
+        # Determine output path
+        if self.export_ply_path:
+            ply_path = self.export_ply_path
+        else:
+            ply_path = f"gaussians_frame_{self.frame_count:05d}.ply"
+
+        # Ensure output directory exists
+        os.makedirs(os.path.dirname(ply_path) if os.path.dirname(ply_path) else ".", exist_ok=True)
+
+        print(f"[GsplatRender] Exporting PLY to: {ply_path}")
+
+        # Get activated parameters (these are in rendering space)
+        means = params["means"].detach().cpu().numpy()
+        scales = params["scales"].detach().cpu().numpy()
+        quats = params["quats"].detach().cpu().numpy()
+        opacities = params["opacities"].detach().cpu().numpy()
+        colors = params["colors"].detach().cpu().numpy()  # [N, num_sh, 3]
+
+        N = means.shape[0]
+
+        # Convert back to log/logit space for PLY compatibility with other viewers
+        # Most 3DGS viewers expect scales in log-space and opacities in logit-space
+        scales_log = np.log(np.clip(scales, 1e-8, None))
+        opacities_logit = np.log(np.clip(opacities / (1 - np.clip(opacities, None, 1 - 1e-7)), 1e-8, None))
+
+        # Prepare SH coefficients
+        # colors shape: [N, num_sh_coeffs, 3] where num_sh_coeffs = (sh_degree + 1)^2
+        # PLY format: f_dc_0, f_dc_1, f_dc_2 (DC), then f_rest_0, f_rest_1, ... (higher order)
+        # The DC component (index 0) is stored separately from the rest
+        sh_dc = colors[:, 0, :]  # [N, 3]
+        sh_rest = colors[:, 1:, :]  # [N, num_sh-1, 3]
+
+        # Flatten higher-order SH: [N, (num_sh-1)*3]
+        sh_rest_flat = sh_rest.reshape(N, -1)
+
+        # Build structured array for PLY
+        # Properties: x, y, z, nx, ny, nz, f_dc_*, f_rest_*, opacity, scale_*, rot_*
+        num_sh_rest = sh_rest_flat.shape[1]
+
+        dtype_list = [
+            ("x", "f4"),
+            ("y", "f4"),
+            ("z", "f4"),
+            ("nx", "f4"),
+            ("ny", "f4"),
+            ("nz", "f4"),
+            ("f_dc_0", "f4"),
+            ("f_dc_1", "f4"),
+            ("f_dc_2", "f4"),
+        ]
+
+        # Add f_rest properties
+        for i in range(num_sh_rest):
+            dtype_list.append((f"f_rest_{i}", "f4"))
+
+        dtype_list.extend([
+            ("opacity", "f4"),
+            ("scale_0", "f4"),
+            ("scale_1", "f4"),
+            ("scale_2", "f4"),
+            ("rot_0", "f4"),
+            ("rot_1", "f4"),
+            ("rot_2", "f4"),
+            ("rot_3", "f4"),
+        ])
+
+        # Create structured array
+        vertices = np.empty(N, dtype=dtype_list)
+
+        # Fill in values
+        vertices["x"] = means[:, 0]
+        vertices["y"] = means[:, 1]
+        vertices["z"] = means[:, 2]
+        vertices["nx"] = 0
+        vertices["ny"] = 0
+        vertices["nz"] = 0
+        vertices["f_dc_0"] = sh_dc[:, 0]
+        vertices["f_dc_1"] = sh_dc[:, 1]
+        vertices["f_dc_2"] = sh_dc[:, 2]
+
+        for i in range(num_sh_rest):
+            vertices[f"f_rest_{i}"] = sh_rest_flat[:, i]
+
+        vertices["opacity"] = opacities_logit
+        vertices["scale_0"] = scales_log[:, 0]
+        vertices["scale_1"] = scales_log[:, 1]
+        vertices["scale_2"] = scales_log[:, 2]
+        vertices["rot_0"] = quats[:, 0]
+        vertices["rot_1"] = quats[:, 1]
+        vertices["rot_2"] = quats[:, 2]
+        vertices["rot_3"] = quats[:, 3]
+
+        # Create PLY element and save
+        el = PlyElement.describe(vertices, "vertex")
+        PlyData([el]).write(ply_path)
+
+        print(f"[GsplatRender] PLY exported: {N} gaussians")
+        print(f"  - SH degree: {int(np.sqrt(colors.shape[1])) - 1}")
+        print(f"  - File size: {os.path.getsize(ply_path) / 1024 / 1024:.2f} MB")
 
     def _emit_outputs(self, rendered, op_output, context):
         """Emit rendered RGB."""

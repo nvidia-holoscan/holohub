@@ -95,6 +95,34 @@ class EndoNeRFLoaderOp(Operator):
         print("[EndoNeRFLoader] Loading file lists...")
         self._load_file_lists(data_path)
 
+        # Find the minimum available count across all data sources
+        min_available = min(
+            len(self.image_paths),
+            len(self.depth_paths),
+            len(self.mask_paths),
+            len(self.poses),
+        )
+
+        # Warn if there's a mismatch and truncation is needed
+        if min_available < len(self.poses):
+            print(
+                f"[EndoNeRFLoader] Warning: poses ({len(self.poses)}) > data files ({min_available}), "
+                f"truncating to {min_available} frames"
+            )
+
+        # Apply max_frames limit if specified, otherwise use minimum available
+        if self.max_frames > 0:
+            limit = min(self.max_frames, min_available)
+            print(f"[EndoNeRFLoader] Limiting to {limit} frames (max_frames={self.max_frames})")
+        else:
+            limit = min_available
+
+        self.image_paths = self.image_paths[:limit]
+        self.depth_paths = self.depth_paths[:limit]
+        self.mask_paths = self.mask_paths[:limit]
+        self.poses = self.poses[:limit]
+        self.num_frames = limit
+
         # Validate counts match
         if not (
             len(self.image_paths)
