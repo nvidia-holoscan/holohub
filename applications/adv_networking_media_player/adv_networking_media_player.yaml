@@ -98,4 +98,3 @@ frames_writer: # applied only to cpp
 holoviz:
   width: 1280
   height: 720
-  

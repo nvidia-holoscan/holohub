@@ -263,7 +263,7 @@ class AdvNetworkMediaTxOpImpl {
   VideoColorBitDepth color_bit_depth_;
 
   // Per-instance state for frame handling
-  int retry_attempts_ = 0;        // Number of consecutive compute cycles attempting to send current frame
+  int retry_attempts_ = 0;        // Number of consecutive attempts to send current frame
   int dropped_frames_ = 0;        // Total number of frames dropped due to max retry exceeded
   int not_available_count_ = 0;   // Count of consecutive burst not available
   int sent_ = 0;                  // Total number of frames successfully sent
