@@ -27,6 +27,21 @@ FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG CMAKE_BUILD_TYPE=Release
+ARG ENABLE_APT_CACHING=true
+
+# Configure APT caching behavior
+RUN if [ "${ENABLE_APT_CACHING}" = "true" ]; then \
+        echo "APT Caching enabled..."; \
+        DOCKER_CLEAN_CONF="/etc/apt/apt.conf.d/docker-clean"; \
+        if [ -f "${DOCKER_CLEAN_CONF}" ]; then \
+            mv "${DOCKER_CLEAN_CONF}" "${DOCKER_CLEAN_CONF}.disabled"; \
+        fi; \
+        echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' \
+            > /etc/apt/apt.conf.d/99-keep-archives; \
+    else \
+        echo "APT Caching disabled..."; \
+        rm -f /etc/apt/apt.conf.d/docker-clean; \
+    fi
 
 # --------------------------------------------------------------------------
 #
@@ -37,7 +52,9 @@ FROM base AS holohub-cli-prerequisites
 
 # Install python3 if not present (needed for holohub CLI)
 ARG PYTHON_VERSION=python3
-RUN if ! command -v python3 >/dev/null 2>&1; then \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=holohub-apt-cache-$TARGETARCH-$GPU_TYPE \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=holohub-apt-lib-$TARGETARCH-$GPU_TYPE \
+    if ! command -v python3 >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
             software-properties-common curl gpg-agent \
@@ -49,7 +66,6 @@ RUN if ! command -v python3 >/dev/null 2>&1; then \
             python3-pip \
             software-properties-common \
         && apt-get autoremove --purge -y \
-        && rm -rf /var/lib/apt/lists/* \
         && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
         && if [ "${PYTHON_VERSION}" != "python3" ]; then \
             update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
@@ -91,7 +107,9 @@ FROM holohub-cli AS benchmarking-setup
 ARG CMAKE_BUILD_TYPE=Release
 
 # For benchmarking
-RUN apt update \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=holohub-apt-cache-$TARGETARCH-$GPU_TYPE \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=holohub-apt-lib-$TARGETARCH-$GPU_TYPE \
+    apt update \
     && apt install --no-install-recommends -y \
         libcairo2-dev \
         libgirepository1.0-dev \
@@ -100,13 +118,16 @@ RUN apt update \
         libcanberra-gtk-module \
         graphviz
 
-RUN pip install meson
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked,id=holohub-pip-cache-$TARGETARCH-$GPU_TYPE \
+    pip install meson
 
-RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked,id=holohub-pip-cache-$TARGETARCH-$GPU_TYPE \
+    if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
         pip install setuptools; \
     fi
 COPY benchmarks/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
-RUN pip install -r /tmp/benchmarking_requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked,id=holohub-pip-cache-$TARGETARCH-$GPU_TYPE \
+    pip install -r /tmp/benchmarking_requirements.txt
 ENV PYTHONPATH=/workspace/holohub/benchmarks/holoscan_flow_benchmarking
 
 # --------------------------------------------------------------------------
@@ -117,7 +138,9 @@ ENV PYTHONPATH=/workspace/holohub/benchmarks/holoscan_flow_benchmarking
 FROM holohub-cli AS yuan-qcap
 
 # Qcap dependency
-RUN apt update \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=holohub-apt-cache-$TARGETARCH-$GPU_TYPE \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=holohub-apt-lib-$TARGETARCH-$GPU_TYPE \
+    apt update \
     && apt install --no-install-recommends -y \
         libgstreamer1.0-0 \
         libgstreamer-plugins-base1.0-0 \
@@ -131,7 +154,9 @@ RUN apt update \
 # --------------------------------------------------------------------------
 FROM holohub-cli AS dds
 
-RUN apt update \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=holohub-apt-cache-$TARGETARCH-$GPU_TYPE \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=holohub-apt-lib-$TARGETARCH-$GPU_TYPE \
+    apt update \
     && apt install --no-install-recommends -y \
         openjdk-21-jre
 RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/java//")' >> /etc/bash.bashrc
@@ -143,10 +168,11 @@ RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/ja
 # --------------------------------------------------------------------------
 FROM holohub-cli AS holohub-aja
 
-RUN apt update \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=holohub-apt-cache-$TARGETARCH-$GPU_TYPE \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=holohub-apt-lib-$TARGETARCH-$GPU_TYPE \
+    apt update \
     && apt install --no-install-recommends -y \
-        libudev-dev \
-    && rm -rf /var/lib/apt/lists/*
+        libudev-dev
 
 # --------------------------------------------------------------------------
 #

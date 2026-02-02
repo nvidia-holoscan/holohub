@@ -22,11 +22,12 @@ ARG BASE_IMAGE
 FROM ${BASE_IMAGE} AS base
 
 ARG SCRIPT
+ARG GPU_TYPE
 COPY ${SCRIPT} ${SCRIPT}
 RUN chmod +x ${SCRIPT}
 
 # Use BuildKit cache mounts for apt and pip - persists across builds
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
-    --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=holohub-apt-cache-$TARGETARCH-$GPU_TYPE \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=holohub-apt-lib-$TARGETARCH-$GPU_TYPE \
+    --mount=type=cache,target=/root/.cache/pip,sharing=locked,id=holohub-pip-cache-$TARGETARCH-$GPU_TYPE \
     ${SCRIPT}
