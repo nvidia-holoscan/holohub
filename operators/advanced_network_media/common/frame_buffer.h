@@ -171,7 +171,7 @@ class TensorFrameBuffer : public VideoFrameBufferBase {
 class AllocatedVideoBufferFrameBuffer : public VideoFrameBufferBase {
  public:
   /**
-   * @brief Constructs an AllocatedViddeoBufferFrameBuffer from pre-allocated memory.
+   * @brief Constructs an AllocatedVideoBufferFrameBuffer from pre-allocated memory.
    *
    * @param data Pointer to the allocated memory
    * @param size Size of the allocated memory in bytes

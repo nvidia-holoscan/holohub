@@ -748,7 +748,7 @@ void AdvNetworkMediaRxOp::initialize() {
 
   ANM_CONFIG_LOG("Creating implementation instance for AdvNetworkMediaRxOp");
   if (!pimpl_) {
-    pimpl_ = new AdvNetworkMediaRxOpImpl(*this);
+    pimpl_ = std::make_unique<AdvNetworkMediaRxOpImpl>(*this);
   }
 
   ANM_CONFIG_LOG(

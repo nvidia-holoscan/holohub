@@ -625,7 +625,7 @@ class RxBurstsManager {
   uint32_t pool_recovery_threshold_percent_ = DEFAULT_POOL_RECOVERY_THRESHOLD_PERCENT;
 
   // Critical threshold dropping state
-  mutable bool in_critical_dropping_mode_ = false;  // Track if we're actively dropping
+  mutable std::atomic<bool> in_critical_dropping_mode_ = false;  // Track if we're actively dropping
 
   // Statistics for burst dropping
   mutable std::atomic<uint64_t> total_bursts_dropped_{0};
@@ -635,8 +635,10 @@ class RxBurstsManager {
   mutable std::atomic<uint64_t> pool_capacity_critical_events_{0};
 
   // Performance monitoring
-  mutable std::chrono::steady_clock::time_point last_capacity_warning_time_;
-  mutable std::chrono::steady_clock::time_point last_capacity_critical_time_;
+  mutable std::chrono::steady_clock::time_point last_capacity_warning_time_ =
+      std::chrono::steady_clock::now();
+  mutable std::chrono::steady_clock::time_point last_capacity_critical_time_ =
+      std::chrono::steady_clock::now();
 };
 
 };  // namespace holoscan::advanced_network

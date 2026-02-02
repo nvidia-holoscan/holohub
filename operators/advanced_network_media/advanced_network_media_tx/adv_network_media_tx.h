@@ -64,7 +64,7 @@ class AdvNetworkMediaTxOp : public Operator {
   Parameter<uint32_t> frame_width_;
   Parameter<uint32_t> frame_height_;
 
-  AdvNetworkMediaTxOpImpl* pimpl_;
+  std::unique_ptr<AdvNetworkMediaTxOpImpl> pimpl_;
 };
 
 }  // namespace holoscan::ops

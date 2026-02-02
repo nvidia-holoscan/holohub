@@ -307,6 +307,21 @@ ReturnStatus RivermaxCommonRxQueueValidator::validate(
     return ReturnStatus::failure;
   }
 
+  if (settings->burst_pool_critical_threshold_percent >=
+      settings->burst_pool_low_threshold_percent ||
+      settings->burst_pool_low_threshold_percent >=
+      settings->burst_pool_recovery_threshold_percent ||
+      settings->burst_pool_recovery_threshold_percent > 100) {
+  HOLOSCAN_LOG_ERROR(
+    "Invalid burst pool thresholds (critical={}, low={}, recovery={}). "
+    "Must satisfy: 0 <= critical < low < recovery <= 100",
+    settings->burst_pool_critical_threshold_percent,
+    settings->burst_pool_low_threshold_percent,
+    settings->burst_pool_recovery_threshold_percent);
+  return ReturnStatus::failure;
+  }
+)
+
   return ReturnStatus::success;
 }
 

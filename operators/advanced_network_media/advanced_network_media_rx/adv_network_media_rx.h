@@ -68,7 +68,7 @@ class AdvNetworkMediaRxOp : public Operator {
  private:
   friend class AdvNetworkMediaRxOpImpl;
 
-  AdvNetworkMediaRxOpImpl* pimpl_;
+  std::unique_ptr<AdvNetworkMediaRxOpImpl> pimpl_;
 };
 
 }  // namespace holoscan::ops
