@@ -186,9 +186,9 @@ def print_group_name_with_log_files(group_name, log_files):
     print("--------------------")
 
 
-def print_path_metric_ms(path, metric_ms, unit="ms"):
+def print_path_metric(path, metric_ms, unit="ms"):
     # print path in blue background
-    # print metric_ms in bold and blue foregoround color
+    # print metric in bold and blue foregoround color
     suffix = f" {unit}" if unit else ""
     print(
         "\033[1mPath:"
@@ -369,9 +369,9 @@ def main():
                 cdash_csv_latency = None
                 for path, latency in paths_latencies.items():
                     if len(latency) == 0:
-                        print_path_metric_ms(path, "Not enough samples", unit="")
+                        print_path_metric(path, "Not enough samples", unit="")
                     else:
-                        print_path_metric_ms(path, str(round(np.max(latency), 2)))
+                        print_path_metric(path, str(round(np.max(latency), 2)))
                         cdash_csv_latency = (
                             str(round(np.max(latency), 2))
                             if cdash_csv_latency is None
@@ -400,9 +400,9 @@ def main():
                 cdash_csv_latency = None
                 for path, latency in paths_latencies.items():
                     if len(latency) == 0:
-                        print_path_metric_ms(path, "Not enough samples", unit="")
+                        print_path_metric(path, "Not enough samples", unit="")
                     else:
-                        print_path_metric_ms(path, str(round(np.mean(latency), 2)))
+                        print_path_metric(path, str(round(np.mean(latency), 2)))
                         cdash_csv_latency = (
                             str(round(np.mean(latency), 2))
                             if cdash_csv_latency is None
@@ -431,9 +431,9 @@ def main():
                 cdash_csv_latency = None
                 for path, latency in paths_latencies.items():
                     if len(latency) == 0:
-                        print_path_metric_ms(path, "Not enough samples", unit="")
+                        print_path_metric(path, "Not enough samples", unit="")
                     else:
-                        print_path_metric_ms(path, str(round(np.median(latency), 2)))
+                        print_path_metric(path, str(round(np.median(latency), 2)))
                         cdash_csv_latency = (
                             str(round(np.median(latency), 2))
                             if cdash_csv_latency is None
@@ -462,9 +462,9 @@ def main():
                 cdash_csv_latency = None
                 for path, latency in paths_latencies.items():
                     if len(latency) == 0:
-                        print_path_metric_ms(path, "Not enough samples", unit="")
+                        print_path_metric(path, "Not enough samples", unit="")
                     else:
-                        print_path_metric_ms(path, str(round(np.std(latency), 2)))
+                        print_path_metric(path, str(round(np.std(latency), 2)))
                         cdash_csv_latency = (
                             str(round(np.std(latency), 2))
                             if cdash_csv_latency is None
@@ -493,9 +493,9 @@ def main():
                 cdash_csv_latency = None
                 for path, latency in paths_latencies.items():
                     if len(latency) == 0:
-                        print_path_metric_ms(path, "Not enough samples", unit="")
+                        print_path_metric(path, "Not enough samples", unit="")
                     else:
-                        print_path_metric_ms(path, str(round(min(latency), 2)))
+                        print_path_metric(path, str(round(min(latency), 2)))
                         cdash_csv_latency = (
                             str(round(min(latency), 2))
                             if cdash_csv_latency is None
@@ -524,9 +524,9 @@ def main():
                 cdash_csv_latency = None
                 for path, latency in paths_latencies.items():
                     if len(latency) == 0:
-                        print_path_metric_ms(path, "Not enough samples", unit="")
+                        print_path_metric(path, "Not enough samples", unit="")
                     else:
-                        print_path_metric_ms(path, get_latency_difference(latency, 95, 100))
+                        print_path_metric(path, get_latency_difference(latency, 95, 100))
                         cdash_csv_latency = (
                             str(get_latency_difference(latency, 95, 100))
                             if cdash_csv_latency is None
@@ -555,9 +555,9 @@ def main():
                 cdash_csv_latency = None
                 for path, latency in paths_latencies.items():
                     if len(latency) == 0:
-                        print_path_metric_ms(path, "Not enough samples", unit="")
+                        print_path_metric(path, "Not enough samples", unit="")
                     else:
-                        print_path_metric_ms(path, get_latency_difference(latency, 10, 90))
+                        print_path_metric(path, get_latency_difference(latency, 10, 90))
                         cdash_csv_latency = (
                             str(get_latency_difference(latency, 10, 90))
                             if cdash_csv_latency is None
@@ -589,12 +589,12 @@ def main():
                     cdash_csv_latency = None
                     for path, latency in paths_latencies.items():
                         if len(latency) == 0:
-                            print_path_metric_ms(path, "Not enough samples", unit="")
+                            print_path_metric(path, "Not enough samples", unit="")
                         else:
                             latency_percentile_str = "{:.2f}".format(
                                 latency_percentile(latency, float(percentile))
                             )
-                            print_path_metric_ms(path, latency_percentile_str)
+                            print_path_metric(path, latency_percentile_str)
                             cdash_csv_latency = (
                                 latency_percentile_str
                                 if cdash_csv_latency is None
