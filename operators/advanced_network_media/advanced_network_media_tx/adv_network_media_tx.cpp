@@ -141,32 +141,29 @@ class AdvNetworkMediaTxOpImpl {
    * @param op_input The operator input context.
    */
   void process_input(InputContext& op_input) {
-    static int retry_attempts = 0;  // Count how many cycles frame has been pending
-    static int dropped_frames = 0;
-
     // Check if we still have a pending frame from previous call
     if (pending_tx_frame_) {
-      retry_attempts++;
+      retry_attempts_++;
 
       // Check if we've exceeded maximum retry attempts - drop frame to prevent stall
-      if (retry_attempts >= MAX_RETRY_ATTEMPTS_BEFORE_DROP) {
-        dropped_frames++;
+      if (retry_attempts_ >= MAX_RETRY_ATTEMPTS_BEFORE_DROP) {
+        dropped_frames_++;
         ANM_LOG_ERROR(
             "TX port {}, queue {} exceeded max retry attempts ({}). Dropping frame to prevent "
             "pipeline stall. Total dropped: {}",
             port_id_,
             parent_.queue_id_.get(),
-            retry_attempts,
-            dropped_frames);
+            retry_attempts_,
+            dropped_frames_);
         pending_tx_frame_ = nullptr;  // Drop the stuck frame
-        retry_attempts = 0;
+        retry_attempts_ = 0;
         // Fall through to receive new frame
       } else {
         // Frame still pending, skip new input this cycle and let process_output try again
         ANM_STATS_TRACE(
             "TX queue {} on port {} still has pending frame (retry_attempts: {}); "
             "skipping new input.",
-            parent_.queue_id_.get(), port_id_, retry_attempts);
+            parent_.queue_id_.get(), port_id_, retry_attempts_);
         return;
       }
     }
@@ -195,7 +192,7 @@ class AdvNetworkMediaTxOpImpl {
     }
 
     // New frame received, reset retry counter
-    retry_attempts = 0;
+    retry_attempts_ = 0;
   }
 
   /**
@@ -206,10 +203,6 @@ class AdvNetworkMediaTxOpImpl {
    * @param op_output The operator output context.
    */
   void process_output(OutputContext& op_output) {
-    static int not_available_count = 0;
-    static int sent = 0;
-    static int err = 0;
-
     if (!pending_tx_frame_) {
       ANM_LOG_ERROR("No pending TX frame");
       return;
@@ -222,20 +215,20 @@ class AdvNetworkMediaTxOpImpl {
 
     if (!ano::is_tx_burst_available(cur_msg_)) {
       std::this_thread::sleep_for(std::chrono::microseconds(SLEEP_WHEN_BURST_NOT_AVAILABLE_US));
-      if (++not_available_count == DISPLAY_WARNING_AFTER_BURST_NOT_AVAILABLE) {
+      if (++not_available_count_ == DISPLAY_WARNING_AFTER_BURST_NOT_AVAILABLE) {
         ANM_LOG_ERROR(
             "TX port {}, queue {}, burst not available too many times consecutively. "
             "Make sure memory region has enough buffers. Sent {} and error {}",
             port_id_,
             parent_.queue_id_.get(),
-            sent,
-            err);
-        not_available_count = 0;
-        err++;
+            sent_,
+            err_);
+        not_available_count_ = 0;
+        err_++;
       }
       return;
     }
-    not_available_count = 0;
+    not_available_count_ = 0;
     Status ret;
     if ((ret = ano::get_tx_packet_burst(cur_msg_)) != Status::SUCCESS) {
       ANM_LOG_ERROR("Error returned from get_tx_packet_burst: {}", static_cast<int>(ret));
@@ -249,16 +242,16 @@ class AdvNetworkMediaTxOpImpl {
     if (ret != Status::SUCCESS) {
       ANM_LOG_ERROR("Error returned from send_tx_burst: {}", static_cast<int>(ret));
       ano::free_tx_burst(cur_msg_);
-      err++;
+      err_++;
     } else {
-      sent++;
+      sent_++;
     }
     cur_msg_ = nullptr;
     ANM_STATS_TRACE("AdvNetworkMediaTxOp::process_output() {}:{} done. Emitted{}/Error{}",
                        port_id_,
                        parent_.queue_id_.get(),
-                       sent,
-                       err);
+                       sent_,
+                       err_);
   }
 
   BurstParams* cur_msg_ = nullptr;
@@ -268,6 +261,13 @@ class AdvNetworkMediaTxOpImpl {
   int port_id_;
   VideoFormatSampling video_sampling_;
   VideoColorBitDepth color_bit_depth_;
+
+  // Per-instance state for frame handling
+  int retry_attempts_ = 0;        // Number of consecutive compute cycles attempting to send current frame
+  int dropped_frames_ = 0;        // Total number of frames dropped due to max retry exceeded
+  int not_available_count_ = 0;   // Count of consecutive burst not available
+  int sent_ = 0;                  // Total number of frames successfully sent
+  int err_ = 0;                   // Total number of errors encountered
 
  private:
   AdvNetworkMediaTxOp& parent_;
