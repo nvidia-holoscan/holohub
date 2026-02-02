@@ -141,13 +141,14 @@ flowchart TD
 
 #### Simplified Application Pipeline
 
-```
+```text
 Video Files → VideoStreamReplayer → AdvNetworkMediaTxOp → RDK Services → Network
 ```
 
 ## Requirements
 
 ### Hardware Requirements
+
 - Linux system (x86_64 or aarch64)
 - NVIDIA NIC with ConnectX-6 or later chip
 - NVIDIA GPU (for GPU acceleration)
@@ -155,6 +156,7 @@ Video Files → VideoStreamReplayer → AdvNetworkMediaTxOp → RDK Services →
 - Storage with adequate throughput for media file reading
 
 ### Software Requirements
+
 - NVIDIA Rivermax SDK
 - NVIDIA GPU drivers
 - MOFED drivers (5.8-1.0.1.1 or later)
@@ -168,11 +170,13 @@ Video Files → VideoStreamReplayer → AdvNetworkMediaTxOp → RDK Services →
 Build the Docker image and application with Rivermax support:
 
 **C++ version:**
+
 ```bash
 ./holohub build adv_networking_media_sender --build-args="--target rivermax" --configure-args="-D ANO_MGR:STRING=rivermax" --language cpp
 ```
 
 **Python version:**
+
 ```bash
 ./holohub build adv_networking_media_sender --build-args="--target rivermax" --configure-args="-D ANO_MGR:STRING=rivermax" --language python
 ```
@@ -182,11 +186,13 @@ Build the Docker image and application with Rivermax support:
 Launch the Rivermax-enabled container:
 
 **C++ version:**
+
 ```bash
 ./holohub run-container adv_networking_media_sender --build-args="--target rivermax" --docker-opts="-u root --privileged -v /opt/mellanox/rivermax/rivermax.lic:/opt/mellanox/rivermax/rivermax.lic -v /media/video:/media/video/ -w /workspace/holohub/build/adv_networking_media_sender/applications/adv_networking_media_sender/cpp"
 ```
 
 **Python version:**
+
 ```bash
 ./holohub run-container adv_networking_media_sender --build-args="--target rivermax" --docker-opts="-u root --privileged -v /opt/mellanox/rivermax/rivermax.lic:/opt/mellanox/rivermax/rivermax.lic -v /media/video:/media/video/ -w /workspace/holohub/build/adv_networking_media_sender/applications/adv_networking_media_sender/python"
 ```
@@ -228,10 +234,11 @@ The application uses a YAML configuration file that defines the complete transmi
 3. **VideoStreamReplayer Configuration**: Source file path and playback options
 4. **Memory Allocator Configuration**: GPU and host memory settings
 
-> **📁 Example Configuration Files**:
-> - `applications/adv_networking_media_sender/adv_networking_media_sender.yaml` - Standard 1080p configuration
+**📁 Example Configuration Files**: Standard 1080p configuration
+`applications/adv_networking_media_sender/adv_networking_media_sender.yaml`
 
 > **For detailed configuration parameter documentation**, see:
+>
 > - [Advanced Network Operator Configuration](../../operators/advanced_network/README.md) - Network settings, memory regions, Rivermax TX settings
 > - [Advanced Network Media TX Operator Configuration](../../operators/advanced_network_media/README.md) - Service selection, memory pool modes, TX data flow, performance characteristics
 
@@ -240,7 +247,7 @@ The application uses a YAML configuration file that defines the complete transmi
 Critical parameters must be consistent across configuration sections to ensure proper operation:
 
 | Parameter Category | Section 1 | Section 2 | Example Values | Required Match |
-|-------------------|-----------|-----------|----------------|----------------|
+| ------------------- | --------- | --------- | -------------- | -------------- |
 | **Frame Rate** | `replayer.frame_rate` | `rivermax_tx_settings.frame_rate` | 60 | ✓ Must match exactly |
 | **Frame Dimensions** | `advanced_network_media_tx.frame_width/height` | `rivermax_tx_settings.frame_width/height` | 1920x1080 | ✓ Must match exactly |
 | **Video Format** | `advanced_network_media_tx.video_format` | `rivermax_tx_settings.video_format` | RGB888 / RGB | ✓ Must be compatible |
@@ -249,8 +256,8 @@ Critical parameters must be consistent across configuration sections to ensure p
 | **Memory Location** | `rivermax_tx_settings.memory_pool_location` | Memory region types (`host`/`device`) | device | ✓ Should be consistent |
 
 > **⚠️ IMPORTANT: Configuration Parameter Consistency**
->
 > Parameters across configuration sections must be consistent and properly matched:
+>
 > - **Video Format Matching**: `video_format` parameters must match across Media TX operator and Rivermax TX settings
 > - **Frame Dimensions**: `frame_width` and `frame_height` must match between operator and RDK settings
 > - **Frame Rate**: VideoStreamReplayer `frame_rate` must match Rivermax TX `frame_rate` for proper timing
@@ -259,7 +266,6 @@ Critical parameters must be consistent across configuration sections to ensure p
 > - **Memory Location**: `memory_pool_location` should match memory region types configured (`host` vs `device`)
 > - **Interface Matching**: `interface_name` (Media TX) must match the interface address/name in Advanced Network config
 > - **Service Mode Selection**: `use_internal_memory_pool` determines MediaSender service behavior (see operator documentation)
->
 > Mismatched parameters will result in runtime errors or degraded performance.
 
 ### Configuration File Structure
@@ -327,6 +333,7 @@ advanced_network:
 ```
 
 **Key Rivermax TX Settings**:
+
 - `settings_type: "media_sender"` - Uses MediaSender RDK service for file-based streaming
 - `memory_pool_location: "device"` - Allocates memory pool in GPU memory for optimal performance
 - `memory_allocation: true` - Enables internal memory pool allocation (recommended for VideoStreamReplayer)
@@ -366,6 +373,7 @@ replayer:
 ```
 
 **Key VideoStreamReplayer Settings**:
+
 - `directory` - Path to media files directory containing `.gxf_entities` and `.gxf_index` files
 - `basename` - Base name for media files (must match converted GXF entity file names)
 - `frame_rate` - Target frame rate for transmission (must match `rivermax_tx_settings.frame_rate`)
@@ -391,6 +399,7 @@ rmm_allocator:
 ### Supported Formats
 
 The VideoStreamReplayerOp expects video data encoded as GXF entities, not standard video files. The application requires:
+
 - **GXF Entity Format**: Video streams encoded as `.gxf_entities` and `.gxf_index` files
 - **Directory structure**: GXF files should be organized in a directory
 - **Naming convention**: `<basename>.gxf_entities` and `<basename>.gxf_index`
@@ -474,6 +483,7 @@ This application uses VideoStreamReplayer which generates data from files, makin
 6. **Memory Buffer Sizing**: Size buffers appropriately for your frame rate and resolution
 
 > **For detailed service selection, TX data flow, and optimization strategies**, see:
+>
 > - [Advanced Network Media TX Operator Documentation](../../operators/advanced_network_media/README.md) - Service selection, memory pool vs zero-copy modes, TX architecture, performance characteristics
 > - [Advanced Network Operator Documentation](../../operators/advanced_network/README.md) - Memory region configuration, queue settings
 
@@ -491,6 +501,7 @@ Ensure your system is properly configured for high-performance networking:
 ### Performance Monitoring
 
 Monitor these key metrics for optimal performance:
+
 - **Frame Transmission Rate**: Consistent frame rate without drops
 - **Memory Pool Utilization**: Pool buffers are being reused effectively
 - **GPU Memory Usage**: Sufficient GPU memory for sustained operation
@@ -499,16 +510,19 @@ Monitor these key metrics for optimal performance:
 ## Example Use Cases
 
 ### Live Event Streaming
+
 - Stream pre-recorded content as live feeds using VideoStreamReplayer
 - Support for multiple concurrent streams with memory pool optimization
 - Frame-accurate timing for broadcast applications
 
 ### Content Distribution
+
 - Distribute media content across network infrastructure from file sources
 - Support for multicast delivery to multiple receivers
 - High-throughput content delivery networks with sustained file-to-network streaming
 
 ### Testing and Development
+
 - Generate test streams for receiver development using loop playback
 - Validate network infrastructure performance with realistic file-based sources
 - Prototype media streaming applications with known video content
@@ -516,10 +530,13 @@ Monitor these key metrics for optimal performance:
 ## Related Documentation
 
 ### Operator Documentation
+
 For detailed implementation information and advanced configuration:
+
 - **[Advanced Network Media TX Operator](../../operators/advanced_network_media/README.md)**: Comprehensive operator documentation and configuration options
 - **[Advanced Network Operators](../../operators/advanced_network/README.md)**: Base networking infrastructure and setup
 
 ### Additional Resources
+
 - **[High Performance Networking Tutorial](../../tutorials/high_performance_networking/README.md)**: System tuning and optimization guide
 - **[Advanced Networking Media Player](../adv_networking_media_player/README.md)**: Companion application for media reception

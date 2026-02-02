@@ -104,7 +104,7 @@ graph TD
 
 #### Simplified Application Pipeline
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │ Network Hardware│ -> │ Advanced Network│ -> │ Media RX Operator│ -> │   Application   │
 │     Layer       │    │ Manager + RDK   │    │     Layer        │    │     Layer       │
@@ -115,11 +115,13 @@ graph TD
 
 The application implements a 4-layer architecture for high-performance media streaming, with clear separation of concerns:
 
-**🌐 Network Hardware Layer**
+#### 🌐 Network Hardware Layer
+
 - ConnectX NIC with Rivermax hardware acceleration
 - Direct memory access and hardware-based packet processing
 
-**🔄 Advanced Network Manager Layer**
+#### 🔄 Advanced Network Manager Layer
+
 - **RDK Services Context**: IPO/RTP receivers run within this layer
 - Protocol handling and memory management via integrated RDK services
 - Pre-allocated memory regions (CPU + GPU)
@@ -127,17 +129,20 @@ The application implements a 4-layer architecture for high-performance media str
 - Burst assembly and packet pointer management
 - Queue distribution for operator consumption
 
-**🎬 Media RX Operator Layer**
+#### 🎬 Media RX Operator Layer
+
 - `AdvNetworkMediaRxOp`: Packet-to-frame conversion
 - Automatic HDS detection and strategy optimization
 - Frame assembly with GPU acceleration
 
-**📱 Application Layer**
+#### 📱 Application Layer
+
 - Media Player application (Python/C++)
 - Output configuration (visualization or file storage)
 - User interface and control logic
 
 **Key Features:**
+
 - **Automatic Optimization**: Each layer automatically configures for optimal performance
 - **Zero-Copy Operations**: GPU memory management minimizes data movement
 - **Error Recovery**: Robust handling across all layers
@@ -146,12 +151,14 @@ The application implements a 4-layer architecture for high-performance media str
 ## Requirements
 
 ### Hardware Requirements
+
 - Linux system (x86_64 or aarch64)
 - NVIDIA NIC with ConnectX-6 or later chip
 - NVIDIA GPU (for visualization and GPU acceleration)
 - Sufficient network bandwidth for target media streams
 
 ### Software Requirements
+
 - NVIDIA Rivermax SDK
 - NVIDIA GPU drivers
 - MOFED drivers (5.8-1.0.1.1 or later)
@@ -165,11 +172,13 @@ The application implements a 4-layer architecture for high-performance media str
 Build the Docker image and application with Rivermax support:
 
 **C++ version:**
+
 ```bash
 ./holohub build adv_networking_media_player --build-args="--target rivermax" --configure-args="-D ANO_MGR:STRING=rivermax" --language cpp
 ```
 
 **Python version:**
+
 ```bash
 ./holohub build adv_networking_media_player --build-args="--target rivermax" --configure-args="-D ANO_MGR:STRING=rivermax" --language python
 ```
@@ -179,11 +188,13 @@ Build the Docker image and application with Rivermax support:
 Launch the Rivermax-enabled container:
 
 **C++ version:**
+
 ```bash
 ./holohub run-container adv_networking_media_player --build-args="--target rivermax" --docker-opts="-u root --privileged -e DISPLAY=:99 -v /opt/mellanox/rivermax/rivermax.lic:/opt/mellanox/rivermax/rivermax.lic -w /workspace/holohub/build/adv_networking_media_player/applications/adv_networking_media_player/cpp"
 ```
 
 **Python version:**
+
 ```bash
 ./holohub run-container adv_networking_media_player --build-args="--target rivermax" --docker-opts="-u root --privileged -e DISPLAY=:99 -v /opt/mellanox/rivermax/rivermax.lic:/opt/mellanox/rivermax/rivermax.lic -w /workspace/holohub/build/adv_networking_media_player/applications/adv_networking_media_player/python"
 ```
@@ -240,10 +251,11 @@ The application uses a YAML configuration file that defines the complete data fl
 2. **Media RX Operator Configuration**: Video format, frame dimensions, and output settings
 3. **Application Configuration**: Visualization and file output options
 
-> **📁 Example Configuration Files**:
-> - `applications/adv_networking_media_player/adv_networking_media_player.yaml`
+**📁 Example Configuration Files**:
+`applications/adv_networking_media_player/adv_networking_media_player.yaml`
 
 > **For detailed configuration parameter documentation**, see:
+>
 > - [Advanced Network Operator Configuration](../../operators/advanced_network/README.md) - Network settings, memory regions, Rivermax RX/TX settings
 > - [Advanced Network Media RX Operator Configuration](../../operators/advanced_network_media/README.md) - HDS configuration, memory architecture, copy strategies, output formats
 
@@ -252,7 +264,7 @@ The application uses a YAML configuration file that defines the complete data fl
 Critical parameters must be consistent across configuration sections to ensure proper operation:
 
 | Parameter Category | Section 1 | Section 2 | Example Values | Required Match |
-|-------------------|-----------|-----------|----------------|----------------|
+| ------------------- | --------- | --------- | -------------- | -------------- |
 | **Video Format** | `advanced_network_media_rx.video_format` | `media_player_config.input_format` | RGB888 / rgb888 | ✓ Must be compatible |
 | **Interface** | `advanced_network_media_rx.interface_name` | `advanced_network.interfaces.address` | cc:00.1 | ✓ Must match exactly |
 | **Queue ID** | `advanced_network_media_rx.queue_id` | `advanced_network.interfaces.rx.queues.id` | 0 | ✓ Must match exactly |
@@ -261,8 +273,8 @@ Critical parameters must be consistent across configuration sections to ensure p
 | **Frame Dimensions** | `advanced_network_media_rx.frame_width/height` | Sender configuration | 3840x2160 | ⚠️ Must match sender |
 
 > **⚠️ IMPORTANT: Configuration Parameter Consistency**
->
 > Parameters across the three configuration sections must be consistent and properly matched:
+>
 > - **Video Format Matching**: `video_format` (Media RX) must match `input_format` (Application)
 > - **Memory Buffer Sizing**: `buf_size` in memory regions depends on video format, resolution, and packet size
 >   - RTP headers: ~20 bytes per packet (CPU memory region)
@@ -271,7 +283,6 @@ Critical parameters must be consistent across configuration sections to ensure p
 > - **Memory Location**: `memory_location` (Media RX) should match the memory region types configured (`host` vs `device`)
 > - **HDS Configuration**: When `hds: true`, ensure both CPU and GPU memory regions are configured
 > - **Interface Matching**: `interface_name` (Media RX) must match the interface address/name in Advanced Network config
->
 > Mismatched parameters will result in runtime errors or degraded performance.
 
 ### Configuration File Structure
@@ -338,6 +349,7 @@ advanced_network:
 ```
 
 **Key Rivermax RX Settings**:
+
 - `settings_type: "ipo_receiver"` - Uses IPO (Inline Packet Ordering) for high-throughput streams; alternatively use `"rtp_receiver"` for standard RTP
 - `memory_registration: true` - Registers memory with Rivermax for DMA operations
 - `local_ip_addresses` - Local interface IP addresses for receiving streams
@@ -348,6 +360,7 @@ advanced_network:
 - `send_packet_ext_info: true` - Provides extended packet information to operators
 
 **Memory Regions for HDS (Header-Data Split)**:
+
 - `Data_RX_CPU` (kind: host) - CPU memory for RTP headers (20 bytes per packet)
 - `Data_RX_GPU` (kind: device) - GPU memory for video payloads (1440 bytes per packet for 1080p RGB)
 
@@ -369,6 +382,7 @@ advanced_network_media_rx:
 ```
 
 **Key Media RX Operator Settings**:
+
 - `interface_name` - Must match the interface address in Advanced Network configuration
 - `queue_id` - Must match the queue ID in Advanced Network RX queue configuration
 - `video_format` - Must be compatible with sender format and `media_player_config.input_format`
@@ -389,6 +403,7 @@ media_player_config:
 ```
 
 **Key Application Settings**:
+
 - `write_to_file` - When true, saves received frames to disk (configure path in `frames_writer` section)
 - `visualize` - When true, displays frames in real-time using HolovizOp (requires X11/display)
 - `input_format` - Must be compatible with Media RX Operator `video_format` (e.g., RGB888 → rgb888)
@@ -398,6 +413,7 @@ media_player_config:
 ### Real-time Visualization
 
 When `visualize: true` is set in the configuration:
+
 - Received media streams are displayed in real-time using HolovizOp
 - Supports format conversion for optimal display
 - Minimal latency for live monitoring applications
@@ -405,6 +421,7 @@ When `visualize: true` is set in the configuration:
 ### File Output
 
 When `write_to_file: true` is set in the configuration:
+
 - Media frames are saved to disk for later analysis
 - Configure output path and number of frames in the `frames_writer` section
 - Supports both host and device memory sources
@@ -448,6 +465,7 @@ For optimal performance, configure the following based on your use case:
 4. **Memory Regions**: Size buffers appropriately for your frame rate and resolution
 
 > **For detailed optimization strategies and implementation details**, see:
+>
 > - [Advanced Network Media RX Operator Documentation](../../operators/advanced_network_media/README.md) - Processing strategies, HDS optimization, memory architecture
 > - [Advanced Network Operator Documentation](../../operators/advanced_network/README.md) - Memory region configuration, queue settings
 
@@ -465,6 +483,7 @@ Ensure your system is properly configured for high-performance networking:
 ### Performance Monitoring
 
 Monitor these key metrics for optimal performance:
+
 - **Frame Rate**: Consistent frame reception without drops
 - **Processing Efficiency**: Verify the operator is selecting optimal processing strategies
 - **GPU Utilization**: Monitor GPU memory usage and processing efficiency
@@ -475,10 +494,13 @@ Monitor these key metrics for optimal performance:
 ## Related Documentation
 
 ### Operator Documentation
+
 For detailed implementation information and advanced configuration:
+
 - **[Advanced Network Media RX Operator](../../operators/advanced_network_media/README.md)**: Comprehensive operator documentation and configuration options
 - **[Advanced Network Operators](../../operators/advanced_network/README.md)**: Base networking infrastructure and setup
 
 ### Additional Resources
+
 - **[High Performance Networking Tutorial](../../tutorials/high_performance_networking/README.md)**: System tuning and optimization guide
 - **[Advanced Networking Media Sender](../adv_networking_media_sender/README.md)**: Companion application for media transmission

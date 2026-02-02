@@ -13,14 +13,17 @@ The Advanced Network Media library provides two main operators:
 
 Operator for receiving media frames over advanced network infrastructure. This operator receives video frames over Rivermax-enabled network infrastructure and outputs them as GXF VideoBuffer or Tensor entities.
 
-**Inputs**
+#### AdvNetworkMediaRxOp Inputs
+
 - None (receives data directly from network interface via Advanced Network Manager library)
 
-**Outputs**
+#### AdvNetworkMediaRxOp Outputs
+
 - **`output`**: Video frames as GXF entities (VideoBuffer or Tensor)
   - type: `gxf::Entity`
 
-**Parameters**
+#### AdvNetworkMediaRxOp Parameters
+
 - **`interface_name`**: Name of the network interface to use for receiving
   - type: `std::string`
 - **`queue_id`**: Queue ID for the network interface (default: 0)
@@ -44,14 +47,17 @@ Operator for receiving media frames over advanced network infrastructure. This o
 
 Operator for transmitting media frames over advanced network infrastructure. This operator processes video frames from GXF entities (either VideoBuffer or Tensor) and transmits them over Rivermax-enabled network infrastructure.
 
-**Inputs**
+#### AdvNetworkMediaTxOp Inputs
+
 - **`input`**: Video frames as GXF entities (VideoBuffer or Tensor)
   - type: `gxf::Entity`
 
-**Outputs**
+#### AdvNetworkMediaTxOp Outputs
+
 - None (transmits data directly to network interface)
 
-**Parameters**
+#### AdvNetworkMediaTxOp Parameters
+
 - **`interface_name`**: Name of the network interface to use for transmission
   - type: `std::string`
 - **`queue_id`**: Queue ID for the network interface (default: 0)
@@ -149,7 +155,8 @@ graph TD
 ```
 
 ### 1. Network Layer → Hardware Acceleration
-```
+
+```text
 Network Interface (ConnectX NIC) → Rivermax Hardware Acceleration
 ├── IPO (Inline Packet Ordering) Receiver Service  [OR]
 ├── RTP Receiver Service                            [OR]
@@ -157,6 +164,7 @@ Network Interface (ConnectX NIC) → Rivermax Hardware Acceleration
 ```
 
 **Key Components:**
+
 - **ConnectX NIC**: NVIDIA ConnectX-6 or later with hardware streaming acceleration
 - **Rivermax SDK (RDK) Services** (configured as one of the following):
   - `rmax_ipo_receiver`: RX service for receiving RTP data using Rivermax Inline Packet Ordering (IPO) feature
@@ -166,7 +174,8 @@ Network Interface (ConnectX NIC) → Rivermax Hardware Acceleration
 > **Note**: The choice between IPO and RTP receiver services is determined by the `settings_type` configuration parameter (`"ipo_receiver"` or `"rtp_receiver"`). These services are provided by the Rivermax Development Kit (RDK).
 
 ### 2. Advanced Network Manager Layer
-```
+
+```text
 Rivermax Services → Advanced Network Manager (RivermaxMgr)
 ├── Configuration Management (rivermax_config_manager)
 ├── Service Management (rivermax_mgr_service)
@@ -175,6 +184,7 @@ Rivermax Services → Advanced Network Manager (RivermaxMgr)
 ```
 
 **Key Responsibilities:**
+
 - **Packet Reception**: Rivermax services receive packets from NIC hardware directly into pre-allocated memory regions
 - **Burst Assembly**: Packet **pointers** are aggregated into `RivermaxBurst` containers for efficient processing (no data copying)
 - **Memory Coordination**: Manages memory regions (host/device) and buffer allocation
@@ -185,7 +195,8 @@ Rivermax Services → Advanced Network Manager (RivermaxMgr)
 > **Zero-Copy Architecture**: Bursts contain only pointers to packets in memory, not the packet data itself. No memcpy operations are performed at the burst level.
 
 ### 3. Advanced Network Media RX Operator
-```
+
+```text
 Advanced Network Manager → AdvNetworkMediaRxOp
 ├── Burst Processing (network_burst_processor)
 ├── Frame Assembly (media_frame_assembler)
@@ -197,6 +208,7 @@ Advanced Network Manager → AdvNetworkMediaRxOp
 ```
 
 **Conversion Process:**
+
 - **Burst Processing**: Receives burst containers with **packet pointers** from Advanced Network Manager (no data copying)
 - **HDS-Aware Packet Access**: Extracts packet data based on Header-Data Split configuration:
   - **HDS Enabled**: RTP headers from `CPU_PKTS` array (CPU memory), payloads from `GPU_PKTS` array (GPU memory)
@@ -212,7 +224,8 @@ Advanced Network Manager → AdvNetworkMediaRxOp
 > **Key Point**: The burst processing layer works entirely with packet pointers. The only data copying occurs during frame assembly, directly from packet memory locations to final frame buffers.
 
 ### 4. Media Player Application
-```
+
+```text
 AdvNetworkMediaRxOp → Media Player Application
 ├── HolovizOp (Real-time Display)
 ├── FramesWriter (File Output)
@@ -220,6 +233,7 @@ AdvNetworkMediaRxOp → Media Player Application
 ```
 
 **Output Options:**
+
 - **Real-time Visualization**: Direct display using HolovizOp with minimal latency
 - **File Output**: Save frames to disk for analysis or post-processing
 - **Format Flexibility**: Output as GXF VideoBuffer or Tensor entities
@@ -228,7 +242,7 @@ AdvNetworkMediaRxOp → Media Player Application
 
 The RX path is optimized for minimal memory copies through pointer-based architecture:
 
-```
+```text
 Network → NIC Hardware → Pre-allocated Memory Regions → Packet Pointers → Frame Assembly → Application
     ↓              ↓                    ↓                     ↓                  ↓              ↓
 ConnectX      DMA Transfer         CPU/GPU Buffers      Burst Containers   Single Copy    Display/File
@@ -334,6 +348,7 @@ graph TB
 ```
 
 **Memory Architecture:**
+
 - **Direct DMA**: Packets arrive directly into pre-allocated memory regions via hardware DMA
 - **Pointer Management**: Bursts contain only pointers to packet locations, no intermediate data copying
 - **Single Copy Strategy**: Only one memory copy operation (from packet memory to frame buffer) when format conversion or memory location change is needed
@@ -354,11 +369,11 @@ graph TB
 ### Configuration Integration
 
 The RX path is configured through YAML files that specify:
+
 - **Network Settings**: Interface addresses, IP addresses, ports, multicast groups
 - **Memory Regions**: Buffer sizes, memory types (host/device), allocation strategies
 - **Video Parameters**: Format, resolution, bit depth, frame rate
 - **Rivermax Settings**: IPO/RTP receiver configuration, timing parameters, statistics
-
 
 This architecture provides professional-grade media streaming with hardware-accelerated packet processing, pointer-based zero-copy optimization, and flexible output options suitable for broadcast and media production workflows. The key advantage is that packet data is never unnecessarily copied - bursts manage only pointers, and actual data movement occurs only once during frame assembly when needed.
 
@@ -597,7 +612,8 @@ graph TD
 ```
 
 ### 1. Media Sender Application → Advanced Network Media TX Operator
-```
+
+```text
 Media Sender Application → AdvNetworkMediaTxOp
 ├── Video Frame Input (GXF VideoBuffer or Tensor entities)
 ├── Frame Validation and Wrapping
@@ -608,6 +624,7 @@ Media Sender Application → AdvNetworkMediaTxOp
 ```
 
 **Frame Processing:**
+
 - **Frame Reception**: Receives video frames as GXF VideoBuffer or Tensor entities from application
 - **Format Validation**: Validates input format against configured video parameters (resolution, bit depth, format)
 - **Frame Wrapping**: Creates MediaFrame wrapper around the original frame buffer data (no data copying)
@@ -616,7 +633,8 @@ Media Sender Application → AdvNetworkMediaTxOp
 > **Key Point**: No packet processing occurs at this level. All operations work with complete video frames.
 
 ### 2. Advanced Network Media TX Operator → Advanced Network Manager
-```
+
+```text
 AdvNetworkMediaTxOp → Advanced Network Manager (RivermaxMgr)
 ├── Burst Parameter Creation
 ├── MediaFrame Attachment (via custom_pkt_data)
@@ -625,6 +643,7 @@ AdvNetworkMediaTxOp → Advanced Network Manager (RivermaxMgr)
 ```
 
 **Frame Handoff Process:**
+
 - **Burst Creation**: Creates burst parameters container (`BurstParams`) for transmission
 - **Frame Attachment**: Attaches MediaFrame to burst via `custom_pkt_data` field (no data copying)
 - **Service Routing**: Routes burst to appropriate MediaSender service based on configuration
@@ -633,7 +652,8 @@ AdvNetworkMediaTxOp → Advanced Network Manager (RivermaxMgr)
 > **Zero-Copy Architecture**: MediaFrame objects contain only references to original frame buffer memory. No frame data copying occurs.
 
 ### 3. Advanced Network Manager → Rivermax SDK (RDK) Services
-```
+
+```text
 Advanced Network Manager → Rivermax SDK (RDK) Services
 ├── MediaSenderZeroCopyService (true zero-copy) [OR]
 ├── MediaSenderService (single copy + mempool)  [OR]
@@ -644,6 +664,7 @@ Advanced Network Manager → Rivermax SDK (RDK) Services
 **RDK Service Paths:**
 
 #### MediaSenderZeroCopyService (True Zero-Copy Path)
+
 - **No Internal Memory Pool**: Does not create internal frame buffers
 - **Direct Frame Transfer**: Application's MediaFrame is passed directly to RDK via `custom_pkt_data`
 - **Zero Memory Copies**: No memcpy operations - only ownership transfer of application's frame buffer
@@ -651,6 +672,7 @@ Advanced Network Manager → Rivermax SDK (RDK) Services
 - **Memory Efficiency**: Maximum efficiency - application frame buffer used directly by RDK
 
 #### MediaSenderService (Single Copy + Memory Pool Path)
+
 - **Internal Memory Pool**: Creates pre-allocated `MediaFramePool` with `MEDIA_FRAME_POOL_SIZE` buffers
 - **One Memory Copy**: Application's frame data is copied from `custom_pkt_data` to pool buffer via `burst->pkts[0][0]`
 - **Pool Management**: Pool frames are reused after RDK finishes processing
@@ -658,13 +680,15 @@ Advanced Network Manager → Rivermax SDK (RDK) Services
 - **Buffering**: Provides buffering capability for sustained high-throughput transmission
 
 #### MediaSenderMockService (Testing Mode)
+
 - **Mock Implementation**: Testing service with minimal functionality
 - **Single Pre-allocated Frame**: Uses one static frame buffer for testing
 
 > **Note**: The choice of MediaSender service depends on configuration (`use_internal_memory_pool`, `dummy_sender` flags). All services are provided by the Rivermax Development Kit (RDK).
 
 ### 4. RDK MediaSender Service → Network Hardware
-```
+
+```text
 MediaSenderApp (RDK) → Internal Processing → Hardware Transmission
 ├── Frame-to-Packet Conversion (RTP/SMPTE 2110)
 ├── Packet Timing and Scheduling
@@ -673,17 +697,19 @@ MediaSenderApp (RDK) → Internal Processing → Hardware Transmission
 ```
 
 **RDK Internal Processing:**
+
 - **Packetization**: RDK internally converts video frames to RTP packets following SMPTE 2110 standards
 - **Timing Control**: Applies precise packet timing for synchronized transmission
 - **Hardware Integration**: Direct submission to ConnectX NIC hardware queues via DMA
 - **Network Transmission**: Packets transmitted with hardware-controlled timing precision
 
-### Memory Flow Optimization
+### TX Memory Flow Optimization
 
 The TX path maintains frame-level processing until RDK services, with two distinct memory management strategies:
 
 #### MediaSenderZeroCopyService Path (True Zero-Copy)
-```
+
+```text
 Application → Frame Buffer → MediaFrame Wrapper → Direct RDK Transfer → Internal Packetization → Network
     ↓              ↓              ↓                        ↓                      ↓                   ↓
 Media Sender   GXF Entity    Reference Only         Zero-Copy Transfer      RTP Packets        Wire Transmission
@@ -691,7 +717,8 @@ Media Sender   GXF Entity    Reference Only         Zero-Copy Transfer      RTP 
 ```
 
 #### MediaSenderService Path (Single Copy + Pool)
-```
+
+```text
 Application → Frame Buffer → MediaFrame Wrapper → Pool Buffer Copy → Internal Packetization → Network
     ↓              ↓              ↓                      ↓                   ↓                   ↓
 Media Sender   GXF Entity    Reference Only       Single memcpy         RTP Packets        Wire Transmission
@@ -703,6 +730,7 @@ Media Sender   GXF Entity    Reference Only       Single memcpy         RTP Pack
 **Memory Architecture Comparison:**
 
 **Zero-Copy Path (`MediaSenderZeroCopyService`):**
+
 - **Frame Input**: Video frames received from application as GXF VideoBuffer or Tensor
 - **Reference Management**: MediaFrame wrapper maintains references to original frame buffer
 - **Direct Transfer**: Application's frame buffer ownership transferred directly to RDK (no copying)
@@ -710,6 +738,7 @@ Media Sender   GXF Entity    Reference Only       Single memcpy         RTP Pack
 - **Maximum Efficiency**: True zero-copy from application to RDK
 
 **Memory Pool Path (`MediaSenderService`):**
+
 - **Frame Input**: Video frames received from application as GXF VideoBuffer or Tensor
 - **Reference Management**: MediaFrame wrapper maintains references to original frame buffer
 - **Single Copy**: One memcpy operation from application frame to pre-allocated pool buffer
@@ -717,16 +746,18 @@ Media Sender   GXF Entity    Reference Only       Single memcpy         RTP Pack
 - **Sustained Throughput**: Buffering capability for high-throughput sustained transmission
 - **Hardware DMA**: RDK performs direct memory access from pool buffers to NIC hardware
 
-### Performance Characteristics
+### TX Performance Characteristics
 
-#### MediaSenderZeroCopyService (True Zero-Copy Path)
+#### MediaSenderZeroCopyService Latency and Throughput (True Zero-Copy Path)
+
 - **Latency**: Absolute minimal latency - no memory copying overhead
 - **Throughput**: Maximum single-stream throughput with zero-copy efficiency
 - **Memory Efficiency**: Perfect efficiency - application frame buffer used directly by RDK
 - **CPU Usage**: Minimal CPU usage - no memory copying operations
 - **Frame Rate**: Optimal for variable frame rates and low-latency applications
 
-#### MediaSenderService (Memory Pool Path)
+#### MediaSenderService Latency and Throughput (Memory Pool Path)
+
 - **Latency**: Single memory copy latency (application frame → pool buffer)
 - **Throughput**: High sustained throughput with buffering capabilities
 - **Memory Efficiency**: One copy operation but optimized through buffer pool reuse
@@ -734,14 +765,16 @@ Media Sender   GXF Entity    Reference Only       Single memcpy         RTP Pack
 - **Frame Rate**: Optimal for sustained high frame rate streaming with consistent throughput
 
 #### Common Characteristics
+
 - **Timing Precision**: Hardware-controlled packet scheduling managed by RDK services
 - **Packet Processing**: Zero CPU usage for RTP packetization (handled by RDK + hardware)
 - **Scalability**: Multiple transmission flows supported through service instances
 - **Hardware Integration**: Direct NIC hardware acceleration for transmission
 
-### Configuration Integration
+### TX Configuration Integration
 
 The TX path is configured through YAML files that specify:
+
 - **Network Settings**: Interface addresses, destination IP addresses, ports
 - **Video Parameters**: Format, resolution, bit depth, frame rate (for RDK packetization)
 - **Memory Regions**: Buffer allocation strategies for RDK internal processing
@@ -750,6 +783,7 @@ The TX path is configured through YAML files that specify:
 #### Service Mode Configuration
 
 **Zero-Copy Mode** (`MediaSenderZeroCopyService`):
+
 ```yaml
 advanced_network:
   interfaces:
@@ -760,6 +794,7 @@ advanced_network:
 ```
 
 **Memory Pool Mode** (`MediaSenderService`):
+
 ```yaml
 advanced_network:
   interfaces:
@@ -822,18 +857,21 @@ flowchart TD
 #### When to Use Each Mode
 
 **Use Zero-Copy Mode** (`use_internal_memory_pool: false`):
+
 - **Low-latency applications**: When minimal latency is critical
 - **Variable frame rates**: When frame timing is irregular
 - **Memory-constrained environments**: When minimizing memory usage is important
 - **Single/few streams**: When not requiring high sustained throughput buffering
 
 **Use Memory Pool Mode** (`use_internal_memory_pool: true`):
+
 - **High sustained throughput**: When streaming at consistent high frame rates
 - **Buffering requirements**: When you need frame buffering capabilities
 - **Multiple concurrent streams**: When handling multiple transmission flows
 - **Production broadcast**: When requiring consistent performance under sustained load
 
 This TX architecture provides professional-grade media transmission by maintaining frame-level processing in Holohub components while delegating all packet-level operations to optimized RDK services. The key advantages are:
+
 - **MediaSenderZeroCopyService**: True zero-copy frame handoff for maximum efficiency and minimal latency
 - **MediaSenderService**: Single copy with memory pool management for sustained high-throughput transmission
 Both modes benefit from hardware-accelerated packet processing in the RDK layer.
@@ -848,4 +886,3 @@ Both modes benefit from hardware-accelerated packet processing in the RDK layer.
 - NVIDIA Rivermax SDK
 - System tuning as described in the High Performance Networking tutorial
 - Sufficient memory and bandwidth for media streaming workloads
-

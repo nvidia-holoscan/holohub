@@ -30,4 +30,3 @@ if(holoscan_FOUND)
 else()
   message(STATUS "Holoscan SDK not found - skipping advanced_network_media operators")
 endif()
-

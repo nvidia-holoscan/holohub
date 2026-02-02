@@ -21,7 +21,7 @@ namespace detail {
 // Import public interfaces for cleaner usage
 using holoscan::ops::IFrameProvider;
 
-// Forward declarations for internal implementation
+// Forward declaration - interface defined in memory_copy_strategies.h
 class IMemoryCopyStrategy;
 
 /**
@@ -80,9 +80,6 @@ struct FrameAssemblyContext {
   size_t frame_position = 0;                       // Current byte position in frame
   std::shared_ptr<FrameBufferBase> current_frame;  // Active frame buffer
 };
-
-// Forward declaration - interface defined in memory_copy_strategies.h
-class IMemoryCopyStrategy;
 
 /**
  * @brief Main frame processing state machine
