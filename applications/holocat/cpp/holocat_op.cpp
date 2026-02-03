@@ -1,6 +1,7 @@
 /**
-// holocat_op.cpp
- * HoloCat EtherCAT Operator Implementation
+ * @file holocat_op.cpp
+ * @brief HoloCat EtherCAT Operator Implementation
+ * 
  * Based on EC-Master demo application from acontis technologies GmbH
  */
 
@@ -78,16 +79,15 @@ void HolocatOp::InitializeEthercatParams() {
     sockraw_params_.linkParms.eLinkMode = EcLinkMode_POLLING;  // POLLING mode - no receiver thread
     sockraw_params_.linkParms.dwIstPriority = 0;  // Not used in polling mode
     // Get adapter name from config or use default
-    std::string adapter_name = config_.adapter_name;
     
     if (config_.adapter_name.empty()) {
         throw std::runtime_error("Adapter name is empty");
     } else {
         // log message: "Adapter name: {}"
-        HOLOSCAN_LOG_INFO("Adapter name: {}", adapter_name);
+        HOLOSCAN_LOG_INFO("Adapter name: {}", config_.adapter_name);
     }
 
-    OsStrncpy(sockraw_params_.szAdapterName, adapter_name.c_str(), EC_SOCKRAW_ADAPTER_NAME_MAXLEN);
+    OsStrncpy(sockraw_params_.szAdapterName, config_.adapter_name.c_str(), EC_SOCKRAW_ADAPTER_NAME_MAXLEN);
     sockraw_params_.bDisableForceBroadcast = EC_TRUE;
     sockraw_params_.bReplacePaddingWithNopCmd = EC_FALSE;
     sockraw_params_.bUsePacketMmapRx = EC_TRUE;
@@ -123,10 +123,15 @@ EC_T_DWORD HolocatOp::ConfigureNetwork()
     EC_T_DWORD dwRes = EC_E_NOERROR;
      // setup ENI configuration
     EC_T_CNF_TYPE eCnfType = eCnfType_Filename;
-    EC_T_CHAR szENIFilename[256];
+    constexpr size_t max_eni_file_length = 256;
+    EC_T_CHAR szENIFilename[max_eni_file_length];
     // ENI file path from config or environment variable
     // Get ENI file path from config or use default
     std::string eni_file = config_.eni_file;
+    if (size_t(eni_file.length()) >= max_eni_file_length - 1) {
+        HOLOSCAN_LOG_ERROR("ENI file path is too long: {} (max length: {})", eni_file, max_eni_file_length);
+        return EC_E_INVALIDPARM;
+    }
     OsSnprintf(szENIFilename, sizeof(szENIFilename), "%s", eni_file.c_str());
     EC_T_BYTE* pbyCnfData = (EC_T_BYTE*)szENIFilename;
     EC_T_DWORD dwCnfDataLen = (EC_T_DWORD)OsStrlen(szENIFilename);
@@ -189,7 +194,7 @@ void HolocatOp::BusStartupStateMachine() {
     if (stop_requested_) {
         if (!state_transition_in_progress_) {
             // reset master to INIT
-            startup_state_ = StartupState::SET_MASTER_INIT;
+            startup_state_ = StartupState::STOP_REQUESTED;
         }
     }
 
@@ -391,10 +396,11 @@ void HolocatOp::compute(holoscan::InputContext& op_input,
 
     // Calculate sample delay with wraparound handling at 256
     // enforce inval in range 0-255
-    inval = inval % 256;
+    constexpr int kMaxCount = 256;
+    inval = inval % kMaxCount;
     int sample_delay = outval_ - inval;
     if (sample_delay < 0) {
-        sample_delay += 256;
+        sample_delay += kMaxCount;
     }
     
     // Calculate elapsed time in milliseconds

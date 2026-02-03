@@ -1,10 +1,10 @@
-/*-----------------------------------------------------------------------------
- * hc_data_tx_op.cpp
- * HoloCat Data Transmit Operator Implementation
+/**
+ * @file hc_data_tx_op.cpp
+ * @brief HoloCat Data Transmit Operator Implementation
  * 
  * This file implements the HcDataTxOp operator that generates incrementing
  * counter data for testing and demonstration purposes.
- *---------------------------------------------------------------------------*/
+ */
 
 
 #include <holoscan/holoscan.hpp>
@@ -26,8 +26,7 @@ void HcDataTxOp::compute(holoscan::InputContext& op_input,
                          holoscan::ExecutionContext& context) {
 
   // Increment counter
-  counter_++;
-  counter_ = counter_ % kMaxCount;
+  counter_ = (counter_ + 1) % kMaxCount;
 
   // Emit current counter value
   op_output.emit<int>(counter_, "count_out");
