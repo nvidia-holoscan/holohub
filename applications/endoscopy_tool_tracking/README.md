@@ -60,16 +60,16 @@ sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_trac
 
 # build and launch the application
 # C++
-./holohub run endoscopy_tool_tracking --build-with="vtk_renderer" --docker-file="operators/vtk_renderer/vtk.Dockerfile" --img holohub:endoscopy_tool_tracking_vtk --language="cpp"
+./holohub run endoscopy_tool_tracking --build-with="vtk_renderer" --docker-file="operators/vtk_renderer/Dockerfile" --img holohub:endoscopy_tool_tracking_vtk --language="cpp"
 
 # Python (see below for additional steps)
-./holohub run endoscopy_tool_tracking --build-with="vtk_renderer" --docker-file="operators/vtk_renderer/vtk.Dockerfile" --img holohub:endoscopy_tool_tracking_vtk --language="python"
+./holohub run endoscopy_tool_tracking --build-with="vtk_renderer" --docker-file="operators/vtk_renderer/Dockerfile" --img holohub:endoscopy_tool_tracking_vtk --language="python"
 ```
 
 Arguments:
 
 - `--build-with` : instructs the script to build the application with the `vtk_renderer` operator
-- `--docker-file`: instructs the script to use the `operators/vtk_renderer/vtk.Dockerfile` that includes VTK libraries
+- `--docker-file`: instructs the script to use the `operators/vtk_renderer/Dockerfile` that includes VTK libraries
 
 ## Dev Container
 

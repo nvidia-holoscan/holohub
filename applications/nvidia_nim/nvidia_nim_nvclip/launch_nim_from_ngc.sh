@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ mkdir -p "$LOCAL_NIM_CACHE"
 docker run -it --rm --name=$CONTAINER_NAME \
   --runtime=nvidia \
   --gpus all \
-  -e NGC_API_KEY=$NGC_API_KEY \
+  -e NGC_CLI_API_KEY=$NGC_CLI_API_KEY \
   -v "$LOCAL_NIM_CACHE:/opt/nim/.cache" \
   -u $(id -u) \
   -p 8000:8000 \
