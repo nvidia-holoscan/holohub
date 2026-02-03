@@ -1,0 +1,79 @@
+{
+	"application": {
+		"name": "HoloCat - EtherCAT Real-time Integration",
+		"authors": [
+			{
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0.0": "Initial release with acontis EC-Master integration"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.0.0",
+			"tested_versions": [
+				"3.0.0"
+			]
+		},
+		"dockerfile": "applications/holocat/Dockerfile",
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Networking and Distributed Computing", "Robotics"],
+		"ranking": 2,
+		"requirements": {
+			"external": {
+				"ec-master-sdk": {
+					"version": "3.2.3+",
+					"description": "acontis EC-Master SDK (commercial license required)",
+					"url": "https://www.acontis.com/en/ethercat-master.html",
+					"license": "Commercial",
+					"required": true
+				}
+			},
+			"build": {
+				"cmake_version": "3.20+",
+				"compiler": "GCC 9+ or Clang 10+",
+				"cuda": "12.0+"
+			},
+			"system": {
+				"real-time-kernel": {
+					"description": "Linux kernel with real-time patches (PREEMPT_RT) recommended for best performance",
+					"required": false
+				},
+				"capabilities": {
+					"description": "CAP_NET_RAW, CAP_SYS_NICE, CAP_IPC_LOCK - automatically set during build",
+					"required": true
+				},
+				"network": {
+					"description": "EtherCAT-capable network interface (standard Ethernet adapter)",
+					"required": true
+				}
+			},
+			"runtime": {
+				"ethercat_interface": "Standard Ethernet adapter configured for EtherCAT",
+				"permissions": "CAP_NET_RAW, CAP_SYS_NICE, CAP_IPC_LOCK capabilities"
+			}
+		},
+		"default_mode": "standalone",
+		"modes": {
+			"standalone": {
+				"description": "Run HoloCat as standalone EtherCAT master application",
+				"run": {
+					"command": "<holohub_app_bin>/holocat",
+					"workdir": "holohub_bin"
+				}
+			},
+			"with_config": {
+				"description": "Run HoloCat with custom configuration file",
+				"run": {
+					"command": "<holohub_app_bin>/holocat --config <holohub_data_dir>/holocat/holocat_config.yaml",
+					"workdir": "holohub_bin"
+				}
+			}
+		}
+	}
+}
