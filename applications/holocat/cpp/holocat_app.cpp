@@ -32,7 +32,7 @@ void HolocatApp::compose() {
   
   // Create and configure the HoloCat operator
   auto ecat_bus_periodic_cond = make_condition<holoscan::PeriodicCondition>(
-    "ethercat_cycle", config.cycle_time_us * 1us);  
+    "ethercat_cycle_period", config.cycle_time_us * 1us);  
   std::shared_ptr<HolocatOp> holocat_op = make_operator<HolocatOp>("holocat_op", ecat_bus_periodic_cond);
   holocat_op->set_config(config);
   add_operator(holocat_op);
@@ -40,7 +40,7 @@ void HolocatApp::compose() {
   
   // Create and configure the HcDataTxOp operator
   auto counter_update_periodic_cond = make_condition<holoscan::PeriodicCondition>(
-    "ethercat_cycle", 100ms);
+    "ethercat_data_tx_period", 100ms);
   std::shared_ptr<HcDataTxOp> data_tx_op;
   data_tx_op = make_operator<HcDataTxOp>("data_tx_op", counter_update_periodic_cond);
   add_operator(data_tx_op);

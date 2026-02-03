@@ -1,7 +1,8 @@
 # HoloCat EtherCAT Application Dockerfile
 
-ARG BASE_IMAGE
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:${BASE_SDK_VERSION}
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:${BASE_SDK_VERSION}
+FROM ${BASE_IMAGE}
 
 # Install system dependencies for EtherCAT and real-time operation
 RUN apt-get update && apt-get install -y \

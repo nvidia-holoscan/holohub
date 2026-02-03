@@ -352,7 +352,11 @@ void HolocatOp::compute(holoscan::InputContext& op_input,
         if (has_count_input) {
             outval_ = count_in_value;
             EC_T_BYTE* pbyPdOut   = ecatGetProcessImageOutputPtr();
-            EC_COPYBITS(pbyPdOut, kWagoDioOutOffset, (EC_T_BYTE*)&outval_, 0, kTwoBytes);  
+            if (pbyPdOut != EC_NULL)
+            {
+                EC_COPYBITS(pbyPdOut, kWagoDioOutOffset, (EC_T_BYTE*)&outval_, 0, kTwoBytes);
+            }
+        
         }
     } else {
         HOLOSCAN_LOG_DEBUG(".");
