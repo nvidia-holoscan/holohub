@@ -1,10 +1,12 @@
-/*-----------------------------------------------------------------------------
- * hc_data_rx_op.cpp
+/**
+ * @file hc_data_rx_op.cpp
+ * @brief HoloCat Data Receive Operator
+ * 
  * HoloCat Data Receive Operator
  * 
  * This file implements the HcDataRxOp operator that receives counter data
  * for testing and demonstration purposes.
- *---------------------------------------------------------------------------*/
+ */
 
 #include <holoscan/holoscan.hpp>
 

@@ -1,10 +1,10 @@
-/*-----------------------------------------------------------------------------
- * hc_data_tx_op.hpp
- * HoloCat Data Transmit Operator for Holoscan SDK
+/**
+ * @file hc_data_tx_op.hpp
+ * @brief HoloCat Data Transmit Operator for Holoscan SDK
  * 
  * This file defines the HcDataTxOp operator that generates incrementing
  * counter data for testing and demonstration purposes.
- *---------------------------------------------------------------------------*/
+ */
 
 #ifndef INC_HC_DATA_TX_OP_H
 #define INC_HC_DATA_TX_OP_H 1

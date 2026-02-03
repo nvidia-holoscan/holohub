@@ -73,7 +73,6 @@ add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
 
 add_holohub_application(holocat)
-add_holohub_application(holochat)
 
 add_subdirectory(holoscan_ros2)
 
@@ -160,6 +159,7 @@ add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)
 add_holohub_application(vila_live)
+add_holohub_application(holochat)
 add_holohub_application(xr_holoviz DEPENDS OPERATORS xr)
 add_holohub_application(xr_gsplat DEPENDS OPERATORS xr)
 add_subdirectory(orsi)

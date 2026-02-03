@@ -1,11 +1,12 @@
-/*-----------------------------------------------------------------------------
- * holocat_op.hpp
- * HoloCat EtherCAT Operator for Holoscan SDK
+/**
+ * @file holocat_op.hpp
+ * @brief HoloCat EtherCAT Operator for Holoscan SDK
+ *
  * Based on EC-Master demo from acontis technologies GmbH
- * 
+ *
  * This file defines the HolocatOp operator that integrates EtherCAT real-time
  * communication with NVIDIA's Holoscan  framework.
- *---------------------------------------------------------------------------*/
+ */
 
 #ifndef INC_HOLOCAT_H
 #define INC_HOLOCAT_H 1

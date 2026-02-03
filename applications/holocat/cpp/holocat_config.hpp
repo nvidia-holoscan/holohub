@@ -1,6 +1,6 @@
 /**
- * holocat_config.hpp
- * HoloCat application and EtherCAT configuration struct
+ * @file holocat_config.hpp
+ * @brief HoloCat application and EtherCAT configuration struct
  * 
  * Defines the HolocatConfig structure used for configuring EtherCAT
  * and HoloCat integration within the NVIDIA Holoscan framework.
