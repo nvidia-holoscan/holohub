@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
     if (!args.config_file.empty()) {
         config_path = args.config_file;
     } else {
-        config_path = std::filesystem::weakly_canonical(argv[0]).parent_path() / "holocat_config.yaml";
+        config_path = std::filesystem::canonical(argv[0]).parent_path() / "holocat_config.yaml";
     }
 
     if (!std::filesystem::exists(config_path)) {

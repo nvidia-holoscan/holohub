@@ -7,11 +7,9 @@
 
 // System includes
 #include <chrono>
-#include <errno.h>
 #include <future>
 #include <iostream>
 #include <sched.h>
-#include <signal.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/utsname.h>
@@ -82,7 +80,11 @@ void HolocatOp::InitializeEthercatParams() {
     
     if (config_.adapter_name.empty()) {
         throw std::runtime_error("Adapter name is empty");
-    } else {
+    } 
+    if (size_t(config_.adapter_name.length()) >= EC_SOCKRAW_ADAPTER_NAME_MAXLEN - 1) {
+        throw std::runtime_error("Adapter name is too long: " + config_.adapter_name);
+    }
+    else {
         // log message: "Adapter name: {}"
         HOLOSCAN_LOG_INFO("Adapter name: {}", config_.adapter_name);
     }
@@ -181,7 +183,7 @@ void HolocatOp::stop()
     stop_requested_ = true;
     // Don't wait for state transition to complete, since that may never happen.  
     // Just wait for 1 second for a best-effort approach.
-    sleep(1);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     // deinitialize master
     ecatDeinitMaster();
@@ -342,12 +344,16 @@ void HolocatOp::compute(holoscan::InputContext& op_input,
         
     // POLLING mode: Process received frames directly (no interrupt/event)
     dwRes = ecatExecJob(eUsrJob_ProcessAllRxFrames, EC_NULL);
+    if (dwRes != EC_E_NOERROR)
+    {
+        HOLOSCAN_LOG_WARN("Processjobs failed: {} (0x{:x})", ecatGetText(dwRes), dwRes);
+    } 
     EC_UNREFPARM(dwRes);
 
     EC_T_BYTE* pbyPdIn = ecatGetProcessImageInputPtr();
     if (pbyPdIn != EC_NULL)
     {
-        EC_COPYBITS((EC_T_BYTE*)&inval, 0, pbyPdIn, kWagoDioInOffset, 16);
+        EC_COPYBITS((EC_T_BYTE*)&inval, 0, pbyPdIn, config_.dio_in_offset, 16);
         has_inval = true;
     }
 
@@ -359,7 +365,7 @@ void HolocatOp::compute(holoscan::InputContext& op_input,
             EC_T_BYTE* pbyPdOut   = ecatGetProcessImageOutputPtr();
             if (pbyPdOut != EC_NULL)
             {
-                EC_COPYBITS(pbyPdOut, kWagoDioOutOffset, (EC_T_BYTE*)&outval_, 0, kTwoBytes);
+                EC_COPYBITS(pbyPdOut, config_.dio_out_offset, (EC_T_BYTE*)&outval_, 0, kTwoBytes);
             }
         
         }
