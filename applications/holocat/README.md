@@ -24,7 +24,7 @@ HoloCat implements a three-operator architecture that bridges Holoscan applicati
 
 ### Data Flow
 
-```
+```text
 Holoscan Application
        |
        v
