@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
     // Handle configuration printing request
     if (args.print_config_only) {
       try {
-        // TODO: Move this to compose() function
+        // Note: extract_config() is intentionally called here (rather than in compose()). Move it?
         auto config = app->extract_config();
         std::cout << "HoloCat Configuration:\n";
         std::cout << "  Adapter: " << config.adapter_name << "\n";

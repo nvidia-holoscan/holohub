@@ -1,9 +1,9 @@
-/*-----------------------------------------------------------------------------
- * hc_data_rx_op.hpp
- * HoloCat Data Receive Operator for Holoscan SDK
+/**
+ * @file hc_data_rx_op.hpp
+ * @brief HoloCat Data Receive Operator for Holoscan SDK
  * 
  * This file defines the HcDataRxOp operator that receives integer data from the ECat bus.
- *---------------------------------------------------------------------------*/
+ */
 
 #ifndef INC_HC_DATA_RX_OP_H
 #define INC_HC_DATA_RX_OP_H 1

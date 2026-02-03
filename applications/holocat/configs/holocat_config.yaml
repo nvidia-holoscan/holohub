@@ -2,7 +2,7 @@
 
 holocat:
   # EtherCAT network adapter name
-  adapter_name: "enx6c6e071e9c45"
+  adapter_name: "en0"
   #adapter_name: "enx6c6e071e9c45"
   
   # EtherCAT Network Information (ENI) file path
