@@ -1,13 +1,10 @@
-# ST2110 Multi-Output Test Configuration
-# ========================================
-# This configuration enables ALL three outputs to verify they work correctly:
-# - raw_output: YCbCr-4:2:2-10bit (always enabled)
-# - rgba_output: RGBA 8-bit for visualization
-# - nv12_output: NV12 8-bit for encoding
+# ST2110 Demo Configuration
+# ==========================
+# RGBA output only for testing
 
 st2110_source:
-  # Network parameters
-  multicast_address: "239.255.66.60"
+  # Network parameters - UPDATE THESE FOR YOUR SETUP
+  multicast_address: "239.255.194.247"
   port: 16388
   interface_name: "mgbe0_0"
 
@@ -17,16 +14,15 @@ st2110_source:
   framerate: 50
   stream_format: "YCbCr-4:2:2-10bit"
 
-  # Enable ALL output formats for comprehensive testing
-  enable_rgba_output: true   # Enable RGBA conversion
-  enable_nv12_output: true   # Enable NV12 conversion
+  # Output formats
+  enable_rgba_output: true
+  enable_nv12_output: true
 
   # Performance settings
   batch_size: 4320
   max_packet_size: 1514
   header_size: 42
   rtp_header_size: 12
-  enable_reorder_kernel: true
 
 # RGBA Holoviz Visualizer Configuration
 rgba_visualizer:
@@ -42,7 +38,7 @@ rgba_visualizer:
       opacity: 1.0
       priority: 0
 
-# NV12 Holoviz Visualizer Configuration
+# NV12 config (not used when enable_nv12_output: false)
 nv12_visualizer:
   width: 1920
   height: 1080

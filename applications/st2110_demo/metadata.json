@@ -1,0 +1,71 @@
+{
+  "application": {
+    "name": "ST 2110-20 Video Reception Demo",
+    "authors": [
+      {
+        "name": "XRlabs",
+        "affiliation": "XRlabs"
+      }
+    ],
+    "language": "Python",
+    "version": "1.0.0",
+    "changelog": {
+      "1.0.0": "Initial release - ST 2110-20 reception with Linux sockets and Holoviz display"
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": [
+      "Networking and Distributed Computing",
+      "Video",
+      "ST 2110",
+      "Broadcasting"
+    ],
+    "description": "Demo application for receiving SMPTE ST 2110-20 uncompressed video streams using Linux sockets with CUDA pinned memory and GPU-accelerated color conversion",
+    "holoscan_sdk": {
+      "minimum_required_version": "3.7.0",
+      "tested_versions": [
+        "3.7.0",
+        "3.10.0"
+      ]
+    },
+    "ranking": 1,
+    "requirements": {
+      "operators": [
+        {
+          "name": "st2110_source",
+          "version": "1.0"
+        },
+        {
+          "name": "holoviz",
+          "version": "2.0"
+        }
+      ]
+    },
+    "modes": {
+      "default": {
+        "description": "Display both RGBA and NV12 outputs",
+        "run": {
+          "command": "python3 <holohub_app_source>/st2110_demo_app.py --config <holohub_app_source>/st2110_demo_config.yaml",
+          "workdir": "holohub_app_bin"
+        }
+      },
+      "rgba": {
+        "description": "Display RGBA output only",
+        "run": {
+          "command": "python3 <holohub_app_source>/st2110_demo_app.py --config <holohub_app_source>/st2110_demo_config_rgba_only.yaml",
+          "workdir": "holohub_app_bin"
+        }
+      },
+      "nv12": {
+        "description": "Display NV12 output only",
+        "run": {
+          "command": "python3 <holohub_app_source>/st2110_demo_app.py --config <holohub_app_source>/st2110_demo_config_nv12_only.yaml",
+          "workdir": "holohub_app_bin"
+        }
+      }
+    },
+    "default_mode": "default"
+  }
+}
