@@ -75,7 +75,7 @@ CommandLineArgs parse_arguments(int argc, char** argv) {
 
 int main(int argc, char** argv) {
   HOLOSCAN_LOG_INFO("HoloCat - EtherCAT Real-time Integration");
-  HOLOSCAN_LOG_INFO("Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES");
+  HOLOSCAN_LOG_INFO("Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES");
   
   try {
     // Parse command line arguments
