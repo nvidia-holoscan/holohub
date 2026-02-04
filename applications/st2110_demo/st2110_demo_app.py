@@ -35,7 +35,7 @@ class NullSink(Operator):
     def setup(self, spec: OperatorSpec):
         spec.input("input")
 
-    def compute(self, op_input, op_output, context):
+    def compute(self, op_input, _op_output, _context):
         # Receive and discard
         op_input.receive("input")
 
@@ -57,6 +57,8 @@ class ST2110DemoApp(Application):
 
         # Get config to check which outputs are enabled
         st2110_config = self.kwargs("st2110_source")
+        if not st2110_config:
+            raise ValueError("Missing required 'st2110_source' configuration block")
         enable_rgba = st2110_config.get("enable_rgba_output", False)
         enable_nv12 = st2110_config.get("enable_nv12_output", False)
 

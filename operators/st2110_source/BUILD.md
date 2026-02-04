@@ -71,10 +71,11 @@ make -j$(nproc)
 ### Step 3: Verify the Build
 
 ```bash
-# Check library was created
-ls -lh build/operators/st2110_source/libst2110_source.so
+# From holohub root (after Option A):
+ls -lh build/st2110_source/operators/st2110_source/libst2110_source.so
 
-# Check dependencies
+# Or from operators/st2110_source/build (after Option B):
+ls -lh libst2110_source.so
 ldd libst2110_source.so | grep -E "(holoscan|cuda)"
 ```
 
