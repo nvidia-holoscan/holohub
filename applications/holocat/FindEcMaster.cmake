@@ -34,7 +34,7 @@ find_path(ECMASTER_INCLUDE_DIR
     DOC "EC-Master include directory"
 )
 
-set (TEMPARCH ${CMAKE_SYSTEM_PROCESSOR})
+set(TEMPARCH ${CMAKE_SYSTEM_PROCESSOR})
 # Determine library directory based on architecture
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     if(TEMPARCH MATCHES "aarch64|arm64|AARCH64|ARM64")
@@ -109,7 +109,7 @@ if(ECMASTER_INCLUDE_DIR)
         set(ECMASTER_VERSION_PATCH ${CMAKE_MATCH_1})
         string(REGEX MATCH "#define EC_VERSION_BUILD[ \t]+([0-9]+)" _ ${ECVERSION_CONTENT})
         set(ECMASTER_VERSION_BUILD ${CMAKE_MATCH_1})
-        
+
         if(ECMASTER_VERSION_MAJOR AND ECMASTER_VERSION_MINOR AND ECMASTER_VERSION_PATCH)
             if(ECMASTER_VERSION_BUILD)
                 set(ECMASTER_VERSION "${ECMASTER_VERSION_MAJOR}.${ECMASTER_VERSION_MINOR}.${ECMASTER_VERSION_PATCH}.${ECMASTER_VERSION_BUILD}")
@@ -131,12 +131,12 @@ find_package_handle_standard_args(EcMaster
 if(EcMaster_FOUND)
     set(ECMASTER_LIBRARIES ${ECMASTER_LIBRARY} ${ECMASTER_LINK_LIBRARIES})
     set(ECMASTER_INCLUDE_DIRS ${ECMASTER_INCLUDE_DIR})
-    
+
     # Also check for Linux-specific include directory
     if(EXISTS "${ECMASTER_INCLUDE_DIR}/Linux")
         list(APPEND ECMASTER_INCLUDE_DIRS "${ECMASTER_INCLUDE_DIR}/Linux")
     endif()
-    
+
     # Create imported target
     if(NOT TARGET EcMaster::EcMaster)
         add_library(EcMaster::EcMaster SHARED IMPORTED)
@@ -144,7 +144,7 @@ if(EcMaster_FOUND)
             IMPORTED_LOCATION ${ECMASTER_LIBRARY}
             INTERFACE_INCLUDE_DIRECTORIES "${ECMASTER_INCLUDE_DIRS}"
         )
-        
+
         # Add link layer libraries as dependencies
         if(ECMASTER_LINK_LIBRARIES)
             set_target_properties(EcMaster::EcMaster PROPERTIES
@@ -152,7 +152,7 @@ if(EcMaster_FOUND)
             )
         endif()
     endif()
-    
+
     message(STATUS "Found EC-Master SDK:")
     message(STATUS "  Version: ${ECMASTER_VERSION}")
     message(STATUS "  Include: ${ECMASTER_INCLUDE_DIRS}")
