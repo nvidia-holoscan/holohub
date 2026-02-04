@@ -129,7 +129,7 @@ class ST2110SourceOp : public holoscan::Operator {
     uint32_t current_timestamp;  // RTP timestamp of current frame
     uint32_t packets_received;   // Packets received for current frame
     uint32_t bytes_received;     // Bytes received for current frame
-    bool frame_complete;         // Frame reassembly complete
+    std::atomic<bool> frame_complete;  // Frame reassembly complete (atomic for thread safety)
   };
 
   // Helper methods

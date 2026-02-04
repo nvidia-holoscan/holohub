@@ -308,14 +308,20 @@ void ST2110SourceOp::allocate_buffers() {
   // assembling_index_ starts at -1 (will be set when first packet arrives)
 
   // Allocate GPU raw buffer (always allocated for raw YCbCr-4:2:2-10bit data)
-  CUDA_TRY(cudaMalloc(&gpu_raw_buffer_, raw_frame_size_));
+  if (CUDA_TRY(cudaMalloc(&gpu_raw_buffer_, raw_frame_size_)) != cudaSuccess) {
+    throw std::runtime_error("Failed to allocate GPU raw buffer (" +
+                             std::to_string(raw_frame_size_) + " bytes)");
+  }
   HOLOSCAN_LOG_INFO("Allocated GPU raw buffer: {} bytes ({} MB)",
                     raw_frame_size_,
                     raw_frame_size_ / (1024 * 1024));
 
   // Allocate GPU RGBA buffer (only if RGBA output is enabled)
   if (rgba_frame_size_ > 0) {
-    CUDA_TRY(cudaMalloc(&gpu_rgba_buffer_, rgba_frame_size_));
+    if (CUDA_TRY(cudaMalloc(&gpu_rgba_buffer_, rgba_frame_size_)) != cudaSuccess) {
+      throw std::runtime_error("Failed to allocate GPU RGBA buffer (" +
+                               std::to_string(rgba_frame_size_) + " bytes)");
+    }
     HOLOSCAN_LOG_INFO("Allocated GPU RGBA buffer: {} bytes ({} MB)",
                       rgba_frame_size_,
                       rgba_frame_size_ / (1024 * 1024));
@@ -323,14 +329,19 @@ void ST2110SourceOp::allocate_buffers() {
 
   // Allocate GPU NV12 buffer (only if NV12 output is enabled)
   if (nv12_frame_size_ > 0) {
-    CUDA_TRY(cudaMalloc(&gpu_nv12_buffer_, nv12_frame_size_));
+    if (CUDA_TRY(cudaMalloc(&gpu_nv12_buffer_, nv12_frame_size_)) != cudaSuccess) {
+      throw std::runtime_error("Failed to allocate GPU NV12 buffer (" +
+                               std::to_string(nv12_frame_size_) + " bytes)");
+    }
     HOLOSCAN_LOG_INFO("Allocated GPU NV12 buffer: {} bytes ({} MB)",
                       nv12_frame_size_,
                       nv12_frame_size_ / (1024 * 1024));
   }
 
   // Create CUDA stream for async H2D copy and conversions
-  CUDA_TRY(cudaStreamCreate(&cuda_stream_));
+  if (CUDA_TRY(cudaStreamCreate(&cuda_stream_)) != cudaSuccess) {
+    throw std::runtime_error("Failed to create CUDA stream");
+  }
 
   HOLOSCAN_LOG_INFO("Allocated {} pinned host buffers of {} bytes (aligned to 64k)",
                     num_frame_buffers_, aligned_frame_size);
