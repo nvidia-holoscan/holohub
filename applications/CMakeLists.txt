@@ -133,9 +133,7 @@ add_holohub_application(psd_pipeline DEPENDS
                                   data_writer)
 
 add_holohub_application(st2110_demo DEPENDS
-                        OPERATORS st2110_source
-                                  holoviz
-                                  )
+                        OPERATORS st2110_source)
 
 add_holohub_application(ultrasound_segmentation DEPENDS
                         OPERATORS OPTIONAL aja_source)
