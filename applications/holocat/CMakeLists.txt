@@ -15,6 +15,11 @@
 
 cmake_minimum_required(VERSION 3.20)
 
+# Set policy to use <PACKAGENAME>_ROOT variables in find_package
+if(POLICY CMP0144)
+  cmake_policy(SET CMP0144 NEW)
+endif()
+
 # Check if EC-Master SDK is available before building
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(EcMaster QUIET)
@@ -22,6 +27,9 @@ find_package(EcMaster QUIET)
 if(EcMaster_FOUND)
     message(STATUS "Building HoloCat application with EC-Master SDK")
     add_subdirectory(cpp)
+    
+    message(STATUS "Building HoloCat tests")
+    add_subdirectory(tests)
 else()
     message(FATAL_ERROR "EC-Master SDK not found")
 endif()
