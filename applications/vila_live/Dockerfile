@@ -18,6 +18,7 @@
 ARG BASE_IMAGE
 ARG GPU_TYPE
 ARG COMPUTE_CAPACITY
+ARG CUDA_MAJOR
 
 FROM ${BASE_IMAGE} AS base
 
@@ -34,15 +35,31 @@ RUN chmod +x /tmp/scripts/holohub && \
 # ----------------------------------------------------------------------------
 # Install setup tools and PyTorch
 # ----------------------------------------------------------------------------
+ARG CUDA_MAJOR
 RUN python3 -m pip install --no-cache-dir setuptools packaging && \
-    python3 -m pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu124
+    if [ "${CUDA_MAJOR}" = "13" ]; then \
+        INDEX_URL="https://download.pytorch.org/whl/cu130"; \
+    else \
+        INDEX_URL="https://download.pytorch.org/whl/cu124"; \
+    fi && \
+    python3 -m pip install --no-cache-dir torch torchvision --index-url ${INDEX_URL}
 
 # ----------------------------------------------------------------------------
 # Install flash-attention 2
 # ----------------------------------------------------------------------------
 # NOTE: on Arm64 this will take between 1-1.5 hours
 # NOTE: MAX_JOBS is set to 4 to avoid running out of memory
-RUN MAX_JOBS=4 python3 -m pip install --no-cache-dir --no-build-isolation flash-attn==2.7.*
+# NOTE: CUDA 13 on x86_64 uses prebuilt wheels from https://github.com/mjun0812/flash-attention-prebuild-wheels
+ARG CUDA_MAJOR
+RUN if [ "${CUDA_MAJOR}" = "13" ] && [ "$(uname -m)" = "x86_64" ]; then \
+        PYTHON_VERSION=$(python3 -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')") && \
+        TORCH_VERSION=$(python3 -c "import torch; print(f'torch{torch.__version__.split(\".\")[0]}.{torch.__version__.split(\".\")[1]}')") && \
+        WHEEL_URL="https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.7.16/flash_attn-2.8.3%2Bcu130${TORCH_VERSION}-${PYTHON_VERSION}-${PYTHON_VERSION}-linux_x86_64.whl" && \
+        echo "Installing flash-attn wheel for CUDA 13 (x86_64): ${WHEEL_URL}" && \
+        python3 -m pip install --no-cache-dir "${WHEEL_URL}"; \
+    else \
+        MAX_JOBS=4 python3 -m pip install --no-cache-dir --no-build-isolation flash-attn==2.7.*; \
+    fi
 
 # ----------------------------------------------------------------------------
 # Clone and install AWQ based on the GPU's compute capacity
