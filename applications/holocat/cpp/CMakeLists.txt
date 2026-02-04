@@ -53,13 +53,13 @@ set(HOLOCAT_HEADERS
 add_executable(holocat ${HOLOCAT_SOURCES} ${HOLOCAT_HEADERS})
 
 # Include directories
-target_include_directories(holocat PRIVATE 
+target_include_directories(holocat PRIVATE
     .
     ${ECMASTER_INCLUDE_DIRS}
 )
 
 # Compile options
-target_compile_options(holocat PRIVATE 
+target_compile_options(holocat PRIVATE
     -Wall
     -Wextra
     -Wno-unused-parameter
@@ -67,8 +67,8 @@ target_compile_options(holocat PRIVATE
 )
 
 # Link libraries (EtherCAT always linked)
-target_link_libraries(holocat 
-    holoscan::core 
+target_link_libraries(holocat
+    holoscan::core
     ${ECMASTER_LIBRARIES}
     pthread
     rt
