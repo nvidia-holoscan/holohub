@@ -16,6 +16,11 @@
 cmake_minimum_required(VERSION 3.20)
 project(holocat LANGUAGES CXX)
 
+# Set policy to use <PACKAGENAME>_ROOT variables in find_package
+if(POLICY CMP0144)
+  cmake_policy(SET CMP0144 NEW)
+endif()
+
 # Find required packages
 find_package(holoscan 3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
