@@ -1,6 +1,6 @@
-# ST2110 Test Configuration - RGBA Only
-# =======================================
-# Test configuration with only RGBA output enabled
+# ST2110 Demo Configuration - RGBA Only
+# ======================================
+# Configuration with only RGBA output enabled
 
 st2110_source:
   # Network parameters

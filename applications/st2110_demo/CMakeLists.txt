@@ -13,18 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project(st2110_test NONE)
-
-# This is a Python-only test application for the ST2110 source operator
-# No C++ compilation required - all functionality is in Python
-
-# Add testing
-if(BUILD_TESTING)
-  add_test(NAME st2110_test_python_test
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/st2110_test_app.py
-                   --config ${CMAKE_CURRENT_SOURCE_DIR}/st2110_test_config.yaml
-           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-  set_tests_properties(st2110_test_python_test
-                PROPERTIES FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
-endif()
+cmake_minimum_required(VERSION 3.20)
+project(st2110_demo LANGUAGES NONE)

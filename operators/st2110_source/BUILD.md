@@ -147,17 +147,18 @@ Standard Linux network drivers work fine. No DPDK or special configuration neede
 
 ## Testing the Build
 
-After building, test with the included test application:
+After building, test with the included demo application:
 
 ```bash
-cd applications/st2110_test
+# Run with holohub CLI
+./holohub run st2110_demo
 
-# Edit config to match your network
-vim st2110_test_config.yaml
-
-# Run test
-python3 st2110_test_app.py
+# Or run specific mode
+./holohub run st2110_demo rgba   # RGBA output only
+./holohub run st2110_demo nv12   # NV12 output only
 ```
+
+Edit `applications/st2110_demo/st2110_demo_config.yaml` to match your network configuration.
 
 ## Next Steps
 
