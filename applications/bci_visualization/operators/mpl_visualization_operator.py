@@ -25,9 +25,7 @@ from holoscan.core import (
 
 logger = logging.getLogger(__name__)
 
-HB_MIN = -0.0001
-HB_MAX =  0.0001
-HB_RANGE = HB_MAX - HB_MIN
+HB_AVERAGE_WINDOW = 100  # number of frames for running average of min/max
 
 
 def _load_surface_mesh() -> Tuple[NDArray[np.float32], NDArray[np.int32]]:
@@ -40,7 +38,7 @@ def _load_surface_mesh() -> Tuple[NDArray[np.float32], NDArray[np.int32]]:
     faces : NDArray[np.int32]
         Face indices with shape (n_faces, 3).
     """
-    fsaverage = datasets.fetch_surf_fsaverage('fsaverage3')
+    fsaverage = datasets.fetch_surf_fsaverage('fsaverage4')
 
     # Load left and right pial surfaces
     coords_left, faces_left = surface.load_surf_mesh(fsaverage['pial_left'])
@@ -66,6 +64,7 @@ class PlotServer(mp.Process):
         from mpl_toolkits.mplot3d.art3d import Poly3DCollection
         plt.ion()
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"}, figsize=(10, 8))
+        fig.canvas.manager.set_window_title("Brain Visualization")
         triangles = self.vertices[self.faces]
         default_colors = np.full((self.faces.shape[0], 4), [0.5, 0.5, 0.5, 1.0])
         poly = Poly3DCollection(triangles, facecolors=default_colors, edgecolors=[0.4, 0.4, 0.4])
@@ -75,7 +74,7 @@ class PlotServer(mp.Process):
         ax.set_zlim(self.vertices[:,2].min(), self.vertices[:,2].max())
         ax.set_box_aspect([1,1,1])
         ax.axis("off")
-        ax.view_init(elev=0, azim=-90)
+        ax.view_init(elev=-1, azim=31, roll=25)
 
         # event loop: listen for arrays of shape (n_faces, 4) (RGBA) or None to exit
         try:
@@ -93,7 +92,6 @@ class PlotServer(mp.Process):
 
                 # item expected to be face_colors (n_faces, 4)
                 poly.set_facecolors(item)
-                ax.set_title(f"HbO Frame")
                 fig.canvas.flush_events()
         finally:
             plt.close(fig)
@@ -129,6 +127,8 @@ class MplVisualizationOperator(Operator):
         self._axes: Any = None
         self._poly_collection: Poly3DCollection | None = None
         self._colormap = plt.cm.coolwarm
+        self._hb_min: list[float] = []
+        self._hb_max: list[float] = []
 
     def setup(self, spec: OperatorSpec) -> None:
         """Configure operator inputs."""
@@ -259,9 +259,26 @@ class MplVisualizationOperator(Operator):
         # Compute per-face colors by averaging vertex values
         face_values = surface_data[faces].mean(axis=1)
 
-        # Normalize to [0, 1] for colormap
-        clamped = np.clip(face_values, HB_MIN, HB_MAX)
-        normalized = (clamped - HB_MIN) / HB_RANGE
+        hb_min = np.percentile(face_values, 2)
+        self._hb_min.append(hb_min)
+        if len(self._hb_min) > HB_AVERAGE_WINDOW:
+            self._hb_min.pop(0)
+        hb_min = np.mean(self._hb_min)
+
+        hb_max = np.percentile(face_values, 98)
+        self._hb_max.append(hb_max)
+        if len(self._hb_max) > HB_AVERAGE_WINDOW:
+            self._hb_max.pop(0)
+        hb_max = np.mean(self._hb_max)
+
+        # Normalize to [-1, 1] for colormap, centered at 0
+        hb_abs_max = max(abs(hb_min), abs(hb_max))
+        clipped = np.clip(face_values, -hb_abs_max, hb_abs_max)
+        normalized = clipped / hb_abs_max
+
+        # Shift to [0, 1] for colormap
+        normalized = (normalized + 1) / 2
+
         face_colors = self._colormap(normalized)
 
         try:
