@@ -1,5 +1,7 @@
 # HoloCat - EtherCAT Real-time Integration
 
+<img src="ethercat.jpeg" width="400" alt="EtherCAT Setup">
+
 HoloCat is an EtherCAT master application that integrates the acontis EC-Master SDK with NVIDIA's Holoscan platform.  As of this version it is a proof-of-concept using user-space Acontis drivers, which is not performance optimized.  Also, it is not a richly flexible example, but contains hard-coded assumptions around
 your hardware; specifically, it targets a single DIO device.
 
