@@ -112,8 +112,8 @@ int main(int argc, char** argv) {
     if (!args.config_file.empty()) {
       config_path = args.config_file;
     } else {
-      config_path =
-          std::filesystem::canonical(argv[0]).parent_path() / "holocat_config.yaml";
+      HOLOSCAN_LOG_ERROR("Please provide a configuration file.");
+      return 1;
     }
 
     if (!std::filesystem::exists(config_path)) {
