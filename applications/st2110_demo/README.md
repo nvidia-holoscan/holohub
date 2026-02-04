@@ -1,5 +1,7 @@
 # ST 2110-20 Video Reception Demo
 
+![ST 2110 Demo](./st2110_demo.jpg)
+
 Demo application for receiving SMPTE ST 2110-20 uncompressed video streams over IP networks using the ST2110SourceOp operator.
 
 ## Overview

@@ -1,5 +1,7 @@
 # ST 2110 Source Operator
 
+![ST 2110 Source](./st2110_source.jpg)
+
 The ST 2110 Source operator receives SMPTE ST 2110-20 uncompressed video streams over IP networks. This operator is designed for professional broadcast and media production workflows requiring video ingestion from ST 2110-compliant sources.
 
 ## Overview
