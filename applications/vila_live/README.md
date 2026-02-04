@@ -86,3 +86,4 @@ This application downloads a pre-recorded video from [Pexels](https://www.pexels
 - Jetson AI Lab, [Live LLaVA](https://www.jetson-ai-lab.com/archive/tutorial_live-llava.html): for the inspiration to create this app
 - [Jetson-Containers](https://github.com/dusty-nv/jetson-containers/tree/master/packages/llm/llamaspeak) repo: For the Flask web-app with WebSockets
 - [LLM-AWQ](https://github.com/mit-han-lab/llm-awq) repo: For the example code to create AWQ-powered LLM servers
+- [flash-attention-prebuild](https://github.com/mjun0812/flash-attention-prebuild-wheels) for CUDA13 x86 prebuilt wheels
