@@ -3,6 +3,7 @@
 		"name": "HoloCat - EtherCAT Real-time Integration",
 		"authors": [
 			{
+				"name": "Holoscan Team",
 				"affiliation": "NVIDIA"
 			}
 		],
