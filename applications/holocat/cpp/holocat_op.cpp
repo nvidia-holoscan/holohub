@@ -55,8 +55,18 @@ EC_T_DWORD HolocatOp::LogWrapper(struct _EC_T_LOG_CONTEXT* pContext,
   const char* prefix = "[EC-Master] ";
   size_t prefix_len = strlen(prefix);
   strncpy(buffer, prefix, sizeof(buffer) - 1);
-  vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len - 1, szFormat, vaArgs);
-  buffer[sizeof(buffer) - 1] = '\0';  // Ensure null termination
+  int written = vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len - 1, szFormat, vaArgs);
+
+  // Check for truncation
+  if (written >= static_cast<int>(sizeof(buffer) - prefix_len - 1)) {
+    // Message was truncated - append indicator
+    const char* truncated = "...[truncated]";
+    size_t trunc_len = strlen(truncated);
+    if (sizeof(buffer) > trunc_len + 1) {
+      strcpy(buffer + sizeof(buffer) - trunc_len - 1, truncated);
+    }
+  }
+
   EC_VAEND(vaArgs);
 
   if (dwLogMsgSeverity == EC_LOG_LEVEL_SILENT) {
