@@ -71,8 +71,8 @@ HolocatConfig GetHardwareConfig() {
   config.cycle_time_us = 1000;
   config.dio_out_offset = 80;
   config.dio_in_offset = 144;
-  config.max_acyc_frames = 100;
-  config.job_thread_stack_size = 0x4000;
+  config.max_acyc_frames = 32;
+  config.job_thread_stack_size = 0x8000;
   config.log_level = "info";
   return config;
 }
