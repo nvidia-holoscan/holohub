@@ -30,8 +30,8 @@ namespace holocat {
 namespace hardware_test {
 
 // Global variables for test data verification
-int transmitted_value_ = 42;
-int last_count_ = 0;
+std::atomic<int> transmitted_value_{42};
+std::atomic<int> last_count_{0};
 
 /**
  * @brief Check if hardware testing prerequisites are met
