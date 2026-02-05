@@ -1,10 +1,10 @@
 /**
  * @file test_integration_hardware.cpp
  * @brief Hardware Integration Test for HoloCat
- * 
+ *
  * Simple test that verifies EtherCAT hardware communication with data loopback.
  * Test is automatically skipped if hardware is not available.
- * 
+ *
  * Environment variables required:
  *   ECMASTER_ROOT - Path to EC-Master SDK
  *   HOLOCAT_TEST_ADAPTER - Network adapter (e.g., eth0)
@@ -42,19 +42,19 @@ bool CheckPrerequisites(std::string& error) {
     error = "ECMASTER_ROOT not set";
     return false;
   }
-  
+
   const char* adapter = getenv("HOLOCAT_TEST_ADAPTER");
   if (!adapter || std::string(adapter).empty()) {
     error = "HOLOCAT_TEST_ADAPTER not set";
     return false;
   }
-  
+
   const char* eni_file = getenv("HOLOCAT_TEST_ENI");
   if (!eni_file || std::string(eni_file).empty()) {
     error = "HOLOCAT_TEST_ENI not set";
     return false;
   }
-  
+
   return true;
 }
 
@@ -82,26 +82,21 @@ class OneValueTxOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(OneValueTxOp);
   OneValueTxOp() = default;
-  
-  void setup(holoscan::OperatorSpec& spec) {
-    spec.output<int>("count_out");
-  }
-  
-  void compute(holoscan::InputContext& op_input, 
-               holoscan::OutputContext& op_output, 
+
+  void setup(holoscan::OperatorSpec& spec) { spec.output<int>("count_out"); }
+
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
                holoscan::ExecutionContext& context) override {
-      op_output.emit<int>(transmitted_value_, "count_out");
+    op_output.emit<int>(transmitted_value_, "count_out");
   }
 };
-
 
 class LoopbackCheckRxOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(LoopbackCheckRxOp);
   LoopbackCheckRxOp() = default;
   void setup(holoscan::OperatorSpec& spec) { spec.input<int>("count_in"); };
-  void compute(holoscan::InputContext& op_input, 
-               holoscan::OutputContext& op_output, 
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
                holoscan::ExecutionContext& context) {
     auto maybe_count = op_input.receive<int>("count_in");
     if (maybe_count) {
@@ -111,7 +106,6 @@ class LoopbackCheckRxOp : public holoscan::Operator {
     }
   };
 };
- 
 
 /**
  * @brief Simple loopback test application
@@ -119,26 +113,25 @@ class LoopbackCheckRxOp : public holoscan::Operator {
 class LoopbackApp : public holoscan::Application {
  public:
   explicit LoopbackApp(const HolocatConfig& config) : config_(config) {}
-  
+
   void compose() override {
     using namespace holoscan;
-    
-    auto tx_op = make_operator<OneValueTxOp>(
-        "tx_op",
-        make_condition<PeriodicCondition>("periodic", 100ms));
-    
-    auto holocat_op = make_operator<HolocatOp>(
-        "holocat_op",
-        make_condition<PeriodicCondition>("ethercat_cycle_period", 10ms),
-        make_condition<CountCondition>("count", 300));
+
+    auto tx_op =
+        make_operator<OneValueTxOp>("tx_op", make_condition<PeriodicCondition>("periodic", 100ms));
+
+    auto holocat_op =
+        make_operator<HolocatOp>("holocat_op",
+                                 make_condition<PeriodicCondition>("ethercat_cycle_period", 10ms),
+                                 make_condition<CountCondition>("count", 300));
     holocat_op->set_config(config_);
-    
+
     auto rx_op = make_operator<LoopbackCheckRxOp>("rx_op");
-    
+
     add_flow(tx_op, holocat_op, {{"count_out", "count_in"}});
     add_flow(holocat_op, rx_op, {{"count_out", "count_in"}});
   }
-  
+
  private:
   HolocatConfig config_;
 };
@@ -151,7 +144,9 @@ class HardwareTest : public ::testing::Test {
   void SetUp() override {
     std::string error;
     if (!CheckPrerequisites(error)) {
-      GTEST_SKIP() << std::endl << " >>> Hardware prerequisites not met: " << error << std::endl << std::endl;
+      GTEST_SKIP() << std::endl
+                   << " >>> Hardware prerequisites not met: " << error << std::endl
+                   << std::endl;
     }
   }
 };
@@ -162,38 +157,42 @@ class HardwareTest : public ::testing::Test {
 TEST_F(HardwareTest, DataLoopback) {
   auto config = GetHardwareConfig();
   auto app = std::make_shared<LoopbackApp>(config);
-  
+
   std::cout << "\n=== Hardware Loopback Test ===\n";
   std::cout << "Adapter: " << config.adapter_name << "\n";
   HOLOSCAN_LOG_INFO("ENI: {}", config.eni_file);
   std::cout << "Cycle: " << config.cycle_time_us << " μs\n";
   std::cout << "Max cycles: 1000\n\n";
-  
+
   std::atomic<bool> app_failed{false};
   std::string error_msg;
-  
+
   std::thread app_thread([&]() {
     try {
       app->run();
-      EXPECT_EQ(last_count_, transmitted_value_) << "Received value (" << last_count_ << ") does not match transmitted value (" << transmitted_value_ << ")";
+      EXPECT_EQ(last_count_, transmitted_value_)
+          << "Received value (" << last_count_ << ") does not match transmitted value ("
+          << transmitted_value_ << ")";
     } catch (const std::exception& e) {
       app_failed = true;
       error_msg = e.what();
     }
   });
-  
+
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  
+
   if (app_failed) {
-    if (app_thread.joinable()) app_thread.join();
+    if (app_thread.joinable())
+      app_thread.join();
     GTEST_SKIP() << "Hardware not available: " << error_msg;
   }
-  
+
   // Run for 2 seconds (1000 cycles at 1ms = ~1 second, plus startup time)
   std::this_thread::sleep_for(std::chrono::seconds(2));
-  
+
   if (app_failed) {
-    if (app_thread.joinable()) app_thread.join();
+    if (app_thread.joinable())
+      app_thread.join();
     FAIL() << "App failed 2: " << error_msg;
   }
 
@@ -202,14 +201,15 @@ TEST_F(HardwareTest, DataLoopback) {
   }
 
   if (app_failed) {
-    if (app_thread.joinable()) app_thread.join();
+    if (app_thread.joinable())
+      app_thread.join();
     FAIL() << "App failed 3: " << error_msg;
   }
-  
+
   std::cout << "✓ Application ran successfully\n";
   std::cout << "✓ Hardware loopback test passed\n";
   std::cout << "================================\n\n";
-  
+
   SUCCEED();
 }
 

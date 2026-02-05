@@ -50,4 +50,3 @@ struct HolocatConfig {
 
 }  // namespace holocat
 #endif /* INC_HOLOCAT_CONFIG_H */
-

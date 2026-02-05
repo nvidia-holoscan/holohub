@@ -60,7 +60,6 @@ void print_usage(const char* program_name) {
   std::cout << "  " << program_name << " --print-config\n\n";
 }
 
-
 /**
  * @brief Parse command line arguments
  * @param argc Argument count
@@ -151,4 +150,3 @@ int main(int argc, char** argv) {
   HOLOSCAN_LOG_INFO("HoloCat application finished");
   return 0;
 }
-

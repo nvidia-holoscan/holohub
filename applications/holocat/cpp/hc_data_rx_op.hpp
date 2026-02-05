@@ -60,8 +60,7 @@ class HcDataRxOp : public holoscan::Operator {
    * @param op_output Output context (unused for this receiver operator)
    * @param context Execution context
    */
-  void compute(holoscan::InputContext& op_input,
-               holoscan::OutputContext& op_output,
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
                holoscan::ExecutionContext& context) override;
 
  private:
