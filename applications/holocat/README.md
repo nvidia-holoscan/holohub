@@ -14,6 +14,29 @@ HoloCat provides deterministic EtherCAT communication capabilities within the Ho
 - **Real-time Control**
 - **Holoscan Native**
 
+## Quick Start Guide
+
+### Prerequisites
+```bash
+# Set EC-Master SDK path
+export ECMASTER_ROOT=/path/to/ecmaster/root
+
+# Verify installation (optional)
+./applications/holocat/scripts/verify_ecmaster.sh
+```
+
+### Build
+```bash
+# Build using HoloHub CLI (recommended)
+./holohub build holocat --local
+```
+
+### Run
+```bash
+# Run with configuration file
+./build/holocat/applications/holocat/holocat --config ./applications/holocat/configs/holocat_config.yaml
+```
+
 ## Architecture Overview
 
 HoloCat implements a three-operator architecture that bridges Holoscan applications with EtherCAT slave devices through the acontis EC-Master SDK:
@@ -77,30 +100,10 @@ The architecture is configured through three primary parameters:
 1. **acontis EC-Master SDK** (Commercial License)
 This application requires the Acontis EC-Master SDK (version 3.2.3 or compatible) for EtherCAT communication. The SDK is commercial software available from Acontis at https://www.acontis.com/en/ethercat-master.html. Evaluation licenses are available for testing and development.
 
+Request access and download the EC-Master library from acontis: `EC-Master-V3.2-<ARCH>.tar.gz`.  Untar the library (note: it may just be tarred but not zipped) to your desired installation directory; for example, `/path/to/ecmaster/root`. Then verify your setup as described in the [Quick Start Guide](#quick-start-guide).
+
+
 The current version uses the generic user-space driver which works with any Ethernet card, but is comparatively low-performance relative to available kernel-level Ethercat drivers.
-
-## Usage
-
-### Prerequisites
-```bash
-# Set EC-Master SDK path
-export ECMASTER_ROOT=/path/to/ecmaster/root
-
-# Verify installation (optional)
-./applications/holocat/scripts/verify_ecmaster.sh
-```
-
-### Build
-```bash
-# Build using HoloHub CLI (recommended)
-./holohub build holocat --local
-```
-
-### Run
-```bash
-# Run with configuration file
-./build/holocat/applications/holocat/holocat --config ./applications/holocat/configs/holocat_config.yaml
-```
 
 ## Configuration
 
