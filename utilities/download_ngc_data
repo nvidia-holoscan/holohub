@@ -445,13 +445,16 @@ if [ "${download_command}" == "ngc" ]; then
     fi
 
     if [ $? -ne 0 ]; then
-        fatal R "Unable to download " W "${url}" R ".
-            If you are using a private registry, please try to configure NGC CLI ('ngc config set') or change NGC_CLI_API_KEY, NGC_CLI_ORG, and NGC_CLI_TEAM environment variables to the correct API key and organization name/team of NGC CLI." B '
-          # configure NGC CLI
-               ngc config set
-
-         # Or, export NGC_CLI_API_KEY, NGC_CLI_ORG, and NGC_CLI_TEAM environment variables to the private registry.
-        export NGC_CLI_API_KEY=<your-api-key> # see https://ngc.nvidia.com/setup/api-key'
+        fatal R "Failed to download from NGC: " W "${url}" R ".
+        This may be due to access issues, expired authentication, or a missing model/resource.
+        If you are using a private registry, please ensure your NGC CLI is properly configured." B "
+        > To set up the NGC CLI, ensure you have set the following environment variables:
+            export NGC_CLI_API_KEY=<your-api-key> # see https://ngc.nvidia.com/setup/api-key
+            export NGC_CLI_ORG=<your-org>
+            export NGC_CLI_TEAM=<your-team>
+        > Alternatively, if running locally (on host or inside a container), you can configure NGC CLI interactively:
+            ngc config set
+        > For more details, see https://ngc.nvidia.com/setup"
     fi
 
     # Expecting the URL to be templated as <ORG>/<TEAM>/<DATA_NAME>:<DATA_TAG>

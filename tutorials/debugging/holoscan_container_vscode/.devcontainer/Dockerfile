@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +56,7 @@ RUN mkdir -p $WORKSPACE_DIR/.vscode \
     && cp /opt/nvidia/holoscan/.vscode/debug_python $WORKSPACE_DIR/.vscode \
     && chown -R $USERNAME $WORKSPACE_DIR/.vscode \
     && sed -i 's|/opt/nvidia/holoscan/.vscode|/workspace/.vscode|g' $WORKSPACE_DIR/.vscode/* \
-    && mv $WORKSPACE_DIR/README.md $WORKSPACE_DIR/TensorRT-README.md 
+    && if [ -f "$WORKSPACE_DIR/README.md" ]; then mv "$WORKSPACE_DIR/README.md" "$WORKSPACE_DIR/TensorRT-README.md"; fi
 
 # Set the default user.
 # (See https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user)
