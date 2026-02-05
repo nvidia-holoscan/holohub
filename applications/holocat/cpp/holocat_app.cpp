@@ -142,6 +142,11 @@ bool HolocatApp::validate_config(HolocatConfig& config) {
 
   // Resolve ENI file path relative to config file directory if it's a relative path
   std::filesystem::path eni_path(config.eni_file);
+  // Check if eni_path is empty
+  if (eni_path.empty()) {
+    config.error_message = "ENI file path cannot be empty";
+    return false;
+  }
   if (eni_path.is_relative()) {
     // Get the directory containing the config file
     std::filesystem::path config_dir =
@@ -176,24 +181,27 @@ bool HolocatApp::validate_config(HolocatConfig& config) {
   constexpr uint32_t DEFAULT_JOB_PRIORITY = 98;
 
   if (config.rt_priority < MIN_PRIORITY || config.rt_priority > MAX_PRIORITY) {
-    HOLOSCAN_LOG_WARN(
-        "Invalid RT priority {}, using default {}", config.rt_priority, DEFAULT_RT_PRIORITY);
-    config.rt_priority = DEFAULT_RT_PRIORITY;
+    config.error_message = "Invalid RT priority: " + std::to_string(config.rt_priority) +
+                          " (valid range: " + std::to_string(MIN_PRIORITY) +
+                          "-" + std::to_string(MAX_PRIORITY) + ")";
+    return false;
   }
 
   if (config.job_thread_priority < MIN_PRIORITY || config.job_thread_priority > MAX_PRIORITY) {
-    HOLOSCAN_LOG_WARN("Invalid job thread priority {}, using default {}",
-                      config.job_thread_priority,
-                      DEFAULT_JOB_PRIORITY);
-    config.job_thread_priority = DEFAULT_JOB_PRIORITY;
+    config.error_message = "Invalid job thread priority: " + std::to_string(config.job_thread_priority) +
+                          " (valid range: " + std::to_string(MIN_PRIORITY) +
+                          "-" + std::to_string(MAX_PRIORITY) + ")";
+    return false;
   }
 
   // Set defaults for zero values
   if (config.max_acyc_frames == 0) {
-    config.max_acyc_frames = 32;
+    config.error_message = "Invalid max acyclic frames: 0 (valid range: 1-32)";
+    return false;
   }
   if (config.job_thread_stack_size == 0) {
-    config.job_thread_stack_size = 0x8000;
+    config.error_message = "Invalid job thread stack size: 0 (valid range: 0x8000-0x10000)";
+    return false;
   }
 
   return true;
