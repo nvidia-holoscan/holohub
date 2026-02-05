@@ -40,7 +40,7 @@ void HcDataTxOp::compute(holoscan::InputContext& op_input, holoscan::OutputConte
                          holoscan::ExecutionContext& context) {
   counter_ = (counter_ + 1) % kMaxCount;
   op_output.emit<int>(counter_, "count_out");
-  HOLOSCAN_LOG_DEBUG("HcDataTxOp: 50x Emitted count = {}", counter_);
+  HOLOSCAN_LOG_DEBUG("HcDataTxOp: Emitted count = {}", counter_);
 }
 
 }  // namespace holocat

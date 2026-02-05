@@ -18,20 +18,19 @@
 holocat:
   # EtherCAT network adapter name
   adapter_name: "en0"
-  #adapter_name: "enx6c6e071e9c45"
   
   # EtherCAT Network Information (ENI) file path
   # Use environment variable HOLOCAT_ENI_FILE to override, or falls back to config dir
   #eni_file: "/path/to/ethercat/config/ethercat_config.xml"
   eni_file: "./eni2.xml"
+
   # EtherCAT bus cycle time in microseconds
-  # Common values: 1000 (1ms), 500 (0.5ms), 250 (0.25ms)
   cycle_time_us: 10000
-  
+
   # Real-time thread priority (1-99, higher = more priority)
   # Typical values: 39 (medium), 80 (high), 99 (highest)
   rt_priority: 39
-  
+
   # Job thread priority (1-99, typically higher than rt_priority)
   job_thread_priority: 98
   
