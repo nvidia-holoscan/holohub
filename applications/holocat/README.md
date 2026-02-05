@@ -25,13 +25,20 @@ export ECMASTER_ROOT=/path/to/ecmaster/root
 ./applications/holocat/scripts/verify_ecmaster.sh
 ```
 
-### Build
+### Build Only
 ```bash
 # Build using HoloHub CLI (recommended)
 ./holohub build holocat --local
 ```
 
-### Run
+### Set Raw Network Capability
+```bash
+# Ensure capabilities are set
+sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
+```
+
+### Build and Run
+This will build and run combined.   Note that this may not work if your system requires `sudo `setcap 'cap_net_raw=ep'` to allow raw network access.  In that case, build first and set capabilities. Then run.
 ```bash
 # Run with default configuration file
 ./holohub run holocat --local
