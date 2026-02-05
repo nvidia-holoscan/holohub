@@ -62,7 +62,8 @@ EC_T_DWORD HolocatOp::LogWrapper(struct _EC_T_LOG_CONTEXT* pContext, EC_T_DWORD 
     const char* truncated = "...[truncated]";
     size_t trunc_len = strlen(truncated);
     if (sizeof(buffer) > trunc_len + 1) {
-      strcpy(buffer + sizeof(buffer) - trunc_len - 1, truncated);
+      strncpy(buffer + sizeof(buffer) - trunc_len - 1, truncated,
+              trunc_len + 1);
     }
   }
 
