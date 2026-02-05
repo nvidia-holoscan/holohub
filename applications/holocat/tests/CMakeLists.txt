@@ -15,8 +15,6 @@
 
 # C++ Unit Tests for HoloCat Application
 
-message(STATUS "Building HoloCat tests tests")
-
 # Find required packages
 find_package(holoscan 3.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
