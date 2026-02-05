@@ -44,7 +44,6 @@ bool CheckPrerequisites(std::string& error) {
   }
   
   const char* adapter = getenv("HOLOCAT_TEST_ADAPTER");
-  HOLOSCAN_LOG_INFO("HOLOCAT_TEST_ADAPTER: {}", adapter);
   if (!adapter || std::string(adapter).empty()) {
     error = "HOLOCAT_TEST_ADAPTER not set";
     return false;
@@ -63,7 +62,7 @@ bool CheckPrerequisites(std::string& error) {
  * @brief Get hardware test configuration from environment
  */
 HolocatConfig GetHardwareConfig() {
-  HolocatConfig config;
+  HolocatConfig config{};
   config.adapter_name = getenv("HOLOCAT_TEST_ADAPTER");
   config.eni_file = getenv("HOLOCAT_TEST_ENI");
   config.enable_rt = false;
@@ -152,7 +151,7 @@ class HardwareTest : public ::testing::Test {
   void SetUp() override {
     std::string error;
     if (!CheckPrerequisites(error)) {
-      GTEST_SKIP() << "Hardware prerequisites not met: " << error;
+      GTEST_SKIP() << std::endl << " >>> Hardware prerequisites not met: " << error << std::endl << std::endl;
     }
   }
 };
