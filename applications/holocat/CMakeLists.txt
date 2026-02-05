@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION &
+# AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,11 +26,13 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(EcMaster QUIET)
 
 if(EcMaster_FOUND)
-    message(STATUS "Building HoloCat application with EC-Master SDK")
-    add_subdirectory(cpp)
-    
-    message(STATUS "Building HoloCat tests")
-    add_subdirectory(tests)
+  message(STATUS "Building HoloCat application with EC-Master SDK")
+  add_subdirectory(cpp)
+
+  message(STATUS "Building HoloCat tests")
+  add_subdirectory(tests)
 else()
-    message(STATUS "EC-Master SDK not found. Skipping HoloCat application build.")
+  message(
+    STATUS
+    "EC-Master SDK not found. Skipping HoloCat application build.")
 endif()

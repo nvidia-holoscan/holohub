@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION &
+# AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +32,9 @@ if(NOT GTest_FOUND)
     GIT_TAG v1.14.0
     GIT_SHALLOW TRUE
   )
-  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  # For Windows: Prevent overriding the parent project's compiler/linker
+  # settings (googletest expects lowercase name)
+  # cmake-lint: disable=C0103
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   FetchContent_MakeAvailable(googletest)
 
@@ -203,14 +206,14 @@ if(EcMaster_FOUND)
     LABELS "unit;holocat"
   )
 
-  # =============================================================================
+  # ===========================================================================
   # Hardware Integration Tests (optional, requires hardware)
-  # =============================================================================
+  # ===========================================================================
 
   add_executable(test_integration_hardware
     test_integration_hardware.cpp
   )
-  
+
   target_link_libraries(test_integration_hardware
     PRIVATE
       holocat_op_lib
@@ -219,22 +222,24 @@ if(EcMaster_FOUND)
       GTest::gtest
       GTest::gtest_main
   )
-  
+
   target_include_directories(test_integration_hardware PRIVATE
     ${TEST_INCLUDE_DIRS}
     ${ECMASTER_INCLUDE_DIRS}
   )
-  
+
   add_test(NAME holocat_hardware.integration
            COMMAND test_integration_hardware)
-  
+
   set_tests_properties(holocat_hardware.integration PROPERTIES
     TIMEOUT 120
     LABELS "hardware;holocat;integration"
   )
 
 else()
-  message(STATUS "EC-Master SDK not found - skipping HolocatOp and hardware tests")
+  message(
+    STATUS
+    "EC-Master SDK not found - skipping HolocatOp and hardware tests")
 endif()
 
 # Set output directory for all test executables
@@ -243,7 +248,8 @@ set_target_properties(
   test_hc_data_rx_op
   test_integration_mocked
   PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/applications/holocat/tests"
+    RUNTIME_OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/applications/holocat/tests"
 )
 
 if(EcMaster_FOUND)
