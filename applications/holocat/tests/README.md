@@ -75,9 +75,6 @@ sudo setcap 'cap_net_raw=ep' build/holocat/applications/holocat/tests/test_integ
 ```bash
 # Grant capability (recommended)
 sudo setcap 'cap_net_raw=ep' build/holocat/applications/holocat/tests/test_integration_hardware
-
-# Or run with sudo
-sudo -E ./applications/holocat/tests/test_integration_hardware
 ```
 
 **Note:** Reapply `setcap` after rebuilding.

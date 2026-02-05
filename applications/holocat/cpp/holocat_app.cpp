@@ -162,13 +162,14 @@ bool HolocatApp::validate_config(HolocatConfig& config) {
   std::error_code ec;
   if (!std::filesystem::exists(config.eni_file, ec)) {
     if (ec) {
-      config.error_message = "Unable to access ENI file: " + config.eni_file + " (" + ec.message() + ")";
+      config.error_message =
+          "Unable to access ENI file: " + config.eni_file + " (" + ec.message() + ")";
     } else {
       config.error_message = "ENI configuration file not found: " + config.eni_file;
     }
     return false;
   }
-  
+
   // Validate cycle time range
   constexpr uint64_t MIN_CYCLE_TIME_US = 100;
   constexpr uint64_t MAX_CYCLE_TIME_US = 100000;
@@ -200,10 +201,9 @@ bool HolocatApp::validate_config(HolocatConfig& config) {
   constexpr uint32_t MIN_ACYC_FRAMES = 1;
   constexpr uint32_t MAX_ACYC_FRAMES = 32;
   if (config.max_acyc_frames < MIN_ACYC_FRAMES || config.max_acyc_frames > MAX_ACYC_FRAMES) {
-    config.error_message =
-        "Invalid max acyclic frames: " + std::to_string(config.max_acyc_frames) +
-        " (valid range: " + std::to_string(MIN_ACYC_FRAMES) + "-" +
-        std::to_string(MAX_ACYC_FRAMES) + ")";
+    config.error_message = "Invalid max acyclic frames: " + std::to_string(config.max_acyc_frames) +
+                           " (valid range: " + std::to_string(MIN_ACYC_FRAMES) + "-" +
+                           std::to_string(MAX_ACYC_FRAMES) + ")";
     return false;
   }
 
@@ -211,12 +211,12 @@ bool HolocatApp::validate_config(HolocatConfig& config) {
   constexpr uint32_t MAX_STACK_SIZE = 0x10000;
   if (config.job_thread_stack_size < MIN_STACK_SIZE ||
       config.job_thread_stack_size > MAX_STACK_SIZE) {
-    config.error_message = "Invalid job thread stack size: " +
-                           std::to_string(config.job_thread_stack_size) +
-                           " (valid range: 0x8000-0x10000)";
+    config.error_message =
+        "Invalid job thread stack size: " + std::to_string(config.job_thread_stack_size) +
+        " (valid range: 0x8000-0x10000)";
     return false;
   }
-  
+
   return true;
 }
 
