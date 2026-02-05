@@ -15,9 +15,11 @@ Features of this application include:
 - **Tool Removal:** Tissue-only reconstruction mode (surgical instruments automatically excluded)
 - **End-to-End Training:** On-the-fly model training from streamed endoscopic data
 - **Two Operation Modes:** Inference-only (with pre-trained checkpoint) OR train-then-render
+- **Binocular and Monocular Depth:** Supports both stereo depth maps and monocular depth estimation
+- **PLY Export:** Export trained Gaussians to standard PLY format for use in 3DGS viewers (e.g., SuperSplat)
 - **Production Ready:** Tested and optimized Holoscan pipeline with complete Docker containerization
 
-It takes input from EndoNeRF surgical datasets (RGB images + stereo depth + camera poses + tool masks). It processes the input using multi-frame Gaussian Splatting with a 4D spatiotemporal deformation network. And it outputs real-time 3D tissue reconstruction without surgical instruments.
+It takes input from EndoNeRF surgical datasets (RGB images + depth maps + camera poses + tool masks). Depth can come from stereo disparity (binocular) or monocular depth estimation. It processes the input using multi-frame Gaussian Splatting with a 4D spatiotemporal deformation network. And it outputs real-time 3D tissue reconstruction without surgical instruments.
 
 It is ideal for use cases, such as:
 
@@ -48,11 +50,19 @@ cd holohub
 
 ### Step 3: Run Training
 
-To run the model training:
+To run the model training with the default binocular depth mode:
 
 ```bash
 ./holohub run surgical_scene_recon train
 ```
+
+To train with monocular depth estimation and export PLY files:
+
+```bash
+./holohub run surgical_scene_recon train --run-args="--data_dir /path/to/data --depth_mode monocular --mono_depth_min 40 --mono_depth_max 100 --export_ply"
+```
+
+See [Training Options](#training-options) for all available flags.
 
 ### Step 4: Dynamic Rendering with a Trained Model
 
@@ -60,6 +70,12 @@ After training completes, to visualize your results in real-time, run the surgic
 
 ```bash
 ./holohub run surgical_scene_recon render
+```
+
+To render and export Gaussians to a PLY file (for use in external 3DGS viewers):
+
+```bash
+./holohub run surgical_scene_recon render --run-args="--export_ply --no-loop --num_frames 5"
 ```
 
 ![Dynamic Rendering Visualization](surg_recon_inference.gif)
@@ -117,10 +133,13 @@ Verify that your dataset has this structure:
     └── EndoNeRF/
         └── pulling/
             ├── images/              # 63 RGB frames (.png)
-            ├── depth/               # 63 depth maps (.png)
+            ├── depth/               # 63 stereo depth maps (.png) — for binocular mode
+            ├── monodepth/           # 63 mono depth maps (.png) — for monocular mode (optional)
             ├── masks/               # 63 tool masks (.png)
             └── poses_bounds.npy     # Camera poses (8.5 KB)
 ```
+
+The `monodepth/` folder is only required when using `--depth_mode monocular`.
 
 ## Models Used by the `surgical_scene_recon` Application
 
@@ -158,8 +177,8 @@ The application trains in two stages:
 
 The training uses:
 
-- Multi-modal Data: RGB images, depth maps, tool segmentation masks
-- Loss Functions: RGB loss, depth loss, TV loss, masking losses
+- Multi-modal Data: RGB images, depth maps (binocular or monocular), tool segmentation masks
+- Loss Functions: RGB loss, depth loss (L1 for binocular, Pearson correlation for monocular), TV loss, masking losses
 - Optimization: Adam optimizer with batch-size scaled learning rates
 - Tool Removal: Segmentation masks applied during training for tissue-only reconstruction
 
@@ -175,11 +194,42 @@ The **training pipeline** (`gsplat_train.py`) runs in the following order:
 
 The default training command trains a model on all 63 frames with 2000 iterations, producing smooth temporal deformation and high-quality reconstruction.
 
+### Training Options
+
+The following flags can be passed via `--run-args` to customize training:
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--data_dir` | EndoNeRF/pulling | Path to dataset |
+| `--num_frames` | -1 (all) | Number of frames to use (-1 for all) |
+| `--training_iterations` | 2000 | Total training iterations |
+| `--coarse_iterations` | 200 | Coarse stage iterations |
+| `--depth_mode` | `binocular` | Depth source: `binocular` (stereo) or `monocular` |
+| `--mono_depth_min` | 50.0 | Min depth for monocular depth scaling |
+| `--mono_depth_max` | 500.0 | Max depth for monocular depth scaling |
+| `--no_masks` | off | Disable tool masking (full scene with tools) |
+| `--export_ply` | off | Export Gaussians to PLY at configured steps and end of training |
+
+Example with all options:
+
+```bash
+./holohub run surgical_scene_recon train --run-args="--data_dir /path/to/data --num_frames 10 --depth_mode monocular --mono_depth_min 40 --mono_depth_max 100 --export_ply"
+```
+
+### Depth Modes
+
+The application supports two depth modes:
+
+- **Binocular** (default): Uses stereo depth maps from the `depth/` folder. This is the standard EndoNeRF format where depth is computed from stereo camera pairs.
+- **Monocular**: Uses monocular depth estimation maps from the `monodepth/` folder. Depth values are scaled to the range `[mono_depth_min, mono_depth_max]` and supervised with Pearson correlation loss instead of absolute L1 depth loss.
+
+### Training Outputs
+
 Training outputs are saved to `<HOLOHUB_APP_BIN>/output/trained_model/`, where `<HOLOHUB_APP_BIN>` is `<HOLOHUB_ROOT>/build/surgical_scene_recon/applications/surgical_scene_recon/` by default.
 
 - `ckpts/fine_best_psnr.pt` - Best checkpoint (use for rendering)
 - `ckpts/fine_step00XXX.pt` - Regular checkpoints
-- `logs/` - Training logs
+- `ply/` - Exported PLY files (when `--export_ply` is enabled)
 - `tb/` - TensorBoard logs
 - `renders/` - Saved render frames
 
@@ -188,6 +238,28 @@ You can view training logs using TensorBoard:
 ```bash
 tensorboard --logdir <HOLOHUB_APP_BIN>/output/trained_model/tb
 ```
+
+### PLY Export
+
+There are two ways to export Gaussians to the standard 3DGS PLY format:
+
+**1. During training** (recommended for simplicity):
+
+```bash
+./holohub run surgical_scene_recon train --run-args="--export_ply"
+```
+
+PLY files are written at the configured `ply_steps` (default: steps 1200 and 1500) and at the end of each training stage. Output location: `<HOLOHUB_APP_BIN>/output/trained_model/ply/fine_step{N}.ply`
+
+**2. From a trained checkpoint** (via the render pipeline):
+
+```bash
+./holohub run surgical_scene_recon render --run-args="--export_ply --no-loop --num_frames 5"
+```
+
+This spins up the Holoscan rendering pipeline, exports a PLY file at frame 1, renders 5 frames, then exits. Output location: `<HOLOHUB_APP_BIN>/output/gaussians.ply`
+
+Both methods produce format-identical PLY files compatible with standard 3DGS viewers such as [SuperSplat](https://playcanvas.com/supersplat/editor).
 
 ## Holoscan Pipeline Architecture
 
@@ -201,7 +273,7 @@ EndoNeRFLoaderOp → GsplatLoaderOp → GsplatRenderOp → HolovizOp
 
 - **EndoNeRFLoaderOp:** Streams camera poses and timestamps
 - **GsplatLoaderOp:** Loads checkpoint and deformation network
-- **GsplatRenderOp:** Applies temporal deformation and renders
+- **GsplatRenderOp:** Applies temporal deformation and renders (also handles PLY export when `--export_ply` is passed)
 - **HolovizOp:** Real-time GPU-accelerated visualization
 - **ImageSaverOp:** Optional frame saving
 

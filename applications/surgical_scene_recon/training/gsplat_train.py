@@ -1393,6 +1393,11 @@ class EndoRunner:
             if step in [i - 1 for i in cfg.save_steps] or step == num_iterations - 1:
                 self._save_checkpoint(step, stage)
 
+            # Export PLY
+            if cfg.save_ply:
+                if step in [i - 1 for i in cfg.ply_steps] or step == num_iterations - 1:
+                    self._export_ply(step, stage)
+
             # Run evaluation
             if step in [i - 1 for i in cfg.eval_steps] or step == num_iterations - 1:
                 self.eval(step, stage=f"{stage}_val")
@@ -1451,6 +1456,82 @@ class EndoRunner:
             )
         else:
             print(f"[Phase 5] Checkpoint saved: {checkpoint_path}")
+
+    @torch.no_grad()
+    def _export_ply(self, step: int, stage: str):
+        """Export current Gaussians to PLY format.
+
+        Training stores splats in raw (log/logit) space, which is exactly what
+        the standard 3DGS PLY format expects — no activation round-trip needed.
+
+        Args:
+            step: Current training step
+            stage: Current stage ('coarse' or 'fine')
+        """
+        if self.world_rank != 0:
+            return
+
+        from plyfile import PlyData, PlyElement
+
+        ply_path = f"{self.ply_dir}/{stage}_step{step:05d}.ply"
+        print(f"[PLY Export] Saving to: {ply_path}")
+
+        means = self.splats["means"].detach().cpu().numpy()  # [N, 3]
+        scales = self.splats["scales"].detach().cpu().numpy()  # [N, 3] log space
+        quats = self.splats["quats"].detach().cpu().numpy()  # [N, 4]
+        opacities = self.splats["opacities"].detach().cpu().numpy()  # [N,] logit space
+        sh0 = self.splats["sh0"].detach().cpu().numpy()  # [N, 1, 3]
+        shN = self.splats["shN"].detach().cpu().numpy()  # [N, K, 3]
+
+        N = means.shape[0]
+
+        # DC component: sh0 has shape [N, 1, 3], extract [N, 3]
+        sh_dc = sh0[:, 0, :]
+
+        # Higher-order SH: flatten [N, K, 3] -> [N, K*3]
+        sh_rest_flat = shN.reshape(N, -1)
+        num_sh_rest = sh_rest_flat.shape[1]
+
+        dtype_list = [
+            ("x", "f4"), ("y", "f4"), ("z", "f4"),
+            ("nx", "f4"), ("ny", "f4"), ("nz", "f4"),
+            ("f_dc_0", "f4"), ("f_dc_1", "f4"), ("f_dc_2", "f4"),
+        ]
+        for i in range(num_sh_rest):
+            dtype_list.append((f"f_rest_{i}", "f4"))
+        dtype_list.extend([
+            ("opacity", "f4"),
+            ("scale_0", "f4"), ("scale_1", "f4"), ("scale_2", "f4"),
+            ("rot_0", "f4"), ("rot_1", "f4"), ("rot_2", "f4"), ("rot_3", "f4"),
+        ])
+
+        vertices = np.empty(N, dtype=dtype_list)
+        vertices["x"] = means[:, 0]
+        vertices["y"] = means[:, 1]
+        vertices["z"] = means[:, 2]
+        vertices["nx"] = 0
+        vertices["ny"] = 0
+        vertices["nz"] = 0
+        vertices["f_dc_0"] = sh_dc[:, 0]
+        vertices["f_dc_1"] = sh_dc[:, 1]
+        vertices["f_dc_2"] = sh_dc[:, 2]
+        for i in range(num_sh_rest):
+            vertices[f"f_rest_{i}"] = sh_rest_flat[:, i]
+        vertices["opacity"] = opacities
+        vertices["scale_0"] = scales[:, 0]
+        vertices["scale_1"] = scales[:, 1]
+        vertices["scale_2"] = scales[:, 2]
+        vertices["rot_0"] = quats[:, 0]
+        vertices["rot_1"] = quats[:, 1]
+        vertices["rot_2"] = quats[:, 2]
+        vertices["rot_3"] = quats[:, 3]
+
+        el = PlyElement.describe(vertices, "vertex")
+        PlyData([el]).write(ply_path)
+
+        sh_degree = int(round(np.sqrt(sh0.shape[1] + shN.shape[1]))) - 1
+        print(f"[PLY Export] {N} gaussians, SH degree {sh_degree}, "
+              f"{os.path.getsize(ply_path) / 1024 / 1024:.2f} MB")
 
     @torch.no_grad()
     def eval(self, step: int, stage: str = "val"):
@@ -2234,6 +2315,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Use depth supervision in tool regions for better 3D structure",
     )
+    parser.add_argument(
+        "--export_ply",
+        action="store_true",
+        help="Export Gaussians to PLY at ply_steps and end of training",
+    )
 
     args = parser.parse_args()
 
@@ -2259,6 +2345,7 @@ if __name__ == "__main__":
         tool_mask_threshold=args.tool_mask_threshold,
         tool_mask_update_interval=args.tool_mask_update_interval,
         depth_supervise_tools=args.depth_supervise_tools,
+        save_ply=args.export_ply,
     )
 
     print("\n" + "=" * 70)
@@ -2284,6 +2371,8 @@ if __name__ == "__main__":
         print("    🔧 FULL SCENE (tissue + tools)")
         print("    - All masking disabled")
         print("    - Tools will be reconstructed")
+    if cfg.save_ply:
+        print(f"\n  PLY Export: ENABLED (steps: {cfg.ply_steps})")
     print("=" * 70 + "\n")
 
     # Run training (single GPU for now)

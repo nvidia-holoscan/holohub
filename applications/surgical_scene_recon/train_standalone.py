@@ -169,6 +169,7 @@ def run_training(
     depth_mode="binocular",
     mono_depth_min=50.0,
     mono_depth_max=500.0,
+    export_ply=False,
 ):
     """
     Run gsplat training.
@@ -214,6 +215,9 @@ def run_training(
 
     if not use_masks:
         cmd.append("--no_masks")
+
+    if export_ply:
+        cmd.append("--export_ply")
 
     print(f"Command: {' '.join(cmd)}\n")
     print(f"Training (~{training_iterations//100} minutes)...\n")
@@ -289,6 +293,11 @@ def main():
         default=500.0,
         help="Max depth for monocular depth scaling (default: 500.0)",
     )
+    parser.add_argument(
+        "--export_ply",
+        action="store_true",
+        help="Export Gaussians to PLY at end of training",
+    )
     args = parser.parse_args()
 
     print(f"\n{'='*70}")
@@ -301,6 +310,7 @@ def main():
     print(f"Depth mode: {args.depth_mode}")
     if args.depth_mode == "monocular":
         print(f"  Mono depth range: [{args.mono_depth_min}, {args.mono_depth_max}]")
+    print(f"PLY export: {'Enabled' if args.export_ply else 'Disabled'}")
     print(f"{'='*70}\n")
 
     # Step 1: Accumulate data
@@ -318,6 +328,7 @@ def main():
         args.depth_mode,
         args.mono_depth_min,
         args.mono_depth_max,
+        args.export_ply,
     )
 
     if checkpoint:
