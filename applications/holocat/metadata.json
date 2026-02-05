@@ -58,7 +58,7 @@
 				"permissions": "CAP_NET_RAW, CAP_SYS_NICE, CAP_IPC_LOCK capabilities"
 			}
 		},
-		"default_mode": "standalone",
+		"default_mode": "with_config",
 		"modes": {
 			"standalone": {
 				"description": "Run HoloCat as standalone EtherCAT master application",
@@ -70,7 +70,7 @@
 			"with_config": {
 				"description": "Run HoloCat with custom configuration file",
 				"run": {
-					"command": "<holohub_app_bin>/holocat --config <holohub_data_dir>/holocat/holocat_config.yaml",
+					"command": "<holohub_app_bin>/holocat --config <holohub_app_source>/configs/holocat_config.yaml",
 					"workdir": "holohub_bin"
 				}
 			}
