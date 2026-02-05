@@ -1,7 +1,7 @@
 /**
  * @file test_helpers.hpp
  * @brief Common Test Utilities for HoloCat
- * 
+ *
  * Provides test utilities and helpers for HoloCat tests.
  */
 
@@ -44,11 +44,16 @@ inline HolocatConfig CreateInvalidTestConfig() {
  * @brief Validate that a HolocatConfig has reasonable values
  */
 inline bool IsConfigReasonable(const HolocatConfig& config) {
-  if (config.adapter_name.empty()) return false;
-  if (config.adapter_name.length() > 255) return false;
-  if (config.cycle_time_us == 0) return false;
-  if (config.rt_priority > 99) return false;
-  if (config.job_thread_priority > 99) return false;
+  if (config.adapter_name.empty())
+    return false;
+  if (config.adapter_name.length() > 255)
+    return false;
+  if (config.cycle_time_us == 0)
+    return false;
+  if (config.rt_priority > 99)
+    return false;
+  if (config.job_thread_priority > 99)
+    return false;
   return true;
 }
 

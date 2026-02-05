@@ -1,7 +1,7 @@
 /**
  * @file test_hc_data_tx_op.cpp
  * @brief Unit Tests for HcDataTxOp
- * 
+ *
  * Tests the HcDataTxOp operator that generates counter data.
  */
 
@@ -16,14 +16,12 @@ namespace holocat {
 
 /**
  * @brief Test fixture for HcDataTxOp unit tests
- * 
+ *
  * Provides a Holoscan Fragment context for testing the HcDataTxOp operator
  */
 class HcDataTxOpTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    fragment_ = std::make_shared<holoscan::Fragment>();
-  }
+  void SetUp() override { fragment_ = std::make_shared<holoscan::Fragment>(); }
 
   void TearDown() override {
     tx_op_.reset();
@@ -36,7 +34,7 @@ class HcDataTxOpTest : public ::testing::Test {
 
 /**
  * @brief Test basic operator creation and setup
- * 
+ *
  * Verifies that HcDataTxOp can be instantiated with expected properties
  * and that setup() configures the output port correctly.
  */
@@ -54,7 +52,7 @@ TEST_F(HcDataTxOpTest, BasicCreationAndSetup) {
 
 /**
  * @brief Test creating multiple independent instances
- * 
+ *
  * Verifies that multiple HcDataTxOp instances can coexist independently.
  */
 TEST_F(HcDataTxOpTest, MultipleIndependentInstances) {
@@ -70,7 +68,7 @@ TEST_F(HcDataTxOpTest, MultipleIndependentInstances) {
 
 /**
  * @brief Test proper resource cleanup
- * 
+ *
  * Verifies that operators can be destroyed without crashes or leaks.
  */
 TEST_F(HcDataTxOpTest, ResourceCleanup) {

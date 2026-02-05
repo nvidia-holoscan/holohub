@@ -65,8 +65,7 @@ class HolocatOp : public holoscan::Operator {
 
   void setup(holoscan::OperatorSpec& spec) override;
   void start() override;
-  void compute(holoscan::InputContext& op_input,
-               holoscan::OutputContext& op_output,
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
                holoscan::ExecutionContext& context) override;
   void stop() override;
 
@@ -115,16 +114,16 @@ class HolocatOp : public holoscan::Operator {
   // Helper methods
   void InitializeEthercatParams();
   EC_T_DWORD ConfigureNetwork();
-  static EC_T_DWORD LogWrapper(struct _EC_T_LOG_CONTEXT* pContext,
-                               EC_T_DWORD dwLogMsgSeverity,
+  static EC_T_DWORD LogWrapper(struct _EC_T_LOG_CONTEXT* pContext, EC_T_DWORD dwLogMsgSeverity,
                                const EC_T_CHAR* szFormat, ...);
-
 
   // Process data output value
   int outval_ = 0;
 
   // Performance tracking
-  struct timespec t_last;
+  struct timespec t_last {
+    0, 0
+  };
 };
 
 }  // namespace holocat

@@ -57,8 +57,8 @@ void HolocatApp::compose() {
   HOLOSCAN_LOG_INFO("HoloCat operator created with {}us periodic condition", config.cycle_time_us);
 
   // Create and configure the HcDataTxOp operator
-  auto counter_update_periodic_cond = make_condition<holoscan::PeriodicCondition>(
-      "ethercat_data_tx_period", 100ms);
+  auto counter_update_periodic_cond =
+      make_condition<holoscan::PeriodicCondition>("ethercat_data_tx_period", 100ms);
   std::shared_ptr<HcDataTxOp> data_tx_op;
   data_tx_op = make_operator<HcDataTxOp>("data_tx_op", counter_update_periodic_cond);
   add_operator(data_tx_op);
@@ -169,28 +169,26 @@ bool HolocatApp::validate_config(HolocatConfig& config) {
   constexpr uint64_t MAX_CYCLE_TIME_US = 100000;
   if (config.cycle_time_us < MIN_CYCLE_TIME_US || config.cycle_time_us > MAX_CYCLE_TIME_US) {
     config.error_message = "Invalid cycle time: " + std::to_string(config.cycle_time_us) +
-                           " μs (valid range: " + std::to_string(MIN_CYCLE_TIME_US) +
-                           "-" + std::to_string(MAX_CYCLE_TIME_US) + " μs)";
+                           " μs (valid range: " + std::to_string(MIN_CYCLE_TIME_US) + "-" +
+                           std::to_string(MAX_CYCLE_TIME_US) + " μs)";
     return false;
   }
 
   // Validate and correct RT priorities
   constexpr uint32_t MIN_PRIORITY = 1;
   constexpr uint32_t MAX_PRIORITY = 99;
-  constexpr uint32_t DEFAULT_RT_PRIORITY = 39;
-  constexpr uint32_t DEFAULT_JOB_PRIORITY = 98;
 
   if (config.rt_priority < MIN_PRIORITY || config.rt_priority > MAX_PRIORITY) {
     config.error_message = "Invalid RT priority: " + std::to_string(config.rt_priority) +
-                          " (valid range: " + std::to_string(MIN_PRIORITY) +
-                          "-" + std::to_string(MAX_PRIORITY) + ")";
+                           " (valid range: " + std::to_string(MIN_PRIORITY) + "-" +
+                           std::to_string(MAX_PRIORITY) + ")";
     return false;
   }
 
   if (config.job_thread_priority < MIN_PRIORITY || config.job_thread_priority > MAX_PRIORITY) {
-    config.error_message = "Invalid job thread priority: " + std::to_string(config.job_thread_priority) +
-                          " (valid range: " + std::to_string(MIN_PRIORITY) +
-                          "-" + std::to_string(MAX_PRIORITY) + ")";
+    config.error_message =
+        "Invalid job thread priority: " + std::to_string(config.job_thread_priority) +
+        " (valid range: " + std::to_string(MIN_PRIORITY) + "-" + std::to_string(MAX_PRIORITY) + ")";
     return false;
   }
 
@@ -206,6 +204,5 @@ bool HolocatApp::validate_config(HolocatConfig& config) {
 
   return true;
 }
-
 
 }  // namespace holocat

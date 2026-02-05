@@ -62,8 +62,7 @@ class HcDataTxOp : public holoscan::Operator {
    * @param op_output Output context for emitting counter data
    * @param context Execution context
    */
-  void compute(holoscan::InputContext& op_input,
-               holoscan::OutputContext& op_output,
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
                holoscan::ExecutionContext& context) override;
 
  private:

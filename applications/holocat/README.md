@@ -88,7 +88,7 @@ Holoscan Application
 
 HoloCat operates with strict real-time requirements:
 
-- **Cycle Timing**: Configurable cycle time (default 1000 μs) determines the master update rate
+- **Cycle Timing**: Configurable cycle time (default 10000 μs) determines the master update rate
 - **Priority Scheduling**: Separate priority levels for the EtherCAT master thread (`rt_priority`) and job processing thread (`job_thread_priority`) ensure deterministic behavior
 - **Synchronization**: TX and RX operations are synchronized with the EtherCAT cycle to maintain timing coherence
 

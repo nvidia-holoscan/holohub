@@ -45,8 +45,7 @@
 
 namespace holocat {
 // EtherCAT logging callback function - maps EC-Master log levels to Holoscan
-EC_T_DWORD HolocatOp::LogWrapper(struct _EC_T_LOG_CONTEXT* pContext,
-                                 EC_T_DWORD dwLogMsgSeverity,
+EC_T_DWORD HolocatOp::LogWrapper(struct _EC_T_LOG_CONTEXT* pContext, EC_T_DWORD dwLogMsgSeverity,
                                  const EC_T_CHAR* szFormat, ...) {
   EC_T_VALIST vaArgs;
   EC_VASTART(vaArgs, szFormat);
@@ -103,7 +102,7 @@ void HolocatOp::InitializeEthercatParams() {
             EC_DRIVER_IDENT_MAXLEN);  // Driver identity
   sockraw_params_.linkParms.dwInstance = 1;
   sockraw_params_.linkParms.eLinkMode = EcLinkMode_POLLING;  // POLLING mode - no receiver thread
-  sockraw_params_.linkParms.dwIstPriority = 0;  // Not used in polling mode
+  sockraw_params_.linkParms.dwIstPriority = 0;               // Not used in polling mode
   // Get adapter name from config or use default
 
   if (config_.adapter_name.empty()) {
@@ -116,9 +115,8 @@ void HolocatOp::InitializeEthercatParams() {
     HOLOSCAN_LOG_INFO("Adapter name: {}", config_.adapter_name);
   }
 
-  OsStrncpy(sockraw_params_.szAdapterName,
-            config_.adapter_name.c_str(),
-            EC_SOCKRAW_ADAPTER_NAME_MAXLEN);
+  OsStrncpy(
+      sockraw_params_.szAdapterName, config_.adapter_name.c_str(), EC_SOCKRAW_ADAPTER_NAME_MAXLEN);
   sockraw_params_.bDisableForceBroadcast = EC_TRUE;
   sockraw_params_.bReplacePaddingWithNopCmd = EC_FALSE;
   sockraw_params_.bUsePacketMmapRx = EC_TRUE;
@@ -159,9 +157,8 @@ EC_T_DWORD HolocatOp::ConfigureNetwork() {
   // Get ENI file path from config or use default
   std::string eni_file = config_.eni_file;
   if (size_t(eni_file.length()) >= kMaxEniFileLength - 1) {
-    HOLOSCAN_LOG_ERROR("ENI file path is too long: {} (max length: {})",
-                       eni_file,
-                       kMaxEniFileLength);
+    HOLOSCAN_LOG_ERROR(
+        "ENI file path is too long: {} (max length: {})", eni_file, kMaxEniFileLength);
     return EC_E_INVALIDPARM;
   }
   OsSnprintf(szEniFilename, sizeof(szEniFilename), "%s", eni_file.c_str());
@@ -171,23 +168,18 @@ EC_T_DWORD HolocatOp::ConfigureNetwork() {
   // configure network
   dwRes = ecatConfigureNetwork(eCnfType, pbyCnfData, dwCnfDataLen);
   if (dwRes != EC_E_NOERROR) {
-    HOLOSCAN_LOG_ERROR("Cannot configure EtherCAT-Master: {} (0x{:x})",
-                       ecatGetText(dwRes),
-                       dwRes);
+    HOLOSCAN_LOG_ERROR("Cannot configure EtherCAT-Master: {} (0x{:x})", ecatGetText(dwRes), dwRes);
     return dwRes;
   }
   bHasConfig_ = EC_TRUE;
   return dwRes;
 }
 
-
 void HolocatOp::setup(holoscan::OperatorSpec& spec) {
   t_last.tv_sec = 0;
   t_last.tv_nsec = 0;
-  spec.input<int>("count_in")
-      .condition(holoscan::ConditionType::kNone);  // Make input optional
-  spec.output<int>("count_out")
-      .condition(holoscan::ConditionType::kNone);  // Make output optional
+  spec.input<int>("count_in").condition(holoscan::ConditionType::kNone);    // Make input optional
+  spec.output<int>("count_out").condition(holoscan::ConditionType::kNone);  // Make output optional
 }
 
 void HolocatOp::start() {
@@ -197,11 +189,9 @@ void HolocatOp::start() {
   // Setup EtherCAT Master
   EC_T_DWORD dwRes = ecatInitMaster(&ec_master_init_parms_);
   if (dwRes != EC_E_NOERROR) {
-    HOLOSCAN_LOG_ERROR("Cannot initialize EtherCAT-Master: {} (0x{:x})",
-                       ecatGetText(dwRes),
-                       dwRes);
-    throw std::runtime_error(
-        "Cannot initialize EtherCAT-Master: " + std::string(ecatGetText(dwRes)));
+    HOLOSCAN_LOG_ERROR("Cannot initialize EtherCAT-Master: {} (0x{:x})", ecatGetText(dwRes), dwRes);
+    throw std::runtime_error("Cannot initialize EtherCAT-Master: " +
+                             std::string(ecatGetText(dwRes)));
   }
   HOLOSCAN_LOG_INFO("Master initialized");
 }
@@ -216,7 +206,6 @@ void HolocatOp::stop() {
   // deinitialize master
   ecatDeinitMaster();
 }
-
 
 void HolocatOp::BusStartupStateMachine() {
   EC_T_DWORD dwRes = EC_E_NOERROR;
@@ -237,9 +226,8 @@ void HolocatOp::BusStartupStateMachine() {
       HOLOSCAN_LOG_INFO("EtherCAT: Configuring network");
       dwRes = ConfigureNetwork();
       if (dwRes != EC_E_NOERROR) {
-        HOLOSCAN_LOG_ERROR("EtherCAT: Failed to configure network: {} (0x{:x})",
-                           ecatGetText(dwRes),
-                           dwRes);
+        HOLOSCAN_LOG_ERROR(
+            "EtherCAT: Failed to configure network: {} (0x{:x})", ecatGetText(dwRes), dwRes);
         return;
       }
       startup_state_ = StartupState::GET_PD_MEMORY_SIZE;
@@ -248,15 +236,14 @@ void HolocatOp::BusStartupStateMachine() {
     case StartupState::GET_PD_MEMORY_SIZE:
       HOLOSCAN_LOG_INFO("EtherCAT: Getting process data memory size");
       dwRes = ecatIoCtl(EC_IOCTL_GET_PDMEMORYSIZE,
-                       EC_NULL,
-                       0,
-                       &oPdMemorySize_,
-                       sizeof(EC_T_MEMREQ_DESC),
-                       EC_NULL);
+                        EC_NULL,
+                        0,
+                        &oPdMemorySize_,
+                        sizeof(EC_T_MEMREQ_DESC),
+                        EC_NULL);
       if (dwRes != EC_E_NOERROR) {
-        HOLOSCAN_LOG_ERROR("EtherCAT: Cannot get process data size: {} (0x{:x})",
-                           ecatGetText(dwRes),
-                           dwRes);
+        HOLOSCAN_LOG_ERROR(
+            "EtherCAT: Cannot get process data size: {} (0x{:x})", ecatGetText(dwRes), dwRes);
         return;
       }
       startup_state_ = StartupState::SET_MASTER_INIT;
@@ -276,9 +263,8 @@ void HolocatOp::BusStartupStateMachine() {
         state_transition_in_progress_ = false;
         dwRes = pending_state_transition_.get();
         if (dwRes != EC_E_NOERROR) {
-          HOLOSCAN_LOG_ERROR("Cannot set master state to INIT: {} (0x{:x})",
-                             ecatGetText(dwRes),
-                             dwRes);
+          HOLOSCAN_LOG_ERROR(
+              "Cannot set master state to INIT: {} (0x{:x})", ecatGetText(dwRes), dwRes);
           return;
         }
         startup_state_ = StartupState::SET_MASTER_PREOP;
@@ -299,9 +285,8 @@ void HolocatOp::BusStartupStateMachine() {
         state_transition_in_progress_ = false;
         dwRes = pending_state_transition_.get();
         if (dwRes != EC_E_NOERROR) {
-          HOLOSCAN_LOG_ERROR("Cannot set master state to PREOP: {} (0x{:x})",
-                             ecatGetText(dwRes),
-                             dwRes);
+          HOLOSCAN_LOG_ERROR(
+              "Cannot set master state to PREOP: {} (0x{:x})", ecatGetText(dwRes), dwRes);
           return;
         }
         startup_state_ = StartupState::SET_MASTER_OP;
@@ -323,9 +308,8 @@ void HolocatOp::BusStartupStateMachine() {
           state_transition_in_progress_ = false;
           dwRes = pending_state_transition_.get();
           if (dwRes != EC_E_NOERROR) {
-            HOLOSCAN_LOG_ERROR("Cannot set master state to OP: {} (0x{:x})",
-                               ecatGetText(dwRes),
-                               dwRes);
+            HOLOSCAN_LOG_ERROR(
+                "Cannot set master state to OP: {} (0x{:x})", ecatGetText(dwRes), dwRes);
             return;
           }
           startup_state_ = StartupState::OPERATIONAL;
@@ -354,9 +338,8 @@ void HolocatOp::BusStartupStateMachine() {
         state_transition_in_progress_ = false;
         dwRes = pending_state_transition_.get();
         if (dwRes != EC_E_NOERROR) {
-          HOLOSCAN_LOG_ERROR("Cannot set master state to INIT: {} (0x{:x})",
-                             ecatGetText(dwRes),
-                             dwRes);
+          HOLOSCAN_LOG_ERROR(
+              "Cannot set master state to INIT: {} (0x{:x})", ecatGetText(dwRes), dwRes);
           return;
         }
         startup_state_ = StartupState::OPERATIONAL;
@@ -365,8 +348,7 @@ void HolocatOp::BusStartupStateMachine() {
   }
 }
 
-void HolocatOp::compute(holoscan::InputContext& op_input,
-                        holoscan::OutputContext& op_output,
+void HolocatOp::compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
                         holoscan::ExecutionContext& context) {
   EC_T_STATE eMasterState = ecatGetMasterState();
   EC_T_DWORD dwRes = EC_E_NOERROR;
@@ -408,11 +390,7 @@ void HolocatOp::compute(holoscan::InputContext& op_input,
       outval_ = count_in_value;
       EC_T_BYTE* pbyPdOut = ecatGetProcessImageOutputPtr();
       if (pbyPdOut != EC_NULL) {
-        EC_COPYBITS(pbyPdOut,
-                    config_.dio_out_offset,
-                    (EC_T_BYTE*)&outval_,
-                    0,
-                    kTwoBytes);
+        EC_COPYBITS(pbyPdOut, config_.dio_out_offset, (EC_T_BYTE*)&outval_, 0, kTwoBytes);
       }
     }
   } else {
