@@ -37,6 +37,12 @@ export ECMASTER_ROOT=/path/to/ecmaster/root
 sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
 ```
 
+### Run Directly
+```bash
+# Run with specified config file
+./build/holocat/applications/holocat/holocat --config ./applications/holocat/configs/holocat_config.yaml
+```
+
 ### Build and Run
 This will build and run combined.   Note that this may not work if your system requires `sudo setcap 'cap_net_raw=ep'` to allow raw network access.  In that case, build first and set capabilities. Then run.
 ```bash
