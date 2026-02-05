@@ -192,8 +192,18 @@ TEST_F(HardwareTest, DataLoopback) {
   // Run for 2 seconds (1000 cycles at 1ms = ~1 second, plus startup time)
   std::this_thread::sleep_for(std::chrono::seconds(2));
   
+  if (app_failed) {
+    if (app_thread.joinable()) app_thread.join();
+    FAIL() << "App failed 2: " << error_msg;
+  }
+
   if (app_thread.joinable()) {
     app_thread.join();
+  }
+
+  if (app_failed) {
+    if (app_thread.joinable()) app_thread.join();
+    FAIL() << "App failed 3: " << error_msg;
   }
   
   std::cout << "✓ Application ran successfully\n";
