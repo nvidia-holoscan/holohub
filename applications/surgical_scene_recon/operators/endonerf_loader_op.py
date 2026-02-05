@@ -52,6 +52,7 @@ class EndoNeRFLoaderOp(Operator):
         self.downsample = 1.0
         self.loop = True
         self.max_frames = -1
+        self.depth_mode = "binocular"
 
         # Will be set in start()
         self.poses = None
@@ -72,6 +73,7 @@ class EndoNeRFLoaderOp(Operator):
         spec.param("downsample", 1.0)  # Downsample factor (applied to focal length only)
         spec.param("loop", True)  # Loop back to start when all frames emitted
         spec.param("max_frames", -1)  # Max frames to emit (-1 or 0 = unlimited)
+        spec.param("depth_mode", "binocular")  # 'binocular' or 'monocular'
 
     def start(self):
         """Load dataset metadata and file lists."""
@@ -208,10 +210,15 @@ class EndoNeRFLoaderOp(Operator):
             raise ValueError(f"Images directory not found: {images_dir}")
         self.image_paths = sorted(images_dir.glob("*.png"))
 
-        # Depths
-        depth_dir = data_path / "depth"
-        if not depth_dir.exists():
-            raise ValueError(f"Depth directory not found: {depth_dir}")
+        # Depths - choose folder based on depth_mode
+        if self.depth_mode == "monocular":
+            depth_dir = data_path / "monodepth"
+            if not depth_dir.exists():
+                raise ValueError(f"Monodepth directory not found: {depth_dir}")
+        else:
+            depth_dir = data_path / "depth"
+            if not depth_dir.exists():
+                raise ValueError(f"Depth directory not found: {depth_dir}")
         self.depth_paths = sorted(depth_dir.glob("*.png"))
 
         # Masks
@@ -222,7 +229,7 @@ class EndoNeRFLoaderOp(Operator):
 
         print("[EndoNeRFLoader] Found files:")
         print(f"  - Images: {len(self.image_paths)}")
-        print(f"  - Depths: {len(self.depth_paths)}")
+        print(f"  - Depths ({self.depth_mode}): {len(self.depth_paths)}")
         print(f"  - Masks: {len(self.mask_paths)}")
 
     def compute(self, op_input, op_output, context):

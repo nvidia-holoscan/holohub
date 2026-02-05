@@ -26,7 +26,7 @@ from PIL import Image
 from tqdm import tqdm
 
 
-def accumulate_data(data_dir, output_dir, num_frames=-1):
+def accumulate_data(data_dir, output_dir, num_frames=-1, depth_mode="binocular"):
     """
     Accumulate data from EndoNeRF dataset and save in training_ingestion format.
 
@@ -34,6 +34,7 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
         data_dir: Path to EndoNeRF dataset
         output_dir: Base output directory
         num_frames: Number of frames to accumulate (-1 for all)
+        depth_mode: 'binocular' or 'monocular' - determines depth folder to read from
 
     Returns:
         ingestion_dir: Path to training_ingestion directory
@@ -45,10 +46,18 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
     # Create output directories
     ingestion_dir = Path(output_dir) / "training_ingestion"
     (ingestion_dir / "images").mkdir(parents=True, exist_ok=True)
-    (ingestion_dir / "depth").mkdir(parents=True, exist_ok=True)
     (ingestion_dir / "masks").mkdir(parents=True, exist_ok=True)
 
+    # Create appropriate depth directory based on mode
+    if depth_mode == "monocular":
+        (ingestion_dir / "monodepth").mkdir(parents=True, exist_ok=True)
+        depth_output_folder = "monodepth"
+    else:
+        (ingestion_dir / "depth").mkdir(parents=True, exist_ok=True)
+        depth_output_folder = "depth"
+
     print(f"Output: {ingestion_dir}")
+    print(f"Depth mode: {depth_mode}")
 
     # Load poses
     poses_file = Path(data_dir) / "poses_bounds.npy"
@@ -68,34 +77,35 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
     import glob
 
     image_paths = sorted(glob.glob(os.path.join(data_dir, "images", "*.png")))
-    depth_paths = sorted(glob.glob(os.path.join(data_dir, "depth", "*.png")))
+    # Read from appropriate depth folder based on mode
+    if depth_mode == "monocular":
+        depth_paths = sorted(glob.glob(os.path.join(data_dir, "monodepth", "*.png")))
+        if not depth_paths:
+            print(f"\n❌ ERROR: No monodepth files found in {os.path.join(data_dir, 'monodepth')}")
+            print("  For monocular mode, depth images should be in a 'monodepth' folder.")
+            raise FileNotFoundError(f"No monodepth files in {os.path.join(data_dir, 'monodepth')}")
+    else:
+        depth_paths = sorted(glob.glob(os.path.join(data_dir, "depth", "*.png")))
     mask_paths = sorted(glob.glob(os.path.join(data_dir, "masks", "*.png")))
 
-    # Validate file counts match
-    if not (len(image_paths) == len(depth_paths) == len(mask_paths)):
-        print("\n❌ ERROR: Mismatched file counts!")
-        print(f"  Images: {len(image_paths)}")
-        print(f"  Depths: {len(depth_paths)}")
-        print(f"  Masks: {len(mask_paths)}")
+    # Report what we found
+    n_images = len(image_paths)
+    n_depths = len(depth_paths)
+    n_masks = len(mask_paths)
+    print(f"Found: {n_images} images, {n_depths} depths, {n_masks} masks, {total_frames} poses")
+
+    # Validate file counts match across directories
+    if not (n_images == n_depths == n_masks):
+        print(f"\nERROR: Mismatched file counts across directories!")
         raise ValueError("Image, depth, and mask directories must contain the same number of files")
 
-    # Validate we have enough data
-    available_frames = len(image_paths)
-    if available_frames < frames_to_process:
-        print(
-            f"\n⚠ WARNING: Only {available_frames} frames available, but {frames_to_process} requested"
-        )
-        frames_to_process = available_frames
-        print(f"  Adjusting to process {frames_to_process} frames")
+    # Clamp frames_to_process to what's actually available
+    usable_frames = min(n_images, total_frames)
+    if usable_frames < frames_to_process:
+        print(f"Note: Only {usable_frames} usable frames (limited by {'poses' if total_frames < n_images else 'files'}), adjusting from {frames_to_process}")
+        frames_to_process = usable_frames
 
-    if available_frames != total_frames:
-        print(
-            f"\n⚠ WARNING: File count ({available_frames}) doesn't match pose count ({total_frames})"
-        )
-        print(f"  Using minimum: {min(available_frames, total_frames)} frames")
-        frames_to_process = min(frames_to_process, available_frames, total_frames)
-
-    print(f"Validated {available_frames} frames in each directory\n")
+    print(f"Will process {frames_to_process} frames\n")
 
     # Copy frames
     poses_list = []
@@ -106,9 +116,9 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
             img = Image.open(image_paths[idx])
             img.save(ingestion_dir / "images" / f"{idx:05d}.png")
 
-            # Copy depth
+            # Copy depth (to appropriate folder based on mode)
             depth = Image.open(depth_paths[idx])
-            depth.save(ingestion_dir / "depth" / f"{idx:05d}.png")
+            depth.save(ingestion_dir / depth_output_folder / f"{idx:05d}.png")
 
             # Copy mask
             mask = Image.open(mask_paths[idx])
@@ -150,7 +160,16 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
     return str(ingestion_dir)
 
 
-def run_training(ingestion_dir, output_dir, training_iterations, coarse_iterations, use_masks):
+def run_training(
+    ingestion_dir,
+    output_dir,
+    training_iterations,
+    coarse_iterations,
+    use_masks,
+    depth_mode="binocular",
+    mono_depth_min=50.0,
+    mono_depth_max=500.0,
+):
     """
     Run gsplat training.
 
@@ -160,6 +179,9 @@ def run_training(ingestion_dir, output_dir, training_iterations, coarse_iteratio
         training_iterations: Total training iterations
         coarse_iterations: Coarse stage iterations
         use_masks: Tissue-only mode
+        depth_mode: 'binocular' or 'monocular'
+        mono_depth_min: Min depth for monocular depth scaling
+        mono_depth_max: Max depth for monocular depth scaling
 
     Returns:
         checkpoint_path: Path to trained checkpoint, or None if failed
@@ -183,7 +205,11 @@ def run_training(ingestion_dir, output_dir, training_iterations, coarse_iteratio
         str(coarse_iterations),
         "--two_stage",
         "--depth_mode",
-        "binocular",
+        depth_mode,
+        "--mono_depth_min",
+        str(mono_depth_min),
+        "--mono_depth_max",
+        str(mono_depth_max),
     ]
 
     if not use_masks:
@@ -244,6 +270,25 @@ def main():
     parser.add_argument("--coarse_iterations", type=int, default=50)
     parser.add_argument("--num_frames", type=int, default=-1)
     parser.add_argument("--no_masks", action="store_true")
+    parser.add_argument(
+        "--depth_mode",
+        type=str,
+        default="binocular",
+        choices=["binocular", "monocular"],
+        help="Depth mode: 'binocular' (stereo depth) or 'monocular' (mono depth estimation)",
+    )
+    parser.add_argument(
+        "--mono_depth_min",
+        type=float,
+        default=50.0,
+        help="Min depth for monocular depth scaling (default: 50.0)",
+    )
+    parser.add_argument(
+        "--mono_depth_max",
+        type=float,
+        default=500.0,
+        help="Max depth for monocular depth scaling (default: 500.0)",
+    )
     args = parser.parse_args()
 
     print(f"\n{'='*70}")
@@ -252,11 +297,16 @@ def main():
     print(f"Data: {args.data_dir}")
     print(f"Output: {args.output_dir}")
     print(f"Iterations: {args.training_iterations}")
-    print(f"Mode: {'Full scene' if args.no_masks else 'Tissue-only'}")
+    print(f"Mask mode: {'Full scene' if args.no_masks else 'Tissue-only'}")
+    print(f"Depth mode: {args.depth_mode}")
+    if args.depth_mode == "monocular":
+        print(f"  Mono depth range: [{args.mono_depth_min}, {args.mono_depth_max}]")
     print(f"{'='*70}\n")
 
     # Step 1: Accumulate data
-    ingestion_dir = accumulate_data(args.data_dir, args.output_dir, args.num_frames)
+    ingestion_dir = accumulate_data(
+        args.data_dir, args.output_dir, args.num_frames, args.depth_mode
+    )
 
     # Step 2: Run training
     checkpoint = run_training(
@@ -265,6 +315,9 @@ def main():
         args.training_iterations,
         args.coarse_iterations,
         not args.no_masks,
+        args.depth_mode,
+        args.mono_depth_min,
+        args.mono_depth_max,
     )
 
     if checkpoint:

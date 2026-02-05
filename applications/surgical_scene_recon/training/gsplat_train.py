@@ -75,6 +75,8 @@ class EndoConfig:
     # Data type
     dataset_type: Literal["endonerf", "scared"] = "endonerf"
     depth_mode: Literal["binocular", "monocular"] = "binocular"  # EndoNeRF default
+    mono_depth_min: float = 50.0  # Min depth for monocular depth scaling
+    mono_depth_max: float = 500.0  # Max depth for monocular depth scaling
 
     # ========== Training Configuration ==========
     max_steps: int = 1_500
@@ -266,6 +268,8 @@ class EndoNeRFParser:
         multiframe_init: bool = True,
         multiframe_sample_rate: int = 3,
         use_masks: bool = True,
+        mono_depth_min: float = 50.0,
+        mono_depth_max: float = 500.0,
     ):
         """Initialize EndoNeRF parser
 
@@ -278,6 +282,8 @@ class EndoNeRFParser:
             multiframe_init: Use multi-frame accumulation (Priority 1)
             multiframe_sample_rate: Sample every Nth pixel
             use_masks: If True, exclude tools; if False, include everything
+            mono_depth_min: Min depth for monocular depth scaling
+            mono_depth_max: Max depth for monocular depth scaling
         """
         self.data_dir = data_dir
         self.factor = factor
@@ -287,13 +293,16 @@ class EndoNeRFParser:
         self.multiframe_init = multiframe_init
         self.multiframe_sample_rate = multiframe_sample_rate
         self.use_masks = use_masks
+        self.mono_depth_min = mono_depth_min
+        self.mono_depth_max = mono_depth_max
 
         # Load using existing EndoNeRF loaders
         from scene.endo_loader import EndoNeRF_Dataset, SCARED_Dataset
 
         if dataset_type == "endonerf":
             self.endo_dataset = EndoNeRF_Dataset(
-                datadir=data_dir, downsample=factor, test_every=test_every, mode=depth_mode
+                datadir=data_dir, downsample=factor, test_every=test_every, mode=depth_mode,
+                mono_depth_min=mono_depth_min, mono_depth_max=mono_depth_max
             )
         elif dataset_type == "scared":
             self.endo_dataset = SCARED_Dataset(
@@ -311,6 +320,8 @@ class EndoNeRFParser:
                 depth_mode=self.depth_mode,
                 sample_rate=self.multiframe_sample_rate,
                 use_masks=self.use_masks,  # Pass masking mode to initialization
+                mono_depth_min=self.mono_depth_min,
+                mono_depth_max=self.mono_depth_max,
             )
             self.points = pts.astype(np.float32)
             self.points_rgb = (colors * 255.0).astype(np.uint8)  # gsplat expects 0-255
@@ -450,9 +461,11 @@ class EndoNeRFDataset(torch.utils.data.Dataset):
             inf_depth = np.percentile(depth[depth != 0], 99.8)
             depth = np.clip(depth, close_depth, inf_depth)
         elif self.parser.depth_mode == "monocular":
-            depth = np.array(Image.open(depth_path))[..., 0] / 255.0
-            depth[depth != 0] = (1 / depth[depth != 0]) * 0.4
-            depth[depth == 0] = depth.max()
+            from scene.endo_loader import process_monocular_depth
+
+            depth, _ = process_monocular_depth(
+                depth_path, self.parser.mono_depth_min, self.parser.mono_depth_max
+            )
         depth = torch.from_numpy(depth).float()
         if depth.ndim == 2:
             depth = depth.unsqueeze(-1)  # [H, W, 1]
@@ -551,6 +564,8 @@ class EndoRunner:
             multiframe_init=cfg.multiframe_init,
             multiframe_sample_rate=cfg.multiframe_sample_rate,
             use_masks=cfg.use_masks,  # Pass masking mode to parser
+            mono_depth_min=cfg.mono_depth_min,
+            mono_depth_max=cfg.mono_depth_max,
         )
 
         # Phase 2: Create actual datasets
@@ -738,18 +753,6 @@ class EndoRunner:
         opacities_raw = self.splats["opacities"]  # [N,] in logit space
 
         # Phase 6: Apply deformation ONLY in fine stage
-        # Debug: Check deformation conditions (only in fine stage)
-        if stage == "fine" and not hasattr(self, "_deform_cond_logged"):
-            print("\n[DEBUG] Deformation conditions (fine stage):")
-            print(f"  stage={stage}")
-            print(f"  time_idx={time_idx}")
-            print(f"  time_idx is not None: {time_idx is not None}")
-            print(f"  hasattr deform_net: {hasattr(self, 'deform_net')}")
-            print(
-                f"  deform_net is not None: {hasattr(self, 'deform_net') and self.deform_net is not None}"
-            )
-            self._deform_cond_logged = True
-
         if (
             stage == "fine"
             and time_idx is not None
@@ -781,41 +784,6 @@ class EndoRunner:
                 opacity=opacities_raw[deform_mask].unsqueeze(-1),  # [N_masked, 1]
                 times_sel=time_expanded[deform_mask],
             )
-
-            # Debug: Check deformation output shapes and values
-            if not hasattr(self, "_deform_debug_logged"):
-                print("\n[DEBUG] Deformation output shapes (first call):")
-                print(
-                    f"  means_deformed: {means_deformed.shape}, range: [{means_deformed.min():.3f}, {means_deformed.max():.3f}]"
-                )
-                print(
-                    f"  scales_deformed: {scales_deformed.shape}, range: [{scales_deformed.min():.3f}, {scales_deformed.max():.3f}]"
-                )
-                print(
-                    f"  quats_deformed: {quats_deformed.shape}, range: [{quats_deformed.min():.3f}, {quats_deformed.max():.3f}]"
-                )
-                print(
-                    f"  opacities_deformed: {opacities_deformed.shape}, range: [{opacities_deformed.min():.3f}, {opacities_deformed.max():.3f}]"
-                )
-                print(f"  time_expanded shape: {time_expanded.shape}, sample: {time_expanded[0]}")
-                print(f"  deform_mask sum: {deform_mask.sum()}/{N}")
-
-                # Check for NaN/Inf
-                print(f"  NaN in means: {torch.isnan(means_deformed).any()}")
-                print(f"  NaN in scales: {torch.isnan(scales_deformed).any()}")
-                print(f"  NaN in quats: {torch.isnan(quats_deformed).any()}")
-                print(f"  NaN in opacities: {torch.isnan(opacities_deformed).any()}")
-
-                # Check activated values
-                scales_activated = torch.exp(scales_deformed)
-                opacities_activated = torch.sigmoid(opacities_deformed)
-                print(
-                    f"  scales_activated range: [{scales_activated.min():.6f}, {scales_activated.max():.6f}]"
-                )
-                print(
-                    f"  opacities_activated range: [{opacities_activated.min():.6f}, {opacities_activated.max():.6f}]"
-                )
-                self._deform_debug_logged = True
 
             # Track deformation magnitude
             with torch.no_grad():
@@ -2017,6 +1985,8 @@ def accumulate_multiframe_pointcloud(
     sample_rate: int = 3,
     use_masks: bool = True,
     device: str = "cuda",
+    mono_depth_min: float = 50.0,
+    mono_depth_max: float = 500.0,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Accumulate depth and color across ALL frames using SurgicalGaussian approach.
@@ -2030,6 +2000,8 @@ def accumulate_multiframe_pointcloud(
         sample_rate: Sample every Nth pixel (for memory efficiency)
         use_masks: If True, exclude tool regions; if False, include everything
         device: Device for computations
+        mono_depth_min: Min depth for monocular depth scaling
+        mono_depth_max: Max depth for monocular depth scaling
 
     Returns:
         points: [N, 3] numpy array of 3D points
@@ -2039,7 +2011,6 @@ def accumulate_multiframe_pointcloud(
 
     print("[Priority 1] Multi-frame point cloud initialization starting...")
     print(f"[Priority 1] Mode: {depth_mode}, Sample rate: {sample_rate}")
-
     # Get image dimensions
     H, W = endo_dataset.img_wh[1], endo_dataset.img_wh[0]
 
@@ -2069,9 +2040,9 @@ def accumulate_multiframe_pointcloud(
                 inf_depth = np.percentile(depth[depth != 0], 99.8)
                 depth = np.clip(depth, close_depth, inf_depth)
         elif depth_mode == "monocular":
-            depth = np.array(Image.open(depth_path))[..., 0] / 255.0
-            depth[depth != 0] = (1 / depth[depth != 0]) * 0.4
-            depth[depth == 0] = depth.max() if depth.max() > 0 else 0.0
+            from scene.endo_loader import process_monocular_depth
+
+            depth, _ = process_monocular_depth(depth_path, mono_depth_min, mono_depth_max)
 
         # Load mask (if using masks)
         if use_masks:
@@ -2208,6 +2179,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--depth_mode", type=str, default="binocular", choices=["binocular", "monocular"]
     )
+    parser.add_argument(
+        "--mono_depth_min", type=float, default=50.0,
+        help="Min depth for monocular depth scaling (default: 50.0)"
+    )
+    parser.add_argument(
+        "--mono_depth_max", type=float, default=500.0,
+        help="Max depth for monocular depth scaling (default: 500.0)"
+    )
     parser.add_argument("--two_stage", action="store_true", help="Enable two-stage training")
     parser.add_argument("--no_deformation", action="store_true", help="Disable deformation network")
     parser.add_argument(
@@ -2266,6 +2245,8 @@ if __name__ == "__main__":
         coarse_iterations=args.coarse_iterations,
         fine_iterations=args.max_steps,  # Use max_steps for fine stage
         depth_mode=args.depth_mode,
+        mono_depth_min=args.mono_depth_min,
+        mono_depth_max=args.mono_depth_max,
         two_stage_training=args.two_stage,
         use_deformation=not args.no_deformation,
         dataset_type=args.dataset_type,
@@ -2287,6 +2268,8 @@ if __name__ == "__main__":
     print(f"  Output: {cfg.result_dir}")
     print(f"  Mode: {'Two-stage' if cfg.two_stage_training else 'One-stage'} training")
     print(f"  Depth: {cfg.depth_mode}")
+    if cfg.depth_mode == "monocular":
+        print(f"    Mono depth range: [{cfg.mono_depth_min}, {cfg.mono_depth_max}]")
     print(f"  Iterations: {cfg.max_steps}")
     if cfg.two_stage_training:
         print(f"    Coarse: {cfg.coarse_iterations}")

@@ -50,6 +50,42 @@ from tqdm import trange  # noqa: E402
 from utils.graphics_utils import focal2fov  # noqa: E402
 
 
+def process_monocular_depth(depth_path, mono_depth_min, mono_depth_max):
+    """Load and process a monocular depth image.
+
+    Normalizes per-image min/max, inverts (brightest = closest), and scales
+    to the specified depth range.
+
+    Args:
+        depth_path: Path to the depth PNG image.
+        mono_depth_min: Minimum depth value for scaling.
+        mono_depth_max: Maximum depth value for scaling.
+
+    Returns:
+        depth: float32 array with processed depth values.
+        valid_mask: boolean array where True indicates valid (non-zero) pixels.
+    """
+    depth_raw = np.array(Image.open(depth_path))
+    if depth_raw.ndim == 3:
+        depth_raw = depth_raw[..., 0]
+    depth_raw = depth_raw.astype(np.float32)
+
+    valid_mask = depth_raw > 0
+    depth = np.zeros_like(depth_raw)
+    if valid_mask.any():
+        raw_min = depth_raw[valid_mask].min()
+        raw_max = depth_raw[valid_mask].max()
+        if raw_max > raw_min:
+            depth_norm = (depth_raw[valid_mask] - raw_min) / (raw_max - raw_min)
+        else:
+            depth_norm = np.zeros_like(depth_raw[valid_mask])
+        depth_inv = 1.0 - depth_norm  # Invert: brightest (highest raw) = closest
+        depth_range = mono_depth_max - mono_depth_min
+        depth[valid_mask] = mono_depth_min + depth_inv * depth_range
+    depth[~valid_mask] = mono_depth_max
+    return depth, valid_mask
+
+
 class CameraInfo(NamedTuple):
     uid: int
     R: np.array
@@ -69,7 +105,15 @@ class CameraInfo(NamedTuple):
 
 
 class EndoNeRF_Dataset(object):
-    def __init__(self, datadir, downsample=1.0, test_every=8, mode="binocular"):
+    def __init__(
+        self,
+        datadir,
+        downsample=1.0,
+        test_every=8,
+        mode="binocular",
+        mono_depth_min=50.0,
+        mono_depth_max=500.0,
+    ):
         self.img_wh = (
             int(640 / downsample),
             int(512 / downsample),
@@ -80,6 +124,8 @@ class EndoNeRF_Dataset(object):
         self.transform = T.ToTensor()
         self.white_bg = False
         self.mode = mode
+        self.mono_depth_min = mono_depth_min
+        self.mono_depth_max = mono_depth_max
 
         self.load_meta()
         print(f"meta data loaded, total image:{len(self.image_paths)}")
@@ -95,9 +141,43 @@ class EndoNeRF_Dataset(object):
         """
         Load meta data from the dataset.
         """
+        # get paths of images, depths, masks first to determine frame count
+        def get_file_paths(filetype):
+            """Get sorted list of PNG files for a given data type."""
+            return sorted(glob.glob(os.path.join(self.root_dir, filetype, "*.png")))
+
+        self.image_paths = get_file_paths("images")
+        if self.mode == "binocular":
+            self.depth_paths = get_file_paths("depth")
+        elif self.mode == "monocular":
+            self.depth_paths = get_file_paths("monodepth")
+        else:
+            raise ValueError(f"{self.mode} has not been implemented.")
+        self.masks_paths = get_file_paths("masks")
+
         # load poses
         poses_arr = np.load(os.path.join(self.root_dir, "poses_bounds.npy"))
         poses = poses_arr[:, :-2].reshape([-1, 3, 5])  # (N_cams, 3, 5)
+
+        # determine the number of frames based on minimum of all available data
+        n_images = len(self.image_paths)
+        n_depths = len(self.depth_paths)
+        n_masks = len(self.masks_paths)
+        n_poses = poses.shape[0]
+        n_frames = min(n_images, n_depths, n_masks, n_poses)
+
+        if not (n_images == n_depths == n_masks == n_poses):
+            print(
+                f"Warning: Data count mismatch: images={n_images}, depths={n_depths}, "
+                f"masks={n_masks}, poses={n_poses}. Truncating to {n_frames} frames."
+            )
+
+        # truncate all data to match
+        self.image_paths = self.image_paths[:n_frames]
+        self.depth_paths = self.depth_paths[:n_frames]
+        self.masks_paths = self.masks_paths[:n_frames]
+        poses = poses[:n_frames]
+
         # coordinate transformation OpenGL->Colmap, center poses
         H, W, focal = poses[0, :, -1]
         focal = focal / self.downsample
@@ -121,30 +201,6 @@ class EndoNeRF_Dataset(object):
             self.image_poses.append((R, T))
             self.image_times.append(idx / poses.shape[0])
 
-        # get paths of images, depths, masks, etc.
-        def get_file_paths(filetype):
-            """Get sorted list of PNG files for a given data type."""
-            return sorted(glob.glob(os.path.join(self.root_dir, filetype, "*.png")))
-
-        self.image_paths = get_file_paths("images")
-        if self.mode == "binocular":
-            self.depth_paths = get_file_paths("depth")
-        elif self.mode == "monocular":
-            self.depth_paths = get_file_paths("monodepth")
-        else:
-            raise ValueError(f"{self.mode} has not been implemented.")
-        self.masks_paths = get_file_paths("masks")
-
-        assert (
-            len(self.image_paths) == poses.shape[0]
-        ), "the number of images should equal to the number of poses"
-        assert (
-            len(self.depth_paths) == poses.shape[0]
-        ), "the number of depth images should equal to number of poses"
-        assert (
-            len(self.masks_paths) == poses.shape[0]
-        ), "the number of masks should equal to the number of poses"
-
     def format_infos(self, split):
         cameras = []
 
@@ -167,9 +223,9 @@ class EndoNeRF_Dataset(object):
                 inf_depth = np.percentile(depth[depth != 0], 99.8)
                 depth = np.clip(depth, close_depth, inf_depth)
             elif self.mode == "monocular":
-                depth = np.array(Image.open(self.depth_paths[idx]))[..., 0] / 255.0
-                depth[depth != 0] = (1 / depth[depth != 0]) * 0.4
-                depth[depth == 0] = depth.max()
+                depth, _ = process_monocular_depth(
+                    self.depth_paths[idx], self.mono_depth_min, self.mono_depth_max
+                )
                 depth = depth[..., None]
             else:
                 raise ValueError(f"{self.mode} has not been implemented.")
@@ -256,9 +312,9 @@ class EndoNeRF_Dataset(object):
             inf_depth = np.percentile(depth[depth != 0], 99.8)
             depth = np.clip(depth, close_depth, inf_depth)
         else:
-            depth = np.array(Image.open(self.depth_paths[idx]))[..., 0] / 255.0
-            depth[depth != 0] = (1 / depth[depth != 0]) * 0.4
-            depth[depth == 0] = depth.max()
+            depth, _ = process_monocular_depth(
+                self.depth_paths[idx], self.mono_depth_min, self.mono_depth_max
+            )
 
         mask = 1 - np.array(Image.open(self.masks_paths[idx])) / 255.0
         color = np.array(Image.open(self.image_paths[idx])) / 255.0

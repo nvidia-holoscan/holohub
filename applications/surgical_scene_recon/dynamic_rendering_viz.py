@@ -68,6 +68,7 @@ class DynamicRenderingVizApp(Application):
         export_ply=False,
         export_ply_frame=1,
         export_ply_path="",
+        depth_mode="binocular",
     ):
         super().__init__()
         self.name = "Dynamic Rendering Visualization"
@@ -79,6 +80,7 @@ class DynamicRenderingVizApp(Application):
         self.export_ply = export_ply
         self.export_ply_frame = export_ply_frame
         self.export_ply_path = export_ply_path
+        self.depth_mode = depth_mode
 
     def compose(self):
         """Build the visualization pipeline."""
@@ -93,6 +95,7 @@ class DynamicRenderingVizApp(Application):
         if self.export_ply:
             print(f"  - Export at frame: {self.export_ply_frame}")
             print(f"  - Export path: {self.export_ply_path or 'auto-generated'}")
+        print(f"Depth mode: {self.depth_mode}")
         print("Mode: DYNAMIC (with temporal deformation)")
         print(f"{'='*70}\n")
 
@@ -103,6 +106,7 @@ class DynamicRenderingVizApp(Application):
             "data_dir": self.data_dir,
             "loop": self.loop,
             "max_frames": self.num_frames if self.num_frames > 0 else -1,
+            "depth_mode": self.depth_mode,
         }
 
         # Only add count condition if we want to limit frames
@@ -231,6 +235,13 @@ def main():
         default="",
         help="Output path for PLY file (default: auto-generated in output_dir)",
     )
+    parser.add_argument(
+        "--depth_mode",
+        type=str,
+        default="binocular",
+        choices=["binocular", "monocular"],
+        help="Depth mode: 'binocular' (stereo depth) or 'monocular' (mono depth estimation)",
+    )
     args = parser.parse_args()
 
     # Validate paths
@@ -258,6 +269,7 @@ def main():
             export_ply=args.export_ply,
             export_ply_frame=args.export_ply_frame,
             export_ply_path=export_ply_path,
+            depth_mode=args.depth_mode,
         )
         app.run()
 
