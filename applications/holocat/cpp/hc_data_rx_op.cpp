@@ -29,7 +29,6 @@
 
 #include "hc_data_rx_op.hpp"
 
-
 namespace holocat {
 
 void HcDataRxOp::setup(holoscan::OperatorSpec& spec) {
@@ -39,8 +38,7 @@ void HcDataRxOp::setup(holoscan::OperatorSpec& spec) {
   HOLOSCAN_LOG_INFO("HcDataRxOp: Setup complete - configured input port 'count_in'");
 }
 
-void HcDataRxOp::compute(holoscan::InputContext& op_input,
-                         holoscan::OutputContext& op_output,
+void HcDataRxOp::compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
                          holoscan::ExecutionContext& context) {
   // Receive count value from ECat bus
   auto maybe_count = op_input.receive<int>("count_in");

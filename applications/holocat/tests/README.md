@@ -14,7 +14,7 @@ ctest --output-on-failure
 export ECMASTER_ROOT=/path/to/ec-master
 export HOLOCAT_TEST_ADAPTER=eth0
 export HOLOCAT_TEST_ENI=/path/to/eni.xml
-sudo setcap 'cap_net_raw=ep' applications/holocat/tests/test_integration_hardware
+sudo setcap 'cap_net_raw=ep' build/holocat/applications/holocat/tests/test_integration_hardware
 ctest -R holocat_hardware --output-on-failure
 ```
 

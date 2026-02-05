@@ -1,7 +1,7 @@
 /**
  * @file test_hc_data_rx_op.cpp
  * @brief Unit Tests for HcDataRxOp
- * 
+ *
  * Tests the HcDataRxOp operator that receives counter data.
  */
 
@@ -17,14 +17,12 @@ namespace holocat {
 
 /**
  * @brief Test fixture for HcDataRxOp unit tests
- * 
+ *
  * Provides a Holoscan Fragment context for testing the HcDataRxOp operator
  */
 class HcDataRxOpTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    fragment_ = std::make_shared<holoscan::Fragment>();
-  }
+  void SetUp() override { fragment_ = std::make_shared<holoscan::Fragment>(); }
 
   void TearDown() override {
     rx_op_.reset();

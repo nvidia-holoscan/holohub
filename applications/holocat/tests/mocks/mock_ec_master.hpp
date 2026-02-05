@@ -1,7 +1,7 @@
 /**
  * @file mock_ec_master.hpp
  * @brief Mock EC-Master SDK Interface
- * 
+ *
  * Provides lightweight mock implementation of EC-Master SDK
  * functions for testing without hardware.
  */
@@ -17,13 +17,7 @@ namespace holocat {
 namespace mock {
 
 // Mock EC-Master state machine states
-enum class EcMasterState {
-  UNKNOWN = 0,
-  INIT = 1,
-  PREOP = 2,
-  SAFEOP = 4,
-  OP = 8
-};
+enum class EcMasterState { UNKNOWN = 0, INIT = 1, PREOP = 2, SAFEOP = 4, OP = 8 };
 
 // Mock EC-Master error codes
 constexpr uint32_t EC_E_NOERROR = 0x00000000;
@@ -34,7 +28,7 @@ constexpr uint32_t EC_E_NOTFOUND = 0x80000004;
 
 /**
  * @brief Mock EC-Master context
- * 
+ *
  * Simulates the state and behavior of an EC-Master instance
  */
 class MockEcMasterContext {
@@ -50,10 +44,10 @@ class MockEcMasterContext {
   // State management
   EcMasterState GetState() const { return state_; }
   void SetState(EcMasterState state) { state_ = state; }
-  
+
   bool IsInitialized() const { return is_initialized_; }
   void SetInitialized(bool init) { is_initialized_ = init; }
-  
+
   bool IsConfigured() const { return is_configured_; }
   void SetConfigured(bool config) { is_configured_ = config; }
 
@@ -65,14 +59,14 @@ class MockEcMasterContext {
   // Error simulation
   void SimulateTimeout(bool enable) { simulate_timeout_ = enable; }
   bool ShouldSimulateTimeout() const { return simulate_timeout_; }
-  
+
   void SimulateInitError(bool enable) { simulate_init_error_ = enable; }
   bool ShouldSimulateInitError() const { return simulate_init_error_; }
 
   // Configuration
   void SetAdapterName(const std::string& name) { adapter_name_ = name; }
   std::string GetAdapterName() const { return adapter_name_; }
-  
+
   void SetEniFile(const std::string& file) { eni_file_ = file; }
   std::string GetEniFile() const { return eni_file_; }
 
@@ -110,11 +104,11 @@ inline MockEcMasterContext& GetMockContext() {
  */
 inline uint32_t MockEcatInitMaster(void* /* pInitParams */) {
   auto& ctx = GetMockContext();
-  
+
   if (ctx.ShouldSimulateInitError()) {
     return EC_E_ERROR;
   }
-  
+
   ctx.SetInitialized(true);
   ctx.SetState(EcMasterState::INIT);
   return EC_E_NOERROR;
@@ -125,11 +119,11 @@ inline uint32_t MockEcatInitMaster(void* /* pInitParams */) {
  */
 inline uint32_t MockEcatConfigureMaster(const char* /* eniFile */) {
   auto& ctx = GetMockContext();
-  
+
   if (!ctx.IsInitialized()) {
     return EC_E_INVALIDSTATE;
   }
-  
+
   ctx.SetConfigured(true);
   return EC_E_NOERROR;
 }
@@ -139,15 +133,15 @@ inline uint32_t MockEcatConfigureMaster(const char* /* eniFile */) {
  */
 inline uint32_t MockEcatSetMasterState(uint32_t timeout_ms, uint32_t target_state) {
   auto& ctx = GetMockContext();
-  
+
   if (!ctx.IsConfigured()) {
     return EC_E_INVALIDSTATE;
   }
-  
+
   if (ctx.ShouldSimulateTimeout()) {
     return EC_E_TIMEOUT;
   }
-  
+
   // Simulate state transition based on target
   switch (target_state) {
     case static_cast<uint32_t>(EcMasterState::PREOP):
@@ -162,7 +156,7 @@ inline uint32_t MockEcatSetMasterState(uint32_t timeout_ms, uint32_t target_stat
     default:
       return EC_E_ERROR;
   }
-  
+
   return EC_E_NOERROR;
 }
 
@@ -171,11 +165,11 @@ inline uint32_t MockEcatSetMasterState(uint32_t timeout_ms, uint32_t target_stat
  */
 inline uint32_t MockEcatExecJob(uint32_t /* jobType */, void* /* pJobParms */) {
   auto& ctx = GetMockContext();
-  
+
   if (ctx.GetState() != EcMasterState::OP) {
     return EC_E_INVALIDSTATE;
   }
-  
+
   ctx.IncrementCycle();
   return EC_E_NOERROR;
 }
