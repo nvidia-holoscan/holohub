@@ -33,8 +33,8 @@ export ECMASTER_ROOT=/path/to/ecmaster/root
 
 ### Run
 ```bash
-# Run with configuration file
-./build/holocat/applications/holocat/holocat --config ./applications/holocat/configs/holocat_config.yaml
+# Run with default configuration file
+./holohub run holocat --local
 ```
 
 ## Architecture Overview
