@@ -20,7 +20,7 @@ namespace test {
  * @brief Create a default valid HolocatConfig for testing
  */
 inline HolocatConfig CreateDefaultTestConfig() {
-  HolocatConfig config;
+  HolocatConfig config{};
   config.adapter_name = "eth0";
   config.eni_file = "/tmp/test_eni.xml";
   config.rt_priority = 39;
@@ -34,7 +34,7 @@ inline HolocatConfig CreateDefaultTestConfig() {
  * @brief Create an invalid HolocatConfig for error testing
  */
 inline HolocatConfig CreateInvalidTestConfig() {
-  HolocatConfig config;
+  HolocatConfig config{};
   config.adapter_name = "";
   config.cycle_time_us = 0;
   return config;
