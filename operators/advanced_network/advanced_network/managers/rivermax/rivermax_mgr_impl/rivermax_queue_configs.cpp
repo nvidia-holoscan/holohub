@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,11 +45,17 @@ RivermaxCommonRxQueueConfig::RivermaxCommonRxQueueConfig(const RivermaxCommonRxQ
       send_packet_ext_info(other.send_packet_ext_info),
       stats_report_interval_ms(other.stats_report_interval_ms),
       cpu_cores(other.cpu_cores),
-      master_core(other.master_core) {}
+      master_core(other.master_core),
+      burst_pool_adaptive_dropping_enabled(other.burst_pool_adaptive_dropping_enabled),
+      burst_pool_low_threshold_percent(other.burst_pool_low_threshold_percent),
+      burst_pool_critical_threshold_percent(other.burst_pool_critical_threshold_percent),
+      burst_pool_recovery_threshold_percent(other.burst_pool_recovery_threshold_percent) {}
 
 RivermaxCommonRxQueueConfig& RivermaxCommonRxQueueConfig::operator=(
     const RivermaxCommonRxQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   BaseQueueConfig::operator=(other);
   max_packet_size = other.max_packet_size;
   max_chunk_size = other.max_chunk_size;
@@ -68,6 +74,10 @@ RivermaxCommonRxQueueConfig& RivermaxCommonRxQueueConfig::operator=(
   stats_report_interval_ms = other.stats_report_interval_ms;
   cpu_cores = other.cpu_cores;
   master_core = other.master_core;
+  burst_pool_adaptive_dropping_enabled = other.burst_pool_adaptive_dropping_enabled;
+  burst_pool_low_threshold_percent = other.burst_pool_low_threshold_percent;
+  burst_pool_critical_threshold_percent = other.burst_pool_critical_threshold_percent;
+  burst_pool_recovery_threshold_percent = other.burst_pool_recovery_threshold_percent;
   return *this;
 }
 
@@ -82,7 +92,9 @@ RivermaxIPOReceiverQueueConfig::RivermaxIPOReceiverQueueConfig(
 
 RivermaxIPOReceiverQueueConfig& RivermaxIPOReceiverQueueConfig::operator=(
     const RivermaxIPOReceiverQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   RivermaxCommonRxQueueConfig::operator=(other);
   local_ips = other.local_ips;
   source_ips = other.source_ips;
@@ -102,7 +114,9 @@ RivermaxRTPReceiverQueueConfig::RivermaxRTPReceiverQueueConfig(
 
 RivermaxRTPReceiverQueueConfig& RivermaxRTPReceiverQueueConfig::operator=(
     const RivermaxRTPReceiverQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   RivermaxCommonRxQueueConfig::operator=(other);
   local_ip = other.local_ip;
   source_ip = other.source_ip;
@@ -134,7 +148,9 @@ RivermaxCommonTxQueueConfig::RivermaxCommonTxQueueConfig(const RivermaxCommonTxQ
 
 RivermaxCommonTxQueueConfig& RivermaxCommonTxQueueConfig::operator=(
     const RivermaxCommonTxQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   gpu_direct = other.gpu_direct;
   gpu_device_id = other.gpu_device_id;
   lock_gpu_clocks = other.lock_gpu_clocks;
@@ -170,7 +186,9 @@ RivermaxMediaSenderQueueConfig::RivermaxMediaSenderQueueConfig(
 
 RivermaxMediaSenderQueueConfig& RivermaxMediaSenderQueueConfig::operator=(
     const RivermaxMediaSenderQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   RivermaxCommonTxQueueConfig::operator=(other);
   video_format = other.video_format;
   bit_depth = other.bit_depth;
@@ -281,9 +299,28 @@ void RivermaxMediaSenderQueueConfig::dump_parameters() const {
 ReturnStatus RivermaxCommonRxQueueValidator::validate(
     const std::shared_ptr<RivermaxCommonRxQueueConfig>& settings) const {
   ReturnStatus rc = ValidatorUtils::validate_core(settings->master_core);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   bool res = ConfigManagerUtilities::validate_cores(settings->cpu_cores);
-  if (!res) { return ReturnStatus::failure; }
+  if (!res) {
+    return ReturnStatus::failure;
+  }
+
+  if (settings->burst_pool_critical_threshold_percent >=
+      settings->burst_pool_low_threshold_percent ||
+      settings->burst_pool_low_threshold_percent >=
+      settings->burst_pool_recovery_threshold_percent ||
+      settings->burst_pool_recovery_threshold_percent > 100) {
+  HOLOSCAN_LOG_ERROR(
+    "Invalid burst pool thresholds (critical={}, low={}, recovery={}). "
+    "Must satisfy: 0 <= critical < low < recovery <= 100",
+    settings->burst_pool_critical_threshold_percent,
+    settings->burst_pool_low_threshold_percent,
+    settings->burst_pool_recovery_threshold_percent);
+  return ReturnStatus::failure;
+  }
+)
 
   return ReturnStatus::success;
 }
@@ -292,7 +329,9 @@ ReturnStatus RivermaxIPOReceiverQueueValidator::validate(
     const std::shared_ptr<RivermaxIPOReceiverQueueConfig>& settings) const {
   auto validator = std::make_shared<RivermaxCommonRxQueueValidator>();
   ReturnStatus rc = validator->validate(settings);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
 
   if (settings->source_ips.empty()) {
     HOLOSCAN_LOG_ERROR("Source IP addresses are not set for RTP stream");
@@ -317,13 +356,21 @@ ReturnStatus RivermaxIPOReceiverQueueValidator::validate(
   }
 
   rc = ValidatorUtils::validate_ip4_address(settings->source_ips);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->local_ips);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->destination_ips);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_port(settings->destination_ports);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   return ReturnStatus::success;
 }
 
@@ -331,35 +378,55 @@ ReturnStatus RivermaxRTPReceiverQueueValidator::validate(
     const std::shared_ptr<RivermaxRTPReceiverQueueConfig>& settings) const {
   auto validator = std::make_shared<RivermaxCommonRxQueueValidator>();
   ReturnStatus rc = validator->validate(settings);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   if (settings->split_boundary == 0 && settings->gpu_direct) {
     HOLOSCAN_LOG_ERROR("GPU Direct is supported only in header-data split mode");
     return ReturnStatus::failure;
   }
 
   rc = ValidatorUtils::validate_ip4_address(settings->source_ip);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->local_ip);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->destination_ip);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_port(settings->destination_port);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   return ReturnStatus::success;
 }
 
 ReturnStatus RivermaxCommonTxQueueValidator::validate(
     const std::shared_ptr<RivermaxCommonTxQueueConfig>& settings) const {
   ReturnStatus rc = ValidatorUtils::validate_core(settings->master_core);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   bool res = ConfigManagerUtilities::validate_cores(settings->cpu_cores);
-  if (!res) { return ReturnStatus::failure; }
+  if (!res) {
+    return ReturnStatus::failure;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->local_ip);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_address(settings->destination_ip);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   rc = ValidatorUtils::validate_ip4_port(settings->destination_port);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
   if (!settings->memory_allocation && settings->memory_registration) {
     HOLOSCAN_LOG_ERROR(
         "Register memory option is supported only with application memory allocation");
@@ -377,7 +444,9 @@ ReturnStatus RivermaxMediaSenderQueueValidator::validate(
     const std::shared_ptr<RivermaxMediaSenderQueueConfig>& settings) const {
   auto validator = std::make_shared<RivermaxCommonTxQueueValidator>();
   ReturnStatus rc = validator->validate(settings);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
 
   return ReturnStatus::success;
 }
@@ -415,8 +484,8 @@ ReturnStatus RivermaxQueueToIPOReceiverSettingsBuilder::convert_settings(
   target_settings->sleep_between_operations_us = source_settings->sleep_between_operations_us;
   target_settings->packet_payload_size = source_settings->max_packet_size;
   target_settings->packet_app_header_size = source_settings->split_boundary;
-  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false :
-    target_settings->header_data_split = true;
+  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false
+                                                 : target_settings->header_data_split = true;
 
   target_settings->num_of_packets_in_chunk =
       std::pow(2, std::ceil(std::log2(source_settings->packets_buffers_size)));
@@ -432,6 +501,13 @@ ReturnStatus RivermaxQueueToIPOReceiverSettingsBuilder::convert_settings(
   target_settings->max_packets_in_rx_chunk = source_settings->max_chunk_size;
 
   send_packet_ext_info_ = source_settings->send_packet_ext_info;
+
+  // Copy burst pool configuration
+  burst_pool_adaptive_dropping_enabled_ = source_settings->burst_pool_adaptive_dropping_enabled;
+  burst_pool_low_threshold_percent_ = source_settings->burst_pool_low_threshold_percent;
+  burst_pool_critical_threshold_percent_ = source_settings->burst_pool_critical_threshold_percent;
+  burst_pool_recovery_threshold_percent_ = source_settings->burst_pool_recovery_threshold_percent;
+
   settings_built_ = true;
   built_settings_ = *target_settings;
 
@@ -471,8 +547,8 @@ ReturnStatus RivermaxQueueToRTPReceiverSettingsBuilder::convert_settings(
   target_settings->sleep_between_operations_us = source_settings->sleep_between_operations_us;
   target_settings->packet_payload_size = source_settings->max_packet_size;
   target_settings->packet_app_header_size = source_settings->split_boundary;
-  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false :
-    target_settings->header_data_split = true;
+  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false
+                                                 : target_settings->header_data_split = true;
 
   target_settings->num_of_packets_in_chunk =
       std::pow(2, std::ceil(std::log2(source_settings->packets_buffers_size)));
@@ -482,6 +558,12 @@ ReturnStatus RivermaxQueueToRTPReceiverSettingsBuilder::convert_settings(
   target_settings->register_memory = source_settings->memory_registration;
   max_chunk_size_ = source_settings->max_chunk_size;
   send_packet_ext_info_ = source_settings->send_packet_ext_info;
+
+  // Copy burst pool configuration
+  burst_pool_adaptive_dropping_enabled_ = source_settings->burst_pool_adaptive_dropping_enabled;
+  burst_pool_low_threshold_percent_ = source_settings->burst_pool_low_threshold_percent;
+  burst_pool_critical_threshold_percent_ = source_settings->burst_pool_critical_threshold_percent;
+  burst_pool_recovery_threshold_percent_ = source_settings->burst_pool_recovery_threshold_percent;
 
   settings_built_ = true;
   built_settings_ = *target_settings;
@@ -520,8 +602,8 @@ ReturnStatus RivermaxQueueToMediaSenderSettingsBuilder::convert_settings(
   target_settings->print_parameters = source_settings->print_parameters;
   target_settings->sleep_between_operations = source_settings->sleep_between_operations;
   target_settings->packet_app_header_size = source_settings->split_boundary;
-  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false :
-    target_settings->header_data_split = true;
+  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false
+                                                 : target_settings->header_data_split = true;
 
   target_settings->stats_report_interval_ms = source_settings->stats_report_interval_ms;
   target_settings->register_memory = source_settings->memory_registration;
