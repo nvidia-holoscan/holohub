@@ -29,6 +29,7 @@
 #if ANO_MGR_RDMA
 #include "rdma_bench.h"
 #endif
+#include "advanced_network/common.h"
 #include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
 #include <assert.h>
@@ -39,7 +40,7 @@ class App : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    auto adv_net_config = from_config("advanced_network").as<NetworkConfig>();
+    auto adv_net_config = from_config("advanced_network").as<advanced_network::NetworkConfig>();
     if (advanced_network::adv_net_init(adv_net_config) != advanced_network::Status::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Failed to configure the Advanced Network manager");
       exit(1);

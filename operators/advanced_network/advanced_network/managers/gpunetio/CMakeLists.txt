@@ -16,6 +16,8 @@ cmake_minimum_required(VERSION 3.20)
 
 message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
+enable_language(CUDA)
+
 # --- Dependencies ---
 
 pkg_check_modules(DOCA REQUIRED doca-gpunetio doca-eth doca-flow)
@@ -77,10 +79,10 @@ target_link_libraries(${PROJECT_NAME}
     ${DPDK_LDFLAGS_OTHER}
     ${DPDK_LIBRARIES}
     ${DPDK_EXTRA_LIBS}
-  PRIVATE
-    holoscan::core
     CUDA::cuda_driver
     -ldoca_gpunetio
     -ldoca_eth
     -ldoca_flow
+  PRIVATE
+    holoscan::core
 )
