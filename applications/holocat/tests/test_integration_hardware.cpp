@@ -47,8 +47,8 @@ namespace holocat {
 namespace hardware_test {
 
 // Global variables for test data verification
-std::atomic<int> transmitted_value_{42};
-std::atomic<int> last_count_{0};
+std::atomic<int> transmitted_value_ {42};
+std::atomic<int> last_count_ {0};
 
 /**
  * @brief Check if hardware testing prerequisites are met
@@ -187,9 +187,6 @@ TEST_F(HardwareTest, DataLoopback) {
   std::thread app_thread([&]() {
     try {
       app->run();
-      EXPECT_EQ(last_count_, transmitted_value_)
-          << "Received value (" << last_count_ << ") does not match transmitted value ("
-          << transmitted_value_ << ")";
     } catch (const std::exception& e) {
       app_failed = true;
       error_msg = e.what();
@@ -218,10 +215,16 @@ TEST_F(HardwareTest, DataLoopback) {
   }
 
   if (app_failed) {
-    if (app_thread.joinable())
-      app_thread.join();
     FAIL() << "App failed 3: " << error_msg;
   }
+
+  if (app_thread.joinable()) {
+    app_thread.join();
+  }
+
+  EXPECT_EQ(last_count_, transmitted_value_)
+      << "Received value (" << last_count_ << ") does not match transmitted value ("
+      << transmitted_value_ << ")";
 
   std::cout << "✓ Application ran successfully\n";
   std::cout << "✓ Hardware loopback test passed\n";

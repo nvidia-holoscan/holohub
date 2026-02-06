@@ -30,13 +30,14 @@
 
 #define INCLUDE_EC_MASTER
 
-#include "EcMaster.h"
-#include <string>
 #include <cstdint>
 #include <future>
 #include <holoscan/holoscan.hpp>
-#include "holocat_config.hpp"
+#include <string>
 #include <time.h>
+
+#include "EcMaster.h"
+#include "holocat_config.hpp"
 
 namespace holocat {
 

@@ -25,8 +25,8 @@
 #ifndef INC_HC_DATA_RX_OP_H
 #define INC_HC_DATA_RX_OP_H 1
 
-#include <holoscan/holoscan.hpp>
 #include <cstdint>
+#include <holoscan/holoscan.hpp>
 
 namespace holocat {
 

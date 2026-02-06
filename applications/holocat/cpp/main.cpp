@@ -52,12 +52,13 @@ void print_usage(const char* program_name) {
   std::cout << "Usage: " << program_name << " [OPTIONS]\n\n";
   std::cout << "HoloCat - EtherCAT Real-time Integration with Holoscan SDK\n\n";
   std::cout << "Options:\n";
-  std::cout << "  -c, --config FILE    Load configuration from YAML file\n";
+  std::cout << "  -c, --config FILE    Load configuration from YAML file (required for "
+               "run/--print-config)\n";
   std::cout << "  -h, --help          Show this help message\n";
   std::cout << "  --print-config      Print loaded configuration and exit\n\n";
   std::cout << "Examples:\n";
   std::cout << "  " << program_name << " --config /path/to/config.yaml\n";
-  std::cout << "  " << program_name << " --print-config\n\n";
+  std::cout << "  " << program_name << " --config /path/to/config.yaml --print-config\n\n";
 }
 
 /**
@@ -115,7 +116,7 @@ int main(int argc, char** argv) {
       return 1;
     }
 
-    if (!std::filesystem::exists(config_path)) {
+    if (!std::filesystem::exists(config_path) || !std::filesystem::is_regular_file(config_path)) {
       throw std::runtime_error("Configuration file not found: " + config_path.string());
     }
 
