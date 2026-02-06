@@ -42,8 +42,8 @@ void HcDataRxOp::compute(holoscan::InputContext& op_input, holoscan::OutputConte
                          holoscan::ExecutionContext& context) {
   // Receive count value from ECat bus
   auto maybe_count = op_input.receive<int>("count_in");
-  if (!maybe_count) {
-    HOLOSCAN_LOG_ERROR("HcDataRxOp: Failed to receive count from ECat bus");
+  if (!maybe_count.has_value()) {
+    HOLOSCAN_LOG_ERROR("HcDataRxOp: Failed to receive count from ECat bus.");
     return;
   }
   last_count_ = maybe_count.value();
