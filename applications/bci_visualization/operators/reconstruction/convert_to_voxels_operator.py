@@ -139,10 +139,23 @@ class ConvertToVoxelsOperator(Operator):
             self._cum_hbo = data_hbo if self._cum_hbo is None else self._cum_hbo + data_hbo
             self._cum_hbr = data_hbr if self._cum_hbr is None else self._cum_hbr + data_hbr
 
-            layout = self._compute_voxel_layout(result.voxel_metadata)
-            hb_volume = self._voxelize_hbo(self._cum_hbo, layout)
+            scatter_coords, normalized_shape, min_idx = self._compute_voxel_layout(result.voxel_metadata)
 
-        self._emit_affine_once(op_output)
+            # Adjust the affine ONLY ONCE to account for the shift
+            if not self._affine_sent:
+                # Mathematical correction: A_new = A_raw * Translation(min_idx)
+                # This maps the 0-indexed volume correctly into world space
+                R = self._affine[:3, :3]
+                t = self._affine[:3, 3]
+                
+                # The new translation is the world-space position of the local (0,0,0)
+                corrected_translation = R @ min_idx + t
+                self._affine[:3, 3] = corrected_translation
+                
+                self._emit_affine_once(op_output)
+
+            hb_volume = self._voxelize_hbo(self._cum_hbo, scatter_coords, normalized_shape)
+
         op_output.emit(hb_volume, "hb_voxel_data")
 
     def _emit_affine_once(self, op_output: OutputContext) -> None:
@@ -155,9 +168,9 @@ class ConvertToVoxelsOperator(Operator):
     def _voxelize_hbo(
         self,
         data_hbo: NDArray[np.float32],
-        layout: Tuple[NDArray[np.int_], Tuple[int, int, int], NDArray[np.int_]],
+        scatter_coords: NDArray[np.int_],
+        normalized_shape: Tuple[int, int, int],
     ) -> NDArray[np.float32]:
-        scatter_coords, normalized_shape, _ijk_int = layout
         scatter_coords = scatter_coords.astype(np.int32, copy=False)  # for indexing
 
         num_voxels = data_hbo.shape[0]
@@ -190,4 +203,4 @@ class ConvertToVoxelsOperator(Operator):
         shape = tuple(int(axis_max) + 1 for axis_max in normalized.max(axis=0))
         if not all(dim > 0 for dim in shape):
             raise ValueError(f"Shape must be positive, got shape {shape}")
-        return normalized, cast(Tuple[int, int, int], shape), ijk_int
+        return normalized, cast(Tuple[int, int, int], shape), min_idx.get()
