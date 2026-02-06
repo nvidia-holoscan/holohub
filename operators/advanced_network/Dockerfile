@@ -174,6 +174,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # ==============================================================
+# rdma: Named target for consistent per-manager container builds.
+# Identical to dpdk (which already includes RDMA/ibverbs deps).
+# ==============================================================
+FROM dpdk AS rdma
+
+# ==============================================================
 # gpunetio: Add DOCA SDK packages for GPUNetIO support
 # ==============================================================
 FROM dpdk AS gpunetio

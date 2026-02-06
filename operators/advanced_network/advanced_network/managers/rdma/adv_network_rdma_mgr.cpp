@@ -23,7 +23,7 @@
 #include <rte_mempool.h>
 #include <rte_errno.h>
 #include <rte_mbuf.h>
-#include "../dpdk/adv_network_dpdk_log.h"
+#include "advanced_network/dpdk_log.h"
 #include "adv_network_rdma_mgr.h"
 
 /* The ordering of most RDMA/CM setup follows the ordering specified here:

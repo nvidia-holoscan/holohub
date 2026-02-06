@@ -49,6 +49,20 @@ def executable(work_dir):
     return os.path.join(work_dir, "adv_networking_bench")
 
 
+def skip_if_manager_unavailable(manager):
+    """Skip the current test if the given manager is not in ANO_MANAGER_LIST."""
+    manager_list = os.environ.get("ANO_MANAGER_LIST", "").split()
+    if manager not in manager_list:
+        pytest.skip(f"{manager} manager not available in this build")
+
+
+@pytest.fixture(autouse=True)
+def _skip_unavailable_manager(request):
+    """Auto-skip parametrized tests whose manager is not in ANO_MANAGER_LIST."""
+    if hasattr(request.node, "callspec") and "manager" in request.node.callspec.params:
+        skip_if_manager_unavailable(request.node.callspec.params["manager"])
+
+
 @pytest.mark.parametrize(
     "packet_size,avg_throughput_threshold,missed_pkts_threshold,error_pkts_threshold",
     [
@@ -77,11 +91,6 @@ def test_multi_if_loopback(
     - Errored packets staying below threshold
     - Average throughput staying above threshold
     """
-    # Skip if the manager is not available
-    manager_list = os.environ.get("ANO_MANAGER_LIST", "").split()
-    if manager not in manager_list:
-        pytest.skip(f"{manager} manager not available in this build")
-
     # Get the first two NICs for this test
     tx_interface, rx_interface = nvidia_nics[0], nvidia_nics[1]
 
@@ -121,7 +130,8 @@ def test_multi_if_loopback(
     assert missed_pkts_check and errored_pkts_check and throughput_check, "Validation failed"
 
 
-def test_multi_rx_q(executable, work_dir, nvidia_nics):
+@pytest.mark.parametrize("manager", ["dpdk"])
+def test_multi_rx_q(executable, work_dir, nvidia_nics, manager):
     """
     Test 2: RX multi queue with a single CPU core using scapy to send packets.
 
@@ -137,6 +147,7 @@ def test_multi_rx_q(executable, work_dir, nvidia_nics):
         config_file,
         config_file,
         {
+            "advanced_network.cfg.manager": manager,
             "scheduler.max_duration_ms": 10000,
             "advanced_network.cfg.interfaces[0].address": rx_interface.bus_id,
         },
@@ -176,7 +187,7 @@ def test_multi_rx_q(executable, work_dir, nvidia_nics):
 
     # Monitor the application until completion and parse the results
     result = monitor_process(p)
-    results = parse_benchmark_results(result.stdout + result.stderr, "dpdk")
+    results = parse_benchmark_results(result.stdout + result.stderr, manager)
 
     # For this test, we only care about queue packet distribution (on port 0)
     expected_q_pkts = {0: 1, 1: 1}  # Expecting 1 packet for both queue 0 and 1
@@ -184,7 +195,8 @@ def test_multi_rx_q(executable, work_dir, nvidia_nics):
     assert queue_check, "Queue packet distribution validation failed"
 
 
-def test_hds_rx(executable, work_dir, nvidia_nics):
+@pytest.mark.parametrize("manager", ["dpdk"])
+def test_hds_rx(executable, work_dir, nvidia_nics, manager):
     """
     Test 3: RX with header-data split.
     """
@@ -197,6 +209,7 @@ def test_hds_rx(executable, work_dir, nvidia_nics):
         config_file,
         config_file,
         {
+            "advanced_network.cfg.manager": manager,
             "scheduler.max_duration_ms": 10000,
             "advanced_network.cfg.interfaces[0].address": tx_interface.bus_id,
             "advanced_network.cfg.interfaces[1].address": rx_interface.bus_id,
@@ -207,7 +220,7 @@ def test_hds_rx(executable, work_dir, nvidia_nics):
     # Run the application until completion and parse the results
     command = f"{executable} {config_file}"
     result = run_command(command, stream_output=True)
-    results = parse_benchmark_results(result.stdout + result.stderr, "dpdk")
+    results = parse_benchmark_results(result.stdout + result.stderr, manager)
 
     # Validate some expected metrics
     port_map = {0: 1}  # Port 0 (TX) sends to Port 1 (RX)
@@ -224,10 +237,7 @@ def test_gpunetio_single_if_loopback(executable, work_dir, nvidia_nics):
     """
     Test 4: GPUNetIO with single interface loopback.
     """
-    # Skip if GPUNetIO manager is not available
-    manager_list = os.environ.get("ANO_MANAGER_LIST", "").split()
-    if "gpunetio" not in manager_list:
-        pytest.skip("gpunetio manager not available in this build")
+    skip_if_manager_unavailable("gpunetio")
 
     # Get the first two NICs for this test
     interface = nvidia_nics[0]
@@ -254,7 +264,8 @@ def test_gpunetio_single_if_loopback(executable, work_dir, nvidia_nics):
     assert "[ERR]" not in (result.stdout + result.stderr), "Application reported errors"
 
 
-def test_multi_q_hds_tx_rx(executable, work_dir, nvidia_nics):
+@pytest.mark.parametrize("manager", ["dpdk"])
+def test_multi_q_hds_tx_rx(executable, work_dir, nvidia_nics, manager):
     """
     Test 5: RX with multi-queue and header-data split.
     """
@@ -267,6 +278,7 @@ def test_multi_q_hds_tx_rx(executable, work_dir, nvidia_nics):
         config_file,
         config_file,
         {
+            "advanced_network.cfg.manager": manager,
             "scheduler.max_duration_ms": 10000,
             "advanced_network.cfg.interfaces[0].address": tx_interface.bus_id,
             "advanced_network.cfg.interfaces[1].address": rx_interface.bus_id,
@@ -279,7 +291,7 @@ def test_multi_q_hds_tx_rx(executable, work_dir, nvidia_nics):
     # Run the application until completion and parse the results
     command = f"{executable} {config_file}"
     result = run_command(command, stream_output=True)
-    results = parse_benchmark_results(result.stdout + result.stderr, "dpdk")
+    results = parse_benchmark_results(result.stdout + result.stderr, manager)
 
     # Validate some expected metrics
     # We only check that every rx queue got at least 1 packet here on port 1
@@ -293,10 +305,7 @@ def test_rivermax_tx_rx(executable, work_dir, nvidia_nics, rivermax_receiver_typ
     """
     Test 6: Rivermax TX/RX.
     """
-    # Skip if Rivermax manager is not available
-    manager_list = os.environ.get("ANO_MANAGER_LIST", "").split()
-    if "rivermax" not in manager_list:
-        pytest.skip("Rivermax manager not available in this build")
+    skip_if_manager_unavailable("rivermax")
 
     # Skip if Rivermax license is not available
     # Rivermax license file is expected to be at /opt/mellanox/rivermax/rivermax.lic

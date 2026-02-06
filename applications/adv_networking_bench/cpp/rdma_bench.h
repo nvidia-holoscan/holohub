@@ -16,11 +16,14 @@
  */
 #pragma once
 
+#include "advanced_network/common.h"
 #include "holoscan/holoscan.hpp"
 #include <queue>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
+
+using namespace holoscan::advanced_network;
 
 namespace holoscan::ops {
 
