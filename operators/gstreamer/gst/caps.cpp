@@ -55,7 +55,7 @@ const GValue* Caps::get_structure_value(const char* fieldname, guint index) cons
   return gst_structure_get_value(structure, fieldname);
 }
 
-GstStructure* Caps::get_structure(guint index) const {
+::GstStructure* Caps::get_structure(guint index) const {
   if (!get() || index >= get_size())
     return nullptr;
 

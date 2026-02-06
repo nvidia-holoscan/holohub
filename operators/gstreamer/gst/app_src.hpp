@@ -39,23 +39,18 @@ class AppSrcBase : public ElementBase<Derived, NativeType> {
   explicit AppSrcBase(ObjectBase<Derived, NativeType>&& other)
       : ElementBase<Derived, NativeType>(std::move(other)) {}
 
-  /// @brief Set the caps for the AppSrc element
-  /// @param caps The caps to set for this AppSrc element
-  /// @note Wraps gst_app_src_set_caps for type-safe usage
-  void set_caps(const Caps& caps) { gst_app_src_set_caps(GST_APP_SRC(this->get()), caps.get()); }
-
   /// @brief Push a buffer into the AppSrc element
   /// @param buffer The buffer to push (will be ref'd automatically)
   /// @returns GstFlowReturn indicating success or failure
   /// @note Wraps gst_app_src_push_buffer for type-safe usage
-  GstFlowReturn push_buffer(Buffer& buffer) {
+  ::GstFlowReturn push_buffer(Buffer buffer) {
     return gst_app_src_push_buffer(GST_APP_SRC(this->get()), buffer.ref().get());
   }
 
   /// @brief Signal end of stream to the AppSrc element
   /// @returns GstFlowReturn indicating success or failure
   /// @note Wraps gst_app_src_end_of_stream for type-safe usage
-  GstFlowReturn end_of_stream() { return gst_app_src_end_of_stream(GST_APP_SRC(this->get())); }
+  ::GstFlowReturn end_of_stream() { return gst_app_src_end_of_stream(GST_APP_SRC(this->get())); }
 };
 
 /**
@@ -68,7 +63,7 @@ class AppSrc : public AppSrcBase<AppSrc, ::GstAppSrc> {
   explicit AppSrc(AppSrcBase&& other) : AppSrcBase(std::move(other)) {}
 
   // Provide GType for type-safe casting
-  static GType get_type_func() { return GST_TYPE_APP_SRC; }
+  static ::GType get_type_func() { return GST_TYPE_APP_SRC; }
 };
 
 }  // namespace gst

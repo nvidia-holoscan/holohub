@@ -57,7 +57,7 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 
 # --------------------------------------------------------------------------
 #
-# Set up GStreamer-specific dependencies for gst_video_recorder
+# Set up GStreamer-specific dependencies
 #
 # --------------------------------------------------------------------------
 FROM holohub-cli-prerequisites AS holohub-cli
@@ -70,8 +70,8 @@ RUN chmod +x /tmp/scripts/holohub
 RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Install GStreamer development packages and pkg-config
-COPY applications/gstreamer/gst_video_recorder/install_deps.sh /tmp/install_gst_video_recorder_deps.sh
-RUN /tmp/install_gst_video_recorder_deps.sh
+COPY applications/gstreamer/install_deps.sh /tmp/install_deps.sh
+RUN /tmp/install_deps.sh
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc

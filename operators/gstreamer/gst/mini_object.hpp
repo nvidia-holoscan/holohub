@@ -22,6 +22,8 @@
 
 #include <memory>
 
+#include "wrapper_base.hpp"
+
 namespace holoscan {
 namespace gst {
 
@@ -45,7 +47,7 @@ namespace gst {
  * internal use only and has no virtual functions.
  */
 template <typename DerivedT, typename NativeTypeT>
-class MiniObjectBase {
+class MiniObjectBase : public GstWrapperBase {
  public:
   // Local type aliases for cleaner code inside the class
   using Derived = DerivedT;
