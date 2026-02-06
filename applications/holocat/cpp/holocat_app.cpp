@@ -28,10 +28,10 @@
 #include <filesystem>
 
 // Local includes
+#include "hc_data_rx_op.hpp"
+#include "hc_data_tx_op.hpp"
 #include "holocat_app.hpp"
 #include "holocat_op.hpp"
-#include "hc_data_tx_op.hpp"
-#include "hc_data_rx_op.hpp"
 
 using namespace std::chrono_literals;
 
