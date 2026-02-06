@@ -48,13 +48,6 @@ target_link_libraries(${PROJECT_NAME}
     ${DPDK_EXTRA_LIBS}
   PRIVATE
     holoscan::core
-    CUDA::cudart
-    CUDA::cuda_driver
 )
-
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES "80;90")
-
 
 target_compile_options(${PROJECT_NAME}  PUBLIC ${DPDK_CFLAGS})

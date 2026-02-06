@@ -47,27 +47,29 @@ if(NOT IBVERBS_LIBRARIES OR NOT RDMACM_LIBRARIES)
 endif()
 
 
-# DPDK is needed for rings
+# DPDK is needed for rings (only used in .cpp, not exposed in public headers)
 pkg_check_modules(DPDK QUIET libdpdk)
 
 if(NOT DPDK_FOUND)
   message(STATUS "Looking for DPDK in alternative directories")
   set(ENV{PKG_CONFIG_PATH} /opt/mellanox/dpdk/lib/x86_64-linux-gnu/pkgconfig/)
   pkg_check_modules(DPDK REQUIRED libdpdk)
-
-  target_link_directories(${PROJECT_NAME} PUBLIC ${DPDK_LIBRARY_DIRS})
-  target_include_directories(${PROJECT_NAME} PUBLIC ${DPDK_INCLUDE_DIRS})
-  target_compile_options(${PROJECT_NAME} PUBLIC ${DPDK_CFLAGS_OTHER})
-  target_link_libraries(${PROJECT_NAME} PUBLIC holoscan::core ${DPDK_LDFLAGS_OTHER} ${DPDK_LIBRARIES})
-else() # Upstream DPDK
-  set(DPDK_EXTRA_LIBS -Wl,--no-whole-archive -lmlx5 -libverbs -pthread -lnuma -ldl)
-  target_link_directories(${PROJECT_NAME} PUBLIC ${DPDK_LIBRARY_DIRS})
-  target_include_directories(${PROJECT_NAME} PUBLIC ${DPDK_INCLUDE_DIRS})
-  target_link_libraries(${PROJECT_NAME} PUBLIC holoscan::core ${DPDK_EXTRA_LIBS} ${DPDK_LIBRARIES})
 endif()
 
+target_link_directories(${PROJECT_NAME} PRIVATE ${DPDK_LIBRARY_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${DPDK_INCLUDE_DIRS})
+target_compile_options(${PROJECT_NAME} PRIVATE ${DPDK_CFLAGS_OTHER})
 
-
-target_link_libraries(${PROJECT_NAME} PUBLIC holoscan::core ${IBVERBS_LIBRARIES} ${RDMACM_LIBRARIES})
+# ibverbs/rdmacm: PUBLIC (adv_network_rdma_mgr.h includes <infiniband/verbs.h> and <rdma/rdma_cma.h>)
 target_include_directories(${PROJECT_NAME} PUBLIC ${IBVERBS_INCLUDE_DIRS})
 target_link_directories(${PROJECT_NAME} PUBLIC ${IBVERBS_LIBRARY_DIRS})
+
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+        ${IBVERBS_LIBRARIES}
+        ${RDMACM_LIBRARIES}
+    PRIVATE
+        holoscan::core
+        ${DPDK_LDFLAGS_OTHER}
+        ${DPDK_LIBRARIES}
+)

@@ -17,7 +17,6 @@
 
 #include <atomic>
 #include <cmath>
-#include <cuda.h>
 #include <complex>
 #include <chrono>
 #include <iostream>

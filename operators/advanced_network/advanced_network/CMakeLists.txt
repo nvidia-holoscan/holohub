@@ -99,7 +99,7 @@ foreach(MGR IN LISTS ANO_MGR_LIST)
     string(TOLOWER ${MGR} MGR_LOWER)
 
     message(STATUS "Adding manager ${MGR_UPPER} to the configuration")
-    project(advanced_network_${MGR_LOWER} LANGUAGES CXX CUDA)
+    project(advanced_network_${MGR_LOWER} LANGUAGES CXX)
     add_library(${PROJECT_NAME} SHARED)
     add_subdirectory(managers/${MGR_LOWER})
     target_compile_definitions(${PROJECT_NAME} PUBLIC "ANO_MGR_${MGR_UPPER}=1")
