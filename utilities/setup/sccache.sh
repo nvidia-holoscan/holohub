@@ -17,6 +17,8 @@
 
 # Install RAPIDS sccache for Holoscan SDK projects
 # This script downloads and installs the RAPIDS-customized sccache binary.
+#
+# Prerequisites: wget, tar (must be available on PATH).
 
 set -e
 
@@ -25,6 +27,9 @@ SCCACHE_MIN_VERSION="${SCCACHE_MIN_VERSION:-0.12.0-rapids.20}"
 INSTALL_DIR="/opt/sccache"
 SYMLINK_PATH="/usr/local/bin/sccache"
 BASE_URL="https://github.com/rapidsai/sccache/releases/download"
+
+# Expected format: [v]MAJOR.MINOR.PATCH-rapids.NN (e.g. 0.12.0-rapids.20 or v0.12.0-rapids.20)
+SCCACHE_VERSION_REGEX='^v?[0-9]+\.[0-9]+\.[0-9]+-rapids\.[0-9]+$'
 
 # Parse semantic version MAJOR.MINOR.PATCH (ignores suffix like -rapids.20)
 parse_version() {
@@ -39,6 +44,16 @@ version_gte() {
         [[ ${installed[$i]} -lt ${required[$i]} ]] && return 1
     done
     return 0
+}
+
+# Cleanup on exit: remove tarball and, on failure, any partially extracted binary.
+cleanup_install() {
+    local exit_code=$?
+    rm -f "$tar_path"
+    if [[ $exit_code -ne 0 ]]; then
+        rm -f "${INSTALL_DIR}/sccache"
+    fi
+    exit "$exit_code"
 }
 
 # Check if sccache is already installed and meets minimum version
@@ -60,6 +75,16 @@ check_existing_sccache() {
 
 # Main installation
 main() {
+    # Verify required tools are available
+    command -v wget &>/dev/null || { echo "wget is required but not installed." >&2; exit 1; }
+    command -v tar &>/dev/null || { echo "tar is required but not installed." >&2; exit 1; }
+
+    if [[ ! "$SCCACHE_MIN_VERSION" =~ $SCCACHE_VERSION_REGEX ]]; then
+        echo "ERROR: SCCACHE_MIN_VERSION format [v]MAJOR.MINOR.PATCH-rapids.NN (e.g. 0.12.0-rapids.20)." >&2
+        echo "Current value: SCCACHE_MIN_VERSION=${SCCACHE_MIN_VERSION}" >&2
+        exit 1
+    fi
+
     # Check if already installed
     if check_existing_sccache; then
         exit 0
@@ -91,21 +116,28 @@ main() {
 
     echo "Installing sccache ${INSTALL_VERSION} for ${arch}..."
 
+    # Ensure cleanup on exit (partial download or failed extraction)
+    trap cleanup_install EXIT
+
     # Prepare install directory
     mkdir -p "$INSTALL_DIR"
 
-    # Download release tarball
+    # Download, verify, and extract release tarball
     echo "Downloading from ${url}..."
-    wget --quiet --content-disposition "$url" -O "$tar_path"
-
-    # Extract just the 'sccache' binary
-    tar -xzf "$tar_path" -C "$INSTALL_DIR" --strip-components=1 "$extracted_rel"
+    if ! wget --quiet --content-disposition "$url" -O "$tar_path" \
+        || [[ ! -s "$tar_path" ]] \
+        || ! tar -tzf "$tar_path" &>/dev/null \
+        || ! tar -xzf "$tar_path" -C "$INSTALL_DIR" --strip-components=1 "$extracted_rel"; then
+        echo "ERROR: Failed to download or extract sccache (${INSTALL_VERSION}/${arch})." >&2
+        echo "URL: ${url}" >&2
+        exit 1
+    fi
     chmod u+x "${INSTALL_DIR}/sccache"
 
     # Create symlink in /usr/local/bin
     ln -sf "${INSTALL_DIR}/sccache" "$SYMLINK_PATH"
 
-    # Cleanup
+    trap - EXIT
     rm -f "$tar_path"
 
     echo "sccache ${INSTALL_VERSION} installed successfully"
