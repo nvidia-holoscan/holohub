@@ -77,6 +77,11 @@ def test_multi_if_loopback(
     - Errored packets staying below threshold
     - Average throughput staying above threshold
     """
+    # Skip if the manager is not available
+    manager_list = os.environ.get("ANO_MANAGER_LIST", "").split()
+    if manager not in manager_list:
+        pytest.skip(f"{manager} manager not available in this build")
+
     # Get the first two NICs for this test
     tx_interface, rx_interface = nvidia_nics[0], nvidia_nics[1]
 
@@ -219,6 +224,11 @@ def test_gpunetio_single_if_loopback(executable, work_dir, nvidia_nics):
     """
     Test 4: GPUNetIO with single interface loopback.
     """
+    # Skip if GPUNetIO manager is not available
+    manager_list = os.environ.get("ANO_MANAGER_LIST", "").split()
+    if "gpunetio" not in manager_list:
+        pytest.skip("gpunetio manager not available in this build")
+
     # Get the first two NICs for this test
     interface = nvidia_nics[0]
 
