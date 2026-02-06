@@ -18,7 +18,7 @@ message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_sources(${PROJECT_NAME} PRIVATE adv_network_dpdk_mgr.cpp adv_network_dpdk_stats.cpp adv_network_dpdk_log.cpp)
+target_sources(${PROJECT_NAME} PRIVATE adv_network_dpdk_mgr.cpp adv_network_dpdk_stats.cpp)
 
 # Try to find DPDK via pkg-config
 # This will find upstream DPDK (installed to /usr/local) or mlnx-dpdk
@@ -48,13 +48,6 @@ target_link_libraries(${PROJECT_NAME}
     ${DPDK_EXTRA_LIBS}
   PRIVATE
     holoscan::core
-    CUDA::cudart
-    CUDA::cuda_driver
 )
-
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES "80;90")
-
 
 target_compile_options(${PROJECT_NAME}  PUBLIC ${DPDK_CFLAGS})

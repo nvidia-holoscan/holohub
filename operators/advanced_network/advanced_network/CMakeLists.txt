@@ -31,9 +31,17 @@ add_compile_definitions(ALLOW_EXPERIMENTAL_API)
 add_compile_definitions(DOCA_ALLOW_EXPERIMENTAL_API)
 set(DOCA_PATH /opt/mellanox/doca)
 
+# DPDK is needed by the common library (rte rings/mbufs in manager.h, common.cpp, manager.cpp)
+pkg_check_modules(DPDK QUIET libdpdk)
+if(NOT DPDK_FOUND)
+  list(APPEND CMAKE_PREFIX_PATH "/opt/mellanox/dpdk/lib/${CMAKE_HOST_SYSTEM_PROCESSOR}-linux-gnu/")
+  pkg_check_modules(DPDK REQUIRED libdpdk)
+endif()
+
 # Common library
 add_library(advanced_network_common SHARED
   common.cpp
+  dpdk_log.cpp
   kernels.cu
   manager.cpp
 )
@@ -41,9 +49,19 @@ target_include_directories(advanced_network_common
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..> # so we can find it under #include "advanced_network/..."
         $<INSTALL_INTERFACE:include>
+        ${DPDK_INCLUDE_DIRS}
 )
 add_library(holoscan::advanced_network ALIAS advanced_network_common)
-target_link_libraries(advanced_network_common PUBLIC holoscan::core) # Remove if holoscan logger dependency removed
+target_link_directories(advanced_network_common PUBLIC ${DPDK_LIBRARY_DIRS})
+target_link_libraries(advanced_network_common
+    PUBLIC
+        holoscan::core
+        CUDA::cudart
+        ${DPDK_LDFLAGS_OTHER}
+        ${DPDK_LIBRARIES}
+    PRIVATE
+        CUDA::cuda_driver
+)
 set_target_properties(advanced_network_common PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
@@ -58,6 +76,7 @@ install(
 install(
     FILES
         common.h
+        dpdk_log.h
         kernels.h
         types.h
     DESTINATION include/advanced_network
@@ -80,7 +99,7 @@ foreach(MGR IN LISTS ANO_MGR_LIST)
     string(TOLOWER ${MGR} MGR_LOWER)
 
     message(STATUS "Adding manager ${MGR_UPPER} to the configuration")
-    project(advanced_network_${MGR_LOWER} LANGUAGES CXX CUDA)
+    project(advanced_network_${MGR_LOWER} LANGUAGES CXX)
     add_library(${PROJECT_NAME} SHARED)
     add_subdirectory(managers/${MGR_LOWER})
     target_compile_definitions(${PROJECT_NAME} PUBLIC "ANO_MGR_${MGR_UPPER}=1")
