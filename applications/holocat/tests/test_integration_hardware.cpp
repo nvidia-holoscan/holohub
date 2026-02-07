@@ -79,7 +79,6 @@ bool CheckPrerequisites(std::string& error) {
  * @brief Get hardware test configuration from environment
  */
 HolocatConfig GetHardwareConfig() {
-
   if (getenv("HOLOCAT_TEST_ADAPTER") == nullptr || getenv("HOLOCAT_TEST_ENI") == nullptr) {
     throw std::runtime_error("HOLOCAT_TEST_ADAPTER or HOLOCAT_TEST_ENI not set in environment");
   }
