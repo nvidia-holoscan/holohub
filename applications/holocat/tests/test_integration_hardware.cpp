@@ -192,14 +192,14 @@ TEST_F(HardwareTest, DataLoopback) {
     try {
       app->run();
     } catch (const std::exception& e) {
-      app_failed = true;
       error_msg = e.what();
+      app_failed.store(true, std::memory_order_release);
     }
   });
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  if (app_failed) {
+  if (app_failed.load(std::memory_order_acquire)) {
     if (app_thread.joinable())
       app_thread.join();
     GTEST_SKIP() << "Hardware not available: " << error_msg;
@@ -209,8 +209,8 @@ TEST_F(HardwareTest, DataLoopback) {
     app_thread.join();
   }
 
-  if (app_failed) {
-    FAIL() << "App failed 3: " << error_msg;
+  if (app_failed.load(std::memory_order_acquire)) {
+    FAIL() << "App failed: " << error_msg;
   }
 
   EXPECT_EQ(last_count_, transmitted_value_)
