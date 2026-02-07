@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# HoloCat EtherCAT Configuration
+
+holocat:
+  # EtherCAT network adapter name
+  adapter_name: "en0"
+  
+  # EtherCAT Network Information (ENI) file path
+  # Use environment variable HOLOCAT_ENI_FILE to override, or falls back to config dir
+  #eni_file: "/path/to/ethercat/config/ethercat_config.xml"
+  eni_file: "./eni2.xml"
+
+  # EtherCAT bus cycle time in microseconds
+  cycle_time_us: 10000
+
+  # Real-time thread priority (1-99, higher = more priority)
+  # Typical values: 39 (medium), 80 (high), 99 (highest)
+  rt_priority: 39
+
+  # Job thread priority (1-99, typically higher than rt_priority)
+  job_thread_priority: 98
+  
+  # Enable real-time scheduling and memory locking
+  enable_rt: true
+  
+  # Process data bit offsets for Wago DIO modules
+  # These depend on your specific EtherCAT slave configuration
+  dio_out_offset: 80   # Digital output bit offset (10 bytes * 8 bits)
+  dio_in_offset: 144   # Digital input bit offset (18 bytes * 8 bits)
+  
+  # Advanced EtherCAT parameters
+  max_acyc_frames: 32      # Maximum queued acyclic frames
+  job_thread_stack_size: 0x8000  # Job thread stack size (32KB)
+
+# Holoscan application configuration
+holoscan:
+  # Scheduler configuration
+  scheduler:
+    type: "greedy"
+    check_recession_period_ms: 0
+  
+  # Logging configuration  
+  logging:
+    level: "info"
