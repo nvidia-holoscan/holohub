@@ -79,6 +79,10 @@ bool CheckPrerequisites(std::string& error) {
  * @brief Get hardware test configuration from environment
  */
 HolocatConfig GetHardwareConfig() {
+
+  if (getenv("HOLOCAT_TEST_ADAPTER") == nullptr || getenv("HOLOCAT_TEST_ENI") == nullptr) {
+    throw std::runtime_error("HOLOCAT_TEST_ADAPTER or HOLOCAT_TEST_ENI not set in environment");
+  }
   HolocatConfig config{};
   config.adapter_name = getenv("HOLOCAT_TEST_ADAPTER");
   config.eni_file = getenv("HOLOCAT_TEST_ENI");
@@ -100,7 +104,7 @@ class OneValueTxOp : public holoscan::Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(OneValueTxOp);
   OneValueTxOp() = default;
 
-  void setup(holoscan::OperatorSpec& spec) { spec.output<int>("count_out"); }
+  void setup(holoscan::OperatorSpec& spec) override { spec.output<int>("count_out"); }
 
   void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
                holoscan::ExecutionContext& context) override {
@@ -112,12 +116,12 @@ class LoopbackCheckRxOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS(LoopbackCheckRxOp);
   LoopbackCheckRxOp() = default;
-  void setup(holoscan::OperatorSpec& spec) { spec.input<int>("count_in"); }
+  void setup(holoscan::OperatorSpec& spec) override { spec.input<int>("count_in"); }
   void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
-               holoscan::ExecutionContext& context) {
+               holoscan::ExecutionContext& context) override {
     auto maybe_count = op_input.receive<int>("count_in");
     if (maybe_count) {
-      last_count_ = maybe_count.value();
+      last_count_.store(maybe_count.value());
     } else {
       HOLOSCAN_LOG_ERROR("LoopbackCheckRxOp: Failed to receive count from ECat bus");
     }
@@ -201,15 +205,6 @@ TEST_F(HardwareTest, DataLoopback) {
     GTEST_SKIP() << "Hardware not available: " << error_msg;
   }
 
-  // Run for 2 seconds (1000 cycles at 1ms = ~1 second, plus startup time)
-  std::this_thread::sleep_for(std::chrono::seconds(2));
-
-  if (app_failed) {
-    if (app_thread.joinable())
-      app_thread.join();
-    FAIL() << "App failed 2: " << error_msg;
-  }
-
   if (app_thread.joinable()) {
     app_thread.join();
   }
@@ -218,13 +213,9 @@ TEST_F(HardwareTest, DataLoopback) {
     FAIL() << "App failed 3: " << error_msg;
   }
 
-  if (app_thread.joinable()) {
-    app_thread.join();
-  }
-
   EXPECT_EQ(last_count_, transmitted_value_)
-      << "Received value (" << last_count_ << ") does not match transmitted value ("
-      << transmitted_value_ << ")";
+      << "Received value (" << last_count_.load() << ") does not match transmitted value ("
+      << transmitted_value_.load() << ")";
 
   std::cout << "✓ Application ran successfully\n";
   std::cout << "✓ Hardware loopback test passed\n";

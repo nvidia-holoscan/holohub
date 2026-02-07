@@ -43,7 +43,6 @@ void HolocatApp::compose() {
   // Extract and validate configuration parameters
   HolocatConfig config = extract_config();
 
-  HOLOSCAN_LOG_INFO("Configuration loaded successfully");
   HOLOSCAN_LOG_INFO("EtherCAT adapter: {}", config.adapter_name);
   HOLOSCAN_LOG_INFO("Cycle time: {} μs", config.cycle_time_us);
 
@@ -54,7 +53,6 @@ void HolocatApp::compose() {
       make_operator<HolocatOp>("holocat_op", ecat_bus_periodic_cond);
   holocat_op->set_config(config);
   add_operator(holocat_op);
-  HOLOSCAN_LOG_INFO("HoloCat operator created with {}us periodic condition", config.cycle_time_us);
 
   // Create and configure the HcDataTxOp operator
   auto counter_update_periodic_cond =
@@ -62,21 +60,14 @@ void HolocatApp::compose() {
   std::shared_ptr<HcDataTxOp> data_tx_op;
   data_tx_op = make_operator<HcDataTxOp>("data_tx_op", counter_update_periodic_cond);
   add_operator(data_tx_op);
-  HOLOSCAN_LOG_INFO("HcDataTxOp operator created with 100ms periodic condition");
 
   // create and configure the HcDataRxOp operator
   std::shared_ptr<HcDataRxOp> data_rx_op;
   data_rx_op = make_operator<HcDataRxOp>("data_rx_op");
   add_operator(data_rx_op);
-  HOLOSCAN_LOG_INFO("HcDataRxOp operator created (runs when data available)");
 
-  // Create flow from data_tx_op to holocat_op
   add_flow(data_tx_op, holocat_op, {{"count_out", "count_in"}});
-  HOLOSCAN_LOG_INFO("Flow created: data_tx_op.count_out -> holocat_op.count_in");
-
-  // Create flow from holocat_op to data_rx_op
   add_flow(holocat_op, data_rx_op, {{"count_out", "count_in"}});
-  HOLOSCAN_LOG_INFO("Flow created: holocat_op.count_out -> data_rx_op.count_in");
 }
 
 /*
@@ -90,9 +81,8 @@ HolocatConfig HolocatApp::extract_config() {
   auto try_extract = [this](const std::string& key, auto& target) {
     try {
       target = from_config(key).as<std::decay_t<decltype(target)>>();
-    } catch (...) {
-      // Key not found or conversion failed - target remains uninitialized
-      HOLOSCAN_LOG_WARN("Missing configuration key {}", key);
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_WARN("Configuration key '{}': {}", key, e.what());
     }
   };
 
