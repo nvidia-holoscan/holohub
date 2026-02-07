@@ -94,3 +94,14 @@ if(HOLOCAT_SET_CAPABILITIES)
         COMMENT "Setting capabilities for real-time EtherCAT operation"
     )
 endif()
+
+# Install application (matches holohub app layout: bin/<app_name>)
+install(TARGETS holocat
+  DESTINATION bin/holocat
+)
+
+install(FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/../configs/holocat_config.yaml
+  ${CMAKE_CURRENT_SOURCE_DIR}/../configs/eni2.xml
+  DESTINATION bin/holocat
+)
