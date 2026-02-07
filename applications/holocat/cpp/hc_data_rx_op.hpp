@@ -65,7 +65,7 @@ class HcDataRxOp : public holoscan::Operator {
 
  private:
   // last received count value
-  int last_count_ = 0;
+  int32_t last_count_ = 0;
 };
 
 }  // namespace holocat

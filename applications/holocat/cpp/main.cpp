@@ -132,7 +132,13 @@ int main(int argc, char** argv) {
         std::cout << "  ENI File: " << config.eni_file << "\n";
         std::cout << "  Cycle Time: " << config.cycle_time_us << " μs\n";
         std::cout << "  RT Priority: " << config.rt_priority << "\n";
-        // ... print other fields
+        std::cout << "  Job Thread Priority: " << config.job_thread_priority << "\n";
+        std::cout << "  Enable RT: " << (config.enable_rt ? "true" : "false") << "\n";
+        std::cout << "  Job Thread Stack Size: " << config.job_thread_stack_size << "\n";
+        std::cout << "  DIO Out Offset: " << config.dio_out_offset << "\n";
+        std::cout << "  DIO In Offset: " << config.dio_in_offset << "\n";
+        std::cout << "  Max Acyclic Frames: " << config.max_acyc_frames << "\n";
+        std::cout << "  Log Level: " << config.log_level << "\n";
       } catch (const std::exception& e) {
         throw std::runtime_error("Configuration error: " + std::string(e.what()));
       }

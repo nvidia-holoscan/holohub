@@ -24,7 +24,6 @@
 
 #include <holoscan/holoscan.hpp>
 #include "holocat_config.hpp"
-#include "holocat_op.hpp"
 
 namespace holocat {
 

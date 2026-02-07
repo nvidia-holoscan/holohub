@@ -381,7 +381,7 @@ void HolocatOp::compute(holoscan::InputContext& op_input, holoscan::OutputContex
   // read input values from process data
   EC_T_BYTE* pbyPdIn = ecatGetProcessImageInputPtr();
   if ((pbyPdIn != EC_NULL) &&
-      (oPdMemorySize_.dwPDInSize * 8U >= config_.dio_in_offset + kTwoBytes)) {
+      (oPdMemorySize_.dwPDInSize * 8U >= config_.dio_in_offset + kTwoByteBitLength)) {
     EC_COPYBITS((EC_T_BYTE*)&inval, 0, pbyPdIn, config_.dio_in_offset, 16);
     has_inval = true;
   }
@@ -392,8 +392,8 @@ void HolocatOp::compute(holoscan::InputContext& op_input, holoscan::OutputContex
       outval_ = count_in_value;
       EC_T_BYTE* pbyPdOut = ecatGetProcessImageOutputPtr();
       if ((pbyPdOut != EC_NULL) &&
-          (oPdMemorySize_.dwPDOutSize * 8U >= config_.dio_out_offset + kTwoBytes)) {
-        EC_COPYBITS(pbyPdOut, config_.dio_out_offset, (EC_T_BYTE*)&outval_, 0, kTwoBytes);
+          (oPdMemorySize_.dwPDOutSize * 8U >= config_.dio_out_offset + kTwoByteBitLength)) {
+        EC_COPYBITS(pbyPdOut, config_.dio_out_offset, (EC_T_BYTE*)&outval_, 0, kTwoByteBitLength);
       }
     }
   } else {

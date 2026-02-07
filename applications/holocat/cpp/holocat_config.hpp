@@ -43,7 +43,7 @@ struct HolocatConfig {
   uint32_t max_acyc_frames;
   uint32_t job_thread_stack_size;
   std::string log_level;
-  uint64_t cycle_time_us;
+  uint32_t cycle_time_us;
   // For validation error reporting
   std::string error_message;
 };
