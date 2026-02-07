@@ -84,7 +84,7 @@ class HolocatOp : public holoscan::Operator {
   EC_T_MEMREQ_DESC oPdMemorySize_{0, 0};
 
   // EtherCAT constants
-  static constexpr int kTwoBytes = 16;  // 2 bytes bit length
+  static constexpr int kTwoByteBitLength = 16;  // 2 bytes bit length
 
   // EtherCAT parameter structs (moved from global)
   EC_T_LOG_PARMS log_parms_;
