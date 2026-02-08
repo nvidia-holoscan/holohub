@@ -15,6 +15,22 @@
 #
 # Usage (run from the holohub repo root or invoke ctest directly):
 #   ctest -DAPP=my_app -DTAG=<tag> -S utilities/testing/holohub.container.ctest -VV
+#
+# CTest -D variables:
+#   APP                   Project name (required unless OP/PKG/EXT is set)
+#   TAG                   Image tag / branch identifier (default: "latest")
+#   CTEST_SITE            CDash site name (default: "SITE_NA")
+#   PLATFORM_NAME         Platform portion of the build name (default: "linux")
+#   CONFIGURE_OPTIONS     Semicolon-separated list of extra cmake -D flags
+#   CTEST_SUBMIT_URL      CDash submit URL; omit to skip submission
+#   CTEST_TEST_INCLUDE    Regex filter passed to ctest_test(INCLUDE ...)
+#   DASHBOARD_MODEL       Nightly | Experimental (default: "Nightly")
+#   COVERAGE              Set to ON to enable coverage instrumentation
+#   TEST_FAILURES_FILE    If defined, write the test exit code to this path
+#                         instead of calling FATAL_ERROR. Lets the caller
+#                         distinguish test failures (exit 0, file present)
+#                         from infra failures (exit != 0).
+#
 #   ./holohub test [project] [options]
 #     Examples: ./holohub test app_name
 #               ./holohub test operator_name
@@ -66,11 +82,7 @@ if(NOT PLATFORM_NAME)
   set(PLATFORM_NAME linux)
 endif()
 
-if(BUILD_NAME_SUFFIX)
-  set(CTEST_BUILD_NAME "holohub-${PLATFORM_NAME}-${PROJ_NAME}-${BUILD_NAME_SUFFIX}-${TAG}")
-else()
-  set(CTEST_BUILD_NAME "holohub-${PLATFORM_NAME}-${PROJ_NAME}-${TAG}")
-endif()
+set(CTEST_BUILD_NAME "holohub-${PLATFORM_NAME}-${PROJ_NAME}-${TAG}")
 
 set(CTEST_UPDATE_COMMAND "git")
 set(CTEST_CMAKE_GENERATOR "Ninja")
@@ -140,5 +152,9 @@ if(CTEST_SUBMIT_URL)
 endif()
 
 if (test_result)
-  message(FATAL_ERROR "Tests failed with return value: ${test_result}")
+  if (DEFINED TEST_FAILURES_FILE)
+    file(WRITE "${TEST_FAILURES_FILE}" "${test_result}")
+  else()
+    message(FATAL_ERROR "Tests failed with return value: ${test_result}")
+  endif()
 endif()
