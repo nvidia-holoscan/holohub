@@ -14,9 +14,10 @@ HoloCat provides deterministic EtherCAT communication capabilities within the Ho
 - **Real-time Control**
 - **Holoscan Native**
 
-## Quick Start Guide
+## Quick Start
 
 ### Prerequisites
+
 ```bash
 # Set EC-Master SDK path
 export ECMASTER_ROOT=/path/to/ecmaster/root
@@ -24,27 +25,33 @@ export ECMASTER_ROOT=/path/to/ecmaster/root
 # Verify installation (optional)
 ./applications/holocat/scripts/verify_ecmaster.sh
 ```
+See [Required Dependencies](#required-dependencies) for more information.
 
 ### Build Only
+
 ```bash
 # Build using HoloHub CLI (recommended)
 ./holohub build holocat --local
 ```
 
 ### Set Raw Network Capability
+
 ```bash
 # Ensure capabilities are set
 sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
 ```
 
 ### Run Directly
+
 ```bash
 # Run with specified config file
 ./build/holocat/applications/holocat/holocat --config ./applications/holocat/configs/holocat_config.yaml
 ```
 
 ### Build and Run
+
 This will build and run combined.   Note that this may not work if your system requires `sudo setcap 'cap_net_raw=ep'` to allow raw network access.  In that case, build first and set capabilities. Then run.
+
 ```bash
 # Run with default configuration file
 ./holohub run holocat --local
@@ -106,15 +113,13 @@ The architecture is configured through three primary parameters:
 - **`eni_file`**: Path to the EtherCAT Network Information (ENI) XML file defining the slave topology and process data mapping
 - **`cycle_time_us`**: EtherCAT cycle time in microseconds, defining the real-time update rate
 
-## Prerequisites
+## Required Dependencies
 
-### Required Dependencies
+### Acontis EC-Master SDK (Commercial License)
 
-1. **acontis EC-Master SDK** (Commercial License)
-This application requires the Acontis EC-Master SDK (version 3.2.3 or compatible) for EtherCAT communication. The SDK is commercial software available from Acontis at https://www.acontis.com/en/ethercat-master.html. Evaluation licenses are available for testing and development.
+This application requires the Acontis EC-Master SDK (version 3.2.3 or compatible) for EtherCAT communication. The SDK is commercial software available from Acontis at <https://www.acontis.com/en/ethercat-master.html>. Evaluation licenses are available for testing and development.
 
 Request access and download the EC-Master library from acontis: `EC-Master-V3.2-<ARCH>.tar.gz`.  Untar the library (note: it may just be tarred but not zipped) to your desired installation directory; for example, `/path/to/ecmaster/root`. Then verify your setup as described in the [Quick Start Guide](#quick-start-guide).
-
 
 The current version uses the generic user-space driver which works with any Ethernet card, but is comparatively low-performance relative to available kernel-level Ethercat drivers.
 
@@ -152,18 +157,19 @@ holoscan:
 
 Use EtherCAT configuration tools to generate your ENI file.
 
-
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Permission Denied**
+
    ```bash
    # Ensure capabilities are set
    sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
    ```
 
 2. **EC-Master SDK Not Found**
+
    ```bash
    # Verify ECMASTER_ROOT environment variable
    echo $ECMASTER_ROOT
