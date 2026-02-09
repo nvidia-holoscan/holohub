@@ -2,21 +2,23 @@
 
 <img src="ethercat.jpeg" width="400" alt="EtherCAT Setup">
 
-HoloCat is an EtherCAT master application that integrates the acontis EC-Master SDK with NVIDIA's Holoscan platform.  As of this version it is a proof-of-concept using user-space Acontis drivers, which is not performance optimized.  Also, it is not a richly flexible example, but contains hard-coded assumptions around
+HoloCat is an EtherCAT master application that integrates the Acontis EC-Master SDK with NVIDIA's Holoscan platform.  As of this version it is a proof-of-concept using user-space Acontis drivers, which is not performance optimized.  Also, it is not a richly flexible example, but contains hard-coded assumptions around
 your hardware; specifically, it targets a single DIO device.
 
 However, this is a starting point which you can tailor to your EtherCAT master application.
 
 ## Overview
 
-HoloCat provides deterministic EtherCAT communication capabilities within the Holoscan ecosystem, enabling:
+HoloCat provides EtherCAT communication capabilities using the Acontis EC-Master library within the Holoscan ecosystem, enabling:
 
-- **Real-time Control**
-- **Holoscan Native**
+- Deterministic Real-time Control: Achieves highly predictable EtherCAT cycle timing with minimal jitter by leveraging the Holoscan SDK periodic scheduling.
+- Native Holoscan Implementation: Implements EtherCAT as Holoscan operators for zero-copy data sharing and interoperability within the Holoscan ecosystem.
+- Fine-grained user control of EtherCAT timing and operation.
 
-## Quick Start Guide
+## Quick Start
 
 ### Prerequisites
+
 ```bash
 # Set EC-Master SDK path
 export ECMASTER_ROOT=/path/to/ecmaster/root
@@ -24,8 +26,10 @@ export ECMASTER_ROOT=/path/to/ecmaster/root
 # Verify installation (optional)
 ./applications/holocat/scripts/verify_ecmaster.sh
 ```
+See [Required Dependencies](#required-dependencies) for more information.
 
 ### Build Only
+
 ```bash
 # Build using HoloHub CLI (recommended)
 ./holohub build holocat --local
@@ -44,7 +48,9 @@ sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
 ```
 
 ### Build and Run
-This will build and run combined.   Note that this may not work if your system requires `sudo setcap 'cap_net_raw=ep'` to allow raw network access.  In that case, build first and set capabilities. Then run.
+
+This will build and run combined. Note that this may not work if your system requires `sudo setcap 'cap_net_raw=ep'` to allow raw network access.  In that case, build first and set capabilities. Then run.
+
 ```bash
 # Run with default configuration file
 ./holohub run holocat --local
@@ -52,11 +58,11 @@ This will build and run combined.   Note that this may not work if your system r
 
 ## Architecture Overview
 
-HoloCat implements a three-operator architecture that bridges Holoscan applications with EtherCAT slave devices through the acontis EC-Master SDK:
+HoloCat implements a three-operator architecture that bridges Holoscan applications with EtherCAT slave devices through the Acontis EC-Master SDK:
 
 ### Operator Components
 
-- **HolocatOp**: Core lifecycle manager that initializes and coordinates the EtherCAT master. It interfaces directly with the acontis EC-Master SDK to handle master initialization, ENI configuration loading, and cycle scheduling. This operator orchestrates the real-time communication loop and manages the overall EtherCAT master state machine.
+- **HolocatOp**: Core lifecycle manager that initializes and coordinates the EtherCAT master. It interfaces directly with the Acontis EC-Master SDK to handle master initialization, ENI configuration loading, and cycle scheduling. This operator orchestrates the real-time communication loop and manages the overall EtherCAT master state machine.
 
 - **HcDataTxOp**: Transmit operator responsible for handling outgoing process data from the Holoscan application to EtherCAT slaves. It manages timing control to ensure data is sent within the configured cycle boundaries and synchronizes with the EtherCAT master's scheduling.
 
@@ -68,7 +74,7 @@ HoloCat implements a three-operator architecture that bridges Holoscan applicati
 Holoscan Application
        |
        v
-   HolocatOp (acontis EC-Master SDK Interface)
+   HolocatOp (Acontis EC-Master SDK Interface)
        |
        +-- ENI Configuration Loading
        +-- Master Initialization
@@ -106,23 +112,21 @@ The architecture is configured through three primary parameters:
 - **`eni_file`**: Path to the EtherCAT Network Information (ENI) XML file defining the slave topology and process data mapping
 - **`cycle_time_us`**: EtherCAT cycle time in microseconds, defining the real-time update rate
 
-## Prerequisites
+## Required Dependencies
 
-### Required Dependencies
+### Acontis EC-Master SDK (Commercial License)
 
-1. **acontis EC-Master SDK** (Commercial License)
-This application requires the Acontis EC-Master SDK (version 3.2.3 or compatible) for EtherCAT communication. The SDK is commercial software available from Acontis at https://www.acontis.com/en/ethercat-master.html. Evaluation licenses are available for testing and development.
+This application requires the Acontis EC-Master SDK (version 3.2.3 or compatible) for EtherCAT communication. The SDK is commercial software available from Acontis at <https://www.acontis.com/en/ethercat-master.html>. Evaluation licenses are available for testing and development.
 
-Request access and download the EC-Master library from acontis: `EC-Master-V3.2-<ARCH>.tar.gz`.  Untar the library (note: it may just be tarred but not zipped) to your desired installation directory; for example, `/path/to/ecmaster/root`. Then verify your setup as described in the [Quick Start Guide](#quick-start-guide).
+Request access and download the EC-Master library from Acontis: `EC-Master-V3.2-<ARCH>.tar.gz`. Untar the library (note: it may be tarred but not gzipped) to your desired installation directory; for example, `/path/to/ecmaster/root`. Then verify your setup as described in [Quick Start](#quick-start).
 
-
-The current version uses the generic user-space driver which works with any Ethernet card, but is comparatively low-performance relative to available kernel-level Ethercat drivers.
+The current version uses the generic user-space driver which works with any Ethernet card, but is comparatively low-performance relative to available kernel-level EtherCAT drivers.
 
 ## Configuration
 
 ### Basic Configuration
 
-Create `holocat_config.yaml`:
+Create or edit the config file (e.g. `configs/holocat_config.yaml`):
 
 ```yaml
 holocat:
@@ -152,7 +156,6 @@ holoscan:
 
 Use EtherCAT configuration tools to generate your ENI file.
 
-
 ## Troubleshooting
 
 ### Common Issues
@@ -169,3 +172,4 @@ Use EtherCAT configuration tools to generate your ENI file.
    echo $ECMASTER_ROOT
    ls -la $ECMASTER_ROOT/SDK/INC/EcMaster.h
    ```
+

@@ -35,11 +35,11 @@
 #include <string>
 #include <thread>
 
-#include "holoscan/holoscan.hpp"
-#include "holocat_op.hpp"
-#include "hc_data_tx_op.hpp"
 #include "hc_data_rx_op.hpp"
+#include "hc_data_tx_op.hpp"
 #include "holocat_config.hpp"
+#include "holocat_op.hpp"
+#include "holoscan/holoscan.hpp"
 
 using namespace std::chrono_literals;
 
@@ -47,8 +47,8 @@ namespace holocat {
 namespace hardware_test {
 
 // Global variables for test data verification
-std::atomic<int> transmitted_value_ {42};
-std::atomic<int> last_count_ {0};
+std::atomic<int> transmitted_value_{42};
+std::atomic<int> last_count_{0};
 
 /**
  * @brief Check if hardware testing prerequisites are met
@@ -212,7 +212,7 @@ TEST_F(HardwareTest, DataLoopback) {
     FAIL() << "App failed: " << error_msg;
   }
 
-  EXPECT_EQ(last_count_, transmitted_value_)
+  EXPECT_EQ(last_count_.load(), transmitted_value_.load())
       << "Received value (" << last_count_.load() << ") does not match transmitted value ("
       << transmitted_value_.load() << ")";
 

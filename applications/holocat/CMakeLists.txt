@@ -28,11 +28,13 @@ find_package(EcMaster QUIET)
 if(EcMaster_FOUND)
   message(STATUS "Building HoloCat application with EC-Master SDK")
   add_subdirectory(cpp)
-
-  message(STATUS "Building HoloCat tests")
-  add_subdirectory(tests)
 else()
   message(
     STATUS
     "EC-Master SDK not found. Skipping HoloCat application build.")
+endif()
+
+if(BUILD_TESTING)
+  message(STATUS "Building HoloCat tests")
+  add_subdirectory(tests)
 endif()
