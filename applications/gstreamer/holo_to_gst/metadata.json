@@ -36,7 +36,7 @@
 			"aarch64",
 			"x86_64"
 		],
-		"tags": ["Video", "GStreamer", "Streaming", "Source", "Camera", "V4L2"],
+		"tags": ["Streaming", "Video", "GStreamer", "Source", "Camera", "V4L2"],
 		"ranking": 2,
 		"description": "Push Holoscan video data into GStreamer pipelines. Supports V4L2 cameras and pattern generators. Bridge data from Holoscan to GStreamer for encoding, streaming, or processing.",
 		"default_mode": "help",

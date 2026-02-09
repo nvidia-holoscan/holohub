@@ -516,7 +516,14 @@ void GstVideoRecorderOp::compute(InputContext& input, OutputContext& output,
       frame_count_);
 
   // Receive the video frame tensor map from the input port
-  auto tensor_map = input.receive<TensorMap>("input").value();
+  auto maybe_tensor_map = input.receive<TensorMap>("input");
+  if (!maybe_tensor_map) {
+    HOLOSCAN_LOG_DEBUG("Frame #{} - No tensor map available on input port, skipping frame",
+                       frame_count_);
+    return;
+  }
+
+  auto tensor_map = maybe_tensor_map.value();
   HOLOSCAN_LOG_DEBUG("Frame #{} - TensorMap received", frame_count_);
 
   // Initialize bridge on first frame

@@ -36,6 +36,7 @@ void PipelineBusMonitor::start() {
   }
 
   stop_flag_.store(false);
+  completion_signaled_.store(false);  // Reset completion flag for new monitoring session
 
   // Create a new promise/future for this monitoring session
   completion_promise_ = std::promise<void>();
@@ -75,6 +76,13 @@ Pipeline& PipelineBusMonitor::get_pipeline() {
   return pipeline_;
 }
 
+void PipelineBusMonitor::signal_completion() {
+  bool expected = false;
+  if (completion_signaled_.compare_exchange_strong(expected, true)) {
+    completion_promise_.set_value();
+  }
+}
+
 void PipelineBusMonitor::on_error(const Error& error, const std::string& debug_info) {
   HOLOSCAN_LOG_ERROR("GStreamer error: {}", error->message);
   if (!debug_info.empty()) {
@@ -112,17 +120,18 @@ void PipelineBusMonitor::monitor_loop() {
 
           // Error terminates monitoring
           stop_flag_.store(true);
-          completion_promise_.set_value();
+          signal_completion();
           return;
         }
 
-        case GST_MESSAGE_EOS:
+        case GST_MESSAGE_EOS: {
           on_eos();
 
           // EOS terminates monitoring
           stop_flag_.store(true);
-          completion_promise_.set_value();
+          signal_completion();
           return;
+        }
 
         case GST_MESSAGE_STATE_CHANGED: {
           // Only handle state changes from the pipeline itself (not individual elements)
@@ -135,7 +144,7 @@ void PipelineBusMonitor::monitor_loop() {
             // If pipeline transitions to NULL, stop monitoring
             if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
               stop_flag_.store(true);
-              completion_promise_.set_value();
+              signal_completion();
               return;
             }
           }
@@ -148,8 +157,8 @@ void PipelineBusMonitor::monitor_loop() {
     }
   }
 
-  // If we exit due to stop flag, still fulfill the promise
-  completion_promise_.set_value();
+  // If we exit due to stop flag, still fulfill the promise (if not already fulfilled)
+  signal_completion();
 }
 
 }  // namespace holoscan::gst

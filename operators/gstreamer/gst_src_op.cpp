@@ -32,7 +32,13 @@ void GstSrcOp::compute(InputContext& input, OutputContext& output,
   HOLOSCAN_LOG_DEBUG("GstSrcOp::compute() - Receiving tensor map");
 
   // Receive the tensor map from the input port
-  auto tensor_map = input.receive<TensorMap>("input").value();
+  auto maybe_tensor_map = input.receive<TensorMap>("input");
+  if (!maybe_tensor_map) {
+    HOLOSCAN_LOG_DEBUG("No tensor map available on input port, skipping frame");
+    return;
+  }
+
+  auto tensor_map = maybe_tensor_map.value();
   HOLOSCAN_LOG_DEBUG("TensorMap received, converting to GStreamer buffer");
 
   // Convert tensor map to GStreamer buffer

@@ -403,10 +403,20 @@ class GstSrcApp : public Application {
     std::string full_caps;
 
     if (storage_type_ == 1) {
-      // CUDA memory: insert memory feature after media type
-      full_caps = "video/x-raw(memory:CUDAMemory),format=RGBA";
+      // CUDA memory: inject memory feature into user's caps while preserving format
+      // Find "video/x-raw" and insert (memory:CUDAMemory) after it
+      std::string caps = caps_;
+      size_t pos = caps.find("video/x-raw");
+      if (pos != std::string::npos) {
+        // Insert memory feature after "video/x-raw"
+        caps.insert(pos + 11, "(memory:CUDAMemory)");
+        full_caps = caps;
+      } else {
+        // Fallback if "video/x-raw" not found - use default with user's format
+        full_caps = "video/x-raw(memory:CUDAMemory)," + caps_;
+      }
     } else {
-      // Host memory: use default caps
+      // Host memory: use user's caps as-is
       full_caps = caps_;
     }
 
@@ -581,7 +591,7 @@ int main(int argc, char** argv) {
     // Give additional time for complete cleanup
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-    HOLOSCAN_LOG_INFO("Application finished");
+    HOLOSCAN_LOG_INFO("Application finished successfully");
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Application error: {}", e.what());
     return 1;

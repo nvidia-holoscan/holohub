@@ -1,8 +1,8 @@
-# Holoscan to GStreamer Bridge
+# Holoscan to GStreamer
 
 A Holoscan application that pushes video data from Holoscan operators into GStreamer pipelines for processing, encoding, and streaming.
 
-![Holoscan to GStreamer Bridge Pipeline](docs/pipeline_diagram.png)
+![Holoscan to GStreamer Pipeline](docs/pipeline_diagram.png)
 
 Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's flexible processing pipeline
 

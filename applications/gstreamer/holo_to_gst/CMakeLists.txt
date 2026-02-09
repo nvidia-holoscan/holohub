@@ -39,3 +39,13 @@ target_link_libraries(holo-to-gst
 # Install target
 install(TARGETS holo-to-gst DESTINATION bin/holo_to_gst)
 
+# Add test
+if(BUILD_TESTING)
+  add_test(NAME holo_to_gst_test
+           COMMAND $<TARGET_FILE:holo-to-gst> --count 100 --pipeline "cudadownload name=src ! fakesink sync=false"
+           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+  set_tests_properties(holo_to_gst_test PROPERTIES
+                       PASS_REGULAR_EXPRESSION "Application finished successfully"
+                       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+endif()
+

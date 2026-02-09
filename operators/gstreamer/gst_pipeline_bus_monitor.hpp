@@ -158,8 +158,16 @@ class PipelineBusMonitor {
    */
   void monitor_loop();
 
+  /**
+   * @brief Signal completion by fulfilling the promise (idempotent)
+   *
+   * Uses atomic guard to ensure the promise is only set once.
+   */
+  void signal_completion();
+
   Pipeline pipeline_;  // Store pipeline object to manage GObject refcount
   std::atomic<bool> stop_flag_{false};
+  std::atomic<bool> completion_signaled_{false};  // Guard for promise idempotency
   std::promise<void> completion_promise_;
   std::shared_future<void> completion_future_;
   std::future<void> monitor_thread_;

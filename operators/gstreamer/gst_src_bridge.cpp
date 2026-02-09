@@ -553,8 +553,8 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_
     if (!memory_wrapper_->validate(tensor_ptr.get())) {
       HOLOSCAN_LOG_ERROR(
           "Tensor '{}' validation failed. All tensors in the map must have consistent storage "
-          "type.", name);
-      continue;
+          "type. Aborting buffer creation to avoid partial/corrupt frames.", name);
+      return buffer;  // Return empty buffer instead of continuing with partial data
     }
 
     // Create a TensorWrapper with the shared_ptr to keep tensor memory alive
@@ -565,8 +565,8 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_
         memory_wrapper_->wrap_memory(tensor_ptr.get(), tensor_wrapper.get(), free_tensor_wrapper);
 
     if (!memory) {
-      HOLOSCAN_LOG_ERROR("Failed to wrap memory for tensor '{}'", name);
-      continue;
+      HOLOSCAN_LOG_ERROR("Failed to wrap memory for tensor '{}'. Aborting buffer creation.", name);
+      return buffer;  // Return empty buffer instead of continuing with partial data
     }
 
     // Release ownership - GStreamer now manages the wrapper lifetime
