@@ -242,14 +242,54 @@ static constexpr const char* ANO_MGR_STR__DEFAULT = "default";
  * @return ManagerType
  */
 inline ManagerType manager_type_from_string(const std::string& str) {
-  if (str == ANO_MGR_STR__DPDK) return ManagerType::DPDK;
-  if (str == ANO_MGR_STR__GPUNETIO) return ManagerType::DOCA;
-  if (str == ANO_MGR_STR__RIVERMAX) return ManagerType::RIVERMAX;
-  if (str == ANO_MGR_STR__RDMA) return ManagerType::RDMA;
   if (str == ANO_MGR_STR__DEFAULT) return ManagerType::DEFAULT;
-  throw std::logic_error(std::string("Unknown manager type. Valid options: ") + ANO_MGR_STR__DPDK +
-                         "/" + ANO_MGR_STR__GPUNETIO + "/" + ANO_MGR_STR__RIVERMAX + "/" +
-                         ANO_MGR_STR__RDMA + "/" + ANO_MGR_STR__DEFAULT);
+
+  std::string available_managers;
+  bool is_known_but_unavailable = false;
+
+#if ANO_MGR_DPDK
+  if (str == ANO_MGR_STR__DPDK) return ManagerType::DPDK;
+  available_managers += std::string(ANO_MGR_STR__DPDK) + " ";
+#else
+  if (str == ANO_MGR_STR__DPDK) is_known_but_unavailable = true;
+#endif
+
+#if ANO_MGR_GPUNETIO
+  if (str == ANO_MGR_STR__GPUNETIO) return ManagerType::DOCA;
+  available_managers += std::string(ANO_MGR_STR__GPUNETIO) + " ";
+#else
+  if (str == ANO_MGR_STR__GPUNETIO) is_known_but_unavailable = true;
+#endif
+
+#if ANO_MGR_RIVERMAX
+  if (str == ANO_MGR_STR__RIVERMAX) return ManagerType::RIVERMAX;
+  available_managers += std::string(ANO_MGR_STR__RIVERMAX) + " ";
+#else
+  if (str == ANO_MGR_STR__RIVERMAX) is_known_but_unavailable = true;
+#endif
+
+#if ANO_MGR_RDMA
+  if (str == ANO_MGR_STR__RDMA) return ManagerType::RDMA;
+  available_managers += std::string(ANO_MGR_STR__RDMA) + " ";
+#else
+  if (str == ANO_MGR_STR__RDMA) is_known_but_unavailable = true;
+#endif
+
+  if (!available_managers.empty()) {
+    available_managers.pop_back();  // Remove trailing space
+  }
+
+  if (is_known_but_unavailable) {
+    throw std::invalid_argument(
+        "Manager type '" + str + "' is not available in this build. "
+        "Available managers: " + available_managers + ". "
+        "To enable '" + str + "', rebuild with CMake option: "
+        "-DANO_MGR=\"" + available_managers + " " + str + "\"");
+  }
+
+  throw std::invalid_argument(
+      "Unknown manager type '" + str + "'. Valid options: " +
+      available_managers + " " + ANO_MGR_STR__DEFAULT);
 }
 
 enum class RDMAMode {
@@ -309,9 +349,8 @@ inline std::string manager_type_to_string(ManagerType type) {
       return ANO_MGR_STR__RDMA;
     case ManagerType::DEFAULT:
       return ANO_MGR_STR__DEFAULT;
-    default:
-      return "unknown";
   }
+  return "unknown";
 }
 class LogLevel {
  public:

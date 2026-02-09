@@ -66,7 +66,11 @@ if(NOT PLATFORM_NAME)
   set(PLATFORM_NAME linux)
 endif()
 
-set(CTEST_BUILD_NAME "holohub-${PLATFORM_NAME}-${PROJ_NAME}-${TAG}")
+if(BUILD_NAME_SUFFIX)
+  set(CTEST_BUILD_NAME "holohub-${PLATFORM_NAME}-${PROJ_NAME}-${BUILD_NAME_SUFFIX}-${TAG}")
+else()
+  set(CTEST_BUILD_NAME "holohub-${PLATFORM_NAME}-${PROJ_NAME}-${TAG}")
+endif()
 
 set(CTEST_UPDATE_COMMAND "git")
 set(CTEST_CMAKE_GENERATOR "Ninja")
@@ -108,10 +112,19 @@ endif()
 # Default nightly start time
 set(CTEST_NIGHTLY_START_TIME "06:00:00 UTC")
 
-ctest_start(Nightly)
+# Dashboard model: Nightly (scheduled), Experimental (manual), or Continuous (CI)
+if(NOT DASHBOARD_MODEL)
+  set(DASHBOARD_MODEL "Nightly")
+endif()
+
+ctest_start(${DASHBOARD_MODEL})
 ctest_configure(OPTIONS "${configure_options}")
 ctest_build()
-ctest_test(RETURN_VALUE test_result)
+if(CTEST_TEST_INCLUDE)
+  ctest_test(RETURN_VALUE test_result INCLUDE "${CTEST_TEST_INCLUDE}")
+else()
+  ctest_test(RETURN_VALUE test_result)
+endif()
 
 if(COVERAGE)
   # Generate the python coverage report as XML for CTest

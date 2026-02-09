@@ -352,28 +352,6 @@ def parse_semantic_version(version: str) -> Tuple[int, int, int]:
     return tuple(map(int, match.group(1).split(".")))
 
 
-def parse_rapids_sccache_version(version: str) -> Tuple[int, int, int, int]:
-    """
-    Parse RAPIDS sccache version strings into a 4-tuple (major, minor, patch, rapids_custom).
-    Required format:
-      - "0.12.0-rapids.20"
-      - "v0.12.0-rapids.20"
-    """
-    if not isinstance(version, str):
-        raise ValueError(f"Invalid version type: {type(version)}")
-    v = version.strip()
-    # Remove leading 'v' if present
-    if v.lower().startswith("v"):
-        v = v[1:]
-    # Match format "<major>.<minor>.<patch>-rapids.<custom>"
-    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)-rapids\.(\d+)", v, re.IGNORECASE)
-    if not match:
-        raise ValueError(
-            f"Failed to parse RAPIDS sccache version string (expected MAJOR.MINOR.PATCH-rapids.CUSTOM): {version}"
-        )
-    return tuple(map(int, match.groups()))
-
-
 def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.14.1") -> None:
     """Check NVIDIA Container Toolkit version"""
 
@@ -1527,76 +1505,16 @@ def setup_sccache(min_version: str = "0.12.0-rapids.20", dry_run: bool = False) 
 
     Args:
         min_version: Minimum required RAPIDS version string ("[v]MAJOR.MINOR.PATCH-rapids.CUSTOM").
+        dry_run: If True, print commands without executing them.
     """
-    # If sccache exists and meets min_version, nothing to do
-    if shutil.which("sccache"):
-        output = run_info_command(["sccache", "--version"]) or ""
-        # Extract RAPIDS-formatted version token from output like "sccache 0.12.0-rapids.20"
-        ver_token = None
-        m = re.search(r"(?:v)?\d+\.\d+\.\d+-rapids\.\d+", output, re.IGNORECASE)
-        if m:
-            ver_token = m.group(0)
-        if ver_token:
-            try:
-                installed_ver = parse_rapids_sccache_version(ver_token)
-                required_ver = parse_rapids_sccache_version(min_version)
-                if installed_ver >= required_ver:
-                    return
-            except ValueError:
-                # Fall through to install if parsing somehow fails
-                pass
+    script_path = get_holohub_setup_scripts_dir() / "sccache.sh"
+    if not script_path.exists():
+        warn(f"sccache setup script not found: {script_path}")
+        return
 
-    # Build exact release tag from requested RAPIDS-formatted min_version
-    try:
-        major, minor, patch, custom = parse_rapids_sccache_version(min_version)
-    except ValueError:
-        fatal(
-            f"Invalid sccache RAPIDS version format: '{min_version}'. "
-            f"Expected '[v]MAJOR.MINOR.PATCH-rapids.CUSTOM' (e.g., '0.12.0-rapids.20')."
-        )
-    INSTALL_VERSION = f"v{major}.{minor}.{patch}-rapids.{custom}"
-    BASE_URL = "https://github.com/rapidsai/sccache/releases/download"
-    install_dir = "/opt/sccache"
-    symlink_path = "/usr/local/bin/sccache"
-
-    # Normalize arch to match release artifacts
-    machine = platform.machine().lower()
-    if machine in ["x86_64", "amd64"]:
-        arch = "x86_64"
-    elif machine in ["aarch64", "arm64"]:
-        arch = "aarch64"
-    else:
-        arch = machine  # best effort fallback
-
-    tarball_name = f"sccache-{INSTALL_VERSION}-{arch}-unknown-linux-musl.tar.gz"
-    url = f"{BASE_URL}/{INSTALL_VERSION}/{tarball_name}"
-    tar_path = os.path.join(install_dir, "sccache.tar.gz")
-
-    try:
-        # Prepare install directory
-        run_command(["mkdir", "-p", install_dir], dry_run=dry_run)
-        # Download release tarball (wget, like other setup methods)
-        run_command(
-            ["wget", "--quiet", "--content-disposition", url, "-O", tar_path], dry_run=dry_run
-        )
-        # Extract just the 'sccache' binary into install_dir
-        extracted_rel = f"sccache-{INSTALL_VERSION}-{arch}-unknown-linux-musl/sccache"
-        run_command(
-            ["tar", "-xzf", tar_path, "-C", install_dir, "--strip-components=1", extracted_rel],
-            dry_run=dry_run,
-        )
-        run_command(["chmod", "u+x", os.path.join(install_dir, "sccache")], dry_run=dry_run)
-        # Link into /usr/local/bin (sudo added automatically if required)
-        abs_bin = os.path.abspath(os.path.join(install_dir, "sccache"))
-        run_command(["ln", "-sf", abs_bin, symlink_path], dry_run=dry_run)
-    except Exception as e:
-        fatal(f"Failed to install sccache: {e}")
-    finally:
-        # Remove downloaded tarball
-        try:
-            run_command(["rm", "-f", tar_path], dry_run=dry_run)
-        except Exception:
-            pass
+    env = os.environ.copy()
+    env["SCCACHE_MIN_VERSION"] = min_version
+    run_command(["bash", str(script_path)], dry_run=dry_run, env=env)
 
 
 def get_cuda_runtime_version() -> Optional[str]:
