@@ -4,5 +4,5 @@ codespell==2.4.1
 cpplint==2.0.2
 isort==7.0.0
 mypy==1.19.1
-ruff==0.14.14
+ruff==0.15.0
 clang-format==21.*
