@@ -94,6 +94,13 @@ class VideoInfo {
   gsize get_n_planes() const;
 
   /**
+   * @brief Get pixel stride for a specific component
+   * @param component Component index
+   * @return Pixel stride (bytes to next pixel in same plane), or 0 if invalid
+   */
+  gsize get_comp_pstride(int component) const;
+
+  /**
    * @brief Get video format
    * @return GstVideoFormat enum value
    */
