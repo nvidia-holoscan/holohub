@@ -15,29 +15,30 @@
  * limitations under the License.
  */
 
-#ifndef HOLOSCAN__GSTREAMER__GST_SRC_RESOURCE_HPP
-#define HOLOSCAN__GSTREAMER__GST_SRC_RESOURCE_HPP
+#ifndef HOLOSCAN__GSTREAMER__GST_SINK_RESOURCE_HPP
+#define HOLOSCAN__GSTREAMER__GST_SINK_RESOURCE_HPP
 
+#include <future>
 #include <memory>
 #include <string>
 
 #include <holoscan/holoscan.hpp>
 
 #include "gst/buffer.hpp"
-#include "gst_src_bridge.hpp"
+#include "gst_sink_bridge.hpp"
 
 namespace holoscan {
 
 /**
- * @brief Holoscan Resource that wraps GstSrcBridge for GStreamer pipeline integration
+ * @brief Holoscan Resource that wraps GstSinkBridge for GStreamer pipeline integration
  *
  * This class provides a Holoscan-specific interface to GStreamer pipelines,
  * integrating with Holoscan's entity system. It delegates actual GStreamer
- * operations to GstSrcBridge.
+ * operations to GstSinkBridge.
  */
-class GstSrcResource : public Resource {
+class GstSinkResource : public Resource {
  public:
-  HOLOSCAN_RESOURCE_FORWARD_ARGS(GstSrcResource)
+  HOLOSCAN_RESOURCE_FORWARD_ARGS(GstSinkResource)
 
   /**
    * @brief Setup the resource parameters
@@ -45,7 +46,7 @@ class GstSrcResource : public Resource {
   void setup(ComponentSpec& spec) override;
 
   /**
-   * @brief Initialize the GStreamer source resource
+   * @brief Initialize the GStreamer sink resource
    */
   void initialize() override;
 
@@ -56,54 +57,33 @@ class GstSrcResource : public Resource {
   std::shared_future<gst::Element> get_gst_element() const;
 
   /**
-   * @brief Send End-Of-Stream signal to appsrc
-   *
-   * Call this when you're done sending data to signal the downstream pipeline
-   * to finalize processing (e.g., write file headers/trailers).
-   *
-   * Note: This function returns immediately after sending EOS. The caller should
-   * wait for the EOS message on the pipeline bus to know when processing is complete.
-   *
-   * @return true if EOS was successfully sent (GST_FLOW_OK), false otherwise
+   * @brief Asynchronously pull the next buffer from the GStreamer pipeline
+   * @return Future that will be fulfilled when a buffer becomes available
    */
-  bool send_eos();
+  std::future<gst::Buffer> pull_buffer();
 
   /**
-   * @brief Push a buffer into the GStreamer pipeline
-   *
-   * If the queue is at capacity (controlled by max_buffers parameter), this function
-   * will block (if block=true) or timeout (if block=false) until space becomes available,
-   * or EOS is signaled.
-   *
-   * @param buffer GStreamer buffer to push
-   * @return true if buffer was successfully queued, false if buffer is invalid, or EOS was signaled
-   *
-   * @note If max_buffers is set to 0, the queue is unlimited and no blocking occurs.
-   */
-  bool push_buffer(gst::Buffer buffer);
-
-  /**
-   * @brief Create a GStreamer buffer from a TensorMap
+   * @brief Create a TensorMap from GStreamer buffer with zero-copy
    *
    * Supports both packed formats (RGBA, RGB) and planar formats (I420, NV12).
-   * For multi-plane formats, expects separate tensors with naming convention:
+   * For multi-plane formats, creates separate tensors with naming convention:
    *   - "video_frame" for Y/luma plane
    *   - "video_frame_u", "video_frame_v" for chroma planes (I420)
    *   - "video_frame_uv" for interleaved chroma (NV12)
    *
-   * @param tensor_map TensorMap containing one or more tensors
-   * @return GStreamer Buffer with zero-copy wrapping, empty on failure
+   * @param buffer GStreamer buffer containing the data (passed by value for ownership)
+   * @return TensorMap containing one or more named tensors, empty map on failure
    */
-  gst::Buffer create_buffer_from_tensor_map(const TensorMap& tensor_map) const;
+  TensorMap create_tensor_map_from_buffer(gst::Buffer buffer) const;
 
  private:
   // Bridge to GStreamer (does the actual work)
-  std::shared_ptr<GstSrcBridge> bridge_;
+  std::shared_ptr<GstSinkBridge> bridge_;
 
   // Resource parameters
   Parameter<std::string> caps_;
   Parameter<size_t> max_buffers_;
-  Parameter<bool> block_;
+  Parameter<bool> qos_;
 
   // Promise/future for element access (resolves after initialize())
   std::promise<gst::Element> element_promise_;
@@ -112,4 +92,4 @@ class GstSrcResource : public Resource {
 
 }  // namespace holoscan
 
-#endif /* HOLOSCAN__GSTREAMER__GST_SRC_RESOURCE_HPP */
+#endif /* HOLOSCAN__GSTREAMER__GST_SINK_RESOURCE_HPP */

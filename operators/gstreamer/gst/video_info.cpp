@@ -78,6 +78,13 @@ gsize VideoInfo::get_n_planes() const {
   return GST_VIDEO_INFO_N_PLANES(&video_info_);
 }
 
+gsize VideoInfo::get_comp_pstride(int component) const {
+  if (component < 0 || static_cast<guint>(component) >= video_info_.finfo->n_components) {
+    return 0;
+  }
+  return GST_VIDEO_INFO_COMP_PSTRIDE(&video_info_, component);
+}
+
 GstVideoFormat VideoInfo::get_format() const {
   return GST_VIDEO_INFO_FORMAT(&video_info_);
 }
