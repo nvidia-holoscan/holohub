@@ -661,26 +661,6 @@
         },
         {
             "type": "shell",
-            "label": "Build slang_simple (C++)",
-            "command": "./holohub",
-            "args": [
-                "build",
-                "slang_simple",
-                "--build-type",
-                "debug",
-                "--local",
-                "--language",
-                "cpp"
-            ],
-            "options": {
-                "cwd": "${env:WORKSPACE_DIR}"
-            },
-            "group": "build",
-            "problemMatcher": [],
-            "detail": "CMake template build task"
-        },
-        {
-            "type": "shell",
             "label": "Build slang_simple (Python)",
             "command": "./holohub",
             "args": [
@@ -691,6 +671,26 @@
                 "--local",
                 "--language",
                 "python"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build slang_simple (C++)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "slang_simple",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
